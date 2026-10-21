@@ -1,0 +1,16 @@
+bin/
+obj/
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+.claude/settings.local.json
+appsettings.Development.json
+appsettings.*.local.json
+secrets.json
+*.PublishSettings
+*.pubxml.user
+DataProtectionKeys/
+node_modules/
+wwwroot/uploads/
