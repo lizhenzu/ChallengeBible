@@ -89,6 +89,7 @@
   .stats b i { font-style: normal; font-size: 12px; color: var(--dim); }
 
   .viewing { margin-top: 20px; padding: 12px 14px; border-radius: 12px; background: var(--soft); display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .viewing[hidden] { display: none; }
   .viewing button { margin-left: auto; border: 1px solid var(--rule); background: var(--bg); border-radius: 8px; padding: 6px 10px; font-size: 13px; }
   .band { margin-top: 16px; padding: 22px 18px; border-radius: 22px; background: var(--band); color: var(--band-fg); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
   .stampB { width: 66px; height: 66px; border-radius: 50%; border: 3px solid var(--band-ring); display: grid; place-content: center; font-size: 13px; font-weight: 900; line-height: 1.3; transform: rotate(-8deg); }
@@ -113,19 +114,21 @@
   .m.next { box-shadow: 0 0 0 2px currentColor inset; }
 
   .cal .h { display: flex; justify-content: space-between; align-items: center; }
-  .cal h2 { margin: 0; font-size: 20px; }
-  .arr { display: flex; }
-  .arr button { width: 44px; height: 44px; border: 0; background: none; font-size: 20px; color: var(--dim); }
+  .cal h2 { margin: 0; font-size: 22px; }
+  .arr { display: flex; gap: 4px; }
+  .arr button { width: 44px; height: 44px; border: 0; background: none; font-size: 24px; color: var(--dim); }
   .dow, .grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
-  .dow { margin-top: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--rule); text-align: center; font-size: 12px; color: var(--dim); }
-  .grid { gap: 3px; margin-top: 6px; }
-  .grid button { height: 58px; border: 2px solid transparent; border-radius: 12px; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 16px; }
-  .grid small { font-size: 12px; font-weight: 700; color: var(--accent); }
-  .grid .o { color: var(--dim); opacity: .5; cursor: default; }
+  .dow { margin-top: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--rule); text-align: center; font-size: 13px; color: var(--dim); }
+  /* 칸 사이 틈 없음: 네 가지 다 한 날이 한 덩어리로 이어지고, 줄 사이에는 얇은 선 */
+  .grid { gap: 0; }
+  .grid button { height: 62px; border: 0; border-top: 1px solid var(--rule); border-radius: 0; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 18px; color: var(--fg); position: relative; }
+  .grid button:nth-child(-n+7) { border-top-color: transparent; }
+  .grid small { font-size: 13px; font-weight: 700; color: var(--accent); }
+  .grid .o { color: var(--dim); opacity: .45; cursor: default; }
   .grid .o small, .grid .f small { color: var(--dim); font-weight: 400; }
-  .grid .all { background: var(--cell); }
-  .grid .today { border-color: var(--accent); font-weight: 700; }
-  .grid .sel { box-shadow: 0 0 0 2px var(--fg) inset; }
+  .grid .all { background: var(--cell); border-radius: 14px; }
+  .grid .today { box-shadow: 0 0 0 3px var(--accent) inset; border-radius: 14px; font-weight: 700; }
+  .grid .sel:not(.today) { box-shadow: 0 0 0 2px var(--dim) inset; border-radius: 14px; }
 
   /* 아래 메뉴(휴대폰) */
   nav.tab { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--bg); border-top: 1px solid var(--rule);
