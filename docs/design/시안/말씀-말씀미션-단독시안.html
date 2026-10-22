@@ -1,0 +1,165 @@
+<title>말씀 미션 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@500;700&display=swap">
+<style>
+  /* 레이아웃: 얇은 머리말(미션 홈 · 날짜) → 말씀 머리(범위 · 제목) → 요약 → 생각해 봐요 → 영상 → 한 것 누르기. 넓은 화면은 본문 왼쪽 · 버튼 오른쪽 고정 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA;
+    --accent: #2B59C3; --on-accent: #FFFFFF; --tint: #EEF3FC; --tint-fg: #3D5A96; --stamp: #5E9277;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    --serif: "Noto Serif KR", "Nanum Myeongjo", "Batang", serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #15181C; --soft: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A;
+    --accent: #7FA2F2; --on-accent: #0E1013; --tint: #1C2433; --tint-fg: #A9BDE8; --stamp: #8DBBA2; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #15181C; --soft: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A;
+    --accent: #7FA2F2; --on-accent: #0E1013; --tint: #1C2433; --tint-fg: #A9BDE8; --stamp: #8DBBA2; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+
+  header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); }
+  header.top .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 64px; border-bottom: 1px solid var(--rule); }
+  .back { min-height: 44px; display: flex; align-items: center; gap: 4px; font-size: 16px; font-weight: 700; color: var(--dim); }
+  .date { font-size: 13px; letter-spacing: .14em; color: var(--dim); }
+
+  .head { background: var(--tint); color: var(--tint-fg); }
+  .head .wrap { padding-block: 26px 24px; }
+  .k { font-size: 13px; letter-spacing: .14em; font-weight: 700; opacity: .8; }
+  .head h1 { margin: 6px 0 0; font-size: 30px; font-weight: 900; line-height: 1.3; color: var(--fg); text-wrap: balance; }
+  .ref { margin-top: 8px; font-size: 16px; font-weight: 700; }
+  .state { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .state span { padding: 6px 12px; border-radius: 999px; background: var(--bg); font-size: 13px; font-weight: 700; }
+
+  main .wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+  section.blk { padding-block: 24px; border-bottom: 1px solid var(--rule); }
+  .lbl { font-size: 13px; font-weight: 700; letter-spacing: .16em; color: var(--accent); margin-bottom: 10px; }
+  .sum { margin: 0; font-family: var(--serif); font-size: 18px; line-height: 1.95; word-break: keep-all; max-width: 36em; }
+  .key { margin: 14px 0 0; padding: 14px 16px; border-left: 3px solid var(--accent); background: var(--soft); font-family: var(--serif); font-size: 16px; line-height: 1.8; word-break: keep-all; }
+  .key cite { display: block; margin-top: 4px; font-family: var(--sans); font-style: normal; font-size: 12px; color: var(--dim); }
+  .readAll { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; min-height: 54px; padding: 0 18px; border: 1px solid var(--rule); border-radius: 14px; font-size: 15px; font-weight: 700; color: var(--accent); }
+  .readAll small { font-weight: 400; color: var(--dim); }
+  .qs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .qs li { display: flex; gap: 12px; font-size: 16px; line-height: 1.7; }
+  .qs li b { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--tint); color: var(--tint-fg); display: grid; place-content: center; font-size: 13px; }
+  .vids { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .vid { display: flex; flex-direction: column; gap: 6px; padding: 12px; border: 1px solid var(--rule); border-radius: 14px; }
+  .vid .th { aspect-ratio: 16 / 9; max-width: 100%; border-radius: 10px; background: linear-gradient(135deg, var(--tint), var(--soft)); display: grid; place-content: center; color: var(--tint-fg); }
+  .vid b { font-size: 14px; }
+  .vid small { font-size: 12px; color: var(--dim); }
+
+  /* 한 것 누르기 */
+  .act { padding-block: 24px 120px; }
+  .act .lbl { margin-bottom: 4px; }
+  .act p.h { margin: 0 0 14px; font-size: 14px; color: var(--dim); }
+  .opt { width: 100%; min-height: 66px; margin-bottom: 10px; padding: 0 18px; border-radius: 16px; border: 0; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 17px; font-weight: 700; text-align: left; }
+  .opt small { font-size: 14px; font-weight: 700; }
+  .opt.on { background: var(--bg); color: var(--fg); box-shadow: 0 0 0 2px var(--stamp) inset; cursor: default; }
+  .opt.on small { color: var(--stamp); }
+  .opt .ck { width: 30px; height: 30px; border-radius: 50%; display: grid; place-content: center; background: var(--stamp); color: var(--bg); flex: none; }
+  .opt .l { display: flex; align-items: center; gap: 12px; }
+  .doneMsg { margin: 6px 0 0; padding: 14px 16px; border-radius: 14px; background: var(--soft); font-size: 14px; color: var(--dim); }
+  .doneMsg b { color: var(--fg); }
+  .rule { margin: 14px 0 0; font-size: 13px; color: var(--dim); line-height: 1.6; }
+
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 14px 20px; border-radius: 14px; font-size: 16px; font-weight: 700; white-space: nowrap; animation: up .25s ease; }
+  @keyframes up { from { transform: translate(-50%, 16px); opacity: 0; } to { transform: translateX(-50%); opacity: 1; } }
+
+  @media (min-width: 900px) {
+    main .wrap { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); column-gap: 44px; align-items: start; }
+    .content section.blk:last-child { border-bottom: 0; }
+    .act { position: sticky; top: 84px; padding-block: 24px; border-bottom: 0; }
+    .head h1 { font-size: 36px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
+</style>
+
+<header class="top gut">
+  <div class="wrap">
+    <a class="back" href="https://claude.ai/artifact/QYa8ThNwp18tv4drEP7ae2"><span aria-hidden="true">‹</span> 미션 홈</a>
+    <span class="date num">2027.01.05 TUE</span>
+  </div>
+</header>
+
+<section class="head gut">
+  <div class="wrap">
+    <div class="k num">01 · 오늘의 말씀 · 1월 5일 (화)</div>
+    <h1>믿음의 종의 기도</h1>
+    <div class="ref">창세기 24장 1 ~ 9절</div>
+    <div class="state" id="state"></div>
+  </div>
+</section>
+
+<main class="gut">
+  <div class="wrap">
+    <div class="content">
+      <section class="blk" aria-labelledby="l1">
+        <div class="lbl" id="l1">말씀 요약</div>
+        <p class="sum">나이가 많아진 아브라함은 집안일을 맡은 늙은 종을 불러, 아들 이삭의 아내를 고향 땅에서 찾아오라고 부탁해요. 종이 걱정하자 아브라함은 하나님이 천사를 앞서 보내 길을 열어 주실 거라고 말해요.</p>
+        <div class="key">아브라함이 나이가 많아 늙었고 여호와께서 그에게 범사에 복을 주셨더라<cite>창세기 24:1 · 개역개정</cite></div>
+        <a class="readAll" href="#bible">본문 전체 읽기 (9절) <small>개역개정 · 현대인 · NIV →</small></a>
+      </section>
+
+      <section class="blk" aria-labelledby="l2">
+        <div class="lbl" id="l2">생각해 봐요</div>
+        <ol class="qs">
+          <li><b class="num">1</b><span>아브라함은 왜 종에게 이삭의 아내를 고향에서 찾아오라고 했을까요?</span></li>
+          <li><b class="num">2</b><span>걱정되는 일이 있을 때, 나는 하나님께 어떻게 맡길 수 있을까요?</span></li>
+        </ol>
+      </section>
+
+      <section class="blk" aria-labelledby="l3">
+        <div class="lbl" id="l3">영상으로 보기</div>
+        <div class="vids">
+          <a class="vid" href="#video"><span class="th" aria-hidden="true"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b>창세기 24장 이야기</b><small class="num">0:00 ~ 3:20</small></a>
+          <a class="vid" href="#video"><span class="th" aria-hidden="true"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b>믿음으로 맡기기</b><small class="num">5:10 ~ 7:45</small></a>
+        </div>
+      </section>
+    </div>
+
+    <section class="blk act" aria-labelledby="l4">
+      <div class="lbl" id="l4">한 것을 눌러 주세요</div>
+      <p class="h">한 번 누른 것은 취소되지 않아요. 각각 따로 누를 수 있어요.</p>
+      <div id="opts"></div>
+      <p class="doneMsg" id="doneMsg"></p>
+      <p class="rule">오늘 · 어제 · 그제 말씀만 할 수 있어요. 미션 홈 달력에서 날짜를 골라 지난 말씀을 할 수 있어요.</p>
+    </section>
+  </div>
+</main>
+
+<script>
+  // 예시: 오늘(1/5) "내가 읽었어요"는 이미 함, "부모님께 읽어드렸어요"는 아직. 항목 이름 · 점수는 부서 설정 값(0032)
+  const ITEMS = [
+    { key: 'me', label: '내가 읽었어요', pts: 1, on: true },
+    { key: 'parent', label: '부모님께 읽어드렸어요', pts: 1, on: false },
+  ];
+  let total = 24;
+  const ck = '<span class="ck" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>';
+  function render() {
+    document.getElementById('opts').innerHTML = ITEMS.map((it) => it.on
+      ? `<button type="button" class="opt on" aria-pressed="true" disabled><span class="l">${ck}${it.label}</span><small>완료</small></button>`
+      : `<button type="button" class="opt" data-k="${it.key}" aria-pressed="false"><span class="l">${it.label}</span><small>+${it.pts}점</small></button>`).join('');
+    const n = ITEMS.filter((i) => i.on).length;
+    document.getElementById('state').innerHTML = `<span>${n === 0 ? '아직 안 했어요' : '말씀 미션 완료'}</span><span class="num">${n} / ${ITEMS.length}</span><span class="num">오늘 말씀 +${ITEMS.filter((i) => i.on).reduce((s, i) => s + i.pts, 0)}점</span>`;
+    document.getElementById('doneMsg').innerHTML = n === ITEMS.length
+      ? '<b>오늘 말씀을 모두 했어요.</b> 미션 홈으로 돌아가 남은 미션을 해 보세요.'
+      : `<b>하나만 해도 말씀 미션은 완료</b>예요. 남은 것도 하면 점수가 더 쌓여요.`;
+    document.querySelectorAll('.opt[data-k]').forEach((b) => b.onclick = () => {
+      const it = ITEMS.find((i) => i.key === b.dataset.k);
+      it.on = true; total += it.pts; render();
+      toast(`+${it.pts}점! 올해 총 ${total}점`);
+    });
+  }
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2200); }
+  document.querySelectorAll('a[href="#bible"], a[href="#video"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast(a.getAttribute('href') === '#bible' ? '본문 읽기 화면으로 가요 (다음 시안)' : '유튜브 영상이 새 탭에서 열려요 (시안)'); }));
+  render();
+</script>
