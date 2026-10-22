@@ -54,6 +54,8 @@
 | `ReciteAlreadyDone` | 422 | R-51 | 이번 주 암송은 이미 완료했어요 |
 | `TenantSlugNotFound` | 422 | 0026 | 영역 코드를 찾을 수 없어요 (진급 처리) |
 | `PromotionPending` | 409 | 0030 | 이미 진행 중인 진급 요청이 있어요 |
+| `ResetNotAllowed` | 403 | 0035 | 이 계정은 플랫폼 관리자에게 초기화를 요청해 주세요 |
+| `MustChangePassword` | 403 | 0035 | 새 비밀번호로 바꿔 주세요 |
 
 ## 3. 권한 표
 
@@ -71,6 +73,7 @@
 | 콘텐츠 덮어쓰기 · 규칙 · 시즌 · 기능 스위치 · 대표 색 | | | | ● | ● |
 | 가족팀 관리 · 단계 카드 숨김 | | | | ● | ● |
 | 참여자 성경 읽음 초기화 (0029) | | | | ● | ● |
+| 비밀번호 임시 초기화 (0035, 다른 영역 관리자 · 플랫폼 관리자 계정 제외) | | | | ● | ● |
 | 영역 · 공용 콘텐츠 · 퀴즈 은행 · 성경 · 플랫폼 규칙 · 감사 로그 · 사용량 | | | | | ● |
 
 - 한 사람이 역할을 여러 개 가지면 합집합(0027). 권한은 역할 · 정책으로만 판단한다(X-11).
@@ -82,7 +85,7 @@
 |---|---|---|
 | `/` | 랜딩 | 1차 |
 | `/account/login`, `/account/register`, `/account/logout` | 로그인 · 가입(아이디 · 비밀번호 · 이름만, R-137) | 1차 |
-| `/account/password` | 비밀번호 변경(찾기는 관리자 초기화로 대신 — 이메일 · 전화를 받지 않으므로) | 1차 |
+| `/account/password` | 비밀번호 변경. 찾기는 없음 — 영역 관리자가 임시 비밀번호로 초기화(0035). 초기화된 계정은 로그인 직후 이 화면으로 강제 이동 | 1차 |
 | `/account` | 내 계정: 이름 · 사진 · 소속 영역 목록 | 1차 |
 | `/account/tenants` | 영역 선택 · 전환(R-135) | 1차 |
 | `/{slug}/join` | 소속 신청(희망 역할: 참여자 · 보호자) | 1차 |
@@ -193,6 +196,7 @@
 | `POST /api/{slug}/admin/members/{id}/promote` `{ targetSlug }` | 진급 요청 보내기 |
 | `POST /api/{slug}/admin/promotions/{id}/approve` · `/reject` | 받은 진급 요청 처리(시스템 연결) |
 | `DELETE /api/{slug}/admin/members/{id}/bible-reads` | 성경 읽음 · 책갈피 초기화(시스템 연결, 0029) |
+| `POST /api/{slug}/admin/members/{id}/reset-password` | 임시 비밀번호 발급(시스템 연결, 0035) → `{ "temporaryPassword": "…" }`. 대상이 플랫폼 관리자이거나 다른 영역 관리자면 403 `ResetNotAllowed` |
 | `GET /api/{slug}/admin/season/{year}/impact?startDate=` | 시작일 변경 시 빠지는 점수가 있는 참여자 수 |
 | `PUT /api/{slug}/admin/season/{year}` `{ startDate }` | 시즌 시작일 변경(0028) |
 
