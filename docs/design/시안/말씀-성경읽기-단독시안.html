@@ -1,0 +1,241 @@
+<title>말씀 본문 읽기 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(DailyMission4/BibleRead 구성): 위쪽 줄(미션홈 · 말씀미션 / 글자 크기) → 오늘의 말씀 제목 · 진도 → 다 읽음 띠 → 보기 설정 → 책 개요(간략 · 상세) → 구간 요약 → 절 목록(✓ ★ 끝에) → 페이지 모두 읽음 · 이전 · 다음 */
+  :root {
+    --bg: #FFFFFF; --band: #F5F6F8; --fg: #1B1F24; --tx: #1F2937; --dim: #6B7280; --dim2: #4B5563; --rule: #E5E7EB;
+    --accent: #2B59C3; --on-accent: #FFFFFF; --tint: #E8EEFA; --tint-fg: #2B59C3; --chip: #F3F5F8;
+    --star-off: #EEF0F3; --star-on: #E0A100; --green: #16A34A; --green-bg: #EAF7EF;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; --fs: 1;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #15181C; --band: #1C2026; --fg: #E8EAED; --tx: #E1E4E8; --dim: #9AA1AB; --dim2: #B3B9C2; --rule: #2C323A;
+    --accent: #7FA2F2; --on-accent: #0E1013; --tint: #22304A; --tint-fg: #9DB7F5; --chip: #1E2329;
+    --star-off: #262B33; --star-on: #F2BE3A; --green: #5CC98A; --green-bg: #1B2A22; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #15181C; --band: #1C2026; --fg: #E8EAED; --tx: #E1E4E8; --dim: #9AA1AB; --dim2: #B3B9C2; --rule: #2C323A;
+    --accent: #7FA2F2; --on-accent: #0E1013; --tint: #22304A; --tint-fg: #9DB7F5; --chip: #1E2329;
+    --star-off: #262B33; --star-on: #F2BE3A; --green: #5CC98A; --green-bg: #1B2A22; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .col { max-width: 640px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+
+  .bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); }
+  .bar .col > div { display: flex; align-items: center; justify-content: space-between; min-height: 58px; border-bottom: 1px solid var(--rule); }
+  .crumb { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; color: var(--dim2); }
+  .crumb a { min-height: 44px; display: inline-flex; align-items: center; }
+  .crumb span { color: var(--rule); }
+  .fs { display: flex; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+  .fs button { min-height: 36px; padding: 0 10px; border: 0; background: none; color: var(--dim2); font-size: 13px; }
+  .fs button small { font-size: 15px; margin-left: 2px; }
+  .fs button:disabled { opacity: .35; cursor: default; }
+  .fs .pc { min-width: 50px; border-left: 1px solid var(--rule); border-right: 1px solid var(--rule); font-size: 12px; font-weight: 700; color: var(--dim); }
+  .fs .pc.ch { color: var(--accent); background: var(--band); }
+
+  .head { padding-block: 20px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .k { font-size: 13px; font-weight: 800; color: var(--accent); }
+  .ttl { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+  .ttl .bk { font-size: 32px; font-weight: 800; letter-spacing: -.02em; }
+  .ttl .rg { font-size: 20px; font-weight: 500; color: var(--dim2); }
+  .meta { display: flex; justify-content: space-between; font-size: 14px; color: var(--dim); }
+  .line { height: 4px; border-radius: 2px; background: var(--rule); overflow: hidden; }
+  .line i { display: block; height: 4px; background: var(--green); transition: width .25s; }
+  .done { margin-bottom: 16px; padding: 14px 16px; border-left: 3px solid var(--green); background: var(--green-bg); color: var(--green); font-size: 16px; font-weight: 800; }
+  .done[hidden] { display: none; }
+
+  .opts { display: flex; flex-direction: column; gap: 12px; padding-block: 16px; }
+  .lbl { font-size: 13px; color: var(--dim); letter-spacing: .06em; margin-bottom: 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips button { min-height: 40px; padding: 0 16px; border: 1px solid var(--rule); border-radius: 10px; background: var(--chip); font-size: 14px; }
+  .chips button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
+  .chips button.yt { display: inline-flex; align-items: center; gap: 6px; }
+
+  .ov { padding-block: 4px; }
+  .ovHead { width: 100%; min-height: 58px; display: flex; align-items: center; gap: 10px; border: 0; background: none; font-size: 17px; font-weight: 700; text-align: left; }
+  .ovHead .car { margin-left: auto; font-size: 12px; color: var(--dim); transition: transform .2s; }
+  .ovHead[aria-expanded="true"] .car { transform: rotate(180deg); }
+  .ovBody[hidden] { display: none; }
+  .ovBody { padding-bottom: 16px; }
+  .sw { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--band); margin-bottom: 10px; }
+  .sw button { min-height: 34px; padding: 0 14px; border: 0; border-radius: 8px; background: none; font-size: 13px; color: var(--dim); }
+  .sw button[aria-pressed="true"] { background: var(--bg); color: var(--fg); font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+  .row:last-child { border-bottom: 0; }
+  .row b { flex: 0 0 72px; font-size: 13px; font-weight: 700; color: var(--accent); padding-top: 2px; }
+  .row span { font-size: calc(15px * var(--fs)); line-height: 1.75; word-break: keep-all; }
+  .kws { display: flex; flex-wrap: wrap; gap: 6px; }
+  .kws i { font-style: normal; font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--tint); color: var(--tint-fg); }
+  .ovList { margin: 0; padding-left: 20px; font-size: calc(15px * var(--fs)); line-height: 1.85; }
+
+  .sum { margin-top: 16px; padding: 14px 16px; border-left: 3px solid var(--accent); background: var(--band); }
+  .sum .r { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .06em; }
+  .sum .kw { margin-top: 4px; font-size: calc(18px * var(--fs)); font-weight: 800; line-height: 1.45; }
+  .sum .b { margin-top: 3px; font-size: calc(14.5px * var(--fs)); line-height: 1.75; color: var(--dim2); word-break: keep-all; }
+
+  .verses { list-style: none; margin: 4px 0 0; padding: 0; }
+  .v { display: flex; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--rule); }
+  .no { width: 30px; height: 30px; flex: none; border-radius: 50%; background: var(--tint); color: var(--tint-fg); display: grid; place-items: center; font-size: 13px; font-weight: 700; margin-top: 3px; }
+  .v .tx { min-width: 0; flex: 1; }
+  .v p { margin: 0; font-size: calc(17px * var(--fs)); line-height: 1.95; word-break: keep-all; }
+  .v .alt { margin-top: 6px; font-size: calc(14.5px * var(--fs)); line-height: 1.8; color: var(--dim2); }
+  .v .alt.en { font-style: italic; }
+  .acts { display: inline-flex; gap: 6px; vertical-align: middle; margin-left: 6px; }
+  .rb { width: 36px; height: 36px; border-radius: 50%; border: 0; display: inline-grid; place-items: center; background: var(--star-off); color: var(--dim); }
+  .rb.chk[aria-pressed="true"] { background: var(--green); color: var(--on-accent); }
+  .rb.star[aria-pressed="true"] { color: var(--star-on); }
+
+  .foot { display: flex; flex-direction: column; gap: 12px; padding-block: 18px 40px; }
+  .all { min-height: 52px; border: 1px solid var(--green); border-radius: 12px; background: var(--bg); color: var(--green); font-size: 15px; font-weight: 800; }
+  .all.on { background: var(--green); color: var(--on-accent); }
+  .nav { display: flex; align-items: center; gap: 10px; }
+  .nav button { min-height: 48px; padding: 0 18px; border: 1px solid var(--rule); border-radius: 12px; background: var(--chip); font-size: 15px; font-weight: 700; }
+  .nav button:disabled { color: var(--dim); opacity: .6; cursor: default; }
+  .nav span { flex: 1; text-align: center; font-size: 13px; color: var(--dim); }
+  .note { margin: 0; font-size: 13px; color: var(--dim); text-align: center; line-height: 1.6; min-height: 2.6em; }
+  .back { min-height: 52px; border-radius: 12px; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { .line i, .ovHead .car { transition: none; } }
+</style>
+
+<div class="bar">
+  <div class="col"><div>
+    <nav class="crumb" aria-label="위치"><a href="https://claude.ai/artifact/QYa8ThNwp18tv4drEP7ae2">미션홈</a><span aria-hidden="true">·</span><a href="https://claude.ai/artifact/Rav4bwL1Cid6r6yjTuhEFE">말씀미션</a></nav>
+    <div class="fs" role="group" aria-label="글자 크기">
+      <button type="button" id="fsDn" aria-label="글자 작게">가<small>−</small></button>
+      <button type="button" class="pc num" id="fsPc" aria-label="글자 크기 100%, 누르면 처음 크기로">100%</button>
+      <button type="button" id="fsUp" aria-label="글자 크게">가<small>+</small></button>
+    </div>
+  </div></div>
+</div>
+
+<main class="col">
+  <div class="head">
+    <div class="k">오늘의 말씀 · 1월 5일 (화)</div>
+    <h1 class="ttl"><span class="bk">창세기</span><span class="rg num">24장 1~9절</span></h1>
+    <div class="meta num"><span id="meta"></span><span id="pct"></span></div>
+    <div class="line"><i id="bar"></i></div>
+  </div>
+  <div class="done" id="done" hidden>오늘 말씀 9절을 다 읽었어요</div>
+  <hr>
+
+  <section class="opts" aria-label="보기 설정">
+    <div><div class="lbl">읽기 단위</div><div class="chips" id="unit">
+      <button type="button" data-u="1" aria-pressed="false">한 절</button><button type="button" data-u="3" aria-pressed="true">3절</button><button type="button" data-u="5" aria-pressed="false">5절</button><button type="button" data-u="0" aria-pressed="false">전체</button>
+    </div></div>
+    <div><div class="lbl">번역</div><div class="chips" id="tr">
+      <button type="button" data-t="ko" aria-pressed="true">개역개정</button><button type="button" data-t="mo" aria-pressed="false">현대인</button><button type="button" data-t="en" aria-pressed="false">NIV</button><button type="button" data-t="all" aria-pressed="false">모두</button>
+    </div></div>
+    <div><div class="lbl">듣기</div><div class="chips">
+      <button type="button" class="yt" id="listen"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>말씀 듣기</button>
+    </div></div>
+  </section>
+  <hr>
+
+  <section class="ov">
+    <button type="button" class="ovHead" id="ovHead" aria-expanded="false" aria-controls="ovBody">창세기 개요 <span class="car" aria-hidden="true">▼</span></button>
+    <div class="ovBody" id="ovBody" hidden>
+      <div class="sw" role="group" aria-label="개요 보기"><button type="button" data-o="short" aria-pressed="true">간략본</button><button type="button" data-o="long" aria-pressed="false">상세본</button></div>
+      <div id="ovShort">
+        <div class="row"><b>저자</b><span>모세</span></div>
+        <div class="row"><b>기록 시기</b><span>예수님이 태어나기 전(B.C.) 1400년대</span></div>
+        <div class="row"><b>개요</b><span>하나님이 세상을 만드시고, 아브라함과 그 가족을 불러 약속을 이어 가시는 이야기예요.</span></div>
+        <div class="row"><b>기록 목적</b><span>하나님이 어떤 분이시고, 사람을 어떻게 사랑하시는지 처음부터 알려 주기 위해 기록되었어요.</span></div>
+      </div>
+      <div id="ovLong" hidden>
+        <div class="row"><b>핵심어</b><span class="kws"><i>창조</i><i>타락</i><i>언약</i><i>믿음</i><i>약속</i><i>족장</i></span></div>
+        <div class="row"><b>핵심 내용</b><span><ol class="ovList"><li>세상의 시작과 사람의 죄 (1~11장)</li><li>아브라함의 부르심과 믿음 (12~25장)</li><li>이삭과 야곱 (25~36장)</li><li>요셉 이야기 (37~50장)</li></ol></span></div>
+      </div>
+    </div>
+  </section>
+  <hr>
+
+  <div class="sum">
+    <div class="r num">24장 1~9절</div>
+    <div class="kw">걱정 대신 하나님께 맡겨요</div>
+    <div class="b">아브라함은 이삭의 아내를 찾는 일을 종에게 맡기며, 하나님이 천사를 앞서 보내실 거라고 믿었어요.</div>
+  </div>
+
+  <ol class="verses" id="verses" aria-label="본문"></ol>
+
+  <div class="foot">
+    <button type="button" class="all" id="all">이 페이지 모두 읽음</button>
+    <div class="nav"><button type="button" id="prev">◀ 이전</button><span id="range" class="num"></span><button type="button" id="next">다음 ▶</button></div>
+    <p class="note" id="note" role="status">넘기기만 해서는 읽음으로 표시되지 않아요. 읽음 표시는 점수와 상관없고, 점수는 말씀 미션의 "어떻게 읽었나요?"에서 받아요.</p>
+    <a class="back" href="https://claude.ai/artifact/Rav4bwL1Cid6r6yjTuhEFE">다 읽었으면 말씀 미션으로 돌아가기</a>
+  </div>
+</main>
+
+<script>
+  // 시안 데이터: 창세기 24:1~9. 1~3절은 개역개정 · NIV 본문, 나머지와 현대인의성경은 자리 표시
+  const TOTAL = 9;
+  const KO = { 1: '아브라함이 나이가 많아 늙었고 여호와께서 그에게 범사에 복을 주셨더라', 2: '아브라함이 자기 집 모든 소유를 맡은 늙은 종에게 이르되 청하건대 네 손을 내 허벅지 밑에 넣으라', 3: '내가 너에게 하늘의 하나님, 땅의 하나님이신 여호와를 가리켜 맹세하게 하노니 너는 내가 거주하는 이 지방 가나안 족속의 딸 중에서 내 아들을 위하여 아내를 택하지 말고' };
+  const EN = { 1: 'Abraham was now very old, and the LORD had blessed him in every way.', 2: 'He said to the senior servant in his household, the one in charge of all that he had, "Put your hand under my thigh.', 3: 'I want you to swear by the LORD, the God of heaven and the God of earth, that you will not get a wife for my son from the daughters of the Canaanites, among whom I am living,' };
+  const text = (t, n) => t === 'ko' ? (KO[n] || `[개역개정 창세기 24:${n}]`) : t === 'en' ? (EN[n] || `[NIV Genesis 24:${n}]`) : `[현대인의성경 창세기 24:${n}]`;
+  const read = new Set(), starred = new Set([2]);
+  let unit = 3, page = 0, tr = 'ko';
+  const $ = (id) => document.getElementById(id);
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2000); }
+  const per = () => unit || TOTAL;
+  const visible = () => { const a = page * per() + 1; return Array.from({ length: Math.min(per(), TOTAL - a + 1) }, (_, i) => a + i); };
+  const ck = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
+  const st = '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>';
+
+  function render() {
+    const nums = visible(), main = tr === 'all' ? 'ko' : tr;
+    $('verses').innerHTML = nums.map((n) => `<li class="v"><span class="no num">${n}</span><div class="tx">
+      <p>${text(main, n)}<span class="acts">
+        <button type="button" class="rb chk" data-n="${n}" aria-pressed="${read.has(n)}" aria-label="${n}절 ${read.has(n) ? '읽음 해제' : '읽음 표시'}">${ck}</button>
+        <button type="button" class="rb star" data-s="${n}" aria-pressed="${starred.has(n)}" aria-label="${n}절 북마크">${st}</button></span></p>
+      ${tr === 'all' ? `<div class="alt">${text('mo', n)}</div><div class="alt en">${text('en', n)}</div>` : ''}</div></li>`).join('');
+    const pct = Math.round(read.size / TOTAL * 100);
+    $('meta').textContent = `${TOTAL}절 · ${read.size}절 읽음`; $('pct').textContent = pct + '%';
+    $('bar').style.width = pct + '%';
+    $('done').hidden = read.size < TOTAL;
+    const allOn = nums.every((n) => read.has(n));
+    $('all').classList.toggle('on', allOn);
+    $('all').textContent = allOn ? '이 페이지 모두 읽었어요' : `이 페이지 ${nums.length}절 모두 읽음`;
+    $('range').textContent = `${nums[0]}–${nums[nums.length - 1]}절 / ${TOTAL}`;
+    $('prev').disabled = page === 0; $('next').disabled = (page + 1) * per() >= TOTAL;
+  }
+  $('verses').addEventListener('click', (e) => {
+    const c = e.target.closest('.chk'), s = e.target.closest('.star');
+    if (c) { const n = +c.dataset.n; read.has(n) ? read.delete(n) : read.add(n); render(); if (read.size === TOTAL) toast('오늘 말씀 9절을 다 읽었어요'); }
+    if (s) { const n = +s.dataset.s; starred.has(n) ? starred.delete(n) : starred.add(n); render(); }
+  });
+  $('all').onclick = () => { visible().forEach((n) => read.add(n)); render(); if (read.size === TOTAL) toast('오늘 말씀 9절을 다 읽었어요'); };
+  $('next').onclick = () => { const left = visible().filter((n) => !read.has(n)).length; page++; render(); $('note').textContent = left ? `앞 페이지의 ${left}절은 읽음 표시 없이 넘어왔어요.` : '앞 페이지는 모두 읽음으로 표시돼 있어요.'; };
+  $('prev').onclick = () => { page = Math.max(0, page - 1); render(); };
+  $('unit').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; unit = +b.dataset.u; page = 0; $('unit').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b)); render(); };
+  $('tr').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; tr = b.dataset.t; $('tr').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b)); render(); };
+  $('listen').onclick = () => toast('유튜브 말씀 듣기 영상이 새 탭에서 열려요 (시안)');
+  $('ovHead').onclick = () => { const open = $('ovBody').hidden; $('ovBody').hidden = !open; $('ovHead').setAttribute('aria-expanded', open); };
+  document.querySelectorAll('.sw button').forEach((b) => b.onclick = () => {
+    document.querySelectorAll('.sw button').forEach((x) => x.setAttribute('aria-pressed', x === b));
+    $('ovShort').hidden = b.dataset.o !== 'short'; $('ovLong').hidden = b.dataset.o !== 'long';
+  });
+
+  let step = 0;
+  try { step = Math.max(-5, Math.min(5, +(localStorage.getItem('dmFsStep') || 0))); } catch (e) { }
+  function applyFs(save) {
+    const pct = 100 + step * (step < 0 ? 5 : 10);
+    document.documentElement.style.setProperty('--fs', pct / 100);
+    $('fsPc').textContent = pct + '%'; $('fsPc').classList.toggle('ch', step !== 0);
+    $('fsPc').setAttribute('aria-label', `글자 크기 ${pct}%, 누르면 처음 크기로`);
+    $('fsDn').disabled = step <= -5; $('fsUp').disabled = step >= 5;
+    if (save) { try { localStorage.setItem('dmFsStep', String(step)); } catch (e) { } }
+  }
+  $('fsDn').onclick = () => { step--; applyFs(true); };
+  $('fsUp').onclick = () => { step++; applyFs(true); };
+  $('fsPc').onclick = () => { step = 0; applyFs(true); };
+  applyFs(false);
+  render();
+</script>

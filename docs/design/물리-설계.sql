@@ -337,8 +337,11 @@ CREATE TABLE app.WeeklyVerse (
     StartVerse          smallint      NOT NULL,
     EndChapter          smallint      NOT NULL,
     EndVerse            smallint      NOT NULL,
-    LessonTitle         nvarchar(200) NULL,
-    LessonInfo          nvarchar(max) NULL,
+    Title               nvarchar(200) NOT NULL,      -- 질문형 제목
+    LessonNo            smallint      NULL,          -- 공과 번호(예: 36과)
+    LessonSummary       nvarchar(200) NULL,          -- 한 줄 요점
+    LessonPoint         nvarchar(max) NULL,          -- 학습 요점
+    LessonApply         nvarchar(max) NULL,          -- 적용
     CreatedUtc          datetime2(3)  NOT NULL,
     CreatedByAccountId  int           NOT NULL CONSTRAINT FK_WeeklyVerse_CreatedBy REFERENCES app.Account(Id),
     CONSTRAINT CK_WeeklyVerse_Period CHECK (EndDate >= StartDate),
