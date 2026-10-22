@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>본문 읽기</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1B1F24;text-decoration:none}a:hover{color:#1B1F24}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F6F8; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px 12px">
+    <div style="display: flex; align-items: center; gap: 4px">
+      <a href="Word.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+      </a>
+      <span style="font-size: 18px; font-weight: 700">창세기 1:1–5</span>
+    </div>
+    <button aria-label="글자 크기" style="width: 44px; height: 44px; border-radius: 12px; border: 1px solid #DDE1E6; background: #FFFFFF; font-size: 15px; font-weight: 700; color: #1B1F24">가</button>
+  </header>
+
+  <main style="flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 4px 20px 16px; overflow: hidden">
+    <div role="tablist" aria-label="번역" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: #E9ECF0">
+      <button role="tab" aria-selected="true" style="min-height: 40px; border: 0; border-radius: 9px; background: #FFFFFF; font-size: 14px; font-weight: 700; color: #1B1F24">개역개정</button>
+      <button role="tab" aria-selected="false" style="min-height: 40px; border: 0; border-radius: 9px; background: transparent; font-size: 14px; font-weight: 500; color: #5B6470">현대인의성경</button>
+      <button role="tab" aria-selected="false" style="min-height: 40px; border: 0; border-radius: 9px; background: transparent; font-size: 14px; font-weight: 500; color: #5B6470">영어</button>
+    </div>
+
+    <details style="background: #FFFFFF; border-radius: 14px; padding: 0 16px">
+      <summary style="min-height: 48px; display: flex; align-items: center; font-size: 14px; font-weight: 700; cursor: pointer">창세기 소개</summary>
+      <p style="margin: 0 0 14px; font-size: 14px; line-height: 1.7; color: #1B1F24">[책 소개 — 플랫폼 관리자가 입력]</p>
+    </details>
+
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 6px 0">
+      <sc-for list="{{verses}}" as="v" hint-placeholder-count="5">
+        <div style="display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px 10px 16px; border-bottom: 1px solid #F0F2F4">
+          <span style="min-width: 18px; font-size: 13px; font-weight: 700; color: {{accent}}; padding-top: 3px">{{v.no}}</span>
+          <span style="flex: 1; font-size: 16px; line-height: 1.7; color: {{v.textColor}}">{{v.text}}</span>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <button aria-label="{{v.readLabel}}" aria-pressed="{{v.read}}" style="width: 36px; height: 36px; border-radius: 18px; border: 0; background: {{v.readBg}}; display: flex; align-items: center; justify-content: center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{v.readStroke}}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+            </button>
+            <button aria-label="책갈피" aria-pressed="{{v.mark}}" style="width: 36px; height: 36px; border-radius: 18px; border: 0; background: none; display: flex; align-items: center; justify-content: center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="{{v.markFill}}" stroke="{{v.markStroke}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>
+            </button>
+          </div>
+        </div>
+      </sc-for>
+    </section>
+
+    <div style="display: flex; gap: 10px">
+      <button style="flex: 1; min-height: 50px; border-radius: 14px; border: 0; background: {{accent}}; color: #FFFFFF; font-size: 15px; font-weight: 700">전체 읽음</button>
+      <button style="flex: 1; min-height: 50px; border-radius: 14px; border: 1px solid #DDE1E6; background: #FFFFFF; color: #1B1F24; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M10 9l5 3-5 3z"></path></svg>
+        영상 0:00–3:20
+      </button>
+    </div>
+    <div style="font-size: 12px; color: #5B6470; text-align: center">읽음 표시는 점수와 상관없어요. 점수는 말씀 화면의 버튼으로 받아요.</div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2B59C3","options":["#2B59C3","#1F7A5C","#B2462E","#6A4BB5"],"section":"부서 대표 색"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#2B59C3';
+    const raw = [
+      [1, '태초에 하나님이 천지를 창조하시니라', true, false],
+      [2, '땅이 혼돈하고 공허하며 흑암이 깊음 위에 있고 하나님의 영은 수면 위에 운행하시니라', true, false],
+      [3, '하나님이 이르시되 빛이 있으라 하시니 빛이 있었고', true, true],
+      [4, '빛이 하나님이 보시기에 좋았더라 하나님이 빛과 어둠을 나누사', false, false],
+      [5, '하나님이 빛을 낮이라 부르시고 어둠을 밤이라 부르시니라 저녁이 되고 아침이 되니 이는 첫째 날이니라', false, false]
+    ];
+    const verses = raw.map(function (r) {
+      return {
+        no: r[0], text: r[1], read: r[2], mark: r[3],
+        readLabel: r[2] ? '읽음 해제' : '읽음 표시',
+        readBg: r[2] ? accent : '#F0F2F4',
+        readStroke: r[2] ? '#FFFFFF' : '#5B6470',
+        textColor: '#1B1F24',
+        markFill: r[3] ? accent : 'none',
+        markStroke: r[3] ? accent : '#5B6470'
+      };
+    });
+    return { accent: accent, verses: verses };
+  }
+}
+</script>
+</body>
+</html>

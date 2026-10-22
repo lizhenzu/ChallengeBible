@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>참여자 상세</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1B1F24;text-decoration:none}a:hover{color:#1B1F24}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F6F8; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex; flex-direction: column; overflow: hidden; position: relative">
+
+  <header style="display: flex; align-items: center; gap: 4px; padding: 16px 12px 8px">
+    <a href="Members.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </a>
+    <div style="display: flex; flex-direction: column">
+      <span style="font-size: 18px; font-weight: 700">김철수</span>
+      <span style="font-size: 13px; color: #5B6470">cheolsu · 3학년 2반 · 참여자</span>
+    </div>
+  </header>
+
+  <main style="flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 4px 20px 16px; overflow: hidden">
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <section style="background: #FFFFFF; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 12px; color: #5B6470">시즌 점수</span>
+        <span style="font-size: 20px; font-weight: 700; color: {{accent}}">24점</span>
+      </section>
+      <section style="background: #FFFFFF; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 12px; color: #5B6470">연속 참여</span>
+        <span style="font-size: 20px; font-weight: 700">5일</span>
+      </section>
+      <section style="background: #FFFFFF; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 12px; color: #5B6470">완주일</span>
+        <span style="font-size: 20px; font-weight: 700">3일</span>
+      </section>
+    </div>
+
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px">
+      <span style="font-size: 15px; font-weight: 700; margin-bottom: 4px">최근 활동</span>
+      <sc-for list="{{recent}}" as="r" hint-placeholder-count="3">
+        <div style="display: flex; justify-content: space-between; min-height: 36px; align-items: center; font-size: 14px; border-top: 1px solid #F0F2F4">
+          <span>{{r.what}}</span>
+          <span style="color: #5B6470">{{r.when}}</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 6px 16px; display: flex; flex-direction: column">
+      <button style="min-height: 50px; border: 0; background: none; text-align: left; font-size: 15px; color: #1B1F24; border-bottom: 1px solid #F0F2F4">역할 · 그룹 라벨 바꾸기</button>
+      <button style="min-height: 50px; border: 0; background: none; text-align: left; font-size: 15px; color: #1B1F24; border-bottom: 1px solid #F0F2F4">진급 처리 (다른 부서로 보내기)</button>
+      <button style="min-height: 50px; border: 0; background: none; text-align: left; font-size: 15px; color: #1B1F24; border-bottom: 1px solid #F0F2F4">비밀번호 초기화</button>
+      <button style="min-height: 50px; border: 0; background: none; text-align: left; font-size: 15px; color: #A3361C">성경 읽음 기록 초기화</button>
+    </section>
+  </main>
+
+  <div style="position: absolute; left: 0; top: 0; width: 390px; height: 844px; background: rgba(27, 31, 36, 0.55); display: flex; align-items: flex-end">
+    <section role="dialog" aria-modal="true" aria-labelledby="reset-title" style="width: 100%; background: #FFFFFF; border-radius: 24px 24px 0 0; padding: 24px 20px 32px; display: flex; flex-direction: column; gap: 14px; box-sizing: border-box">
+      <h2 id="reset-title" style="margin: 0; font-size: 19px">임시 비밀번호를 만들었어요</h2>
+      <p style="margin: 0; font-size: 14px; color: #5B6470; line-height: 1.6">김철수에게 직접 알려 주세요. 다음 로그인 때 새 비밀번호로 바꾸게 돼요.</p>
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border-radius: 14px; background: #F1F4FA">
+        <span style="font-size: 24px; font-weight: 700; letter-spacing: 2px; font-family: ui-monospace, Menlo, monospace">sky-4271</span>
+        <button style="min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9CED5; background: #FFFFFF; font-size: 14px; font-weight: 700; color: #1B1F24">복사</button>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #A3361C; font-weight: 500">이 창을 닫으면 다시 볼 수 없어요.</p>
+      <button style="min-height: 52px; border-radius: 14px; border: 0; background: {{accent}}; color: #FFFFFF; font-size: 16px; font-weight: 700">확인했어요</button>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2B59C3","options":["#2B59C3","#1F7A5C","#B2462E","#6A4BB5"],"section":"부서 대표 색"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const recent = [
+      { what: '말씀 · 부모님께 읽어드리기', when: '오늘 19:42' },
+      { what: '퀴즈 · 1차 오답', when: '오늘 19:38' },
+      { what: '기도 · 나를 위해', when: '오늘 19:35' }
+    ];
+    return { accent: this.props.accent ?? '#2B59C3', recent: recent };
+  }
+}
+</script>
+</body>
+</html>

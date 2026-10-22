@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>축하 팝업</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #5A6068; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex; align-items: center; justify-content: center; padding: 24px">
+  <section role="dialog" aria-modal="true" aria-labelledby="celebrate-title" style="width: 100%; background: #FFFFFF; border-radius: 24px; padding: 32px 24px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center">
+    <div style="width: 72px; height: 72px; border-radius: 36px; background: {{accent}}; display: flex; align-items: center; justify-content: center">
+      <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"></path></svg>
+    </div>
+    <div style="font-size: 15px; font-weight: 700; color: {{accent}}">+1점 · 올해 총 3,001점</div>
+    <h2 id="celebrate-title" style="margin: 0; font-size: 24px; line-height: 1.4">3,000점을 넘었어요</h2>
+    <p style="margin: 0; font-size: 15px; line-height: 1.7; color: #5B6470">매일 말씀과 함께한 시간이 쌓였어요.<br>다음 목표는 5,000점이에요.</p>
+    <button style="width: 100%; min-height: 54px; border-radius: 16px; border: 0; background: {{accent}}; color: #FFFFFF; font-size: 17px; font-weight: 700; margin-top: 8px">고마워요</button>
+    <div style="width: 100%; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid #E3E6EA">
+      <span style="font-size: 13px; color: #5B6470">이 알림 잠시 숨기기</span>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <button style="min-height: 44px; border-radius: 12px; border: 1px solid #DDE1E6; background: #FFFFFF; font-size: 14px; font-weight: 500; color: #1B1F24">1일</button>
+        <button style="min-height: 44px; border-radius: 12px; border: 1px solid #DDE1E6; background: #FFFFFF; font-size: 14px; font-weight: 500; color: #1B1F24">3일</button>
+        <button style="min-height: 44px; border-radius: 12px; border: 1px solid #DDE1E6; background: #FFFFFF; font-size: 14px; font-weight: 500; color: #1B1F24">7일</button>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2B59C3","options":["#2B59C3","#1F7A5C","#B2462E","#6A4BB5"],"section":"부서 대표 색"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#2B59C3' };
+  }
+}
+</script>
+</body>
+</html>

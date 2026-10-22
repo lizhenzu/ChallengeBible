@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>퀴즈</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1B1F24;text-decoration:none}a:hover{color:#1B1F24}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F6F8; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px 12px">
+    <div style="display: flex; align-items: center; gap: 4px">
+      <a href="Main.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+      </a>
+      <div style="display: flex; flex-direction: column">
+        <span style="font-size: 18px; font-weight: 700">오늘의 퀴즈</span>
+        <span style="font-size: 13px; color: #5B6470">1월 5일 화요일</span>
+      </div>
+    </div>
+    <div style="padding: 6px 12px; border-radius: 14px; background: #FFFFFF; border: 1px solid #DDE1E6; font-size: 13px; font-weight: 700">도전 1 / 2</div>
+  </header>
+
+  <main style="flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 4px 20px 20px; overflow: hidden">
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 12px; color: #5B6470">배경 설명 · 창세기 1장</div>
+      <div style="font-size: 19px; font-weight: 700; line-height: 1.5">하나님이 첫째 날에 만드신 것은 무엇일까요?</div>
+    </section>
+
+    <div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #FDF1EC; color: #8A3A1F; font-size: 14px; font-weight: 500">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A3A1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+      오답이에요 (1/2) 한 번 더 도전해 보세요
+    </div>
+
+    <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+      <legend style="font-size: 14px; color: #5B6470; padding: 0; margin-bottom: 10px">답을 하나 고르세요</legend>
+      <sc-for list="{{choices}}" as="c" hint-placeholder-count="4">
+        <label style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 16px; border-radius: 14px; background: {{c.bg}}; border: 2px solid {{c.border}}; font-size: 16px; font-weight: 500; color: {{c.color}}">
+          <input type="radio" name="answer" checked="{{c.selected}}" disabled="{{c.tried}}" style="width: 20px; height: 20px; margin: 0; accent-color: {{accent}}">
+          <span style="flex: 1">{{c.no}}. {{c.text}}</span>
+          <sc-if value="{{c.tried}}" hint-placeholder-val="{{false}}">
+            <span style="font-size: 12px; font-weight: 700; color: #8A3A1F">내가 고른 답</span>
+          </sc-if>
+        </label>
+      </sc-for>
+    </fieldset>
+
+    <button style="margin-top: auto; min-height: 56px; border-radius: 16px; border: 0; background: {{accent}}; color: #FFFFFF; font-size: 17px; font-weight: 700">답 제출하기</button>
+    <div style="text-align: center; font-size: 13px; color: #5B6470">정답이면 +1점 · 오늘 남은 기회 1번</div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2B59C3","options":["#2B59C3","#1F7A5C","#B2462E","#6A4BB5"],"section":"부서 대표 색"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#2B59C3';
+    const raw = [
+      { no: 1, text: '하늘', tried: true, selected: false },
+      { no: 2, text: '빛', tried: false, selected: true },
+      { no: 3, text: '땅과 바다', tried: false, selected: false },
+      { no: 4, text: '해와 달', tried: false, selected: false }
+    ];
+    const choices = raw.map(function (c) {
+      return Object.assign({}, c, {
+        bg: c.tried ? '#F5F6F8' : '#FFFFFF',
+        border: c.selected ? accent : (c.tried ? '#E3B4A3' : '#FFFFFF'),
+        color: c.tried ? '#5B6470' : '#1B1F24'
+      });
+    });
+    return { accent: accent, choices: choices };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>미션 홈</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1B1F24;text-decoration:none}a:hover{color:#1B1F24}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F6F8; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px">
+    <button style="display: flex; align-items: center; gap: 6px; background: none; border: 0; padding: 0; min-height: 44px; font-size: 16px; font-weight: 700; color: #1B1F24">
+      잠실새내교회 유년부
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5B6470" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+    <button aria-label="글자 크기" style="width: 44px; height: 44px; border-radius: 12px; border: 1px solid #DDE1E6; background: #FFFFFF; font-size: 15px; font-weight: 700; color: #1B1F24">가</button>
+  </header>
+
+  <main style="flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 4px 20px 16px; overflow: hidden">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <div style="font-size: 22px; font-weight: 700">철수님, 안녕하세요</div>
+      <div style="font-size: 14px; color: #5B6470">1월 5일 화요일</div>
+    </div>
+
+    <div style="display: flex; gap: 8px">
+      <button style="min-height: 40px; padding: 0 16px; border-radius: 20px; border: 0; background: {{accent}}; color: #FFFFFF; font-size: 14px; font-weight: 700">오늘</button>
+      <button style="min-height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #DDE1E6; background: #FFFFFF; color: #1B1F24; font-size: 14px; font-weight: 500">어제</button>
+      <button style="min-height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #DDE1E6; background: #FFFFFF; color: #1B1F24; font-size: 14px; font-weight: 500">그제</button>
+    </div>
+
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: baseline; justify-content: space-between">
+        <div style="font-size: 14px; color: #5B6470">2027 시즌 점수</div>
+        <div style="font-size: 13px; color: #5B6470">다음 축하까지 2,976점</div>
+      </div>
+      <div style="font-size: 32px; font-weight: 700; color: {{accent}}">24점</div>
+      <div style="height: 8px; border-radius: 4px; background: #E9ECF0; overflow: hidden">
+        <div style="width: 2%; height: 8px; background: {{accent}}"></div>
+      </div>
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 6px; height: 72px; padding-top: 4px">
+        <sc-for list="{{week}}" as="d" hint-placeholder-count="7">
+          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px">
+            <div style="font-size: 11px; color: #5B6470">{{d.points}}</div>
+            <div style="width: 100%; border-radius: 4px; background: {{d.color}}; height: {{d.h}}"></div>
+            <div style="font-size: 11px; color: #5B6470">{{d.label}}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size: 13px; color: #5B6470">최근 7일 합계 <span style="font-weight: 700; color: #1B1F24">24점</span></div>
+    </section>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <sc-for list="{{missions}}" as="m" hint-placeholder-count="4">
+        <a href="{{m.href}}" style="background: #FFFFFF; border-radius: 16px; padding: 14px; min-height: 96px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; border: 2px solid {{m.border}}">
+          <div style="display: flex; align-items: center; justify-content: space-between">
+            <span style="font-size: 17px; font-weight: 700">{{m.name}}</span>
+            <sc-if value="{{m.done}}" hint-placeholder-val="{{true}}">
+              <span style="width: 26px; height: 26px; border-radius: 13px; background: {{accent}}; display: flex; align-items: center; justify-content: center">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+              </span>
+            </sc-if>
+          </div>
+          <div style="font-size: 13px; color: #5B6470">{{m.status}}</div>
+        </a>
+      </sc-for>
+    </div>
+
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; color: #5B6470">오늘의 한 줄 말씀</div>
+      <div style="font-size: 15px; line-height: 1.5">태초에 하나님이 천지를 창조하시니라</div>
+      <div style="font-size: 12px; color: #5B6470">창세기 1:1</div>
+    </section>
+  </main>
+
+  <nav aria-label="주 메뉴" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #FFFFFF; border-top: 1px solid #E3E6EA; padding: 6px 8px 18px">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; font-size: 12px; font-weight: 700; color: {{accent}}">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{accent}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg>
+      홈
+    </a>
+    <a href="Calendar.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; font-size: 12px; color: #5B6470">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B6470" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+      달력
+    </a>
+    <a href="Calendar.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; font-size: 12px; color: #5B6470">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B6470" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>
+      내 점수
+    </a>
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; font-size: 12px; color: #5B6470">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B6470" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"></path><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"></path></svg>
+      순위
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2B59C3","options":["#2B59C3","#1F7A5C","#B2462E","#6A4BB5"],"section":"부서 대표 색"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#2B59C3';
+    const pts = [['12/30', 0], ['12/31', 0], ['1/1', 6], ['1/2', 5], ['1/3', 6], ['1/4', 4], ['오늘', 3]];
+    const week = pts.map(function (p) {
+      return { label: p[0], points: p[1], h: Math.max(3, Math.round(p[1] / 6 * 40)) + 'px', color: p[1] > 0 ? accent : '#E3E6EA' };
+    });
+    const missions = [
+      { name: '말씀', status: '2개 모두 했어요', done: true, href: 'Word.dc.html' },
+      { name: '기도', status: '1 / 2 했어요', done: false, href: 'Main.dc.html' },
+      { name: '퀴즈', status: '한 번 더 도전할 수 있어요', done: false, href: 'Quiz.dc.html' },
+      { name: '암송', status: '이번 주 완료', done: true, href: 'Main.dc.html' }
+    ].map(function (m) { return Object.assign({}, m, { border: m.done ? accent : '#FFFFFF' }); });
+    return { accent: accent, week: week, missions: missions };
+  }
+}
+</script>
+</body>
+</html>

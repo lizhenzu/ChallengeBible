@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>소속 신청</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1B1F24;text-decoration:none}a:hover{color:#1B1F24}
+button,input{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F6F8; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex; flex-direction: column; padding: 56px 20px 28px; gap: 18px">
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <span style="font-size: 14px; color: #5B6470">jsn-kids</span>
+    <h1 style="margin: 0; font-size: 24px; line-height: 1.4">잠실새내교회 유년부에<br>함께하기</h1>
+  </div>
+
+  <section style="background: #FFFFFF; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 6px">
+    <span style="font-size: 13px; color: #5B6470">신청하는 사람</span>
+    <span style="font-size: 17px; font-weight: 700">김철수 (cheolsu)</span>
+  </section>
+
+  <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+    <legend style="font-size: 15px; font-weight: 700; padding: 0; margin-bottom: 10px">어떻게 함께할까요?</legend>
+    <label style="display: flex; align-items: flex-start; gap: 12px; padding: 16px; border-radius: 16px; background: #FFFFFF; border: 2px solid {{accent}}">
+      <input type="radio" name="role" checked style="width: 20px; height: 20px; margin: 2px 0 0; accent-color: {{accent}}">
+      <span style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 16px; font-weight: 700">미션에 참여할래요</span>
+        <span style="font-size: 13px; color: #5B6470; line-height: 1.5">매일 미션을 하고 점수를 모아요</span>
+      </span>
+    </label>
+    <label style="display: flex; align-items: flex-start; gap: 12px; padding: 16px; border-radius: 16px; background: #FFFFFF; border: 2px solid #FFFFFF">
+      <input type="radio" name="role" style="width: 20px; height: 20px; margin: 2px 0 0; accent-color: {{accent}}">
+      <span style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 16px; font-weight: 700">자녀를 지켜볼래요 (보호자)</span>
+        <span style="font-size: 13px; color: #5B6470; line-height: 1.5">선생님이 자녀와 연결해 주면 자녀의 기록을 볼 수 있어요</span>
+      </span>
+    </label>
+  </fieldset>
+
+  <button style="margin-top: auto; min-height: 56px; border-radius: 16px; border: 0; background: {{accent}}; color: #FFFFFF; font-size: 17px; font-weight: 700">신청하기</button>
+  <p style="margin: 0; font-size: 13px; color: #5B6470; text-align: center; line-height: 1.6">선생님이 승인하면 미션을 시작할 수 있어요.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2B59C3","options":["#2B59C3","#1F7A5C","#B2462E","#6A4BB5"],"section":"부서 대표 색"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#2B59C3' };
+  }
+}
+</script>
+</body>
+</html>

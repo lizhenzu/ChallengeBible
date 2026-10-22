@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>영역 관리</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1B1F24;text-decoration:none}a:hover{color:#1B1F24}
+button,input,select{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F6F8; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="display: flex; flex-direction: column; gap: 2px; padding: 20px 20px 8px; background: #1B1F24; color: #FFFFFF">
+    <span style="font-size: 13px; color: #C9CED5">플랫폼 관리</span>
+    <span style="font-size: 22px; font-weight: 700; padding-bottom: 10px">영역 관리</span>
+  </header>
+
+  <main style="flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 14px 20px 16px; overflow: hidden">
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <span style="font-size: 15px; font-weight: 700">새 영역 만들기</span>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="t-name" style="font-size: 13px; color: #5B6470">이름</label>
+        <input id="t-name" type="text" value="잠실새내교회 중등부" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #C9CED5; font-size: 15px">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="t-slug" style="font-size: 13px; color: #5B6470">영역 코드 (주소에 쓰여요)</label>
+        <input id="t-slug" type="text" value="jsn-middle" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #C9CED5; font-size: 15px; font-family: ui-monospace, Menlo, monospace">
+        <span style="font-size: 12px; color: #5B6470">주소: /jsn-middle · 영문 소문자 · 숫자 · 하이픈</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="t-tz" style="font-size: 13px; color: #5B6470">시간대</label>
+          <select id="t-tz" style="min-height: 44px; padding: 0 8px; border-radius: 10px; border: 1px solid #C9CED5; font-size: 14px; background: #FFFFFF"><option>Asia/Seoul</option></select>
+        </div>
+        <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px">
+          <legend style="font-size: 13px; color: #5B6470; padding: 0; margin-bottom: 6px">대표 색</legend>
+          <div style="display: flex; gap: 6px">
+            <sc-for list="{{colors}}" as="c" hint-placeholder-count="4">
+              <label style="width: 36px; height: 36px; border-radius: 18px; background: {{c.hex}}; border: 3px solid {{c.ring}}; box-sizing: border-box; display: flex; align-items: center; justify-content: center">
+                <input type="radio" name="color" aria-label="{{c.name}}" checked="{{c.on}}" style="opacity: 0; width: 1px; height: 1px; margin: 0">
+              </label>
+            </sc-for>
+          </div>
+        </fieldset>
+      </div>
+      <button style="min-height: 50px; border-radius: 12px; border: 0; background: #1B1F24; color: #FFFFFF; font-size: 15px; font-weight: 700">만들기</button>
+    </section>
+
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 8px 16px; display: flex; flex-direction: column">
+      <sc-for list="{{tenants}}" as="t" hint-placeholder-count="3">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 60px; border-bottom: 1px solid #F0F2F4">
+          <span style="width: 12px; height: 12px; border-radius: 6px; background: {{t.hex}}"></span>
+          <span style="flex: 1; display: flex; flex-direction: column">
+            <span style="font-size: 15px; font-weight: 700">{{t.name}}</span>
+            <span style="font-size: 12px; color: #5B6470">/{{t.slug}} · 참여자 {{t.count}}명</span>
+          </span>
+          <span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 10px; background: {{t.badgeBg}}; color: {{t.badgeColor}}">{{t.status}}</span>
+        </div>
+      </sc-for>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const colors = [
+      { name: '파랑', hex: '#2B59C3', on: false },
+      { name: '초록', hex: '#1F7A5C', on: true },
+      { name: '주황', hex: '#B2462E', on: false },
+      { name: '보라', hex: '#6A4BB5', on: false }
+    ].map(function (c) { return Object.assign({}, c, { ring: c.on ? '#1B1F24' : '#FFFFFF' }); });
+    const tenants = [
+      { name: '잠실새내교회 유년부', slug: 'jsn-kids', count: 42, hex: '#2B59C3', status: '운영' },
+      { name: '잠실새내교회 초등부', slug: 'jsn-elem', count: 57, hex: '#6A4BB5', status: '운영' },
+      { name: '잠실새내교회 고등부', slug: 'jsn-high', count: 0, hex: '#B2462E', status: '정지' }
+    ].map(function (t) {
+      const on = t.status === '운영';
+      return Object.assign({}, t, { badgeBg: on ? '#EEF3EF' : '#F3EEEC', badgeColor: on ? '#1F5C45' : '#8A3A1F' });
+    });
+    return { colors: colors, tenants: tenants };
+  }
+}
+</script>
+</body>
+</html>
