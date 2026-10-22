@@ -1,0 +1,143 @@
+<title>회원가입 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+  /* 레이아웃(Bible2 가입 구성, 이메일 대신 아이디): 얇은 머리말(도전!!! · 로그인) → 반가워요 제목 → 이름 · 아이디 · 비밀번호(보기) · 비밀번호 확인 → 가입하기 → 받지 않는 정보 안내 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --hero: #F2F5FB; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --on-accent: #FFFFFF; --bad: #B42318; --bad-bg: #FDECEC; --ok: #16A34A; --ok-bg: #EAF7EF;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --on-accent: #0E1013; --bad: #F5A3A6; --bad-bg: #2E1B1C; --ok: #5CC98A; --ok-bg: #1B2A22; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --on-accent: #0E1013; --bad: #F5A3A6; --bad-bg: #2E1B1C; --ok: #5CC98A; --ok-bg: #1B2A22; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button, input { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 440px; margin: 0 auto; }
+  [hidden] { display: none !important; }
+
+  header .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 64px; border-bottom: 1px solid var(--rule); }
+  .brand { font-size: 17px; font-weight: 900; color: var(--accent); }
+  .lnk { min-height: 40px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 700; color: var(--dim); }
+
+  main { background: linear-gradient(180deg, var(--bg) 0, var(--hero) 100%); min-height: calc(100vh - 64px); }
+  main .wrap { padding-block: 32px 48px; display: flex; flex-direction: column; gap: 20px; }
+  h1 { margin: 0; font-size: 30px; font-weight: 900; letter-spacing: -.02em; }
+  .sub { margin: 6px 0 0; color: var(--dim); }
+  form { display: flex; flex-direction: column; gap: 16px; }
+  .f label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .f label small { font-weight: 500; color: var(--dim); margin-left: 4px; }
+  .in { width: 100%; box-sizing: border-box; min-height: 54px; padding: 0 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); font-size: 16px; }
+  .in:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .in[aria-invalid="true"] { border-color: var(--bad); }
+  .pw { position: relative; }
+  .pw .in { padding-right: 70px; }
+  .eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); min-height: 40px; padding: 0 10px; border: 0; background: none; font-size: 13px; font-weight: 700; color: var(--dim); }
+  .hint { margin: 6px 0 0; font-size: 13px; color: var(--dim); min-height: 1.4em; }
+  .hint.bad { color: var(--bad); font-weight: 700; }
+  .hint.ok { color: var(--ok); font-weight: 700; }
+  .btn { min-height: 56px; border: 0; border-radius: 14px; background: var(--accent); color: var(--on-accent); font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .privacy { padding: 14px 16px; border-radius: 14px; background: var(--soft); font-size: 13px; color: var(--dim); line-height: 1.7; }
+  .privacy b { color: var(--fg); }
+  .foot { text-align: center; font-size: 14px; color: var(--dim); }
+  .foot a { color: var(--accent); font-weight: 800; margin-left: 6px; }
+  .done { display: flex; flex-direction: column; gap: 14px; padding: 22px 20px; border-radius: 20px; background: var(--ok-bg); }
+  .done b { font-size: 20px; color: var(--ok); }
+  .done p { margin: 0; color: var(--fg); }
+  .done .btn { text-decoration: none; }
+</style>
+
+<header class="gut"><div class="wrap">
+  <a class="brand" href="https://claude.ai/artifact/XzGE4ZmsHbqEp7vCnWzwqA">도전!!!</a>
+  <a class="lnk" href="https://claude.ai/artifact/RE2xJmpo3rWEwyhtLh7K8U">로그인</a>
+</div></header>
+
+<main class="gut"><div class="wrap">
+  <div>
+    <h1>반가워요, 함께해요</h1>
+    <p class="sub">이름 · 아이디 · 비밀번호만 있으면 돼요.</p>
+  </div>
+
+  <form id="form" novalidate>
+    <div class="f">
+      <label for="nm">이름 <small>또는 별명</small></label>
+      <input class="in" id="nm" type="text" autocomplete="nickname" placeholder="예: 김철수" maxlength="20" aria-describedby="nmH">
+      <p class="hint" id="nmH">부서 친구들과 선생님께 보이는 이름이에요.</p>
+    </div>
+    <div class="f">
+      <label for="uid">아이디</label>
+      <input class="in" id="uid" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="영어 소문자 · 숫자 4~20자" maxlength="20" aria-describedby="uidH">
+      <p class="hint" id="uidH">로그인할 때 써요.</p>
+    </div>
+    <div class="f">
+      <label for="pw">비밀번호</label>
+      <div class="pw">
+        <input class="in" id="pw" type="password" autocomplete="new-password" placeholder="4자 이상" aria-describedby="pwH">
+        <button type="button" class="eye" id="eye" aria-controls="pw" aria-pressed="false">보기</button>
+      </div>
+      <p class="hint" id="pwH">4자 이상으로 정해 주세요.</p>
+    </div>
+    <div class="f">
+      <label for="pw2">비밀번호 확인</label>
+      <input class="in" id="pw2" type="password" autocomplete="new-password" placeholder="한 번 더 입력" aria-describedby="pw2H">
+      <p class="hint" id="pw2H"></p>
+    </div>
+    <button type="submit" class="btn">가입하기</button>
+  </form>
+
+  <div class="privacy"><b>전화번호 · 생일 · 주소 · 이메일은 받지 않아요.</b><br>비밀번호를 잊으면 부서 선생님이 새 임시 비밀번호를 만들어 줄 수 있어요.</div>
+  <div class="foot">이미 계정이 있나요?<a href="https://claude.ai/artifact/RE2xJmpo3rWEwyhtLh7K8U">로그인</a></div>
+
+  <div class="done" id="done" hidden role="status">
+    <b>가입했어요!</b>
+    <p id="doneTxt"></p>
+    <a class="btn" href="#join" id="toJoin">내 부서에 참여 신청하기 →</a>
+  </div>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const TAKEN = ['cheolsu', 'admin', 'guest'];   // 시안: 이미 있는 아이디
+  function hint(id, msg, kind) { const h = $(id + 'H'); h.textContent = msg; h.className = 'hint' + (kind ? ' ' + kind : ''); $(id).setAttribute('aria-invalid', kind === 'bad'); }
+  function checkUid() {
+    const v = $('uid').value.trim();
+    if (!v) return hint('uid', '로그인할 때 써요.', ''), false;
+    if (!/^[a-z0-9]{4,20}$/.test(v)) return hint('uid', '영어 소문자와 숫자로 4~20자를 써 주세요.', 'bad'), false;
+    if (TAKEN.includes(v)) return hint('uid', '이미 누가 쓰고 있어요. 다른 아이디를 써 주세요.', 'bad'), false;
+    return hint('uid', '쓸 수 있는 아이디예요.', 'ok'), true;
+  }
+  function checkPw() {
+    const a = $('pw').value, b = $('pw2').value;
+    let ok = true;
+    if (a && a.length < 4) { hint('pw', '4자 이상으로 정해 주세요.', 'bad'); ok = false; } else hint('pw', a ? '좋아요.' : '4자 이상으로 정해 주세요.', a ? 'ok' : '');
+    if (b && a !== b) { hint('pw2', '비밀번호가 서로 달라요.', 'bad'); ok = false; } else hint('pw2', b ? '똑같아요.' : '', b ? 'ok' : '');
+    return ok && a.length >= 4 && a === b;
+  }
+  $('uid').addEventListener('input', () => { $('uid').value = $('uid').value.toLowerCase(); checkUid(); });
+  $('pw').addEventListener('input', checkPw); $('pw2').addEventListener('input', checkPw);
+  $('eye').onclick = () => { const s = $('pw').type === 'password'; $('pw').type = s ? 'text' : 'password'; $('eye').textContent = s ? '숨기기' : '보기'; $('eye').setAttribute('aria-pressed', s); };
+  $('form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nm = $('nm').value.trim();
+    if (!nm) { hint('nm', '이름이나 별명을 써 주세요.', 'bad'); $('nm').focus(); return; }
+    hint('nm', '부서 친구들과 선생님께 보이는 이름이에요.', '');
+    if (!checkUid()) { $('uid').focus(); return; }
+    if (!checkPw()) { if (!$('pw').value) hint('pw', '비밀번호를 정해 주세요.', 'bad'); $('pw').focus(); return; }
+    $('form').hidden = true;
+    $('doneTxt').textContent = `${nm}님, 아이디 ${$('uid').value} 로 가입했어요. 이제 선생님께 받은 부서 코드로 참여 신청을 하면 돼요.`;
+    $('done').hidden = false; $('toJoin').focus();
+  });
+  $('toJoin').addEventListener('click', (e) => { e.preventDefault(); alertBox(); });
+  function alertBox() { const el = document.createElement('div'); el.setAttribute('role', 'status'); el.textContent = '참여 신청 화면으로 가요 (다음 시안)'; el.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:12px 18px;border-radius:14px;font-weight:700;z-index:50'; document.body.appendChild(el); setTimeout(() => el.remove(), 2000); }
+</script>
