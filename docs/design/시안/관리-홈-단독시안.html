@@ -1,0 +1,203 @@
+<title>관리 홈 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/{slug}/admin): 머리말(부서 · 관리 · 부서 홈으로) → 관리 메뉴 줄 → 할 일(신청 · 진급 · 빈 콘텐츠) → 오늘 참여 큰 숫자 + 항목별 → 최근 7일 막대 → 오늘 안 한 친구(반 고르기) */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --hero: #F2F5FB; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --warn: #9A5B00; --warn-bg: #FFF4DE; --bad: #B42318; --bad-bg: #FDECEC;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+  .hd .t { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+  .hd .t small { font-size: 12px; color: var(--dim); }
+  .hd .t b { font-size: 17px; font-weight: 900; }
+  .hd .t b em { font-style: normal; color: var(--accent); }
+  .back { flex: none; min-height: 40px; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; font-weight: 700; }
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-bottom: -1px; }
+  nav.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); border-bottom: 3px solid transparent; }
+  nav.tabs a[aria-current] { color: var(--fg); border-color: var(--accent); }
+  nav.tabs a .c { margin-left: 4px; min-width: 18px; padding: 0 5px; border-radius: 99px; background: var(--bad); color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
+
+  main .wrap { padding-block: 20px 56px; display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 860px) { main .wrap { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; } .span { grid-column: 1 / -1; } }
+  .greet { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+  .greet h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  .greet span { font-size: 13px; color: var(--dim); }
+
+  .card { border: 1px solid var(--rule); border-radius: 18px; background: var(--bg); padding: 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .card > h2 { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 16px; font-weight: 800; }
+  .card > h2 a, .card > h2 small { font-size: 13px; font-weight: 700; color: var(--accent); }
+  .card > h2 small { color: var(--dim); font-weight: 500; }
+
+  .todo { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .td { display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 16px; min-height: 64px; }
+  .td .n { flex: none; font-size: 26px; font-weight: 900; line-height: 1; }
+  .td div { display: flex; flex-direction: column; min-width: 0; line-height: 1.4; }
+  .td b { font-size: 15px; }
+  .td span { font-size: 12.5px; color: var(--dim); }
+  .td.a { background: var(--bad-bg); } .td.a .n { color: var(--bad); }
+  .td.b { background: var(--accent-bg); } .td.b .n { color: var(--accent); }
+  .td.c { background: var(--warn-bg); } .td.c .n { color: var(--warn); }
+  .td::after { content: "›"; margin-left: auto; font-size: 22px; color: var(--dim); }
+
+  .today { display: flex; align-items: center; gap: 18px; }
+  .ring { flex: none; width: 116px; height: 116px; border-radius: 50%; display: grid; place-items: center; }
+  .ring > div { width: 90px; height: 90px; border-radius: 50%; background: var(--bg); display: grid; place-items: center; text-align: center; line-height: 1.15; }
+  .ring b { font-size: 30px; font-weight: 900; }
+  .ring small { font-size: 12px; color: var(--dim); }
+  .items { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .it { display: grid; grid-template-columns: 38px minmax(0, 1fr) 48px; align-items: center; gap: 8px; font-size: 13px; }
+  .it b { font-weight: 700; }
+  .it .bar { height: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+  .it .bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+  .it em { font-style: normal; text-align: right; color: var(--dim); }
+  .foot { font-size: 12.5px; color: var(--dim); margin: 0; }
+
+  .week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; align-items: end; height: 170px; }
+  .wk { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%; }
+  .wk em { font-style: normal; font-size: 12px; font-weight: 800; }
+  .wk i { width: 100%; max-width: 36px; border-radius: 8px 8px 3px 3px; background: color-mix(in srgb, var(--accent) 35%, var(--bg)); }
+  .wk.t i { background: var(--accent); }
+  .wk.sun i { background: color-mix(in srgb, var(--accent) 60%, var(--bg)); }
+  .wk span { font-size: 12px; color: var(--dim); line-height: 1.2; text-align: center; }
+  .wk.t span { color: var(--fg); font-weight: 800; }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--dim); }
+  .stats b { color: var(--fg); }
+
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chips button { min-height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--bg); font-size: 13px; font-weight: 700; }
+  .chips button[aria-pressed="true"] { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+  .miss { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .miss li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--rule); }
+  .miss li:first-child { border-top: 0; }
+  .av { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; font-size: 13px; font-weight: 800; color: var(--dim); }
+  .miss .nm { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+  .miss .nm b { font-size: 15px; }
+  .miss .nm small { font-size: 12px; color: var(--dim); }
+  .last { flex: none; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: var(--soft); color: var(--dim); }
+  .last.long { background: var(--bad-bg); color: var(--bad); }
+  .more { min-height: 44px; border: 0; background: none; font-size: 14px; font-weight: 700; color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
+</style>
+
+<header class="gut">
+  <div class="wrap hd">
+    <div class="t"><small>잠실새내교회 · 유년부</small><b><em>도전!!!</em> 관리</b></div>
+    <a class="back" href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">부서 홈으로</a>
+  </div>
+  <nav class="wrap tabs" aria-label="관리 메뉴">
+    <a href="#" aria-current="page">관리 홈</a>
+    <a href="#members">소속 관리<span class="c num">3</span></a>
+    <a href="#promotions">진급<span class="c num">1</span></a>
+    <a href="#content">콘텐츠</a>
+    <a href="#reading">통독 현황</a>
+    <a href="#season">시즌</a>
+    <a href="#branding">이름 · 색</a>
+  </nav>
+</header>
+
+<main class="gut"><div class="wrap">
+  <div class="greet span">
+    <h1>이은혜 선생님, 안녕하세요</h1>
+    <span class="num">2027년 1월 5일 화요일 · 오후 3:20 기준</span>
+  </div>
+
+  <section class="card span" aria-labelledby="hTodo">
+    <h2 id="hTodo">할 일</h2>
+    <div class="todo">
+      <a class="td a" href="#members"><span class="n num">3</span><div><b>참여 신청 승인 대기</b><span>정하늘 · 오서준 · 정미영(보호자)</span></div></a>
+      <a class="td b" href="#promotions"><span class="n num">1</span><div><b>받은 진급 요청</b><span>유치부 → 유년부 · 한지우</span></div></a>
+      <a class="td c" href="#content"><span class="n num">1</span><div><b>비어 있는 콘텐츠</b><span>1월 9일(토) 퀴즈 · 4일 뒤</span></div></a>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="hToday">
+    <h2 id="hToday">오늘 참여 <small>미션을 하나라도 한 친구</small></h2>
+    <div class="today">
+      <div class="ring" id="ring"><div><span><b class="num" id="tN">27</b><br><small class="num" id="tOf">/ 42명</small></span></div></div>
+      <div class="items" id="items"></div>
+    </div>
+    <p class="foot">암송은 한 주에 한 번이라 이번 주(1월 3일 ~) 누적이에요.</p>
+  </section>
+
+  <section class="card" aria-labelledby="hWeek">
+    <h2 id="hWeek">최근 7일 <small>하루 참여한 친구 수</small></h2>
+    <div class="week" id="week"></div>
+    <div class="stats" id="wstats"></div>
+  </section>
+
+  <section class="card span" aria-labelledby="hMiss">
+    <h2 id="hMiss">오늘 아직 안 한 친구 <small class="num" id="missN"></small></h2>
+    <div class="chips" role="group" aria-label="반 고르기" id="chips"></div>
+    <ul class="miss" id="miss"></ul>
+    <button type="button" class="more" id="more" hidden></button>
+  </section>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const TOTAL = 42, DONE = 27;
+  const ITEMS = [['말씀', 27], ['퀴즈', 22], ['기도', 19], ['암송', 12]];
+  // 2026-12-30(수) ~ 2027-01-05(화). 일요일(1/3)은 예배 날이라 많다
+  const WEEK = [['30', '수', 24], ['31', '목', 21], ['1', '금', 18], ['2', '토', 20], ['3', '일', 36], ['4', '월', 31], ['5', '화', 27]];
+  // 이름은 모두 지어낸 예시
+  const MISS = [
+    ['박서연', '사랑반', '어제', 1], ['최민준', '사랑반', '3일 전', 3], ['윤지호', '믿음반', '어제', 1], ['강하린', '믿음반', '8일 전', 8],
+    ['조은우', '소망반', '어제', 1], ['임도윤', '소망반', '2일 전', 2], ['한소율', '사랑반', '어제', 1], ['서예준', '믿음반', '아직 없음', 99],
+    ['신채원', '소망반', '어제', 1], ['권시우', '사랑반', '5일 전', 5], ['황유나', '믿음반', '어제', 1], ['안지안', '소망반', '2일 전', 2],
+    ['송하준', '사랑반', '어제', 1], ['류다은', '믿음반', '어제', 1], ['전로운', '소망반', '12일 전', 12],
+  ];
+  const GROUPS = ['전체', '사랑반', '믿음반', '소망반'];
+  let g = '전체', open = false;
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); }
+
+  const pct = DONE / TOTAL * 100;
+  $('ring').style.background = `conic-gradient(var(--accent) ${pct}%, var(--soft) 0)`;
+  $('ring').setAttribute('aria-label', `오늘 ${TOTAL}명 중 ${DONE}명 참여, ${Math.round(pct)}%`);
+  $('items').innerHTML = ITEMS.map(([k, n]) => `<div class="it"><b>${k}</b><span class="bar"><i style="width:${n / TOTAL * 100}%"></i></span><em class="num">${n}명</em></div>`).join('');
+
+  const max = Math.max(...WEEK.map((w) => w[2]));
+  $('week').innerHTML = WEEK.map(([d, w, n], i) => `<div class="wk${i === 6 ? ' t' : ''}${w === '일' ? ' sun' : ''}"><em class="num">${n}</em><i style="height:${n / max * 110}px"></i><span><b class="num">${d}</b><br>${i === 6 ? '오늘' : w}</span></div>`).join('');
+  const avg = Math.round(WEEK.reduce((s, w) => s + w[2], 0) / 7);
+  $('wstats').innerHTML = `<span>하루 평균 <b class="num">${avg}명</b></span><span>가장 많은 날 <b>1월 3일(일) 36명</b></span><span>소속 참여자 <b class="num">${TOTAL}명</b></span>`;
+
+  $('chips').innerHTML = GROUPS.map((x) => `<button type="button" aria-pressed="${x === g}" data-g="${x}">${x}</button>`).join('');
+  $('chips').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; g = b.dataset.g; open = false; document.querySelectorAll('#chips button').forEach((x) => x.setAttribute('aria-pressed', x === b)); draw(); });
+  function draw() {
+    const list = MISS.filter((m) => g === '전체' || m[1] === g).sort((a, b) => b[3] - a[3]);
+    $('missN').textContent = `${list.length}명 · 오래 안 한 순`;
+    const show = open ? list : list.slice(0, 6);
+    $('miss').innerHTML = show.map(([n, grp, last, d]) => `<li><span class="av">${n.slice(1)}</span><span class="nm"><b>${n}</b><small>${grp} · 마지막 미션 ${last}</small></span><span class="last${d >= 7 ? ' long' : ''}">${d >= 99 ? '시작 전' : d >= 7 ? '7일 넘음' : last}</span></li>`).join('');
+    $('more').hidden = list.length <= 6;
+    $('more').textContent = open ? '접기' : `${list.length - 6}명 더 보기`;
+  }
+  $('more').onclick = () => { open = !open; draw(); };
+  draw();
+  document.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (a.getAttribute('href') === '#') return;
+    const name = (a.querySelector('b') || a).firstChild.textContent.trim();
+    toast(`${name} 화면으로 가요 (다음 시안)`);
+  }));
+</script>
