@@ -19,6 +19,8 @@ CREATE TABLE app.Tenant (
     Name        nvarchar(100)     NOT NULL,
     TimeZoneId  varchar(64)       NOT NULL,
     ThemeColor  varchar(20)       NOT NULL,
+    AppName     nvarchar(30)      NULL,           -- NULL 이면 기본 서비스 이름(0038)
+    AppShortName nvarchar(12)     NULL,
     Status      varchar(20)       NOT NULL CONSTRAINT CK_Tenant_Status CHECK (Status IN ('Active','Suspended')),
     CreatedUtc  datetime2(3)      NOT NULL,
     CONSTRAINT CK_Tenant_Slug CHECK (LEN(Slug) >= 2 AND Slug NOT LIKE '%[^a-z0-9-]%')
