@@ -134,6 +134,39 @@
   .links { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
   .links a { min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--rule); display: inline-flex; align-items: center; font-size: 14px; }
 
+  /* 우리 가족팀 */
+  .fam { margin-top: 14px; border-radius: 24px; background: var(--hero); padding: 22px 20px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .fam .tot small { font-size: 13px; color: var(--dim); }
+  .fam .tot .big { display: block; font-size: 56px; font-weight: 300; line-height: 1.05; color: var(--accent); }
+  .fam .tot .big i { font-style: normal; font-size: 18px; color: var(--dim); }
+  .fam .tot p { margin: 6px 0 0; font-size: 14px; color: var(--dim); }
+  .fam .tot p b { color: var(--fg); }
+  .fam .ms { margin-top: 14px; }
+  .fam .ms .row { display: flex; justify-content: space-between; font-size: 13px; color: var(--dim); }
+  .fam .ms .row b { color: var(--fg); }
+  .fam .ms .bar { height: 8px; border-radius: 4px; background: var(--bg); margin-top: 6px; overflow: hidden; }
+  .fam .ms .bar i { display: block; height: 8px; background: var(--accent); }
+  .fam .ms .ticks { position: relative; height: 18px; font-size: 11px; color: var(--dim); }
+  .fam .ms .ticks span { position: absolute; top: 2px; transform: translateX(-50%); }
+  .mem { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .mem li { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: var(--bg); }
+  .mem li.me { box-shadow: 0 0 0 2px var(--accent) inset; }
+  .av { width: 42px; height: 42px; flex: none; border-radius: 50%; display: grid; place-content: center; font-weight: 900; background: var(--accent-soft); color: var(--accent); }
+  .mem .who { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .mem .who b { font-size: 15px; }
+  .mem .who b em { font-style: normal; font-size: 11px; font-weight: 700; color: var(--on-accent); background: var(--accent); border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px; }
+  .mem .who span { font-size: 12px; color: var(--dim); }
+  .mem .who .sh { height: 4px; border-radius: 2px; background: var(--soft); margin-top: 6px; overflow: hidden; }
+  .mem .who .sh i { display: block; height: 4px; background: var(--accent); opacity: .55; }
+  .mem .sc { text-align: right; }
+  .mem .sc b { display: block; font-size: 22px; font-weight: 300; }
+  .mem .sc small { font-size: 11px; color: var(--dim); }
+  .famNote { margin: 10px 0 0; font-size: 13px; color: var(--dim); }
+  .viewAs { margin: 0 0 18px; padding: 12px 14px; border: 1px dashed var(--rule); border-radius: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--dim); }
+  .viewAs button { min-height: 36px; padding: 0 12px; border-radius: 18px; border: 1px solid var(--rule); background: var(--bg); font-size: 13px; }
+  .viewAs button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); font-weight: 700; }
+  @media (min-width: 900px) { .fam { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: start; column-gap: 32px; } }
+
   footer { border-top: 1px solid var(--rule); }
   footer .wrap { padding-block: 22px calc(30px + env(safe-area-inset-bottom, 0px)); display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; color: var(--dim); }
   footer a { min-height: 32px; display: inline-flex; align-items: center; }
@@ -165,10 +198,15 @@
 </header>
 
 <section class="hello gut">
+  <div class="wrap" style="display:block;padding-block-end:0">
+    <div class="viewAs" role="group" aria-label="시안 보기 전환">시안에서만: 누구로 보기
+      <button type="button" data-v="0" aria-pressed="true">철수</button><button type="button" data-v="1" aria-pressed="false">엄마</button><button type="button" data-v="2" aria-pressed="false">아빠</button><button type="button" data-v="solo" aria-pressed="false">가족팀 없는 사람</button>
+    </div>
+  </div>
   <div class="wrap">
     <div>
       <div class="eyebrow">2027 시즌 · 5일째</div>
-      <h1>철수님, 안녕하세요</h1>
+      <h1 id="hi">철수님, 안녕하세요</h1>
       <p>오늘도 말씀과 함께해요 · <b>5일째 이어오는 중</b></p>
     </div>
     <div class="chips" aria-label="나의 요약">
@@ -232,6 +270,27 @@
       </div>
     </section>
 
+    <section class="wide" id="famSec" aria-labelledby="fmT">
+      <div class="eyebrow">우리 가족팀</div>
+      <h2 id="fmT">김철수 가족</h2>
+      <div class="fam">
+        <div class="tot">
+          <small>가족 총합 점수 · 2027 시즌</small>
+          <span class="big num" id="famTotal">0<i> 점</i></span>
+          <p>오늘 가족이 <b id="famToday">+0점</b> 받았어요 · <span id="famDone"></span></p>
+          <div class="ms">
+            <div class="row"><span>다음 가족 축하</span><b class="num" id="famNext"></b></div>
+            <div class="bar"><i id="famBar"></i></div>
+            <div class="ticks" aria-hidden="true"><span style="left:0%;transform:none">0</span><span style="left:100%;transform:translateX(-100%)">1,000점</span></div>
+          </div>
+        </div>
+        <div>
+          <ul class="mem" id="mem"></ul>
+          <p class="famNote">가족 총합은 구성원 모두의 올해 점수를 더한 것이에요. 가족 모두에게 같은 점수가 보여요.</p>
+        </div>
+      </div>
+    </section>
+
     <section aria-labelledby="wkT">
       <div class="eyebrow">이번 주 나의 기록</div>
       <h2 id="wkT">1월 3일 ~ 1월 9일</h2>
@@ -288,6 +347,35 @@
     document.getElementById('scrim').onclick = (e) => { if (e.target.id === 'scrim') closeSheet(); };
     layer.querySelectorAll('.t[data-n]').forEach((b) => b.onclick = () => { closeSheet(); toast(b.dataset.n + '(으)로 바꾸는 화면은 시안에 없어요'); });
   }
+  // 가족팀(예시): 철수 · 엄마 · 아빠. 누가 보든 총합은 같고 '나' 표시만 다르다
+  const FAM = [
+    { name: '철수', rel: '학생', season: 24, today: 3, done: '오늘 3/4' },
+    { name: '김엄마', rel: '엄마', season: 22, today: 4, done: '오늘 4/4' },
+    { name: '김아빠', rel: '아빠', season: 18, today: 0, done: '오늘 아직' },
+  ];
+  const FAM_GOAL = 1000;
+  const famTotal = FAM.reduce((s, m) => s + m.season, 0), famTodayPts = FAM.reduce((s, m) => s + m.today, 0);
+  function renderFam(v) {
+    const sec = document.getElementById('famSec');
+    sec.hidden = v === 'solo';
+    const me = v === 'solo' ? null : +v;
+    document.getElementById('hi').textContent = (v === 'solo' ? '이소망' : FAM[me].name) + '님, 안녕하세요';
+    if (v === 'solo') return;
+    document.getElementById('famTotal').innerHTML = famTotal + '<i> 점</i>';
+    document.getElementById('famToday').textContent = '+' + famTodayPts + '점';
+    document.getElementById('famDone').textContent = FAM.filter((m) => m.today > 0).length + '명이 오늘 참여';
+    document.getElementById('famNext').textContent = (FAM_GOAL - famTotal).toLocaleString() + '점 남음';
+    document.getElementById('famBar').style.width = Math.max(1, famTotal / FAM_GOAL * 100) + '%';
+    document.getElementById('mem').innerHTML = FAM.map((m, i) => `<li class="${i === me ? 'me' : ''}">
+      <span class="av">${m.name.slice(-2, -1) || m.name[0]}</span>
+      <span class="who"><b>${m.name}${i === me ? '<em>나</em>' : ''}</b><span>${m.rel} · ${m.done}${m.today ? ' · +' + m.today + '점' : ''}</span><span class="sh"><i style="width:${Math.round(m.season / famTotal * 100)}%"></i></span></span>
+      <span class="sc"><b class="num">${m.season}</b><small>점 · ${Math.round(m.season / famTotal * 100)}%</small></span></li>`).join('');
+  }
+  document.querySelectorAll('.viewAs button').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.viewAs button').forEach((x) => x.setAttribute('aria-pressed', x === b));
+    renderFam(b.dataset.v);
+  }));
+  renderFam('0');
   document.getElementById('tenantBtn').addEventListener('click', openTenants);
   document.getElementById('switch2').addEventListener('click', (e) => { e.preventDefault(); openTenants(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && layer.innerHTML) closeSheet(); });
