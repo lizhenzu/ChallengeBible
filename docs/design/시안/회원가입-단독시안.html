@@ -102,7 +102,7 @@
   <div class="done" id="done" hidden role="status">
     <b>가입했어요!</b>
     <p id="doneTxt"></p>
-    <a class="btn" href="#join" id="toJoin">내 부서에 참여 신청하기 →</a>
+    <a class="btn" href="https://claude.ai/artifact/MQcXLF3wuGP3C5hz3psMYN" id="toJoin">내 부서에 참여 신청하기 →</a>
   </div>
 </div></main>
 
@@ -138,6 +138,4 @@
     $('doneTxt').textContent = `${nm}님, 아이디 ${$('uid').value} 로 가입했어요. 이제 선생님께 받은 부서 코드로 참여 신청을 하면 돼요.`;
     $('done').hidden = false; $('toJoin').focus();
   });
-  $('toJoin').addEventListener('click', (e) => { e.preventDefault(); alertBox(); });
-  function alertBox() { const el = document.createElement('div'); el.setAttribute('role', 'status'); el.textContent = '참여 신청 화면으로 가요 (다음 시안)'; el.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:12px 18px;border-radius:14px;font-weight:700;z-index:50'; document.body.appendChild(el); setTimeout(() => el.remove(), 2000); }
 </script>

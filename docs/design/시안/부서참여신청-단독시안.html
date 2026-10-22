@@ -1,0 +1,211 @@
+<title>부서 참여 신청 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+  /* 레이아웃(0045 /join): 얇은 머리말(도전!!! · 이름 · 로그아웃) → 제목 → ① 부서 코드 → ② 찾은 부서 확인 → ③ 함께하는 방법(참여자 · 보호자) → 신청하기 → 승인 기다림 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --hero: #F2F5FB; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --bad: #B42318; --bad-bg: #FDECEC; --ok: #16A34A; --ok-bg: #EAF7EF; --wait: #9A5B00; --wait-bg: #FFF4DE;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --bad: #F5A3A6; --bad-bg: #2E1B1C; --ok: #5CC98A; --ok-bg: #1B2A22; --wait: #F2C063; --wait-bg: #2E2614; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --bad: #F5A3A6; --bad-bg: #2E1B1C; --ok: #5CC98A; --ok-bg: #1B2A22; --wait: #F2C063; --wait-bg: #2E2614; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button, input { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible, label:focus-within { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 440px; margin: 0 auto; }
+  [hidden] { display: none !important; }
+
+  header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; border-bottom: 1px solid var(--rule); }
+  .brand { font-size: 17px; font-weight: 900; color: var(--accent); }
+  .who { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--dim); }
+  .who b { color: var(--fg); }
+  .who button { min-height: 40px; border: 0; background: none; font-size: 14px; font-weight: 700; color: var(--dim); padding: 0; }
+
+  main { background: linear-gradient(180deg, var(--bg) 0, var(--hero) 100%); min-height: calc(100vh - 64px); }
+  main .wrap { padding-block: 32px 48px; display: flex; flex-direction: column; gap: 22px; }
+  h1 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -.02em; text-wrap: balance; }
+  .sub { margin: 6px 0 0; color: var(--dim); }
+  .step { display: flex; flex-direction: column; gap: 10px; }
+  .step > h2 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; }
+  .step > h2 .n { font-size: 12px; font-weight: 800; color: var(--accent); letter-spacing: .04em; }
+  .row { display: flex; gap: 8px; }
+  .in { flex: 1; min-width: 0; box-sizing: border-box; min-height: 56px; padding: 0 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); font-size: 20px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+  .in::placeholder { letter-spacing: .08em; font-weight: 500; font-size: 16px; color: var(--dim); }
+  .in:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .in[aria-invalid="true"] { border-color: var(--bad); }
+  .btn { min-height: 56px; border-radius: 14px; font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 18px; }
+  .btn.p { border: 0; background: var(--accent); color: var(--on-accent); }
+  .btn.p:disabled { opacity: .4; cursor: not-allowed; }
+  .btn.s { border: 1px solid var(--line); background: var(--bg); }
+  .hint { margin: 0; font-size: 13px; color: var(--dim); }
+  .hint.bad { color: var(--bad); font-weight: 700; }
+
+  .dept { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 16px; background: var(--bg); border: 1px solid var(--rule); }
+  .dept .mk { flex: none; width: 48px; height: 48px; border-radius: 14px; background: var(--accent-bg); color: var(--accent); display: grid; place-items: center; font-weight: 900; font-size: 18px; }
+  .dept div { min-width: 0; display: flex; flex-direction: column; }
+  .dept small { color: var(--dim); font-size: 13px; }
+  .dept b { font-size: 18px; }
+  .dept .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .dept .tags span { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--soft); color: var(--dim); }
+
+  .roles { display: flex; flex-direction: column; gap: 10px; }
+  .role { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--bg); cursor: pointer; }
+  .role input { position: absolute; opacity: 0; pointer-events: none; }
+  .role .bx { flex: none; width: 24px; height: 24px; margin-top: 2px; border: 2px solid var(--line); border-radius: 7px; display: grid; place-items: center; color: transparent; }
+  .role:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); }
+  .role:has(input:checked) .bx { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .role div { display: flex; flex-direction: column; }
+  .role b { font-size: 16px; }
+  .role span { font-size: 13px; color: var(--dim); }
+  .note { padding: 14px 16px; border-radius: 14px; background: var(--soft); font-size: 13px; color: var(--dim); line-height: 1.7; }
+  .note b { color: var(--fg); }
+
+  .wait { display: flex; flex-direction: column; gap: 14px; padding: 22px 20px; border-radius: 20px; background: var(--wait-bg); }
+  .wait .badge { align-self: flex-start; font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 99px; background: var(--bg); color: var(--wait); }
+  .wait strong { font-size: 20px; }
+  .wait p { margin: 0; }
+  .wait ul { margin: 0; padding-left: 18px; color: var(--dim); font-size: 14px; }
+  .acts { display: flex; flex-direction: column; gap: 8px; }
+  .lnkbtn { min-height: 44px; border: 0; background: none; font-size: 14px; font-weight: 700; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; }
+  .ok { display: flex; flex-direction: column; gap: 14px; padding: 22px 20px; border-radius: 20px; background: var(--ok-bg); }
+  .ok strong { font-size: 20px; color: var(--ok); }
+  .ok p { margin: 0; }
+  .demo { font-size: 12px; color: var(--dim); text-align: center; }
+  .demo button { border: 0; background: none; color: var(--accent); font-weight: 700; font-size: 12px; text-decoration: underline; min-height: 32px; }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
+</style>
+
+<header class="gut"><div class="wrap">
+  <a class="brand" href="https://claude.ai/artifact/XzGE4ZmsHbqEp7vCnWzwqA">도전!!!</a>
+  <div class="who"><span><b>김철수</b>님</span><button type="button" id="out">로그아웃</button></div>
+</div></header>
+
+<main class="gut"><div class="wrap">
+  <!-- 1. 신청 -->
+  <section id="apply" class="wrap" style="display:flex;flex-direction:column;gap:22px;width:100%">
+    <div>
+      <h1>내 부서에 참여 신청</h1>
+      <p class="sub">아직 들어간 부서가 없어요. 선생님께 받은 <b>부서 코드</b>를 넣어 주세요.</p>
+    </div>
+
+    <form class="step" id="codeForm" novalidate>
+      <h2><span class="n">01</span>부서 코드</h2>
+      <div class="row">
+        <input class="in" id="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="8" placeholder="예: JSKIDS" aria-label="부서 코드" aria-describedby="codeH">
+        <button type="submit" class="btn s">찾기</button>
+      </div>
+      <p class="hint" id="codeH">영어 · 숫자 6자예요. 선생님께 받은 부서 주소로 들어오면 미리 채워져 있어요.</p>
+    </form>
+
+    <div class="step" id="found" hidden>
+      <h2><span class="n">02</span>이 부서가 맞나요?</h2>
+      <div class="dept">
+        <span class="mk" id="dMk">유</span>
+        <div><small id="dChurch">잠실새내교회</small><b id="dName">유년부</b>
+          <span class="tags" id="dTags"></span></div>
+      </div>
+    </div>
+
+    <form class="step" id="roleForm" hidden novalidate>
+      <h2><span class="n">03</span>어떻게 함께할까요? <small style="font-weight:500;color:var(--dim)">둘 다 골라도 돼요</small></h2>
+      <div class="roles">
+        <label class="role"><input type="checkbox" name="role" value="참여자" checked>
+          <span class="bx" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>
+          <div><b>미션에 참여해요</b><span>매일 말씀 · 퀴즈 · 기도 · 암송을 하고 점수를 모아요.</span></div></label>
+        <label class="role"><input type="checkbox" name="role" value="보호자">
+          <span class="bx" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>
+          <div><b>자녀를 지켜보는 보호자예요</b><span>자녀의 미션과 점수를 봐요. 자녀 연결은 선생님이 해 줘요.</span></div></label>
+      </div>
+      <p class="hint" id="roleH"></p>
+      <button type="submit" class="btn p" id="send">참여 신청하기</button>
+      <div class="note"><b>선생님이 승인하면 바로 시작할 수 있어요.</b><br>교사 · 관리자 역할은 신청할 수 없고, 선생님이 정해 줘요.</div>
+    </form>
+  </section>
+
+  <!-- 2. 승인 기다림 -->
+  <section id="waiting" hidden style="display:flex;flex-direction:column;gap:22px">
+    <div class="wait" role="status">
+      <span class="badge">승인 기다리는 중</span>
+      <strong>승인을 기다리고 있어요</strong>
+      <div class="dept" style="background:var(--bg)">
+        <span class="mk">유</span>
+        <div><small>잠실새내교회</small><b>유년부</b><span class="tags" id="wRoles"></span></div>
+      </div>
+      <ul>
+        <li>선생님이 승인하면 로그인할 때 바로 부서 홈으로 들어가요.</li>
+        <li>오래 걸리면 부서 선생님께 말해 주세요.</li>
+      </ul>
+    </div>
+    <div class="acts">
+      <button type="button" class="btn s" id="recheck">승인됐는지 다시 보기</button>
+      <button type="button" class="lnkbtn" id="cancel">신청 취소하고 다른 코드 넣기</button>
+    </div>
+  </section>
+
+  <!-- 3. 승인됨 -->
+  <section id="approved" hidden>
+    <div class="ok" role="status">
+      <strong>승인됐어요!</strong>
+      <p>잠실새내교회 유년부에 들어왔어요. 오늘 미션부터 시작해 봐요.</p>
+      <a class="btn p" href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">유년부로 들어가기 →</a>
+    </div>
+  </section>
+
+  <p class="demo" id="demo" hidden>시안 전용: <button type="button" id="approve">선생님이 승인한 것으로 보기</button></p>
+  <p class="demo">시안 코드: <b>JSKIDS</b>(잠실새내교회 유년부) · <b>JSELEM</b>(잠실새내교회 초등부) · 그 밖은 "찾을 수 없음"</p>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const DEPTS = {
+    JSKIDS: { mk: '유', church: '잠실새내교회', name: '유년부', tags: ['도전!!!성경말씀', '도전!!!성경통독'] },
+    JSELEM: { mk: '초', church: '잠실새내교회', name: '초등부', tags: ['도전!!!성경말씀'] },
+  };
+  let cur = null;
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); }
+  function codeHint(msg, bad) { $('codeH').textContent = msg; $('codeH').className = 'hint' + (bad ? ' bad' : ''); $('code').setAttribute('aria-invalid', !!bad); }
+
+  $('code').addEventListener('input', () => { $('code').value = $('code').value.toUpperCase().replace(/[^A-Z0-9]/g, ''); $('found').hidden = $('roleForm').hidden = true; codeHint('영어 · 숫자 6자예요. 선생님께 받은 부서 주소로 들어오면 미리 채워져 있어요.'); });
+  $('codeForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const c = $('code').value;
+    if (!c) { codeHint('부서 코드를 넣어 주세요.', true); return $('code').focus(); }
+    cur = DEPTS[c];
+    if (!cur) { $('found').hidden = $('roleForm').hidden = true; codeHint('이 코드로 찾은 부서가 없어요. 선생님께 다시 물어봐 주세요.', true); return $('code').focus(); }
+    codeHint('부서를 찾았어요.');
+    $('dMk').textContent = cur.mk; $('dChurch').textContent = cur.church; $('dName').textContent = cur.name;
+    $('dTags').innerHTML = cur.tags.map((t) => `<span>${t}</span>`).join('');
+    $('found').hidden = $('roleForm').hidden = false;
+    $('send').focus();
+  });
+  $('roleForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const roles = [...document.querySelectorAll('input[name=role]:checked')].map((i) => i.value);
+    if (!roles.length) { $('roleH').textContent = '하나는 골라 주세요.'; $('roleH').className = 'hint bad'; return; }
+    $('roleH').textContent = '';
+    document.querySelectorAll('#waiting .dept .mk')[0].textContent = cur.mk;
+    document.querySelector('#waiting .dept small').textContent = cur.church;
+    document.querySelector('#waiting .dept b').textContent = cur.name;
+    $('wRoles').innerHTML = roles.map((r) => `<span>${r}</span>`).join('');
+    $('apply').hidden = true; $('waiting').hidden = false; $('demo').hidden = false;
+    document.querySelector('#approved p').textContent = `${cur.church} ${cur.name}에 들어왔어요. 오늘 미션부터 시작해 봐요.`;
+    document.querySelector('#approved a').textContent = `${cur.name}로 들어가기 →`;
+    window.scrollTo(0, 0);
+  });
+  $('recheck').onclick = () => toast('아직 승인 전이에요');
+  $('cancel').onclick = () => { $('waiting').hidden = true; $('demo').hidden = true; $('apply').hidden = false; $('code').value = ''; $('found').hidden = $('roleForm').hidden = true; $('code').focus(); toast('신청을 취소했어요'); };
+  $('approve').onclick = () => { $('waiting').hidden = true; $('demo').hidden = true; $('approved').hidden = false; };
+  $('out').onclick = () => toast('로그아웃하고 첫 화면으로 가요');
+</script>
