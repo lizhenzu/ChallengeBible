@@ -23,6 +23,7 @@ CREATE TABLE app.Tenant (
     AppShortName nvarchar(12)     NULL,
     MissionEnabled bit            NOT NULL,       -- 성경말씀(0039)
     ReadingEnabled bit            NOT NULL,       -- 성경통독(0039)
+    ReadingBoardPublic bit        NOT NULL,       -- 통독 참여자 현황 소속원 공개(0041, 기본 1)
     Status      varchar(20)       NOT NULL CONSTRAINT CK_Tenant_Status CHECK (Status IN ('Active','Suspended')),
     CreatedUtc  datetime2(3)      NOT NULL,
     CONSTRAINT CK_Tenant_Program CHECK (MissionEnabled = 1 OR ReadingEnabled = 1),   -- R-150
@@ -594,6 +595,49 @@ CREATE TABLE app.ChapterRead (
     CONSTRAINT FK_ChapterRead_Round FOREIGN KEY (AccountId, RoundNo) REFERENCES app.ReadingRound (AccountId, RoundNo)
 );
 CREATE INDEX IX_ChapterRead_Day ON app.ChapterRead (AccountId, ReadUtc);        -- 오늘 읽은 장 · 연속 읽은 날(R-156)
+
+-- 0041: 절 넘김 읽기 · 듣기 해설 · 인기 검색어
+CREATE TABLE app.BibleChapter (
+    BookId      tinyint  NOT NULL CONSTRAINT FK_BibleChapter_Book REFERENCES app.BibleBook(Id),
+    Chapter     smallint NOT NULL,
+    VerseCount  smallint NOT NULL CONSTRAINT CK_BibleChapter_Verses CHECK (VerseCount >= 1),   -- 기본 번역(개역개정) 기준
+    CONSTRAINT PK_BibleChapter PRIMARY KEY (BookId, Chapter)
+);
+
+CREATE TABLE app.ChapterProgress (
+    AccountId         int          NOT NULL,
+    RoundNo           int          NOT NULL,
+    BookId            tinyint      NOT NULL,
+    Chapter           smallint     NOT NULL,
+    ReadThroughVerse  smallint     NOT NULL CONSTRAINT CK_ChapterProgress_Verse CHECK (ReadThroughVerse >= 1),   -- R-160
+    UpdatedUtc        datetime2(3) NOT NULL,
+    CONSTRAINT PK_ChapterProgress PRIMARY KEY (AccountId, RoundNo, BookId, Chapter),
+    CONSTRAINT FK_ChapterProgress_Round FOREIGN KEY (AccountId, RoundNo) REFERENCES app.ReadingRound (AccountId, RoundNo),
+    CONSTRAINT FK_ChapterProgress_Chapter FOREIGN KEY (BookId, Chapter) REFERENCES app.BibleChapter (BookId, Chapter)
+);
+CREATE INDEX IX_ChapterProgress_Recent ON app.ChapterProgress (AccountId, UpdatedUtc DESC);   -- 이어 읽기(R-161)
+
+CREATE TABLE app.ChapterMedia (                                                 -- 플랫폼(R-166)
+    Id              int IDENTITY  NOT NULL CONSTRAINT PK_ChapterMedia PRIMARY KEY,
+    BookId          tinyint       NOT NULL,
+    Chapter         smallint      NOT NULL,
+    Kind            varchar(20)   NOT NULL CONSTRAINT CK_ChapterMedia_Kind CHECK (Kind IN ('Listen','Overview')),
+    SortOrder       tinyint       NOT NULL,
+    YoutubeVideoId  varchar(20)   NOT NULL,
+    Title           nvarchar(100) NULL,
+    CONSTRAINT FK_ChapterMedia_Chapter FOREIGN KEY (BookId, Chapter) REFERENCES app.BibleChapter (BookId, Chapter),
+    CONSTRAINT UQ_ChapterMedia UNIQUE (BookId, Chapter, Kind, SortOrder)
+);
+
+CREATE TABLE app.SearchLog (                                                    -- 영역, 계정 열 없음(R-164)
+    Id           bigint IDENTITY NOT NULL,
+    TenantId     int             NOT NULL CONSTRAINT FK_SearchLog_Tenant REFERENCES app.Tenant(Id),
+    Term         nvarchar(50)    NOT NULL,
+    SearchedUtc  datetime2(3)    NOT NULL,
+    CONSTRAINT PK_SearchLog PRIMARY KEY NONCLUSTERED (Id),
+    CONSTRAINT UQ_SearchLog_TenantId_Id UNIQUE CLUSTERED (TenantId, Id)
+);
+CREATE INDEX IX_SearchLog_Recent ON app.SearchLog (TenantId, SearchedUtc) INCLUDE (Term);
 GO
 
 -- =====================================================================
@@ -660,6 +704,17 @@ AS RETURN
                       AND a.AccountId = CAST(SESSION_CONTEXT(N'AccountId') AS int)
                       AND a.Status = 'Approved'
                       AND r.Role IN ('TenantAdmin', 'Teacher'))
+       )
+       -- 0041: 영역이 참여자 현황을 공개하면 같은 영역 승인 소속원끼리
+       OR (
+            EXISTS (SELECT 1 FROM app.Tenant t
+                    WHERE t.Id = CAST(SESSION_CONTEXT(N'TenantId') AS int) AND t.ReadingBoardPublic = 1)
+        AND EXISTS (SELECT 1 FROM app.Membership m
+                    WHERE m.TenantId = CAST(SESSION_CONTEXT(N'TenantId') AS int)
+                      AND m.AccountId = @AccountId AND m.Status = 'Approved')
+        AND EXISTS (SELECT 1 FROM app.Membership s
+                    WHERE s.TenantId = CAST(SESSION_CONTEXT(N'TenantId') AS int)
+                      AND s.AccountId = CAST(SESSION_CONTEXT(N'AccountId') AS int) AND s.Status = 'Approved')
        );
 GO
 
@@ -772,6 +827,11 @@ CREATE SECURITY POLICY sec.TenantIsolation
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ReadingRound AFTER UPDATE,
     ADD FILTER PREDICATE sec.fn_ReadingRead(AccountId) ON app.ChapterRead,
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterRead AFTER INSERT,
-    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterRead AFTER UPDATE
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterRead AFTER UPDATE,
+    ADD FILTER PREDICATE sec.fn_ReadingRead(AccountId) ON app.ChapterProgress,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterProgress AFTER INSERT,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterProgress AFTER UPDATE,
+    ADD FILTER PREDICATE sec.fn_Tenant(TenantId) ON app.SearchLog,
+    ADD BLOCK  PREDICATE sec.fn_Tenant(TenantId) ON app.SearchLog AFTER INSERT
 WITH (STATE = ON, SCHEMABINDING = ON);
 GO

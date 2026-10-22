@@ -105,13 +105,16 @@
 | `/{slug}/ranking?year=` | 순위 | 카드(R-81), 본인 강조 | 2차 |
 | `/{slug}/teams?year=` | 가족팀 | 팀 카드 · 구성원 점수 · 가족 단계 | 2차 |
 
-### 4-2b. 성경통독 참여자 (0039, 0040) — 1차
+### 4-2b. 성경통독 참여자 (0039, 0040, 0041 — Bible2 구성) — 1차
 | 주소 | 화면 | ViewModel 주요 값 |
 |---|---|---|
-| `/{slug}/reading` | 통독 홈 | 현재 회차 · 진도율 · 완독 횟수, 오늘 읽은 장 수, 연속 읽은 날, 이어 읽기(마지막으로 읽은 장의 다음 장), 구약 · 신약 진도 |
-| `/{slug}/reading/books` | 책 목록 | 66권, 책마다 읽은 장 / 전체 장 |
-| `/{slug}/reading/books/{book}` | 장 체크 | 장 번호 칸(읽음 표시), 장 눌러 본문 보기 |
-| `/{slug}/reading/books/{book}/{chapter}` | 장 본문 | 본문(번역 전환), [이 장 읽었어요], 다음 장 |
+| `/{slug}/reading` | 대시보드 | 진도 링 · 장 수, 구약 · 신약, 연속 · 읽은 날 · 오늘, 이어 읽기(멈춘 곳 · 첫 절 미리보기), 다음에 읽을 곳, 통독 진도 막대, 최근 8주 달력, 책별 진도(구약 · 신약 탭). 오늘의 말씀은 2차 |
+| (목차 메뉴) | 왼쪽 서랍 | 대시보드 · 구약 · 신약 · 검색 · 북마크 · 참여자 현황, 빠른 이동, 성경말씀으로 가기 |
+| `/{slug}/reading/list?t=ot\|nt` | 구약 · 신약 읽기 | 전체 진도, 책 버튼, 펼친 책의 장 번호 칸(완료 · 다음 · 안 읽음, 눌러 바로 완료 — R-151), 이어 읽기 |
+| `/{slug}/reading/read/{book}/{chapter}` | 본문 읽기 | 경로, 글자 크기, 장 진도(n절 읽음), 장 번호 줄, 읽기 단위 · 번역(모두 포함) · 듣기 · 해설, 절별 ★, 이전 · 다음(R-160) |
+| `/{slug}/reading/search?q=` | 성경 검색 | 검색창, 추천 단어, 결과(번역 선택), 영역 인기 검색어(R-163, R-164) |
+| `/{slug}/reading/bookmarks` | 북마크 | ★ 말씀 카드, 이 장 읽기 |
+| `/{slug}/reading/participants` | 참여자 현황 | 통계(참여자 · 완독자 · 평균 진도 · 누적 완독), 명예의 전당, 참여자 카드, 진도율순 · 최근순 · 이름 찾기(R-159). 공개 꺼짐이면 관리자 · 교사만 |
 | `/{slug}/reading/rounds` | 회차 기록 | 회차별 시작 · 완료일, [새 회차 시작] |
 
 - 영역 홈 `/{slug}` 은 켠 프로그램이 둘이면 아래 탭(성경말씀 · 성경통독)으로 오간다. 하나면 바로 그 프로그램.
@@ -205,6 +208,9 @@
 | `DELETE /api/me/reading/chapters/{book}/{chapter}` | 현재 회차에서 장 읽음 해제 |
 | `POST /api/me/reading/rounds` | 새 회차 시작(R-154). 현재 회차는 닫힘 |
 | `GET /api/me/reading/summary` | 진도율 · 완독 횟수 · 오늘 읽은 장 수 · 연속 읽은 날 |
+| `PUT /api/me/reading/progress/{book}/{chapter}` `{ throughVerse }` | "다음"으로 넘긴 절까지 읽음(R-160). 멱등(이미 더 읽었으면 그대로). 마지막 절이면 장 자동 완료(R-162). 응답 `{ chapterDone, progress, roundCompleted }` |
+| `GET /api/{slug}/reading/search?q=&translation=` | 성경 검색(R-163). 검색어를 영역 SearchLog 에 남김(R-164) |
+| `GET /api/{slug}/reading/search/popular` | 영역 인기 검색어(최근 30일 상위 10) |
 
 - 1,189번째 장을 읽으면 응답의 `roundCompleted: true` 로 축하 화면을 띄운다(ReadingRoundCompleted).
 - 성경통독을 켜지 않은 영역 경로에서 부르면 404(R-150).
