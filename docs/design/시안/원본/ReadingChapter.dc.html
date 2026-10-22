@@ -9,127 +9,140 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0}
 a{color:#1B1F24;text-decoration:none}a:hover{color:#1B1F24}
 button{font-family:inherit}
 </style>
 </helmet>
-<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F6F8; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex; flex-direction: column; overflow: hidden">
+<div style="width: 390px; height: 1640px; box-sizing: border-box; background: #FFFFFF; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex; flex-direction: column">
 
-  <header style="background: #FFFFFF; padding: 10px 16px 12px; display: flex; flex-direction: column; gap: 8px; border-radius: 0 0 20px 20px">
+  <header style="background: #F5F6F8; padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 14px">
     <div style="display: flex; align-items: center; gap: 8px">
-      <a href="ReadingMenu.dc.html" aria-label="목차 열기" style="width: 40px; height: 40px; border-radius: 10px; border: 1px solid #DDE1E6; display: flex; align-items: center; justify-content: center; box-sizing: border-box">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+      <a href="ReadingMenu.dc.html" aria-label="목차 열기" style="width: 42px; height: 40px; flex: none; border: 1px solid #DDE1E6; border-radius: 10px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-sizing: border-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
       </a>
-      <span style="flex: 1; font-size: 13px; color: #5B6470"><a href="ReadingBooks.dc.html" style="color: #5B6470">구약</a> › <b style="color: #1B1F24">창세기 24장</b></span>
-      <div role="group" aria-label="글자 크기" style="display: flex; gap: 2px">
-        <button aria-label="작게" style="width: 30px; height: 40px; border: 0; background: none; font-size: 12px; color: #5B6470">가</button>
-        <button aria-label="보통" aria-pressed="true" style="width: 30px; height: 40px; border: 0; border-radius: 8px; background: #F1F4FA; font-size: 15px; font-weight: 700; color: {{accent}}">가</button>
-        <button aria-label="크게" style="width: 30px; height: 40px; border: 0; background: none; font-size: 18px; color: #5B6470">가</button>
+      <span style="flex: 1; min-width: 0; font-size: 13px; color: #5B6470; white-space: nowrap; overflow: hidden">구약 › <b style="color: #1B1F24; font-weight: 500">창세기 24장</b></span>
+      <div role="group" aria-label="글자 크기" style="display: flex; flex: none; border: 1px solid #DDE1E6; border-radius: 10px; background: #FFFFFF; overflow: hidden">
+        <button onClick="{{fsDown}}" aria-label="글자 작게" style="width: 34px; height: 38px; border: 0; background: none; display: flex; align-items: center; justify-content: center; color: {{downColor}}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg>
+        </button>
+        <button onClick="{{fsReset}}" aria-label="글자 크기 처음으로" style="min-width: 48px; height: 38px; padding: 0 4px; border: 0; border-left: 1px solid #DDE1E6; border-right: 1px solid #DDE1E6; background: {{pctBg}}; color: {{pctColor}}; font-size: 13px; font-weight: 700">{{pct}}%</button>
+        <button onClick="{{fsUp}}" aria-label="글자 크게" style="width: 34px; height: 38px; border: 0; background: none; display: flex; align-items: center; justify-content: center; color: {{upColor}}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>
+        </button>
       </div>
+      <button aria-label="밝게 · 어둡게" style="width: 40px; height: 40px; flex: none; border: 1px solid #DDE1E6; border-radius: 10px; background: #FFFFFF; display: flex; align-items: center; justify-content: center">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#1B1F24" stroke-width="1.8"></circle><path d="M12 3a9 9 0 0 1 0 18z" fill="#1B1F24"></path></svg>
+      </button>
     </div>
-    <div style="display: flex; justify-content: space-between; align-items: baseline">
-      <span style="font-size: 24px; font-weight: 700">창세기 <span style="color: {{accent}}">24</span>장</span>
-      <span style="font-size: 13px; color: #5B6470">67절 · {{readCount}}절 읽음 · {{readPct}}</span>
-    </div>
-    <div style="height: 6px; border-radius: 3px; background: #E9ECF0; overflow: hidden"><div style="height: 6px; width: {{readPct}}; background: {{accent}}"></div></div>
-    <div style="display: flex; gap: 6px; overflow: hidden">
-      <sc-for list="{{pills}}" as="p" hint-placeholder-count="8">
-        <a href="ReadingChapter.dc.html" style="flex: none; width: 38px; height: 34px; border-radius: 17px; background: {{p.bg}}; color: {{p.color}}; border: 2px solid {{p.ring}}; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">{{p.no}}</a>
-      </sc-for>
-    </div>
+    <span style="font-size: 13px; font-weight: 700; letter-spacing: 0.18em; color: {{accent}}">구약 · 성경 통독</span>
+    <div style="display: flex; align-items: baseline; gap: 8px"><span style="font-size: 34px; font-weight: 500">창세기</span><span style="font-size: 52px; font-weight: 300; line-height: 1">24</span><span style="font-size: 18px; color: #5B6470">장</span></div>
+    <div style="display: flex; justify-content: space-between; font-size: 14px; color: #5B6470"><span>67절 · {{readCount}}절 읽음</span><span>{{readPct}}</span></div>
+    <div style="height: 3px; background: #E3E6EA"><div style="height: 3px; width: {{readPct}}; background: {{accent}}"></div></div>
   </header>
 
-  <main style="flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 12px 16px 14px; overflow: hidden">
-    <section style="background: #FFFFFF; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
-      <sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
-        <div style="display: flex; align-items: center; gap: 8px">
-          <span style="width: 64px; flex: none; font-size: 12px; color: #5B6470; white-space: nowrap">{{g.label}}</span>
-          <div style="display: flex; gap: 6px; flex-wrap: wrap">
-            <sc-for list="{{g.chips}}" as="c" hint-placeholder-count="4">
-              <button aria-pressed="{{c.on}}" style="min-height: 32px; padding: 0 10px; border-radius: 16px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.color}}; font-size: 12px; font-weight: {{c.weight}}">{{c.name}}</button>
-            </sc-for>
-          </div>
-        </div>
-      </sc-for>
-    </section>
+  <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; padding: 18px 20px 20px">
+    <sc-for list="{{chs}}" as="c" hint-placeholder-count="50">
+      <a href="ReadingChapter.dc.html" style="height: 36px; border-radius: 18px; background: {{c.bg}}; color: {{c.color}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">{{c.no}}</a>
+    </sc-for>
+  </div>
+  <div style="height: 1px; background: #E3E6EA"></div>
 
-    <section style="flex: 1; background: #FFFFFF; border-radius: 16px; padding: 8px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto">
-      <sc-for list="{{verses}}" as="v" hint-placeholder-count="3">
-        <div style="display: flex; gap: 6px; align-items: flex-start; padding: 8px 4px 8px 10px; border-radius: 12px; background: {{v.rowBg}}">
-          <span style="font-size: 13px; font-weight: 700; color: {{accent}}; padding-top: 4px; min-width: 14px">{{v.no}}</span>
-          <p style="flex: 1; margin: 0; font-size: 16px; line-height: 1.75">{{v.text}}</p>
-          <div style="display: flex; flex-direction: column; gap: 2px; flex: none">
-            <button onClick="{{v.toggle}}" aria-label="{{v.readLabel}}" aria-pressed="{{v.read}}" style="width: 40px; height: 40px; border-radius: 20px; border: 2px solid {{v.checkRing}}; background: {{v.checkBg}}; box-sizing: border-box; display: flex; align-items: center; justify-content: center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{v.checkStroke}}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
-            </button>
-            <button aria-label="북마크" aria-pressed="{{v.star}}" style="width: 40px; height: 36px; border: 0; background: none; display: flex; align-items: center; justify-content: center">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="{{v.fill}}" stroke="{{v.stroke}}" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"></path></svg>
-            </button>
-          </div>
+  <section style="display: flex; flex-direction: column; gap: 14px; padding: 18px 20px 20px">
+    <sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; color: #5B6470; letter-spacing: 0.08em">{{g.label}}</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{g.chips}}" as="c" hint-placeholder-count="4">
+            <button aria-pressed="{{c.on}}" style="min-height: 40px; padding: 0 16px; border-radius: 10px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.color}}; font-size: 14px; font-weight: {{c.weight}}">{{c.name}}</button>
+          </sc-for>
         </div>
-      </sc-for>
-    </section>
+      </div>
+    </sc-for>
+  </section>
+  <div style="height: 1px; background: #E3E6EA"></div>
 
-    <button onClick="{{markAll}}" style="min-height: 50px; border-radius: 14px; border: 2px solid {{accent}}; background: {{allBg}}; color: {{allColor}}; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{allColor}}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12l5 5L17 7M12 17l10-10"></path></svg>
-      {{allLabel}}
-    </button>
-    <div style="display: flex; align-items: center; gap: 8px">
-      <button disabled style="min-height: 48px; padding: 0 16px; border-radius: 14px; border: 1px solid #DDE1E6; background: #FFFFFF; font-size: 15px; color: #5B6470">‹ 이전</button>
+  <div style="display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 0 20px; font-size: 18px">창세기 개요 <span style="font-size: 13px; color: {{accent}}; border: 1px solid #DDE1E6; border-radius: 6px; padding: 2px 8px">상세본</span><span style="margin-left: auto; font-size: 12px; color: #5B6470">▼</span></div>
+  <div style="height: 1px; background: #E3E6EA"></div>
+
+  <div style="margin: 16px 20px 4px; padding: 12px 14px; border-left: 3px solid {{accent}}; background: #F5F6F8; display: flex; align-items: center; gap: 10px">
+    <b style="background: {{accent}}; color: #FFFFFF; font-size: 13px; padding: 3px 8px; border-radius: 4px">해설</b>
+    <span style="font-size: 15px; font-weight: 700; color: {{accent}}; letter-spacing: 0.04em">창세기 24:1 ~ 24:3</span>
+  </div>
+
+  <div style="padding: 0 20px">
+    <sc-for list="{{verses}}" as="v" hint-placeholder-count="3">
+      <div style="display: flex; gap: 12px; padding: 16px 0; border-bottom: 1px solid #E3E6EA">
+        <span style="width: 30px; height: 30px; flex: none; border-radius: 15px; background: #E8EEFA; color: {{accent}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; margin-top: 3px">{{v.no}}</span>
+        <p style="margin: 0; min-width: 0; font-size: {{fontPx}}; line-height: 1.95; word-break: keep-all">{{v.text}}<span style="display: inline-flex; gap: 6px; vertical-align: middle; margin-left: 6px">
+          <button onClick="{{v.toggle}}" aria-label="{{v.readLabel}}" aria-pressed="{{v.read}}" style="width: 36px; height: 36px; border-radius: 18px; border: 0; background: {{v.chkBg}}; color: {{v.chkColor}}; display: inline-flex; align-items: center; justify-content: center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+          </button>
+          <button aria-label="북마크" aria-pressed="{{v.star}}" style="width: 36px; height: 36px; border-radius: 18px; border: 0; background: #EEF0F3; color: {{v.starColor}}; display: inline-flex; align-items: center; justify-content: center">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"></path></svg>
+          </button>
+        </span></p>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px; padding: 18px 20px 22px">
+    <button onClick="{{markAll}}" style="min-height: 52px; border-radius: 12px; border: 1px solid {{accent}}; background: {{allBg}}; color: {{allColor}}; font-size: 15px; font-weight: 700">{{allLabel}}</button>
+    <div style="display: flex; align-items: center; gap: 10px">
+      <button disabled style="min-height: 48px; padding: 0 18px; border-radius: 12px; border: 1px solid #DDE1E6; background: #F5F6F8; color: #5B6470; font-size: 15px">‹ 이전</button>
       <span style="flex: 1; text-align: center; font-size: 13px; color: #5B6470">1–3절 / 67</span>
-      <button style="min-height: 48px; padding: 0 16px; border-radius: 14px; border: 1px solid #DDE1E6; background: #FFFFFF; font-size: 15px; font-weight: 700; color: #1B1F24">다음 ›</button>
+      <button style="min-height: 48px; padding: 0 18px; border-radius: 12px; border: 1px solid #DDE1E6; background: #F5F6F8; color: #1B1F24; font-size: 15px; font-weight: 500">다음 ›</button>
     </div>
-    <span style="font-size: 12px; color: #5B6470; text-align: center">넘기기만 해서는 읽음으로 표시되지 않아요. 67절을 모두 읽음 표시하면 이 장이 완료돼요.</span>
-  </main>
+    <span style="font-size: 13px; color: #5B6470; text-align: center; line-height: 1.6">넘기기만 해서는 읽음으로 표시되지 않아요. 절마다 ✓ 를 누르거나 이 페이지 모두 읽음을 눌러 주세요.</span>
+  </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2B59C3","options":["#2B59C3","#1F7A5C","#B2462E","#6A4BB5"],"section":"부서 대표 색"},"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2B59C3","options":["#2B59C3","#1F7A5C","#B2462E","#6A4BB5"],"section":"부서 대표 색"},"$preview":{"width":390,"height":1640}}'>
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { read: { 1: true, 2: true, 3: false } };
+    this.state = { read: { 1: true, 2: true }, step: 0 };
   }
   renderVals() {
     const accent = this.props.accent ?? '#2B59C3';
-    const read = this.state.read;
-    const pills = [21, 22, 23, 24, 25, 26, 27, 28].map(function (n) {
-      const done = n < 24, cur = n === 24;
-      return { no: n, bg: cur ? accent : (done ? '#E8EEFA' : '#F5F6F8'), color: cur ? '#FFFFFF' : (done ? accent : '#5B6470'), ring: cur ? accent : (done ? '#E8EEFA' : '#F5F6F8') };
-    });
-    function chip(name, on) { return { name: name, on: on, bg: on ? accent : '#FFFFFF', color: on ? '#FFFFFF' : '#1B1F24', border: on ? accent : '#DDE1E6', weight: on ? 700 : 500 }; }
+    const self = this, st = this.state;
+    const pct = 100 + st.step * (st.step < 0 ? 5 : 10);
+    const chs = [];
+    for (let i = 1; i <= 50; i++) chs.push({ no: i, bg: i === 24 ? accent : (i < 24 ? '#E8EEFA' : '#F5F6F8'), color: i === 24 ? '#FFFFFF' : (i < 24 ? accent : '#5B6470') });
+    function chip(name, on) { return { name: name, on: on, bg: on ? accent : '#F5F6F8', color: on ? '#FFFFFF' : '#1B1F24', border: on ? accent : '#E3E6EA', weight: on ? 700 : 400 }; }
     const groups = [
       { label: '읽기 단위', chips: [chip('한 절', false), chip('3절', true), chip('5절', false), chip('전체', false)] },
       { label: '번역', chips: [chip('개역개정', true), chip('현대인', false), chip('NIV', false), chip('모두', false)] },
-      { label: '듣기·해설', chips: [chip('유튜브 듣기', false), chip('개요 해설', false)] }
+      { label: '듣기 · 해설', chips: [chip('유튜브 듣기', false), chip('개요 해설 1', false)] }
     ];
-    const self = this;
     const raw = [
       { no: 1, text: '아브라함이 나이가 많아 늙었고 여호와께서 그에게 범사에 복을 주셨더라', star: false },
       { no: 2, text: '아브라함이 자기 집 모든 소유를 맡은 늙은 종에게 이르되 청하건대 네 손을 내 허벅지 밑에 넣으라', star: true },
       { no: 3, text: '내가 너에게 하늘의 하나님, 땅의 하나님이신 여호와를 가리켜 맹세하게 하노니 너는 내가 거주하는 이 지방 가나안 족속의 딸 중에서 내 아들을 위하여 아내를 택하지 말고', star: false }
     ];
     const verses = raw.map(function (v) {
-      const r = !!read[v.no];
+      const r = !!st.read[v.no];
       return Object.assign({}, v, {
-        read: r,
-        readLabel: v.no + '절 ' + (r ? '읽음 해제' : '읽음 표시'),
-        rowBg: r ? '#F1F4FA' : '#FFFFFF',
-        checkBg: r ? accent : '#FFFFFF', checkRing: r ? accent : '#C9CED5', checkStroke: r ? '#FFFFFF' : '#C9CED5',
-        fill: v.star ? '#E0A100' : 'none', stroke: v.star ? '#E0A100' : '#9AA1AB',
-        toggle: function () { const next = Object.assign({}, self.state.read); next[v.no] = !r; self.setState({ read: next }); }
+        read: r, readLabel: v.no + '절 ' + (r ? '읽음 해제' : '읽음 표시'),
+        chkBg: r ? accent : '#EEF0F3', chkColor: r ? '#FFFFFF' : '#5B6470', starColor: v.star ? '#E0A100' : '#A3AAB4',
+        toggle: function () { const n = Object.assign({}, st.read); n[v.no] = !r; self.setState({ read: n }); }
       });
     });
-    const count = raw.filter(function (v) { return read[v.no]; }).length;
+    const count = raw.filter(function (v) { return st.read[v.no]; }).length;
     const allDone = count === raw.length;
+    const setStep = function (s) { self.setState({ step: Math.max(-5, Math.min(5, s)) }); };
     return {
-      accent: accent, pills: pills, groups: groups, verses: verses,
+      accent: accent, chs: chs, groups: groups, verses: verses,
       readCount: count, readPct: Math.round(count / 67 * 100) + '%',
-      allLabel: allDone ? '이 페이지 모두 읽었어요' : '이 페이지 ' + raw.length + '절 모두 읽음',
+      fontPx: (17 * pct / 100).toFixed(1) + 'px', pct: pct,
+      pctBg: st.step === 0 ? '#FFFFFF' : '#E8EEFA', pctColor: st.step === 0 ? '#5B6470' : accent,
+      downColor: st.step <= -5 ? '#C9CED5' : '#1B1F24', upColor: st.step >= 5 ? '#C9CED5' : '#1B1F24',
+      fsDown: function () { setStep(st.step - 1); }, fsUp: function () { setStep(st.step + 1); }, fsReset: function () { setStep(0); },
+      allLabel: allDone ? '이 페이지 모두 읽었어요' : '이 페이지 3절 모두 읽음',
       allBg: allDone ? accent : '#FFFFFF', allColor: allDone ? '#FFFFFF' : accent,
-      markAll: function () { const next = Object.assign({}, self.state.read); raw.forEach(function (v) { next[v.no] = true; }); self.setState({ read: next }); }
+      markAll: function () { const n = Object.assign({}, st.read); raw.forEach(function (v) { n[v.no] = true; }); self.setState({ read: n }); }
     };
   }
 }

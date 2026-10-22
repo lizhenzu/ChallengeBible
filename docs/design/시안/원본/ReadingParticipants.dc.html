@@ -9,97 +9,87 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0}
 a{color:#1B1F24;text-decoration:none}a:hover{color:#1B1F24}
 button,input{font-family:inherit}
 </style>
 </helmet>
-<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F6F8; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex; flex-direction: column; overflow: hidden">
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex; flex-direction: column; overflow: hidden">
 
-  <header style="display: flex; align-items: center; gap: 10px; padding: 12px 16px 8px">
-    <a href="ReadingMenu.dc.html" aria-label="목차 열기" style="width: 44px; height: 44px; border-radius: 12px; background: #FFFFFF; border: 1px solid #DDE1E6; display: flex; align-items: center; justify-content: center; box-sizing: border-box">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
-    </a>
-    <span style="font-size: 18px; font-weight: 700">참여자 현황</span>
-  </header>
-
-  <main style="flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 6px 20px 16px; overflow: hidden">
-    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+  <header style="background: #F5F6F8; padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <a href="ReadingMenu.dc.html" aria-label="목차 열기" style="width: 42px; height: 40px; border: 1px solid #DDE1E6; border-radius: 10px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-sizing: border-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+      </a>
+      <span style="font-size: 15px; font-weight: 500">참여자 현황</span>
+    </div>
+    <span style="font-size: 13px; font-weight: 700; letter-spacing: 0.18em; color: {{accent}}">함께 읽는 말씀</span>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid #1B1F24; border-bottom: 1px solid #DDE1E6">
       <sc-for list="{{stats}}" as="s" hint-placeholder-count="4">
-        <div style="background: #FFFFFF; border-radius: 12px; padding: 10px 4px; display: flex; flex-direction: column; align-items: center; gap: 2px">
-          <span style="font-size: 18px; font-weight: 700; color: {{s.color}}">{{s.v}}</span>
-          <span style="font-size: 11px; color: #5B6470">{{s.k}}</span>
+        <div style="padding: 10px 0; text-align: center; border-left: {{s.rule}}; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 20px; font-weight: 300">{{s.v}}</span><span style="font-size: 11px; color: #5B6470">{{s.k}}</span>
         </div>
       </sc-for>
     </div>
+  </header>
 
-    <section style="background: #FFFFFF; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
-      <div style="display: flex; justify-content: space-between; align-items: baseline">
-        <span style="font-size: 14px; font-weight: 700">완독자 명예의 전당</span>
-        <span style="font-size: 12px; color: #5B6470">8명</span>
-      </div>
-      <div style="display: flex; gap: 10px; overflow: hidden">
-        <sc-for list="{{hall}}" as="h" hint-placeholder-count="5">
-          <div style="flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 56px">
-            <span style="width: 40px; height: 40px; border-radius: 20px; background: #FFF4D6; border: 2px solid #E0A100; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; box-sizing: border-box">{{h.ini}}</span>
-            <span style="font-size: 12px; font-weight: 500">{{h.name}}</span>
-            <span style="font-size: 11px; font-weight: 700; color: #8A6400">{{h.n}}</span>
-          </div>
-        </sc-for>
-      </div>
-    </section>
-
-    <div style="display: flex; gap: 6px; align-items: center">
-      <label style="flex: 1; display: flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 12px; background: #FFFFFF; border: 1px solid #DDE1E6">
-        <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">이름 찾기</span>
-        <input type="search" placeholder="이름 찾기" style="flex: 1; min-width: 0; border: 0; outline: none; font-size: 14px; background: transparent">
-      </label>
-      <button style="min-height: 40px; padding: 0 12px; border-radius: 20px; border: 0; background: {{accent}}; color: #FFFFFF; font-size: 13px; font-weight: 700">진도율순</button>
-      <button style="min-height: 40px; padding: 0 12px; border-radius: 20px; border: 1px solid #DDE1E6; background: #FFFFFF; color: #1B1F24; font-size: 13px">최근순</button>
+  <section style="padding: 16px 20px 0">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px">
+      <span style="font-size: 13px; font-weight: 700; letter-spacing: 0.16em; color: {{accent}}">완독자 명예의 전당</span>
+      <span style="font-size: 12px; color: #5B6470">8명</span>
     </div>
-
-    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
-      <sc-for list="{{people}}" as="p" hint-placeholder-count="4">
-        <section style="position: relative; background: #FFFFFF; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 6px">
-          <sc-if value="{{p.hasTag}}" hint-placeholder-val="{{false}}">
-            <span style="position: absolute; top: 10px; right: 10px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: #FFF4D6; color: #8A6400">{{p.tag}}</span>
-          </sc-if>
-          <div style="display: flex; align-items: center; gap: 8px">
-            <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
-              <circle cx="22" cy="22" r="19" fill="none" stroke="#E9ECF0" stroke-width="4"></circle>
-              <circle cx="22" cy="22" r="19" fill="none" stroke="{{accent}}" stroke-width="4" stroke-linecap="round" stroke-dasharray="{{p.dash}}" transform="rotate(-90 22 22)"></circle>
-              <text x="22" y="27" text-anchor="middle" font-size="14" font-weight="700" fill="#1B1F24">{{p.ini}}</text>
-            </svg>
-            <span style="display: flex; flex-direction: column">
-              <span style="font-size: 14px; font-weight: 700">{{p.name}}</span>
-              <span style="font-size: 11px; color: #5B6470">{{p.group}}</span>
-            </span>
-          </div>
-          <span style="font-size: 18px; font-weight: 700; color: {{accent}}">{{p.pct}}</span>
-          <span style="font-size: 11px; color: #5B6470">{{p.last}}</span>
-        </section>
+    <div style="display: flex; gap: 14px; overflow: hidden">
+      <sc-for list="{{hall}}" as="h" hint-placeholder-count="5">
+        <div style="flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 52px">
+          <span style="width: 40px; height: 40px; border-radius: 20px; border: 2px solid #E0A100; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; box-sizing: border-box">{{h.ini}}</span>
+          <span style="font-size: 12px">{{h.name}}</span>
+          <span style="font-size: 11px; font-weight: 700; color: #8A6400">{{h.n}}</span>
+        </div>
       </sc-for>
     </div>
-  </main>
+  </section>
+
+  <section style="padding: 18px 20px 0">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid #1B1F24">
+      <span style="font-size: 13px; font-weight: 700; letter-spacing: 0.16em; color: {{accent}}">참여자 84명</span>
+      <div style="display: flex">
+        <button style="min-height: 32px; padding: 0 10px; border: 1px solid #1B1F24; background: #1B1F24; color: #FFFFFF; font-size: 12px">진도율순</button>
+        <button style="min-height: 32px; padding: 0 10px; border: 1px solid #DDE1E6; border-left: 0; background: #FFFFFF; color: #1B1F24; font-size: 12px">최근순</button>
+      </div>
+    </div>
+    <sc-for list="{{people}}" as="p" hint-placeholder-count="5">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #E3E6EA">
+        <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true" style="flex: none">
+          <circle cx="22" cy="22" r="19" fill="none" stroke="#E3E6EA" stroke-width="3"></circle>
+          <circle cx="22" cy="22" r="19" fill="none" stroke="{{accent}}" stroke-width="3" stroke-dasharray="{{p.dash}}" transform="rotate(-90 22 22)"></circle>
+          <text x="22" y="27" text-anchor="middle" font-size="14" font-weight="700" fill="#1B1F24">{{p.ini}}</text>
+        </svg>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 15px; font-weight: 500">{{p.name}} <span style="font-size: 12px; color: #5B6470; font-weight: 400">{{p.group}}</span> <span style="font-size: 11px; font-weight: 700; color: #8A6400">{{p.tag}}</span></span>
+          <span style="font-size: 12px; color: #5B6470">{{p.last}}</span>
+        </span>
+        <span style="font-size: 18px; font-weight: 300">{{p.pct}}<span style="font-size: 11px; color: #5B6470">%</span></span>
+      </div>
+    </sc-for>
+  </section>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2B59C3","options":["#2B59C3","#1F7A5C","#B2462E","#6A4BB5"],"section":"부서 대표 색"},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
   renderVals() {
     const accent = this.props.accent ?? '#2B59C3';
-    const stats = [['84', '참여자'], ['6', '완독자'], ['6.1%', '평균 진도'], ['8', '누적 완독']].map(function (s, i) { return { v: s[0], k: s[1], color: i === 2 ? accent : '#1B1F24' }; });
+    const stats = [['84', '참여자'], ['6', '완독자'], ['6.1%', '평균 진도'], ['8', '누적 완독']].map(function (s, i) { return { v: s[0], k: s[1], rule: i ? '1px solid #DDE1E6' : '0' }; });
     const hall = [['강하늘', '2독'], ['김소망', '2독'], ['백믿음', '1독'], ['유온유', '1독'], ['이은혜', '1독']].map(function (h) { return { name: h[0], ini: h[0][0], n: h[1] }; });
+    const c = 2 * Math.PI * 19;
     const people = [
       ['강하늘', '1학년 1반', 97.8, '데살로니가후서 3장 · 17일 전', '2독째'],
       ['최기쁨', '교사', 70.7, '데살로니가전서 5장 · 32일 전', ''],
       ['이은혜', '교사', 32.9, '야고보서 4장 · 오늘', '1독 완료'],
-      ['이소망', '2학년 2반', 29.3, '야고보서 3장 · 어제', '']
-    ].map(function (p) {
-      const c = 2 * Math.PI * 19;
-      return { name: p[0], ini: p[0][0], group: p[1], pct: p[2].toFixed(1) + '%', dash: (c * p[2] / 100).toFixed(1) + ' ' + c.toFixed(1), last: p[3], tag: p[4], hasTag: !!p[4] };
-    });
+      ['이소망', '2학년 2반', 29.3, '야고보서 3장 · 어제', ''],
+      ['권온유', '3학년 2반', 26.7, '야고보서 3장 · 어제', '']
+    ].map(function (p) { return { name: p[0], ini: p[0][0], group: p[1], pct: p[2].toFixed(1), dash: (c * p[2] / 100).toFixed(1) + ' ' + c.toFixed(1), last: p[3], tag: p[4] }; });
     return { accent: accent, stats: stats, hall: hall, people: people };
   }
 }

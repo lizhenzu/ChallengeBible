@@ -1,0 +1,278 @@
+<title>통독 본문 읽기</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap">
+<style>
+  /* 레이아웃: 카드 없이 한 장의 종이처럼 — 상단 띠, 큰 장 제목, 장 번호, 설정, 본문 목록이 구분선으로만 나뉜다 */
+  :root {
+    --bg: #FFFFFF; --band: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA;
+    --accent: #2B59C3; --on-accent: #FFFFFF; --tint: #E8EEFA; --tint-fg: #2B59C3;
+    --chip: #F5F6F8; --star-off: #EEF0F3; --star-on: #E0A100;
+    --font: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    --vs: 1;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #15181C; --band: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A;
+    --accent: #6E95F0; --on-accent: #0E1013; --tint: #22304A; --tint-fg: #9DB7F5;
+    --chip: #1E2329; --star-off: #262B33; --star-on: #F2BE3A; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #15181C; --band: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A;
+    --accent: #6E95F0; --on-accent: #0E1013; --tint: #22304A; --tint-fg: #9DB7F5;
+    --chip: #1E2329; --star-off: #262B33; --star-on: #F2BE3A; color-scheme: dark }
+
+  body { background: var(--band); color: var(--fg); font-family: var(--font); padding-block: 16px 32px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .phone { max-width: 400px; margin: 0 auto; background: var(--bg); border: 1px solid var(--rule); border-radius: 28px; overflow: hidden; position: relative; }
+  button { font-family: inherit; cursor: pointer; color: inherit; }
+  button:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .pad { padding: 0 20px; }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+
+  /* 상단 띠 */
+  .head { background: var(--band); padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 14px; }
+  .bar1 { display: flex; align-items: center; gap: 10px; }
+  .sq { width: 44px; height: 40px; border: 1px solid var(--rule); background: var(--bg); border-radius: 10px; display: grid; place-items: center; flex: none; }
+  .crumb { flex: 1; min-width: 0; font-size: 14px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .crumb b { color: var(--fg); font-weight: 500; }
+  .fs { display: flex; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--bg); flex: none; }
+  /* 글자 크기 4단계(Bible2 와 같음) — 본문 · 번역 줄 · 개요만 커진다. ✓ · ★ 동그라미는 그대로 */
+  .fs button { height: 40px; border: 0; background: none; color: var(--fg); display: grid; place-items: center; }
+  .fs .step { width: 36px; }
+  .fs .step:disabled { color: var(--rule); cursor: default; }
+  .fs .pct { min-width: 50px; padding: 0 4px; border-left: 1px solid var(--rule); border-right: 1px solid var(--rule); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--dim); }
+  .fs .pct.changed { color: var(--tint-fg); background: var(--tint); }
+  .fs button[aria-pressed="true"] { background: var(--tint); color: var(--tint-fg); font-weight: 700; }
+  .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .18em; color: var(--accent); }
+  .ttl { margin: 0; display: flex; align-items: baseline; gap: 8px; font-weight: 400; }
+  .ttl .bk { font-size: 34px; font-weight: 500; }
+  .ttl .ch { font-size: 52px; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }
+  .ttl .u { font-size: 18px; color: var(--dim); }
+  .meta { display: flex; justify-content: space-between; font-size: 14px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .line { height: 3px; background: var(--rule); }
+  .line i { display: block; height: 3px; background: var(--accent); transition: width .25s; }
+
+  /* 다 읽음 · 장 번호 */
+  .done { margin: 18px 20px 0; padding: 14px 18px; border-left: 3px solid var(--accent); background: var(--tint); color: var(--tint-fg); font-size: 16px; font-weight: 700; }
+  .chs { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 8px; padding: 18px 20px 20px; }
+  .chs a { aspect-ratio: 1; max-width: 100%; border-radius: 50%; display: grid; place-items: center; font-size: 15px; font-weight: 700; text-decoration: none; background: var(--chip); color: var(--dim); font-variant-numeric: tabular-nums; }
+  .chs a.rd { background: var(--tint); color: var(--tint-fg); }
+  .chs a.cur { background: var(--accent); color: var(--on-accent); }
+
+  /* 설정 */
+  .opts { display: flex; flex-direction: column; gap: 14px; padding: 18px 20px 20px; }
+  .lbl { font-size: 13px; color: var(--dim); letter-spacing: .08em; margin-bottom: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips button { min-height: 40px; padding: 0 16px; border: 1px solid var(--rule); border-radius: 10px; background: var(--chip); font-size: 14px; }
+  .chips button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
+
+  details { padding: 0 20px; }
+  summary { list-style: none; display: flex; align-items: center; gap: 10px; min-height: 60px; font-size: 18px; cursor: pointer; }
+  summary::-webkit-details-marker { display: none; }
+  summary .tag { font-size: 13px; color: var(--accent); border: 1px solid var(--rule); border-radius: 6px; padding: 2px 8px; }
+  summary .car { margin-left: auto; color: var(--dim); font-size: 12px; transition: transform .2s; }
+  details[open] summary .car { transform: rotate(180deg); }
+  details p { margin: 0 0 16px; font-size: calc(14px * var(--vs)); line-height: 1.8; color: var(--dim); }
+  .size-note { padding: 10px 20px 0; font-size: 12px; color: var(--dim); }
+
+  .sect { margin: 16px 20px 4px; padding: 12px 14px; border-left: 3px solid var(--accent); background: var(--band); display: flex; align-items: center; gap: 10px; }
+  .sect b { background: var(--accent); color: var(--on-accent); font-size: 13px; padding: 3px 8px; border-radius: 4px; }
+  .sect span { font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+
+  /* 본문 */
+  .verses { list-style: none; margin: 0; padding: 0 20px; }
+  .v { display: flex; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--rule); }
+  .no { width: 30px; height: 30px; flex: none; border-radius: 50%; background: var(--tint); color: var(--tint-fg); display: grid; place-items: center; font-size: 13px; font-weight: 700; margin-top: 3px; }
+  .v p { margin: 0; min-width: 0; font-size: calc(17px * var(--vs)); line-height: 1.95; word-break: keep-all; }
+  .acts { display: inline-flex; gap: 6px; vertical-align: middle; margin-left: 6px; }
+  .rb { width: 36px; height: 36px; border-radius: 50%; border: 0; display: inline-grid; place-items: center; background: var(--star-off); color: var(--dim); }
+  .rb.chk[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+  .rb.star[aria-pressed="true"] { color: var(--star-on); }
+  .rb svg { display: block; }
+
+  .foot { display: flex; flex-direction: column; gap: 12px; padding: 18px 20px 22px; }
+  .all { min-height: 52px; border: 1px solid var(--accent); border-radius: 12px; background: var(--bg); color: var(--accent); font-size: 15px; font-weight: 700; }
+  .all.on { background: var(--accent); color: var(--on-accent); }
+  .nav { display: flex; align-items: center; gap: 10px; }
+  .nav button { min-height: 48px; padding: 0 18px; border: 1px solid var(--rule); border-radius: 12px; background: var(--chip); font-size: 15px; font-weight: 500; }
+  .nav button:disabled { color: var(--dim); cursor: default; opacity: .6; }
+  .nav span { flex: 1; text-align: center; font-size: 13px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .note { margin: 0; font-size: 13px; color: var(--dim); text-align: center; line-height: 1.6; min-height: 2.6em; }
+  .totop { position: sticky; bottom: 16px; margin: 0 20px 16px auto; width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--rule); background: var(--bg); display: grid; place-items: center; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+  @media (prefers-reduced-motion: reduce) { .line i, summary .car { transition: none; } }
+</style>
+
+<div class="phone" id="top">
+  <div class="head">
+    <div class="bar1">
+      <button type="button" class="sq" aria-label="목차 열기">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <span class="crumb">구약 › <b>창세기 24장</b></span>
+      <div class="fs" role="group" aria-label="글자 크기" id="fs">
+        <button type="button" class="step" id="fsDown" aria-label="글자 작게">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>
+        </button><button type="button" class="pct" id="fsReset" aria-label="글자 크기 100%, 누르면 처음 크기로">100%</button><button type="button" class="step" id="fsUp" aria-label="글자 크게">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg>
+        </button>
+      </div>
+      <button type="button" class="sq" id="theme" aria-label="밝게 · 어둡게 바꾸기">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>
+      </button>
+    </div>
+    <div class="eyebrow">구약 · 성경 통독</div>
+    <h1 class="ttl"><span class="bk">창세기</span><span class="ch">24</span><span class="u">장</span></h1>
+    <div class="meta"><span id="meta">67절 · 2절 읽음</span><span id="pct">3%</span></div>
+    <div class="line"><i id="bar" style="width:3%"></i></div>
+  </div>
+
+  <div class="done" id="done" hidden>이 장을 다 읽었어요</div>
+  <nav class="chs" id="chs" aria-label="장 이동"></nav>
+  <hr>
+
+  <section class="opts" aria-label="읽기 설정">
+    <div><div class="lbl">읽기 단위</div><div class="chips" id="unit">
+      <button type="button" data-u="1" aria-pressed="false">한 절</button>
+      <button type="button" data-u="3" aria-pressed="true">3절</button>
+      <button type="button" data-u="5" aria-pressed="false">5절</button>
+      <button type="button" data-u="0" aria-pressed="false">전체</button>
+    </div></div>
+    <div><div class="lbl">번역</div><div class="chips" id="tr">
+      <button type="button" aria-pressed="true">개역개정</button>
+      <button type="button" aria-pressed="false">현대인</button>
+      <button type="button" aria-pressed="false">NIV</button>
+      <button type="button" aria-pressed="false">모두</button>
+    </div></div>
+    <div><div class="lbl">듣기 · 해설</div><div class="chips">
+      <button type="button" aria-pressed="false">유튜브 듣기</button>
+      <button type="button" aria-pressed="false">개요 해설 1</button>
+    </div></div>
+  </section>
+  <hr>
+
+  <details>
+    <summary>창세기 개요 <span class="tag">상세본</span><span class="car" aria-hidden="true">▼</span></summary>
+    <p>[책 개요 — 플랫폼 관리자가 입력한 창세기 소개가 여기에 들어갑니다]</p>
+  </details>
+  <hr>
+
+  <div class="sect"><b>해설</b><span id="sectRange">창세기 24:1 ~ 24:3</span></div>
+  <ol class="verses" id="verses" aria-label="본문"></ol>
+
+  <div class="foot">
+    <button type="button" class="all" id="all">이 페이지 모두 읽음</button>
+    <div class="nav">
+      <button type="button" id="prev">‹ 이전</button>
+      <span id="range"></span>
+      <button type="button" id="next">다음 ›</button>
+    </div>
+    <p class="note" id="note" role="status">넘기기만 해서는 읽음으로 표시되지 않아요. 절마다 ✓ 를 누르거나 이 페이지 모두 읽음을 눌러 주세요.</p>
+  </div>
+  <a class="totop" href="#top" aria-label="맨 위로">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6M6 6h12"/></svg>
+  </a>
+</div>
+
+<script>
+  // 시안 데이터: 창세기 24장(67절). 1–3절은 개역개정 본문, 나머지는 자리 표시.
+  const TOTAL = 67;
+  const known = {
+    1: '아브라함이 나이가 많아 늙었고 여호와께서 그에게 범사에 복을 주셨더라',
+    2: '아브라함이 자기 집 모든 소유를 맡은 늙은 종에게 이르되 청하건대 네 손을 내 허벅지 밑에 넣으라',
+    3: '내가 너에게 하늘의 하나님, 땅의 하나님이신 여호와를 가리켜 맹세하게 하노니 너는 내가 거주하는 이 지방 가나안 족속의 딸 중에서 내 아들을 위하여 아내를 택하지 말고'
+  };
+  const read = new Set([1, 2]);
+  const starred = new Set([2]);
+  let unit = 3, page = 0;
+  const $ = (id) => document.getElementById(id);
+
+  // 장 번호(창세기 50장, 1–23장 완료, 24장 지금)
+  $('chs').innerHTML = Array.from({ length: 50 }, (_, i) => {
+    const n = i + 1, c = n < 24 ? 'rd' : n === 24 ? 'cur' : '';
+    return `<a href="#top" class="${c}"${n === 24 ? ' aria-current="page"' : ''}>${n}</a>`;
+  }).join('');
+
+  const per = () => unit || TOTAL;
+  const pages = () => Math.ceil(TOTAL / per());
+  function visible() {
+    const from = page * per() + 1;
+    return Array.from({ length: Math.min(per(), TOTAL - from + 1) }, (_, i) => from + i);
+  }
+  const chk = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
+  const star = '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>';
+
+  function render() {
+    const nums = visible();
+    $('verses').innerHTML = nums.map((n) => `
+      <li class="v"><span class="no">${n}</span>
+        <p>${known[n] || '[창세기 24:' + n + ' 본문]'}<span class="acts">
+          <button type="button" class="rb chk" data-n="${n}" aria-pressed="${read.has(n)}" aria-label="${n}절 ${read.has(n) ? '읽음 해제' : '읽음 표시'}">${chk}</button>
+          <button type="button" class="rb star" data-s="${n}" aria-pressed="${starred.has(n)}" aria-label="${n}절 북마크">${star}</button>
+        </span></p>
+      </li>`).join('');
+    const pct = Math.round(read.size / TOTAL * 100);
+    $('meta').textContent = `${TOTAL}절 · ${read.size}절 읽음`;
+    $('pct').textContent = pct + '%';
+    $('bar').style.width = pct + '%';
+    $('done').hidden = read.size < TOTAL;
+    const allOn = nums.every((n) => read.has(n));
+    $('all').classList.toggle('on', allOn);
+    $('all').textContent = allOn ? '이 페이지 모두 읽었어요' : `이 페이지 ${nums.length}절 모두 읽음`;
+    const a = nums[0], b = nums[nums.length - 1];
+    $('range').textContent = `${a}–${b}절 / ${TOTAL}`;
+    $('sectRange').textContent = `창세기 24:${a} ~ 24:${b}`;
+    $('prev').disabled = page === 0;
+    $('next').disabled = page >= pages() - 1;
+  }
+
+  $('verses').addEventListener('click', (e) => {
+    const c = e.target.closest('.chk'), s = e.target.closest('.star');
+    if (c) { const n = +c.dataset.n; read.has(n) ? read.delete(n) : read.add(n); render(); }
+    if (s) { const n = +s.dataset.s; starred.has(n) ? starred.delete(n) : starred.add(n); render(); }
+  });
+  $('all').addEventListener('click', () => { visible().forEach((n) => read.add(n)); render(); });
+  $('next').addEventListener('click', () => {
+    const skipped = visible().filter((n) => !read.has(n)).length;
+    page++; render();
+    $('note').textContent = skipped ? `앞 페이지의 ${skipped}절은 읽음 표시 없이 넘어왔어요.` : '앞 페이지는 모두 읽음으로 표시돼 있어요.';
+  });
+  $('prev').addEventListener('click', () => { page = Math.max(0, page - 1); render(); });
+  $('unit').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    unit = +b.dataset.u; page = 0;
+    $('unit').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b));
+    render();
+  });
+  $('tr').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    $('tr').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b));
+  });
+  // 글자 크기 — − 는 5%, + 는 10%, 각각 5번까지(75% ~ 150%). 가운데 비율을 누르면 100%. 이 기기에 기억
+  const FS_DOWN = 5, FS_UP = 10, FS_MAX_STEPS = 5, FS_KEY = 'readFsStep';
+  let fsStep = 0;
+  function applyFs(step, save) {
+    fsStep = Math.max(-FS_MAX_STEPS, Math.min(FS_MAX_STEPS, Math.round(+step) || 0));
+    const pct = 100 + fsStep * (fsStep < 0 ? FS_DOWN : FS_UP);
+    document.documentElement.style.setProperty('--vs', pct / 100);
+    $('fsReset').textContent = pct + '%';
+    $('fsReset').classList.toggle('changed', fsStep !== 0);
+    $('fsReset').setAttribute('aria-label', `글자 크기 ${pct}%, 누르면 처음 크기(100%)로`);
+    $('fsDown').disabled = fsStep <= -FS_MAX_STEPS;
+    $('fsUp').disabled = fsStep >= FS_MAX_STEPS;
+    if (save) {
+      try { localStorage.setItem(FS_KEY, String(fsStep)); } catch (e) { }
+      $('note').textContent = fsStep === 0 ? '글자 크기를 처음(100%)으로 되돌렸어요.' : `글자 크기 ${pct}% — 다음에 열어도 이 크기로 보여요.`;
+    }
+  }
+  $('fsDown').addEventListener('click', () => applyFs(fsStep - 1, true));
+  $('fsUp').addEventListener('click', () => applyFs(fsStep + 1, true));
+  $('fsReset').addEventListener('click', () => applyFs(0, true));
+  let savedFs = 0;
+  try { savedFs = +(localStorage.getItem(FS_KEY) || 0); } catch (e) { }
+  applyFs(savedFs, false);
+  $('theme').addEventListener('click', () => {
+    const r = document.documentElement;
+    const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    r.dataset.theme = dark ? 'light' : 'dark';
+  });
+  render();
+</script>
