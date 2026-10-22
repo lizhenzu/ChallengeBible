@@ -1,0 +1,272 @@
+<title>소속 관리 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/{slug}/admin/members): 관리 머리말 · 메뉴 → 상태 탭(신청 · 소속 · 정지) → 찾기 · 역할 · 반 고르기 → 사람 목록(줄을 누르면 그 자리에서 역할 · 반 · 정지 편집) → 여러 명 골라 진급 · 반 바꾸기 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --warn: #9A5B00; --warn-bg: #FFF4DE; --bad: #B42318; --bad-bg: #FDECEC;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button, input, select { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible, label:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+  .hd .t { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+  .hd .t small { font-size: 12px; color: var(--dim); }
+  .hd .t b { font-size: 17px; font-weight: 900; }
+  .hd .t b em { font-style: normal; color: var(--accent); }
+  .back { flex: none; min-height: 40px; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; font-weight: 700; }
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-bottom: -1px; }
+  nav.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); border-bottom: 3px solid transparent; }
+  nav.tabs a[aria-current] { color: var(--fg); border-color: var(--accent); }
+  nav.tabs a .c { margin-left: 4px; min-width: 18px; padding: 0 5px; border-radius: 99px; background: var(--bad); color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
+
+  main .wrap { padding-block: 20px 120px; display: flex; flex-direction: column; gap: 14px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  .seg { display: flex; gap: 6px; padding: 4px; border-radius: 14px; background: var(--soft); align-self: flex-start; max-width: 100%; overflow-x: auto; }
+  .seg button { flex: none; min-height: 40px; padding: 0 14px; border: 0; border-radius: 10px; background: none; font-size: 14px; font-weight: 700; color: var(--dim); }
+  .seg button[aria-selected="true"] { background: var(--bg); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .seg button .c { margin-left: 4px; color: var(--bad); }
+  .tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .search { flex: 1 1 220px; min-width: 0; min-height: 44px; box-sizing: border-box; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 15px; }
+  .sel { min-height: 44px; padding: 0 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 14px; }
+
+  .list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 18px; overflow: hidden; }
+  .row { border-top: 1px solid var(--rule); }
+  .row:first-child { border-top: 0; }
+  .line { display: flex; align-items: center; gap: 12px; padding: 10px 14px; min-height: 60px; }
+  .pick { flex: none; width: 22px; height: 22px; accent-color: var(--accent); }
+  .av { flex: none; width: 38px; height: 38px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; font-size: 13px; font-weight: 800; color: var(--dim); }
+  .who { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; background: none; border: 0; padding: 0; text-align: left; }
+  .who b { font-size: 15px; }
+  .who small { font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+  .tag { font-size: 11.5px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: var(--soft); color: var(--dim); white-space: nowrap; }
+  .tag.r참여자 { background: var(--accent-bg); color: var(--accent); }
+  .tag.r보호자 { background: var(--ok-bg); color: var(--ok); }
+  .tag.r교사, .tag.r관리자 { background: var(--warn-bg); color: var(--warn); }
+  .tag.st { background: var(--bad-bg); color: var(--bad); }
+  .chev { flex: none; width: 32px; height: 32px; border: 0; background: none; color: var(--dim); font-size: 18px; transition: transform .15s; }
+  .row.open .chev { transform: rotate(90deg); }
+
+  .ed { display: none; padding: 4px 14px 16px 64px; flex-direction: column; gap: 12px; }
+  .row.open .ed { display: flex; }
+  @media (max-width: 520px) { .ed { padding-left: 14px; } .tags { display: none; } }
+  .ed h3 { margin: 0 0 6px; font-size: 13px; color: var(--dim); font-weight: 700; }
+  .rl { display: flex; flex-wrap: wrap; gap: 6px; }
+  .rl label { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .rl label:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+  .rl input { accent-color: var(--accent); }
+  .rl label.lock { opacity: .5; cursor: not-allowed; }
+  .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .btn { min-height: 44px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); background: var(--bg); }
+  .btn.p { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+  .btn.d { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, var(--line)); }
+  .btn.l { border: 0; padding: 0 6px; color: var(--accent); }
+  .ask { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px; border-radius: 12px; background: var(--bad-bg); font-size: 14px; }
+  .ask span { flex: 1 1 200px; color: var(--bad); font-weight: 700; }
+  .empty { padding: 32px 16px; text-align: center; color: var(--dim); }
+
+  .bulk { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; background: var(--fg); color: var(--bg); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .bulk .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 64px; padding-block: 8px; }
+  .bulk b { margin-right: auto; }
+  .bulk button { min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--bg) 40%, transparent); background: none; color: var(--bg); font-weight: 800; font-size: 14px; }
+  .bulk button.p { background: var(--bg); color: var(--fg); border-color: var(--bg); }
+
+  .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(17,20,26,.55); display: grid; place-items: center; padding: 20px max(20px, env(safe-area-inset-right, 0px)) 20px max(20px, env(safe-area-inset-left, 0px)); }
+  .dlg { width: 100%; max-width: 420px; box-sizing: border-box; background: var(--bg); border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+  .dlg h2 { margin: 0; font-size: 19px; }
+  .dlg p { margin: 0; color: var(--dim); font-size: 14px; }
+  .dlg .in { width: 100%; box-sizing: border-box; min-height: 52px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 18px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+  .found { padding: 12px 14px; border-radius: 12px; background: var(--accent-bg); font-size: 14px; }
+  .found b { color: var(--accent); }
+  .warnbox { padding: 12px 14px; border-radius: 12px; background: var(--warn-bg); color: var(--warn); font-size: 13px; line-height: 1.7; }
+  .dlg .acts { justify-content: flex-end; }
+  .toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; box-shadow: 0 0 0 2px var(--bg); }
+</style>
+
+<header class="gut">
+  <div class="wrap hd">
+    <div class="t"><small>잠실새내교회 · 유년부</small><b><em>도전!!!</em> 관리</b></div>
+    <a class="back" href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">부서 홈으로</a>
+  </div>
+  <nav class="wrap tabs" aria-label="관리 메뉴">
+    <a href="https://claude.ai/artifact/Ge2UDjM3tSuxJY9jofyUF1">관리 홈</a>
+    <a href="#" aria-current="page">소속 관리<span class="c num" id="navC">3</span></a>
+    <a href="#x">진급<span class="c num">1</span></a>
+    <a href="#x">콘텐츠</a>
+    <a href="#x">통독 현황</a>
+    <a href="#x">시즌</a>
+    <a href="#x">이름 · 색</a>
+  </nav>
+</header>
+
+<main class="gut"><div class="wrap">
+  <h1>소속 관리</h1>
+  <div class="seg" role="tablist" aria-label="상태" id="seg"></div>
+  <div class="tools">
+    <input class="search" id="q" type="search" placeholder="이름 · 아이디로 찾기" aria-label="이름 · 아이디로 찾기">
+    <select class="sel" id="fRole" aria-label="역할"><option value="">모든 역할</option><option>참여자</option><option>보호자</option><option>교사</option><option>관리자</option></select>
+    <select class="sel" id="fGrp" aria-label="반"><option value="">모든 반</option><option>사랑반</option><option>믿음반</option><option>소망반</option><option value="-">반 없음</option></select>
+  </div>
+  <ul class="list" id="list"></ul>
+</div></main>
+
+<div class="bulk gut" id="bulk" hidden><div class="wrap">
+  <b id="bulkN"></b>
+  <button type="button" id="bGrp">반 바꾸기</button>
+  <button type="button" class="p" id="bPro">진급 보내기</button>
+  <button type="button" id="bClr">선택 해제</button>
+</div></div>
+
+<div class="scrim" id="proDlg" hidden>
+  <section class="dlg" role="dialog" aria-modal="true" aria-labelledby="proT">
+    <h2 id="proT">진급 보내기</h2>
+    <p id="proWho"></p>
+    <input class="in" id="proCode" placeholder="받을 부서 코드" aria-label="받을 부서 코드" maxlength="8" autocomplete="off">
+    <div class="found" id="proFound" hidden></div>
+    <div class="warnbox">받는 부서 선생님이 승인하면 <b>이 부서의 점수 · 기록이 모두 지워지고</b> 그 부서로 옮겨 가요. 승인 전까지는 여기서 계속 미션을 할 수 있어요. 성경 읽음 표시 · 책갈피는 그대로 남아요.</div>
+    <div class="acts"><button type="button" class="btn" data-close>취소</button><button type="button" class="btn p" id="proGo" disabled>진급 요청 보내기</button></div>
+  </section>
+</div>
+
+<div class="scrim" id="grpDlg" hidden>
+  <section class="dlg" role="dialog" aria-modal="true" aria-labelledby="grpT">
+    <h2 id="grpT">반 바꾸기</h2>
+    <p id="grpWho"></p>
+    <select class="sel" id="grpSel" aria-label="새 반"><option>사랑반</option><option>믿음반</option><option>소망반</option><option value="">반 없음</option></select>
+    <div class="acts"><button type="button" class="btn" data-close>취소</button><button type="button" class="btn p" id="grpGo">바꾸기</button></div>
+  </section>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const G = ['사랑반', '믿음반', '소망반'];
+  // 이름은 모두 지어낸 예시. [이름, 아이디, 상태, 역할[], 반, 메모]
+  const KIDS = ['김철수', '박서연', '최민준', '윤지호', '강하린', '조은우', '임도윤', '한소율', '서예준', '신채원', '권시우', '황유나', '안지안', '송하준', '류다은', '전로운',
+    '이시아', '김도현', '박지민', '정예린', '오하람', '장민서', '홍지율', '문서우', '배하윤', '노은찬', '고아린', '양태오', '남주원', '백소이', '허준서', '유가온',
+    '심보민', '구하진', '나윤호', '탁서진', '변다인', '하로아', '추연우', '주시온', '엄채이', '위도하'];
+  const IDS = 'cheolsu seoyeon minjun jiho harin eunwoo doyun soyul yejun chaewon siwoo yuna jian hajun daeun roun sia dohyun jimin yerin haram minseo jiyul seowoo hayun eunchan arin taeo juwon soi junseo gaon bomin hajin yunho seojin dain roa yeonwoo sion chaei doha'.split(' ');
+  // 아이 42명 중 2명 정지 + 가족팀 부모 2명 → 소속 참여자 42명(관리 홈과 같은 수)
+  let M = KIDS.map((n, i) => ({ id: i + 1, n, uid: IDS[i], st: '소속', roles: ['참여자'], g: G[i % 3], note: '' }));
+  M[0].note = '가족팀: 김철수 가족';
+  M[30].st = '정지'; M[30].note = '보호자 요청으로 잠시 멈춤';
+  M[31].st = '정지'; M[31].note = '12월 13일부터';
+  M.push(
+    { id: 101, n: '이은혜', uid: 'eunhye', st: '소속', roles: ['교사', '관리자'], g: '', note: '나' },
+    { id: 102, n: '김민수', uid: 'minsoo', st: '소속', roles: ['교사'], g: '사랑반', note: '' },
+    { id: 103, n: '박소영', uid: 'soyoung', st: '소속', roles: ['교사'], g: '믿음반', note: '' },
+    { id: 104, n: '김영희', uid: 'younghee', st: '소속', roles: ['참여자', '보호자'], g: '', note: '김철수 엄마 · 가족팀: 김철수 가족' },
+    { id: 105, n: '김대호', uid: 'daeho', st: '소속', roles: ['참여자', '보호자'], g: '', note: '김철수 아빠 · 가족팀: 김철수 가족' },
+    { id: 201, n: '정하늘', uid: 'haneul', st: '신청', roles: ['참여자'], g: '', note: '1월 4일 신청' },
+    { id: 202, n: '오서준', uid: 'seojun2', st: '신청', roles: ['참여자'], g: '', note: '1월 5일 신청' },
+    { id: 203, n: '정미영', uid: 'miyoung', st: '신청', roles: ['보호자'], g: '', note: '1월 5일 신청 · 정하늘 엄마라고 적음' },
+  );
+  const ME = 101;
+  let tab = '신청', open = null, ask = null;
+  const picked = new Set();
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); }
+
+  function seg() {
+    const c = (s) => M.filter((m) => m.st === s).length;
+    $('seg').innerHTML = [['신청', '참여 신청'], ['소속', '소속'], ['정지', '정지']].map(([k, l]) =>
+      `<button type="button" role="tab" aria-selected="${k === tab}" data-t="${k}">${l} <span class="num${k === '신청' && c(k) ? ' c' : ''}">${c(k)}</span></button>`).join('');
+    $('navC').textContent = c('신청'); $('navC').hidden = !c('신청');
+  }
+  $('seg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; tab = b.dataset.t; open = null; ask = null; picked.clear(); draw(); });
+
+  const R = ['참여자', '보호자', '교사', '관리자'];
+  function editor(m) {
+    const self = m.id === ME;
+    const roleBox = `<div><h3>${m.st === '신청' ? '승인할 역할' : '역할'} <span style="font-weight:500">· 여러 개 가능</span></h3><div class="rl">${R.map((r) =>
+      `<label class="${self && r === '관리자' ? 'lock' : ''}"><input type="checkbox" data-role="${r}" ${m.roles.includes(r) ? 'checked' : ''} ${self && r === '관리자' ? 'disabled' : ''}>${r}</label>`).join('')}</div></div>`;
+    const grp = `<div><h3>반</h3><select class="sel" data-grp>${['', ...G].map((g) => `<option value="${g}" ${m.g === g ? 'selected' : ''}>${g || '반 없음'}</option>`).join('')}</select></div>`;
+    let acts;
+    if (ask && ask.id === m.id) {
+      const msg = { reject: `${m.n}님의 신청을 거절할까요?`, suspend: `${m.n}님을 정지할까요? 모든 역할이 함께 멈추고 미션을 할 수 없어요.` }[ask.k];
+      acts = `<div class="ask" role="alert"><span>${msg}</span><button type="button" class="btn" data-a="no">아니요</button><button type="button" class="btn d" data-a="${ask.k}!">${ask.k === 'reject' ? '거절' : '정지'}</button></div>`;
+    } else if (m.st === '신청') acts = `<div class="acts"><button type="button" class="btn p" data-a="approve">승인</button><button type="button" class="btn d" data-a="reject">거절</button></div>`;
+    else if (m.st === '정지') acts = `<div class="acts"><button type="button" class="btn p" data-a="resume">정지 풀기</button><a class="btn l" href="#detail" data-a="detail">자세히 보기 →</a></div>`;
+    else acts = `<div class="acts"><button type="button" class="btn p" data-a="save">저장</button>${self ? '' : '<button type="button" class="btn d" data-a="suspend">정지</button>'}<a class="btn l" href="#detail" data-a="detail">자세히 보기 →</a></div>`;
+    return `<div class="ed">${m.note ? `<p style="margin:0;font-size:13px;color:var(--dim)">${m.note}</p>` : ''}${roleBox}${grp}${acts}${self ? '<p style="margin:0;font-size:12px;color:var(--dim)">내 관리자 역할은 여기서 뺄 수 없어요.</p>' : ''}</div>`;
+  }
+  function draw() {
+    seg();
+    const q = $('q').value.trim(), fr = $('fRole').value, fg = $('fGrp').value;
+    const list = M.filter((m) => m.st === tab && (!q || m.n.includes(q) || m.uid.includes(q.toLowerCase())) && (!fr || m.roles.includes(fr)) && (!fg || (fg === '-' ? !m.g : m.g === fg)));
+    const canPick = tab === '소속';
+    $('list').innerHTML = list.length ? list.map((m) => `<li class="row${open === m.id ? ' open' : ''}" data-id="${m.id}"><div class="line">
+      ${canPick && m.roles.includes('참여자') ? `<input type="checkbox" class="pick" aria-label="${m.n} 고르기" ${picked.has(m.id) ? 'checked' : ''}>` : canPick ? '<span style="width:22px;flex:none"></span>' : ''}
+      <span class="av">${m.n.slice(1)}</span>
+      <button type="button" class="who" data-open aria-expanded="${open === m.id}"><b>${m.n}${m.id === ME ? ' <span class="tag">나</span>' : ''}</b><small>${m.uid}${m.g ? ' · ' + m.g : ''}${m.st === '신청' ? ' · ' + m.note.split(' · ')[0] : ''}</small></button>
+      <span class="tags">${m.st === '정지' ? '<span class="tag st">정지</span>' : ''}${m.roles.map((r) => `<span class="tag r${r}">${r}${m.st === '신청' ? ' 희망' : ''}</span>`).join('')}</span>
+      <button type="button" class="chev" data-open aria-label="열기">›</button></div>${editor(m)}</li>`).join('')
+      : `<li class="empty">${tab === '신청' ? '기다리는 신청이 없어요.' : '찾는 사람이 없어요.'}</li>`;
+    $('bulk').hidden = !picked.size;
+    $('bulkN').textContent = `${picked.size}명 골랐어요`;
+  }
+  ['q', 'fRole', 'fGrp'].forEach((id) => $(id).addEventListener('input', draw));
+
+  $('list').addEventListener('click', (e) => {
+    const row = e.target.closest('.row'); if (!row) return;
+    const m = M.find((x) => x.id === +row.dataset.id);
+    if (e.target.classList.contains('pick')) { e.target.checked ? picked.add(m.id) : picked.delete(m.id); return draw(); }
+    if (e.target.closest('[data-open]')) { open = open === m.id ? null : m.id; ask = null; return draw(); }
+    const a = e.target.closest('[data-a]')?.dataset.a; if (!a) return;
+    e.preventDefault();
+    const roles = [...row.querySelectorAll('[data-role]:checked')].map((i) => i.dataset.role);
+    if (m.id === ME && !roles.includes('관리자')) roles.push('관리자');
+    const g = row.querySelector('[data-grp]').value;
+    if (a === 'approve' || a === 'save') {
+      if (!roles.length) return toast('역할을 하나는 골라 주세요');
+      m.roles = R.filter((r) => roles.includes(r)); m.g = g;
+      if (a === 'approve') { m.st = '소속'; m.note = ''; open = null; toast(`${m.n}님을 승인했어요 · 바로 미션을 할 수 있어요`); }
+      else toast(`${m.n}님 정보를 저장했어요`);
+    }
+    if (a === 'reject' || a === 'suspend') ask = { id: m.id, k: a };
+    if (a === 'no') ask = null;
+    if (a === 'reject!') { M = M.filter((x) => x !== m); ask = null; open = null; toast(`${m.n}님의 신청을 거절했어요`); }
+    if (a === 'suspend!') { m.st = '정지'; ask = null; open = null; toast(`${m.n}님을 정지했어요`); }
+    if (a === 'resume') { m.st = '소속'; open = null; toast(`${m.n}님의 정지를 풀었어요`); }
+    if (a === 'detail') return toast('참여자 상세 화면으로 가요 (다음 시안)');
+    draw();
+  });
+
+  const names = () => [...picked].map((id) => M.find((m) => m.id === id).n);
+  const showDlg = (id) => { $(id).hidden = false; $(id).querySelector('input, select').focus(); };
+  document.querySelectorAll('[data-close]').forEach((b) => b.onclick = () => b.closest('.scrim').hidden = true);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.querySelectorAll('.scrim').forEach((s) => s.hidden = true); });
+  $('bClr').onclick = () => { picked.clear(); draw(); };
+  $('bGrp').onclick = () => { $('grpWho').textContent = names().join(', '); showDlg('grpDlg'); };
+  $('grpGo').onclick = () => { const g = $('grpSel').value; picked.forEach((id) => M.find((m) => m.id === id).g = g); toast(`${picked.size}명을 ${g || '반 없음'}(으)로 옮겼어요`); picked.clear(); $('grpDlg').hidden = true; draw(); };
+  $('bPro').onclick = () => { $('proWho').textContent = `${names().join(', ')} · ${picked.size}명`; $('proCode').value = ''; $('proFound').hidden = true; $('proGo').disabled = true; showDlg('proDlg'); };
+  $('proCode').addEventListener('input', () => {
+    const c = $('proCode').value = $('proCode').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const f = { JSELEM: '잠실새내교회 <b>초등부</b>', JSKIDS: null }[c];
+    $('proFound').hidden = c.length < 6;
+    $('proFound').innerHTML = c === 'JSKIDS' ? '지금 이 부서예요. 다른 부서 코드를 넣어 주세요.' : f ? `받는 부서: ${f}` : '이 코드로 찾은 부서가 없어요.';
+    $('proGo').disabled = !f;
+  });
+  $('proGo').onclick = () => { toast(`초등부에 ${picked.size}명 진급 요청을 보냈어요`); picked.clear(); $('proDlg').hidden = true; draw(); };
+  document.querySelectorAll('a[href="#x"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast(`${a.firstChild.textContent} 화면으로 가요 (다음 시안)`); }));
+  draw();
+</script>
