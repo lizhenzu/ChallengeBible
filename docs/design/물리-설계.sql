@@ -21,8 +21,11 @@ CREATE TABLE app.Tenant (
     ThemeColor  varchar(20)       NOT NULL,
     AppName     nvarchar(30)      NULL,           -- NULL 이면 기본 서비스 이름(0038)
     AppShortName nvarchar(12)     NULL,
+    MissionEnabled bit            NOT NULL,       -- 성경말씀(0039)
+    ReadingEnabled bit            NOT NULL,       -- 성경통독(0039)
     Status      varchar(20)       NOT NULL CONSTRAINT CK_Tenant_Status CHECK (Status IN ('Active','Suspended')),
     CreatedUtc  datetime2(3)      NOT NULL,
+    CONSTRAINT CK_Tenant_Program CHECK (MissionEnabled = 1 OR ReadingEnabled = 1),   -- R-150
     CONSTRAINT CK_Tenant_Slug CHECK (LEN(Slug) >= 2 AND Slug NOT LIKE '%[^a-z0-9-]%')
 );
 
@@ -73,6 +76,7 @@ CREATE TABLE app.BibleBook (
     Name      nvarchar(30)  NOT NULL,
     ShortName nvarchar(10)  NOT NULL,
     Testament char(2)       NOT NULL CONSTRAINT CK_BibleBook_Testament CHECK (Testament IN ('OT','NT')),
+    ChapterCount smallint   NOT NULL CONSTRAINT CK_BibleBook_ChapterCount CHECK (ChapterCount >= 1),   -- 합계 1,189(0040)
     Intro     nvarchar(max) NULL                                    -- 책 소개(R-116)
 );
 
@@ -564,6 +568,32 @@ CREATE TABLE app.Bookmark (
     CreatedUtc  datetime2(3) NOT NULL,
     CONSTRAINT PK_Bookmark PRIMARY KEY (AccountId, BookId, Chapter, Verse)
 );
+
+-- 성경통독 (0039, 0040) ------------------------------------------------
+
+CREATE TABLE app.ReadingRound (
+    Id            int IDENTITY NOT NULL CONSTRAINT PK_ReadingRound PRIMARY KEY,
+    AccountId     int          NOT NULL CONSTRAINT FK_ReadingRound_Account REFERENCES app.Account(Id),
+    RoundNo       int          NOT NULL CONSTRAINT CK_ReadingRound_No CHECK (RoundNo >= 1),
+    StartedUtc    datetime2(3) NOT NULL,
+    CompletedUtc  datetime2(3) NULL,           -- 1,189장 모두 읽음
+    ClosedUtc     datetime2(3) NULL,           -- 다 읽지 않고 새 회차 시작(R-154)
+    CONSTRAINT UQ_ReadingRound UNIQUE (AccountId, RoundNo),
+    CONSTRAINT CK_ReadingRound_End CHECK (CompletedUtc IS NULL OR ClosedUtc IS NULL)
+);
+CREATE UNIQUE INDEX UX_ReadingRound_Open ON app.ReadingRound (AccountId)
+    WHERE CompletedUtc IS NULL AND ClosedUtc IS NULL;                            -- 진행 중 1개(R-153)
+
+CREATE TABLE app.ChapterRead (
+    AccountId  int          NOT NULL,
+    RoundNo    int          NOT NULL,
+    BookId     tinyint      NOT NULL CONSTRAINT FK_ChapterRead_Book REFERENCES app.BibleBook(Id),
+    Chapter    smallint     NOT NULL CONSTRAINT CK_ChapterRead_Chapter CHECK (Chapter >= 1),
+    ReadUtc    datetime2(3) NOT NULL,
+    CONSTRAINT PK_ChapterRead PRIMARY KEY (AccountId, RoundNo, BookId, Chapter),
+    CONSTRAINT FK_ChapterRead_Round FOREIGN KEY (AccountId, RoundNo) REFERENCES app.ReadingRound (AccountId, RoundNo)
+);
+CREATE INDEX IX_ChapterRead_Day ON app.ChapterRead (AccountId, ReadUtc);        -- 오늘 읽은 장 · 연속 읽은 날(R-156)
 GO
 
 -- =====================================================================
@@ -610,6 +640,27 @@ AS RETURN
     SELECT 1 AS Allowed
     WHERE @AccountId = CAST(SESSION_CONTEXT(N'AccountId') AS int)
        OR CAST(SESSION_CONTEXT(N'PlatformScope') AS bit) = 1;
+GO
+
+-- 통독 읽기: 본인, 플랫폼, 또는 현재 영역의 관리자 · 교사가 그 영역 소속원을 볼 때(R-159)
+CREATE FUNCTION sec.fn_ReadingRead (@AccountId int)
+RETURNS TABLE WITH SCHEMABINDING
+AS RETURN
+    SELECT 1 AS Allowed
+    WHERE @AccountId = CAST(SESSION_CONTEXT(N'AccountId') AS int)
+       OR CAST(SESSION_CONTEXT(N'PlatformScope') AS bit) = 1
+       OR (
+            EXISTS (SELECT 1 FROM app.Membership m
+                    WHERE m.TenantId = CAST(SESSION_CONTEXT(N'TenantId') AS int)
+                      AND m.AccountId = @AccountId
+                      AND m.Status IN ('Approved', 'Suspended'))
+        AND EXISTS (SELECT 1 FROM app.Membership a
+                    JOIN app.MembershipRole r ON r.TenantId = a.TenantId AND r.MembershipId = a.Id
+                    WHERE a.TenantId = CAST(SESSION_CONTEXT(N'TenantId') AS int)
+                      AND a.AccountId = CAST(SESSION_CONTEXT(N'AccountId') AS int)
+                      AND a.Status = 'Approved'
+                      AND r.Role IN ('TenantAdmin', 'Teacher'))
+       );
 GO
 
 CREATE FUNCTION sec.fn_Promotion (@SourceTenantId int, @TargetTenantId int)
@@ -714,6 +765,13 @@ CREATE SECURITY POLICY sec.TenantIsolation
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.VerseReadMark AFTER UPDATE,
     ADD FILTER PREDICATE sec.fn_Account(AccountId) ON app.Bookmark,
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.Bookmark AFTER INSERT,
-    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.Bookmark AFTER UPDATE
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.Bookmark AFTER UPDATE,
+    -- 성경통독
+    ADD FILTER PREDICATE sec.fn_ReadingRead(AccountId) ON app.ReadingRound,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ReadingRound AFTER INSERT,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ReadingRound AFTER UPDATE,
+    ADD FILTER PREDICATE sec.fn_ReadingRead(AccountId) ON app.ChapterRead,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterRead AFTER INSERT,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterRead AFTER UPDATE
 WITH (STATE = ON, SCHEMABINDING = ON);
 GO

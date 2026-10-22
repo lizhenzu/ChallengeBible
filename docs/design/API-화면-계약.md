@@ -105,6 +105,18 @@
 | `/{slug}/ranking?year=` | 순위 | 카드(R-81), 본인 강조 | 2차 |
 | `/{slug}/teams?year=` | 가족팀 | 팀 카드 · 구성원 점수 · 가족 단계 | 2차 |
 
+### 4-2b. 성경통독 참여자 (0039, 0040) — 1차
+| 주소 | 화면 | ViewModel 주요 값 |
+|---|---|---|
+| `/{slug}/reading` | 통독 홈 | 현재 회차 · 진도율 · 완독 횟수, 오늘 읽은 장 수, 연속 읽은 날, 이어 읽기(마지막으로 읽은 장의 다음 장), 구약 · 신약 진도 |
+| `/{slug}/reading/books` | 책 목록 | 66권, 책마다 읽은 장 / 전체 장 |
+| `/{slug}/reading/books/{book}` | 장 체크 | 장 번호 칸(읽음 표시), 장 눌러 본문 보기 |
+| `/{slug}/reading/books/{book}/{chapter}` | 장 본문 | 본문(번역 전환), [이 장 읽었어요], 다음 장 |
+| `/{slug}/reading/rounds` | 회차 기록 | 회차별 시작 · 완료일, [새 회차 시작] |
+
+- 영역 홈 `/{slug}` 은 켠 프로그램이 둘이면 아래 탭(성경말씀 · 성경통독)으로 오간다. 하나면 바로 그 프로그램.
+- 관리자: `/{slug}/admin/reading` — 소속원별 진도율 · 완독 횟수 · 마지막 읽은 날(R-159). 1차.
+
 ### 4-3. 보호자
 | 주소 | 화면 | 차수 |
 |---|---|---|
@@ -186,6 +198,17 @@
 | `DELETE /api/me/bible/read-range` (같은 본문) | 범위 전체 해제 |
 | `PUT` · `DELETE /api/me/bible/bookmarks/{book}/{chapter}/{verse}` | 책갈피 |
 
+### 5-3b. 성경통독 (계정 범위) — 1차
+| 메서드 · 주소 | 용도 |
+|---|---|
+| `PUT /api/me/reading/chapters/{book}/{chapter}` | 현재 회차에 장 읽음(R-151). 그 장의 절 읽음 표시도 기록(R-152). 응답 `{ progress, roundCompleted, newRoundNo }` |
+| `DELETE /api/me/reading/chapters/{book}/{chapter}` | 현재 회차에서 장 읽음 해제 |
+| `POST /api/me/reading/rounds` | 새 회차 시작(R-154). 현재 회차는 닫힘 |
+| `GET /api/me/reading/summary` | 진도율 · 완독 횟수 · 오늘 읽은 장 수 · 연속 읽은 날 |
+
+- 1,189번째 장을 읽으면 응답의 `roundCompleted: true` 로 축하 화면을 띄운다(ReadingRoundCompleted).
+- 성경통독을 켜지 않은 영역 경로에서 부르면 404(R-150).
+
 ### 5-4. 영역 관리 — 1차
 | 메서드 · 주소 | 용도 |
 |---|---|
@@ -202,6 +225,7 @@
 | `GET /api/{slug}/admin/season/{year}/impact?startDate=` | 시작일 변경 시 빠지는 점수가 있는 참여자 수 |
 | `PUT /api/{slug}/admin/season/{year}` `{ startDate }` | 시즌 시작일 변경(0028) |
 | `PUT /api/{slug}/admin/branding` `{ appName, appShortName, themeColor }` | 서비스 이름 · 짧은 이름 · 대표 색. 빈 값(`null`)이면 기본값으로 되돌림(0038) |
+| `PUT /api/platform/tenants/{id}/programs` `{ mission, reading }` | 영역의 프로그램 켜기(플랫폼 관리자, 하나 이상 — R-150) |
 
 ### 5-5. 외부 연동 — 2차 (04 문서 4절)
 | 메서드 · 주소 | 용도 |
