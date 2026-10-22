@@ -1,0 +1,167 @@
+<title>축하 팝업 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃: 뒤는 말씀 미션 화면(흐리게), 앞은 가운데 축하 창 — 큰 숫자 단계 · +점수 · 올해 총점 · 다음 목표 막대 · 고마워요 / 내 점수 보기 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --tx: #2A3038; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --pick: #16A34A; --gold: #C98A00; --gold-bg: #FFF4DE;
+    --scrim: rgba(17, 20, 26, .55);
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --tx: #D5D9DE; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --pick: #5CC98A; --gold: #F2C063; --gold-bg: #2E2614;
+    --scrim: rgba(0, 0, 0, .7); color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --tx: #D5D9DE; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --pick: #5CC98A; --gold: #F2C063; --gold-bg: #2E2614;
+    --scrim: rgba(0, 0, 0, .7); color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  /* 뒤 화면: 말씀 미션(간단히) */
+  .top .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 56px; font-size: 14px; color: var(--dim); }
+  .top b { color: var(--fg); }
+  .bgp .wrap { padding-block: 8px 40px; display: flex; flex-direction: column; gap: 18px; }
+  .wK { font-size: 13px; font-weight: 800; color: var(--accent); }
+  .ttl { display: flex; gap: 14px; align-items: center; }
+  .cal { flex: none; width: 62px; border: 1px solid var(--rule); text-align: center; border-radius: 8px; overflow: hidden; }
+  .cal .m { font-size: 10px; letter-spacing: .08em; background: var(--fg); color: var(--bg); padding: 3px 0; }
+  .cal .d { font-size: 28px; font-weight: 300; line-height: 1.15; padding-top: 2px; }
+  .cal .w { font-size: 10px; color: var(--dim); padding-bottom: 4px; }
+  .ttl h1 { margin: 0; font-size: 22px; font-weight: 800; line-height: 1.35; }
+  .ttl small { color: var(--dim); }
+  .story { margin: 0; color: var(--tx); line-height: 1.9; border-top: 1px solid var(--rule); padding-top: 14px; }
+  .pk { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); text-align: left; width: 100%; font-size: 16px; }
+  .pk b { flex: 1; }
+  .pk .ck { width: 24px; height: 24px; border-radius: 99px; border: 2px solid var(--line); display: grid; place-items: center; color: transparent; }
+  .pk[aria-pressed="true"] { border-color: var(--pick); }
+  .pk[aria-pressed="true"] .ck { background: var(--pick); border-color: var(--pick); color: #fff; }
+  .pk .pt { font-size: 13px; color: var(--dim); font-weight: 700; }
+  .hintTop { padding: 12px 14px; border-radius: 12px; background: var(--accent-bg); color: var(--accent); font-size: 13px; font-weight: 700; }
+
+  /* 축하 창 */
+  .scrim { position: fixed; inset: 0; z-index: 40; background: var(--scrim); display: grid; place-items: center; padding: max(20px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) max(20px, env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px)); animation: fade .2s ease; }
+  .dlg { position: relative; width: 100%; max-width: 380px; box-sizing: border-box; background: var(--bg); border-radius: 24px; padding: 30px 22px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; overflow: hidden; animation: pop .35s cubic-bezier(.2, 1.4, .4, 1); }
+  .dlg .who { font-size: 13px; font-weight: 700; color: var(--dim); }
+  .medal { position: relative; width: 128px; height: 128px; border-radius: 50%; background: var(--gold-bg); display: grid; place-items: center; }
+  .medal::before { content: ""; position: absolute; inset: 8px; border-radius: 50%; border: 3px dashed var(--gold); opacity: .6; }
+  .medal b { font-size: 34px; font-weight: 900; color: var(--gold); letter-spacing: -.03em; line-height: 1; }
+  .medal small { display: block; margin-top: 4px; font-size: 13px; font-weight: 800; color: var(--gold); }
+  .dlg h2 { margin: 4px 0 0; font-size: 24px; font-weight: 900; line-height: 1.35; text-wrap: balance; }
+  .dlg p { margin: 0; color: var(--dim); line-height: 1.7; }
+  .got { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .got span { font-size: 13px; font-weight: 800; padding: 4px 10px; border-radius: 99px; background: var(--accent-bg); color: var(--accent); }
+  .next { width: 100%; display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 14px; background: var(--soft); text-align: left; }
+  .next .l { display: flex; justify-content: space-between; font-size: 13px; color: var(--dim); }
+  .next .l b { color: var(--fg); }
+  .bar { height: 10px; border-radius: 99px; background: var(--rule); overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 99px; background: var(--accent); }
+  .steps { display: flex; justify-content: space-between; font-size: 11px; color: var(--dim); }
+  .steps span.on { color: var(--gold); font-weight: 800; }
+  .btn { width: 100%; min-height: 54px; border-radius: 16px; font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .btn.p { border: 0; background: var(--accent); color: var(--on-accent); }
+  .btn.t { min-height: 44px; border: 0; background: none; font-size: 14px; color: var(--dim); }
+  .conf { position: absolute; inset: 0; pointer-events: none; }
+  .conf i { position: absolute; top: -12px; width: 8px; height: 12px; border-radius: 2px; animation: fall 2.4s ease-in forwards; }
+  @keyframes fall { to { transform: translateY(560px) rotate(540deg); opacity: 0; } }
+  @keyframes pop { from { transform: scale(.85); opacity: 0; } }
+  @keyframes fade { from { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .dlg, .scrim, .conf i { animation: none; } .conf { display: none; } }
+
+  .demo { position: fixed; z-index: 60; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 6px; padding: 6px; border-radius: 99px; background: var(--fg); }
+  .demo button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 99px; background: transparent; color: var(--bg); font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .demo button[aria-pressed="true"] { background: var(--bg); color: var(--fg); }
+</style>
+
+<header class="top gut"><div class="wrap"><span><b>홈으로</b> · 미션홈</span><span>가− 100% 가+</span></div></header>
+<main class="bgp gut"><div class="wrap">
+  <div class="hintTop">시안: 아래 "부모님께 읽어드렸어요"를 누르면 3,000점을 넘어 축하 창이 떠요.</div>
+  <div class="wK">오늘의 말씀</div>
+  <div class="ttl">
+    <div class="cal" aria-label="2027년 10월 12일 화요일"><div class="m num">2027.10</div><div class="d num">12</div><div class="w">화요일</div></div>
+    <div><h1>씨 뿌리는 사람</h1><small>마태복음 13:1-9</small></div>
+  </div>
+  <p class="story">예수님은 씨를 뿌리는 사람 이야기를 들려주셨어요. 길가, 돌밭, 가시떨기, 좋은 땅에 떨어진 씨 가운데 좋은 땅에 떨어진 씨만 열매를 맺었어요.</p>
+  <button type="button" class="pk" aria-pressed="true" disabled><span class="ck">✓</span><b>혼자 읽었어요</b><span class="pt">완료 · 1점</span></button>
+  <button type="button" class="pk" aria-pressed="false" id="pick"><span class="ck">✓</span><b>부모님께 읽어드렸어요</b><span class="pt">1점</span></button>
+</div></main>
+
+<div class="scrim" id="scrim" hidden>
+  <section class="dlg" role="dialog" aria-modal="true" aria-labelledby="cT" aria-describedby="cD">
+    <div class="conf" id="conf" aria-hidden="true"></div>
+    <span class="who">잠실새내교회 유년부 · 김철수</span>
+    <div class="medal"><div><b class="num" id="cNum">3,000</b><small>점 돌파</small></div></div>
+    <h2 id="cT">3,000점을 넘었어요!</h2>
+    <div class="got"><span class="num" id="cGot">+1점</span><span class="num" id="cTot">올해 총 3,001점</span></div>
+    <p id="cD">매일 말씀과 함께한 시간이 쌓였어요.</p>
+    <div class="next" id="next">
+      <div class="l"><span id="nL">다음 목표 <b>5,000점</b></span><span class="num" id="nR">1,999점 남음</span></div>
+      <div class="bar"><i id="nBar" style="width:37.5%"></i></div>
+      <div class="steps" id="steps"></div>
+    </div>
+    <button type="button" class="btn p" id="thanks">고마워요</button>
+    <a class="btn t" href="https://claude.ai/artifact/43YbFig1Nxq6a44ZFRGcSC" id="mine">내 점수 보기</a>
+  </section>
+</div>
+
+<div class="demo" role="group" aria-label="시안 단계 고르기">
+  <button type="button" data-m="3000" aria-pressed="true">3,000</button>
+  <button type="button" data-m="5000" aria-pressed="false">5,000</button>
+  <button type="button" data-m="8000" aria-pressed="false">8,000 (목표)</button>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const MS = [3000, 5000, 8000];                 // 축하 단계(R-100, 영역 설정 값)
+  const fmt = (n) => n.toLocaleString('ko-KR');
+  let m = 3000, lastFocus = null;
+  function fill() {
+    const tot = m + 1, i = MS.indexOf(m), nx = MS[i + 1];
+    $('cNum').textContent = fmt(m);
+    $('cTot').textContent = `올해 총 ${fmt(tot)}점`;
+    if (nx) {
+      $('cT').textContent = `${fmt(m)}점을 넘었어요!`;
+      $('cD').textContent = '매일 말씀과 함께한 시간이 쌓였어요.';
+      $('nL').innerHTML = `다음 목표 <b>${fmt(nx)}점</b>`;
+      $('nR').textContent = `${fmt(nx - tot)}점 남음`;
+    } else {
+      $('cT').textContent = '올해 목표를 이뤘어요!';
+      $('cD').textContent = `${fmt(m)}점, 정말 대단해요. 한 해 동안 말씀과 함께해 줘서 고마워요.`;
+      $('nL').innerHTML = '<b>모든 단계를 넘었어요</b>';
+      $('nR').textContent = '';
+    }
+    $('nBar').style.width = Math.min(100, tot / MS[MS.length - 1] * 100) + '%';
+    $('steps').innerHTML = MS.map((s) => `<span class="num${s <= m ? ' on' : ''}">${s <= m ? '★ ' : ''}${fmt(s)}</span>`).join('');
+  }
+  function confetti() {
+    const c = $('conf'); c.innerHTML = '';
+    const col = ['var(--accent)', 'var(--gold)', 'var(--pick)', '#E8618C'];
+    for (let k = 0; k < 36; k++) c.insertAdjacentHTML('beforeend', `<i style="left:${Math.random() * 100}%;background:${col[k % 4]};animation-delay:${Math.random() * .6}s;transform:rotate(${Math.random() * 180}deg)"></i>`);
+  }
+  function open() { lastFocus = document.activeElement; fill(); $('scrim').hidden = false; confetti(); $('thanks').focus(); }
+  function close() { $('scrim').hidden = true; if (lastFocus) lastFocus.focus(); }
+  $('pick').onclick = () => { $('pick').setAttribute('aria-pressed', 'true'); $('pick').querySelector('.pt').textContent = '완료 · 1점'; open(); };
+  $('thanks').onclick = close;
+  $('scrim').addEventListener('click', (e) => { if (e.target === $('scrim')) close(); });
+  document.addEventListener('keydown', (e) => {
+    if ($('scrim').hidden) return;
+    if (e.key === 'Escape') close();
+    if (e.key === 'Tab') { const f = [$('thanks'), $('mine')]; const i = f.indexOf(document.activeElement); if (e.shiftKey ? i <= 0 : i === f.length - 1) { e.preventDefault(); f[e.shiftKey ? f.length - 1 : 0].focus(); } }
+  });
+  document.querySelectorAll('.demo button').forEach((b) => b.onclick = () => {
+    document.querySelectorAll('.demo button').forEach((x) => x.setAttribute('aria-pressed', x === b));
+    m = +b.dataset.m; open();
+  });
+</script>
