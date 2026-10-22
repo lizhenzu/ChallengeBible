@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>통독 책 목록</title>
+<title>통독 구약 읽기</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -18,33 +18,54 @@ button{font-family:inherit}
 </helmet>
 <div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F6F8; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex; flex-direction: column; overflow: hidden">
 
-  <header style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px 8px 12px">
-    <div style="display: flex; align-items: center; gap: 4px">
-      <a href="ReadingHome.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
-      </a>
-      <span style="font-size: 18px; font-weight: 700">책 목록</span>
-    </div>
-    <div role="tablist" aria-label="구약 신약" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; margin-left: 8px; border-radius: 12px; background: #E9ECF0">
-      <button role="tab" aria-selected="true" style="min-height: 40px; border: 0; border-radius: 9px; background: #FFFFFF; font-size: 14px; font-weight: 700; color: #1B1F24">구약 39권</button>
-      <button role="tab" aria-selected="false" style="min-height: 40px; border: 0; border-radius: 9px; background: transparent; font-size: 14px; font-weight: 500; color: #5B6470">신약 27권</button>
-    </div>
+  <header style="display: flex; align-items: center; gap: 10px; padding: 12px 16px 8px">
+    <a href="ReadingMenu.dc.html" aria-label="목차 열기" style="width: 44px; height: 44px; border-radius: 12px; background: #FFFFFF; border: 1px solid #DDE1E6; display: flex; align-items: center; justify-content: center; box-sizing: border-box">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+    </a>
+    <span style="font-size: 18px; font-weight: 700">구약 읽기</span>
   </header>
 
-  <main style="flex: 1; padding: 6px 20px 16px; overflow: hidden">
-    <section style="background: #FFFFFF; border-radius: 16px; padding: 4px 16px">
-      <sc-for list="{{books}}" as="b" hint-placeholder-count="10">
-        <a href="ReadingChapters.dc.html" style="display: flex; flex-direction: column; gap: 6px; padding: 11px 0; border-bottom: 1px solid #F0F2F4">
-          <span style="display: flex; justify-content: space-between; align-items: baseline">
-            <span style="font-size: 15px; font-weight: {{b.weight}}">{{b.name}}</span>
-            <span style="font-size: 13px; color: {{b.countColor}}">{{b.read}} / {{b.total}}장</span>
-          </span>
-          <span style="height: 6px; border-radius: 3px; background: #E9ECF0; overflow: hidden; display: block">
-            <span style="display: block; height: 6px; width: {{b.pct}}; background: {{accent}}"></span>
-          </span>
-        </a>
-      </sc-for>
+  <main style="flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 6px 20px 16px; overflow: hidden">
+    <div role="tablist" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: #E9ECF0">
+      <a href="ReadingBooks.dc.html" role="tab" aria-selected="true" style="min-height: 40px; border-radius: 9px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700">구약</a>
+      <a href="ReadingBooks.dc.html" role="tab" aria-selected="false" style="min-height: 40px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #5B6470">신약</a>
+    </div>
+
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <span style="display: flex; flex-direction: column"><span style="font-size: 12px; color: #5B6470">구약 전체</span><span style="font-size: 26px; font-weight: 700; color: {{accent}}">2.5%</span></span>
+        <span style="font-size: 13px; color: #5B6470; text-align: right">23장 읽음<br>929장 중 · 39권</span>
+      </div>
+      <div style="height: 8px; border-radius: 4px; background: #E9ECF0; overflow: hidden"><div style="width: 2.5%; height: 8px; background: {{accent}}"></div></div>
     </section>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <button aria-expanded="true" style="padding: 10px 8px; border-radius: 12px; border: 2px solid {{accent}}; background: #FFFFFF; text-align: left; font-size: 14px; font-weight: 700; color: #1B1F24">창세기<span style="display: block; font-size: 12px; font-weight: 700; color: {{accent}}">23/50</span></button>
+      <button aria-expanded="false" style="padding: 10px 8px; border-radius: 12px; border: 2px solid #FFFFFF; background: #FFFFFF; text-align: left; font-size: 14px; font-weight: 500; color: #1B1F24">출애굽기<span style="display: block; font-size: 12px; color: #5B6470">0/40</span></button>
+      <button aria-expanded="false" style="padding: 10px 8px; border-radius: 12px; border: 2px solid #FFFFFF; background: #FFFFFF; text-align: left; font-size: 14px; font-weight: 500; color: #1B1F24">레위기<span style="display: block; font-size: 12px; color: #5B6470">0/27</span></button>
+    </div>
+
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <span style="font-size: 16px; font-weight: 700">창세기</span>
+        <span style="font-size: 13px; color: #5B6470">23 / 50장 · 46%</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px">
+        <sc-for list="{{chs}}" as="c" hint-placeholder-count="50">
+          <a href="ReadingChapter.dc.html" aria-label="{{c.label}}" style="height: 30px; border-radius: 6px; background: {{c.bg}}; color: {{c.color}}; border: 2px solid {{c.ring}}; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: {{c.weight}}">{{c.no}}</a>
+        </sc-for>
+      </div>
+      <div style="display: flex; gap: 8px">
+        <button style="flex: 1; min-height: 46px; border-radius: 12px; border: 1px solid #DDE1E6; background: #FFFFFF; font-size: 14px; color: #1B1F24">닫기</button>
+        <a href="ReadingChapter.dc.html" style="flex: 2; min-height: 46px; border-radius: 12px; background: {{accent}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700">이어 읽기 24장 →</a>
+      </div>
+    </section>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{books}}" as="b" hint-placeholder-count="6">
+        <button style="padding: 10px 8px; border-radius: 12px; border: 2px solid #FFFFFF; background: #FFFFFF; text-align: left; font-size: 14px; font-weight: 500; color: #1B1F24">{{b.name}}<span style="display: block; font-size: 12px; color: #5B6470">{{b.prog}}</span></button>
+      </sc-for>
+    </div>
   </main>
 </div>
 </x-dc>
@@ -52,16 +73,13 @@ button{font-family:inherit}
 class Component extends DCLogic {
   renderVals() {
     const accent = this.props.accent ?? '#2B59C3';
-    const raw = [['창세기', 23, 50], ['출애굽기', 0, 40], ['레위기', 0, 27], ['민수기', 0, 36], ['신명기', 0, 34], ['여호수아', 0, 24], ['사사기', 0, 21], ['룻기', 0, 4], ['사무엘상', 0, 31], ['사무엘하', 0, 24], ['열왕기상', 0, 22]];
-    const books = raw.map(function (r) {
-      return {
-        name: r[0], read: r[1], total: r[2],
-        pct: Math.round(r[1] / r[2] * 100) + '%',
-        weight: r[1] > 0 ? 700 : 500,
-        countColor: r[1] > 0 ? accent : '#5B6470'
-      };
-    });
-    return { accent: accent, books: books };
+    const chs = [];
+    for (let i = 1; i <= 50; i++) {
+      const read = i <= 23, next = i === 24;
+      chs.push({ no: i, label: i + '장 ' + (read ? '읽음' : '안 읽음'), bg: read ? accent : '#F5F6F8', color: read ? '#FFFFFF' : '#1B1F24', ring: next ? '#1B1F24' : (read ? accent : '#F5F6F8'), weight: read || next ? 700 : 400 });
+    }
+    const books = [['민수기', '0/36'], ['신명기', '0/34'], ['여호수아', '0/24'], ['사사기', '0/21'], ['룻기', '0/4'], ['사무엘상', '0/31']].map(function (b) { return { name: b[0], prog: b[1] }; });
+    return { accent: accent, chs: chs, books: books };
   }
 }
 </script>

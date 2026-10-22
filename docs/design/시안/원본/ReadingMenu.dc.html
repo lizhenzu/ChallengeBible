@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>통독 목차</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1B1F24;text-decoration:none}a:hover{color:#1B1F24}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: rgba(27, 31, 36, 0.55); font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex">
+  <nav aria-label="성경 통독 목차" style="width: 300px; height: 844px; box-sizing: border-box; background: #FFFFFF; border-radius: 0 20px 20px 0; display: flex; flex-direction: column; padding: 16px 0 20px">
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 12px 8px 22px">
+      <span style="font-size: 18px; font-weight: 700">도전!!!성경통독</span>
+      <a href="ReadingHome.dc.html" aria-label="목차 닫기" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B6470" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </a>
+    </div>
+
+    <span style="padding: 10px 22px 6px; font-size: 12px; font-weight: 700; color: {{accent}}">목차</span>
+    <sc-for list="{{items}}" as="i" hint-placeholder-count="6">
+      <a href="{{i.href}}" style="display: flex; align-items: center; gap: 12px; min-height: 48px; margin: 0 12px; padding: 0 12px; border-radius: 12px; background: {{i.bg}}; font-size: 15px; font-weight: {{i.weight}}; color: {{i.color}}">
+        <span style="width: 8px; height: 8px; border-radius: 4px; background: {{i.dot}}"></span>{{i.name}}
+      </a>
+    </sc-for>
+
+    <span style="padding: 18px 22px 8px; font-size: 12px; font-weight: 700; color: {{accent}}">빠른 이동</span>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 0 22px">
+      <sc-for list="{{quick}}" as="q" hint-placeholder-count="4">
+        <a href="ReadingChapter.dc.html" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 12px; background: #F5F6F8; font-size: 14px; font-weight: 500">{{q.book}}<span style="font-size: 12px; color: #5B6470">{{q.ch}}</span></a>
+      </sc-for>
+    </div>
+
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 6px; padding: 0 22px">
+      <div style="display: flex; align-items: center; justify-content: space-between; min-height: 48px">
+        <span style="font-size: 14px">어둡게 보기</span>
+        <button role="switch" aria-checked="false" aria-label="어둡게 보기" style="width: 52px; height: 30px; border-radius: 15px; border: 0; background: #DDE1E6; padding: 3px; display: flex; align-items: center">
+          <span style="width: 24px; height: 24px; border-radius: 12px; background: #FFFFFF"></span>
+        </button>
+      </div>
+      <a href="Main.dc.html" style="min-height: 48px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: {{accent}}; font-weight: 700; border-top: 1px solid #E3E6EA">성경말씀으로 가기 <span aria-hidden="true">→</span></a>
+    </div>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2B59C3","options":["#2B59C3","#1F7A5C","#B2462E","#6A4BB5"],"section":"부서 대표 색"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#2B59C3';
+    const items = [
+      ['대시보드', 'ReadingHome.dc.html', true], ['구약 읽기', 'ReadingBooks.dc.html'], ['신약 읽기', 'ReadingBooks.dc.html'],
+      ['성경 검색', 'ReadingSearch.dc.html'], ['북마크', 'ReadingBookmarks.dc.html'], ['참여자 현황', 'ReadingParticipants.dc.html']
+    ].map(function (i) {
+      const on = !!i[2];
+      return { name: i[0], href: i[1], bg: on ? '#F1F4FA' : '#FFFFFF', weight: on ? 700 : 500, color: on ? accent : '#1B1F24', dot: on ? accent : '#FFFFFF' };
+    });
+    const quick = [['창세기', '1장'], ['마태복음', '1장'], ['시편', '23편'], ['요한복음', '3장']].map(function (q) { return { book: q[0], ch: q[1] }; });
+    return { accent: accent, items: items, quick: quick };
+  }
+}
+</script>
+</body>
+</html>

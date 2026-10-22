@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>통독 홈</title>
+<title>통독 대시보드</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -16,75 +16,149 @@ a{color:#1B1F24;text-decoration:none}a:hover{color:#1B1F24}
 button{font-family:inherit}
 </style>
 </helmet>
-<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F6F8; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex; flex-direction: column; overflow: hidden">
+<div style="width: 390px; height: 1780px; box-sizing: border-box; background: #F5F6F8; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex; flex-direction: column">
 
-  <header style="display: flex; flex-direction: column; gap: 12px; padding: 16px 20px 8px">
-    <div style="display: flex; align-items: center; justify-content: space-between">
-      <span style="font-size: 16px; font-weight: 700">잠실새내교회 유년부</span>
-      <button aria-label="글자 크기" style="width: 44px; height: 44px; border-radius: 12px; border: 1px solid #DDE1E6; background: #FFFFFF; font-size: 15px; font-weight: 700; color: #1B1F24">가</button>
-    </div>
-    <div role="tablist" aria-label="프로그램" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: #E9ECF0">
-      <a href="Main.dc.html" role="tab" aria-selected="false" style="min-height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; color: #5B6470">성경말씀</a>
-      <a href="ReadingHome.dc.html" role="tab" aria-selected="true" style="min-height: 42px; border-radius: 11px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #1B1F24">성경통독</a>
-    </div>
+  <header style="display: flex; align-items: center; gap: 10px; padding: 12px 16px 8px">
+    <a href="ReadingMenu.dc.html" aria-label="목차 열기" style="width: 44px; height: 44px; border-radius: 12px; background: #FFFFFF; border: 1px solid #DDE1E6; display: flex; align-items: center; justify-content: center; box-sizing: border-box">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+    </a>
+    <span style="flex: 1; font-size: 18px; font-weight: 700">대시보드</span>
+    <span style="font-size: 13px; color: #5B6470">도전!!!성경통독</span>
   </header>
 
-  <main style="flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 6px 20px 20px; overflow: hidden">
-    <section style="background: #FFFFFF; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
-      <div style="display: flex; align-items: baseline; justify-content: space-between">
-        <span style="font-size: 14px; color: #5B6470">1독째 읽는 중</span>
-        <span style="font-size: 13px; color: #5B6470">23 / 1,189장</span>
-      </div>
-      <div style="font-size: 34px; font-weight: 700; color: {{accent}}">1.9%</div>
-      <div style="height: 10px; border-radius: 5px; background: #E9ECF0; overflow: hidden">
-        <div style="width: 1.9%; min-width: 6px; height: 10px; background: {{accent}}"></div>
-      </div>
-      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
-        <div style="display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 10px; background: #F5F6F8">
-          <span style="font-size: 12px; color: #5B6470">구약</span>
-          <span style="font-size: 15px; font-weight: 700">23 / 929장</span>
+  <main style="display: flex; flex-direction: column; gap: 14px; padding: 6px 20px 28px">
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <span style="font-size: 13px; font-weight: 700; color: {{accent}}">나의 성경 통독 · 1독째</span>
+      <div style="display: flex; align-items: center; gap: 18px">
+        <svg width="92" height="92" viewBox="0 0 92 92" role="img" aria-label="전체 진도 1.9%">
+          <circle cx="46" cy="46" r="40" fill="none" stroke="#E9ECF0" stroke-width="8"></circle>
+          <circle cx="46" cy="46" r="40" fill="none" stroke="{{accent}}" stroke-width="8" stroke-linecap="round" stroke-dasharray="4.8 251.3" transform="rotate(-90 46 46)"></circle>
+          <text x="46" y="52" text-anchor="middle" font-size="18" font-weight="700" fill="#1B1F24">1.9%</text>
+        </svg>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 20px; font-weight: 700">23 / 1,189장</span>
+          <span style="font-size: 13px; color: #5B6470; line-height: 1.6">구약 23 / 929장<br>신약 0 / 260장</span>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 10px; background: #F5F6F8">
-          <span style="font-size: 12px; color: #5B6470">신약</span>
-          <span style="font-size: 15px; font-weight: 700">0 / 260장</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0; border-radius: 10px; background: #F5F6F8">
+          <span style="font-size: 20px; font-weight: 700">5일</span><span style="font-size: 12px; color: #5B6470">연속</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0; border-radius: 10px; background: #F5F6F8">
+          <span style="font-size: 20px; font-weight: 700">5일</span><span style="font-size: 12px; color: #5B6470">읽은 날</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0; border-radius: 10px; background: #F5F6F8">
+          <span style="font-size: 20px; font-weight: 700">1/5</span><span style="font-size: 12px; color: #5B6470">화요일</span>
         </div>
       </div>
     </section>
 
-    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
-      <section style="background: #FFFFFF; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 2px">
-        <span style="font-size: 12px; color: #5B6470">오늘 읽은 장</span>
-        <span style="font-size: 20px; font-weight: 700">5장</span>
-      </section>
-      <section style="background: #FFFFFF; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 2px">
-        <span style="font-size: 12px; color: #5B6470">연속 읽은 날</span>
-        <span style="font-size: 20px; font-weight: 700">5일</span>
-      </section>
-      <section style="background: #FFFFFF; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 2px">
-        <span style="font-size: 12px; color: #5B6470">완독</span>
-        <span style="font-size: 20px; font-weight: 700">0번</span>
-      </section>
-    </div>
-
-    <a href="ReadingChapter.dc.html" style="display: flex; align-items: center; justify-content: space-between; min-height: 72px; padding: 0 20px; border-radius: 16px; background: {{accent}}; color: #FFFFFF">
-      <span style="display: flex; flex-direction: column; gap: 2px">
-        <span style="font-size: 13px; color: #FFFFFF">이어 읽기</span>
-        <span style="font-size: 19px; font-weight: 700; color: #FFFFFF">창세기 24장</span>
+    <a href="ReadingChapter.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-radius: 16px; background: {{accent}}; color: #FFFFFF">
+      <span style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 12px; font-weight: 700; color: #FFFFFF">이어 읽기</span>
+        <span style="font-size: 20px; font-weight: 700; color: #FFFFFF">창세기 24장</span>
+        <span style="font-size: 14px; line-height: 1.6; color: #FFFFFF">"아브라함이 나이가 많아 늙었고 여호와께서 그에게 범사에 복을 주셨더라"</span>
+        <span style="font-size: 12px; color: #FFFFFF">1절부터 읽을 차례 · 23장은 오늘 07:42에 읽음</span>
       </span>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
     </a>
 
-    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
-      <a href="ReadingBooks.dc.html" style="min-height: 52px; border-radius: 14px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700">책 목록</a>
-      <a href="ReadingHome.dc.html" style="min-height: 52px; border-radius: 14px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700">회차 기록</a>
-    </div>
+    <section style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 15px; font-weight: 700">다음에 읽을 곳</span>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{next}}" as="n" hint-placeholder-count="6">
+          <a href="ReadingChapter.dc.html" style="display: flex; justify-content: space-between; align-items: baseline; padding: 12px; border-radius: 12px; background: #FFFFFF; font-size: 14px; font-weight: 500">{{n.book}}<span style="font-size: 12px; color: {{accent}}; font-weight: 700">{{n.ch}}</span></a>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 12px; font-weight: 700; color: {{accent}}">오늘의 말씀</span>
+      <p style="margin: 0; font-size: 16px; line-height: 1.8">두려워하지 말라 내가 너와 함께 함이라 놀라지 말라 나는 네 하나님이 됨이라 내가 너를 굳세게 하리라 참으로 너를 도와 주리라</p>
+      <span style="font-size: 12px; color: #5B6470">이사야 41:10</span>
+    </section>
+
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+      <span style="font-size: 15px; font-weight: 700">통독 진도</span>
+      <sc-for list="{{bars}}" as="b" hint-placeholder-count="3">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; justify-content: space-between; font-size: 13px"><span>{{b.name}}</span><span style="color: #5B6470">{{b.txt}}</span></div>
+          <div style="height: 8px; border-radius: 4px; background: #E9ECF0; overflow: hidden"><div style="height: 8px; width: {{b.w}}; min-width: {{b.min}}; background: {{b.color}}"></div></div>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <span style="font-size: 15px; font-weight: 700">최근 8주</span>
+        <span style="font-size: 12px; color: #5B6470">1/5 오늘</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px">
+        <sc-for list="{{dows}}" as="w" hint-placeholder-count="7">
+          <span style="text-align: center; font-size: 11px; color: #5B6470">{{w}}</span>
+        </sc-for>
+        <sc-for list="{{heat}}" as="h" hint-placeholder-count="56">
+          <span title="{{h.title}}" style="height: 36px; border-radius: 6px; background: {{h.bg}}; color: {{h.color}}; border: 2px solid {{h.ring}}; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 11px">{{h.day}}</span>
+        </sc-for>
+      </div>
+      <div style="display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 11px; color: #5B6470">적음
+        <span style="width: 12px; height: 12px; border-radius: 3px; background: #E9ECF0"></span>
+        <span style="width: 12px; height: 12px; border-radius: 3px; background: #C9D6F2"></span>
+        <span style="width: 12px; height: 12px; border-radius: 3px; background: #8DA7E3"></span>
+        <span style="width: 12px; height: 12px; border-radius: 3px; background: {{accent}}"></span>많음</div>
+    </section>
+
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <span style="font-size: 15px; font-weight: 700">책별 진도</span>
+        <a href="ReadingBooks.dc.html" style="font-size: 13px; color: {{accent}}; font-weight: 700">구약 목록 →</a>
+      </div>
+      <div role="tablist" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: #E9ECF0">
+        <button role="tab" aria-selected="true" style="min-height: 38px; border: 0; border-radius: 9px; background: #FFFFFF; font-size: 14px; font-weight: 700; color: #1B1F24">구약 39권</button>
+        <button role="tab" aria-selected="false" style="min-height: 38px; border: 0; border-radius: 9px; background: transparent; font-size: 14px; color: #5B6470">신약 27권</button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+        <sc-for list="{{books}}" as="k" hint-placeholder-count="16">
+          <a href="ReadingBooks.dc.html" style="position: relative; overflow: hidden; padding: 8px 6px 10px; border-radius: 8px; background: {{k.bg}}; font-size: 12px; font-weight: 500; white-space: nowrap">{{k.name}}<span style="display: block; font-size: 11px; color: {{k.sub}}">{{k.prog}}</span><span style="position: absolute; left: 0; bottom: 0; height: 3px; width: {{k.w}}; background: {{accent}}"></span></a>
+        </sc-for>
+      </div>
+      <span style="font-size: 12px; color: #5B6470; text-align: center">… 나머지 23권</span>
+    </section>
   </main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2B59C3","options":["#2B59C3","#1F7A5C","#B2462E","#6A4BB5"],"section":"부서 대표 색"},"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2B59C3","options":["#2B59C3","#1F7A5C","#B2462E","#6A4BB5"],"section":"부서 대표 색"},"$preview":{"width":390,"height":1780}}'>
 class Component extends DCLogic {
   renderVals() {
-    return { accent: this.props.accent ?? '#2B59C3' };
+    const accent = this.props.accent ?? '#2B59C3';
+    const next = [['창세기', '24장'], ['출애굽기', '1장'], ['레위기', '1장'], ['민수기', '1장'], ['마태복음', '1장'], ['시편', '1편']].map(function (n) { return { book: n[0], ch: n[1] }; });
+    const bars = [
+      { name: '전체', txt: '23 / 1,189 · 1.9%', w: '1.9%', min: '6px', color: '#1B1F24' },
+      { name: '구약', txt: '23 / 929 · 2.5%', w: '2.5%', min: '6px', color: accent },
+      { name: '신약', txt: '0 / 260 · 0.0%', w: '0%', min: '0px', color: accent }
+    ];
+    const dows = ['일', '월', '화', '수', '목', '금', '토'];
+    // 8주 = 2026-11-15(일) ~ 2027-01-09(토). 서비스는 1/1 시작, 오늘은 1/5
+    const read = { '1/1': 3, '1/2': 4, '1/3': 6, '1/4': 5, '1/5': 5 };
+    const heat = [];
+    const start = new Date(2026, 10, 15);
+    for (let i = 0; i < 56; i++) {
+      const d = new Date(start.getTime() + i * 86400000);
+      const key = (d.getMonth() + 1) + '/' + d.getDate();
+      const n = read[key] || 0;
+      const future = d > new Date(2027, 0, 5);
+      const bg = future ? '#FFFFFF' : (n === 0 ? '#E9ECF0' : n <= 3 ? '#C9D6F2' : n <= 5 ? '#8DA7E3' : accent);
+      heat.push({
+        day: d.getDate(), title: key + ' — ' + n + '장',
+        bg: bg, color: n > 5 ? '#FFFFFF' : (n > 0 ? '#1B1F24' : '#5B6470'),
+        ring: key === '1/5' ? '#1B1F24' : bg
+      });
+    }
+    const raw = [['창세기', 23, 50], ['출애굽기', 0, 40], ['레위기', 0, 27], ['민수기', 0, 36], ['신명기', 0, 34], ['여호수아', 0, 24], ['사사기', 0, 21], ['룻기', 0, 4], ['사무엘상', 0, 31], ['사무엘하', 0, 24], ['열왕기상', 0, 22], ['열왕기하', 0, 25], ['역대상', 0, 29], ['역대하', 0, 36], ['에스라', 0, 10], ['느헤미야', 0, 13]];
+    const books = raw.map(function (r) {
+      return { name: r[0], prog: r[1] + '/' + r[2], w: Math.round(r[1] / r[2] * 100) + '%', bg: '#F5F6F8', sub: r[1] > 0 ? accent : '#5B6470' };
+    });
+    return { accent: accent, next: next, bars: bars, dows: dows, heat: heat, books: books };
   }
 }
 </script>
