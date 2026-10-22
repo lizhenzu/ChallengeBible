@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
 <style>
-  /* 레이아웃(Bible2 로그인 구성): 얇은 머리말(도전!!! · 가입하기) → 제목 · 안내 → 아이디 · 비밀번호(보기) → 로그인 → 또는 → 구경하기 → 회원가입 · 비밀번호 안내. 넓은 화면은 가운데 한 칸 */
+  /* 레이아웃(Bible2 로그인 구성, 구경하기 없음): 얇은 머리말(도전!!! · 가입하기) → 제목 · 안내 → 아이디 · 비밀번호(보기) → 로그인 → 회원가입 · 비밀번호 안내. 넓은 화면은 가운데 한 칸 */
   :root {
     --bg: #FFFFFF; --soft: #F5F6F8; --hero: #F2F5FB; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
     --accent: #2B59C3; --on-accent: #FFFFFF; --bad: #B42318; --bad-bg: #FDECEC;
@@ -81,9 +81,6 @@
     <button type="submit" class="btn p" id="go">로그인</button>
   </form>
 
-  <div class="or">또는</div>
-  <button type="button" class="btn s" id="guest">구경하기<small>가입하지 않고 둘러보기</small></button>
-
   <div class="foot">
     <div>아직 회원이 아니신가요?<a href="#join">회원가입</a></div>
     <div>비밀번호를 잊었으면 부서 선생님께 말해 주세요.</div>
@@ -116,6 +113,5 @@
     $('go').outerHTML = '<a class="btn p" href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">잠실새내교회 유년부로 들어가기 →</a>';
     toast('김철수님, 반가워요! 소속 부서가 하나라 바로 들어가요');
   });
-  $('guest').onclick = () => toast('구경하기: 예시 부서를 둘러보는 화면으로 가요 (시안)');
   document.querySelectorAll('a[href="#join"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast('회원가입 화면으로 가요 (다음 시안)'); }));
 </script>
