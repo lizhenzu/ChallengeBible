@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>통독 장 체크</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1B1F24;text-decoration:none}a:hover{color:#1B1F24}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F6F8; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1B1F24; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="display: flex; align-items: center; gap: 4px; padding: 16px 12px 8px">
+    <a href="ReadingBooks.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </a>
+    <div style="display: flex; flex-direction: column">
+      <span style="font-size: 18px; font-weight: 700">창세기</span>
+      <span style="font-size: 13px; color: #5B6470">23 / 50장 읽음 · 1독째</span>
+    </div>
+  </header>
+
+  <main style="flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 4px 20px 20px; overflow: hidden">
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 14px; color: #5B6470">읽은 장을 눌러 표시하세요. 다시 누르면 해제돼요.</div>
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{chapters}}" as="c" hint-placeholder-count="50">
+          <button aria-pressed="{{c.read}}" aria-label="{{c.label}}" style="height: 46px; border-radius: 10px; border: 2px solid {{c.border}}; background: {{c.bg}}; color: {{c.color}}; font-size: 15px; font-weight: {{c.weight}}">{{c.no}}</button>
+        </sc-for>
+      </div>
+    </section>
+    <a href="ReadingChapter.dc.html" style="min-height: 56px; border-radius: 16px; background: {{accent}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700">24장 본문 읽기</a>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2B59C3","options":["#2B59C3","#1F7A5C","#B2462E","#6A4BB5"],"section":"부서 대표 색"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#2B59C3';
+    const chapters = [];
+    for (let i = 1; i <= 50; i++) {
+      const read = i <= 23;
+      const next = i === 24;
+      chapters.push({
+        no: i, read: read,
+        label: i + '장 ' + (read ? '읽음, 누르면 해제' : '안 읽음, 누르면 읽음 표시'),
+        bg: read ? accent : '#FFFFFF',
+        color: read ? '#FFFFFF' : '#1B1F24',
+        border: read ? accent : (next ? '#1B1F24' : '#DDE1E6'),
+        weight: read || next ? 700 : 500
+      });
+    }
+    return { accent: accent, chapters: chapters };
+  }
+}
+</script>
+</body>
+</html>
