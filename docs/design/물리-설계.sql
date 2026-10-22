@@ -609,13 +609,25 @@ CREATE TABLE app.ChapterProgress (
     RoundNo           int          NOT NULL,
     BookId            tinyint      NOT NULL,
     Chapter           smallint     NOT NULL,
-    ReadThroughVerse  smallint     NOT NULL CONSTRAINT CK_ChapterProgress_Verse CHECK (ReadThroughVerse >= 1),   -- R-160
+    LastViewedVerse   smallint     NOT NULL CONSTRAINT CK_ChapterProgress_Verse CHECK (LastViewedVerse >= 1),    -- 보던 위치(R-161, 0042)
     UpdatedUtc        datetime2(3) NOT NULL,
     CONSTRAINT PK_ChapterProgress PRIMARY KEY (AccountId, RoundNo, BookId, Chapter),
     CONSTRAINT FK_ChapterProgress_Round FOREIGN KEY (AccountId, RoundNo) REFERENCES app.ReadingRound (AccountId, RoundNo),
     CONSTRAINT FK_ChapterProgress_Chapter FOREIGN KEY (BookId, Chapter) REFERENCES app.BibleChapter (BookId, Chapter)
 );
 CREATE INDEX IX_ChapterProgress_Recent ON app.ChapterProgress (AccountId, UpdatedUtc DESC);   -- 이어 읽기(R-161)
+
+CREATE TABLE app.RoundVerseRead (                                               -- 회차별 절 읽음(R-160, 0042)
+    AccountId  int          NOT NULL,
+    RoundNo    int          NOT NULL,
+    BookId     tinyint      NOT NULL,
+    Chapter    smallint     NOT NULL,
+    Verse      smallint     NOT NULL CONSTRAINT CK_RoundVerseRead_Verse CHECK (Verse >= 1),
+    ReadUtc    datetime2(3) NOT NULL,
+    CONSTRAINT PK_RoundVerseRead PRIMARY KEY (AccountId, RoundNo, BookId, Chapter, Verse),
+    CONSTRAINT FK_RoundVerseRead_Round FOREIGN KEY (AccountId, RoundNo) REFERENCES app.ReadingRound (AccountId, RoundNo),
+    CONSTRAINT FK_RoundVerseRead_Chapter FOREIGN KEY (BookId, Chapter) REFERENCES app.BibleChapter (BookId, Chapter)
+);
 
 CREATE TABLE app.ChapterMedia (                                                 -- 플랫폼(R-166)
     Id              int IDENTITY  NOT NULL CONSTRAINT PK_ChapterMedia PRIMARY KEY,
@@ -831,6 +843,9 @@ CREATE SECURITY POLICY sec.TenantIsolation
     ADD FILTER PREDICATE sec.fn_ReadingRead(AccountId) ON app.ChapterProgress,
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterProgress AFTER INSERT,
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterProgress AFTER UPDATE,
+    ADD FILTER PREDICATE sec.fn_ReadingRead(AccountId) ON app.RoundVerseRead,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.RoundVerseRead AFTER INSERT,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.RoundVerseRead AFTER UPDATE,
     ADD FILTER PREDICATE sec.fn_Tenant(TenantId) ON app.SearchLog,
     ADD BLOCK  PREDICATE sec.fn_Tenant(TenantId) ON app.SearchLog AFTER INSERT
 WITH (STATE = ON, SCHEMABINDING = ON);
