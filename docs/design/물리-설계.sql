@@ -269,10 +269,9 @@ CREATE TABLE app.DailyPrayer (
     IsCurrent           bit           NOT NULL,
     Status              varchar(20)   NOT NULL CONSTRAINT CK_DailyPrayer_Status CHECK (Status IN ('Draft','Published','Archived')),
     ReplacesId          int           NULL CONSTRAINT FK_DailyPrayer_Replaces REFERENCES app.DailyPrayer(Id),
-    Title               nvarchar(200) NOT NULL,
-    OpeningText         nvarchar(max) NOT NULL,
-    BodyText            nvarchar(max) NOT NULL,
-    ClosingText         nvarchar(max) NOT NULL,
+    TraitName           nvarchar(30)  NOT NULL,      -- 성품 이름(예: 신뢰) — 0047
+    TraitNameEn         nvarchar(40)  NULL,          -- 예: Trust
+    Paragraphs          nvarchar(max) NOT NULL CONSTRAINT CK_DailyPrayer_Paragraphs CHECK (ISJSON(Paragraphs) = 1),  -- 문단 목록, {이름} 자리 표시
     BookId              tinyint       NOT NULL CONSTRAINT FK_DailyPrayer_Book REFERENCES app.BibleBook(Id),
     StartChapter        smallint      NOT NULL,
     StartVerse          smallint      NOT NULL,
@@ -380,7 +379,7 @@ CREATE TABLE app.Activity (
     TenantId        int             NOT NULL,
     ParticipantId   int             NOT NULL,
     MissionItem     varchar(20)     NOT NULL CONSTRAINT CK_Activity_Item
-                    CHECK (MissionItem IN ('Word.Me','Word.Parent','Prayer.Me','Prayer.Parent','Prayer.Friend','Quiz.Correct','Recite')),
+                    CHECK (MissionItem IN ('Word.Me','Word.Parent','Prayer.Me','Prayer.Others','Quiz.Correct','Recite')),   -- 0047
     MissionDate     date            NOT NULL,     -- 암송은 실제 수행일(0024)
     DailyWordId     int             NULL CONSTRAINT FK_Activity_Word   REFERENCES app.DailyWord(Id),
     DailyPrayerId   int             NULL CONSTRAINT FK_Activity_Prayer REFERENCES app.DailyPrayer(Id),
@@ -396,7 +395,7 @@ CREATE TABLE app.Activity (
     CONSTRAINT CK_Activity_Content CHECK (
         (MissionItem IN ('Word.Me','Word.Parent')
             AND DailyWordId IS NOT NULL AND DailyPrayerId IS NULL AND DailyQuizId IS NULL AND WeeklyVerseId IS NULL AND ReciteStartDate IS NULL)
-     OR (MissionItem IN ('Prayer.Me','Prayer.Parent','Prayer.Friend')
+     OR (MissionItem IN ('Prayer.Me','Prayer.Others')
             AND DailyWordId IS NULL AND DailyPrayerId IS NOT NULL AND DailyQuizId IS NULL AND WeeklyVerseId IS NULL AND ReciteStartDate IS NULL)
      OR (MissionItem = 'Quiz.Correct'
             AND DailyWordId IS NULL AND DailyPrayerId IS NULL AND DailyQuizId IS NOT NULL AND WeeklyVerseId IS NULL AND ReciteStartDate IS NULL)
