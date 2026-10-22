@@ -1,0 +1,233 @@
+<title>순위 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(DailyMission4/ParticipantPersons · ParticipantTeams 구성): 위쪽 줄 → 참여자 제목 + 개인 · 가족팀 전환 → (개인) 숫자 상자 · TOP 3 · 필터 · 정렬 · 순위 목록 / (가족팀) 숫자 상자 · 찾기 · 팀 카드(가계도) */
+  :root {
+    --bg: #FFFFFF; --soft: #F3F5F8; --fg: #1B1F24; --tx: #1F2937; --dim: #6B7280; --dim2: #4B5563; --rule: #E5E7EB;
+    --accent: #2B59C3; --on-accent: #FFFFFF; --cell: #EAF0FB; --bar: #DCE5F7; --gold: #C9A25E; --gold-bg: #FFF6E3; --green: #16A34A; --green-bg: #EAF7EF;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #15181C; --soft: #1D2127; --fg: #E8EAED; --tx: #E1E4E8; --dim: #9AA1AB; --dim2: #B3B9C2; --rule: #2C323A;
+    --accent: #7FA2F2; --on-accent: #0E1013; --cell: #1F2A3F; --bar: #283652; --gold: #E9C27A; --gold-bg: #2A2314; --green: #5CC98A; --green-bg: #1B2A22; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #15181C; --soft: #1D2127; --fg: #E8EAED; --tx: #E1E4E8; --dim: #9AA1AB; --dim2: #B3B9C2; --rule: #2C323A;
+    --accent: #7FA2F2; --on-accent: #0E1013; --cell: #1F2A3F; --bar: #283652; --gold: #E9C27A; --gold-bg: #2A2314; --green: #5CC98A; --green-bg: #1B2A22; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button, input, select { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .col { max-width: 600px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  [hidden] { display: none !important; }
+
+  .bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); }
+  .bar .col > div { display: flex; align-items: center; justify-content: space-between; min-height: 58px; border-bottom: 1px solid var(--rule); }
+  .crumb { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; color: var(--dim2); }
+  .crumb a { min-height: 44px; display: inline-flex; align-items: center; }
+  .crumb span { color: var(--rule); }
+  .yr { font-size: 13px; letter-spacing: .1em; color: var(--dim); }
+
+  main { padding-block: 18px 48px; }
+  .k { font-size: 13px; font-weight: 800; color: var(--accent); }
+  h1 { margin: 4px 0 0; font-size: 28px; font-weight: 900; }
+  .sub { font-size: 13px; color: var(--dim); }
+  .seg { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 12px; background: var(--soft); }
+  .seg button { min-height: 42px; border: 0; border-radius: 9px; background: none; font-size: 15px; font-weight: 700; color: var(--dim); }
+  .seg button[aria-selected="true"] { background: var(--bg); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .tot { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--fg); border-bottom: 1px solid var(--rule); }
+  .tot div { padding: 12px 4px; }
+  .tot div + div { border-left: 1px solid var(--rule); padding-left: 16px; }
+  .tot small { display: block; font-size: 12px; color: var(--dim); }
+  .tot b { font-size: 32px; font-weight: 300; line-height: 1.2; }
+  .tot b u { text-decoration: none; font-size: 14px; color: var(--dim); margin-left: 2px; }
+  .lbl { margin-top: 24px; font-size: 13px; font-weight: 800; color: var(--accent); letter-spacing: .1em; }
+
+  .av { flex: none; border-radius: 50%; background: var(--cell); color: var(--accent); display: grid; place-content: center; font-weight: 900; }
+  .top3 { margin-top: 10px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: end; }
+  .t3 { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 6px 12px; border-radius: 18px; background: var(--soft); text-align: center; }
+  .t3.first { background: var(--gold-bg); padding-top: 20px; }
+  .t3 .no { font-size: 13px; font-weight: 900; color: var(--dim); }
+  .t3.first .no { color: var(--gold); }
+  .t3 .av { width: 54px; height: 54px; font-size: 20px; }
+  .t3.first .av { width: 66px; height: 66px; font-size: 24px; box-shadow: 0 0 0 3px var(--gold); }
+  .t3 b { font-size: 15px; }
+  .t3 .p { font-size: 20px; font-weight: 300; }
+  .t3 .p u { text-decoration: none; font-size: 12px; color: var(--dim); }
+  .t3 small { font-size: 12px; color: var(--green); font-weight: 700; }
+
+  .filt { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .filt button, .sort button { min-height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid var(--rule); background: var(--bg); font-size: 13px; }
+  .filt button[aria-pressed="true"], .sort button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); font-weight: 700; }
+  .srch { margin-top: 10px; display: flex; gap: 8px; }
+  .srch label { flex: 1; display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 12px; }
+  .srch input { flex: 1; min-width: 0; border: 0; outline: none; background: none; font-size: 15px; }
+  .srch select { min-height: 46px; padding: 0 10px; border: 1px solid var(--rule); border-radius: 12px; background: var(--bg); font-size: 14px; }
+  .sort { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--dim); }
+  .note { margin: 6px 0 0; font-size: 12px; color: var(--dim); }
+
+  .list { margin-top: 10px; border-top: 1px solid var(--fg); }
+  .rk { display: grid; grid-template-columns: 28px 44px minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; padding: 12px 6px; border-bottom: 1px solid var(--rule); }
+  .rk.me { background: var(--cell); border-radius: 12px; }
+  .rk .no { font-weight: 900; font-size: 15px; color: var(--dim); text-align: center; }
+  .rk .av { width: 44px; height: 44px; }
+  .rk .nm { font-size: 16px; font-weight: 800; }
+  .rk .nm em { font-style: normal; font-size: 11px; font-weight: 700; color: var(--on-accent); background: var(--accent); border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+  .rk .rs { display: block; font-size: 12px; color: var(--dim); }
+  .rk .rs .td { color: var(--green); font-weight: 700; }
+  .rk .bw { display: block; height: 5px; border-radius: 3px; background: var(--bar); margin-top: 6px; overflow: hidden; }
+  .rk .bw i { display: block; height: 5px; background: var(--accent); }
+  .rk .pv { text-align: right; }
+  .rk .pv b { display: block; font-size: 20px; font-weight: 300; }
+  .rk .pv b u { text-decoration: none; font-size: 12px; color: var(--dim); }
+  .rk .pv small { font-size: 12px; color: var(--dim); }
+  .empty { padding: 26px 0; text-align: center; color: var(--dim); }
+
+  .team { margin-top: 14px; border: 1px solid var(--rule); border-radius: 20px; padding: 16px; }
+  .team.me { box-shadow: 0 0 0 2px var(--accent) inset; border-color: transparent; }
+  .th { display: flex; align-items: center; gap: 12px; }
+  .th .no { font-weight: 900; font-size: 16px; color: var(--dim); width: 26px; text-align: center; }
+  .th.top .no { color: var(--gold); }
+  .th .tx { flex: 1; min-width: 0; }
+  .th .tx b { display: block; font-size: 17px; }
+  .th .tx b em { font-style: normal; font-size: 11px; color: var(--on-accent); background: var(--accent); border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+  .th .tx span { font-size: 12px; color: var(--dim); }
+  .th .pv { text-align: right; }
+  .th .pv b { display: block; font-size: 24px; font-weight: 300; color: var(--accent); }
+  .th .pv b u { text-decoration: none; font-size: 12px; color: var(--dim); }
+  .th .pv small { font-size: 12px; color: var(--dim); }
+  .tbar { height: 6px; border-radius: 3px; background: var(--bar); margin-top: 10px; overflow: hidden; }
+  .tbar i { display: block; height: 6px; background: var(--accent); }
+  .tree { margin-top: 14px; display: flex; flex-direction: column; align-items: center; }
+  .tree .row { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .tree .stem { width: 2px; height: 16px; background: var(--rule); }
+  .tree .fan { height: 2px; background: var(--rule); width: 50%; max-width: 160px; }
+  .one { width: 92px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 4px; border-radius: 14px; background: var(--soft); text-align: center; }
+  .one.me { box-shadow: 0 0 0 2px var(--accent) inset; background: var(--bg); }
+  .one .av { width: 40px; height: 40px; font-size: 15px; }
+  .one .ro { font-size: 11px; color: var(--dim); }
+  .one b { font-size: 14px; }
+  .one .v { font-size: 16px; font-weight: 300; }
+  .one small { font-size: 11px; color: var(--dim); }
+  .one small.td { color: var(--green); font-weight: 700; }
+  .famGoal { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: var(--soft); font-size: 13px; color: var(--dim); display: flex; justify-content: space-between; gap: 10px; }
+  .famGoal b { color: var(--fg); }
+</style>
+
+<div class="bar">
+  <div class="col"><div>
+    <nav class="crumb" aria-label="위치"><a href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">홈으로</a><span aria-hidden="true">·</span><a href="https://claude.ai/artifact/QYa8ThNwp18tv4drEP7ae2">미션홈</a></nav>
+    <span class="yr num">2027</span>
+  </div></div>
+</div>
+
+<main class="col">
+  <div class="k">도전!!!성경말씀</div>
+  <h1>참여자</h1>
+  <div class="sub num">2027 시즌 · 목표 8,000점 · 1월 5일 기준</div>
+  <div class="seg" role="tablist" aria-label="보기">
+    <button type="button" role="tab" id="tP" aria-selected="true" aria-controls="pP">개인</button>
+    <button type="button" role="tab" id="tT" aria-selected="false" aria-controls="pT">가족팀</button>
+  </div>
+
+  <section id="pP" role="tabpanel" aria-labelledby="tP">
+    <div class="tot"><div><small>참여자</small><b class="num" id="pCount">0<u>명</u></b></div><div><small>목표 달성</small><b class="num">0<u>명</u></b></div></div>
+    <div class="lbl">TOP 3</div>
+    <div class="top3" id="top3"></div>
+    <div class="filt" role="group" aria-label="구분" id="filt">
+      <button type="button" data-f="all" aria-pressed="true">전체</button><button type="button" data-f="student" aria-pressed="false">학생</button><button type="button" data-f="adult" aria-pressed="false">부모님</button><button type="button" data-f="teacher" aria-pressed="false">선생님</button>
+    </div>
+    <div class="srch"><label><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">이름 찾기</span><input type="search" id="q" placeholder="이름 찾기"></label></div>
+    <div class="sort" role="group" aria-label="정렬" id="sort">정렬
+      <button type="button" data-s="pts" aria-pressed="true">점수순</button><button type="button" data-s="recent" aria-pressed="false">최근 수행순</button><button type="button" data-s="name" aria-pressed="false">이름순</button>
+    </div>
+    <p class="note" id="sortNote">점수가 같으면 이름순이에요.</p>
+    <div class="list" id="list"></div>
+  </section>
+
+  <section id="pT" role="tabpanel" aria-labelledby="tT" hidden>
+    <div class="tot"><div><small>가족팀</small><b class="num" id="tCount">0<u>팀</u></b></div><div><small>첫 가족 축하(1,000점) 도달</small><b class="num">0<u>팀</u></b></div></div>
+    <div class="srch">
+      <label><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">가족 찾기</span><input type="search" id="tq" placeholder="가족 · 이름 찾기"></label>
+      <select id="tsort" aria-label="정렬"><option value="pts">점수순</option><option value="name">가족 이름순</option></select>
+    </div>
+    <div id="teams"></div>
+  </section>
+</main>
+
+<script>
+  // 예시 데이터(지어낸 이름) — 2027-01-05, 시즌 5일째. kind: student · adult(부모) · teacher
+  const ME = '김철수';
+  const P = [
+    { n: '문하늘', k: 'student', g: '2학년 2반', p: 27, last: 5 }, { n: '최로운', k: 'student', g: '3학년 1반', p: 27, last: 5 },
+    { n: '이소망', k: 'student', g: '2학년 2반', p: 26, last: 5 }, { n: '권시온', k: 'student', g: '3학년 2반', p: 25, last: 4 },
+    { n: '박은총', k: 'teacher', g: '선생님', p: 25, last: 5 }, { n: '정예린', k: 'student', g: '1학년 1반', p: 24, last: 5 },
+    { n: '김철수', k: 'student', g: '3학년 2반', p: 24, last: 5 }, { n: '김엄마', k: 'adult', g: '부모 · 김철수', p: 22, last: 5 },
+    { n: '한기쁨', k: 'student', g: '1학년 2반', p: 21, last: 3 }, { n: '오다윗', k: 'student', g: '2학년 1반', p: 19, last: 4 },
+    { n: '김아빠', k: 'adult', g: '부모 · 김철수', p: 18, last: 4 }, { n: '윤사랑', k: 'student', g: '3학년 1반', p: 15, last: 2 },
+    { n: '서믿음', k: 'adult', g: '부모 · 서하준', p: 12, last: 3 }, { n: '서하준', k: 'student', g: '1학년 1반', p: 11, last: 3 },
+    { n: '강온유', k: 'student', g: '2학년 1반', p: 6, last: 1 },
+  ];
+  const GOAL = 8000, FAM_GOAL = 5000;
+  const T = [
+    { n: '김철수 가족', parents: [['아빠', '김아빠', 18, 4], ['엄마', '김엄마', 22, 5]], kids: [['3학년 2반', '김철수', 24, 5]] },
+    { n: '문하늘 가족', parents: [['엄마', '문은혜', 20, 5]], kids: [['2학년 2반', '문하늘', 27, 5], ['1학년 2반', '문하람', 9, 3]] },
+    { n: '서하준 가족', parents: [['엄마', '서믿음', 12, 3]], kids: [['1학년 1반', '서하준', 11, 3]] },
+  ];
+  const $ = (id) => document.getElementById(id);
+  const ini = (n) => n.slice(1, 2) || n[0];
+  const lastTxt = (d) => d === 5 ? '오늘' : d === 4 ? '어제' : d ? `1월 ${d}일` : '아직 없음';
+  let f = 'all', s = 'pts', q = '';
+
+  // TOP 3 (2 · 1 · 3 순서로 놓고 1등을 가운데 크게)
+  const byPts = [...P].sort((a, b) => b.p - a.p || a.n.localeCompare(b.n, 'ko'));
+  const top = byPts.slice(0, 3);
+  $('top3').innerHTML = [1, 0, 2].map((i) => `<div class="t3${i === 0 ? ' first' : ''}"><span class="no num">0${i + 1}</span><span class="av">${ini(top[i].n)}</span><b>${top[i].n}</b><span class="p num">${top[i].p}<u>점</u></span><small>${lastTxt(top[i].last)}</small></div>`).join('');
+  $('pCount').innerHTML = `${P.length}<u>명</u>`;
+
+  function renderList() {
+    let rows = P.filter((x) => (f === 'all' || x.k === f) && (!q || x.n.includes(q)));
+    rows.sort(s === 'name' ? (a, b) => a.n.localeCompare(b.n, 'ko') : s === 'recent' ? (a, b) => b.last - a.last || b.p - a.p : (a, b) => b.p - a.p || a.n.localeCompare(b.n, 'ko'));
+    $('sortNote').textContent = s === 'recent' ? '마지막으로 미션을 한 날이 최근인 순이에요.' : s === 'name' ? '가나다순이에요.' : '점수가 같으면 이름순이에요.';
+    $('list').innerHTML = rows.length ? rows.map((x) => {
+      const rank = byPts.indexOf(x) + 1, me = x.n === ME, pct = Math.min(100, x.p / GOAL * 100);
+      return `<a class="rk${me ? ' me' : ''}" href="#"><span class="no num">${String(rank).padStart(2, '0')}</span><span class="av">${ini(x.n)}</span>
+        <span><span class="nm">${x.n}${me ? '<em>나</em>' : ''}</span><span class="rs">${x.last === 5 ? '<span class="td">오늘</span> · ' : ''}${x.g} · ${lastTxt(x.last)}</span><span class="bw" aria-hidden="true"><i style="width:${Math.max(pct, 1)}%"></i></span></span>
+        <span class="pv"><b class="num">${x.p}<u>점</u></b><small class="num">${pct.toFixed(1)}%</small></span></a>`;
+    }).join('') : '<div class="empty">찾는 사람이 없어요</div>';
+  }
+  function renderTeams() {
+    const tq = $('tq').value.trim(), ts = $('tsort').value;
+    const total = (t) => [...t.parents, ...t.kids].reduce((a, m) => a + m[2], 0);
+    let ts2 = T.filter((t) => !tq || t.n.includes(tq) || [...t.parents, ...t.kids].some((m) => m[1].includes(tq)));
+    ts2.sort(ts === 'name' ? (a, b) => a.n.localeCompare(b.n, 'ko') : (a, b) => total(b) - total(a));
+    const rankOf = [...T].sort((a, b) => total(b) - total(a));
+    const one = (m) => `<div class="one${m[1] === ME ? ' me' : ''}"><span class="av">${ini(m[1])}</span><span class="ro">${m[0]}</span><b>${m[1]}</b><span class="v num">${m[2]}</span><small class="${m[3] === 5 ? 'td' : ''}">${lastTxt(m[3])}</small></div>`;
+    $('teams').innerHTML = ts2.length ? ts2.map((t) => {
+      const sum = total(t), r = rankOf.indexOf(t) + 1, mine = [...t.parents, ...t.kids].some((m) => m[1] === ME), n = t.parents.length + t.kids.length;
+      const last = Math.max(...[...t.parents, ...t.kids].map((m) => m[3]));
+      return `<div class="team${mine ? ' me' : ''}"><div class="th${r <= 3 ? ' top' : ''}"><span class="no num">${String(r).padStart(2, '0')}</span>
+        <span class="tx"><b>${t.n}${mine ? '<em>우리 가족</em>' : ''}</b><span>${n}명 · ${lastTxt(last)}</span></span>
+        <span class="pv"><b class="num">${sum}<u>점</u></b><small class="num">${(sum / FAM_GOAL * 100).toFixed(1)}%</small></span></div>
+        <div class="tbar" aria-hidden="true"><i style="width:${Math.max(sum / FAM_GOAL * 100, 1)}%"></i></div>
+        <div class="tree"><div class="row">${t.parents.map(one).join('')}</div><div class="stem"></div>${t.kids.length > 1 ? '<div class="fan"></div><div class="stem"></div>' : ''}<div class="row">${t.kids.map(one).join('')}</div></div>
+        <div class="famGoal"><span>다음 가족 축하</span><b class="num">1,000점까지 ${1000 - sum}점</b></div></div>`;
+    }).join('') : '<div class="empty">찾는 가족이 없어요</div>';
+    $('tCount').innerHTML = `${T.length}<u>팀</u>`;
+  }
+
+  $('filt').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; f = b.dataset.f; $('filt').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b)); renderList(); };
+  $('sort').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; s = b.dataset.s; $('sort').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b)); renderList(); };
+  $('q').oninput = () => { q = $('q').value.trim(); renderList(); };
+  $('tq').oninput = renderTeams; $('tsort').onchange = renderTeams;
+  $('list').onclick = (e) => { if (e.target.closest('a')) e.preventDefault(); };
+  function show(w) { const p = w === 'P'; $('tP').setAttribute('aria-selected', p); $('tT').setAttribute('aria-selected', !p); $('pP').hidden = !p; $('pT').hidden = p; }
+  $('tP').onclick = () => show('P'); $('tT').onclick = () => show('T');
+  renderList(); renderTeams(); show(location.hash === '#teams' ? 'T' : 'P');
+</script>
