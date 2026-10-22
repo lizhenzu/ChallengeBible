@@ -162,6 +162,15 @@
   .mem .sc b { display: block; font-size: 22px; font-weight: 300; }
   .mem .sc small { font-size: 11px; color: var(--dim); }
   .famNote { margin: 10px 0 0; font-size: 13px; color: var(--dim); }
+  .famDept { margin-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--bg); font-size: 14px; }
+  .famDept small { display: block; font-size: 12px; color: var(--dim); }
+  .famDept button { flex: none; min-height: 38px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--rule); background: var(--bg); font-size: 13px; font-weight: 700; }
+  .pick { width: 100%; display: flex; gap: 12px; align-items: flex-start; padding: 14px 4px; border: 0; border-bottom: 1px solid var(--rule); background: none; text-align: left; font-size: 15px; }
+  .pick .rd { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--rule); margin-top: 2px; }
+  .pick[aria-checked="true"] .rd { border: 7px solid var(--accent); }
+  .pick small { display: block; font-size: 13px; color: var(--dim); margin-top: 2px; line-height: 1.5; }
+  .warn { margin: 12px 0 0; padding: 12px 14px; border-radius: 12px; background: var(--soft); font-size: 13px; color: var(--dim); line-height: 1.6; }
+  .sheet .ok { width: 100%; margin-top: 12px; min-height: 50px; border: 0; border-radius: 12px; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 15px; }
   .viewAs { margin: 0 0 18px; padding: 12px 14px; border: 1px dashed var(--rule); border-radius: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--dim); }
   .viewAs button { min-height: 36px; padding: 0 12px; border-radius: 18px; border: 1px solid var(--rule); background: var(--bg); font-size: 13px; }
   .viewAs button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); font-weight: 700; }
@@ -283,6 +292,10 @@
             <div class="bar"><i id="famBar"></i></div>
             <div class="ticks" aria-hidden="true"><span style="left:0%;transform:none">0</span><span style="left:100%;transform:translateX(-100%)">1,000점</span></div>
           </div>
+          <div class="famDept" id="famDept" hidden>
+            <div><small>가족과 함께하는 부서</small><b>잠실새내교회 유년부</b></div>
+            <button type="button" id="famDeptBtn">바꾸기</button>
+          </div>
         </div>
         <div>
           <ul class="mem" id="mem"></ul>
@@ -360,6 +373,7 @@
     sec.hidden = v === 'solo';
     const me = v === 'solo' ? null : +v;
     document.getElementById('hi').textContent = (v === 'solo' ? '이소망' : FAM[me].name) + '님, 안녕하세요';
+    document.getElementById('famDept').hidden = v === 'solo' || FAM[+v].rel === '학생';
     if (v === 'solo') return;
     document.getElementById('famTotal').innerHTML = famTotal + '<i> 점</i>';
     document.getElementById('famToday').textContent = '+' + famTodayPts + '점';
@@ -376,6 +390,32 @@
     renderFam(b.dataset.v);
   }));
   renderFam('0');
+
+  // 부모가 "가족과 함께할 부서" 고르기(0046)
+  document.getElementById('famDeptBtn').addEventListener('click', () => {
+    layer.innerHTML = `<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ft">
+      <h3 id="ft">가족과 함께할 부서</h3>
+      <div role="radiogroup" aria-labelledby="ft">
+        <button type="button" class="pick" role="radio" aria-checked="true" data-n="유년부"><span class="rd"></span><span>잠실새내교회 유년부<small>첫째 철수 · 엄마도 미션에 참여하고 가족팀 점수를 함께 모아요</small></span></button>
+        <button type="button" class="pick" role="radio" aria-checked="false" data-n="초등부"><span class="rd"></span><span>잠실새내교회 초등부<small>둘째 영희 · 엄마가 초등부 가족팀으로 옮겨요</small></span></button>
+      </div>
+      <p class="warn" id="warn">지금은 <b>유년부</b>에서 가족과 함께하고 있어요. 초등부에서는 보호자로 영희의 기록을 볼 수 있고, 영희는 혼자 참여해요.</p>
+      <button type="button" class="ok" id="ok">이 부서로 할게요</button>
+      <button type="button" class="x" id="x">닫기</button></div></div>`;
+    const warn = document.getElementById('warn');
+    let pick = '유년부';
+    layer.querySelectorAll('.pick').forEach((b) => b.onclick = () => {
+      layer.querySelectorAll('.pick').forEach((x) => x.setAttribute('aria-checked', x === b));
+      pick = b.dataset.n;
+      warn.innerHTML = pick === '유년부'
+        ? '지금은 <b>유년부</b>에서 가족과 함께하고 있어요. 초등부에서는 보호자로 영희의 기록을 볼 수 있고, 영희는 혼자 참여해요.'
+        : '<b>초등부로 바꾸면</b> 유년부에서는 엄마가 더 이상 미션에 참여하지 않고, 유년부 가족팀에서 빠져요. 그동안 쌓인 엄마의 점수 22점은 기록으로 남고, 철수는 혼자 참여해요. 유년부에서는 보호자로 철수의 기록을 계속 볼 수 있어요.';
+    });
+    document.getElementById('ok').onclick = () => { closeSheet(); toast(pick === '유년부' ? '지금처럼 유년부에서 함께해요' : '초등부로 바꾸는 화면은 시안에 없어요'); };
+    document.getElementById('x').onclick = closeSheet;
+    document.getElementById('scrim').onclick = (e) => { if (e.target.id === 'scrim') closeSheet(); };
+    document.getElementById('ok').focus();
+  });
   document.getElementById('tenantBtn').addEventListener('click', openTenants);
   document.getElementById('switch2').addEventListener('click', (e) => { e.preventDefault(); openTenants(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && layer.innerHTML) closeSheet(); });

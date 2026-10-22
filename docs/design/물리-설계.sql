@@ -38,6 +38,7 @@ CREATE TABLE app.Account (
     PhotoPath       nvarchar(260)  NULL,
     IsPlatformAdmin bit            NOT NULL,
     MustChangePassword bit         NOT NULL,       -- 임시 비밀번호 초기화 후 참(0035)
+    FamilyTenantId  int            NULL,           -- 보호자가 고른 가족과 함께할 부서(0046). FK 는 Tenant 생성 뒤 ALTER 로
     LastTenantId    int            NULL CONSTRAINT FK_Account_LastTenant REFERENCES app.Tenant(Id),
     Status          varchar(20)    NOT NULL CONSTRAINT CK_Account_Status CHECK (Status IN ('Active','Disabled')),
     CreatedUtc      datetime2(3)   NOT NULL
