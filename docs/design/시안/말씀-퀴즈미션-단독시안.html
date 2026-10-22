@@ -1,0 +1,223 @@
+<title>퀴즈 미션 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(DailyMission4/Quiz 구성): 위쪽 줄 → 오늘의 퀴즈 + 달력 배지 제목 → 01 배경 · 02 문제 · 03 정답을 골라요(힌트 · 제출) → 04 해설(끝난 뒤) → 아래 미션 4칸 */
+  :root {
+    --bg: #FFFFFF; --soft: #F3F5F8; --fg: #1B1F24; --tx: #2A2F36; --dim: #6B7280; --dim2: #4B5563; --rule: #E5E7EB;
+    --accent: #2B59C3; --no: #7FA3DB; --green: #16A34A; --green-no: #6FBF8B; --green-bg: #EAF7EF; --green-d: #166534;
+    --rose: #E5484D; --rose-bg: #FDECEC; --rose-d: #B42318; --hint: #F9FAFB;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; --fs: 1;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #15181C; --soft: #1D2127; --fg: #E8EAED; --tx: #D9DCE1; --dim: #9AA1AB; --dim2: #B3B9C2; --rule: #2C323A;
+    --accent: #7FA2F2; --no: #6E8FCB; --green: #5CC98A; --green-no: #5CC98A; --green-bg: #1B2A22; --green-d: #9AE0B5;
+    --rose: #F07C80; --rose-bg: #2E1B1C; --rose-d: #F5A3A6; --hint: #1B1F25; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #15181C; --soft: #1D2127; --fg: #E8EAED; --tx: #D9DCE1; --dim: #9AA1AB; --dim2: #B3B9C2; --rule: #2C323A;
+    --accent: #7FA2F2; --no: #6E8FCB; --green: #5CC98A; --green-no: #5CC98A; --green-bg: #1B2A22; --green-d: #9AE0B5;
+    --rose: #F07C80; --rose-bg: #2E1B1C; --rose-d: #F5A3A6; --hint: #1B1F25; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible, .dOpt:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .col { max-width: 560px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+
+  .bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); }
+  .bar .col > div { display: flex; align-items: center; justify-content: space-between; min-height: 58px; border-bottom: 1px solid var(--rule); }
+  .crumb { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; color: var(--dim2); }
+  .crumb a { min-height: 44px; display: inline-flex; align-items: center; }
+  .crumb span { color: var(--rule); }
+  .fs { display: flex; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+  .fs button { min-height: 36px; padding: 0 10px; border: 0; background: none; color: var(--dim2); font-size: 13px; }
+  .fs button small { font-size: 15px; margin-left: 2px; }
+  .fs button:disabled { opacity: .35; cursor: default; }
+  .fs .pc { min-width: 50px; border-left: 1px solid var(--rule); border-right: 1px solid var(--rule); font-size: 12px; font-weight: 700; color: var(--dim); }
+  .fs .pc.ch { color: var(--accent); background: var(--soft); }
+
+  main { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  .dK { margin-top: 20px; font-size: 13px; font-weight: 800; color: var(--accent); }
+  .dTtl { display: flex; gap: 14px; align-items: flex-start; margin-top: 10px; }
+  .cal { flex: none; width: 62px; border: 1px solid var(--rule); text-align: center; border-radius: 8px; overflow: hidden; }
+  .cal .m { font-size: 10px; letter-spacing: .08em; background: var(--fg); color: var(--bg); padding: 3px 0; }
+  .cal .d { font-size: 28px; font-weight: 300; line-height: 1.15; padding-top: 2px; }
+  .cal .w { font-size: 10px; color: var(--dim); padding-bottom: 4px; }
+  .dTtl h1 { margin: 0; font-size: calc(24px * var(--fs)); font-weight: 800; line-height: 1.35; letter-spacing: -.02em; word-break: keep-all; }
+  .dRef { margin-top: 4px; font-size: calc(13.5px * var(--fs)); color: var(--dim2); }
+
+  .dSec { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 10px; align-items: baseline; padding: 18px 0 16px; border-top: 1px solid var(--rule); }
+  .dTtl + .dSec { margin-top: 26px; }
+  .full { grid-column: 1 / -1; }
+  .dNo { font-weight: 900; font-size: 17px; color: var(--no); }
+  .dSec.done .dNo { color: var(--green-no); }
+  .dH { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: calc(16.5px * var(--fs)); font-weight: 800; }
+  .dH small { font-size: 12px; font-weight: 600; color: var(--dim); white-space: nowrap; }
+  .dH small.ok { color: var(--green); font-weight: 800; }
+  .dH small.warn { color: var(--rose); font-weight: 800; }
+  .dBg { margin: 8px 0 0; font-size: calc(15.5px * var(--fs)); line-height: 1.85; color: var(--tx); word-break: keep-all; }
+  .dBg + .dBg { margin-top: 6px; }
+  .dQ { margin: 8px 0 0; font-size: calc(18px * var(--fs)); line-height: 1.65; font-weight: 800; word-break: keep-all; }
+  .dQ b { color: var(--accent); }
+
+  .dOpts { display: grid; gap: 8px; margin-top: 12px; }
+  .dOpt { position: relative; display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 14px; background: var(--soft); cursor: pointer; box-shadow: 0 0 0 2px transparent inset; transition: background .15s, box-shadow .15s; }
+  .dOpt input { position: absolute; opacity: 0; pointer-events: none; }
+  .dOpt i { flex: none; width: 18px; text-align: center; font-style: normal; font-weight: 900; font-size: 15px; color: var(--no); }
+  .dOpt .t { flex: 1; min-width: 0; font-size: calc(16px * var(--fs)); font-weight: 700; line-height: 1.45; word-break: keep-all; }
+  .dOpt .t small { display: block; margin-top: 2px; font-size: 12px; font-weight: 800; }
+  .dOpt.sel { box-shadow: 0 0 0 2px var(--accent) inset; background: var(--bg); }
+  .dOpt.ans { background: var(--green-bg); box-shadow: none; } .dOpt.ans .t { color: var(--green-d); } .dOpt.ans i, .dOpt.ans small { color: var(--green); }
+  .dOpt.bad { background: var(--rose-bg); box-shadow: none; } .dOpt.bad .t { color: var(--rose-d); } .dOpt.bad i, .dOpt.bad small { color: var(--rose); }
+  .dOpt.fixed { cursor: default; }
+  .dOpt.dim { opacity: .55; }
+  .dHint { display: inline-block; margin-top: 12px; padding: 6px 0; min-height: 36px; border: 0; background: none; font-size: 13px; font-weight: 700; color: var(--accent); }
+  .dHintBox { margin-top: 6px; padding: 12px 14px; border-radius: 12px; background: var(--hint); font-size: calc(14.5px * var(--fs)); line-height: 1.75; color: var(--tx); word-break: keep-all; }
+  .dHintBox[hidden] { display: none; }
+  .msg { margin: 10px 0 0; font-size: 14px; font-weight: 700; min-height: 1.5em; }
+  .msg.bad { color: var(--rose); } .msg.ok { color: var(--green); }
+  .dGo { display: flex; width: 100%; justify-content: space-between; align-items: baseline; margin-top: 14px; padding: 0 0 8px; min-height: 44px; border: 0; border-bottom: 2px solid var(--accent); background: none; font-size: calc(16px * var(--fs)); font-weight: 800; color: var(--accent); text-align: left; }
+  .dGo em { font-style: normal; font-size: 18px; }
+  .dGo:disabled { color: var(--dim); border-bottom-color: var(--rule); cursor: default; opacity: .7; }
+  .dExp { margin: 8px 0 0; font-size: calc(15.5px * var(--fs)); line-height: 1.85; color: var(--tx); word-break: keep-all; }
+  #s4[hidden] { display: none; }
+
+  .nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--bg); border-top: 1px solid var(--rule); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .nav .in { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+  .nav a { position: relative; display: flex; flex-direction: column; align-items: center; padding: 11px 2px 13px; color: var(--dim); }
+  .nav a.on::before { content: ""; position: absolute; top: -1px; left: 22%; right: 22%; height: 3px; border-radius: 0 0 3px 3px; background: var(--accent); }
+  .nav .L { font-size: 15px; font-weight: 800; }
+  .nav .S { font-size: 12px; font-weight: 600; margin-top: 2px; }
+  .nav a.dn .L, .nav .S.done { color: var(--green); }
+  .nav a.on .L { color: var(--fg); }
+  .nav a.on .S:not(.done) { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 14px 20px; border-radius: 14px; font-size: 16px; font-weight: 700; white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { .dOpt { transition: none; } }
+</style>
+
+<div class="bar">
+  <div class="col"><div>
+    <nav class="crumb" aria-label="위치"><a href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">홈으로</a><span aria-hidden="true">·</span><a href="https://claude.ai/artifact/QYa8ThNwp18tv4drEP7ae2">미션홈</a></nav>
+    <div class="fs" role="group" aria-label="글자 크기">
+      <button type="button" id="fsDn" aria-label="글자 작게">가<small>−</small></button>
+      <button type="button" class="pc num" id="fsPc" aria-label="글자 크기 100%, 누르면 처음 크기로">100%</button>
+      <button type="button" id="fsUp" aria-label="글자 크게">가<small>+</small></button>
+    </div>
+  </div></div>
+</div>
+
+<main class="col">
+  <div class="dK">오늘의 퀴즈</div>
+  <div class="dTtl">
+    <div class="cal" aria-label="2027년 1월 5일 화요일"><div class="m num">2027.01</div><div class="d num">05</div><div class="w">화요일</div></div>
+    <div><h1>믿음의 종의 기도</h1><div class="dRef">창세기 24장 1~9절</div></div>
+  </div>
+
+  <section class="dSec done">
+    <span class="dNo num">01</span>
+    <div class="dH">배경</div>
+    <p class="dBg full">아브라함은 이삭의 아내를 가나안 사람 가운데서 찾지 말라고 했어요. 하나님을 모르는 사람들과 섞이지 않게 하려는 마음이었지요(창 24:3).</p>
+    <p class="dBg full">종은 "먼 길을 가서 신붓감을 찾지 못하면 어떻게 하지요?" 하고 걱정했어요.</p>
+    <p class="dBg full">그때 아브라함은 걱정 대신 하나님의 약속을 꺼냈어요. 이 땅을 주시겠다고 약속하신 하나님이 길도 열어 주실 거라고요(창 24:7).</p>
+  </section>
+
+  <section class="dSec done">
+    <span class="dNo num">02</span>
+    <div class="dH">문제 <small>객관식</small></div>
+    <p class="dQ full">다음 말씀의 빈칸에 들어갈 말을 고르세요.<br>"여호와께서 그의 <b>( ⓐ )</b>를 너보다 앞서 보내실지라" (창 24:7)</p>
+  </section>
+
+  <section class="dSec" id="s3">
+    <span class="dNo num">03</span>
+    <div class="dH">정답을 골라요 <small id="tries">기회 2번</small></div>
+    <div class="full">
+      <div class="dOpts" id="opts" role="radiogroup" aria-label="보기"></div>
+      <button type="button" class="dHint" id="hintBtn" aria-expanded="false" aria-controls="hintBox">힌트 보기 ＋</button>
+      <div class="dHintBox" id="hintBox" hidden>하나님이 보내시는 하늘의 심부름꾼을 말해요. 성경에서는 "천사"를 이렇게 부르기도 해요.</div>
+      <p class="msg" id="msg" role="status"></p>
+      <button type="button" class="dGo" id="go" disabled>답 제출하기 <em aria-hidden="true">→</em></button>
+    </div>
+  </section>
+
+  <section class="dSec done" id="s4" hidden>
+    <span class="dNo num">04</span>
+    <div class="dH">해설 <small class="ok" id="resTag">정답 +1점</small></div>
+    <p class="dExp full">정답은 <b>사자</b>예요. 여기서 "사자"는 하나님이 보내시는 천사를 말해요. 아브라함은 앞일을 다 알지 못했지만, 하나님이 먼저 길을 가 주신다고 믿었어요. 우리도 걱정이 될 때 하나님이 앞서 가신다는 것을 기억해요.</p>
+  </section>
+</main>
+
+<nav class="nav" aria-label="오늘 미션">
+  <div class="in">
+    <a href="https://claude.ai/artifact/Rav4bwL1Cid6r6yjTuhEFE" class="dn"><span class="L">말씀</span><span class="S done">완료</span></a>
+    <a href="#" class="on" aria-current="page"><span class="L">퀴즈</span><span class="S" id="navQuiz">진행중</span></a>
+    <a href="#" class="dn"><span class="L">기도</span><span class="S done">완료</span></a>
+    <a href="#" class="dn"><span class="L">암송</span><span class="S done">완료</span></a>
+  </div>
+</nav>
+
+<script>
+  // 예시(1/5) 퀴즈: 정답 2번. 시도는 하루 2번(규칙 값). 판정은 실제로는 서버에서 한다(R-43)
+  const CHOICES = ['종', '사자', '아들', '친척'], ANSWER = 1, MAX = 2;
+  const tries = []; let picked = null, solved = false, total = 24;
+  const $ = (id) => document.getElementById(id);
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2200); }
+  const over = () => solved || tries.length >= MAX;
+
+  function render() {
+    $('opts').innerHTML = CHOICES.map((c, i) => {
+      const tried = tries.includes(i), isAns = over() && i === ANSWER;
+      const cls = isAns ? 'ans fixed' : tried ? 'bad fixed' : over() ? 'dim fixed' : picked === i ? 'sel' : '';
+      const tag = isAns ? (solved ? '정답' : '정답은 이것') : tried ? '내가 고른 답 · 오답' : '';
+      return `<label class="dOpt ${cls}"><input type="radio" name="a" value="${i}" ${tried || over() ? 'disabled' : ''} ${picked === i ? 'checked' : ''}><i class="num">${i + 1}</i><span class="t">${c}${tag ? `<small>${tag}</small>` : ''}</span></label>`;
+    }).join('');
+    const left = MAX - tries.length;
+    $('tries').textContent = solved ? '정답!' : left <= 0 ? '오늘은 끝' : tries.length ? `${left}번 남았어요` : `기회 ${MAX}번`;
+    $('tries').className = solved ? 'ok' : tries.length ? 'warn' : '';
+    $('go').disabled = over() || picked === null;
+    $('go').innerHTML = over() ? (solved ? '정답을 맞혔어요' : '오늘은 두 번 도전했어요') + ' <em aria-hidden="true">✓</em>' : '답 제출하기 <em aria-hidden="true">→</em>';
+    $('s3').classList.toggle('done', solved);
+    $('s4').hidden = !over();
+    $('resTag').textContent = solved ? '정답 +1점' : '점수 없음';
+    $('resTag').className = solved ? 'ok' : 'warn';
+    $('navQuiz').textContent = solved ? '완료' : over() ? '끝남' : '진행중';
+    $('navQuiz').classList.toggle('done', solved);
+    $('navQuiz').closest('a').classList.toggle('dn', solved);
+    $('opts').querySelectorAll('input:not([disabled])').forEach((r) => r.onchange = () => { picked = +r.value; $('msg').textContent = ''; render(); });
+  }
+  $('go').onclick = () => {
+    if (picked === null || over()) return;
+    tries.push(picked);
+    if (picked === ANSWER) { solved = true; total += 1; $('msg').className = 'msg ok'; $('msg').textContent = '정답! +1점'; toast(`+1점! 올해 총 ${total}점`); }
+    else if (tries.length < MAX) { $('msg').className = 'msg bad'; $('msg').textContent = `오답이에요 (${tries.length}/${MAX}) 한 번 더 도전해 보세요`; }
+    else { $('msg').className = 'msg bad'; $('msg').textContent = `오늘은 ${MAX}번 도전했어요. 내일 새 퀴즈에 도전해요`; }
+    picked = null; render();
+    if (over()) $('s4').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+  $('hintBtn').onclick = () => {
+    const open = $('hintBox').hidden;
+    $('hintBox').hidden = !open;
+    $('hintBtn').textContent = open ? '힌트 접기 －' : '힌트 보기 ＋';
+    $('hintBtn').setAttribute('aria-expanded', open);
+  };
+
+  let step = 0;
+  try { step = Math.max(-5, Math.min(5, +(localStorage.getItem('dmFsStep') || 0))); } catch (e) { }
+  function applyFs(save) {
+    const pct = 100 + step * (step < 0 ? 5 : 10);
+    document.documentElement.style.setProperty('--fs', pct / 100);
+    $('fsPc').textContent = pct + '%'; $('fsPc').classList.toggle('ch', step !== 0);
+    $('fsPc').setAttribute('aria-label', `글자 크기 ${pct}%, 누르면 처음 크기로`);
+    $('fsDn').disabled = step <= -5; $('fsUp').disabled = step >= 5;
+    if (save) { try { localStorage.setItem('dmFsStep', String(step)); } catch (e) { } }
+  }
+  $('fsDn').onclick = () => { step--; applyFs(true); };
+  $('fsUp').onclick = () => { step++; applyFs(true); };
+  $('fsPc').onclick = () => { step = 0; applyFs(true); };
+  document.querySelectorAll('a[href="#"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast('이 미션 화면은 다음 시안이에요'); }));
+  applyFs(false);
+  render();
+</script>
