@@ -1,0 +1,157 @@
+<title>도전 홈 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap">
+<style>
+  /* 레이아웃: 얇은 머리말(부서 · 날짜) → 인사 → 프로그램 두 장(휴대폰 위아래, 넓은 화면 나란히) → 계정 줄 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA;
+    --accent: #2B59C3; --on-accent: #FFFFFF;
+    --mis-bg: #EEF3FC; --mis-fg: #2B4C99; --mis-bar: #DCE5F7;
+    --rd-bg: #EEF6F1; --rd-fg: #2F6B4C; --rd-acc: #2F7D55; --rd-bar: #D5E9DD;
+    --font: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #15181C; --soft: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A;
+    --accent: #7FA2F2; --on-accent: #0E1013;
+    --mis-bg: #1C2433; --mis-fg: #A9BDE8; --mis-bar: #2A3754;
+    --rd-bg: #1B2A22; --rd-fg: #9AD0B2; --rd-acc: #7CC49C; --rd-bar: #274034; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #15181C; --soft: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A;
+    --accent: #7FA2F2; --on-accent: #0E1013;
+    --mis-bg: #1C2433; --mis-fg: #A9BDE8; --mis-bar: #2A3754;
+    --rd-bg: #1B2A22; --rd-fg: #9AD0B2; --rd-acc: #7CC49C; --rd-bar: #274034; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--font); font-size: 15px; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 960px; margin: 0 auto; }
+
+  header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); }
+  header.top .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 64px; border-bottom: 1px solid var(--rule); }
+  .tenant { border: 0; background: none; padding: 0; min-height: 44px; font-size: 16px; font-weight: 700; color: var(--dim); display: flex; align-items: center; gap: 6px; }
+  .tenant span { font-size: 11px; }
+  .date { font-size: 13px; letter-spacing: .14em; color: var(--dim); }
+
+  main { padding-block: 32px 40px; }
+  .hello h1 { margin: 0; font-size: 30px; font-weight: 900; text-wrap: balance; }
+  .hello p { margin: 8px 0 0; color: var(--dim); font-size: 15px; }
+  .pick { margin: 28px 0 12px; font-size: 13px; font-weight: 700; letter-spacing: .16em; color: var(--dim); }
+
+  .progs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .p { display: flex; flex-direction: column; gap: 14px; padding: 22px 20px 20px; border-radius: 22px; transition: transform .15s ease; }
+  .p:hover { transform: translateY(-2px); }
+  .p.mis { background: var(--mis-bg); color: var(--mis-fg); }
+  .p.rd { background: var(--rd-bg); color: var(--rd-fg); }
+  .p .name { font-size: 26px; font-weight: 900; letter-spacing: -.01em; }
+  .p .what { margin-top: 2px; font-size: 14px; opacity: .85; }
+  .p .now { display: flex; align-items: center; gap: 16px; padding: 14px 0; border-top: 1px solid currentColor; border-bottom: 1px solid currentColor; border-color: color-mix(in srgb, currentColor 22%, transparent); }
+  .p .now .big { font-size: 40px; font-weight: 300; line-height: 1; }
+  .p .now .big i { font-style: normal; font-size: 15px; opacity: .8; }
+  .p .now .txt { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+  .p .now .txt b { font-size: 16px; }
+  .bar { height: 6px; border-radius: 3px; overflow: hidden; }
+  .mis .bar { background: var(--mis-bar); }
+  .rd .bar { background: var(--rd-bar); }
+  .bar i { display: block; height: 6px; border-radius: 3px; }
+  .mis .bar i { background: var(--accent); }
+  .rd .bar i { background: var(--rd-acc); }
+  .p .go { display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 18px; border-radius: 14px; font-size: 16px; font-weight: 700; }
+  .mis .go { background: var(--accent); color: var(--on-accent); }
+  .rd .go { background: var(--rd-acc); color: var(--on-accent); }
+  .dots { display: flex; gap: 6px; }
+  .dots span { min-width: 44px; padding: 4px 0; border-radius: 10px; text-align: center; font-size: 12px; font-weight: 700; background: var(--bg); opacity: .55; }
+  .dots span.ok { opacity: 1; }
+
+  .acct { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; color: var(--dim); }
+  .acct a { min-height: 32px; display: inline-flex; align-items: center; }
+  .acct .sp { margin-left: auto; }
+
+  /* 부서 고르기 */
+  .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(17, 20, 24, .5); display: flex; align-items: flex-end; justify-content: center; }
+  .sheet { width: 100%; max-width: 480px; background: var(--bg); border-radius: 24px 24px 0 0; padding: 12px max(20px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px)); }
+  .sheet h2 { margin: 6px 0 12px; font-size: 18px; }
+  .sheet button.t { width: 100%; min-height: 56px; display: flex; justify-content: space-between; align-items: center; border: 0; border-bottom: 1px solid var(--rule); background: none; font-size: 16px; text-align: left; }
+  .sheet button.t small { color: var(--dim); font-size: 13px; }
+  .sheet .x { width: 100%; margin-top: 12px; min-height: 48px; border: 0; border-radius: 12px; background: var(--soft); font-weight: 700; }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
+
+  @media (min-width: 720px) {
+    .progs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    main { padding-block-start: 44px; }
+    .hello h1 { font-size: 34px; }
+    .scrim { align-items: center; }
+    .sheet { border-radius: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .p { transition: none; } .p:hover { transform: none; } }
+</style>
+
+<header class="top gut">
+  <div class="wrap">
+    <button type="button" class="tenant" id="tenantBtn" aria-haspopup="dialog">잠실새내교회 유년부 <span aria-hidden="true">▼</span></button>
+    <span class="date num">2027.01.05 TUE</span>
+  </div>
+</header>
+
+<main class="gut">
+  <div class="wrap">
+    <section class="hello">
+      <h1>철수님, 안녕하세요</h1>
+      <p>오늘은 어떤 걸 할까요?</p>
+    </section>
+
+    <div class="pick">프로그램 고르기</div>
+    <div class="progs">
+      <a class="p mis" href="https://claude.ai/artifact/QYa8ThNwp18tv4drEP7ae2" aria-label="도전!!!성경말씀으로 가기">
+        <div><div class="name">도전!!!성경말씀</div><div class="what">매일 말씀 · 기도 · 퀴즈 · 암송</div></div>
+        <div class="now">
+          <span class="big num">3<i>/4</i></span>
+          <span class="txt"><b>오늘 퀴즈만 남았어요</b><span>올해 <span class="num">24</span>점 · 5일째 이어오는 중</span></span>
+        </div>
+        <div class="dots" aria-label="오늘 미션"><span class="ok">말씀</span><span>퀴즈</span><span class="ok">기도</span><span class="ok">암송</span></div>
+        <span class="go">미션 하러 가기 <span aria-hidden="true">→</span></span>
+      </a>
+
+      <a class="p rd" href="https://claude.ai/artifact/2WtQWyBgeUqbx6R9a8bzLZ" aria-label="도전!!!성경통독으로 가기">
+        <div><div class="name">도전!!!성경통독</div><div class="what">성경 전체 1,189장 · 내 속도로 읽기</div></div>
+        <div class="now">
+          <span class="big num">1.9<i>%</i></span>
+          <span class="txt"><b>1독째 · 23 / 1,189장</b><span>오늘 5장 · 5일 연속</span></span>
+        </div>
+        <div class="bar" aria-hidden="true"><i style="width:1.9%;min-width:8px"></i></div>
+        <span class="go">이어 읽기 · 창세기 24장 <span aria-hidden="true">→</span></span>
+      </a>
+    </div>
+
+    <nav class="acct" aria-label="계정">
+      <a href="#">내 계정</a><a href="#">비밀번호 바꾸기</a><a href="#">로그아웃</a>
+      <span class="sp">도전!!!성경말씀 · 도전!!!성경통독</span>
+    </nav>
+  </div>
+</main>
+
+<div id="layer"></div>
+
+<script>
+  const layer = document.getElementById('layer');
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2000); }
+  function closeSheet() { layer.innerHTML = ''; document.getElementById('tenantBtn').focus(); }
+  document.getElementById('tenantBtn').addEventListener('click', () => {
+    layer.innerHTML = `<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="tt">
+      <h2 id="tt">부서 고르기</h2>
+      <button type="button" class="t" data-n="잠실새내교회 유년부">잠실새내교회 유년부<small>지금 보는 곳 ✓</small></button>
+      <button type="button" class="t" data-n="잠실새내교회 장년부">잠실새내교회 장년부<small>성경통독</small></button>
+      <button type="button" class="x" id="x">닫기</button></div></div>`;
+    document.getElementById('x').onclick = closeSheet;
+    document.getElementById('x').focus();
+    document.getElementById('scrim').onclick = (e) => { if (e.target.id === 'scrim') closeSheet(); };
+    layer.querySelectorAll('.t').forEach((b) => b.onclick = () => { closeSheet(); toast(b.dataset.n + '(으)로 바꾸는 화면은 시안에 없어요'); });
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && layer.innerHTML) closeSheet(); });
+  document.querySelectorAll('a[href="#"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast('시안에서는 열리지 않아요'); }));
+</script>
