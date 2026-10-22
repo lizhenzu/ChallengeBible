@@ -283,6 +283,6 @@
 
 <script>
   function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2000); }
-  document.querySelectorAll('a[href="#login"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast('로그인 화면으로 가요 (시안)'); }));
+  document.querySelectorAll('a[href="#login"]').forEach((a) => { a.href = 'https://claude.ai/artifact/RE2xJmpo3rWEwyhtLh7K8U'; });
   document.querySelectorAll('a[href="#join"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast('가입 화면으로 가요 (시안)'); }));
 </script>

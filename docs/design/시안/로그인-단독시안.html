@@ -1,0 +1,121 @@
+<title>로그인 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+  /* 레이아웃(Bible2 로그인 구성): 얇은 머리말(도전!!! · 가입하기) → 제목 · 안내 → 아이디 · 비밀번호(보기) → 로그인 → 또는 → 구경하기 → 회원가입 · 비밀번호 안내. 넓은 화면은 가운데 한 칸 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --hero: #F2F5FB; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --on-accent: #FFFFFF; --bad: #B42318; --bad-bg: #FDECEC;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --on-accent: #0E1013; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --on-accent: #0E1013; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button, input { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 440px; margin: 0 auto; }
+
+  header .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 64px; border-bottom: 1px solid var(--rule); }
+  .brand { font-size: 17px; font-weight: 900; color: var(--accent); }
+  .join { min-height: 40px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 700; color: var(--dim); }
+
+  main { background: linear-gradient(180deg, var(--bg) 0, var(--hero) 100%); min-height: calc(100vh - 64px); }
+  main .wrap { padding-block: 36px 48px; display: flex; flex-direction: column; gap: 22px; }
+  h1 { margin: 0; font-size: 30px; font-weight: 900; letter-spacing: -.02em; }
+  .sub { margin: 6px 0 0; color: var(--dim); }
+  form { display: flex; flex-direction: column; gap: 14px; }
+  .f label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .in { width: 100%; box-sizing: border-box; min-height: 54px; padding: 0 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); font-size: 16px; }
+  .in:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .in[aria-invalid="true"] { border-color: var(--bad); }
+  .pw { position: relative; }
+  .pw .in { padding-right: 64px; }
+  .eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); min-height: 40px; padding: 0 10px; border: 0; background: none; font-size: 13px; font-weight: 700; color: var(--dim); }
+  .err { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--bad-bg); color: var(--bad); font-size: 14px; font-weight: 700; }
+  .btn { min-height: 56px; border-radius: 14px; font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .btn.p { border: 0; background: var(--accent); color: var(--on-accent); }
+  .or { display: flex; align-items: center; gap: 12px; color: var(--dim); font-size: 13px; }
+  .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+  .btn.s { border: 1px solid var(--line); background: var(--bg); flex-direction: column; gap: 0; line-height: 1.3; }
+  .btn.s small { font-size: 12px; font-weight: 500; color: var(--dim); }
+  .foot { display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; font-size: 14px; color: var(--dim); }
+  .foot a { color: var(--accent); font-weight: 800; margin-left: 6px; }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
+</style>
+
+<header class="gut"><div class="wrap">
+  <a class="brand" href="https://claude.ai/artifact/XzGE4ZmsHbqEp7vCnWzwqA">도전!!!</a>
+  <a class="join" href="#join">처음이에요 · 가입하기</a>
+</div></header>
+
+<main class="gut"><div class="wrap">
+  <div>
+    <h1>로그인</h1>
+    <p class="sub">로그인하면 내가 속한 부서로 바로 들어가요.</p>
+  </div>
+
+  <form id="form" novalidate>
+    <div class="f">
+      <label for="uid">아이디</label>
+      <input class="in" id="uid" name="uid" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="아이디" value="cheolsu">
+    </div>
+    <div class="f">
+      <label for="pw">비밀번호</label>
+      <div class="pw">
+        <input class="in" id="pw" name="pw" type="password" autocomplete="current-password" placeholder="비밀번호">
+        <button type="button" class="eye" id="eye" aria-controls="pw" aria-pressed="false">보기</button>
+      </div>
+    </div>
+    <p class="err" id="err" role="alert" hidden></p>
+    <button type="submit" class="btn p" id="go">로그인</button>
+  </form>
+
+  <div class="or">또는</div>
+  <button type="button" class="btn s" id="guest">구경하기<small>가입하지 않고 둘러보기</small></button>
+
+  <div class="foot">
+    <div>아직 회원이 아니신가요?<a href="#join">회원가입</a></div>
+    <div>비밀번호를 잊었으면 부서 선생님께 말해 주세요.</div>
+  </div>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); }
+  $('eye').onclick = () => {
+    const show = $('pw').type === 'password';
+    $('pw').type = show ? 'text' : 'password';
+    $('eye').textContent = show ? '숨기기' : '보기';
+    $('eye').setAttribute('aria-pressed', show);
+  };
+  function err(msg, field) {
+    $('err').textContent = msg; $('err').hidden = false;
+    ['uid', 'pw'].forEach((id) => $(id).setAttribute('aria-invalid', id === field));
+    $(field).focus();
+  }
+  // 시안: 비밀번호 "1234" 면 로그인 성공(김철수 · 소속 1개 → 부서 홈), 그 밖에는 틀림
+  $('form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    $('err').hidden = true;
+    if (!$('uid').value.trim()) return err('아이디를 넣어 주세요.', 'uid');
+    if (!$('pw').value) return err('비밀번호를 넣어 주세요.', 'pw');
+    if ($('pw').value !== '1234') return err('아이디 또는 비밀번호가 맞지 않아요. 다시 확인해 주세요.', 'pw');
+    ['uid', 'pw'].forEach((id) => $(id).removeAttribute('aria-invalid'));
+    // 시안에서는 페이지를 바로 옮기지 않고, 로그인 뒤 갈 곳을 링크로 보여 준다
+    $('go').outerHTML = '<a class="btn p" href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">잠실새내교회 유년부로 들어가기 →</a>';
+    toast('김철수님, 반가워요! 소속 부서가 하나라 바로 들어가요');
+  });
+  $('guest').onclick = () => toast('구경하기: 예시 부서를 둘러보는 화면으로 가요 (시안)');
+  document.querySelectorAll('a[href="#join"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast('회원가입 화면으로 가요 (다음 시안)'); }));
+</script>
