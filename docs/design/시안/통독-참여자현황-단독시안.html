@@ -1,0 +1,198 @@
+<title>통독 참여자 현황 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap">
+<style>
+  /* 레이아웃(Bible2 참여자 현황 구성): 위쪽 줄(☰ · 홈으로 · 성경통독 / 날짜) → 함께 읽는 말씀 · 참여자 현황 → 숫자 4칸 → 완독자 명예의 전당 → 이름 찾기 · 진도율순 · 최근순 → 사람 카드(진도 원 · % · 반 · 마지막 읽은 곳 · 막대) */
+  :root {
+    --bg: #FFFFFF; --band: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --on-accent: #FFFFFF; --tint: #E8EEFA; --tint-fg: #2B59C3; --chip: #F5F6F8; --gold: #B07800; --gold-bg: #FFF4D6;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #15181C; --band: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #6E95F0; --on-accent: #0E1013; --tint: #22304A; --tint-fg: #9DB7F5; --chip: #1E2329; --gold: #F2C063; --gold-bg: #33290F; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #15181C; --band: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #6E95F0; --on-accent: #0E1013; --tint: #22304A; --tint-fg: #9DB7F5; --chip: #1E2329; --gold: #F2C063; --gold-bg: #33290F; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--band); }
+  a { color: inherit; text-decoration: none; }
+  button, input { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+  .k { font-size: 13px; font-weight: 700; letter-spacing: .16em; color: var(--accent); }
+
+  .band { background: var(--band); }
+  .band .wrap { padding-block: 12px 22px; display: flex; flex-direction: column; gap: 12px; }
+  .bar1 { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+  .sq { flex: none; width: 44px; height: 40px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); display: grid; place-items: center; }
+  .crumb { flex: 1; min-width: 0; font-size: 14px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .crumb a { color: var(--fg); font-weight: 700; }
+  .date { flex: none; font-size: 13px; color: var(--dim); }
+  h1 { margin: 0; font-size: 30px; font-weight: 500; }
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--fg); border-bottom: 1px solid var(--line); }
+  .stats div { padding: 12px 4px; text-align: center; display: flex; flex-direction: column; gap: 2px; }
+  .stats div + div { border-left: 1px solid var(--line); }
+  .stats b { font-size: 24px; font-weight: 300; }
+  .stats span { font-size: 12px; color: var(--dim); }
+
+  main .wrap { padding-block: 22px 56px; display: flex; flex-direction: column; gap: 14px; }
+  .hrow { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .hrow small { font-size: 12px; color: var(--dim); }
+  .hall { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+  .h { flex: none; width: 84px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border-radius: 14px; background: var(--gold-bg); text-align: center; }
+  .h .av { width: 44px; height: 44px; border-radius: 50%; background: var(--bg); color: var(--gold); display: grid; place-items: center; font-weight: 800; box-shadow: 0 0 0 2px var(--gold); }
+  .h b { font-size: 13px; }
+  .h small { font-size: 12px; font-weight: 800; color: var(--gold); }
+  .hallEmpty { padding: 16px; border-radius: 14px; background: var(--gold-bg); color: var(--gold); font-size: 14px; font-weight: 700; text-align: center; }
+  .ctrl { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .ctrl input { flex: 1 1 200px; min-width: 0; min-height: 44px; box-sizing: border-box; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 15px; }
+  .ctrl .seg { display: inline-grid; grid-auto-flow: column; border-radius: 10px; background: var(--chip); padding: 3px; }
+  .ctrl .seg button { min-height: 38px; padding: 0 14px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 700; color: var(--dim); }
+  .ctrl .seg button[aria-pressed="true"] { background: var(--bg); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  @media (min-width: 600px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (min-width: 820px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .card { position: relative; border: 1px solid var(--rule); border-radius: 14px; padding: 14px 12px 16px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; overflow: hidden; min-width: 0; }
+  .card.me { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .card .tag { position: absolute; top: 8px; right: 8px; font-size: 11px; font-weight: 800; padding: 1px 7px; border-radius: 99px; background: var(--gold-bg); color: var(--gold); }
+  .card .metag { position: absolute; top: 8px; left: 8px; font-size: 11px; font-weight: 800; padding: 1px 7px; border-radius: 99px; background: var(--accent); color: var(--on-accent); }
+  .ring { position: relative; width: 60px; height: 60px; }
+  .ring svg { position: absolute; inset: 0; }
+  .ring .av { position: absolute; inset: 7px; border-radius: 50%; background: var(--tint); color: var(--tint-fg); display: grid; place-items: center; font-size: 13px; font-weight: 800; }
+  .card b { font-size: 15px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card .pc { font-size: 22px; font-weight: 300; line-height: 1.2; }
+  .card .pc small { font-size: 13px; }
+  .card .role { font-size: 11.5px; padding: 1px 8px; border-radius: 99px; background: var(--chip); color: var(--dim); }
+  .card .m { font-size: 12px; color: var(--dim); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--rule); }
+  .card .bar i { display: block; height: 3px; background: var(--accent); }
+  .empty { grid-column: 1 / -1; padding: 28px; text-align: center; color: var(--dim); }
+  .note { margin: 0; font-size: 12.5px; color: var(--dim); }
+  .demo { font-size: 12px; color: var(--dim); text-align: center; }
+  .demo button { border: 0; background: none; color: var(--accent); font-weight: 700; font-size: 12px; text-decoration: underline; min-height: 32px; }
+
+  .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(17,20,26,.45); }
+  .drawer { position: fixed; z-index: 41; top: 0; bottom: 0; left: 0; width: min(300px, 86vw); background: var(--band); display: flex; flex-direction: column; padding: calc(8px + env(safe-area-inset-top, 0px)) 0 calc(18px + env(safe-area-inset-bottom, 0px)) env(safe-area-inset-left, 0px); overflow-y: auto; }
+  .dh { display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 20px; min-height: 52px; }
+  .dh b { font-size: 16px; font-weight: 800; color: var(--accent); }
+  .dh button { width: 44px; height: 44px; border: 0; background: none; font-size: 22px; }
+  .menu a { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 20px; font-size: 15px; }
+  .menu a[aria-current] { background: var(--bg); font-weight: 800; }
+  .menu a[aria-current]::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .menu a small { margin-left: auto; font-size: 12px; color: var(--dim); }
+</style>
+
+<div class="band gut"><div class="wrap">
+  <div class="bar1">
+    <button type="button" class="sq" id="openMenu" aria-label="목차 열기" aria-expanded="false">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <span class="crumb"><a href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">홈으로</a> · <a href="https://claude.ai/artifact/EKDPu67xqjtGoJdyybFnrC">성경통독</a></span>
+    <span class="date" id="date">1월 5일 화요일</span>
+  </div>
+  <span class="k">함께 읽는 말씀</span>
+  <h1>참여자 현황</h1>
+  <div class="stats" id="stats"></div>
+</div></div>
+
+<main class="gut"><div class="wrap">
+  <div class="hrow"><span class="k">완독자 명예의 전당</span><small class="num" id="hallN"></small></div>
+  <div id="hall"></div>
+
+  <div class="hrow" style="margin-top:12px"><span class="k">성경통독 참여자</span><small class="num" id="peopleN"></small></div>
+  <div class="ctrl">
+    <input id="q" type="search" placeholder="이름으로 찾기" aria-label="이름으로 찾기">
+    <div class="seg" role="group" aria-label="정렬">
+      <button type="button" data-s="pct" aria-pressed="true">진도율순</button>
+      <button type="button" data-s="recent" aria-pressed="false">최근순</button>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <p class="note">잠실새내교회 유년부 소속만 보여요. 점수는 없고 진도만 함께 봐요. 부서에서 공개를 끄면 선생님만 볼 수 있어요.</p>
+  <p class="demo">시안 전용: <button type="button" id="demo">연말(12월 20일) 모습 보기</button></p>
+</div></main>
+
+<div class="scrim" id="scrim" hidden></div>
+<nav class="drawer" id="drawer" aria-label="성경 통독 목차" hidden>
+  <div class="dh"><b>도전!!!성경통독</b><button type="button" id="closeMenu" aria-label="목차 닫기">×</button></div>
+  <div class="menu">
+    <a href="https://claude.ai/artifact/EKDPu67xqjtGoJdyybFnrC">대시보드</a>
+    <a href="https://claude.ai/artifact/XouqXnmrRwpMfJYNiQCqa6">구약 읽기<small class="num">23 / 929</small></a>
+    <a href="https://claude.ai/artifact/XouqXnmrRwpMfJYNiQCqa6#nt">신약 읽기<small class="num">0 / 260</small></a>
+    <a href="https://claude.ai/artifact/9iyY7mxb1GBdbmbbnC2Sji">성경 검색</a>
+    <a href="https://claude.ai/artifact/FQpSGetgnQVvwkHK5YVBhB">북마크<small class="num">4</small></a>
+    <a href="#" aria-current="page">참여자 현황</a>
+  </div>
+</nav>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const TOTAL = 1189;
+  // 이름은 모두 지어낸 예시(김철수 가족 · 소속 관리 시안과 같은 사람들). [이름, 반/역할, 읽은 장, 마지막 읽은 곳, 언제(분 전), 완독 수]
+  const JAN = [
+    ['김철수', '사랑반', 23, '창세기 24장', 300, 0], ['김영희', '보호자', 31, '창세기 32장', 60, 0], ['김대호', '보호자', 12, '창세기 13장', 1500, 0],
+    ['이은혜', '교사', 28, '창세기 29장', 200, 0], ['김민수', '교사', 20, '창세기 21장', 2900, 0], ['박소영', '교사', 15, '마태복음 6장', 1600, 0],
+    ['박서연', '사랑반', 18, '창세기 19장', 1400, 0], ['최민준', '사랑반', 9, '창세기 10장', 4400, 0], ['윤지호', '믿음반', 14, '창세기 15장', 400, 0],
+    ['조은우', '소망반', 11, '창세기 12장', 1450, 0], ['임도윤', '소망반', 6, '창세기 7장', 2950, 0], ['한소율', '사랑반', 16, '창세기 17장', 90, 0],
+    ['신채원', '소망반', 7, '창세기 8장', 1480, 0], ['황유나', '믿음반', 21, '창세기 22장', 30, 0], ['송하준', '사랑반', 5, '창세기 6장', 5800, 0],
+    ['류다은', '믿음반', 10, '창세기 11장', 1420, 0], ['이시아', '사랑반', 3, '창세기 4장', 7200, 0], ['정예린', '믿음반', 8, '마태복음 9장', 2880, 0],
+  ];
+  // 연말 모습(같은 사람, 2027-12-20 기준)
+  const DEC = JAN.map(([n, r]) => [n, r]).map((p, i) => {
+    const ch = [1189, 1189, 640, 1189, 1004, 1189, 902, 455, 1189, 377, 260, 811, 512, 1189, 199, 690, 140, 533][i];
+    const done = [1, 2, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0][i];
+    const cur = done && ch === 1189 ? [41, 120, 0, 8, 0, 63, 0, 0, 12, 0, 0, 0, 0, 30, 0, 0, 0, 0][i] : ch;
+    const where = ['요한계시록 22장', '레위기 3장', '시편 88편', '창세기 9장', '마가복음 4장', '출애굽기 15장', '이사야 40장', '사무엘상 2장', '창세기 13장', '여호수아 9장', '민수기 30장', '잠언 3장', '열왕기하 5장', '출애굽기 2장', '레위기 26장', '예레미야 20장', '출애굽기 33장', '역대상 11장'][i];
+    return [p[0], p[1], cur, where, [30, 60, 2000, 300, 1500, 900, 200, 4300, 100, 8000, 20000, 400, 3000, 50, 12000, 700, 30000, 2500][i], done];
+  });
+  let data = JAN, sort = 'pct', dec = false;
+  const ME = '김철수';
+  const ago = (m) => m < 60 ? `${m}분 전` : m < 1440 ? (dec ? '오늘' : '오늘') : m < 2880 ? '어제' : `${Math.floor(m / 1440)}일 전`;
+  const pct = (c) => Math.round(c / TOTAL * 10000) / 100;
+
+  function draw() {
+    const q = $('q').value.trim();
+    const completers = data.filter((p) => p[5] > 0).sort((a, b) => b[5] - a[5]);
+    const avg = data.reduce((s, p) => s + p[2], 0) / data.length;
+    $('stats').innerHTML = [[data.length, '참여자'], [completers.length, '완독자'], [pct(avg).toFixed(1) + '%', '평균 진도'], [completers.reduce((s, p) => s + p[5], 0), '누적 완독']]
+      .map(([v, k]) => `<div><b class="num">${v}</b><span>${k}</span></div>`).join('');
+    $('hallN').textContent = completers.length ? `${completers.length}명` : '';
+    $('hall').innerHTML = completers.length
+      ? `<div class="hall">${completers.map((p) => `<div class="h"><span class="av">${p[0][0]}</span><b>${p[0]}</b><small>${p[5]}독</small></div>`).join('')}</div>`
+      : '<div class="hallEmpty">아직 완독한 사람이 없어요. 1,189장을 다 읽으면 여기에 이름이 올라가요!</div>';
+    const list = data.filter((p) => !q || p[0].includes(q)).sort((a, b) => sort === 'pct' ? (b[5] - a[5]) || (b[2] - a[2]) : a[4] - b[4]);
+    $('peopleN').textContent = `${data.length}명`;
+    $('grid').innerHTML = list.length ? list.map(([n, r, ch, where, m, done]) => {
+      const p = pct(ch), C = 2 * Math.PI * 27;
+      return `<div class="card${n === ME ? ' me' : ''}">${n === ME ? '<span class="metag">나</span>' : ''}${done ? `<span class="tag">${done}독</span>` : ''}
+        <div class="ring"><svg width="60" height="60" viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="27" fill="none" stroke="var(--rule)" stroke-width="3"/><circle cx="30" cy="30" r="27" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-dasharray="${Math.max(1.5, C * p / 100)} ${C}" transform="rotate(-90 30 30)"/></svg><span class="av">${n.slice(1)}</span></div>
+        <b>${n}</b><div class="pc num">${p.toFixed(2)}<small>%</small></div><span class="role">${r}</span>
+        <div class="m">${where} · ${ago(m)}</div><div class="bar"><i style="width:${p}%"></i></div></div>`;
+    }).join('') : '<div class="empty">찾는 사람이 없어요.</div>';
+    document.querySelectorAll('.seg button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.s === sort));
+  }
+  $('q').addEventListener('input', draw);
+  document.querySelector('.seg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { sort = b.dataset.s; draw(); } });
+  $('demo').onclick = () => {
+    dec = !dec; data = dec ? DEC : JAN;
+    $('date').textContent = dec ? '12월 20일 월요일' : '1월 5일 화요일';
+    $('demo').textContent = dec ? '오늘(1월 5일) 모습으로' : '연말(12월 20일) 모습 보기';
+    draw();
+  };
+
+  function menu(open) { $('drawer').hidden = $('scrim').hidden = !open; $('openMenu').setAttribute('aria-expanded', open); if (open) $('closeMenu').focus(); }
+  $('openMenu').onclick = () => menu(true);
+  $('closeMenu').onclick = $('scrim').onclick = () => menu(false);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('drawer').hidden) menu(false); });
+  document.querySelector('.menu a[aria-current]').addEventListener('click', (e) => { e.preventDefault(); menu(false); });
+  draw();
+</script>
