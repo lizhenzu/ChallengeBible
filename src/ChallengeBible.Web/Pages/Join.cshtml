@@ -1,0 +1,66 @@
+@page "/join"
+@model JoinModel
+@using ChallengeBible.Infrastructure.Data
+@* 확정 시안: 부서참여신청-단독시안 *@
+<partial name="_Top" />
+<main class="page gut"><div class="wrap">
+    @if (Model.Welcome == 1)
+    {
+        <div class="box ok" role="status"><strong>가입했어요!</strong><p>이제 선생님께 받은 부서 코드로 참여 신청을 하면 돼요.</p></div>
+    }
+
+    @foreach (var w in Model.Waiting)
+    {
+        <section class="box wait" role="status">
+            <span class="tag w" style="align-self:flex-start">승인 기다리는 중</span>
+            <strong>승인을 기다리고 있어요</strong>
+            <div class="dept"><span class="mk">@Ui.DeptMark(w.TenantName)</span><div><b>@w.TenantName</b></div></div>
+            <p style="font-size:14px;color:var(--dim)">선생님이 승인하면 로그인할 때 바로 부서 홈으로 들어가요. 오래 걸리면 부서 선생님께 말해 주세요.</p>
+            <form method="post" asp-page-handler="Cancel">
+                <input type="hidden" name="tenantId" value="@w.TenantId" />
+                <button type="submit" class="btn t">신청 취소하기</button>
+            </form>
+        </section>
+    }
+
+    <div>
+        <h1>@(Model.Waiting.Count > 0 || Model.HasApproved ? "다른 부서에 참여 신청" : "내 부서에 참여 신청")</h1>
+        <p class="sub">선생님께 받은 <b>부서 코드</b>를 넣어 주세요.</p>
+    </div>
+
+    <form method="post" asp-page-handler="Find" class="stack" novalidate>
+        <div class="row">
+            <input class="in code" name="Code" value="@Model.Code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="8"
+                   placeholder="예: JSKIDS" aria-label="부서 코드" aria-invalid="@(Model.CodeError is null ? "false" : "true")" />
+            <button type="submit" class="btn s">찾기</button>
+        </div>
+        <p class="hint @(Model.CodeError is null ? "" : "bad")">@(Model.CodeError ?? "영어 · 숫자 6자예요.")</p>
+    </form>
+
+    @if (Model.Found is { } t)
+    {
+        <form method="post" asp-page-handler="Apply" class="stack" novalidate>
+            <input type="hidden" name="Code" value="@Model.Code" />
+            <div class="dept">
+                <span class="mk">@Ui.DeptMark(t.Name)</span>
+                <div><b>@t.Name</b>
+                    <span class="tags">@if (t.MissionEnabled) { <span class="tag">도전!!!성경말씀</span> }@if (t.ReadingEnabled) { <span class="tag">도전!!!성경통독</span> }</span>
+                </div>
+            </div>
+            <div class="roles">
+                <label class="role"><input type="checkbox" name="SelectedRoles" value="@Roles.Participant" @(Model.SelectedRoles.Contains(Roles.Participant) ? "checked" : "") />
+                    <div><b>미션에 참여해요</b><span>매일 말씀 · 퀴즈 · 기도 · 암송을 하고 점수를 모아요.</span></div></label>
+                <label class="role"><input type="checkbox" name="SelectedRoles" value="@Roles.Guardian" @(Model.SelectedRoles.Contains(Roles.Guardian) ? "checked" : "") />
+                    <div><b>자녀를 지켜보는 보호자예요</b><span>자녀의 미션과 점수를 봐요. 자녀 연결은 선생님이 해 줘요.</span></div></label>
+            </div>
+            @if (Model.RoleError is not null) { <p class="hint bad">@Model.RoleError</p> }
+            <button type="submit" class="btn p">참여 신청하기</button>
+            <div class="note"><b>선생님이 승인하면 바로 시작할 수 있어요.</b><br>교사 · 관리자 역할은 신청할 수 없고, 선생님이 정해 줘요.</div>
+        </form>
+    }
+
+    @if (Model.HasApproved)
+    {
+        <a class="btn s" href="/">내 부서로 가기</a>
+    }
+</div></main>

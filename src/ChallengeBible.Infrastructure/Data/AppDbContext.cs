@@ -12,7 +12,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
 {
     /// <summary>필터 기준 영역. 시스템 연결에서는 null 이고 필터를 끈다.</summary>
     public int? CurrentTenantId { get; } = tenantId;
-    internal bool FilterTenants { get; init; } = true;
+    public bool FilterTenants { get; init; } = true;
 
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<Account> Accounts => Set<Account>();

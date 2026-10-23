@@ -1,10 +1,13 @@
 ﻿@page
 @model IndexModel
-@{
-    ViewData["Title"] = "Home page";
-}
-
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@* 로그인 전 공통 첫 화면 — 1차 간단판. 확정 시안(로그인전-첫화면)의 오늘의 말씀 · 두 프로그램 · 숫자 칸은 콘텐츠가 붙은 뒤 옮긴다. *@
+<partial name="_Top" />
+<main class="page gut"><div class="wrap">
+    <div>
+        <h1>매일 말씀과 함께하는 습관</h1>
+        <p class="sub">말씀 · 퀴즈 · 기도 · 암송 미션으로 하루를 시작해요. 성경 통독도 함께할 수 있어요.</p>
+    </div>
+    <a class="btn p" href="/account/login">로그인</a>
+    <a class="btn s" href="/account/signup">처음이에요 · 가입하기</a>
+    <div class="note"><b>시작 3단계</b><br>1. 가입하기 (이름 · 아이디 · 비밀번호만)<br>2. 선생님께 받은 부서 코드로 참여 신청<br>3. 선생님이 승인하면 오늘 미션 시작</div>
+</div></main>

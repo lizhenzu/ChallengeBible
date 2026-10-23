@@ -1,0 +1,19 @@
+@* 얇은 머리말: 왼쪽 도전!!!, 오른쪽은 로그인 상태에 따라 *@
+<header class="top gut"><div class="wrap">
+    <a class="brand" href="/">도전!!!</a>
+    @if (User.AccountId() is not null)
+    {
+        <form method="post" action="/account/logout" asp-antiforgery="true" class="who">
+            <span><b>@User.DisplayName()</b>님</span>
+            <button type="submit">로그아웃</button>
+        </form>
+    }
+    else if (ViewContext.RouteData.Values["page"]?.ToString() == "/Account/Login")
+    {
+        <a class="lnk" href="/account/signup">처음이에요 · 가입하기</a>
+    }
+    else
+    {
+        <a class="lnk" href="/account/login">로그인</a>
+    }
+</div></header>

@@ -1,0 +1,31 @@
+using ChallengeBible.Web.Auth;
+using ChallengeBible.Web.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+
+namespace ChallengeBible.Web.Pages.Account;
+
+/// <summary>새 비밀번호 정하기. 임시 비밀번호로 로그인한 뒤에는 이 화면을 거쳐야 한다(0035).</summary>
+public class ChangePasswordModel(AccountService accounts) : PageModel, ITitled
+{
+    public string Title => "새 비밀번호";
+
+    [BindProperty] public string Password { get; set; } = "";
+    [BindProperty] public string PasswordConfirm { get; set; } = "";
+    public bool Forced { get; private set; }
+    public FieldErrors Errors { get; private set; } = new();
+
+    public async Task OnGetAsync(CancellationToken ct) =>
+        Forced = await accounts.MustChangePasswordAsync(User.AccountId()!.Value, ct);
+
+    public async Task<IActionResult> OnPostAsync(CancellationToken ct)
+    {
+        Errors = await accounts.ChangePasswordAsync(User.AccountId()!.Value, Password, PasswordConfirm, ct);
+        if (!Errors.Ok)
+        {
+            Forced = await accounts.MustChangePasswordAsync(User.AccountId()!.Value, ct);
+            return Page();
+        }
+        return Redirect("/");
+    }
+}
