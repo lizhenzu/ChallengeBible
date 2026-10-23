@@ -1,0 +1,133 @@
+<title>부서 고르기 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/account/tenants, 0045): 얇은 머리말(도전!!! · 이름 · 로그아웃) → 제목 → 부서 카드(대표 색 띠 · 교회 · 부서 · 내 역할 · 오늘 한 줄 · 들어가기) → 승인 기다리는 부서 → 다른 부서 참여 신청 · 가족 부서 바꾸기 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --hero: #F2F5FB; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --wait: #9A5B00; --wait-bg: #FFF4DE;
+    --c-blue: #2B59C3; --c-green: #1F7A5C; --c-red: #B2462E; --c-violet: #6A4BB5;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --wait: #F2C063; --wait-bg: #2E2614;
+    --c-blue: #7FA2F2; --c-green: #5CC0A0; --c-red: #F09A80; --c-violet: #B39BF0; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --wait: #F2C063; --wait-bg: #2E2614;
+    --c-blue: #7FA2F2; --c-green: #5CC0A0; --c-red: #F09A80; --c-violet: #B39BF0; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 560px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; border-bottom: 1px solid var(--rule); }
+  .brand { font-size: 17px; font-weight: 900; color: var(--accent); }
+  .who { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--dim); }
+  .who b { color: var(--fg); }
+  .who button { min-height: 40px; border: 0; background: none; font-size: 14px; font-weight: 700; color: var(--dim); padding: 0; }
+
+  main { background: linear-gradient(180deg, var(--bg) 0, var(--hero) 100%); min-height: calc(100vh - 64px); }
+  main .wrap { padding-block: 28px 48px; display: flex; flex-direction: column; gap: 14px; }
+  h1 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -.02em; }
+  .sub { margin: 4px 0 8px; color: var(--dim); }
+
+  .t { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 18px 18px 16px 24px; border: 1px solid var(--rule); border-radius: 18px; background: var(--bg); overflow: hidden; }
+  .t::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--c); }
+  .t:hover { border-color: var(--line); }
+  .top { display: flex; align-items: flex-start; gap: 12px; }
+  .nm { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+  .nm small { font-size: 13px; color: var(--dim); }
+  .nm b { font-size: 21px; font-weight: 900; }
+  .last { flex: none; font-size: 11.5px; font-weight: 800; padding: 3px 9px; border-radius: 99px; background: var(--soft); color: var(--dim); }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 99px; background: var(--soft); color: var(--dim); }
+  .tag.fam { background: var(--ok-bg); color: var(--ok); }
+  .tag.r { background: var(--accent-bg); color: var(--accent); }
+  .today { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 12px; background: var(--soft); font-size: 14px; }
+  .today span { display: flex; justify-content: space-between; gap: 8px; }
+  .today em { font-style: normal; color: var(--dim); }
+  .today b { font-weight: 800; }
+  .go { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 16px; border-radius: 12px; background: var(--c); color: #fff; font-weight: 800; font-size: 16px; }
+  .wait { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; background: var(--wait-bg); }
+  .wait div { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.4; }
+  .wait small { font-size: 12.5px; color: var(--dim); }
+  .wait .b { flex: none; font-size: 12px; font-weight: 800; color: var(--wait); }
+  .more { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .more a { min-height: 50px; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--line); border-radius: 14px; background: var(--bg); font-weight: 800; color: var(--accent); }
+  .more p { margin: 0; text-align: center; font-size: 13px; color: var(--dim); }
+  .more p a { display: inline; min-height: 0; border: 0; background: none; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
+</style>
+
+<header class="gut"><div class="wrap">
+  <a class="brand" href="https://claude.ai/artifact/XzGE4ZmsHbqEp7vCnWzwqA">도전!!!</a>
+  <div class="who"><span><b>김영희</b>님</span><button type="button" id="out">로그아웃</button></div>
+</div></header>
+
+<main class="gut"><div class="wrap">
+  <div>
+    <h1>어느 부서로 갈까요?</h1>
+    <p class="sub">김영희님은 부서 <b class="num">3곳</b>에 함께하고 있어요.</p>
+  </div>
+
+  <a class="t" style="--c:var(--c-blue)" href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">
+    <div class="top">
+      <div class="nm"><small>잠실새내교회</small><b>유년부</b></div>
+      <span class="last">지난번에 간 곳</span>
+    </div>
+    <div class="tags"><span class="tag fam">가족과 함께하는 부서</span><span class="tag r">참여자</span><span class="tag r">보호자</span><span class="tag">성경말씀 · 성경통독</span></div>
+    <div class="today">
+      <span><em>오늘 내 미션</em><b class="num">2 / 4 · 올해 22점</b></span>
+      <span><em>김철수 가족</em><b class="num">64점</b></span>
+      <span><em>김철수(아들)</em><b>오늘 3점 했어요</b></span>
+    </div>
+    <span class="go">유년부로 들어가기 <span aria-hidden="true">→</span></span>
+  </a>
+
+  <a class="t" style="--c:var(--c-green)" href="#elem">
+    <div class="top"><div class="nm"><small>잠실새내교회</small><b>초등부</b></div></div>
+    <div class="tags"><span class="tag r">보호자</span><span class="tag">성경말씀 · 성경통독</span></div>
+    <div class="today">
+      <span><em>김민지(딸)</em><b>오늘 미션 아직이에요</b></span>
+      <span><em>김민지 올해 점수</em><b class="num">19점</b></span>
+    </div>
+    <span class="go">초등부로 들어가기 <span aria-hidden="true">→</span></span>
+  </a>
+
+  <a class="t" style="--c:var(--c-green)" href="https://claude.ai/artifact/EKDPu67xqjtGoJdyybFnrC">
+    <div class="top"><div class="nm"><small>잠실새내교회</small><b>장년 통독 모임</b></div></div>
+    <div class="tags"><span class="tag r">참여자</span><span class="tag">성경통독</span></div>
+    <div class="today">
+      <span><em>나의 통독 · 1회차</em><b class="num">31 / 1,189장 · 2.6%</b></span>
+      <span><em>이어 읽기</em><b>창세기 32장</b></span>
+    </div>
+    <span class="go">장년 통독 모임으로 들어가기 <span aria-hidden="true">→</span></span>
+  </a>
+
+  <div class="wait" role="status">
+    <div><b>새빛교회 유년부</b><small>12월 30일 신청 · 선생님이 승인하면 여기에 들어와요</small></div>
+    <span class="b">승인 기다리는 중</span>
+  </div>
+
+  <div class="more">
+    <a href="https://claude.ai/artifact/MQcXLF3wuGP3C5hz3psMYN">+ 다른 부서 참여 신청</a>
+    <p>가족과 함께하는 부서는 유년부예요. <a href="#family">바꾸기</a></p>
+  </div>
+</div></main>
+
+<script>
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); }
+  document.querySelector('a[href="#elem"]').addEventListener('click', (e) => { e.preventDefault(); toast('초등부 보호자 화면으로 가요 (다음 시안)'); });
+  document.querySelector('a[href="#family"]').addEventListener('click', (e) => { e.preventDefault(); toast('가족과 함께할 부서 고르기 화면으로 가요 (다음 시안)'); });
+  document.getElementById('out').onclick = () => toast('로그아웃하고 첫 화면으로 가요');
+</script>
