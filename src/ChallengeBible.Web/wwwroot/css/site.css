@@ -566,3 +566,5 @@ ul.log b.z { color: var(--dim); font-weight: 500; }
 .rverse { display: grid; gap: 8px; }
 .rverse p { margin: 0; display: flex; gap: 10px; font-size: calc(21px * var(--fs)); line-height: 1.75; font-weight: 800; word-break: keep-all; }
 .rverse i { flex: none; font-style: normal; font-size: 13px; font-weight: 700; color: var(--no); padding-top: 0.7em; }
+.top .who a.plat { color: var(--accent); font-weight: 800; }
+.admintop .row-t { display: flex; gap: 8px; align-items: center; }

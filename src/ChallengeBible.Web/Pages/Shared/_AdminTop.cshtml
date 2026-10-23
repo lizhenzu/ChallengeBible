@@ -11,7 +11,10 @@
 <header class="admintop gut">
     <div class="wrap wide hd">
         <div class="t"><small>@Model.Current.Name</small><b><em>도전!!!</em> 관리</b></div>
-        <a class="back" href="/@slug">부서 홈으로</a>
+        <div class="row-t">
+            @if (User.IsPlatformAdmin()) { <a class="back" href="/platform/tenants">플랫폼</a> }
+            <a class="back" href="/@slug">부서 홈으로</a>
+        </div>
     </div>
     <nav class="wrap wide tabs" aria-label="관리 메뉴">
         @foreach (var (href, label) in menu)
