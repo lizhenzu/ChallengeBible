@@ -1,0 +1,197 @@
+<title>진급 요청 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/{slug}/admin/promotions, 0026 · 0030): 관리 머리말 · 메뉴 → 받은 요청 / 보낸 요청 탭 → 요청 카드(어디서 → 여기, 누가, 언제, 지워지는 것) → 승인(역할 · 반) · 거절 → 처리한 요청 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --warn: #9A5B00; --warn-bg: #FFF4DE; --bad: #B42318; --bad-bg: #FDECEC;
+    --c-red: #B2462E; --c-blue: #2B59C3; --c-green: #1F7A5C;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C;
+    --c-red: #F09A80; --c-blue: #7FA2F2; --c-green: #5CC0A0; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C;
+    --c-red: #F09A80; --c-blue: #7FA2F2; --c-green: #5CC0A0; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button, select { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible, label:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+  .hd .t { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+  .hd .t small { font-size: 12px; color: var(--dim); }
+  .hd .t b { font-size: 17px; font-weight: 900; }
+  .hd .t b em { font-style: normal; color: var(--accent); }
+  .back { flex: none; min-height: 40px; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; font-weight: 700; }
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-bottom: -1px; }
+  nav.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); border-bottom: 3px solid transparent; }
+  nav.tabs a[aria-current] { color: var(--fg); border-color: var(--accent); }
+  nav.tabs a .c { margin-left: 4px; min-width: 18px; padding: 0 5px; border-radius: 99px; background: var(--bad); color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
+
+  main .wrap { padding-block: 20px 56px; display: flex; flex-direction: column; gap: 16px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  .lead { margin: -8px 0 0; font-size: 13.5px; color: var(--dim); }
+  .seg { display: flex; gap: 6px; padding: 4px; border-radius: 14px; background: var(--soft); align-self: flex-start; }
+  .seg button { min-height: 40px; padding: 0 14px; border: 0; border-radius: 10px; background: none; font-size: 14px; font-weight: 700; color: var(--dim); }
+  .seg button[aria-selected="true"] { background: var(--bg); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .seg .c { color: var(--bad); margin-left: 4px; }
+  h2 { margin: 6px 0 0; font-size: 14px; font-weight: 800; color: var(--dim); }
+
+  .req { border: 1px solid var(--rule); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .req.pending { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .who { display: flex; align-items: center; gap: 12px; }
+  .av { flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); display: grid; place-items: center; font-weight: 800; font-size: 14px; }
+  .who div { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+  .who b { font-size: 17px; }
+  .who small { font-size: 12.5px; color: var(--dim); }
+  .st { flex: none; font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 99px; }
+  .st.w { background: var(--warn-bg); color: var(--warn); }
+  .st.a { background: var(--ok-bg); color: var(--ok); }
+  .st.r { background: var(--soft); color: var(--dim); }
+  .route { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .dept { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 10px; background: var(--soft); font-size: 14px; font-weight: 700; }
+  .dept i { width: 10px; height: 10px; border-radius: 50%; }
+  .route .ar { font-size: 18px; color: var(--dim); }
+  .meta { font-size: 13px; color: var(--dim); }
+  .warnbox { padding: 12px 14px; border-radius: 12px; background: var(--warn-bg); color: var(--warn); font-size: 13px; line-height: 1.7; }
+  .warnbox b { color: var(--fg); }
+  .ed { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 640px) { .ed { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); } }
+  .ed h3 { margin: 0 0 6px; font-size: 13px; color: var(--dim); font-weight: 700; }
+  .rl { display: flex; flex-wrap: wrap; gap: 6px; }
+  .rl label { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .rl label:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+  .rl input { accent-color: var(--accent); }
+  .sel { width: 100%; min-height: 44px; padding: 0 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 14px; }
+  .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .btn { min-height: 46px; padding: 0 18px; border-radius: 12px; font-size: 15px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); background: var(--bg); }
+  .btn.p { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+  .btn.d { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, var(--line)); }
+  .ask { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px; border-radius: 12px; font-size: 14px; }
+  .ask.ok { background: var(--accent-bg); }
+  .ask.no { background: var(--bad-bg); }
+  .ask span { flex: 1 1 240px; font-weight: 700; }
+  .ask.no span { color: var(--bad); }
+  .hist { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 16px; overflow: hidden; }
+  .hist li { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--rule); flex-wrap: wrap; }
+  .hist li:first-child { border-top: 0; }
+  .hist .nm { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+  .hist .nm small { font-size: 12.5px; color: var(--dim); }
+  .hist .lnk { font-size: 13px; font-weight: 700; color: var(--accent); border: 0; background: none; min-height: 36px; }
+  .empty { padding: 28px; text-align: center; color: var(--dim); border: 1px dashed var(--line); border-radius: 16px; }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; max-width: calc(100vw - 40px); overflow: hidden; text-overflow: ellipsis; }
+</style>
+
+<header class="gut">
+  <div class="wrap hd">
+    <div class="t"><small>잠실새내교회 · 유년부</small><b><em>도전!!!</em> 관리</b></div>
+    <a class="back" href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">부서 홈으로</a>
+  </div>
+  <nav class="wrap tabs" aria-label="관리 메뉴">
+    <a href="https://claude.ai/artifact/Ge2UDjM3tSuxJY9jofyUF1">관리 홈</a>
+    <a href="https://claude.ai/artifact/GcfvyYMWxWqWY3CEBK9x94">소속 관리<span class="c num">3</span></a>
+    <a href="#" aria-current="page">진급<span class="c num" id="navC">1</span></a>
+    <a href="#x">콘텐츠</a>
+    <a href="#x">통독 현황</a>
+    <a href="#x">시즌</a>
+    <a href="#x">이름 · 색</a>
+  </nav>
+</header>
+
+<main class="gut"><div class="wrap">
+  <h1>진급</h1>
+  <p class="lead">학년이 올라간 아이를 다음 부서로 옮겨요. 받는 부서가 승인하면 옮겨지고, 보낸 부서의 점수 · 기록은 지워져요.</p>
+  <div class="seg" role="tablist" aria-label="받은 요청 · 보낸 요청" id="seg"></div>
+  <div id="out" style="display:flex;flex-direction:column;gap:14px"></div>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const D = { pre: ['유치부', 'var(--c-red)'], kids: ['유년부', 'var(--c-blue)'], elem: ['초등부', 'var(--c-green)'] };
+  // 이름은 모두 지어낸 예시
+  let IN = [
+    { id: 1, n: '한지우', uid: 'jiwoo', from: 'pre', by: '박지은 선생님', at: '1월 3일', st: 'w', note: '유치부 7세반 · 올해 1학년' },
+    { id: 2, n: '오다온', uid: 'daon', from: 'pre', by: '박지은 선생님', at: '12월 29일', st: 'a', done: '12월 30일 이은혜 승인 · 사랑반' },
+  ];
+  let OUT = [
+    { id: 11, n: '진서아', uid: 'seoa', to: 'elem', at: '12월 28일', st: 'a', done: '12월 29일 초등부 승인' },
+    { id: 12, n: '편우진', uid: 'woojin', to: 'elem', at: '12월 28일', st: 'a', done: '12월 30일 초등부 승인' },
+    { id: 13, n: '노은찬', uid: 'eunchan', to: 'elem', at: '1월 2일', st: 'w' },
+  ];
+  let tab = 'in', ask = null;
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2600); }
+  const dept = (k) => `<span class="dept"><i style="background:${D[k][1]}"></i>${D[k][0]}</span>`;
+  const stTag = (s) => ({ w: '<span class="st w">기다리는 중</span>', a: '<span class="st a">승인됨</span>', r: '<span class="st r">거절됨</span>' })[s];
+
+  function pendingIn(r) {
+    let acts;
+    if (ask && ask.id === r.id && ask.k === 'ok') acts = `<div class="ask ok" role="alert"><span>${r.n}을(를) 유년부로 받을까요? 유치부의 점수 · 기록이 바로 지워져요.</span><button type="button" class="btn" data-a="no">아니요</button><button type="button" class="btn p" data-a="ok!">받기</button></div>`;
+    else if (ask && ask.id === r.id && ask.k === 'rej') acts = `<div class="ask no" role="alert"><span>거절할까요? ${r.n}은(는) 유치부에 그대로 남고, 유치부 선생님께 거절이 알려져요.</span><button type="button" class="btn" data-a="no">아니요</button><button type="button" class="btn d" data-a="rej!">거절</button></div>`;
+    else acts = `<div class="acts"><button type="button" class="btn p" data-a="ok">승인하고 받기</button><button type="button" class="btn d" data-a="rej">거절</button></div>`;
+    return `<article class="req pending" data-id="${r.id}">
+      <div class="who"><span class="av">${r.n.slice(1)}</span><div><b>${r.n}</b><small>아이디 ${r.uid} · ${r.note}</small></div>${stTag(r.st)}</div>
+      <div class="route">${dept(r.from)}<span class="ar" aria-hidden="true">→</span>${dept('kids')}<span class="meta">${r.at} · ${r.by}이 보냄</span></div>
+      <div class="warnbox">승인하면 <b>유치부의 점수 · 미션 기록 · 가족팀 자리 · 보호 관계가 지워지고</b> 유년부에서 새로 시작해요. 계정, 성경 읽음 표시 · 책갈피, 성경통독 진도는 그대로예요. 승인 전까지 지우는 일은 없어요.</div>
+      <div class="ed">
+        <div><h3>유년부에서 줄 역할</h3><div class="rl"><label><input type="checkbox" data-role="참여자" checked>참여자</label><label><input type="checkbox" data-role="보호자">보호자</label></div></div>
+        <div><h3>반</h3><select class="sel" data-grp><option>사랑반</option><option>믿음반</option><option>소망반</option><option value="">반 없음</option></select></div>
+      </div>
+      ${acts}
+    </article>`;
+  }
+  function pendingOut(r) {
+    const cancel = ask && ask.id === r.id && ask.k === 'cancel'
+      ? `<div class="ask no" role="alert"><span>요청을 취소할까요? ${r.n}은(는) 유년부에 그대로 남아요.</span><button type="button" class="btn" data-a="no">아니요</button><button type="button" class="btn d" data-a="cancel!">요청 취소</button></div>`
+      : `<div class="acts"><button type="button" class="btn d" data-a="cancel">요청 취소</button></div>`;
+    return `<article class="req" data-id="${r.id}">
+      <div class="who"><span class="av">${r.n.slice(1)}</span><div><b>${r.n}</b><small>아이디 ${r.uid}</small></div>${stTag(r.st)}</div>
+      <div class="route">${dept('kids')}<span class="ar" aria-hidden="true">→</span>${dept(r.to)}<span class="meta">${r.at} 보냄 · 초등부 선생님이 승인하기 전까지 유년부에서 계속 미션을 해요</span></div>
+      ${cancel}
+    </article>`;
+  }
+  function hist(list, dir) {
+    if (!list.length) return '';
+    return `<h2>처리한 요청</h2><ul class="hist">${list.map((r) => `<li><span class="av">${r.n.slice(1)}</span><span class="nm"><b>${r.n}</b><small>${dir === 'in' ? D[r.from][0] + ' → 유년부' : '유년부 → ' + D[r.to][0]} · ${r.done}</small></span>${stTag(r.st)}${dir === 'in' && r.st === 'a' ? '<a class="lnk" href="https://claude.ai/artifact/GcfvyYMWxWqWY3CEBK9x94">소속 관리에서 보기 →</a>' : ''}</li>`).join('')}</ul>`;
+  }
+  function draw() {
+    const inW = IN.filter((r) => r.st === 'w'), outW = OUT.filter((r) => r.st === 'w');
+    $('seg').innerHTML = `<button type="button" role="tab" data-t="in" aria-selected="${tab === 'in'}">받은 요청${inW.length ? `<span class="c num">${inW.length}</span>` : ''}</button><button type="button" role="tab" data-t="out" aria-selected="${tab === 'out'}">보낸 요청 <span class="num" style="margin-left:4px">${outW.length}</span></button>`;
+    $('navC').textContent = inW.length; $('navC').hidden = !inW.length;
+    if (tab === 'in') $('out').innerHTML = (inW.length ? inW.map(pendingIn).join('') : '<div class="empty">기다리는 진급 요청이 없어요.</div>') + hist(IN.filter((r) => r.st !== 'w'), 'in');
+    else $('out').innerHTML = (outW.length ? outW.map(pendingOut).join('') : '<div class="empty">기다리는 요청이 없어요. 진급 보내기는 소속 관리에서 여러 명을 골라 할 수 있어요.</div>') + hist(OUT.filter((r) => r.st !== 'w'), 'out') + '<a class="btn" href="https://claude.ai/artifact/GcfvyYMWxWqWY3CEBK9x94" style="align-self:flex-start">소속 관리에서 진급 보내기 →</a>';
+  }
+  $('seg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { tab = b.dataset.t; ask = null; draw(); } });
+  $('out').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-a]'); if (!b) return;
+    const card = b.closest('.req'), id = +card.dataset.id, a = b.dataset.a;
+    const r = (tab === 'in' ? IN : OUT).find((x) => x.id === id);
+    if (a === 'ok') {
+      if (!card.querySelector('[data-role]:checked')) return toast('역할을 하나는 골라 주세요');
+      ask = { id, k: 'ok', g: card.querySelector('[data-grp]').value };
+    }
+    if (a === 'rej') ask = { id, k: 'rej' };
+    if (a === 'cancel') ask = { id, k: 'cancel' };
+    if (a === 'no') ask = null;
+    if (a === 'ok!') { r.st = 'a'; r.done = `1월 5일 이은혜 승인${ask.g ? ' · ' + ask.g : ''}`; ask = null; toast(`${r.n}을(를) 유년부로 받았어요 · 바로 미션을 할 수 있어요`); }
+    if (a === 'rej!') { r.st = 'r'; r.done = '1월 5일 이은혜 거절'; ask = null; toast(`${r.n}의 진급 요청을 거절했어요`); }
+    if (a === 'cancel!') { OUT = OUT.filter((x) => x !== r); ask = null; toast('진급 요청을 취소했어요'); }
+    draw();
+  });
+  document.querySelectorAll('nav a[href="#x"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast(`${a.firstChild.textContent} 화면으로 가요 (다음 시안)`); }));
+  draw();
+</script>
