@@ -18,10 +18,10 @@ public sealed class InMemoryDb(string name, RequestScope scope) : IAppDb
 
     public static string NewName() => "cb-" + Guid.NewGuid().ToString("N");
 
-    public static Account SeedAccount(string name, string loginId, string displayName, int? familyTenantId = null)
+    public static Account SeedAccount(string name, string email, string displayName, int? familyTenantId = null)
     {
         using var db = Raw(name);
-        var a = new Account { LoginId = loginId, DisplayName = displayName, PasswordHash = "-", FamilyTenantId = familyTenantId };
+        var a = new Account { Email = email, DisplayName = displayName, PasswordHash = "-", FamilyTenantId = familyTenantId };
         db.Accounts.Add(a);
         db.SaveChanges();
         return a;

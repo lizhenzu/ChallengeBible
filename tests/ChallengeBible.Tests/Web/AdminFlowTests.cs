@@ -34,16 +34,16 @@ public partial class AdminFlowTests : IClassFixture<WebApplicationFactory<Progra
     private static async Task<string> Token(HttpClient c, string url) => TokenRx().Match(await c.GetStringAsync(url)).Groups[1].Value;
 
     /// <summary>가입 화면으로 계정을 만들고 로그인된 클라이언트를 돌려준다.</summary>
-    private async Task<(HttpClient Client, int AccountId)> SignedUp(string loginId, string name)
+    private async Task<(HttpClient Client, int AccountId)> SignedUp(string email, string name)
     {
         var c = Client();
         await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["__RequestVerificationToken"] = await Token(c, "/account/signup"),
-            ["DisplayName"] = name, ["LoginId"] = loginId, ["Password"] = "1234", ["PasswordConfirm"] = "1234",
+            ["DisplayName"] = name, ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         using var raw = InMemoryDb.Raw(_db);
-        return (c, raw.Accounts.Single(a => a.LoginId == loginId).Id);
+        return (c, raw.Accounts.Single(a => a.Email == email + "@example.com").Id);
     }
 
     [Fact]

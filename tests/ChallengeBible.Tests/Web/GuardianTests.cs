@@ -130,7 +130,7 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
         // 계정은 이미 있으니 비밀번호만 정하고 로그인
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var a = raw.Accounts.Single(x => x.LoginId == login);
+            var a = raw.Accounts.Single(x => x.Email == login);
             a.PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<Account>().HashPassword(a, "1234");
             raw.SaveChanges();
         }
@@ -138,7 +138,7 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
         var h = await c.GetStringAsync("/account/login");
         await c.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["__RequestVerificationToken"] = TokenRx().Match(h).Groups[1].Value, ["LoginId"] = login, ["Password"] = "1234",
+            ["__RequestVerificationToken"] = TokenRx().Match(h).Groups[1].Value, ["Email"] = login, ["Password"] = "1234",
         }));
         return c;
     }

@@ -19,7 +19,7 @@
 
     <form method="get" class="tools">
         <input type="hidden" name="Tab" value="@Model.Tab" />
-        <input class="search" type="search" name="Q" value="@Model.Q" placeholder="이름 · 아이디로 찾기" aria-label="이름 · 아이디로 찾기" />
+        <input class="search" type="search" name="Q" value="@Model.Q" placeholder="이름 · 이메일로 찾기" aria-label="이름 · 이메일로 찾기" />
         <select class="sel" name="Role" aria-label="역할" onchange="this.form.submit()">
             <option value="">모든 역할</option>
             @foreach (var r in Roles.All) { <option value="@r" selected="@(Model.Role == r)">@MembersModel.RoleLabel(r)</option> }
@@ -46,7 +46,7 @@
                     <summary class="line">
                         <span class="av">@(m.DisplayName.Length > 1 ? m.DisplayName[1..] : m.DisplayName)</span>
                         <span class="who"><b>@m.DisplayName @if (self) { <span class="tag">나</span> }</b>
-                            <small>@m.LoginId@(m.GroupLabel is null ? "" : $" · {m.GroupLabel}")@(m.Status == MembershipStatus.Requested ? $" · {m.RequestedUtc:M월 d일} 신청" : "")</small></span>
+                            <small>@m.Email@(m.GroupLabel is null ? "" : $" · {m.GroupLabel}")@(m.Status == MembershipStatus.Requested ? $" · {m.RequestedUtc:M월 d일} 신청" : "")</small></span>
                         <span class="tags">@foreach (var r in m.Roles) { <span class="tag r-@r">@MembersModel.RoleLabel(r)@(m.Status == MembershipStatus.Requested ? " 희망" : "")</span> }</span>
                         <span class="chev" aria-hidden="true">›</span>
                     </summary>

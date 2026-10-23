@@ -24,22 +24,22 @@ public partial class PlatformFlowTests : IClassFixture<WebApplicationFactory<Pro
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
     private static partial Regex TokenRx();
 
-    private async Task<HttpClient> LoggedIn(string loginId, bool platformAdmin)
+    private async Task<HttpClient> LoggedIn(string email, bool platformAdmin)
     {
         var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var html = await c.GetStringAsync("/account/signup");
         await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["__RequestVerificationToken"] = TokenRx().Match(html).Groups[1].Value,
-            ["DisplayName"] = loginId, ["LoginId"] = loginId, ["Password"] = "1234", ["PasswordConfirm"] = "1234",
+            ["DisplayName"] = email, ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         if (!platformAdmin) return c;
-        using (var raw = InMemoryDb.Raw(_db)) { raw.Accounts.Single(a => a.LoginId == loginId).IsPlatformAdmin = true; raw.SaveChanges(); }
+        using (var raw = InMemoryDb.Raw(_db)) { raw.Accounts.Single(a => a.Email == email + "@example.com").IsPlatformAdmin = true; raw.SaveChanges(); }
         // 플랫폼 관리자 표시는 로그인할 때 쿠키에 들어간다 → 다시 로그인
         html = await c.GetStringAsync("/account/login");
         await c.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["__RequestVerificationToken"] = TokenRx().Match(html).Groups[1].Value, ["LoginId"] = loginId, ["Password"] = "1234",
+            ["__RequestVerificationToken"] = TokenRx().Match(html).Groups[1].Value, ["Email"] = email + "@example.com", ["Password"] = "1234",
         }));
         return c;
     }

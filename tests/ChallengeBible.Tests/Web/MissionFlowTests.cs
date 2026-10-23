@@ -36,17 +36,17 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
     private static partial Regex TokenRx();
 
-    private async Task<HttpClient> Member(string loginId, params string[] roles)
+    private async Task<HttpClient> Member(string email, params string[] roles)
     {
         var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var html = await c.GetStringAsync("/account/signup");
         await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["__RequestVerificationToken"] = TokenRx().Match(html).Groups[1].Value,
-            ["DisplayName"] = "김철수", ["LoginId"] = loginId, ["Password"] = "1234", ["PasswordConfirm"] = "1234",
+            ["DisplayName"] = "김철수", ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         using var raw = InMemoryDb.Raw(_db);
-        var id = raw.Accounts.Single(a => a.LoginId == loginId).Id;
+        var id = raw.Accounts.Single(a => a.Email == email + "@example.com").Id;
         var m = new Membership { TenantId = _kids.Id, AccountId = id, Status = MembershipStatus.Approved,
             Roles = roles.Select(r => new MembershipRole { TenantId = _kids.Id, Role = r }).ToList() };
         raw.Memberships.Add(m);

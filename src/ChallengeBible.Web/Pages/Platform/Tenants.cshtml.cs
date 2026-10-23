@@ -23,7 +23,7 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
     [BindProperty] public string ThemeColor { get; set; } = "blue";
     [BindProperty] public bool Mission { get; set; } = true;
     [BindProperty] public bool Reading { get; set; }
-    [BindProperty] public string? AdminLoginId { get; set; }
+    [BindProperty] public string? AdminEmail { get; set; }
 
     public List<TenantRow> Rows { get; private set; } = [];
     public FieldErrors CreateErrors { get; private set; } = new();
@@ -50,7 +50,7 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
 
     public async Task<IActionResult> OnPostCreateAsync(CancellationToken ct)
     {
-        var (t, errors) = await platform.CreateAsync(Me, new NewTenant(Name, Slug, TimeZoneId, ThemeColor, Mission, Reading, AdminLoginId), ct);
+        var (t, errors) = await platform.CreateAsync(Me, new NewTenant(Name, Slug, TimeZoneId, ThemeColor, Mission, Reading, AdminEmail), ct);
         if (t is null)
         {
             CreateErrors = errors;
@@ -73,9 +73,9 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
         return RedirectToPage(new { Open = id, Ok = "code" });
     }
 
-    public async Task<IActionResult> OnPostAddAdminAsync(int id, string loginId, CancellationToken ct)
+    public async Task<IActionResult> OnPostAddAdminAsync(int id, string email, CancellationToken ct)
     {
-        var err = await platform.AddAdminAsync(Me, id, loginId, ct);
+        var err = await platform.AddAdminAsync(Me, id, email, ct);
         return err is null ? RedirectToPage(new { Open = id, Ok = "admin" }) : await RowFail(id, err, ct);
     }
 

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record MemberRow(int MembershipId, int AccountId, string DisplayName, string LoginId, string Status,
+public sealed record MemberRow(int MembershipId, int AccountId, string DisplayName, string Email, string Status,
     IReadOnlyList<string> Roles, string? GroupLabel, DateTime RequestedUtc);
 
 public sealed record MemberFilter(string Status, string? Query, string? Role, string? Group);
@@ -30,7 +30,7 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         if (!string.IsNullOrWhiteSpace(f.Query))
         {
             var s = f.Query.Trim();
-            q = q.Where(x => x.a.DisplayName.Contains(s) || x.a.LoginId.Contains(s.ToLower()));
+            q = q.Where(x => x.a.DisplayName.Contains(s) || x.a.Email.Contains(s.ToLower()));
         }
         if (!string.IsNullOrWhiteSpace(f.Role)) q = q.Where(x => x.m.Roles.Any(r => r.Role == f.Role));
         if (f.Group == "-") q = q.Where(x => x.m.GroupLabel == null);
@@ -38,7 +38,7 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
 
         var rows = await q.ToListAsync(ct);
         return rows
-            .Select(x => new MemberRow(x.m.Id, x.a.Id, x.a.DisplayName, x.a.LoginId, x.m.Status,
+            .Select(x => new MemberRow(x.m.Id, x.a.Id, x.a.DisplayName, x.a.Email, x.m.Status,
                 Infrastructure.Data.Roles.All.Where(r => x.m.Roles.Any(mr => mr.Role == r)).ToList(), x.m.GroupLabel, x.m.RequestedUtc))
             .OrderBy(r => r.DisplayName, StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false))
             .ToList();

@@ -148,9 +148,9 @@ public class MemberAdminServiceTests
         await In(_kids).ApproveAsync(_admin.Id, a.Id, [Roles.Participant], "사랑반");
         await In(_kids).ApproveAsync(_admin.Id, b.Id, [Roles.Participant], "믿음반");
         var svc = In(_kids);
-        Assert.Equal(["minjun"], (await svc.ListAsync(new MemberFilter(MembershipStatus.Approved, null, null, "믿음반"))).Select(r => r.LoginId));
-        Assert.Equal(["seoyeon"], (await svc.ListAsync(new MemberFilter(MembershipStatus.Approved, "seo", null, null))).Select(r => r.LoginId));
-        Assert.Equal(["eunhye"], (await svc.ListAsync(new MemberFilter(MembershipStatus.Approved, null, Roles.TenantAdmin, null))).Select(r => r.LoginId));
+        Assert.Equal(["minjun"], (await svc.ListAsync(new MemberFilter(MembershipStatus.Approved, null, null, "믿음반"))).Select(r => r.Email));
+        Assert.Equal(["seoyeon"], (await svc.ListAsync(new MemberFilter(MembershipStatus.Approved, "seo", null, null))).Select(r => r.Email));
+        Assert.Equal(["eunhye"], (await svc.ListAsync(new MemberFilter(MembershipStatus.Approved, null, Roles.TenantAdmin, null))).Select(r => r.Email));
         Assert.Equal(3, (await svc.CountsAsync())[MembershipStatus.Approved]);
     }
 }

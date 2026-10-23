@@ -77,7 +77,7 @@ public class PlatformTenantServiceTests
     {
         var (t, e) = await Svc.CreateAsync(_op.Id, Input(admin: "nobody"));
         Assert.Null(t);
-        Assert.True(e.ContainsKey("AdminLoginId"));
+        Assert.True(e.ContainsKey("AdminEmail"));
     }
 
     [Fact]

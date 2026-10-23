@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record SignUpInput(string DisplayName, string LoginId, string Password, string PasswordConfirm);
+public sealed record SignUpInput(string DisplayName, string Email, string Password, string PasswordConfirm);
 
 /// <summary>칸 이름 → 오류 문구. 비어 있으면 성공.</summary>
 public sealed class FieldErrors : Dictionary<string, string>
@@ -19,43 +19,44 @@ public sealed record LoginResult(Account? Account, string? Error);
 public sealed record AfterLogin(int ApprovedCount, string? OnlyTenantSlug);
 
 /// <summary>
-/// 가입 · 로그인. 받는 정보는 이름(또는 별명) · 아이디 · 비밀번호뿐이다(R-137).
+/// 가입 · 로그인. 받는 정보는 이름(또는 별명) · 이메일 · 비밀번호뿐이다(R-137, ADR 0050).
 /// 계정은 플랫폼 표라 영역과 상관없이 다룬다.
 /// </summary>
 public sealed partial class AccountService(IAppDb db, TimeProvider time)
 {
     private static readonly PasswordHasher<Account> Hasher = new();
 
-    [GeneratedRegex("^[a-z0-9]{4,20}$")]
-    private static partial Regex LoginIdRule();
+    // 형식만 검사한다(인증 메일은 1차에 없음, ADR 0050). 길이는 열 크기(254)와 맞춘다.
+    [GeneratedRegex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$")]
+    private static partial Regex EmailRule();
 
     public const int MinPassword = 4;
 
-    public static string NormalizeLoginId(string loginId) => loginId.Trim().ToLowerInvariant();
+    public static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
 
     public async Task<(Account? Account, FieldErrors Errors)> SignUpAsync(SignUpInput input, CancellationToken ct = default)
     {
         var errors = new FieldErrors();
         var name = input.DisplayName?.Trim() ?? "";
-        var loginId = NormalizeLoginId(input.LoginId ?? "");
+        var email = NormalizeEmail(input.Email ?? "");
 
         if (name.Length == 0) errors["DisplayName"] = "이름이나 별명을 써 주세요.";
         else if (name.Length > 20) errors["DisplayName"] = "이름은 20자까지 쓸 수 있어요.";
-        if (!LoginIdRule().IsMatch(loginId)) errors["LoginId"] = "영어 소문자와 숫자로 4~20자를 써 주세요.";
+        if (email.Length > 254 || !EmailRule().IsMatch(email)) errors["Email"] = "이메일 주소를 확인해 주세요. 예: name@example.com";
         if ((input.Password ?? "").Length < MinPassword) errors["Password"] = $"비밀번호는 {MinPassword}자 이상으로 정해 주세요.";
         else if (input.Password != input.PasswordConfirm) errors["PasswordConfirm"] = "비밀번호가 서로 달라요.";
         if (!errors.Ok) return (null, errors);
 
         await using var ctx = db.Create();
-        if (await ctx.Accounts.AnyAsync(a => a.LoginId == loginId, ct))
+        if (await ctx.Accounts.AnyAsync(a => a.Email == email, ct))
         {
-            errors["LoginId"] = "이미 누가 쓰고 있어요. 다른 아이디를 써 주세요.";
+            errors["Email"] = "이미 가입된 이메일이에요. 로그인해 주세요.";
             return (null, errors);
         }
 
         var account = new Account
         {
-            LoginId = loginId,
+            Email = email,
             DisplayName = name,
             PasswordHash = "",
             CreatedUtc = time.GetUtcNow().UtcDateTime,
@@ -66,23 +67,23 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
         {
             await ctx.SaveChangesAsync(ct);
         }
-        catch (DbUpdateException)   // 동시에 같은 아이디로 가입한 경우(UQ_Account_LoginId)
+        catch (DbUpdateException)   // 동시에 같은 이메일로 가입한 경우(UQ_Account_Email)
         {
-            errors["LoginId"] = "이미 누가 쓰고 있어요. 다른 아이디를 써 주세요.";
+            errors["Email"] = "이미 가입된 이메일이에요. 로그인해 주세요.";
             return (null, errors);
         }
         return (account, errors);
     }
 
-    public async Task<LoginResult> LoginAsync(string loginId, string password, CancellationToken ct = default)
+    public async Task<LoginResult> LoginAsync(string email, string password, CancellationToken ct = default)
     {
-        const string wrong = "아이디 또는 비밀번호가 맞지 않아요. 다시 확인해 주세요.";
-        var id = NormalizeLoginId(loginId ?? "");
-        if (id.Length == 0) return new(null, "아이디를 넣어 주세요.");
+        const string wrong = "이메일 또는 비밀번호가 맞지 않아요. 다시 확인해 주세요.";
+        var id = NormalizeEmail(email ?? "");
+        if (id.Length == 0) return new(null, "이메일을 넣어 주세요.");
         if (string.IsNullOrEmpty(password)) return new(null, "비밀번호를 넣어 주세요.");
 
         await using var ctx = db.Create();
-        var account = await ctx.Accounts.SingleOrDefaultAsync(a => a.LoginId == id, ct);
+        var account = await ctx.Accounts.SingleOrDefaultAsync(a => a.Email == id, ct);
         if (account is null || account.Status != "Active") return new(null, wrong);
 
         var verdict = Hasher.VerifyHashedPassword(account, account.PasswordHash, password);
@@ -126,9 +127,11 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
         await using var ctx = db.Create();
         return await ctx.Memberships.IgnoreQueryFilters()
             .Where(m => m.AccountId == accountId)
-            .Join(ctx.Tenants, m => m.TenantId, t => t.Id, (m, t) => new MyMembership(
-                m.Id, t.Id, t.Slug, t.Name, m.Status, t.Status == TenantStatus.Active, t.MissionEnabled, t.ReadingEnabled, m.RequestedUtc))
-            .OrderBy(x => x.TenantName)
+            .Join(ctx.Tenants, m => m.TenantId, t => t.Id, (m, t) => new { m, t })
+            // 정렬은 레코드로 바꾸기 전에 한다 — 생성자 결과로 정렬하면 SQL Server 가 번역하지 못한다(InMemory 는 통과)
+            .OrderBy(x => x.t.Name)
+            .Select(x => new MyMembership(
+                x.m.Id, x.t.Id, x.t.Slug, x.t.Name, x.m.Status, x.t.Status == TenantStatus.Active, x.t.MissionEnabled, x.t.ReadingEnabled, x.m.RequestedUtc))
             .ToListAsync(ct);
     }
 
