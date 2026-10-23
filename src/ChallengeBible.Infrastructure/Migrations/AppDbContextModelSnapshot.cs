@@ -745,6 +745,85 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BibleTranslation", b =>
+                {
+                    b.Property<byte>("Id")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<byte>("SortOrder")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id")
+                        .HasName("PK_BibleTranslation");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_BibleTranslation_Code");
+
+                    b.ToTable("BibleTranslation", "app");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = (byte)1,
+                            Code = "KRV",
+                            Name = "개역개정",
+                            SortOrder = (byte)1
+                        },
+                        new
+                        {
+                            Id = (byte)2,
+                            Code = "KLB",
+                            Name = "현대인의성경",
+                            SortOrder = (byte)2
+                        },
+                        new
+                        {
+                            Id = (byte)3,
+                            Code = "NIV",
+                            Name = "NIV",
+                            SortOrder = (byte)3
+                        });
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BibleVerse", b =>
+                {
+                    b.Property<byte>("TranslationId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("BookId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<short>("Chapter")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("Verse")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("TranslationId", "BookId", "Chapter", "Verse")
+                        .HasName("PK_BibleVerse");
+
+                    b.HasIndex("BookId");
+
+                    b.ToTable("BibleVerse", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.DailyPrayer", b =>
                 {
                     b.Property<int>("Id")
@@ -1623,6 +1702,23 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_Activity_Participant");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BibleVerse", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.BibleBook", null)
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_BibleVerse_Book");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.BibleTranslation", null)
+                        .WithMany()
+                        .HasForeignKey("TranslationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_BibleVerse_Translation");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.DailyPrayer", b =>

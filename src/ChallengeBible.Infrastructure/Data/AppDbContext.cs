@@ -23,6 +23,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<TenantSeason> TenantSeasons => Set<TenantSeason>();
 
     public DbSet<BibleBook> BibleBooks => Set<BibleBook>();
+    public DbSet<BibleTranslation> BibleTranslations => Set<BibleTranslation>();
+    public DbSet<BibleVerse> BibleVerses => Set<BibleVerse>();
     public DbSet<DailyWord> DailyWords => Set<DailyWord>();
     public DbSet<DailyPrayer> DailyPrayers => Set<DailyPrayer>();
     public DbSet<DailyQuiz> DailyQuizzes => Set<DailyQuiz>();

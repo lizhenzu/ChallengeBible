@@ -1,0 +1,57 @@
+@page "/platform/bible"
+@model BibleModel
+@* 확정 시안: 플랫폼-성경데이터 (1차: 번역 3개 카드 · 검사 결과. 장 정보 · 듣기 · 책 개요 · 기록은 통독 단계에서) *@
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap wide">
+    <h1>성경 데이터</h1>
+    <p class="sub">같은 DB 의 기존 표(eBible · eBibleHD · eBibleEN)를 한 번 옮겨 와요. 개역개정 · 현대인의성경 · NIV 는 저작권이 있는 번역본이라 공개 서비스 전에 사용 허락을 확인해야 해요.</p>
+
+    @if (Model.Message is not null) { <p class="@(Model.MessageOk ? "okmsg" : "errmsg")" role="status">@Model.Message</p> }
+
+    <section class="bcards">
+        @foreach (var s in Model.Sources)
+        {
+            var state = s.LoadedVerses > 0 ? (s.LoadedVerses == s.SourceVerses ? "ok" : "part") : s.SourceExists ? "none" : "miss";
+            <article class="bcard @state">
+                <h2>@s.Name <small>@s.Code</small></h2>
+                <p class="bn num">@s.LoadedVerses.ToString("N0")<i> 절</i></p>
+                <p class="bs">원본 @s.SourceTable · @(s.SourceExists ? $"{s.SourceVerses:N0}절" : "표 없음")</p>
+                @if (s.SourceExists)
+                {
+                    <form method="post" asp-page-handler="Import" onsubmit="this.querySelector('button').disabled = true;">
+                        <input type="hidden" name="code" value="@s.Code" />
+                        <button class="btn @(s.LoadedVerses == 0 ? "p" : "s")" type="submit">@(s.LoadedVerses == 0 ? "가져오기" : "다시 가져오기")</button>
+                    </form>
+                }
+            </article>
+        }
+    </section>
+
+    <section class="bcheck" aria-labelledby="hChk">
+        <h2 id="hChk">검사 결과</h2>
+        @if (Model.Check is null)
+        {
+            <p class="sub">가져온 번역본이 없어요.</p>
+        }
+        else
+        {
+            <ul class="bsum">
+                @foreach (var s in Model.Check.Summary) { <li><b>@s.Code</b> <span class="num">@s.Verses.ToString("N0")절 · @(s.Books)권 · @(s.Chapters.ToString("N0"))장</span></li> }
+            </ul>
+            @if (Model.Check.Clean) { <p class="okmsg">책별 장 수와 번역본끼리 절 수가 모두 맞아요.</p> }
+            else
+            {
+                <p class="errmsg">확인할 곳이 @Model.Check.Issues.Count 개 있어요. 번역본마다 절 구분이 다른 곳은 정상일 수 있어요.</p>
+                <table class="pts"><thead><tr><th>구분</th><th>번역</th><th>책</th><th>장</th><th>기준</th><th>실제</th></tr></thead>
+                    <tbody>
+                    @foreach (var i in Model.Check.Issues.Take(200))
+                    {
+                        <tr><td>@i.Kind</td><td>@i.Code</td><td>@Model.BookName(i.BookId)</td><td>@(i.Chapter?.ToString() ?? "–")</td><td class="num">@i.Expected</td><td class="num">@i.Actual</td></tr>
+                    }
+                    </tbody></table>
+                @if (Model.Check.Issues.Count > 200) { <p class="sub">처음 200개만 보여요.</p> }
+            }
+        }
+        <form method="post" asp-page-handler="Check"><button class="btn s" type="submit">다시 검사</button></form>
+    </section>
+</div></main>
