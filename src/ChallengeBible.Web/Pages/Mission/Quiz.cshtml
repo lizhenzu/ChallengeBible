@@ -2,11 +2,20 @@
 @model QuizModel
 @using ChallengeBible.Domain.Missions
 @using ChallengeBible.Infrastructure.Data
+@* 확정 시안: 말씀-퀴즈미션 — 01 배경 · 02 문제 · 03 정답을 골라요(고른 뒤 답 제출하기) · 04 해설(끝난 뒤). 판정은 서버(R-43) *@
 @{
     var d = Model.Data!; var q = d.Quiz; var s = d.QuizState;
     var finished = s.State != QuizState.CanTry;
+    var left = s.MaxAttempts - s.AttemptsUsed;
+    var pts = d.Rules.Item(MissionItem.QuizCorrect).Points;
+    var choice = q?.Format == QuizFormat.Choice;
+    var triesText = s.Solved ? "정답!" : left <= 0 ? "오늘은 끝" : s.AttemptsUsed > 0 ? $"{left}번 남았어요" : $"기회 {s.MaxAttempts}번";
+    var triesCls = s.Solved ? "ok" : s.AttemptsUsed > 0 ? "warn" : "";
+    var bg = q?.Background?.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
+    var no = 0;
+    string N() => (++no).ToString("00");
 }
-@await Html.PartialAsync("_MissionHead", new MissionHead(Model, "오늘의 퀴즈", q is null ? "오늘은 퀴즈가 없어요" : "오늘의 말씀 퀴즈", d.Word?.Range))
+@await Html.PartialAsync("_MissionHead", new MissionHead(Model, "오늘의 퀴즈", q is null ? "오늘은 퀴즈가 없어요" : d.Word?.Title ?? "오늘의 말씀 퀴즈", d.Word?.Range))
 <main class="mbody gut" data-slug="@Model.Slug" data-date="@Model.Day.ToString("yyyy-MM-dd")"><div class="wrap">
     @if (q is null)
     {
@@ -14,27 +23,47 @@
     }
     else
     {
-        <section class="sec @(s.Solved ? "done" : "")" id="quiz" data-format="@q.Format" data-finished="@(finished ? "1" : "0")"><h2><span class="n">01</span>문제</h2>
-            @if (q.Background is not null) { <p class="hint">@q.Background</p> }
-            <p class="story q">@q.Question</p>
-            @if (q.Format == QuizFormat.Choice)
+        @if (bg.Length > 0)
+        {
+            <section class="sec done"><h2><span class="n">@N()</span>배경</h2>
+                @foreach (var para in bg) { <p class="story qbg">@para</p> }
+            </section>
+        }
+        <section class="sec done"><h2><span class="n">@N()</span>문제 <small class="kind">@(choice ? "객관식" : "주관식")</small></h2>
+            <p class="qq">@q.Question</p>
+        </section>
+        <section class="sec @(s.Solved ? "done" : "")" id="quiz" data-max="@s.MaxAttempts" data-used="@s.AttemptsUsed" data-points="@pts" data-finished="@(finished ? "1" : "0")">
+            <h2><span class="n">@N()</span>@(choice ? "정답을 골라요" : "정답을 써요") <small id="tries" class="@triesCls">@triesText</small></h2>
+            @if (choice)
             {
-                <div class="choices">
+                <div class="qopts" role="radiogroup" aria-label="보기">
                     @for (var i = 0; i < q.Choices.Count; i++)
                     {
                         var c = q.Choices[i];
                         var mine = s.MyChoices.Contains(c.Id);
-                        var cls = c.Id == Model.CorrectChoiceId ? "ok" : mine ? "no" : "";
-                        <button type="button" class="choice @cls" data-choice="@c.Id" disabled="@(!Model.CanAct || finished || mine)"><span class="no">@(i + 1)</span>@c.Text</button>
+                        var isAns = finished && c.Id == Model.CorrectChoiceId;
+                        var cls = isAns ? "ans fixed" : mine ? "bad fixed" : finished ? "dim fixed" : "";
+                        var tag = isAns ? (s.Solved ? "정답" : "정답은 이것") : mine ? "내가 고른 답 · 오답" : "";
+                        <label class="qopt @cls" data-choice="@c.Id">
+                            <input type="radio" name="answer" value="@c.Id" disabled="@(!Model.CanAct || finished || mine)" />
+                            <i class="num">@(i + 1)</i><span class="t">@c.Text@if (tag != "") { <small>@tag</small> }</span>
+                        </label>
                     }
                 </div>
             }
             else
             {
-                <form class="row" id="textAnswer"><input class="in" name="answer" maxlength="200" placeholder="답을 써 주세요" disabled="@(!Model.CanAct || finished)" aria-label="답" /><button class="btn p sm" disabled="@(!Model.CanAct || finished)">답하기</button></form>
+                <input class="in qtext" id="answerText" name="answer" maxlength="200" placeholder="답을 써 주세요" disabled="@(!Model.CanAct || finished)" aria-label="답" />
             }
-            <p class="msg" id="qmsg" role="status">@(s.Solved ? "정답! 오늘 퀴즈 완료" : finished ? $"오늘은 {s.MaxAttempts}번 도전했어요. 내일 새 퀴즈에 도전해요." : $"정답이면 +{d.Rules.Item(MissionItem.QuizCorrect).Points}점 · {s.MaxAttempts - s.AttemptsUsed}번 도전할 수 있어요")</p>
-            <div class="explain" id="explain" @(q.Explanation is null ? "hidden" : "")><b>해설</b><p>@q.Explanation</p></div>
+            <p class="msg @(s.Solved ? "ok" : "")" id="qmsg" role="status">@(s.Solved ? $"정답! +{pts}점" : finished ? $"오늘은 {s.MaxAttempts}번 도전했어요. 내일 새 퀴즈에 도전해요" : "")</p>
+            <button type="button" class="qgo" id="qgo" disabled>
+                @if (finished) { @(s.Solved ? "정답을 맞혔어요" : $"오늘은 {s.MaxAttempts}번 도전했어요") <em aria-hidden="true">✓</em> }
+                else { <text>답 제출하기 <em aria-hidden="true">→</em></text> }
+            </button>
+        </section>
+        <section class="sec done" id="explain" @(finished && q.Explanation is not null ? "" : "hidden")>
+            <h2><span class="n">@N()</span>해설 <small id="resTag" class="@(s.Solved ? "ok" : "warn")">@(s.Solved ? $"정답 +{pts}점" : "점수 없음")</small></h2>
+            <p class="story">@q.Explanation</p>
         </section>
     }
 </div></main>

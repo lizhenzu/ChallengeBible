@@ -471,3 +471,33 @@ ul.log b.z { color: var(--dim); font-weight: 500; }
   .mh-tab { max-width: 520px; margin: 0 auto 16px; border: 1px solid var(--rule); border-radius: 18px; padding-bottom: 6px; }
 }
 @media (max-width: 380px) { .mh-big { font-size: 44px; } .mh-stats b { font-size: 24px; } }
+
+/* 퀴즈 (확정 시안: 말씀-퀴즈미션) — 보기를 고른 뒤 답 제출하기 */
+.sec h2 small.ok { color: var(--green); font-weight: 800; }
+.sec h2 small.warn { color: var(--bad); font-weight: 800; }
+.qbg { font-size: calc(15.5px * var(--fs)); line-height: 1.85; }
+.qbg + .qbg { margin-top: -4px; }
+.qq { margin: 0; font-size: calc(18px * var(--fs)); line-height: 1.65; font-weight: 800; word-break: keep-all; white-space: pre-line; }
+.qopts { display: grid; gap: 8px; }
+.qopt { position: relative; display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 14px; background: var(--soft); cursor: pointer; box-shadow: 0 0 0 2px transparent inset; transition: background .15s, box-shadow .15s; }
+.qopt input { position: absolute; opacity: 0; pointer-events: none; }
+.qopt:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+.qopt i { flex: none; width: 18px; text-align: center; font-style: normal; font-weight: 900; font-size: 15px; color: var(--no); }
+.qopt .t { flex: 1; min-width: 0; font-size: calc(16px * var(--fs)); font-weight: 700; line-height: 1.45; word-break: keep-all; }
+.qopt .t small { display: block; margin-top: 2px; font-size: 12px; font-weight: 800; }
+.qopt.sel { box-shadow: 0 0 0 2px var(--accent) inset; background: var(--bg); }
+.qopt.ans { background: var(--ok-bg); box-shadow: none; }
+.qopt.ans .t, .qopt.ans i, .qopt.ans small { color: var(--green); }
+.qopt.bad { background: var(--bad-bg); box-shadow: none; }
+.qopt.bad .t, .qopt.bad i, .qopt.bad small { color: var(--bad); }
+.qopt.fixed { cursor: default; }
+.qopt.dim { opacity: .55; }
+.qtext { width: 100%; }
+#quiz .msg { min-height: 1.5em; }
+.msg.ok { color: var(--green); }
+.msg.bad { color: var(--bad); }
+.qgo { display: flex; width: 100%; justify-content: space-between; align-items: baseline; padding: 0 0 8px; min-height: 44px; border: 0; border-bottom: 2px solid var(--accent); background: none; font-size: calc(16px * var(--fs)); font-weight: 800; color: var(--accent); text-align: left; }
+.qgo em { font-style: normal; font-size: 18px; }
+.qgo:disabled { color: var(--dim); border-bottom-color: var(--rule); cursor: default; opacity: .7; }
+@media (prefers-reduced-motion: reduce) { .qopt { transition: none; } }
+.sec.done h2 small.kind { color: var(--dim); }
