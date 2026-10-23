@@ -136,3 +136,30 @@ details[open] > summary .chev { transform: rotate(90deg); }
 details.ask > summary { display: inline-flex; }
 details.ask[open] form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; padding: 12px; border-radius: 12px; background: var(--bad-bg); }
 details.ask form span { flex: 1 1 220px; color: var(--bad); font-weight: 700; font-size: 14px; }
+
+/* 플랫폼 화면 (확정 시안: 플랫폼-부서관리) */
+:root { --plat: #1B1F24; --on-plat: #FFFFFF; --c-blue: #2B59C3; --c-green: #1F7A5C; --c-red: #B2462E; --c-violet: #6A4BB5; }
+@media (prefers-color-scheme: dark) { :root { --plat: #E8EAED; --on-plat: #14171B; --c-blue: #7FA2F2; --c-green: #5CC0A0; --c-red: #F09A80; --c-violet: #B39BF0; } }
+.row-t { flex-direction: row !important; align-items: center; gap: 10px; }
+.pl { font-size: 11px; font-weight: 800; letter-spacing: .06em; padding: 3px 8px; border-radius: 6px; background: var(--plat); color: var(--on-plat); }
+.admintop form .back { background: var(--bg); color: var(--fg); }
+.titlebar h1 small { font-size: 14px; font-weight: 500; color: var(--dim); margin-left: 6px; }
+.btn.pf { background: var(--plat); color: var(--on-plat); }
+details.create > summary { display: inline-flex; list-style: none; }
+details.create > summary::-webkit-details-marker { display: none; }
+.card { margin-top: 10px; padding: 18px; border: 1px solid var(--rule); border-radius: 18px; background: var(--bg); }
+.colors { display: flex; gap: 12px; }
+.colors .sw { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; }
+.colors .sw input { opacity: 0; position: absolute; }
+.colors .sw:has(input:checked) { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--fg); }
+.dot { flex: none; width: 12px; height: 12px; border-radius: 50%; }
+.tag.st { background: var(--bad-bg); color: var(--bad); }
+.grid2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.code { margin: 0 0 8px; font-size: 22px; font-weight: 900; letter-spacing: .14em; font-family: ui-monospace, Consolas, monospace; }
+.mt { margin-top: 8px; }
+.warnline { margin: 0 0 6px; color: var(--warn); font-weight: 700; font-size: 14px; }
+.adminline { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.adminline span { flex: 1; }
+.adminline small { color: var(--dim); }
+.in.sm { min-height: 42px; font-size: 14px; border-radius: 10px; }
+.info { margin: 0; font-size: 14px; line-height: 1.9; }

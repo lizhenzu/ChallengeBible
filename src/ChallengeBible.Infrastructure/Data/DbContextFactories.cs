@@ -1,6 +1,7 @@
 using ChallengeBible.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace ChallengeBible.Infrastructure.Data;
 
@@ -46,12 +47,23 @@ public sealed class SystemDbContextFactory(string connectionString) : ISystemDb
     }
 }
 
-/// <summary>`dotnet ef` 도구용. 마이그레이션을 만들 때는 DB 에 연결하지 않는다.</summary>
+/// <summary>
+/// `dotnet ef` 도구용. 마이그레이션을 만들 때는 DB 에 연결하지 않는다.
+/// `database update` 는 웹 프로젝트의 user-secrets(ConnectionStrings:App)를 읽는다 — 접속 문자열을 명령줄에 쓰지 않기 위해.
+/// </summary>
 public sealed class DesignTimeFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
+    /// <summary>ChallengeBible.Web.csproj 의 UserSecretsId 와 같아야 한다.</summary>
+    public const string WebUserSecretsId = "c87ac3b6-7be9-403a-8e2d-324d539b077b";
+
     public AppDbContext CreateDbContext(string[] args)
     {
-        var cs = Environment.GetEnvironmentVariable("CB_DESIGN_CONNECTION") ?? "Server=.;Database=ChallengeBibleDesign;Trusted_Connection=True;TrustServerCertificate=True";
+        var config = new ConfigurationBuilder()
+            .AddUserSecrets(WebUserSecretsId)
+            .AddEnvironmentVariables()
+            .Build();
+        var cs = config.GetConnectionString("App")
+                 ?? "Server=.;Database=ChallengeBibleDesign;Trusted_Connection=True;TrustServerCertificate=True";
         var options = new DbContextOptionsBuilder<AppDbContext>().UseSqlServer(cs).Options;
         return new AppDbContext(options, tenantId: null);
     }

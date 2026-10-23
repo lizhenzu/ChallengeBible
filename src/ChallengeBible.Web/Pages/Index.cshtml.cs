@@ -17,6 +17,7 @@ public class IndexModel(AccountService accounts) : PageModel, ITitled
     {
         if (User.AccountId() is not int id) return Page();
         var go = await accounts.WhereToGoAsync(id, ct);
+        if (go.ApprovedCount == 0 && User.IsPlatformAdmin()) return Redirect("/platform/tenants");
         return go.ApprovedCount switch
         {
             0 => RedirectToPage("/Join"),

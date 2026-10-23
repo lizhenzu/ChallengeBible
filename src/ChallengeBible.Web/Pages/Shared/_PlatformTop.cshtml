@@ -1,0 +1,20 @@
+@{
+    var path = Context.Request.Path.Value ?? "";
+    // 1차에 있는 플랫폼 메뉴만 링크. 나머지(공용 콘텐츠 · 성경 데이터 · 기본 규칙 · 계정 찾기)는 단계마다 붙인다.
+    (string Href, string Label)[] menu =
+    [
+        ("/platform/tenants", "부서"),
+    ];
+}
+<header class="admintop gut">
+    <div class="wrap wide hd">
+        <div class="t row-t"><b><em>도전!!!</em></b><span class="pl">플랫폼</span></div>
+        <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit" class="back">로그아웃</button></form>
+    </div>
+    <nav class="wrap wide tabs" aria-label="플랫폼 메뉴">
+        @foreach (var (href, label) in menu)
+        {
+            <a href="@href" aria-current="@(path.StartsWith(href) ? "page" : "false")">@label</a>
+        }
+    </nav>
+</header>

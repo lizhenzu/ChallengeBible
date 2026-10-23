@@ -22,6 +22,7 @@ builder.Services.AddScoped<JoinService>();
 builder.Services.AddScoped<TenantContext>();
 builder.Services.AddScoped<TenantPageFilter>();
 builder.Services.AddScoped<MemberAdminService>();
+builder.Services.AddScoped<PlatformTenantService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<LookupLimiter>();
 
@@ -37,7 +38,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         o.ExpireTimeSpan = TimeSpan.FromDays(30);
         o.SlidingExpiration = true;
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(o =>
+    o.AddPolicy(CurrentUser.PlatformAdminPolicy, p => p.RequireClaim(CurrentUser.PlatformAdminClaim, "1")));
 // 한글을 &#x...; 로 바꾸지 않고 그대로 쓴다(화면 크기 · 검색).  < > & " 등은 그대로 이스케이프된다.
 builder.Services.Configure<Microsoft.Extensions.WebEncoders.WebEncoderOptions>(o =>
     o.TextEncoderSettings = new System.Text.Encodings.Web.TextEncoderSettings(System.Text.Unicode.UnicodeRanges.All));

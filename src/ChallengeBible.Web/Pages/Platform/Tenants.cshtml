@@ -1,0 +1,137 @@
+@page "/platform/tenants"
+@model ChallengeBible.Web.Pages.Platform.TenantsModel
+@using ChallengeBible.Infrastructure.Data
+@using ChallengeBible.Web.Pages.Platform
+@* 확정 시안: 플랫폼-부서관리-단독시안 *@
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap wide">
+    <div class="titlebar">
+        <h1>부서 <small class="num">@Model.Rows.Count(r => r.Status == TenantStatus.Active)곳 운영 중 · 정지 @Model.Rows.Count(r => r.Status == TenantStatus.Suspended)</small></h1>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
+
+    <details class="create" open="@Model.ShowCreate">
+        <summary class="btn pf sm">+ 새 부서 만들기</summary>
+        <form method="post" asp-page-handler="Create" class="stack card" novalidate>
+            @{ string? E(string f) => Model.CreateErrors.GetValueOrDefault(f); }
+            <div class="f"><label for="nName">부서 이름</label>
+                <input class="in" id="nName" asp-for="Name" placeholder="예: 잠실새내교회 중등부" maxlength="100" />
+                <p class="hint bad">@E("Name")</p></div>
+            <div class="f"><label for="nSlug">주소 <small>영어 소문자 · 숫자 · 하이픈, 만든 뒤에는 바꿀 수 없어요</small></label>
+                <input class="in" id="nSlug" asp-for="Slug" placeholder="jamsil-middle" maxlength="40" autocapitalize="off" spellcheck="false" />
+                <p class="hint bad">@E("Slug")</p></div>
+            <div class="f"><label>프로그램 <small>하나 이상</small></label>
+                <div class="rl">
+                    <label><input type="checkbox" asp-for="Mission" />도전!!!성경말씀</label>
+                    <label><input type="checkbox" asp-for="Reading" />도전!!!성경통독</label>
+                </div>
+                <p class="hint bad">@E("Programs")</p></div>
+            <div class="f"><label for="nTz">시간대 <small>"오늘"을 정하는 기준</small></label>
+                <select class="sel" id="nTz" asp-for="TimeZoneId">
+                    @foreach (var z in ChallengeBible.Web.Services.PlatformTenantService.TimeZones) { <option value="@z">@z</option> }
+                </select></div>
+            <div class="f"><label>대표 색</label>
+                <div class="colors">
+                    @foreach (var c in ChallengeBible.Web.Services.PlatformTenantService.ThemeColors)
+                    {
+                        <label class="sw" style="background:@TenantsModel.ColorVar(c)"><input type="radio" name="ThemeColor" value="@c" checked="@(Model.ThemeColor == c)" aria-label="@TenantsModel.ColorLabel(c)" /></label>
+                    }
+                </div></div>
+            <div class="f"><label for="nAdm">첫 부서 관리자 아이디 <small>나중에 정해도 돼요</small></label>
+                <input class="in" id="nAdm" asp-for="AdminLoginId" placeholder="예: eunhye" autocapitalize="off" spellcheck="false" />
+                <p class="hint bad">@E("AdminLoginId")</p></div>
+            <p class="hint">참여 코드는 만들 때 저절로 생겨요. 서비스 이름은 기본 "도전!!!성경말씀"이에요.</p>
+            <button type="submit" class="btn pf sm">만들기</button>
+        </form>
+    </details>
+
+    <form method="get" class="tools">
+        <input class="search" type="search" name="Q" value="@Model.Q" placeholder="부서 이름 · 주소로 찾기" aria-label="부서 이름 · 주소로 찾기" />
+        <button class="btn s sm" type="submit">찾기</button>
+    </form>
+
+    <ul class="list">
+        @if (Model.Rows.Count == 0) { <li class="empty">아직 부서가 없어요. "새 부서 만들기"로 시작하세요.</li> }
+        @foreach (var t in Model.Rows)
+        {
+            var open = Model.Open == t.Id;
+            <li class="row">
+                <details open="@open">
+                    <summary class="line">
+                        <i class="dot" style="background:@TenantsModel.ColorVar(t.ThemeColor)"></i>
+                        <span class="who"><b>@t.Name</b><small>/@t.Slug · 소속 @(t.MemberCount)명 · 관리자 @(t.Admins.Count == 0 ? "없음" : string.Join(", ", t.Admins.Select(a => a.Name)))</small></span>
+                        <span class="tags">
+                            @if (t.MissionEnabled) { <span class="tag r-Participant">성경말씀</span> }
+                            @if (t.ReadingEnabled) { <span class="tag r-Guardian">성경통독</span> }
+                            <span class="tag @(t.Status == TenantStatus.Active ? "" : "st")">@(t.Status == TenantStatus.Active ? "운영" : "정지")</span>
+                        </span>
+                        <span class="chev" aria-hidden="true">›</span>
+                    </summary>
+                    <div class="ed">
+                        @if (open && Model.RowError is not null) { <p class="err" role="alert">@Model.RowError</p> }
+                        <div class="grid2">
+                            <form method="post" asp-page-handler="Programs">
+                                <input type="hidden" name="id" value="@t.Id" />
+                                <h3>프로그램 <span>· 하나 이상</span></h3>
+                                <div class="rl">
+                                    <label><input type="checkbox" name="mission" value="true" checked="@t.MissionEnabled" />도전!!!성경말씀</label>
+                                    <label><input type="checkbox" name="reading" value="true" checked="@t.ReadingEnabled" />도전!!!성경통독</label>
+                                </div>
+                                <button type="submit" class="btn s sm mt">프로그램 저장</button>
+                            </form>
+                            <form method="post" asp-page-handler="Code">
+                                <input type="hidden" name="id" value="@t.Id" />
+                                <h3>참여 코드 <span>· 선생님이 아이들에게 알려 주는 코드</span></h3>
+                                <p class="code">@t.JoinCode</p>
+                                <button type="submit" class="btn s sm">새 코드로 바꾸기</button>
+                                <p class="hint">바꾸면 예전 코드로는 신청할 수 없어요. 이미 소속된 사람은 그대로예요.</p>
+                            </form>
+                            <div>
+                                <h3>부서 관리자</h3>
+                                @if (t.Admins.Count == 0) { <p class="warnline">아직 없어요. 한 명은 정해 주세요.</p> }
+                                @foreach (var a in t.Admins)
+                                {
+                                    <form method="post" asp-page-handler="RemoveAdmin" class="adminline">
+                                        <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="accountId" value="@a.AccountId" />
+                                        <span>@a.Name <small>@a.LoginId</small></span><button type="submit" class="btn t">빼기</button>
+                                    </form>
+                                }
+                                <form method="post" asp-page-handler="AddAdmin" class="row">
+                                    <input type="hidden" name="id" value="@t.Id" />
+                                    <input class="in sm" name="loginId" placeholder="아이디로 추가" autocapitalize="off" spellcheck="false" aria-label="부서 관리자 아이디" />
+                                    <button type="submit" class="btn s sm">추가</button>
+                                </form>
+                                <p class="hint">소속이 없으면 함께 승인돼요. 빼도 소속은 그대로예요.</p>
+                            </div>
+                            <div>
+                                <h3>정보</h3>
+                                <p class="info">주소 <b>/@t.Slug</b><br>시간대 @t.TimeZoneId · 만든 날 @t.CreatedUtc.ToString("yyyy.MM.dd")</p>
+                            </div>
+                        </div>
+                        <div class="acts">
+                            <a class="btn s sm" href="/@t.Slug/admin/members">이 부서 관리 화면 →</a>
+                            @if (t.Status == TenantStatus.Active)
+                            {
+                                <details class="ask"><summary class="btn d sm">정지</summary>
+                                    <form method="post" asp-page-handler="Status">
+                                        <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="status" value="@TenantStatus.Suspended" />
+                                        <span>@(t.Name)을(를) 정지할까요? 소속된 모든 사람이 이 부서 주소에 들어갈 수 없게 돼요. 데이터는 지우지 않아요.</span>
+                                        <button type="submit" class="btn dd sm">정지하기</button>
+                                    </form>
+                                </details>
+                            }
+                            else
+                            {
+                                <form method="post" asp-page-handler="Status">
+                                    <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="status" value="@TenantStatus.Active" />
+                                    <button type="submit" class="btn p sm">다시 열기</button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </details>
+            </li>
+        }
+    </ul>
+</div></main>

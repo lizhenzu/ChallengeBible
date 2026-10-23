@@ -11,6 +11,10 @@ public static class CurrentUser
 {
     public const string AccountIdClaim = "aid";
     public const string PlatformAdminClaim = "padmin";
+    /// <summary>플랫폼 화면 정책. 서비스는 DB 로 한 번 더 확인한다.</summary>
+    public const string PlatformAdminPolicy = "PlatformAdmin";
+
+    public static bool IsPlatformAdmin(this ClaimsPrincipal user) => user.HasClaim(PlatformAdminClaim, "1");
 
     public static int? AccountId(this ClaimsPrincipal user) =>
         int.TryParse(user.FindFirstValue(AccountIdClaim), out var id) ? id : null;
