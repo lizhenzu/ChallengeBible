@@ -39,6 +39,11 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
                     b.Property<int?>("FamilyTenantId")
                         .HasColumnType("int");
 
@@ -47,11 +52,6 @@ namespace ChallengeBible.Infrastructure.Migrations
 
                     b.Property<int?>("LastTenantId")
                         .HasColumnType("int");
-
-                    b.Property<string>("LoginId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("MustChangePassword")
                         .HasColumnType("bit");
@@ -75,13 +75,13 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("PK_Account");
 
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_Account_Email");
+
                     b.HasIndex("FamilyTenantId");
 
                     b.HasIndex("LastTenantId");
-
-                    b.HasIndex("LoginId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_Account_LoginId");
 
                     b.ToTable("Account", "app", t =>
                         {

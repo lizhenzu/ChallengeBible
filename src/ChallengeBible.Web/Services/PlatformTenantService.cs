@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 namespace ChallengeBible.Web.Services;
 
 public sealed record TenantRow(int Id, string Name, string Slug, string JoinCode, string ThemeColor, bool MissionEnabled, bool ReadingEnabled,
-    string Status, int MemberCount, IReadOnlyList<(int AccountId, string Name, string LoginId)> Admins, DateTime CreatedUtc, string TimeZoneId);
+    string Status, int MemberCount, IReadOnlyList<(int AccountId, string Name, string Email)> Admins, DateTime CreatedUtc, string TimeZoneId);
 
-public sealed record NewTenant(string Name, string Slug, string TimeZoneId, string ThemeColor, bool Mission, bool Reading, string? AdminLoginId);
+public sealed record NewTenant(string Name, string Slug, string TimeZoneId, string ThemeColor, bool Mission, bool Reading, string? AdminEmail);
 
 /// <summary>
 /// 플랫폼 관리자의 부서 관리(API 계약 4-5 · 5-4b): 만들기, 프로그램, 참여 코드, 부서 관리자, 정지.
@@ -51,10 +51,10 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
                             join m in ctx.Memberships on new { r.TenantId, Id = r.MembershipId } equals new { m.TenantId, m.Id }
                             join a in ctx.Accounts on m.AccountId equals a.Id
                             where r.Role == Roles.TenantAdmin && m.Status == MembershipStatus.Approved
-                            select new { m.TenantId, a.Id, a.DisplayName, a.LoginId }).ToListAsync(ct);
+                            select new { m.TenantId, a.Id, a.DisplayName, a.Email }).ToListAsync(ct);
         return tenants.Select(t => new TenantRow(t.Id, t.Name, t.Slug, t.JoinCode.Trim(), t.ThemeColor, t.MissionEnabled, t.ReadingEnabled, t.Status,
                 counts.GetValueOrDefault(t.Id),
-                admins.Where(a => a.TenantId == t.Id).Select(a => (a.Id, a.DisplayName, a.LoginId)).ToList(), t.CreatedUtc, t.TimeZoneId))
+                admins.Where(a => a.TenantId == t.Id).Select(a => (a.Id, a.DisplayName, a.Email)).ToList(), t.CreatedUtc, t.TimeZoneId))
             .ToList();
     }
 
@@ -74,11 +74,11 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         await using var ctx = await OpenAsync(actor, ct);
         if (await ctx.Tenants.AnyAsync(t => t.Slug == slug, ct)) { errors["Slug"] = "이미 쓰고 있는 주소예요."; return (null, errors); }
         Account? admin = null;
-        if (!string.IsNullOrWhiteSpace(input.AdminLoginId))
+        if (!string.IsNullOrWhiteSpace(input.AdminEmail))
         {
-            var id = AccountService.NormalizeLoginId(input.AdminLoginId);
-            admin = await ctx.Accounts.SingleOrDefaultAsync(a => a.LoginId == id, ct);
-            if (admin is null) { errors["AdminLoginId"] = "그 아이디의 계정이 없어요."; return (null, errors); }
+            var id = AccountService.NormalizeEmail(input.AdminEmail);
+            admin = await ctx.Accounts.SingleOrDefaultAsync(a => a.Email == id, ct);
+            if (admin is null) { errors["AdminEmail"] = "그 이메일의 계정이 없어요."; return (null, errors); }
         }
 
         var t = new Tenant
@@ -131,12 +131,12 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
     }
 
     /// <summary>부서 관리자 지정. 소속이 없으면 승인된 소속을 함께 만든다(API 계약 5-4b).</summary>
-    public async Task<string?> AddAdminAsync(int actor, int tenantId, string loginId, CancellationToken ct = default)
+    public async Task<string?> AddAdminAsync(int actor, int tenantId, string email, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
-        var id = AccountService.NormalizeLoginId(loginId ?? "");
-        var a = await ctx.Accounts.SingleOrDefaultAsync(x => x.LoginId == id, ct);
-        if (a is null) return "그 아이디의 계정이 없어요.";
+        var id = AccountService.NormalizeEmail(email ?? "");
+        var a = await ctx.Accounts.SingleOrDefaultAsync(x => x.Email == id, ct);
+        if (a is null) return "그 이메일의 계정이 없어요.";
         await GrantAdminAsync(ctx, actor, tenantId, a.Id, ct);
         return null;
     }

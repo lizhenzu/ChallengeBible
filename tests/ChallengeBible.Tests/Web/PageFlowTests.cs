@@ -55,7 +55,7 @@ public partial class PageFlowTests : IClassFixture<WebApplicationFactory<Program
         var signup = await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["__RequestVerificationToken"] = await Token(c, "/account/signup"),
-            ["DisplayName"] = "김철수", ["LoginId"] = "cheolsu", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
+            ["DisplayName"] = "김철수", ["Email"] = "cheolsu@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         Assert.Equal(HttpStatusCode.Redirect, signup.StatusCode);
         Assert.Equal("/join?welcome=1", signup.Headers.Location!.OriginalString);

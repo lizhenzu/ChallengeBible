@@ -501,3 +501,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# server connection string (contains a password)
+appsettings.Production.json

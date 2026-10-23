@@ -9,7 +9,7 @@ public class LoginModel(AccountService accounts) : PageModel, ITitled
 {
     public string Title => "로그인";
 
-    [BindProperty] public string LoginId { get; set; } = "";
+    [BindProperty] public string Email { get; set; } = "";
     [BindProperty] public string Password { get; set; } = "";
     [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
 
@@ -20,11 +20,11 @@ public class LoginModel(AccountService accounts) : PageModel, ITitled
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
-        var r = await accounts.LoginAsync(LoginId, Password, ct);
+        var r = await accounts.LoginAsync(Email, Password, ct);
         if (r.Account is null)
         {
             Error = r.Error;
-            ErrorField = string.IsNullOrWhiteSpace(LoginId) ? "LoginId" : "Password";
+            ErrorField = string.IsNullOrWhiteSpace(Email) ? "Email" : "Password";
             Password = "";
             return Page();
         }

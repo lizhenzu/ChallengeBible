@@ -11,9 +11,9 @@
     <form method="post" class="stack" novalidate>
         <input type="hidden" asp-for="ReturnUrl" />
         <div class="f">
-            <label for="uid">아이디</label>
-            <input class="in" id="uid" asp-for="LoginId" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="아이디"
-                   aria-invalid="@(Model.ErrorField == "LoginId" ? "true" : "false")" />
+            <label for="uid">이메일</label>
+            <input class="in" id="uid" asp-for="Email" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="이메일"
+                   aria-invalid="@(Model.ErrorField == "Email" ? "true" : "false")" />
         </div>
         <div class="f">
             <label for="pw">비밀번호</label>

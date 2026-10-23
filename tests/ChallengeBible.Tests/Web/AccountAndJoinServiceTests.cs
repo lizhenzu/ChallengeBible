@@ -18,7 +18,7 @@ public class AccountAndJoinServiceTests
         return (new JoinService(new InMemoryDb(_db, scope), scope, Time), scope);
     }
 
-    private async Task<Account> SignUp(string id = "cheolsu", string name = "김철수", string pw = "1234")
+    private async Task<Account> SignUp(string id = "cheolsu@example.com", string name = "김철수", string pw = "1234")
     {
         var (a, e) = await Accounts().SignUpAsync(new SignUpInput(name, id, pw, pw));
         Assert.True(e.Ok, string.Join(",", e.Values));
@@ -26,20 +26,21 @@ public class AccountAndJoinServiceTests
     }
 
     [Fact]
-    public async Task R137_가입은_이름_아이디_비밀번호만()
+    public async Task R137_가입은_이름_이메일_비밀번호만()
     {
-        var a = await SignUp(id: "CheolSu");
-        Assert.Equal("cheolsu", a.LoginId);   // 아이디는 소문자로
+        var a = await SignUp(id: "CheolSu@Example.com");
+        Assert.Equal("cheolsu@example.com", a.Email);   // 이메일은 소문자로
         Assert.NotEqual("1234", a.PasswordHash);   // 비밀번호는 해시로만
         Assert.False(a.IsPlatformAdmin);
     }
 
     [Theory]
-    [InlineData("", "cheolsu", "1234", "1234", "DisplayName")]
-    [InlineData("철수", "ab", "1234", "1234", "LoginId")]
-    [InlineData("철수", "cheol su", "1234", "1234", "LoginId")]
-    [InlineData("철수", "cheolsu", "123", "123", "Password")]
-    [InlineData("철수", "cheolsu", "1234", "4321", "PasswordConfirm")]
+    [InlineData("", "cheolsu@example.com", "1234", "1234", "DisplayName")]
+    [InlineData("철수", "cheolsu", "1234", "1234", "Email")]   // @ 없는 옛 아이디는 이메일로 못 쓴다(ADR 0050)
+    [InlineData("철수", "ab@", "1234", "1234", "Email")]
+    [InlineData("철수", "cheol su@example.com", "1234", "1234", "Email")]
+    [InlineData("철수", "cheolsu@example.com", "123", "123", "Password")]
+    [InlineData("철수", "cheolsu@example.com", "1234", "4321", "PasswordConfirm")]
     public async Task 가입_입력_검사(string name, string id, string pw, string pw2, string field)
     {
         var (a, e) = await Accounts().SignUpAsync(new SignUpInput(name, id, pw, pw2));
@@ -48,24 +49,24 @@ public class AccountAndJoinServiceTests
     }
 
     [Fact]
-    public async Task 같은_아이디는_가입할_수_없다()
+    public async Task 같은_이메일은_가입할_수_없다()
     {
         await SignUp();
-        var (a, e) = await Accounts().SignUpAsync(new SignUpInput("다른 철수", "cheolsu", "5678", "5678"));
+        var (a, e) = await Accounts().SignUpAsync(new SignUpInput("다른 철수", "cheolsu@example.com", "5678", "5678"));
         Assert.Null(a);
-        Assert.Contains("이미", e["LoginId"]);
+        Assert.Contains("이미", e["Email"]);
     }
 
     [Fact]
     public async Task 로그인은_비밀번호가_맞아야()
     {
         await SignUp();
-        Assert.NotNull((await Accounts().LoginAsync("CHEOLSU", "1234")).Account);
-        var wrong = await Accounts().LoginAsync("cheolsu", "0000");
+        Assert.NotNull((await Accounts().LoginAsync("CHEOLSU@EXAMPLE.COM", "1234")).Account);
+        var wrong = await Accounts().LoginAsync("cheolsu@example.com", "0000");
         Assert.Null(wrong.Account);
-        Assert.Equal("아이디 또는 비밀번호가 맞지 않아요. 다시 확인해 주세요.", wrong.Error);
-        // 없는 아이디도 같은 문구(아이디가 있는지 알려 주지 않음)
-        Assert.Equal(wrong.Error, (await Accounts().LoginAsync("nobody", "1234")).Error);
+        Assert.Equal("이메일 또는 비밀번호가 맞지 않아요. 다시 확인해 주세요.", wrong.Error);
+        // 없는 이메일도 같은 문구(이메일이 있는지 알려 주지 않음)
+        Assert.Equal(wrong.Error, (await Accounts().LoginAsync("nobody@example.com", "1234")).Error);
     }
 
     [Fact]
@@ -164,6 +165,6 @@ public class AccountAndJoinServiceTests
         Assert.True(await Accounts().MustChangePasswordAsync(me.Id));
         Assert.True((await Accounts().ChangePasswordAsync(me.Id, "5678", "5678")).Ok);
         Assert.False(await Accounts().MustChangePasswordAsync(me.Id));
-        Assert.NotNull((await Accounts().LoginAsync("cheolsu", "5678")).Account);
+        Assert.NotNull((await Accounts().LoginAsync("cheolsu@example.com", "5678")).Account);
     }
 }

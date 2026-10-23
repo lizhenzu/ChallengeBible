@@ -38,8 +38,8 @@ internal sealed class AccountConfig : IEntityTypeConfiguration<Account>
     {
         e.ToTable("Account", t => t.HasCheckConstraint("CK_Account_Status", "Status IN ('Active','Disabled')"));
         e.HasKey(x => x.Id).HasName("PK_Account");
-        e.Property(x => x.LoginId).HasMaxLength(50);
-        e.HasIndex(x => x.LoginId).IsUnique().HasDatabaseName("UQ_Account_LoginId");
+        e.Property(x => x.Email).HasMaxLength(254);
+        e.HasIndex(x => x.Email).IsUnique().HasDatabaseName("UQ_Account_Email");
         e.Property(x => x.PasswordHash).HasMaxLength(200).IsUnicode(false);
         e.Property(x => x.DisplayName).HasMaxLength(50);
         e.Property(x => x.PhotoPath).HasMaxLength(260);

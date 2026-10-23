@@ -50,11 +50,11 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             var h = await c.GetStringAsync("/account/signup");
             await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["__RequestVerificationToken"] = TokenRx().Match(h).Groups[1].Value, ["DisplayName"] = name, ["LoginId"] = id, ["Password"] = "1234", ["PasswordConfirm"] = "1234",
+                ["__RequestVerificationToken"] = TokenRx().Match(h).Groups[1].Value, ["DisplayName"] = name, ["Email"] = id, ["Password"] = "1234", ["PasswordConfirm"] = "1234",
             }));
             return c;
         }
-        int Acc(string id) { using var raw = InMemoryDb.Raw(db); return raw.Accounts.Single(a => a.LoginId == id).Id; }
+        int Acc(string id) { using var raw = InMemoryDb.Raw(db); return raw.Accounts.Single(a => a.Email == id).Id; }
 
         var anon = app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         await Save(anon, "/", "01-첫화면");
@@ -123,11 +123,11 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
 
         // 운영자: 가입 → 플랫폼 관리자 → 다시 로그인
         var op = await SignUp("operator", "운영자");
-        using (var raw = InMemoryDb.Raw(db)) { raw.Accounts.Single(a => a.LoginId == "operator").IsPlatformAdmin = true; raw.SaveChanges(); }
+        using (var raw = InMemoryDb.Raw(db)) { raw.Accounts.Single(a => a.Email == "operator").IsPlatformAdmin = true; raw.SaveChanges(); }
         var lh = await op.GetStringAsync("/account/login");
         await op.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["__RequestVerificationToken"] = TokenRx().Match(lh).Groups[1].Value, ["LoginId"] = "operator", ["Password"] = "1234",
+            ["__RequestVerificationToken"] = TokenRx().Match(lh).Groups[1].Value, ["Email"] = "operator", ["Password"] = "1234",
         }));
         await Save(op, "/platform/tenants", "13-플랫폼부서");
         await Save(op, "/platform/content/word?month=2027-01&date=2027-01-05", "14-공용콘텐츠-말씀");

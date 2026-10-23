@@ -38,9 +38,9 @@
                         <label class="sw" style="background:@TenantsModel.ColorVar(c)"><input type="radio" name="ThemeColor" value="@c" checked="@(Model.ThemeColor == c)" aria-label="@TenantsModel.ColorLabel(c)" /></label>
                     }
                 </div></div>
-            <div class="f"><label for="nAdm">첫 부서 관리자 아이디 <small>나중에 정해도 돼요</small></label>
-                <input class="in" id="nAdm" asp-for="AdminLoginId" placeholder="예: eunhye" autocapitalize="off" spellcheck="false" />
-                <p class="hint bad">@E("AdminLoginId")</p></div>
+            <div class="f"><label for="nAdm">첫 부서 관리자 이메일 <small>나중에 정해도 돼요</small></label>
+                <input class="in" id="nAdm" asp-for="AdminEmail" placeholder="예: eunhye@example.com" autocapitalize="off" spellcheck="false" />
+                <p class="hint bad">@E("AdminEmail")</p></div>
             <p class="hint">참여 코드는 만들 때 저절로 생겨요. 서비스 이름은 기본 "도전!!!성경말씀"이에요.</p>
             <button type="submit" class="btn pf sm">만들기</button>
         </form>
@@ -94,12 +94,12 @@
                                 {
                                     <form method="post" asp-page-handler="RemoveAdmin" class="adminline">
                                         <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="accountId" value="@a.AccountId" />
-                                        <span>@a.Name <small>@a.LoginId</small></span><button type="submit" class="btn t">빼기</button>
+                                        <span>@a.Name <small>@a.Email</small></span><button type="submit" class="btn t">빼기</button>
                                     </form>
                                 }
                                 <form method="post" asp-page-handler="AddAdmin" class="row">
                                     <input type="hidden" name="id" value="@t.Id" />
-                                    <input class="in sm" name="loginId" placeholder="아이디로 추가" autocapitalize="off" spellcheck="false" aria-label="부서 관리자 아이디" />
+                                    <input class="in sm" name="email" placeholder="이메일로 추가" autocapitalize="off" spellcheck="false" aria-label="부서 관리자 이메일" />
                                     <button type="submit" class="btn s sm">추가</button>
                                 </form>
                                 <p class="hint">소속이 없으면 함께 승인돼요. 빼도 소속은 그대로예요.</p>

@@ -10,7 +10,7 @@ public class SignupModel(AccountService accounts) : PageModel, ITitled
     public string Title => "회원가입";
 
     [BindProperty] public string DisplayName { get; set; } = "";
-    [BindProperty] public string LoginId { get; set; } = "";
+    [BindProperty] public string Email { get; set; } = "";
     [BindProperty] public string Password { get; set; } = "";
     [BindProperty] public string PasswordConfirm { get; set; } = "";
 
@@ -22,7 +22,7 @@ public class SignupModel(AccountService accounts) : PageModel, ITitled
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
-        var (account, errors) = await accounts.SignUpAsync(new SignUpInput(DisplayName, LoginId, Password, PasswordConfirm), ct);
+        var (account, errors) = await accounts.SignUpAsync(new SignUpInput(DisplayName, Email, Password, PasswordConfirm), ct);
         if (account is null)
         {
             Errors = errors;
