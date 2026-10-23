@@ -12,4 +12,8 @@
     <UserSecretsId>c87ac3b6-7be9-403a-8e2d-324d539b077b</UserSecretsId>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ChallengeBible.Tests" />
+  </ItemGroup>
+
 </Project>

@@ -3,7 +3,9 @@ using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
+using ChallengeBible.Web.Tenancy;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +19,9 @@ builder.Services.AddScoped<IAppDb>(sp => new RequestDbContextFactory(connectionS
 builder.Services.AddSingleton<ISystemDb>(new SystemDbContextFactory(connectionString));
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<JoinService>();
+builder.Services.AddScoped<TenantContext>();
+builder.Services.AddScoped<TenantPageFilter>();
+builder.Services.AddScoped<MemberAdminService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<LookupLimiter>();
 
@@ -28,6 +33,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         o.Cookie.SameSite = SameSiteMode.Lax;
         o.LoginPath = "/account/login";
         o.LogoutPath = "/account/logout";
+        o.AccessDeniedPath = "/account/denied";
         o.ExpireTimeSpan = TimeSpan.FromDays(30);
         o.SlidingExpiration = true;
     });
@@ -37,6 +43,7 @@ builder.Services.Configure<Microsoft.Extensions.WebEncoders.WebEncoderOptions>(o
     o.TextEncoderSettings = new System.Text.Encodings.Web.TextEncoderSettings(System.Text.Unicode.UnicodeRanges.All));
 builder.Services.AddRazorPages(o =>
 {
+    o.Conventions.ConfigureFilter(new ServiceFilterAttribute(typeof(TenantPageFilter)));
     o.Conventions.AuthorizeFolder("/");
     o.Conventions.AllowAnonymousToPage("/Index");
     o.Conventions.AllowAnonymousToPage("/Account/Login");

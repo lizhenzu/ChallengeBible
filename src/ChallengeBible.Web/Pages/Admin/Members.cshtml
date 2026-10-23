@@ -1,0 +1,114 @@
+@page "/{slug}/admin/members"
+@model ChallengeBible.Web.Pages.Admin.MembersModel
+@using ChallengeBible.Infrastructure.Data
+@using ChallengeBible.Web.Pages.Admin
+@* 확정 시안: 관리-소속관리-단독시안 (1차: 줄을 펼쳐 바로 처리, 여러 명 진급은 진급 단계에서) *@
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut"><div class="wrap wide">
+    <h1>소속 관리</h1>
+
+    @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
+
+    <nav class="seg" aria-label="상태">
+        @foreach (var (key, label) in MembersModel.Tabs)
+        {
+            var n = Model.Counts.GetValueOrDefault(key);
+            <a href="?Tab=@key" aria-current="@(key == Model.Tab ? "page" : "false")">@label <span class="num @(key == MembershipStatus.Requested && n > 0 ? "c" : "")">@n</span></a>
+        }
+    </nav>
+
+    <form method="get" class="tools">
+        <input type="hidden" name="Tab" value="@Model.Tab" />
+        <input class="search" type="search" name="Q" value="@Model.Q" placeholder="이름 · 아이디로 찾기" aria-label="이름 · 아이디로 찾기" />
+        <select class="sel" name="Role" aria-label="역할" onchange="this.form.submit()">
+            <option value="">모든 역할</option>
+            @foreach (var r in Roles.All) { <option value="@r" selected="@(Model.Role == r)">@MembersModel.RoleLabel(r)</option> }
+        </select>
+        <select class="sel" name="Group" aria-label="반" onchange="this.form.submit()">
+            <option value="">모든 반</option>
+            @foreach (var g in Model.Groups) { <option selected="@(Model.Group == g)">@g</option> }
+            <option value="-" selected="@(Model.Group == "-")">반 없음</option>
+        </select>
+        <button class="btn s sm" type="submit">찾기</button>
+    </form>
+
+    <ul class="list">
+        @if (Model.Rows.Count == 0)
+        {
+            <li class="empty">@(Model.Tab == MembershipStatus.Requested ? "기다리는 신청이 없어요." : "찾는 사람이 없어요.")</li>
+        }
+        @foreach (var m in Model.Rows)
+        {
+            var self = m.AccountId == Model.Me;
+            var open = Model.ErrorFor == m.MembershipId;
+            <li class="row">
+                <details open="@open">
+                    <summary class="line">
+                        <span class="av">@(m.DisplayName.Length > 1 ? m.DisplayName[1..] : m.DisplayName)</span>
+                        <span class="who"><b>@m.DisplayName @if (self) { <span class="tag">나</span> }</b>
+                            <small>@m.LoginId@(m.GroupLabel is null ? "" : $" · {m.GroupLabel}")@(m.Status == MembershipStatus.Requested ? $" · {m.RequestedUtc:M월 d일} 신청" : "")</small></span>
+                        <span class="tags">@foreach (var r in m.Roles) { <span class="tag r-@r">@MembersModel.RoleLabel(r)@(m.Status == MembershipStatus.Requested ? " 희망" : "")</span> }</span>
+                        <span class="chev" aria-hidden="true">›</span>
+                    </summary>
+                    <div class="ed">
+                        @if (open && Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+                        @if (m.Status != MembershipStatus.Suspended)
+                        {
+                            <form method="post" asp-page-handler="@(m.Status == MembershipStatus.Requested ? "Approve" : "Save")" asp-route-slug="@Model.Tenant.Current.Slug"
+                                  asp-route-Tab="@Model.Tab" class="stack">
+                                <input type="hidden" name="id" value="@m.MembershipId" />
+                                <div>
+                                    <h3>@(m.Status == MembershipStatus.Requested ? "승인할 역할" : "역할") <span>· 여러 개 가능</span></h3>
+                                    <div class="rl">
+                                        @foreach (var r in Roles.All)
+                                        {
+                                            var lockAdmin = self && r == Roles.TenantAdmin;
+                                            <label class="@(lockAdmin ? "lock" : "")"><input type="checkbox" name="roles" value="@r" checked="@m.Roles.Contains(r)" disabled="@lockAdmin" />@MembersModel.RoleLabel(r)</label>
+                                            @if (lockAdmin) { <input type="hidden" name="roles" value="@r" /> }
+                                        }
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3>반</h3>
+                                    <input class="sel" name="group" value="@m.GroupLabel" list="groups" placeholder="반 없음" maxlength="50" aria-label="반" />
+                                </div>
+                                <div class="acts">
+                                    <button type="submit" class="btn p sm">@(m.Status == MembershipStatus.Requested ? "승인" : "저장")</button>
+                                </div>
+                            </form>
+                        }
+                        <div class="acts">
+                            @if (m.Status == MembershipStatus.Requested)
+                            {
+                                <details class="ask"><summary class="btn d sm">거절</summary>
+                                    <form method="post" asp-page-handler="Reject" asp-route-slug="@Model.Tenant.Current.Slug" asp-route-Tab="@Model.Tab">
+                                        <input type="hidden" name="id" value="@m.MembershipId" />
+                                        <span>@(m.DisplayName)님의 신청을 거절할까요?</span><button type="submit" class="btn dd sm">거절하기</button>
+                                    </form>
+                                </details>
+                            }
+                            else if (m.Status == MembershipStatus.Approved && !self)
+                            {
+                                <details class="ask"><summary class="btn d sm">정지</summary>
+                                    <form method="post" asp-page-handler="Suspend" asp-route-slug="@Model.Tenant.Current.Slug" asp-route-Tab="@Model.Tab">
+                                        <input type="hidden" name="id" value="@m.MembershipId" />
+                                        <span>@(m.DisplayName)님을 정지할까요? 모든 역할이 함께 멈추고 미션을 할 수 없어요.</span><button type="submit" class="btn dd sm">정지하기</button>
+                                    </form>
+                                </details>
+                            }
+                            else if (m.Status == MembershipStatus.Suspended)
+                            {
+                                <form method="post" asp-page-handler="Resume" asp-route-slug="@Model.Tenant.Current.Slug" asp-route-Tab="@Model.Tab">
+                                    <input type="hidden" name="id" value="@m.MembershipId" />
+                                    <button type="submit" class="btn p sm">정지 풀기</button>
+                                </form>
+                            }
+                        </div>
+                        @if (self) { <p class="hint">내 관리자 역할은 여기서 뺄 수 없어요.</p> }
+                    </div>
+                </details>
+            </li>
+        }
+    </ul>
+    <datalist id="groups">@foreach (var g in Model.Groups) { <option value="@g"></option> }</datalist>
+</div></main>

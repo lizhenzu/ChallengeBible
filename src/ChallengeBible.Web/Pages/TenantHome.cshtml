@@ -2,6 +2,12 @@
 @model TenantHomeModel
 <partial name="_Top" />
 <main class="page gut"><div class="wrap">
-    <h1>부서 홈</h1>
-    <p class="sub">@Model.Slug 부서 홈은 다음 단계에서 만들어요.</p>
+    <div>
+        <h1>@Model.Tenant.Current.Name</h1>
+        <p class="sub">@Model.Tenant.AppName · 부서 홈은 미션 단계에서 확정 시안대로 채워요.</p>
+    </div>
+    @if (Model.Tenant.IsAdmin)
+    {
+        <a class="btn s" href="/@Model.Tenant.Current.Slug/admin/members">관리 · 소속 관리</a>
+    }
 </div></main>

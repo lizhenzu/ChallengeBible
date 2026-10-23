@@ -18,6 +18,28 @@ public sealed class InMemoryDb(string name, RequestScope scope) : IAppDb
 
     public static string NewName() => "cb-" + Guid.NewGuid().ToString("N");
 
+    public static Account SeedAccount(string name, string loginId, string displayName, int? familyTenantId = null)
+    {
+        using var db = Raw(name);
+        var a = new Account { LoginId = loginId, DisplayName = displayName, PasswordHash = "-", FamilyTenantId = familyTenantId };
+        db.Accounts.Add(a);
+        db.SaveChanges();
+        return a;
+    }
+
+    public static Membership SeedMembership(string name, int tenantId, int accountId, string status, params string[] roles)
+    {
+        using var db = Raw(name);
+        var m = new Membership
+        {
+            TenantId = tenantId, AccountId = accountId, Status = status,
+            Roles = roles.Select(r => new MembershipRole { TenantId = tenantId, Role = r }).ToList(),
+        };
+        db.Memberships.Add(m);
+        db.SaveChanges();
+        return m;
+    }
+
     /// <summary>필터 없이 바로 넣고 보는 컨텍스트(준비 · 확인용).</summary>
     public static AppDbContext Raw(string name) =>
         new(new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(name).Options, tenantId: null) { FilterTenants = false };

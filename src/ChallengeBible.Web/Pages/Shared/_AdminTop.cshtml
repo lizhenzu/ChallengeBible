@@ -1,0 +1,22 @@
+@model ChallengeBible.Web.Tenancy.TenantContext
+@{
+    var slug = Model.Current.Slug;
+    var path = Context.Request.Path.Value ?? "";
+    // 1차에 있는 관리 메뉴만 링크. 나머지는 단계마다 붙인다.
+    (string Href, string Label)[] menu =
+    [
+        ($"/{slug}/admin/members", "소속 관리"),
+    ];
+}
+<header class="admintop gut">
+    <div class="wrap wide hd">
+        <div class="t"><small>@Model.Current.Name</small><b><em>도전!!!</em> 관리</b></div>
+        <a class="back" href="/@slug">부서 홈으로</a>
+    </div>
+    <nav class="wrap wide tabs" aria-label="관리 메뉴">
+        @foreach (var (href, label) in menu)
+        {
+            <a href="@href" aria-current="@(path.StartsWith(href) ? "page" : "false")">@label</a>
+        }
+    </nav>
+</header>
