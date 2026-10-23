@@ -1,6 +1,11 @@
 @page "/{slug}/word"
 @model WordModel
-@{ var d = Model.Data!; var w = d.Word; }
+@{
+    var d = Model.Data!; var w = d.Word;
+    // 확정 시안: 이야기 옆 읽는 시간(한 글자 ≈ 0.11초, 10초 단위), 성경 읽기는 "○○ N장 읽으러 가기"
+    string ReadTime(string s) { var sec = Math.Max(10, (int)Math.Round(s.Length / 9.0 / 10) * 10); return sec < 60 ? $"{sec}초" : $"{Math.Round(sec / 60.0)}분"; }
+    var chapter = w is null ? "" : w.Range.IndexOf('장') is var i && i > 0 ? w.Range[..(i + 1)] : w.Range;
+}
 @await Html.PartialAsync("_MissionHead", new MissionHead(Model, "오늘의 말씀", w?.Title ?? "오늘은 말씀이 없어요", w?.Range))
 <main class="mbody gut" data-slug="@Model.Slug" data-date="@Model.Day.ToString("yyyy-MM-dd")"><div class="wrap">
     @if (w is null)
@@ -9,8 +14,15 @@
     }
     else
     {
-        <section class="sec"><h2><span class="n">01</span>오늘 이야기</h2><p class="story">@w.Summary</p></section>
-        <section class="sec"><h2><span class="n">02</span>성경 읽기</h2><p class="hint">@w.Range — 성경 본문 화면은 성경 데이터를 넣은 뒤에 열려요.</p></section>
+        <section class="sec" id="storySec"><h2><span class="n">01</span>오늘 이야기 <small>@ReadTime(w.Summary)</small></h2>
+            <p class="story clip" id="story">@w.Summary</p>
+            <button type="button" class="more" id="storyMore" aria-expanded="false" aria-controls="story" hidden>이야기 더 보기 ＋</button>
+        </section>
+        <section class="sec"><h2><span class="n">02</span>성경 읽기 <small>@w.Range</small></h2>
+            @* 성경 본문 화면은 성경 데이터를 넣은 뒤에 연다(다음 단계). 그때 a 로 바꾼다 *@
+            <span class="wlnk off" aria-disabled="true">@chapter 읽으러 가기 <em aria-hidden="true">→</em></span>
+            <p class="pnote left">성경 본문은 성경 데이터를 넣은 뒤에 열려요.</p>
+        </section>
         @await Html.PartialAsync("_PickSection", new PickSection(Model, "03", "어떻게 읽었나요?", Mission.Word, "word"))
     }
 </div></main>

@@ -66,6 +66,19 @@
     if (s) { s.textContent = text; s.classList.toggle('done', done); }
   }
 
+  // 말씀: 이야기 3줄 접기. 넘칠 때만 "더 보기", 펼치면 01 번호가 초록(시안)
+  const story = document.getElementById('story'), more = document.getElementById('storyMore');
+  if (story && more) {
+    if (story.scrollHeight > story.clientHeight + 2) more.hidden = false;
+    else document.getElementById('storySec')?.classList.add('done');
+    more.addEventListener('click', () => {
+      const open = story.classList.toggle('clip') === false;
+      more.textContent = open ? '이야기 접기 －' : '이야기 더 보기 ＋';
+      more.setAttribute('aria-expanded', String(open));
+      document.getElementById('storySec')?.classList.add('done');
+    });
+  }
+
   // 말씀 · 기도 · 암송 항목
   document.querySelectorAll('.picks[data-api]').forEach((box) => box.addEventListener('click', async (e) => {
     const b = e.target.closest('button.pick');

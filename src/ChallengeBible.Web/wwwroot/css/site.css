@@ -501,3 +501,10 @@ ul.log b.z { color: var(--dim); font-weight: 500; }
 .qgo:disabled { color: var(--dim); border-bottom-color: var(--rule); cursor: default; opacity: .7; }
 @media (prefers-reduced-motion: reduce) { .qopt { transition: none; } }
 .sec.done h2 small.kind { color: var(--dim); }
+/* word mission (mockup): 3-line story with more button, bible reading row */
+.story.clip { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.more { align-self: flex-start; margin-top: -4px; padding: 6px 0; min-height: 36px; border: 0; background: none; font-size: 13px; font-weight: 700; color: var(--accent); }
+.wlnk { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding-bottom: 8px; border-bottom: 2px solid var(--accent); font-size: calc(16px * var(--fs)); font-weight: 800; color: var(--accent); }
+.wlnk em { font-style: normal; font-size: 18px; }
+.wlnk.off { color: var(--dim); border-bottom-color: var(--rule); }
+.pnote.left { text-align: left; }
