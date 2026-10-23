@@ -2,7 +2,7 @@
 @model PrayerModel
 @using ChallengeBible.Web.Auth
 @{ var d = Model.Data!; var p = d.Prayer; var name = User.DisplayName(); }
-@await Html.PartialAsync("_MissionHead", new MissionHead(Model, "오늘의 기도", p is null ? "오늘은 기도가 없어요" : $"{p.Trait}{(p.TraitEn is null ? "" : $" ({p.TraitEn})")}", p?.Range))
+@await Html.PartialAsync("_MissionHead", new MissionHead(Model, "오늘의 성품기도", p is null ? "오늘은 기도가 없어요" : p.Trait, p?.Range, p?.TraitEn))
 <main class="mbody gut" data-slug="@Model.Slug" data-date="@Model.Day.ToString("yyyy-MM-dd")"><div class="wrap">
     @if (p is null)
     {
@@ -10,10 +10,10 @@
     }
     else
     {
-        <section class="sec"><h2><span class="n">01</span>성품기도</h2>
+        <section class="sec done"><h2><span class="n">01</span>오늘의 기도문</h2>
             @foreach (var para in p.Paragraphs) { <p class="story">@Model.Paragraph(para, name)</p> }
         </section>
-        @await Html.PartialAsync("_PickSection", new PickSection(Model, "02", "누구를 위해 기도했나요?", Mission.Prayer, "prayer"))
+        @await Html.PartialAsync("_PickSection", new PickSection(Model, "02","누구를 위해 기도했나요?", Mission.Prayer, "prayer"))
     }
 </div></main>
 @Html.AntiForgeryToken()

@@ -7,7 +7,7 @@ namespace ChallengeBible.Web.Pages.Mission;
 // 확정 시안: 말씀-미션홈 · 말씀-말씀미션 · 말씀-퀴즈미션 · 말씀-기도미션 · 말씀-암송미션
 
 /// <summary>_MissionHead 모델.</summary>
-public sealed record MissionHead(MissionPageBase Page, string Label, string Title, string? Ref);
+public sealed record MissionHead(MissionPageBase Page, string Label, string Title, string? Ref, string? TitleEn = null);
 
 /// <summary>_PickSection 모델: "어떻게 했나요?" 선택 구역(말씀 · 기도).</summary>
 public sealed record PickSection(MissionPageBase Page, string No, string Title, ChallengeBible.Domain.Rules.Mission Mission, string Api);
