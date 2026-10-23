@@ -140,6 +140,17 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task 말씀_화면은_이야기_접기와_읽는_시간_성경_읽기_줄을_보여준다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var html = await c.GetStringAsync("/jamsil-kids/word");
+        Assert.Contains("id=\"story\"", html);
+        Assert.Contains("id=\"storyMore\"", html);      // 3줄을 넘길 때만 JS 가 보인다
+        Assert.Contains("10초", html);                  // 읽는 시간
+        Assert.Contains("읽으러 가기", html);
+    }
+
+    [Fact]
     public async Task 퀴즈_화면은_보기를_고른_뒤_답을_제출한다()
     {
         // 확정 시안: 03 정답을 골라요(라디오) → 답 제출하기, 해설은 끝난 뒤에만
