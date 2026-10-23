@@ -1,0 +1,280 @@
+<title>부서 관리 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/platform/tenants): 플랫폼 머리말 · 메뉴 → 제목 + 새 부서 만들기 → 찾기 · 상태 → 부서 목록(줄을 누르면 그 자리에서 프로그램 · 관리자 · 참여 코드 · 정지) → 새 부서 만들기 창 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --warn: #9A5B00; --warn-bg: #FFF4DE; --bad: #B42318; --bad-bg: #FDECEC;
+    --plat: #1B1F24; --on-plat: #FFFFFF;
+    --c-blue: #2B59C3; --c-green: #1F7A5C; --c-red: #B2462E; --c-violet: #6A4BB5;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C;
+    --plat: #E8EAED; --on-plat: #14171B;
+    --c-blue: #7FA2F2; --c-green: #5CC0A0; --c-red: #F09A80; --c-violet: #B39BF0; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C;
+    --plat: #E8EAED; --on-plat: #14171B;
+    --c-blue: #7FA2F2; --c-green: #5CC0A0; --c-red: #F09A80; --c-violet: #B39BF0; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button, input, select { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible, label:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+  .hd .t { display: flex; align-items: center; gap: 10px; }
+  .hd .t b { font-size: 17px; font-weight: 900; }
+  .hd .t b em { font-style: normal; color: var(--accent); }
+  .pl { font-size: 11px; font-weight: 800; letter-spacing: .06em; padding: 3px 8px; border-radius: 6px; background: var(--plat); color: var(--on-plat); }
+  .me { font-size: 13px; color: var(--dim); }
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-bottom: -1px; }
+  nav.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); border-bottom: 3px solid transparent; }
+  nav.tabs a[aria-current] { color: var(--fg); border-color: var(--plat); }
+
+  main .wrap { padding-block: 20px 56px; display: flex; flex-direction: column; gap: 14px; }
+  .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  h1 small { font-size: 14px; font-weight: 500; color: var(--dim); margin-left: 6px; }
+  .btn { min-height: 44px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); background: var(--bg); white-space: nowrap; }
+  .btn.p { border-color: var(--plat); background: var(--plat); color: var(--on-plat); }
+  .btn.d { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, var(--line)); }
+  .btn.l { border: 0; padding: 0 6px; color: var(--accent); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .tools { display: flex; flex-wrap: wrap; gap: 8px; }
+  .search { flex: 1 1 240px; min-width: 0; min-height: 44px; box-sizing: border-box; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 15px; }
+  .sel { min-height: 44px; padding: 0 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 14px; }
+
+  .list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 18px; overflow: hidden; }
+  .head, .line { display: grid; grid-template-columns: 16px minmax(0, 2.2fr) minmax(0, 1.3fr) 70px minmax(0, 1.2fr) 70px 28px; gap: 12px; align-items: center; padding: 0 16px; }
+  .head { min-height: 40px; background: var(--soft); font-size: 12px; font-weight: 700; color: var(--dim); }
+  .row { border-top: 1px solid var(--rule); }
+  .line { min-height: 64px; cursor: pointer; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .nm { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; }
+  .nm b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nm small { font-size: 12px; color: var(--dim); font-family: ui-monospace, Consolas, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prg { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag { font-size: 11.5px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: var(--soft); color: var(--dim); white-space: nowrap; }
+  .tag.m { background: var(--accent-bg); color: var(--accent); }
+  .tag.r { background: var(--ok-bg); color: var(--ok); }
+  .tag.s { background: var(--bad-bg); color: var(--bad); }
+  .tag.a { background: var(--ok-bg); color: var(--ok); }
+  .cnt { font-size: 14px; font-weight: 700; text-align: right; }
+  .adm { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .adm.none { color: var(--warn); font-weight: 700; }
+  .chev { font-size: 18px; color: var(--dim); transition: transform .15s; text-align: center; }
+  .row.open .chev { transform: rotate(90deg); }
+  @media (max-width: 760px) {
+    .head { display: none; }
+    .line { grid-template-columns: 14px minmax(0, 1fr) auto 20px; grid-template-areas: "d n s c" ". p p p" ". a a a"; row-gap: 4px; padding-block: 12px; }
+    .line > .dot { grid-area: d; } .line > .nm { grid-area: n; } .line > .prg { grid-area: p; } .line > .st { grid-area: s; } .line > .chev { grid-area: c; }
+    .line > .cnt { display: none; } .line > .adm { grid-area: a; }
+  }
+
+  .ed { display: none; padding: 4px 16px 18px 44px; flex-direction: column; gap: 16px; }
+  .row.open .ed { display: flex; }
+  @media (max-width: 760px) { .ed { padding-left: 16px; } }
+  .ed h3 { margin: 0 0 6px; font-size: 13px; color: var(--dim); font-weight: 700; }
+  .grid2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .chk { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chk label { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .chk label:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+  .chk input { accent-color: var(--accent); }
+  .code { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .code b { font-size: 20px; font-weight: 900; letter-spacing: .14em; font-family: ui-monospace, Consolas, monospace; }
+  .admins { display: flex; flex-direction: column; gap: 6px; }
+  .admins div { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .admins div span { flex: 1; min-width: 0; }
+  .admins div small { color: var(--dim); }
+  .addAdm { display: flex; gap: 6px; }
+  .addAdm input { flex: 1; min-width: 0; min-height: 40px; box-sizing: border-box; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 14px; }
+  .hint { margin: 4px 0 0; font-size: 12.5px; color: var(--dim); }
+  .hint.bad { color: var(--bad); font-weight: 700; }
+  .ask { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px; border-radius: 12px; background: var(--bad-bg); font-size: 14px; }
+  .ask span { flex: 1 1 240px; color: var(--bad); font-weight: 700; }
+  .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .empty { padding: 32px 16px; text-align: center; color: var(--dim); }
+
+  .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(17,20,26,.55); display: grid; place-items: center; padding: 20px max(20px, env(safe-area-inset-right, 0px)) 20px max(20px, env(safe-area-inset-left, 0px)); overflow-y: auto; }
+  .dlg { width: 100%; max-width: 500px; box-sizing: border-box; background: var(--bg); border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+  .dlg h2 { margin: 0; font-size: 19px; }
+  .f label.l { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .f .in { width: 100%; box-sizing: border-box; min-height: 46px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 15px; }
+  .f .in[aria-invalid="true"] { border-color: var(--bad); }
+  .addr { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .addr span { padding: 0 4px 0 12px; font-size: 14px; color: var(--dim); white-space: nowrap; }
+  .addr .in { border: 0; padding-left: 0; font-family: ui-monospace, Consolas, monospace; }
+  .colors { display: flex; gap: 10px; }
+  .colors label { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; }
+  .colors input { position: absolute; opacity: 0; }
+  .colors label:has(input:checked) { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--fg); }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; box-shadow: 0 0 0 2px var(--bg); }
+</style>
+
+<header class="gut">
+  <div class="wrap hd">
+    <div class="t"><b><em>도전!!!</em></b><span class="pl">플랫폼</span></div>
+    <span class="me">운영자 · 플랫폼 관리자</span>
+  </div>
+  <nav class="wrap tabs" aria-label="플랫폼 메뉴">
+    <a href="#x">플랫폼 홈</a>
+    <a href="#" aria-current="page">부서</a>
+    <a href="#x">공용 콘텐츠</a>
+    <a href="#x">성경 데이터</a>
+    <a href="#x">기본 규칙</a>
+    <a href="#x">계정 찾기</a>
+  </nav>
+</header>
+
+<main class="gut"><div class="wrap">
+  <div class="top">
+    <h1>부서 <small class="num" id="cnt"></small></h1>
+    <button type="button" class="btn p" id="newBtn">+ 새 부서 만들기</button>
+  </div>
+  <div class="tools">
+    <input class="search" id="q" type="search" placeholder="부서 이름 · 주소로 찾기" aria-label="부서 이름 · 주소로 찾기">
+    <select class="sel" id="fSt" aria-label="상태"><option value="">모든 상태</option><option value="Active">운영 중</option><option value="Suspended">정지</option></select>
+    <select class="sel" id="fPg" aria-label="프로그램"><option value="">모든 프로그램</option><option value="m">도전!!!성경말씀</option><option value="r">도전!!!성경통독</option></select>
+  </div>
+  <ul class="list" id="list"></ul>
+</div></main>
+
+<div class="scrim" id="newDlg" hidden>
+  <form class="dlg" role="dialog" aria-modal="true" aria-labelledby="newT" id="newForm" novalidate>
+    <h2 id="newT">새 부서 만들기</h2>
+    <div class="f"><label class="l" for="nName">부서 이름</label><input class="in" id="nName" placeholder="예: 잠실새내교회 중등부" maxlength="40"></div>
+    <div class="f"><label class="l" for="nSlug">주소</label>
+      <div class="addr"><span>(사이트 주소)/</span><input class="in" id="nSlug" placeholder="jamsil-middle" maxlength="30" autocapitalize="off" spellcheck="false" aria-describedby="nSlugH"></div>
+      <p class="hint" id="nSlugH">영어 소문자 · 숫자 · 하이픈. 만든 뒤에는 바꿀 수 없어요.</p></div>
+    <div class="f"><label class="l">프로그램 <small style="font-weight:500;color:var(--dim)">하나 이상</small></label>
+      <div class="chk"><label><input type="checkbox" id="nM" checked>도전!!!성경말씀</label><label><input type="checkbox" id="nR">도전!!!성경통독</label></div>
+      <p class="hint" id="nPgH"></p></div>
+    <div class="f"><label class="l" for="nTz">시간대</label>
+      <select class="in" id="nTz"><option value="Asia/Seoul">한국 (Asia/Seoul)</option><option value="America/Los_Angeles">미국 서부 (America/Los_Angeles)</option><option value="America/New_York">미국 동부 (America/New_York)</option></select>
+      <p class="hint">"오늘"을 정하는 기준이에요. 미션 날짜가 바뀌는 시각이 여기에 따라요.</p></div>
+    <div class="f"><label class="l">대표 색</label>
+      <div class="colors" role="radiogroup" aria-label="대표 색">
+        <label style="background:var(--c-blue)"><input type="radio" name="c" value="blue" checked aria-label="파랑"></label>
+        <label style="background:var(--c-green)"><input type="radio" name="c" value="green" aria-label="초록"></label>
+        <label style="background:var(--c-red)"><input type="radio" name="c" value="red" aria-label="주황"></label>
+        <label style="background:var(--c-violet)"><input type="radio" name="c" value="violet" aria-label="보라"></label>
+      </div></div>
+    <div class="f"><label class="l" for="nAdm">첫 부서 관리자 아이디 <small style="font-weight:500;color:var(--dim)">나중에 정해도 돼요</small></label><input class="in" id="nAdm" placeholder="예: eunhye" autocapitalize="off" spellcheck="false"></div>
+    <p class="hint">참여 코드는 만들 때 저절로 생겨요. 서비스 이름은 기본 "도전!!!성경말씀"이고, 부서 관리자가 바꿀 수 있어요.</p>
+    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" data-close>취소</button><button type="submit" class="btn p">만들기</button></div>
+  </form>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  // 잠실새내교회 말고는 지어낸 예시
+  let T = [
+    { id: 1, name: '잠실새내교회 유치부', slug: 'jamsil-preschool', code: 'JSPRE7', c: 'red', m: 1, r: 0, n: 31, adm: [['박지은', 'jieun']], st: 'Active', at: '2026-11-02' },
+    { id: 2, name: '잠실새내교회 유년부', slug: 'jamsil-kids', code: 'JSKIDS', c: 'blue', m: 1, r: 1, n: 45, adm: [['이은혜', 'eunhye']], st: 'Active', at: '2026-11-02' },
+    { id: 3, name: '잠실새내교회 초등부', slug: 'jamsil-elem', code: 'JSELEM', c: 'green', m: 1, r: 1, n: 52, adm: [['정우성', 'woosung'], ['최한나', 'hanna']], st: 'Active', at: '2026-11-02' },
+    { id: 4, name: '잠실새내교회 중등부', slug: 'jamsil-middle', code: 'JSMID4', c: 'violet', m: 1, r: 0, n: 0, adm: [], st: 'Active', at: '2026-12-28' },
+    { id: 5, name: '잠실새내교회 장년 통독 모임', slug: 'jamsil-reading', code: 'JSREAD', c: 'green', m: 0, r: 1, n: 64, adm: [['김목자', 'mokja']], st: 'Active', at: '2026-11-15' },
+    { id: 6, name: '새빛교회 유년부', slug: 'saebit-kids', code: 'SBK2X9', c: 'blue', m: 1, r: 0, n: 23, adm: [['한사랑', 'sarang']], st: 'Active', at: '2026-12-05' },
+    { id: 7, name: '새빛교회 여름 성경학교', slug: 'saebit-summer', code: 'SBSUM6', c: 'red', m: 1, r: 0, n: 0, adm: [['한사랑', 'sarang']], st: 'Suspended', at: '2026-07-20' },
+  ];
+  const ACCOUNTS = { eunhye: '이은혜', jieun: '박지은', woosung: '정우성', hanna: '최한나', mokja: '김목자', sarang: '한사랑', minsoo: '김민수', soyoung: '박소영' };
+  let open = null, ask = null;
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); }
+  const newCode = () => Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
+
+  function editor(t) {
+    const susp = t.st === 'Suspended';
+    let acts;
+    if (ask && ask.id === t.id) acts = `<div class="ask" role="alert"><span>${t.name}을(를) 정지할까요? 소속된 모든 사람이 이 부서 주소에 들어갈 수 없게 돼요. 데이터는 지우지 않아요.</span><button type="button" class="btn" data-a="no">아니요</button><button type="button" class="btn d" data-a="suspend!">정지</button></div>`;
+    else acts = `<div class="acts"><button type="button" class="btn p" data-a="save">저장</button>${susp ? '<button type="button" class="btn" data-a="resume">다시 열기</button>' : '<button type="button" class="btn d" data-a="suspend">정지</button>'}<a class="btn l" href="#x" data-a="enter">이 부서 관리 화면 보기 →</a></div>`;
+    return `<div class="ed">
+      <div class="grid2">
+        <div><h3>프로그램 · 하나 이상</h3><div class="chk"><label><input type="checkbox" data-pg="m" ${t.m ? 'checked' : ''}>도전!!!성경말씀</label><label><input type="checkbox" data-pg="r" ${t.r ? 'checked' : ''}>도전!!!성경통독</label></div><p class="hint" data-pgh></p></div>
+        <div><h3>참여 코드 · 선생님이 아이들에게 알려 주는 코드</h3><div class="code"><b class="num" data-code>${t.code}</b><button type="button" class="btn" data-a="recode">새 코드로 바꾸기</button></div><p class="hint">바꾸면 예전 코드로는 신청할 수 없어요. 이미 소속된 사람은 그대로예요.</p></div>
+        <div><h3>부서 관리자</h3><div class="admins">${t.adm.length ? t.adm.map(([n, u]) => `<div><span>${n} <small>${u}</small></span><button type="button" class="btn l" data-a="rm" data-u="${u}">빼기</button></div>`).join('') : '<div style="color:var(--warn);font-weight:700">아직 없어요. 한 명은 정해 주세요.</div>'}
+          <div class="addAdm"><input placeholder="아이디로 추가" data-new autocapitalize="off" spellcheck="false" aria-label="부서 관리자 아이디"><button type="button" class="btn" data-a="add">추가</button></div><p class="hint" data-admh></p></div></div>
+        <div><h3>정보</h3><p style="margin:0;font-size:14px;line-height:1.9">주소 <b style="font-family:ui-monospace,Consolas,monospace">/${t.slug}</b><br>시간대 Asia/Seoul · 만든 날 ${t.at.replace(/-/g, '.')}<br>서비스 이름 <b>도전!!!성경말씀</b> (부서 관리자가 바꿀 수 있어요)</p></div>
+      </div>${acts}</div>`;
+  }
+  function draw() {
+    const q = $('q').value.trim().toLowerCase(), fs = $('fSt').value, fp = $('fPg').value;
+    const list = T.filter((t) => (!q || t.name.toLowerCase().includes(q) || t.slug.includes(q)) && (!fs || t.st === fs) && (!fp || t[fp]));
+    $('cnt').textContent = `${T.filter((t) => t.st === 'Active').length}곳 운영 중 · 정지 ${T.filter((t) => t.st === 'Suspended').length}`;
+    $('list').innerHTML = `<li class="head" aria-hidden="true"><span></span><span>부서 · 주소</span><span>프로그램</span><span style="text-align:right">소속</span><span>부서 관리자</span><span>상태</span><span></span></li>` +
+      (list.length ? list.map((t) => `<li class="row${open === t.id ? ' open' : ''}" data-id="${t.id}">
+        <div class="line" data-open role="button" tabindex="0" aria-expanded="${open === t.id}">
+          <span class="dot" style="background:var(--c-${t.c})"></span>
+          <span class="nm"><b>${t.name}</b><small>/${t.slug}</small></span>
+          <span class="prg">${t.m ? '<span class="tag m">성경말씀</span>' : ''}${t.r ? '<span class="tag r">성경통독</span>' : ''}</span>
+          <span class="cnt num">${t.n}명</span>
+          <span class="adm${t.adm.length ? '' : ' none'}">${t.adm.length ? t.adm.map((a) => a[0]).join(', ') : '관리자 없음'}</span>
+          <span class="st"><span class="tag ${t.st === 'Active' ? 'a' : 's'}">${t.st === 'Active' ? '운영' : '정지'}</span></span>
+          <span class="chev" aria-hidden="true">›</span></div>${editor(t)}</li>`).join('') : '<li class="empty">찾는 부서가 없어요.</li>');
+  }
+  ['q', 'fSt', 'fPg'].forEach((id) => $(id).addEventListener('input', draw));
+
+  $('list').addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-open]')) { e.preventDefault(); e.target.click(); } });
+  $('list').addEventListener('click', (e) => {
+    const row = e.target.closest('.row'); if (!row) return;
+    const t = T.find((x) => x.id === +row.dataset.id);
+    if (e.target.closest('[data-open]')) { open = open === t.id ? null : t.id; ask = null; return draw(); }
+    const b = e.target.closest('[data-a]'); if (!b) return;
+    e.preventDefault();
+    const a = b.dataset.a;
+    if (a === 'save') {
+      const m = row.querySelector('[data-pg="m"]').checked, r = row.querySelector('[data-pg="r"]').checked;
+      if (!m && !r) { const h = row.querySelector('[data-pgh]'); h.textContent = '프로그램을 하나는 켜 주세요.'; h.className = 'hint bad'; return; }
+      t.m = +m; t.r = +r; toast(`${t.name}을(를) 저장했어요`);
+    }
+    if (a === 'recode') { t.code = newCode(); row.querySelector('[data-code]').textContent = t.code; return toast('새 참여 코드를 만들었어요'); }
+    if (a === 'add') {
+      const u = row.querySelector('[data-new]').value.trim().toLowerCase(), h = row.querySelector('[data-admh]');
+      if (!ACCOUNTS[u]) { h.textContent = '그 아이디의 계정이 없어요.'; h.className = 'hint bad'; return; }
+      if (t.adm.some((x) => x[1] === u)) { h.textContent = '이미 부서 관리자예요.'; h.className = 'hint bad'; return; }
+      t.adm.push([ACCOUNTS[u], u]); toast(`${ACCOUNTS[u]}님을 부서 관리자로 정했어요 · 소속이 없으면 함께 승인돼요`);
+    }
+    if (a === 'rm') { t.adm = t.adm.filter((x) => x[1] !== b.dataset.u); toast('부서 관리자에서 뺐어요 · 소속은 그대로예요'); }
+    if (a === 'suspend') ask = { id: t.id };
+    if (a === 'no') ask = null;
+    if (a === 'suspend!') { t.st = 'Suspended'; ask = null; toast(`${t.name}을(를) 정지했어요`); }
+    if (a === 'resume') { t.st = 'Active'; toast(`${t.name}을(를) 다시 열었어요`); }
+    if (a === 'enter') return toast('부서 들어가기(대리 접속)는 2차예요 · 감사 로그에 남아요');
+    draw();
+  });
+
+  const dlg = $('newDlg');
+  $('newBtn').onclick = () => { $('newForm').reset(); $('nSlug').removeAttribute('aria-invalid'); $('nSlugH').className = 'hint'; $('nSlugH').textContent = '영어 소문자 · 숫자 · 하이픈. 만든 뒤에는 바꿀 수 없어요.'; $('nPgH').textContent = ''; dlg.hidden = false; $('nName').focus(); };
+  document.querySelectorAll('[data-close]').forEach((b) => b.onclick = () => b.closest('.scrim').hidden = true);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') dlg.hidden = true; });
+  $('nSlug').addEventListener('input', () => { $('nSlug').value = $('nSlug').value.toLowerCase().replace(/[^a-z0-9-]/g, ''); });
+  $('newForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = $('nName').value.trim(), slug = $('nSlug').value, m = $('nM').checked, r = $('nR').checked;
+    if (!name) return $('nName').focus();
+    const bad = (msg) => { $('nSlugH').textContent = msg; $('nSlugH').className = 'hint bad'; $('nSlug').setAttribute('aria-invalid', 'true'); $('nSlug').focus(); };
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || slug.length < 3) return bad('영어 소문자 · 숫자 · 하이픈으로 3자 이상 써 주세요.');
+    if (T.some((t) => t.slug === slug)) return bad('이미 쓰고 있는 주소예요.');
+    if (!m && !r) { $('nPgH').textContent = '프로그램을 하나는 골라 주세요.'; $('nPgH').className = 'hint bad'; return; }
+    const u = $('nAdm').value.trim().toLowerCase();
+    const c = document.querySelector('input[name=c]:checked').value;
+    const t = { id: Date.now(), name, slug, code: newCode(), c, m: +m, r: +r, n: u && ACCOUNTS[u] ? 1 : 0, adm: u && ACCOUNTS[u] ? [[ACCOUNTS[u], u]] : [], st: 'Active', at: '2027-01-05' };
+    T.unshift(t); open = t.id; dlg.hidden = true; draw();
+    toast(`${name}을(를) 만들었어요 · 참여 코드 ${t.code}`);
+  });
+  document.querySelectorAll('a[href="#x"]').forEach((a) => a.addEventListener('click', (e) => { if (a.dataset.a) return; e.preventDefault(); toast(`${a.textContent} 화면으로 가요 (다음 시안)`); }));
+  draw();
+</script>
