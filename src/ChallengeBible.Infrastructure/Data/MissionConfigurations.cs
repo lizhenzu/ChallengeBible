@@ -67,12 +67,18 @@ internal sealed class DailyPrayerConfig : IEntityTypeConfiguration<DailyPrayer>
             t.HasCheckConstraint("CK_DailyPrayer_Status", ContentConfig.StatusCheck);
             t.HasCheckConstraint("CK_DailyPrayer_Range", ContentConfig.RangeCheck);
             t.HasCheckConstraint("CK_DailyPrayer_Paragraphs", "ISJSON(Paragraphs) = 1");
+            // 0053: 공용은 날짜 번호만, 부서는 날짜만
+            t.HasCheckConstraint("CK_DailyPrayer_Slot", $"""
+                (TenantId IS NULL AND DayNo BETWEEN 1 AND {DailyPrayer.MaxDayNo} AND ExposeDate IS NULL)
+                OR (TenantId IS NOT NULL AND DayNo IS NULL AND ExposeDate IS NOT NULL)
+                """.ReplaceLineEndings("\n"));
         });
         ContentConfig.Base(e, "DailyPrayer");
         ContentConfig.Range(e, "DailyPrayer");
         e.Property(x => x.TraitName).HasMaxLength(30);
         e.Property(x => x.TraitNameEn).HasMaxLength(40);
-        e.HasIndex(x => new { x.TenantId, x.ExposeDate }).IsUnique().HasFilter("[IsCurrent] = 1").HasDatabaseName("UX_DailyPrayer_Date");
+        e.HasIndex(x => x.DayNo).IsUnique().HasFilter("[IsCurrent] = 1 AND [TenantId] IS NULL").HasDatabaseName("UX_DailyPrayer_Day");
+        e.HasIndex(x => new { x.TenantId, x.ExposeDate }).IsUnique().HasFilter("[IsCurrent] = 1 AND [ExposeDate] IS NOT NULL").HasDatabaseName("UX_DailyPrayer_Date");
     }
 }
 
@@ -130,7 +136,7 @@ internal sealed class WeeklyVerseConfig : IEntityTypeConfiguration<WeeklyVerse>
             t.HasCheckConstraint("CK_WeeklyVerse_Slot", $"""
                 (TenantId IS NULL AND WeekNo BETWEEN 1 AND {WeeklyVerse.MaxWeekNo} AND StartDate IS NULL AND EndDate IS NULL)
                 OR (TenantId IS NOT NULL AND WeekNo IS NULL AND DATEDIFF(DAY, '19000107', StartDate) % 7 = 0 AND EndDate = DATEADD(DAY, 6, StartDate))
-                """);
+                """.ReplaceLineEndings("\n"));
             t.HasTrigger("trg_WeeklyVerse_NoOverlap");
         });
         ContentConfig.Base(e, "WeeklyVerse");
@@ -188,7 +194,7 @@ internal sealed class ActivityConfig : IEntityTypeConfiguration<Activity>
                 OR (MissionItem IN ('Prayer.Me','Prayer.Others') AND DailyWordId IS NULL AND DailyPrayerId IS NOT NULL AND DailyQuizId IS NULL AND WeeklyVerseId IS NULL AND ReciteStartDate IS NULL)
                 OR (MissionItem = 'Quiz.Correct' AND DailyWordId IS NULL AND DailyPrayerId IS NULL AND DailyQuizId IS NOT NULL AND WeeklyVerseId IS NULL AND ReciteStartDate IS NULL)
                 OR (MissionItem = 'Recite' AND DailyWordId IS NULL AND DailyPrayerId IS NULL AND DailyQuizId IS NULL AND WeeklyVerseId IS NOT NULL AND ReciteStartDate IS NOT NULL)
-                """);
+                """.ReplaceLineEndings("\n"));   // 체크아웃 줄바꿈(CRLF)과 무관하게 모델이 같도록
         });
         e.HasKey(x => x.Id).HasName("PK_Activity").IsClustered(false);
         e.HasAlternateKey(x => new { x.TenantId, x.Id }).HasName("UQ_Activity_TenantId_Id");

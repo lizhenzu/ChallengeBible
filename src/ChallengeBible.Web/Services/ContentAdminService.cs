@@ -17,7 +17,7 @@ public sealed record VerseRange(byte Book, short StartChapter, short StartVerse,
 public sealed class ContentInput
 {
     public DateOnly Date { get; set; }
-    public byte WeekNo { get; set; }   // 암송만(0052)
+    public byte SlotNo { get; set; }   // 번호로 반복하는 종류만: 기도 날짜 번호(0053) · 암송 주 번호(0052)
     public string? Title { get; set; }
     public string? Summary { get; set; }
     public string? Commentary { get; set; }
@@ -44,7 +44,7 @@ public sealed class ContentInput
 
 public sealed record ContentDay(DateOnly Date, int? Id, string Status, string? Title);
 
-public sealed record ContentWeek(byte No, int? Id, string Status, string? Title);
+public sealed record ContentSlot(byte No, int? Id, string Status, string? Title);
 
 /// <summary>
 /// 플랫폼 공용 콘텐츠(TenantId NULL) 편집(API 계약 4-5, R-120 ~ R-124). 공용은 시스템 연결로만 쓴다(RLS fn_SharedWrite).
@@ -70,30 +70,36 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
         return ctx;
     }
 
-    /// <summary>날짜 단위 콘텐츠(말씀 · 기도 · 퀴즈)의 한 달. 암송은 <see cref="WeeksAsync"/>.</summary>
+    /// <summary>공용을 날짜 대신 번호로 두고 반복하는 종류: 기도(매달 1 ~ 31일, 0053) · 암송(매년 1 ~ 55주, 0052).</summary>
+    public static bool BySlot(ContentKind kind) => kind is ContentKind.Prayer or ContentKind.Recite;
+
+    public static byte MaxSlot(ContentKind kind) => kind == ContentKind.Prayer ? DailyPrayer.MaxDayNo : WeeklyVerse.MaxWeekNo;
+
+    /// <summary>날짜 단위 콘텐츠(말씀 · 퀴즈)의 한 달. 기도 · 암송은 <see cref="SlotsAsync"/>.</summary>
     public async Task<List<ContentDay>> MonthAsync(int actor, ContentKind kind, int year, int month, CancellationToken ct = default)
     {
-        if (kind == ContentKind.Recite) throw new ArgumentException("암송은 주 번호로 해요(WeeksAsync).", nameof(kind));
+        if (BySlot(kind)) throw new ArgumentException("기도 · 암송은 번호로 해요(SlotsAsync).", nameof(kind));
         await using var ctx = await OpenAsync(actor, ct);
         var from = new DateOnly(year, month, 1);
         var to = from.AddMonths(1).AddDays(-1);
         var rows = kind switch
         {
             ContentKind.Word => await Shared(ctx.DailyWords).Where(x => x.ExposeDate >= from && x.ExposeDate <= to).Select(x => new { D = x.ExposeDate, x.Id, x.Status, T = x.Title }).ToListAsync(ct),
-            ContentKind.Prayer => await Shared(ctx.DailyPrayers).Where(x => x.ExposeDate >= from && x.ExposeDate <= to).Select(x => new { D = x.ExposeDate, x.Id, x.Status, T = x.TraitName }).ToListAsync(ct),
             _ => await Shared(ctx.DailyQuizzes).Where(x => x.ExposeDate >= from && x.ExposeDate <= to).Select(x => new { D = x.ExposeDate, x.Id, x.Status, T = x.Question }).ToListAsync(ct),
         };
         return Enumerable.Range(0, to.Day).Select(from.AddDays)
             .Select(d => rows.FirstOrDefault(r => r.D == d) is { } r ? new ContentDay(d, r.Id, r.Status, r.T) : new ContentDay(d, null, "None", null)).ToList();
     }
 
-    /// <summary>공용 암송 1 ~ 55주(0052). 해마다 1주부터 같은 순서로 쓰인다.</summary>
-    public async Task<List<ContentWeek>> WeeksAsync(int actor, CancellationToken ct = default)
+    /// <summary>공용 기도 1 ~ 31일(0053) 또는 공용 암송 1 ~ 55주(0052) 목록.</summary>
+    public async Task<List<ContentSlot>> SlotsAsync(int actor, ContentKind kind, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
-        var rows = await Shared(ctx.WeeklyVerses).Select(x => new { x.WeekNo, x.Id, x.Status, x.Title }).ToListAsync(ct);
-        return Enumerable.Range(1, WeeklyVerse.MaxWeekNo).Select(n => (byte)n)
-            .Select(n => rows.FirstOrDefault(r => r.WeekNo == n) is { } r ? new ContentWeek(n, r.Id, r.Status, r.Title) : new ContentWeek(n, null, "None", null)).ToList();
+        var rows = kind == ContentKind.Prayer
+            ? await Shared(ctx.DailyPrayers).Select(x => new { No = x.DayNo, x.Id, x.Status, T = x.TraitName }).ToListAsync(ct)
+            : await Shared(ctx.WeeklyVerses).Select(x => new { No = x.WeekNo, x.Id, x.Status, T = x.Title }).ToListAsync(ct);
+        return Enumerable.Range(1, MaxSlot(kind)).Select(n => (byte)n)
+            .Select(n => rows.FirstOrDefault(r => r.No == n) is { } r ? new ContentSlot(n, r.Id, r.Status, r.T) : new ContentSlot(n, null, "None", null)).ToList();
     }
 
     private static IQueryable<T> Shared<T>(IQueryable<T> q) where T : ContentBase => q.Where(x => x.TenantId == null && x.IsCurrent);
@@ -109,11 +115,6 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
                 (i.Title, i.Summary, i.Commentary) = (w.Title, w.Summary, w.Commentary);
                 SetRange(i, w);
                 return (i, w.Status, w.Id);
-            case ContentKind.Prayer when await Shared(ctx.DailyPrayers).SingleOrDefaultAsync(x => x.ExposeDate == date, ct) is { } p:
-                (i.TraitName, i.TraitNameEn) = (p.TraitName, p.TraitNameEn);
-                i.Paragraphs = string.Join("\n", JsonSerializer.Deserialize<List<string>>(p.Paragraphs) ?? []);
-                SetRange(i, p);
-                return (i, p.Status, p.Id);
             case ContentKind.Quiz when await Shared(ctx.DailyQuizzes).Include(x => x.Choices).Include(x => x.AcceptedAnswers).SingleOrDefaultAsync(x => x.ExposeDate == date, ct) is { } q:
                 (i.Question, i.Background, i.Format, i.Explanation) = (q.Question, q.Background, q.Format, q.Explanation);
                 var ch = q.Choices.OrderBy(c => c.SortOrder).ToList();
@@ -125,15 +126,24 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
         return (i, "None", null);
     }
 
-    /// <summary>공용 암송 no 주의 지금 값(없으면 빈 칸).</summary>
-    public async Task<(ContentInput Input, string Status, int? Id)> LoadWeekAsync(int actor, byte no, CancellationToken ct = default)
+    /// <summary>공용 기도 no 일 · 공용 암송 no 주의 지금 값(없으면 빈 칸).</summary>
+    public async Task<(ContentInput Input, string Status, int? Id)> LoadSlotAsync(int actor, ContentKind kind, byte no, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
-        var i = new ContentInput { WeekNo = no };
-        if (await Shared(ctx.WeeklyVerses).SingleOrDefaultAsync(x => x.WeekNo == no, ct) is not { } v) return (i, "None", null);
-        (i.Title, i.LessonNo, i.LessonSummary, i.LessonPoint, i.LessonApply) = (v.Title, v.LessonNo, v.LessonSummary, v.LessonPoint, v.LessonApply);
-        SetRange(i, v);
-        return (i, v.Status, v.Id);
+        var i = new ContentInput { SlotNo = no };
+        switch (kind)
+        {
+            case ContentKind.Prayer when await Shared(ctx.DailyPrayers).SingleOrDefaultAsync(x => x.DayNo == no, ct) is { } p:
+                (i.TraitName, i.TraitNameEn) = (p.TraitName, p.TraitNameEn);
+                i.Paragraphs = string.Join("\n", JsonSerializer.Deserialize<List<string>>(p.Paragraphs) ?? []);
+                SetRange(i, p);
+                return (i, p.Status, p.Id);
+            case ContentKind.Recite when await Shared(ctx.WeeklyVerses).SingleOrDefaultAsync(x => x.WeekNo == no, ct) is { } v:
+                (i.Title, i.LessonNo, i.LessonSummary, i.LessonPoint, i.LessonApply) = (v.Title, v.LessonNo, v.LessonSummary, v.LessonPoint, v.LessonApply);
+                SetRange(i, v);
+                return (i, v.Status, v.Id);
+        }
+        return (i, "None", null);
     }
 
     private static void SetRange(ContentInput i, RangedContent r) =>
@@ -161,6 +171,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
             case ContentKind.Prayer:
                 if (Blank(i.TraitName)) e["TraitName"] = "성품 이름을 써 주세요.";
                 if (Lines(i.Paragraphs).Count == 0) e["Paragraphs"] = "기도문을 한 줄 이상 써 주세요.";
+                if (i.SlotNo is < 1 or > DailyPrayer.MaxDayNo) e["Date"] = $"기도는 1 ~ {DailyPrayer.MaxDayNo}일 가운데 골라요.";
                 break;
             case ContentKind.Quiz:
                 if (Blank(i.Question)) e["Question"] = "문제를 써 주세요.";
@@ -174,7 +185,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
                 break;
             case ContentKind.Recite:
                 if (Blank(i.Title)) e["Title"] = "제목(질문)을 써 주세요.";
-                if (i.WeekNo is < 1 or > WeeklyVerse.MaxWeekNo) e["Date"] = $"암송은 1 ~ {WeeklyVerse.MaxWeekNo}주 가운데 골라요.";
+                if (i.SlotNo is < 1 or > WeeklyVerse.MaxWeekNo) e["Date"] = $"암송은 1 ~ {WeeklyVerse.MaxWeekNo}주 가운데 골라요.";
                 break;
         }
         return e;
@@ -196,9 +207,9 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
         ContentBase? current = kind switch
         {
             ContentKind.Word => await Shared(ctx.DailyWords).SingleOrDefaultAsync(x => x.ExposeDate == input.Date, ct),
-            ContentKind.Prayer => await Shared(ctx.DailyPrayers).SingleOrDefaultAsync(x => x.ExposeDate == input.Date, ct),
+            ContentKind.Prayer => await Shared(ctx.DailyPrayers).SingleOrDefaultAsync(x => x.DayNo == input.SlotNo, ct),
             ContentKind.Quiz => await Shared(ctx.DailyQuizzes).Include(x => x.Choices).Include(x => x.AcceptedAnswers).SingleOrDefaultAsync(x => x.ExposeDate == input.Date, ct),
-            _ => await Shared(ctx.WeeklyVerses).SingleOrDefaultAsync(x => x.WeekNo == input.WeekNo, ct),
+            _ => await Shared(ctx.WeeklyVerses).SingleOrDefaultAsync(x => x.WeekNo == input.SlotNo, ct),
         };
 
         ContentBase target;
@@ -253,14 +264,14 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
                 (w.ExposeDate, w.Title, w.Summary, w.Commentary) = (i.Date, i.Title!.Trim(), i.Summary!.Trim(), Trim(i.Commentary));
                 break;
             case DailyPrayer p:
-                (p.ExposeDate, p.TraitName, p.TraitNameEn) = (i.Date, i.TraitName!.Trim(), Trim(i.TraitNameEn));
+                (p.DayNo, p.TraitName, p.TraitNameEn) = (i.SlotNo, i.TraitName!.Trim(), Trim(i.TraitNameEn));   // 공용은 날짜 없이 날짜 번호만(0053)
                 p.Paragraphs = JsonSerializer.Serialize(Lines(i.Paragraphs), Json);
                 break;
             case DailyQuiz q:
                 (q.ExposeDate, q.Question, q.Background, q.Format, q.Explanation) = (i.Date, i.Question!.Trim(), Trim(i.Background), i.Format, Trim(i.Explanation));
                 break;
             case WeeklyVerse v:
-                (v.WeekNo, v.Title) = (i.WeekNo, i.Title!.Trim());   // 공용은 날짜 없이 주 번호만(0052)
+                (v.WeekNo, v.Title) = (i.SlotNo, i.Title!.Trim());   // 공용은 날짜 없이 주 번호만(0052)
                 (v.LessonNo, v.LessonSummary, v.LessonPoint, v.LessonApply) = (i.LessonNo, Trim(i.LessonSummary), Trim(i.LessonPoint), Trim(i.LessonApply));
                 break;
         }
@@ -315,15 +326,15 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
         return (ok, skip);
     }
 
-    /// <summary>고른 암송 초안(주 번호)들을 한꺼번에 공개.</summary>
-    public async Task<(int Published, int Skipped)> PublishWeeksAsync(int actor, IReadOnlyCollection<byte> weeks, CancellationToken ct = default)
+    /// <summary>고른 기도 · 암송 초안(번호)들을 한꺼번에 공개.</summary>
+    public async Task<(int Published, int Skipped)> PublishSlotsAsync(int actor, ContentKind kind, IReadOnlyCollection<byte> nos, CancellationToken ct = default)
     {
         var (ok, skip) = (0, 0);
-        foreach (var n in weeks)
+        foreach (var n in nos)
         {
-            var (input, status, _) = await LoadWeekAsync(actor, n, ct);
+            var (input, status, _) = await LoadSlotAsync(actor, kind, n, ct);
             if (status != ContentStatus.Draft) continue;
-            var e = await SaveAsync(actor, ContentKind.Recite, input, publish: true, ct);
+            var e = await SaveAsync(actor, kind, input, publish: true, ct);
             if (e.Ok) ok++; else skip++;
         }
         return (ok, skip);

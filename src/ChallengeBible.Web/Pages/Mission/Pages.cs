@@ -106,10 +106,22 @@ public class PrayerModel(MissionService missions, TenantContext tenant, BibleTex
         if (Data!.Prayer is { } p) Verses = await bible.RangeAsync(p.Ref, [Infrastructure.Data.BibleTranslation.Krv], ct);
     }
 
-    /// <summary>R-32: 기도문의 {이름} 자리에 참여자 이름(강조).</summary>
-    public Microsoft.AspNetCore.Html.IHtmlContent Paragraph(string text, string name) =>
-        new Microsoft.AspNetCore.Html.HtmlString(string.Join($"<b class=\"nm\">{System.Net.WebUtility.HtmlEncode(name)}</b>",
-            text.Split("{이름}").Select(System.Net.WebUtility.HtmlEncode)));
+    private static readonly System.Text.RegularExpressions.Regex NameSlot = new(@"\{이름\}(\([^()]{1,3}\))?");
+
+    /// <summary>
+    /// R-32(0054): 기도문의 {이름} 자리는 이름 대신 "○○"로 강조해 보여 준다 — 나도, 다른 사람도 위해 드리는 기도라서.
+    /// 바로 뒤 조사 표시(예: "(이)")도 함께 강조하고, 원본에서 온 ** 강조 표시는 지운다.
+    /// </summary>
+    /// <summary>
+    /// 보여 줄 문단(0054): 원본 기도문은 "○○(이)가 …"(다른 사람) 판과 "제가 …"(나) 판이 함께 있어서,
+    /// 이름 자리가 있는 문단이 있으면 그것만 보여 준다. 없으면 모두.
+    /// </summary>
+    public static IReadOnlyList<string> Shown(IReadOnlyList<string> paragraphs) =>
+        paragraphs.Any(p => p.Contains("{이름}")) ? paragraphs.Where(p => p.Contains("{이름}")).ToList() : paragraphs;
+
+    public static Microsoft.AspNetCore.Html.IHtmlContent Paragraph(string text) =>
+        new Microsoft.AspNetCore.Html.HtmlString(NameSlot.Replace(
+            System.Net.WebUtility.HtmlEncode(text.Replace("**", "")), m => $"<b class=\"nm\">○○{m.Groups[1].Value}</b>"));
 }
 
 public class ReciteModel(MissionService missions, TenantContext tenant, BibleTextService bible) : MissionPageBase(missions, tenant)

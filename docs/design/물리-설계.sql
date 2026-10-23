@@ -267,7 +267,8 @@ CREATE TABLE app.DailyWordVideo (                                               
 CREATE TABLE app.DailyPrayer (
     Id                  int IDENTITY  NOT NULL CONSTRAINT PK_DailyPrayer PRIMARY KEY,
     TenantId            int           NULL CONSTRAINT FK_DailyPrayer_Tenant REFERENCES app.Tenant(Id),
-    ExposeDate          date          NOT NULL,
+    DayNo               tinyint       NULL,          -- 공용만: 매달 몇 일(1 ~ 31, 0053)
+    ExposeDate          date          NULL,          -- 부서만: 그날
     Revision            int           NOT NULL,
     IsCurrent           bit           NOT NULL,
     Status              varchar(20)   NOT NULL CONSTRAINT CK_DailyPrayer_Status CHECK (Status IN ('Draft','Published','Archived')),
@@ -282,9 +283,13 @@ CREATE TABLE app.DailyPrayer (
     EndVerse            smallint      NOT NULL,
     CreatedUtc          datetime2(3)  NOT NULL,
     CreatedByAccountId  int           NOT NULL CONSTRAINT FK_DailyPrayer_CreatedBy REFERENCES app.Account(Id),
-    CONSTRAINT CK_DailyPrayer_Range CHECK (EndChapter > StartChapter OR (EndChapter = StartChapter AND EndVerse >= StartVerse))
+    CONSTRAINT CK_DailyPrayer_Range CHECK (EndChapter > StartChapter OR (EndChapter = StartChapter AND EndVerse >= StartVerse)),
+    CONSTRAINT CK_DailyPrayer_Slot CHECK (
+        (TenantId IS NULL AND DayNo BETWEEN 1 AND 31 AND ExposeDate IS NULL)
+        OR (TenantId IS NOT NULL AND DayNo IS NULL AND ExposeDate IS NOT NULL))
 );
-CREATE UNIQUE INDEX UX_DailyPrayer_Date ON app.DailyPrayer (TenantId, ExposeDate) WHERE IsCurrent = 1;
+CREATE UNIQUE INDEX UX_DailyPrayer_Day  ON app.DailyPrayer (DayNo) WHERE IsCurrent = 1 AND TenantId IS NULL;
+CREATE UNIQUE INDEX UX_DailyPrayer_Date ON app.DailyPrayer (TenantId, ExposeDate) WHERE IsCurrent = 1 AND ExposeDate IS NOT NULL;
 
 CREATE TABLE app.DailyQuiz (
     Id                  int IDENTITY   NOT NULL CONSTRAINT PK_DailyQuiz PRIMARY KEY,

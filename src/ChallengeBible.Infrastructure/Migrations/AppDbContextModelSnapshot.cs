@@ -841,13 +841,16 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedUtc")
                         .HasColumnType("datetime2(3)");
 
+                    b.Property<byte?>("DayNo")
+                        .HasColumnType("tinyint");
+
                     b.Property<short>("EndChapter")
                         .HasColumnType("smallint");
 
                     b.Property<short>("EndVerse")
                         .HasColumnType("smallint");
 
-                    b.Property<DateOnly>("ExposeDate")
+                    b.Property<DateOnly?>("ExposeDate")
                         .HasColumnType("date");
 
                     b.Property<bool>("IsCurrent")
@@ -894,18 +897,25 @@ namespace ChallengeBible.Infrastructure.Migrations
 
                     b.HasIndex("CreatedByAccountId");
 
+                    b.HasIndex("DayNo")
+                        .IsUnique()
+                        .HasDatabaseName("UX_DailyPrayer_Day")
+                        .HasFilter("[IsCurrent] = 1 AND [TenantId] IS NULL");
+
                     b.HasIndex("ReplacesId");
 
                     b.HasIndex("TenantId", "ExposeDate")
                         .IsUnique()
                         .HasDatabaseName("UX_DailyPrayer_Date")
-                        .HasFilter("[IsCurrent] = 1");
+                        .HasFilter("[IsCurrent] = 1 AND [ExposeDate] IS NOT NULL");
 
                     b.ToTable("DailyPrayer", "app", t =>
                         {
                             t.HasCheckConstraint("CK_DailyPrayer_Paragraphs", "ISJSON(Paragraphs) = 1");
 
                             t.HasCheckConstraint("CK_DailyPrayer_Range", "EndChapter > StartChapter OR (EndChapter = StartChapter AND EndVerse >= StartVerse)");
+
+                            t.HasCheckConstraint("CK_DailyPrayer_Slot", "(TenantId IS NULL AND DayNo BETWEEN 1 AND 31 AND ExposeDate IS NULL)\nOR (TenantId IS NOT NULL AND DayNo IS NULL AND ExposeDate IS NOT NULL)");
 
                             t.HasCheckConstraint("CK_DailyPrayer_Status", "Status IN ('Draft','Published','Archived')");
                         });

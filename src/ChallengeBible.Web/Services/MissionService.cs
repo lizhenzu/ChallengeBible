@@ -69,7 +69,7 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
         var window = MissionWindow.Check(today, date, Rules.GraceDays, season.StartDate);
 
         var word = await Current(ctx.DailyWords.Where(w => w.ExposeDate == date)).FirstOrDefaultAsync(ct);
-        var prayer = await Current(ctx.DailyPrayers.Where(p => p.ExposeDate == date)).FirstOrDefaultAsync(ct);
+        var prayer = await Current(Prayers(ctx, date)).FirstOrDefaultAsync(ct);
         var quiz = await Current(ctx.DailyQuizzes.Include(q => q.Choices).Where(q => q.ExposeDate == date)).FirstOrDefaultAsync(ct);
         var (verse, week) = await VerseAsync(ctx, date, ct);
 
@@ -103,6 +103,13 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
     /// <summary>R-120: 공개된 현재 개정 중 내 영역 덮어쓰기가 먼저, 없으면 공용.</summary>
     private static IQueryable<T> Current<T>(IQueryable<T> q) where T : ContentBase =>
         q.Where(c => c.IsCurrent && c.Status == ContentStatus.Published).OrderByDescending(c => c.TenantId != null);
+
+    /// <summary>그날 기도 후보(0053): 내 부서의 그날 기도 + 그달 날짜 번호의 공용 기도. 부서 것이 먼저(<see cref="Current{T}"/>).</summary>
+    private static IQueryable<DailyPrayer> Prayers(AppDbContext ctx, DateOnly date)
+    {
+        var day = (byte)date.Day;
+        return ctx.DailyPrayers.Where(p => (p.TenantId != null && p.ExposeDate == date) || (p.TenantId == null && p.DayNo == day));
+    }
 
     /// <summary>
     /// 그날의 암송(0052): 그 주의 내 부서 암송이 있으면 그것, 없으면 그해 몇째 주인지로 공용 암송.
@@ -154,7 +161,7 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
                 if (act.DailyWordId is null) return Fail("오늘은 말씀이 없어요.");   // R-22
                 break;
             case Mission.Prayer:
-                act.DailyPrayerId = await Current(ctx.DailyPrayers.Where(x => x.ExposeDate == date)).Select(x => (int?)x.Id).FirstOrDefaultAsync(ct);
+                act.DailyPrayerId = await Current(Prayers(ctx, date)).Select(x => (int?)x.Id).FirstOrDefaultAsync(ct);
                 if (act.DailyPrayerId is null) return Fail("오늘은 기도가 없어요.");
                 break;
             case Mission.Recite:

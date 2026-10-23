@@ -57,10 +57,16 @@ public sealed class DailyWord : RangedContent
     public string? Commentary { get; set; }
 }
 
-/// <summary>성품기도(0047): 성품 이름 · 근거 말씀 · {이름} 자리가 있는 문단들(JSON 배열).</summary>
+/// <summary>
+/// 성품기도(0047): 성품 이름 · 근거 말씀 · {이름} 자리가 있는 문단들(JSON 배열).
+/// 공용은 날짜 번호(DayNo 1 ~ 31)로 매달 반복하고 날짜가 없다. 부서 덮어쓰기는 그날(ExposeDate)에만(0053).
+/// </summary>
 public sealed class DailyPrayer : RangedContent
 {
-    public DateOnly ExposeDate { get; set; }
+    public const byte MaxDayNo = 31;
+
+    public byte? DayNo { get; set; }
+    public DateOnly? ExposeDate { get; set; }
     public required string TraitName { get; set; }
     public string? TraitNameEn { get; set; }
     public required string Paragraphs { get; set; }
