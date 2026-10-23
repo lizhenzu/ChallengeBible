@@ -1,0 +1,204 @@
+<title>계정 찾기 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/platform/accounts, 0035 · 0029): 플랫폼 머리말 · 메뉴 → 찾기(아이디 · 이름) → 결과 목록 | 계정 자세히(소속 부서 · 역할 · 상태, 부서 관리자가 초기화할 수 있는지) → 임시 비밀번호 · 성경 읽음 초기화 → 이 계정의 기록 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --warn: #9A5B00; --warn-bg: #FFF4DE; --bad: #B42318; --bad-bg: #FDECEC;
+    --plat: #1B1F24; --on-plat: #FFFFFF;
+    --c-blue: #2B59C3; --c-green: #1F7A5C; --c-red: #B2462E; --c-violet: #6A4BB5;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C;
+    --plat: #E8EAED; --on-plat: #14171B; --c-blue: #7FA2F2; --c-green: #5CC0A0; --c-red: #F09A80; --c-violet: #B39BF0; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C;
+    --plat: #E8EAED; --on-plat: #14171B; --c-blue: #7FA2F2; --c-green: #5CC0A0; --c-red: #F09A80; --c-violet: #B39BF0; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button, input { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+  .hd .t { display: flex; align-items: center; gap: 10px; }
+  .hd .t b { font-size: 17px; font-weight: 900; }
+  .hd .t b em { font-style: normal; color: var(--accent); }
+  .pl { font-size: 11px; font-weight: 800; letter-spacing: .06em; padding: 3px 8px; border-radius: 6px; background: var(--plat); color: var(--on-plat); }
+  .me { font-size: 13px; color: var(--dim); }
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-bottom: -1px; }
+  nav.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); border-bottom: 3px solid transparent; }
+  nav.tabs a[aria-current] { color: var(--fg); border-color: var(--plat); }
+
+  main .wrap { padding-block: 20px 56px; display: flex; flex-direction: column; gap: 14px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  .lead { margin: -6px 0 0; font-size: 13.5px; color: var(--dim); }
+  form { display: flex; gap: 8px; }
+  form input { flex: 1; min-width: 0; min-height: 50px; box-sizing: border-box; padding: 0 14px; border: 2px solid var(--fg); border-radius: 12px; background: var(--bg); font-size: 16px; }
+  form button { min-height: 50px; padding: 0 18px; border: 0; border-radius: 12px; background: var(--plat); color: var(--on-plat); font-weight: 800; font-size: 15px; }
+  .split { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 880px) { .split { grid-template-columns: 340px minmax(0, 1fr); align-items: start; } }
+  .res { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 16px; overflow: hidden; }
+  .res li + li { border-top: 1px solid var(--rule); }
+  .res button { width: 100%; display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 14px; border: 0; background: none; text-align: left; }
+  .res button[aria-current="true"] { background: var(--accent-bg); }
+  .av { flex: none; width: 38px; height: 38px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; font-size: 13px; font-weight: 800; color: var(--dim); }
+  .res .nm { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+  .res .nm small { font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .flag { flex: none; font-size: 11px; font-weight: 800; padding: 1px 7px; border-radius: 99px; background: var(--warn-bg); color: var(--warn); }
+  .flag.pf { background: var(--plat); color: var(--on-plat); }
+  .empty { padding: 24px; text-align: center; color: var(--dim); }
+
+  .det { border: 1px solid var(--rule); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .who { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .who .av { width: 56px; height: 56px; font-size: 17px; background: var(--accent-bg); color: var(--accent); }
+  .who div { flex: 1; min-width: 180px; }
+  .who h2 { margin: 0; font-size: 22px; font-weight: 900; line-height: 1.2; }
+  .who small { font-size: 13px; color: var(--dim); }
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  @media (max-width: 560px) { .facts { grid-template-columns: minmax(0, 1fr); } }
+  .facts div { padding: 10px 12px; border-radius: 12px; background: var(--soft); display: flex; flex-direction: column; font-size: 14px; }
+  .facts small { font-size: 12px; color: var(--dim); }
+  h3 { margin: 0; font-size: 14px; font-weight: 800; color: var(--dim); }
+  .mems { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  .mems li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; flex-wrap: wrap; }
+  .mems li + li { border-top: 1px solid var(--rule); }
+  .mems i { flex: none; width: 10px; height: 10px; border-radius: 50%; }
+  .mems b { flex: 1 1 160px; min-width: 0; font-size: 14px; }
+  .tag { font-size: 11.5px; font-weight: 800; padding: 1px 8px; border-radius: 99px; background: var(--soft); color: var(--dim); }
+  .tag.a { background: var(--warn-bg); color: var(--warn); }
+  .tag.s { background: var(--bad-bg); color: var(--bad); }
+  .tag.f { background: var(--ok-bg); color: var(--ok); }
+  .why { padding: 12px 14px; border-radius: 12px; font-size: 13.5px; line-height: 1.7; }
+  .why.no { background: var(--warn-bg); }
+  .why.ok { background: var(--ok-bg); }
+  .why b { font-weight: 800; }
+  .acts { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--rule); }
+  .act { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 14px 0; border-bottom: 1px solid var(--rule); }
+  .act div { flex: 1 1 240px; min-width: 0; }
+  .act b { display: block; font-size: 15px; }
+  .act span { font-size: 13px; color: var(--dim); }
+  .btn { min-height: 44px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 800; border: 1px solid var(--line); background: var(--bg); white-space: nowrap; }
+  .btn.p { border-color: var(--plat); background: var(--plat); color: var(--on-plat); }
+  .btn.d { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, var(--line)); }
+  .btn.dd { background: var(--bad); border-color: var(--bad); color: #fff; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .pw { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--soft); flex-wrap: wrap; }
+  .pw code { flex: 1; min-width: 0; font-size: 22px; font-weight: 900; letter-spacing: .06em; font-family: ui-monospace, Consolas, monospace; user-select: all; }
+  .ask { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 12px; background: var(--bad-bg); font-size: 13.5px; }
+  .ask .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ask input { flex: 1 1 160px; min-width: 0; min-height: 42px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 15px; }
+  .log { list-style: none; margin: 0; padding: 0; font-size: 13.5px; }
+  .log li { display: flex; gap: 12px; padding: 8px 0; border-top: 1px solid var(--rule); }
+  .log li:first-child { border-top: 0; }
+  .log time { flex: none; width: 110px; color: var(--dim); }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; max-width: calc(100vw - 40px); overflow: hidden; text-overflow: ellipsis; }
+</style>
+
+<header class="gut">
+  <div class="wrap hd">
+    <div class="t"><b><em>도전!!!</em></b><span class="pl">플랫폼</span></div>
+    <span class="me">운영자 · 플랫폼 관리자</span>
+  </div>
+  <nav class="wrap tabs" aria-label="플랫폼 메뉴">
+    <a href="#x">플랫폼 홈</a>
+    <a href="https://claude.ai/artifact/1SRjYZY8qvf391srdhijbq">부서</a>
+    <a href="https://claude.ai/artifact/CZQ2ZKpE48uW4YNqcsWhht">공용 콘텐츠</a>
+    <a href="#x">성경 데이터</a>
+    <a href="#x">기본 규칙</a>
+    <a href="#" aria-current="page">계정 찾기</a>
+  </nav>
+</header>
+
+<main class="gut"><div class="wrap">
+  <h1>계정 찾기</h1>
+  <p class="lead">부서 관리자가 할 수 없는 계정(다른 부서 관리자 · 플랫폼 관리자)의 비밀번호 초기화와, 부서가 없는 계정 문의를 여기서 해요.</p>
+  <form id="form" role="search"><input id="q" type="search" placeholder="아이디나 이름 — 예: jieun, 김영희" aria-label="아이디나 이름" value="박지은"><button type="submit">찾기</button></form>
+  <div class="split">
+    <ul class="res" id="res" aria-label="찾은 계정"></ul>
+    <section class="det" id="det" aria-live="polite"></section>
+  </div>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const C = { kids: ['잠실새내교회 유년부', 'var(--c-blue)'], pre: ['잠실새내교회 유치부', 'var(--c-red)'], elem: ['잠실새내교회 초등부', 'var(--c-green)'], adult: ['잠실새내교회 장년 통독 모임', 'var(--c-green)'], sbk: ['새빛교회 유년부', 'var(--c-blue)'], sbs: ['새빛교회 여름 성경학교', 'var(--c-red)'] };
+  // 이름은 모두 지어낸 예시. mem: [부서, 역할, 상태]
+  const A = [
+    { uid: 'jieun', n: '박지은', at: '2026.11.02', last: '오늘 08:10', mem: [['pre', '교사 · 관리자', '소속'], ['kids', '보호자', '소속']], log: [['2026.11.02', '운영자 · 유치부 관리자로 지정']] },
+    { uid: 'jieun2', n: '박지은', at: '2026.12.30', last: '12월 30일', mem: [['sbk', '참여자', '신청']], log: [] },
+    { uid: 'younghee', n: '김영희', at: '2026.12.18', last: '오늘 07:42', fam: 'kids', mem: [['kids', '참여자 · 보호자', '소속'], ['elem', '보호자', '소속'], ['adult', '참여자', '소속'], ['sbk', '참여자', '신청']], log: [['2026.12.20', '이은혜(유년부) · 임시 비밀번호 발급']] },
+    { uid: 'eunhye', n: '이은혜', at: '2026.11.02', last: '오늘 15:02', mem: [['kids', '교사 · 관리자', '소속']], log: [] },
+    { uid: 'sarang', n: '한사랑', at: '2026.12.05', last: '1월 3일', mem: [['sbk', '교사 · 관리자', '소속'], ['sbs', '관리자', '소속']], log: [] },
+    { uid: 'cheolsu', n: '김철수', at: '2026.12.19', last: '오늘 09:12', mem: [['kids', '참여자', '소속']], log: [] },
+    { uid: 'operator', n: '운영자', at: '2026.10.30', last: '지금', pf: 1, mem: [], log: [] },
+  ];
+  let sel = 'jieun', pwShown = false, askRead = false;
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2600); }
+  const isAdmin = (a) => a.mem.some((m) => m[1].includes('관리자') && m[2] === '소속');
+  function results() {
+    const q = $('q').value.trim().toLowerCase();
+    const list = A.filter((a) => !q || a.uid.includes(q) || a.n.includes(q));
+    if (!list.some((a) => a.uid === sel)) sel = list[0]?.uid;
+    $('res').innerHTML = list.length ? list.map((a) => `<li><button type="button" data-u="${a.uid}" aria-current="${a.uid === sel}"><span class="av">${a.n.slice(-2)}</span><span class="nm"><b>${a.n}</b><small>${a.uid} · ${a.mem.length ? a.mem.map((m) => C[m[0]][0].split(' ').pop()).join(' · ') : (a.pf ? '플랫폼' : '소속 없음')}</small></span>${a.pf ? '<span class="flag pf">플랫폼</span>' : isAdmin(a) ? '<span class="flag">부서 관리자</span>' : ''}</button></li>`).join('') : '<li class="empty">찾는 계정이 없어요.</li>';
+  }
+  function detail() {
+    const a = A.find((x) => x.uid === sel);
+    if (!a) { $('det').innerHTML = '<p class="empty">계정을 골라 주세요.</p>'; return; }
+    const adminDepts = a.mem.filter((m) => m[1].includes('관리자') && m[2] === '소속').map((m) => C[m[0]][0]);
+    const why = a.pf
+      ? '<div class="why no"><b>플랫폼 관리자 계정이에요.</b> 이 계정의 비밀번호는 본인이 "내 계정"에서 바꿔요. 여기서는 초기화하지 않아요.</div>'
+      : adminDepts.length
+        ? `<div class="why no"><b>${adminDepts.join(' · ')}의 관리자예요.</b> 그 밖의 부서 관리자는 이 계정을 초기화할 수 없어요. 다른 부서의 관리 권한까지 영향을 주기 때문이에요(ADR 0035). 필요하면 여기서 해요.</div>`
+        : `<div class="why ok"><b>소속 부서의 관리자도 초기화할 수 있는 계정이에요.</b> 보통은 부서 선생님께 부탁하면 돼요.</div>`;
+    $('det').innerHTML = `
+      <div class="who"><span class="av">${a.n.slice(-2)}</span><div><h2>${a.n}</h2><small>아이디 ${a.uid}</small></div></div>
+      <div class="facts"><div><small>가입</small><b class="num">${a.at}</b></div><div><small>마지막 로그인</small><b>${a.last}</b></div><div><small>가족과 함께할 부서</small><b>${a.fam ? C[a.fam][0].split(' ').pop() : '–'}</b></div></div>
+      <div><h3>소속 부서</h3>${a.mem.length ? `<ul class="mems">${a.mem.map(([t, r, s]) => `<li><i style="background:${C[t][1]}"></i><b>${C[t][0]}</b>${r.split(' · ').map((x) => `<span class="tag${x === '관리자' ? ' a' : ''}">${x}</span>`).join('')}${s !== '소속' ? `<span class="tag s">${s === '신청' ? '승인 기다림' : s}</span>` : ''}${a.fam === t ? '<span class="tag f">가족 부서</span>' : ''}</li>`).join('')}</ul>` : '<p class="empty" style="padding:8px 0;text-align:left">소속된 부서가 없어요.</p>'}</div>
+      ${why}
+      <div class="acts">
+        <div class="act"><div><b>임시 비밀번호</b><span>다음 로그인 때 새 비밀번호로 바꿔야 해요. 모든 부서에서 같은 계정이에요.</span></div>${a.pf ? '<button type="button" class="btn" disabled>할 수 없어요</button>' : '<button type="button" class="btn p" data-a="pw">임시 비밀번호 만들기</button>'}</div>
+        <div id="pwBox" hidden></div>
+        <div class="act"><div><b>성경 읽음 초기화</b><span>읽음 표시와 책갈피를 모두 지워요. 되돌릴 수 없어요(ADR 0029).</span></div>${a.pf ? '' : '<button type="button" class="btn d" data-a="rd">성경 읽음 지우기</button>'}</div>
+        <div id="rdBox" hidden></div>
+      </div>
+      <div><h3>이 계정에서 한 관리 일</h3>${a.log.length ? `<ul class="log">${a.log.map(([t, w]) => `<li><time class="num">${t}</time><span>${w}</span></li>`).join('')}</ul>` : '<p class="empty" style="padding:8px 0;text-align:left;font-size:13.5px">아직 없어요.</p>'}</div>`;
+  }
+  function draw() { results(); detail(); }
+  $('form').addEventListener('submit', (e) => { e.preventDefault(); draw(); });
+  $('res').addEventListener('click', (e) => { const b = e.target.closest('[data-u]'); if (b) { sel = b.dataset.u; draw(); } });
+  $('det').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-a]'); if (!b) return;
+    const a = A.find((x) => x.uid === sel);
+    if (b.dataset.a === 'pw') {
+      const code = 'bless-' + String(Math.floor(1000 + Math.random() * 9000));
+      $('pwBox').hidden = false;
+      $('pwBox').innerHTML = `<div class="pw"><code>${code}</code><button type="button" class="btn" data-a="copy">복사</button><button type="button" class="btn p" data-a="pwdone">전달했어요</button></div><p style="margin:6px 0 0;font-size:12.5px;color:var(--bad);font-weight:700">이 칸을 닫으면 다시 볼 수 없어요. ${a.n}님께 직접 알려 주세요.</p>`;
+      a.log.unshift(['2027.01.05', '운영자(플랫폼) · 임시 비밀번호 발급']);
+    }
+    if (b.dataset.a === 'copy') { const t = $('pwBox').querySelector('code').textContent; navigator.clipboard.writeText(t).then(() => toast('복사했어요'), () => toast('글자를 길게 눌러 복사해 주세요')); }
+    if (b.dataset.a === 'pwdone') { detail(); toast('감사 로그에 남겼어요'); }
+    if (b.dataset.a === 'rd') {
+      $('rdBox').hidden = false;
+      $('rdBox').innerHTML = `<div class="ask" role="alert"><span>지우려면 아이디 <b>${a.uid}</b> 를 똑같이 써 주세요.</span><div class="row"><input id="rdIn" autocomplete="off" aria-label="아이디 확인"><button type="button" class="btn dd" data-a="rd!" disabled id="rdGo">모두 지우기</button><button type="button" class="btn" data-a="rdx">취소</button></div></div>`;
+      $('rdIn').addEventListener('input', () => { $('rdGo').disabled = $('rdIn').value.trim() !== a.uid; }); $('rdIn').focus();
+    }
+    if (b.dataset.a === 'rdx') $('rdBox').hidden = true;
+    if (b.dataset.a === 'rd!') { a.log.unshift(['2027.01.05', '운영자(플랫폼) · 성경 읽음 · 책갈피 초기화']); detail(); toast('성경 읽음 표시와 책갈피를 지웠어요'); }
+  });
+  document.querySelectorAll('nav a[href="#x"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast(`${a.textContent} 화면으로 가요 (다음 시안)`); }));
+  draw();
+</script>
