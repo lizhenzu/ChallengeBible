@@ -1,0 +1,269 @@
+<title>통독 대시보드 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap">
+<style>
+  /* 레이아웃(Bible2 대시보드 구성): 위쪽 줄(☰ 목차 · 홈으로 · 성경통독 / 날짜) → 진도 띠(원 · 장 수 · 3칸) → 이어 읽기 띠 → 다음에 읽을 곳 → 통독 진도 막대 → 최근 8주 → 책별 진도(구약 · 신약) → 함께 읽는 사람. ☰ 는 왼쪽 목차 서랍 */
+  :root {
+    --bg: #FFFFFF; --band: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --on-accent: #FFFFFF; --tint: #E8EEFA; --tint-fg: #2B59C3;
+    --h0: #E9ECF0; --h1: #C9D6F2; --h2: #8DA7E3; --h3: #2B59C3;
+    --scrim: rgba(17, 20, 26, .45);
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #15181C; --band: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #6E95F0; --on-accent: #0E1013; --tint: #22304A; --tint-fg: #9DB7F5;
+    --h0: #252A31; --h1: #2B3C5E; --h2: #44629E; --h3: #6E95F0; --scrim: rgba(0, 0, 0, .6); color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #15181C; --band: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #6E95F0; --on-accent: #0E1013; --tint: #22304A; --tint-fg: #9DB7F5;
+    --h0: #252A31; --h1: #2B3C5E; --h2: #44629E; --h3: #6E95F0; --scrim: rgba(0, 0, 0, .6); color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--band); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+  .k { font-size: 13px; font-weight: 700; letter-spacing: .16em; color: var(--accent); }
+
+  /* 진도 띠 */
+  .band { background: var(--band); }
+  .band .wrap { padding-block: 12px 22px; display: flex; flex-direction: column; gap: 16px; }
+  .bar1 { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+  .sq { flex: none; width: 44px; height: 40px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); display: grid; place-items: center; }
+  .crumb { flex: 1; min-width: 0; font-size: 14px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .crumb a { color: var(--fg); font-weight: 700; }
+  .date { flex: none; font-size: 13px; color: var(--dim); }
+  .prog { display: flex; align-items: center; gap: 20px; }
+  .ring { flex: none; }
+  .ring text { fill: var(--fg); font-family: var(--sans); }
+  .big { display: flex; flex-direction: column; gap: 4px; }
+  .big b { font-size: 26px; font-weight: 300; }
+  .big span { font-size: 13px; color: var(--dim); line-height: 1.7; }
+  .cells { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--fg); border-bottom: 1px solid var(--line); }
+  .cells div { padding: 12px 0; text-align: center; display: flex; flex-direction: column; gap: 2px; }
+  .cells div + div { border-left: 1px solid var(--line); }
+  .cells b { font-size: 24px; font-weight: 300; }
+  .cells span { font-size: 12px; color: var(--dim); }
+
+  /* 이어 읽기 */
+  .cont { display: block; background: var(--accent); color: var(--on-accent); }
+  .cont .wrap { display: flex; align-items: center; gap: 12px; padding-block: 20px; }
+  .cont .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .cont small { font-size: 12px; font-weight: 700; letter-spacing: .18em; }
+  .cont b { font-size: 22px; font-weight: 500; }
+  .cont q { font-size: 14px; line-height: 1.7; opacity: .95; }
+  .cont span { font-size: 12px; opacity: .9; }
+  .cont .ar { font-size: 30px; font-weight: 300; }
+
+  main .wrap { padding-block: 8px 48px; display: flex; flex-direction: column; }
+  main section { display: flex; flex-direction: column; gap: 10px; padding-top: 26px; }
+  .hrow { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .hrow small { font-size: 12px; color: var(--dim); }
+  .next { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  @media (min-width: 640px) { .next { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+  .next a { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; padding: 11px 10px; border: 1px solid var(--rule); border-radius: 8px; font-size: 14px; min-width: 0; }
+  .next a span { font-size: 12px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .bars { display: flex; flex-direction: column; gap: 12px; }
+  .bars .l { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+  .bars .l span:last-child { color: var(--dim); }
+  .bars .b { height: 4px; background: var(--rule); }
+  .bars .b i { display: block; height: 4px; min-width: 6px; }
+  .heat { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+  .heat .w { text-align: center; font-size: 11px; color: var(--dim); }
+  .heat .c { height: 34px; display: grid; place-items: center; font-size: 11px; box-sizing: border-box; border: 2px solid transparent; }
+  .heat .c.today { border-color: var(--fg); }
+  .heat .c.fut { background: transparent; color: transparent; }
+  .lg { display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 11px; color: var(--dim); }
+  .lg i { width: 12px; height: 12px; }
+  .seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .seg button { min-height: 40px; border: 1px solid var(--line); background: var(--bg); font-size: 13px; }
+  .seg button + button { border-left: 0; }
+  .seg button[aria-selected="true"] { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+  .books { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+  @media (min-width: 640px) { .books { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+  .books a { position: relative; overflow: hidden; padding: 7px 6px 9px; border: 1px solid var(--rule); font-size: 12.5px; white-space: nowrap; text-overflow: ellipsis; }
+  .books a span { display: block; font-size: 11px; color: var(--dim); }
+  .books a.on span { color: var(--accent); font-weight: 700; }
+  .books a i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--accent); }
+  .people { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--rule); border-radius: 12px; }
+  .people .avs { display: flex; }
+  .people .avs span { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--bg); background: var(--tint); color: var(--tint-fg); display: grid; place-items: center; font-size: 11px; font-weight: 800; margin-left: -8px; }
+  .people .avs span:first-child { margin-left: 0; }
+  .people div { flex: 1; min-width: 0; font-size: 14px; }
+  .people div small { display: block; font-size: 12px; color: var(--dim); }
+  .people em { font-style: normal; color: var(--accent); font-weight: 700; font-size: 13px; white-space: nowrap; }
+
+  /* 목차 서랍 */
+  .scrim { position: fixed; inset: 0; z-index: 40; background: var(--scrim); }
+  .drawer { position: fixed; z-index: 41; top: 0; bottom: 0; left: 0; width: min(300px, 86vw); background: var(--band); display: flex; flex-direction: column; padding: calc(8px + env(safe-area-inset-top, 0px)) 0 calc(18px + env(safe-area-inset-bottom, 0px)) env(safe-area-inset-left, 0px); overflow-y: auto; box-shadow: 4px 0 24px rgba(0,0,0,.15); animation: slide .2s ease; }
+  @keyframes slide { from { transform: translateX(-100%); } }
+  @media (prefers-reduced-motion: reduce) { .drawer { animation: none; } }
+  .dh { display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 20px; min-height: 52px; }
+  .dh b { font-size: 16px; font-weight: 800; color: var(--accent); }
+  .dh button { width: 44px; height: 44px; border: 0; background: none; font-size: 22px; }
+  .dk { padding: 14px 20px 6px; font-size: 12px; font-weight: 700; letter-spacing: .14em; color: var(--dim); }
+  .menu a { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 20px; font-size: 15px; }
+  .menu a[aria-current] { background: var(--bg); font-weight: 800; }
+  .menu a[aria-current]::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .menu a small { margin-left: auto; font-size: 12px; color: var(--dim); }
+  .quick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 4px 20px; }
+  .quick a { padding: 10px; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); font-size: 13px; display: flex; justify-content: space-between; }
+  .quick a span { color: var(--accent); font-weight: 700; }
+  .dfoot { margin-top: auto; padding: 16px 20px 0; display: flex; flex-direction: column; gap: 8px; }
+  .dfoot a, .dfoot button { min-height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 14px; font-weight: 700; }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
+</style>
+
+<div class="band gut"><div class="wrap">
+  <div class="bar1">
+    <button type="button" class="sq" id="openMenu" aria-label="목차 열기" aria-expanded="false" aria-controls="drawer">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <span class="crumb"><a href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">홈으로</a> · 성경통독</span>
+    <span class="date">1월 5일 화요일</span>
+  </div>
+  <span class="k">나의 성경 통독 · 1회차</span>
+  <div class="prog">
+    <svg class="ring" width="100" height="100" viewBox="0 0 96 96" role="img" aria-label="전체 진도 1.9%">
+      <circle cx="48" cy="48" r="42" fill="none" stroke="var(--rule)" stroke-width="5"/>
+      <circle cx="48" cy="48" r="42" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" stroke-dasharray="5 263.9" transform="rotate(-90 48 48)"/>
+      <text x="48" y="55" text-anchor="middle" font-size="21" font-weight="300">1.9%</text>
+    </svg>
+    <div class="big"><b class="num">23 / 1,189장</b><span class="num">구약 23 / 929장<br>신약 0 / 260장</span></div>
+  </div>
+  <div class="cells">
+    <div><b class="num">5</b><span>일 연속</span></div>
+    <div><b class="num">5</b><span>일 읽음</span></div>
+    <div><b class="num">5장</b><span>오늘 읽은 장</span></div>
+  </div>
+</div></div>
+
+<a class="cont gut" href="https://claude.ai/artifact/2WtQWyBgeUqbx6R9a8bzLZ"><div class="wrap">
+  <span class="t">
+    <small>이어 읽기</small>
+    <b>창세기 24장 · 3절부터</b>
+    <q>아브라함이 나이가 많아 늙었고 여호와께서 그에게 범사에 복을 주셨더라</q>
+    <span class="num">67절 중 2절 읽음 · 오늘 07:42</span>
+  </span>
+  <span class="ar" aria-hidden="true">→</span>
+</div></a>
+
+<main class="gut"><div class="wrap">
+  <section aria-labelledby="hNext">
+    <span class="k" id="hNext">다음에 읽을 곳</span>
+    <div class="next" id="next"></div>
+  </section>
+
+  <section aria-labelledby="hBar">
+    <span class="k" id="hBar">통독 진도</span>
+    <div class="bars">
+      <div><div class="l"><span>전체</span><span class="num">23 / 1,189 · 1.9%</span></div><div class="b"><i style="width:1.9%;background:var(--fg)"></i></div></div>
+      <div><div class="l"><span>구약</span><span class="num">23 / 929 · 2.5%</span></div><div class="b"><i style="width:2.5%;background:var(--accent)"></i></div></div>
+      <div><div class="l"><span>신약</span><span class="num">0 / 260 · 0.0%</span></div><div class="b"><i style="width:0;min-width:0;background:var(--accent)"></i></div></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="hHeat">
+    <div class="hrow"><span class="k" id="hHeat">최근 8주</span><small>하루 읽은 장 수 · 1/5 오늘</small></div>
+    <div class="heat" id="heat"></div>
+    <div class="lg">적음 <i style="background:var(--h0)"></i><i style="background:var(--h1)"></i><i style="background:var(--h2)"></i><i style="background:var(--h3)"></i> 많음</div>
+  </section>
+
+  <section aria-labelledby="hBooks">
+    <div class="hrow"><span class="k" id="hBooks">책별 진도</span><small id="bookSum"></small></div>
+    <div class="seg" role="tablist" aria-label="구약 · 신약">
+      <button type="button" role="tab" aria-selected="true" data-t="ot">구약 39권</button>
+      <button type="button" role="tab" aria-selected="false" data-t="nt">신약 27권</button>
+    </div>
+    <div class="books" id="books" role="tabpanel"></div>
+  </section>
+
+  <section aria-labelledby="hPeople">
+    <span class="k" id="hPeople">함께 읽는 사람</span>
+    <a class="people" href="#people">
+      <span class="avs" aria-hidden="true"><span>서연</span><span>민준</span><span>영희</span><span>+</span></span>
+      <div>잠실새내교회 유년부 <b class="num">18명</b>이 통독하고 있어요<small>이번 주 가장 많이 읽은 사람 · 김영희 31장</small></div>
+      <em>현황 보기 →</em>
+    </a>
+  </section>
+</div></main>
+
+<div class="scrim" id="scrim" hidden></div>
+<nav class="drawer" id="drawer" aria-label="성경 통독 목차" hidden>
+  <div class="dh"><b>도전!!!성경통독</b><button type="button" id="closeMenu" aria-label="목차 닫기">×</button></div>
+  <div class="dk">목차</div>
+  <div class="menu">
+    <a href="#" aria-current="page">대시보드</a>
+    <a href="#books">구약 읽기<small class="num">23 / 929</small></a>
+    <a href="#books">신약 읽기<small class="num">0 / 260</small></a>
+    <a href="#search">성경 검색</a>
+    <a href="#bookmarks">북마크<small class="num">4</small></a>
+    <a href="#people">참여자 현황</a>
+  </div>
+  <div class="dk">빠른 이동</div>
+  <div class="quick">
+    <a href="https://claude.ai/artifact/2WtQWyBgeUqbx6R9a8bzLZ">창세기<span>24장</span></a>
+    <a href="#books">마태복음<span>1장</span></a>
+    <a href="#books">시편<span>23편</span></a>
+    <a href="#books">요한복음<span>3장</span></a>
+  </div>
+  <div class="dfoot">
+    <a href="https://claude.ai/artifact/QYa8ThNwp18tv4drEP7ae2">도전!!!성경말씀으로 가기 →</a>
+    <a href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">홈으로</a>
+  </div>
+</nav>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); }
+  // [이름, 장 수, 읽은 장]
+  const OT = [['창세기', 50, 23], ['출애굽기', 40], ['레위기', 27], ['민수기', 36], ['신명기', 34], ['여호수아', 24], ['사사기', 21], ['룻기', 4], ['사무엘상', 31], ['사무엘하', 24], ['열왕기상', 22], ['열왕기하', 25], ['역대상', 29], ['역대하', 36], ['에스라', 10], ['느헤미야', 13], ['에스더', 10], ['욥기', 42], ['시편', 150], ['잠언', 31], ['전도서', 12], ['아가', 8], ['이사야', 66], ['예레미야', 52], ['예레미야애가', 5], ['에스겔', 48], ['다니엘', 12], ['호세아', 14], ['요엘', 3], ['아모스', 9], ['오바댜', 1], ['요나', 4], ['미가', 7], ['나훔', 3], ['하박국', 3], ['스바냐', 3], ['학개', 2], ['스가랴', 14], ['말라기', 4]];
+  const NT = [['마태복음', 28], ['마가복음', 16], ['누가복음', 24], ['요한복음', 21], ['사도행전', 28], ['로마서', 16], ['고린도전서', 16], ['고린도후서', 13], ['갈라디아서', 6], ['에베소서', 6], ['빌립보서', 4], ['골로새서', 4], ['데살로니가전서', 5], ['데살로니가후서', 3], ['디모데전서', 6], ['디모데후서', 4], ['디도서', 3], ['빌레몬서', 1], ['히브리서', 13], ['야고보서', 5], ['베드로전서', 5], ['베드로후서', 3], ['요한일서', 5], ['요한이서', 1], ['요한삼서', 1], ['유다서', 1], ['요한계시록', 22]];
+
+  // 다음에 읽을 곳: 읽던 책의 다음 장 + 각 큰 묶음의 첫 안 읽은 장
+  const NEXT = [['창세기', '24장', 1], ['출애굽기', '1장'], ['시편', '1편'], ['잠언', '1장'], ['마태복음', '1장'], ['요한복음', '1장']];
+  $('next').innerHTML = NEXT.map(([b, c, cur]) => `<a href="${cur ? 'https://claude.ai/artifact/2WtQWyBgeUqbx6R9a8bzLZ' : '#books'}">${b}<span>${c}</span></a>`).join('');
+
+  // 최근 8주(2026-11-15 일 ~ 2027-01-09 토). 1월 1일부터 시작
+  const READ = { '1/1': 3, '1/2': 4, '1/3': 6, '1/4': 5, '1/5': 5 };
+  const cells = ['일', '월', '화', '수', '목', '금', '토'].map((w) => `<span class="w">${w}</span>`);
+  const start = new Date(2026, 10, 15), today = new Date(2027, 0, 5);
+  for (let i = 0; i < 56; i++) {
+    const d = new Date(start.getTime() + i * 864e5), key = `${d.getMonth() + 1}/${d.getDate()}`, n = READ[key] || 0, fut = d > today;
+    const lv = n === 0 ? 0 : n <= 3 ? 1 : n <= 5 ? 2 : 3;
+    cells.push(`<span class="c${fut ? ' fut' : ''}${+d === +today ? ' today' : ''}" style="background:var(--h${lv});color:${lv === 3 ? 'var(--on-accent)' : lv ? 'var(--fg)' : 'var(--dim)'}" title="${key} · ${n}장">${fut ? '' : d.getDate()}</span>`);
+  }
+  $('heat').innerHTML = cells.join('');
+
+  let tab = 'ot';
+  function books() {
+    const L = tab === 'ot' ? OT : NT;
+    $('books').innerHTML = L.map(([n, c, r = 0]) => `<a href="${r ? 'https://claude.ai/artifact/2WtQWyBgeUqbx6R9a8bzLZ' : '#books'}" class="${r ? 'on' : ''}" title="${n} ${r}/${c}장">${n}<span class="num">${r}/${c}</span><i style="width:${r / c * 100}%"></i></a>`).join('');
+    const done = L.filter(([, c, r = 0]) => r === c).length, started = L.filter(([, , r = 0]) => r > 0).length;
+    $('bookSum').textContent = `다 읽은 책 ${done}권 · 읽는 중 ${started - done}권`;
+    document.querySelectorAll('.seg button').forEach((b) => b.setAttribute('aria-selected', b.dataset.t === tab));
+  }
+  document.querySelector('.seg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { tab = b.dataset.t; books(); } });
+  books();
+
+  // 목차 서랍
+  function menu(open) {
+    $('drawer').hidden = $('scrim').hidden = !open;
+    $('openMenu').setAttribute('aria-expanded', open);
+    (open ? $('closeMenu') : $('openMenu')).focus();
+  }
+  $('openMenu').onclick = () => menu(true);
+  $('closeMenu').onclick = $('scrim').onclick = () => menu(false);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('drawer').hidden) menu(false); });
+  document.querySelector('.menu a[aria-current]').addEventListener('click', (e) => { e.preventDefault(); menu(false); });
+
+  const NAMES = { '#books': '성경 목록', '#search': '성경 검색', '#bookmarks': '북마크', '#people': '참여자 현황' };
+  document.addEventListener('click', (e) => { const a = e.target.closest('a[href^="#"]'); if (!a || !NAMES[a.getAttribute('href')]) return; e.preventDefault(); toast(`${NAMES[a.getAttribute('href')]} 화면으로 가요 (다음 시안)`); });
+</script>
