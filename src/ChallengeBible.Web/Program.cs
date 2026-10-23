@@ -1,6 +1,7 @@
 using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
+using ChallengeBible.Web.Api;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
@@ -24,6 +25,8 @@ builder.Services.AddScoped<TenantPageFilter>();
 builder.Services.AddScoped<MemberAdminService>();
 builder.Services.AddScoped<PlatformTenantService>();
 builder.Services.AddScoped<MissionService>();
+builder.Services.AddScoped<TenantResolver>();
+builder.Services.AddAntiforgery(o => o.HeaderName = "RequestVerificationToken");
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<LookupLimiter>();
 
@@ -70,6 +73,7 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapRazorPages().WithStaticAssets();
+app.MapMissionApi();
 
 app.Run();
 

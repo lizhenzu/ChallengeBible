@@ -1,11 +1,20 @@
 @page "/{slug:regex(^[a-z0-9-]{{2,40}}$)}"
 @model TenantHomeModel
+@* 홈 메인(0044) 1차 간단판: 프로그램 카드. 가족팀 · 오늘 한 줄은 뒤 단계에서 확정 시안대로 *@
 <partial name="_Top" />
 <main class="page gut"><div class="wrap">
     <div>
-        <h1>@Model.Tenant.Current.Name</h1>
-        <p class="sub">@Model.Tenant.AppName · 부서 홈은 미션 단계에서 확정 시안대로 채워요.</p>
+        <p class="sub" style="margin:0">@Model.Tenant.Current.Name</p>
+        <h1>@Model.Tenant.AppName</h1>
     </div>
+    @if (Model.Tenant.Current.MissionEnabled)
+    {
+        <a class="dept" href="/@Model.Tenant.Current.Slug/word-mission"><span class="mk">말</span><div><b>도전!!!성경말씀</b><span class="sub" style="margin:0;font-size:13px">오늘의 말씀 · 퀴즈 · 기도 · 암송</span></div><span aria-hidden="true">→</span></a>
+    }
+    @if (Model.Tenant.Current.ReadingEnabled)
+    {
+        <div class="dept" aria-disabled="true"><span class="mk">통</span><div><b>도전!!!성경통독</b><span class="sub" style="margin:0;font-size:13px">성경 데이터를 넣은 뒤에 열려요</span></div></div>
+    }
     @if (Model.Tenant.IsAdmin)
     {
         <a class="btn s" href="/@Model.Tenant.Current.Slug/admin/members">관리 · 소속 관리</a>

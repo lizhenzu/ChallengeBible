@@ -1,0 +1,77 @@
+@page "/{slug}/word-mission"
+@model HomeModel
+@using ChallengeBible.Web.Auth
+@using ChallengeBible.Domain.Missions
+@{
+    var d = Model.Data!;
+    var r = d.Rules;
+    bool Done(Mission m) => m == Mission.Recite ? d.RecitedThisWeek : d.Done.Any(i => i.Mission() == m);
+    (string Key, string Label, Mission M, bool Has, string Sub)[] cards =
+    [
+        ("word", "말씀", Mission.Word, d.Word is not null, d.Word?.Title ?? "오늘은 없음"),
+        ("quiz", "퀴즈", Mission.Quiz, d.Quiz is not null, d.Quiz is null ? "오늘은 없음" : d.QuizState.Solved ? "정답!" : $"{d.QuizState.MaxAttempts - d.QuizState.AttemptsUsed}번 도전 가능"),
+        ("prayer", "기도", Mission.Prayer, d.Prayer is not null, d.Prayer?.Trait ?? "오늘은 없음"),
+        ("recite", "암송", Mission.Recite, d.Recite is not null, d.Recite is null ? "이번 주 없음" : "이번 주 한 번"),
+    ];
+    var max = Math.Max(1, Model.Week.Count == 0 ? 1 : Model.Week.Max(w => w.Points));
+    var left = cards.Where(c => c.Has && !Done(c.M)).Select(c => c.Label).ToList();
+}
+<header class="mtop gut"><div class="wrap">
+    <nav class="crumb"><a href="/@Model.Slug">홈으로</a> · <b>미션홈</b></nav>
+    <span class="date">@Model.DayLabel(d.Today)</span>
+</div></header>
+<main class="mbody home gut" data-slug="@Model.Slug"><div class="wrap">
+    <section class="hello">
+        <p class="k">@Model.Tenant.Current.Name</p>
+        <h1>@(User.DisplayName())님, 안녕하세요</h1>
+        @if (d.Today < Model.SeasonStart)
+        {
+            <p class="note-block">곧 시작해요! @Model.SeasonStart.ToString("M월 d일")부터 미션을 할 수 있어요.</p>   @* 0028 *@
+        }
+        <div class="score">
+            <div><small>올해 점수</small><b class="num">@d.SeasonPoints.ToString("N0")<u>점</u></b></div>
+            @if (Model.NextMilestone is int nm) { <div><small>다음 축하까지</small><b class="num">@((nm - d.SeasonPoints).ToString("N0"))<u>점</u></b></div> }
+        </div>
+    </section>
+
+    @if (!Model.IsToday) { <p class="note-day">@Model.DayLabel(Model.Day) 미션을 보고 있어요. <a href="/@Model.Slug/word-mission">오늘로</a></p> }
+
+    <nav class="chips" aria-label="날짜">
+        @for (var i = 0; i < r.GraceDays; i++)
+        {
+            var day = d.Today.AddDays(-i);
+            <a href="@(i == 0 ? $"/{Model.Slug}/word-mission" : $"/{Model.Slug}/word-mission?date={day:yyyy-MM-dd}")" aria-current="@(day == Model.Day ? "page" : "false")">@(i == 0 ? "오늘" : i == 1 ? "어제" : day.ToString("M/d"))</a>
+        }
+    </nav>
+
+    <section class="band @(left.Count == 0 ? "done" : "")">
+        @if (left.Count == 0) { <strong>@(Model.IsToday ? "오늘" : "이날") 미션을 모두 했어요!</strong> }
+        else { <strong>@string.Join(" · ", left)@(left.Count == 1 ? "만" : Ui.IGa(left[^1])) 남았어요</strong> }
+        <p>이날 <b class="num">@d.DayPoints</b>점</p>
+    </section>
+
+    <div class="cards">
+        @foreach (var c in cards)
+        {
+            var done = Done(c.M);
+            <a class="mcard @(done ? "done" : !c.Has ? "none" : "")" href="@Model.Link(c.Key)">
+                <span class="ck" aria-hidden="true">@(done ? "✓" : "")</span>
+                <b>@c.Label</b><small>@(done ? "완료" : c.Sub)</small>
+            </a>
+        }
+    </div>
+
+    @if (Model.Week.Count > 0)
+    {
+        <section class="week" aria-label="최근 7일">
+            <h2>최근 7일 <small class="num">@Model.Week.Sum(w => w.Points)점</small></h2>   @* R-74 *@
+            <div class="bars">
+                @foreach (var (date, pts) in Model.Week)
+                {
+                    <div class="@(date == Model.Day ? "t" : "")"><em class="num">@pts</em><i style="height:@(Math.Max(4, pts * 70 / max))px"></i><span>@date.ToString("ddd", ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko)</span></div>
+                }
+            </div>
+        </section>
+    }
+    @if (Model.ParticipantId is null) { <p class="note-block">@Model.BlockReason</p> }
+</div></main>

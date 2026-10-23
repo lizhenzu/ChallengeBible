@@ -1,0 +1,43 @@
+@page "/{slug}/quiz"
+@model QuizModel
+@using ChallengeBible.Domain.Missions
+@using ChallengeBible.Infrastructure.Data
+@{
+    var d = Model.Data!; var q = d.Quiz; var s = d.QuizState;
+    var finished = s.State != QuizState.CanTry;
+}
+@await Html.PartialAsync("_MissionHead", new MissionHead(Model, "오늘의 퀴즈", q is null ? "오늘은 퀴즈가 없어요" : "오늘의 말씀 퀴즈", d.Word?.Range))
+<main class="mbody gut" data-slug="@Model.Slug" data-date="@Model.Day.ToString("yyyy-MM-dd")"><div class="wrap">
+    @if (q is null)
+    {
+        <p class="empty">이날은 퀴즈가 없어요. 다른 미션을 해 보세요.</p>
+    }
+    else
+    {
+        <section class="sec" id="quiz" data-format="@q.Format" data-finished="@(finished ? "1" : "0")"><h2><span class="n">01</span>문제</h2>
+            @if (q.Background is not null) { <p class="hint">@q.Background</p> }
+            <p class="story q">@q.Question</p>
+            @if (q.Format == QuizFormat.Choice)
+            {
+                <div class="choices">
+                    @for (var i = 0; i < q.Choices.Count; i++)
+                    {
+                        var c = q.Choices[i];
+                        var mine = s.MyChoices.Contains(c.Id);
+                        var cls = c.Id == Model.CorrectChoiceId ? "ok" : mine ? "no" : "";
+                        <button type="button" class="choice @cls" data-choice="@c.Id" disabled="@(!Model.CanAct || finished || mine)"><span class="no">@(i + 1)</span>@c.Text</button>
+                    }
+                </div>
+            }
+            else
+            {
+                <form class="row" id="textAnswer"><input class="in" name="answer" maxlength="200" placeholder="답을 써 주세요" disabled="@(!Model.CanAct || finished)" aria-label="답" /><button class="btn p sm" disabled="@(!Model.CanAct || finished)">답하기</button></form>
+            }
+            <p class="msg" id="qmsg" role="status">@(s.Solved ? "정답! 오늘 퀴즈 완료" : finished ? $"오늘은 {s.MaxAttempts}번 도전했어요. 내일 새 퀴즈에 도전해요." : $"정답이면 +{d.Rules.Item(MissionItem.QuizCorrect).Points}점 · {s.MaxAttempts - s.AttemptsUsed}번 도전할 수 있어요")</p>
+            <div class="explain" id="explain" @(q.Explanation is null ? "hidden" : "")><b>해설</b><p>@q.Explanation</p></div>
+        </section>
+    }
+    <p class="sum">이날 <b class="num" data-daypoints>@d.DayPoints</b>점 · 올해 <b class="num" data-season>@d.SeasonPoints.ToString("N0")</b>점</p>
+</div></main>
+@Html.AntiForgeryToken()
+@await Html.PartialAsync("_MissionNav", new MissionNav(Model, "quiz"))

@@ -1,0 +1,13 @@
+@model ChallengeBible.Web.Pages.Mission.MissionNav
+@{
+    var p = Model.Page;
+    (string Key, string Label)[] tabs = [("word", "말씀"), ("quiz", "퀴즈"), ("prayer", "기도"), ("recite", "암송")];
+}
+<nav class="mnav" aria-label="미션">
+    @foreach (var (key, label) in tabs)
+    {
+        <a href="@p.Link(key)" aria-current="@(key == Model.Current ? "page" : "false")">@label</a>
+    }
+</nav>
+<p id="toast" class="toast" role="status" hidden></p>
+<script src="~/js/mission.js" asp-append-version="true"></script>

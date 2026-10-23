@@ -1,0 +1,26 @@
+@model ChallengeBible.Web.Pages.Mission.MissionHead
+@{ var p = Model.Page; }
+@* 미션 화면 위쪽: 홈으로 · 미션홈 / 글자 크기 → 오늘의 ○○ · 달력 배지 · 제목 · 범위 *@
+<header class="mtop gut"><div class="wrap">
+    <nav class="crumb"><a href="/@p.Slug">홈으로</a> · <a href="@p.Link("word-mission")">미션홈</a></nav>
+    <div class="fs" role="group" aria-label="글자 크기">
+        <button type="button" data-fs="-1" aria-label="글자 작게">가−</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
+    </div>
+</div></header>
+<div class="mhead gut"><div class="wrap">
+    <div class="k">@Model.Label</div>
+    <div class="ttl">
+        <div class="cal" aria-label="@p.Day.ToString("yyyy년 M월 d일 dddd", ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko)">
+            <div class="m num">@p.Day.ToString("yyyy.MM")</div><div class="d num">@p.Day.ToString("dd")</div><div class="w">@p.Day.ToString("dddd", ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko)</div>
+        </div>
+        <div><h1>@Model.Title</h1>@if (Model.Ref is not null) { <div class="ref">@Model.Ref</div> }</div>
+    </div>
+    @if (!p.IsToday)
+    {
+        <p class="note-day" role="status">@p.DayLabel(p.Day) 미션을 보고 있어요. <a href="@($"/{p.Slug}/{p.HttpContext.Request.Path.Value!.Split('/').Last()}")">오늘로</a></p>   @* R-75 *@
+    }
+    @if (!p.CanAct)
+    {
+        <p class="note-block">@p.BlockReason</p>
+    }
+</div></div>

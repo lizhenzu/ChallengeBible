@@ -10,6 +10,6 @@ public class DesignTimeFactoryTests
     public void 마이그레이션_도구는_웹과_같은_user_secrets_를_읽는다()
     {
         var webId = typeof(Program).Assembly.GetCustomAttribute<UserSecretsIdAttribute>()!.UserSecretsId;
-        Assert.Equal(webId, DesignTimeFactory.WebUserSecretsId);
+        Assert.Equal(DesignTimeFactory.WebUserSecretsId, webId);
     }
 }

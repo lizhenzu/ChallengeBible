@@ -1,0 +1,29 @@
+@page "/{slug}/word"
+@model WordModel
+@{ var d = Model.Data!; var w = d.Word; }
+@await Html.PartialAsync("_MissionHead", new MissionHead(Model, "오늘의 말씀", w?.Title ?? "오늘은 말씀이 없어요", w?.Range))
+<main class="mbody gut" data-slug="@Model.Slug" data-date="@Model.Day.ToString("yyyy-MM-dd")"><div class="wrap">
+    @if (w is null)
+    {
+        <p class="empty">이날은 말씀이 없어요. 다른 미션을 해 보세요.</p>   @* R-122 *@
+    }
+    else
+    {
+        <section class="sec"><h2><span class="n">01</span>오늘 이야기</h2><p class="story">@w.Summary</p></section>
+        <section class="sec"><h2><span class="n">02</span>성경 읽기</h2><p class="hint">@w.Range — 성경 본문 화면은 성경 데이터를 넣은 뒤에 열려요.</p></section>
+        <section class="sec"><h2><span class="n">03</span>어떻게 읽었나요?</h2>
+            <div class="picks" data-api="word">
+                @foreach (var item in d.Rules.Items.Where(i => i.Enabled && i.Item.Mission() == Mission.Word))
+                {
+                    var done = d.Done.Contains(item.Item);
+                    <button type="button" class="pick" data-item="@item.Item.Code()" aria-pressed="@(done ? "true" : "false")" disabled="@(!Model.CanAct || done)">
+                        <span class="ck" aria-hidden="true">✓</span><b>@item.DisplayName</b><span class="pt">@(done ? "완료 · " : "")@(item.Points)점</span>
+                    </button>
+                }
+            </div>
+        </section>
+    }
+    <p class="sum">이날 <b class="num" data-daypoints>@d.DayPoints</b>점 · 올해 <b class="num" data-season>@d.SeasonPoints.ToString("N0")</b>점</p>
+</div></main>
+@Html.AntiForgeryToken()
+@await Html.PartialAsync("_MissionNav", new MissionNav(Model, "word"))

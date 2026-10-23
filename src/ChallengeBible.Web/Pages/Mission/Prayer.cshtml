@@ -1,0 +1,31 @@
+@page "/{slug}/prayer"
+@model PrayerModel
+@using ChallengeBible.Web.Auth
+@{ var d = Model.Data!; var p = d.Prayer; var name = User.DisplayName(); }
+@await Html.PartialAsync("_MissionHead", new MissionHead(Model, "오늘의 기도", p is null ? "오늘은 기도가 없어요" : $"{p.Trait}{(p.TraitEn is null ? "" : $" ({p.TraitEn})")}", p?.Range))
+<main class="mbody gut" data-slug="@Model.Slug" data-date="@Model.Day.ToString("yyyy-MM-dd")"><div class="wrap">
+    @if (p is null)
+    {
+        <p class="empty">이날은 기도가 없어요. 다른 미션을 해 보세요.</p>
+    }
+    else
+    {
+        <section class="sec"><h2><span class="n">01</span>성품기도</h2>
+            @foreach (var para in p.Paragraphs) { <p class="story">@Model.Paragraph(para, name)</p> }
+        </section>
+        <section class="sec"><h2><span class="n">02</span>누구를 위해 기도했나요?</h2>
+            <div class="picks" data-api="prayer">
+                @foreach (var item in d.Rules.Items.Where(i => i.Enabled && i.Item.Mission() == Mission.Prayer))
+                {
+                    var done = d.Done.Contains(item.Item);
+                    <button type="button" class="pick" data-item="@item.Item.Code()" aria-pressed="@(done ? "true" : "false")" disabled="@(!Model.CanAct || done)">
+                        <span class="ck" aria-hidden="true">✓</span><b>@item.DisplayName</b><span class="pt">@(done ? "완료 · " : "")@(item.Points)점</span>
+                    </button>
+                }
+            </div>
+        </section>
+    }
+    <p class="sum">이날 <b class="num" data-daypoints>@d.DayPoints</b>점 · 올해 <b class="num" data-season>@d.SeasonPoints.ToString("N0")</b>점</p>
+</div></main>
+@Html.AntiForgeryToken()
+@await Html.PartialAsync("_MissionNav", new MissionNav(Model, "prayer"))

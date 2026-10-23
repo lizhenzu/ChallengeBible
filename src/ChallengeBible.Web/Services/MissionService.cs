@@ -204,6 +204,32 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
         return r with { Correct = true, Message = r.Added > 0 ? $"정답! +{r.Added}점" : "정답!" };
     }
 
+    /// <summary>끝난 퀴즈의 정답 보기(화면에 "정답" 표시용). 끝나기 전에는 부르지 않는다.</summary>
+    public async Task<int?> CorrectChoiceAsync(int quizId, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        return await ctx.DailyQuizzes.Where(q => q.Id == quizId).Select(q => q.CorrectChoiceId).SingleOrDefaultAsync(ct);
+    }
+
+    /// <summary>최근 7일(고른 날 포함, R-74) 하루 점수.</summary>
+    public async Task<IReadOnlyList<(DateOnly Date, int Points)>> RecentDaysAsync(int participantId, DateOnly end, CancellationToken ct = default)
+    {
+        var start = end.AddDays(-6);
+        await using var ctx = db.Create();
+        var rows = await ctx.PointLedgers.Where(l => l.ParticipantId == participantId && l.MissionDate >= start && l.MissionDate <= end)
+            .GroupBy(l => l.MissionDate).Select(g => new { g.Key, P = g.Sum(x => x.Points) }).ToListAsync(ct);
+        return Enumerable.Range(0, 7).Select(i => start.AddDays(i)).Select(d => (d, rows.FirstOrDefault(r => r.Key == d)?.P ?? 0)).ToList();
+    }
+
+    /// <summary>다음 축하 단계까지 남은 점수(없으면 null).</summary>
+    public static int? NextMilestone(int seasonPoints) => Rules.Milestones.Where(m => m > seasonPoints).Order().Cast<int?>().FirstOrDefault();
+
+    public async Task<DateOnly> SeasonStartAsync(int year, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        return (await SeasonAsync(ctx, year, ct)).StartDate;
+    }
+
     private static MissionResult Fail(string message) => new(false, 0, 0, [], message);
 
     private async Task<MissionResult> Already(AppDbContext ctx, int participantId, DateOnly today, string message, CancellationToken ct) =>

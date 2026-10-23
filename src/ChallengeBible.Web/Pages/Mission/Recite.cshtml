@@ -1,0 +1,30 @@
+@page "/{slug}/recite"
+@model ReciteModel
+@{ var d = Model.Data!; var v = d.Recite; }
+@await Html.PartialAsync("_MissionHead", new MissionHead(Model, "이번 주 암송", v?.Title ?? "이번 주 암송 말씀이 없어요", v?.Range))
+<main class="mbody gut" data-slug="@Model.Slug" data-date="@Model.Day.ToString("yyyy-MM-dd")"><div class="wrap">
+    @if (v is null)
+    {
+        <p class="empty">이번 주는 암송 말씀이 없어요.</p>
+    }
+    else
+    {
+        <section class="sec"><h2><span class="n">01</span>이번 주 말씀 <small>@v.Start.ToString("M/d") ~ @v.End.ToString("M/d")</small></h2>
+            <p class="story big">@v.Range</p>
+            @if (v.LessonNo is not null || v.Summary is not null) { <p class="hint">@(v.LessonNo is null ? "" : $"{v.LessonNo}과 · ")@v.Summary</p> }
+        </section>
+        @if (v.Point is not null) { <section class="sec"><h2><span class="n">02</span>배울 점</h2><p class="story">@v.Point</p></section> }
+        @if (v.Apply is not null) { <section class="sec"><h2><span class="n">03</span>이렇게 살아요</h2><p class="story">@v.Apply</p></section> }
+        <section class="sec">
+            <div class="picks" data-api="recite">
+                <button type="button" class="pick" data-item="Recite" aria-pressed="@(d.RecitedThisWeek ? "true" : "false")" disabled="@(!Model.CanAct || d.RecitedThisWeek)">
+                    <span class="ck" aria-hidden="true">✓</span><b>외웠어요</b><span class="pt">@(d.RecitedThisWeek ? "이번 주 완료 · " : "")@(d.Rules.Item(MissionItem.Recite).Points)점</span>
+                </button>
+            </div>
+            <p class="hint">암송은 한 주에 한 번 점수를 받아요.</p>
+        </section>
+    }
+    <p class="sum">이날 <b class="num" data-daypoints>@d.DayPoints</b>점 · 올해 <b class="num" data-season>@d.SeasonPoints.ToString("N0")</b>점</p>
+</div></main>
+@Html.AntiForgeryToken()
+@await Html.PartialAsync("_MissionNav", new MissionNav(Model, "recite"))
