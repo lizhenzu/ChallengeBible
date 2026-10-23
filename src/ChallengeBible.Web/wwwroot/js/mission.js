@@ -57,6 +57,15 @@
     dlg.querySelector('[data-close]').focus();
   }
 
+  // 아래 미션 메뉴의 지금 화면 상태 글자(완료 · 끝남)
+  function navState(text, done) {
+    const nav = document.querySelector('.mnav a[aria-current="page"]');
+    if (!nav) return;
+    nav.classList.toggle('dn', done);
+    const s = nav.querySelector('.S');
+    if (s) { s.textContent = text; s.classList.toggle('done', done); }
+  }
+
   // 말씀 · 기도 · 암송 항목
   document.querySelectorAll('.picks[data-api]').forEach((box) => box.addEventListener('click', async (e) => {
     const b = e.target.closest('button.pick');
@@ -74,8 +83,7 @@
       sec?.classList.add('done');
       const st = sec?.querySelector('[data-pickstate]');
       if (st) st.textContent = api === 'recite' ? '이번 주 완료' : on === all ? '모두 했어요' : '미션 완료';
-      const nav = document.querySelector('.mnav a[aria-current="page"]');
-      if (nav) { nav.classList.add('dn'); const s = nav.querySelector('.S'); if (s) { s.textContent = '완료'; s.classList.add('done'); } }
+      navState('완료', true);
       after(json);
     } else {
       b.disabled = false;
@@ -83,33 +91,75 @@
     }
   }));
 
-  // 퀴즈
+  // 퀴즈(확정 시안): 보기를 고른 뒤 "답 제출하기". 판정 · 남은 기회는 서버가 알려 준다(R-43).
   const quiz = document.getElementById('quiz');
   if (quiz) {
-    const msg = document.getElementById('qmsg');
-    const finish = (json) => {
-      quiz.querySelectorAll('button, input').forEach((x) => (x.disabled = true));
-      if (json.correctChoiceId) quiz.querySelector(`[data-choice="${json.correctChoiceId}"]`)?.classList.add('ok');
-      if (json.explanation) { const ex = document.getElementById('explain'); ex.querySelector('p').textContent = json.explanation; ex.hidden = false; }
+    const msg = document.getElementById('qmsg'), go = document.getElementById('qgo'), tries = document.getElementById('tries');
+    const text = document.getElementById('answerText');
+    const max = Number(quiz.dataset.max), pts = Number(quiz.dataset.points);
+    const picked = () => quiz.querySelector('input[type="radio"]:checked');
+    const tag = (label, t) => {
+      const box = label.querySelector('.t');
+      box.querySelector('small')?.remove();
+      const sm = document.createElement('small'); sm.textContent = t; box.appendChild(sm);
     };
-    const answer = async (body, btn) => {
-      const { ok, json } = await post('quiz/attempts', { date, ...body });
-      msg.textContent = json.message ?? '';
-      if (!ok || json.ok === false) return;
-      if (json.isCorrect) { btn?.classList.add('ok'); after(json); }
-      else btn?.classList.add('no');
-      if (btn) btn.disabled = true;
-      if (json.isCorrect || json.attemptsLeft === 0) finish(json);
+    const tell = (t, cls) => { msg.textContent = t; msg.className = `msg ${cls}`; };
+    const refresh = () => {
+      quiz.querySelectorAll('.qopt').forEach((l) => l.classList.toggle('sel', !!l.querySelector('input:checked')));
+      go.disabled = quiz.dataset.finished === '1' || (text ? text.disabled || !text.value.trim() : !picked());
     };
-    quiz.addEventListener('click', (e) => {
-      const b = e.target.closest('button.choice');
-      if (b && !b.disabled) answer({ choiceId: Number(b.dataset.choice) }, b);
+    const finish = (json, solved) => {
+      quiz.dataset.finished = '1';
+      quiz.querySelectorAll('input').forEach((x) => { x.disabled = true; if (x.type === 'radio') x.checked = false; });
+      quiz.querySelectorAll('.qopt').forEach((l) => { l.classList.remove('sel'); if (!l.classList.contains('bad') && !l.classList.contains('ans')) l.classList.add('dim', 'fixed'); });
+      const ans = json.correctChoiceId && quiz.querySelector(`.qopt[data-choice="${json.correctChoiceId}"]`);
+      if (ans) { ans.classList.remove('dim', 'bad'); ans.classList.add('ans', 'fixed'); tag(ans, solved ? '정답' : '정답은 이것'); }
+      go.innerHTML = `${solved ? '정답을 맞혔어요' : `오늘은 ${max}번 도전했어요`} <em aria-hidden="true">✓</em>`;
+      go.disabled = true;
+      navState(solved ? '완료' : '끝남', solved);
+      const ex = document.getElementById('explain');
+      if (ex && json.explanation) {
+        ex.querySelector('p').textContent = json.explanation;
+        const r = document.getElementById('resTag');
+        if (r) { r.textContent = solved ? `정답 +${pts}점` : '점수 없음'; r.className = solved ? 'ok' : 'warn'; }
+        ex.hidden = false;
+        ex.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    };
+    quiz.addEventListener('change', refresh);
+    text?.addEventListener('input', refresh);
+    text?.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !go.disabled) go.click(); });
+    go.addEventListener('click', async () => {
+      const r = picked(), v = text?.value.trim();
+      if (!r && !v) return;
+      go.disabled = true;
+      const { ok, json } = await post('quiz/attempts', { date, ...(r ? { choiceId: Number(r.value) } : { answerText: v }) });
+      if (!ok || json.ok === false) { tell(json.message ?? '잠시 뒤에 다시 해 주세요.', 'bad'); refresh(); return; }
+      const label = r?.closest('.qopt');
+      const left = json.attemptsLeft ?? 0;
+      if (json.isCorrect) {
+        quiz.classList.add('done');
+        tries.textContent = '정답!'; tries.className = 'ok';
+        tell(`정답! +${pts}점`, 'ok');
+        if (label) { label.classList.add('ans', 'fixed'); tag(label, '정답'); }
+        after(json);
+        finish(json, true);
+        return;
+      }
+      if (label) { label.classList.remove('sel'); label.classList.add('bad', 'fixed'); tag(label, '내가 고른 답 · 오답'); r.checked = false; r.disabled = true; }
+      tries.className = 'warn';
+      if (left > 0) {
+        tries.textContent = `${left}번 남았어요`;
+        tell(`오답이에요 (${max - left}/${max}) 한 번 더 도전해 보세요`, 'bad');
+        if (text) text.value = '';
+        refresh();
+      } else {
+        tries.textContent = '오늘은 끝';
+        tell(`오늘은 ${max}번 도전했어요. 내일 새 퀴즈에 도전해요`, 'bad');
+        finish(json, false);
+      }
     });
-    document.getElementById('textAnswer')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const v = e.target.answer.value.trim();
-      if (v) answer({ answerText: v }, null);
-    });
+    refresh();
   }
 
   // 글자 크기: − 5%씩, + 10%씩, 각 5번(75% ~ 150%), 가운데 = 100% (R-167). 이 기기에 기억.

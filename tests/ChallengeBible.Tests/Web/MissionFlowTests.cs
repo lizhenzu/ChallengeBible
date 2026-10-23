@@ -140,6 +140,19 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task 퀴즈_화면은_보기를_고른_뒤_답을_제출한다()
+    {
+        // 확정 시안: 03 정답을 골라요(라디오) → 답 제출하기, 해설은 끝난 뒤에만
+        var c = await Member("cheolsu", Roles.Participant);
+        var html = await c.GetStringAsync("/jamsil-kids/quiz");
+        Assert.Contains("정답을 골라요", html);
+        Assert.Contains("type=\"radio\"", html);
+        Assert.Contains("답 제출하기", html);
+        Assert.Contains("id=\"explain\" hidden", html);
+        Assert.Contains("기회 2번", html);
+    }
+
+    [Fact]
     public async Task 미션_홈은_남은_미션과_날짜_칩을_보여준다()
     {
         var c = await Member("cheolsu", Roles.Participant);
