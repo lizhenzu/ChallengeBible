@@ -182,6 +182,10 @@
     <h2 id="hMg">계정 관리</h2>
     <div class="mgmt">
       <div class="mg">
+        <div><b>보호자 연결</b><span id="gList">김영희(엄마 · younghee) · 김대호(아빠 · daeho). 연결된 보호자는 철수의 미션 · 점수를 보기만 해요.</span></div>
+        <button type="button" class="btn" id="gBtn">보호자 추가 · 빼기</button>
+      </div>
+      <div class="mg">
         <div><b>비밀번호 초기화</b><span>비밀번호를 잊었을 때 임시 비밀번호를 만들어 줘요. 철수가 다음에 로그인하면 새 비밀번호로 바꿔야 해요.</span></div>
         <button type="button" class="btn" id="pwBtn">임시 비밀번호 만들기</button>
       </div>
@@ -290,5 +294,6 @@
   $('rdBtn').onclick = () => { $('rdName').value = ''; $('rdGo').disabled = true; open('rdDlg'); $('rdName').focus(); };
   $('rdName').addEventListener('input', () => { $('rdGo').disabled = $('rdName').value.trim() !== '김철수'; });
   $('rdGo').onclick = () => { close($('rdDlg')); toast('성경 읽음 표시와 책갈피를 지웠어요'); };
+  $('gBtn').onclick = () => toast('이 부서의 보호자 역할을 가진 사람 중에서 고르는 창이 떠요');
   document.querySelectorAll('a[href="#x"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast(`${a.firstChild.textContent} 화면으로 가요 (다음 시안)`); }));
 </script>

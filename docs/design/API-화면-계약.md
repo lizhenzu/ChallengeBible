@@ -125,8 +125,8 @@
 ### 4-3. 보호자
 | 주소 | 화면 | 차수 |
 |---|---|---|
-| `/{slug}/guardian` | 보호자 홈: 연결된 자녀 카드(오늘 미션 상태 · 이번 주 점수 · 연속일) | 2차 |
-| `/{slug}/guardian/children/{participantId}` | 자녀 상세: 달력 · 월별 점수(읽기 전용) | 2차 |
+| `/{slug}/guardian` | 보호자 홈: 연결된 자녀(여럿이면 고르기) — 올해 점수 · 연속 · 오늘 미션 상태 · 이번 주 막대 · 달력 · 그날 한 일(읽기 전용, R-132). 다른 부서에서 보호자로만 보는 경우(0046) 때문에 1차로 당김(2026-10-23 사용자 합의) | 1차 |
+| `/{slug}/guardian/children/{participantId}` | 자녀 상세: 지난 달 달력 · 월별 점수(읽기 전용) | 2차 |
 
 ### 4-4. 영역 관리자 · 교사
 | 주소 | 화면 | 차수 |
@@ -135,7 +135,7 @@
 | `/{slug}/admin/members` | 소속 관리: 신청 승인 · 거절, 역할 체크박스, 정지 · 해제, 그룹 라벨, 진급 처리 | 1차 |
 | `/{slug}/admin/members/{membershipId}` | 참여자 상세: 달력 · 점수 · 최근 활동, 성경 읽음 초기화 | 1차 |
 | `/{slug}/admin/promotions` | 받은 진급 요청 승인 · 거절, 보낸 요청 상태 | 1차 |
-| `/{slug}/admin/guardians` | 보호 관계 연결 · 해제 | 2차 |
+| `/{slug}/admin/guardians` | 보호 관계 연결 · 해제. 1차는 참여자 상세 안의 "보호자" 칸에서 한다(보호자 화면 1차에 맞춰 당김) | 1차 |
 | `/{slug}/admin/content?month=` | 콘텐츠 달력(종류별 출처: 공용 · 덮어쓰기 · 없음, 빈 날 경고 — R-122) | 1차(보기) |
 | `/{slug}/admin/content/{kind}/{date}` | 덮어쓰기 편집 · 미리보기 · 공용으로 되돌리기 | 2차 |
 | `/{slug}/admin/settings` | 규칙(항목 사용 · 이름 · 점수, 인정 기간, 퀴즈 횟수, 단계), 기능 스위치, 대표 색, 변경 이력 | 2차(1차는 플랫폼 기본값 — 06 문서) |
@@ -237,6 +237,14 @@
 | `PUT /api/{slug}/admin/branding` `{ appName, appShortName, themeColor }` | 서비스 이름 · 짧은 이름 · 대표 색. 빈 값(`null`)이면 기본값으로 되돌림(0038) |
 | `PUT /api/platform/tenants/{id}/programs` `{ mission, reading }` | 영역의 프로그램 켜기(플랫폼 관리자, 하나 이상 — R-150) |
 | `PUT /api/me/family-tenant` `{ tenantSlug }` | 보호자가 "가족과 함께할 부서" 고르기 · 바꾸기(0046, R-168). 바꾸면 이전 부서 참여 · 가족팀 자리 멈춤(시스템 연결). 다른 부서에서 참여자 역할 부여 · 가족팀 추가 시도는 409 `FamilyTenantElsewhere`, 아직 고르지 않았으면 409 `FamilyTenantNotChosen` |
+
+### 5-4a. 보호자 — 1차 (R-132, 0046)
+| 메서드 · 주소 | 용도 |
+|---|---|
+| `GET /api/{slug}/guardian/children` | 연결된 자녀 목록 + 올해 점수 · 연속 · 오늘 미션 상태 · 이번 주 날별 점수 |
+| `GET /api/{slug}/guardian/children/{participantId}/month?ym=` | 자녀의 달력(날별 점수)과 날별 한 일. 연결되지 않은 참여자면 404 |
+| `POST /api/{slug}/admin/guardians` `{ guardianMembershipId, participantMembershipId }` | 보호 관계 연결(영역 관리자) |
+| `DELETE /api/{slug}/admin/guardians/{guardianMembershipId}/{participantMembershipId}` | 보호 관계 해제 |
 
 ### 5-4b. 참여 신청 · 플랫폼 부서 — 1차 (0045, 0048)
 | 메서드 · 주소 | 용도 |
