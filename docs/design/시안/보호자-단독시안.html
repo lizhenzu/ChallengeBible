@@ -1,0 +1,179 @@
+<title>보호자 화면 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/{slug}/guardian): 위쪽 줄(부서 고르기 · 초등부 보호자 / 날짜) → 자녀 고르기(한 명이면 숨김) → 자녀 머리(이름 · 반 · 올해 점수 · 연속) → 오늘 미션 4칸 → 이번 주 막대 → 1월 달력(누르면 그날) → 그날 한 일 → 보기만 한다는 안내 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --hero: #EFF6F2; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #1F7A5C; --accent-bg: #E6F3EC; --on-accent: #FFFFFF; --warn: #9A5B00; --warn-bg: #FFF4DE;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --hero: #16231E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #5CC0A0; --accent-bg: #18302A; --on-accent: #0E1013; --warn: #F2C063; --warn-bg: #2E2614; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --hero: #16231E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #5CC0A0; --accent-bg: #18302A; --on-accent: #0E1013; --warn: #F2C063; --warn-bg: #2E2614; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; border-bottom: 1px solid var(--rule); }
+  .crumb { min-width: 0; font-size: 14px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .crumb a { color: var(--fg); font-weight: 700; }
+  .date { flex: none; font-size: 13px; color: var(--dim); }
+
+  .hero { background: var(--hero); }
+  .hero .wrap { padding-block: 22px; display: flex; flex-direction: column; gap: 16px; }
+  .eye { font-size: 13px; font-weight: 800; letter-spacing: .12em; color: var(--accent); }
+  .kid { display: flex; align-items: center; gap: 14px; }
+  .av { flex: none; width: 60px; height: 60px; border-radius: 50%; background: var(--bg); color: var(--accent); display: grid; place-items: center; font-weight: 900; font-size: 18px; box-shadow: 0 0 0 3px var(--accent); }
+  .kid div { flex: 1; min-width: 0; }
+  .kid h1 { margin: 0; font-size: 26px; font-weight: 900; line-height: 1.2; }
+  .kid small { font-size: 13px; color: var(--dim); }
+  .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .kpi { padding: 12px; border-radius: 14px; background: var(--bg); display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .kpi small { font-size: 12px; color: var(--dim); }
+  .kpi b { font-size: 24px; font-weight: 900; line-height: 1.2; }
+  .kpi b u { text-decoration: none; font-size: 13px; color: var(--dim); font-weight: 700; margin-left: 2px; }
+
+  main .wrap { padding-block: 22px 56px; display: flex; flex-direction: column; gap: 24px; }
+  section { display: flex; flex-direction: column; gap: 10px; }
+  h2 { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 16px; font-weight: 800; }
+  h2 small { font-size: 13px; font-weight: 500; color: var(--dim); }
+  .alert { padding: 12px 14px; border-radius: 12px; background: var(--warn-bg); color: var(--warn); font-size: 14px; font-weight: 700; }
+  .mis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .m { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 6px; border-radius: 14px; border: 1px solid var(--rule); text-align: center; }
+  .m .ck { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; border: 2px dashed var(--line); color: transparent; }
+  .m.on .ck { border: 0; background: var(--accent); color: var(--on-accent); }
+  .m b { font-size: 14px; }
+  .m small { font-size: 12px; color: var(--dim); }
+
+  .wk { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; align-items: end; height: 130px; }
+  .wk div { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%; }
+  .wk em { font-style: normal; font-size: 12px; font-weight: 800; }
+  .wk i { width: 100%; max-width: 30px; border-radius: 6px 6px 2px 2px; background: color-mix(in srgb, var(--accent) 45%, var(--bg)); }
+  .wk .t i { background: var(--soft); outline: 2px dashed var(--line); outline-offset: -2px; }
+  .wk span { font-size: 12px; color: var(--dim); }
+  .wk .t span { color: var(--fg); font-weight: 800; }
+
+  .dow, .grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; }
+  .dow span { font-size: 12px; color: var(--dim); }
+  .dow span:first-child { color: #C0392B; }
+  .grid > * { aspect-ratio: 1 / 1; max-width: 100%; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; font-size: 13px; border: 0; background: none; padding: 0; }
+  .grid .day { background: var(--accent-bg); }
+  .grid .day small { font-size: 11px; font-weight: 800; color: var(--accent); }
+  .grid .day.full { background: var(--accent); color: var(--on-accent); }
+  .grid .day.full small { color: var(--on-accent); }
+  .grid .today { box-shadow: inset 0 0 0 2px var(--fg); }
+  .grid [aria-pressed="true"] { outline: 3px solid var(--warn); outline-offset: -3px; }
+  .grid .fut { color: var(--dim); opacity: .5; }
+  .grid .out { visibility: hidden; }
+  .act { list-style: none; margin: 0; padding: 0; }
+  .act li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--rule); font-size: 14px; }
+  .act li:first-child { border-top: 0; }
+  .act .k { flex: none; font-size: 11.5px; font-weight: 800; padding: 1px 8px; border-radius: 6px; background: var(--soft); color: var(--dim); }
+  .act span:nth-child(2) { flex: 1; min-width: 0; }
+  .act b { color: var(--accent); }
+  .note { margin: 0; padding: 14px 16px; border-radius: 14px; background: var(--soft); font-size: 13px; color: var(--dim); line-height: 1.7; }
+  .note b { color: var(--fg); }
+</style>
+
+<header class="gut"><div class="wrap">
+  <span class="crumb"><a href="https://claude.ai/artifact/Sk7skLo5Rvz8A5grXvPayG">← 부서 고르기</a> · 초등부 보호자</span>
+  <span class="date">1월 5일 화요일</span>
+</div></header>
+
+<div class="hero gut"><div class="wrap">
+  <span class="eye">잠실새내교회 초등부 · 보호자 김영희</span>
+  <div class="kid">
+    <span class="av">민지</span>
+    <div><h1>김민지</h1><small>초등부 · 기쁨반 · 딸</small></div>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><small>올해 점수</small><b class="num">19<u>점</u></b></div>
+    <div class="kpi"><small>연속</small><b class="num">4<u>일</u></b></div>
+    <div class="kpi"><small>이달 한 날</small><b class="num">4<u>/ 5일</u></b></div>
+  </div>
+</div></div>
+
+<main class="gut"><div class="wrap">
+  <section aria-labelledby="hToday">
+    <h2 id="hToday">오늘 미션 <small>1월 5일 · 오후 3:20 기준</small></h2>
+    <div class="alert">오늘은 아직 미션을 하지 않았어요. 오늘 하면 5일 연속이에요!</div>
+    <div class="mis" id="mis"></div>
+  </section>
+
+  <section aria-labelledby="hWeek">
+    <h2 id="hWeek">이번 주 <small>1월 3일(일) ~ · <b class="num">9점</b></small></h2>
+    <div class="wk" id="wk"></div>
+  </section>
+
+  <section aria-labelledby="hCal">
+    <h2 id="hCal">2027년 1월 <small>날짜를 누르면 그날 한 일</small></h2>
+    <div class="dow" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section aria-labelledby="hAct">
+    <h2 id="hAct"><span id="actT">1월 4일(월) 한 일</span><small id="actS"></small></h2>
+    <ul class="act" id="act"></ul>
+  </section>
+
+  <p class="note"><b>보호자는 보기만 해요.</b> 미션은 민지가 자기 계정으로 해요. 점수 · 기록을 고치려면 초등부 선생님께 말해 주세요. 다른 자녀를 연결하는 것도 선생님이 해 줘요.</p>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  // 김민지 1/1 ~ 1/4. [말씀, 퀴즈, 기도, 암송] 합계 19점(부서 고르기 시안과 같음)
+  const DAYS = { 1: [2, 1, 2, 1], 2: [2, 1, 1, 0], 3: [2, 1, 2, 0], 4: [2, 0, 2, 0] };
+  const LOG = {
+    4: [['말씀', '혼자 읽었어요', 1], ['말씀', '부모님께 읽어드렸어요', 1], ['퀴즈', '오답 · 2번 도전', 0], ['기도', '나를 위한 기도', 1], ['기도', '가족 · 친구를 위한 기도', 1]],
+    3: [['말씀', '혼자 읽었어요', 1], ['말씀', '부모님께 읽어드렸어요', 1], ['퀴즈', '정답', 1], ['기도', '나를 위한 기도', 1], ['기도', '가족 · 친구를 위한 기도', 1]],
+    2: [['말씀', '혼자 읽었어요', 1], ['말씀', '부모님께 읽어드렸어요', 1], ['퀴즈', '정답', 1], ['기도', '나를 위한 기도', 1]],
+    1: [['말씀', '혼자 읽었어요', 1], ['말씀', '부모님께 읽어드렸어요', 1], ['퀴즈', '정답', 1], ['기도', '나를 위한 기도', 1], ['기도', '가족 · 친구를 위한 기도', 1], ['암송', '이번 주 암송 완료', 1]],
+  };
+  const TODAY = 5, WD = ['일', '월', '화', '수', '목', '금', '토'];
+  const sum = (a) => a.reduce((s, x) => s + x, 0);
+  let sel = 4;
+  const ck = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
+
+  // 오늘 미션: 아직 없음. 암송은 이번 주(1/3~)에 아직
+  $('mis').innerHTML = [['말씀', '0 / 2'], ['퀴즈', '아직'], ['기도', '0 / 2'], ['암송', '이번 주 아직']]
+    .map(([k, s]) => `<div class="m"><span class="ck">${ck}</span><b>${k}</b><small>${s}</small></div>`).join('');
+
+  // 이번 주(일 ~ 토): 3일 5점, 4일 4점, 5일 오늘 0점
+  const WEEK = [[3, '일'], [4, '월'], [5, '화'], [6, '수'], [7, '목'], [8, '금'], [9, '토']];
+  $('wk').innerHTML = WEEK.map(([d, w]) => {
+    const p = DAYS[d] ? sum(DAYS[d]) : 0, fut = d > TODAY;
+    return `<div class="${d === TODAY ? 't' : ''}"><em class="num">${fut ? '' : p}</em><i style="height:${fut ? 0 : Math.max(4, p / 6 * 90)}px"></i><span>${d === TODAY ? '오늘' : w}</span></div>`;
+  }).join('');
+
+  function cal() {
+    const first = 5, cells = [];
+    for (let i = 0; i < 42; i++) {
+      const d = i - first + 1;
+      if (d < 1 || d > 31) { cells.push('<span class="out">·</span>'); continue; }
+      const r = DAYS[d];
+      if (r) { const p = sum(r), full = r[0] === 2 && r[1] === 1 && r[2] === 2; cells.push(`<button type="button" class="day${full ? ' full' : ''}" data-d="${d}" aria-pressed="${sel === d}" aria-label="1월 ${d}일 ${p}점"><span class="num">${d}</span><small class="num">${p}</small></button>`); }
+      else cells.push(`<span class="${d === TODAY ? 'today' : d > TODAY ? 'fut' : ''}"><span class="num">${d}</span>${d === TODAY ? '<small style="font-size:10px;color:var(--dim)">아직</small>' : ''}</span>`);
+    }
+    $('grid').innerHTML = cells.join('');
+  }
+  function act() {
+    $('actT').textContent = `1월 ${sel}일(${WD[(sel + 4) % 7]}) 한 일`;
+    $('actS').innerHTML = `<b class="num">${sum(DAYS[sel])}점</b>`;
+    $('act').innerHTML = LOG[sel].map(([k, w, p]) => `<li><span class="k">${k}</span><span>${w}</span>${p ? `<b class="num">+${p}</b>` : '<span style="color:var(--dim)">0</span>'}</li>`).join('');
+  }
+  $('grid').addEventListener('click', (e) => { const b = e.target.closest('[data-d]'); if (!b) return; sel = +b.dataset.d; cal(); act(); });
+  cal(); act();
+</script>

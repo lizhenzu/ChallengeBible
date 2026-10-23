@@ -94,7 +94,7 @@
     <span class="go">유년부로 들어가기 <span aria-hidden="true">→</span></span>
   </a>
 
-  <a class="t" style="--c:var(--c-green)" href="#elem">
+  <a class="t" style="--c:var(--c-green)" href="https://claude.ai/artifact/Fxr7iQtz4csRyzrCQneaax">
     <div class="top"><div class="nm"><small>잠실새내교회</small><b>초등부</b></div></div>
     <div class="tags"><span class="tag r">보호자</span><span class="tag">성경말씀 · 성경통독</span></div>
     <div class="today">
@@ -127,7 +127,6 @@
 
 <script>
   function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); }
-  document.querySelector('a[href="#elem"]').addEventListener('click', (e) => { e.preventDefault(); toast('초등부 보호자 화면으로 가요 (다음 시안)'); });
   document.querySelector('a[href="#family"]').addEventListener('click', (e) => { e.preventDefault(); toast('가족과 함께할 부서 고르기 화면으로 가요 (다음 시안)'); });
   document.getElementById('out').onclick = () => toast('로그아웃하고 첫 화면으로 가요');
 </script>
