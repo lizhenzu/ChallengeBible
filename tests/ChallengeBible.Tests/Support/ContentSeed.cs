@@ -29,11 +29,25 @@ public static class ContentSeed
         return w;
     }
 
-    public static DailyPrayer Prayer(string db, DateOnly date)
+    /// <summary>공용 기도: 그 날짜의 일(1 ~ 31) 번호로 매달 반복(0053).</summary>
+    public static DailyPrayer Prayer(string db, DateOnly date, string trait = "신뢰") => Prayer(db, (byte)date.Day, trait);
+
+    public static DailyPrayer Prayer(string db, byte dayNo, string trait = "신뢰")
     {
         using var raw = InMemoryDb.Raw(db);
-        var p = new DailyPrayer { ExposeDate = date, Status = ContentStatus.Published, TraitName = "신뢰", TraitNameEn = "Trust",
+        var p = new DailyPrayer { DayNo = dayNo, Status = ContentStatus.Published, TraitName = trait, TraitNameEn = "Trust",
             Paragraphs = "[\"하나님, {이름}이(가) 하나님을 온 마음으로 믿게 해 주세요.\"]", BookId = 20, StartChapter = 3, StartVerse = 5, EndChapter = 3, EndVerse = 6 };
+        raw.DailyPrayers.Add(p);
+        raw.SaveChanges();
+        return p;
+    }
+
+    /// <summary>부서 기도: 그날에만.</summary>
+    public static DailyPrayer TenantPrayer(string db, int tenantId, DateOnly date, string trait = "부서 기도")
+    {
+        using var raw = InMemoryDb.Raw(db);
+        var p = new DailyPrayer { TenantId = tenantId, ExposeDate = date, Status = ContentStatus.Published, TraitName = trait,
+            Paragraphs = "[\"하나님, {이름}을(를) 지켜 주세요.\"]", BookId = 20, StartChapter = 3, StartVerse = 5, EndChapter = 3, EndVerse = 6 };
         raw.DailyPrayers.Add(p);
         raw.SaveChanges();
         return p;

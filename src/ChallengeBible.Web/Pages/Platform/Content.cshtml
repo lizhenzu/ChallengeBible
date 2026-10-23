@@ -24,6 +24,10 @@
         {
             <b>1 ~ @(WeeklyVerse.MaxWeekNo)주</b><span class="hint">해마다 첫 일요일부터 1주 · 부서가 그 주 암송을 넣으면 그해에만 그것이 먼저예요</span>
         }
+        else if (Model.BySlot)
+        {
+            <b>1 ~ @(DailyPrayer.MaxDayNo)일</b><span class="hint">매달 같은 날짜에 같은 기도 · 부서가 그날 기도를 넣으면 그날에만 그것이 먼저예요</span>
+        }
         else
         {
             <a class="btn s sm" href="@Model.Link(month: Model.First.AddMonths(-1))" aria-label="이전 달">‹</a>
@@ -31,22 +35,24 @@
             <a class="btn s sm" href="@Model.Link(month: Model.First.AddMonths(1))" aria-label="다음 달">›</a>
         }
         <span class="cnt">
-            @foreach (var g in (Model.IsRecite ? Model.Weeks.Select(w => w.Status) : Model.Days.Select(d => d.Status)).GroupBy(s => s)) { <span class="@ContentModel.StatusClass(g.Key)">@ContentModel.StatusLabel(g.Key) @g.Count()</span> }
+            @foreach (var g in (Model.BySlot ? Model.Slots.Select(w => w.Status) : Model.Days.Select(d => d.Status)).GroupBy(s => s)) { <span class="@ContentModel.StatusClass(g.Key)">@ContentModel.StatusLabel(g.Key) @g.Count()</span> }
         </span>
     </div>
 
     <div class="csplit">
-        @if (Model.IsRecite)
+        @if (Model.BySlot)
         {
-            <form method="post" asp-page-handler="Bulk" asp-route-week="@Model.Week" class="days">
+            <form method="post" asp-page-handler="Bulk" asp-route-no="@Model.No" class="days">
                 <ul>
-                    @foreach (var w in Model.Weeks)
+                    @foreach (var w in Model.Slots)
                     {
-                        var dates = Model.ThisYearWeek(w.No);
-                        <li class="@(w.No == Model.Week ? "on" : "")">
-                            <input type="checkbox" name="weeks" value="@w.No" disabled="@(w.Status != ContentStatus.Draft)" aria-label="@(w.No)주 고르기" />
-                            <a href="@ContentModel.WeekLink(w.No)">
-                                <span class="d num">@(w.No)주<small>@(dates is { } x ? $"{x.Start:M'/'d}~" : "여유")</small></span>
+                        var sub = Model.IsRecite
+                            ? (Model.ThisYearWeek(w.No) is { } x ? $"{x.Start:M'/'d}~" : "여유")
+                            : (w.No > 28 ? "없는 달 있음" : "매달");
+                        <li class="@(w.No == Model.No ? "on" : "")">
+                            <input type="checkbox" name="nos" value="@w.No" disabled="@(w.Status != ContentStatus.Draft)" aria-label="@(w.No)@Model.SlotUnit 고르기" />
+                            <a href="@Model.SlotLink(w.No)">
+                                <span class="d num">@(w.No)@Model.SlotUnit<small>@sub</small></span>
                                 <span class="tt @(w.Title is null ? "none" : "")">@(w.Title ?? "비어 있어요")</span>
                                 <span class="tag @ContentModel.StatusClass(w.Status)">@ContentModel.StatusLabel(w.Status)</span>
                             </a>
@@ -78,20 +84,20 @@
         }
 
         <section class="editor">
-            @if (Model.IsRecite ? Model.Week is null : Model.Date is null)
+            @if (Model.BySlot ? Model.No is null : Model.Date is null)
             {
                 <p class="empty">왼쪽에서 @(Model.IsRecite ? "주" : "날짜")를 고르세요.</p>
             }
             else
             {
                 var slot = Model.IsRecite
-                    ? $"{Model.Week}주" + (Model.ThisYearWeek(Model.Week!.Value) is { } tw ? $" (올해 {tw.Start:M'/'d} ~ {tw.End:M'/'d})" : " (올해는 없는 주)")
-                    : Model.Date!.Value.ToString("M월 d일 (ddd)", ko);
+                    ? $"{Model.No}주" + (Model.ThisYearWeek(Model.No!.Value) is { } tw ? $" (올해 {tw.Start:M'/'d} ~ {tw.End:M'/'d})" : " (올해는 없는 주)")
+                    : Model.BySlot ? $"매달 {Model.No}일" : Model.Date!.Value.ToString("M월 d일 (ddd)", ko);
                 <div class="h"><b>@slot @kindLabel</b><span class="tag @ContentModel.StatusClass(Model.Status)">@ContentModel.StatusLabel(Model.Status)</span></div>
                 @if (Model.Status == "None") { <p class="note-block">@(Model.IsRecite ? "이 주는" : "이날은") @(kindLabel)@Ui.IGa(kindLabel) 없어요. 이대로 두면 아이들 화면에 "오늘은 없음"으로 보여요(R-122).</p> }
                 @if (E("Status") is { } st) { <p class="err">@st</p> }
                 @if (E("Date") is { } dt) { <p class="err">@dt</p> }
-                <form method="post" asp-page-handler="Save" asp-route-month="@(Model.IsRecite ? null : Model.First.ToString("yyyy-MM"))" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")" asp-route-week="@Model.Week" class="stack" novalidate>
+                <form method="post" asp-page-handler="Save" asp-route-month="@(Model.BySlot ? null : Model.First.ToString("yyyy-MM"))" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")" asp-route-no="@Model.No" class="stack" novalidate>
                     @if (Model.Kind != "quiz")
                     {
                         <div class="f"><label>성경 범위 <small>@(E("Range") is null ? "" : "")</small></label>

@@ -129,20 +129,28 @@ public class ContentAdminServiceTests
     }
 
     [Fact]
-    public async Task 기도는_줄마다_문단()
+    public async Task 공용_기도는_날짜_번호_1_31_줄마다_문단_0053()
     {
-        var p = new ContentInput { Date = Jan5, TraitName = "신뢰", Paragraphs = "하나님, {이름}이(가) 믿게 해 주세요.\n\n두 번째 문단", Book = 20, StartChapter = 3, StartVerse = 5, EndChapter = 3, EndVerse = 6 };
+        var p = new ContentInput { SlotNo = 32, TraitName = "신뢰", Paragraphs = "하나님, {이름}이(가) 믿게 해 주세요.\n\n두 번째 문단", Book = 20, StartChapter = 3, StartVerse = 5, EndChapter = 3, EndVerse = 6 };
+        Assert.True((await Svc.SaveAsync(_op.Id, ContentKind.Prayer, p, true)).ContainsKey("Date"));
+        p.SlotNo = 5;
         Assert.True((await Svc.SaveAsync(_op.Id, ContentKind.Prayer, p, true)).Ok);
-        using var raw = InMemoryDb.Raw(_db);
-        Assert.Equal("[\"하나님, {이름}이(가) 믿게 해 주세요.\",\"두 번째 문단\"]", raw.DailyPrayers.Single().Paragraphs);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var row = raw.DailyPrayers.Single();
+            Assert.Equal(((byte?)5, (DateOnly?)null), (row.DayNo, row.ExposeDate));
+            Assert.Equal("[\"하나님, {이름}이(가) 믿게 해 주세요.\",\"두 번째 문단\"]", row.Paragraphs);
+        }
+        var days = await Svc.SlotsAsync(_op.Id, ContentKind.Prayer);
+        Assert.Equal((31, ContentStatus.Published, "신뢰"), (days.Count, days[4].Status, days[4].Title));
     }
 
     [Fact]
     public async Task 공용_암송은_주_번호_1_55_날짜_없음_0052()
     {
-        var r = new ContentInput { WeekNo = 56, Title = "하나님은 우리를 얼마나 사랑하실까요?", Book = 43, StartChapter = 3, StartVerse = 16, EndChapter = 3, EndVerse = 16 };
+        var r = new ContentInput { SlotNo = 56, Title = "하나님은 우리를 얼마나 사랑하실까요?", Book = 43, StartChapter = 3, StartVerse = 16, EndChapter = 3, EndVerse = 16 };
         Assert.True((await Svc.SaveAsync(_op.Id, ContentKind.Recite, r, true)).ContainsKey("Date"));
-        r.WeekNo = 1;
+        r.SlotNo = 1;
         Assert.True((await Svc.SaveAsync(_op.Id, ContentKind.Recite, r, false)).Ok);
         using (var raw = InMemoryDb.Raw(_db))
         {
@@ -150,11 +158,11 @@ public class ContentAdminServiceTests
             Assert.Equal(((byte?)1, (DateOnly?)null, (DateOnly?)null), (v.WeekNo, v.StartDate, v.EndDate));
         }
 
-        var weeks = await Svc.WeeksAsync(_op.Id);
+        var weeks = await Svc.SlotsAsync(_op.Id, ContentKind.Recite);
         Assert.Equal(55, weeks.Count);
         Assert.Equal((ContentStatus.Draft, "None"), (weeks[0].Status, weeks[1].Status));
-        Assert.Equal((1, 0), await Svc.PublishWeeksAsync(_op.Id, [1]));
-        Assert.Equal(ContentStatus.Published, (await Svc.LoadWeekAsync(_op.Id, 1)).Status);
+        Assert.Equal((1, 0), await Svc.PublishSlotsAsync(_op.Id, ContentKind.Recite, [1]));
+        Assert.Equal(ContentStatus.Published, (await Svc.LoadSlotAsync(_op.Id, ContentKind.Recite, 1)).Status);
     }
 
     [Fact]

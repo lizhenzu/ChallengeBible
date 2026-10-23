@@ -1,7 +1,7 @@
 @page "/{slug}/prayer"
 @model PrayerModel
 @using ChallengeBible.Web.Auth
-@{ var d = Model.Data!; var p = d.Prayer; var name = User.DisplayName(); }
+@{ var d = Model.Data!; var p = d.Prayer; }
 @await Html.PartialAsync("_MissionHead", new MissionHead(Model, "오늘의 성품기도", p is null ? "오늘은 기도가 없어요" : p.Trait, p?.Range, p?.TraitEn))
 <main class="mbody gut" data-slug="@Model.Slug" data-date="@Model.Day.ToString("yyyy-MM-dd")"><div class="wrap">
     @if (p is null)
@@ -27,7 +27,7 @@
             </section>
         }
         <section class="sec done"><h2><span class="n">@no2</span>오늘의 기도문</h2>
-            @foreach (var para in p.Paragraphs) { <p class="story">@Model.Paragraph(para, name)</p> }
+            @foreach (var para in PrayerModel.Shown(p.Paragraphs)) { <p class="story">@PrayerModel.Paragraph(para)</p> }
         </section>
         @await Html.PartialAsync("_PickSection", new PickSection(Model, no3, "누구를 위해 기도했나요?", Mission.Prayer, "prayer"))
     }

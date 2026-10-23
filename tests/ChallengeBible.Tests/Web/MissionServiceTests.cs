@@ -133,7 +133,49 @@ public class MissionServiceTests
         Assert.Equal(1, (await Svc().PressAsync(_pid, MissionItem.PrayerOthers, Jan5)).Added);
         var day = await Svc().GetDayAsync(_pid, Jan5);
         Assert.Equal(2, day.DayPoints);
-        Assert.Contains("{이름}", day.Prayer!.Paragraphs[0]);   // 이름 바꾸기는 화면에서(R-32)
+        Assert.Contains("{이름}", day.Prayer!.Paragraphs[0]);   // 표시 바꾸기는 화면에서(R-32)
+    }
+
+    [Theory]
+    [InlineData("**{이름}(이)**가 자유롭게 해 주세요.", "<b class=\"nm\">○○(이)</b>가 자유롭게 해 주세요.")]
+    [InlineData("하나님, {이름}을 지켜 주세요.", "하나님, <b class=\"nm\">○○</b>을 지켜 주세요.")]
+    [InlineData("<script>", "&lt;script&gt;")]
+    public void R32_0054_기도문_이름_자리는_동그라미_두개로_강조(string text, string html) =>
+        Assert.Equal(html, ChallengeBible.Web.Pages.Mission.PrayerModel.Paragraph(text).ToString());
+
+    [Fact]
+    public void R32_0054_이름_자리_있는_판만_보인다()
+    {
+        string[] both = ["하나님, {이름}(이)가 자유롭게 해 주세요. 아멘!", "하나님, 제가 자유롭게 해 주세요. 아멘!"];
+        Assert.Equal([both[0]], ChallengeBible.Web.Pages.Mission.PrayerModel.Shown(both));
+        string[] plain = ["첫 문단", "둘째 문단"];
+        Assert.Equal(plain, ChallengeBible.Web.Pages.Mission.PrayerModel.Shown(plain));
+    }
+
+    [Fact]
+    public async Task R30_0053_공용_기도는_날짜_번호로_매달_반복()
+    {
+        ContentSeed.Prayer(_db, (byte)5, "신뢰");
+        ContentSeed.Prayer(_db, (byte)31, "감사");
+        var s = Svc();
+        Assert.Equal("신뢰", (await s.GetDayAsync(_pid, Jan5)).Prayer!.Trait);
+        Assert.Equal("신뢰", (await s.GetDayAsync(_pid, new DateOnly(2027, 2, 5))).Prayer!.Trait);   // 다음 달 5일도 5번
+        Assert.Equal("감사", (await s.GetDayAsync(_pid, new DateOnly(2026, 12, 31))).Prayer!.Trait);
+        Assert.Null((await s.GetDayAsync(_pid, new DateOnly(2027, 1, 6))).Prayer);   // 6번이 없음
+    }
+
+    [Fact]
+    public async Task R120_0053_부서_기도는_그날에만_먼저()
+    {
+        ContentSeed.Prayer(_db, Jan5, "공용 5일");
+        var mine = ContentSeed.TenantPrayer(_db, _kids.Id, Jan5, "유년부 기도");
+        var s = Svc();
+        Assert.Equal("유년부 기도", (await s.GetDayAsync(_pid, Jan5)).Prayer!.Trait);
+        Assert.Equal("공용 5일", (await s.GetDayAsync(_pid, new DateOnly(2027, 2, 5))).Prayer!.Trait);   // 다음 달은 공용으로
+
+        await s.PressAsync(_pid, MissionItem.PrayerMe, Jan5);
+        using var raw = InMemoryDb.Raw(_db);
+        Assert.Equal(mine.Id, raw.Activities.Single().DailyPrayerId);
     }
 
     [Fact]
