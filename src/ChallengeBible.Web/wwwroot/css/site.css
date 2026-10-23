@@ -568,3 +568,58 @@ ul.log b.z { color: var(--dim); font-weight: 500; }
 .rverse i { flex: none; font-style: normal; font-size: 13px; font-weight: 700; color: var(--no); padding-top: 0.7em; }
 .top .who a.plat { color: var(--accent); font-weight: 800; }
 .admintop .row-t { display: flex; gap: 8px; align-items: center; }
+
+/* 부서 관리 홈 (확정 시안: 관리-홈). 다른 관리 화면과 겹치지 않게 ah- 로만 쓴다 */
+.ah-grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); padding-block: 20px 56px; }
+@media (min-width: 860px) { .ah-grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; } .ah-grid .span { grid-column: 1 / -1; } }
+.ah-greet { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.ah-greet h1 { margin: 0; font-size: 22px; font-weight: 900; }
+.ah-greet span { font-size: 13px; color: var(--dim); }
+.ah-card { border: 1px solid var(--rule); border-radius: 18px; background: var(--bg); padding: 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.ah-card > h2 { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 16px; font-weight: 800; }
+.ah-card > h2 small { font-size: 13px; font-weight: 500; color: var(--dim); }
+.ah-todo { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.td { display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 16px; min-height: 64px; }
+.td .n { flex: none; font-size: 26px; font-weight: 900; line-height: 1; }
+.td div { display: flex; flex-direction: column; min-width: 0; line-height: 1.4; }
+.td b { font-size: 15px; }
+.td span { font-size: 12.5px; color: var(--dim); }
+.td.a { background: var(--bad-bg); } .td.a .n { color: var(--bad); }
+.td.b { background: var(--accent-bg); } .td.b .n { color: var(--accent); }
+.td.c { background: var(--warn-bg); } .td.c .n { color: var(--warn); }
+a.td::after { content: "›"; margin-left: auto; font-size: 22px; color: var(--dim); }
+.ah-today { display: flex; align-items: center; gap: 18px; }
+.ah-ring { flex: none; width: 116px; height: 116px; border-radius: 50%; display: grid; place-items: center; }
+.ah-ring > div { width: 90px; height: 90px; border-radius: 50%; background: var(--bg); display: grid; place-items: center; text-align: center; line-height: 1.15; }
+.ah-ring b { font-size: 30px; font-weight: 900; }
+.ah-ring small { font-size: 12px; color: var(--dim); }
+.ah-items { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.ah-items .it { display: grid; grid-template-columns: 38px minmax(0, 1fr) 48px; align-items: center; gap: 8px; font-size: 13px; }
+.ah-items .it b { font-weight: 700; }
+.ah-items .bar { height: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+.ah-items .bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.ah-items em { font-style: normal; text-align: right; color: var(--dim); }
+.ah-foot { font-size: 12.5px; color: var(--dim); margin: 0; }
+.ah-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; align-items: end; height: 170px; }
+.ah-week .wk { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%; }
+.ah-week .wk em { font-style: normal; font-size: 12px; font-weight: 800; }
+.ah-week .wk i { width: 100%; max-width: 36px; border-radius: 8px 8px 3px 3px; background: color-mix(in srgb, var(--accent) 35%, var(--bg)); }
+.ah-week .wk.t i { background: var(--accent); }
+.ah-week .wk.sun i { background: color-mix(in srgb, var(--accent) 60%, var(--bg)); }
+.ah-week .wk span { font-size: 12px; color: var(--dim); line-height: 1.2; text-align: center; }
+.ah-week .wk.t span { color: var(--fg); font-weight: 800; }
+.ah-stats { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--dim); }
+.ah-stats b { color: var(--fg); }
+.ah-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.ah-chips a { min-height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--bg); font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; }
+.ah-chips a[aria-pressed="true"] { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+.ah-miss { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.ah-miss li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--rule); }
+.ah-miss li:first-child { border-top: 0; }
+.ah-miss .av { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; font-size: 13px; font-weight: 800; color: var(--dim); }
+.ah-miss .nm { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+.ah-miss .nm b { font-size: 15px; }
+.ah-miss .nm small { font-size: 12px; color: var(--dim); }
+.ah-miss .last { flex: none; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: var(--soft); color: var(--dim); }
+.ah-miss .last.long { background: var(--bad-bg); color: var(--bad); }
+.ah-more { align-self: flex-start; min-height: 44px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 700; color: var(--accent); }

@@ -3,10 +3,14 @@
     var slug = Model.Current.Slug;
     var path = Context.Request.Path.Value ?? "";
     // 1차에 있는 관리 메뉴만 링크. 나머지는 단계마다 붙인다.
+    var home = $"/{slug}/admin";
     (string Href, string Label)[] menu =
     [
+        (home, "관리 홈"),
         ($"/{slug}/admin/members", "소속 관리"),
     ];
+    // 관리 홈 주소는 다른 관리 주소의 앞부분이라 정확히 같을 때만 현재 화면으로 본다
+    bool Current(string href) => href == home ? path.TrimEnd('/').Equals(home, StringComparison.OrdinalIgnoreCase) : path.StartsWith(href, StringComparison.OrdinalIgnoreCase);
 }
 <header class="admintop gut">
     <div class="wrap wide hd">
@@ -19,7 +23,7 @@
     <nav class="wrap wide tabs" aria-label="관리 메뉴">
         @foreach (var (href, label) in menu)
         {
-            <a href="@href" aria-current="@(path.StartsWith(href) ? "page" : "false")">@label</a>
+            <a href="@href" aria-current="@(Current(href) ? "page" : "false")">@label</a>
         }
     </nav>
 </header>
