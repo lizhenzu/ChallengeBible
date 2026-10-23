@@ -17,6 +17,7 @@ CREATE TABLE app.Tenant (
     Id          int IDENTITY      NOT NULL CONSTRAINT PK_Tenant PRIMARY KEY,
     Slug        varchar(40)       NOT NULL CONSTRAINT UQ_Tenant_Slug UNIQUE,
     Name        nvarchar(100)     NOT NULL,
+    JoinCode    char(6)           NOT NULL CONSTRAINT UQ_Tenant_JoinCode UNIQUE,   -- 참여 코드(0048)
     TimeZoneId  varchar(64)       NOT NULL,
     ThemeColor  varchar(20)       NOT NULL,
     AppName     nvarchar(30)      NULL,           -- NULL 이면 기본 서비스 이름(0038)
@@ -27,7 +28,8 @@ CREATE TABLE app.Tenant (
     Status      varchar(20)       NOT NULL CONSTRAINT CK_Tenant_Status CHECK (Status IN ('Active','Suspended')),
     CreatedUtc  datetime2(3)      NOT NULL,
     CONSTRAINT CK_Tenant_Program CHECK (MissionEnabled = 1 OR ReadingEnabled = 1),   -- R-150
-    CONSTRAINT CK_Tenant_Slug CHECK (LEN(Slug) >= 2 AND Slug NOT LIKE '%[^a-z0-9-]%')
+    CONSTRAINT CK_Tenant_Slug CHECK (LEN(Slug) >= 2 AND Slug NOT LIKE '%[^a-z0-9-]%'),
+    CONSTRAINT CK_Tenant_JoinCode CHECK (JoinCode NOT LIKE '%[^A-Z0-9]%' COLLATE Latin1_General_BIN)
 );
 
 CREATE TABLE app.Account (

@@ -227,8 +227,8 @@
 | `PUT /api/{slug}/admin/members/{id}/roles` `{ roles: [...] }` | 역할 변경 |
 | `POST /api/{slug}/admin/members/{id}/suspend` · `/resume` | 정지 · 해제 |
 | `PUT /api/{slug}/admin/members/{id}/group-label` `{ label }` | 그룹 라벨 |
-| `GET /api/{slug}/admin/tenants/lookup?code=` | 진급 대상 영역 이름 확인(이름만 — 0026) |
-| `POST /api/{slug}/admin/members/{id}/promote` `{ targetSlug }` | 진급 요청 보내기 |
+| `GET /api/{slug}/admin/tenants/lookup?code=` | 진급 대상 영역 이름 확인(이름만 — 0026). code 는 참여 코드(0048) |
+| `POST /api/{slug}/admin/members/{id}/promote` `{ targetJoinCode }` | 진급 요청 보내기 |
 | `POST /api/{slug}/admin/promotions/{id}/approve` · `/reject` | 받은 진급 요청 처리(시스템 연결) |
 | `DELETE /api/{slug}/admin/members/{id}/bible-reads` | 성경 읽음 · 책갈피 초기화(시스템 연결, 0029) |
 | `POST /api/{slug}/admin/members/{id}/reset-password` | 임시 비밀번호 발급(시스템 연결, 0035) → `{ "temporaryPassword": "…" }`. 대상이 플랫폼 관리자이거나 다른 영역 관리자면 403 `ResetNotAllowed` |
@@ -237,6 +237,17 @@
 | `PUT /api/{slug}/admin/branding` `{ appName, appShortName, themeColor }` | 서비스 이름 · 짧은 이름 · 대표 색. 빈 값(`null`)이면 기본값으로 되돌림(0038) |
 | `PUT /api/platform/tenants/{id}/programs` `{ mission, reading }` | 영역의 프로그램 켜기(플랫폼 관리자, 하나 이상 — R-150) |
 | `PUT /api/me/family-tenant` `{ tenantSlug }` | 보호자가 "가족과 함께할 부서" 고르기 · 바꾸기(0046, R-168). 바꾸면 이전 부서 참여 · 가족팀 자리 멈춤(시스템 연결). 다른 부서에서 참여자 역할 부여 · 가족팀 추가 시도는 409 `FamilyTenantElsewhere`, 아직 고르지 않았으면 409 `FamilyTenantNotChosen` |
+
+### 5-4b. 참여 신청 · 플랫폼 부서 — 1차 (0045, 0048)
+| 메서드 · 주소 | 용도 |
+|---|---|
+| `GET /api/join/lookup?code=` | 참여 코드로 영역 찾기 → `{ name, mission, reading }`. 없거나 정지된 영역이면 404. 계정당 1분 10회 |
+| `POST /api/join` `{ code, roles: ["Participant" \| "Guardian"] }` | 참여 신청(소속 Requested). 이미 소속이 있으면 409 |
+| `DELETE /api/join/{membershipId}` | 본인 신청 취소(Requested 일 때만) |
+| `POST /api/platform/tenants` `{ name, slug, timeZoneId, themeColor, mission, reading, adminLoginId? }` | 영역 만들기. 참여 코드는 서버가 만든다 |
+| `POST /api/platform/tenants/{id}/join-code` | 참여 코드 다시 만들기 → `{ joinCode }` |
+| `POST` · `DELETE /api/platform/tenants/{id}/admins/{loginId}` | 영역 관리자 지정 · 해제(소속이 없으면 승인 소속을 함께 만든다) |
+| `POST /api/platform/tenants/{id}/suspend` · `/resume` | 영역 정지 · 다시 열기(데이터는 지우지 않음) |
 
 ### 5-5. 외부 연동 — 2차 (04 문서 4절)
 | 메서드 · 주소 | 용도 |
