@@ -1,0 +1,209 @@
+<title>콘텐츠 달력 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/{slug}/admin/content?month=, R-120 ~ R-123): 관리 머리말 · 메뉴 → 빈 날 경고 → 달 이동 · 종류 고르기 → 달력(날마다 말 · 퀴 · 기 · 암 네 칸, 출처 색) → 고른 날 자세히(종류별 제목 · 출처 · 공개 여부) */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --warn: #9A5B00; --warn-bg: #FFF4DE; --bad: #B42318; --bad-bg: #FDECEC;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+  .hd .t { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+  .hd .t small { font-size: 12px; color: var(--dim); }
+  .hd .t b { font-size: 17px; font-weight: 900; }
+  .hd .t b em { font-style: normal; color: var(--accent); }
+  .back { flex: none; min-height: 40px; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; font-weight: 700; }
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-bottom: -1px; }
+  nav.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); border-bottom: 3px solid transparent; }
+  nav.tabs a[aria-current] { color: var(--fg); border-color: var(--accent); }
+  nav.tabs a .c { margin-left: 4px; min-width: 18px; padding: 0 5px; border-radius: 99px; background: var(--bad); color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
+
+  main .wrap { padding-block: 20px 56px; display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 900px) { main .wrap { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: start; } .span { grid-column: 1 / -1; } }
+  .top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  .top p { margin: 0; font-size: 13px; color: var(--dim); }
+  .alerts { display: flex; flex-direction: column; gap: 8px; }
+  .al { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; font-size: 14px; }
+  .al b { flex: none; font-size: 12px; font-weight: 800; padding: 1px 8px; border-radius: 6px; margin-top: 2px; }
+  .al.bad { background: var(--bad-bg); } .al.bad b { background: var(--bad); color: #fff; }
+  .al.warn { background: var(--warn-bg); } .al.warn b { background: var(--warn); color: var(--bg); }
+  .al button { margin-left: auto; flex: none; border: 0; background: none; font-size: 13px; font-weight: 700; color: var(--accent); min-height: 28px; }
+
+  .card { border: 1px solid var(--rule); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .mon { display: flex; align-items: center; gap: 4px; }
+  .mon b { font-size: 18px; font-weight: 900; min-width: 110px; text-align: center; }
+  .mon button { width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 18px; }
+  .mon button:disabled { opacity: .35; cursor: default; }
+  .kinds { display: flex; gap: 4px; flex-wrap: wrap; }
+  .kinds button { min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; background: var(--bg); font-size: 13px; font-weight: 700; }
+  .kinds button[aria-pressed="true"] { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+  .dow, .grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .dow span { text-align: center; font-size: 12px; color: var(--dim); }
+  .dow span:first-child { color: var(--bad); }
+  .cell { min-height: 74px; padding: 4px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); display: flex; flex-direction: column; gap: 3px; text-align: left; min-width: 0; }
+  .cell.out { visibility: hidden; }
+  .cell .d { font-size: 12px; font-weight: 800; display: flex; justify-content: space-between; }
+  .cell.today .d span:first-child { background: var(--fg); color: var(--bg); border-radius: 6px; padding: 0 5px; }
+  .cell.past { opacity: .6; }
+  .cell[aria-pressed="true"] { border-color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+  .cell .bad-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--bad); margin-top: 3px; }
+  .chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; }
+  .chip { font-size: 10px; font-weight: 800; text-align: center; border-radius: 4px; line-height: 16px; overflow: hidden; white-space: nowrap; }
+  .one .chips { grid-template-columns: minmax(0, 1fr); }
+  .one .chip { font-size: 10.5px; text-align: left; padding: 0 4px; text-overflow: ellipsis; line-height: 1.35; white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+  .s-common { background: var(--accent-bg); color: var(--accent); }
+  .s-over { background: var(--accent); color: var(--on-accent); }
+  .s-draft { background: transparent; color: var(--dim); outline: 1px dashed var(--line); outline-offset: -1px; }
+  .s-none { background: var(--bad-bg); color: var(--bad); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--dim); }
+  .legend i { display: inline-block; width: 14px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 4px; }
+  @media (max-width: 480px) { .cell { min-height: 62px; } .chip { font-size: 9px; line-height: 14px; } }
+
+  .det h2 { margin: 0; font-size: 18px; font-weight: 900; }
+  .det h2 small { font-size: 13px; font-weight: 500; color: var(--dim); margin-left: 6px; }
+  .items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .items li { display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-top: 1px solid var(--rule); }
+  .items li:first-child { border-top: 0; }
+  .items .h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .items .k { font-size: 13px; font-weight: 800; min-width: 36px; }
+  .items .src { font-size: 11.5px; font-weight: 800; padding: 1px 8px; border-radius: 99px; }
+  .items b { font-size: 15px; }
+  .items small { font-size: 12.5px; color: var(--dim); }
+  .items .none { color: var(--bad); font-weight: 700; font-size: 14px; }
+  .note { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--soft); font-size: 12.5px; color: var(--dim); line-height: 1.7; }
+  .note b { color: var(--fg); }
+  .btn { min-height: 42px; padding: 0 14px; border-radius: 12px; font-size: 14px; font-weight: 800; border: 1px solid var(--line); background: var(--bg); color: var(--dim); }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
+</style>
+
+<header class="gut">
+  <div class="wrap hd">
+    <div class="t"><small>잠실새내교회 · 유년부</small><b><em>도전!!!</em> 관리</b></div>
+    <a class="back" href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">부서 홈으로</a>
+  </div>
+  <nav class="wrap tabs" aria-label="관리 메뉴">
+    <a href="https://claude.ai/artifact/Ge2UDjM3tSuxJY9jofyUF1">관리 홈</a>
+    <a href="https://claude.ai/artifact/GcfvyYMWxWqWY3CEBK9x94">소속 관리<span class="c num">3</span></a>
+    <a href="https://claude.ai/artifact/1U7Mh23HRkshtwFMaHZTuP">진급<span class="c num">1</span></a>
+    <a href="#" aria-current="page">콘텐츠</a>
+    <a href="#x">통독 현황</a>
+    <a href="#x">시즌</a>
+    <a href="#x">이름 · 색</a>
+  </nav>
+</header>
+
+<main class="gut"><div class="wrap">
+  <div class="top span">
+    <h1>콘텐츠 달력</h1>
+    <p>날마다 아이들에게 보이는 말씀 · 퀴즈 · 기도 · 암송이에요. 우리 부서 것이 없으면 공용을 보여 줘요.</p>
+  </div>
+
+  <div class="alerts span" id="alerts"></div>
+
+  <section class="card" aria-labelledby="hCal">
+    <div class="bar">
+      <div class="mon"><button type="button" id="prev" aria-label="이전 달" disabled>‹</button><b id="hCal" class="num">2027년 1월</b><button type="button" id="next" aria-label="다음 달">›</button></div>
+      <div class="kinds" role="group" aria-label="종류" id="kinds"></div>
+    </div>
+    <div class="dow" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+    <div class="grid" id="grid"></div>
+    <div class="legend">
+      <span><i class="s-common"></i>공용</span><span><i class="s-over"></i>우리 부서(덮어쓰기)</span><span><i class="s-draft"></i>초안 · 공개 전</span><span><i class="s-none"></i>없음</span>
+    </div>
+  </section>
+
+  <section class="card det" aria-live="polite">
+    <h2 id="dT"></h2>
+    <ul class="items" id="dItems"></ul>
+    <button type="button" class="btn" id="edit">우리 부서 것으로 바꾸기 (2차)</button>
+    <p class="note"><b>1차에서는 보기만 해요.</b> 비어 있거나 고칠 콘텐츠는 플랫폼 관리자에게 알려 주세요. 2차부터 부서가 직접 덮어쓰고 공용으로 되돌릴 수 있어요.<br>콘텐츠가 없는 날은 그 미션이 "오늘은 없음"으로 보이고 완주일이 될 수 없어요(R-122).</p>
+  </section>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const TODAY = 5, KIND = [['w', '말씀', '말'], ['q', '퀴즈', '퀴'], ['p', '기도', '기'], ['r', '암송', '암']];
+  const WORDS = ['새해를 여시는 하나님', '빛이 있으라', '에덴동산', '노아의 방주', '믿음의 종의 기도', '아브라함의 부르심', '롯을 구한 아브라함', '하갈과 이스마엘', '이삭이 태어나다', '모리아 산', '리브가를 만나다', '에서와 야곱', '벧엘의 사다리', '라반의 집', '얍복 강', '요셉의 꿈', '팔려 간 요셉', '감옥 안의 요셉', '바로의 꿈', '형들을 만난 요셉', '용서하는 요셉', '야곱의 축복', '모세가 태어나다', '떨기나무 불꽃', '열 가지 재앙', '유월절', '홍해를 건너다', '만나와 메추라기', '반석에서 나온 물', '십계명', '성막을 짓다'];
+  const REFS = ['시편 121편', '창세기 1장', '창세기 2장', '창세기 6~7장', '창세기 24장 1~9절', '창세기 12장', '창세기 14장', '창세기 16장', '창세기 21장', '창세기 22장', '창세기 24장', '창세기 25장', '창세기 28장', '창세기 29장', '창세기 32장', '창세기 37장', '창세기 37장', '창세기 39장', '창세기 41장', '창세기 42장', '창세기 45장', '창세기 49장', '출애굽기 2장', '출애굽기 3장', '출애굽기 7~11장', '출애굽기 12장', '출애굽기 14장', '출애굽기 16장', '출애굽기 17장', '출애굽기 20장', '출애굽기 25장'];
+  const TRAITS = ['감사', '사랑', '순종', '인내', '신뢰', '용기', '겸손', '정직', '온유', '기쁨', '평안', '절제', '성실', '지혜', '친절', '섬김', '용서', '소망', '믿음', '충성', '자비', '양선', '화평', '경건', '분별', '책임', '배려', '나눔', '감사', '찬양', '사랑'];
+  // 암송: 주(일 ~ 토) 단위
+  const RECITE = [[1, 2, '새해의 약속', '예레미야 29:11'], [3, 9, '하나님은 우리를 얼마나 사랑하실까요?', '요한복음 3:16'], [10, 16, '나의 목자', '시편 23:1'], [17, 23, '마음을 다하여', '잠언 3:5'], [24, 30, '서로 사랑하라', '요한복음 13:34']];
+  function item(d, k) {
+    if (k === 'w') return d === 3 ? { s: 'over', t: '새해 첫 주일 — 우리 부서 말씀', r: '시편 1편', by: '이은혜 · 12월 27일' } : { s: 'common', t: WORDS[d - 1], r: REFS[d - 1] };
+    if (k === 'q') return d === 9 ? { s: 'none' } : { s: 'common', t: `${WORDS[d - 1]} 퀴즈`, r: '문제 1개 · 보기 4개' };
+    if (k === 'p') return d >= 20 ? { s: 'draft', t: TRAITS[d - 1], r: '공용 · 초안(공개 전)' } : { s: 'common', t: TRAITS[d - 1], r: d === 5 ? '잠언 3장 5~6절' : '성품기도' };
+    const w = RECITE.find(([a, b]) => d >= a && d <= b);
+    return w ? { s: 'common', t: w[2], r: `${w[3]} · ${w[0]}일 ~ ${w[1]}일` } : { s: 'none' };
+  }
+  const SRC = { common: ['s-common', '공용'], over: ['s-over', '우리 부서'], draft: ['s-draft', '초안'], none: ['s-none', '없음'] };
+  let kind = 'all', sel = TODAY;
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); }
+
+  // 경고: 앞으로 14일 안 빈 칸(빨강) · 그 뒤나 초안(노랑)
+  function alerts() {
+    const soon = [], later = [];
+    for (let d = TODAY; d <= 31; d++) KIND.forEach(([k, n]) => { const it = item(d, k); if (it.s === 'none' || it.s === 'draft') (d - TODAY <= 14 && it.s === 'none' ? soon : later).push([d, n, it.s]); });
+    const wd = (d) => ['금', '토', '일', '월', '화', '수', '목'][(d - 1) % 7];
+    const draftDays = later.filter((x) => x[2] === 'draft');
+    const noneLater = later.filter((x) => x[2] === 'none');
+    let h = '';
+    if (soon.length) h += `<div class="al bad"><b>곧 비어요</b><span>${soon.map(([d, n]) => `1월 ${d}일(${wd(d)}) ${n}`).join(' · ')} — 앞으로 14일 안에 콘텐츠가 없어요.</span><button type="button" data-go="${soon[0][0]}">보기</button></div>`;
+    if (draftDays.length) h += `<div class="al warn"><b>공개 전</b><span>1월 ${draftDays[0][0]}일부터 기도 ${draftDays.length}일이 아직 초안이에요. 공개되기 전에는 아이들에게 보이지 않아요.</span><button type="button" data-go="${draftDays[0][0]}">보기</button></div>`;
+    if (noneLater.length) h += `<div class="al warn"><b>없음</b><span>${noneLater.map(([d, n]) => `1월 ${d}일 ${n}`).join(' · ')} 이(가) 비어 있어요.</span><button type="button" data-go="${noneLater[0][0]}">보기</button></div>`;
+    $('alerts').innerHTML = h;
+  }
+  function grid() {
+    $('kinds').innerHTML = [['all', '모두'], ...KIND.map(([k, n]) => [k, n])].map(([k, n]) => `<button type="button" data-k="${k}" aria-pressed="${k === kind}">${n}</button>`).join('');
+    const first = 5, cells = [];
+    for (let i = 0; i < 42; i++) {
+      const d = i - first + 1;
+      if (d < 1 || d > 31) { cells.push('<span class="cell out"></span>'); continue; }
+      const ks = kind === 'all' ? KIND : KIND.filter(([k]) => k === kind);
+      const its = ks.map(([k, n, s]) => [n, s, item(d, k)]);
+      const bad = its.some(([, , it]) => it.s === 'none');
+      const chips = its.map(([n, s, it]) => `<span class="chip ${SRC[it.s][0]}" title="${n} · ${SRC[it.s][1]}">${kind === 'all' ? s : (it.t || '없음')}</span>`).join('');
+      cells.push(`<button type="button" class="cell${d === TODAY ? ' today' : ''}${d < TODAY ? ' past' : ''}" data-d="${d}" aria-pressed="${d === sel}" aria-label="1월 ${d}일${bad ? ', 비어 있는 콘텐츠 있음' : ''}"><span class="d"><span class="num">${d}</span>${bad ? '<span class="bad-dot"></span>' : ''}</span><span class="chips">${chips}</span></button>`);
+    }
+    $('grid').innerHTML = cells.join('');
+    $('grid').classList.toggle('one', kind !== 'all');
+  }
+  function det() {
+    const wd = ['금', '토', '일', '월', '화', '수', '목'][(sel - 1) % 7];
+    $('dT').innerHTML = `1월 ${sel}일 (${wd})${sel === TODAY ? '<small>오늘</small>' : ''}`;
+    $('dItems').innerHTML = KIND.map(([k, n]) => {
+      const it = item(sel, k), [cls, lbl] = SRC[it.s];
+      return `<li><div class="h"><span class="k">${n}</span><span class="src ${cls}">${lbl}</span></div>${it.s === 'none' ? '<span class="none">콘텐츠가 없어요 — 이날은 "오늘은 없음"으로 보여요</span>' : `<b>${it.t}</b><small>${it.r}${it.by ? ' · ' + it.by : ''}</small>`}</li>`;
+    }).join('');
+  }
+  function draw() { alerts(); grid(); det(); }
+  $('kinds').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { kind = b.dataset.k; grid(); } });
+  $('grid').addEventListener('click', (e) => { const b = e.target.closest('[data-d]'); if (b) { sel = +b.dataset.d; grid(); det(); } });
+  $('alerts').addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { sel = +b.dataset.go; grid(); det(); $('dT').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } });
+  $('next').onclick = () => toast('2월 콘텐츠는 아직 만드는 중이에요 (시안)');
+  $('edit').onclick = () => toast('부서 덮어쓰기 편집은 2차예요');
+  document.querySelectorAll('nav a[href="#x"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast(`${a.firstChild.textContent} 화면으로 가요 (다음 시안)`); }));
+  draw();
+</script>
