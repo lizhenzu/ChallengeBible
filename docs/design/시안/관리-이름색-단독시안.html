@@ -1,0 +1,209 @@
+<title>이름과 색 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/{slug}/admin/branding, 0033 · 0038): 관리 머리말 · 메뉴 → 입력(앱 이름 · 짧은 이름 · 대표 색) | 미리보기(부서 홈 머리 · 홈 화면 아이콘) → 저장 · 기본값으로 → 바꾼 기록 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --bad: #B42318; --bad-bg: #FDECEC;
+    --c-blue: #2B59C3; --c-green: #1F7A5C; --c-red: #B2462E; --c-violet: #6A4BB5;
+    --wall: linear-gradient(160deg, #3B4A6B, #7A5C8E);
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --bad: #F5A3A6; --bad-bg: #2E1B1C;
+    --c-blue: #7FA2F2; --c-green: #5CC0A0; --c-red: #F09A80; --c-violet: #B39BF0;
+    --wall: linear-gradient(160deg, #1D2536, #3A2D45); color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --bad: #F5A3A6; --bad-bg: #2E1B1C;
+    --c-blue: #7FA2F2; --c-green: #5CC0A0; --c-red: #F09A80; --c-violet: #B39BF0;
+    --wall: linear-gradient(160deg, #1D2536, #3A2D45); color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button, input { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible, label:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+  .hd .t { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+  .hd .t small { font-size: 12px; color: var(--dim); }
+  .hd .t b { font-size: 17px; font-weight: 900; }
+  .hd .t b em { font-style: normal; color: var(--accent); }
+  .back { flex: none; min-height: 40px; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; font-weight: 700; }
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-bottom: -1px; }
+  nav.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); border-bottom: 3px solid transparent; }
+  nav.tabs a[aria-current] { color: var(--fg); border-color: var(--accent); }
+  nav.tabs a .c { margin-left: 4px; min-width: 18px; padding: 0 5px; border-radius: 99px; background: var(--bad); color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
+
+  main .wrap { padding-block: 20px 56px; display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 820px) { main .wrap { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; } .span { grid-column: 1 / -1; } .pv { position: sticky; top: 130px; } }
+  h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  .lead { margin: 4px 0 0; font-size: 13.5px; color: var(--dim); }
+
+  form { display: flex; flex-direction: column; gap: 20px; }
+  .f label.l { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 800; margin-bottom: 6px; }
+  .f label.l small { font-weight: 500; color: var(--dim); font-size: 12.5px; }
+  .in { width: 100%; box-sizing: border-box; min-height: 50px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 16px; }
+  .in:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .in[aria-invalid="true"] { border-color: var(--bad); }
+  .hint { margin: 6px 0 0; font-size: 12.5px; color: var(--dim); }
+  .hint.bad { color: var(--bad); font-weight: 700; }
+  .colors { display: flex; gap: 12px; flex-wrap: wrap; }
+  .sw { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; font-size: 12.5px; font-weight: 700; color: var(--dim); }
+  .sw input { position: absolute; opacity: 0; }
+  .sw span { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; color: #fff; }
+  .sw:has(input:checked) span { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--fg); }
+  .sw:has(input:checked) { color: var(--fg); }
+  .sw svg { opacity: 0; }
+  .sw:has(input:checked) svg { opacity: 1; }
+  .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { min-height: 48px; padding: 0 18px; border-radius: 12px; font-size: 15px; font-weight: 800; border: 1px solid var(--line); background: var(--bg); }
+  .btn.p { border: 0; background: var(--accent); color: var(--on-accent); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .note { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--soft); font-size: 12.5px; color: var(--dim); line-height: 1.7; }
+  .note b { color: var(--fg); }
+
+  .pv { display: flex; flex-direction: column; gap: 12px; }
+  .pv h2 { margin: 0; font-size: 13px; font-weight: 800; color: var(--dim); letter-spacing: .06em; }
+  .phone { border: 1px solid var(--rule); border-radius: 22px; overflow: hidden; background: var(--bg); }
+  .phone .bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 3px solid var(--tc); }
+  .phone .bar b { font-size: 16px; font-weight: 900; color: var(--tc); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .phone .bar small { font-size: 12px; color: var(--dim); flex: none; }
+  .phone .body { padding: 14px 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .phone .hi { font-size: 13px; color: var(--dim); }
+  .phone .card { padding: 12px; border-radius: 14px; background: color-mix(in srgb, var(--tc) 12%, var(--bg)); display: flex; justify-content: space-between; align-items: center; }
+  .phone .card b { font-size: 22px; font-weight: 900; color: var(--tc); }
+  .phone .go { min-height: 40px; border-radius: 10px; background: var(--tc); color: #fff; display: grid; place-items: center; font-size: 14px; font-weight: 800; }
+  .home { border-radius: 22px; padding: 20px 16px; background: var(--wall); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 8px; }
+  .app { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; }
+  .app i { width: 52px; height: 52px; border-radius: 14px; background: rgba(255,255,255,.25); }
+  .app.me i { background: var(--tc); display: grid; place-items: center; color: #fff; font-style: normal; font-weight: 900; font-size: 15px; letter-spacing: -.04em; }
+  .app span { max-width: 100%; font-size: 11px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+  .log { list-style: none; margin: 0; padding: 0; font-size: 14px; border-top: 1px solid var(--rule); }
+  .log li { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+  .log time { flex: none; width: 92px; color: var(--dim); font-size: 13px; }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
+</style>
+
+<header class="gut">
+  <div class="wrap hd">
+    <div class="t"><small>잠실새내교회 · 유년부</small><b><em>도전!!!</em> 관리</b></div>
+    <a class="back" href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">부서 홈으로</a>
+  </div>
+  <nav class="wrap tabs" aria-label="관리 메뉴">
+    <a href="https://claude.ai/artifact/Ge2UDjM3tSuxJY9jofyUF1">관리 홈</a>
+    <a href="https://claude.ai/artifact/GcfvyYMWxWqWY3CEBK9x94">소속 관리<span class="c num">3</span></a>
+    <a href="https://claude.ai/artifact/1U7Mh23HRkshtwFMaHZTuP">진급<span class="c num">1</span></a>
+    <a href="https://claude.ai/artifact/B8UfHV1yJotcN32EBJ3VqA">콘텐츠</a>
+    <a href="#x">통독 현황</a>
+    <a href="https://claude.ai/artifact/RHV54ucGrS1ePS8Kxura7R">시즌</a>
+    <a href="#" aria-current="page">이름 · 색</a>
+  </nav>
+</header>
+
+<main class="gut"><div class="wrap">
+  <div class="span">
+    <h1>이름 · 색</h1>
+    <p class="lead">우리 부서 화면에 보이는 이름과 색이에요. 비워 두면 기본 이름 "도전!!!성경말씀"을 써요.</p>
+  </div>
+
+  <form id="form" novalidate>
+    <div class="f">
+      <label class="l" for="nm">앱 이름 <small class="num" id="nmC">0 / 30</small></label>
+      <input class="in" id="nm" maxlength="30" placeholder="도전!!!성경말씀 (기본)" aria-describedby="nmH">
+      <p class="hint" id="nmH">부서 화면 맨 위 · 로그인 안내 · 축하 창에 보여요. 예: 유년부 말씀 챌린지</p>
+    </div>
+    <div class="f">
+      <label class="l" for="sn">짧은 이름 <small class="num" id="snC">0 / 12</small></label>
+      <input class="in" id="sn" maxlength="12" placeholder="도전성경 (기본)" aria-describedby="snH">
+      <p class="hint" id="snH">휴대폰 홈 화면 아이콘 아래에 보여요. 6자 안쪽이 잘 보여요.</p>
+    </div>
+    <div class="f">
+      <label class="l">대표 색 <small>정해 둔 4가지 중 하나</small></label>
+      <div class="colors" role="radiogroup" aria-label="대표 색" id="colors"></div>
+      <p class="hint">버튼 · 강조 · 앱 아이콘 · 휴대폰 위쪽 띠 색이에요. 글자가 잘 읽히는 색만 골라 두었어요.</p>
+    </div>
+    <div class="acts">
+      <button type="submit" class="btn p" id="save" disabled>저장</button>
+      <button type="button" class="btn" id="reset">기본값으로 되돌리기</button>
+    </div>
+    <p class="note"><b>저장하면 화면 안의 이름 · 색은 바로 바뀌어요.</b> 이미 홈 화면에 설치한 앱 아이콘 이름은 휴대폰이 앱 정보를 다시 읽을 때 바뀌어요(기기마다 며칠 걸릴 수 있어요).<br>성경통독 화면의 이름 "도전!!!성경통독"은 그대로예요.</p>
+  </form>
+
+  <aside class="pv" aria-label="미리보기">
+    <h2>미리보기 · 부서 홈</h2>
+    <div class="phone" id="phone">
+      <div class="bar"><b id="pvName">도전!!!성경말씀</b><small>1월 5일 화</small></div>
+      <div class="body">
+        <span class="hi">잠실새내교회 유년부 · 김철수님</span>
+        <div class="card"><span>올해 점수</span><b class="num">24점</b></div>
+        <span class="go">오늘 미션 하러 가기</span>
+      </div>
+    </div>
+    <h2>미리보기 · 휴대폰 홈 화면</h2>
+    <div class="home" aria-hidden="true">
+      <div class="app"><i></i><span>사진</span></div>
+      <div class="app"><i></i><span>메시지</span></div>
+      <div class="app me"><i id="pvIco">도전</i><span id="pvShort">도전성경</span></div>
+      <div class="app"><i></i><span>지도</span></div>
+    </div>
+  </aside>
+
+  <section class="span" aria-labelledby="hLog">
+    <h2 id="hLog" style="margin:0 0 8px;font-size:16px;font-weight:800">바꾼 기록</h2>
+    <ul class="log" id="log">
+      <li><time class="num">2026.11.02</time><span>운영자(플랫폼) · 부서를 만들며 대표 색 <b>파랑</b>, 이름은 기본값</span></li>
+    </ul>
+  </section>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const COLORS = [['blue', '파랑', '--c-blue'], ['green', '초록', '--c-green'], ['red', '주황', '--c-red'], ['violet', '보라', '--c-violet']];
+  const DEF = { name: '도전!!!성경말씀', short: '도전성경' };
+  let saved = { name: '', short: '', color: 'blue' };
+  const ck = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
+  $('colors').innerHTML = COLORS.map(([v, n, t]) => `<label class="sw"><input type="radio" name="c" value="${v}"><span style="background:var(${t})">${ck}</span>${n}</label>`).join('');
+
+  function cur() { return { name: $('nm').value.trim(), short: $('sn').value.trim(), color: document.querySelector('input[name=c]:checked').value }; }
+  function load(s) { $('nm').value = s.name; $('sn').value = s.short; document.querySelector(`input[name=c][value=${s.color}]`).checked = true; sync(); }
+  function sync() {
+    const c = cur(), tc = `var(${COLORS.find((x) => x[0] === c.color)[2]})`;
+    $('nmC').textContent = `${$('nm').value.length} / 30`; $('snC').textContent = `${$('sn').value.length} / 12`;
+    document.querySelector('.pv').style.setProperty('--tc', tc);
+    document.documentElement.style.setProperty('--accent', tc);
+    const name = c.name || DEF.name, short = c.short || DEF.short;
+    $('pvName').textContent = name; $('pvShort').textContent = short;
+    $('pvIco').textContent = short.replace(/[^가-힣A-Za-z0-9]/g, '').slice(0, 2) || '도전';
+    const bad = $('nm').value.length > 0 && !c.name;
+    $('nmH').className = 'hint' + (bad ? ' bad' : ''); $('nmH').textContent = bad ? '빈칸만으로는 이름이 될 수 없어요.' : '부서 화면 맨 위 · 로그인 안내 · 축하 창에 보여요. 예: 유년부 말씀 챌린지';
+    $('snH').textContent = short.length > 6 ? '휴대폰에 따라 뒷부분이 잘려 보일 수 있어요.' : '휴대폰 홈 화면 아이콘 아래에 보여요. 6자 안쪽이 잘 보여요.';
+    $('save').disabled = bad || JSON.stringify(c) === JSON.stringify(saved);
+  }
+  ['nm', 'sn'].forEach((id) => $(id).addEventListener('input', sync));
+  $('colors').addEventListener('change', sync);
+  function logLine(a, b) {
+    const parts = [];
+    if (a.name !== b.name) parts.push(`앱 이름 <b>${a.name || '기본'}</b> → <b>${b.name || '기본'}</b>`);
+    if (a.short !== b.short) parts.push(`짧은 이름 <b>${a.short || '기본'}</b> → <b>${b.short || '기본'}</b>`);
+    if (a.color !== b.color) parts.push(`대표 색 <b>${COLORS.find((x) => x[0] === a.color)[1]}</b> → <b>${COLORS.find((x) => x[0] === b.color)[1]}</b>`);
+    $('log').insertAdjacentHTML('afterbegin', `<li><time class="num">2027.01.05</time><span>이은혜 · ${parts.join(', ')}</span></li>`);
+  }
+  $('form').addEventListener('submit', (e) => { e.preventDefault(); const c = cur(); logLine(saved, c); saved = c; sync(); toast('저장했어요 · 부서 화면에 바로 보여요'); });
+  $('reset').onclick = () => { load({ name: '', short: '', color: saved.color }); toast('이름을 기본값으로 바꿨어요 · 저장을 눌러 주세요'); };
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); }
+  document.querySelectorAll('nav a[href="#x"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast(`${a.firstChild.textContent} 화면으로 가요 (다음 시안)`); }));
+  load(saved);
+  $('nm').value = '유년부 말씀 챌린지'; sync();   // 시안: 바꾸는 중인 모습으로 시작
+</script>
