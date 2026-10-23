@@ -127,9 +127,11 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
         await using var ctx = db.Create();
         return await ctx.Memberships.IgnoreQueryFilters()
             .Where(m => m.AccountId == accountId)
-            .Join(ctx.Tenants, m => m.TenantId, t => t.Id, (m, t) => new MyMembership(
-                m.Id, t.Id, t.Slug, t.Name, m.Status, t.Status == TenantStatus.Active, t.MissionEnabled, t.ReadingEnabled, m.RequestedUtc))
-            .OrderBy(x => x.TenantName)
+            .Join(ctx.Tenants, m => m.TenantId, t => t.Id, (m, t) => new { m, t })
+            // 정렬은 레코드로 바꾸기 전에 한다 — 생성자 결과로 정렬하면 SQL Server 가 번역하지 못한다(InMemory 는 통과)
+            .OrderBy(x => x.t.Name)
+            .Select(x => new MyMembership(
+                x.m.Id, x.t.Id, x.t.Slug, x.t.Name, x.m.Status, x.t.Status == TenantStatus.Active, x.t.MissionEnabled, x.t.ReadingEnabled, x.m.RequestedUtc))
             .ToListAsync(ct);
     }
 
