@@ -5,6 +5,20 @@ namespace ChallengeBible.Tests.Support;
 /// <summary>확정 시안과 같은 예시 콘텐츠(2027-01-05: 믿음의 종의 기도 · 신뢰 · 요한복음 3:16).</summary>
 public static class ContentSeed
 {
+    /// <summary>시안 예시 구절의 본문(가짜 문구): 창세기 24:1~9 · 잠언 3:5~6 · 요한복음 3:16, 번역 3개(KRV 1 · KLB 2 · NIV 3).</summary>
+    public static void Bible(string db)
+    {
+        using var raw = InMemoryDb.Raw(db);
+        void Add(byte book, short ch, short from, short to)
+        {
+            for (short v = from; v <= to; v++)
+                foreach (var (id, tag) in new (byte, string)[] { (1, "KRV"), (2, "KLB"), (3, "NIV") })
+                    raw.BibleVerses.Add(new BibleVerse { TranslationId = id, BookId = book, Chapter = ch, Verse = v, Text = $"{tag} {book}:{ch}:{v}" });
+        }
+        Add(1, 24, 1, 9); Add(20, 3, 5, 6); Add(43, 3, 16, 16);
+        raw.SaveChanges();
+    }
+
     public static DailyWord Word(string db, DateOnly date, int? tenantId = null, string title = "믿음의 종의 기도", string status = ContentStatus.Published)
     {
         using var raw = InMemoryDb.Raw(db);

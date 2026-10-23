@@ -10,10 +10,26 @@
     }
     else
     {
-        <section class="sec done"><h2><span class="n">01</span>오늘의 기도문</h2>
+        var hasText = Model.Verses.Count > 0;
+        var no2 = hasText ? "02" : "01";
+        var no3 = hasText ? "03" : "02";
+        if (hasText)
+        {
+            <section class="sec"><h2><span class="n">01</span>오늘의 성경 본문 <small>@p.Ref.Tail</small></h2>
+                <button type="button" class="more" data-fold="bible" data-more="본문 보기 ＋" data-less="본문 접기 －" aria-expanded="false" aria-controls="bible">본문 보기 ＋</button>
+                <div class="vlines" id="bible" hidden>
+                    @foreach (var line in Model.Verses)
+                    {
+                        <p><span class="num">@line.Verse</span>@line.Texts.GetValueOrDefault("KRV")</p>
+                    }
+                    <a class="rdmore" href="/@Model.Slug/read?from=prayer@(Model.IsToday ? "" : "&date=" + Model.Day.ToString("yyyy-MM-dd"))">성경 읽기 화면에서 보기 →</a>
+                </div>
+            </section>
+        }
+        <section class="sec done"><h2><span class="n">@no2</span>오늘의 기도문</h2>
             @foreach (var para in p.Paragraphs) { <p class="story">@Model.Paragraph(para, name)</p> }
         </section>
-        @await Html.PartialAsync("_PickSection", new PickSection(Model, "02","누구를 위해 기도했나요?", Mission.Prayer, "prayer"))
+        @await Html.PartialAsync("_PickSection", new PickSection(Model, no3, "누구를 위해 기도했나요?", Mission.Prayer, "prayer"))
     }
 </div></main>
 @Html.AntiForgeryToken()

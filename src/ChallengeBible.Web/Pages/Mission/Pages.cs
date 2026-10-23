@@ -94,9 +94,17 @@ public class QuizModel(MissionService missions, TenantContext tenant) : MissionP
     }
 }
 
-public class PrayerModel(MissionService missions, TenantContext tenant) : MissionPageBase(missions, tenant)
+public class PrayerModel(MissionService missions, TenantContext tenant, BibleTextService bible) : MissionPageBase(missions, tenant)
 {
     public override string Title => "기도 미션";
+
+    /// <summary>오늘의 성경 본문(개역개정, 시안: 01 오늘의 성경 본문 · 본문 보기).</summary>
+    public IReadOnlyList<VerseLine> Verses { get; private set; } = [];
+
+    protected override async Task LoadMoreAsync(CancellationToken ct)
+    {
+        if (Data!.Prayer is { } p) Verses = await bible.RangeAsync(p.Ref, [Infrastructure.Data.BibleTranslation.Krv], ct);
+    }
 
     /// <summary>R-32: 기도문의 {이름} 자리에 참여자 이름(강조).</summary>
     public Microsoft.AspNetCore.Html.IHtmlContent Paragraph(string text, string name) =>
@@ -104,7 +112,15 @@ public class PrayerModel(MissionService missions, TenantContext tenant) : Missio
             text.Split("{이름}").Select(System.Net.WebUtility.HtmlEncode)));
 }
 
-public class ReciteModel(MissionService missions, TenantContext tenant) : MissionPageBase(missions, tenant)
+public class ReciteModel(MissionService missions, TenantContext tenant, BibleTextService bible) : MissionPageBase(missions, tenant)
 {
     public override string Title => "암송 미션";
+
+    /// <summary>외울 구절 본문(개역개정, 시안: 01 외울 구절).</summary>
+    public IReadOnlyList<VerseLine> Verses { get; private set; } = [];
+
+    protected override async Task LoadMoreAsync(CancellationToken ct)
+    {
+        if (Data!.Recite is { } v) Verses = await bible.RangeAsync(v.Ref, [Infrastructure.Data.BibleTranslation.Krv], ct);
+    }
 }

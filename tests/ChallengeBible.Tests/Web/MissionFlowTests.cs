@@ -31,6 +31,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         _kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         ContentSeed.Word(_db, Jan5);
         ContentSeed.ChoiceQuiz(_db, Jan5);
+        ContentSeed.Bible(_db);
     }
 
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
@@ -137,6 +138,57 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("2027년 1월", html);
         Assert.Contains("aria-label=\"1월 5일 2점\"", html);
         Assert.Equal("/jamsil-kids/points?month=2027-01", (await c.GetAsync("/jamsil-kids/calendar?month=2027-01")).Headers.Location!.OriginalString);
+    }
+
+    [Fact]
+    public async Task R110_성경_읽기는_미션의_구절을_단위만큼_나눠_보여준다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var p1 = await c.GetStringAsync("/jamsil-kids/read?from=word");   // 기본: 개역개정 · 3절씩
+        Assert.Contains("창세기", p1);
+        Assert.Contains("24장 1~9절", p1);
+        Assert.Contains("KRV 1:24:1", p1);
+        Assert.Contains("KRV 1:24:3", p1);
+        Assert.DoesNotContain("KRV 1:24:4", p1);
+        Assert.DoesNotContain("NIV 1:24:1", p1);
+        Assert.Contains("1–3절 / 9", p1);
+        var p2 = await c.GetStringAsync("/jamsil-kids/read?from=word&p=2");
+        Assert.Contains("KRV 1:24:4", p2);
+        Assert.Contains("4–6절 / 9", p2);
+        Assert.Contains("말씀 미션으로 돌아가기", p2);
+    }
+
+    [Fact]
+    public async Task R111_성경_읽기는_번역을_바꾸거나_모두_나란히_보여준다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var niv = await c.GetStringAsync("/jamsil-kids/read?from=word&tr=NIV&unit=0");
+        Assert.Contains("NIV 1:24:9", niv);          // 전체 = 9절 한 쪽
+        Assert.DoesNotContain("KRV 1:24:1", niv);
+        var all = await c.GetStringAsync("/jamsil-kids/read?from=word&tr=ALL&unit=1");
+        Assert.Contains("KRV 1:24:1", all);
+        Assert.Contains("KLB 1:24:1", all);
+        Assert.Contains("NIV 1:24:1", all);
+    }
+
+    [Fact]
+    public async Task R115_구절을_직접_지정해_읽을_수_있고_잘못된_범위는_안내한다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var john = await c.GetStringAsync("/jamsil-kids/read?book=43&sc=3&sv=16");
+        Assert.Contains("요한복음", john);
+        Assert.Contains("KRV 43:3:16", john);
+        var bad = await c.GetStringAsync("/jamsil-kids/read?book=99&sc=1&sv=1");
+        Assert.Contains("읽을 구절이 없어요", bad);
+    }
+
+    [Fact]
+    public async Task 말씀_화면의_읽으러_가기는_성경_읽기로_연결된다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var html = await c.GetStringAsync("/jamsil-kids/word");
+        Assert.Contains("href=\"/jamsil-kids/read?from=word\"", html);
+        Assert.Contains("창세기 24장 읽으러 가기", html);
     }
 
     [Fact]

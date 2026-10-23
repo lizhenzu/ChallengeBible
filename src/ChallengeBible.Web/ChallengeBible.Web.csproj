@@ -9,8 +9,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>c87ac3b6-7be9-403a-8e2d-324d539b077b</UserSecretsId>
-  </PropertyGroup>
+    <UserSecretsId>c87ac3b6-7be9-403a-8e2d-324d539b077b</UserSecretsId>  </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="ChallengeBible.Tests" />

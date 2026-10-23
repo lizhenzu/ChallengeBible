@@ -4,6 +4,7 @@
     @if (User.AccountId() is not null)
     {
         <form method="post" action="/account/logout" asp-antiforgery="true" class="who">
+            @if (User.IsPlatformAdmin()) { <a class="plat" href="/platform/tenants">플랫폼</a> }
             <span><b>@User.DisplayName()</b>님</span>
             <button type="submit">로그아웃</button>
         </form>

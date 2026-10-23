@@ -37,6 +37,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         var jan = Enumerable.Range(1, 5).Select(d => new DateOnly(2027, 1, d)).ToList();
         foreach (var d in jan) { ContentSeed.Word(db, d); ContentSeed.Prayer(db, d); ContentSeed.ChoiceQuiz(db, d); }
         ContentSeed.Verse(db, new DateOnly(2027, 1, 3));
+        ContentSeed.Bible(db);
         using (var raw = InMemoryDb.Raw(db))
         {
             var r = raw.WeeklyVerses.Single();
@@ -102,6 +103,8 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids", "05-부서홈");
         await Save(kid, "/jamsil-kids/word-mission", "06-미션홈");
         await Save(kid, "/jamsil-kids/word", "07-말씀");
+        await Save(kid, "/jamsil-kids/read?from=word", "07b-성경읽기");
+        await Save(kid, "/jamsil-kids/read?from=word&tr=ALL&unit=1", "07c-성경읽기-번역모두");
         await Save(kid, "/jamsil-kids/quiz", "08-퀴즈");
         await Save(kid, "/jamsil-kids/prayer", "09-기도");
         await Save(kid, "/jamsil-kids/recite", "10-암송");
