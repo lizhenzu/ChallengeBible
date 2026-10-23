@@ -1,0 +1,171 @@
+<title>가족 부서 고르기 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(0046 · R-168): 얇은 머리말(← 부서 고르기 · 이름) → 제목 · 설명 → 부서 고르기(자녀 · 지금 상태) → 바뀌는 점(고른 부서가 바뀔 때만) → 확인 체크 → 정하기 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --hero: #F2F5FB; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --warn: #9A5B00; --warn-bg: #FFF4DE;
+    --c-blue: #2B59C3; --c-green: #1F7A5C;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614;
+    --c-blue: #7FA2F2; --c-green: #5CC0A0; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614;
+    --c-blue: #7FA2F2; --c-green: #5CC0A0; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button, input { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible, label:focus-within { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 560px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; border-bottom: 1px solid var(--rule); }
+  .back { font-size: 14px; font-weight: 700; min-height: 40px; display: inline-flex; align-items: center; }
+  .who { font-size: 14px; color: var(--dim); }
+  .who b { color: var(--fg); }
+
+  main { background: linear-gradient(180deg, var(--bg) 0, var(--hero) 100%); min-height: calc(100vh - 60px); }
+  main .wrap { padding-block: 26px 48px; display: flex; flex-direction: column; gap: 16px; }
+  h1 { margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -.02em; text-wrap: balance; }
+  .sub { margin: 6px 0 0; color: var(--dim); line-height: 1.75; }
+  .rules { margin: 0; padding: 14px 16px 14px 34px; border-radius: 14px; background: var(--soft); font-size: 14px; line-height: 1.8; }
+  .rules b { color: var(--fg); }
+
+  .opts { display: flex; flex-direction: column; gap: 10px; }
+  .opt { position: relative; display: flex; gap: 14px; padding: 16px 16px 16px 22px; border: 1px solid var(--line); border-radius: 18px; background: var(--bg); cursor: pointer; overflow: hidden; }
+  .opt::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--c); }
+  .opt input { position: absolute; opacity: 0; }
+  .opt .rd { flex: none; width: 24px; height: 24px; margin-top: 2px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; }
+  .opt:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .opt:has(input:checked) .rd { border-color: var(--accent); }
+  .opt:has(input:checked) .rd::after { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+  .opt .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .opt .nm { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .opt .nm b { font-size: 19px; font-weight: 900; }
+  .opt .nm small { font-size: 13px; color: var(--dim); }
+  .opt .now { font-size: 11.5px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: var(--ok-bg); color: var(--ok); }
+  .opt ul { margin: 0; padding: 0; list-style: none; font-size: 14px; color: var(--dim); }
+  .opt ul li::before { content: "· "; }
+
+  .chg { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 16px; background: var(--warn-bg); }
+  .chg b.t { color: var(--warn); font-size: 15px; }
+  .chg ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.8; }
+  .chg label { display: flex; gap: 10px; align-items: flex-start; min-height: 44px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .chg label input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--accent); flex: none; }
+  .btn { min-height: 56px; border: 0; border-radius: 14px; background: var(--accent); color: var(--on-accent); font-size: 17px; font-weight: 800; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .done { display: flex; flex-direction: column; gap: 12px; padding: 20px; border-radius: 18px; background: var(--ok-bg); }
+  .done b { font-size: 19px; color: var(--ok); }
+  .done p { margin: 0; }
+  .done a { min-height: 50px; border-radius: 12px; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; font-weight: 800; }
+  .demo { font-size: 12px; color: var(--dim); text-align: center; }
+  .demo button { border: 0; background: none; color: var(--accent); font-weight: 700; font-size: 12px; text-decoration: underline; min-height: 32px; }
+</style>
+
+<header class="gut"><div class="wrap">
+  <a class="back" href="https://claude.ai/artifact/Sk7skLo5Rvz8A5grXvPayG">← 부서 고르기</a>
+  <span class="who"><b>김영희</b>님</span>
+</div></header>
+
+<main class="gut"><div class="wrap">
+  <section id="form" style="display:flex;flex-direction:column;gap:16px">
+    <div>
+      <h1 id="ttl">가족과 함께할 부서</h1>
+      <p class="sub" id="sub">자녀들이 서로 다른 부서에 있으면, 부모님이 미션을 하고 가족팀을 꾸릴 부서를 <b>하나</b> 골라 주세요.</p>
+    </div>
+    <ol class="rules">
+      <li>고른 부서에서 <b>엄마도 미션을 하고 가족팀 점수에 더해져요.</b></li>
+      <li>다른 부서에서는 <b>보호자로 자녀 기록을 보기만</b> 해요. 그 부서의 자녀는 혼자 참여해요.</li>
+      <li>성경통독은 부서와 상관없이 그대로 이어져요.</li>
+    </ol>
+
+    <div class="opts" role="radiogroup" aria-label="가족과 함께할 부서" id="opts">
+      <label class="opt" style="--c:var(--c-blue)">
+        <input type="radio" name="t" value="kids">
+        <span class="rd" aria-hidden="true"></span>
+        <span class="body">
+          <span class="nm"><b>유년부</b><small>잠실새내교회</small><span class="now" id="nowKids">지금 함께하는 부서</span></span>
+          <ul><li>자녀: 김철수(아들)</li><li>가족팀: 김철수 가족 · 64점 (철수 · 엄마 · 아빠)</li><li>엄마 올해 점수 22점</li></ul>
+        </span>
+      </label>
+      <label class="opt" style="--c:var(--c-green)">
+        <input type="radio" name="t" value="elem">
+        <span class="rd" aria-hidden="true"></span>
+        <span class="body">
+          <span class="nm"><b>초등부</b><small>잠실새내교회</small><span class="now" id="nowElem" hidden>지금 함께하는 부서</span></span>
+          <ul><li>자녀: 김민지(딸)</li><li>가족팀: 아직 없음 — 민지 혼자 참여 중</li><li>엄마는 보호자로 보기만 하는 중</li></ul>
+        </span>
+      </label>
+    </div>
+
+    <div class="chg" id="chg" hidden role="status">
+      <b class="t">초등부로 바꾸면 이렇게 돼요</b>
+      <ul>
+        <li><b>유년부</b>: 엄마의 미션과 <b>김철수 가족</b> 자리가 멈춰요. 지금까지의 점수(22점)와 기록은 남아요. 철수는 아빠와 함께 계속해요.</li>
+        <li><b>초등부</b>: 초등부 선생님이 엄마에게 참여자 역할을 주면 미션과 가족팀(민지와 함께)을 시작할 수 있어요.</li>
+        <li>나중에 다시 바꿀 수 있어요.</li>
+      </ul>
+      <label><input type="checkbox" id="agree">위 내용을 확인했어요</label>
+    </div>
+
+    <button type="button" class="btn" id="go" disabled>이 부서로 정하기</button>
+  </section>
+
+  <section class="done" id="done" hidden role="status">
+    <b id="doneT"></b>
+    <p id="doneP"></p>
+    <a href="https://claude.ai/artifact/Sk7skLo5Rvz8A5grXvPayG">부서 고르기로 돌아가기</a>
+  </section>
+
+  <p class="demo">시안 전용: <button type="button" id="demo">아직 고르지 않은 사람으로 보기</button></p>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  let current = 'kids';   // 지금 고른 부서(null 이면 아직 안 고름)
+  const NAME = { kids: '유년부', elem: '초등부' };
+  function reset() {
+    $('form').hidden = false; $('done').hidden = true;
+    document.querySelectorAll('input[name=t]').forEach((r) => r.checked = r.value === current);
+    $('nowKids').hidden = current !== 'kids'; $('nowElem').hidden = current !== 'elem';
+    $('ttl').textContent = current ? '가족과 함께할 부서' : '가족과 함께할 부서를 골라 주세요';
+    $('agree').checked = false; update();
+  }
+  function update() {
+    const pick = document.querySelector('input[name=t]:checked')?.value;
+    const moving = current && pick && pick !== current;
+    $('chg').hidden = !moving;
+    $('go').disabled = !pick || pick === current || (moving && !$('agree').checked);
+    $('go').textContent = !pick ? '부서를 골라 주세요' : pick === current ? '지금 함께하는 부서예요' : current ? `${NAME[pick]}로 바꾸기` : `${NAME[pick]}로 정하기`;
+  }
+  $('opts').addEventListener('change', () => { $('agree').checked = false; update(); });
+  $('agree').addEventListener('change', update);
+  $('go').onclick = () => {
+    const pick = document.querySelector('input[name=t]:checked').value, was = current;
+    current = pick;
+    $('form').hidden = true; $('done').hidden = false;
+    $('doneT').textContent = `가족과 함께할 부서: ${NAME[pick]}`;
+    $('doneP').textContent = was
+      ? `${NAME[was]}에서는 이제 보호자로 보기만 해요. ${NAME[pick]} 선생님이 참여자 역할을 주면 미션을 시작할 수 있어요.`
+      : `${NAME[pick]} 선생님이 참여자 역할을 주면 미션과 가족팀을 시작할 수 있어요.`;
+    $('done').querySelector('a').focus();
+  };
+  $('demo').onclick = () => {
+    current = current === null ? 'kids' : null;
+    $('demo').textContent = current === null ? '유년부를 고른 사람으로 보기' : '아직 고르지 않은 사람으로 보기';
+    reset();
+  };
+  reset();
+</script>
