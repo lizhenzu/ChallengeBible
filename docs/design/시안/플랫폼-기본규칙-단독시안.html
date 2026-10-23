@@ -1,0 +1,258 @@
+<title>기본 규칙 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/platform/rules, RuleSet · 0032): 플랫폼 머리말 · 메뉴 → 지금 버전 띠 → 날짜 · 인정 기간 → 미션 항목 표(사용 · 이름 · 점수) → 퀴즈 → 축하 단계 · 목표 → 가족 단계 → 기능 스위치 → 바뀐 점 요약 · 새 버전으로 저장 → 버전 기록 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --warn: #9A5B00; --warn-bg: #FFF4DE; --bad: #B42318; --bad-bg: #FDECEC; --gold: #B07800; --gold-bg: #FFF4D6;
+    --plat: #1B1F24; --on-plat: #FFFFFF;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; --gold: #F2C063; --gold-bg: #33290F;
+    --plat: #E8EAED; --on-plat: #14171B; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; --gold: #F2C063; --gold-bg: #33290F;
+    --plat: #E8EAED; --on-plat: #14171B; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button, input, select { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+  .hd .t { display: flex; align-items: center; gap: 10px; }
+  .hd .t b { font-size: 17px; font-weight: 900; }
+  .hd .t b em { font-style: normal; color: var(--accent); }
+  .pl { font-size: 11px; font-weight: 800; letter-spacing: .06em; padding: 3px 8px; border-radius: 6px; background: var(--plat); color: var(--on-plat); }
+  .me { font-size: 13px; color: var(--dim); }
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-bottom: -1px; }
+  nav.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); border-bottom: 3px solid transparent; }
+  nav.tabs a[aria-current] { color: var(--fg); border-color: var(--plat); }
+
+  main .wrap { padding-block: 20px 120px; display: flex; flex-direction: column; gap: 16px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  .ver { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 14px 16px; border-radius: 16px; background: var(--soft); font-size: 14px; }
+  .ver b.v { font-size: 13px; font-weight: 800; padding: 2px 10px; border-radius: 99px; background: var(--plat); color: var(--on-plat); }
+  .ver span { color: var(--dim); }
+  .card { border: 1px solid var(--rule); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .card > h2 { margin: 0; font-size: 16px; font-weight: 800; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .card > h2 small { font-size: 12.5px; font-weight: 500; color: var(--dim); }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; }
+  .row .l { display: flex; flex-direction: column; min-width: 0; }
+  .row .l b { font-size: 15px; }
+  .row .l small { font-size: 12.5px; color: var(--dim); }
+  .sel, .in { min-height: 42px; padding: 0 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 15px; box-sizing: border-box; }
+  .in.n { width: 72px; text-align: right; }
+  .in.t { width: 100%; min-width: 0; }
+  .in.changed, .sel.changed { border-color: var(--warn); background: var(--warn-bg); }
+  .seg { display: inline-flex; gap: 4px; padding: 3px; border-radius: 10px; background: var(--soft); }
+  .seg button { min-width: 38px; min-height: 36px; border: 0; border-radius: 8px; background: none; font-weight: 800; font-size: 14px; color: var(--dim); }
+  .seg button[aria-pressed="true"] { background: var(--bg); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  .tbl { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 520px; }
+  th { text-align: left; font-size: 12px; font-weight: 700; color: var(--dim); padding: 0 8px 8px; border-bottom: 1px solid var(--fg); white-space: nowrap; }
+  td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+  td.k { font-weight: 800; white-space: nowrap; }
+  td.key { font-size: 12px; color: var(--dim); font-family: ui-monospace, Consolas, monospace; white-space: nowrap; }
+  .sw { position: relative; flex: none; width: 48px; height: 28px; border-radius: 99px; border: 0; background: var(--line); }
+  .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .sw[aria-checked="true"] { background: var(--accent); }
+  .sw[aria-checked="true"]::after { transform: translateX(20px); }
+  .sw.changed { box-shadow: 0 0 0 3px var(--warn-bg), 0 0 0 4px var(--warn); }
+  .hint { margin: 0; font-size: 12.5px; color: var(--dim); }
+  .hint.bad { color: var(--bad); font-weight: 700; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 0 6px 0 12px; border-radius: 99px; background: var(--gold-bg); color: var(--gold); font-weight: 800; font-size: 14px; }
+  .chip button { width: 28px; height: 28px; border: 0; border-radius: 50%; background: none; color: inherit; font-size: 16px; }
+  .add { display: inline-flex; gap: 4px; }
+  .add .in { width: 100px; }
+  .add button, .btn { min-height: 42px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); font-weight: 800; font-size: 14px; }
+  .btn.p { border-color: var(--plat); background: var(--plat); color: var(--on-plat); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .fam td .in { min-height: 38px; font-size: 14px; }
+
+  .save { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; background: var(--bg); border-top: 1px solid var(--rule); box-shadow: 0 -4px 16px rgba(0,0,0,.06); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .save .wrap { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; min-height: 68px; padding-block: 10px; }
+  .save .sum { flex: 1 1 260px; min-width: 0; font-size: 13.5px; }
+  .save .sum b { color: var(--warn); }
+  .save label { font-size: 13px; color: var(--dim); display: inline-flex; align-items: center; gap: 6px; }
+  .log { list-style: none; margin: 0; padding: 0; font-size: 14px; }
+  .log li { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid var(--rule); }
+  .log li:first-child { border-top: 0; }
+  .log .v { flex: none; width: 34px; font-weight: 800; }
+  .log time { flex: none; width: 92px; color: var(--dim); font-size: 13px; }
+  .toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; max-width: calc(100vw - 40px); overflow: hidden; text-overflow: ellipsis; }
+</style>
+
+<header class="gut">
+  <div class="wrap hd">
+    <div class="t"><b><em>도전!!!</em></b><span class="pl">플랫폼</span></div>
+    <span class="me">운영자 · 플랫폼 관리자</span>
+  </div>
+  <nav class="wrap tabs" aria-label="플랫폼 메뉴">
+    <a href="https://claude.ai/artifact/S1dDugdgs897ziCWkMEDCn">플랫폼 홈</a>
+    <a href="https://claude.ai/artifact/1SRjYZY8qvf391srdhijbq">부서</a>
+    <a href="https://claude.ai/artifact/CZQ2ZKpE48uW4YNqcsWhht">공용 콘텐츠</a>
+    <a href="#x">성경 데이터</a>
+    <a href="#" aria-current="page">기본 규칙</a>
+    <a href="https://claude.ai/artifact/QLvGVaxqKS6EcdyhrReFMT">계정 찾기</a>
+  </nav>
+</header>
+
+<main class="gut"><div class="wrap">
+  <h1>기본 규칙</h1>
+  <div class="ver"><b class="v" id="verTag">v1</b><span id="verTxt">2027년 1월 1일부터 적용 중</span><span>· 이 값을 쓰는 성경말씀 부서 <b class="num">5곳</b> (1차는 모든 부서가 기본 규칙을 써요. 부서별 바꾸기는 2차)</span></div>
+
+  <section class="card" aria-labelledby="h1">
+    <h2 id="h1">날짜</h2>
+    <div class="row"><div class="l"><b>주 시작 요일</b><small>암송 · 이번 주 점수가 이 요일에 새로 시작해요</small></div><select class="sel" id="week"><option>일요일</option><option>월요일</option></select></div>
+    <div class="row"><div class="l"><b>인정 기간</b><small>오늘 포함 며칠 전까지 미션을 할 수 있나요 (1 ~ 7일)</small></div><div class="seg" id="grace" role="group" aria-label="인정 기간"></div></div>
+  </section>
+
+  <section class="card" aria-labelledby="h2">
+    <h2 id="h2">미션 항목 <small>미션마다 하나는 켜 둬야 해요 (ADR 0032)</small></h2>
+    <div class="tbl"><table>
+      <thead><tr><th>미션</th><th>사용</th><th>아이에게 보이는 이름</th><th>점수</th><th>키</th></tr></thead>
+      <tbody id="items"></tbody>
+    </table></div>
+    <p class="hint bad" id="itemH" hidden></p>
+    <div class="row"><div class="l"><b>퀴즈 도전 횟수</b><small>하루에 몇 번까지 답할 수 있나요</small></div><div class="seg" id="tries" role="group" aria-label="퀴즈 도전 횟수"></div></div>
+    <p class="hint" id="maxDay"></p>
+  </section>
+
+  <section class="card" aria-labelledby="h3">
+    <h2 id="h3">개인 축하 단계 <small>시즌 점수가 넘으면 축하 창(R-100)</small></h2>
+    <div class="chips" id="ms"></div>
+    <p class="hint" id="goal"></p>
+  </section>
+
+  <section class="card fam" aria-labelledby="h4">
+    <h2 id="h4">가족 단계 <small>가족팀 합계가 넘으면 축하 카드(R-96)</small></h2>
+    <div class="tbl"><table>
+      <thead><tr><th>점수</th><th>종류</th><th>문구</th><th>이모지</th><th>사용</th></tr></thead>
+      <tbody id="fam"></tbody>
+    </table></div>
+  </section>
+
+  <section class="card" aria-labelledby="h5">
+    <h2 id="h5">기능 <small>2차 화면이지만 값은 미리 둬요</small></h2>
+    <div id="feat" style="display:flex;flex-direction:column;gap:12px"></div>
+  </section>
+
+  <section class="card" aria-labelledby="h6">
+    <h2 id="h6">버전 기록</h2>
+    <ul class="log" id="log">
+      <li><span class="v">v1</span><time class="num">2026.12.20</time><span>운영자 · 처음 값 (2027년 1월 1일부터)</span></li>
+    </ul>
+  </section>
+</div></main>
+
+<div class="save gut"><div class="wrap">
+  <div class="sum" id="sum">바뀐 값이 없어요.</div>
+  <label>적용 시작 <select class="sel" id="from"><option value="tomorrow">내일(1월 6일)부터</option><option value="week">다음 주(1월 10일)부터</option></select></label>
+  <button type="button" class="btn" id="undo" disabled>되돌리기</button>
+  <button type="button" class="btn p" id="go" disabled>새 버전으로 저장</button>
+</div></div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const BASE = {
+    week: '일요일', grace: 3, tries: 2,
+    items: [['말씀', 'Word.Me', 1, '혼자 읽었어요', 1], ['말씀', 'Word.Parent', 1, '부모님께 읽어드렸어요', 1], ['기도', 'Prayer.Me', 1, '나를 위한 기도', 1], ['기도', 'Prayer.Others', 1, '가족 · 친구를 위한 기도', 1], ['퀴즈', 'Quiz.Correct', 1, '정답', 1], ['암송', 'Recite', 1, '이번 주 암송', 1]],
+    ms: [3000, 5000, 8000],
+    fam: [[1000, 'A', '첫 1,000점! 가족 선물이 있어요', '🎁', 1], [2000, 'C', '2,000점 돌파, 박수!', '👏', 1], [3000, 'A', '3,000점! 가족 선물이 있어요', '🎁', 1], [4000, 'C', '4,000점 돌파, 박수!', '👏', 1], [5000, 'A', '5,000점! 최고의 가족', '🏆', 1]],
+    feat: [['순위', '순위 화면을 보여 줘요', 1], ['가족팀', '가족팀 점수 · 단계를 써요', 1], ['번역 대조', '성경 읽기에서 세 번역을 나란히 볼 수 있어요', 1]],
+  };
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+  let base = clone(BASE), cur = clone(BASE), ver = 1;
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2600); }
+  const fmt = (n) => Number(n).toLocaleString('ko-KR');
+  const ch = (a, b) => JSON.stringify(a) !== JSON.stringify(b) ? ' changed' : '';
+
+  function draw() {
+    $('week').value = cur.week; $('week').className = 'sel' + ch(cur.week, base.week);
+    $('grace').innerHTML = [1, 2, 3, 4, 5, 6, 7].map((n) => `<button type="button" data-g="${n}" aria-pressed="${n === cur.grace}" class="num">${n}</button>`).join('');
+    $('tries').innerHTML = [1, 2, 3].map((n) => `<button type="button" data-t="${n}" aria-pressed="${n === cur.tries}" class="num">${n}</button>`).join('');
+    $('items').innerHTML = cur.items.map(([m, k, on, nm, p], i) => `<tr>
+      <td class="k">${m}</td>
+      <td><button type="button" class="sw${ch(on, base.items[i][2])}" role="switch" aria-checked="${!!on}" data-i="${i}" aria-label="${m} ${nm} 사용"></button></td>
+      <td><input class="in t${ch(nm, base.items[i][3])}" data-n="${i}" value="${nm}" maxlength="20" aria-label="${m} 항목 이름"></td>
+      <td><input class="in n num${ch(p, base.items[i][4])}" data-p="${i}" type="number" min="0" max="10" value="${p}" aria-label="${nm} 점수"></td>
+      <td class="key">${k}</td></tr>`).join('');
+    const bad = ['말씀', '기도', '퀴즈', '암송'].filter((m) => !cur.items.some((x) => x[0] === m && x[2]));
+    $('itemH').hidden = !bad.length; $('itemH').textContent = bad.length ? `${bad.join(' · ')}에 켜진 항목이 하나도 없어요.` : '';
+    const day = cur.items.filter((x) => x[2] && x[0] !== '암송').reduce((s, x) => s + +x[4], 0), wk = cur.items.filter((x) => x[2] && x[0] === '암송').reduce((s, x) => s + +x[4], 0);
+    $('maxDay').textContent = `하루 최대 ${day}점 + 주마다 암송 ${wk}점. 이미 쌓인 점수는 바꾼 값과 상관없이 그대로예요.`;
+    $('ms').innerHTML = cur.ms.map((v) => `<span class="chip num">${fmt(v)}점<button type="button" data-rm="${v}" aria-label="${fmt(v)}점 단계 빼기">×</button></span>`).join('') + '<span class="add"><input class="in num" id="msIn" type="number" min="100" step="100" placeholder="점수" aria-label="새 단계 점수"><button type="button" id="msAdd">더하기</button></span>';
+    $('goal').textContent = `목표 점수 = 가장 높은 단계 ${fmt(Math.max(...cur.ms))}점 (순위 화면 달성률 기준). 한 번 도달한 단계는 값을 바꿔도 취소되지 않아요.`;
+    $('fam').innerHTML = cur.fam.map(([p, k, t, e, on], i) => `<tr>
+      <td><input class="in n num${ch(p, base.fam[i]?.[0])}" data-fp="${i}" type="number" step="100" value="${p}" aria-label="가족 단계 점수"></td>
+      <td><select class="sel${ch(k, base.fam[i]?.[1])}" data-fk="${i}" aria-label="종류"><option value="A" ${k === 'A' ? 'selected' : ''}>축하 + 선물</option><option value="C" ${k === 'C' ? 'selected' : ''}>박수만</option></select></td>
+      <td><input class="in t${ch(t, base.fam[i]?.[2])}" data-ft="${i}" value="${t}" aria-label="문구"></td>
+      <td><input class="in n${ch(e, base.fam[i]?.[3])}" data-fe="${i}" value="${e}" style="width:56px;text-align:center" aria-label="이모지"></td>
+      <td><button type="button" class="sw${ch(on, base.fam[i]?.[4])}" role="switch" aria-checked="${!!on}" data-fo="${i}" aria-label="가족 단계 사용"></button></td></tr>`).join('');
+    $('feat').innerHTML = cur.feat.map(([n, d, on], i) => `<div class="row"><div class="l"><b>${n}</b><small>${d}</small></div><button type="button" class="sw${ch(on, base.feat[i][2])}" role="switch" aria-checked="${!!on}" data-f="${i}" aria-label="${n} 사용"></button></div>`).join('');
+    summary();
+  }
+  function summary() {
+    const d = [];
+    if (cur.week !== base.week) d.push(`주 시작 ${base.week} → ${cur.week}`);
+    if (cur.grace !== base.grace) d.push(`인정 기간 ${base.grace} → ${cur.grace}일`);
+    if (cur.tries !== base.tries) d.push(`퀴즈 ${base.tries} → ${cur.tries}번`);
+    cur.items.forEach((x, i) => { const b = base.items[i]; if (x[2] !== b[2]) d.push(`${b[3]} ${x[2] ? '켬' : '끔'}`); if (x[3] !== b[3]) d.push(`"${b[3]}" → "${x[3]}"`); if (+x[4] !== +b[4]) d.push(`${x[3]} ${b[4]} → ${x[4]}점`); });
+    if (JSON.stringify(cur.ms) !== JSON.stringify(base.ms)) d.push(`축하 단계 ${base.ms.map(fmt).join(' · ')} → ${cur.ms.map(fmt).join(' · ')}`);
+    if (JSON.stringify(cur.fam) !== JSON.stringify(base.fam)) d.push('가족 단계');
+    cur.feat.forEach((x, i) => { if (x[2] !== base.feat[i][2]) d.push(`${x[0]} ${x[2] ? '켬' : '끔'}`); });
+    const bad = !$('itemH').hidden;
+    $('sum').innerHTML = d.length ? `바뀐 값 <b class="num">${d.length}개</b> · ${d.join(', ')}` : '바뀐 값이 없어요.';
+    $('go').disabled = !d.length || bad; $('undo').disabled = !d.length;
+    return d;
+  }
+  document.querySelector('main').addEventListener('click', (e) => {
+    const t = e.target.closest('button'); if (!t) return;
+    if (t.dataset.g) cur.grace = +t.dataset.g;
+    else if (t.dataset.t) cur.tries = +t.dataset.t;
+    else if (t.dataset.i) cur.items[+t.dataset.i][2] = cur.items[+t.dataset.i][2] ? 0 : 1;
+    else if (t.dataset.fo) cur.fam[+t.dataset.fo][4] = cur.fam[+t.dataset.fo][4] ? 0 : 1;
+    else if (t.dataset.f) cur.feat[+t.dataset.f][2] = cur.feat[+t.dataset.f][2] ? 0 : 1;
+    else if (t.dataset.rm) { if (cur.ms.length === 1) return toast('단계는 하나 이상 있어야 해요'); cur.ms = cur.ms.filter((v) => v !== +t.dataset.rm); }
+    else if (t.id === 'msAdd') { const v = +$('msIn').value; if (!v || v < 100) return toast('100점 이상으로 넣어 주세요'); if (cur.ms.includes(v)) return toast('이미 있는 단계예요'); cur.ms = [...cur.ms, v].sort((a, b) => a - b); }
+    else return;
+    draw();
+  });
+  document.querySelector('main').addEventListener('change', (e) => {
+    const t = e.target, d = t.dataset;
+    if (t.id === 'week') cur.week = t.value;
+    else if (d.n !== undefined) cur.items[+d.n][3] = t.value.trim() || base.items[+d.n][3];
+    else if (d.p !== undefined) cur.items[+d.p][4] = Math.max(0, Math.min(10, +t.value || 0));
+    else if (d.fp !== undefined) cur.fam[+d.fp][0] = +t.value;
+    else if (d.fk !== undefined) cur.fam[+d.fk][1] = t.value;
+    else if (d.ft !== undefined) cur.fam[+d.ft][2] = t.value;
+    else if (d.fe !== undefined) cur.fam[+d.fe][3] = t.value;
+    else return;
+    draw();
+  });
+  $('undo').onclick = () => { cur = clone(base); draw(); };
+  $('go').onclick = () => {
+    const d = summary(); ver++;
+    const when = $('from').value === 'week' ? '1월 10일' : '1월 6일';
+    $('log').insertAdjacentHTML('afterbegin', `<li><span class="v">v${ver}</span><time class="num">2027.01.05</time><span>운영자 · ${d.join(', ')} (${when}부터)</span></li>`);
+    base = clone(cur); $('verTag').textContent = `v${ver}`; $('verTxt').textContent = `${when}부터 적용 예정 · v${ver - 1}은 그 전날까지`;
+    draw(); toast(`v${ver}로 저장했어요 · ${when}부터 적용돼요`);
+  };
+  document.querySelectorAll('nav a[href="#x"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast(`${a.textContent} 화면으로 가요 (다음 시안)`); }));
+  draw();
+</script>
