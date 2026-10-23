@@ -1,0 +1,187 @@
+<title>성경 데이터 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/platform/bible, 1차 초기 적재 도구 · 0041 · 0043): 플랫폼 머리말 · 메뉴 → 원본 DB 연결 상태 → 번역 3개 카드(절 수 · 검사 · 가져오기) → 검사 결과(장 수 · 빈 절 · 번역끼리 없는 절) → 장 정보 · 듣기 · 해설 영상 · 책 개요 → 가져오기 기록 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --warn: #9A5B00; --warn-bg: #FFF4DE; --bad: #B42318; --bad-bg: #FDECEC;
+    --plat: #1B1F24; --on-plat: #FFFFFF;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C;
+    --plat: #E8EAED; --on-plat: #14171B; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C;
+    --plat: #E8EAED; --on-plat: #14171B; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+  .hd .t { display: flex; align-items: center; gap: 10px; }
+  .hd .t b { font-size: 17px; font-weight: 900; }
+  .hd .t b em { font-style: normal; color: var(--accent); }
+  .pl { font-size: 11px; font-weight: 800; letter-spacing: .06em; padding: 3px 8px; border-radius: 6px; background: var(--plat); color: var(--on-plat); }
+  .me { font-size: 13px; color: var(--dim); }
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-bottom: -1px; }
+  nav.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); border-bottom: 3px solid transparent; }
+  nav.tabs a[aria-current] { color: var(--fg); border-color: var(--plat); }
+
+  main .wrap { padding-block: 20px 56px; display: flex; flex-direction: column; gap: 16px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  .lead { margin: -8px 0 0; font-size: 13.5px; color: var(--dim); }
+  .conn { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; background: var(--ok-bg); flex-wrap: wrap; }
+  .conn .dot { flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--ok); }
+  .conn div { flex: 1 1 260px; min-width: 0; font-size: 14px; }
+  .conn div small { display: block; font-size: 12.5px; color: var(--dim); }
+  .btn { min-height: 42px; padding: 0 14px; border-radius: 11px; font-size: 14px; font-weight: 800; border: 1px solid var(--line); background: var(--bg); white-space: nowrap; }
+  .btn.p { border-color: var(--plat); background: var(--plat); color: var(--on-plat); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  .trs { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .tr { border: 1px solid var(--rule); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .tr .h { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .tr .h b { font-size: 17px; font-weight: 900; }
+  .st { font-size: 11.5px; font-weight: 800; padding: 2px 9px; border-radius: 99px; }
+  .st.ok { background: var(--ok-bg); color: var(--ok); }
+  .st.warn { background: var(--warn-bg); color: var(--warn); }
+  .st.none { background: var(--soft); color: var(--dim); }
+  .tr .big { font-size: 28px; font-weight: 900; line-height: 1.1; }
+  .tr .big small { font-size: 13px; font-weight: 700; color: var(--dim); margin-left: 4px; }
+  .tr ul { margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--dim); }
+  .tr ul li::before { content: "· "; }
+  .tr ul li.bad { color: var(--warn); font-weight: 700; }
+  .prog { height: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+  .prog i { display: block; height: 100%; background: var(--accent); transition: width .2s; }
+  .tr .acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; }
+
+  .card { border: 1px solid var(--rule); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .card > h2 { margin: 0; font-size: 16px; font-weight: 800; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .card > h2 small { font-size: 12.5px; font-weight: 500; color: var(--dim); }
+  .checks { list-style: none; margin: 0; padding: 0; }
+  .checks li { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--rule); font-size: 14px; }
+  .checks li:first-child { border-top: 0; }
+  .checks .ic { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 900; color: #fff; margin-top: 1px; }
+  .checks .ok .ic { background: var(--ok); }
+  .checks .warn .ic { background: var(--warn); }
+  .checks small { display: block; font-size: 12.5px; color: var(--dim); }
+  .miss { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .miss span { font-size: 12px; padding: 2px 8px; border-radius: 6px; background: var(--soft); color: var(--dim); font-family: ui-monospace, Consolas, monospace; }
+  .grid3 { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .grid3 .card b.n { font-size: 24px; font-weight: 900; }
+  .grid3 .card p { margin: 0; font-size: 13px; color: var(--dim); }
+  .log { list-style: none; margin: 0; padding: 0; font-size: 14px; }
+  .log li { display: flex; gap: 12px; padding: 9px 0; border-top: 1px solid var(--rule); }
+  .log li:first-child { border-top: 0; }
+  .log time { flex: none; width: 120px; color: var(--dim); font-size: 13px; }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; max-width: calc(100vw - 40px); overflow: hidden; text-overflow: ellipsis; }
+</style>
+
+<header class="gut">
+  <div class="wrap hd">
+    <div class="t"><b><em>도전!!!</em></b><span class="pl">플랫폼</span></div>
+    <span class="me">운영자 · 플랫폼 관리자</span>
+  </div>
+  <nav class="wrap tabs" aria-label="플랫폼 메뉴">
+    <a href="https://claude.ai/artifact/S1dDugdgs897ziCWkMEDCn">플랫폼 홈</a>
+    <a href="https://claude.ai/artifact/1SRjYZY8qvf391srdhijbq">부서</a>
+    <a href="https://claude.ai/artifact/CZQ2ZKpE48uW4YNqcsWhht">공용 콘텐츠</a>
+    <a href="#" aria-current="page">성경 데이터</a>
+    <a href="https://claude.ai/artifact/RLgBKjH4evYvSm43eVrwjA">기본 규칙</a>
+    <a href="https://claude.ai/artifact/QLvGVaxqKS6EcdyhrReFMT">계정 찾기</a>
+  </nav>
+</header>
+
+<main class="gut"><div class="wrap">
+  <h1>성경 데이터</h1>
+  <p class="lead">서비스를 열기 전에 한 번 성경 본문을 가져오는 도구예요. 가져온 본문은 모든 부서가 함께 써요(읽기 전용).</p>
+
+  <div class="conn" role="status">
+    <span class="dot" aria-hidden="true"></span>
+    <div><b>원본 DB에 연결돼 있어요</b><small>접속 정보는 서버 설정에만 있고 이 화면 · Git 에는 보이지 않아요. 원본은 읽기만 해요.</small></div>
+    <button type="button" class="btn" id="test">연결 다시 확인</button>
+  </div>
+
+  <div class="trs" id="trs"></div>
+
+  <section class="card" aria-labelledby="hChk">
+    <h2 id="hChk">검사 결과 <small id="chkAt">1월 4일 22:10 · 개역개정 · NIV 기준</small></h2>
+    <ul class="checks" id="checks"></ul>
+  </section>
+
+  <div class="grid3">
+    <section class="card" aria-labelledby="hCh"><h2 id="hCh">장 정보 <small>BibleChapter</small></h2><b class="n num">1,189장</b><p>책 66권 · 장마다 절 수(개역개정 기준). 통독 진도 · 장 자동 완료의 기준이에요.</p><button type="button" class="btn" data-t="장 정보를 다시 만들었어요">다시 만들기</button></section>
+    <section class="card" aria-labelledby="hMd"><h2 id="hMd">듣기 · 해설 영상 <small>ChapterMedia</small></h2><b class="n num">1,601개</b><p>듣기 1,189 · 해설 412 (Bible2 에서 옮겨 옴 — ADR 0043). 영상이 없는 장은 버튼이 숨겨져요.</p><button type="button" class="btn" data-t="Bible2 영상 주소를 다시 읽었어요 · 바뀐 것 0개">Bible2 에서 다시 읽기</button></section>
+    <section class="card" aria-labelledby="hOv"><h2 id="hOv">책 개요 <small>66권</small></h2><b class="n num">12 / 66권</b><p>통독 본문 위 "○○ 개요"에 보여요. 아직 없는 책은 개요 칸을 숨겨요.</p><button type="button" class="btn" data-t="책 개요 편집 화면으로 가요 (시안)">개요 쓰기</button></section>
+  </div>
+
+  <section class="card" aria-labelledby="hLog">
+    <h2 id="hLog">가져오기 기록</h2>
+    <ul class="log" id="log">
+      <li><time class="num">2027.01.04 22:10</time><span>운영자 · <b>NIV</b> 가져옴 31,086절 · 검사 통과(없는 절 16개 표시)</span></li>
+      <li><time class="num">2027.01.04 21:52</time><span>운영자 · <b>개역개정</b> 가져옴 31,102절 · 검사 통과</span></li>
+    </ul>
+  </section>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const TR = [
+    { k: 'krv', n: '개역개정', st: 'ok', v: 31102, notes: ['66권 · 1,189장 모두 있어요', '빈 절 0개', '장 정보(절 수)의 기준 번역'] },
+    { k: 'klb', n: '현대인의성경', st: 'none', v: 0, notes: ['아직 가져오지 않았어요', '원본 표: Bible_KLB (책 · 장 · 절 · 본문)'] },
+    { k: 'niv', n: 'NIV', st: 'ok', v: 31086, notes: ['66권 · 1,189장 모두 있어요', '개역개정보다 16절 적어요(원래 없는 절)'] },
+  ];
+  let running = null;
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2600); }
+  function drawTr() {
+    $('trs').innerHTML = TR.map((t) => {
+      const lbl = { ok: ['ok', '가져옴'], none: ['none', '가져오기 전'], run: ['warn', '가져오는 중'] }[t.st];
+      return `<article class="tr"><div class="h"><b>${t.n}</b><span class="st ${lbl[0]}">${lbl[1]}</span></div>
+        <div class="big num">${t.v.toLocaleString()}<small>절</small></div>
+        ${t.st === 'run' ? `<div class="prog" aria-label="진행"><i style="width:${t.p}%"></i></div><ul><li>${t.p < 100 ? `${Math.round(t.p / 100 * 66)} / 66권 읽는 중…` : '검사하는 중…'}</li></ul>` : `<ul>${t.notes.map((x) => `<li${x.includes('적어요') ? ' class="bad"' : ''}>${x}</li>`).join('')}</ul>`}
+        <div class="acts">${t.st === 'none' ? `<button type="button" class="btn p" data-go="${t.k}" ${running ? 'disabled' : ''}>가져오기</button>` : t.st === 'ok' ? `<button type="button" class="btn" data-chk="${t.k}">다시 검사</button><button type="button" class="btn" data-go="${t.k}" ${running ? 'disabled' : ''}>다시 가져오기</button>` : ''}</div></article>`;
+    }).join('');
+  }
+  function drawChecks() {
+    const klb = TR[1].st === 'ok';
+    $('checks').innerHTML = [
+      ['ok', '책 66권 · 장 1,189장', '모든 번역이 같은 책 · 장 번호를 써요.'],
+      ['ok', '빈 본문 없음', '본문이 비어 있는 절이 없어요.'],
+      ['warn', 'NIV 에 없는 절 16개', '번역 "모두"로 볼 때 그 칸을 비워 둬요(R-165). 오류가 아니에요.', ['마 17:21', '마 18:11', '마 23:14', '막 7:16', '막 9:44', '막 9:46', '막 11:26', '막 15:28', '눅 17:36', '눅 23:17', '요 5:4', '행 8:37', '행 15:34', '행 24:7', '행 28:29', '롬 16:24']],
+      klb ? ['ok', '현대인의성경 검사 통과', '개역개정과 절 번호가 맞아요.'] : ['warn', '현대인의성경 아직 없음', '가져오기 전에는 번역 고르기에서 "현대인"이 흐리게 보여요.'],
+    ].map(([s, t, d, m]) => `<li class="${s}"><span class="ic" aria-hidden="true">${s === 'ok' ? '✓' : '!'}</span><span><b>${t}</b><small>${d}</small>${m ? `<span class="miss">${m.map((x) => `<span>${x}</span>`).join('')}</span>` : ''}</span></li>`).join('');
+  }
+  $('trs').addEventListener('click', (e) => {
+    const g = e.target.closest('[data-go]'), c = e.target.closest('[data-chk]');
+    if (c) return toast('다시 검사했어요 · 바뀐 것 없음');
+    if (!g || running) return;
+    const t = TR.find((x) => x.k === g.dataset.go);
+    t.st = 'run'; t.p = 0; t.v = 0; running = setInterval(() => {
+      t.p = Math.min(100, t.p + 9); t.v = Math.round(31102 * t.p / 100);
+      if (t.p >= 100) {
+        clearInterval(running); running = null; t.st = 'ok'; t.v = 31102; t.notes = ['66권 · 1,189장 모두 있어요', '빈 절 0개', '개역개정과 절 번호가 맞아요'];
+        $('log').insertAdjacentHTML('afterbegin', `<li><time class="num">2027.01.05 15:24</time><span>운영자 · <b>${t.n}</b> 가져옴 31,102절 · 검사 통과</span></li>`);
+        $('chkAt').textContent = '방금 · 세 번역 모두'; drawChecks(); toast(`${t.n}을(를) 가져왔어요`);
+      }
+      drawTr();
+    }, 220);
+    drawTr();
+  });
+  document.querySelectorAll('[data-t]').forEach((b) => b.onclick = () => toast(b.dataset.t));
+  $('test').onclick = () => toast('연결이 잘 돼요 · 원본 응답 0.2초');
+  drawTr(); drawChecks();
+</script>
