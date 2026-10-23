@@ -285,6 +285,23 @@ table.pts td.l b { color: var(--fg); margin-right: 4px; }
 table.pts .sumc { font-weight: 900; }
 table.pts tr.today td { background: var(--accent-bg); }
 
+/* 보호자 (확정 시안: 보호자) */
+.score.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.score.three b { font-size: 22px; }
+.cards.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.cards.four .mcard { min-height: 72px; padding: 12px 10px; align-items: center; text-align: center; }
+.cards.four .mcard .ck { position: static; margin-bottom: 4px; }
+.h2 { margin: 0 0 8px; font-size: 15px; font-weight: 800; display: flex; justify-content: space-between; }
+.h2 small { color: var(--accent); }
+.grid42 .sel { outline: 3px solid var(--warn); outline-offset: -3px; }
+ul.log { list-style: none; margin: 0; padding: 0; }
+ul.log li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--rule); font-size: 14px; }
+ul.log li:first-child { border-top: 0; }
+ul.log .k2 { flex: none; font-size: 11.5px; font-weight: 800; padding: 1px 8px; border-radius: 6px; background: var(--soft); color: var(--dim); }
+ul.log .w { flex: 1; min-width: 0; }
+ul.log b { color: var(--pick); }
+ul.log b.z { color: var(--dim); font-weight: 500; }
+
 /* 공용 콘텐츠 (확정 시안: 플랫폼-공용콘텐츠) */
 .cnt { display: flex; gap: 6px; flex-wrap: wrap; font-size: 12.5px; margin-left: auto; }
 .cnt span, .tag.s-pub, .tag.s-draft, .tag.s-none { padding: 2px 9px; border-radius: 99px; font-weight: 800; font-size: 11.5px; }

@@ -1,0 +1,102 @@
+@page "/{slug}/guardian"
+@model GuardianModel
+@using ChallengeBible.Domain.Rules
+@using M = ChallengeBible.Domain.Rules.Mission
+@{
+    var ko = ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko;
+    var slug = Model.Tenant.Current.Slug;
+    var t = Model.TodayData;
+    string Kor(M m) => m switch { M.Word => "말씀", M.Prayer => "기도", M.Quiz => "퀴즈", _ => "암송" };
+    bool Done(M m) => t is not null && (m == M.Recite ? t.RecitedThisWeek : t.Done.Any(i => i.Mission() == m));
+    var cur = Model.Current;
+    var maxWeek = Math.Max(1, Model.Week.Count == 0 ? 1 : Model.Week.Max(w => w.Points));
+    var first = new DateOnly(Model.Day.Year == 1 ? Model.Today.Year : Model.Day.Year, Model.Day.Year == 1 ? Model.Today.Month : Model.Day.Month, 1);
+    var start = first.AddDays(-(int)first.DayOfWeek);
+    var yesterdayDone = Model.Month.Any(d => d.Date == Model.Today.AddDays(-1) && d.Total > 0);
+}
+<header class="mtop gut"><div class="wrap">
+    <nav class="crumb"><a href="/@slug">홈으로</a> · <b>보호자</b></nav>
+    <span class="date">@Model.Today.ToString("M월 d일 dddd", ko)</span>
+</div></header>
+<main class="mbody home gut"><div class="wrap">
+    @if (cur is null || t is null)
+    {
+        <h1>아직 연결된 자녀가 없어요</h1>
+        <p class="note-block">자녀 연결은 부서 선생님이 해 줘요. 선생님께 자녀 이름을 알려 주세요.</p>
+    }
+    else
+    {
+        if (Model.Children.Count > 1)
+        {
+            <nav class="chips" aria-label="자녀 고르기">
+                @foreach (var c in Model.Children) { <a href="/@slug/guardian?child=@c.ParticipantId" aria-current="@(c.ParticipantId == cur.ParticipantId ? "page" : "false")">@c.Name</a> }
+            </nav>
+        }
+        <section class="hello">
+            <p class="k">@Model.Tenant.Current.Name · 보호자</p>
+            <h1>@cur.Name</h1>
+            @if (cur.Group is not null) { <p class="k">@cur.Group</p> }
+            @if (!cur.Active) { <p class="note-block">지금은 미션을 하지 않는 상태예요(정지 또는 역할 변경).</p> }
+            <div class="score three">
+                <div><small>올해 점수</small><b class="num">@t.SeasonPoints.ToString("N0")<u>점</u></b></div>
+                <div><small>연속</small><b class="num">@Model.Streak<u>일</u></b></div>
+                <div><small>이달 한 날</small><b class="num">@Model.Month.Count(d => d.Total > 0)<u>/ @(Model.Month.Count)일</u></b></div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="h2">오늘 미션</h2>
+            @if (t.DayPoints == 0)
+            {
+                <p class="note-block">오늘은 아직 미션을 하지 않았어요.@(Model.Streak > 0 && yesterdayDone ? $" 오늘 하면 {Model.Streak + 1}일 연속이에요!" : "")</p>
+            }
+            <div class="cards four">
+                @foreach (var m in new[] { M.Word, M.Quiz, M.Prayer, M.Recite })
+                {
+                    <div class="mcard @(Done(m) ? "done" : "")"><span class="ck" aria-hidden="true">@(Done(m) ? "✓" : "")</span><b>@Kor(m)</b><small>@(Done(m) ? "했어요" : m == M.Recite ? "이번 주 아직" : "아직")</small></div>
+                }
+            </div>
+        </section>
+
+        <section class="week">
+            <h2>이번 주 <small class="num">@Model.Week.Where(w => w.Date <= Model.Today).Sum(w => w.Points)점</small></h2>
+            <div class="bars">
+                @foreach (var (date, pts) in Model.Week)
+                {
+                    var fut = date > Model.Today;
+                    <div class="@(date == Model.Today ? "t" : "")"><em class="num">@(fut ? "" : pts.ToString())</em><i style="height:@(fut ? 0 : Math.Max(4, pts * 70 / maxWeek))px"></i><span>@(date == Model.Today ? "오늘" : date.ToString("ddd", ko))</span></div>
+                }
+            </div>
+        </section>
+
+        <section class="calbox" aria-label="달력">
+            <div class="monbar"><span></span><b class="num">@first.ToString("yyyy년 M월")</b><span></span></div>
+            <div class="dow" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+            <div class="grid42">
+                @for (var k = 0; k < 42; k++)
+                {
+                    var d = start.AddDays(k);
+                    var inM = d.Month == first.Month;
+                    var s = inM ? Model.Month.FirstOrDefault(x => x.Date == d) : null;
+                    var cls = !inM ? "out" : s?.Complete == true ? "full" : s?.Total > 0 ? "on" : d > Model.Today ? "fut" : "";
+                    <a class="c @cls @(d == Model.Today ? "today" : "") @(d == Model.Day ? "sel" : "")" href="@Model.Link(d)" aria-label="@d.ToString("M월 d일") @(s?.Total ?? 0)점">
+                        <span class="num">@d.Day</span>@if (s is { Total: > 0 }) { <small class="num">@s.Total</small> }
+                    </a>
+                }
+            </div>
+        </section>
+
+        <section>
+            <h2 class="h2">@Model.Day.ToString("M월 d일(ddd)", ko) 한 일 <small class="num">@(Model.Data!.DayPoints)점</small></h2>
+            @if (Model.Log.Count == 0) { <p class="hint">이날은 한 일이 없어요.</p> }
+            <ul class="log">
+                @foreach (var l in Model.Log)
+                {
+                    <li><span class="k2">@Kor(l.Mission)</span><span class="w">@l.What</span><b class="num @(l.Points > 0 ? "" : "z")">@(l.Points > 0 ? $"+{l.Points}" : "0")</b></li>
+                }
+            </ul>
+        </section>
+
+        <p class="note"><b>보호자는 보기만 해요.</b> 미션은 @(cur.Name)@Ui.IGa(cur.Name) 자기 계정으로 해요. 고칠 것이 있거나 다른 자녀를 연결하려면 부서 선생님께 말해 주세요.</p>
+    }
+</div></main>

@@ -108,6 +108,19 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids/points", "11-내점수");
         await Save(admin, "/jamsil-kids/admin/members", "12-소속관리");
 
+        // 보호자 김영희 → 김철수 연결
+        var mom = await SignUp("younghee", "김영희");
+        var mm = InMemoryDb.SeedMembership(db, kids.Id, Acc("younghee"), MembershipStatus.Approved, Roles.Guardian);
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            raw.GuardianLinks.Add(new GuardianLink { TenantId = kids.Id, GuardianMembershipId = mm.Id, ParticipantId = raw.Participants.Single(p => p.MembershipId == km.Id).Id, CreatedUtc = DateTime.UtcNow, CreatedByAccountId = Acc("eunhye") });
+            raw.SaveChanges();
+        }
+        await Save(admin, $"/jamsil-kids/admin/members?Tab={MembershipStatus.Approved}", "12b-소속관리-승인됨",
+            h => Regex.Replace(h, "<details>(?=\\s*<summary class=\"line\">\\s*<span class=\"av\">철수)", "<details open>"));   // 김철수 줄 펼침
+        await Save(mom, "/jamsil-kids/guardian", "16-보호자");
+        await Save(mom, "/jamsil-kids/guardian?date=2027-01-04", "17-보호자-지난날");
+
         // 운영자: 가입 → 플랫폼 관리자 → 다시 로그인
         var op = await SignUp("operator", "운영자");
         using (var raw = InMemoryDb.Raw(db)) { raw.Accounts.Single(a => a.LoginId == "operator").IsPlatformAdmin = true; raw.SaveChanges(); }
@@ -121,10 +134,11 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(op, "/platform/content/quiz?month=2027-01&date=2027-01-05", "15-공용콘텐츠-퀴즈");
     }
 
-    private static async Task Save(HttpClient c, string url, string name)
+    private static async Task Save(HttpClient c, string url, string name, Func<string, string>? tweak = null)
     {
         var dir = Environment.GetEnvironmentVariable("CB_SCREENS_DIR")!;
         var html = await c.GetStringAsync(url);
+        if (tweak is not null) html = tweak(html);
         var css = await File.ReadAllTextAsync(Path.Combine(FindWeb(), "wwwroot", "css", "site.css"));
         // 배포 때는 파일 이름에 지문이 붙는다(/css/site.abc123.css) — 그대로 안에 넣는다
         html = Regex.Replace(html, "<link rel=\"stylesheet\" href=\"/css/site[^\"]*\\.css[^\"]*\" />", _ => $"<style>{css}</style>");

@@ -151,6 +151,24 @@ internal sealed class ParticipantConfig : IEntityTypeConfiguration<Participant>
     }
 }
 
+internal sealed class GuardianLinkConfig : IEntityTypeConfiguration<GuardianLink>
+{
+    public void Configure(EntityTypeBuilder<GuardianLink> e)
+    {
+        e.ToTable("GuardianLink");
+        e.HasKey(x => x.Id).HasName("PK_GuardianLink").IsClustered(false);
+        e.HasAlternateKey(x => new { x.TenantId, x.Id }).HasName("UQ_GuardianLink_TenantId_Id").IsClustered();
+        e.HasIndex(x => new { x.TenantId, x.GuardianMembershipId, x.ParticipantId }).IsUnique().HasDatabaseName("UQ_GuardianLink_Pair");
+        e.HasIndex(x => new { x.TenantId, x.ParticipantId }).HasDatabaseName("IX_GuardianLink_Participant");
+        e.Property(x => x.CreatedUtc).HasColumnType("datetime2(3)");
+        e.HasOne<Membership>().WithMany().HasForeignKey(x => new { x.TenantId, x.GuardianMembershipId }).HasPrincipalKey(m => new { m.TenantId, m.Id })
+            .HasConstraintName("FK_GuardianLink_Guardian").OnDelete(DeleteBehavior.NoAction);
+        e.HasOne<Participant>().WithMany().HasForeignKey(x => new { x.TenantId, x.ParticipantId }).HasPrincipalKey(p => new { p.TenantId, p.Id })
+            .HasConstraintName("FK_GuardianLink_Participant").OnDelete(DeleteBehavior.NoAction);
+        e.HasOne<Account>().WithMany().HasForeignKey(x => x.CreatedByAccountId).HasConstraintName("FK_GuardianLink_CreatedBy").OnDelete(DeleteBehavior.NoAction);
+    }
+}
+
 internal sealed class ActivityConfig : IEntityTypeConfiguration<Activity>
 {
     public void Configure(EntityTypeBuilder<Activity> e)

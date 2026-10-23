@@ -1046,6 +1046,51 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GuardianLink", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedByAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("GuardianMembershipId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ParticipantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id")
+                        .HasName("PK_GuardianLink");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+
+                    b.HasAlternateKey("TenantId", "Id")
+                        .HasName("UQ_GuardianLink_TenantId_Id");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasAlternateKey("TenantId", "Id"));
+
+                    b.HasIndex("CreatedByAccountId");
+
+                    b.HasIndex("TenantId", "ParticipantId")
+                        .HasDatabaseName("IX_GuardianLink_Participant");
+
+                    b.HasIndex("TenantId", "GuardianMembershipId", "ParticipantId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GuardianLink_Pair");
+
+                    b.ToTable("GuardianLink", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Membership", b =>
                 {
                     b.Property<int>("Id")
@@ -1678,6 +1723,32 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .HasConstraintName("FK_DailyWord_Tenant");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GuardianLink", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByAccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_GuardianLink_CreatedBy");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Membership", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "GuardianMembershipId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_GuardianLink_Guardian");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Participant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "ParticipantId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_GuardianLink_Participant");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Membership", b =>

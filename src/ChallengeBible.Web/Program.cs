@@ -26,6 +26,7 @@ builder.Services.AddScoped<MemberAdminService>();
 builder.Services.AddScoped<PlatformTenantService>();
 builder.Services.AddScoped<MissionService>();
 builder.Services.AddScoped<ContentAdminService>();
+builder.Services.AddScoped<GuardianService>();
 builder.Services.AddScoped<TenantResolver>();
 builder.Services.AddAntiforgery(o => o.HeaderName = "RequestVerificationToken");
 builder.Services.AddMemoryCache();

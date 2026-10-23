@@ -120,6 +120,17 @@ public sealed class Participant : ITenantOwned
     public bool IsActive { get; set; } = true;
 }
 
+/// <summary>보호 관계: 보호자 소속 → 참여자(같은 영역). 보호자는 연결된 참여자의 기록만 본다(R-132).</summary>
+public sealed class GuardianLink : ITenantOwned
+{
+    public int Id { get; set; }
+    public int TenantId { get; set; }
+    public int GuardianMembershipId { get; set; }
+    public int ParticipantId { get; set; }
+    public DateTime CreatedUtc { get; set; }
+    public int CreatedByAccountId { get; set; }
+}
+
 /// <summary>수행 기록. 하루 · 항목당 1건(R-61), 암송은 그 주에 1건(R-51) — DB 고유 인덱스로 막는다.</summary>
 public sealed class Activity : ITenantOwned
 {

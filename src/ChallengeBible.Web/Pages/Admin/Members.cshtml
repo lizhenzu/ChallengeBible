@@ -77,6 +77,30 @@
                                 </div>
                             </form>
                         }
+                        @if (m.Status == MembershipStatus.Approved && m.Roles.Contains(Roles.Participant))
+                        {
+                            var linked = Model.Links.GetValueOrDefault(m.MembershipId) ?? [];
+                            <div>
+                                <h3>보호자 연결 <span>· 연결된 보호자는 미션 · 점수를 보기만 해요</span></h3>
+                                @foreach (var g in Model.Guardians.Where(g => linked.Contains(g.MembershipId)))
+                                {
+                                    <form method="post" asp-page-handler="Unlink" asp-route-slug="@Model.Tenant.Current.Slug" asp-route-Tab="@Model.Tab" class="adminline">
+                                        <input type="hidden" name="id" value="@m.MembershipId" /><input type="hidden" name="guardian" value="@g.MembershipId" />
+                                        <span>@g.Name</span><button type="submit" class="btn t">풀기</button>
+                                    </form>
+                                }
+                                @{ var free = Model.Guardians.Where(g => !linked.Contains(g.MembershipId) && g.MembershipId != m.MembershipId).ToList(); }
+                                @if (free.Count > 0)
+                                {
+                                    <form method="post" asp-page-handler="Link" asp-route-slug="@Model.Tenant.Current.Slug" asp-route-Tab="@Model.Tab" class="row">
+                                        <input type="hidden" name="id" value="@m.MembershipId" />
+                                        <select class="sel" name="guardian" aria-label="연결할 보호자">@foreach (var g in free) { <option value="@g.MembershipId">@g.Name</option> }</select>
+                                        <button type="submit" class="btn s sm">연결</button>
+                                    </form>
+                                }
+                                else if (linked.Count == 0) { <p class="hint">이 부서에 보호자 역할을 가진 사람이 아직 없어요.</p> }
+                            </div>
+                        }
                         <div class="acts">
                             @if (m.Status == MembershipStatus.Requested)
                             {

@@ -23,6 +23,8 @@ public class MembersModel(MemberAdminService members, TenantContext tenant) : Pa
     public List<MemberRow> Rows { get; private set; } = [];
     public Dictionary<string, int> Counts { get; private set; } = [];
     public List<string> Groups { get; private set; } = [];
+    public List<(int MembershipId, string Name)> Guardians { get; private set; } = [];
+    public Dictionary<int, List<int>> Links { get; private set; } = [];
     public string? Error { get; private set; }
     public int? ErrorFor { get; private set; }
     public int Me => User.AccountId()!.Value;
@@ -42,6 +44,8 @@ public class MembersModel(MemberAdminService members, TenantContext tenant) : Pa
         "reject" => "신청을 거절했어요",
         "suspend" => "정지했어요",
         "resume" => "정지를 풀었어요",
+        "link" => "보호자를 연결했어요 · 이제 자녀 기록을 볼 수 있어요",
+        "unlink" => "보호자 연결을 풀었어요",
         _ => "",
     };
 
@@ -52,6 +56,12 @@ public class MembersModel(MemberAdminService members, TenantContext tenant) : Pa
 
     public Task<IActionResult> OnPostSaveAsync(int id, List<string> roles, string? group, CancellationToken ct) =>
         Act(id, "save", members.UpdateAsync(Me, id, roles, group, ct), ct);
+
+    public Task<IActionResult> OnPostLinkAsync(int id, int guardian, CancellationToken ct) =>
+        Act(id, "link", members.LinkGuardianAsync(Me, guardian, id, ct), ct);
+
+    public Task<IActionResult> OnPostUnlinkAsync(int id, int guardian, CancellationToken ct) =>
+        Act(id, "unlink", members.UnlinkGuardianAsync(guardian, id, ct), ct);
 
     public Task<IActionResult> OnPostRejectAsync(int id, CancellationToken ct) => Act(id, "reject", members.RejectAsync(Me, id, ct), ct);
     public Task<IActionResult> OnPostSuspendAsync(int id, CancellationToken ct) => Act(id, "suspend", members.SuspendAsync(Me, id, ct), ct);
@@ -74,5 +84,10 @@ public class MembersModel(MemberAdminService members, TenantContext tenant) : Pa
         Rows = await members.ListAsync(new MemberFilter(Tab, Q, Role, Group), ct);
         Counts = await members.CountsAsync(ct);
         Groups = await members.GroupsAsync(ct);
+        if (Tab == MembershipStatus.Approved)
+        {
+            Guardians = await members.GuardiansAsync(ct);
+            Links = await members.LinksAsync(ct);
+        }
     }
 }

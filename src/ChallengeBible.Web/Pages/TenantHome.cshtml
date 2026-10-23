@@ -11,6 +11,10 @@
     {
         <a class="dept" href="/@Model.Tenant.Current.Slug/word-mission"><span class="mk">말</span><div><b>도전!!!성경말씀</b><span class="sub" style="margin:0;font-size:13px">오늘의 말씀 · 퀴즈 · 기도 · 암송</span></div><span aria-hidden="true">→</span></a>
     }
+    @if (Model.Tenant.Current.MissionEnabled && Model.Tenant.Has(ChallengeBible.Infrastructure.Data.Roles.Guardian))
+    {
+        <a class="dept" href="/@Model.Tenant.Current.Slug/guardian"><span class="mk">보</span><div><b>자녀 미션 보기</b><span class="sub" style="margin:0;font-size:13px">연결된 자녀의 오늘 미션 · 점수</span></div><span aria-hidden="true">→</span></a>
+    }
     @if (Model.Tenant.Current.ReadingEnabled)
     {
         <div class="dept" aria-disabled="true"><span class="mk">통</span><div><b>도전!!!성경통독</b><span class="sub" style="margin:0;font-size:13px">성경 데이터를 넣은 뒤에 열려요</span></div></div>

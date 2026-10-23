@@ -31,6 +31,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<WeeklyVerse> WeeklyVerses => Set<WeeklyVerse>();
 
     public DbSet<Participant> Participants => Set<Participant>();
+    public DbSet<GuardianLink> GuardianLinks => Set<GuardianLink>();
     public DbSet<Activity> Activities => Set<Activity>();
     public DbSet<QuizAttempt> QuizAttempts => Set<QuizAttempt>();
     public DbSet<PointLedger> PointLedgers => Set<PointLedger>();

@@ -142,6 +142,57 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         return familyTenant == tenant.Current.Id ? MemberError.None : MemberError.FamilyTenantElsewhere;
     }
 
+    // ── 보호 관계(R-132): 1차는 소속 관리의 줄 편집 안에서 연결한다 ──
+
+    /// <summary>이 부서에서 보호자 역할이 있는 승인된 소속.</summary>
+    public async Task<List<(int MembershipId, string Name)>> GuardiansAsync(CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        return (await (from m in ctx.Memberships
+                       where m.Status == MembershipStatus.Approved && m.Roles.Any(r => r.Role == Infrastructure.Data.Roles.Guardian)
+                       join a in ctx.Accounts on m.AccountId equals a.Id
+                       orderby a.DisplayName
+                       select new { m.Id, a.DisplayName }).ToListAsync(ct))
+            .Select(x => (x.Id, x.DisplayName)).ToList();
+    }
+
+    /// <summary>참여자 소속 Id → 연결된 보호자 소속 Id 목록.</summary>
+    public async Task<Dictionary<int, List<int>>> LinksAsync(CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var rows = await (from l in ctx.GuardianLinks
+                          join p in ctx.Participants on l.ParticipantId equals p.Id
+                          select new { p.MembershipId, l.GuardianMembershipId }).ToListAsync(ct);
+        return rows.GroupBy(r => r.MembershipId).ToDictionary(g => g.Key, g => g.Select(x => x.GuardianMembershipId).ToList());
+    }
+
+    public async Task<MemberError> LinkGuardianAsync(int actor, int guardianMembershipId, int participantMembershipId, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var participant = await ctx.Participants.SingleOrDefaultAsync(p => p.MembershipId == participantMembershipId && p.IsActive, ct);
+        var guardianOk = await ctx.Memberships.AnyAsync(m => m.Id == guardianMembershipId && m.Status == MembershipStatus.Approved
+            && m.Roles.Any(r => r.Role == Infrastructure.Data.Roles.Guardian), ct);
+        if (participant is null || !guardianOk) return MemberError.NotFound;
+        if (await ctx.GuardianLinks.AnyAsync(l => l.GuardianMembershipId == guardianMembershipId && l.ParticipantId == participant.Id, ct)) return MemberError.None;
+        ctx.GuardianLinks.Add(new GuardianLink { TenantId = tenant.Current.Id, GuardianMembershipId = guardianMembershipId, ParticipantId = participant.Id,
+            CreatedUtc = time.GetUtcNow().UtcDateTime, CreatedByAccountId = actor });
+        await ctx.SaveChangesAsync(ct);
+        return MemberError.None;
+    }
+
+    public async Task<MemberError> UnlinkGuardianAsync(int guardianMembershipId, int participantMembershipId, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var link = await (from l in ctx.GuardianLinks
+                          join p in ctx.Participants on l.ParticipantId equals p.Id
+                          where l.GuardianMembershipId == guardianMembershipId && p.MembershipId == participantMembershipId
+                          select l).SingleOrDefaultAsync(ct);
+        if (link is null) return MemberError.NotFound;
+        ctx.GuardianLinks.Remove(link);
+        await ctx.SaveChangesAsync(ct);
+        return MemberError.None;
+    }
+
     public static string Message(MemberError e) => e switch
     {
         MemberError.NotFound => "이 부서에서 찾을 수 없어요.",
