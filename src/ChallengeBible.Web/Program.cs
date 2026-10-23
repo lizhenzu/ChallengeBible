@@ -6,7 +6,9 @@ using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +36,15 @@ builder.Services.AddScoped<TenantResolver>();
 builder.Services.AddAntiforgery(o => o.HeaderName = "RequestVerificationToken");
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<LookupLimiter>();
+
+// 쿠키를 푸는 키를 DB 에 둔다(ADR 0055): 게시 · 앱 재시작 뒤에도 로그인이 유지된다.
+// 개발(테스트 포함)은 기본값(사용자 프로필 폴더)을 쓴다.
+var dataProtection = builder.Services.AddDataProtection().SetApplicationName("ChallengeBible");
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddDbContext<KeyStoreDbContext>(o => o.UseSqlServer(connectionString));
+    dataProtection.PersistKeysToDbContext<KeyStoreDbContext>();
+}
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(o =>
