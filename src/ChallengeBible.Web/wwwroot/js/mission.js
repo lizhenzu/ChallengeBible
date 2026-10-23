@@ -67,7 +67,15 @@
     if (ok && json.ok !== false) {
       b.setAttribute('aria-pressed', 'true');
       const pt = b.querySelector('.pt');
-      if (pt && !pt.textContent.startsWith('완료')) pt.textContent = (api === 'recite' ? '이번 주 완료 · ' : '완료 · ') + pt.textContent;
+      if (pt && !pt.textContent.startsWith('완료') && !pt.textContent.startsWith('이번 주')) pt.textContent = (api === 'recite' ? '이번 주 완료 · ' : '완료 · ') + pt.textContent;
+      // 구역 번호 · 상태 글자 · 아래 메뉴를 시안처럼 바꾼다
+      const sec = box.closest('[data-pickbox]');
+      const all = box.querySelectorAll('button.pick').length, on = box.querySelectorAll('button.pick[aria-pressed="true"]').length;
+      sec?.classList.add('done');
+      const st = sec?.querySelector('[data-pickstate]');
+      if (st) st.textContent = api === 'recite' ? '이번 주 완료' : on === all ? '모두 했어요' : '미션 완료';
+      const nav = document.querySelector('.mnav a[aria-current="page"]');
+      if (nav) { nav.classList.add('dn'); const s = nav.querySelector('.S'); if (s) { s.textContent = '완료'; s.classList.add('done'); } }
       after(json);
     } else {
       b.disabled = false;

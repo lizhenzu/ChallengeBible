@@ -14,7 +14,7 @@
     }
     else
     {
-        <section class="sec" id="quiz" data-format="@q.Format" data-finished="@(finished ? "1" : "0")"><h2><span class="n">01</span>문제</h2>
+        <section class="sec @(s.Solved ? "done" : "")" id="quiz" data-format="@q.Format" data-finished="@(finished ? "1" : "0")"><h2><span class="n">01</span>문제</h2>
             @if (q.Background is not null) { <p class="hint">@q.Background</p> }
             <p class="story q">@q.Question</p>
             @if (q.Format == QuizFormat.Choice)
@@ -37,7 +37,6 @@
             <div class="explain" id="explain" @(q.Explanation is null ? "hidden" : "")><b>해설</b><p>@q.Explanation</p></div>
         </section>
     }
-    <p class="sum">이날 <b class="num" data-daypoints>@d.DayPoints</b>점 · 올해 <b class="num" data-season>@d.SeasonPoints.ToString("N0")</b>점</p>
 </div></main>
 @Html.AntiForgeryToken()
 @await Html.PartialAsync("_MissionNav", new MissionNav(Model, "quiz"))
