@@ -368,12 +368,12 @@ ul.log b.z { color: var(--dim); font-weight: 500; }
   --stamp: #8DBBA2; --band: #2A2314; --band-fg: #F0D49A; --band-ring: #C9A25E;
 } }
 .mh-top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); }
-.mh-top .wrap { max-width: 1120px; display: flex; align-items: center; justify-content: space-between; min-height: 64px; border-bottom: 1px solid var(--rule); }
+.mh-top .wrap { max-width: 640px; display: flex; align-items: center; justify-content: space-between; min-height: 64px; border-bottom: 1px solid var(--rule); }
 .mh-homelink { min-height: 44px; display: flex; align-items: center; font-size: 16px; font-weight: 700; color: var(--dim); }
 .mh-homelink:hover { color: var(--fg); }
 .mh-date { font-size: 13px; letter-spacing: .14em; color: var(--dim); }
 .mh { padding-bottom: 110px; }
-.mh .wrap { max-width: 1120px; }
+.mh .wrap { max-width: 640px; }
 .mh-cols { display: grid; grid-template-columns: minmax(0, 1fr); }
 .mh-blk { padding-block: 24px; border-bottom: 1px solid var(--rule); }
 .mh-brand b { display: block; font-size: 26px; font-weight: 900; color: var(--accent); }
@@ -454,9 +454,8 @@ ul.log b.z { color: var(--dim); font-weight: 500; }
   padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
 .mh-tab a { min-height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; color: var(--dim); }
 .mh-tab a[aria-current] { color: var(--accent); font-weight: 700; }
+/* ADR 0051: 넓은 화면도 휴대폰과 같은 1단(가운데 좁은 폭) */
 @media (min-width: 900px) {
-  .mh-cols { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); column-gap: 48px; }
-  .mh-cols > div:first-child .mh-blk:last-child { border-bottom: 0; }
   .mh-tab { max-width: 520px; margin: 0 auto 16px; border: 1px solid var(--rule); border-radius: 18px; padding-bottom: 6px; }
 }
 @media (max-width: 380px) { .mh-big { font-size: 44px; } .mh-stats b { font-size: 24px; } }
