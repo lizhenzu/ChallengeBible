@@ -1,0 +1,173 @@
+<title>통독 현황 관리 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/{slug}/admin/reading, R-159 · 0041): 관리 머리말 · 메뉴 → 숫자 4칸 → 공개 설정 → 찾기 · 상태 · 정렬 → 소속원 표(이름 · 반/역할 · 진도 · 회차 · 완독 · 마지막 읽은 곳과 날) */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --warn: #9A5B00; --warn-bg: #FFF4DE; --bad: #B42318; --bad-bg: #FDECEC;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button, input, select { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+  .hd .t { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+  .hd .t small { font-size: 12px; color: var(--dim); }
+  .hd .t b { font-size: 17px; font-weight: 900; }
+  .hd .t b em { font-style: normal; color: var(--accent); }
+  .back { flex: none; min-height: 40px; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; font-weight: 700; }
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-bottom: -1px; }
+  nav.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); border-bottom: 3px solid transparent; }
+  nav.tabs a[aria-current] { color: var(--fg); border-color: var(--accent); }
+  nav.tabs a .c { margin-left: 4px; min-width: 18px; padding: 0 5px; border-radius: 99px; background: var(--bad); color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
+
+  main .wrap { padding-block: 20px 56px; display: flex; flex-direction: column; gap: 16px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  .lead { margin: -8px 0 0; font-size: 13.5px; color: var(--dim); }
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 600px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .kpi { padding: 14px; border-radius: 16px; background: var(--soft); display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .kpi small { font-size: 12.5px; color: var(--dim); }
+  .kpi b { font-size: 26px; font-weight: 900; line-height: 1.2; }
+  .kpi b u { text-decoration: none; font-size: 14px; color: var(--dim); font-weight: 700; margin-left: 2px; }
+
+  .pub { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid var(--rule); border-radius: 16px; flex-wrap: wrap; }
+  .pub div { flex: 1 1 260px; min-width: 0; }
+  .pub b { display: block; font-size: 15px; }
+  .pub span { font-size: 13px; color: var(--dim); }
+  .sw { position: relative; flex: none; width: 56px; height: 32px; border-radius: 99px; border: 0; background: var(--line); }
+  .sw::after { content: ""; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .sw[aria-checked="true"] { background: var(--accent); }
+  .sw[aria-checked="true"]::after { transform: translateX(24px); }
+  @media (prefers-reduced-motion: reduce) { .sw::after { transition: none; } }
+
+  .tools { display: flex; flex-wrap: wrap; gap: 8px; }
+  .search { flex: 1 1 200px; min-width: 0; min-height: 44px; box-sizing: border-box; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 15px; }
+  .sel { min-height: 44px; padding: 0 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 14px; }
+  .tbl { overflow-x: auto; border: 1px solid var(--rule); border-radius: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 640px; }
+  th { text-align: left; font-size: 12px; font-weight: 700; color: var(--dim); background: var(--soft); padding: 10px 12px; white-space: nowrap; }
+  th.r, td.r { text-align: right; }
+  td { padding: 10px 12px; border-top: 1px solid var(--rule); vertical-align: middle; }
+  td .nm { display: flex; align-items: center; gap: 10px; }
+  td .av { flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); display: grid; place-items: center; font-size: 11.5px; font-weight: 800; }
+  td .nm b { font-weight: 700; }
+  .tag { font-size: 11.5px; font-weight: 800; padding: 1px 8px; border-radius: 99px; background: var(--soft); color: var(--dim); white-space: nowrap; }
+  .prog { display: flex; align-items: center; gap: 8px; min-width: 150px; }
+  .prog .b { flex: 1; height: 6px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+  .prog .b i { display: block; height: 100%; background: var(--accent); }
+  .prog span { width: 48px; text-align: right; font-size: 13px; }
+  .last small { display: block; font-size: 12px; color: var(--dim); }
+  .last.old small { color: var(--bad); font-weight: 700; }
+  .none { color: var(--dim); }
+  .done { color: var(--ok); font-weight: 800; }
+  .note { margin: 0; font-size: 12.5px; color: var(--dim); }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; max-width: calc(100vw - 40px); overflow: hidden; text-overflow: ellipsis; }
+</style>
+
+<header class="gut">
+  <div class="wrap hd">
+    <div class="t"><small>잠실새내교회 · 유년부</small><b><em>도전!!!</em> 관리</b></div>
+    <a class="back" href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">부서 홈으로</a>
+  </div>
+  <nav class="wrap tabs" aria-label="관리 메뉴">
+    <a href="https://claude.ai/artifact/Ge2UDjM3tSuxJY9jofyUF1">관리 홈</a>
+    <a href="https://claude.ai/artifact/GcfvyYMWxWqWY3CEBK9x94">소속 관리<span class="c num">3</span></a>
+    <a href="https://claude.ai/artifact/1U7Mh23HRkshtwFMaHZTuP">진급<span class="c num">1</span></a>
+    <a href="https://claude.ai/artifact/B8UfHV1yJotcN32EBJ3VqA">콘텐츠</a>
+    <a href="#" aria-current="page">통독 현황</a>
+    <a href="https://claude.ai/artifact/RHV54ucGrS1ePS8Kxura7R">시즌</a>
+    <a href="https://claude.ai/artifact/CkJR8y3DRtPAa17vLHMLWW">이름 · 색</a>
+  </nav>
+</header>
+
+<main class="gut"><div class="wrap">
+  <h1>통독 현황</h1>
+  <p class="lead">도전!!!성경통독을 하는 소속원의 진도예요. 통독 기록은 계정에 붙어 있어서 다른 부서에서 읽은 것도 함께 보여요.</p>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="pub">
+    <div><b>참여자 현황 공개</b><span id="pubT"></span></div>
+    <button type="button" class="sw" id="pub" role="switch" aria-checked="true" aria-label="참여자 현황을 소속원 모두에게 공개"></button>
+  </div>
+
+  <div class="tools">
+    <input class="search" id="q" type="search" placeholder="이름으로 찾기" aria-label="이름으로 찾기">
+    <select class="sel" id="fSt" aria-label="상태">
+      <option value="">모든 소속원</option><option value="on">읽는 중</option><option value="old">7일 넘게 안 읽음</option><option value="none">아직 시작 안 함</option>
+    </select>
+    <select class="sel" id="sort" aria-label="정렬">
+      <option value="pct">진도 높은 순</option><option value="recent">최근 읽은 순</option><option value="name">이름 순</option>
+    </select>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>이름</th><th>반 · 역할</th><th>진도</th><th class="r">회차</th><th class="r">완독</th><th>마지막 읽은 곳</th></tr></thead>
+    <tbody id="tb"></tbody>
+  </table></div>
+  <p class="note" id="foot"></p>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const TOTAL = 1189;
+  // 참여자 현황 시안과 같은 18명 + 아직 시작 안 한 소속원(이름은 모두 지어낸 예시). [이름, 반/역할, 읽은 장, 회차, 완독, 마지막 곳, 며칠 전(0=오늘, null=없음)]
+  const R = [
+    ['김철수', '사랑반', 23, 1, 0, '창세기 24장', 0], ['김영희', '보호자', 31, 1, 0, '창세기 32장', 0], ['김대호', '보호자', 12, 1, 0, '창세기 13장', 1],
+    ['이은혜', '교사 · 관리자', 28, 1, 0, '창세기 29장', 0], ['김민수', '교사', 20, 1, 0, '창세기 21장', 2], ['박소영', '교사', 15, 1, 0, '마태복음 6장', 1],
+    ['박서연', '사랑반', 18, 1, 0, '창세기 19장', 0], ['최민준', '사랑반', 9, 1, 0, '창세기 10장', 3], ['윤지호', '믿음반', 14, 1, 0, '창세기 15장', 0],
+    ['조은우', '소망반', 11, 1, 0, '창세기 12장', 1], ['임도윤', '소망반', 6, 1, 0, '창세기 7장', 2], ['한소율', '사랑반', 16, 1, 0, '창세기 17장', 0],
+    ['신채원', '소망반', 7, 1, 0, '창세기 8장', 1], ['황유나', '믿음반', 21, 1, 0, '창세기 22장', 0], ['송하준', '사랑반', 5, 1, 0, '창세기 6장', 4],
+    ['류다은', '믿음반', 10, 1, 0, '창세기 11장', 1], ['이시아', '사랑반', 3, 1, 0, '창세기 4장', 5], ['정예린', '믿음반', 8, 1, 0, '마태복음 9장', 2],
+    ...['강하린', '서예준', '권시우', '안지안', '김도현', '박지민', '오하람', '장민서', '홍지율', '고아린', '양태오', '남주원', '백소이'].map((n, i) => [n, ['사랑반', '믿음반', '소망반'][i % 3], 0, 0, 0, '', null]),
+  ];
+  const pct = (c) => Math.round(c / TOTAL * 1000) / 10;
+  const ago = (d) => d === null ? '' : d === 0 ? '오늘' : d === 1 ? '어제' : `${d}일 전`;
+  let pub = true;
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2600); }
+
+  function draw() {
+    const readers = R.filter((r) => r[6] !== null);
+    const week = readers.filter((r) => r[6] <= 6).length, comp = R.reduce((s, r) => s + r[4], 0);
+    const avg = readers.reduce((s, r) => s + r[2], 0) / readers.length;
+    $('kpis').innerHTML = [['읽는 사람', readers.length, `/ ${R.length}명`], ['이번 주 읽은 사람', week, '명'], ['평균 진도', pct(avg).toFixed(1), '%'], ['누적 완독', comp, '번']]
+      .map(([k, v, u]) => `<div class="kpi"><small>${k}</small><b class="num">${v}<u>${u}</u></b></div>`).join('');
+    $('pubT').textContent = pub ? '켜짐 — 소속원 모두가 서로의 진도를 볼 수 있어요(점수는 없어요).' : '꺼짐 — 선생님 · 관리자만 이 현황을 봐요. 아이들의 참여자 현황 화면에는 내 진도만 보여요.';
+    $('pub').setAttribute('aria-checked', pub);
+
+    const q = $('q').value.trim(), f = $('fSt').value, s = $('sort').value;
+    let list = R.filter((r) => (!q || r[0].includes(q)) && (!f || (f === 'none' ? r[6] === null : f === 'old' ? r[6] !== null && r[6] >= 7 : r[6] !== null && r[6] < 7)));
+    list.sort(s === 'pct' ? (a, b) => (b[4] - a[4]) || (b[2] - a[2]) : s === 'recent' ? (a, b) => (a[6] ?? 999) - (b[6] ?? 999) : (a, b) => a[0].localeCompare(b[0], 'ko'));
+    $('tb').innerHTML = list.map(([n, g, c, rd, done, where, d]) => `<tr>
+      <td><span class="nm"><span class="av">${n.slice(1)}</span><b>${n}</b></span></td>
+      <td><span class="tag">${g}</span></td>
+      <td>${d === null ? '<span class="none">아직 시작 안 함</span>' : `<span class="prog"><span class="b"><i style="width:${Math.max(1, pct(c))}%"></i></span><span class="num">${pct(c).toFixed(1)}%</span></span>`}</td>
+      <td class="r num">${rd ? rd + '회차' : '–'}</td>
+      <td class="r num">${done ? `<span class="done">${done}독</span>` : '–'}</td>
+      <td class="last${d !== null && d >= 7 ? ' old' : ''}">${d === null ? '<span class="none">–</span>' : `${where}<small>${ago(d)}${d >= 7 ? ' · 7일 넘음' : ''}</small>`}</td>
+    </tr>`).join('') || '<tr><td colspan="6" class="none" style="text-align:center;padding:24px">찾는 사람이 없어요.</td></tr>';
+    $('foot').textContent = `${list.length}명 보기 · 1월 5일 오후 3:20 기준. 진도 = 지금 회차에서 읽은 장 ÷ 1,189장.`;
+  }
+  ['q', 'fSt', 'sort'].forEach((id) => $(id).addEventListener('input', draw));
+  $('pub').onclick = () => { pub = !pub; draw(); toast(pub ? '참여자 현황을 소속원 모두에게 공개해요' : '참여자 현황을 선생님만 보게 했어요'); };
+  draw();
+</script>
