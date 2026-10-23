@@ -10,6 +10,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>c87ac3b6-7be9-403a-8e2d-324d539b077b</UserSecretsId>
+    <!-- 공유 호스팅: 같은 앱 풀에 ASP.NET Core 사이트가 여럿이면 in-process 는 500.35 가 난다 → 별도 프로세스로 실행 -->
+    <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
   </PropertyGroup>
 
   <ItemGroup>
