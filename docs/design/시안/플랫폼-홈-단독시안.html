@@ -1,0 +1,162 @@
+<title>플랫폼 홈 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/platform): 플랫폼 머리말 · 메뉴 → 숫자 4칸 → 챙길 일(콘텐츠 빈 날 · 관리자 없는 부서 · 오래 기다리는 신청) → 부서별 오늘 참여 표 | 최근 관리 기록 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --warn: #9A5B00; --warn-bg: #FFF4DE; --bad: #B42318; --bad-bg: #FDECEC;
+    --plat: #1B1F24; --on-plat: #FFFFFF;
+    --c-blue: #2B59C3; --c-green: #1F7A5C; --c-red: #B2462E; --c-violet: #6A4BB5;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C;
+    --plat: #E8EAED; --on-plat: #14171B; --c-blue: #7FA2F2; --c-green: #5CC0A0; --c-red: #F09A80; --c-violet: #B39BF0; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C;
+    --plat: #E8EAED; --on-plat: #14171B; --c-blue: #7FA2F2; --c-green: #5CC0A0; --c-red: #F09A80; --c-violet: #B39BF0; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+  .hd .t { display: flex; align-items: center; gap: 10px; }
+  .hd .t b { font-size: 17px; font-weight: 900; }
+  .hd .t b em { font-style: normal; color: var(--accent); }
+  .pl { font-size: 11px; font-weight: 800; letter-spacing: .06em; padding: 3px 8px; border-radius: 6px; background: var(--plat); color: var(--on-plat); }
+  .me { font-size: 13px; color: var(--dim); }
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-bottom: -1px; }
+  nav.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); border-bottom: 3px solid transparent; }
+  nav.tabs a[aria-current] { color: var(--fg); border-color: var(--plat); }
+
+  main .wrap { padding-block: 20px 56px; display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 900px) { main .wrap { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; } .span { grid-column: 1 / -1; } }
+  .greet { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+  .greet h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  .greet span { font-size: 13px; color: var(--dim); }
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 640px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .kpi { padding: 14px; border-radius: 16px; background: var(--soft); display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .kpi small { font-size: 12.5px; color: var(--dim); }
+  .kpi b { font-size: 26px; font-weight: 900; line-height: 1.2; }
+  .kpi b u { text-decoration: none; font-size: 14px; color: var(--dim); font-weight: 700; margin-left: 2px; }
+  .kpi span { font-size: 12px; color: var(--dim); }
+
+  .card { border: 1px solid var(--rule); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .card > h2 { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 16px; font-weight: 800; }
+  .card > h2 small { font-size: 13px; font-weight: 500; color: var(--dim); }
+  .todo { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .td { display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 16px; min-height: 64px; }
+  .td .n { flex: none; font-size: 26px; font-weight: 900; line-height: 1; }
+  .td div { display: flex; flex-direction: column; min-width: 0; line-height: 1.4; }
+  .td b { font-size: 15px; }
+  .td span { font-size: 12.5px; color: var(--dim); }
+  .td.a { background: var(--bad-bg); } .td.a .n { color: var(--bad); }
+  .td.b { background: var(--warn-bg); } .td.b .n { color: var(--warn); }
+  .td.c { background: var(--accent-bg); } .td.c .n { color: var(--accent); }
+  .td::after { content: "›"; margin-left: auto; font-size: 22px; color: var(--dim); }
+
+  .tbl { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 520px; }
+  th { text-align: left; font-size: 12px; font-weight: 700; color: var(--dim); padding: 0 8px 8px; border-bottom: 1px solid var(--fg); white-space: nowrap; }
+  th.r, td.r { text-align: right; }
+  td { padding: 10px 8px; border-bottom: 1px solid var(--rule); }
+  td .nm { display: flex; align-items: center; gap: 8px; }
+  td .nm i { flex: none; width: 10px; height: 10px; border-radius: 50%; }
+  .bar { display: flex; align-items: center; gap: 8px; }
+  .bar span { flex: 1; height: 6px; border-radius: 99px; background: var(--soft); overflow: hidden; min-width: 60px; }
+  .bar span i { display: block; height: 100%; background: var(--accent); }
+  .bar em { font-style: normal; width: 38px; text-align: right; font-size: 13px; }
+  .tag { font-size: 11px; font-weight: 800; padding: 1px 7px; border-radius: 99px; background: var(--soft); color: var(--dim); white-space: nowrap; }
+  .tag.s { background: var(--bad-bg); color: var(--bad); }
+  .muted { color: var(--dim); }
+  .log { list-style: none; margin: 0; padding: 0; font-size: 13.5px; }
+  .log li { display: flex; gap: 10px; padding: 9px 0; border-top: 1px solid var(--rule); }
+  .log li:first-child { border-top: 0; }
+  .log time { flex: none; width: 74px; color: var(--dim); font-size: 12.5px; }
+  .log span b { font-weight: 700; }
+  .more { font-size: 13px; font-weight: 700; color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
+</style>
+
+<header class="gut">
+  <div class="wrap hd">
+    <div class="t"><b><em>도전!!!</em></b><span class="pl">플랫폼</span></div>
+    <span class="me">운영자 · 플랫폼 관리자</span>
+  </div>
+  <nav class="wrap tabs" aria-label="플랫폼 메뉴">
+    <a href="#" aria-current="page">플랫폼 홈</a>
+    <a href="https://claude.ai/artifact/1SRjYZY8qvf391srdhijbq">부서</a>
+    <a href="https://claude.ai/artifact/CZQ2ZKpE48uW4YNqcsWhht">공용 콘텐츠</a>
+    <a href="#x">성경 데이터</a>
+    <a href="#x">기본 규칙</a>
+    <a href="https://claude.ai/artifact/QLvGVaxqKS6EcdyhrReFMT">계정 찾기</a>
+  </nav>
+</header>
+
+<main class="gut"><div class="wrap">
+  <div class="greet span"><h1>플랫폼 홈</h1><span class="num">2027년 1월 5일 화요일 · 오후 3:20 기준</span></div>
+
+  <div class="kpis span">
+    <div class="kpi"><small>운영 중인 부서</small><b class="num">6<u>곳</u></b><span>교회 2곳 · 정지 1곳</span></div>
+    <div class="kpi"><small>계정</small><b class="num">204<u>개</u></b><span>이번 주 새로 12개</span></div>
+    <div class="kpi"><small>오늘 미션 참여</small><b class="num">71<u>명</u></b><span>성경말씀 부서 5곳</span></div>
+    <div class="kpi"><small>오늘 통독</small><b class="num">46<u>명</u></b><span>읽은 장 213장</span></div>
+  </div>
+
+  <section class="card span" aria-labelledby="hTodo">
+    <h2 id="hTodo">챙길 일</h2>
+    <div class="todo">
+      <a class="td a" href="https://claude.ai/artifact/CZQ2ZKpE48uW4YNqcsWhht"><span class="n num">1</span><div><b>곧 비는 공용 콘텐츠</b><span>1월 9일(토) 퀴즈 · 4일 뒤</span></div></a>
+      <a class="td b" href="https://claude.ai/artifact/CZQ2ZKpE48uW4YNqcsWhht"><span class="n num">12</span><div><b>공개 전 초안</b><span>기도 1월 20일 ~ 31일</span></div></a>
+      <a class="td c" href="https://claude.ai/artifact/1SRjYZY8qvf391srdhijbq"><span class="n num">1</span><div><b>관리자가 없는 부서</b><span>잠실새내교회 중등부</span></div></a>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="hT">
+    <h2 id="hT">부서별 오늘 <a class="more" href="https://claude.ai/artifact/1SRjYZY8qvf391srdhijbq">부서 관리 →</a></h2>
+    <div class="tbl"><table>
+      <thead><tr><th>부서</th><th>오늘 미션 참여</th><th class="r">통독</th><th class="r">신청 대기</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table></div>
+  </section>
+
+  <section class="card" aria-labelledby="hLog">
+    <h2 id="hLog">최근 관리 기록 <small>모든 부서</small></h2>
+    <ul class="log">
+      <li><time class="num">15:02</time><span>이은혜(유년부) · <b>정하늘</b> 참여 신청 받음</span></li>
+      <li><time class="num">14:40</time><span>운영자 · 공용 <b>말씀 1월 31일</b> 공개</span></li>
+      <li><time class="num">11:15</time><span>한사랑(새빛 유년부) · <b>오서진</b> 승인</span></li>
+      <li><time class="num">09:30</time><span>박지은(유치부) · <b>한지우</b> 유년부로 진급 요청</span></li>
+      <li><time class="num">어제</time><span>정우성(초등부) · 시즌 시작일 <b>1월 1일</b> 확인</span></li>
+      <li><time class="num">어제</time><span>운영자 · <b>박지은</b> 임시 비밀번호 발급</span></li>
+    </ul>
+    <p class="muted" style="margin:0;font-size:12.5px">감사 로그 전체 보기 · 사용량은 2차예요.</p>
+  </section>
+</div></main>
+
+<script>
+  // 부서 관리 시안과 같은 부서들(잠실새내교회 말고는 지어낸 예시). [이름, 색, 미션 켬, 오늘 참여, 참여자 수, 통독, 신청 대기, 정지]
+  const T = [
+    ['잠실새내교회 유치부', '--c-red', 1, 14, 29, 0, 0], ['잠실새내교회 유년부', '--c-blue', 1, 27, 42, 11, 3], ['잠실새내교회 초등부', '--c-green', 1, 21, 48, 9, 1],
+    ['잠실새내교회 중등부', '--c-violet', 1, 0, 0, 0, 0], ['잠실새내교회 장년 통독 모임', '--c-green', 0, 0, 0, 22, 2], ['새빛교회 유년부', '--c-blue', 1, 9, 21, 4, 2],
+    ['새빛교회 여름 성경학교', '--c-red', 1, 0, 0, 0, 0, 1],
+  ];
+  document.getElementById('tb').innerHTML = T.map(([n, c, m, d, tot, r, w, s]) => `<tr>
+    <td><span class="nm"><i style="background:var(${c})"></i>${n}${s ? ' <span class="tag s">정지</span>' : ''}</span></td>
+    <td>${!m ? '<span class="muted">통독만</span>' : s ? '<span class="muted">–</span>' : tot ? `<span class="bar"><span><i style="width:${d / tot * 100}%"></i></span><em class="num">${d}/${tot}</em></span>` : '<span class="muted">아직 참여자 없음</span>'}</td>
+    <td class="r num">${r || '–'}</td><td class="r num">${w || '–'}</td></tr>`).join('');
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); }
+  document.querySelectorAll('nav a[href="#x"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast(`${a.textContent} 화면으로 가요 (다음 시안)`); }));
+</script>
