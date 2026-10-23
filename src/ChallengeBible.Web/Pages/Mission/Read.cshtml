@@ -1,0 +1,70 @@
+@page "/{slug}/read"
+@model ReadModel
+@using ChallengeBible.Infrastructure.Data
+@using ChallengeBible.Web.Services
+@* 확정 시안: 말씀-성경읽기 — 읽기 단위 · 번역 전환 · 절 목록 · 이전/다음. 읽음 · 책갈피 · 듣기 · 책 개요는 다음 단계 *@
+@{
+    var r = Model.Ref;
+    var s = Model.Slice;
+    var multi = Model.Shown.Count > 1;
+    (string Label, int Value)[] units = [("한 절", 1), ("3절", 3), ("5절", 5), ("전체", 0)];
+    (string Label, string Value)[] trs = [("개역개정", BibleTranslation.Krv), ("현대인", BibleTranslation.Klb), ("NIV", BibleTranslation.Niv), ("모두", "ALL")];
+}
+<header class="mtop gut"><div class="wrap">
+    <nav class="crumb"><a href="@Model.Link("word-mission")">미션홈</a> · <a href="@Model.Link(Model.BackPage)">@Model.BackText</a></nav>
+    <div class="fs" role="group" aria-label="글자 크기">
+        <button type="button" data-fs="-1" aria-label="글자 작게">가−</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
+    </div>
+</div></header>
+<main class="mbody gut" data-slug="@Model.Slug"><div class="wrap">
+    @if (r is null || !r.IsValid)
+    {
+        <p class="empty">읽을 구절이 없어요.</p>
+    }
+    else if (s.Total == 0)
+    {
+        <h1 class="rdh"><span>@r.Book</span> <small>@r.Tail</small></h1>
+        <p class="empty">이 구절의 본문이 아직 없어요. 선생님께 알려 주세요.</p>
+    }
+    else
+    {
+        <div class="rdk">@Model.Kicker@if (Model.From == "word") { <text> · @Model.Day.ToString("M월 d일 (ddd)", MissionPageBase.Ko)</text> }</div>
+        <h1 class="rdh"><span>@r.Book</span> <small>@r.Tail</small></h1>
+        <p class="rdn num">@(s.Total)절</p>
+
+        <section class="rdset" aria-label="읽기 설정">
+            <div class="rdl">읽기 단위</div>
+            <div class="rdchips">@foreach (var (label, v) in units) { <a href="@Model.Url(unit: v)" aria-current="@(Model.Unit == v ? "true" : "false")">@label</a> }</div>
+            <div class="rdl">번역</div>
+            <div class="rdchips">@foreach (var (label, v) in trs) { <a href="@Model.Url(tr: v)" aria-current="@(Model.Tr == v ? "true" : "false")">@label</a> }</div>
+        </section>
+
+        @if (Model.DayTitle is not null)
+        {
+            <aside class="rdday"><b>@r.Tail</b><strong>@Model.DayTitle</strong><p>@Model.DaySummary</p></aside>
+        }
+
+        <ol class="rdv">
+            @foreach (var line in s.Lines)
+            {
+                <li>
+                    <span class="vn num">@(line.Chapter == r.StartChapter && r.StartChapter == r.EndChapter ? line.Verse.ToString() : $"{line.Chapter}:{line.Verse}")</span>
+                    <div class="vt">
+                        @foreach (var code in Model.Shown)
+                        {
+                            if (line.Texts.TryGetValue(code, out var t)) { <p class="@(multi ? "tr tr-" + code.ToLowerInvariant() : "")">@if (multi) { <em>@BibleTextService.Short(code)</em> }@t</p> }
+                        }
+                    </div>
+                </li>
+            }
+        </ol>
+
+        <nav class="rdpg" aria-label="쪽 이동">
+            @if (s.Page > 1) { <a href="@Model.Url(page: s.Page - 1)">◀ 이전</a> } else { <span class="off">◀ 이전</span> }
+            <span class="num">@(s.First)–@(s.Last)절 / @s.Total</span>
+            @if (s.Page < s.Pages) { <a href="@Model.Url(page: s.Page + 1)">다음 ▶</a> } else { <span class="off">다음 ▶</span> }
+        </nav>
+        <a class="rdback" href="@Model.Link(Model.BackPage)">다 읽었으면 @(Model.BackText)으로 돌아가기</a>
+    }
+</div></main>
+<script src="~/js/mission.js" asp-append-version="true"></script>

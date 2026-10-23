@@ -10,11 +10,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record WordView(int Id, string Title, string Range, string Summary);
-public sealed record PrayerView(int Id, string Trait, string? TraitEn, string Range, IReadOnlyList<string> Paragraphs);
+public sealed record WordView(int Id, string Title, string Range, string Summary, BibleRef Ref);
+public sealed record PrayerView(int Id, string Trait, string? TraitEn, string Range, IReadOnlyList<string> Paragraphs, BibleRef Ref);
 public sealed record QuizChoiceView(int Id, string Text);
 public sealed record QuizView(int Id, string Question, string? Background, string Format, IReadOnlyList<QuizChoiceView> Choices, string? Explanation);
-public sealed record ReciteView(int Id, string Title, string Range, DateOnly Start, DateOnly End, short? LessonNo, string? Summary, string? Point, string? Apply);
+public sealed record ReciteView(int Id, string Title, string Range, DateOnly Start, DateOnly End, short? LessonNo, string? Summary, string? Point, string? Apply, BibleRef Ref);
 
 public sealed record QuizStateView(int AttemptsUsed, int MaxAttempts, bool Solved, IReadOnlyList<int?> MyChoices)
 {
@@ -82,16 +82,19 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
         var seasonPoints = await SeasonPointsAsync(ctx, participantId, today, ct);
 
         return new MissionDay(date, today, window,
-            word is null ? null : new WordView(word.Id, word.Title, BibleBooks.Range(word.BookId, word.StartChapter, word.StartVerse, word.EndChapter, word.EndVerse), word.Summary),
+            word is null ? null : new WordView(word.Id, word.Title, BibleBooks.Range(word.BookId, word.StartChapter, word.StartVerse, word.EndChapter, word.EndVerse), word.Summary,
+                new BibleRef(word.BookId, word.StartChapter, word.StartVerse, word.EndChapter, word.EndVerse)),
             prayer is null ? null : new PrayerView(prayer.Id, prayer.TraitName, prayer.TraitNameEn,
                 BibleBooks.Range(prayer.BookId, prayer.StartChapter, prayer.StartVerse, prayer.EndChapter, prayer.EndVerse),
-                JsonSerializer.Deserialize<List<string>>(prayer.Paragraphs) ?? []),
+                JsonSerializer.Deserialize<List<string>>(prayer.Paragraphs) ?? [],
+                new BibleRef(prayer.BookId, prayer.StartChapter, prayer.StartVerse, prayer.EndChapter, prayer.EndVerse)),
             quiz is null ? null : new QuizView(quiz.Id, quiz.Question, quiz.Background, quiz.Format,
                 quiz.Choices.OrderBy(c => c.SortOrder).Select(c => new QuizChoiceView(c.Id, c.Text)).ToList(),
                 attempts.Any(a => a.IsCorrect) || attempts.Count >= Rules.QuizMaxAttempts ? quiz.Explanation : null),   // 해설은 끝난 뒤에
             verse is null ? null : new ReciteView(verse.Id, verse.Title,
                 BibleBooks.Range(verse.BookId, verse.StartChapter, verse.StartVerse, verse.EndChapter, verse.EndVerse),
-                verse.StartDate, verse.EndDate, verse.LessonNo, verse.LessonSummary, verse.LessonPoint, verse.LessonApply),
+                verse.StartDate, verse.EndDate, verse.LessonNo, verse.LessonSummary, verse.LessonPoint, verse.LessonApply,
+                new BibleRef(verse.BookId, verse.StartChapter, verse.StartVerse, verse.EndChapter, verse.EndVerse)),
             acts.Select(a => MissionItemCodes.Parse(a.MissionItem)).ToHashSet(), recited,
             new QuizStateView(attempts.Count, Rules.QuizMaxAttempts, attempts.Any(a => a.IsCorrect), attempts.Select(a => a.SelectedChoiceId).ToList()),
             dayPoints, seasonPoints, Rules);

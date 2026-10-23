@@ -16,7 +16,19 @@
     else
     {
         <section class="sec done"><h2><span class="n">01</span>외울 구절</h2>
-            <p class="story big">@v.Range</p>
+            @if (Model.Verses.Count == 0)
+            {
+                <p class="story big">@v.Range</p>
+            }
+            else
+            {
+                <div class="rverse">
+                    @foreach (var line in Model.Verses)
+                    {
+                        <p><i class="num">@line.Verse</i>@line.Texts.GetValueOrDefault("KRV")</p>
+                    }
+                </div>
+            }
         </section>
         @if (hasLesson)
         {
