@@ -109,6 +109,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids/prayer", "09-기도");
         await Save(kid, "/jamsil-kids/recite", "10-암송");
         await Save(kid, "/jamsil-kids/points", "11-내점수");
+        await Save(admin, "/jamsil-kids/admin", "11b-관리홈");
         await Save(admin, "/jamsil-kids/admin/members", "12-소속관리");
 
         // 보호자 김영희 → 김철수 연결

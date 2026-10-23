@@ -73,6 +73,25 @@ public partial class AdminFlowTests : IClassFixture<WebApplicationFactory<Progra
     }
 
     [Fact]
+    public async Task 관리_홈은_관리자만_본다()
+    {
+        var (kid, kidId) = await SignedUp("cheolsu", "김철수");
+        InMemoryDb.SeedMembership(_db, _kids.Id, kidId, MembershipStatus.Approved, Roles.Participant);
+        var denied = await kid.GetAsync("/jamsil-kids/admin");
+        Assert.Equal(HttpStatusCode.Redirect, denied.StatusCode);
+        Assert.StartsWith("/account/denied", denied.Headers.Location!.PathAndQuery);
+
+        var (admin, adminId) = await SignedUp("eunhye", "이은혜");
+        InMemoryDb.SeedMembership(_db, _kids.Id, adminId, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
+        var html = await admin.GetStringAsync("/jamsil-kids/admin");
+        Assert.Contains("선생님, 안녕하세요", html);
+        Assert.Contains("오늘 참여", html);
+        Assert.Contains("최근 7일", html);
+        Assert.Contains("오늘 아직 안 한 친구", html);
+        Assert.Contains("aria-current=\"page\">관리 홈", html);   // 관리 메뉴의 첫 칸
+    }
+
+    [Fact]
     public async Task 관리자가_승인하면_아이는_로그인_뒤_바로_부서로_0045()
     {
         var (admin, adminId) = await SignedUp("eunhye", "이은혜");

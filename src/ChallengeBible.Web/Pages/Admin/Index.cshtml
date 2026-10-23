@@ -1,0 +1,103 @@
+@page "/{slug}/admin"
+@model ChallengeBible.Web.Pages.Admin.IndexModel
+@using System.Globalization
+@using M = ChallengeBible.Domain.Rules.Mission
+@using ChallengeBible.Infrastructure.Data
+@* 확정 시안: 관리-홈 (할 일 → 오늘 참여 + 최근 7일 → 오늘 안 한 친구). 진급 요청은 화면이 생긴 뒤에 붙인다 *@
+@{
+    var d = Model.Data;
+    var ko = new CultureInfo("ko-KR");
+    var slug = Model.Tenant.Current.Slug;
+    var pct = d.Members == 0 ? 0 : d.TodayCount * 100.0 / d.Members;
+    (string Label, M M)[] items = [("말씀", M.Word), ("퀴즈", M.Quiz), ("기도", M.Prayer), ("암송", M.Recite)];
+    var max = Math.Max(1, d.Week.Max(w => w.Count));
+    string Names(IEnumerable<ChallengeBible.Web.Services.PendingRequest> p) => string.Join(" · ", p.Select(x => x.IsGuardian ? $"{x.Name}(보호자)" : x.Name));
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut ah"><div class="wrap wide ah-grid">
+    <div class="ah-greet span">
+        <h1>@(User.Identity?.Name ?? "") 선생님, 안녕하세요</h1>
+        <span class="num">@d.NowLocal.ToString("yyyy년 M월 d일 dddd · tt h:mm", ko) 기준</span>
+    </div>
+
+    @if (d.PendingCount > 0 || d.Empty is not null)
+    {
+        <section class="ah-card span" aria-labelledby="hTodo">
+            <h2 id="hTodo">할 일</h2>
+            <div class="ah-todo">
+                @if (d.PendingCount > 0)
+                {
+                    <a class="td a" href="/@slug/admin/members?Tab=@MembershipStatus.Requested"><span class="n num">@d.PendingCount</span><div><b>참여 신청 승인 대기</b><span>@Names(d.Pending)@(d.PendingCount > d.Pending.Count ? $" 외 {d.PendingCount - d.Pending.Count}명" : "")</span></div></a>
+                }
+                @if (d.Empty is { } e)
+                {
+                    var which = e.Word && e.Quiz ? "말씀 · 퀴즈" : e.Word ? "말씀" : "퀴즈";
+                    var inDays = e.First.DayNumber - d.Today.DayNumber;
+                    <div class="td c"><span class="n num">@e.Days</span><div><b>비어 있는 콘텐츠</b><span>@e.First.ToString("M월 d일(ddd)", ko) @which · @(inDays == 0 ? "오늘" : $"{inDays}일 뒤")</span></div></div>
+                }
+            </div>
+        </section>
+    }
+
+    <section class="ah-card" aria-labelledby="hToday">
+        <h2 id="hToday">오늘 참여 <small>미션을 하나라도 한 친구</small></h2>
+        <div class="ah-today">
+            <div class="ah-ring" style="background: conic-gradient(var(--accent) @(pct.ToString("0.#", CultureInfo.InvariantCulture))%, var(--soft) 0)" role="img" aria-label="오늘 @(d.Members)명 중 @(d.TodayCount)명 참여, @((int)Math.Round(pct))%">
+                <div><span><b class="num">@d.TodayCount</b><br /><small class="num">/ @(d.Members)명</small></span></div>
+            </div>
+            <div class="ah-items">
+                @foreach (var (label, m) in items)
+                {
+                    var n = d.TodayByMission[m];
+                    <div class="it"><b>@label</b><span class="bar"><i style="width:@(d.Members == 0 ? 0 : (int)Math.Round(n * 100.0 / d.Members))%"></i></span><em class="num">@(n)명</em></div>
+                }
+            </div>
+        </div>
+        <p class="ah-foot">암송은 한 주에 한 번이라 이번 주(@d.WeekStart.ToString("M월 d일")~) 누적이에요.</p>
+    </section>
+
+    <section class="ah-card" aria-labelledby="hWeek">
+        <h2 id="hWeek">최근 7일 <small>하루 참여한 친구 수</small></h2>
+        <div class="ah-week">
+            @foreach (var (date, n) in d.Week)
+            {
+                var cls = date == d.Today ? "t" : date.DayOfWeek == DayOfWeek.Sunday ? "sun" : "";
+                <div class="wk @cls"><em class="num">@n</em><i style="height:@(Math.Max(4, (int)Math.Round(n * 110.0 / max)))px"></i><span><b class="num">@date.Day</b><br />@(date == d.Today ? "오늘" : date.ToString("ddd", ko))</span></div>
+            }
+        </div>
+        <div class="ah-stats">
+            <span>하루 평균 <b class="num">@(d.WeekAverage)명</b></span>
+            <span>가장 많은 날 <b>@d.Best.Date.ToString("M월 d일(ddd)", ko) @(d.Best.Count)명</b></span>
+            <span>소속 참여자 <b class="num">@(d.Members)명</b></span>
+        </div>
+    </section>
+
+    <section class="ah-card span" aria-labelledby="hMiss">
+        <h2 id="hMiss">오늘 아직 안 한 친구 <small class="num">@(Model.MissingTotal)명 · 오래 안 한 순</small></h2>
+        @if (Model.Groups.Count > 0)
+        {
+            <div class="ah-chips" role="group" aria-label="반 고르기">
+                <a href="@Model.MissUrl(null)" aria-pressed="@(string.IsNullOrEmpty(Model.Group) ? "true" : "false")">전체</a>
+                @foreach (var g in Model.Groups) { <a href="@Model.MissUrl(g)" aria-pressed="@(Model.Group == g ? "true" : "false")">@g</a> }
+            </div>
+        }
+        @if (Model.Shown.Count == 0)
+        {
+            <p class="ah-foot">@(d.Members == 0 ? "아직 소속된 친구가 없어요." : "오늘은 모두 했어요!")</p>
+        }
+        else
+        {
+            <ul class="ah-miss">
+                @foreach (var m in Model.Shown)
+                {
+                    var name = m.Name.Length > 2 ? m.Name[1..] : m.Name;
+                    <li><span class="av">@name</span><span class="nm"><b>@m.Name</b><small>@(m.Group ?? "반 없음") · 마지막 미션 @IndexModel.AgoText(m.DaysAgo)</small></span><span class="last@(m.DaysAgo is null or >= 7 ? " long" : "")">@IndexModel.AgoBadge(m.DaysAgo)</span></li>
+                }
+            </ul>
+            @if (Model.MissingTotal > IndexModel.MissingShown)
+            {
+                <a class="ah-more" href="@Model.MissUrl(Model.Group, !Model.More)#hMiss">@(Model.More ? "접기" : $"{Model.MissingTotal - IndexModel.MissingShown}명 더 보기")</a>
+            }
+        }
+    </section>
+</div></main>
