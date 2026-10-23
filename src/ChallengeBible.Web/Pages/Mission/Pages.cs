@@ -1,5 +1,6 @@
 using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ChallengeBible.Web.Pages.Mission;
 
@@ -18,11 +19,57 @@ public class HomeModel(MissionService missions, TenantContext tenant) : MissionP
     public int? NextMilestone { get; private set; }
     public DateOnly SeasonStart { get; private set; }
 
+    /// <summary>`?month=yyyy-MM` 달력에 보일 달(없으면 보고 있는 날의 달).</summary>
+    [BindProperty(SupportsGet = true)] public string? Month { get; set; }
+    public DateOnly FirstOfMonth { get; private set; }
+    public IReadOnlyList<DayScore> MonthDays { get; private set; } = [];
+    public IReadOnlySet<DateOnly> CompleteDates { get; private set; } = new HashSet<DateOnly>();
+    public int Streak { get; private set; }
+
     protected override async Task LoadMoreAsync(CancellationToken ct)
     {
         Week = ParticipantId is int p ? await Missions.RecentDaysAsync(p, Day, ct) : [];
         NextMilestone = MissionService.NextMilestone(Data!.SeasonPoints);
         SeasonStart = await Missions.SeasonStartAsync(Data.Today.Year, ct);
+
+        FirstOfMonth = DateOnly.TryParseExact(Month + "-01", "yyyy-MM-dd", out var m) ? m : new DateOnly(Day.Year, Day.Month, 1);
+        if (FirstOfMonth > new DateOnly(Data.Today.Year, Data.Today.Month, 1)) FirstOfMonth = new DateOnly(Data.Today.Year, Data.Today.Month, 1);
+        if (ParticipantId is int pid)
+        {
+            MonthDays = await Missions.MonthAsync(pid, FirstOfMonth.Year, FirstOfMonth.Month, ct);
+            // 최근 7일 막대의 "네 가지 다 한 날" 표시: 보고 있는 날의 달과 그 앞 달에서 찾는다
+            var dayMonth = new DateOnly(Day.Year, Day.Month, 1);
+            var complete = new HashSet<DateOnly>();
+            foreach (var first in new[] { dayMonth, dayMonth.AddMonths(-1) })
+            {
+                var days = first == FirstOfMonth ? MonthDays : await Missions.MonthAsync(pid, first.Year, first.Month, ct);
+                foreach (var s in days.Where(s => s.Complete)) complete.Add(s.Date);
+            }
+            CompleteDates = complete;
+            Streak = await Missions.StreakAsync(pid, Data.Today, ct);
+        }
+    }
+
+    public DayScore? ScoreOf(DateOnly d) => MonthDays.FirstOrDefault(s => s.Date == d);
+
+    /// <summary>일요일부터 시작하는 6주 42칸.</summary>
+    public IEnumerable<DateOnly> Cells()
+    {
+        var start = FirstOfMonth.AddDays(-(int)FirstOfMonth.DayOfWeek);
+        return Enumerable.Range(0, 42).Select(i => start.AddDays(i));
+    }
+
+    public bool HasPrevMonth => FirstOfMonth > new DateOnly(SeasonStart.Year, SeasonStart.Month, 1);
+    public bool HasNextMonth => FirstOfMonth < new DateOnly(Data!.Today.Year, Data.Today.Month, 1);
+
+    /// <summary>미션 홈 주소: 보는 날(`date`)과 달력 달(`month`)을 함께 싣는다.</summary>
+    public string HomeUrl(DateOnly? date = null, DateOnly? month = null)
+    {
+        var d = date ?? Day;
+        var q = new List<string>();
+        if (d != Data!.Today) q.Add($"date={d:yyyy-MM-dd}");
+        if (month is DateOnly mm) q.Add($"month={mm:yyyy-MM}");
+        return $"/{Slug}/word-mission" + (q.Count == 0 ? "" : "?" + string.Join("&", q));
     }
 }
 
