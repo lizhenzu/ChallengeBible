@@ -107,6 +107,18 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids/recite", "10-암송");
         await Save(kid, "/jamsil-kids/points", "11-내점수");
         await Save(admin, "/jamsil-kids/admin/members", "12-소속관리");
+
+        // 운영자: 가입 → 플랫폼 관리자 → 다시 로그인
+        var op = await SignUp("operator", "운영자");
+        using (var raw = InMemoryDb.Raw(db)) { raw.Accounts.Single(a => a.LoginId == "operator").IsPlatformAdmin = true; raw.SaveChanges(); }
+        var lh = await op.GetStringAsync("/account/login");
+        await op.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = TokenRx().Match(lh).Groups[1].Value, ["LoginId"] = "operator", ["Password"] = "1234",
+        }));
+        await Save(op, "/platform/tenants", "13-플랫폼부서");
+        await Save(op, "/platform/content/word?month=2027-01&date=2027-01-05", "14-공용콘텐츠-말씀");
+        await Save(op, "/platform/content/quiz?month=2027-01&date=2027-01-05", "15-공용콘텐츠-퀴즈");
     }
 
     private static async Task Save(HttpClient c, string url, string name)
