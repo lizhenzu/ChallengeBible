@@ -125,15 +125,20 @@ internal sealed class WeeklyVerseConfig : IEntityTypeConfiguration<WeeklyVerse>
         e.ToTable("WeeklyVerse", t =>
         {
             t.HasCheckConstraint("CK_WeeklyVerse_Status", ContentConfig.StatusCheck);
-            t.HasCheckConstraint("CK_WeeklyVerse_Period", "EndDate >= StartDate");
             t.HasCheckConstraint("CK_WeeklyVerse_Range", ContentConfig.RangeCheck);
+            // 0052: 공용은 주 번호만, 부서는 일요일(1900-01-07 기준, DATEFIRST 무관) 시작 7일만
+            t.HasCheckConstraint("CK_WeeklyVerse_Slot", $"""
+                (TenantId IS NULL AND WeekNo BETWEEN 1 AND {WeeklyVerse.MaxWeekNo} AND StartDate IS NULL AND EndDate IS NULL)
+                OR (TenantId IS NOT NULL AND WeekNo IS NULL AND DATEDIFF(DAY, '19000107', StartDate) % 7 = 0 AND EndDate = DATEADD(DAY, 6, StartDate))
+                """);
             t.HasTrigger("trg_WeeklyVerse_NoOverlap");
         });
         ContentConfig.Base(e, "WeeklyVerse");
         ContentConfig.Range(e, "WeeklyVerse");
         e.Property(x => x.Title).HasMaxLength(200);
         e.Property(x => x.LessonSummary).HasMaxLength(200);
-        e.HasIndex(x => new { x.TenantId, x.StartDate }).IsUnique().HasFilter("[IsCurrent] = 1").HasDatabaseName("UX_WeeklyVerse_Start");
+        e.HasIndex(x => x.WeekNo).IsUnique().HasFilter("[IsCurrent] = 1 AND [TenantId] IS NULL").HasDatabaseName("UX_WeeklyVerse_Week");
+        e.HasIndex(x => new { x.TenantId, x.StartDate }).IsUnique().HasFilter("[IsCurrent] = 1 AND [StartDate] IS NOT NULL").HasDatabaseName("UX_WeeklyVerse_Start");
     }
 }
 

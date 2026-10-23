@@ -36,7 +36,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         var kids = InMemoryDb.SeedTenant(db, "jamsil-kids", "JSKIDS");
         var jan = Enumerable.Range(1, 5).Select(d => new DateOnly(2027, 1, d)).ToList();
         foreach (var d in jan) { ContentSeed.Word(db, d); ContentSeed.Prayer(db, d); ContentSeed.ChoiceQuiz(db, d); }
-        ContentSeed.Verse(db, new DateOnly(2027, 1, 3));
+        ContentSeed.Verse(db, 1);
         ContentSeed.Bible(db);
         using (var raw = InMemoryDb.Raw(db))
         {

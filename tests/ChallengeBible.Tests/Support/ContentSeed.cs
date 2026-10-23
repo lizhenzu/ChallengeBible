@@ -62,11 +62,23 @@ public static class ContentSeed
         return q;
     }
 
-    public static WeeklyVerse Verse(string db, DateOnly start)
+    /// <summary>공용 암송 no 주(0052). 2027년 1주 = 1월 3일(일) ~ 9일.</summary>
+    public static WeeklyVerse Verse(string db, byte weekNo, string title = "하나님은 우리를 얼마나 사랑하실까요?")
     {
         using var raw = InMemoryDb.Raw(db);
-        var v = new WeeklyVerse { StartDate = start, EndDate = start.AddDays(6), Status = ContentStatus.Published, Title = "하나님은 우리를 얼마나 사랑하실까요?",
+        var v = new WeeklyVerse { WeekNo = weekNo, Status = ContentStatus.Published, Title = title,
             BookId = 43, StartChapter = 3, StartVerse = 16, EndChapter = 3, EndVerse = 16 };
+        raw.WeeklyVerses.Add(v);
+        raw.SaveChanges();
+        return v;
+    }
+
+    /// <summary>부서 암송: 그해 그 주(start 일요일)에만.</summary>
+    public static WeeklyVerse TenantVerse(string db, int tenantId, DateOnly start, string title = "부서 암송")
+    {
+        using var raw = InMemoryDb.Raw(db);
+        var v = new WeeklyVerse { TenantId = tenantId, StartDate = start, EndDate = start.AddDays(6), Status = ContentStatus.Published, Title = title,
+            BookId = 20, StartChapter = 3, StartVerse = 5, EndChapter = 3, EndVerse = 6 };
         raw.WeeklyVerses.Add(v);
         raw.SaveChanges();
         return v;

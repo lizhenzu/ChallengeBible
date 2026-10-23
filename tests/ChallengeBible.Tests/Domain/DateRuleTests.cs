@@ -29,6 +29,19 @@ public class DateRuleTests
     }
 
     [Theory]
+    [InlineData("2027-01-03", 1)]    // 2027년 첫 일요일
+    [InlineData("2027-01-09", 1)]
+    [InlineData("2027-01-10", 2)]
+    [InlineData("2027-01-01", 52)]   // 1월 1일(금)은 2026-12-27 에 시작한 지난해 마지막 주
+    [InlineData("2028-12-31", 53)]   // 2028년은 일요일이 53번(윤년 · 1월 1일 토요일)
+    public void R50_0052_암송_주_번호는_그해_첫_일요일부터(string date, int no) =>
+        Assert.Equal(no, Week.Of(DateOnly.Parse(date), DayOfWeek.Sunday).NumberInYear);
+
+    [Fact]
+    public void 그해_N번째_주() =>
+        Assert.Equal(new DateOnly(2028, 1, 9), Week.NthOfYear(2028, 2, DayOfWeek.Sunday).Start);
+
+    [Theory]
     [InlineData("2027-01-05", WindowResult.Open)]
     [InlineData("2027-01-04", WindowResult.Open)]
     [InlineData("2027-01-03", WindowResult.Open)]

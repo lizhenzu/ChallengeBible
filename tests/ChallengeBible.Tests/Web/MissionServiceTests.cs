@@ -171,14 +171,45 @@ public class MissionServiceTests
     [Fact]
     public async Task R50_R51_R53_암송은_주_1회_점수는_한_날에()
     {
-        ContentSeed.Verse(_db, new DateOnly(2027, 1, 3));
+        ContentSeed.Verse(_db, 1);
         var first = await Svc().PressAsync(_pid, MissionItem.Recite, new DateOnly(2027, 1, 4));
         Assert.Equal(1, first.Added);
         var again = await Svc().PressAsync(_pid, MissionItem.Recite, Jan5);
         Assert.Equal((0, "이번 주 암송은 이미 완료했어요."), (again.Added, again.Message));
         using var raw = InMemoryDb.Raw(_db);
         Assert.Equal(new DateOnly(2027, 1, 4), raw.PointLedgers.Single().MissionDate);   // 실제 수행일(R-53)
+        Assert.Equal(new DateOnly(2027, 1, 3), raw.Activities.Single().ReciteStartDate);   // 실제 주 시작일(0052)
         Assert.True((await Svc().GetDayAsync(_pid, Jan5)).RecitedThisWeek);
+    }
+
+    [Fact]
+    public async Task R50_0052_공용_암송은_주_번호로_매년_반복()
+    {
+        ContentSeed.Verse(_db, 1, "1주 구절");
+        ContentSeed.Verse(_db, 52, "52주 구절");
+        var s = Svc();
+        // 2027-01-03(일)이 1주, 2028-01-02(일)도 1주
+        var d27 = await s.GetDayAsync(_pid, Jan5);
+        Assert.Equal(("1주 구절", new DateOnly(2027, 1, 3), new DateOnly(2027, 1, 9)), (d27.Recite!.Title, d27.Recite.Start, d27.Recite.End));
+        var d28 = await s.GetDayAsync(_pid, new DateOnly(2028, 1, 4));
+        Assert.Equal(("1주 구절", new DateOnly(2028, 1, 2)), (d28.Recite!.Title, d28.Recite.Start));
+        // 2027-01-01(금) · 01-02(토)는 2026-12-27(일)에 시작한 2026년 마지막(52) 주
+        var jan1 = await s.GetDayAsync(_pid, new DateOnly(2027, 1, 1));
+        Assert.Equal(("52주 구절", new DateOnly(2026, 12, 27)), (jan1.Recite!.Title, jan1.Recite.Start));
+    }
+
+    [Fact]
+    public async Task R120_0052_부서_암송은_그해_그_주에만_먼저()
+    {
+        ContentSeed.Verse(_db, 1, "공용 1주");
+        var mine = ContentSeed.TenantVerse(_db, _kids.Id, new DateOnly(2027, 1, 3), "유년부 1주");
+        var s = Svc();
+        Assert.Equal("유년부 1주", (await s.GetDayAsync(_pid, Jan5)).Recite!.Title);
+        Assert.Equal("공용 1주", (await s.GetDayAsync(_pid, new DateOnly(2028, 1, 4))).Recite!.Title);   // 새해에는 공용으로
+
+        await s.PressAsync(_pid, MissionItem.Recite, Jan5);
+        using var raw = InMemoryDb.Raw(_db);
+        Assert.Equal(mine.Id, raw.Activities.Single().WeeklyVerseId);
     }
 
     [Fact]
@@ -218,7 +249,7 @@ public class MissionServiceTests
         var jan4 = new DateOnly(2027, 1, 4);
         foreach (var d in new[] { jan4, Jan5 }) { ContentSeed.Word(_db, d); ContentSeed.Prayer(_db, d); }
         var q4 = ContentSeed.ChoiceQuiz(_db, jan4);
-        ContentSeed.Verse(_db, new DateOnly(2027, 1, 3));
+        ContentSeed.Verse(_db, 1);
         var s = Svc();
         await s.PressAsync(_pid, MissionItem.WordMe, jan4);
         await s.PressAsync(_pid, MissionItem.PrayerMe, jan4);

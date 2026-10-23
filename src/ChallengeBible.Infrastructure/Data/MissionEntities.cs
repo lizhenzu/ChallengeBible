@@ -100,10 +100,17 @@ public sealed class DailyQuizAcceptedAnswer : ISharedContent
     public required string NormalizedText { get; set; }
 }
 
+/// <summary>
+/// 암송(0052). 공용은 주 번호(WeekNo 1 ~ 55)로 매년 반복하고 날짜가 없다.
+/// 부서 덮어쓰기는 실제 주(StartDate 일요일 ~ EndDate)에만 쓰여 해가 바뀌면 공용으로 돌아간다.
+/// </summary>
 public sealed class WeeklyVerse : RangedContent
 {
-    public DateOnly StartDate { get; set; }
-    public DateOnly EndDate { get; set; }
+    public const byte MaxWeekNo = 55;
+
+    public byte? WeekNo { get; set; }
+    public DateOnly? StartDate { get; set; }
+    public DateOnly? EndDate { get; set; }
     public required string Title { get; set; }
     public short? LessonNo { get; set; }
     public string? LessonSummary { get; set; }
