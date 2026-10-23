@@ -1,0 +1,218 @@
+<title>통독 성경 검색 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap">
+<style>
+  /* 레이아웃(Bible2 성경 검색 구성): 위쪽 줄(☰ · 홈으로 · 성경통독 / 날짜) → 말씀 찾기 제목 → 검색 칸 → 추천 단어 → 우리 부서 인기 검색어 10 ↔ 결과(번역 · 범위 · 책별 개수 · 구절 목록) */
+  :root {
+    --bg: #FFFFFF; --band: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --on-accent: #FFFFFF; --tint: #E8EEFA; --tint-fg: #2B59C3; --chip: #F5F6F8; --mark: #FFE9A8; --mark-fg: #1B1F24;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #15181C; --band: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #6E95F0; --on-accent: #0E1013; --tint: #22304A; --tint-fg: #9DB7F5; --chip: #1E2329; --mark: #5A4A16; --mark-fg: #FFF3CC; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #15181C; --band: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #6E95F0; --on-accent: #0E1013; --tint: #22304A; --tint-fg: #9DB7F5; --chip: #1E2329; --mark: #5A4A16; --mark-fg: #FFF3CC; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--band); }
+  a { color: inherit; text-decoration: none; }
+  button, input { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+  .k { font-size: 13px; font-weight: 700; letter-spacing: .16em; color: var(--accent); }
+
+  .band { background: var(--band); }
+  .band .wrap { padding-block: 12px 22px; display: flex; flex-direction: column; gap: 12px; }
+  .bar1 { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+  .sq { flex: none; width: 44px; height: 40px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); display: grid; place-items: center; }
+  .crumb { flex: 1; min-width: 0; font-size: 14px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .crumb a { color: var(--fg); font-weight: 700; }
+  .date { flex: none; font-size: 13px; color: var(--dim); }
+  h1 { margin: 0; font-size: 30px; font-weight: 500; }
+  .box { display: flex; border: 2px solid var(--fg); border-radius: 12px; background: var(--bg); overflow: hidden; }
+  .box input { flex: 1; min-width: 0; min-height: 54px; padding: 0 14px; border: 0; background: none; font-size: 17px; }
+  .box input:focus { outline: none; }
+  .box:focus-within { border-color: var(--accent); }
+  .box .x { flex: none; width: 44px; border: 0; background: none; color: var(--dim); font-size: 20px; }
+  .box .go { flex: none; padding: 0 18px; border: 0; background: var(--fg); color: var(--bg); font-size: 15px; font-weight: 700; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips button { min-height: 38px; padding: 0 14px; border: 1px solid var(--rule); border-radius: 99px; background: var(--bg); font-size: 14px; }
+  .chips button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
+
+  main .wrap { padding-block: 22px 56px; display: flex; flex-direction: column; gap: 18px; }
+  .hrow { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .hrow small { font-size: 12px; color: var(--dim); }
+  .rank { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); border-top: 1px solid var(--fg); }
+  @media (min-width: 600px) { .rank { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; } }
+  .rank button { width: 100%; display: flex; align-items: center; gap: 12px; min-height: 48px; border: 0; border-bottom: 1px solid var(--rule); background: none; text-align: left; font-size: 15px; }
+  .rank i { font-style: normal; width: 22px; font-weight: 300; font-size: 18px; color: var(--dim); text-align: center; }
+  .rank .top i { color: var(--accent); font-weight: 700; }
+  .rank span { flex: 1; min-width: 0; }
+  .rank small { font-size: 12px; color: var(--dim); }
+  .note { margin: 0; font-size: 12.5px; color: var(--dim); }
+
+  .opts { display: flex; flex-direction: column; gap: 10px; }
+  .lbl { font-size: 12px; color: var(--dim); letter-spacing: .08em; margin-bottom: 6px; }
+  .rhead { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--fg); padding-bottom: 10px; }
+  .rhead b { font-size: 22px; font-weight: 500; }
+  .rhead span { font-size: 14px; color: var(--dim); }
+  .rhead button { margin-left: auto; min-height: 36px; border: 0; background: none; color: var(--accent); font-weight: 700; font-size: 13px; }
+  .res { list-style: none; margin: 0; padding: 0; }
+  .res li { padding: 16px 0; border-bottom: 1px solid var(--rule); display: flex; flex-direction: column; gap: 6px; }
+  .res .ref { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .res .ref a { font-size: 14px; font-weight: 800; color: var(--accent); }
+  .res .ref small { font-size: 12px; color: var(--dim); }
+  .res p { margin: 0; font-size: 16.5px; line-height: 1.9; word-break: keep-all; }
+  .res p.alt { font-size: 14.5px; color: var(--dim); line-height: 1.8; }
+  .res p.alt b { font-size: 11px; font-weight: 800; color: var(--dim); margin-right: 6px; letter-spacing: .04em; }
+  .res mark { background: var(--mark); color: var(--mark-fg); padding: 0 1px; border-radius: 3px; }
+  .empty { padding: 32px 0; text-align: center; color: var(--dim); }
+  .demo { font-size: 12px; color: var(--dim); }
+
+  .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(17,20,26,.45); }
+  .drawer { position: fixed; z-index: 41; top: 0; bottom: 0; left: 0; width: min(300px, 86vw); background: var(--band); display: flex; flex-direction: column; padding: calc(8px + env(safe-area-inset-top, 0px)) 0 calc(18px + env(safe-area-inset-bottom, 0px)) env(safe-area-inset-left, 0px); overflow-y: auto; }
+  .dh { display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 20px; min-height: 52px; }
+  .dh b { font-size: 16px; font-weight: 800; color: var(--accent); }
+  .dh button { width: 44px; height: 44px; border: 0; background: none; font-size: 22px; }
+  .menu a { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 20px; font-size: 15px; }
+  .menu a[aria-current] { background: var(--bg); font-weight: 800; }
+  .menu a[aria-current]::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .menu a small { margin-left: auto; font-size: 12px; color: var(--dim); }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
+</style>
+
+<div class="band gut"><div class="wrap">
+  <div class="bar1">
+    <button type="button" class="sq" id="openMenu" aria-label="목차 열기" aria-expanded="false">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <span class="crumb"><a href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">홈으로</a> · <a href="https://claude.ai/artifact/EKDPu67xqjtGoJdyybFnrC">성경통독</a></span>
+    <span class="date">1월 5일 화요일</span>
+  </div>
+  <span class="k">말씀 찾기</span>
+  <h1>성경 검색</h1>
+  <form class="box" id="form" role="search">
+    <input id="q" type="search" placeholder="단어나 구절 — 사랑, 믿음, 은혜…" aria-label="찾을 단어나 구절" autocomplete="off" enterkeyhint="search">
+    <button type="button" class="x" id="clear" aria-label="지우기" hidden>×</button>
+    <button type="submit" class="go">검색 →</button>
+  </form>
+  <div class="chips" id="sugg" aria-label="추천 단어"></div>
+</div></div>
+
+<main class="gut"><div class="wrap">
+  <section id="home" aria-labelledby="hRank" style="display:flex;flex-direction:column;gap:10px">
+    <div class="hrow"><span class="k" id="hRank">우리 부서 인기 검색어</span><small>최근 30일 · 1월 5일 07:50 기준</small></div>
+    <ol class="rank" id="rank"></ol>
+    <p class="note">잠실새내교회 유년부에서 찾은 말만 모았어요. 누가 찾았는지는 남기지 않아요.</p>
+  </section>
+
+  <section id="result" hidden style="display:flex;flex-direction:column;gap:16px" aria-live="polite">
+    <div class="opts">
+      <div><div class="lbl">번역</div><div class="chips" id="tr">
+        <button type="button" data-t="krv" aria-pressed="true">개역개정</button>
+        <button type="button" data-t="klb" aria-pressed="false">현대인</button>
+        <button type="button" data-t="niv" aria-pressed="false">NIV</button>
+        <button type="button" data-t="all" aria-pressed="false">모두</button>
+      </div></div>
+      <div><div class="lbl">범위</div><div class="chips" id="scope"></div></div>
+    </div>
+    <div class="rhead"><b id="rq"></b><span id="rn"></span><button type="button" id="back">← 인기 검색어</button></div>
+    <ul class="res" id="res"></ul>
+    <p class="demo">시안에는 예시 구절 몇 개만 넣었어요. 실제로는 성경 전체에서 찾아요.</p>
+  </section>
+</div></main>
+
+<div class="scrim" id="scrim" hidden></div>
+<nav class="drawer" id="drawer" aria-label="성경 통독 목차" hidden>
+  <div class="dh"><b>도전!!!성경통독</b><button type="button" id="closeMenu" aria-label="목차 닫기">×</button></div>
+  <div class="menu">
+    <a href="https://claude.ai/artifact/EKDPu67xqjtGoJdyybFnrC">대시보드</a>
+    <a href="https://claude.ai/artifact/XouqXnmrRwpMfJYNiQCqa6">구약 읽기<small class="num">23 / 929</small></a>
+    <a href="https://claude.ai/artifact/XouqXnmrRwpMfJYNiQCqa6#nt">신약 읽기<small class="num">0 / 260</small></a>
+    <a href="#" aria-current="page">성경 검색</a>
+    <a href="#x">북마크<small class="num">4</small></a>
+    <a href="#x">참여자 현황</a>
+  </div>
+</nav>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); }
+  const SUGG = ['사랑', '믿음', '구원', '은혜', '기도', '평안', '소망', '감사'];
+  // 지어낸 예시(우리 부서 최근 30일)
+  const RANK = [['사랑', 42], ['아브라함', 31], ['노아', 27], ['믿음', 19], ['다윗', 16], ['기도', 14], ['요셉', 11], ['감사', 9], ['모세', 8], ['평안', 6]];
+  // 예시 구절(개역개정). [책, 장, 절, 구약?, 본문]
+  const V = [
+    ['창세기', 1, 1, 1, '태초에 하나님이 천지를 창조하시니라'],
+    ['창세기', 24, 1, 1, '아브라함이 나이가 많아 늙었고 여호와께서 그에게 범사에 복을 주셨더라'],
+    ['시편', 23, 1, 1, '여호와는 나의 목자시니 내게 부족함이 없으리로다'],
+    ['요한복음', 3, 16, 0, '하나님이 세상을 이처럼 사랑하사 독생자를 주셨으니 이는 그를 믿는 자마다 멸망하지 않고 영생을 얻게 하려 하심이라'],
+    ['요한복음', 13, 34, 0, '새 계명을 너희에게 주노니 서로 사랑하라 내가 너희를 사랑한 것 같이 너희도 서로 사랑하라'],
+    ['요한복음', 14, 27, 0, '평안을 너희에게 끼치노니 곧 나의 평안을 너희에게 주노라 내가 너희에게 주는 것은 세상이 주는 것과 같지 아니하니라 너희는 마음에 근심하지도 말고 두려워하지도 말라'],
+    ['로마서', 5, 8, 0, '우리가 아직 죄인 되었을 때에 그리스도께서 우리를 위하여 죽으심으로 하나님께서 우리에 대한 자기의 사랑을 확증하셨느니라'],
+    ['로마서', 10, 10, 0, '사람이 마음으로 믿어 의에 이르고 입으로 시인하여 구원에 이르느니라'],
+    ['고린도전서', 13, 4, 0, '사랑은 오래 참고 사랑은 온유하며 시기하지 아니하며 사랑은 자랑하지 아니하며 교만하지 아니하며'],
+    ['고린도전서', 13, 13, 0, '그런즉 믿음, 소망, 사랑, 이 세 가지는 항상 있을 것인데 그 중의 제일은 사랑이라'],
+    ['에베소서', 2, 8, 0, '너희는 그 은혜에 의하여 믿음으로 말미암아 구원을 받았으니 이것은 너희에게서 난 것이 아니요 하나님의 선물이라'],
+    ['빌립보서', 4, 6, 0, '아무 것도 염려하지 말고 다만 모든 일에 기도와 간구로, 너희 구할 것을 감사함으로 하나님께 아뢰라'],
+    ['데살로니가전서', 5, 17, 0, '쉬지 말고 기도하라'],
+    ['데살로니가전서', 5, 18, 0, '범사에 감사하라 이것이 그리스도 예수 안에서 너희를 향하신 하나님의 뜻이니라'],
+    ['히브리서', 11, 1, 0, '믿음은 바라는 것들의 실상이요 보이지 않는 것들의 증거니'],
+    ['요한일서', 4, 8, 0, '사랑하지 아니하는 자는 하나님을 알지 못하나니 이는 하나님은 사랑이심이라'],
+  ];
+  let q = '', tr = 'krv', scope = '전체';
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  $('sugg').innerHTML = SUGG.map((w) => `<button type="button" data-w="${w}" aria-pressed="false">${w}</button>`).join('');
+  $('rank').innerHTML = RANK.map(([w, n], i) => `<li><button type="button" class="${i < 3 ? 'top' : ''}" data-w="${w}"><i class="num">${i + 1}</i><span>${w}</span><small class="num">${n}회</small></button></li>`).join('');
+
+  function search(word) {
+    q = word.trim(); $('q').value = q; $('clear').hidden = !q;
+    document.querySelectorAll('#sugg button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.w === q));
+    if (!q) { $('home').hidden = false; $('result').hidden = true; return; }
+    scope = '전체'; $('home').hidden = true; $('result').hidden = false; draw();
+  }
+  function draw() {
+    const hits = V.filter((v) => v[4].includes(q));
+    const books = [...new Set(hits.map((v) => v[0]))];
+    const scopes = [['전체', hits.length], ['구약', hits.filter((v) => v[3]).length], ['신약', hits.filter((v) => !v[3]).length], ...books.map((b) => [b, hits.filter((v) => v[0] === b).length])];
+    if (!scopes.some(([s]) => s === scope)) scope = '전체';
+    $('scope').innerHTML = scopes.filter(([s, n]) => n || s === '전체').map(([s, n]) => `<button type="button" data-s="${s}" aria-pressed="${s === scope}">${s} <span class="num">${n}</span></button>`).join('');
+    const list = hits.filter((v) => scope === '전체' || (scope === '구약' ? v[3] : scope === '신약' ? !v[3] : v[0] === scope));
+    $('rq').textContent = `“${q}”`;
+    $('rn').textContent = `${list.length}절 · ${{ krv: '개역개정', klb: '현대인의성경', niv: 'NIV', all: '세 번역 나란히' }[tr]}`;
+    const hl = (t) => esc(t).split(esc(q)).join(`<mark>${esc(q)}</mark>`);
+    const other = (lbl) => `<p class="alt"><b>${lbl}</b>[${lbl} 본문 — 실제로는 내 DB 의 번역이 들어가요]</p>`;
+    $('res').innerHTML = list.length ? list.map(([b, c, v]) => {
+      const t = V.find((x) => x[0] === b && x[1] === c && x[2] === v)[4];
+      const body = tr === 'krv' ? `<p>${hl(t)}</p>` : tr === 'all' ? `<p>${hl(t)}</p>${other('현대인')}${other('NIV')}` : other(tr === 'klb' ? '현대인' : 'NIV');
+      return `<li><div class="ref"><a href="${b === '창세기' && c === 24 ? 'https://claude.ai/artifact/2WtQWyBgeUqbx6R9a8bzLZ' : '#x'}" data-ref="${b} ${c}장">${b} ${c}:${v}</a><small>본문으로 →</small></div>${body}</li>`;
+    }).join('') : `<li class="empty">“${esc(q)}”이(가) 들어간 구절이 없어요.<br>다른 말로 찾아보거나 아래 추천 단어를 눌러 보세요.</li>`;
+    document.querySelectorAll('#tr button').forEach((x) => x.setAttribute('aria-pressed', x.dataset.t === tr));
+  }
+
+  $('form').addEventListener('submit', (e) => { e.preventDefault(); search($('q').value); });
+  $('q').addEventListener('input', () => { $('clear').hidden = !$('q').value; });
+  $('clear').onclick = () => { search(''); $('q').focus(); };
+  $('back').onclick = () => search('');
+  $('sugg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) search(b.dataset.w); });
+  $('rank').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) search(b.dataset.w); });
+  $('tr').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { tr = b.dataset.t; draw(); } });
+  $('scope').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { scope = b.dataset.s; draw(); } });
+  $('res').addEventListener('click', (e) => { const a = e.target.closest('a[href="#x"]'); if (a) { e.preventDefault(); toast(`${a.dataset.ref} 본문으로 가요 (시안에서는 창세기 24장만 열려요)`); } });
+
+  function menu(open) { $('drawer').hidden = $('scrim').hidden = !open; $('openMenu').setAttribute('aria-expanded', open); if (open) $('closeMenu').focus(); }
+  $('openMenu').onclick = () => menu(true);
+  $('closeMenu').onclick = $('scrim').onclick = () => menu(false);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('drawer').hidden) menu(false); });
+  document.querySelector('.menu a[aria-current]').addEventListener('click', (e) => { e.preventDefault(); menu(false); });
+  document.querySelectorAll('.menu a[href="#x"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); menu(false); toast(`${a.firstChild.textContent} 화면으로 가요 (다음 시안)`); }));
+</script>
