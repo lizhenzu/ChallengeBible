@@ -329,8 +329,9 @@ CREATE TABLE app.DailyQuizAcceptedAnswer (                                      
 CREATE TABLE app.WeeklyVerse (
     Id                  int IDENTITY  NOT NULL CONSTRAINT PK_WeeklyVerse PRIMARY KEY,
     TenantId            int           NULL CONSTRAINT FK_WeeklyVerse_Tenant REFERENCES app.Tenant(Id),
-    StartDate           date          NOT NULL,
-    EndDate             date          NOT NULL,
+    WeekNo              tinyint       NULL,          -- 공용만: 그해 몇째 주(1 ~ 55, 0052)
+    StartDate           date          NULL,          -- 부서만: 그해 그 주(일요일) — 해가 바뀌면 공용으로 돌아감
+    EndDate             date          NULL,
     Revision            int           NOT NULL,
     IsCurrent           bit           NOT NULL,
     Status              varchar(20)   NOT NULL CONSTRAINT CK_WeeklyVerse_Status CHECK (Status IN ('Draft','Published','Archived')),
@@ -347,10 +348,13 @@ CREATE TABLE app.WeeklyVerse (
     LessonApply         nvarchar(max) NULL,          -- 적용
     CreatedUtc          datetime2(3)  NOT NULL,
     CreatedByAccountId  int           NOT NULL CONSTRAINT FK_WeeklyVerse_CreatedBy REFERENCES app.Account(Id),
-    CONSTRAINT CK_WeeklyVerse_Period CHECK (EndDate >= StartDate),
-    CONSTRAINT CK_WeeklyVerse_Range CHECK (EndChapter > StartChapter OR (EndChapter = StartChapter AND EndVerse >= StartVerse))
+    CONSTRAINT CK_WeeklyVerse_Range CHECK (EndChapter > StartChapter OR (EndChapter = StartChapter AND EndVerse >= StartVerse)),
+    CONSTRAINT CK_WeeklyVerse_Slot CHECK (
+        (TenantId IS NULL AND WeekNo BETWEEN 1 AND 55 AND StartDate IS NULL AND EndDate IS NULL)
+        OR (TenantId IS NOT NULL AND WeekNo IS NULL AND DATEDIFF(DAY, '19000107', StartDate) % 7 = 0 AND EndDate = DATEADD(DAY, 6, StartDate)))
 );
-CREATE UNIQUE INDEX UX_WeeklyVerse_Start ON app.WeeklyVerse (TenantId, StartDate) WHERE IsCurrent = 1;
+CREATE UNIQUE INDEX UX_WeeklyVerse_Week  ON app.WeeklyVerse (WeekNo) WHERE IsCurrent = 1 AND TenantId IS NULL;
+CREATE UNIQUE INDEX UX_WeeklyVerse_Start ON app.WeeklyVerse (TenantId, StartDate) WHERE IsCurrent = 1 AND StartDate IS NOT NULL;
 GO
 
 -- 같은 소유의 현재 개정끼리 기간이 겹치면 거절(R-121)

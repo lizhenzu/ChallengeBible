@@ -7,7 +7,10 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace ChallengeBible.Web.Pages.Platform;
 
-/// <summary>`/platform/content/{kind}?month=&amp;date=` 공용 콘텐츠(확정 시안: 플랫폼-공용콘텐츠).</summary>
+/// <summary>
+/// `/platform/content/{kind}?month=&amp;date=` 공용 콘텐츠(확정 시안: 플랫폼-공용콘텐츠).
+/// 암송은 `/platform/content/recite?week=` — 날짜 대신 1 ~ 55주(0052).
+/// </summary>
 [Authorize(Policy = CurrentUser.PlatformAdminPolicy)]
 public class ContentModel(ContentAdminService content, TimeProvider time) : PageModel, ITitled
 {
@@ -16,12 +19,16 @@ public class ContentModel(ContentAdminService content, TimeProvider time) : Page
     [BindProperty(SupportsGet = true)] public string Kind { get; set; } = "word";
     [BindProperty(SupportsGet = true)] public string? Month { get; set; }
     [BindProperty(SupportsGet = true)] public DateOnly? Date { get; set; }
+    [BindProperty(SupportsGet = true)] public byte? Week { get; set; }
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }
     [BindProperty] public ContentInput Input { get; set; } = new();
 
     public ContentKind K { get; private set; }
     public DateOnly First { get; private set; }
     public List<ContentDay> Days { get; private set; } = [];
+    public List<ContentWeek> Weeks { get; private set; } = [];
+    public bool IsRecite => K == ContentKind.Recite;
+    public int ThisYear { get; private set; }
     public string Status { get; private set; } = "None";
     public FieldErrors Errors { get; private set; } = new();
     public string? Notice { get; private set; }
@@ -52,6 +59,15 @@ public class ContentModel(ContentAdminService content, TimeProvider time) : Page
     public string Link(DateOnly? date = null, string? kind = null, DateOnly? month = null) =>
         $"/platform/content/{kind ?? Kind}?month={(month ?? First):yyyy-MM}" + (date is { } d ? $"&date={d:yyyy-MM-dd}" : "");
 
+    public static string WeekLink(byte? no) => "/platform/content/recite" + (no is { } n ? $"?week={n}" : "");
+
+    /// <summary>올해 그 주의 날짜(안내용). 올해에 없는 주(53 · 54 · 55)는 null.</summary>
+    public (DateOnly Start, DateOnly End)? ThisYearWeek(byte no)
+    {
+        var w = Domain.Time.Week.NthOfYear(ThisYear, no, DayOfWeek.Sunday);
+        return w.Start.Year == ThisYear ? (w.Start, w.End) : null;
+    }
+
     private bool Init()
     {
         var k = Kinds.FirstOrDefault(x => x.Key == Kind);
@@ -59,6 +75,7 @@ public class ContentModel(ContentAdminService content, TimeProvider time) : Page
         K = k.K;
         var today = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
         First = DateOnly.TryParseExact((Month ?? "") + "-01", "yyyy-MM-dd", out var f) ? f : new DateOnly(today.Year, today.Month, 1);
+        ThisYear = today.Year;
         return true;
     }
 
@@ -66,7 +83,8 @@ public class ContentModel(ContentAdminService content, TimeProvider time) : Page
     {
         if (!Init()) return NotFound();
         await LoadAsync(ct);
-        if (Date is { } d) (Input, Status, _) = await content.LoadAsync(Me, K, d, ct);
+        if (IsRecite) { if (Week is { } n) (Input, Status, _) = await content.LoadWeekAsync(Me, n, ct); }
+        else if (Date is { } d) (Input, Status, _) = await content.LoadAsync(Me, K, d, ct);
         return Page();
     }
 
@@ -74,25 +92,31 @@ public class ContentModel(ContentAdminService content, TimeProvider time) : Page
     {
         if (!Init()) return NotFound();
         Input.Date = Date ?? Input.Date;
+        Input.WeekNo = Week ?? Input.WeekNo;
         Errors = await content.SaveAsync(Me, K, Input, publish, ct);
-        if (Errors.Ok) return Redirect(Link(Input.Date) + $"&ok={(publish ? "published" : "draft")}");
+        var ok = $"ok={(publish ? "published" : "draft")}";
+        if (Errors.Ok) return Redirect(IsRecite ? WeekLink(Input.WeekNo) + "&" + ok : Link(Input.Date) + "&" + ok);
         await LoadAsync(ct);
-        Status = (await content.LoadAsync(Me, K, Input.Date, ct)).Status;
+        Status = IsRecite ? (await content.LoadWeekAsync(Me, Input.WeekNo, ct)).Status : (await content.LoadAsync(Me, K, Input.Date, ct)).Status;
         return Page();
     }
 
-    public async Task<IActionResult> OnPostBulkAsync(List<DateOnly> dates, CancellationToken ct)
+    public async Task<IActionResult> OnPostBulkAsync(List<DateOnly> dates, List<byte> weeks, CancellationToken ct)
     {
         if (!Init()) return NotFound();
-        var (ok, skipped) = await content.PublishManyAsync(Me, K, dates, ct);
+        var (ok, skipped) = IsRecite ? await content.PublishWeeksAsync(Me, weeks, ct) : await content.PublishManyAsync(Me, K, dates, ct);
         if (skipped > 0)
         {
             Notice = $"{ok}개를 공개했어요. 칸이 덜 채워진 초안 {skipped}개는 건너뛰었어요.";
             await LoadAsync(ct);
             return Page();
         }
-        return Redirect(Link(Date) + $"&ok=bulk{ok}");
+        return Redirect(IsRecite ? WeekLink(Week) + (Week is null ? "?" : "&") + $"ok=bulk{ok}" : Link(Date) + $"&ok=bulk{ok}");
     }
 
-    private async Task LoadAsync(CancellationToken ct) => Days = await content.MonthAsync(Me, K, First.Year, First.Month, ct);
+    private async Task LoadAsync(CancellationToken ct)
+    {
+        if (IsRecite) Weeks = await content.WeeksAsync(Me, ct);
+        else Days = await content.MonthAsync(Me, K, First.Year, First.Month, ct);
+    }
 }

@@ -1575,7 +1575,7 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<short>("EndChapter")
                         .HasColumnType("smallint");
 
-                    b.Property<DateOnly>("EndDate")
+                    b.Property<DateOnly?>("EndDate")
                         .HasColumnType("date");
 
                     b.Property<short>("EndVerse")
@@ -1606,7 +1606,7 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<short>("StartChapter")
                         .HasColumnType("smallint");
 
-                    b.Property<DateOnly>("StartDate")
+                    b.Property<DateOnly?>("StartDate")
                         .HasColumnType("date");
 
                     b.Property<short>("StartVerse")
@@ -1626,6 +1626,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<byte?>("WeekNo")
+                        .HasColumnType("tinyint");
+
                     b.HasKey("Id")
                         .HasName("PK_WeeklyVerse");
 
@@ -1635,18 +1638,23 @@ namespace ChallengeBible.Infrastructure.Migrations
 
                     b.HasIndex("ReplacesId");
 
+                    b.HasIndex("WeekNo")
+                        .IsUnique()
+                        .HasDatabaseName("UX_WeeklyVerse_Week")
+                        .HasFilter("[IsCurrent] = 1 AND [TenantId] IS NULL");
+
                     b.HasIndex("TenantId", "StartDate")
                         .IsUnique()
                         .HasDatabaseName("UX_WeeklyVerse_Start")
-                        .HasFilter("[IsCurrent] = 1");
+                        .HasFilter("[IsCurrent] = 1 AND [StartDate] IS NOT NULL");
 
                     b.ToTable("WeeklyVerse", "app", t =>
                         {
                             t.HasTrigger("trg_WeeklyVerse_NoOverlap");
 
-                            t.HasCheckConstraint("CK_WeeklyVerse_Period", "EndDate >= StartDate");
-
                             t.HasCheckConstraint("CK_WeeklyVerse_Range", "EndChapter > StartChapter OR (EndChapter = StartChapter AND EndVerse >= StartVerse)");
+
+                            t.HasCheckConstraint("CK_WeeklyVerse_Slot", "(TenantId IS NULL AND WeekNo BETWEEN 1 AND 55 AND StartDate IS NULL AND EndDate IS NULL)\nOR (TenantId IS NOT NULL AND WeekNo IS NULL AND DATEDIFF(DAY, '19000107', StartDate) % 7 = 0 AND EndDate = DATEADD(DAY, 6, StartDate))");
 
                             t.HasCheckConstraint("CK_WeeklyVerse_Status", "Status IN ('Draft','Published','Archived')");
                         });

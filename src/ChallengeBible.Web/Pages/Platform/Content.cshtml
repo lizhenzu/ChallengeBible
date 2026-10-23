@@ -20,45 +20,78 @@
         @foreach (var (key, label, _) in ContentModel.Kinds) { <a href="@Model.Link(kind: key)" aria-current="@(key == Model.Kind ? "page" : "false")">@label</a> }
     </nav>
     <div class="tools">
-        <a class="btn s sm" href="@Model.Link(month: Model.First.AddMonths(-1))" aria-label="이전 달">‹</a>
-        <b class="num">@Model.First.ToString("yyyy년 M월")</b>
-        <a class="btn s sm" href="@Model.Link(month: Model.First.AddMonths(1))" aria-label="다음 달">›</a>
+        @if (Model.IsRecite)
+        {
+            <b>1 ~ @(WeeklyVerse.MaxWeekNo)주</b><span class="hint">해마다 첫 일요일부터 1주 · 부서가 그 주 암송을 넣으면 그해에만 그것이 먼저예요</span>
+        }
+        else
+        {
+            <a class="btn s sm" href="@Model.Link(month: Model.First.AddMonths(-1))" aria-label="이전 달">‹</a>
+            <b class="num">@Model.First.ToString("yyyy년 M월")</b>
+            <a class="btn s sm" href="@Model.Link(month: Model.First.AddMonths(1))" aria-label="다음 달">›</a>
+        }
         <span class="cnt">
-            @foreach (var g in Model.Days.GroupBy(d => d.Status)) { <span class="@ContentModel.StatusClass(g.Key)">@ContentModel.StatusLabel(g.Key) @g.Count()</span> }
+            @foreach (var g in (Model.IsRecite ? Model.Weeks.Select(w => w.Status) : Model.Days.Select(d => d.Status)).GroupBy(s => s)) { <span class="@ContentModel.StatusClass(g.Key)">@ContentModel.StatusLabel(g.Key) @g.Count()</span> }
         </span>
     </div>
 
     <div class="csplit">
-        <form method="post" asp-page-handler="Bulk" asp-route-month="@Model.First.ToString("yyyy-MM")" class="days">
-            <ul>
-                @foreach (var d in Model.Days)
-                {
-                    var on = d.Date == Model.Date;
-                    <li class="@(on ? "on" : "")">
-                        <input type="checkbox" name="dates" value="@d.Date.ToString("yyyy-MM-dd")" disabled="@(d.Status != ContentStatus.Draft)" aria-label="@d.Date.ToString("M월 d일") 고르기" />
-                        <a href="@Model.Link(d.Date)">
-                            <span class="d num @(d.Date.DayOfWeek == DayOfWeek.Sunday ? "sun" : "")">@(Model.Kind == "recite" ? $"{d.Date.Day}일 ~" : $"{d.Date.Day}일")<small>@(Model.Kind == "recite" ? $"{d.Date.AddDays(6):M'/'d}까지" : d.Date.ToString("ddd", ko))</small></span>
-                            <span class="tt @(d.Title is null ? "none" : "")">@(d.Title ?? "비어 있어요")</span>
-                            <span class="tag @ContentModel.StatusClass(d.Status)">@ContentModel.StatusLabel(d.Status)</span>
-                        </a>
-                    </li>
-                }
-            </ul>
-            <button type="submit" class="btn p sm">고른 초안 공개</button>
-        </form>
+        @if (Model.IsRecite)
+        {
+            <form method="post" asp-page-handler="Bulk" asp-route-week="@Model.Week" class="days">
+                <ul>
+                    @foreach (var w in Model.Weeks)
+                    {
+                        var dates = Model.ThisYearWeek(w.No);
+                        <li class="@(w.No == Model.Week ? "on" : "")">
+                            <input type="checkbox" name="weeks" value="@w.No" disabled="@(w.Status != ContentStatus.Draft)" aria-label="@(w.No)주 고르기" />
+                            <a href="@ContentModel.WeekLink(w.No)">
+                                <span class="d num">@(w.No)주<small>@(dates is { } x ? $"{x.Start:M'/'d}~" : "여유")</small></span>
+                                <span class="tt @(w.Title is null ? "none" : "")">@(w.Title ?? "비어 있어요")</span>
+                                <span class="tag @ContentModel.StatusClass(w.Status)">@ContentModel.StatusLabel(w.Status)</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+                <button type="submit" class="btn p sm">고른 초안 공개</button>
+            </form>
+        }
+        else
+        {
+            <form method="post" asp-page-handler="Bulk" asp-route-month="@Model.First.ToString("yyyy-MM")" class="days">
+                <ul>
+                    @foreach (var d in Model.Days)
+                    {
+                        var on = d.Date == Model.Date;
+                        <li class="@(on ? "on" : "")">
+                            <input type="checkbox" name="dates" value="@d.Date.ToString("yyyy-MM-dd")" disabled="@(d.Status != ContentStatus.Draft)" aria-label="@d.Date.ToString("M월 d일") 고르기" />
+                            <a href="@Model.Link(d.Date)">
+                                <span class="d num @(d.Date.DayOfWeek == DayOfWeek.Sunday ? "sun" : "")">@($"{d.Date.Day}일")<small>@d.Date.ToString("ddd", ko)</small></span>
+                                <span class="tt @(d.Title is null ? "none" : "")">@(d.Title ?? "비어 있어요")</span>
+                                <span class="tag @ContentModel.StatusClass(d.Status)">@ContentModel.StatusLabel(d.Status)</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+                <button type="submit" class="btn p sm">고른 초안 공개</button>
+            </form>
+        }
 
         <section class="editor">
-            @if (Model.Date is null)
+            @if (Model.IsRecite ? Model.Week is null : Model.Date is null)
             {
-                <p class="empty">왼쪽에서 날짜를 고르세요.</p>
+                <p class="empty">왼쪽에서 @(Model.IsRecite ? "주" : "날짜")를 고르세요.</p>
             }
             else
             {
-                <div class="h"><b>@Model.Date.Value.ToString("M월 d일 (ddd)", ko) @kindLabel</b><span class="tag @ContentModel.StatusClass(Model.Status)">@ContentModel.StatusLabel(Model.Status)</span></div>
-                @if (Model.Status == "None") { <p class="note-block">이날은 @(kindLabel)@Ui.IGa(kindLabel) 없어요. 이대로 두면 아이들 화면에 "오늘은 없음"으로 보여요(R-122).</p> }
+                var slot = Model.IsRecite
+                    ? $"{Model.Week}주" + (Model.ThisYearWeek(Model.Week!.Value) is { } tw ? $" (올해 {tw.Start:M'/'d} ~ {tw.End:M'/'d})" : " (올해는 없는 주)")
+                    : Model.Date!.Value.ToString("M월 d일 (ddd)", ko);
+                <div class="h"><b>@slot @kindLabel</b><span class="tag @ContentModel.StatusClass(Model.Status)">@ContentModel.StatusLabel(Model.Status)</span></div>
+                @if (Model.Status == "None") { <p class="note-block">@(Model.IsRecite ? "이 주는" : "이날은") @(kindLabel)@Ui.IGa(kindLabel) 없어요. 이대로 두면 아이들 화면에 "오늘은 없음"으로 보여요(R-122).</p> }
                 @if (E("Status") is { } st) { <p class="err">@st</p> }
                 @if (E("Date") is { } dt) { <p class="err">@dt</p> }
-                <form method="post" asp-page-handler="Save" asp-route-month="@Model.First.ToString("yyyy-MM")" asp-route-date="@Model.Date.Value.ToString("yyyy-MM-dd")" class="stack" novalidate>
+                <form method="post" asp-page-handler="Save" asp-route-month="@(Model.IsRecite ? null : Model.First.ToString("yyyy-MM"))" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")" asp-route-week="@Model.Week" class="stack" novalidate>
                     @if (Model.Kind != "quiz")
                     {
                         <div class="f"><label>성경 범위 <small>@(E("Range") is null ? "" : "")</small></label>
@@ -103,13 +136,8 @@
                             <div class="f"><label for="ex">해설 <small>끝난 뒤 보여 줘요</small></label><textarea class="in ta sm2" id="ex" name="Input.Explanation">@i.Explanation</textarea></div>
                             break;
                         default:
+                            @* 공용 암송은 특정 공과와 상관없어 공과 칸을 두지 않는다(저장하면 공과 칸은 비워진다) *@
                             <div class="f"><label for="rt">제목(질문)</label><input class="in" id="rt" name="Input.Title" value="@i.Title" maxlength="200" /><p class="hint bad">@E("Title")</p></div>
-                            <div class="grid2">
-                                <div class="f"><label for="ln">과 번호</label><input class="in" id="ln" type="number" name="Input.LessonNo" value="@i.LessonNo" /></div>
-                                <div class="f"><label for="ls">공과 요약</label><input class="in" id="ls" name="Input.LessonSummary" value="@i.LessonSummary" maxlength="200" /></div>
-                            </div>
-                            <div class="f"><label for="lp">배울 점</label><textarea class="in ta sm2" id="lp" name="Input.LessonPoint">@i.LessonPoint</textarea></div>
-                            <div class="f"><label for="la">이렇게 살아요</label><textarea class="in ta sm2" id="la" name="Input.LessonApply">@i.LessonApply</textarea></div>
                             break;
                     }
                     @if (published) { <p class="hint">이미 공개됐어요. 고쳐도 이미 한 아이들의 기록 · 점수는 그대로예요(R-124).</p> }

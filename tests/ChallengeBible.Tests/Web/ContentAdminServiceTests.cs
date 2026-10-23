@@ -129,18 +129,32 @@ public class ContentAdminServiceTests
     }
 
     [Fact]
-    public async Task 기도는_줄마다_문단_암송은_일요일_주_단위()
+    public async Task 기도는_줄마다_문단()
     {
         var p = new ContentInput { Date = Jan5, TraitName = "신뢰", Paragraphs = "하나님, {이름}이(가) 믿게 해 주세요.\n\n두 번째 문단", Book = 20, StartChapter = 3, StartVerse = 5, EndChapter = 3, EndVerse = 6 };
         Assert.True((await Svc.SaveAsync(_op.Id, ContentKind.Prayer, p, true)).Ok);
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal("[\"하나님, {이름}이(가) 믿게 해 주세요.\",\"두 번째 문단\"]", raw.DailyPrayers.Single().Paragraphs);
+        using var raw = InMemoryDb.Raw(_db);
+        Assert.Equal("[\"하나님, {이름}이(가) 믿게 해 주세요.\",\"두 번째 문단\"]", raw.DailyPrayers.Single().Paragraphs);
+    }
 
-        var r = new ContentInput { Date = Jan5, Title = "하나님은 우리를 얼마나 사랑하실까요?", Book = 43, StartChapter = 3, StartVerse = 16, EndChapter = 3, EndVerse = 16 };
-        Assert.True((await Svc.SaveAsync(_op.Id, ContentKind.Recite, r, true)).ContainsKey("Date"));   // 화요일
-        r.Date = new DateOnly(2027, 1, 3);
-        Assert.True((await Svc.SaveAsync(_op.Id, ContentKind.Recite, r, true)).Ok);
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(new DateOnly(2027, 1, 9), raw.WeeklyVerses.Single().EndDate);
-        Assert.Equal([3, 10, 17, 24, 31], ContentAdminService.Slots(ContentKind.Recite, 2027, 1).Select(d => d.Day));
+    [Fact]
+    public async Task 공용_암송은_주_번호_1_55_날짜_없음_0052()
+    {
+        var r = new ContentInput { WeekNo = 56, Title = "하나님은 우리를 얼마나 사랑하실까요?", Book = 43, StartChapter = 3, StartVerse = 16, EndChapter = 3, EndVerse = 16 };
+        Assert.True((await Svc.SaveAsync(_op.Id, ContentKind.Recite, r, true)).ContainsKey("Date"));
+        r.WeekNo = 1;
+        Assert.True((await Svc.SaveAsync(_op.Id, ContentKind.Recite, r, false)).Ok);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var v = raw.WeeklyVerses.Single();
+            Assert.Equal(((byte?)1, (DateOnly?)null, (DateOnly?)null), (v.WeekNo, v.StartDate, v.EndDate));
+        }
+
+        var weeks = await Svc.WeeksAsync(_op.Id);
+        Assert.Equal(55, weeks.Count);
+        Assert.Equal((ContentStatus.Draft, "None"), (weeks[0].Status, weeks[1].Status));
+        Assert.Equal((1, 0), await Svc.PublishWeeksAsync(_op.Id, [1]));
+        Assert.Equal(ContentStatus.Published, (await Svc.LoadWeekAsync(_op.Id, 1)).Status);
     }
 
     [Fact]

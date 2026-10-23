@@ -71,11 +71,11 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
         var word = await Current(ctx.DailyWords.Where(w => w.ExposeDate == date)).FirstOrDefaultAsync(ct);
         var prayer = await Current(ctx.DailyPrayers.Where(p => p.ExposeDate == date)).FirstOrDefaultAsync(ct);
         var quiz = await Current(ctx.DailyQuizzes.Include(q => q.Choices).Where(q => q.ExposeDate == date)).FirstOrDefaultAsync(ct);
-        var verse = await Current(ctx.WeeklyVerses.Where(v => v.StartDate <= date && v.EndDate >= date)).FirstOrDefaultAsync(ct);
+        var (verse, week) = await VerseAsync(ctx, date, ct);
 
         var acts = await ctx.Activities.AsNoTracking().Where(a => a.ParticipantId == participantId && a.MissionDate == date).ToListAsync(ct);
         var recited = verse is not null && await ctx.Activities.AnyAsync(a => a.ParticipantId == participantId
-            && a.MissionItem == "Recite" && a.ReciteStartDate == verse.StartDate, ct);
+            && a.MissionItem == "Recite" && a.ReciteStartDate == week.Start, ct);
         var attempts = await ctx.QuizAttempts.AsNoTracking().Where(a => a.ParticipantId == participantId && a.MissionDate == date)
             .OrderBy(a => a.AttemptNo).ToListAsync(ct);
         var dayPoints = await ctx.PointLedgers.Where(l => l.ParticipantId == participantId && l.MissionDate == date).SumAsync(l => (int?)l.Points, ct) ?? 0;
@@ -93,7 +93,7 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
                 attempts.Any(a => a.IsCorrect) || attempts.Count >= Rules.QuizMaxAttempts ? quiz.Explanation : null),   // 해설은 끝난 뒤에
             verse is null ? null : new ReciteView(verse.Id, verse.Title,
                 BibleBooks.Range(verse.BookId, verse.StartChapter, verse.StartVerse, verse.EndChapter, verse.EndVerse),
-                verse.StartDate, verse.EndDate, verse.LessonNo, verse.LessonSummary, verse.LessonPoint, verse.LessonApply,
+                week.Start, week.End, verse.LessonNo, verse.LessonSummary, verse.LessonPoint, verse.LessonApply,
                 new BibleRef(verse.BookId, verse.StartChapter, verse.StartVerse, verse.EndChapter, verse.EndVerse)),
             acts.Select(a => MissionItemCodes.Parse(a.MissionItem)).ToHashSet(), recited,
             new QuizStateView(attempts.Count, Rules.QuizMaxAttempts, attempts.Any(a => a.IsCorrect), attempts.Select(a => a.SelectedChoiceId).ToList()),
@@ -103,6 +103,19 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
     /// <summary>R-120: 공개된 현재 개정 중 내 영역 덮어쓰기가 먼저, 없으면 공용.</summary>
     private static IQueryable<T> Current<T>(IQueryable<T> q) where T : ContentBase =>
         q.Where(c => c.IsCurrent && c.Status == ContentStatus.Published).OrderByDescending(c => c.TenantId != null);
+
+    /// <summary>
+    /// 그날의 암송(0052): 그 주의 내 부서 암송이 있으면 그것, 없으면 그해 몇째 주인지로 공용 암송.
+    /// 부서 암송은 실제 날짜라 해가 바뀌면 저절로 공용으로 돌아간다.
+    /// </summary>
+    private static async Task<(WeeklyVerse? Verse, Week Week)> VerseAsync(AppDbContext ctx, DateOnly date, CancellationToken ct)
+    {
+        var week = Week.Of(date, Rules.WeekStart);
+        var mine = await Current(ctx.WeeklyVerses.Where(v => v.TenantId != null && v.StartDate == week.Start)).FirstOrDefaultAsync(ct);
+        if (mine is not null) return (mine, week);
+        var no = (byte)week.NumberInYear;
+        return (await Current(ctx.WeeklyVerses.Where(v => v.TenantId == null && v.WeekNo == no)).FirstOrDefaultAsync(ct), week);
+    }
 
     private async Task<int> SeasonPointsAsync(AppDbContext ctx, int participantId, DateOnly today, CancellationToken ct)
     {
@@ -145,11 +158,11 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
                 if (act.DailyPrayerId is null) return Fail("오늘은 기도가 없어요.");
                 break;
             case Mission.Recite:
-                var v = await Current(ctx.WeeklyVerses.Where(x => x.StartDate <= date && x.EndDate >= date)).FirstOrDefaultAsync(ct);
+                var (v, week) = await VerseAsync(ctx, date, ct);
                 if (v is null) return Fail("이번 주 암송 말씀이 없어요.");
                 act.WeeklyVerseId = v.Id;
-                act.ReciteStartDate = v.StartDate;
-                if (await ctx.Activities.AnyAsync(a => a.ParticipantId == participantId && a.MissionItem == "Recite" && a.ReciteStartDate == v.StartDate, ct))
+                act.ReciteStartDate = week.Start;
+                if (await ctx.Activities.AnyAsync(a => a.ParticipantId == participantId && a.MissionItem == "Recite" && a.ReciteStartDate == week.Start, ct))
                     return await Already(ctx, participantId, today, "이번 주 암송은 이미 완료했어요.", ct);
                 break;
         }
@@ -245,7 +258,9 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
             .Select(a => new { a.MissionItem, a.MissionDate, a.Points, a.ReciteStartDate }).ToListAsync(ct);
         var reciteWeeks = await ctx.Activities.Where(a => a.ParticipantId == participantId && a.MissionItem == "Recite")
             .Select(a => a.ReciteStartDate!.Value).ToListAsync(ct);
-        var verses = await Current(ctx.WeeklyVerses.Where(v => v.StartDate <= end && v.EndDate >= first)).Select(v => new { v.StartDate, v.EndDate }).ToListAsync(ct);
+        var weekStarts = new List<DateOnly>();   // 이 달에 걸친 주 가운데 암송이 있는 주의 시작일
+        for (var w = Week.Of(first, Rules.WeekStart); w.Start <= end; w = new Week(w.Start.AddDays(7)))
+            if ((await VerseAsync(ctx, w.Start, ct)).Verse is not null) weekStarts.Add(w.Start);
 
         var list = new List<DayScore>();
         for (var d = first; d <= end; d = d.AddDays(1))
@@ -253,8 +268,8 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
             var day = acts.Where(a => a.MissionDate == d).ToList();
             int Sum(Mission m) => day.Where(a => MissionItemCodes.Parse(a.MissionItem).Mission() == m).Sum(a => a.Points);
             bool Has(Mission m) => day.Any(a => MissionItemCodes.Parse(a.MissionItem).Mission() == m);
-            var week = verses.FirstOrDefault(v => v.StartDate <= d && v.EndDate >= d);
-            var recited = week is not null && reciteWeeks.Contains(week.StartDate);
+            var ws = Week.Of(d, Rules.WeekStart).Start;
+            var recited = weekStarts.Contains(ws) && reciteWeeks.Contains(ws);
             list.Add(new DayScore(d, Sum(Mission.Word), Sum(Mission.Prayer), Sum(Mission.Quiz), Sum(Mission.Recite),
                 Has(Mission.Word) && Has(Mission.Prayer) && Has(Mission.Quiz) && recited));
         }

@@ -17,6 +17,7 @@ public sealed record VerseRange(byte Book, short StartChapter, short StartVerse,
 public sealed class ContentInput
 {
     public DateOnly Date { get; set; }
+    public byte WeekNo { get; set; }   // 암송만(0052)
     public string? Title { get; set; }
     public string? Summary { get; set; }
     public string? Commentary { get; set; }
@@ -43,6 +44,8 @@ public sealed class ContentInput
 
 public sealed record ContentDay(DateOnly Date, int? Id, string Status, string? Title);
 
+public sealed record ContentWeek(byte No, int? Id, string Status, string? Title);
+
 /// <summary>
 /// 플랫폼 공용 콘텐츠(TenantId NULL) 편집(API 계약 4-5, R-120 ~ R-124). 공용은 시스템 연결로만 쓴다(RLS fn_SharedWrite).
 /// - 초안은 그 자리에서 고친다.
@@ -67,32 +70,30 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
         return ctx;
     }
 
-    /// <summary>암송은 주(일요일 시작) 단위, 나머지는 날짜 단위.</summary>
-    public static IReadOnlyList<DateOnly> Slots(ContentKind kind, int year, int month)
-    {
-        var first = new DateOnly(year, month, 1);
-        var last = first.AddMonths(1).AddDays(-1);
-        if (kind != ContentKind.Recite) return Enumerable.Range(0, last.Day).Select(first.AddDays).ToList();
-        var s = first.AddDays(-(int)first.DayOfWeek);
-        if (s < first) s = s.AddDays(7);   // 그달 안에서 시작하는 주
-        var list = new List<DateOnly>();
-        for (; s <= last; s = s.AddDays(7)) list.Add(s);
-        return list;
-    }
-
+    /// <summary>날짜 단위 콘텐츠(말씀 · 기도 · 퀴즈)의 한 달. 암송은 <see cref="WeeksAsync"/>.</summary>
     public async Task<List<ContentDay>> MonthAsync(int actor, ContentKind kind, int year, int month, CancellationToken ct = default)
     {
+        if (kind == ContentKind.Recite) throw new ArgumentException("암송은 주 번호로 해요(WeeksAsync).", nameof(kind));
         await using var ctx = await OpenAsync(actor, ct);
-        var slots = Slots(kind, year, month);
-        var (from, to) = (slots[0], slots[^1]);
+        var from = new DateOnly(year, month, 1);
+        var to = from.AddMonths(1).AddDays(-1);
         var rows = kind switch
         {
             ContentKind.Word => await Shared(ctx.DailyWords).Where(x => x.ExposeDate >= from && x.ExposeDate <= to).Select(x => new { D = x.ExposeDate, x.Id, x.Status, T = x.Title }).ToListAsync(ct),
             ContentKind.Prayer => await Shared(ctx.DailyPrayers).Where(x => x.ExposeDate >= from && x.ExposeDate <= to).Select(x => new { D = x.ExposeDate, x.Id, x.Status, T = x.TraitName }).ToListAsync(ct),
-            ContentKind.Quiz => await Shared(ctx.DailyQuizzes).Where(x => x.ExposeDate >= from && x.ExposeDate <= to).Select(x => new { D = x.ExposeDate, x.Id, x.Status, T = x.Question }).ToListAsync(ct),
-            _ => await Shared(ctx.WeeklyVerses).Where(x => x.StartDate >= from && x.StartDate <= to).Select(x => new { D = x.StartDate, x.Id, x.Status, T = x.Title }).ToListAsync(ct),
+            _ => await Shared(ctx.DailyQuizzes).Where(x => x.ExposeDate >= from && x.ExposeDate <= to).Select(x => new { D = x.ExposeDate, x.Id, x.Status, T = x.Question }).ToListAsync(ct),
         };
-        return slots.Select(d => rows.FirstOrDefault(r => r.D == d) is { } r ? new ContentDay(d, r.Id, r.Status, r.T) : new ContentDay(d, null, "None", null)).ToList();
+        return Enumerable.Range(0, to.Day).Select(from.AddDays)
+            .Select(d => rows.FirstOrDefault(r => r.D == d) is { } r ? new ContentDay(d, r.Id, r.Status, r.T) : new ContentDay(d, null, "None", null)).ToList();
+    }
+
+    /// <summary>공용 암송 1 ~ 55주(0052). 해마다 1주부터 같은 순서로 쓰인다.</summary>
+    public async Task<List<ContentWeek>> WeeksAsync(int actor, CancellationToken ct = default)
+    {
+        await using var ctx = await OpenAsync(actor, ct);
+        var rows = await Shared(ctx.WeeklyVerses).Select(x => new { x.WeekNo, x.Id, x.Status, x.Title }).ToListAsync(ct);
+        return Enumerable.Range(1, WeeklyVerse.MaxWeekNo).Select(n => (byte)n)
+            .Select(n => rows.FirstOrDefault(r => r.WeekNo == n) is { } r ? new ContentWeek(n, r.Id, r.Status, r.Title) : new ContentWeek(n, null, "None", null)).ToList();
     }
 
     private static IQueryable<T> Shared<T>(IQueryable<T> q) where T : ContentBase => q.Where(x => x.TenantId == null && x.IsCurrent);
@@ -120,12 +121,19 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
                 i.CorrectIndex = ch.FindIndex(c => c.Id == q.CorrectChoiceId);
                 i.AcceptedAnswers = string.Join("\n", q.AcceptedAnswers.Select(a => a.NormalizedText));
                 return (i, q.Status, q.Id);
-            case ContentKind.Recite when await Shared(ctx.WeeklyVerses).SingleOrDefaultAsync(x => x.StartDate == date, ct) is { } v:
-                (i.Title, i.LessonNo, i.LessonSummary, i.LessonPoint, i.LessonApply) = (v.Title, v.LessonNo, v.LessonSummary, v.LessonPoint, v.LessonApply);
-                SetRange(i, v);
-                return (i, v.Status, v.Id);
         }
         return (i, "None", null);
+    }
+
+    /// <summary>공용 암송 no 주의 지금 값(없으면 빈 칸).</summary>
+    public async Task<(ContentInput Input, string Status, int? Id)> LoadWeekAsync(int actor, byte no, CancellationToken ct = default)
+    {
+        await using var ctx = await OpenAsync(actor, ct);
+        var i = new ContentInput { WeekNo = no };
+        if (await Shared(ctx.WeeklyVerses).SingleOrDefaultAsync(x => x.WeekNo == no, ct) is not { } v) return (i, "None", null);
+        (i.Title, i.LessonNo, i.LessonSummary, i.LessonPoint, i.LessonApply) = (v.Title, v.LessonNo, v.LessonSummary, v.LessonPoint, v.LessonApply);
+        SetRange(i, v);
+        return (i, v.Status, v.Id);
     }
 
     private static void SetRange(ContentInput i, RangedContent r) =>
@@ -166,7 +174,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
                 break;
             case ContentKind.Recite:
                 if (Blank(i.Title)) e["Title"] = "제목(질문)을 써 주세요.";
-                if (i.Date.DayOfWeek != DayOfWeek.Sunday) e["Date"] = "암송은 일요일에 시작하는 주 단위예요.";
+                if (i.WeekNo is < 1 or > WeeklyVerse.MaxWeekNo) e["Date"] = $"암송은 1 ~ {WeeklyVerse.MaxWeekNo}주 가운데 골라요.";
                 break;
         }
         return e;
@@ -190,7 +198,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
             ContentKind.Word => await Shared(ctx.DailyWords).SingleOrDefaultAsync(x => x.ExposeDate == input.Date, ct),
             ContentKind.Prayer => await Shared(ctx.DailyPrayers).SingleOrDefaultAsync(x => x.ExposeDate == input.Date, ct),
             ContentKind.Quiz => await Shared(ctx.DailyQuizzes).Include(x => x.Choices).Include(x => x.AcceptedAnswers).SingleOrDefaultAsync(x => x.ExposeDate == input.Date, ct),
-            _ => await Shared(ctx.WeeklyVerses).SingleOrDefaultAsync(x => x.StartDate == input.Date, ct),
+            _ => await Shared(ctx.WeeklyVerses).SingleOrDefaultAsync(x => x.WeekNo == input.WeekNo, ct),
         };
 
         ContentBase target;
@@ -252,7 +260,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
                 (q.ExposeDate, q.Question, q.Background, q.Format, q.Explanation) = (i.Date, i.Question!.Trim(), Trim(i.Background), i.Format, Trim(i.Explanation));
                 break;
             case WeeklyVerse v:
-                (v.StartDate, v.EndDate, v.Title) = (i.Date, i.Date.AddDays(6), i.Title!.Trim());
+                (v.WeekNo, v.Title) = (i.WeekNo, i.Title!.Trim());   // 공용은 날짜 없이 주 번호만(0052)
                 (v.LessonNo, v.LessonSummary, v.LessonPoint, v.LessonApply) = (i.LessonNo, Trim(i.LessonSummary), Trim(i.LessonPoint), Trim(i.LessonApply));
                 break;
         }
@@ -302,6 +310,20 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
             var (input, status, _) = await LoadAsync(actor, kind, d, ct);
             if (status != ContentStatus.Draft) continue;
             var e = await SaveAsync(actor, kind, input, publish: true, ct);
+            if (e.Ok) ok++; else skip++;
+        }
+        return (ok, skip);
+    }
+
+    /// <summary>고른 암송 초안(주 번호)들을 한꺼번에 공개.</summary>
+    public async Task<(int Published, int Skipped)> PublishWeeksAsync(int actor, IReadOnlyCollection<byte> weeks, CancellationToken ct = default)
+    {
+        var (ok, skip) = (0, 0);
+        foreach (var n in weeks)
+        {
+            var (input, status, _) = await LoadWeekAsync(actor, n, ct);
+            if (status != ContentStatus.Draft) continue;
+            var e = await SaveAsync(actor, ContentKind.Recite, input, publish: true, ct);
             if (e.Ok) ok++; else skip++;
         }
         return (ok, skip);
