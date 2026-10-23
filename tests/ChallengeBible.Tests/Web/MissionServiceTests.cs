@@ -213,6 +213,29 @@ public class MissionServiceTests
     }
 
     [Fact]
+    public async Task R72_R73_완주일은_네_미션을_모두_한_날_이번_달은_오늘까지()
+    {
+        var jan4 = new DateOnly(2027, 1, 4);
+        foreach (var d in new[] { jan4, Jan5 }) { ContentSeed.Word(_db, d); ContentSeed.Prayer(_db, d); }
+        var q4 = ContentSeed.ChoiceQuiz(_db, jan4);
+        ContentSeed.Verse(_db, new DateOnly(2027, 1, 3));
+        var s = Svc();
+        await s.PressAsync(_pid, MissionItem.WordMe, jan4);
+        await s.PressAsync(_pid, MissionItem.PrayerMe, jan4);
+        await s.AnswerQuizAsync(_pid, jan4, q4.CorrectChoiceId, null);
+        await s.PressAsync(_pid, MissionItem.Recite, Jan5);   // 암송은 5일에 했지만 그 주라 4일도 완주(R-72)
+        await s.PressAsync(_pid, MissionItem.WordMe, Jan5);
+
+        var month = await s.MonthAsync(_pid, 2027, 1);
+        Assert.Equal(5, month.Count);   // 1일 ~ 오늘(5일)
+        var d4 = month.Single(x => x.Date == jan4);
+        Assert.Equal((1, 1, 1, 0, 3, true), (d4.Word, d4.Prayer, d4.Quiz, d4.Recite, d4.Total, d4.Complete));
+        var d5 = month.Single(x => x.Date == Jan5);
+        Assert.Equal((2, false), (d5.Total, d5.Complete));
+        Assert.Empty(await s.MonthAsync(_pid, 2027, 2));   // 아직 오지 않은 달
+    }
+
+    [Fact]
     public async Task 승인하면_참여자_행이_생기고_역할을_빼면_멈춘다()
     {
         var admin = InMemoryDb.SeedAccount(_db, "eunhye", "이은혜");

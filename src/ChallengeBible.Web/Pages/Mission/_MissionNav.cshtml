@@ -10,4 +10,7 @@
     }
 </nav>
 <p id="toast" class="toast" role="status" hidden></p>
+@* 축하 창(확정 시안: 말씀-축하팝업)이 쓰는 값: 축하 단계 목록, 내 점수 주소, 부서 · 이름 *@
+<div id="cb-ms" hidden data-milestones="@string.Join(",", p.Data!.Rules.Milestones)" data-points="/@p.Slug/points"
+     data-who="@p.Tenant.Current.Name · @ChallengeBible.Web.Auth.CurrentUser.DisplayName(p.User)"></div>
 <script src="~/js/mission.js" asp-append-version="true"></script>

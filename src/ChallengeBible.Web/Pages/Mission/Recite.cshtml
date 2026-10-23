@@ -9,7 +9,7 @@
     }
     else
     {
-        <section class="sec"><h2><span class="n">01</span>이번 주 말씀 <small>@v.Start.ToString("M/d") ~ @v.End.ToString("M/d")</small></h2>
+        <section class="sec"><h2><span class="n">01</span>이번 주 말씀 <small>@v.Start.ToString("M'/'d") ~ @v.End.ToString("M'/'d")</small></h2>
             <p class="story big">@v.Range</p>
             @if (v.LessonNo is not null || v.Summary is not null) { <p class="hint">@(v.LessonNo is null ? "" : $"{v.LessonNo}과 · ")@v.Summary</p> }
         </section>

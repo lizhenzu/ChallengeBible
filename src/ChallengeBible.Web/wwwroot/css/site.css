@@ -252,3 +252,54 @@ details.create > summary::-webkit-details-marker { display: none; }
 .bars i { width: 100%; max-width: 28px; border-radius: 6px 6px 2px 2px; background: color-mix(in srgb, var(--accent) 40%, var(--bg)); }
 .bars .t i { background: var(--accent); }
 .bars span { font-size: 12px; color: var(--dim); }
+.score a { color: inherit; display: flex; flex-direction: column; }
+
+/* 내 점수 · 달력 (확정 시안: 말씀-내점수) */
+.pthead { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; }
+.pthead h1 { font-size: 24px; }
+.calbox { margin-top: 18px; padding: 14px; border: 1px solid var(--rule); border-radius: 18px; display: flex; flex-direction: column; gap: 8px; }
+.monbar { display: flex; align-items: center; justify-content: space-between; }
+.monbar a, .monbar span { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; font-size: 20px; }
+.monbar a { border: 1px solid var(--line); }
+.monbar b { font-size: 17px; }
+.dow, .grid42 { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; }
+.dow span { font-size: 12px; color: var(--dim); }
+.dow span:first-child { color: var(--bad); }
+.grid42 .c { aspect-ratio: 1 / 1; max-width: 100%; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; font-size: 13px; }
+.grid42 .c small { font-size: 11px; font-weight: 800; color: var(--accent); }
+.grid42 .out { color: var(--line); pointer-events: none; }
+.grid42 .fut { color: var(--dim); opacity: .5; pointer-events: none; }
+.grid42 .on { background: var(--accent-bg); }
+.grid42 .full { background: var(--accent); color: var(--on-accent); }
+.grid42 .full small { color: var(--on-accent); }
+.grid42 .today { box-shadow: inset 0 0 0 2px var(--fg); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--dim); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; vertical-align: -2px; margin-right: 4px; }
+.legend .lf { background: var(--accent); } .legend .lo { background: var(--accent-bg); } .legend .lt { box-shadow: inset 0 0 0 2px var(--fg); }
+.tblwrap { margin-top: 18px; overflow-x: auto; }
+table.pts { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.pts th { font-size: 12px; color: var(--dim); font-weight: 700; padding: 0 6px 8px; border-bottom: 1px solid var(--fg); text-align: center; }
+table.pts td { padding: 10px 6px; border-bottom: 1px solid var(--rule); text-align: center; }
+table.pts td.l { text-align: left; color: var(--dim); }
+table.pts td.l b { color: var(--fg); margin-right: 4px; }
+table.pts .sumc { font-weight: 900; }
+table.pts tr.today td { background: var(--accent-bg); }
+
+/* 축하 창 (확정 시안: 말씀-축하팝업) */
+:root { --gold: #C98A00; --gold-bg: #FFF4DE; }
+@media (prefers-color-scheme: dark) { :root { --gold: #F2C063; --gold-bg: #2E2614; } }
+.scrim { position: fixed; inset: 0; z-index: 60; background: rgba(17, 20, 26, .55); display: grid; place-items: center; padding: 20px max(20px, env(safe-area-inset-right, 0px)) 20px max(20px, env(safe-area-inset-left, 0px)); }
+.dlg { width: 100%; max-width: 380px; background: var(--bg); border-radius: 24px; padding: 28px 22px 18px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.dlg .who { font-size: 13px; font-weight: 700; color: var(--dim); }
+.medal { width: 128px; height: 128px; border-radius: 50%; background: var(--gold-bg); display: grid; place-items: center; box-shadow: inset 0 0 0 8px var(--gold-bg), inset 0 0 0 11px color-mix(in srgb, var(--gold) 60%, transparent); }
+.medal b { font-size: 34px; font-weight: 900; color: var(--gold); line-height: 1; }
+.medal small { display: block; margin-top: 4px; font-size: 13px; font-weight: 800; color: var(--gold); }
+.dlg h2 { margin: 4px 0 0; font-size: 23px; font-weight: 900; }
+.dlg p { margin: 0; color: var(--dim); }
+.got { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.got span { font-size: 13px; font-weight: 800; padding: 4px 10px; border-radius: 99px; background: var(--accent-bg); color: var(--accent); }
+.next { width: 100%; display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 14px; background: var(--soft); text-align: left; }
+.next .l { display: flex; justify-content: space-between; font-size: 13px; color: var(--dim); }
+.next .bar { height: 10px; border-radius: 99px; background: var(--rule); overflow: hidden; }
+.next .bar i { display: block; height: 100%; background: var(--accent); }
+.dlg .btn { width: 100%; }

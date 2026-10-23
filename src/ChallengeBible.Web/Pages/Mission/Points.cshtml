@@ -1,0 +1,60 @@
+@page "/{slug}/points"
+@model PointsModel
+@{
+    var ko = MissionPageBase.Ko;
+    var slug = Model.Tenant.Current.Slug;
+    var monthTotal = Model.Days.Sum(d => d.Total);
+    var doneDays = Model.Days.Count(d => d.Total > 0);
+}
+<header class="mtop gut"><div class="wrap">
+    <nav class="crumb"><a href="/@slug">홈으로</a> · <a href="/@slug/word-mission">미션홈</a></nav>
+    <span class="date">@Model.Today.ToString("M월 d일 dddd", ko)</span>
+</div></header>
+<main class="mbody gut"><div class="wrap">
+    <div class="pthead">
+        <h1>내 점수</h1>
+        <div class="score"><div><small>올해 점수</small><b class="num">@Model.SeasonPoints.ToString("N0")<u>점</u></b></div>
+            <div><small>@(Model.First.Month)월 · @(doneDays)일 했어요</small><b class="num">@monthTotal<u>점</u></b></div></div>
+    </div>
+
+    @if (Model.ParticipantId is null) { <p class="note-block">참여자만 점수가 있어요. 보호자 · 선생님은 보기만 해요.</p> }
+
+    <section class="calbox" aria-label="달력">
+        <div class="monbar">
+            <a href="@Model.MonthLink(-1)" aria-label="이전 달">‹</a>
+            <b class="num">@Model.First.ToString("yyyy년 M월")</b>
+            @if (Model.HasNext) { <a href="@Model.MonthLink(1)" aria-label="다음 달">›</a> } else { <span></span> }
+        </div>
+        <div class="dow" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+        <div class="grid42">
+            @foreach (var d in Model.Cells())
+            {
+                var inMonth = d.Month == Model.First.Month;
+                var s = inMonth ? Model.ScoreOf(d) : null;   // R-71: 다른 달 칸에는 점수 없음
+                var cls = !inMonth ? "out" : s?.Complete == true ? "full" : s?.Total > 0 ? "on" : d > Model.Today ? "fut" : "";
+                <a class="c @cls @(d == Model.Today ? "today" : "")" href="/@slug/word-mission?date=@d.ToString("yyyy-MM-dd")" aria-label="@d.ToString("M월 d일") @(s?.Total ?? 0)점@(s?.Complete == true ? ", 완주" : "")">
+                    <span class="num">@d.Day</span>@if (s is { Total: > 0 }) { <small class="num">@s.Total</small> }
+                </a>
+            }
+        </div>
+        <div class="legend"><span><i class="lf"></i>완주(말씀 · 기도 · 퀴즈 · 암송)</span><span><i class="lo"></i>점수 있는 날</span><span><i class="lt"></i>오늘</span></div>
+    </section>
+
+    @if (Model.Days.Count > 0)
+    {
+        <div class="tblwrap"><table class="pts">
+            <thead><tr><th>날짜</th><th>말씀</th><th>퀴즈</th><th>기도</th><th>암송</th><th>합계</th></tr></thead>
+            <tbody>
+                @foreach (var d in Model.Days.Reverse())
+                {
+                    <tr class="@(d.Date == Model.Today ? "today" : "")">
+                        <td class="l"><a href="/@slug/word-mission?date=@d.Date.ToString("yyyy-MM-dd")"><b class="num">@d.Date.Day</b> @d.Date.ToString("ddd", ko)</a></td>
+                        <td class="num">@(d.Word > 0 ? d.Word : "–")</td><td class="num">@(d.Quiz > 0 ? d.Quiz : "–")</td>
+                        <td class="num">@(d.Prayer > 0 ? d.Prayer : "–")</td><td class="num">@(d.Recite > 0 ? d.Recite : "–")</td>
+                        <td class="num sumc">@d.Total</td>
+                    </tr>
+                }
+            </tbody>
+        </table></div>
+    }
+</div></main>

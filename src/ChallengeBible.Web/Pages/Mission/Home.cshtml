@@ -29,7 +29,7 @@
             <p class="note-block">곧 시작해요! @Model.SeasonStart.ToString("M월 d일")부터 미션을 할 수 있어요.</p>   @* 0028 *@
         }
         <div class="score">
-            <div><small>올해 점수</small><b class="num">@d.SeasonPoints.ToString("N0")<u>점</u></b></div>
+            <div><a href="/@Model.Slug/points"><small>올해 점수 · 내 점수 보기 ›</small><b class="num">@d.SeasonPoints.ToString("N0")<u>점</u></b></a></div>
             @if (Model.NextMilestone is int nm) { <div><small>다음 축하까지</small><b class="num">@((nm - d.SeasonPoints).ToString("N0"))<u>점</u></b></div> }
         </div>
     </section>
@@ -40,7 +40,7 @@
         @for (var i = 0; i < r.GraceDays; i++)
         {
             var day = d.Today.AddDays(-i);
-            <a href="@(i == 0 ? $"/{Model.Slug}/word-mission" : $"/{Model.Slug}/word-mission?date={day:yyyy-MM-dd}")" aria-current="@(day == Model.Day ? "page" : "false")">@(i == 0 ? "오늘" : i == 1 ? "어제" : day.ToString("M/d"))</a>
+            <a href="@(i == 0 ? $"/{Model.Slug}/word-mission" : $"/{Model.Slug}/word-mission?date={day:yyyy-MM-dd}")" aria-current="@(day == Model.Day ? "page" : "false")">@(i == 0 ? "오늘" : i == 1 ? "어제" : day.ToString("M'/'d"))</a>
         }
     </nav>
 

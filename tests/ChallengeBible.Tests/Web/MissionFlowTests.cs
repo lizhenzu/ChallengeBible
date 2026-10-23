@@ -126,6 +126,20 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task 내_점수는_42칸_달력과_날짜별_표()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var t = await PageToken(c, "/jamsil-kids/word");
+        await Api(c, t, "/api/jamsil-kids/missions/word", new { date = "2027-01-05", items = new[] { "Word.Me", "Word.Parent" } });
+
+        var html = await c.GetStringAsync("/jamsil-kids/points");
+        Assert.Equal(42, Regex.Matches(html, "class=\"c ").Count);   // R-70
+        Assert.Contains("2027년 1월", html);
+        Assert.Contains("aria-label=\"1월 5일 2점\"", html);
+        Assert.Equal("/jamsil-kids/points?month=2027-01", (await c.GetAsync("/jamsil-kids/calendar?month=2027-01")).Headers.Location!.OriginalString);
+    }
+
+    [Fact]
     public async Task 미션_홈은_남은_미션과_날짜_칩을_보여준다()
     {
         var c = await Member("cheolsu", Roles.Participant);
@@ -133,6 +147,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("김철수님, 안녕하세요", html);
         Assert.Contains("말씀 · 퀴즈가 남았어요", html);   // 기도 · 암송은 콘텐츠가 없어서 남은 것에 안 들어감
         Assert.Contains(">어제<", html);
+        Assert.Contains(">1/3<", html);   // 서버 문화권과 상관없이 "/"
         Assert.Contains("다음 축하까지", html);
     }
 }

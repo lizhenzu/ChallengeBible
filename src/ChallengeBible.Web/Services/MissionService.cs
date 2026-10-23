@@ -28,6 +28,11 @@ public sealed record MissionDay(
     IReadOnlySet<MissionItem> Done, bool RecitedThisWeek, QuizStateView QuizState,
     int DayPoints, int SeasonPoints, RuleSet Rules);
 
+public sealed record DayScore(DateOnly Date, int Word, int Prayer, int Quiz, int Recite, bool Complete)
+{
+    public int Total => Word + Prayer + Quiz + Recite;
+}
+
 public sealed record MissionResult(bool Ok, int Added, int SeasonPoints, IReadOnlyList<int> NewMilestones, string Message, bool? Correct = null);
 
 /// <summary>
@@ -219,6 +224,38 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
         var rows = await ctx.PointLedgers.Where(l => l.ParticipantId == participantId && l.MissionDate >= start && l.MissionDate <= end)
             .GroupBy(l => l.MissionDate).Select(g => new { g.Key, P = g.Sum(x => x.Points) }).ToListAsync(ct);
         return Enumerable.Range(0, 7).Select(i => start.AddDays(i)).Select(d => (d, rows.FirstOrDefault(r => r.Key == d)?.P ?? 0)).ToList();
+    }
+
+    /// <summary>
+    /// 한 달 날짜별 점수(R-71 · R-76)와 완주일(R-72: 말씀 · 기도 · 퀴즈 · 그 주 암송을 모두 함).
+    /// 이번 달이면 오늘까지만(R-73).
+    /// </summary>
+    public async Task<IReadOnlyList<DayScore>> MonthAsync(int participantId, int year, int month, CancellationToken ct = default)
+    {
+        var first = new DateOnly(year, month, 1);
+        var last = first.AddMonths(1).AddDays(-1);
+        var end = last < Today ? last : Today;
+        if (end < first) return [];
+        await using var ctx = db.Create();
+        var acts = await ctx.Activities.AsNoTracking()
+            .Where(a => a.ParticipantId == participantId && a.MissionDate >= first.AddDays(-6) && a.MissionDate <= end)
+            .Select(a => new { a.MissionItem, a.MissionDate, a.Points, a.ReciteStartDate }).ToListAsync(ct);
+        var reciteWeeks = await ctx.Activities.Where(a => a.ParticipantId == participantId && a.MissionItem == "Recite")
+            .Select(a => a.ReciteStartDate!.Value).ToListAsync(ct);
+        var verses = await Current(ctx.WeeklyVerses.Where(v => v.StartDate <= end && v.EndDate >= first)).Select(v => new { v.StartDate, v.EndDate }).ToListAsync(ct);
+
+        var list = new List<DayScore>();
+        for (var d = first; d <= end; d = d.AddDays(1))
+        {
+            var day = acts.Where(a => a.MissionDate == d).ToList();
+            int Sum(Mission m) => day.Where(a => MissionItemCodes.Parse(a.MissionItem).Mission() == m).Sum(a => a.Points);
+            bool Has(Mission m) => day.Any(a => MissionItemCodes.Parse(a.MissionItem).Mission() == m);
+            var week = verses.FirstOrDefault(v => v.StartDate <= d && v.EndDate >= d);
+            var recited = week is not null && reciteWeeks.Contains(week.StartDate);
+            list.Add(new DayScore(d, Sum(Mission.Word), Sum(Mission.Prayer), Sum(Mission.Quiz), Sum(Mission.Recite),
+                Has(Mission.Word) && Has(Mission.Prayer) && Has(Mission.Quiz) && recited));
+        }
+        return list;
     }
 
     /// <summary>다음 축하 단계까지 남은 점수(없으면 null).</summary>

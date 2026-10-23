@@ -24,8 +24,37 @@
     if (season && typeof json.seasonTotal === 'number' && json.seasonTotal > 0) season.textContent = json.seasonTotal.toLocaleString('ko-KR');
     const day = document.querySelector('[data-daypoints]');
     if (day && json.pointsEarned > 0) day.textContent = String(Number(day.textContent) + json.pointsEarned);
-    if (json.milestonesReached?.length) say(`${json.milestonesReached.at(-1).toLocaleString('ko-KR')}점을 넘었어요! 축하해요`);   // 축하 창은 다음 단계
+    if (json.milestonesReached?.length) celebrate(json.milestonesReached.at(-1), json);
     else say(json.message);
+  }
+
+  // 축하 창(R-101, 확정 시안: 말씀-축하팝업). 단계를 처음 넘을 때만 뜬다.
+  function celebrate(m, json) {
+    const box = document.getElementById('cb-ms');
+    const steps = (box?.dataset.milestones ?? '').split(',').map(Number).filter(Boolean);
+    const next = steps.find((s) => s > m);
+    const total = json.seasonTotal;
+    const fmt = (n) => n.toLocaleString('ko-KR');
+    const last = steps.length && m === steps.at(-1);
+    const dlg = document.createElement('div');
+    dlg.className = 'scrim';
+    dlg.innerHTML = `<section class="dlg" role="dialog" aria-modal="true" aria-labelledby="cT">
+      <span class="who"></span>
+      <div class="medal"><div><b class="num">${fmt(m)}</b><small>점 돌파</small></div></div>
+      <h2 id="cT">${last ? '올해 목표를 이뤘어요!' : `${fmt(m)}점을 넘었어요!`}</h2>
+      <div class="got"><span>+${json.pointsEarned}점</span><span>올해 총 ${fmt(total)}점</span></div>
+      <p>${last ? '한 해 동안 말씀과 함께해 줘서 고마워요.' : '매일 말씀과 함께한 시간이 쌓였어요.'}</p>
+      ${next ? `<div class="next"><div class="l"><span>다음 목표 <b>${fmt(next)}점</b></span><span>${fmt(next - total)}점 남음</span></div>
+        <div class="bar"><i style="width:${Math.min(100, total / steps.at(-1) * 100)}%"></i></div></div>` : ''}
+      <button type="button" class="btn p" data-close>고마워요</button>
+      <a class="btn t" href="${box?.dataset.points ?? '#'}">내 점수 보기</a>
+    </section>`;
+    dlg.querySelector('.who').textContent = box?.dataset.who ?? '';
+    const close = () => dlg.remove();
+    dlg.addEventListener('click', (e) => { if (e.target === dlg || e.target.closest('[data-close]')) close(); });
+    document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc); } });
+    document.body.appendChild(dlg);
+    dlg.querySelector('[data-close]').focus();
   }
 
   // 말씀 · 기도 · 암송 항목
