@@ -146,8 +146,10 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         var html = await c.GetStringAsync("/jamsil-kids/word-mission");
         Assert.Contains("김철수님, 안녕하세요", html);
         Assert.Contains("말씀 · 퀴즈가 남았어요", html);   // 기도 · 암송은 콘텐츠가 없어서 남은 것에 안 들어감
-        Assert.Contains(">어제<", html);
-        Assert.Contains(">1/3<", html);   // 서버 문화권과 상관없이 "/"
-        Assert.Contains("다음 축하까지", html);
+        // 확정 시안: 날짜 칩 대신 달력에서 날짜를 눌러 그날 미션을 본다(오늘 이전 날짜는 ?date= 링크)
+        Assert.Contains("?date=2027-01-04", html);
+        Assert.Contains("class=\"mh-grid\"", html);
+        Assert.Contains("class=\"mh-m word", html);
+        Assert.Contains("올해 총 점수", html);
     }
 }

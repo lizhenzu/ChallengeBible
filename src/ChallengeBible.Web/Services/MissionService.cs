@@ -258,6 +258,23 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
         return list;
     }
 
+    /// <summary>
+    /// 이어온 날 수: 끝날(보통 오늘)부터 거슬러 미션을 하나라도 한 날이 이어진 만큼.
+    /// 끝날에 아직 한 게 없어도 어제까지 이어졌으면 끊기지 않은 것으로 센다(오늘 아직 안 했을 뿐).
+    /// </summary>
+    public async Task<int> StreakAsync(int participantId, DateOnly end, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var from = end.AddDays(-400);
+        var days = (await ctx.Activities.AsNoTracking()
+            .Where(a => a.ParticipantId == participantId && a.MissionDate >= from && a.MissionDate <= end)
+            .Select(a => a.MissionDate).Distinct().ToListAsync(ct)).ToHashSet();
+        var d = days.Contains(end) ? end : end.AddDays(-1);
+        var n = 0;
+        while (days.Contains(d)) { n++; d = d.AddDays(-1); }
+        return n;
+    }
+
     /// <summary>다음 축하 단계까지 남은 점수(없으면 null).</summary>
     public static int? NextMilestone(int seasonPoints) => Rules.Milestones.Where(m => m > seasonPoints).Order().Cast<int?>().FirstOrDefault();
 
