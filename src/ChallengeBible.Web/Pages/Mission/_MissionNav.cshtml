@@ -1,12 +1,23 @@
 @model ChallengeBible.Web.Pages.Mission.MissionNav
+@using ChallengeBible.Domain.Missions
 @{
     var p = Model.Page;
-    (string Key, string Label)[] tabs = [("word", "말씀"), ("quiz", "퀴즈"), ("prayer", "기도"), ("recite", "암송")];
+    var d = p.Data!;
+    bool Done(Mission m) => m == Mission.Recite ? d.RecitedThisWeek : d.Done.Any(i => i.Mission() == m);
+    (string Key, string Label, Mission M, bool Has)[] tabs =
+    [
+        ("word", "말씀", Mission.Word, d.Word is not null), ("quiz", "퀴즈", Mission.Quiz, d.Quiz is not null),
+        ("prayer", "기도", Mission.Prayer, d.Prayer is not null), ("recite", "암송", Mission.Recite, d.Recite is not null),
+    ];
 }
+@* 확정 시안: 아래 미션 메뉴 — 이름 밑에 완료 · 진행중 · 아직 *@
 <nav class="mnav" aria-label="미션">
-    @foreach (var (key, label) in tabs)
+    @foreach (var (key, label, m, has) in tabs)
     {
-        <a href="@p.Link(key)" aria-current="@(key == Model.Current ? "page" : "false")">@label</a>
+        var done = has && Done(m);
+        var here = key == Model.Current;
+        var state = !has ? "없음" : done ? "완료" : key == "quiz" && d.Quiz is not null && d.QuizState.State != QuizState.CanTry ? "끝남" : here ? "진행중" : "아직";
+        <a href="@p.Link(key)" class="@(done ? "dn" : "")" aria-current="@(here ? "page" : "false")" data-nav="@key"><span class="L">@label</span><span class="S @(done ? "done" : "")">@state</span></a>
     }
 </nav>
 <p id="toast" class="toast" role="status" hidden></p>

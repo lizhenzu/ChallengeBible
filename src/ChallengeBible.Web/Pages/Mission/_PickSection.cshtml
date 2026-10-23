@@ -1,0 +1,22 @@
+@model ChallengeBible.Web.Pages.Mission.PickSection
+@using ChallengeBible.Domain.Missions
+@* 확정 시안: 말씀 · 기도 미션의 선택 구역 — 번호는 하나라도 했으면 초록, 안내 문구, 하나만 눌러도 미션 완료 *@
+@{
+    var p = Model.Page; var d = p.Data!;
+    var items = d.Rules.Items.Where(i => i.Enabled && i.Item.Mission() == Model.Mission).ToList();
+    var n = items.Count(i => d.Done.Contains(i.Item));
+    var total = items.Sum(i => i.Points);
+}
+<section class="sec @(n > 0 ? "done" : "")" data-pickbox>
+    <h2><span class="n">@Model.No</span>@Model.Title <small data-pickstate>@(n == 0 ? "눌러서 알려 주세요" : n == items.Count ? "모두 했어요" : "미션 완료")</small></h2>
+    <div class="picks" data-api="@Model.Api">
+        @foreach (var item in items)
+        {
+            var done = d.Done.Contains(item.Item);
+            <button type="button" class="pick" data-item="@item.Item.Code()" aria-pressed="@(done ? "true" : "false")" disabled="@(!p.CanAct || done)">
+                <span class="ck" aria-hidden="true">✓</span><b>@item.DisplayName</b><span class="pt">@(done ? "완료 · " : "")@(item.Points)점</span>
+            </button>
+        }
+    </div>
+    @if (items.Count > 1) { <p class="pnote">둘 중 하나만 눌러도 미션 완료예요 · 둘 다 하면 @(total)점</p> }
+</section>

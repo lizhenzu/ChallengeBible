@@ -9,6 +9,9 @@ namespace ChallengeBible.Web.Pages.Mission;
 /// <summary>_MissionHead 모델.</summary>
 public sealed record MissionHead(MissionPageBase Page, string Label, string Title, string? Ref);
 
+/// <summary>_PickSection 모델: "어떻게 했나요?" 선택 구역(말씀 · 기도).</summary>
+public sealed record PickSection(MissionPageBase Page, string No, string Title, ChallengeBible.Domain.Rules.Mission Mission, string Api);
+
 /// <summary>_MissionNav 모델.</summary>
 public sealed record MissionNav(MissionPageBase Page, string Current);
 
