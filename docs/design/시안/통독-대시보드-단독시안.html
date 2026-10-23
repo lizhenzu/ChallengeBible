@@ -201,8 +201,8 @@
   <div class="dk">목차</div>
   <div class="menu">
     <a href="#" aria-current="page">대시보드</a>
-    <a href="#books">구약 읽기<small class="num">23 / 929</small></a>
-    <a href="#books">신약 읽기<small class="num">0 / 260</small></a>
+    <a href="https://claude.ai/artifact/XouqXnmrRwpMfJYNiQCqa6">구약 읽기<small class="num">23 / 929</small></a>
+    <a href="https://claude.ai/artifact/XouqXnmrRwpMfJYNiQCqa6#nt">신약 읽기<small class="num">0 / 260</small></a>
     <a href="#search">성경 검색</a>
     <a href="#bookmarks">북마크<small class="num">4</small></a>
     <a href="#people">참여자 현황</a>
@@ -210,9 +210,9 @@
   <div class="dk">빠른 이동</div>
   <div class="quick">
     <a href="https://claude.ai/artifact/2WtQWyBgeUqbx6R9a8bzLZ">창세기<span>24장</span></a>
-    <a href="#books">마태복음<span>1장</span></a>
-    <a href="#books">시편<span>23편</span></a>
-    <a href="#books">요한복음<span>3장</span></a>
+    <a href="https://claude.ai/artifact/XouqXnmrRwpMfJYNiQCqa6">마태복음<span>1장</span></a>
+    <a href="https://claude.ai/artifact/XouqXnmrRwpMfJYNiQCqa6">시편<span>23편</span></a>
+    <a href="https://claude.ai/artifact/XouqXnmrRwpMfJYNiQCqa6">요한복음<span>3장</span></a>
   </div>
   <div class="dfoot">
     <a href="https://claude.ai/artifact/QYa8ThNwp18tv4drEP7ae2">도전!!!성경말씀으로 가기 →</a>
@@ -222,6 +222,7 @@
 
 <script>
   const $ = (id) => document.getElementById(id);
+  const BOOKS = 'https://claude.ai/artifact/XouqXnmrRwpMfJYNiQCqa6';
   function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); }
   // [이름, 장 수, 읽은 장]
   const OT = [['창세기', 50, 23], ['출애굽기', 40], ['레위기', 27], ['민수기', 36], ['신명기', 34], ['여호수아', 24], ['사사기', 21], ['룻기', 4], ['사무엘상', 31], ['사무엘하', 24], ['열왕기상', 22], ['열왕기하', 25], ['역대상', 29], ['역대하', 36], ['에스라', 10], ['느헤미야', 13], ['에스더', 10], ['욥기', 42], ['시편', 150], ['잠언', 31], ['전도서', 12], ['아가', 8], ['이사야', 66], ['예레미야', 52], ['예레미야애가', 5], ['에스겔', 48], ['다니엘', 12], ['호세아', 14], ['요엘', 3], ['아모스', 9], ['오바댜', 1], ['요나', 4], ['미가', 7], ['나훔', 3], ['하박국', 3], ['스바냐', 3], ['학개', 2], ['스가랴', 14], ['말라기', 4]];
@@ -229,7 +230,7 @@
 
   // 다음에 읽을 곳: 읽던 책의 다음 장 + 각 큰 묶음의 첫 안 읽은 장
   const NEXT = [['창세기', '24장', 1], ['출애굽기', '1장'], ['시편', '1편'], ['잠언', '1장'], ['마태복음', '1장'], ['요한복음', '1장']];
-  $('next').innerHTML = NEXT.map(([b, c, cur]) => `<a href="${cur ? 'https://claude.ai/artifact/2WtQWyBgeUqbx6R9a8bzLZ' : '#books'}">${b}<span>${c}</span></a>`).join('');
+  $('next').innerHTML = NEXT.map(([b, c, cur]) => `<a href="${cur ? 'https://claude.ai/artifact/2WtQWyBgeUqbx6R9a8bzLZ' : BOOKS}">${b}<span>${c}</span></a>`).join('');
 
   // 최근 8주(2026-11-15 일 ~ 2027-01-09 토). 1월 1일부터 시작
   const READ = { '1/1': 3, '1/2': 4, '1/3': 6, '1/4': 5, '1/5': 5 };
@@ -245,7 +246,7 @@
   let tab = 'ot';
   function books() {
     const L = tab === 'ot' ? OT : NT;
-    $('books').innerHTML = L.map(([n, c, r = 0]) => `<a href="${r ? 'https://claude.ai/artifact/2WtQWyBgeUqbx6R9a8bzLZ' : '#books'}" class="${r ? 'on' : ''}" title="${n} ${r}/${c}장">${n}<span class="num">${r}/${c}</span><i style="width:${r / c * 100}%"></i></a>`).join('');
+    $('books').innerHTML = L.map(([n, c, r = 0]) => `<a href="${r ? 'https://claude.ai/artifact/2WtQWyBgeUqbx6R9a8bzLZ' : BOOKS + (tab === 'nt' ? '#nt' : '')}" class="${r ? 'on' : ''}" title="${n} ${r}/${c}장">${n}<span class="num">${r}/${c}</span><i style="width:${r / c * 100}%"></i></a>`).join('');
     const done = L.filter(([, c, r = 0]) => r === c).length, started = L.filter(([, , r = 0]) => r > 0).length;
     $('bookSum').textContent = `다 읽은 책 ${done}권 · 읽는 중 ${started - done}권`;
     document.querySelectorAll('.seg button').forEach((b) => b.setAttribute('aria-selected', b.dataset.t === tab));
@@ -264,6 +265,6 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('drawer').hidden) menu(false); });
   document.querySelector('.menu a[aria-current]').addEventListener('click', (e) => { e.preventDefault(); menu(false); });
 
-  const NAMES = { '#books': '성경 목록', '#search': '성경 검색', '#bookmarks': '북마크', '#people': '참여자 현황' };
+  const NAMES = { '#search': '성경 검색', '#bookmarks': '북마크', '#people': '참여자 현황' };
   document.addEventListener('click', (e) => { const a = e.target.closest('a[href^="#"]'); if (!a || !NAMES[a.getAttribute('href')]) return; e.preventDefault(); toast(`${NAMES[a.getAttribute('href')]} 화면으로 가요 (다음 시안)`); });
 </script>

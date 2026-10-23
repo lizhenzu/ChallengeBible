@@ -1,0 +1,248 @@
+<title>통독 성경 목록 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap">
+<style>
+  /* 레이아웃(Bible2 구약 읽기 구성): 위쪽 줄(☰ · 홈으로 · 성경통독 / 날짜) → 구약 · 신약 탭 → 합계(큰 % · 장 수 · 막대) → 묶음별 책 칸 → 책을 누르면 그 줄 아래에 장 번호 판(읽으러 가기 / 다 읽음 표시 두 가지) */
+  :root {
+    --bg: #FFFFFF; --band: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --on-accent: #FFFFFF; --tint: #E8EEFA; --tint-fg: #2B59C3; --chip: #F5F6F8; --ok: #16A34A; --ok-bg: #EAF7EF;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #15181C; --band: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #6E95F0; --on-accent: #0E1013; --tint: #22304A; --tint-fg: #9DB7F5; --chip: #1E2329; --ok: #5CC98A; --ok-bg: #1B2A22; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #15181C; --band: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #6E95F0; --on-accent: #0E1013; --tint: #22304A; --tint-fg: #9DB7F5; --chip: #1E2329; --ok: #5CC98A; --ok-bg: #1B2A22; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--band); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+  .k { font-size: 13px; font-weight: 700; letter-spacing: .16em; color: var(--accent); }
+
+  .band { background: var(--band); }
+  .band .wrap { padding-block: 12px 0; display: flex; flex-direction: column; gap: 12px; }
+  .bar1 { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+  .sq { flex: none; width: 44px; height: 40px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); display: grid; place-items: center; }
+  .crumb { flex: 1; min-width: 0; font-size: 14px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .crumb a { color: var(--fg); font-weight: 700; }
+  .date { flex: none; font-size: 13px; color: var(--dim); }
+  .tabs { display: flex; gap: 0; margin-bottom: -1px; }
+  .tabs a { flex: 1; min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; color: var(--dim); border-bottom: 3px solid transparent; }
+  .tabs a[aria-current] { color: var(--fg); font-weight: 800; border-color: var(--accent); }
+
+  main .wrap { padding-block: 20px 56px; display: flex; flex-direction: column; gap: 22px; }
+  .sum { display: flex; flex-direction: column; gap: 8px; }
+  .sum .row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .sum .big { font-size: 44px; font-weight: 300; line-height: 1; }
+  .sum .big small { font-size: 20px; margin-left: 2px; }
+  .sum .r { text-align: right; font-size: 13px; color: var(--dim); line-height: 1.6; }
+  .sum .r b { color: var(--fg); font-size: 15px; }
+  .pg { height: 4px; background: var(--rule); }
+  .pg i { display: block; height: 4px; background: var(--accent); min-width: 4px; }
+
+  .grp { display: flex; flex-direction: column; gap: 8px; }
+  .grp h2 { margin: 0; display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--dim); }
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  @media (min-width: 600px) { .grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+  .bk { position: relative; overflow: hidden; min-height: 54px; padding: 8px 10px 10px; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); text-align: left; display: flex; flex-direction: column; justify-content: center; line-height: 1.3; min-width: 0; }
+  .bk b { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bk small { font-size: 11.5px; color: var(--dim); }
+  .bk.on small { color: var(--accent); font-weight: 700; }
+  .bk.full { background: var(--tint); border-color: var(--tint); }
+  .bk.full small { color: var(--tint-fg); }
+  .bk i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--accent); }
+  .bk[aria-expanded="true"] { border-color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+
+  .panel { grid-column: 1 / -1; border: 1px solid var(--fg); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px; background: var(--bg); }
+  .ph { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .ph b { font-size: 20px; font-weight: 700; }
+  .ph small { font-size: 13px; color: var(--dim); }
+  .mode { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: 10px; background: var(--chip); padding: 3px; }
+  .mode button { min-height: 40px; border: 0; border-radius: 8px; background: none; font-size: 14px; font-weight: 700; color: var(--dim); }
+  .mode button[aria-pressed="true"] { background: var(--bg); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  .mhint { margin: -6px 0 0; font-size: 12.5px; color: var(--dim); }
+  .chs { display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 8px; }
+  .chs button, .chs a { aspect-ratio: 1; max-width: 100%; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 700; border: 0; background: var(--chip); color: var(--dim); }
+  .chs .rd { background: var(--tint); color: var(--tint-fg); }
+  .chs .cur { box-shadow: inset 0 0 0 2px var(--accent); color: var(--accent); }
+  .marking .chs button { border: 1px dashed var(--line); }
+  .marking .chs button.rd { border: 0; background: var(--accent); color: var(--on-accent); }
+  .lg { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--dim); }
+  .lg i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -2px; margin-right: 4px; }
+  .go { display: flex; gap: 8px; }
+  .go button, .go a { min-height: 48px; padding: 0 16px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; }
+  .go button { border: 1px solid var(--line); background: var(--bg); }
+  .go a { flex: 1; background: var(--accent); color: var(--on-accent); }
+
+  .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(17,20,26,.45); }
+  .drawer { position: fixed; z-index: 41; top: 0; bottom: 0; left: 0; width: min(300px, 86vw); background: var(--band); display: flex; flex-direction: column; padding: calc(8px + env(safe-area-inset-top, 0px)) 0 calc(18px + env(safe-area-inset-bottom, 0px)) env(safe-area-inset-left, 0px); overflow-y: auto; }
+  .dh { display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 20px; min-height: 52px; }
+  .dh b { font-size: 16px; font-weight: 800; color: var(--accent); }
+  .dh button { width: 44px; height: 44px; border: 0; background: none; font-size: 22px; }
+  .menu a { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 20px; font-size: 15px; }
+  .menu a[aria-current] { background: var(--bg); font-weight: 800; }
+  .menu a[aria-current]::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .menu a small { margin-left: auto; font-size: 12px; color: var(--dim); }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; display: flex; align-items: center; gap: 12px; background: var(--fg); color: var(--bg); padding: 10px 10px 10px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; max-width: calc(100vw - 40px); }
+  .toast button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--bg); color: var(--fg); font-weight: 800; }
+  .toast.plain { padding-right: 18px; }
+</style>
+
+<div class="band gut"><div class="wrap">
+  <div class="bar1">
+    <button type="button" class="sq" id="openMenu" aria-label="목차 열기" aria-expanded="false">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <span class="crumb"><a href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">홈으로</a> · <a href="https://claude.ai/artifact/EKDPu67xqjtGoJdyybFnrC">성경통독</a></span>
+    <span class="date">1월 5일 화요일</span>
+  </div>
+  <nav class="tabs" aria-label="구약 · 신약">
+    <a href="#ot" data-t="ot">구약</a>
+    <a href="#nt" data-t="nt">신약</a>
+  </nav>
+</div></div>
+
+<main class="gut"><div class="wrap">
+  <div class="sum">
+    <span class="k" id="sumK">구약 전체</span>
+    <div class="row">
+      <span class="big num" id="sumPct"></span>
+      <span class="r"><b class="num" id="sumRead"></b><br><span class="num" id="sumOf"></span></span>
+    </div>
+    <div class="pg"><i id="sumBar"></i></div>
+  </div>
+  <div id="groups" style="display:flex;flex-direction:column;gap:22px"></div>
+</div></main>
+
+<div class="scrim" id="scrim" hidden></div>
+<nav class="drawer" id="drawer" aria-label="성경 통독 목차" hidden>
+  <div class="dh"><b>도전!!!성경통독</b><button type="button" id="closeMenu" aria-label="목차 닫기">×</button></div>
+  <div class="menu">
+    <a href="https://claude.ai/artifact/EKDPu67xqjtGoJdyybFnrC">대시보드</a>
+    <a href="#ot" data-t="ot" id="mOt">구약 읽기<small class="num" id="mOtN"></small></a>
+    <a href="#nt" data-t="nt" id="mNt">신약 읽기<small class="num" id="mNtN"></small></a>
+    <a href="#x">성경 검색</a>
+    <a href="#x">북마크<small class="num">4</small></a>
+    <a href="#x">참여자 현황</a>
+  </div>
+</nav>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const READ_URL = 'https://claude.ai/artifact/2WtQWyBgeUqbx6R9a8bzLZ';
+  // 묶음 → [책, 장 수]
+  const OT = [
+    ['율법서', [['창세기', 50], ['출애굽기', 40], ['레위기', 27], ['민수기', 36], ['신명기', 34]]],
+    ['역사서', [['여호수아', 24], ['사사기', 21], ['룻기', 4], ['사무엘상', 31], ['사무엘하', 24], ['열왕기상', 22], ['열왕기하', 25], ['역대상', 29], ['역대하', 36], ['에스라', 10], ['느헤미야', 13], ['에스더', 10]]],
+    ['시가서', [['욥기', 42], ['시편', 150], ['잠언', 31], ['전도서', 12], ['아가', 8]]],
+    ['대선지서', [['이사야', 66], ['예레미야', 52], ['예레미야애가', 5], ['에스겔', 48], ['다니엘', 12]]],
+    ['소선지서', [['호세아', 14], ['요엘', 3], ['아모스', 9], ['오바댜', 1], ['요나', 4], ['미가', 7], ['나훔', 3], ['하박국', 3], ['스바냐', 3], ['학개', 2], ['스가랴', 14], ['말라기', 4]]],
+  ];
+  const NT = [
+    ['복음서', [['마태복음', 28], ['마가복음', 16], ['누가복음', 24], ['요한복음', 21]]],
+    ['역사서', [['사도행전', 28]]],
+    ['바울 서신', [['로마서', 16], ['고린도전서', 16], ['고린도후서', 13], ['갈라디아서', 6], ['에베소서', 6], ['빌립보서', 4], ['골로새서', 4], ['데살로니가전서', 5], ['데살로니가후서', 3], ['디모데전서', 6], ['디모데후서', 4], ['디도서', 3], ['빌레몬서', 1]]],
+    ['일반 서신', [['히브리서', 13], ['야고보서', 5], ['베드로전서', 5], ['베드로후서', 3], ['요한일서', 5], ['요한이서', 1], ['요한삼서', 1], ['유다서', 1]]],
+    ['예언서', [['요한계시록', 22]]],
+  ];
+  // 현재 회차(1회차)에서 다 읽은 장 · 보던 위치(R-161)
+  const done = { '창세기': new Set(Array.from({ length: 23 }, (_, i) => i + 1)) };
+  const POS = { book: '창세기', ch: 24 };
+  let tab = 'ot', openBook = '창세기', marking = false;
+  const got = (b) => done[b] ? done[b].size : 0;
+  const unit = (b) => b === '시편' ? '편' : '장';
+
+  let tt;
+  function toast(t, undo) {
+    document.querySelectorAll('.toast').forEach((x) => x.remove()); clearTimeout(tt);
+    const el = document.createElement('div'); el.className = 'toast' + (undo ? '' : ' plain'); el.setAttribute('role', 'status');
+    el.innerHTML = `<span>${t}</span>`;
+    if (undo) { const b = document.createElement('button'); b.type = 'button'; b.textContent = '되돌리기'; b.onclick = () => { undo(); el.remove(); }; el.appendChild(b); }
+    document.body.appendChild(el); tt = setTimeout(() => el.remove(), 4000);
+  }
+
+  function totals(L) { let c = 0, r = 0, n = 0; L.forEach(([, bs]) => bs.forEach(([b, k]) => { c += k; r += got(b); n++; })); return { c, r, n }; }
+  function panel(b, k) {
+    const g = got(b), u = unit(b), isPos = POS.book === b;
+    const firstUnread = Array.from({ length: k }, (_, i) => i + 1).find((c) => !done[b]?.has(c));
+    const goCh = isPos ? POS.ch : firstUnread || 1;
+    const chs = Array.from({ length: k }, (_, i) => {
+      const c = i + 1, rd = done[b]?.has(c), cur = isPos && c === POS.ch;
+      if (marking) return `<button type="button" class="${rd ? 'rd' : ''}" data-mark="${c}" aria-pressed="${!!rd}" aria-label="${b} ${c}${u} ${rd ? '다 읽음, 누르면 해제' : '누르면 다 읽음'}"><span class="num">${c}</span></button>`;
+      return `<a href="${b === '창세기' && c === 24 ? READ_URL : '#x'}" data-go="${c}" class="${rd ? 'rd' : ''}${cur ? ' cur' : ''}" aria-label="${b} ${c}${u}${rd ? ' · 다 읽음' : ''}${cur ? ' · 보던 곳' : ''}"><span class="num">${c}</span></a>`;
+    }).join('');
+    return `<div class="panel${marking ? ' marking' : ''}" id="panel">
+      <div class="ph"><b>${b}</b><small class="num">${g} / ${k}${u} · ${Math.round(g / k * 1000) / 10}%</small></div>
+      <div class="mode" role="group" aria-label="장을 누르면"><button type="button" data-mode="go" aria-pressed="${!marking}">읽으러 가기</button><button type="button" data-mode="mark" aria-pressed="${marking}">다 읽음 표시</button></div>
+      <p class="mhint">${marking ? '종이 성경으로 읽었으면 장을 눌러 바로 다 읽음으로 표시해요. 다시 누르면 해제돼요.' : '장을 누르면 그 장 본문으로 가요.'}</p>
+      <div class="chs">${chs}</div>
+      <div class="lg"><span><i style="background:var(--tint)"></i>다 읽음</span>${isPos ? '<span><i style="box-shadow:inset 0 0 0 2px var(--accent)"></i>보던 곳</span>' : ''}<span><i style="background:var(--chip)"></i>아직</span></div>
+      <div class="go"><button type="button" data-close>닫기</button><a href="${b === '창세기' && goCh === 24 ? READ_URL : '#x'}" data-go="${goCh}">${isPos ? '이어 읽기' : g ? '이어서' : '읽기 시작'} ${goCh}${u} →</a></div>
+    </div>`;
+  }
+  function draw() {
+    const L = tab === 'ot' ? OT : NT, t = totals(L);
+    document.querySelectorAll('.tabs a').forEach((a) => a.toggleAttribute('aria-current', a.dataset.t === tab));
+    document.querySelectorAll('.menu a[data-t]').forEach((a) => a.toggleAttribute('aria-current', a.dataset.t === tab));
+    $('sumK').textContent = tab === 'ot' ? '구약 전체' : '신약 전체';
+    const pct = Math.round(t.r / t.c * 1000) / 10;
+    $('sumPct').innerHTML = `${pct}<small>%</small>`;
+    $('sumRead').textContent = `${t.r}장 읽음`;
+    $('sumOf').textContent = `${t.c.toLocaleString()}장 중 · ${t.n}권`;
+    $('sumBar').style.width = pct + '%';
+    const o = totals(OT), n = totals(NT);
+    $('mOtN').textContent = `${o.r} / ${o.c}`; $('mNtN').textContent = `${n.r} / ${n.c}`;
+
+    // 넓이에 맞춰 한 줄 칸 수를 알고, 열린 책이 있는 줄 끝에 장 번호 판을 끼운다
+    const cols = matchMedia('(min-width: 600px)').matches ? 5 : 3;
+    $('groups').innerHTML = L.map(([g, bs]) => {
+      const gr = bs.reduce((s, [b]) => s + got(b), 0), gc = bs.reduce((s, [, k]) => s + k, 0);
+      let html = '', idx = bs.findIndex(([b]) => b === openBook);
+      bs.forEach(([b, k], i) => {
+        const r = got(b);
+        html += `<button type="button" class="bk${r ? ' on' : ''}${r === k ? ' full' : ''}" data-b="${b}" aria-expanded="${b === openBook}"><b>${b}</b><small class="num">${r}/${k}</small><i style="width:${r / k * 100}%"></i></button>`;
+        if (idx >= 0 && (i === bs.length - 1 || (i + 1) % cols === 0) && Math.floor(idx / cols) === Math.floor(i / cols)) html += panel(bs[idx][0], bs[idx][1]);
+      });
+      return `<section class="grp"><h2><span>${g} · ${bs.length}권</span><span class="num">${gr} / ${gc}장</span></h2><div class="grid">${html}</div></section>`;
+    }).join('');
+  }
+  addEventListener('resize', () => { clearTimeout(window._r); window._r = setTimeout(draw, 150); });
+
+  $('groups').addEventListener('click', (e) => {
+    const bk = e.target.closest('.bk');
+    if (bk) { openBook = openBook === bk.dataset.b ? null : bk.dataset.b; marking = false; draw(); if (openBook) $('panel')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+    const md = e.target.closest('[data-mode]');
+    if (md) { marking = md.dataset.mode === 'mark'; draw(); return; }
+    if (e.target.closest('[data-close]')) { const b = openBook; openBook = null; draw(); document.querySelector(`.bk[data-b="${b}"]`)?.focus(); return; }
+    const mk = e.target.closest('[data-mark]');
+    if (mk) {
+      const b = openBook, c = +mk.dataset.mark, u = unit(b);
+      done[b] = done[b] || new Set();
+      const was = done[b].has(c);
+      was ? done[b].delete(c) : done[b].add(c);
+      draw();
+      toast(was ? `${b} ${c}${u} 다 읽음을 해제했어요` : `${b} ${c}${u}을 다 읽음으로 표시했어요`, () => { was ? done[b].add(c) : done[b].delete(c); draw(); });
+      return;
+    }
+    const go = e.target.closest('a[data-go]');
+    if (go && go.getAttribute('href') === '#x') { e.preventDefault(); toast(`${openBook} ${go.dataset.go}${unit(openBook)} 본문으로 가요 (시안에서는 창세기 24장만 열려요)`); }
+  });
+
+  function setTab(t) { tab = t === 'nt' ? 'nt' : 'ot'; openBook = tab === 'ot' ? '창세기' : null; marking = false; draw(); }
+  document.querySelectorAll('a[data-t]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); setTab(a.dataset.t); menu(false); }));
+  function menu(open) { $('drawer').hidden = $('scrim').hidden = !open; $('openMenu').setAttribute('aria-expanded', open); if (open) $('closeMenu').focus(); }
+  $('openMenu').onclick = () => menu(true);
+  $('closeMenu').onclick = $('scrim').onclick = () => menu(false);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('drawer').hidden) menu(false); });
+  document.querySelectorAll('.menu a[href="#x"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); menu(false); toast(`${a.firstChild.textContent} 화면으로 가요 (다음 시안)`); }));
+  setTab(location.hash === '#nt' ? 'nt' : 'ot');
+</script>
