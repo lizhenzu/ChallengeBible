@@ -1,0 +1,205 @@
+<title>시즌 관리 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/{slug}/admin/season, 0028): 관리 머리말 · 메뉴 → 올해 시즌 띠(시작일 ~ 12월 31일, 진행 막대) → 시작일 바꾸기(날짜 고르기 → 빠지는 점수 경고 → 확인 → 바꾸기) → 다음 시즌 → 바꾼 기록 → 지난 시즌 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --hero: #F2F5FB; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --warn: #9A5B00; --warn-bg: #FFF4DE; --bad: #B42318; --bad-bg: #FDECEC;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button, input { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible, label:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+  .hd .t { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+  .hd .t small { font-size: 12px; color: var(--dim); }
+  .hd .t b { font-size: 17px; font-weight: 900; }
+  .hd .t b em { font-style: normal; color: var(--accent); }
+  .back { flex: none; min-height: 40px; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; font-weight: 700; }
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-bottom: -1px; }
+  nav.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); border-bottom: 3px solid transparent; }
+  nav.tabs a[aria-current] { color: var(--fg); border-color: var(--accent); }
+  nav.tabs a .c { margin-left: 4px; min-width: 18px; padding: 0 5px; border-radius: 99px; background: var(--bad); color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
+
+  main .wrap { padding-block: 20px 56px; display: flex; flex-direction: column; gap: 16px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  .lead { margin: -8px 0 0; font-size: 13.5px; color: var(--dim); }
+  .now { padding: 18px; border-radius: 18px; background: var(--hero); display: flex; flex-direction: column; gap: 12px; }
+  .now .k { font-size: 13px; font-weight: 800; letter-spacing: .1em; color: var(--accent); }
+  .now .big { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .now .big b { font-size: 26px; font-weight: 900; }
+  .now .big span { font-size: 14px; color: var(--dim); }
+  .tl { position: relative; height: 10px; border-radius: 99px; background: var(--bg); }
+  .tl i { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: var(--accent); }
+  .tl .off { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 99px 0 0 99px; background: repeating-linear-gradient(45deg, var(--line) 0 4px, transparent 4px 8px); }
+  .tl .today { position: absolute; top: -5px; bottom: -5px; width: 2px; background: var(--fg); }
+  .tlx { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); }
+  .stats { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--dim); }
+  .stats b { color: var(--fg); }
+
+  .card { border: 1px solid var(--rule); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .card h2 { margin: 0; font-size: 16px; font-weight: 800; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .card h2 small { font-size: 13px; font-weight: 500; color: var(--dim); }
+  .pick { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .pick label { font-size: 14px; font-weight: 700; }
+  .pick input { min-height: 46px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 16px; }
+  .quick { display: flex; gap: 6px; flex-wrap: wrap; }
+  .quick button { min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; background: var(--bg); font-size: 13px; font-weight: 700; }
+  .impact { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 14px; }
+  .impact.ok { background: var(--ok-bg); }
+  .impact.warn { background: var(--warn-bg); }
+  .impact.bad { background: var(--bad-bg); }
+  .impact b.t { font-size: 15px; }
+  .impact.warn b.t { color: var(--warn); } .impact.bad b.t { color: var(--bad); } .impact.ok b.t { color: var(--ok); }
+  .impact .nums { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .impact .nums div { padding: 10px 12px; border-radius: 10px; background: var(--bg); display: flex; flex-direction: column; }
+  .impact .nums small { font-size: 12px; color: var(--dim); }
+  .impact .nums b { font-size: 22px; font-weight: 900; }
+  .impact ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.8; }
+  .agree { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .agree input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--accent); flex: none; }
+  .btn { min-height: 48px; padding: 0 18px; border-radius: 12px; font-size: 15px; font-weight: 800; border: 0; background: var(--accent); color: var(--on-accent); align-self: flex-start; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn.s { background: var(--bg); color: var(--fg); border: 1px solid var(--line); }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 14px; }
+  .row span small { color: var(--dim); }
+  .log { list-style: none; margin: 0; padding: 0; font-size: 14px; }
+  .log li { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid var(--rule); }
+  .log li:first-child { border-top: 0; }
+  .log time { flex: none; width: 92px; color: var(--dim); font-size: 13px; }
+  .muted { margin: 0; font-size: 14px; color: var(--dim); }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; max-width: calc(100vw - 40px); overflow: hidden; text-overflow: ellipsis; }
+</style>
+
+<header class="gut">
+  <div class="wrap hd">
+    <div class="t"><small>잠실새내교회 · 유년부</small><b><em>도전!!!</em> 관리</b></div>
+    <a class="back" href="https://claude.ai/artifact/NPStHNG39PrnSZJvrcWH11">부서 홈으로</a>
+  </div>
+  <nav class="wrap tabs" aria-label="관리 메뉴">
+    <a href="https://claude.ai/artifact/Ge2UDjM3tSuxJY9jofyUF1">관리 홈</a>
+    <a href="https://claude.ai/artifact/GcfvyYMWxWqWY3CEBK9x94">소속 관리<span class="c num">3</span></a>
+    <a href="https://claude.ai/artifact/1U7Mh23HRkshtwFMaHZTuP">진급<span class="c num">1</span></a>
+    <a href="https://claude.ai/artifact/B8UfHV1yJotcN32EBJ3VqA">콘텐츠</a>
+    <a href="#x">통독 현황</a>
+    <a href="#" aria-current="page">시즌</a>
+    <a href="#x">이름 · 색</a>
+  </nav>
+</header>
+
+<main class="gut"><div class="wrap">
+  <h1>시즌</h1>
+  <p class="lead">점수는 한 해(시즌)마다 새로 모아요. 시즌은 늘 12월 31일에 끝나고, 시작일만 부서가 정해요.</p>
+
+  <section class="now" aria-labelledby="nowK">
+    <span class="k" id="nowK">2027 시즌 · 진행 중</span>
+    <div class="big"><b id="range">1월 1일 ~ 12월 31일</b><span id="dayN">오늘 5일째</span></div>
+    <div class="tl" aria-hidden="true"><span class="off" id="off"></span><i id="on"></i><span class="today" style="left:1.1%"></span></div>
+    <div class="tlx"><span>1월</span><span>4월</span><span>7월</span><span>10월</span><span>12월 31일</span></div>
+    <div class="stats"><span>참여자 <b class="num">42명</b></span><span>시즌 점수 합 <b class="num">395점</b></span><span>지금까지 참여한 사람 <b class="num">38명</b></span></div>
+  </section>
+
+  <section class="card" aria-labelledby="hChg">
+    <h2 id="hChg">시작일 바꾸기 <small>1월 1일 ~ 12월 31일 사이</small></h2>
+    <div class="pick">
+      <label for="d">새 시작일</label>
+      <input type="date" id="d" min="2027-01-01" max="2027-12-31" value="2027-01-01">
+    </div>
+    <div class="quick" role="group" aria-label="빠른 고르기">
+      <button type="button" data-v="2027-01-01">1월 1일(기본)</button>
+      <button type="button" data-v="2027-01-03">1월 3일(첫 주일)</button>
+      <button type="button" data-v="2027-03-07">3월 7일(새 학년 주일)</button>
+    </div>
+    <div class="impact" id="impact" role="status"></div>
+    <label class="agree" id="agreeL" hidden><input type="checkbox" id="agree">위 내용을 확인했어요</label>
+    <button type="button" class="btn" id="go" disabled>시작일 바꾸기</button>
+  </section>
+
+  <section class="card" aria-labelledby="hNext">
+    <h2 id="hNext">다음 시즌 <small>2028년</small></h2>
+    <div class="row"><span>시작일 <b>1월 1일</b> <small>(기본값 · 12월에 바꿀 수 있어요)</small></span><button type="button" class="btn s" id="nextBtn">미리 정하기</button></div>
+    <p class="muted">새해가 되면 시즌 점수 · 축하 단계 · 가족 단계가 새로 시작해요. 성경 읽음 표시 · 북마크 · 통독 진도는 그대로 이어져요.</p>
+  </section>
+
+  <section class="card" aria-labelledby="hLog">
+    <h2 id="hLog">바꾼 기록</h2>
+    <ul class="log" id="log">
+      <li><time class="num">2026.12.20</time><span>이은혜 · 2027 시즌 시작일 <b>1월 1일</b>로 정함 (기본값)</span></li>
+    </ul>
+  </section>
+
+  <section class="card" aria-labelledby="hPast">
+    <h2 id="hPast">지난 시즌</h2>
+    <p class="muted">아직 없어요. 2028년이 되면 2027 시즌 점수 · 순위를 여기서 볼 수 있어요.</p>
+  </section>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  let start = '2027-01-01';
+  const TODAY = '2027-01-05';
+  // 시안: 서버의 "빠지는 점수" 계산(GET .../impact?startDate=) 결과를 흉내 낸다
+  const IMPACT = { '2027-01-02': [18, 71], '2027-01-03': [26, 158], '2027-01-04': [34, 290], '2027-01-05': [38, 395] };
+  function md(v) { const [, m, d] = v.split('-').map(Number); return `${m}월 ${d}일`; }
+  function dayOfYear(v) { return Math.round((new Date(v) - new Date('2027-01-01')) / 864e5); }
+  function showNow() {
+    $('range').textContent = `${md(start)} ~ 12월 31일`;
+    const s = dayOfYear(start);
+    $('off').style.width = (s / 365 * 100) + '%';
+    $('on').style.left = (s / 365 * 100) + '%'; $('on').style.right = '0';
+    $('on').style.opacity = start > TODAY ? .35 : 1;
+    $('dayN').textContent = start > TODAY ? `${md(start)}에 시작해요 · 그 전에는 미션이 닫혀 있어요` : `오늘 ${dayOfYear(TODAY) - s + 1}일째`;
+    $('nowK').textContent = start > TODAY ? '2027 시즌 · 시작 전' : '2027 시즌 · 진행 중';
+  }
+  function impact() {
+    const v = $('d').value;
+    $('agree').checked = false;
+    if (!v || v === start) { $('impact').className = 'impact ok'; $('impact').innerHTML = `<b class="t">지금 시작일이에요 (${md(start)})</b>`; $('agreeL').hidden = true; $('go').disabled = true; return; }
+    const later = v > start;
+    if (!later) {
+      $('impact').className = 'impact ok';
+      $('impact').innerHTML = `<b class="t">${md(v)}로 앞당겨요</b><ul><li>빠지는 점수는 없어요.</li><li>새로 열린 날짜 중 인정 기간(최근 며칠) 안의 날만 미션을 할 수 있어요.</li></ul>`;
+    } else {
+      const fut = v > TODAY;
+      const [n, p] = fut ? [38, 395] : IMPACT[v] || [38, 395];
+      $('impact').className = 'impact ' + (fut ? 'bad' : 'warn');
+      $('impact').innerHTML = `<b class="t">${md(v)}로 늦추면 이렇게 돼요</b>
+        <div class="nums"><div><small>점수가 빠지는 참여자</small><b class="num">${n}명</b></div><div><small>시즌 점수에서 빠지는 점수</small><b class="num">${p}점</b></div></div>
+        <ul>${fut ? `<li><b>${md(v)} 전까지 미션이 닫히고</b> 아이들에게 "곧 시작해요"가 보여요.</li><li>지금까지 모은 점수가 모두 이번 시즌 점수에서 빠져요.</li>` : `<li>${md(start)} ~ ${md(new Date(new Date(v) - 864e5).toISOString().slice(0, 10))}에 모은 점수가 시즌 점수 · 순위 · 가족팀 합계에서 빠져요.</li>`}
+        <li>미션 기록과 점수 원장은 지우지 않아요. 다시 앞당기면 돌아와요.</li><li>이미 받은 축하 단계는 취소되지 않아요.</li></ul>`;
+    }
+    $('agreeL').hidden = false; $('go').disabled = true;
+  }
+  $('d').addEventListener('input', impact);
+  document.querySelector('.quick').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { $('d').value = b.dataset.v; impact(); } });
+  $('agree').addEventListener('change', () => { $('go').disabled = !$('agree').checked; });
+  $('go').onclick = () => {
+    const v = $('d').value, was = start;
+    start = v; showNow(); impact();
+    $('log').insertAdjacentHTML('afterbegin', `<li><time class="num">2027.01.05</time><span>이은혜 · 2027 시즌 시작일 <b>${md(was)} → ${md(v)}</b></span></li>`);
+    toast(`시작일을 ${md(v)}로 바꿨어요 · 점수를 다시 계산했어요`);
+  };
+  $('nextBtn').onclick = () => toast('2028 시즌 시작일 고르기 (같은 방식)');
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2600); }
+  document.querySelectorAll('nav a[href="#x"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast(`${a.firstChild.textContent} 화면으로 가요 (다음 시안)`); }));
+  showNow(); impact();
+</script>
