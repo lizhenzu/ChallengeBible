@@ -13,7 +13,7 @@
         <div class="cal" aria-label="@p.Day.ToString("yyyy년 M월 d일 dddd", ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko)">
             <div class="m num">@p.Day.ToString("yyyy.MM")</div><div class="d num">@p.Day.ToString("dd")</div><div class="w">@p.Day.ToString("dddd", ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko)</div>
         </div>
-        <div><h1>@Model.Title</h1>@if (Model.Ref is not null) { <div class="ref">@Model.Ref</div> }</div>
+        <div><h1>@Model.Title@if (Model.TitleEn is not null) { <span class="en"> (@Model.TitleEn)</span> }</h1>@if (Model.Ref is not null) { <div class="ref">@Model.Ref</div> }</div>
     </div>
     @if (!p.IsToday)
     {

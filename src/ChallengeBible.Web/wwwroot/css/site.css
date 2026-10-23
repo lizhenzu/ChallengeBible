@@ -508,3 +508,11 @@ ul.log b.z { color: var(--dim); font-weight: 500; }
 .wlnk em { font-style: normal; font-size: 18px; }
 .wlnk.off { color: var(--dim); border-bottom-color: var(--rule); }
 .pnote.left { text-align: left; }
+/* prayer / recite (mockup): english title, name marker, lesson points fold */
+.mhead h1 .en { font-size: .72em; font-weight: 500; color: var(--dim); }
+.story .nm { color: var(--accent); font-weight: 800; background: linear-gradient(transparent 62%, var(--marker) 62%); padding: 0 2px; }
+:root { --marker: #FFF1BF; }
+@media (prefers-color-scheme: dark) { :root { --marker: #4A3F17; } }
+.gls { display: grid; gap: 10px; }
+.gls p { margin: 0; font-size: calc(15px * var(--fs)); line-height: 1.75; word-break: keep-all; }
+.gls b { display: block; font-size: 12px; font-weight: 800; color: var(--accent); }

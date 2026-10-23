@@ -47,8 +47,8 @@ public sealed record RuleSet
         [
             new(MissionItem.WordMe, true, "혼자 읽었어요", 1),
             new(MissionItem.WordParent, true, "부모님께 읽어드렸어요", 1),
-            new(MissionItem.PrayerMe, true, "나를 위한 기도", 1),
-            new(MissionItem.PrayerOthers, true, "가족 · 친구를 위한 기도", 1),
+            new(MissionItem.PrayerMe, true, "나를 위해 기도했어요", 1),
+            new(MissionItem.PrayerOthers, true, "가족·친구를 위해 기도했어요", 1),
             new(MissionItem.QuizCorrect, true, "정답", 1),
             new(MissionItem.Recite, true, "이번 주 암송", 1),
         ],

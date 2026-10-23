@@ -140,6 +140,20 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task 기도_화면과_암송_화면은_시안의_구성을_따른다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var prayer = await c.GetStringAsync("/jamsil-kids/prayer");
+        // 이 픽스처에는 기도 · 암송 콘텐츠가 없다: 머리말 이름과 빈 상태만 본다(구성은 화면 캡처로 비교)
+        Assert.Contains("오늘의 성품기도", prayer);
+        Assert.Contains("이날은 기도가 없어요", prayer);
+        var recite = await c.GetStringAsync("/jamsil-kids/recite");
+        Assert.Contains("이번 주는 암송 말씀이 없어요", recite);
+        // 선택 항목 이름은 시안 문구(RuleSet 기본값)
+        Assert.Equal("나를 위해 기도했어요", global::ChallengeBible.Domain.Rules.RuleSet.Default.Item(global::ChallengeBible.Domain.Rules.MissionItem.PrayerMe).DisplayName);
+    }
+
+    [Fact]
     public async Task 말씀_화면은_이야기_접기와_읽는_시간_성경_읽기_줄을_보여준다()
     {
         var c = await Member("cheolsu", Roles.Participant);

@@ -66,6 +66,15 @@
     if (s) { s.textContent = text; s.classList.toggle('done', done); }
   }
 
+  // 접었다 펴는 구역(암송 요점 등): data-fold = 펼칠 칸의 id
+  document.querySelectorAll('[data-fold]').forEach((b) => b.addEventListener('click', () => {
+    const box = document.getElementById(b.dataset.fold);
+    if (!box) return;
+    box.hidden = !box.hidden;
+    b.textContent = box.hidden ? b.dataset.more : b.dataset.less;
+    b.setAttribute('aria-expanded', String(!box.hidden));
+  }));
+
   // 말씀: 이야기 3줄 접기. 넘칠 때만 "더 보기", 펼치면 01 번호가 초록(시안)
   const story = document.getElementById('story'), more = document.getElementById('storyMore');
   if (story && more) {

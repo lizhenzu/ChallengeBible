@@ -1,10 +1,13 @@
 @page "/{slug}/recite"
 @model ReciteModel
+@* 확정 시안: 말씀-암송미션 — 01 외울 구절 · 02 이번 주 공과 요점(접기) · 03 외웠나요? 구절 본문은 성경 데이터를 넣은 뒤에 *@
 @{
     var d = Model.Data!; var v = d.Recite;
-    var pickNo = v is null ? "01" : (2 + (v.Point is not null ? 1 : 0) + (v.Apply is not null ? 1 : 0)).ToString("00");
+    var hasLesson = v is not null && (v.LessonNo is not null || v.Summary is not null || v.Point is not null || v.Apply is not null);
+    var pickNo = v is null ? "01" : (hasLesson ? "03" : "02");
+    var label = v is null ? "이번 주 암송" : $"이번 주 암송 구절 · {v.Start.ToString("M월 d일")} ~ {v.End.ToString("d일")}";
 }
-@await Html.PartialAsync("_MissionHead", new MissionHead(Model, "이번 주 암송", v?.Title ?? "이번 주 암송 말씀이 없어요", v?.Range))
+@await Html.PartialAsync("_MissionHead", new MissionHead(Model, label, v?.Title ?? "이번 주 암송 말씀이 없어요", v?.Range))
 <main class="mbody gut" data-slug="@Model.Slug" data-date="@Model.Day.ToString("yyyy-MM-dd")"><div class="wrap">
     @if (v is null)
     {
@@ -12,17 +15,25 @@
     }
     else
     {
-        <section class="sec"><h2><span class="n">01</span>이번 주 말씀 <small>@v.Start.ToString("M'/'d") ~ @v.End.ToString("M'/'d")</small></h2>
+        <section class="sec done"><h2><span class="n">01</span>외울 구절</h2>
             <p class="story big">@v.Range</p>
-            @if (v.LessonNo is not null || v.Summary is not null) { <p class="hint">@(v.LessonNo is null ? "" : $"{v.LessonNo}과 · ")@v.Summary</p> }
         </section>
-        @if (v.Point is not null) { <section class="sec"><h2><span class="n">02</span>배울 점</h2><p class="story">@v.Point</p></section> }
-        @if (v.Apply is not null) { <section class="sec"><h2><span class="n">03</span>이렇게 살아요</h2><p class="story">@v.Apply</p></section> }
+        @if (hasLesson)
+        {
+            <section class="sec"><h2><span class="n">02</span>이번 주 공과 요점 @if (v.LessonNo is not null) { <small>@(v.LessonNo)과</small> }</h2>
+                <button type="button" class="more" data-fold="gls" data-more="요점 보기 ＋" data-less="요점 접기 －" aria-expanded="false" aria-controls="gls">요점 보기 ＋</button>
+                <div class="gls" id="gls" hidden>
+                    @if (v.Summary is not null) { <p><b>한 줄 요점</b>@v.Summary</p> }
+                    @if (v.Point is not null) { <p><b>학습 요점</b>@v.Point</p> }
+                    @if (v.Apply is not null) { <p><b>적용</b>@v.Apply</p> }
+                </div>
+            </section>
+        }
         <section class="sec @(d.RecitedThisWeek ? "done" : "")" data-pickbox>
             <h2><span class="n">@pickNo</span>외웠나요? <small data-pickstate>@(d.RecitedThisWeek ? "이번 주 완료" : "눌러서 알려 주세요")</small></h2>
             <div class="picks" data-api="recite">
                 <button type="button" class="pick" data-item="Recite" aria-pressed="@(d.RecitedThisWeek ? "true" : "false")" disabled="@(!Model.CanAct || d.RecitedThisWeek)">
-                    <span class="ck" aria-hidden="true">✓</span><b>외웠어요</b><span class="pt">@(d.RecitedThisWeek ? "이번 주 완료 · " : "")@(d.Rules.Item(MissionItem.Recite).Points)점</span>
+                    <span class="ck" aria-hidden="true">✓</span><b>암송했어요</b><span class="pt">@(d.RecitedThisWeek ? "이번 주 완료 · " : "")@(d.Rules.Item(MissionItem.Recite).Points)점</span>
                 </button>
             </div>
             <p class="pnote">한 주에 한 번 · @(d.Rules.Item(MissionItem.Recite).Points)점. 외운 날에 점수가 들어가요.</p>
