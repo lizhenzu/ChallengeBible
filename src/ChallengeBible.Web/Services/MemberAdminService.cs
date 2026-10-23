@@ -83,6 +83,15 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         foreach (var r in want.Where(r => m.Roles.All(x => x.Role != r)))
             m.Roles.Add(new MembershipRole { TenantId = m.TenantId, MembershipId = m.Id, Role = r });
         m.GroupLabel = string.IsNullOrWhiteSpace(group) ? null : group.Trim()[..Math.Min(group.Trim().Length, 50)];
+
+        // 참여자 역할 ↔ 참여자 행(점수 · 수행 기록의 주인). 역할을 빼면 멈추기만 하고 기록은 남긴다.
+        var participant = await ctx.Participants.SingleOrDefaultAsync(p => p.MembershipId == m.Id, ct);
+        if (want.Contains(Infrastructure.Data.Roles.Participant))
+        {
+            if (participant is null) ctx.Participants.Add(new Participant { TenantId = m.TenantId, MembershipId = m.Id });
+            else participant.IsActive = true;
+        }
+        else if (participant is not null) participant.IsActive = false;
         if (approve)
         {
             m.Status = MembershipStatus.Approved;

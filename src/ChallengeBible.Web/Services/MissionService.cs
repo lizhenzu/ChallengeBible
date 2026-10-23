@@ -1,0 +1,250 @@
+using System.Text.Json;
+using ChallengeBible.Domain.Missions;
+using ChallengeBible.Domain.Points;
+using ChallengeBible.Domain.Rules;
+using ChallengeBible.Domain.Seasons;
+using ChallengeBible.Domain.Time;
+using ChallengeBible.Infrastructure.Data;
+using ChallengeBible.Web.Tenancy;
+using Microsoft.EntityFrameworkCore;
+
+namespace ChallengeBible.Web.Services;
+
+public sealed record WordView(int Id, string Title, string Range, string Summary);
+public sealed record PrayerView(int Id, string Trait, string? TraitEn, string Range, IReadOnlyList<string> Paragraphs);
+public sealed record QuizChoiceView(int Id, string Text);
+public sealed record QuizView(int Id, string Question, string? Background, string Format, IReadOnlyList<QuizChoiceView> Choices, string? Explanation);
+public sealed record ReciteView(int Id, string Title, string Range, DateOnly Start, DateOnly End, short? LessonNo, string? Summary, string? Point, string? Apply);
+
+public sealed record QuizStateView(int AttemptsUsed, int MaxAttempts, bool Solved, IReadOnlyList<int?> MyChoices)
+{
+    public QuizState State => QuizPolicy.State(AttemptsUsed, Solved, MaxAttempts);
+}
+
+/// <summary>그날 미션 화면에 필요한 것 전부(R-12: 지난 날짜도 보기는 된다).</summary>
+public sealed record MissionDay(
+    DateOnly Date, DateOnly Today, WindowResult Window,
+    WordView? Word, PrayerView? Prayer, QuizView? Quiz, ReciteView? Recite,
+    IReadOnlySet<MissionItem> Done, bool RecitedThisWeek, QuizStateView QuizState,
+    int DayPoints, int SeasonPoints, RuleSet Rules);
+
+public sealed record MissionResult(bool Ok, int Added, int SeasonPoints, IReadOnlyList<int> NewMilestones, string Message, bool? Correct = null);
+
+/// <summary>
+/// 미션 수행(03 문서 2 · 3절). 서버에서 모든 조건을 검사한다(R-13): 인정 기간, 시즌 시작일, 항목 사용 여부,
+/// 그날 콘텐츠(공개 · 현재 개정, 덮어쓰기 우선 R-120), 하루 · 항목 1건(R-21 · R-61), 암송 주 1회(R-51).
+/// 점수는 수행 기록과 원장에 그때 점수로 남긴다(R-63 · R-64).
+/// </summary>
+public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock clock, TimeProvider time)
+{
+    // 1차는 플랫폼 기본 규칙 하나(06 문서). 규칙 버전 표가 생기면 여기서 읽는다.
+    private static RuleSet Rules => RuleSet.Default;
+
+    public DateOnly Today => clock.Today(tenant.Current.TimeZoneId);
+
+    /// <summary>이 소속의 참여자 Id. 참여자 역할이 없으면 null(보기만).</summary>
+    public async Task<int?> ParticipantIdAsync(CancellationToken ct = default)
+    {
+        if (tenant.MembershipId is not int mid || !tenant.Has(Roles.Participant)) return null;
+        await using var ctx = db.Create();
+        return await ctx.Participants.Where(p => p.MembershipId == mid && p.IsActive).Select(p => (int?)p.Id).SingleOrDefaultAsync(ct);
+    }
+
+    private async Task<Season> SeasonAsync(AppDbContext ctx, int year, CancellationToken ct)
+    {
+        var start = await ctx.TenantSeasons.Where(s => s.Year == year).Select(s => (DateOnly?)s.StartDate).SingleOrDefaultAsync(ct);
+        return start is { } d ? Season.Create(year, d) : Season.DefaultFor(year);
+    }
+
+    public async Task<MissionDay> GetDayAsync(int participantId, DateOnly date, CancellationToken ct = default)
+    {
+        var today = Today;
+        await using var ctx = db.Create();
+        var season = await SeasonAsync(ctx, date.Year, ct);
+        var window = MissionWindow.Check(today, date, Rules.GraceDays, season.StartDate);
+
+        var word = await Current(ctx.DailyWords.Where(w => w.ExposeDate == date)).FirstOrDefaultAsync(ct);
+        var prayer = await Current(ctx.DailyPrayers.Where(p => p.ExposeDate == date)).FirstOrDefaultAsync(ct);
+        var quiz = await Current(ctx.DailyQuizzes.Include(q => q.Choices).Where(q => q.ExposeDate == date)).FirstOrDefaultAsync(ct);
+        var verse = await Current(ctx.WeeklyVerses.Where(v => v.StartDate <= date && v.EndDate >= date)).FirstOrDefaultAsync(ct);
+
+        var acts = await ctx.Activities.AsNoTracking().Where(a => a.ParticipantId == participantId && a.MissionDate == date).ToListAsync(ct);
+        var recited = verse is not null && await ctx.Activities.AnyAsync(a => a.ParticipantId == participantId
+            && a.MissionItem == "Recite" && a.ReciteStartDate == verse.StartDate, ct);
+        var attempts = await ctx.QuizAttempts.AsNoTracking().Where(a => a.ParticipantId == participantId && a.MissionDate == date)
+            .OrderBy(a => a.AttemptNo).ToListAsync(ct);
+        var dayPoints = await ctx.PointLedgers.Where(l => l.ParticipantId == participantId && l.MissionDate == date).SumAsync(l => (int?)l.Points, ct) ?? 0;
+        var seasonPoints = await SeasonPointsAsync(ctx, participantId, today, ct);
+
+        return new MissionDay(date, today, window,
+            word is null ? null : new WordView(word.Id, word.Title, BibleBooks.Range(word.BookId, word.StartChapter, word.StartVerse, word.EndChapter, word.EndVerse), word.Summary),
+            prayer is null ? null : new PrayerView(prayer.Id, prayer.TraitName, prayer.TraitNameEn,
+                BibleBooks.Range(prayer.BookId, prayer.StartChapter, prayer.StartVerse, prayer.EndChapter, prayer.EndVerse),
+                JsonSerializer.Deserialize<List<string>>(prayer.Paragraphs) ?? []),
+            quiz is null ? null : new QuizView(quiz.Id, quiz.Question, quiz.Background, quiz.Format,
+                quiz.Choices.OrderBy(c => c.SortOrder).Select(c => new QuizChoiceView(c.Id, c.Text)).ToList(),
+                attempts.Any(a => a.IsCorrect) || attempts.Count >= Rules.QuizMaxAttempts ? quiz.Explanation : null),   // 해설은 끝난 뒤에
+            verse is null ? null : new ReciteView(verse.Id, verse.Title,
+                BibleBooks.Range(verse.BookId, verse.StartChapter, verse.StartVerse, verse.EndChapter, verse.EndVerse),
+                verse.StartDate, verse.EndDate, verse.LessonNo, verse.LessonSummary, verse.LessonPoint, verse.LessonApply),
+            acts.Select(a => MissionItemCodes.Parse(a.MissionItem)).ToHashSet(), recited,
+            new QuizStateView(attempts.Count, Rules.QuizMaxAttempts, attempts.Any(a => a.IsCorrect), attempts.Select(a => a.SelectedChoiceId).ToList()),
+            dayPoints, seasonPoints, Rules);
+    }
+
+    /// <summary>R-120: 공개된 현재 개정 중 내 영역 덮어쓰기가 먼저, 없으면 공용.</summary>
+    private static IQueryable<T> Current<T>(IQueryable<T> q) where T : ContentBase =>
+        q.Where(c => c.IsCurrent && c.Status == ContentStatus.Published).OrderByDescending(c => c.TenantId != null);
+
+    private async Task<int> SeasonPointsAsync(AppDbContext ctx, int participantId, DateOnly today, CancellationToken ct)
+    {
+        var season = await SeasonAsync(ctx, today.Year, ct);
+        var (from, to) = season.ScoringRange(today);
+        return await ctx.PointLedgers.Where(l => l.ParticipantId == participantId && l.MissionDate >= from && l.MissionDate <= to)
+            .SumAsync(l => (int?)l.Points, ct) ?? 0;
+    }
+
+    public static string WindowMessage(WindowResult w, int graceDays) => w switch
+    {
+        WindowResult.Future => "아직 오지 않은 날이에요.",
+        WindowResult.TooOld => $"이 날짜는 할 수 없어요 (오늘 포함 {graceDays}일 안만 가능).",
+        WindowResult.BeforeSeason => "곧 시작해요. 시즌 시작일부터 미션을 할 수 있어요.",
+        _ => "",
+    };
+
+    /// <summary>말씀 · 기도 · 암송 항목 누르기. 한 번 켠 항목은 꺼지지 않고, 다시 눌러도 점수는 늘지 않는다(R-21 · R-31 · R-51).</summary>
+    public async Task<MissionResult> PressAsync(int participantId, MissionItem item, DateOnly date, CancellationToken ct = default)
+    {
+        if (item == MissionItem.QuizCorrect) throw new ArgumentException("퀴즈는 AnswerQuizAsync 로 해요.", nameof(item));
+        var today = Today;
+        await using var ctx = db.Create();
+        var season = await SeasonAsync(ctx, date.Year, ct);
+        var w = MissionWindow.Check(today, date, Rules.GraceDays, season.StartDate);
+        if (w != WindowResult.Open) return Fail(WindowMessage(w, Rules.GraceDays));
+        var rule = Rules.Item(item);
+        if (!rule.Enabled) return Fail("이 부서에서는 쓰지 않는 항목이에요.");
+
+        var act = new Activity { TenantId = tenant.Current.Id, ParticipantId = participantId, MissionItem = item.Code(), MissionDate = date,
+            Points = rule.Points, PerformedUtc = time.GetUtcNow().UtcDateTime };
+        switch (item.Mission())
+        {
+            case Mission.Word:
+                act.DailyWordId = await Current(ctx.DailyWords.Where(x => x.ExposeDate == date)).Select(x => (int?)x.Id).FirstOrDefaultAsync(ct);
+                if (act.DailyWordId is null) return Fail("오늘은 말씀이 없어요.");   // R-22
+                break;
+            case Mission.Prayer:
+                act.DailyPrayerId = await Current(ctx.DailyPrayers.Where(x => x.ExposeDate == date)).Select(x => (int?)x.Id).FirstOrDefaultAsync(ct);
+                if (act.DailyPrayerId is null) return Fail("오늘은 기도가 없어요.");
+                break;
+            case Mission.Recite:
+                var v = await Current(ctx.WeeklyVerses.Where(x => x.StartDate <= date && x.EndDate >= date)).FirstOrDefaultAsync(ct);
+                if (v is null) return Fail("이번 주 암송 말씀이 없어요.");
+                act.WeeklyVerseId = v.Id;
+                act.ReciteStartDate = v.StartDate;
+                if (await ctx.Activities.AnyAsync(a => a.ParticipantId == participantId && a.MissionItem == "Recite" && a.ReciteStartDate == v.StartDate, ct))
+                    return await Already(ctx, participantId, today, "이번 주 암송은 이미 완료했어요.", ct);
+                break;
+        }
+        if (item.Mission() != Mission.Recite &&
+            await ctx.Activities.AnyAsync(a => a.ParticipantId == participantId && a.MissionDate == date && a.MissionItem == act.MissionItem, ct))
+            return await Already(ctx, participantId, today, "이미 했어요.", ct);
+
+        return await RecordAsync(ctx, act, today, ct);
+    }
+
+    /// <summary>퀴즈 답하기(R-40 ~ R-44). 정답 판정은 서버에서 저장된 정답과 비교한다.</summary>
+    public async Task<MissionResult> AnswerQuizAsync(int participantId, DateOnly date, int? choiceId, string? text, CancellationToken ct = default)
+    {
+        var today = Today;
+        await using var ctx = db.Create();
+        var season = await SeasonAsync(ctx, date.Year, ct);
+        var w = MissionWindow.Check(today, date, Rules.GraceDays, season.StartDate);
+        if (w != WindowResult.Open) return Fail(WindowMessage(w, Rules.GraceDays));
+        var rule = Rules.Item(MissionItem.QuizCorrect);
+        if (!rule.Enabled) return Fail("이 부서에서는 쓰지 않는 항목이에요.");
+
+        var quiz = await Current(ctx.DailyQuizzes.Include(q => q.AcceptedAnswers).Where(q => q.ExposeDate == date)).FirstOrDefaultAsync(ct);
+        if (quiz is null) return Fail("오늘은 퀴즈가 없어요.");
+        var attempts = await ctx.QuizAttempts.Where(a => a.ParticipantId == participantId && a.MissionDate == date).ToListAsync(ct);
+        var max = Rules.QuizMaxAttempts;
+        switch (QuizPolicy.State(attempts.Count, attempts.Any(a => a.IsCorrect), max))
+        {
+            case QuizState.Solved: return await Already(ctx, participantId, today, "이미 맞혔어요.", ct);
+            case QuizState.OutOfAttempts: return Fail($"오늘은 {max}번 도전했어요. 내일 새 퀴즈에 도전해요.");
+        }
+
+        bool correct;
+        if (quiz.Format == QuizFormat.Choice)
+        {
+            if (choiceId is null) return Fail("답을 골라 주세요.");
+            correct = choiceId == quiz.CorrectChoiceId;
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(text)) return Fail("답을 써 주세요.");
+            correct = quiz.AcceptedAnswers.Any(a => a.NormalizedText == QuizPolicy.Normalize(text));
+        }
+
+        var no = (byte)(attempts.Count + 1);
+        ctx.QuizAttempts.Add(new QuizAttempt { TenantId = tenant.Current.Id, ParticipantId = participantId, MissionDate = date, AttemptNo = no,
+            DailyQuizId = quiz.Id, SelectedChoiceId = choiceId, AnswerText = quiz.Format == QuizFormat.Text ? text?.Trim() : null,
+            IsCorrect = correct, AttemptedUtc = time.GetUtcNow().UtcDateTime });
+
+        if (!correct)
+        {
+            try { await ctx.SaveChangesAsync(ct); }
+            catch (DbUpdateException) { return Fail("방금 다른 곳에서 답했어요. 화면을 새로 고쳐 주세요."); }   // UQ_QuizAttempt_No
+            var msg = no < max ? $"오답이에요 ({no}/{max}) 한 번 더 도전해요." : $"오늘은 {max}번 도전했어요. 내일 새 퀴즈에 도전해요.";
+            return new MissionResult(true, 0, await SeasonPointsAsync(ctx, participantId, today, ct), [], msg, Correct: false);
+        }
+
+        var act = new Activity { TenantId = tenant.Current.Id, ParticipantId = participantId, MissionItem = MissionItem.QuizCorrect.Code(),
+            MissionDate = date, DailyQuizId = quiz.Id, Points = rule.Points, PerformedUtc = time.GetUtcNow().UtcDateTime };
+        var r = await RecordAsync(ctx, act, today, ct);
+        return r with { Correct = true, Message = r.Added > 0 ? $"정답! +{r.Added}점" : "정답!" };
+    }
+
+    private static MissionResult Fail(string message) => new(false, 0, 0, [], message);
+
+    private async Task<MissionResult> Already(AppDbContext ctx, int participantId, DateOnly today, string message, CancellationToken ct) =>
+        new(true, 0, await SeasonPointsAsync(ctx, participantId, today, ct), [], message);   // R-65: 0점이면 단계 검사도 안 함
+
+    private async Task<MissionResult> RecordAsync(AppDbContext ctx, Activity act, DateOnly today, CancellationToken ct)
+    {
+        ctx.Activities.Add(act);
+        try
+        {
+            await ctx.SaveChangesAsync(ct);   // 고유 인덱스가 중복을 막는다(R-61 · R-51)
+        }
+        catch (DbUpdateException)
+        {
+            ctx.ChangeTracker.Clear();
+            return await Already(ctx, act.ParticipantId, today, "이미 했어요.", ct);
+        }
+
+        if (act.Points > 0)
+        {
+            ctx.PointLedgers.Add(new PointLedger { TenantId = act.TenantId, ParticipantId = act.ParticipantId, MissionDate = act.MissionDate,
+                MissionItem = act.MissionItem, Points = act.Points, ActivityId = act.Id, RecordedUtc = act.PerformedUtc });
+            await ctx.SaveChangesAsync(ct);
+        }
+
+        var total = await SeasonPointsAsync(ctx, act.ParticipantId, today, ct);
+        var reached = act.Points > 0 ? await NewMilestonesAsync(ctx, act.ParticipantId, today.Year, total, ct) : [];
+        return new MissionResult(true, act.Points, total, reached, act.Points > 0 ? $"+{act.Points}점" : "했어요");
+    }
+
+    /// <summary>R-101: 새로 넘은 단계를 시즌당 한 번 기록한다.</summary>
+    private async Task<IReadOnlyList<int>> NewMilestonesAsync(AppDbContext ctx, int participantId, int year, int total, CancellationToken ct)
+    {
+        var done = await ctx.MilestonesReached.Where(m => m.ParticipantId == participantId && m.Year == year).Select(m => m.Threshold).ToListAsync(ct);
+        var fresh = PointMath.NewMilestones(total, Rules.Milestones, done);
+        if (fresh.Count == 0) return fresh;
+        foreach (var t in fresh)
+            ctx.MilestonesReached.Add(new MilestoneReached { TenantId = tenant.Current.Id, ParticipantId = participantId, Year = (short)year,
+                Threshold = t, ReachedUtc = time.GetUtcNow().UtcDateTime });
+        try { await ctx.SaveChangesAsync(ct); }
+        catch (DbUpdateException) { return []; }   // 동시에 다른 요청이 기록함
+        return fresh;
+    }
+}

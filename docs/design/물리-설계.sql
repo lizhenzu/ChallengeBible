@@ -234,6 +234,7 @@ CREATE TABLE app.DailyWord (
     StartVerse          smallint       NOT NULL,
     EndChapter          smallint       NOT NULL,
     EndVerse            smallint       NOT NULL,
+    Title               nvarchar(100)  NOT NULL,      -- 오늘의 말씀 제목(예: 믿음의 종의 기도) — 1차 구현에서 더함
     Summary             nvarchar(max)  NOT NULL,
     Commentary          nvarchar(max)  NULL,
     CreatedUtc          datetime2(3)   NOT NULL,

@@ -23,6 +23,7 @@ builder.Services.AddScoped<TenantContext>();
 builder.Services.AddScoped<TenantPageFilter>();
 builder.Services.AddScoped<MemberAdminService>();
 builder.Services.AddScoped<PlatformTenantService>();
+builder.Services.AddScoped<MissionService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<LookupLimiter>();
 
