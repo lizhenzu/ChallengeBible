@@ -1,0 +1,129 @@
+@page "/platform/accounts"
+@model ChallengeBible.Web.Pages.Platform.AccountsModel
+@using ChallengeBible.Infrastructure.Data
+@using ChallengeBible.Web.Pages.Admin
+@using ChallengeBible.Web.Pages.Platform
+@* 확정 시안: 플랫폼-계정찾기-단독시안 — 찾기 → 찾은 계정 | 고른 계정(가입 · 가족 부서 · 소속 부서 · 초기화 안내 · 임시 비밀번호 · 성경 읽음 지우기 · 관련 기록) *@
+@{
+    var d = Model.Detail;
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+}
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap wide pa">
+    <h1>계정 찾기</h1>
+    <p class="ar-lead">부서 관리자가 할 수 없는 계정(다른 부서 관리자 · 플랫폼 관리자)의 비밀번호 초기화와, 부서가 없는 계정 문의를 여기서 해요.</p>
+    <form method="get" class="pa-find" role="search">
+        <input class="search" type="search" name="q" value="@Model.Q" placeholder="이메일이나 이름 — 예: jieun, 김영희" aria-label="이메일이나 이름" />
+        <button type="submit" class="btn p sm">찾기</button>
+    </form>
+
+    @if (string.IsNullOrWhiteSpace(Model.Q))
+    {
+        <p class="ph-muted">이메일이나 이름을 넣고 찾아 주세요.</p>
+    }
+    else
+    {
+        <div class="pa-split">
+            <ul class="pa-res" aria-label="찾은 계정">
+                @if (Model.Hits.Count == 0) { <li class="empty">찾는 계정이 없어요.</li> }
+                @foreach (var h in Model.Hits)
+                {
+                    <li><a href="@Model.Url(h.Id)" aria-current="@(h.Id == Model.Id ? "true" : "false")">
+                        <span class="av">@(h.Name.Length > 1 ? h.Name[^2..] : h.Name)</span>
+                        <span class="nm"><b>@h.Name</b><small>@h.Email · @(h.Tenants.Count > 0 ? string.Join(" · ", h.Tenants.Select(t => t.Split(' ')[^1])) : h.PlatformAdmin ? "플랫폼" : "소속 없음")</small></span>
+                        @if (h.PlatformAdmin) { <span class="flag pf">플랫폼</span> } else if (h.TenantAdmin) { <span class="flag">부서 관리자</span> }
+                    </a></li>
+                }
+            </ul>
+
+            <section class="pa-det" aria-live="polite">
+                @if (d is null)
+                {
+                    <p class="empty">계정을 골라 주세요.</p>
+                }
+                else
+                {
+                    <div class="who"><span class="av">@(d.Name.Length > 1 ? d.Name[^2..] : d.Name)</span><div><h2>@d.Name</h2><small>@d.Email</small></div></div>
+                    <div class="facts">
+                        <div><small>가입</small><b class="num">@d.CreatedUtc.ToString("yyyy.MM.dd")</b></div>
+                        <div><small>가족과 함께할 부서</small><b>@(d.FamilyTenant ?? "–")</b></div>
+                    </div>
+                    <div>
+                        <h3>소속 부서</h3>
+                        @if (d.Memberships.Count == 0) { <p class="ph-muted">소속된 부서가 없어요.</p> }
+                        else
+                        {
+                            <ul class="mems">
+                                @foreach (var m in d.Memberships)
+                                {
+                                    <li><i style="background:@TenantsModel.ColorVar(m.ThemeColor)"></i><b>@m.Tenant</b>
+                                        @foreach (var r in m.Roles) { <span class="tag @(r == Roles.TenantAdmin ? "a" : "")">@MembersModel.RoleLabel(r)</span> }
+                                        @if (AccountsModel.StatusLabel(m.Status) is { Length: > 0 } st) { <span class="tag s">@st</span> }
+                                        @if (m.Family) { <span class="tag f">가족 부서</span> }</li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                    @if (d.PlatformAdmin)
+                    {
+                        <div class="why no"><b>플랫폼 관리자 계정이에요.</b> 이 계정의 비밀번호는 본인이 "내 계정"에서 바꿔요. 여기서는 초기화하지 않아요.</div>
+                    }
+                    else if (d.AdminOf.Count > 0)
+                    {
+                        <div class="why no"><b>@string.Join(" · ", d.AdminOf)의 관리자예요.</b> 그 밖의 부서 관리자는 이 계정을 초기화할 수 없어요. 다른 부서의 관리 권한까지 영향을 주기 때문이에요(ADR 0035). 필요하면 여기서 해요.</div>
+                    }
+                    else if (!d.Memberships.Any(m => m.Status is MembershipStatus.Approved or MembershipStatus.Suspended))
+                    {
+                        <div class="why no"><b>승인된 소속 부서가 없어요.</b> 부서 관리자가 초기화할 수 없으니 필요하면 여기서 해요.</div>
+                    }
+                    else
+                    {
+                        <div class="why ok"><b>소속 부서의 관리자도 초기화할 수 있는 계정이에요.</b> 보통은 부서 선생님께 부탁하면 돼요.</div>
+                    }
+                    @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+                    @if (Model.Ok == "marks") { <p class="okmsg" role="status">성경 읽음 표시와 책갈피를 지웠어요</p> }
+
+                    <div class="acts">
+                        <div class="act"><div><b>임시 비밀번호</b><span>다음 로그인 때 새 비밀번호로 바꿔야 해요. 모든 부서에서 같은 계정이에요.</span></div>
+                            @if (d.PlatformAdmin) { <button type="button" class="btn s sm" disabled>할 수 없어요</button> }
+                            else
+                            {
+                                <form method="post" asp-page-handler="ResetPassword" asp-route-q="@Model.Q" asp-route-id="@d.Id"><button type="submit" class="btn p sm">임시 비밀번호 만들기</button></form>
+                            }
+                        </div>
+                        @if (Model.TemporaryPassword is { } pw)
+                        {
+                            <div class="pw" role="status"><code>@pw</code><button type="button" class="btn s sm" data-copy="@pw">복사</button><a class="btn p sm" href="@Model.Url(d.Id)">전달했어요</a></div>
+                            <p class="pw-warn">이 칸을 닫으면 다시 볼 수 없어요. @(d.Name)님께 직접 알려 주세요.</p>
+                        }
+                        @if (!d.PlatformAdmin)
+                        {
+                            <div class="act" id="marks"><div><b>성경 읽음 초기화</b><span>읽음 표시와 책갈피를 모두 지워요. 되돌릴 수 없어요(ADR 0029). 통독 진도는 그대로예요.</span></div>
+                                <a class="btn d sm" href="@Model.Url(d.Id, askMarks: true)">성경 읽음 지우기</a></div>
+                            @if (Model.AskMarks)
+                            {
+                                <form method="post" asp-page-handler="ResetMarks" asp-route-q="@Model.Q" asp-route-id="@d.Id" class="ask" role="alert">
+                                    <span>지우려면 이메일 <b>@d.Email</b> 을 똑같이 써 주세요.</span>
+                                    <div class="row"><input name="confirm" autocomplete="off" aria-label="이메일 확인" /><button type="submit" class="btn dd sm">모두 지우기</button><a class="btn s sm" href="@Model.Url(d.Id)">취소</a></div>
+                                </form>
+                            }
+                        }
+                    </div>
+                    <div>
+                        <h3>이 계정 관련 기록</h3>
+                        @if (d.Log.Count == 0) { <p class="ph-muted">아직 없어요.</p> }
+                        else
+                        {
+                            <ul class="ph-log">@foreach (var l in d.Log) { <li><time class="num">@l.OccurredUtc.ToString("yyyy.MM.dd")</time><span>@l.Actor@(l.Tenant is null ? "" : $"({l.Tenant})") · @l.Text</span></li> }</ul>
+                        }
+                    </div>
+                }
+            </section>
+        </div>
+    }
+</div></main>
+<script>
+    document.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', () => {
+        navigator.clipboard?.writeText(b.dataset.copy).then(() => { b.textContent = '복사했어요'; }, () => { b.textContent = '길게 눌러 복사'; });
+    }));
+</script>

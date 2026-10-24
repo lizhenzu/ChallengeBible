@@ -119,8 +119,14 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
     {
         "PromotionApproved" => "진급 승인",
         BrandingService.LogAction or SeasonService.LogAction => detail ?? "",
+        PlatformAccountService.ResetPasswordAction => $"임시 비밀번호 발급 · {Target(detail)}",
+        PlatformAccountService.ResetMarksAction => $"성경 읽음 · 책갈피 초기화 · {Target(detail)}",
         _ => detail is null ? action : $"{action} · {detail}",
     };
+
+    /// <summary>"account=12 박지은(…)" 에서 앞의 기계용 표시를 뗀다.</summary>
+    private static string Target(string? detail) =>
+        detail is null ? "" : detail.StartsWith("account=") && detail.IndexOf(' ') is > 0 and var i ? detail[(i + 1)..] : detail;
 
     /// <summary>앞으로 14일 공용 콘텐츠 빈 칸(종류별)과 공개 전 초안 목록. 고르기는 미션 화면과 같다(공용 공개본만 보인다).</summary>
     private static async Task<(List<(DateOnly Date, string Label)> Empty, List<string> Drafts)> CommonContentAsync(AppDbContext ctx, DateOnly today, CancellationToken ct)
