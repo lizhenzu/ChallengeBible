@@ -125,6 +125,15 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids/reading/list?t=ot&b=1", "19-통독-성경목록");
         await Save(kid, "/jamsil-kids/reading/read/1/24?unit=3", "20-통독-본문읽기");
         await Save(kid, "/jamsil-kids/reading/bookmarks", "21-통독-북마크");
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            var at = new DateTime(2027, 1, 4, 0, 0, 0, DateTimeKind.Utc);
+            foreach (var (w, n) in new[] { ("사랑", 5), ("아브라함", 4), ("노아", 3), ("믿음", 2), ("다윗", 1) })
+                for (var i = 0; i < n; i++) raw.SearchLogs.Add(new SearchLog { TenantId = kids.Id, Term = w, SearchedUtc = at });
+            raw.SaveChanges();
+        }
+        await Save(kid, "/jamsil-kids/reading/search", "22-통독-검색");
+        await Save(kid, "/jamsil-kids/reading/search?q=NIV%201:24&tr=ALL&s=all", "23-통독-검색결과");
         await Save(kid, "/jamsil-kids/quiz", "08-퀴즈");
         await Save(kid, "/jamsil-kids/prayer", "09-기도");
         await Save(kid, "/jamsil-kids/recite", "10-암송");

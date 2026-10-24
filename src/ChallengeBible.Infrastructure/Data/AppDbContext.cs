@@ -49,6 +49,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<ChapterRead> ChapterReads => Set<ChapterRead>();
     public DbSet<RoundVerseRead> RoundVerseReads => Set<RoundVerseRead>();
     public DbSet<ChapterProgress> ChapterProgresses => Set<ChapterProgress>();
+    public DbSet<SearchLog> SearchLogs => Set<SearchLog>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {

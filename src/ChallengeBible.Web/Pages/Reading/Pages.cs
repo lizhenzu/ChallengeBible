@@ -53,6 +53,55 @@ public class IndexModel(ReadingService reading, TenantContext tenant, BibleTextS
     }
 }
 
+/// <summary>
+/// `/{slug}/reading/search?q=&tr=&s=` 성경 검색(확정 시안: 통독-성경검색, R-163 · R-164 · R-165).
+/// 검색어가 없으면 추천 단어 · 부서 인기 검색어, 있으면 결과. 구절 주소면 그 본문으로 바로 간다.
+/// </summary>
+public class SearchModel(ReadingService reading, TenantContext tenant, BibleSearchService search, TenantClock clock) : ReadingPageBase(reading, tenant)
+{
+    public override string Title => "성경 검색";
+    [BindProperty(SupportsGet = true)] public string? Q { get; set; }
+    [BindProperty(SupportsGet = true, Name = "tr")] public string Tr { get; set; } = BibleTranslation.Krv;
+    /// <summary>범위: all · ot · nt · 책 번호</summary>
+    [BindProperty(SupportsGet = true, Name = "s")] public string S { get; set; } = "all";
+
+    public string Term { get; private set; } = "";
+    public SearchResult? Result { get; private set; }
+    public IReadOnlyList<(string Term, int Count)> Popular { get; private set; } = [];
+    public IReadOnlyList<string> Shown { get; private set; } = [BibleTranslation.Krv];
+    public DateTimeOffset NowLocal { get; private set; }
+
+    protected override async Task<IActionResult> LoadAsync(CancellationToken ct)
+    {
+        Term = BibleSearchService.Normalize(Q);
+        if (BibleSearchService.ParseReference(Term) is { } at) return Redirect(ReadUrl(at.Book, at.Chapter, at.Verse));
+        if (!BibleTextService.Codes.Contains(Tr) && Tr != "ALL") Tr = BibleTranslation.Krv;
+        Shown = Tr == "ALL" ? BibleTextService.Codes : [Tr];
+        NowLocal = TimeZoneInfo.ConvertTime(clock.UtcNow, TimeZoneInfo.FindSystemTimeZoneById(Tenant.Current.TimeZoneId));
+        if (Term.Length == 0)
+        {
+            Popular = await search.PopularAsync(ct);
+            return Page();
+        }
+        Result = await search.SearchAsync(Term, Shown, S, ct);
+        // 번역 · 범위만 바꿔 다시 보는 것은 한 번 찾은 것으로 친다(인기 검색어를 부풀리지 않게)
+        if (Request.Query["s"].Count == 0 && Request.Query["tr"].Count == 0) await search.LogAsync(Term, ct);
+        return Page();
+    }
+
+    public string Url(string? tr = null, string? s = null) =>
+        $"/{Slug}/reading/search?q={Uri.EscapeDataString(Term)}&tr={tr ?? Tr}&s={s ?? S}";
+
+    /// <summary>본문을 HTML 로 바꾸고 검색어를 &lt;mark&gt; 로 감싼다(대소문자 무시).</summary>
+    public Microsoft.AspNetCore.Html.IHtmlContent Highlight(string text)
+    {
+        var enc = System.Net.WebUtility.HtmlEncode(text);
+        var t = System.Net.WebUtility.HtmlEncode(Term);
+        return new Microsoft.AspNetCore.Html.HtmlString(t.Length == 0 ? enc
+            : System.Text.RegularExpressions.Regex.Replace(enc, System.Text.RegularExpressions.Regex.Escape(t), m => $"<mark>{m.Value}</mark>", System.Text.RegularExpressions.RegexOptions.IgnoreCase));
+    }
+}
+
 /// <summary>`/{slug}/reading/bookmarks?sort=recent|bible` 북마크 모음(확정 시안: 통독-북마크, 출처 표시는 뺌).</summary>
 public class BookmarksModel(ReadingService reading, TenantContext tenant, BibleMarkService marks, TenantClock clock) : ReadingPageBase(reading, tenant)
 {

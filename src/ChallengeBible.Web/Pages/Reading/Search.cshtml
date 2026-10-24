@@ -1,0 +1,101 @@
+@page "/{slug}/reading/search"
+@model ChallengeBible.Web.Pages.Reading.SearchModel
+@using ChallengeBible.Web.Pages.Reading
+@using ChallengeBible.Web.Services
+@using ChallengeBible.Infrastructure.Data
+@* 확정 시안: 통독-성경검색 — 머리말 → 말씀 찾기 · 성경 검색 → 검색 칸 → 추천 단어 → 우리 부서 인기 검색어 10 ↔ 결과(번역 · 범위 · 책별 개수 · 구절) *@
+@{
+    var ko = ReadingPageBase.Ko;
+    var r = Model.Result;
+    var multi = Model.Shown.Count > 1;
+    (string Label, string Value)[] trs = [("개역개정", BibleTranslation.Krv), ("현대인", BibleTranslation.Klb), ("NIV", BibleTranslation.Niv), ("모두", "ALL")];
+    var trName = Model.Tr switch { "KLB" => "현대인의성경", "NIV" => "NIV", "ALL" => "세 번역 나란히", _ => "개역개정" };
+}
+<link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
+<div class="rp">
+<header class="rp-top"><div class="rp-in">
+    <a class="rp-menu" href="/@Model.Slug/reading" aria-label="통독 홈">☰</a>
+    <nav class="rp-crumb"><a href="/@Model.Slug">홈으로</a> · <a href="/@Model.Slug/reading"><b>성경통독</b></a></nav>
+    <span class="rp-date">@Model.NowLocal.ToString("M월 d일 dddd", ko)</span>
+</div>
+<div class="rp-in rp-head">
+    <div class="rp-k">말씀 찾기</div>
+    <h1>성경 검색</h1>
+    <form class="rp-sform" method="get" role="search">
+        <input type="search" name="q" value="@Model.Term" maxlength="50" placeholder="단어나 구절 — 사랑, 믿음, 요 3:16…" aria-label="찾을 말" />
+        <button type="submit">검색 →</button>
+    </form>
+    <div class="rp-sugg" aria-label="추천 단어">
+        @foreach (var w in BibleSearchService.Suggestions)
+        {
+            <a href="?q=@Uri.EscapeDataString(w)" aria-current="@(Model.Term == w ? "true" : "false")">@w</a>
+        }
+    </div>
+</div></header>
+
+<main class="rp-in rp-body">
+    @if (r is null)
+    {
+        <section>
+            <h2 class="rp-h">우리 부서 인기 검색어 <small>최근 30일 · @Model.NowLocal.ToString("M월 d일 HH:mm", ko) 기준</small></h2>
+            @if (Model.Popular.Count == 0)
+            {
+                <p class="rp-empty">아직 찾은 말이 없어요. 첫 번째로 찾아보세요!</p>
+            }
+            else
+            {
+                <ol class="rp-rank">
+                    @for (var i = 0; i < Model.Popular.Count; i++)
+                    {
+                        var (w, n) = Model.Popular[i];
+                        <li><a href="?q=@Uri.EscapeDataString(w)" class="@(i < 3 ? "top" : "")"><i class="num">@(i + 1)</i><span>@w</span><small class="num">@(n)회</small></a></li>
+                    }
+                </ol>
+            }
+            <p class="rp-note">@(Model.Tenant.Current.Name)에서 찾은 말만 모았어요. 누가 찾았는지는 남기지 않아요.</p>
+        </section>
+    }
+    else
+    {
+        <section class="rp-sres" aria-live="polite">
+            <div class="brd-lbl">번역</div>
+            <div class="rp-chips">@foreach (var (label, code) in trs) { <a href="@Model.Url(tr: code)" aria-current="@(Model.Tr == code ? "true" : "false")">@label</a> }</div>
+            <div class="brd-lbl">범위</div>
+            <div class="rp-chips">
+                <a href="@Model.Url(s: "all")" aria-current="@(Model.S == "all" ? "true" : "false")">전체 <span class="num">@r.Total</span></a>
+                @if (r.Ot > 0) { <a href="@Model.Url(s: "ot")" aria-current="@(Model.S == "ot" ? "true" : "false")">구약 <span class="num">@r.Ot</span></a> }
+                @if (r.Nt > 0) { <a href="@Model.Url(s: "nt")" aria-current="@(Model.S == "nt" ? "true" : "false")">신약 <span class="num">@r.Nt</span></a> }
+                @foreach (var (book, n) in r.Books)
+                {
+                    <a href="@Model.Url(s: book.ToString())" aria-current="@(Model.S == book.ToString() ? "true" : "false")">@ReadingPageBase.BookName(book) <span class="num">@n</span></a>
+                }
+            </div>
+            <div class="rp-rhead"><b>“@Model.Term”</b><span class="num">@(r.Shown)절 · @trName</span><a href="/@Model.Slug/reading/search">← 인기 검색어</a></div>
+            @if (r.Hits.Count == 0)
+            {
+                <p class="rp-empty">“@Model.Term”이(가) 들어간 구절이 없어요.<br />다른 말로 찾아보거나 위 추천 단어를 눌러 보세요.</p>
+            }
+            else
+            {
+                <ul class="rp-res">
+                    @foreach (var h in r.Hits)
+                    {
+                        <li>
+                            <div class="ref"><a href="@Model.ReadUrl(h.BookId, h.Chapter, h.Verse)">@ReadingPageBase.BookName(h.BookId) @(h.Chapter):@(h.Verse)</a><small>본문으로 →</small></div>
+                            @foreach (var code in Model.Shown)
+                            {
+                                if (h.Texts.TryGetValue(code, out var t))
+                                {
+                                    <p class="@(multi && code != Model.Shown[0] ? "alt" : "")">@if (multi) { <b>@BibleTextService.Short(code)</b> }@Model.Highlight(t)</p>
+                                }
+                            }
+                        </li>
+                    }
+                </ul>
+                @if (r.Shown > r.Hits.Count) { <p class="rp-note">앞의 @(r.Hits.Count)절만 보여요. 범위를 좁혀 보세요.</p> }
+            }
+        </section>
+    }
+    <nav class="rp-foot"><a href="/@Model.Slug/reading">통독 홈</a><a href="/@Model.Slug/reading/bookmarks">북마크</a><a href="/@Model.Slug">홈으로</a></nav>
+</main>
+</div>

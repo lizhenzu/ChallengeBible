@@ -1634,6 +1634,44 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.SearchLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("SearchedUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Term")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id")
+                        .HasName("PK_SearchLog");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+
+                    b.HasIndex("TenantId", "Id")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_SearchLog_TenantId_Id");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("TenantId", "Id"));
+
+                    b.HasIndex("TenantId", "SearchedUtc")
+                        .HasDatabaseName("IX_SearchLog_Recent");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("TenantId", "SearchedUtc"), new[] { "Term" });
+
+                    b.ToTable("SearchLog", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Tenant", b =>
                 {
                     b.Property<int>("Id")
@@ -2282,6 +2320,16 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_RoundVerseRead_Chapter");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.SearchLog", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_SearchLog_Tenant");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantSeason", b =>

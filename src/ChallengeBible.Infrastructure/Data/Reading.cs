@@ -57,6 +57,30 @@ public sealed class BibleChapter
     public short VerseCount { get; set; }
 }
 
+/// <summary>부서 인기 검색어용 기록(R-164): 영역 · 검색어 · 시각만. 누가 찾았는지는 남기지 않는다(계정 열 없음).</summary>
+public sealed class SearchLog : ITenantOwned
+{
+    public long Id { get; set; }
+    public int TenantId { get; set; }
+    public required string Term { get; set; }
+    public DateTime SearchedUtc { get; set; }
+    public const int MaxTerm = 50;
+}
+
+internal sealed class SearchLogConfig : IEntityTypeConfiguration<SearchLog>
+{
+    public void Configure(EntityTypeBuilder<SearchLog> e)
+    {
+        e.ToTable("SearchLog");
+        e.HasKey(x => x.Id).HasName("PK_SearchLog").IsClustered(false);
+        e.HasIndex(x => new { x.TenantId, x.Id }).IsUnique().IsClustered().HasDatabaseName("UQ_SearchLog_TenantId_Id");
+        e.HasIndex(x => new { x.TenantId, x.SearchedUtc }).IncludeProperties(x => x.Term).HasDatabaseName("IX_SearchLog_Recent");
+        e.Property(x => x.Term).HasMaxLength(SearchLog.MaxTerm);
+        e.Property(x => x.SearchedUtc).HasColumnType("datetime2(3)");
+        e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).HasConstraintName("FK_SearchLog_Tenant").OnDelete(DeleteBehavior.NoAction);
+    }
+}
+
 internal sealed class ReadingRoundConfig : IEntityTypeConfiguration<ReadingRound>
 {
     public void Configure(EntityTypeBuilder<ReadingRound> e)

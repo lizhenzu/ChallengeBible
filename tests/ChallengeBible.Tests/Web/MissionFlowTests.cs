@@ -203,6 +203,25 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task 성경_검색은_결과를_보여_주고_인기_검색어에_남고_구절_주소는_본문으로_간다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var home = await c.GetStringAsync("/jamsil-kids/reading/search");
+        Assert.Contains("아직 찾은 말이 없어요", home);
+        // 시험 본문은 "KRV 1:24:n" · "NIV 1:24:n" 이라 한글이 없다 → 영어 검색어는 NIV 에서 찾고, 보이는 번역은 고른 대로
+        var res = await c.GetStringAsync("/jamsil-kids/reading/search?q=NIV%201:24");          // 처음 찾기 → 기록
+        Assert.Contains("“NIV 1:24”", res);
+        Assert.Contains("9절 · 개역개정", res);
+        Assert.Contains("href=\"/jamsil-kids/reading/read/1/24?v=9\"", res);
+        var niv = await c.GetStringAsync("/jamsil-kids/reading/search?q=NIV%201:24&tr=NIV&s=all");   // 번역만 바꿔 보기 → 기록 안 함
+        Assert.Contains("<mark>NIV 1:24</mark>", niv);
+        Assert.Contains("1회", await c.GetStringAsync("/jamsil-kids/reading/search"));
+        var go = await c.GetAsync("/jamsil-kids/reading/search?q=" + Uri.EscapeDataString("요 3:16"));
+        Assert.Equal(HttpStatusCode.Redirect, go.StatusCode);
+        Assert.Equal("/jamsil-kids/reading/read/43/3?v=16", go.Headers.Location!.OriginalString);
+    }
+
+    [Fact]
     public async Task R150_통독을_끈_부서는_통독_화면이_없다()
     {
         var c = await Member("cheolsu", Roles.Participant);
