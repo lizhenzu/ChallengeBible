@@ -5,7 +5,7 @@
 @using ChallengeBible.Infrastructure.Data
 @* 통독 본문 읽기(ADR 0057): 말씀-성경읽기-v2 모양 + 장 번호 줄. 절마다 ✓(회차 읽음, R-160) · ★(책갈피, R-112),
    "이 페이지 읽음으로 표시"는 보이는 절, 넘기기만으로는 읽음이 아니다(0042). 모든 절이 읽음이면 장 자동 완료(R-162).
-   듣기 · 해설 영상(R-166)과 밝기는 다음 묶음 *@
+   절 사이 해설 카드(R-118, ADR 0056 결정 7, 확정 시안: 통독-본문읽기-해설카드). 듣기 · 해설 영상(R-166)과 밝기는 다음 묶음 *@
 @{
     var v = Model.View;
     var s = Model.Slice;
@@ -58,6 +58,17 @@
             {
                 var read = v.VersesRead.Contains(line.Verse);
                 var star = Model.Bookmarked.Contains((line.Chapter, line.Verse));
+                if (Model.Notes.TryGetValue((line.Chapter, line.Verse), out var notes))
+                {
+                    foreach (var n in notes)
+                    {
+                        <aside class="brd-ex" aria-label="해설 @n.Range">
+                            <p class="hd"><span class="tag">해설</span><span class="rg">@n.Range</span></p>
+                            @if (n.Title is not null) { <strong>@n.Title</strong> }
+                            @if (n.Body is not null) { <p class="bd">@n.Body</p> }
+                        </aside>
+                    }
+                }
                 <div class="vr@(read ? " read" : "")@(star ? " bm" : "")" data-ch="@line.Chapter" data-v="@line.Verse">
                     <span class="vn num">@line.Verse</span>
                     <span class="vt">

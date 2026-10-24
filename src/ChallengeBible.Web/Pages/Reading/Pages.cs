@@ -179,7 +179,7 @@ public class ListModel(ReadingService reading, TenantContext tenant) : ReadingPa
 /// `/{slug}/reading/read/{book}/{chapter}?unit=&tr=&p=&v=` 장 본문 읽기(R-160 · R-161 · R-165).
 /// 화면을 열면 보던 위치(장 · 보이는 첫 절)를 남긴다 — 읽음과 무관(R-161).
 /// </summary>
-public class ReadModel(ReadingService reading, TenantContext tenant, BibleTextService bible, BibleMarkService marks) : ReadingPageBase(reading, tenant)
+public class ReadModel(ReadingService reading, TenantContext tenant, BibleTextService bible, BibleMarkService marks, BibleNoteService notes) : ReadingPageBase(reading, tenant)
 {
     public override string Title => $"{BookName(Book)} {Chapter}장";
     [BindProperty(SupportsGet = true)] public byte Book { get; set; }
@@ -195,6 +195,9 @@ public class ReadModel(ReadingService reading, TenantContext tenant, BibleTextSe
     public IReadOnlyList<string> Shown { get; private set; } = [BibleTranslation.Krv];
     public IReadOnlySet<(short, short)> Bookmarked { get; private set; } = new HashSet<(short, short)>();
     public IReadOnlySet<short> DoneChapters { get; private set; } = new HashSet<short>();
+    /// <summary>절(장, 절) 위에 그릴 해설 카드. 앞 장에서 시작한 해설은 1절 위.</summary>
+    public IReadOnlyDictionary<(short Chapter, short Verse), IReadOnlyList<BibleNote>> Notes { get; private set; } =
+        new Dictionary<(short Chapter, short Verse), IReadOnlyList<BibleNote>>();
     public int ChapterCount => BibleBooks.All().First(b => b.Id == Book).ChapterCount;
 
     protected override async Task<IActionResult> LoadAsync(CancellationToken ct)
@@ -211,6 +214,8 @@ public class ReadModel(ReadingService reading, TenantContext tenant, BibleTextSe
         if (V is short v && Unit > 0) PageNo = (lines.TakeWhile(l => l.Verse < v).Count() / Unit) + 1;
         Slice = BibleTextService.Slice(lines, Unit, PageNo);
         Bookmarked = (await marks.MarksAsync(range, ct)).Bookmarked;
+        // 해설 카드(R-118, ADR 0056 결정 7): 장 전체로 자리를 정하고, 지금 쪽에 시작 절이 있는 카드만 그린다(/read 와 같음)
+        if (lines.Count > 0) Notes = BibleNoteService.Place(await notes.ForRangeAsync(range, ct), range, lines);
         DoneChapters = (await Reading.DoneChaptersAsync(ct)).GetValueOrDefault(Book) ?? new HashSet<short>();
         if (Slice.Lines.Count > 0) await Reading.SavePositionAsync(Book, Chapter, Slice.Lines[0].Verse, ct);
         return Page();
