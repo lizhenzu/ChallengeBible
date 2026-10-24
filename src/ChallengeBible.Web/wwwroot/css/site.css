@@ -1000,3 +1000,32 @@ main.admin > .wrap.cc { display: grid; gap: 16px; grid-template-columns: minmax(
 .cc .items small { font-size: 12.5px; color: var(--dim); }
 .cc .items .none { color: var(--bad); font-weight: 700; font-size: 14px; }
 .cc .det .btn:disabled { opacity: .5; cursor: not-allowed; align-self: flex-start; }
+
+/* 플랫폼 홈(확정 시안: 플랫폼-홈) */
+main.admin > .wrap.ph { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { main.admin > .wrap.ph { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; } .ph-span { grid-column: 1 / -1; } }
+.ph-greet { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.ph-greet span { font-size: 13px; color: var(--dim); }
+.ph .ar-kpis span { font-size: 12px; color: var(--dim); }
+.ph-card { border: 1px solid var(--rule); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.ph-card > h2 { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 16px; font-weight: 800; }
+.ph-card > h2 small { font-size: 13px; font-weight: 500; color: var(--dim); }
+.ph-card .more { font-size: 13px; font-weight: 700; color: var(--accent); }
+.ph .td::after { content: "›"; margin-left: auto; font-size: 22px; color: var(--dim); }
+.ph-tbl { overflow-x: auto; }
+.ph-tbl table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 520px; }
+.ph-tbl th { text-align: left; font-size: 12px; font-weight: 700; color: var(--dim); padding: 0 8px 8px; border-bottom: 1px solid var(--fg); white-space: nowrap; }
+.ph-tbl .r { text-align: right; }
+.ph-tbl td { padding: 10px 8px; border-bottom: 1px solid var(--rule); }
+.ph-tbl .nm { display: flex; align-items: center; gap: 8px; }
+.ph-tbl .nm i { flex: none; width: 10px; height: 10px; border-radius: 50%; }
+.ph-tbl .bar { display: flex; align-items: center; gap: 8px; }
+.ph-tbl .bar > span { flex: 1; height: 6px; border-radius: 99px; background: var(--soft); overflow: hidden; min-width: 60px; }
+.ph-tbl .bar i { display: block; height: 100%; background: var(--accent); }
+.ph-tbl .bar em { font-style: normal; min-width: 38px; text-align: right; font-size: 13px; }
+.ph-muted { margin: 0; color: var(--dim); }
+.ph-muted.small { font-size: 12.5px; }
+.ph-log { list-style: none; margin: 0; padding: 0; font-size: 13.5px; }
+.ph-log li { display: flex; gap: 10px; padding: 9px 0; border-top: 1px solid var(--rule); }
+.ph-log li:first-child { border-top: 0; }
+.ph-log time { flex: none; width: 74px; color: var(--dim); font-size: 12.5px; }

@@ -1,2 +1,65 @@
 @page "/platform"
 @model ChallengeBible.Web.Pages.Platform.IndexModel
+@using ChallengeBible.Web.Pages.Platform
+@* 확정 시안: 플랫폼-홈-단독시안 — 숫자 4칸 → 챙길 일 → 부서별 오늘 | 최근 관리 기록 *@
+@{
+    var d = Model.Data;
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap wide ph">
+    <div class="ph-greet ph-span"><h1>플랫폼 홈</h1><span class="num">@d.NowLocal.ToString("yyyy년 M월 d일 dddd · tt h:mm", ko) 기준</span></div>
+
+    <div class="ar-kpis ph-span">
+        <div><small>운영 중인 부서</small><b class="num">@d.ActiveTenants<u>곳</u></b><span>@(d.SuspendedTenants > 0 ? $"정지 {d.SuspendedTenants}곳" : "정지 없음")</span></div>
+        <div><small>계정</small><b class="num">@d.Accounts<u>개</u></b><span>이번 주 새로 @(d.NewAccounts)개</span></div>
+        <div><small>오늘 미션 참여</small><b class="num">@d.TodayParticipants<u>명</u></b><span>성경말씀 부서 @(d.MissionTenants)곳</span></div>
+        <div><small>오늘 통독</small><b class="num">@d.TodayReaders<u>명</u></b><span>읽은 장 @(d.TodayChapters)장</span></div>
+    </div>
+
+    <section class="ph-card ph-span" aria-labelledby="hTodo">
+        <h2 id="hTodo">챙길 일</h2>
+        @if (d.Todos.Count == 0)
+        {
+            <p class="ph-muted">챙길 일이 없어요.</p>
+        }
+        else
+        {
+            <div class="ah-todo">
+                @foreach (var t in d.Todos) { <a class="td @t.Kind" href="@t.Href"><span class="n num">@t.Count</span><div><b>@t.Title</b><span>@t.Text</span></div></a> }
+            </div>
+        }
+    </section>
+
+    <section class="ph-card" aria-labelledby="hT">
+        <h2 id="hT">부서별 오늘 <a class="more" href="/platform/tenants">부서 관리 →</a></h2>
+        <div class="ph-tbl"><table>
+            <thead><tr><th>부서</th><th>오늘 미션 참여</th><th class="r">통독</th><th class="r">신청 대기</th></tr></thead>
+            <tbody>
+            @foreach (var t in d.Tenants)
+            {
+                <tr>
+                    <td><span class="nm"><i style="background:@TenantsModel.ColorVar(t.ThemeColor)"></i>@t.Name@if (t.Suspended) { <span class="tag st">정지</span> }</span></td>
+                    <td>@if (!t.Mission) { <span class="ph-muted">통독만</span> }
+                        else if (t.Suspended) { <span class="ph-muted">–</span> }
+                        else if (t.Participants == 0) { <span class="ph-muted">아직 참여자 없음</span> }
+                        else { <span class="bar"><span><i style="width:@((t.TodayParticipants * 100.0 / t.Participants).ToString("0.#", inv))%"></i></span><em class="num">@t.TodayParticipants/@t.Participants</em></span> }</td>
+                    <td class="r num">@(t.Readers > 0 ? t.Readers.ToString() : "–")</td>
+                    <td class="r num">@(t.Pending > 0 ? t.Pending.ToString() : "–")</td>
+                </tr>
+            }
+            @if (d.Tenants.Count == 0) { <tr><td colspan="4" class="ph-muted">아직 부서가 없어요.</td></tr> }
+            </tbody>
+        </table></div>
+    </section>
+
+    <section class="ph-card" aria-labelledby="hLog">
+        <h2 id="hLog">최근 관리 기록 <small>모든 부서</small></h2>
+        <ul class="ph-log">
+            @if (d.Log.Count == 0) { <li class="ph-muted">아직 기록이 없어요.</li> }
+            @foreach (var l in d.Log) { <li><time class="num">@Model.When(l.OccurredUtc)</time><span>@l.Actor@(l.Tenant is null ? "" : $"({l.Tenant})") · @l.Text</span></li> }
+        </ul>
+        <p class="ph-muted small">감사 로그 전체 보기 · 사용량은 2차예요.</p>
+    </section>
+</div></main>

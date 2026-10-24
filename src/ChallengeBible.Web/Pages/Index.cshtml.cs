@@ -20,7 +20,7 @@ public class IndexModel(AccountService accounts, TenantClock clock) : PageModel,
     {
         if (User.AccountId() is not int id) return Page();
         var go = await accounts.WhereToGoAsync(id, ct);
-        if (go.ApprovedCount == 0 && User.IsPlatformAdmin()) return Redirect("/platform/tenants");
+        if (go.ApprovedCount == 0 && User.IsPlatformAdmin()) return Redirect("/platform");
         return go.ApprovedCount switch
         {
             0 => RedirectToPage("/Join"),

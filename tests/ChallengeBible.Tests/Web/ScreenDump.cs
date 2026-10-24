@@ -248,6 +248,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         {
             ["__RequestVerificationToken"] = TokenRx().Match(lh).Groups[1].Value, ["Email"] = "operator@example.com", ["Password"] = "1234",
         }));
+        await Save(op, "/platform", "13a-플랫폼홈");
         await Save(op, "/platform/tenants", "13-플랫폼부서");
         await Save(op, "/platform/content/word?month=2027-01&date=2027-01-05", "14-공용콘텐츠-말씀");
         await Save(op, "/platform/content/quiz?month=2027-01&date=2027-01-05", "15-공용콘텐츠-퀴즈");

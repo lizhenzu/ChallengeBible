@@ -53,10 +53,25 @@ public partial class PlatformFlowTests : IClassFixture<WebApplicationFactory<Pro
     }
 
     [Fact]
+    public async Task 플랫폼_홈은_플랫폼_관리자만_보고_부서별_오늘과_챙길_일이_나온다()
+    {
+        Assert.StartsWith("/account/denied", (await (await LoggedIn("cheolsu", platformAdmin: false)).GetAsync("/platform")).Headers.Location!.PathAndQuery);
+        var kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");                 // 관리자 없는 부서
+        var c = await LoggedIn("operator", platformAdmin: true);
+        var home = await c.GetStringAsync("/platform");
+        Assert.Contains("aria-current=\"page\">플랫폼 홈", home);
+        Assert.Contains("운영 중인 부서", home);
+        Assert.Contains(kids.Name, home);
+        Assert.Contains("관리자가 없는 부서", home);
+        Assert.Contains("곧 비는 공용 콘텐츠", home);                                    // 공용 콘텐츠가 하나도 없다
+        Assert.Contains("아직 기록이 없어요", home);
+    }
+
+    [Fact]
     public async Task 플랫폼_관리자는_부서를_만들고_첫_화면은_플랫폼으로()
     {
         var c = await LoggedIn("operator", platformAdmin: true);
-        Assert.Equal("/platform/tenants", (await c.GetAsync("/")).Headers.Location!.OriginalString);
+        Assert.Equal("/platform", (await c.GetAsync("/")).Headers.Location!.OriginalString);   // 부서 소속이 없으면 플랫폼 홈
 
         var page = await c.GetStringAsync("/platform/tenants");
         var created = await c.PostAsync("/platform/tenants?handler=Create", new FormUrlEncodedContent(new Dictionary<string, string>
