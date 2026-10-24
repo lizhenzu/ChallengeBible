@@ -683,6 +683,33 @@ a.td::after { content: "›"; margin-left: auto; font-size: 22px; color: var(--d
 .brd-pills a { min-height: 36px; padding: 0 16px; border-radius: 99px; background: var(--b-grey); color: var(--b-dim2); display: inline-flex; align-items: center; font-size: 14px; font-weight: 700; }
 .brd-pills a[aria-current="true"] { background: var(--b-acc); color: #fff; }
 .brd-verses { margin-top: 8px; }
+/* 책 개요 카드(R-116, ADR 0062, 확정 시안: 통독-본문읽기-책개요): 해설(파랑) · 책갈피(노랑)와 겹치지 않게 회색 띠 + 진한 글자. 1장은 펼침, 다른 장은 접힘 */
+.bov { margin: 16px 0 6px; border: 1px solid var(--b-rule); border-radius: 14px; background: var(--b-grey); overflow: hidden; }
+.bov > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 14px 16px; }
+.bov > summary::-webkit-details-marker { display: none; }
+.bov .ic { flex: none; width: 34px; height: 34px; border-radius: 10px; background: var(--bg); display: grid; place-items: center; font-size: 17px; }
+.bov .tt { flex: 1; min-width: 0; display: grid; }
+.bov .tt b { font-size: 15.5px; color: var(--b-ink); }
+.bov .tt span { font-size: 13px; color: var(--b-dim2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bov[open] .tt span { display: none; }
+.bov .chev { flex: none; color: var(--b-dim2); transition: transform .15s; }
+.bov[open] .chev { transform: rotate(180deg); }
+.bov .bov-b { padding: 0 16px 16px; }
+.bov .tabs { display: inline-flex; gap: 4px; padding: 3px; border-radius: 10px; background: var(--bg); border: 1px solid var(--b-rule); }
+.bov .tabs button { min-height: 34px; padding: 0 14px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 800; color: var(--b-dim2); }
+.bov .tabs button[aria-selected="true"] { background: var(--b-ink); color: var(--bg); }
+.bov dl { margin: 12px 0 0; display: grid; grid-template-columns: 88px minmax(0, 1fr); background: var(--bg); border-radius: 12px; overflow: hidden; }
+.bov dt, .bov dd { margin: 0; padding: 12px 14px; border-top: 1px solid var(--b-rule); }
+.bov dt:first-of-type, .bov dt:first-of-type + dd { border-top: 0; }
+.bov dt { white-space: nowrap; font-size: 13px; font-weight: 800; color: var(--b-dim2); }
+.bov dd { font-size: calc(15px * var(--fs)); line-height: 1.75; color: var(--b-ink); word-break: keep-all; overflow-wrap: anywhere; white-space: pre-line; }
+.bov .kw { display: flex; flex-wrap: wrap; gap: 6px; white-space: normal; }
+.bov .kw span { padding: 2px 10px; border-radius: 99px; background: var(--b-grey); font-size: 13px; font-weight: 700; }
+.bov .vids { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+.bov .vids a { min-height: 40px; padding: 0 14px; border-radius: 10px; background: var(--bg); border: 1px solid var(--b-rule); display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 800; color: var(--b-ink); }
+.bov .src { margin: 10px 0 0; font-size: 12px; color: var(--b-dim); }
+@media (max-width: 380px) { .bov dl { grid-template-columns: 1fr; } .bov dd { border-top: 0; padding-top: 0; } }
+
 /* 해설 카드(R-118, ADR 0056): 절 사이에 끼운다. 대표 색(파랑) 연한 바탕 — 책갈피 노랑과 겹치지 않게. 줄바꿈 문자는 화면에서도 줄바꿈
    글자 대비 4.5:1 이상(밝음 · 어두움 모두) */
 .brd-ex { --x-tag: #1A66D1; --x-on: #fff; --x-rg: #3D63A0; --x-bd: #5B6472;
