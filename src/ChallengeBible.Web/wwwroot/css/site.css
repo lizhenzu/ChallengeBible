@@ -672,10 +672,6 @@ a.td::after { content: "›"; margin-left: auto; font-size: 22px; color: var(--d
 .brd-pills { display: flex; flex-wrap: wrap; gap: 8px; }
 .brd-pills a { min-height: 36px; padding: 0 16px; border-radius: 99px; background: var(--b-grey); color: var(--b-dim2); display: inline-flex; align-items: center; font-size: 14px; font-weight: 700; }
 .brd-pills a[aria-current="true"] { background: var(--b-acc); color: #fff; }
-.brd-day { margin-top: 18px; padding: 16px 18px; border-radius: 16px; background: var(--b-accSoft); display: block; }
-.brd-day .tag { display: inline-block; padding: 2px 12px; border-radius: 99px; background: var(--bg); color: var(--b-acc); font-size: 12.5px; font-weight: 800; }
-.brd-day strong { display: block; margin-top: 8px; font-size: calc(18px * var(--fs)); color: var(--b-ink); font-weight: 800; }
-.brd-day p { margin: 4px 0 0; font-size: calc(14px * var(--fs)); color: var(--b-dim2); line-height: 1.7; }
 .brd-verses { margin-top: 8px; }
 /* 해설 카드(R-118, ADR 0056): 절 사이에 끼운다. 줄바꿈 문자는 화면에서도 줄바꿈 */
 .brd-ex { --x-bg: #FAF5EC; --x-bar: #8B5E34; --x-rg: #8C7B6B;

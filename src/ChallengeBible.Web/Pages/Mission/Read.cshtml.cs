@@ -28,8 +28,6 @@ public class ReadModel(MissionService missions, TenantContext tenant, BibleTextS
 
     public BibleRef? Ref { get; private set; }
     public string? Kicker { get; private set; }
-    public string? DayTitle { get; private set; }
-    public string? DaySummary { get; private set; }
     public string BackText => From switch { "prayer" => "기도 미션", "recite" => "암송 미션", _ => "말씀 미션" };
     public string BackPage => From switch { "prayer" => "prayer", "recite" => "recite", _ => "word" };
     public ReadPage Slice { get; private set; } = new([], 0, 1, 1, 0, 0);
@@ -46,7 +44,6 @@ public class ReadModel(MissionService missions, TenantContext tenant, BibleTextS
             _ => new BibleRef(Book, Sc, Sv, Ec == 0 ? Sc : Ec, Ev == 0 ? Sv : Ev),
         };
         Kicker = From switch { "word" => "오늘의 말씀", "prayer" => "오늘의 성품기도", "recite" => "이번 주 암송 구절", _ => "성경 읽기" };
-        if (From == "word" && d.Word is not null) { DayTitle = d.Word.Title; DaySummary = d.Word.Summary; }
 
         if (!BibleTextService.Codes.Contains(Tr)) Tr = Tr == "ALL" ? "ALL" : BibleTranslation.Krv;
         Shown = Tr == "ALL" ? BibleTextService.Codes : [Tr];
