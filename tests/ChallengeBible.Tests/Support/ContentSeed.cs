@@ -16,6 +16,10 @@ public static class ContentSeed
                     raw.BibleVerses.Add(new BibleVerse { TranslationId = id, BookId = book, Chapter = ch, Verse = v, Text = $"{tag} {book}:{ch}:{v}" });
         }
         Add(1, 24, 1, 9); Add(20, 3, 5, 6); Add(43, 3, 16, 16);
+        // 통독의 장마다 절 수(0041): 시험용으로 모든 장 3절, 창세기 24장만 본문과 같은 9절
+        foreach (var b in BibleBooks.All())
+            for (short c = 1; c <= b.ChapterCount; c++)
+                raw.BibleChapters.Add(new BibleChapter { BookId = b.Id, Chapter = c, VerseCount = (short)(b.Id == 1 && c == 24 ? 9 : 3) });
         raw.SaveChanges();
     }
 

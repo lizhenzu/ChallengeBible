@@ -1,0 +1,112 @@
+@page "/{slug}/reading/read/{book:int}/{chapter:int}"
+@model ChallengeBible.Web.Pages.Reading.ReadModel
+@using ChallengeBible.Web.Pages.Reading
+@using ChallengeBible.Web.Services
+@using ChallengeBible.Infrastructure.Data
+@* 통독 본문 읽기(ADR 0057): 말씀-성경읽기-v2 모양 + 장 번호 줄. 절마다 ✓(회차 읽음, R-160) · ★(책갈피, R-112),
+   "이 페이지 읽음으로 표시"는 보이는 절, 넘기기만으로는 읽음이 아니다(0042). 모든 절이 읽음이면 장 자동 완료(R-162).
+   듣기 · 해설 영상(R-166)과 밝기는 다음 묶음 *@
+@{
+    var v = Model.View;
+    var s = Model.Slice;
+    var multi = Model.Shown.Count > 1;
+    var t = ReadingPageBase.TestamentOf(Model.Book);
+    var name = ReadingPageBase.BookName(Model.Book);
+    var prev = ReadingService.PrevChapter(Model.Book, Model.Chapter);
+    var next = ReadingService.NextChapter(Model.Book, Model.Chapter);
+    (string Label, int Value)[] units = [("한 절", 1), ("3절", 3), ("5절", 5), ("전체", 0)];
+    (string Label, string Value)[] trs = [("개역개정", BibleTranslation.Krv), ("현대인", BibleTranslation.Klb), ("NIV", BibleTranslation.Niv), ("모두", "ALL")];
+}
+<link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
+<div class="brd">
+<header class="brd-top">
+    <nav class="brd-crumb"><a href="/@Model.Slug/reading">통독 홈</a><i aria-hidden="true">·</i><a href="@Model.ListUrl(t, Model.Book)">@name 목록</a></nav>
+    <div class="fs brd-fs" role="group" aria-label="글자 크기">
+        <button type="button" data-fs="-1" aria-label="글자 작게">가−</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
+    </div>
+</header>
+<main class="brd-main" data-slug="@Model.Slug">
+    <div class="brd-k">@(t == "ot" ? "구약" : "신약") · 성경 통독 · @(v.RoundNo)회차</div>
+    <h1 class="brd-h">@name<small>@(Model.Chapter)@(Model.Book == 19 ? "편" : "장")</small></h1>
+    <div class="rdprog brd-prog" data-total="@v.VerseCount">
+        <p class="num"><span>@(v.VerseCount)절 · <b data-readcount>@v.VersesRead.Count</b>절 읽음<span class="rd-done" data-chapterdone @(v.Done ? "" : "hidden")> · 다 읽은 장</span></span><span data-readpct>@(Model.ReadPercent)%</span></p>
+        <div class="brd-bar" aria-hidden="true"><i data-readbar style="width:@(Model.ReadPercent)%"></i></div>
+    </div>
+
+    <nav class="brd-chs" aria-label="장 번호">
+        @for (short c = 1; c <= Model.ChapterCount; c++)
+        {
+            <a class="@(c == Model.Chapter ? "cur" : Model.DoneChapters.Contains(c) ? "done" : "")" href="@Model.ReadUrl(Model.Book, c)" aria-current="@(c == Model.Chapter ? "page" : "false")">@c</a>
+        }
+    </nav>
+
+    <section class="brd-set" aria-label="읽기 설정">
+        <div class="brd-lbl">읽기 단위</div>
+        <div class="brd-pills">@foreach (var (label, u) in units) { <a href="@Model.Url(unit: u)" aria-current="@(Model.Unit == u ? "true" : "false")">@label</a> }</div>
+        <div class="brd-lbl">번역</div>
+        <div class="brd-pills">@foreach (var (label, code) in trs) { <a href="@Model.Url(tr: code)" aria-current="@(Model.Tr == code ? "true" : "false")">@label</a> }</div>
+    </section>
+
+    @if (s.Total == 0)
+    {
+        <p class="brd-empty">이 장의 본문이 아직 없어요.</p>
+    }
+    else
+    {
+        <div class="rdv brd-verses" data-book="@Model.Book" data-chapter="@Model.Chapter" data-api="reading">
+            @foreach (var line in s.Lines)
+            {
+                var read = v.VersesRead.Contains(line.Verse);
+                var star = Model.Bookmarked.Contains((line.Chapter, line.Verse));
+                <div class="vr@(read ? " read" : "")@(star ? " bm" : "")" data-ch="@line.Chapter" data-v="@line.Verse">
+                    <span class="vn num">@line.Verse</span>
+                    <span class="vt">
+                        @foreach (var code in Model.Shown)
+                        {
+                            if (line.Texts.TryGetValue(code, out var tx))
+                            {
+                                if (multi) { <span class="tl"><em>@BibleTextService.Short(code)</em><span class="tx">@tx</span></span> }
+                                else { <span class="tx">@tx</span> }
+                            }
+                        }
+                        <span class="acts">
+                            <button type="button" class="vb rd@(read ? " on" : "")" data-mark="read" aria-pressed="@(read ? "true" : "false")" aria-label="@(line.Verse)절 읽음">✓</button>
+                            <button type="button" class="vb st@(star ? " on" : "")" data-mark="bookmark" aria-pressed="@(star ? "true" : "false")" aria-label="@(line.Verse)절 책갈피">★</button>
+                        </span>
+                    </span>
+                </div>
+            }
+        </div>
+
+        @if (s.Pages > 1)
+        {
+            <nav class="brd-pager" aria-label="쪽 이동">
+                @if (s.Page > 1) { <a href="@Model.Url(page: s.Page - 1)">◀ 이전</a> } else { <span class="off">◀ 이전</span> }
+                <span class="num">@(s.First)–@(s.Last)절 / @s.Total</span>
+                @if (s.Page < s.Pages) { <a href="@Model.Url(page: s.Page + 1)">다음 ▶</a> } else { <span class="off">다음 ▶</span> }
+            </nav>
+        }
+
+        var f = s.Lines[0];
+        var l = s.Lines[^1];
+        var pageRead = s.Lines.Count(x => v.VersesRead.Contains(x.Verse));
+        <button type="button" class="mega@(Model.PageAllRead ? " done" : "")" data-pageall data-sc="@f.Chapter" data-sv="@f.Verse" data-ec="@l.Chapter" data-ev="@l.Verse" data-n="@s.Lines.Count">
+            <span class="b">
+                <span class="t" data-megat>@(Model.PageAllRead ? "이 페이지 다 읽었어요" : "이 페이지 읽음으로 표시")</span>
+                <span class="d" data-megad>@(Model.PageAllRead ? "다시 누르면 읽음이 취소돼요" : "넘기기만 해서는 읽음이 되지 않아요")</span>
+                <span class="c num" data-megac>이 페이지 읽은 절 @pageRead / @s.Lines.Count</span>
+            </span>
+            <em aria-hidden="true">→</em>
+        </button>
+        <nav class="brd-chnav" aria-label="장 이동">
+            @if (prev is { } pv) { <a href="@Model.ReadUrl(pv.Book, pv.Chapter)">◀ @(pv.Book == Model.Book ? "" : ReadingPageBase.BookName(pv.Book) + " ")@(pv.Chapter)장</a> } else { <span></span> }
+            <a href="@Model.ReadUrl(next.Book, next.Chapter)">@(next.Book == Model.Book ? "" : ReadingPageBase.BookName(next.Book) + " ")@(next.Chapter)장 ▶</a>
+        </nav>
+        <p class="brd-note">통독에는 점수가 없어요. 장의 모든 절을 읽음으로 표시하면 그 장이 다 읽은 장이 돼요.</p>
+    }
+    <nav class="brd-foot"><a href="/@Model.Slug/reading">통독 홈</a><a href="@Model.ListUrl(t, Model.Book)">목록</a><a href="/@Model.Slug">홈으로</a></nav>
+</main>
+</div>
+@Html.AntiForgeryToken()
+<p id="toast" class="toast" role="status" hidden></p>
+<script src="~/js/mission.js" asp-append-version="true"></script>

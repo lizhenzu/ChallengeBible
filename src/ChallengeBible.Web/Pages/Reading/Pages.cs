@@ -1,0 +1,136 @@
+using System.Globalization;
+using ChallengeBible.Infrastructure.Data;
+using ChallengeBible.Web.Services;
+using ChallengeBible.Web.Tenancy;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+
+namespace ChallengeBible.Web.Pages.Reading;
+
+// 도전!!!성경통독 화면(확정 시안: 통독-대시보드 · 통독-성경목록, 본문은 말씀-성경읽기-v2 모양 + 장 번호 줄 — ADR 0057)
+
+/// <summary>통독 화면 공통: 부서가 통독을 껐으면 404(R-150). 기록은 로그인 계정 것(R-158).</summary>
+public abstract class ReadingPageBase(ReadingService reading, TenantContext tenant) : PageModel, ITitled
+{
+    public abstract string Title { get; }
+    public TenantContext Tenant => tenant;
+    public ReadingService Reading => reading;
+    public string Slug => tenant.Current.Slug;
+    public static readonly CultureInfo Ko = new("ko-KR");
+
+    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
+    {
+        if (!tenant.Current.ReadingEnabled) return NotFound();
+        return await LoadAsync(ct);
+    }
+
+    protected abstract Task<IActionResult> LoadAsync(CancellationToken ct);
+
+    public string ReadUrl(byte book, short chapter, short? verse = null) =>
+        $"/{Slug}/reading/read/{book}/{chapter}" + (verse is > 1 ? $"?v={verse}" : "");
+    public string ListUrl(string testament, byte? book = null, bool mark = false) =>
+        $"/{Slug}/reading/list?t={testament}" + (book is null ? "" : $"&b={book}") + (mark ? "&mode=mark" : "") + (book is null ? "" : $"#b{book}");
+    public static string BookName(byte id) => BibleBooks.NameOf(id);
+    public static string TestamentOf(byte id) => id <= 39 ? "ot" : "nt";
+}
+
+/// <summary>`/{slug}/reading` 대시보드(R-155 · R-156 · R-161).</summary>
+public class IndexModel(ReadingService reading, TenantContext tenant, BibleTextService bible) : ReadingPageBase(reading, tenant)
+{
+    public override string Title => "성경통독";
+    public ReadingSummary Data { get; private set; } = null!;
+    public string? ResumeText { get; private set; }
+    [BindProperty(SupportsGet = true)] public string Tab { get; set; } = "ot";
+
+    protected override async Task<IActionResult> LoadAsync(CancellationToken ct)
+    {
+        Data = await Reading.SummaryAsync(ct);
+        var r = Data.Resume;
+        var lines = await bible.RangeAsync(new BibleRef(r.BookId, r.Chapter, r.Verse, r.Chapter, r.Verse), [BibleTranslation.Krv], ct);
+        ResumeText = lines.FirstOrDefault()?.Texts.GetValueOrDefault(BibleTranslation.Krv);
+        return Page();
+    }
+}
+
+/// <summary>`/{slug}/reading/list?t=ot|nt&b=&mode=mark` 성경 목록: 책 → 장 번호 칸, 눌러 읽으러 가기 또는 바로 완료(R-151).</summary>
+public class ListModel(ReadingService reading, TenantContext tenant) : ReadingPageBase(reading, tenant)
+{
+    public override string Title => "성경 목록";
+    [BindProperty(SupportsGet = true, Name = "t")] public string T { get; set; } = "ot";
+    [BindProperty(SupportsGet = true, Name = "b")] public byte? B { get; set; }
+    [BindProperty(SupportsGet = true)] public string? Mode { get; set; }
+
+    public ReadingSummary Data { get; private set; } = null!;
+    public IReadOnlyDictionary<byte, IReadOnlySet<short>> Done { get; private set; } = new Dictionary<byte, IReadOnlySet<short>>();
+    public bool MarkMode => Mode == "mark";
+
+    /// <summary>분류(구약 5 · 신약 5). 책 번호 범위.</summary>
+    public static readonly (string Testament, string Name, byte From, byte To)[] Groups =
+    [
+        ("ot", "율법서", 1, 5), ("ot", "역사서", 6, 17), ("ot", "시가서", 18, 22), ("ot", "대선지서", 23, 27), ("ot", "소선지서", 28, 39),
+        ("nt", "복음서", 40, 43), ("nt", "역사서", 44, 44), ("nt", "바울서신", 45, 57), ("nt", "일반서신", 58, 65), ("nt", "예언서", 66, 66),
+    ];
+
+    protected override async Task<IActionResult> LoadAsync(CancellationToken ct)
+    {
+        if (T is not ("ot" or "nt")) T = "ot";
+        if (B is byte b && TestamentOf(b) != T) T = TestamentOf(b);
+        Data = await Reading.SummaryAsync(ct);
+        Done = await Reading.DoneChaptersAsync(ct);
+        return Page();
+    }
+
+    public IReadOnlySet<short> DoneOf(byte book) => Done.TryGetValue(book, out var s) ? s : new HashSet<short>();
+}
+
+/// <summary>
+/// `/{slug}/reading/read/{book}/{chapter}?unit=&tr=&p=&v=` 장 본문 읽기(R-160 · R-161 · R-165).
+/// 화면을 열면 보던 위치(장 · 보이는 첫 절)를 남긴다 — 읽음과 무관(R-161).
+/// </summary>
+public class ReadModel(ReadingService reading, TenantContext tenant, BibleTextService bible, BibleMarkService marks) : ReadingPageBase(reading, tenant)
+{
+    public override string Title => $"{BookName(Book)} {Chapter}장";
+    [BindProperty(SupportsGet = true)] public byte Book { get; set; }
+    [BindProperty(SupportsGet = true)] public short Chapter { get; set; }
+    [BindProperty(SupportsGet = true)] public int Unit { get; set; }
+    [BindProperty(SupportsGet = true, Name = "tr")] public string Tr { get; set; } = BibleTranslation.Krv;
+    [BindProperty(SupportsGet = true, Name = "p")] public int PageNo { get; set; } = 1;
+    /// <summary>이어 읽기로 들어올 때 그 절이 보이는 쪽을 연다.</summary>
+    [BindProperty(SupportsGet = true, Name = "v")] public short? V { get; set; }
+
+    public ChapterView View { get; private set; } = null!;
+    public ReadPage Slice { get; private set; } = new([], 0, 1, 1, 0, 0);
+    public IReadOnlyList<string> Shown { get; private set; } = [BibleTranslation.Krv];
+    public IReadOnlySet<(short, short)> Bookmarked { get; private set; } = new HashSet<(short, short)>();
+    public IReadOnlySet<short> DoneChapters { get; private set; } = new HashSet<short>();
+    public int ChapterCount => BibleBooks.All().First(b => b.Id == Book).ChapterCount;
+
+    protected override async Task<IActionResult> LoadAsync(CancellationToken ct)
+    {
+        if (Book is < 1 or > 66 || Chapter < 1 || Chapter > ChapterCount) return NotFound();
+        var view = await Reading.ChapterAsync(Book, Chapter, ct);
+        if (view is null) return NotFound();
+        View = view;
+        if (!BibleTextService.Codes.Contains(Tr)) Tr = Tr == "ALL" ? "ALL" : BibleTranslation.Krv;
+        Shown = Tr == "ALL" ? BibleTextService.Codes : [Tr];
+        if (Unit is not (0 or 1 or 3 or 5)) Unit = 0;
+        var range = new BibleRef(Book, Chapter, 1, Chapter, (short)view.VerseCount);
+        var lines = await bible.RangeAsync(range, Shown, ct);
+        if (V is short v && Unit > 0) PageNo = (lines.TakeWhile(l => l.Verse < v).Count() / Unit) + 1;
+        Slice = BibleTextService.Slice(lines, Unit, PageNo);
+        Bookmarked = (await marks.MarksAsync(range, ct)).Bookmarked;
+        DoneChapters = (await Reading.DoneChaptersAsync(ct)).GetValueOrDefault(Book) ?? new HashSet<short>();
+        if (Slice.Lines.Count > 0) await Reading.SavePositionAsync(Book, Chapter, Slice.Lines[0].Verse, ct);
+        return Page();
+    }
+
+    public int ReadPercent => View.VerseCount == 0 ? 0 : (int)Math.Round(View.VersesRead.Count * 100.0 / View.VerseCount);
+    public bool PageAllRead => Slice.Lines.Count > 0 && Slice.Lines.All(l => View.VersesRead.Contains(l.Verse));
+
+    public string Url(int? unit = null, string? tr = null, int? page = null)
+    {
+        var q = new List<string> { $"unit={unit ?? Unit}", $"tr={tr ?? Tr}" };
+        if ((page ?? 1) > 1) q.Add($"p={page}");
+        return $"/{Slug}/reading/read/{Book}/{Chapter}?{string.Join("&", q)}";
+    }
+}

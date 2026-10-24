@@ -1,0 +1,124 @@
+/* 도전!!!성경통독 (확정 시안: 통독-대시보드 · 통독-성경목록). 통독 화면에서만 읽는 파일이라 다른 화면과 겹치지 않는다.
+   본문 읽기는 말씀-성경읽기-v2 의 .brd 모양(site.css)에 장 번호 줄만 더한다(ADR 0057). */
+.rp { --r-acc: #2B59C3; --r-accSoft: #DCE5F7; --r-band: #F2F4F7; --r-ink: #1B1F24; --r-dim: #5B6470; --r-rule: #E3E6EA; --r-cell: #E9ECF1;
+      --r-l1: #C9D7F2; --r-l2: #8FA9E3; --r-l3: #2B59C3; color: var(--r-ink); }
+@media (prefers-color-scheme: dark) { .rp { --r-acc: #7FA2F2; --r-accSoft: #22304D; --r-band: #1B1F25; --r-ink: #E8EAED; --r-dim: #A3AAB4; --r-rule: #2C323A; --r-cell: #22272E;
+      --r-l1: #2A3B5E; --r-l2: #4D6BAE; --r-l3: #7FA2F2; } }
+.rp-in { max-width: 640px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.rp-top { background: var(--r-band); }
+.rp-top > .rp-in:first-child { display: flex; align-items: center; gap: 12px; min-height: 72px; }
+.rp-menu { width: 44px; height: 44px; border-radius: 12px; background: var(--bg); border: 1px solid var(--r-rule); display: grid; place-items: center; font-size: 18px; }
+.rp-crumb { flex: 1; font-size: 15px; color: var(--r-dim); }
+.rp-crumb b, .rp-crumb a b { color: var(--r-ink); }
+.rp-date { font-size: 13px; color: var(--r-dim); }
+.rp-ttabs { display: grid; grid-template-columns: 1fr 1fr; }
+.rp-ttabs a { min-height: 48px; display: grid; place-items: center; font-weight: 800; color: var(--r-dim); border-bottom: 3px solid transparent; }
+.rp-ttabs a[aria-current="page"] { color: var(--r-ink); border-bottom-color: var(--r-acc); }
+
+.rp-me { background: var(--r-band); padding-bottom: 20px; }
+.rp-k { font-size: 13px; font-weight: 800; color: var(--r-acc); letter-spacing: .12em; }
+.rp-hero { display: flex; align-items: center; gap: 22px; margin-top: 14px; }
+.rp-ring { --p: 0; flex: none; width: 112px; height: 112px; border-radius: 50%; display: grid; place-items: center;
+           background: radial-gradient(closest-side, var(--r-band) 84%, transparent 85%), conic-gradient(var(--r-acc) calc(var(--p) * 1%), var(--r-cell) 0); }
+.rp-ring span { font-size: 22px; font-weight: 300; }
+.rp-count { display: flex; flex-direction: column; gap: 2px; }
+.rp-count b { font-size: 30px; font-weight: 300; }
+.rp-count span { font-size: 14px; color: var(--r-dim); }
+.rp-stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 18px; border-top: 2px solid var(--r-ink); border-bottom: 1px solid var(--r-rule); }
+.rp-stats div { text-align: center; padding: 14px 0; }
+.rp-stats div + div { border-left: 1px solid var(--r-rule); }
+.rp-stats b { display: block; font-size: 26px; font-weight: 300; }
+.rp-stats small { font-size: 13px; color: var(--r-dim); }
+
+.rp-resume { display: block; background: var(--r-acc); color: #fff; }
+.rp-resume .rp-in { position: relative; padding-top: 22px; padding-bottom: 22px; display: grid; gap: 6px; }
+.rp-k2 { font-size: 13px; font-weight: 800; letter-spacing: .12em; opacity: .9; }
+.rp-resume strong { font-size: 24px; font-weight: 800; }
+.rp-resume p { margin: 0; padding-right: 44px; font-size: 15px; line-height: 1.7; opacity: .95; }
+.rp-resume small { font-size: 13px; opacity: .85; }
+.rp-resume em { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-style: normal; font-size: 28px; }
+
+.rp-body { padding-top: 8px; padding-bottom: 40px; }
+.rp-body section { margin-top: 26px; }
+.rp-h { margin: 0 0 12px; display: flex; justify-content: space-between; align-items: baseline; font-size: 16px; font-weight: 900; color: var(--r-acc); letter-spacing: .1em; }
+.rp-h small { font-size: 12.5px; font-weight: 500; color: var(--r-dim); letter-spacing: 0; }
+.rp-next { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.rp-next a { min-height: 54px; padding: 0 14px; border: 1px solid var(--r-rule); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; }
+.rp-next b { color: var(--r-acc); }
+.rp-bar { margin-top: 10px; }
+.rp-bar .t { display: flex; justify-content: space-between; font-size: 14px; }
+.rp-bar .t span:last-child { color: var(--r-dim); }
+.rp-bar > i { display: block; height: 6px; margin-top: 6px; border-radius: 99px; background: var(--r-cell); overflow: hidden; }
+.rp-bar > i > b { display: block; height: 100%; min-width: 4px; background: var(--r-acc); border-radius: 99px; }
+.rp-bar > i > b.all { background: var(--r-ink); }
+.rp-cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.rp-cal .dw { text-align: center; font-size: 12px; color: var(--r-dim); padding-bottom: 4px; }
+.rp-cal .c { height: 36px; display: grid; place-items: center; font-size: 12px; color: var(--r-dim); background: var(--r-cell); }
+.rp-cal .c.l1 { background: var(--r-l1); color: var(--r-ink); }
+.rp-cal .c.l2 { background: var(--r-l2); color: #fff; }
+.rp-cal .c.l3 { background: var(--r-l3); color: #fff; }
+.rp-cal .c.f { background: none; }
+.rp-cal .c.t { box-shadow: inset 0 0 0 2px var(--r-ink); }
+.rp-legend { margin-top: 8px; display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 12px; color: var(--r-dim); }
+.rp-legend i { width: 14px; height: 14px; display: inline-block; background: var(--r-cell); }
+.rp-legend i.l1 { background: var(--r-l1); } .rp-legend i.l2 { background: var(--r-l2); } .rp-legend i.l3 { background: var(--r-l3); }
+.rp-tabs { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--r-ink); }
+.rp-tabs a { min-height: 46px; display: grid; place-items: center; font-weight: 700; }
+.rp-tabs a[aria-current="true"] { background: var(--r-ink); color: var(--bg); }
+.rp-books { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+.rp-books a { position: relative; min-height: 66px; padding: 8px 10px; border: 1px solid var(--r-rule); display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.rp-books a span { font-size: 14px; }
+.rp-books a b { font-size: 12.5px; font-weight: 500; color: var(--r-dim); }
+.rp-books a.ing b, .rp-books a.done b { color: var(--r-acc); font-weight: 800; }
+.rp-books a i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--r-acc); }
+.rp-foot { margin-top: 28px; display: flex; justify-content: center; gap: 22px; font-size: 13px; color: var(--r-dim); }
+.rp-foot a { min-height: 44px; display: inline-flex; align-items: center; }
+
+/* 성경 목록 */
+.rp-big { margin-top: 8px; display: flex; align-items: flex-end; justify-content: space-between; }
+.rp-big b { font-size: 46px; font-weight: 300; line-height: 1; }
+.rp-big b small { font-size: 20px; }
+.rp-big span { text-align: right; font-size: 13px; color: var(--r-dim); }
+.rp-big strong { font-size: 16px; color: var(--r-ink); }
+.rp-group { margin-top: 22px !important; }
+.rp-gh { margin: 0 0 8px; display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; color: var(--r-dim); }
+.rp-bgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; grid-auto-flow: dense; }
+.rp-bk { position: relative; min-height: 64px; padding: 8px 14px; border: 1px solid var(--r-rule); border-radius: 10px; display: flex; flex-direction: column; justify-content: center; overflow: hidden; scroll-margin-top: 80px; }
+.rp-bk span { font-size: 15px; }
+.rp-bk b { font-size: 13px; font-weight: 500; color: var(--r-dim); }
+.rp-bk.done b { color: var(--r-acc); font-weight: 800; }
+.rp-bk i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--r-acc); }
+.rp-bk.open { border: 2px solid var(--r-ink); }
+.rp-panel { grid-column: 1 / -1; border: 1px solid var(--r-ink); border-radius: 14px; padding: 18px; display: grid; gap: 12px; }
+.rp-panel .ph { display: flex; justify-content: space-between; align-items: baseline; }
+.rp-panel .ph strong { font-size: 22px; }
+.rp-panel .ph span { font-size: 13px; color: var(--r-dim); }
+.rp-panel .seg { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 12px; background: var(--r-cell); }
+.rp-panel .seg a { min-height: 42px; border-radius: 9px; display: grid; place-items: center; font-weight: 700; color: var(--r-dim); }
+.rp-panel .seg a[aria-current="true"] { background: var(--bg); color: var(--r-ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.rp-panel .hint { margin: 0; font-size: 13px; color: var(--r-dim); }
+.rp-panel .chs { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
+.rp-panel .ch { position: relative; aspect-ratio: 1 / 1; border: 0; border-radius: 50%; background: var(--r-cell); color: var(--r-dim); display: grid; place-items: center; font-size: 14px; font-weight: 800; }
+.rp-panel .ch.done { background: var(--r-accSoft); color: var(--r-acc); }
+.rp-panel .ch.here { box-shadow: inset 0 0 0 2px var(--r-acc); color: var(--r-acc); }
+.rp-panel .ch.wait { color: transparent; }
+.rp-panel .ch.wait::after { content: ""; position: absolute; inset: 25%; border: 2px solid var(--r-rule); border-top-color: var(--r-acc); border-radius: 50%; animation: rp-spin .8s linear infinite; }
+.rp-panel .lg { display: flex; gap: 14px; font-size: 12px; color: var(--r-dim); }
+.rp-panel .lg i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; vertical-align: -1px; margin-right: 4px; background: var(--r-cell); }
+.rp-panel .lg i.done { background: var(--r-accSoft); }
+.rp-panel .lg i.here { background: none; box-shadow: inset 0 0 0 2px var(--r-acc); }
+.rp-panel .acts { display: grid; grid-template-columns: auto 1fr; gap: 10px; }
+.rp-panel .acts a { min-height: 50px; padding: 0 18px; border-radius: 12px; display: grid; place-items: center; font-weight: 800; }
+.rp-panel .acts .close { border: 1px solid var(--r-rule); }
+.rp-panel .acts .go { background: var(--r-acc); color: #fff; }
+@keyframes rp-spin { to { transform: rotate(360deg); } }
+@media (max-width: 380px) { .rp-books { grid-template-columns: repeat(3, minmax(0, 1fr)); } .rp-panel .chs { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+
+/* 통독 본문: v2 모양(.brd) + 장 번호 줄 */
+.brd-chs { margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; }
+.brd-chs a { aspect-ratio: 1 / 1; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 800; background: var(--b-grey); color: var(--b-dim2); }
+.brd-chs a.done { background: var(--b-accSoft); color: var(--b-acc); }
+.brd-chs a.cur { background: var(--b-acc); color: #fff; }
+.brd-chnav { margin-top: 14px; display: flex; justify-content: space-between; gap: 10px; }
+.brd-chnav a { min-height: 44px; padding: 0 16px; border-radius: 12px; background: var(--b-grey); display: inline-flex; align-items: center; font-weight: 800; color: var(--b-ink); }
+.rd-done { color: var(--b-acc); font-weight: 800; }
