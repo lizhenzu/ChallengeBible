@@ -25,9 +25,11 @@ CREATE TABLE #D (Id int, BookName nvarchar(50), Author nvarchar(200), AuthorDesc
 
 -- ▲▲▲ ② 여기까지 ▲▲▲
 
--- 이름 맞추기
-SELECT b.Id AS BookId, s.Id AS BId INTO #MB FROM #B s JOIN app.BibleBook b ON REPLACE(b.Name, N' ', N'') = REPLACE(s.BibleText, N' ', N'');
-SELECT b.Id AS BookId, s.Id AS DId INTO #MD FROM #D s JOIN app.BibleBook b ON REPLACE(b.Name, N' ', N'') = REPLACE(s.BookName, N' ', N'');
+-- 이름 맞추기: 띄어쓰기 무시, 옛 이름 "요한1서 · 요한2서 · 요한3서" = 우리 "요한일서 · 요한이서 · 요한삼서"
+SELECT b.Id AS BookId, s.Id AS BId INTO #MB FROM #B s JOIN app.BibleBook b
+    ON REPLACE(b.Name, N' ', N'') = REPLACE(REPLACE(REPLACE(REPLACE(s.BibleText, N' ', N''), N'1서', N'일서'), N'2서', N'이서'), N'3서', N'삼서');
+SELECT b.Id AS BookId, s.Id AS DId INTO #MD FROM #D s JOIN app.BibleBook b
+    ON REPLACE(b.Name, N' ', N'') = REPLACE(REPLACE(REPLACE(REPLACE(s.BookName, N' ', N''), N'1서', N'일서'), N'2서', N'이서'), N'3서', N'삼서');
 
 SELECT N'붙여 넣은 줄' AS 확인, (SELECT COUNT(*) FROM #B) AS 간략본, (SELECT COUNT(*) FROM #D) AS 상세본;
 SELECT N'간략본 이름 안 맞음' AS 확인, s.Id, s.BibleText FROM #B s WHERE s.Id NOT IN (SELECT BId FROM #MB)
