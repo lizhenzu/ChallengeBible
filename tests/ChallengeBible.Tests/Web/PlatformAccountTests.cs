@@ -139,6 +139,29 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
     }
 
     [Fact]
+    public async Task R0035_임시_비밀번호로_로그인하면_새_비밀번호를_정하기_전에는_다른_화면과_API를_못_쓴다()
+    {
+        var temp = await Service().ResetPasswordAsync(_op, _kid);
+        var kid = await Login("cheolsu@example.com", temp!);
+        var home = await kid.GetAsync("/jamsil-kids");
+        Assert.Equal("/account/change-password", home.Headers.Location!.OriginalString);   // 주소를 직접 쳐도
+        Assert.Equal("/account/change-password", (await kid.GetAsync("/")).Headers.Location!.OriginalString);
+        var api = await kid.PutAsync("/api/me/bible/bookmarks/1/1/1", null);
+        Assert.Equal(HttpStatusCode.Forbidden, api.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await kid.GetAsync("/css/site.css")).StatusCode);   // 파일은 통과
+
+        var page = await kid.GetStringAsync("/account/change-password");
+        var changed = await kid.PostAsync("/account/change-password", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["Password"] = "5678", ["PasswordConfirm"] = "5678",
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, changed.StatusCode);
+        Assert.NotEqual("/account/change-password", (await kid.GetAsync("/jamsil-kids")).Headers.Location?.OriginalString);   // 이제 통과
+        using var raw = InMemoryDb.Raw(_db);
+        Assert.False(raw.Accounts.Single(a => a.Id == _kid).MustChangePassword);
+    }
+
+    [Fact]
     public async Task 플랫폼_관리자가_아니면_계정_찾기를_못_본다()
     {
         using (var raw = InMemoryDb.Raw(_db))

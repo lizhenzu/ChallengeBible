@@ -102,6 +102,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthentication();
 app.UseRequestScope();
+app.UsePasswordChangeGate();
 app.UseAuthorization();
 
 app.MapStaticAssets();

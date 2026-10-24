@@ -26,6 +26,7 @@ public class ChangePasswordModel(AccountService accounts) : PageModel, ITitled
             Forced = await accounts.MustChangePasswordAsync(User.AccountId()!.Value, ct);
             return Page();
         }
+        await CurrentUser.PasswordChangedAsync(HttpContext);   // 쿠키의 "바꿔야 함" 표시를 뺀다(0035)
         return Redirect("/");
     }
 }
