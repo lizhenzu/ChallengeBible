@@ -206,6 +206,26 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Null(await In(_kids, "haneul").MyFamilyAsync());   // 팀이 없는 사람
     }
 
+    [Fact]
+    public async Task R96_R97_가족_단계는_팀마다_시즌에_한_번_기록하고_홈_카드는_숨긴_단계를_빼고_보인다()
+    {
+        var (_, id) = await In(_kids).CreateAsync(null, [P("cheolsu"), P("younghee"), P("daeho")]);   // 1,050점
+        var c = await In(_kids).RecordReachedAsync(P("cheolsu"));
+        Assert.NotNull(c);
+        Assert.Equal((1000, 1050, (int?)2000, "Award"), (c.Points, c.Total, c.Next, c.Kind));
+        Assert.Equal(3, c.Members.Count);
+        Assert.Null(await In(_kids).RecordReachedAsync(P("younghee")));   // 같은 단계는 한 번만
+        Assert.Null(await In(_kids).RecordReachedAsync(P("haneul")));     // 팀이 없는 사람
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal([1000], raw.FamilyMilestonesReached.Select(x => x.Threshold));
+
+        var home = await In(_kids, "cheolsu").MyFamilyAsync();
+        Assert.Equal(1000, home!.Cheer!.Points);
+        Assert.Equal([true, false, false, false, false], home.Stages.Select(s => s.On));
+        await In(_kids).SetStageHiddenAsync(1, id!.Value, 1000, true);
+        Assert.Null((await In(_kids, "cheolsu").MyFamilyAsync())!.Cheer);                     // R-97 숨긴 단계는 카드에서 빠짐
+        Assert.Equal([1000], (await In(_kids).RankingAsync()).Teams[0].Badges.Select(b => b.Points));   // 순위 배지는 그대로
+    }
+
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
     private static partial Regex TokenRx();
 

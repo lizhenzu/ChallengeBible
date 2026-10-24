@@ -27,6 +27,12 @@
         <section class="fh" aria-labelledby="fhT">
             <div class="k">우리 가족팀</div>
             <h2 id="fhT">@f.Name</h2>
+            @if (f.Cheer is { } c)
+            {
+                var clap = c.Kind == ChallengeBible.Domain.Rules.FamilyMilestoneKind.Applause;
+                <div class="fh-cheer @(clap ? "clap" : "")" role="status"><span class="e" aria-hidden="true">@c.Emoji</span>
+                    <div><b>@c.Message</b><span class="s">@(f.CheerDate is { } cd ? cd.ToString("M월 d일") + " · " : "")@(clap ? "가족 모두 박수!" : "선생님께 선물을 받아요")</span></div></div>
+            }
             <div class="fh-box">
                 <div class="tot">
                     <small>가족 총합 점수 · @(f.Year) 시즌</small>
@@ -36,6 +42,12 @@
                         <div class="row"><span>다음 가족 축하</span><b class="num">@(f.NextStage is { } n ? $"{n - f.Total:N0}점 남음" : "모든 단계를 넘었어요")</b></div>
                         <div class="bar"><i style="width:@(pct.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"></i></div>
                         <div class="ticks" aria-hidden="true"><span>@f.PrevStage.ToString("N0")</span><span>@((f.NextStage ?? f.Total).ToString("N0"))점</span></div>
+                    </div>
+                    <div class="fh-stages" aria-label="가족 단계">
+                        @foreach (var s in f.Stages)
+                        {
+                            <span class="@(s.On ? "on" : "")@(s.On && s.Kind == ChallengeBible.Domain.Rules.FamilyMilestoneKind.Applause ? " c" : "")">@s.Emoji @s.Points.ToString("N0")</span>
+                        }
                     </div>
                     @if (Model.FamilyDept is { } dept)
                     {

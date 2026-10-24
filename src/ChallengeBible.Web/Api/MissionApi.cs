@@ -10,9 +10,10 @@ public sealed record PressRequest(DateOnly Date, string[]? Items);
 public sealed record QuizRequest(DateOnly Date, int? ChoiceId, string? AnswerText);
 public sealed record DateRequest(DateOnly Date);
 
+/// <summary>FamilyMilestone: 이 점수로 가족팀 합계가 처음 넘은 단계(R-96, 시안 가족축하 ①). 없으면 null.</summary>
 public sealed record MissionResponse(bool Ok, int PointsEarned, int SeasonTotal, IReadOnlyList<string> CompletedItems,
     IReadOnlyList<int> MilestonesReached, string Message, bool? IsCorrect = null, int? AttemptsLeft = null,
-    int? CorrectChoiceId = null, string? Explanation = null);
+    int? CorrectChoiceId = null, string? Explanation = null, FamilyCelebration? FamilyMilestone = null);
 
 /// <summary>
 /// 미션 버튼 동작 JSON API(API 계약 5-1, ADR 0034). 화면은 Razor Pages, 버튼은 이 API 를 부르고 화면 일부만 바꾼다.
@@ -24,17 +25,18 @@ public static class MissionApi
     {
         var g = app.MapGroup("/api/{slug}/missions").RequireAuthorization().AddEndpointFilter<ParticipantEndpointFilter>();
 
-        g.MapPost("/word", (PressRequest r, MissionService s, HttpContext h) => Press(r, Mission.Word, s, h));
-        g.MapPost("/prayer", (PressRequest r, MissionService s, HttpContext h) => Press(r, Mission.Prayer, s, h));
+        g.MapPost("/word", (PressRequest r, MissionService s, FamilyTeamService f, HttpContext h) => Press(r, Mission.Word, s, f, h));
+        g.MapPost("/prayer", (PressRequest r, MissionService s, FamilyTeamService f, HttpContext h) => Press(r, Mission.Prayer, s, f, h));
 
-        g.MapPost("/recite", async (DateRequest r, MissionService s, HttpContext h) =>
+        g.MapPost("/recite", async (DateRequest r, MissionService s, FamilyTeamService f, HttpContext h) =>
         {
             var pid = (int)h.Items[ParticipantEndpointFilter.ParticipantKey]!;
             var res = await s.PressAsync(pid, MissionItem.Recite, r.Date, h.RequestAborted);
-            return Results.Ok(new MissionResponse(res.Ok, res.Added, res.SeasonPoints, res.Ok ? ["Recite"] : [], res.NewMilestones, Msg(res)));
+            return Results.Ok(new MissionResponse(res.Ok, res.Added, res.SeasonPoints, res.Ok ? ["Recite"] : [], res.NewMilestones, Msg(res),
+                FamilyMilestone: await Family(f, pid, res.Added, h)));
         });
 
-        g.MapPost("/quiz/attempts", async (QuizRequest r, MissionService s, HttpContext h) =>
+        g.MapPost("/quiz/attempts", async (QuizRequest r, MissionService s, FamilyTeamService f, HttpContext h) =>
         {
             var pid = (int)h.Items[ParticipantEndpointFilter.ParticipantKey]!;
             var res = await s.AnswerQuizAsync(pid, r.Date, r.ChoiceId, r.AnswerText, h.RequestAborted);
@@ -44,11 +46,16 @@ public static class MissionApi
             if (finished && day.Quiz?.Format == QuizFormat.Choice) correctChoice = await s.CorrectChoiceAsync(day.Quiz.Id, h.RequestAborted);
             return Results.Ok(new MissionResponse(res.Ok, res.Added, res.SeasonPoints, day.QuizState.Solved ? ["Quiz.Correct"] : [],
                 res.NewMilestones, res.Added > 0 ? $"정답! +{res.Added}점 · 올해 총 {res.SeasonPoints:N0}점" : res.Message,
-                res.Correct, day.QuizState.MaxAttempts - day.QuizState.AttemptsUsed, correctChoice, finished ? day.Quiz?.Explanation : null));
+                res.Correct, day.QuizState.MaxAttempts - day.QuizState.AttemptsUsed, correctChoice, finished ? day.Quiz?.Explanation : null,
+                await Family(f, pid, res.Added, h)));
         });
     }
 
-    private static async Task<IResult> Press(PressRequest r, Mission mission, MissionService s, HttpContext h)
+    /// <summary>점수를 받았을 때만 가족 단계를 검사한다(R-65 와 같이 0점이면 안 함).</summary>
+    private static async Task<FamilyCelebration?> Family(FamilyTeamService f, int pid, int added, HttpContext h) =>
+        added > 0 ? await f.RecordReachedAsync(pid, h.RequestAborted) : null;
+
+    private static async Task<IResult> Press(PressRequest r, Mission mission, MissionService s, FamilyTeamService f, HttpContext h)
     {
         var pid = (int)h.Items[ParticipantEndpointFilter.ParticipantKey]!;
         var items = (r.Items ?? []).Select(TryParse).ToList();
@@ -68,7 +75,7 @@ public static class MissionApi
         var day = await s.GetDayAsync(pid, r.Date, h.RequestAborted);
         var done = day.Done.Where(d => d.Mission() == mission).Select(d => d.Code()).ToList();
         var msg = added > 0 ? $"+{added}점! 올해 총 {day.SeasonPoints:N0}점" : last!.Message;
-        return Results.Ok(new MissionResponse(true, added, day.SeasonPoints, done, milestones, msg));
+        return Results.Ok(new MissionResponse(true, added, day.SeasonPoints, done, milestones, msg, FamilyMilestone: await Family(f, pid, added, h)));
     }
 
     private static string Msg(MissionResult r) => r.Ok && r.Added > 0 ? $"+{r.Added}점! 올해 총 {r.SeasonPoints:N0}점" : r.Message;

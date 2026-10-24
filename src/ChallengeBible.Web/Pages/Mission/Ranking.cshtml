@@ -60,6 +60,10 @@
                         <span class="pv"><b class="num">@t.Points.ToString("N0")<u>점</u></b></span>
                     </div>
                     <div class="tbar" aria-hidden="true"><i style="width:@(pct.ToString("0.#", inv))%"></i></div>
+                    @if (t.Badges.Count > 0)
+                    {
+                        <div class="badges" aria-label="넘은 가족 단계">@foreach (var b in t.Badges) { <span class="@(b.Kind == ChallengeBible.Domain.Rules.FamilyMilestoneKind.Applause ? "c" : "")">@b.Emoji @b.Points.ToString("N0")</span> }</div>
+                    }
                     <div class="tree">
                         @foreach (var row in new[] { elders, kids }.Where(r => r.Count > 0))
                         {

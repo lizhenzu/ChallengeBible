@@ -1409,3 +1409,26 @@ main.admin > .wrap.ce { display: flex; flex-direction: column; gap: 14px; }
 .rkp .rk-team .one small.td { font-size: 11px; color: var(--ok); font-weight: 700; }
 .rkp .rk-team .famGoal { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: var(--soft); font-size: 13px; color: var(--dim); display: flex; justify-content: space-between; gap: 10px; }
 .rkp .rk-team .famGoal b { color: var(--fg); }
+
+/* family celebration (mockup: family celebration, R-96 R-97) */
+:root { --clap: #6A4BB5; --clap-bg: #F1ECFB; }
+@media (prefers-color-scheme: dark) { :root { --clap: #B39BF0; --clap-bg: #251E35; } }
+.medal.fam .e { display: block; font-size: 30px; line-height: 1; margin-bottom: 4px; }
+.medal.fam b { font-size: 28px; }
+.medal.clap { background: var(--clap-bg); box-shadow: inset 0 0 0 8px var(--clap-bg), inset 0 0 0 11px color-mix(in srgb, var(--clap) 60%, transparent); }
+.medal.clap b, .medal.clap small { color: var(--clap); }
+.fam-dlg .msg { margin: 0; }
+.famchips { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+.famchips span { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--accent-bg); color: var(--accent); font-weight: 700; }
+.fh-cheer { margin-top: 10px; display: flex; gap: 12px; align-items: center; padding: 14px; border-radius: 18px; background: var(--gold-bg, #FFF4D6); }
+.fh-cheer.clap { background: var(--clap-bg); }
+.fh-cheer .e { flex: none; width: 48px; height: 48px; border-radius: 50%; background: var(--bg); display: grid; place-items: center; font-size: 24px; }
+.fh-cheer b { display: block; font-size: 15px; }
+.fh-cheer span.s { font-size: 12.5px; color: var(--dim); }
+.fh-stages { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+.fh-stages span { font-size: 11.5px; padding: 2px 8px; border-radius: 99px; background: var(--bg); color: var(--dim); font-weight: 700; }
+.fh-stages span.on { background: var(--gold-bg, #FFF4D6); color: var(--gold, #A66A00); }
+.fh-stages span.on.c { background: var(--clap-bg); color: var(--clap); }
+.rkp .rk-team .badges { margin-top: 8px; display: flex; gap: 4px; flex-wrap: wrap; }
+.rkp .rk-team .badges span { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--rk-gold-bg); color: var(--rk-gold); font-weight: 700; }
+.rkp .rk-team .badges span.c { background: var(--clap-bg); color: var(--clap); }

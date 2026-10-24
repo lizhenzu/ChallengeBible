@@ -22,12 +22,27 @@ public sealed record FamilyBoard(bool Enabled, int Year, IReadOnlyList<FamilyTea
 
 /// <summary>홈 "우리 가족팀" 칸의 구성원 한 줄. TodayMissions = 오늘 한 미션 수(0 ~ 4, 암송은 이번 주).</summary>
 public sealed record FamilyHomeMember(string Name, string Relation, int Season, int Today, int TodayMissions, bool Me);
-/// <summary>NextStage = 다음 가족 축하 점수(모든 단계를 넘었으면 null).</summary>
+/// <summary>가족 단계 하나(기본 규칙). On = 이번 시즌 팀 합계가 넘음.</summary>
+public sealed record FamilyStageChip(int Points, string Emoji, string Message, FamilyMilestoneKind Kind, bool On);
+/// <summary>NextStage = 다음 가족 축하 점수(모든 단계를 넘었으면 null). Cheer = 홈 축하 카드(숨기지 않은 가장 높은 넘은 단계, R-97).</summary>
 public sealed record FamilyHome(string Name, int Year, int Total, int TodayPoints, int TodayPeople, int? NextStage, int PrevStage,
-    IReadOnlyList<FamilyHomeMember> Members);
+    IReadOnlyList<FamilyHomeMember> Members)
+{
+    public IReadOnlyList<FamilyStageChip> Stages { get; init; } = [];
+    public FamilyStageChip? Cheer { get; init; }
+    public DateOnly? CheerDate { get; init; }
+}
+/// <summary>미션 직후 가족 축하 팝업(R-96): 이 점수로 팀 합계가 처음 넘은 가장 높은 단계.</summary>
+public sealed record FamilyCelebration(string Team, int Points, string Emoji, string Message, string Kind, int Total, int? Next,
+    IReadOnlyList<FamilyCelebrationMember> Members);
+public sealed record FamilyCelebrationMember(string Name, int Points);
 /// <summary>순위 "가족팀" 탭의 팀 카드(R-94). Last = 구성원 중 가장 최근 점수일.</summary>
 public sealed record FamilyRankTeam(int Rank, string Name, int Points, DateOnly? Last, int? NextStage, bool Mine,
-    IReadOnlyList<(string Name, string Relation, int Points, bool TodayDone, bool Me)> Members);
+    IReadOnlyList<(string Name, string Relation, int Points, bool TodayDone, bool Me)> Members)
+{
+    /// <summary>넘은 가족 단계 배지(숨김과 관계없이 그대로 — 시안 가족축하 ③).</summary>
+    public IReadOnlyList<FamilyStageChip> Badges { get; init; } = [];
+}
 public sealed record FamilyRanking(bool Enabled, int Year, DateOnly Today, int FirstStage, IReadOnlyList<FamilyRankTeam> Teams)
 {
     public int ReachedFirst => FirstStage <= 0 ? 0 : Teams.Count(t => t.Points >= FirstStage);
@@ -303,8 +318,54 @@ public sealed class FamilyTeamService(IAppDb db, ISystemDb systemDb, RequestScop
         var members = mine.Members.Select(m => new FamilyHomeMember(m.Name, m.M.Relation, season.GetValueOrDefault(m.Pid), todayPts.GetValueOrDefault(m.Pid), Done(m.Pid), m.Pid == myPid)).ToList();
         var total = members.Sum(m => m.Season);   // R-92
         var prev = r.FamilyMilestones.Where(s => s.Enabled && s.Points <= total).Select(s => s.Points).DefaultIfEmpty(0).Max();
+
+        // 축하 카드(R-97): 넘은 단계 중 관리자가 숨기지 않은 가장 높은 것. 날짜는 도달 기록이 있으면 그날
+        var year = (short)today.Year;
+        var hidden = (await ctx.FamilyMilestoneDismisses.Where(d => d.FamilyTeamId == mine.Team.Id && d.Year == year).Select(d => d.Threshold).ToListAsync(ct)).ToHashSet();
+        var chips = Chips(r, total);
+        var cheer = chips.Where(c => c.On && !hidden.Contains(c.Points)).OrderByDescending(c => c.Points).FirstOrDefault();
+        DateOnly? cheerDate = null;
+        if (cheer is not null)
+        {
+            var at = await ctx.FamilyMilestonesReached.Where(x => x.FamilyTeamId == mine.Team.Id && x.Year == year && x.Threshold == cheer.Points)
+                .Select(x => (DateTime?)x.ReachedUtc).SingleOrDefaultAsync(ct);
+            if (at is { } u) cheerDate = TenantClock.ToTenantDate(new DateTimeOffset(DateTime.SpecifyKind(u, DateTimeKind.Utc)), tenant.Current.TimeZoneId);
+        }
         return new FamilyHome(DisplayName(mine.Team.Name, members.Select(m => (m.Name, m.Relation)).ToList()), today.Year, total,
-            members.Sum(m => m.Today), members.Count(m => m.Today > 0), Next(r, total), prev, members);
+            members.Sum(m => m.Today), members.Count(m => m.Today > 0), Next(r, total), prev, members)
+        { Stages = chips, Cheer = cheer, CheerDate = cheerDate };
+    }
+
+    /// <summary>켜진 가족 단계(점수순)와 팀 합계로 넘었는지.</summary>
+    private static List<FamilyStageChip> Chips(RuleSet r, int total) =>
+        r.FamilyMilestones.Where(m => m.Enabled).OrderBy(m => m.Points).Select(m => new FamilyStageChip(m.Points, m.Emoji, m.Message, m.Kind, total >= m.Points)).ToList();
+
+    /// <summary>
+    /// R-96: 이 참여자가 점수를 받은 직후 부른다. 그의 활성 가족팀 합계가 새로 넘은 단계를 시즌 · 팀마다 한 번 기록하고,
+    /// 가장 높은 새 단계로 축하 팝업 내용을 돌려준다(없으면 null). 스위치가 꺼졌거나 팀이 없으면 아무것도 하지 않는다.
+    /// </summary>
+    public async Task<FamilyCelebration?> RecordReachedAsync(int participantId, CancellationToken ct = default)
+    {
+        var (r, today) = await RulesAsync(ct);
+        if (!r.Features.FamilyTeam) return null;
+        await using var ctx = db.Create();
+        var (teams, season, _, _) = await LoadTeamsAsync(ctx, today, ct);
+        var team = teams.FirstOrDefault(t => t.Members.Any(m => m.Pid == participantId));
+        if (team.Team is null) return null;
+        var total = team.Members.Sum(m => season.GetValueOrDefault(m.Pid));
+        var year = (short)today.Year;
+        var done = await ctx.FamilyMilestonesReached.Where(x => x.FamilyTeamId == team.Team.Id && x.Year == year).Select(x => x.Threshold).ToListAsync(ct);
+        var fresh = r.FamilyMilestones.Where(m => m.Enabled && m.Points <= total && !done.Contains(m.Points)).OrderBy(m => m.Points).ToList();
+        if (fresh.Count == 0) return null;
+        foreach (var m in fresh)
+            ctx.FamilyMilestonesReached.Add(new FamilyMilestoneReached { TenantId = tenant.Current.Id, FamilyTeamId = team.Team.Id, Year = year,
+                Threshold = m.Points, ReachedUtc = time.GetUtcNow().UtcDateTime });
+        try { await ctx.SaveChangesAsync(ct); }
+        catch (DbUpdateException) { return null; }   // 같은 팀의 다른 사람이 동시에 기록함 — 그쪽이 축하를 본다
+        var top = fresh[^1];
+        return new FamilyCelebration(DisplayName(team.Team.Name, team.Members.Select(m => (m.Name, m.M.Relation)).ToList()),
+            top.Points, top.Emoji, top.Message, top.Kind.ToString(), total, Next(r, total),
+            team.Members.Select(m => new FamilyCelebrationMember(m.Name, season.GetValueOrDefault(m.Pid))).ToList());
     }
 
     /// <summary>순위 "가족팀" 탭(시안 말씀-순위, R-92 · R-94): 활성 팀을 팀 점수순(같으면 이름순).</summary>
@@ -327,7 +388,7 @@ public sealed class FamilyTeamService(IAppDb db, ISystemDb systemDb, RequestScop
                 return (name, pts, lastDay, mine: t.Members.Any(m => m.Pid == myPid), members);
             })
             .OrderByDescending(x => x.pts).ThenBy(x => x.name, ko)
-            .Select((x, i) => new FamilyRankTeam(i + 1, x.name, x.pts, x.lastDay, Next(r, x.pts), x.mine, x.members)).ToList();
+            .Select((x, i) => new FamilyRankTeam(i + 1, x.name, x.pts, x.lastDay, Next(r, x.pts), x.mine, x.members) { Badges = Chips(r, x.pts).Where(c => c.On).ToList() }).ToList();
         return new FamilyRanking(true, today.Year, today, first, rows);
     }
 
