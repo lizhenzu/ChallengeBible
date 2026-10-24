@@ -48,7 +48,7 @@
       <a class="btn t" href="/${location.pathname.split('/')[1]}">우리 가족팀 보기</a>
     </section>`;
     // 이름 · 문구는 글자로만 넣는다
-    dlg.querySelector('.who').textContent = `${f.team} · 가족 합계 ${fmt(f.total)}점`;
+    dlg.querySelector('.who').textContent = f.by ? `${f.team} · ${f.by}님이 넘겼어요` : `${f.team} · 가족 합계 ${fmt(f.total)}점`;
     dlg.querySelector('.e').textContent = f.emoji;
     dlg.querySelector('.msg').textContent = f.message;
     const chips = dlg.querySelector('.famchips');

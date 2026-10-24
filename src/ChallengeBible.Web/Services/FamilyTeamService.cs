@@ -32,9 +32,9 @@ public sealed record FamilyHome(string Name, int Year, int Total, int TodayPoint
     public FamilyStageChip? Cheer { get; init; }
     public DateOnly? CheerDate { get; init; }
 }
-/// <summary>미션 직후 가족 축하 팝업(R-96): 이 점수로 팀 합계가 처음 넘은 가장 높은 단계.</summary>
+/// <summary>미션 직후 가족 축하 팝업(R-96): 이 점수로 팀 합계가 처음 넘은 가장 높은 단계. By = 이번 점수로 단계를 넘긴 구성원(시안 "○○님이 넘겼어요").</summary>
 public sealed record FamilyCelebration(string Team, int Points, string Emoji, string Message, string Kind, int Total, int? Next,
-    IReadOnlyList<FamilyCelebrationMember> Members);
+    IReadOnlyList<FamilyCelebrationMember> Members, string? By = null);
 public sealed record FamilyCelebrationMember(string Name, int Points);
 /// <summary>순위 "가족팀" 탭의 팀 카드(R-94). Last = 구성원 중 가장 최근 점수일.</summary>
 public sealed record FamilyRankTeam(int Rank, string Name, int Points, DateOnly? Last, int? NextStage, bool Mine,
@@ -365,7 +365,8 @@ public sealed class FamilyTeamService(IAppDb db, ISystemDb systemDb, RequestScop
         var top = fresh[^1];
         return new FamilyCelebration(DisplayName(team.Team.Name, team.Members.Select(m => (m.Name, m.M.Relation)).ToList()),
             top.Points, top.Emoji, top.Message, top.Kind.ToString(), total, Next(r, total),
-            team.Members.Select(m => new FamilyCelebrationMember(m.Name, season.GetValueOrDefault(m.Pid))).ToList());
+            team.Members.Select(m => new FamilyCelebrationMember(m.Name, season.GetValueOrDefault(m.Pid))).ToList(),
+            By: team.Members.FirstOrDefault(m => m.Pid == participantId).Name);
     }
 
     /// <summary>순위 "가족팀" 탭(시안 말씀-순위, R-92 · R-94): 활성 팀을 팀 점수순(같으면 이름순).</summary>

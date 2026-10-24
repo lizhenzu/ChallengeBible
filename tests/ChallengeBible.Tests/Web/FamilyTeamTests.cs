@@ -214,6 +214,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         Assert.NotNull(c);
         Assert.Equal((1000, 1050, (int?)2000, "Award"), (c.Points, c.Total, c.Next, c.Kind));
         Assert.Equal(3, c.Members.Count);
+        Assert.Equal("김철수", c.By);                                       // 시안 "○○님이 넘겼어요"
         Assert.Null(await In(_kids).RecordReachedAsync(P("younghee")));   // 같은 단계는 한 번만
         Assert.Null(await In(_kids).RecordReachedAsync(P("haneul")));     // 팀이 없는 사람
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal([1000], raw.FamilyMilestonesReached.Select(x => x.Threshold));
