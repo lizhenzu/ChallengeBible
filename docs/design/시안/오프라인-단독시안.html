@@ -1,0 +1,102 @@
+<title>오프라인 화면 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+  /* 레이아웃(/offline.html, PWA): 인터넷이 끊긴 채 화면을 열면 서비스 워커가 대신 보여 주는 한 장.
+     로그인 정보 · 점수 같은 개인 내용은 담지 않는다(공용 휴대폰에서도 안전). 글꼴이 없어도 보이게 시스템 글꼴을 함께 쓴다.
+     아래 두 번째 판: 앱이 켜진 채 연결이 끊기면 화면 위에 잠깐 띠를 띄운다 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --hero: #F2F5FB; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --warn: #9A5B00; --warn-bg: #FFF4DE;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --warn: #F2C063; --warn-bg: #2E2614; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --warn: #F2C063; --warn-bg: #2E2614; color-scheme: dark }
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 900px; margin: 0 auto; padding-block: 24px 56px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  .lead { margin: 4px 0 0; color: var(--dim); font-size: 14px; }
+  .grid { margin-top: 18px; display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 760px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .panel h2 { margin: 0 0 10px; font-size: 13px; font-weight: 800; color: var(--dim); letter-spacing: .06em; }
+  .panel h2 b { color: var(--accent); margin-right: 6px; }
+  .phone { border: 1px solid var(--rule); border-radius: 26px; overflow: hidden; min-height: 560px; position: relative; background: var(--bg); }
+
+  /* ① 오프라인 화면 */
+  .off { min-height: 560px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 28px 22px; text-align: center;
+         background: linear-gradient(180deg, var(--bg) 0, var(--hero) 100%); }
+  .brand { font-size: 17px; font-weight: 900; color: var(--accent); }
+  .ico { width: 96px; height: 96px; border-radius: 50%; background: var(--accent-bg); display: grid; place-items: center; }
+  .off h3 { margin: 0; font-size: 22px; font-weight: 900; text-wrap: balance; }
+  .off p { margin: 0; color: var(--dim); font-size: 14.5px; max-width: 30ch; }
+  .tips { list-style: none; margin: 4px 0 0; padding: 12px 14px; border-radius: 14px; background: var(--soft); text-align: left; font-size: 13.5px; color: var(--dim); line-height: 1.8; width: 100%; max-width: 300px; }
+  .tips li::before { content: "· "; }
+  .btn { min-height: 52px; width: 100%; max-width: 300px; border: 0; border-radius: 14px; background: var(--accent); color: var(--on-accent); font: inherit; font-weight: 800; font-size: 16px; cursor: pointer; }
+  .sub { font-size: 12.5px; color: var(--dim); }
+
+  /* ② 켜진 앱 위의 띠 */
+  .app { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .bar { position: sticky; top: 0; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: var(--warn-bg); color: var(--warn); font-size: 14px; font-weight: 700; }
+  .bar.ok { background: #EAF7EF; color: #16A34A; }
+  .bar i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; }
+  .ghost { height: 64px; border-radius: 16px; background: var(--soft); }
+  .ghost.tall { height: 150px; }
+  .seg { display: flex; gap: 6px; margin-top: 8px; }
+  .seg button { min-height: 36px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 99px; background: var(--bg); font: inherit; font-size: 13px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); font-weight: 700; }
+  .notes { margin-top: 22px; padding: 14px 16px; border-radius: 14px; background: var(--soft); font-size: 13px; color: var(--dim); line-height: 1.85; }
+  .notes b { color: var(--fg); }
+</style>
+
+<main class="gut"><div class="wrap">
+  <h1>오프라인(PWA)</h1>
+  <p class="lead">휴대폰 홈 화면에 설치한 앱이 인터넷 없이 열리거나, 쓰는 중에 연결이 끊길 때의 화면이에요.</p>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="p1">
+      <h2 id="p1"><b>①</b>연결 없이 화면을 열 때</h2>
+      <div class="phone"><div class="off" role="main">
+        <span class="brand">도전!!!</span>
+        <div class="ico" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16.1a5 5 0 0 1 7 0"/><path d="M12 20h.01"/><path d="M3 3l18 18"/></svg></div>
+        <h3>인터넷 연결이 끊겼어요</h3>
+        <p>연결되면 오늘 미션과 성경 읽기를 이어서 할 수 있어요.</p>
+        <ul class="tips"><li>와이파이나 모바일 데이터가 켜져 있는지 봐 주세요.</li><li>미션 기록은 연결된 뒤에 눌러야 저장돼요.</li></ul>
+        <button type="button" class="btn" id="retry">다시 연결하기</button>
+        <span class="sub" id="sub">연결되면 저절로 다시 열려요</span>
+      </div></div>
+    </section>
+
+    <section class="panel" aria-labelledby="p2">
+      <h2 id="p2"><b>②</b>쓰는 중에 연결이 끊길 때</h2>
+      <div class="seg" role="group" aria-label="상태"><button type="button" data-s="off" aria-pressed="true">끊김</button><button type="button" data-s="on" aria-pressed="false">다시 연결됨</button></div>
+      <div class="phone" style="margin-top:10px"><div class="app">
+        <div class="bar" id="bar" role="status"><i></i><span id="barT">인터넷 연결이 끊겼어요 · 미션 버튼은 연결된 뒤에 눌러 주세요</span></div>
+        <div class="ghost"></div><div class="ghost tall"></div><div class="ghost"></div><div class="ghost"></div>
+      </div></div>
+    </section>
+  </div>
+
+  <div class="notes">
+    <b>무엇을 저장하나:</b> 화면 모양(CSS · 스크립트 · 아이콘)과 이 오프라인 화면만 휴대폰에 저장해요. <b>점수 · 이름 같은 개인 화면은 저장하지 않아요</b> — 가족이 함께 쓰는 휴대폰에서도 안전하게.<br>
+    <b>미션 버튼:</b> 연결이 없으면 눌러도 저장되지 않아요. 미리 모아 두었다가 나중에 보내는 기능은 넣지 않아요(점수가 두 번 들어가거나 날짜가 어긋날 수 있어서).<br>
+    <b>설치:</b> 부서 화면에서 브라우저의 "홈 화면에 추가"로 설치해요. 설치한 앱은 그 부서 주소에서 열려요. (아이폰 홈 화면 아이콘용 PNG 는 다음에)
+  </div>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  $('retry').onclick = () => { $('sub').textContent = '아직 연결되지 않았어요 · 잠시 뒤 다시 해 봐요'; };
+  document.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.seg button').forEach((x) => x.setAttribute('aria-pressed', x === b));
+    const on = b.dataset.s === 'on';
+    $('bar').classList.toggle('ok', on);
+    $('barT').textContent = on ? '다시 연결됐어요' : '인터넷 연결이 끊겼어요 · 미션 버튼은 연결된 뒤에 눌러 주세요';
+  }));
+</script>
