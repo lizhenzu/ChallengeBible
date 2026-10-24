@@ -745,6 +745,26 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BibleChapter", b =>
+                {
+                    b.Property<byte>("BookId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<short>("Chapter")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("VerseCount")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("BookId", "Chapter")
+                        .HasName("PK_BibleChapter");
+
+                    b.ToTable("BibleChapter", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_BibleChapter_Verses", "VerseCount >= 1");
+                        });
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BibleTranslation", b =>
                 {
                     b.Property<byte>("Id")
@@ -847,6 +867,72 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.HasIndex("BookId");
 
                     b.ToTable("Bookmark", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterProgress", b =>
+                {
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoundNo")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("BookId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<short>("Chapter")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("LastViewedVerse")
+                        .HasColumnType("smallint");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("AccountId", "RoundNo", "BookId", "Chapter")
+                        .HasName("PK_ChapterProgress");
+
+                    b.HasIndex("AccountId", "UpdatedUtc")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_ChapterProgress_Recent");
+
+                    b.HasIndex("BookId", "Chapter");
+
+                    b.ToTable("ChapterProgress", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_ChapterProgress_Verse", "LastViewedVerse >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterRead", b =>
+                {
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoundNo")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("BookId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<short>("Chapter")
+                        .HasColumnType("smallint");
+
+                    b.Property<DateTime>("ReadUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("AccountId", "RoundNo", "BookId", "Chapter")
+                        .HasName("PK_ChapterRead");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("AccountId", "ReadUtc")
+                        .HasDatabaseName("IX_ChapterRead_Day");
+
+                    b.ToTable("ChapterRead", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_ChapterRead_Chapter", "Chapter >= 1");
+                        });
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.DailyPrayer", b =>
@@ -1475,6 +1561,79 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ReadingRound", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ClosedUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime?>("CompletedUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("RoundNo")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartedUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("Id")
+                        .HasName("PK_ReadingRound");
+
+                    b.HasAlternateKey("AccountId", "RoundNo")
+                        .HasName("UQ_ReadingRound");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_ReadingRound_Open")
+                        .HasFilter("[CompletedUtc] IS NULL AND [ClosedUtc] IS NULL");
+
+                    b.ToTable("ReadingRound", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_ReadingRound_End", "CompletedUtc IS NULL OR ClosedUtc IS NULL");
+
+                            t.HasCheckConstraint("CK_ReadingRound_No", "RoundNo >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.RoundVerseRead", b =>
+                {
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoundNo")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("BookId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<short>("Chapter")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("Verse")
+                        .HasColumnType("smallint");
+
+                    b.Property<DateTime>("ReadUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("AccountId", "RoundNo", "BookId", "Chapter", "Verse")
+                        .HasName("PK_RoundVerseRead");
+
+                    b.HasIndex("BookId", "Chapter");
+
+                    b.ToTable("RoundVerseRead", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_RoundVerseRead_Verse", "Verse >= 1");
+                        });
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Tenant", b =>
                 {
                     b.Property<int>("Id")
@@ -1792,6 +1951,16 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasConstraintName("FK_Activity_Participant");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BibleChapter", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.BibleBook", null)
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_BibleChapter_Book");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BibleVerse", b =>
                 {
                     b.HasOne("ChallengeBible.Infrastructure.Data.BibleBook", null)
@@ -1824,6 +1993,42 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_Bookmark_Book");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterProgress", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.ReadingRound", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId", "RoundNo")
+                        .HasPrincipalKey("AccountId", "RoundNo")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_ChapterProgress_Round");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.BibleChapter", null)
+                        .WithMany()
+                        .HasForeignKey("BookId", "Chapter")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_ChapterProgress_Chapter");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterRead", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.BibleBook", null)
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_ChapterRead_Book");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.ReadingRound", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId", "RoundNo")
+                        .HasPrincipalKey("AccountId", "RoundNo")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_ChapterRead_Round");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.DailyPrayer", b =>
@@ -2049,6 +2254,34 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_QuizAttempt_Participant");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ReadingRound", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_ReadingRound_Account");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.RoundVerseRead", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.ReadingRound", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId", "RoundNo")
+                        .HasPrincipalKey("AccountId", "RoundNo")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_RoundVerseRead_Round");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.BibleChapter", null)
+                        .WithMany()
+                        .HasForeignKey("BookId", "Chapter")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_RoundVerseRead_Chapter");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantSeason", b =>
