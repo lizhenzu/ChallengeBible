@@ -318,12 +318,12 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
     {
         var dir = Environment.GetEnvironmentVariable("CB_SCREENS_DIR")!;
         // 배포 때는 파일 이름에 지문이 붙는다(/css/site.css?v=…) — 화면이 쓰는 스타일 파일(site · reading)을 그대로 안에 넣는다
-        foreach (var name2 in new[] { "site", "reading", "home" })
+        foreach (var name2 in new[] { "site", "reading", "home", "landing" })
         {
             var css = await File.ReadAllTextAsync(Path.Combine(FindWeb(), "wwwroot", "css", name2 + ".css"));
             html = Regex.Replace(html, $"<link rel=\"stylesheet\" href=\"/css/{name2}[^\"]*\\.css[^\"]*\" />", _ => $"<style>{css}</style>");
         }
-        html = Regex.Replace(html, "<script src=\"/js/(mission|reading)[^\"]*\"></script>", "");
+        html = Regex.Replace(html, "<script src=\"/js/(mission|reading|landing)[^\"]*\"></script>", "");
         await File.WriteAllTextAsync(Path.Combine(dir, name + ".html"), html);
     }
 
