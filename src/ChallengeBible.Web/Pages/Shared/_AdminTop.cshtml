@@ -1,5 +1,6 @@
 @model ChallengeBible.Web.Tenancy.TenantContext
 @inject ChallengeBible.Web.Services.PromotionService Promotions
+@inject ChallengeBible.Web.Services.FamilyTeamService FamilyTeams
 @{
     var slug = Model.Current.Slug;
     var path = Context.Request.Path.Value ?? "";
@@ -10,8 +11,10 @@
     [
         (home, "관리 홈", 0),
         ($"/{slug}/admin/members", "소속 관리", 0),
-        ($"/{slug}/admin/promotions", "진급", promotionsWaiting),
     ];
+    // 가족팀: 관리자만, 기본 규칙 "가족팀" 스위치가 켜졌을 때만(0012)
+    if (Model.IsAdmin && await FamilyTeams.EnabledAsync()) menu = [.. menu, ($"/{slug}/admin/teams", "가족팀", 0)];
+    menu = [.. menu, ($"/{slug}/admin/promotions", "진급", promotionsWaiting)];
     if (Model.IsAdmin) menu = [.. menu, ($"/{slug}/admin/content", "콘텐츠", 0)];
     if (Model.Current.ReadingEnabled) menu = [.. menu, ($"/{slug}/admin/reading", "통독 현황", 0)];
     if (Model.IsAdmin) menu = [.. menu, ($"/{slug}/admin/season", "시즌", 0), ($"/{slug}/admin/branding", "이름 · 색", 0)];

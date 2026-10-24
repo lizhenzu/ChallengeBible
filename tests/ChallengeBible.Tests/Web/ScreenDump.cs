@@ -189,6 +189,29 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(mom, "/jamsil-kids/guardian", "16-보호자");
         await Save(mom, "/jamsil-kids/guardian?date=2027-01-04", "17-보호자-지난날");
 
+        // 가족팀(확정 시안 관리-가족팀): 김영희가 이 부서를 가족 부서로 고르고 참여자가 되어 김철수와 한 팀
+        int teamId;
+        var momAcc = Acc("younghee");
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            raw.Accounts.Single(a => a.Id == momAcc).FamilyTenantId = kids.Id;
+            raw.MembershipRoles.Add(new MembershipRole { TenantId = kids.Id, MembershipId = mm.Id, Role = Roles.Participant });
+            var momP = new Participant { TenantId = kids.Id, MembershipId = mm.Id };
+            raw.Participants.Add(momP);
+            raw.SaveChanges();
+            var team = new FamilyTeam { TenantId = kids.Id, CreatedUtc = DateTime.UtcNow, Members =
+            [
+                new FamilyMember { TenantId = kids.Id, ParticipantId = raw.Participants.Single(p => p.MembershipId == km.Id).Id, Relation = FamilyRelation.Student, SortOrder = 0 },
+                new FamilyMember { TenantId = kids.Id, ParticipantId = momP.Id, Relation = FamilyRelation.Mother, SortOrder = 1 },
+            ] };
+            raw.FamilyTeams.Add(team);
+            raw.SaveChanges();
+            teamId = team.Id;
+        }
+        await Save(admin, $"/jamsil-kids/admin/teams?Open={teamId}", "12i-관리-가족팀");
+        await Save(kid, "/jamsil-kids", "05b-부서홈-우리가족팀");
+        await Save(kid, "/jamsil-kids/ranking?t=team", "11d-순위-가족팀");
+
         // 진급(시안 예시와 같은 지어낸 이름): 유치부 → 유년부(받은 요청), 유년부 → 초등부(보낸 요청)
         var pre = InMemoryDb.SeedTenant(db, "jamsil-pre", "JSPREE");
         var elem = InMemoryDb.SeedTenant(db, "jamsil-elem", "JSELEM");
@@ -233,6 +256,21 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         var mj = InMemoryDb.SeedMembership(db, kids.Id, minjun, MembershipStatus.Approved, Roles.Participant);
         await SavePost(admin, $"/jamsil-kids/admin/members?Tab={MembershipStatus.Approved}", "29-소속관리-진급보내기",
             ("handler", "PromoteCheck"), ("pick", mj.Id.ToString()), ("code", "JSELEM"));
+
+        // 가족과 함께할 부서(확정 시안 가족부서고르기): 김영희는 초등부에서도 딸 김민지의 보호자
+        var minji = NewKid("minji2", "김민지");
+        var momElem = InMemoryDb.SeedMembership(db, elem.Id, momAcc, MembershipStatus.Approved, Roles.Guardian);
+        var minjiM = InMemoryDb.SeedMembership(db, elem.Id, minji, MembershipStatus.Approved, Roles.Participant);
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            var pMinji = new Participant { TenantId = elem.Id, MembershipId = minjiM.Id };
+            raw.Participants.Add(pMinji);
+            raw.SaveChanges();
+            raw.GuardianLinks.Add(new GuardianLink { TenantId = elem.Id, GuardianMembershipId = momElem.Id, ParticipantId = pMinji.Id, CreatedByAccountId = momAcc });
+            raw.SaveChanges();
+        }
+        await Save(mom, "/account/family", "32-가족부서고르기");
+        await SavePost(mom, "/account/family", "33-가족부서고르기-바뀌는점", ("handler", ""), ("pick", elem.Id.ToString()));
 
         // 참여 신청 v2(0059): 목록에 보이기를 켠 부서에서 고르기
         using (var raw = InMemoryDb.Raw(db))

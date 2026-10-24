@@ -1,0 +1,166 @@
+<title>가족 축하 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800;900&display=swap">
+<style>
+  /* 가족 단계 축하(R-96 · R-97). 세 곳:
+     ① 미션 직후 팝업 — 내 점수로 가족 합계가 단계를 넘은 그 순간, 개인 축하 창과 같은 모양(가족 판)
+     ② 부서 홈 "우리 가족팀" 칸 위의 축하 카드 — 이번 시즌 넘은 단계 중 가장 높은 것, 관리자가 숨긴 단계는 안 보임
+     ③ 순위 "가족팀" 탭 팀 카드의 단계 표시(이모지 · 넘은 단계 수) */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --hero: #F2F5FB; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF;
+    --gold: #A66A00; --gold-bg: #FFF4D6; --clap: #6A4BB5; --clap-bg: #F1ECFB;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22;
+    --gold: #F2C063; --gold-bg: #2E2614; --clap: #B39BF0; --clap-bg: #251E35; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22;
+    --gold: #F2C063; --gold-bg: #2E2614; --clap: #B39BF0; --clap-bg: #251E35; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 980px; margin: 0 auto; padding-block: 24px 56px; }
+  h1 { margin: 0; font-size: 24px; font-weight: 900; }
+  .lead { margin: 4px 0 0; color: var(--dim); font-size: 14px; }
+  .grid { margin-top: 20px; display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 900px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .panel h2 { margin: 0 0 10px; font-size: 13px; font-weight: 800; color: var(--dim); letter-spacing: .06em; }
+  .panel h2 b { color: var(--accent); margin-right: 6px; }
+  .phone { border: 1px solid var(--rule); border-radius: 26px; padding: 16px; background: var(--soft); min-height: 520px; position: relative; overflow: hidden; }
+  .seg { display: flex; gap: 6px; margin-top: 8px; }
+  .seg button { min-height: 36px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 99px; background: var(--bg); font: inherit; font-size: 13px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); font-weight: 700; }
+
+  /* ① 팝업(개인 축하 창과 같은 틀) */
+  .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.42); display: grid; place-items: center; padding: 14px; }
+  .dlg { width: 100%; background: var(--bg); border-radius: 22px; padding: 22px 18px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+  .dlg .who { font-size: 12.5px; color: var(--dim); font-weight: 700; }
+  .medal { width: 120px; height: 120px; border-radius: 50%; display: grid; place-items: center; background: var(--gold-bg); box-shadow: inset 0 0 0 6px color-mix(in srgb, var(--gold) 35%, transparent); }
+  .medal.clap { background: var(--clap-bg); box-shadow: inset 0 0 0 6px color-mix(in srgb, var(--clap) 35%, transparent); }
+  .medal .e { font-size: 34px; line-height: 1; }
+  .medal b { display: block; font-size: 22px; font-weight: 900; }
+  .medal small { font-size: 11px; color: var(--dim); }
+  .dlg h3 { margin: 0; font-size: 20px; font-weight: 900; text-wrap: balance; }
+  .dlg p { margin: 0; font-size: 14px; color: var(--dim); }
+  .fam { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+  .fam span { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--accent-bg); color: var(--accent); font-weight: 700; }
+  .next { width: 100%; font-size: 12.5px; color: var(--dim); }
+  .next .l { display: flex; justify-content: space-between; }
+  .bar { height: 7px; border-radius: 4px; background: var(--soft); margin-top: 4px; overflow: hidden; }
+  .bar i { display: block; height: 7px; background: var(--accent); }
+  .btn { width: 100%; min-height: 48px; border: 0; border-radius: 14px; font: inherit; font-weight: 800; font-size: 16px; cursor: pointer; }
+  .btn.p { background: var(--accent); color: var(--on-accent); }
+  .btn.t { background: none; color: var(--dim); text-decoration: underline; min-height: 36px; font-size: 14px; }
+
+  /* ② 홈 축하 카드 */
+  .k { font-size: 12px; font-weight: 800; color: var(--accent); letter-spacing: .08em; }
+  .home h4 { margin: 2px 0 10px; font-size: 18px; font-weight: 900; }
+  .cheer { display: flex; gap: 12px; align-items: center; padding: 14px; border-radius: 18px; background: var(--gold-bg); }
+  .cheer.clap { background: var(--clap-bg); }
+  .cheer .e { flex: none; width: 48px; height: 48px; border-radius: 50%; background: var(--bg); display: grid; place-items: center; font-size: 24px; }
+  .cheer b { display: block; font-size: 15px; }
+  .cheer span { font-size: 12.5px; color: var(--dim); }
+  .box { margin-top: 10px; border-radius: 18px; background: var(--hero); padding: 14px; }
+  .box small { font-size: 12px; color: var(--dim); }
+  .box .big { display: block; font-size: 40px; font-weight: 300; line-height: 1.05; color: var(--accent); }
+  .ticks { display: flex; justify-content: space-between; font-size: 11px; color: var(--dim); margin-top: 2px; }
+  .stages { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .stages span { font-size: 11.5px; padding: 2px 8px; border-radius: 99px; background: var(--bg); color: var(--dim); font-weight: 700; }
+  .stages span.on { background: var(--gold-bg); color: var(--gold); }
+  .stages span.on.c { background: var(--clap-bg); color: var(--clap); }
+
+  /* ③ 순위 팀 카드 */
+  .team { border: 1px solid var(--rule); border-radius: 18px; padding: 14px; background: var(--bg); margin-top: 10px; }
+  .team.me { box-shadow: 0 0 0 2px var(--accent) inset; border-color: transparent; }
+  .th { display: flex; align-items: center; gap: 10px; }
+  .th .no { font-weight: 900; color: var(--gold); width: 24px; text-align: center; }
+  .th .tx { flex: 1; min-width: 0; }
+  .th .tx b { display: block; font-size: 16px; }
+  .th .tx span { font-size: 12px; color: var(--dim); }
+  .th .pv { font-size: 22px; font-weight: 300; color: var(--accent); }
+  .badges { margin-top: 8px; display: flex; gap: 4px; flex-wrap: wrap; }
+  .badges span { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--gold-bg); color: var(--gold); font-weight: 700; }
+  .badges span.c { background: var(--clap-bg); color: var(--clap); }
+  .notes { margin-top: 24px; padding: 14px 16px; border-radius: 14px; background: var(--soft); font-size: 13px; color: var(--dim); line-height: 1.8; }
+  .notes b { color: var(--fg); }
+</style>
+
+<main class="gut"><div class="wrap">
+  <h1>가족 축하</h1>
+  <p class="lead">가족팀 합계가 가족 단계(기본 1,000 · 3,000 · 5,000점 축하 + 선물, 2,000 · 4,000점 박수)를 넘으면 축하해요. 단계 · 문구 · 이모지는 플랫폼 기본 규칙에서 정해요.</p>
+  <div class="seg" role="group" aria-label="단계 고르기"><button type="button" data-s="1000" aria-pressed="true">1,000점(선물)</button><button type="button" data-s="2000" aria-pressed="false">2,000점(박수)</button></div>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="h1p">
+      <h2 id="h1p"><b>①</b>미션 직후 팝업</h2>
+      <div class="phone"><div class="scrim"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dT">
+        <span class="who">김철수 가족 · 김영희님이 넘겼어요</span>
+        <div class="medal" id="medal"><div><span class="e" id="mE">🎁</span><b class="num" id="mP">1,000</b><small>가족 점수 돌파</small></div></div>
+        <h3 id="dT">우리 가족이 1,000점을 넘었어요!</h3>
+        <p id="dM">첫 1,000점! 가족 선물이 있어요</p>
+        <div class="fam"><span>김철수 612</span><span>김영희 301</span><span>김대호 152</span></div>
+        <div class="next"><div class="l"><span>다음 가족 축하 <b id="nP">2,000점</b></span><span id="nL">935점 남음</span></div><div class="bar"><i id="nB" style="width:53%"></i></div></div>
+        <button type="button" class="btn p">함께 기뻐해요</button>
+        <button type="button" class="btn t">우리 가족팀 보기</button>
+      </div></div></div>
+    </section>
+
+    <section class="panel home" aria-labelledby="h2p">
+      <h2 id="h2p"><b>②</b>부서 홈 · 우리 가족팀</h2>
+      <div class="phone">
+        <div class="k">우리 가족팀</div>
+        <h4>김철수 가족</h4>
+        <div class="cheer" id="cheer"><span class="e" id="cE">🎁</span><div><b id="cM">첫 1,000점! 가족 선물이 있어요</b><span id="cS">1월 5일 · 선생님께 선물을 받아요</span></div></div>
+        <div class="box">
+          <small>가족 총합 점수 · 2027 시즌</small>
+          <span class="big num" id="hT">1,065<small style="font-size:14px"> 점</small></span>
+          <div class="bar" style="background:var(--bg)"><i id="hB" style="width:7%"></i></div>
+          <div class="ticks"><span id="hA">1,000</span><span id="hZ">2,000점</span></div>
+          <div class="stages" id="stg"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="h3p">
+      <h2 id="h3p"><b>③</b>순위 · 가족팀 탭</h2>
+      <div class="phone">
+        <div class="team me"><div class="th"><span class="no num">01</span><span class="tx"><b>김철수 가족</b><span>3명 · 마지막 참여 오늘</span></span><span class="pv num" id="rT">1,065</span></div><div class="badges" id="rB"></div></div>
+        <div class="team"><div class="th"><span class="no num" style="color:var(--dim)">02</span><span class="tx"><b>하늘이네</b><span>3명 · 마지막 참여 어제</span></span><span class="pv num">680</span></div></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="notes">
+    <b>언제 뜨나:</b> 미션으로 점수를 받은 그 사람이, 그 점수로 가족 합계가 단계를 처음 넘을 때 팝업을 봐요(개인 축하가 함께 생기면 개인 → 가족 순서). 다른 가족은 부서 홈의 축하 카드로 봐요.<br>
+    <b>한 번만:</b> 한 단계는 시즌마다 팀에 한 번만 기록해요(R-96). 시즌이 바뀌면 다시 0점부터예요.<br>
+    <b>숨기기:</b> 관리자가 가족팀 관리에서 숨긴 단계는 홈 카드에 안 보여요(R-97). 순위의 단계 표시는 그대로예요.<br>
+    <b>홈 카드:</b> 넘은 단계 중 숨기지 않은 가장 높은 것 하나만 보여요. 선물 단계는 금색, 박수 단계는 보라색이에요.
+  </div>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const S = { 1000: ['🎁', '첫 1,000점! 가족 선물이 있어요', 'AWARD', 1065, 2000], 2000: ['👏', '2,000점 돌파, 박수!', 'APPLAUSE', 2030, 3000] };
+  const ALL = [[1000, '🎁', 'A'], [2000, '👏', 'C'], [3000, '🎁', 'A'], [4000, '👏', 'C'], [5000, '🏆', 'A']];
+  function show(s) {
+    const [e, m, kind, total, next] = S[s], clap = kind === 'APPLAUSE', prev = +s;
+    $('medal').classList.toggle('clap', clap); $('mE').textContent = e; $('mP').textContent = prev.toLocaleString();
+    $('dT').textContent = `우리 가족이 ${prev.toLocaleString()}점을 넘었어요!`; $('dM').textContent = m;
+    $('nP').textContent = next.toLocaleString() + '점'; $('nL').textContent = (next - total).toLocaleString() + '점 남음'; $('nB').style.width = Math.round(total / next * 100) + '%';
+    $('cheer').classList.toggle('clap', clap); $('cE').textContent = e; $('cM').textContent = m; $('cS').textContent = clap ? '1월 12일 · 가족 모두 박수!' : '1월 5일 · 선생님께 선물을 받아요';
+    $('hT').firstChild.textContent = total.toLocaleString(); $('rT').textContent = total.toLocaleString();
+    $('hA').textContent = prev.toLocaleString(); $('hZ').textContent = next.toLocaleString() + '점'; $('hB').style.width = Math.max(2, (total - prev) / (next - prev) * 100) + '%';
+    $('stg').innerHTML = ALL.map(([p, em, k]) => `<span class="${p <= prev ? 'on' + (k === 'C' ? ' c' : '') : ''}">${em} ${p.toLocaleString()}</span>`).join('');
+    $('rB').innerHTML = ALL.filter(([p]) => p <= prev).map(([p, em, k]) => `<span class="${k === 'C' ? 'c' : ''}">${em} ${p.toLocaleString()}</span>`).join('');
+  }
+  document.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.seg button').forEach((x) => x.setAttribute('aria-pressed', x === b)); show(b.dataset.s);
+  }));
+  show(1000);
+</script>

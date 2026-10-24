@@ -24,12 +24,44 @@
     if (season && typeof json.seasonTotal === 'number' && json.seasonTotal > 0) season.textContent = json.seasonTotal.toLocaleString('ko-KR');
     const day = document.querySelector('[data-daypoints]');
     if (day && json.pointsEarned > 0) day.textContent = String(Number(day.textContent) + json.pointsEarned);
-    if (json.milestonesReached?.length) celebrate(json.milestonesReached.at(-1), json);
+    // 개인 축하 → 가족 축하 순서(시안 가족축하 ①)
+    const fam = json.familyMilestone ? () => celebrateFamily(json.familyMilestone) : null;
+    if (json.milestonesReached?.length) celebrate(json.milestonesReached.at(-1), json, fam);
+    else if (fam) { say(json.message); fam(); }
     else say(json.message);
   }
 
+  // 가족 축하 창(R-96, 확정 시안: 가족축하 ①). 내 점수로 가족 합계가 단계를 처음 넘을 때만 뜬다.
+  function celebrateFamily(f) {
+    const fmt = (n) => n.toLocaleString('ko-KR');
+    const dlg = document.createElement('div');
+    dlg.className = 'scrim';
+    dlg.innerHTML = `<section class="dlg fam-dlg" role="dialog" aria-modal="true" aria-labelledby="fT">
+      <span class="who"></span>
+      <div class="medal fam ${f.kind === 'Applause' ? 'clap' : ''}"><div><span class="e"></span><b class="num">${fmt(f.points)}</b><small>가족 점수 돌파</small></div></div>
+      <h2 id="fT">우리 가족이 ${fmt(f.points)}점을 넘었어요!</h2>
+      <p class="msg"></p>
+      <div class="famchips"></div>
+      ${f.next ? `<div class="next"><div class="l"><span>다음 가족 축하 <b>${fmt(f.next)}점</b></span><span>${fmt(f.next - f.total)}점 남음</span></div>
+        <div class="bar"><i style="width:${Math.min(100, f.total / f.next * 100)}%"></i></div></div>` : ''}
+      <button type="button" class="btn p" data-close>함께 기뻐해요</button>
+      <a class="btn t" href="/${location.pathname.split('/')[1]}">우리 가족팀 보기</a>
+    </section>`;
+    // 이름 · 문구는 글자로만 넣는다
+    dlg.querySelector('.who').textContent = `${f.team} · 가족 합계 ${fmt(f.total)}점`;
+    dlg.querySelector('.e').textContent = f.emoji;
+    dlg.querySelector('.msg').textContent = f.message;
+    const chips = dlg.querySelector('.famchips');
+    for (const m of f.members) { const s = document.createElement('span'); s.textContent = `${m.name} ${fmt(m.points)}`; chips.appendChild(s); }
+    const close = () => dlg.remove();
+    dlg.addEventListener('click', (e) => { if (e.target === dlg || e.target.closest('[data-close]')) close(); });
+    document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc); } });
+    document.body.appendChild(dlg);
+    dlg.querySelector('[data-close]').focus();
+  }
+
   // 축하 창(R-101, 확정 시안: 말씀-축하팝업). 단계를 처음 넘을 때만 뜬다.
-  function celebrate(m, json) {
+  function celebrate(m, json, then) {
     const box = document.getElementById('cb-ms');
     const steps = (box?.dataset.milestones ?? '').split(',').map(Number).filter(Boolean);
     const next = steps.find((s) => s > m);
@@ -50,7 +82,7 @@
       <a class="btn t" href="${box?.dataset.points ?? '#'}">내 점수 보기</a>
     </section>`;
     dlg.querySelector('.who').textContent = box?.dataset.who ?? '';
-    const close = () => dlg.remove();
+    const close = () => { if (!dlg.isConnected) return; dlg.remove(); then?.(); };
     dlg.addEventListener('click', (e) => { if (e.target === dlg || e.target.closest('[data-close]')) close(); });
     document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc); } });
     document.body.appendChild(dlg);

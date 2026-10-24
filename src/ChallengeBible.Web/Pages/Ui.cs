@@ -15,6 +15,16 @@ public static class Ui
     /// <summary>받침에 따라 "을" / "를".</summary>
     public static string EulReul(string word) => IGa(word) == "가" ? "를" : "을";
 
+    /// <summary>받침에 따라 "으로" / "로"(받침이 없거나 ㄹ 받침이면 "로").</summary>
+    public static string EuRo(string word)
+    {
+        if (string.IsNullOrEmpty(word)) return "로";
+        var c = word[^1];
+        if (c < '가' || c > '힣') return "로";
+        var jong = (c - '가') % 28;
+        return jong == 0 || jong == 8 ? "로" : "으로";
+    }
+
     /// <summary>받침에 따라 "은" / "는".</summary>
     public static string EunNeun(string word) => IGa(word) == "가" ? "는" : "은";
 

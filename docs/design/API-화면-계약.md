@@ -239,7 +239,7 @@
 | `PUT /api/{slug}/admin/season/{year}` `{ startDate }` | 시즌 시작일 변경(0028) |
 | `PUT /api/{slug}/admin/branding` `{ appName, appShortName, themeColor }` | 서비스 이름 · 짧은 이름 · 대표 색. 빈 값(`null`)이면 기본값으로 되돌림(0038) |
 | `PUT /api/platform/tenants/{id}/programs` `{ mission, reading }` | 영역의 프로그램 켜기(플랫폼 관리자, 하나 이상 — R-150) |
-| `PUT /api/me/family-tenant` `{ tenantSlug }` | 보호자가 "가족과 함께할 부서" 고르기 · 바꾸기(0046, R-168). 바꾸면 이전 부서 참여 · 가족팀 자리 멈춤(시스템 연결). 다른 부서에서 참여자 역할 부여 · 가족팀 추가 시도는 409 `FamilyTenantElsewhere`, 아직 고르지 않았으면 409 `FamilyTenantNotChosen` |
+| `PUT /api/me/family-tenant` `{ tenantSlug }` (구현: 화면 `/account/family` 폼 — 바뀌는 점이 있으면 "확인했어요" 체크 뒤에만 바꾼다) | 보호자가 "가족과 함께할 부서" 고르기 · 바꾸기(0046, R-168). 바꾸면 이전 부서 참여 · 가족팀 자리 멈춤(시스템 연결). 다른 부서에서 참여자 역할 부여 · 가족팀 추가 시도는 409 `FamilyTenantElsewhere`, 아직 고르지 않았으면 409 `FamilyTenantNotChosen` |
 
 ### 5-4a. 보호자 — 1차 (R-132, 0046)
 | 메서드 · 주소 | 용도 |
