@@ -816,6 +816,14 @@ details.bycode[open] > summary { color: var(--dim); }
 details.bycode .row { margin-top: 6px; }
 details.bycode .hint { margin-top: 6px; }
 
+/* 켜기 · 끄기 스위치(누르면 바로 저장 — 플랫폼 "참여 목록에 보이기") */
+.toggle { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0; border: 0; background: none; font-size: 15px; font-weight: 800; color: var(--dim); }
+.toggle .tr { width: 48px; height: 28px; border-radius: 99px; background: var(--line); position: relative; transition: background .15s; }
+.toggle .tr::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: left .15s; }
+.toggle[aria-checked="true"] { color: var(--accent); }
+.toggle[aria-checked="true"] .tr { background: var(--accent); }
+.toggle[aria-checked="true"] .tr::after { left: 23px; }
+
 /* 소속 관리: 여러 명 골라 진급 보내기 */
 .list li.row.pickable { display: flex; align-items: flex-start; }
 .list li.row.pickable > .pick { flex: none; width: 22px; height: 22px; margin: 19px 0 0 14px; align-self: flex-start; accent-color: var(--accent); }
