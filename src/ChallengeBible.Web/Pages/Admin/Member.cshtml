@@ -1,0 +1,153 @@
+@page "/{slug}/admin/members/{id:int}"
+@model ChallengeBible.Web.Pages.Admin.MemberModel
+@using ChallengeBible.Infrastructure.Data
+@using ChallengeBible.Web.Pages.Admin
+@using ChallengeBible.Web.Services
+@* 확정 시안: 관리-참여자상세-단독시안 — ← 소속 관리 → 사람 카드 → 숫자 4칸 → 달력 | 활동 → 통독 진도 → 계정 관리(보호자 · 임시 비밀번호 · 성경 읽음) *@
+@{
+    var d = Model.Detail!;
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+    var slug = Model.Tenant.Current.Slug;
+    var membersUrl = $"/{slug}/admin/members?Tab={MembershipStatus.Approved}&Q={Uri.EscapeDataString(d.Name)}";
+    var thisMonth = new DateOnly(Model.Today.Year, Model.Today.Month, 1);
+    var lead = (int)Model.ShownMonth.DayOfWeek;
+    var dim = DateTime.DaysInMonth(Model.ShownMonth.Year, Model.ShownMonth.Month);
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut"><div class="wrap wide md">
+    <a class="md-crumb md-span" href="/@slug/admin/members?Tab=@MembershipStatus.Approved">← 소속 관리</a>
+
+    <section class="md-who md-span" aria-label="소속원">
+        <span class="av">@(d.Name.Length > 1 ? d.Name[^2..] : d.Name)</span>
+        <div class="nm">
+            <h1>@d.Name</h1>
+            <div class="meta">@d.Email@(d.GroupLabel is null ? "" : $" · {d.GroupLabel}")@(d.DecidedUtc is { } at ? $" · {Model.Local(at, "yyyy년 M월 d일")} 승인" : "")</div>
+            <div class="tags">
+                @foreach (var r in d.Roles) { <span class="tag r-@r">@MembersModel.RoleLabel(r)</span> }
+                @if (d.Status == MembershipStatus.Suspended) { <span class="tag st">정지</span> }
+                @if (d.Guardians.Count > 0) { <span class="tag">보호자 · @string.Join(" · ", d.Guardians)</span> }
+            </div>
+        </div>
+        <a class="edit" href="@membersUrl">역할 · 반 바꾸기</a>
+    </section>
+
+    @if (d.ParticipantId is not null)
+    {
+        <div class="ar-kpis md-span">
+            <div><small>올해 점수</small><b class="num">@d.SeasonPoints<u>점</u></b><span>@(Model.Today.Year) 시즌</span></div>
+            <div><small>연속</small><b class="num">@d.Streak<u>일</u></b><span>@(d.Streak > 0 ? "하루도 안 빠졌어요" : "오늘부터 다시 시작")</span></div>
+            <div><small>이달 한 날</small><b class="num">@d.ActiveDaysThisMonth<u>/ @(d.DaysThisMonth)일</u></b><span>@Model.Today.ToString("M월", ko) 오늘까지</span></div>
+            <div><small>마지막 미션</small><b class="num md-small">@(d.LastMission is { } lm ? Model.Local(lm.AtUtc, "M'/'d H:mm") : "–")</b><span>@(d.LastMission is { } l2 ? $"{MemberModel.MissionLabel(l2.Mission)} · {l2.What}" : "아직 없어요")</span></div>
+        </div>
+
+        <section class="md-card" aria-labelledby="hCal">
+            <h2 id="hCal">
+                <span class="mon">
+                    <a href="@Model.Url(Model.ShownMonth.AddMonths(-1))" aria-label="이전 달">‹</a>
+                    @Model.ShownMonth.ToString("yyyy년 M월", ko)
+                    @if (Model.ShownMonth < thisMonth) { <a href="@Model.Url(Model.ShownMonth.AddMonths(1))" aria-label="다음 달">›</a> }
+                </span>
+                <small>날짜를 누르면 그날 활동</small>
+            </h2>
+            <div class="dow" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+            <div class="grid">
+                @for (var i = 0; i < lead; i++) { <span class="out"></span> }
+                @for (var day = 1; day <= dim; day++)
+                {
+                    var date = new DateOnly(Model.ShownMonth.Year, Model.ShownMonth.Month, day);
+                    var s = d.Month.FirstOrDefault(x => x.Date == date);
+                    var today = date == Model.Today ? " today" : "";
+                    if (s is not null && s.Total > 0)
+                    {
+                        var full = s.Word > 0 && s.Quiz > 0 && s.Prayer > 0;
+                        <a class="day @(full ? "full" : "on")@today" href="@Model.Url(date: date)#hAct" aria-current="@(Model.Date == date ? "true" : "false")" aria-label="@date.ToString("M월 d일", ko) @(s.Total)점"><span class="num">@day</span><small class="num">@s.Total</small></a>
+                    }
+                    else
+                    {
+                        <span class="@(date > Model.Today ? "fut" : "")@today"><span class="num">@day</span></span>
+                    }
+                }
+            </div>
+            <div class="legend"><span><i style="background:var(--accent)"></i>말씀 · 퀴즈 · 기도 다 함</span><span><i style="background:var(--accent-bg)"></i>일부</span><span><i style="box-shadow:inset 0 0 0 2px var(--fg)"></i>오늘</span></div>
+        </section>
+
+        <section class="md-card" aria-labelledby="hAct">
+            <h2 id="hAct">@(Model.Date is { } sd ? $"{sd.ToString("M월 d일(ddd)", ko)} 활동" : "최근 활동")
+                <small>@if (Model.Date is not null) { <a href="@Model.Url()">최근으로</a> } else { <text>최근 활동한 날</text> }</small></h2>
+            <ul class="act">
+                @if (Model.Days.Count == 0 || Model.Days.All(x => x.Lines.Count == 0)) { <li class="none">아직 활동이 없어요.</li> }
+                @foreach (var (date, lines) in Model.Days)
+                {
+                    if (Model.Date is null)
+                    {
+                        <li class="dh">@(date == Model.Today ? "오늘" : date == Model.Today.AddDays(-1) ? "어제" : date.ToString("M월 d일", ko)) · @date.ToString("M월 d일", ko) · <span class="num">@(lines.Sum(x => x.Points))점</span></li>
+                    }
+                    foreach (var l in lines)
+                    {
+                        <li><time class="num">@Model.Local(l.AtUtc, "H:mm")</time><span><span class="k">@MemberModel.MissionLabel(l.Mission)</span>@l.What</span><span class="p num">@(l.Points > 0 ? $"+{l.Points}" : "0")</span></li>
+                    }
+                }
+            </ul>
+        </section>
+    }
+
+    @if (Model.Tenant.Current.ReadingEnabled)
+    {
+        <section class="md-card md-span" aria-labelledby="hRead">
+            <h2 id="hRead">도전!!!성경통독 @if (d.Reading is { } rd0) { <small>@(rd0.RoundNo)회차</small> }</h2>
+            @if (d.Reading is { } rd)
+            {
+                <div class="prog">
+                    <div class="l"><span>@(rd.LastBook is byte b ? $"마지막으로 읽은 곳 {BibleBooks.NameOf(b)} {rd.LastChapter}{(b == 19 ? "편" : "장")}" : "아직 읽은 장이 없어요")</span>
+                        <b class="num">@rd.ReadChapters / 1,189장 · @(rd.Percent.ToString("0.0"))%</b></div>
+                    <div class="bar"><i style="width:@(Math.Max(0.5, rd.Percent).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture))%"></i></div>
+                    <p class="note">@(rd.LastUtc is { } lu ? $"마지막으로 읽은 날 {Model.Local(lu, "M월 d일")} · " : "")완독 @(rd.Completed)번. 통독 진도는 본인 진도 그대로예요(R-159).</p>
+                </div>
+            }
+            else { <p class="note">아직 통독을 시작하지 않았어요.</p> }
+        </section>
+    }
+
+    <section class="md-card md-span" aria-labelledby="hMg">
+        <h2 id="hMg">계정 관리</h2>
+        @if (Model.Ok == "marks") { <p class="okmsg" role="status">성경 읽음 표시와 책갈피를 지웠어요</p> }
+        @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+        <div class="mgmt">
+            @if (d.ParticipantId is not null)
+            {
+                <div class="mg"><div><b>보호자 연결</b><span>@(d.Guardians.Count > 0 ? string.Join(" · ", d.Guardians) + ". " : "아직 연결된 보호자가 없어요. ")연결된 보호자는 미션 · 점수를 보기만 해요.</span></div>
+                    <a class="btn s sm" href="@membersUrl">보호자 추가 · 빼기</a></div>
+            }
+            <div class="mg"><div><b>비밀번호 초기화</b><span>비밀번호를 잊었을 때 임시 비밀번호를 만들어 줘요. 다음에 로그인하면 새 비밀번호로 바꿔야 해요. 다른 부서에서도 쓰는 계정이라 그 부서에서도 새 비밀번호로 로그인해요.</span></div>
+                @if (d.ResetBlocked is null)
+                {
+                    <form method="post" asp-page-handler="ResetPassword" asp-route-slug="@slug" asp-route-id="@d.MembershipId"><button type="submit" class="btn p sm">임시 비밀번호 만들기</button></form>
+                }
+                else { <button type="button" class="btn s sm" disabled>할 수 없어요</button> }
+            </div>
+            @if (Model.TemporaryPassword is { } pw)
+            {
+                <div class="md-pw" role="status"><code>@pw</code><button type="button" class="btn s sm" data-copy="@pw">복사</button><a class="btn p sm" href="@Model.Url()">알려 줬어요</a></div>
+                <p class="md-warn"><b>이 칸을 닫으면 다시 볼 수 없어요.</b> @(d.Name)님께 직접 알려 주세요. 로그인하면 새 비밀번호로 바꾸게 해요.</p>
+            }
+            <div class="mg" id="marks"><div><b>성경 읽음 초기화</b><span>성경 읽기에서 표시한 "읽음"과 책갈피를 모두 지워요. 점수 · 통독 진도는 그대로예요. 되돌릴 수 없어요.</span></div>
+                @if (d.ResetBlocked is null) { <a class="btn d sm" href="@Model.Url(ask: "marks")#marks">성경 읽음 지우기</a> }
+                else { <button type="button" class="btn s sm" disabled>할 수 없어요</button> }
+            </div>
+            @if (Model.Ask == "marks" && d.ResetBlocked is null)
+            {
+                <form method="post" asp-page-handler="ResetMarks" asp-route-slug="@slug" asp-route-id="@d.MembershipId" class="md-ask" role="alert">
+                    <div class="badbox">@(d.Name)의 <b>성경 읽음 표시와 책갈피가 모두</b> 지워져요. 다른 부서에서 읽은 기록도 함께 지워지고, 되돌릴 수 없어요.</div>
+                    <span>지우려면 이름 <b>@d.Name</b> 을 똑같이 써 주세요.</span>
+                    <div class="row"><input name="confirm" autocomplete="off" aria-label="이름 확인" /><button type="submit" class="btn dd sm">모두 지우기</button><a class="btn s sm" href="@Model.Url()">취소</a></div>
+                </form>
+            }
+            @if (d.ResetBlocked is { } why) { <p class="hint">@why</p> }
+        </div>
+    </section>
+</div></main>
+<script>
+    document.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', () => {
+        navigator.clipboard?.writeText(b.dataset.copy).then(() => { b.textContent = '복사했어요'; }, () => { b.textContent = '길게 눌러 복사'; });
+    }));
+</script>

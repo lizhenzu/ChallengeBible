@@ -108,6 +108,7 @@
                             </div>
                         }
                         <div class="acts">
+                            @if (m.Status != MembershipStatus.Requested) { <a class="btn t sm" href="/@Model.Tenant.Current.Slug/admin/members/@m.MembershipId">자세히 보기 →</a> }
                             @if (m.Status == MembershipStatus.Requested)
                             {
                                 <details class="ask"><summary class="btn d sm">거절</summary>

@@ -146,6 +146,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         }
         await Save(kid, "/jamsil-kids/reading/participants", "24-통독-참여자현황");
         await Save(admin, "/jamsil-kids/admin/reading", "25-관리-통독현황");
+        await Save(admin, $"/jamsil-kids/admin/members/{km.Id}", "25b-관리-참여자상세");
         await Save(kid, "/jamsil-kids/quiz", "08-퀴즈");
         await Save(kid, "/jamsil-kids/prayer", "09-기도");
         await Save(kid, "/jamsil-kids/recite", "10-암송");

@@ -25,6 +25,25 @@ public sealed class PlatformAccountService(ISystemDb systemDb, TimeProvider time
     /// <summary>읽기 쉬운 임시 비밀번호: 낱말-숫자 4자리(예: grace-4821).</summary>
     public static string NewTemporaryPassword() => $"{Words[RandomNumberGenerator.GetInt32(Words.Length)]}-{RandomNumberGenerator.GetInt32(1000, 10000)}";
 
+    /// <summary>계정에 임시 비밀번호를 걸고(다음 로그인 때 바꾸게) 원문을 돌려준다. 저장은 부르는 쪽이.</summary>
+    public static string ApplyTemporaryPassword(Account a)
+    {
+        var temp = NewTemporaryPassword();
+        a.PasswordHash = Hasher.HashPassword(a, temp);
+        a.MustChangePassword = true;
+        return temp;
+    }
+
+    /// <summary>계정의 성경 읽음 표시 · 책갈피를 모두 지운다(0029). 시스템 연결에서만. 저장은 부르는 쪽이.</summary>
+    public static async Task<(int Marks, int Bookmarks)> ClearBibleMarksAsync(AppDbContext ctx, int accountId, CancellationToken ct)
+    {
+        var marks = await ctx.VerseReadMarks.IgnoreQueryFilters().Where(m => m.AccountId == accountId).ToListAsync(ct);
+        var books = await ctx.Bookmarks.IgnoreQueryFilters().Where(b => b.AccountId == accountId).ToListAsync(ct);
+        ctx.VerseReadMarks.RemoveRange(marks);
+        ctx.Bookmarks.RemoveRange(books);
+        return (marks.Count, books.Count);
+    }
+
     private async Task<AppDbContext> OpenAsync(int actor, CancellationToken ct)
     {
         var ctx = systemDb.Create(actor);
@@ -93,9 +112,7 @@ public sealed class PlatformAccountService(ISystemDb systemDb, TimeProvider time
         await using var ctx = await OpenAsync(actor, ct);
         var a = await ctx.Accounts.SingleOrDefaultAsync(x => x.Id == id, ct);
         if (a is null || a.IsPlatformAdmin) return null;
-        var temp = NewTemporaryPassword();
-        a.PasswordHash = Hasher.HashPassword(a, temp);
-        a.MustChangePassword = true;
+        var temp = ApplyTemporaryPassword(a);
         ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorAccountId = actor, Action = ResetPasswordAction, Detail = $"account={id} {a.DisplayName}({a.Email})" });
         await ctx.SaveChangesAsync(ct);
         return temp;
@@ -107,13 +124,10 @@ public sealed class PlatformAccountService(ISystemDb systemDb, TimeProvider time
         await using var ctx = await OpenAsync(actor, ct);
         var a = await ctx.Accounts.SingleOrDefaultAsync(x => x.Id == id, ct);
         if (a is null || a.IsPlatformAdmin || AccountService.NormalizeEmail(confirmEmail ?? "") != a.Email) return null;
-        var marks = await ctx.VerseReadMarks.IgnoreQueryFilters().Where(m => m.AccountId == id).ToListAsync(ct);
-        var books = await ctx.Bookmarks.IgnoreQueryFilters().Where(b => b.AccountId == id).ToListAsync(ct);
-        ctx.VerseReadMarks.RemoveRange(marks);
-        ctx.Bookmarks.RemoveRange(books);
+        var (marks, books) = await ClearBibleMarksAsync(ctx, id, ct);
         ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorAccountId = actor, Action = ResetMarksAction,
-            Detail = $"account={id} {a.DisplayName}({a.Email}) 읽음 {marks.Count} · 책갈피 {books.Count}" });
+            Detail = $"account={id} {a.DisplayName}({a.Email}) 읽음 {marks} · 책갈피 {books}" });
         await ctx.SaveChangesAsync(ct);
-        return marks.Count + books.Count;
+        return marks + books;
     }
 }
