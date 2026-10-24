@@ -10,6 +10,14 @@ public sealed record BookProgress(byte BookId, string Name, string Testament, in
 {
     public bool Done => Read >= Total;
 }
+/// <summary>회차 기록 한 줄(시안 통독-회차기록). Ended = 완독일 또는 닫은 날(진행 중이면 null).</summary>
+public sealed record RoundRow(int RoundNo, RoundState State, DateOnly Started, DateOnly? Ended, int Read)
+{
+    public double Percent => ReadingSummary.Percent(Read, ReadingSummary.Total);
+    /// <summary>완독에 걸린 날(시작일 · 완독일 포함).</summary>
+    public int? Days => State == RoundState.Completed && Ended is { } e ? e.DayNumber - Started.DayNumber + 1 : null;
+}
+public enum RoundState { Reading, Completed, Closed }
 public sealed record ResumePoint(byte BookId, short Chapter, short Verse, int VerseCount, int VersesRead, DateTime? ViewedUtc);
 public sealed record ReadingSummary(
     int RoundNo, int CompletedRounds, int ReadChapters, int OtRead, int NtRead,
@@ -141,6 +149,22 @@ public sealed class ReadingService(IAppDb db, RequestScope scope, TenantContext 
         ctx.ReadingRounds.Add(next);
         await ctx.SaveChangesAsync(ct);
         return next.RoundNo;
+    }
+
+    /// <summary>
+    /// 회차 기록(R-153 · R-154 · R-155): 새 회차부터. 보기만으로는 회차를 열지 않는다 — 아직 없으면 0장인 1회차를 보여 준다(저장 안 함).
+    /// </summary>
+    public async Task<IReadOnlyList<RoundRow>> RoundsAsync(CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var rounds = await ctx.ReadingRounds.AsNoTracking().OrderByDescending(r => r.RoundNo).ToListAsync(ct);
+        var counts = await ctx.ChapterReads.GroupBy(c => c.RoundNo).Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N, ct);
+        var rows = rounds.Select(r => new RoundRow(r.RoundNo,
+            r.CompletedUtc is not null ? RoundState.Completed : r.ClosedUtc is not null ? RoundState.Closed : RoundState.Reading,
+            Local(r.StartedUtc), r.CompletedUtc is { } c ? Local(c) : r.ClosedUtc is { } x ? Local(x) : null, counts.GetValueOrDefault(r.RoundNo))).ToList();
+        if (rows.All(r => r.State != RoundState.Reading))
+            rows.Insert(0, new RoundRow((rows.Count == 0 ? 0 : rows.Max(r => r.RoundNo)) + 1, RoundState.Reading, clock.Today(tenant.Current.TimeZoneId), null, 0));
+        return rows;
     }
 
     /// <summary>보던 위치(R-161) — 읽음과 무관.</summary>

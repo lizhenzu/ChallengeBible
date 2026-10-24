@@ -126,6 +126,18 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids/reading/list?t=ot&b=1", "19-통독-성경목록");
         await Save(kid, "/jamsil-kids/reading/read/1/24?unit=3", "20-통독-본문읽기");
         await Save(kid, "/jamsil-kids/reading/bookmarks", "21-통독-북마크");
+        // 회차 기록(확정 시안 통독-회차기록): 지금까지 읽은 회차를 "중간에 닫음"으로 두고 2회차에 두 장, 새 회차 시작 확인을 펼친 모습
+        var kidAcc = Acc("cheolsu");
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            var first = raw.ReadingRounds.Single(r => r.AccountId == kidAcc);
+            first.ClosedUtc = new DateTime(2027, 1, 4, 0, 0, 0, DateTimeKind.Utc);
+            raw.ReadingRounds.Add(new ReadingRound { AccountId = kidAcc, RoundNo = first.RoundNo + 1, StartedUtc = new DateTime(2027, 1, 4, 0, 0, 0, DateTimeKind.Utc) });
+            foreach (short ch in new short[] { 1, 2 })
+                raw.ChapterReads.Add(new ChapterRead { AccountId = kidAcc, RoundNo = first.RoundNo + 1, BookId = 40, Chapter = ch, ReadUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        await Save(kid, "/jamsil-kids/reading/rounds?ask=true", "21c-통독-회차기록");
         using (var raw = InMemoryDb.Raw(db))
         {
             var at = new DateTime(2027, 1, 4, 0, 0, 0, DateTimeKind.Utc);

@@ -1,0 +1,165 @@
+<title>통독 회차 기록 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap">
+<style>
+  /* 레이아웃(/{slug}/reading/rounds, R-153 · R-154 · R-155): 위쪽 줄(← 통독 홈 / 날짜) → 요약 띠(완독 횟수 · 지금 회차 · 지금 진도) →
+     지금 회차 카드(진도 막대 · 시작일 · 읽은 장 · [새 회차 시작]) → 지난 회차 목록(완독 · 중간에 닫음, 시작 ~ 끝 · 걸린 날 · 읽은 장).
+     들어오는 길: 통독 홈 "나의 성경 통독 · N회차" 줄을 누르면 */
+  :root {
+    --bg: #FFFFFF; --band: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --on-accent: #FFFFFF; --tint: #E8EEFA; --tint-fg: #2B59C3;
+    --ok: #1F7A5C; --ok-bg: #E7F4EE; --warn: #9A5B00; --warn-bg: #FFF4DE; --bad: #B42318; --bad-bg: #FDECEC;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #15181C; --band: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #6E95F0; --on-accent: #0E1013; --tint: #22304A; --tint-fg: #9DB7F5;
+    --ok: #5CC0A0; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #15181C; --band: #1C2026; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #6E95F0; --on-accent: #0E1013; --tint: #22304A; --tint-fg: #9DB7F5;
+    --ok: #5CC0A0; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--band); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible, label:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+  .k { font-size: 13px; font-weight: 700; letter-spacing: .16em; color: var(--accent); }
+
+  .band { background: var(--band); }
+  .band .wrap { padding-block: 12px 22px; display: flex; flex-direction: column; gap: 14px; }
+  .bar1 { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+  .crumb { flex: 1; min-width: 0; font-size: 14px; color: var(--dim); }
+  .crumb a { color: var(--fg); font-weight: 700; }
+  .date { flex: none; font-size: 13px; color: var(--dim); }
+  h1 { margin: 0; font-size: 26px; font-weight: 800; }
+  .cells { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--fg); border-bottom: 1px solid var(--line); }
+  .cells div { padding: 12px 0; text-align: center; display: flex; flex-direction: column; gap: 2px; }
+  .cells div + div { border-left: 1px solid var(--line); }
+  .cells b { font-size: 26px; font-weight: 300; }
+  .cells b u { text-decoration: none; font-size: 13px; color: var(--dim); margin-left: 2px; }
+  .cells span { font-size: 12px; color: var(--dim); }
+
+  main .wrap { padding-block: 22px 56px; display: flex; flex-direction: column; gap: 18px; }
+  h2 { margin: 0; font-size: 15px; font-weight: 800; display: flex; justify-content: space-between; align-items: baseline; }
+  h2 small { font-size: 13px; font-weight: 500; color: var(--dim); }
+
+  .now { border: 1px solid var(--accent); box-shadow: inset 0 0 0 1px var(--accent); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .no { font-size: 20px; font-weight: 800; }
+  .tag { font-size: 12px; font-weight: 800; padding: 2px 10px; border-radius: 99px; }
+  .tag.go { background: var(--tint); color: var(--tint-fg); }
+  .tag.ok { background: var(--ok-bg); color: var(--ok); }
+  .tag.cl { background: var(--band); color: var(--dim); }
+  .pct { font-size: 34px; font-weight: 300; }
+  .pct u { text-decoration: none; font-size: 15px; color: var(--dim); }
+  .bar { height: 8px; border-radius: 4px; background: var(--band); overflow: hidden; }
+  .bar i { display: block; height: 8px; background: var(--accent); }
+  .meta { font-size: 13px; color: var(--dim); }
+  .btn { min-height: 48px; padding: 0 18px; border-radius: 12px; font-size: 15px; font-weight: 800; border: 1px solid var(--line); background: var(--bg); display: inline-flex; align-items: center; justify-content: center; }
+  .btn.p { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .btn.d { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, var(--line)); }
+  .ask { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 14px; background: var(--warn-bg); }
+  .ask b.t { color: var(--warn); }
+  .ask ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.8; }
+  .ask .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--fg); }
+  .list li { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 14px 4px; border-bottom: 1px solid var(--rule); }
+  .list .n { font-size: 18px; font-weight: 800; text-align: center; }
+  .list .n small { display: block; font-size: 11px; font-weight: 500; color: var(--dim); }
+  .list .t { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .list .t .meta { font-size: 12.5px; }
+  .list .bar { height: 5px; }
+  .list .bar i.ok { background: var(--ok); }
+  .list .bar i.cl { background: var(--line); }
+  .list .r { text-align: right; }
+  .list .r b { display: block; font-size: 18px; font-weight: 300; }
+  .list .r small { font-size: 12px; color: var(--dim); }
+  .empty { padding: 22px; text-align: center; color: var(--dim); border: 1px dashed var(--line); border-radius: 14px; font-size: 14px; }
+  .note { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--band); font-size: 13px; color: var(--dim); line-height: 1.8; }
+  .note b { color: var(--fg); }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
+  .demo { font-size: 12px; color: var(--dim); text-align: center; }
+  .demo button { border: 0; background: none; color: var(--accent); font-weight: 700; font-size: 12px; text-decoration: underline; min-height: 32px; }
+</style>
+
+<section class="band gut"><div class="wrap">
+  <div class="bar1"><span class="crumb"><a href="#">← 통독 홈</a> · 성경통독</span><span class="date">1월 5일 화요일</span></div>
+  <div><span class="k">나의 성경 통독</span><h1>회차 기록</h1></div>
+  <div class="cells">
+    <div><b class="num" id="cDone">1<u>번</u></b><span>완독</span></div>
+    <div><b class="num" id="cNow">3<u>회차</u></b><span>지금 읽는 중</span></div>
+    <div><b class="num" id="cPct">1.9<u>%</u></b><span>지금 진도</span></div>
+  </div>
+</div></section>
+
+<main class="gut"><div class="wrap">
+  <h2>지금 회차</h2>
+  <section class="now" id="now"></section>
+
+  <h2>지난 회차 <small id="pastN"></small></h2>
+  <ul class="list" id="past"></ul>
+
+  <p class="note"><b>1,189장을 모두 읽으면</b> 그 회차는 완독으로 끝나고 다음 회차가 저절로 시작돼요.<br>
+    <b>새 회차 시작</b>은 언제든 할 수 있어요. 지금 회차는 "중간에 닫음"으로 남고, 읽은 기록은 지워지지 않아요. 성경 읽음 표시 · 책갈피도 그대로예요.<br>
+    통독에는 점수가 없어요(R-157).</p>
+  <p class="demo">시안 전용: <button type="button" id="demo">처음 시작한 사람으로 보기</button></p>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const ALL = 1189;
+  let first = false;
+  // 예시: 1회차 완독, 2회차 중간에 닫음, 3회차 읽는 중
+  let R = [
+    { no: 3, st: 'go', start: '2027.01.01', read: 23 },
+    { no: 2, st: 'cl', start: '2026.09.02', end: '2026.12.31', read: 402 },
+    { no: 1, st: 'ok', start: '2025.11.10', end: '2026.08.30', read: 1189, days: 294 },
+  ];
+  let ask = false;
+  const pct = (n) => (Math.floor(n / ALL * 1000) / 10).toFixed(1);
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); }
+  function draw() {
+    const rs = first ? [{ no: 1, st: 'go', start: '2027.01.05', read: 0 }] : R;
+    const now = rs.find((r) => r.st === 'go'), past = rs.filter((r) => r.st !== 'go');
+    $('cDone').innerHTML = `${past.filter((r) => r.st === 'ok').length}<u>번</u>`;
+    $('cNow').innerHTML = `${now.no}<u>회차</u>`;
+    $('cPct').innerHTML = `${pct(now.read)}<u>%</u>`;
+    $('now').innerHTML = `
+      <div class="row"><span class="no">${now.no}회차</span><span class="tag go">읽는 중</span></div>
+      <div class="row"><span class="pct num">${pct(now.read)}<u>%</u></span><span class="meta num">${now.read.toLocaleString()} / ${ALL.toLocaleString()}장</span></div>
+      <div class="bar"><i style="width:${Math.max(1, now.read / ALL * 100)}%"></i></div>
+      <span class="meta">${now.start} 시작 · 남은 장 ${(ALL - now.read).toLocaleString()}장</span>
+      ${ask ? `<div class="ask" role="alert"><b class="t">새 회차를 시작할까요?</b>
+          <ul><li>${now.no}회차는 <b>중간에 닫음</b>(${pct(now.read)}%)으로 남아요. 읽은 기록은 지워지지 않아요.</li><li>${now.no + 1}회차가 0%부터 시작돼요.</li><li>성경 읽음 표시 · 책갈피는 그대로예요.</li></ul>
+          <div class="acts"><button type="button" class="btn" data-a="no">아니요</button><button type="button" class="btn d" data-a="go!">새 회차 시작</button></div></div>`
+        : `<div><button type="button" class="btn" data-a="go" ${now.read === 0 ? 'disabled title="아직 읽은 장이 없어요"' : ''}>새 회차 시작</button></div>`}`;
+    $('pastN').textContent = past.length ? `${past.length}번` : '';
+    $('past').innerHTML = past.length ? past.map((r) => `<li>
+        <span class="n">${r.no}<small>회차</small></span>
+        <span class="t"><span class="row" style="justify-content:flex-start;gap:8px"><span class="tag ${r.st}">${r.st === 'ok' ? '완독' : '중간에 닫음'}</span><span class="meta">${r.start} ~ ${r.end}${r.days ? ` · ${r.days}일 걸림` : ''}</span></span>
+          <span class="bar"><i class="${r.st}" style="width:${Math.max(1, r.read / ALL * 100)}%"></i></span></span>
+        <span class="r"><b class="num">${pct(r.read)}%</b><small class="num">${r.read.toLocaleString()}장</small></span></li>`).join('')
+      : '<li style="display:block;border:0;padding:0"><div class="empty">아직 지난 회차가 없어요. 1,189장을 다 읽으면 여기에 완독 기록이 남아요.</div></li>';
+  }
+  $('now').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-a]'); if (!b) return;
+    if (b.dataset.a === 'go') ask = true;
+    if (b.dataset.a === 'no') ask = false;
+    if (b.dataset.a === 'go!') {
+      const cur = R.find((r) => r.st === 'go'); cur.st = 'cl'; cur.end = '2027.01.05';
+      R.unshift({ no: cur.no + 1, st: 'go', start: '2027.01.05', read: 0 }); ask = false; toast(`${cur.no + 1}회차를 시작했어요`);
+    }
+    draw();
+  });
+  $('demo').onclick = () => { first = !first; ask = false; $('demo').textContent = first ? '여러 회차를 읽은 사람으로 보기' : '처음 시작한 사람으로 보기'; draw(); };
+  draw();
+</script>

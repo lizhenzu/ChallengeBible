@@ -1,0 +1,87 @@
+@page "/{slug}/reading/rounds"
+@model ChallengeBible.Web.Pages.Reading.RoundsModel
+@using ChallengeBible.Web.Pages.Reading
+@using ChallengeBible.Web.Services
+@* 확정 시안: 통독-회차기록 — 요약 3칸(완독 · 지금 회차 · 지금 진도) → 지금 회차 카드([새 회차 시작]은 확인 뒤) → 지난 회차(완독 · 중간에 닫음) *@
+@{
+    var ko = ReadingPageBase.Ko;
+    var now = Model.Now;
+    var past = Model.Past.ToList();
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    string W(double pct) => Math.Max(1, pct).ToString("0.#", inv) + "%";
+}
+<link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
+<div class="rp">
+<header class="rp-top"><div class="rp-in">
+    <a class="rp-menu" href="/@Model.Slug/reading" aria-label="통독 홈">☰</a>
+    <nav class="rp-crumb"><a href="/@Model.Slug/reading">← 통독 홈</a> · <b>성경통독</b></nav>
+    <span class="rp-date">@Model.Today.ToString("M월 d일 dddd", ko)</span>
+</div>
+<div class="rp-in rp-head">
+    <div class="rp-k">나의 성경 통독</div>
+    <h1>회차 기록</h1>
+    <div class="rr-cells">
+        <div><b class="num">@past.Count(r => r.State == RoundState.Completed)<u>번</u></b><span>완독</span></div>
+        <div><b class="num">@now.RoundNo<u>회차</u></b><span>지금 읽는 중</span></div>
+        <div><b class="num">@now.Percent.ToString("0.0")<u>%</u></b><span>지금 진도</span></div>
+    </div>
+</div></header>
+
+<main class="rp-in rp-body rr">
+    @if (Model.Started is int s) { <p class="rr-ok" role="status">@(s)회차를 시작했어요. 지난 회차 기록은 그대로 남아요.</p> }
+
+    <h2 class="rr-h">지금 회차</h2>
+    <section class="rr-now">
+        <div class="row"><span class="no">@(now.RoundNo)회차</span><span class="rr-tag go">읽는 중</span></div>
+        <div class="row"><span class="pct num">@now.Percent.ToString("0.0")<u>%</u></span><span class="meta num">@now.Read.ToString("N0") / @ReadingSummary.Total.ToString("N0")장</span></div>
+        <div class="rr-bar"><i style="width:@W(now.Percent)"></i></div>
+        <span class="meta">@RoundsModel.Ymd(now.Started) 시작 · 남은 장 @((ReadingSummary.Total - now.Read).ToString("N0"))장</span>
+        @if (Model.Ask && now.Read > 0)
+        {
+            <form method="post" class="rr-ask" role="alert">
+                <b class="t">새 회차를 시작할까요?</b>
+                <ul>
+                    <li>@(now.RoundNo)회차는 <b>중간에 닫음</b>(@now.Percent.ToString("0.0")%)으로 남아요. 읽은 기록은 지워지지 않아요.</li>
+                    <li>@(now.RoundNo + 1)회차가 0%부터 시작돼요.</li>
+                    <li>성경 읽음 표시 · 책갈피는 그대로예요.</li>
+                </ul>
+                <div class="acts"><a class="rr-btn" href="/@Model.Slug/reading/rounds">아니요</a><button type="submit" class="rr-btn d">새 회차 시작</button></div>
+            </form>
+        }
+        else if (now.Read > 0)
+        {
+            <div><a class="rr-btn" href="/@Model.Slug/reading/rounds?ask=true">새 회차 시작</a></div>
+        }
+        else
+        {
+            <p class="meta">아직 이번 회차에 읽은 장이 없어요. 읽기 시작하면 새 회차도 시작할 수 있어요.</p>
+        }
+    </section>
+
+    <h2 class="rr-h">지난 회차 @if (past.Count > 0) { <small class="num">@(past.Count)번</small> }</h2>
+    @if (past.Count == 0)
+    {
+        <div class="rr-empty">아직 지난 회차가 없어요. 1,189장을 다 읽으면 여기에 완독 기록이 남아요.</div>
+    }
+    else
+    {
+        <ul class="rr-list">
+            @foreach (var r in past)
+            {
+                var done = r.State == RoundState.Completed;
+                <li>
+                    <span class="n">@r.RoundNo<small>회차</small></span>
+                    <span class="t"><span class="row"><span class="rr-tag @(done ? "ok" : "cl")">@(done ? "완독" : "중간에 닫음")</span>
+                        <span class="meta">@RoundsModel.Ymd(r.Started) ~ @(r.Ended is { } e ? RoundsModel.Ymd(e) : "")@(r.Days is int d ? $" · {d}일 걸림" : "")</span></span>
+                        <span class="rr-bar thin"><i class="@(done ? "ok" : "cl")" style="width:@W(r.Percent)"></i></span></span>
+                    <span class="r"><b class="num">@r.Percent.ToString("0.0")%</b><small class="num">@(r.Read.ToString("N0"))장</small></span>
+                </li>
+            }
+        </ul>
+    }
+
+    <p class="rr-note"><b>1,189장을 모두 읽으면</b> 그 회차는 완독으로 끝나고 다음 회차가 저절로 시작돼요.<br>
+        <b>새 회차 시작</b>은 언제든 할 수 있어요. 지금 회차는 "중간에 닫음"으로 남고, 읽은 기록은 지워지지 않아요. 성경 읽음 표시 · 책갈피도 그대로예요.<br>
+        통독에는 점수가 없어요.</p>
+</main>
+</div>

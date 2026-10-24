@@ -25,7 +25,7 @@
 </div></header>
 
 <section class="rp-me"><div class="rp-in">
-    <div class="rp-k">나의 성경 통독 · @(d.RoundNo)회차@(d.CompletedRounds > 0 ? $" · 완독 {d.CompletedRounds}번" : "")</div>
+    <div class="rp-k">나의 성경 통독 · <a href="/@Model.Slug/reading/rounds" title="회차 기록">@(d.RoundNo)회차@(d.CompletedRounds > 0 ? $" · 완독 {d.CompletedRounds}번" : "")</a></div>
     <div class="rp-hero">
         <div class="rp-ring" style="--p:@(pct.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture))" role="img" aria-label="진도율 @(pct)%"><span class="num">@(pct.ToString("0.0"))%</span></div>
         <div class="rp-count">

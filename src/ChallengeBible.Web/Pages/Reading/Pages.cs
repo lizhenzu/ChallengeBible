@@ -121,6 +121,39 @@ public class ParticipantsModel(ReadingService reading, TenantContext tenant, Rea
     public string LastText(BoardMember m) => m.LastBook is byte b ? $"{BookName(b)} {m.LastChapter}{(b == 19 ? "편" : "장")} · {ReadingBoardService.Ago(m.DaysAgo!.Value)}" : "아직 시작 전";
 }
 
+/// <summary>
+/// `/{slug}/reading/rounds` 회차 기록(확정 시안: 통독-회차기록, R-153 · R-154 · R-155). [새 회차 시작]은 확인(`?ask=1`) 뒤에만,
+/// 지금 회차에 읽은 장이 하나도 없으면 하지 않는다(빈 회차를 쌓지 않게).
+/// </summary>
+public class RoundsModel(ReadingService reading, TenantContext tenant, TenantClock clock) : ReadingPageBase(reading, tenant)
+{
+    public override string Title => "회차 기록";
+    [BindProperty(SupportsGet = true)] public bool Ask { get; set; }
+    [BindProperty(SupportsGet = true)] public int? Started { get; set; }
+    public IReadOnlyList<RoundRow> Rows { get; private set; } = [];
+    public RoundRow Now => Rows.First(r => r.State == RoundState.Reading);
+    public IEnumerable<RoundRow> Past => Rows.Where(r => r.State != RoundState.Reading);
+    public DateOnly Today { get; private set; }
+
+    protected override async Task<IActionResult> LoadAsync(CancellationToken ct)
+    {
+        Rows = await Reading.RoundsAsync(ct);
+        Today = clock.Today(Tenant.Current.TimeZoneId);
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostAsync(CancellationToken ct)
+    {
+        if (!Tenant.Current.ReadingEnabled) return NotFound();
+        Rows = await Reading.RoundsAsync(ct);
+        if (Now.Read == 0) return RedirectToPage(new { slug = Slug });
+        var no = await Reading.StartNewRoundAsync(ct);
+        return RedirectToPage(new { slug = Slug, Started = no });
+    }
+
+    public static string Ymd(DateOnly d) => d.ToString("yyyy.MM.dd");
+}
+
 /// <summary>`/{slug}/reading/bookmarks?sort=recent|bible` 북마크 모음(확정 시안: 통독-북마크, 출처 표시는 뺌).</summary>
 public class BookmarksModel(ReadingService reading, TenantContext tenant, BibleMarkService marks, TenantClock clock) : ReadingPageBase(reading, tenant)
 {
