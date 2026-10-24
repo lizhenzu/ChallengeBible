@@ -26,7 +26,13 @@ public static class BrandingApi
                 theme_color = BrandingService.ColorHex(t.ThemeColor),
                 background_color = "#FFFFFF",
                 lang = "ko",
-                icons = new[] { new { src = $"/{t.Slug}/icon.svg", sizes = "any", type = "image/svg+xml", purpose = "any" } },
+                // PNG 192 · 512 는 안드로이드 설치 조건, SVG 는 짧은 이름 글자가 들어간 부서 아이콘
+                icons = new[]
+                {
+                    new { src = BrandingService.IconPng(t.ThemeColor, 192), sizes = "192x192", type = "image/png", purpose = "any" },
+                    new { src = BrandingService.IconPng(t.ThemeColor, 512), sizes = "512x512", type = "image/png", purpose = "any" },
+                    new { src = $"/{t.Slug}/icon.svg", sizes = "any", type = "image/svg+xml", purpose = "any" },
+                },
             };
             return Results.Json(manifest, contentType: "application/manifest+json");
         }).AllowAnonymous();
