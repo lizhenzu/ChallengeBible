@@ -897,3 +897,50 @@ main.admin > .wrap.br { display: grid; gap: 18px; grid-template-columns: minmax(
 .br-log li { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
 .br-log li.none { color: var(--dim); }
 .br-log time { flex: none; width: 92px; color: var(--dim); font-size: 13px; }
+
+/* 관리 · 시즌(확정 시안: 관리-시즌, 0028) */
+.sn-now { padding: 18px; border-radius: 18px; background: var(--hero); display: flex; flex-direction: column; gap: 12px; }
+.sn-now .k { font-size: 13px; font-weight: 800; letter-spacing: .1em; color: var(--accent); }
+.sn-now .big { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.sn-now .big b { font-size: 26px; font-weight: 900; }
+.sn-now .big span { font-size: 14px; color: var(--dim); }
+.sn-now .tl { position: relative; height: 10px; border-radius: 99px; background: var(--bg); }
+.sn-now .tl i { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: var(--accent); }
+.sn-now .tl .off { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 99px 0 0 99px; background: repeating-linear-gradient(45deg, var(--line) 0 4px, transparent 4px 8px); }
+.sn-now .tl .today { position: absolute; top: -5px; bottom: -5px; width: 2px; background: var(--fg); }
+.sn-now .tlx { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); }
+.sn-now .stats { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--dim); }
+.sn-now .stats b { color: var(--fg); }
+.sn-card { border: 1px solid var(--rule); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.sn-card h2 { margin: 0; font-size: 16px; font-weight: 800; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.sn-card h2 small { font-size: 13px; font-weight: 500; color: var(--dim); }
+.sn-pick { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.sn-pick label { font-size: 14px; font-weight: 700; }
+.sn-pick input { min-height: 46px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 16px; }
+.sn-quick { display: flex; gap: 6px; flex-wrap: wrap; }
+.sn-quick a { min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700; }
+.sn-impact { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 14px; }
+.sn-impact.ok { background: var(--ok-bg); } .sn-impact.warn { background: var(--warn-bg); } .sn-impact.bad { background: var(--bad-bg); }
+.sn-impact b.t { font-size: 15px; }
+.sn-impact.ok b.t { color: var(--ok); } .sn-impact.warn b.t { color: var(--warn); } .sn-impact.bad b.t { color: var(--bad); }
+.sn-impact .nums { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.sn-impact .nums div { padding: 10px 12px; border-radius: 10px; background: var(--bg); display: flex; flex-direction: column; }
+.sn-impact .nums small { font-size: 12px; color: var(--dim); }
+.sn-impact .nums b { font-size: 22px; font-weight: 900; }
+.sn-impact ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.8; }
+.sn-go { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.sn-agree { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; font-weight: 700; cursor: pointer; min-height: 40px; }
+.sn-agree input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--accent); flex: none; }
+.sn-go .btn:disabled { opacity: .4; cursor: not-allowed; }
+.sn-next { display: flex; flex-direction: column; gap: 12px; }
+.sn-next[open] > summary .btn { display: none; }
+.sn-next > form { margin-top: 12px; }
+.sn-row { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 14px; cursor: pointer; }
+.sn-row::-webkit-details-marker { display: none; }
+.sn-row span small { color: var(--dim); }
+.sn-log { list-style: none; margin: 0; padding: 0; font-size: 14px; }
+.sn-log li { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid var(--rule); }
+.sn-log li:first-child { border-top: 0; }
+.sn-log li.none { color: var(--dim); }
+.sn-log time { flex: none; width: 92px; color: var(--dim); font-size: 13px; }
+.sn-muted { margin: 0; font-size: 14px; color: var(--dim); }

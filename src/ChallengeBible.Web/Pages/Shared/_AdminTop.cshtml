@@ -13,7 +13,7 @@
         ($"/{slug}/admin/promotions", "진급", promotionsWaiting),
     ];
     if (Model.Current.ReadingEnabled) menu = [.. menu, ($"/{slug}/admin/reading", "통독 현황", 0)];
-    if (Model.IsAdmin) menu = [.. menu, ($"/{slug}/admin/branding", "이름 · 색", 0)];
+    if (Model.IsAdmin) menu = [.. menu, ($"/{slug}/admin/season", "시즌", 0), ($"/{slug}/admin/branding", "이름 · 색", 0)];
     // 관리 홈 주소는 다른 관리 주소의 앞부분이라 정확히 같을 때만 현재 화면으로 본다
     bool Current(string href) => href == home ? path.TrimEnd('/').Equals(home, StringComparison.OrdinalIgnoreCase) : path.StartsWith(href, StringComparison.OrdinalIgnoreCase);
 }

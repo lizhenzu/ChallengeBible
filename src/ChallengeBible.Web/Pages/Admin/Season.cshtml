@@ -1,0 +1,121 @@
+@page "/{slug}/admin/season"
+@model ChallengeBible.Web.Pages.Admin.SeasonModel
+@using ChallengeBible.Web.Services
+@* 확정 시안: 관리-시즌-단독시안 — 올해 시즌 띠 → 시작일 바꾸기(고르기 → 빠지는 점수 경고 → 확인 → 바꾸기) → 다음 시즌 → 바꾼 기록 → 지난 시즌 *@
+@{
+    var v = Model.View;
+    var cur = v.Current;
+    var started = cur.HasStarted(v.Today);
+    var (jan1, sunday) = SeasonService.QuickDates(v.Today.Year);
+    var (nJan1, nSunday) = SeasonService.QuickDates(v.Today.Year + 1);
+    var im = Model.Impact;
+    var slug = Model.Tenant.Current.Slug;
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut"><div class="wrap wide">
+    <h1>시즌</h1>
+    <p class="ar-lead">점수는 한 해(시즌)마다 새로 모아요. 시즌은 늘 12월 31일에 끝나고, 시작일만 부서가 정해요.</p>
+    @if (Model.Ok == "save") { <p class="okmsg" role="status">시작일을 @(Model.Md(cur.StartDate))로 바꿨어요 · 시즌 점수에 바로 반영돼요</p> }
+    @if (Model.Ok == "next") { <p class="okmsg" role="status">@(v.Next.Year) 시즌 시작일을 @(Model.Md(v.Next.StartDate))로 정했어요</p> }
+    @if (Model.Ok == "same") { <p class="okmsg" role="status">바뀐 것이 없어요</p> }
+    @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+
+    <section class="sn-now" aria-labelledby="nowK">
+        <span class="k" id="nowK">@(cur.Year) 시즌 · @(started ? "진행 중" : "시작 전")</span>
+        <div class="big"><b>@Model.Md(cur.StartDate) ~ 12월 31일</b>
+            <span>@(started ? $"오늘 {v.Today.DayNumber - cur.StartDate.DayNumber + 1}일째" : $"{Model.Md(cur.StartDate)}에 시작해요 · 그 전에는 미션이 닫혀 있어요")</span></div>
+        <div class="tl" aria-hidden="true"><span class="off" style="width:@(Model.Pct(cur.StartDate))%"></span><i style="left:@(Model.Pct(cur.StartDate))%;right:0;opacity:@(started ? "1" : ".35")"></i><span class="today" style="left:@(Model.Pct(v.Today))%"></span></div>
+        <div class="tlx"><span>1월</span><span>4월</span><span>7월</span><span>10월</span><span>12월 31일</span></div>
+        <div class="stats"><span>참여자 <b class="num">@(v.ParticipantCount)명</b></span><span>시즌 점수 합 <b class="num">@(v.SeasonPoints)점</b></span><span>지금까지 참여한 사람 <b class="num">@(v.Scorers)명</b></span></div>
+    </section>
+
+    <section class="sn-card" aria-labelledby="hChg">
+        <h2 id="hChg">시작일 바꾸기 <small>1월 1일 ~ 12월 31일 사이</small></h2>
+        <form method="get" class="sn-pick">
+            <label for="d">새 시작일</label>
+            <input type="date" id="d" name="D" min="@jan1.ToString("yyyy-MM-dd")" max="@(new DateOnly(v.Today.Year, 12, 31).ToString("yyyy-MM-dd"))" value="@Model.Picked.ToString("yyyy-MM-dd")" onchange="this.form.submit()" />
+            <button type="submit" class="btn s sm">확인</button>
+        </form>
+        <div class="sn-quick" role="group" aria-label="빠른 고르기">
+            <a href="?D=@jan1.ToString("yyyy-MM-dd")">@(Model.Md(jan1))(기본)</a>
+            @if (sunday != jan1) { <a href="?D=@sunday.ToString("yyyy-MM-dd")">@(Model.Md(sunday))(첫 주일)</a> }
+        </div>
+        @if (im is null)
+        {
+            <div class="sn-impact ok" role="status"><b class="t">지금 시작일이에요 (@Model.Md(cur.StartDate))</b></div>
+        }
+        else
+        {
+            if (!im.Later)
+            {
+                <div class="sn-impact ok" role="status"><b class="t">@(Model.Md(im.NewStart))로 앞당겨요</b>
+                    <ul><li>빠지는 점수는 없어요.</li><li>새로 열린 날짜 중 인정 기간(최근 며칠) 안의 날만 미션을 할 수 있어요.</li></ul></div>
+            }
+            else
+            {
+                <div class="sn-impact @(im.Future ? "bad" : "warn")" role="status"><b class="t">@(Model.Md(im.NewStart))로 늦추면 이렇게 돼요</b>
+                    <div class="nums"><div><small>점수가 빠지는 참여자</small><b class="num">@(im.Participants)명</b></div><div><small>시즌 점수에서 빠지는 점수</small><b class="num">@(im.Points)점</b></div></div>
+                    <ul>
+                        @if (im.Future)
+                        {
+                            <li><b>@(Model.Md(im.NewStart)) 전까지 미션이 닫히고</b> 아이들에게 "곧 시작해요"가 보여요.</li>
+                            <li>지금까지 모은 점수가 모두 이번 시즌 점수에서 빠져요.</li>
+                        }
+                        else
+                        {
+                            <li>@Model.Md(im.From) ~ @(Model.Md(im.To))에 모은 점수가 시즌 점수 · 순위 · 가족팀 합계에서 빠져요.</li>
+                        }
+                        <li>미션 기록과 점수 원장은 지우지 않아요. 다시 앞당기면 돌아와요.</li>
+                        <li>이미 받은 축하 단계는 취소되지 않아요.</li>
+                    </ul></div>
+            }
+            <form method="post" asp-route-slug="@slug" class="sn-go">
+                <input type="hidden" name="start" value="@im.NewStart.ToString("yyyy-MM-dd")" />
+                <label class="sn-agree"><input type="checkbox" name="agree" value="true" data-agree />위 내용을 확인했어요</label>
+                <button type="submit" class="btn p sm" data-go>시작일 바꾸기</button>
+            </form>
+        }
+    </section>
+
+    <section class="sn-card" aria-labelledby="hNext">
+        <h2 id="hNext">다음 시즌 <small>@(v.Next.Year)년</small></h2>
+        <details class="sn-next">
+            <summary class="sn-row"><span>시작일 <b>@Model.Md(v.Next.StartDate)</b> <small>@(v.NextIsDefault ? "(기본값 · 미리 정할 수 있어요)" : "(미리 정해 둠)")</small></span><span class="btn s sm">미리 정하기</span></summary>
+            <form method="post" asp-page-handler="Next" asp-route-slug="@slug" class="sn-pick">
+                <label for="nd">@(v.Next.Year) 시즌 시작일</label>
+                <input type="date" id="nd" name="start" min="@nJan1.ToString("yyyy-MM-dd")" max="@(new DateOnly(v.Next.Year, 12, 31).ToString("yyyy-MM-dd"))" value="@v.Next.StartDate.ToString("yyyy-MM-dd")" />
+                <button type="submit" class="btn p sm">정하기</button>
+            </form>
+            <p class="sn-muted">빠른 고르기: @(Model.Md(nJan1))(기본)@(nSunday != nJan1 ? $" · {Model.Md(nSunday)}(첫 주일)" : "")</p>
+        </details>
+        <p class="sn-muted">새해가 되면 시즌 점수 · 축하 단계 · 가족 단계가 새로 시작해요. 성경 읽음 표시 · 북마크 · 통독 진도는 그대로 이어져요.</p>
+    </section>
+
+    <section class="sn-card" aria-labelledby="hLog">
+        <h2 id="hLog">바꾼 기록</h2>
+        <ul class="sn-log">
+            @if (v.Log.Count == 0) { <li class="none">아직 바꾼 기록이 없어요. 시작일은 기본값(1월 1일)이에요.</li> }
+            @foreach (var l in v.Log) { <li><time class="num">@Model.LocalDate(l.OccurredUtc)</time><span>@l.Actor · @l.Detail</span></li> }
+        </ul>
+    </section>
+
+    <section class="sn-card" aria-labelledby="hPast">
+        <h2 id="hPast">지난 시즌</h2>
+        @if (v.Past.Count == 0)
+        {
+            <p class="sn-muted">아직 없어요. @(v.Next.Year)년이 되면 @(cur.Year) 시즌 점수를 여기서 볼 수 있어요.</p>
+        }
+        else
+        {
+            <ul class="sn-log">@foreach (var p in v.Past) { <li><time class="num">@(p.Year) 시즌</time><span>@Model.Md(p.Start) ~ 12월 31일 · 참여한 사람 <b class="num">@(p.Scorers)명</b> · 점수 합 <b class="num">@(p.Points)점</b></span></li> }</ul>
+        }
+    </section>
+</div></main>
+<script>
+    // "확인했어요"에 체크해야 바꾸기 버튼이 눌린다(JS 없이도 서버가 한 번 더 확인)
+    document.querySelectorAll('[data-agree]').forEach((c) => {
+        const go = c.form.querySelector('[data-go]');
+        const sync = () => { go.disabled = !c.checked; };
+        c.addEventListener('change', sync); sync();
+    });
+</script>

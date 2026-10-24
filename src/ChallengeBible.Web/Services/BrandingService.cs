@@ -4,8 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record BrandingLog(DateTime OccurredUtc, string Actor, string Detail);
-public sealed record BrandingView(string? AppName, string? AppShortName, string ThemeColor, IReadOnlyList<BrandingLog> Log);
+public sealed record BrandingView(string? AppName, string? AppShortName, string ThemeColor, IReadOnlyList<AuditLine> Log);
 
 /// <summary>
 /// 부서 "이름 · 색"(0033 · 0038, 확정 시안: 관리-이름색). 앱 이름 1~30자 · 짧은 이름 1~12자(비우면 기본값), 대표 색은 정해 둔 4가지.
@@ -34,12 +33,7 @@ public sealed class BrandingService(IAppDb db, TenantContext tenant, TimeProvide
     {
         var t = tenant.Current;
         await using var ctx = db.Create();
-        var log = await (from l in ctx.AuditLogs
-                         join a in ctx.Accounts on l.ActorAccountId equals a.Id
-                         where l.TenantId == t.Id && l.Action == LogAction
-                         orderby l.OccurredUtc descending, l.Id descending
-                         select new BrandingLog(l.OccurredUtc, a.DisplayName, l.Detail ?? "")).Take(30).ToListAsync(ct);
-        return new(t.AppName, t.AppShortName, t.ThemeColor, log);
+        return new(t.AppName, t.AppShortName, t.ThemeColor, await AuditLines.ForTenantAsync(ctx, t.Id, LogAction, ct));
     }
 
     /// <summary>저장. 빈칸(공백뿐 포함)은 기본값(null). 바뀐 것이 없으면 아무것도 하지 않는다. 틀리면 칸별 오류.</summary>

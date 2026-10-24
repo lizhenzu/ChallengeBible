@@ -20,7 +20,7 @@ public class BrandingModel(BrandingService branding, TenantContext tenant, Tenan
     [BindProperty] public string ThemeColor { get; set; } = "blue";
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }
 
-    public IReadOnlyList<BrandingLog> Log { get; private set; } = [];
+    public IReadOnlyList<AuditLine> Log { get; private set; } = [];
     public Dictionary<string, string> Errors { get; private set; } = [];
     public DateOnly Today { get; private set; }
 
