@@ -174,6 +174,44 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AuditLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<int>("ActorAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Detail")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<DateTime>("OccurredUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int?>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id")
+                        .HasName("PK_AuditLog");
+
+                    b.HasIndex("ActorAccountId");
+
+                    b.HasIndex("OccurredUtc")
+                        .HasDatabaseName("IX_AuditLog_Occurred");
+
+                    b.ToTable("AuditLog", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BibleBook", b =>
                 {
                     b.Property<byte>("Id")
@@ -1500,6 +1538,67 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.PromotionRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DecidedByAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DecidedUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("RequestedByAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RequestedUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("SourceTenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int>("TargetTenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id")
+                        .HasName("PK_PromotionRequest");
+
+                    b.HasIndex("DecidedByAccountId");
+
+                    b.HasIndex("RequestedByAccountId");
+
+                    b.HasIndex("AccountId", "SourceTenantId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_PromotionRequest_Pending")
+                        .HasFilter("[Status] = 'Pending'");
+
+                    b.HasIndex("SourceTenantId", "Status")
+                        .HasDatabaseName("IX_PromotionRequest_Source");
+
+                    b.HasIndex("TargetTenantId", "Status")
+                        .HasDatabaseName("IX_PromotionRequest_Target");
+
+                    b.ToTable("PromotionRequest", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_PromotionRequest_Status", "Status IN ('Pending','Approved','Rejected','Cancelled')");
+
+                            t.HasCheckConstraint("CK_PromotionRequest_Tenants", "SourceTenantId <> TargetTenantId");
+                        });
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.QuizAttempt", b =>
                 {
                     b.Property<long>("Id")
@@ -1989,6 +2088,16 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasConstraintName("FK_Activity_Participant");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AuditLog", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                        .WithMany()
+                        .HasForeignKey("ActorAccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_AuditLog_Actor");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BibleChapter", b =>
                 {
                     b.HasOne("ChallengeBible.Infrastructure.Data.BibleBook", null)
@@ -2268,6 +2377,43 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_PointLedger_Participant");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.PromotionRequest", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_PromotionRequest_Account");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                        .WithMany()
+                        .HasForeignKey("DecidedByAccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("FK_PromotionRequest_DecidedBy");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                        .WithMany()
+                        .HasForeignKey("RequestedByAccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_PromotionRequest_RequestedBy");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("SourceTenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_PromotionRequest_Source");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TargetTenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_PromotionRequest_Target");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.QuizAttempt", b =>

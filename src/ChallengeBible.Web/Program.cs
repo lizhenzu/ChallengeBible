@@ -39,6 +39,8 @@ builder.Services.AddScoped<ReadingBoardService>();
 var bibleNoteConnection = builder.Configuration.GetConnectionString("BibleNote") ?? connectionString;
 builder.Services.AddSingleton(sp => new BibleNoteService(bibleNoteConnection, sp.GetRequiredService<ILogger<BibleNoteService>>()));
 builder.Services.AddScoped<GuardianService>();
+builder.Services.AddScoped<PromotionService>();
+builder.Services.AddScoped<PromotionApprover>();
 builder.Services.AddScoped<TenantResolver>();
 builder.Services.AddAntiforgery(o => o.HeaderName = "RequestVerificationToken");
 builder.Services.AddMemoryCache();

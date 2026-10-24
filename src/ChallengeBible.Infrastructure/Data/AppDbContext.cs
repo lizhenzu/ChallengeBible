@@ -51,6 +51,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<ChapterProgress> ChapterProgresses => Set<ChapterProgress>();
     public DbSet<SearchLog> SearchLogs => Set<SearchLog>();
 
+    public DbSet<PromotionRequest> PromotionRequests => Set<PromotionRequest>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
     protected override void OnModelCreating(ModelBuilder b)
     {
         b.HasDefaultSchema("app");
@@ -66,6 +69,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
             var method = typeof(AppDbContext).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Instance)!.MakeGenericMethod(type);
             b.Entity(type).HasQueryFilter((LambdaExpression)method.Invoke(this, null)!);
         }
+
+        // 진급 요청(0030): 이 영역이 보낸 쪽이거나 받는 쪽인 행만 — RLS sec.fn_Promotion 과 같은 조건
+        b.Entity<PromotionRequest>().HasQueryFilter(p => !FilterTenants || p.SourceTenantId == CurrentTenantId || p.TargetTenantId == CurrentTenantId);
     }
 
     private Expression<Func<T, bool>> TenantFilter<T>() where T : ITenantOwned =>
