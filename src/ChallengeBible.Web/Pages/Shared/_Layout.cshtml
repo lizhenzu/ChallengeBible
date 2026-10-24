@@ -1,13 +1,29 @@
-﻿@{
+﻿@inject ChallengeBible.Web.Tenancy.TenantContext Tenant
+@using ChallengeBible.Web.Services
+@{
     // 화면 제목은 각 화면 모델(ITitled)에서 읽는다 — ViewBag · TempData 를 쓰지 않는다(X-13).
     var title = (Model as ITitled)?.Title;
+    // 부서 화면(0038): 이름은 부서 이름(없으면 기본), 앱 정보는 부서 매니페스트. 부서 밖 화면은 기본 이름.
+    var dept = Tenant.Tenant;
+    var appName = dept is null ? BrandingService.DefaultName : Tenant.AppName;
+    // 대표 색(0033)은 부서 화면 강조색에. 통독 · 성경 본문 화면은 파랑 그대로(확정: 이름 · 색 적용 범위)
+    var path = Context.Request.Path.Value ?? "";
+    var blueOnly = dept is not null && (path.StartsWith($"/{dept.Slug}/reading", StringComparison.OrdinalIgnoreCase)
+                                        || path.Equals($"/{dept.Slug}/read", StringComparison.OrdinalIgnoreCase));
+    var color = dept is null || blueOnly ? "blue" : dept.ThemeColor;
 }
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-color="@color">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>@(string.IsNullOrEmpty(title) ? "도전!!!성경말씀" : $"{title} · 도전!!!성경말씀")</title>
+    <title>@(string.IsNullOrEmpty(title) ? appName : $"{title} · {appName}")</title>
+    @if (dept is not null)
+    {
+        <link rel="manifest" href="/@dept.Slug/manifest.webmanifest" />
+        <meta name="theme-color" content="@BrandingService.ColorHex(dept.ThemeColor)" />
+        <link rel="icon" type="image/svg+xml" href="/@dept.Slug/icon.svg" />
+    }
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />

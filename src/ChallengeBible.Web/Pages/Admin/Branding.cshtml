@@ -1,0 +1,77 @@
+@page "/{slug}/admin/branding"
+@model ChallengeBible.Web.Pages.Admin.BrandingModel
+@using ChallengeBible.Web.Services
+@* 확정 시안: 관리-이름색-단독시안 — 입력(앱 이름 · 짧은 이름 · 대표 색) | 미리보기(부서 홈 머리 · 홈 화면 아이콘) → 저장 · 기본값으로 → 바꾼 기록 *@
+@{
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+    var shortShown = string.IsNullOrWhiteSpace(Model.AppShortName) ? BrandingService.DefaultShortName : Model.AppShortName!.Trim();
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut"><div class="wrap wide br" data-branding data-defname="@BrandingService.DefaultName" data-defshort="@BrandingService.DefaultShortName">
+    <div class="br-span">
+        <h1>이름 · 색</h1>
+        <p class="ar-lead">우리 부서 화면에 보이는 이름과 색이에요. 비워 두면 기본 이름 "@(BrandingService.DefaultName)"을 써요.</p>
+        @if (Model.Ok == "save") { <p class="okmsg" role="status">저장했어요 · 부서 화면에 바로 보여요</p> }
+        @if (Model.Ok == "same") { <p class="okmsg" role="status">바뀐 것이 없어요</p> }
+    </div>
+
+    <form method="post" asp-route-slug="@Model.Tenant.Current.Slug" class="br-form" novalidate>
+        <div class="br-f">
+            <label class="l" for="AppName">앱 이름 <small class="num" data-count="AppName">@(Model.AppName?.Length ?? 0) / 30</small></label>
+            <input class="in" id="AppName" name="AppName" value="@Model.AppName" maxlength="30" placeholder="@(BrandingService.DefaultName) (기본)"
+                   aria-describedby="AppNameH" aria-invalid="@(Model.Errors.ContainsKey("AppName") ? "true" : "false")" />
+            <p class="hint@(Model.Errors.ContainsKey("AppName") ? " bad" : "")" id="AppNameH">@(Model.Errors.GetValueOrDefault("AppName") ?? "부서 화면 맨 위 · 로그인 안내 · 축하 창에 보여요. 예: 유년부 말씀 챌린지")</p>
+        </div>
+        <div class="br-f">
+            <label class="l" for="AppShortName">짧은 이름 <small class="num" data-count="AppShortName">@(Model.AppShortName?.Length ?? 0) / 12</small></label>
+            <input class="in" id="AppShortName" name="AppShortName" value="@Model.AppShortName" maxlength="12" placeholder="@(BrandingService.DefaultShortName) (기본)"
+                   aria-describedby="AppShortNameH" aria-invalid="@(Model.Errors.ContainsKey("AppShortName") ? "true" : "false")" />
+            <p class="hint@(Model.Errors.ContainsKey("AppShortName") ? " bad" : "")" id="AppShortNameH">@(Model.Errors.GetValueOrDefault("AppShortName") ?? "휴대폰 홈 화면 아이콘 아래에 보여요. 6자 안쪽이 잘 보여요.")</p>
+        </div>
+        <div class="br-f">
+            <span class="l">대표 색 <small>정해 둔 4가지 중 하나</small></span>
+            <div class="br-colors" role="radiogroup" aria-label="대표 색">
+                @foreach (var c in BrandingService.Colors)
+                {
+                    <label class="br-sw"><input type="radio" name="ThemeColor" value="@c" checked="@(Model.ThemeColor == c)" />
+                        <span style="background:var(--c-@c)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg></span>@BrandingService.ColorLabel(c)</label>
+                }
+            </div>
+            @if (Model.Errors.TryGetValue("ThemeColor", out var ce)) { <p class="hint bad">@ce</p> }
+            <p class="hint">버튼 · 강조 · 앱 아이콘 · 휴대폰 위쪽 띠 색이에요. 글자가 잘 읽히는 색만 골라 두었어요.</p>
+        </div>
+        <div class="br-acts">
+            <button type="submit" class="btn p sm" data-save>저장</button>
+            <button type="button" class="btn s sm" data-reset>기본값으로 되돌리기</button>
+        </div>
+        <p class="note"><b>저장하면 화면 안의 이름 · 색은 바로 바뀌어요.</b> 이미 홈 화면에 설치한 앱 아이콘 이름은 휴대폰이 앱 정보를 다시 읽을 때 바뀌어요(기기마다 며칠 걸릴 수 있어요).<br>성경통독 화면의 이름 "도전!!!성경통독"은 그대로예요.</p>
+    </form>
+
+    <aside class="br-pv" aria-label="미리보기" style="--tc:var(--c-@Model.ThemeColor)">
+        <h2>미리보기 · 부서 홈</h2>
+        <div class="br-phone">
+            <div class="bar"><b data-pvname>@(string.IsNullOrWhiteSpace(Model.AppName) ? BrandingService.DefaultName : Model.AppName!.Trim())</b><small>@Model.Today.ToString("M월 d일 ddd", ko)</small></div>
+            <div class="body">
+                <span class="hi">@Model.Tenant.Current.Name · 김철수님</span>
+                <div class="card"><span>올해 점수</span><b class="num">24점</b></div>
+                <span class="go">오늘 미션 하러 가기</span>
+            </div>
+        </div>
+        <h2>미리보기 · 휴대폰 홈 화면</h2>
+        <div class="br-home" aria-hidden="true">
+            <div class="app"><i></i><span>사진</span></div>
+            <div class="app"><i></i><span>메시지</span></div>
+            <div class="app me"><i data-pvico>@BrandingService.IconText(shortShown)</i><span data-pvshort>@shortShown</span></div>
+            <div class="app"><i></i><span>지도</span></div>
+        </div>
+    </aside>
+
+    <section class="br-span" aria-labelledby="hLog">
+        <h2 id="hLog" class="br-h2">바꾼 기록</h2>
+        <ul class="br-log">
+            @if (Model.Log.Count == 0) { <li class="none">아직 바꾼 기록이 없어요.</li> }
+            @foreach (var l in Model.Log) { <li><time class="num">@Model.LocalDate(l.OccurredUtc)</time><span>@l.Actor · @l.Detail</span></li> }
+        </ul>
+    </section>
+</div></main>
+<script src="~/js/branding.js" asp-append-version="true"></script>

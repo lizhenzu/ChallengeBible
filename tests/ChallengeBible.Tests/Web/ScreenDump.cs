@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
 using ChallengeBible.Tests.Support;
+using ChallengeBible.Web.Services;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -151,6 +152,24 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids/points", "11-내점수");
         await Save(admin, "/jamsil-kids/admin", "11b-관리홈");
         await Save(admin, "/jamsil-kids/admin/members", "12-소속관리");
+        // 이름 · 색: 초록 · "유년부 말씀 챌린지"로 바꾼 뒤 모습(바꾼 기록 1건), 찍고 나서 기본값으로 되돌린다
+        void Brand(string? name, string? shortName, string color)
+        {
+            using var raw = InMemoryDb.Raw(db);
+            var t = raw.Tenants.Single(x => x.Id == kids.Id);
+            (t.AppName, t.AppShortName, t.ThemeColor) = (name, shortName, color);
+            raw.SaveChanges();
+        }
+        Brand("유년부 말씀 챌린지", "유년부", "green");
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            raw.AuditLogs.Add(new AuditLog { OccurredUtc = new DateTime(2027, 1, 4, 1, 0, 0, DateTimeKind.Utc), ActorAccountId = Acc("eunhye"), Action = BrandingService.LogAction,
+                TenantId = kids.Id, Detail = "앱 이름 기본 → 유년부 말씀 챌린지, 짧은 이름 기본 → 유년부, 대표 색 파랑 → 초록" });
+            raw.SaveChanges();
+        }
+        await Save(admin, "/jamsil-kids/admin/branding", "12c-관리-이름색");
+        await Save(kid, "/jamsil-kids", "12d-부서홈-대표색초록");
+        Brand(null, null, "blue");
 
         // 보호자 김영희 → 김철수 연결
         var mom = await SignUp("younghee", "김영희");
