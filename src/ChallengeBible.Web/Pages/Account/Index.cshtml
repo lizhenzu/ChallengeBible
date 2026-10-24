@@ -1,0 +1,82 @@
+@page "/account"
+@model ChallengeBible.Web.Pages.Account.IndexModel
+@using ChallengeBible.Web.Services
+@* 확정 시안: 내계정-단독시안 — 내 정보(이름 바꾸기 · 이메일 보기) → 내 부서 → 비밀번호(지금 비밀번호 확인) → 로그아웃 *@
+@{
+    string Short(string n) => n.Length > 2 ? n[1..] : n;
+}
+<header class="top gut"><div class="wrap">
+    <a class="lnk" href="/">← 돌아가기</a>
+    <span class="who"><b>@Model.Name</b>님</span>
+</div></header>
+<main class="page gut ma"><div class="wrap">
+    <h1>내 계정</h1>
+    @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
+
+    <section class="ma-card" aria-labelledby="maInfo">
+        <h2 id="maInfo">내 정보</h2>
+        <div class="ma-me"><span class="av">@Short(Model.Name)</span><div><b>@Model.Name</b><small>@Model.Email</small></div></div>
+        <dl class="ma-kv">
+            <dt>이메일</dt><dd>@Model.Email<small>로그인할 때 쓰는 주소라 여기서는 바꿀 수 없어요.</small></dd>
+            <dt>가입한 날</dt><dd>@Model.Joined.ToString("yyyy년 M월 d일")</dd>
+        </dl>
+        <details class="ma-ed" open="@(Model.Open == "name")">
+            <summary class="btn s sm">이름 바꾸기</summary>
+            <form method="post" asp-page-handler="Name" class="stack" novalidate>
+                <div class="f">
+                    <label for="nameIn">이름</label>
+                    <input class="in" id="nameIn" name="DisplayName" value="@(Model.DisplayName ?? Model.Name)" maxlength="@AccountService.MaxName" autocomplete="name"
+                           aria-invalid="@(Model.Errors.ContainsKey("DisplayName") ? "true" : "false")" />
+                    <p class="hint @(Model.Errors.ContainsKey("DisplayName") ? "bad" : "")">@(Model.Errors.GetValueOrDefault("DisplayName") ?? "순위 · 가족팀 · 선생님 화면에 이 이름이 보여요. 실명을 써 주세요.")</p>
+                </div>
+                <div class="row"><button type="submit" class="btn p sm">저장</button><a class="btn s sm" href="/account">취소</a></div>
+            </form>
+        </details>
+    </section>
+
+    <section class="ma-card" aria-labelledby="maDept">
+        <h2 id="maDept">내 부서</h2>
+        @if (Model.Depts.Count == 0) { <p class="hint">아직 들어간 부서가 없어요.</p> }
+        <ul class="ma-depts">
+            @foreach (var d in Model.Depts)
+            {
+                <li><span class="mk" style="background:@ChallengeBible.Web.Pages.Platform.TenantsModel.ColorVar(d.ThemeColor)">@Ui.DeptMark(d.Name)</span>
+                    <a class="nm" href="/@d.Slug"><b>@d.Name</b><small>@string.Join(" · ", d.Roles.Select(IndexModel.RoleLabel))</small></a>
+                    @if (d.IsFamily) { <span class="tag ok">가족과 함께</span> }</li>
+            }
+        </ul>
+        <div class="ma-links">
+            @if (Model.Depts.Count > 1) { <a href="/account/tenants">부서 고르기 →</a> }
+            @if (Model.IsGuardian) { <a href="/account/family">가족과 함께할 부서 @(Model.Depts.Any(d => d.IsFamily) ? "바꾸기" : "고르기") →</a> }
+            <a href="/join">다른 부서 참여 신청 →</a>
+        </div>
+    </section>
+
+    <section class="ma-card" aria-labelledby="maPw">
+        <h2 id="maPw">비밀번호</h2>
+        <details class="ma-ed" open="@(Model.Open == "pw")">
+            <summary class="btn s sm">비밀번호 바꾸기</summary>
+            <form method="post" asp-page-handler="Password" class="stack" novalidate>
+                <div class="f">
+                    <label for="cur">지금 비밀번호</label>
+                    <input class="in" id="cur" name="Current" type="password" autocomplete="current-password" aria-invalid="@(Model.Errors.ContainsKey("Current") ? "true" : "false")" />
+                    <p class="hint @(Model.Errors.ContainsKey("Current") ? "bad" : "")">@(Model.Errors.GetValueOrDefault("Current") ?? "내 휴대폰을 다른 사람이 쓰더라도 함부로 바꾸지 못하게 한 번 더 확인해요.")</p>
+                </div>
+                <div class="f">
+                    <label for="pw">새 비밀번호</label>
+                    <input class="in" id="pw" name="Password" type="password" autocomplete="new-password" placeholder="@(AccountService.MinPassword)자 이상" />
+                    <p class="hint bad">@Model.Errors.GetValueOrDefault("Password")</p>
+                </div>
+                <div class="f">
+                    <label for="pw2">새 비밀번호 확인</label>
+                    <input class="in" id="pw2" name="PasswordConfirm" type="password" autocomplete="new-password" placeholder="한 번 더 입력" />
+                    <p class="hint bad">@Model.Errors.GetValueOrDefault("PasswordConfirm")</p>
+                </div>
+                <div class="row"><button type="submit" class="btn p sm">바꾸기</button><a class="btn s sm" href="/account">취소</a></div>
+            </form>
+        </details>
+        <p class="hint">비밀번호를 잊었으면 부서 선생님께 임시 비밀번호를 받아요.</p>
+    </section>
+
+    <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit" class="btn d ma-out">로그아웃</button></form>
+</div></main>

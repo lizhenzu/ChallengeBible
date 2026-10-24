@@ -61,7 +61,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("href=\"/jamsil-kids/word\"", home);                         // 다음 할 일 = 말씀
         Assert.Contains("말씀 읽으러 가기", home);
         Assert.Contains("점 올해 점수", home);
-        Assert.Contains("href=\"/account/change-password\"", home);                  // 확정 7: 계정 줄 3개
+        Assert.Contains("href=\"/account\"", home);                                  // 확정 7: 계정 줄 3개(비밀번호 바꾸기는 내 계정 안으로)
         Assert.Contains(">부서 바꾸기</a>", home);
         Assert.Contains("로그아웃</button>", home);
         Assert.DoesNotContain("▼", home);                                            // 확정 6: 소속이 하나면 ▼ 없음

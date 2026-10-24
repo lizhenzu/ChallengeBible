@@ -47,6 +47,10 @@ public static class CurrentUser
     public static Task PasswordChangedAsync(HttpContext http) =>
         SignInAsync(http, http.User.Claims.Where(c => c.Type != MustChangePasswordClaim).Select(c => new Claim(c.Type, c.Value)).ToList());
 
+    /// <summary>이름을 바꾼 뒤: 같은 쿠키에서 이름 클레임만 새 이름으로(머리말 "○○님"이 바로 바뀌게).</summary>
+    public static Task RenamedAsync(HttpContext http, string name) =>
+        SignInAsync(http, http.User.Claims.Where(c => c.Type != ClaimTypes.Name).Select(c => new Claim(c.Type, c.Value)).Append(new Claim(ClaimTypes.Name, name)).ToList());
+
     /// <summary>
     /// 임시 비밀번호로 로그인했으면(0035) 새 비밀번호를 정하기 전까지 다른 화면 · API 를 막는다.
     /// 화면(GET)은 비밀번호 바꾸기로 보내고, 나머지(API · POST)는 403. 비밀번호 바꾸기 · 로그아웃 · 파일(확장자 있는 주소)은 통과.
