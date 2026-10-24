@@ -209,6 +209,8 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             teamId = team.Id;
         }
         await Save(admin, $"/jamsil-kids/admin/teams?Open={teamId}", "12i-관리-가족팀");
+        await Save(kid, "/jamsil-kids", "05b-부서홈-우리가족팀");
+        await Save(kid, "/jamsil-kids/ranking?t=team", "11d-순위-가족팀");
 
         // 진급(시안 예시와 같은 지어낸 이름): 유치부 → 유년부(받은 요청), 유년부 → 초등부(보낸 요청)
         var pre = InMemoryDb.SeedTenant(db, "jamsil-pre", "JSPREE");

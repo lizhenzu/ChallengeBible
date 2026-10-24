@@ -1,7 +1,7 @@
 @page "/{slug}/ranking"
 @model RankingModel
 @using ChallengeBible.Web.Services
-@* 확정 시안: 말씀-순위-단독시안 "개인" — 제목 → 숫자 상자 → TOP 3 → 구분 · 이름 찾기 · 정렬 → 순위 목록(R-80 ~ R-84). 가족팀 탭은 가족팀이 생기면 *@
+@* 확정 시안: 말씀-순위-단독시안 — 개인 · 가족팀 탭. 개인: 숫자 상자 → TOP 3 → 구분 · 찾기 · 정렬 → 목록(R-80 ~ R-84). 가족팀: 숫자 상자 → 찾기 · 정렬 → 팀 카드(가계도, R-92 · R-94) *@
 @{
     var d = Model.Data;
     var ko = MissionPageBase.Ko;
@@ -18,6 +18,68 @@
     <h1>참여자</h1>
     <div class="sub num">@(d.Year) 시즌 · 목표 @(d.Target.ToString("N0"))점 · @d.Today.ToString("M월 d일", ko) 기준</div>
 
+    @if (Model.Families.Enabled)
+    {
+        <nav class="rk-tabs" aria-label="개인 · 가족팀">
+            <a href="/@slug/ranking" aria-current="@(Model.TeamTab ? "false" : "page")">개인</a>
+            <a href="/@slug/ranking?t=team" aria-current="@(Model.TeamTab ? "page" : "false")">가족팀</a>
+        </nav>
+    }
+    @if (Model.TeamTab)
+    {
+        var fam = Model.Families;
+        <div class="tot"><div><small>가족팀</small><b class="num">@fam.Teams.Count<u>팀</u></b></div><div><small>첫 가족 축하(@(fam.FirstStage.ToString("N0"))점) 도달</small><b class="num">@fam.ReachedFirst<u>팀</u></b></div></div>
+        @if (fam.Teams.Count == 0)
+        {
+            <p class="empty">아직 가족팀이 없어요. 선생님이 가족팀을 만들면 여기에 보여요.</p>
+        }
+        else
+        {
+            <form class="srch" method="get" role="search">
+                <input type="hidden" name="t" value="team" /><input type="hidden" name="s" value="@Model.Sort" />
+                <label><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></svg>
+                    <input type="search" name="q" value="@Model.Q" placeholder="가족 · 이름 찾기" aria-label="가족 · 이름 찾기" /></label>
+            </form>
+            <nav class="sort" aria-label="정렬">정렬
+                @foreach (var (s, label) in new[] { ("pts", "점수순"), ("name", "가족 이름순") })
+                {
+                    <a href="@Model.TeamUrl(sort: s)" aria-current="@(Model.Sort == s || (s == "pts" && Model.Sort != "name") ? "true" : "false")">@label</a>
+                }
+            </nav>
+            @if (Model.Teams.Count == 0) { <div class="empty">찾는 가족이 없어요</div> }
+            @foreach (var t in Model.Teams)
+            {
+                var elders = t.Members.Where(m => !RankingModel.IsKid(m.Relation)).ToList();
+                var kids = t.Members.Where(m => RankingModel.IsKid(m.Relation)).ToList();
+                var goal = t.NextStage ?? t.Points;
+                var pct = goal <= 0 ? 0 : Math.Clamp(t.Points * 100.0 / goal, 1, 100);
+                <div class="rk-team @(t.Mine ? "me" : "")">
+                    <div class="th @(t.Rank <= 3 ? "top" : "")">
+                        <span class="no num">@t.Rank.ToString("00")</span>
+                        <span class="tx"><b>@t.Name@if (t.Mine) { <em>우리 가족</em> }</b><span>@(t.Members.Count)명 · 마지막 참여 @Model.Last(t.Last)</span></span>
+                        <span class="pv"><b class="num">@t.Points.ToString("N0")<u>점</u></b></span>
+                    </div>
+                    <div class="tbar" aria-hidden="true"><i style="width:@(pct.ToString("0.#", inv))%"></i></div>
+                    <div class="tree">
+                        @foreach (var row in new[] { elders, kids }.Where(r => r.Count > 0))
+                        {
+                            <div class="row">
+                                @foreach (var m in row)
+                                {
+                                    <div class="one @(m.Me ? "me" : "")"><span class="av">@RankingModel.Initial(m.Name)</span><span class="ro">@FamilyTeamService.RelationLabel(m.Relation)</span><b>@m.Name</b>
+                                        <span class="v num">@m.Points.ToString("N0")</span>@if (m.TodayDone) { <small class="td">오늘 참여</small> }</div>
+                                }
+                            </div>
+                            @if (row == elders && kids.Count > 0) { <span class="stem" aria-hidden="true"></span> }
+                        }
+                    </div>
+                    <div class="famGoal"><span>다음 가족 축하</span><b class="num">@(t.NextStage is { } n ? $"{n:N0}점까지 {n - t.Points:N0}점" : "모든 단계를 넘었어요")</b></div>
+                </div>
+            }
+        }
+    }
+    else
+    {
     <div class="tot"><div><small>참여자</small><b class="num">@d.Rows.Count<u>명</u></b></div><div><small>목표 달성</small><b class="num">@d.Achieved<u>명</u></b></div></div>
 
     @if (d.Rows.Count == 0)
@@ -73,5 +135,6 @@
                 </div>
             }
         </div>
+    }
     }
 </div></main>

@@ -19,6 +19,46 @@
     {
         <a class="dept" href="/@Model.Tenant.Current.Slug/guardian"><span class="mk">보</span><div><b>자녀 미션 보기</b><span class="sub" style="margin:0;font-size:13px">연결된 자녀의 오늘 미션 · 점수</span></div><span aria-hidden="true">→</span></a>
     }
+    @if (Model.Family is { } f)
+    {
+        // 확정 시안 홈메인 "우리 가족팀": 총합 · 오늘 · 다음 가족 축하 막대 · 구성원(나 표시)
+        var span = (f.NextStage ?? f.Total) - f.PrevStage;
+        var pct = f.NextStage is null ? 100 : span <= 0 ? 0 : Math.Clamp((f.Total - f.PrevStage) * 100.0 / span, 1, 100);
+        <section class="fh" aria-labelledby="fhT">
+            <div class="k">우리 가족팀</div>
+            <h2 id="fhT">@f.Name</h2>
+            <div class="fh-box">
+                <div class="tot">
+                    <small>가족 총합 점수 · @(f.Year) 시즌</small>
+                    <span class="big num">@f.Total.ToString("N0")<i> 점</i></span>
+                    <p>오늘 가족이 <b class="num">+@(f.TodayPoints)점</b> 받았어요 · @(f.TodayPeople)명이 오늘 참여</p>
+                    <div class="ms">
+                        <div class="row"><span>다음 가족 축하</span><b class="num">@(f.NextStage is { } n ? $"{n - f.Total:N0}점 남음" : "모든 단계를 넘었어요")</b></div>
+                        <div class="bar"><i style="width:@(pct.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"></i></div>
+                        <div class="ticks" aria-hidden="true"><span>@f.PrevStage.ToString("N0")</span><span>@((f.NextStage ?? f.Total).ToString("N0"))점</span></div>
+                    </div>
+                    @if (Model.FamilyDept is { } dept)
+                    {
+                        <div class="fh-dept"><div><small>가족과 함께하는 부서</small><b>@dept</b></div><a class="btn s sm" href="/account/family">바꾸기</a></div>
+                    }
+                </div>
+                <ul class="fh-mem">
+                    @foreach (var m in f.Members)
+                    {
+                        var share = f.Total == 0 ? 0 : (int)Math.Round(m.Season * 100.0 / f.Total);
+                        <li class="@(m.Me ? "me" : "")">
+                            <span class="av">@(m.Name.Length > 1 ? m.Name[1..2] : m.Name)</span>
+                            <span class="who"><b>@m.Name@if (m.Me) { <em>나</em> }</b>
+                                <span>@FamilyTeamService.RelationLabel(m.Relation) · @(m.TodayMissions == 0 ? "오늘 아직" : $"오늘 {m.TodayMissions}/4")@(m.Today > 0 ? $" · +{m.Today}점" : "")</span>
+                                <span class="sh" aria-hidden="true"><i style="width:@(share)%"></i></span></span>
+                            <span class="sc"><b class="num">@m.Season.ToString("N0")</b><small>점 · @(share)%</small></span>
+                        </li>
+                    }
+                </ul>
+            </div>
+            <p class="fh-note">가족 총합은 구성원 모두의 올해 점수를 더한 것이에요. 가족 모두에게 같은 점수가 보여요.</p>
+        </section>
+    }
     @if (Model.Tenant.Current.ReadingEnabled)
     {
         <a class="dept" href="/@Model.Tenant.Current.Slug/reading"><span class="mk">통</span><div><b>도전!!!성경통독</b><span class="sub" style="margin:0;font-size:13px">자유롭게 읽고 장마다 체크 · 진도율</span></div><span aria-hidden="true">→</span></a>

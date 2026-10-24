@@ -20,6 +20,19 @@ public sealed record FamilyBoard(bool Enabled, int Year, IReadOnlyList<FamilyTea
     public int InTeams => Teams.Where(t => t.IsActive).Sum(t => t.Members.Count);
 }
 
+/// <summary>홈 "우리 가족팀" 칸의 구성원 한 줄. TodayMissions = 오늘 한 미션 수(0 ~ 4, 암송은 이번 주).</summary>
+public sealed record FamilyHomeMember(string Name, string Relation, int Season, int Today, int TodayMissions, bool Me);
+/// <summary>NextStage = 다음 가족 축하 점수(모든 단계를 넘었으면 null).</summary>
+public sealed record FamilyHome(string Name, int Year, int Total, int TodayPoints, int TodayPeople, int? NextStage, int PrevStage,
+    IReadOnlyList<FamilyHomeMember> Members);
+/// <summary>순위 "가족팀" 탭의 팀 카드(R-94). Last = 구성원 중 가장 최근 점수일.</summary>
+public sealed record FamilyRankTeam(int Rank, string Name, int Points, DateOnly? Last, int? NextStage, bool Mine,
+    IReadOnlyList<(string Name, string Relation, int Points, bool TodayDone, bool Me)> Members);
+public sealed record FamilyRanking(bool Enabled, int Year, DateOnly Today, int FirstStage, IReadOnlyList<FamilyRankTeam> Teams)
+{
+    public int ReachedFirst => FirstStage <= 0 ? 0 : Teams.Count(t => t.Points >= FirstStage);
+}
+
 public enum FamilyError
 {
     None, Disabled, NotFound, NoMember, NotParticipant, AlreadyInTeam, FamilyTenantNotChosen, FamilyTenantElsewhere, BadRelation, MembersElsewhere, NotReached,
@@ -238,6 +251,84 @@ public sealed class FamilyTeamService(IAppDb db, ISystemDb systemDb, RequestScop
         else if (!hidden && row is not null) ctx.FamilyMilestoneDismisses.Remove(row);
         await ctx.SaveChangesAsync(ct);
         return FamilyError.None;
+    }
+
+    // ── 보기(홈 "우리 가족팀" · 순위 "가족팀" 탭) ──
+
+    /// <summary>활성 팀과 구성원(이 부서 승인 · 활성 참여자만), 구성원 시즌 점수 · 오늘 점수 · 마지막 점수일.</summary>
+    private async Task<(List<(FamilyTeam Team, List<(FamilyMember M, string Name, int Pid)> Members)> Teams,
+        Dictionary<int, int> Season, Dictionary<int, int> Today, Dictionary<int, DateOnly> Last)> LoadTeamsAsync(AppDbContext ctx, DateOnly today, CancellationToken ct)
+    {
+        var names = await (from p in ctx.Participants
+                           join m in ctx.Memberships on p.MembershipId equals m.Id
+                           join a in ctx.Accounts on m.AccountId equals a.Id
+                           where p.IsActive && m.Status == MembershipStatus.Approved
+                           select new { p.Id, a.DisplayName, p.MembershipId }).ToDictionaryAsync(x => x.Id, ct);
+        var teams = (await ctx.FamilyTeams.AsNoTracking().Include(t => t.Members).Where(t => t.IsActive).OrderBy(t => t.Id).ToListAsync(ct))
+            .Select(t => (Team: t, Members: t.Members.Where(m => m.IsActive && names.ContainsKey(m.ParticipantId)).OrderBy(m => m.SortOrder).ThenBy(m => m.Id)
+                .Select(m => (M: m, Name: names[m.ParticipantId].DisplayName, Pid: m.ParticipantId)).ToList()))
+            .Where(t => t.Members.Count > 0).ToList();
+        var ids = teams.SelectMany(t => t.Members.Select(m => m.Pid)).Distinct().ToList();
+        var season = await SeasonPointsAsync(ctx, ids, today, ct);
+        var todayPts = await ctx.PointLedgers.Where(l => ids.Contains(l.ParticipantId) && l.MissionDate == today)
+            .GroupBy(l => l.ParticipantId).Select(g => new { g.Key, P = g.Sum(x => x.Points) }).ToDictionaryAsync(x => x.Key, x => x.P, ct);
+        var last = await ctx.PointLedgers.Where(l => ids.Contains(l.ParticipantId) && l.MissionDate <= today && l.Points > 0)
+            .GroupBy(l => l.ParticipantId).Select(g => new { g.Key, D = g.Max(x => x.MissionDate) }).ToDictionaryAsync(x => x.Key, x => x.D, ct);
+        return (teams, season, todayPts, last);
+    }
+
+    private static int? Next(RuleSet r, int total) =>
+        r.FamilyMilestones.Where(m => m.Enabled && m.Points > total).OrderBy(m => m.Points).Select(m => (int?)m.Points).FirstOrDefault();
+
+    /// <summary>홈 "우리 가족팀"(시안 홈메인): 나(이 소속)의 참여자가 든 활성 팀. 없거나 스위치가 꺼지면 null.</summary>
+    public async Task<FamilyHome?> MyFamilyAsync(CancellationToken ct = default)
+    {
+        var (r, today) = await RulesAsync(ct);
+        if (!r.Features.FamilyTeam || tenant.MembershipId is not { } me) return null;
+        await using var ctx = db.Create();
+        var myPid = await ctx.Participants.Where(p => p.MembershipId == me && p.IsActive).Select(p => (int?)p.Id).SingleOrDefaultAsync(ct);
+        if (myPid is null) return null;
+        var (teams, season, todayPts, _) = await LoadTeamsAsync(ctx, today, ct);
+        var mine = teams.FirstOrDefault(t => t.Members.Any(m => m.Pid == myPid));
+        if (mine.Team is null) return null;
+
+        // 오늘 한 미션 수: 말씀 · 퀴즈 · 기도는 오늘, 암송은 이번 주(일요일 시작) — 관리 홈과 같은 셈
+        var pids = mine.Members.Select(m => m.Pid).ToList();
+        var weekStart = today.AddDays(-(int)today.DayOfWeek);
+        var acts = (await ctx.Activities.AsNoTracking().Where(a => pids.Contains(a.ParticipantId) && a.MissionDate >= weekStart && a.MissionDate <= today)
+                .Select(a => new { a.ParticipantId, a.MissionDate, a.MissionItem }).ToListAsync(ct))
+            .Select(a => (a.ParticipantId, a.MissionDate, Mission: MissionItemCodes.Parse(a.MissionItem).Mission())).ToList();
+        int Done(int pid) => acts.Where(a => a.ParticipantId == pid && (a.MissionDate == today || a.Mission == Mission.Recite)).Select(a => a.Mission).Distinct().Count();
+
+        var members = mine.Members.Select(m => new FamilyHomeMember(m.Name, m.M.Relation, season.GetValueOrDefault(m.Pid), todayPts.GetValueOrDefault(m.Pid), Done(m.Pid), m.Pid == myPid)).ToList();
+        var total = members.Sum(m => m.Season);   // R-92
+        var prev = r.FamilyMilestones.Where(s => s.Enabled && s.Points <= total).Select(s => s.Points).DefaultIfEmpty(0).Max();
+        return new FamilyHome(DisplayName(mine.Team.Name, members.Select(m => (m.Name, m.Relation)).ToList()), today.Year, total,
+            members.Sum(m => m.Today), members.Count(m => m.Today > 0), Next(r, total), prev, members);
+    }
+
+    /// <summary>순위 "가족팀" 탭(시안 말씀-순위, R-92 · R-94): 활성 팀을 팀 점수순(같으면 이름순).</summary>
+    public async Task<FamilyRanking> RankingAsync(CancellationToken ct = default)
+    {
+        var (r, today) = await RulesAsync(ct);
+        var first = r.FamilyMilestones.Where(m => m.Enabled).Select(m => m.Points).DefaultIfEmpty(0).Min();
+        if (!r.Features.FamilyTeam) return new FamilyRanking(false, today.Year, today, first, []);
+        await using var ctx = db.Create();
+        var myPid = tenant.MembershipId is { } me
+            ? await ctx.Participants.Where(p => p.MembershipId == me && p.IsActive).Select(p => (int?)p.Id).SingleOrDefaultAsync(ct) : null;
+        var (teams, season, todayPts, last) = await LoadTeamsAsync(ctx, today, ct);
+        var ko = StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false);
+        var rows = teams.Select(t =>
+            {
+                var name = DisplayName(t.Team.Name, t.Members.Select(m => (m.Name, m.M.Relation)).ToList());
+                var pts = t.Members.Sum(m => season.GetValueOrDefault(m.Pid));
+                var lastDay = t.Members.Select(m => last.TryGetValue(m.Pid, out var d) ? (DateOnly?)d : null).Max();
+                var members = t.Members.Select(m => (m.Name, m.M.Relation, season.GetValueOrDefault(m.Pid), todayPts.GetValueOrDefault(m.Pid) > 0, m.Pid == myPid)).ToList();
+                return (name, pts, lastDay, mine: t.Members.Any(m => m.Pid == myPid), members);
+            })
+            .OrderByDescending(x => x.pts).ThenBy(x => x.name, ko)
+            .Select((x, i) => new FamilyRankTeam(i + 1, x.name, x.pts, x.lastDay, Next(r, x.pts), x.mine, x.members)).ToList();
+        return new FamilyRanking(true, today.Year, today, first, rows);
     }
 
     private async Task<FamilyError> WithTeamAsync(int teamId, Func<AppDbContext, FamilyTeam, Task<FamilyError>> work, CancellationToken ct)

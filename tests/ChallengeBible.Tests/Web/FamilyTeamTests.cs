@@ -67,13 +67,15 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         raw.SaveChanges();
     }
 
-    private FamilyTeamService In(Tenant t)
+    private FamilyTeamService In(Tenant t, string? viewer = null)
     {
         var scope = new RequestScope();
         scope.SetTenant(t.Id);
         scope.SetAccount(1);
         var tc = new TenantContext();
-        using (var raw = InMemoryDb.Raw(_db)) tc.Set(raw.Tenants.Single(x => x.Id == t.Id), null);
+        using (var raw = InMemoryDb.Raw(_db))
+            tc.Set(raw.Tenants.Single(x => x.Id == t.Id),
+                viewer is null ? null : new Membership { Id = _p[viewer].M.Id, Status = MembershipStatus.Approved, Roles = [new MembershipRole { Role = Roles.Participant }] });
         return new FamilyTeamService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), scope, tc, new TenantClock(_time), InMemoryDb.Rules(_db), _time);
     }
 
@@ -166,6 +168,44 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Null(raw.FamilyTeams.Single().Name);
     }
 
+    [Fact]
+    public async Task R92_R94_순위_가족팀은_팀_점수순_마지막_참여일과_다음_가족_축하()
+    {
+        await In(_kids).CreateAsync(null, [P("cheolsu"), P("younghee"), P("daeho")]);   // 1,050점
+        await In(_kids).CreateAsync("하늘이네", [P("haneul")]);                           // 40점
+        var r = await In(_kids, "cheolsu").RankingAsync();
+        Assert.True(r.Enabled);
+        Assert.Equal(["김철수 가족", "하늘이네"], r.Teams.Select(t => t.Name));
+        Assert.Equal([1050, 40], r.Teams.Select(t => t.Points));
+        Assert.Equal((2000, (int?)1000), (r.Teams[0].NextStage!.Value, r.Teams[1].NextStage));
+        Assert.Equal(new DateOnly(2027, 1, 3), r.Teams[0].Last);
+        Assert.Equal((true, false), (r.Teams[0].Mine, r.Teams[1].Mine));
+        Assert.True(r.Teams[0].Members.Single(m => m.Name == "김철수").Me);
+        Assert.Equal((1000, 1), (r.FirstStage, r.ReachedFirst));
+    }
+
+    [Fact]
+    public async Task 홈_우리_가족팀은_구성원에게만_오늘_점수와_한_미션을_보여_준다()
+    {
+        await In(_kids).CreateAsync(null, [P("cheolsu"), P("younghee")]);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var act = new Activity { TenantId = _kids.Id, ParticipantId = P("younghee"), MissionItem = "Word.Me", MissionDate = Jan5, Points = 1 };
+            raw.Activities.Add(act);
+            raw.SaveChanges();
+            raw.PointLedgers.Add(new PointLedger { TenantId = _kids.Id, ParticipantId = P("younghee"), MissionDate = Jan5, MissionItem = "Word.Me", Points = 1, ActivityId = act.Id });
+            raw.SaveChanges();
+        }
+        var home = await In(_kids, "cheolsu").MyFamilyAsync();
+        Assert.NotNull(home);
+        Assert.Equal(("김철수 가족", 901, 1, 1), (home.Name, home.Total, home.TodayPoints, home.TodayPeople));
+        Assert.Equal((1000, 0), (home.NextStage!.Value, home.PrevStage));   // 첫 단계 전
+        var mom = home.Members.Single(m => m.Name == "김영희");
+        Assert.Equal((1, 1, false), (mom.Today, mom.TodayMissions, mom.Me));
+        Assert.True(home.Members.Single(m => m.Name == "김철수").Me);
+        Assert.Null(await In(_kids, "haneul").MyFamilyAsync());   // 팀이 없는 사람
+    }
+
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
     private static partial Regex TokenRx();
 
@@ -222,9 +262,15 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
             Assert.Equal(FamilyRelation.Grandmother, raw.FamilyMembers.Single(m => m.Id == momMember).Relation);
         }
 
-        // 참여자는 못 본다
+        // 참여자는 관리 화면을 못 보고, 홈 · 순위 가족팀 탭에서 본다
         var kid = await LoggedIn("cheolsu@example.com");
         Assert.StartsWith("/account/denied", (await kid.GetAsync("/jamsil-kids/admin/teams")).Headers.Location!.PathAndQuery);
+        var home = await kid.GetStringAsync("/jamsil-kids");
+        Assert.Contains("우리 가족팀", home);
+        Assert.Contains("철수네", home);
+        var rank = await kid.GetStringAsync("/jamsil-kids/ranking?t=team");
+        Assert.Contains("우리 가족", rank);
+        Assert.Contains("철수네", rank);
     }
 
     [Fact]

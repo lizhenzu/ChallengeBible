@@ -118,6 +118,13 @@ public sealed class FamilyTenantService(ISystemDb systemDb, TenantClock clock, T
         return true;
     }
 
+    /// <summary>홈 "우리 가족팀" 칸의 "가족과 함께하는 부서"(부서 이름, 안 골랐으면 null).</summary>
+    public async Task<string?> CurrentNameAsync(int accountId, CancellationToken ct = default)
+    {
+        await using var sys = systemDb.Create(accountId);
+        return await (from a in sys.Accounts join t in sys.Tenants on a.FamilyTenantId equals t.Id where a.Id == accountId select t.Name).SingleOrDefaultAsync(ct);
+    }
+
     /// <summary>부서 홈 안내용: 이 계정이 보호자인데 아직 가족 부서를 고르지 않았는지(0046 결과).</summary>
     public async Task<bool> NeedsChoiceAsync(int accountId, CancellationToken ct = default)
     {
