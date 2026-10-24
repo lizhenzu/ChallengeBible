@@ -13,7 +13,7 @@ public sealed class InMemoryDb(string name, RequestScope scope) : IAppDb
     public AppDbContext Create()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(name).Options;
-        return new AppDbContext(options, scope.TenantId);
+        return new AppDbContext(options, scope.TenantId) { CurrentAccountId = scope.AccountId };
     }
 
     public static string NewName() => "cb-" + Guid.NewGuid().ToString("N");

@@ -10,7 +10,7 @@ namespace ChallengeBible.Web.Pages.Mission;
 /// `from=word|prayer|recite` + `date` 로 열면 그날 미션의 구절을, 아니면 `book · sc · sv · ec · ev` 로 지정한 구절을 보여 준다.
 /// 읽음 · 책갈피(R-112) · 듣기 · 책 개요(R-116)는 해당 표가 생기는 다음 단계에서 붙인다.
 /// </summary>
-public class ReadModel(MissionService missions, TenantContext tenant, BibleTextService bible) : MissionPageBase(missions, tenant)
+public class ReadModel(MissionService missions, TenantContext tenant, BibleTextService bible, BibleMarkService marks) : MissionPageBase(missions, tenant)
 {
     public override string Title => "성경 읽기";
 
@@ -51,8 +51,17 @@ public class ReadModel(MissionService missions, TenantContext tenant, BibleTextS
         if (!BibleTextService.Codes.Contains(Tr)) Tr = Tr == "ALL" ? "ALL" : BibleTranslation.Krv;
         Shown = Tr == "ALL" ? BibleTextService.Codes : [Tr];
         if (Unit is not (0 or 1 or 3 or 5)) Unit = 3;
-        if (Ref is { IsValid: true } r) Slice = BibleTextService.Slice(await bible.RangeAsync(r, Shown, ct), Unit, PageNo);
+        if (Ref is { IsValid: true } r)
+        {
+            Slice = BibleTextService.Slice(await bible.RangeAsync(r, Shown, ct), Unit, PageNo);
+            Marks = await marks.MarksAsync(r, ct);   // 읽음 · 책갈피는 범위 전체를 읽어 진도에 쓴다(R-112)
+        }
     }
+
+    public VerseMarks Marks { get; private set; } = new(new HashSet<(short, short)>(), new HashSet<(short, short)>());
+    public int ReadCount => Marks.Read.Count;
+    public int ReadPercent => Slice.Total == 0 ? 0 : (int)Math.Round(ReadCount * 100.0 / Slice.Total);
+    public bool PageAllRead => Slice.Lines.Count > 0 && Slice.Lines.All(l => Marks.Read.Contains((l.Chapter, l.Verse)));
 
     /// <summary>같은 구절을 다른 설정으로 여는 주소(미션에서 온 `from` · `date` 는 그대로 둔다).</summary>
     public string Url(int? unit = null, string? tr = null, int? page = null)

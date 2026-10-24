@@ -15,6 +15,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     /// <summary>필터 기준 영역. 시스템 연결에서는 null 이고 필터를 끈다.</summary>
     public int? CurrentTenantId { get; } = tenantId;
     public bool FilterTenants { get; init; } = true;
+    /// <summary>계정 범위 표(0029)의 필터 기준 계정. 로그인 전이면 null 이라 아무 행도 보이지 않는다.</summary>
+    public int? CurrentAccountId { get; init; }
 
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<Account> Accounts => Set<Account>();
@@ -39,6 +41,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<PointLedger> PointLedgers => Set<PointLedger>();
     public DbSet<MilestoneReached> MilestonesReached => Set<MilestoneReached>();
 
+    public DbSet<VerseReadMark> VerseReadMarks => Set<VerseReadMark>();
+    public DbSet<Bookmark> Bookmarks => Set<Bookmark>();
+
     protected override void OnModelCreating(ModelBuilder b)
     {
         b.HasDefaultSchema("app");
@@ -48,6 +53,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
         {
             var name = typeof(ITenantOwned).IsAssignableFrom(type) ? nameof(TenantFilter)
                      : typeof(ISharedContent).IsAssignableFrom(type) ? nameof(SharedFilter)
+                     : typeof(IAccountOwned).IsAssignableFrom(type) ? nameof(AccountFilter)
                      : null;
             if (name is null) continue;
             var method = typeof(AppDbContext).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Instance)!.MakeGenericMethod(type);
@@ -60,4 +66,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
 
     private Expression<Func<T, bool>> SharedFilter<T>() where T : ISharedContent =>
         e => !FilterTenants || e.TenantId == null || e.TenantId == CurrentTenantId;
+
+    // 계정 범위(0029): 영역과 무관하게 이 요청의 계정 것만. 시스템 연결(FilterTenants = false)은 관리자 초기화용
+    private Expression<Func<T, bool>> AccountFilter<T>() where T : IAccountOwned =>
+        e => !FilterTenants || e.AccountId == CurrentAccountId;
 }

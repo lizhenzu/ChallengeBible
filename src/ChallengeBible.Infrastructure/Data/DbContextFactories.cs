@@ -27,7 +27,7 @@ public sealed class RequestDbContextFactory(string connectionString, RequestScop
             .UseSqlServer(connectionString)
             .AddInterceptors(new SessionContextInterceptor(() => new SessionValues(scope.TenantId, scope.AccountId, PlatformScope: false)))
             .Options;
-        return new AppDbContext(options, scope.TenantId);
+        return new AppDbContext(options, scope.TenantId) { CurrentAccountId = scope.AccountId };
     }
 }
 

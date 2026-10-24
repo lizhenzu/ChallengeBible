@@ -31,6 +31,7 @@ builder.Services.AddScoped<ContentAdminService>();
 builder.Services.AddScoped<BibleImportService>();
 builder.Services.AddScoped<BibleTextService>();
 builder.Services.AddScoped<AdminHomeService>();
+builder.Services.AddScoped<BibleMarkService>();
 builder.Services.AddScoped<GuardianService>();
 builder.Services.AddScoped<TenantResolver>();
 builder.Services.AddAntiforgery(o => o.HeaderName = "RequestVerificationToken");
@@ -90,6 +91,7 @@ app.UseAuthorization();
 app.MapStaticAssets();
 app.MapRazorPages().WithStaticAssets();
 app.MapMissionApi();
+app.MapBibleApi();
 
 app.Run();
 

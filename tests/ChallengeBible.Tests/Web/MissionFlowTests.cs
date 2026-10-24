@@ -159,6 +159,42 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task R112_성경_읽기의_읽음과_책갈피는_PUT_DELETE_로_켜고_끈다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var html = await c.GetStringAsync("/jamsil-kids/read?from=word");
+        var token = TokenRx().Match(html).Groups[1].Value;
+        Assert.Contains("0</b>절 읽음", html);
+
+        async Task<HttpStatusCode> Send(HttpMethod m, string url, object? body = null)
+        {
+            var req = new HttpRequestMessage(m, url);
+            req.Headers.Add("RequestVerificationToken", token);
+            if (body is not null) req.Content = JsonContent.Create(body);
+            return (await c.SendAsync(req)).StatusCode;
+        }
+
+        Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Put, "/api/me/bible/read/1/24/1"));
+        Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Put, "/api/me/bible/read/1/24/1"));   // 멱등
+        Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Put, "/api/me/bible/bookmarks/1/24/2"));
+        Assert.Equal(HttpStatusCode.NotFound, await Send(HttpMethod.Put, "/api/me/bible/read/1/24/99"));
+        var after = await c.GetStringAsync("/jamsil-kids/read?from=word");
+        Assert.Contains("1</b>절 읽음", after);
+        Assert.Contains("aria-pressed=\"true\" aria-label=\"1절 읽음\"", after);
+        Assert.Contains("aria-pressed=\"true\" aria-label=\"2절 책갈피\"", after);
+
+        Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Put, "/api/me/bible/read-range", new { book = 1, startChapter = 24, startVerse = 1, endChapter = 24, endVerse = 9 }));
+        Assert.Contains("9</b>절 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
+        Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Delete, "/api/me/bible/read-range?book=1&startChapter=24&startVerse=1&endChapter=24&endVerse=9"));
+        Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Delete, "/api/me/bible/read/1/24/1"));   // 이미 꺼진 것을 다시 꺼도 OK
+        Assert.Contains("0</b>절 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
+
+        // 위조 방지 토큰이 없으면 거절
+        var bad = new HttpRequestMessage(HttpMethod.Put, "/api/me/bible/read/1/24/1");
+        Assert.Equal(HttpStatusCode.BadRequest, (await c.SendAsync(bad)).StatusCode);
+    }
+
+    [Fact]
     public async Task R111_성경_읽기는_번역을_바꾸거나_모두_나란히_보여준다()
     {
         var c = await Member("cheolsu", Roles.Participant);

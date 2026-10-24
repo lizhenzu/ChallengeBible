@@ -30,7 +30,10 @@
     {
         <div class="rdk">@Model.Kicker@if (Model.From == "word") { <text> · @Model.Day.ToString("M월 d일 (ddd)", MissionPageBase.Ko)</text> }</div>
         <h1 class="rdh"><span>@r.Book</span> <small>@r.Tail</small></h1>
-        <p class="rdn num">@(s.Total)절</p>
+        <div class="rdprog" data-total="@s.Total">
+            <p class="rdn num"><span>@(s.Total)절 · <b data-readcount>@Model.ReadCount</b>절 읽음</span><span data-readpct>@(Model.ReadPercent)%</span></p>
+            <div class="rdbar" aria-hidden="true"><i data-readbar style="width:@(Model.ReadPercent)%"></i></div>
+        </div>
 
         <section class="rdset" aria-label="읽기 설정">
             <div class="rdl">읽기 단위</div>
@@ -44,27 +47,41 @@
             <aside class="rdday"><b>@r.Tail</b><strong>@Model.DayTitle</strong><p>@Model.DaySummary</p></aside>
         }
 
-        <ol class="rdv">
+        <ol class="rdv" data-book="@r.BookId">
             @foreach (var line in s.Lines)
             {
-                <li>
+                var read = Model.Marks.Read.Contains((line.Chapter, line.Verse));
+                var star = Model.Marks.Bookmarked.Contains((line.Chapter, line.Verse));
+                <li data-ch="@line.Chapter" data-v="@line.Verse">
                     <span class="vn num">@(line.Chapter == r.StartChapter && r.StartChapter == r.EndChapter ? line.Verse.ToString() : $"{line.Chapter}:{line.Verse}")</span>
                     <div class="vt">
                         @foreach (var code in Model.Shown)
                         {
                             if (line.Texts.TryGetValue(code, out var t)) { <p class="@(multi ? "tr tr-" + code.ToLowerInvariant() : "")">@if (multi) { <em>@BibleTextService.Short(code)</em> }@t</p> }
                         }
+                        <span class="vbtn">
+                            <button type="button" class="vm rd" data-mark="read" aria-pressed="@(read ? "true" : "false")" aria-label="@(line.Verse)절 읽음">✓</button>
+                            <button type="button" class="vm st" data-mark="bookmark" aria-pressed="@(star ? "true" : "false")" aria-label="@(line.Verse)절 책갈피">★</button>
+                        </span>
                     </div>
                 </li>
             }
         </ol>
 
+        var f = s.Lines[0];
+        var l = s.Lines[^1];
+        <button type="button" class="rdall @(Model.PageAllRead ? "on" : "")" data-pageall data-sc="@f.Chapter" data-sv="@f.Verse" data-ec="@l.Chapter" data-ev="@l.Verse" data-n="@s.Lines.Count">
+            @(Model.PageAllRead ? $"이 페이지 {s.Lines.Count}절 읽음 취소" : $"이 페이지 {s.Lines.Count}절 모두 읽음")
+        </button>
         <nav class="rdpg" aria-label="쪽 이동">
             @if (s.Page > 1) { <a href="@Model.Url(page: s.Page - 1)">◀ 이전</a> } else { <span class="off">◀ 이전</span> }
             <span class="num">@(s.First)–@(s.Last)절 / @s.Total</span>
             @if (s.Page < s.Pages) { <a href="@Model.Url(page: s.Page + 1)">다음 ▶</a> } else { <span class="off">다음 ▶</span> }
         </nav>
+        <p class="pnote">넘기기만 해서는 읽음으로 표시되지 않아요. 읽음 표시는 점수와 상관없고, 점수는 @(Model.BackText)에서 받아요.</p>
         <a class="rdback" href="@Model.Link(Model.BackPage)">다 읽었으면 @(Model.BackText)으로 돌아가기</a>
     }
 </div></main>
+@Html.AntiForgeryToken()
+<p id="toast" class="toast" role="status" hidden></p>
 <script src="~/js/mission.js" asp-append-version="true"></script>

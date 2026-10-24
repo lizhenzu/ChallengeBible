@@ -623,3 +623,18 @@ a.td::after { content: "›"; margin-left: auto; font-size: 22px; color: var(--d
 .ah-miss .last { flex: none; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: var(--soft); color: var(--dim); }
 .ah-miss .last.long { background: var(--bad-bg); color: var(--bad); }
 .ah-more { align-self: flex-start; min-height: 44px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 700; color: var(--accent); }
+/* bible reading: read marks and bookmarks (R-112) */
+.rdprog .rdn { display: flex; justify-content: space-between; }
+.rdbar { height: 6px; margin-top: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+.rdbar i { display: block; height: 100%; background: var(--accent); transition: width .3s; }
+.rdv .vt { position: relative; }
+.vbtn { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: middle; }
+.vm { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--soft); color: var(--dim); font-size: 15px; font-weight: 900; display: inline-grid; place-items: center; }
+.vm.rd[aria-pressed="true"] { background: var(--green); color: var(--bg); }
+.vm.st[aria-pressed="true"] { background: var(--warn-bg); color: #E0A000; }
+.vm:disabled { opacity: .6; }
+.rdall { margin-top: 16px; width: 100%; min-height: 52px; border-radius: 14px; border: 2px solid var(--green); background: var(--bg); color: var(--green); font-size: 16px; font-weight: 800; }
+.rdall.on { background: var(--soft); border-color: var(--rule); color: var(--dim); }
+@media (prefers-reduced-motion: reduce) { .rdbar i { transition: none; } }
+.rdv .vt > p:not(.tr) { display: inline; }
+.rdpg + .pnote { margin-top: 12px; }

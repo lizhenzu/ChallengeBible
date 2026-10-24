@@ -66,6 +66,70 @@
     if (s) { s.textContent = text; s.classList.toggle('done', done); }
   }
 
+  // 성경 읽기: 절 읽음 ✓ · 책갈피 ★ · 이 페이지 모두 읽음(R-112). 켜기 PUT · 끄기 DELETE(X-17), 점수와 무관(R-113)
+  const verses = document.querySelector('.rdv[data-book]');
+  if (verses) {
+    const book = verses.dataset.book;
+    const call = async (method, url, body) => {
+      const res = await fetch(url, {
+        method, credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', RequestVerificationToken: token },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      return res.ok;
+    };
+    const prog = document.querySelector('.rdprog');
+    const total = Number(prog?.dataset.total ?? 0);
+    const count = document.querySelector('[data-readcount]'), pctEl = document.querySelector('[data-readpct]'), bar = document.querySelector('[data-readbar]');
+    const bump = (delta) => {
+      if (!count) return;
+      const n = Math.max(0, Math.min(total, Number(count.textContent) + delta));
+      count.textContent = String(n);
+      const pct = total === 0 ? 0 : Math.round(n * 100 / total);
+      if (pctEl) pctEl.textContent = `${pct}%`;
+      if (bar) bar.style.width = `${pct}%`;
+    };
+    const all = document.querySelector('[data-pageall]');
+    const refreshAll = () => {
+      if (!all) return;
+      const on = [...verses.querySelectorAll('[data-mark="read"]')].every((b) => b.getAttribute('aria-pressed') === 'true');
+      all.classList.toggle('on', on);
+      all.textContent = on ? `이 페이지 ${all.dataset.n}절 읽음 취소` : `이 페이지 ${all.dataset.n}절 모두 읽음`;
+    };
+    verses.addEventListener('click', async (e) => {
+      const b = e.target.closest('button[data-mark]');
+      if (!b || b.disabled) return;
+      const li = b.closest('li');
+      const on = b.getAttribute('aria-pressed') !== 'true';
+      const kind = b.dataset.mark === 'read' ? 'read' : 'bookmarks';
+      b.disabled = true;
+      const ok = await call(on ? 'PUT' : 'DELETE', `/api/me/bible/${kind}/${book}/${li.dataset.ch}/${li.dataset.v}`);
+      b.disabled = false;
+      if (!ok) { say('잠시 뒤에 다시 해 주세요.'); return; }
+      b.setAttribute('aria-pressed', String(on));
+      if (kind === 'read') { bump(on ? 1 : -1); refreshAll(); }
+      else say(on ? '책갈피에 넣었어요' : '책갈피를 뺐어요');
+    });
+    all?.addEventListener('click', async () => {
+      const on = !all.classList.contains('on');
+      const r = { book: Number(book), startChapter: Number(all.dataset.sc), startVerse: Number(all.dataset.sv), endChapter: Number(all.dataset.ec), endVerse: Number(all.dataset.ev) };
+      all.disabled = true;
+      const ok = on
+        ? await call('PUT', '/api/me/bible/read-range', r)
+        : await call('DELETE', `/api/me/bible/read-range?book=${r.book}&startChapter=${r.startChapter}&startVerse=${r.startVerse}&endChapter=${r.endChapter}&endVerse=${r.endVerse}`);
+      all.disabled = false;
+      if (!ok) { say('잠시 뒤에 다시 해 주세요.'); return; }
+      let delta = 0;
+      verses.querySelectorAll('[data-mark="read"]').forEach((x) => {
+        const was = x.getAttribute('aria-pressed') === 'true';
+        if (was !== on) delta += on ? 1 : -1;
+        x.setAttribute('aria-pressed', String(on));
+      });
+      bump(delta);
+      refreshAll();
+    });
+  }
+
   // 접었다 펴는 구역(암송 요점 등): data-fold = 펼칠 칸의 id
   document.querySelectorAll('[data-fold]').forEach((b) => b.addEventListener('click', () => {
     const box = document.getElementById(b.dataset.fold);
