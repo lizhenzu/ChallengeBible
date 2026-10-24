@@ -1,0 +1,77 @@
+@page "/{slug}/ranking"
+@model RankingModel
+@using ChallengeBible.Web.Services
+@* 확정 시안: 말씀-순위-단독시안 "개인" — 제목 → 숫자 상자 → TOP 3 → 구분 · 이름 찾기 · 정렬 → 순위 목록(R-80 ~ R-84). 가족팀 탭은 가족팀이 생기면 *@
+@{
+    var d = Model.Data;
+    var ko = MissionPageBase.Ko;
+    var slug = Model.Tenant.Current.Slug;
+    var top = d.Rows.Take(3).ToList();
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+<header class="mtop gut"><div class="wrap">
+    <nav class="crumb"><a href="/@slug">홈으로</a> · <a href="/@slug/word-mission">미션홈</a></nav>
+    <span class="date num">@d.Year</span>
+</div></header>
+<main class="mbody gut"><div class="wrap rkp">
+    <div class="k">도전!!!성경말씀</div>
+    <h1>참여자</h1>
+    <div class="sub num">@(d.Year) 시즌 · 목표 @(d.Target.ToString("N0"))점 · @d.Today.ToString("M월 d일", ko) 기준</div>
+
+    <div class="tot"><div><small>참여자</small><b class="num">@d.Rows.Count<u>명</u></b></div><div><small>목표 달성</small><b class="num">@d.Achieved<u>명</u></b></div></div>
+
+    @if (d.Rows.Count == 0)
+    {
+        <p class="empty">아직 점수가 있는 참여자가 없어요. 미션을 하면 여기에 이름이 올라가요!</p>
+    }
+    else
+    {
+        @if (top.Count == 3)
+        {
+            <div class="lbl">TOP 3</div>
+            <div class="top3">
+                @foreach (var i in new[] { 1, 0, 2 })
+                {
+                    var t = top[i];
+                    <div class="t3 @(i == 0 ? "first" : "")@(t.Me ? " me" : "")"><span class="no num">0@(i + 1)</span><span class="av">@RankingModel.Initial(t.Name)</span><b>@t.Name</b>
+                        <span class="p num">@t.Points.ToString("N0")<u>점</u></span><small>@Model.Last(t.LastDate)</small></div>
+                }
+            </div>
+        }
+
+        <nav class="filt" aria-label="구분">
+            @foreach (var (k, label) in new[] { ("all", "전체"), ("student", "학생"), ("parent", "부모님"), ("teacher", "선생님") })
+            {
+                <a href="@Model.Url(kind: k)" aria-current="@(Model.Kind == k || (k == "all" && Model.Kind is not ("student" or "parent" or "teacher")) ? "true" : "false")">@label</a>
+            }
+        </nav>
+        <form class="srch" method="get" role="search">
+            <input type="hidden" name="f" value="@Model.Kind" /><input type="hidden" name="s" value="@Model.Sort" />
+            <label><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></svg>
+                <input type="search" name="q" value="@Model.Q" placeholder="이름 찾기" aria-label="이름 찾기" /></label>
+        </form>
+        <nav class="sort" aria-label="정렬">정렬
+            @foreach (var (s, label) in new[] { ("pts", "점수순"), ("recent", "최근 수행순"), ("name", "이름순") })
+            {
+                <a href="@Model.Url(sort: s)" aria-current="@(Model.Sort == s || (s == "pts" && Model.Sort is not ("recent" or "name")) ? "true" : "false")">@label</a>
+            }
+        </nav>
+        <p class="rk-note">@(Model.Sort switch { "recent" => "마지막으로 미션을 한 날이 최근인 순이에요.", "name" => "가나다순이에요.", _ => "점수가 같으면 이름순이에요." })</p>
+
+        <div class="rk-list">
+            @if (Model.Rows.Count == 0) { <div class="empty">찾는 사람이 없어요</div> }
+            @foreach (var r in Model.Rows)
+            {
+                // 아랫줄: 구분 · 반 · 마지막 참여일(오늘이면 앞에 따로) · 연속 참여일(R-83)
+                var sub = string.Join(" · ", new[] { RankingModel.KindLabel(r.Kind), r.GroupLabel, r.LastDate == d.Today ? null : Model.Last(r.LastDate), r.Streak > 1 ? $"연속 {r.Streak}일" : null }.Where(x => !string.IsNullOrEmpty(x)));
+                <div class="rk @(r.Me ? "me" : "")">
+                    <span class="no num">@r.Rank.ToString("00")</span><span class="av">@RankingModel.Initial(r.Name)</span>
+                    <span><span class="nm">@r.Name@if (r.Me) { <em>나</em> }</span>
+                        <span class="rs">@if (r.LastDate == d.Today) { <span class="tdy">오늘</span> <text>· </text> }@sub</span>
+                        <span class="rk-bar" aria-hidden="true"><i style="width:@(Math.Max(r.Percent, 1).ToString("0.#", inv))%"></i></span></span>
+                    <span class="pv"><b class="num">@r.Points.ToString("N0")<u>점</u></b><small class="num">@(r.Percent.ToString("0.0"))%</small></span>
+                </div>
+            }
+        </div>
+    }
+</div></main>
