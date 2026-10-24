@@ -171,6 +171,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids", "12d-부서홈-대표색초록");
         Brand(null, null, "blue");
         await Save(admin, "/jamsil-kids/admin/season?D=2027-01-04", "12e-관리-시즌");   // 1월 4일로 늦추면 빠지는 점수
+        await Save(admin, "/jamsil-kids/admin/content", "12f-관리-콘텐츠달력");
 
         // 보호자 김영희 → 김철수 연결
         var mom = await SignUp("younghee", "김영희");

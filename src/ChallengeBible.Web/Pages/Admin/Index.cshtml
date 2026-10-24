@@ -37,7 +37,7 @@
                 {
                     var which = e.Word && e.Quiz ? "말씀 · 퀴즈" : e.Word ? "말씀" : "퀴즈";
                     var inDays = e.First.DayNumber - d.Today.DayNumber;
-                    <div class="td c"><span class="n num">@e.Days</span><div><b>비어 있는 콘텐츠</b><span>@e.First.ToString("M월 d일(ddd)", ko) @which · @(inDays == 0 ? "오늘" : $"{inDays}일 뒤")</span></div></div>
+                    <a class="td c" href="/@slug/admin/content?month=@e.First.ToString("yyyy-MM")&date=@e.First.ToString("yyyy-MM-dd")#dT"><span class="n num">@e.Days</span><div><b>비어 있는 콘텐츠</b><span>@e.First.ToString("M월 d일(ddd)", ko) @which · @(inDays == 0 ? "오늘" : $"{inDays}일 뒤")</span></div></a>
                 }
             </div>
         </section>

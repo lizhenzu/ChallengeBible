@@ -1,0 +1,85 @@
+@page "/{slug}/admin/content"
+@model ChallengeBible.Web.Pages.Admin.ContentModel
+@using ChallengeBible.Web.Services
+@using ChallengeBible.Web.Pages.Admin
+@* 확정 시안: 관리-콘텐츠달력-단독시안 — 빈 날 경고 → 달 이동 · 종류 고르기 → 달력(날마다 말 · 퀴 · 기 · 암, 출처 색) → 고른 날 자세히. 1차는 보기만 *@
+@{
+    var d = Model.Data;
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+    var lead = (int)d.Month.DayOfWeek;   // 일요일 시작
+    var one = Model.Kind != "all";
+    var sel = Model.Selected;
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut"><div class="wrap wide cc">
+    <div class="cc-top cc-span">
+        <h1>콘텐츠 달력</h1>
+        <p>날마다 아이들에게 보이는 말씀 · 퀴즈 · 기도 · 암송이에요. 우리 부서 것이 없으면 공용을 보여 줘요.</p>
+    </div>
+
+    @if (d.Alerts.Count > 0)
+    {
+        <div class="cc-alerts cc-span">
+            @foreach (var a in d.Alerts)
+            {
+                <div class="al @(a.Bad ? "bad" : "warn")"><b>@a.Label</b><span>@a.Text</span><a href="@Model.Url(new DateOnly(a.Go.Year, a.Go.Month, 1), a.Go)#dT">보기</a></div>
+            }
+        </div>
+    }
+
+    <section class="cc-card" aria-labelledby="hCal">
+        <div class="cc-bar">
+            <div class="mon">
+                @if (d.Month > d.Min) { <a href="@Model.Url(d.Month.AddMonths(-1))" aria-label="이전 달">‹</a> } else { <span class="off" aria-hidden="true">‹</span> }
+                <b id="hCal" class="num">@d.Month.ToString("yyyy년 M월", ko)</b>
+                @if (d.Month < d.Max) { <a href="@Model.Url(d.Month.AddMonths(1))" aria-label="다음 달">›</a> } else { <span class="off" aria-hidden="true">›</span> }
+            </div>
+            <nav class="kinds" aria-label="종류">
+                <a href="@Model.Url(d.Month, sel.Date, "all")" aria-current="@(Model.Kind == "all" ? "true" : "false")">모두</a>
+                @foreach (var (k, label, _) in ContentCalendarService.Kinds)
+                {
+                    <a href="@Model.Url(d.Month, sel.Date, k)" aria-current="@(Model.Kind == k ? "true" : "false")">@label</a>
+                }
+            </nav>
+        </div>
+        <div class="dow" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+        <div class="grid@(one ? " one" : "")">
+            @for (var i = 0; i < lead; i++) { <span class="cell out"></span> }
+            @foreach (var day in d.Days)
+            {
+                var items = one ? day.Items.Where(x => x.Kind == Model.Kind).ToList() : day.Items.ToList();
+                var bad = items.Any(x => x.Source == ContentSource.None);
+                <a class="cell@(day.Date == d.Today ? " today" : "")@(day.Date < d.Today ? " past" : "")" href="@Model.Url(d.Month, day.Date)#dT"
+                   aria-current="@(day.Date == sel.Date ? "true" : "false")" aria-label="@day.Date.ToString("M월 d일", ko)@(bad ? ", 비어 있는 콘텐츠 있음" : "")">
+                    <span class="d"><span class="num">@day.Date.Day</span>@if (bad) { <span class="bad-dot"></span> }</span>
+                    <span class="chips">@foreach (var it in items) { <span class="chip @ContentModel.SourceClass(it.Source)" title="@it.Label · @ContentModel.SourceLabel(it.Source)">@(one ? it.Title ?? "없음" : it.Short)</span> }</span>
+                </a>
+            }
+        </div>
+        <div class="legend">
+            <span><i class="s-common"></i>공용</span><span><i class="s-over"></i>우리 부서(덮어쓰기)</span><span><i class="s-draft"></i>초안 · 공개 전</span><span><i class="s-none"></i>없음</span>
+        </div>
+    </section>
+
+    <section class="cc-card det" aria-labelledby="dT">
+        <h2 id="dT">@sel.Date.ToString("M월 d일 (ddd)", ko)@if (sel.Date == d.Today) { <small>오늘</small> }</h2>
+        <ul class="items">
+            @foreach (var it in sel.Items)
+            {
+                <li>
+                    <div class="h"><span class="k">@it.Label</span><span class="src @ContentModel.SourceClass(it.Source)">@ContentModel.SourceLabel(it.Source)</span></div>
+                    @if (it.Source == ContentSource.None)
+                    {
+                        <span class="none">콘텐츠가 없어요 — 이날은 "오늘은 없음"으로 보여요</span>
+                    }
+                    else
+                    {
+                        <b>@it.Title</b><small>@it.Detail@(it.By is null ? "" : $" · {it.By}")</small>
+                    }
+                </li>
+            }
+        </ul>
+        <button type="button" class="btn s sm" disabled>우리 부서 것으로 바꾸기 (2차)</button>
+        <p class="note"><b>1차에서는 보기만 해요.</b> 비어 있거나 고칠 콘텐츠는 플랫폼 관리자에게 알려 주세요. 2차부터 부서가 직접 덮어쓰고 공용으로 되돌릴 수 있어요.<br>콘텐츠가 없는 날은 그 미션이 "오늘은 없음"으로 보이고 완주일이 될 수 없어요(R-122).</p>
+    </section>
+</div></main>
