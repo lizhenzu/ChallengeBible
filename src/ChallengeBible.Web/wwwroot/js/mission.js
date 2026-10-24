@@ -78,6 +78,7 @@
       });
       return res.ok;
     };
+    const busy = (el, on) => { el.disabled = on; el.classList.toggle('busy', on); el.setAttribute('aria-busy', String(on)); };
     const prog = document.querySelector('.rdprog');
     const total = Number(prog?.dataset.total ?? 0);
     const count = document.querySelector('[data-readcount]'), pctEl = document.querySelector('[data-readpct]'), bar = document.querySelector('[data-readbar]');
@@ -102,9 +103,9 @@
       const li = b.closest('li');
       const on = b.getAttribute('aria-pressed') !== 'true';
       const kind = b.dataset.mark === 'read' ? 'read' : 'bookmarks';
-      b.disabled = true;
+      busy(b, true);   // 서버가 느려도 눌렸다는 것을 보이게: 끝날 때까지 동그라미가 돈다
       const ok = await call(on ? 'PUT' : 'DELETE', `/api/me/bible/${kind}/${book}/${li.dataset.ch}/${li.dataset.v}`);
-      b.disabled = false;
+      busy(b, false);
       if (!ok) { say('잠시 뒤에 다시 해 주세요.'); return; }
       b.setAttribute('aria-pressed', String(on));
       if (kind === 'read') { bump(on ? 1 : -1); refreshAll(); }
@@ -113,11 +114,13 @@
     all?.addEventListener('click', async () => {
       const on = !all.classList.contains('on');
       const r = { book: Number(book), startChapter: Number(all.dataset.sc), startVerse: Number(all.dataset.sv), endChapter: Number(all.dataset.ec), endVerse: Number(all.dataset.ev) };
-      all.disabled = true;
+      busy(all, true);
+      verses.querySelectorAll('[data-mark="read"]').forEach((x) => { if ((x.getAttribute('aria-pressed') === 'true') !== on) busy(x, true); });
       const ok = on
         ? await call('PUT', '/api/me/bible/read-range', r)
         : await call('DELETE', `/api/me/bible/read-range?book=${r.book}&startChapter=${r.startChapter}&startVerse=${r.startVerse}&endChapter=${r.endChapter}&endVerse=${r.endVerse}`);
-      all.disabled = false;
+      busy(all, false);
+      verses.querySelectorAll('[data-mark="read"].busy').forEach((x) => busy(x, false));
       if (!ok) { say('잠시 뒤에 다시 해 주세요.'); return; }
       let delta = 0;
       verses.querySelectorAll('[data-mark="read"]').forEach((x) => {

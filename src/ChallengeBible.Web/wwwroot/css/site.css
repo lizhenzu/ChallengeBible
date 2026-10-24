@@ -638,3 +638,10 @@ a.td::after { content: "›"; margin-left: auto; font-size: 22px; color: var(--d
 @media (prefers-reduced-motion: reduce) { .rdbar i { transition: none; } }
 .rdv .vt > p:not(.tr) { display: inline; }
 .rdpg + .pnote { margin-top: 12px; }
+/* saving: spinning ring on the check / star / page button until the server answers */
+.vm, .rdall { position: relative; }
+.vm.busy, .rdall.busy { color: transparent !important; }
+.vm.busy::after, .rdall.busy::after { content: ""; position: absolute; inset: 0; margin: auto; width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--rule); border-top-color: var(--accent); animation: cb-spin .7s linear infinite; }
+.vm.busy:disabled, .rdall.busy:disabled { opacity: 1; }
+@keyframes cb-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .vm.busy::after, .rdall.busy::after { animation-duration: 2s; } }
