@@ -117,6 +117,7 @@
 /* 우리 부서 */
 .hm .dept { margin-top: 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; padding: 0; background: var(--rule); border: 1px solid var(--rule); border-radius: 18px; overflow: hidden; }
 .hm .dept div { background: var(--bg); padding: 16px; }
+.hm .dept div:last-child:nth-child(odd) { grid-column: 1 / -1; }   /* 칸이 홀수(예: 참여자가 아니라 "몇 번째" 없음)면 마지막 칸을 펼쳐 빈 칸을 없앤다 */
 .hm .dept b { display: block; font-size: 30px; font-weight: 300; line-height: 1.2; }
 .hm .dept b i { font-style: normal; font-size: 14px; color: var(--dim); }
 .hm .dept small { font-size: 13px; color: var(--dim); }
