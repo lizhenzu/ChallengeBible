@@ -166,6 +166,67 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Null(raw.FamilyTeams.Single().Name);
     }
 
+    [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
+    private static partial Regex TokenRx();
+
+    private async Task<HttpClient> LoggedIn(string email)
+    {
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var a = raw.Accounts.Single(x => x.Email == email);
+            a.PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<Account>().HashPassword(a, "1234");
+            raw.SaveChanges();
+        }
+        var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var h = await c.GetStringAsync("/account/login");
+        await c.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = TokenRx().Match(h).Groups[1].Value, ["Email"] = email, ["Password"] = "1234",
+        }));
+        return c;
+    }
+
+    [Fact]
+    public async Task 화면_흐름_관리자가_만들고_관계를_저장한다()
+    {
+        var admin = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜");
+        InMemoryDb.SeedMembership(_db, _kids.Id, admin.Id, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
+        var c = await LoggedIn("eunhye@example.com");
+
+        var html = await c.GetStringAsync("/jamsil-kids/admin/teams");
+        Assert.Contains("아직 가족팀이 없어요", html);
+        Assert.Contains("href=\"/jamsil-kids/admin/teams\"", await c.GetStringAsync("/jamsil-kids/admin"));   // 관리 메뉴 "가족팀"
+        Assert.Contains("다른 부서를 가족과 함께할 부서로 골랐어요", html);                                     // 오성민(0046)
+
+        var created = await c.PostAsync("/jamsil-kids/admin/teams?handler=Create", new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("__RequestVerificationToken", TokenRx().Match(html).Groups[1].Value),
+            new("name", ""), new("pick", P("cheolsu").ToString()), new("pick", P("younghee").ToString()),
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, created.StatusCode);
+        var page = await c.GetStringAsync(created.Headers.Location!.OriginalString);
+        Assert.Contains("김철수 가족", page);
+        Assert.Contains("900", page);   // 600 + 300
+
+        int teamId, momMember;
+        using (var raw = InMemoryDb.Raw(_db)) { teamId = raw.FamilyTeams.Single().Id; momMember = raw.FamilyMembers.Single(m => m.ParticipantId == P("younghee")).Id; }
+        var saved = await c.PostAsync("/jamsil-kids/admin/teams?handler=Save", new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("__RequestVerificationToken", TokenRx().Match(page).Groups[1].Value),
+            new("id", teamId.ToString()), new("name", "철수네"), new("memo", ""), new($"rel_{momMember}", FamilyRelation.Grandmother),
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, saved.StatusCode);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            Assert.Equal("철수네", raw.FamilyTeams.Single().Name);
+            Assert.Equal(FamilyRelation.Grandmother, raw.FamilyMembers.Single(m => m.Id == momMember).Relation);
+        }
+
+        // 참여자는 못 본다
+        var kid = await LoggedIn("cheolsu@example.com");
+        Assert.StartsWith("/account/denied", (await kid.GetAsync("/jamsil-kids/admin/teams")).Headers.Location!.PathAndQuery);
+    }
+
     [Fact]
     public async Task R0012_기본_규칙에서_가족팀을_끄면_막힌다()
     {
@@ -178,5 +239,12 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         var svc = In(_kids);
         Assert.False((await svc.GetAsync()).Enabled);
         Assert.Equal(FamilyError.Disabled, (await svc.CreateAsync(null, [P("cheolsu")])).Error);
+
+        // 화면도 막고(404) 메뉴에서도 숨긴다
+        var admin = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜");
+        InMemoryDb.SeedMembership(_db, _kids.Id, admin.Id, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
+        var c = await LoggedIn("eunhye@example.com");
+        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/jamsil-kids/admin/teams")).StatusCode);
+        Assert.DoesNotContain("/admin/teams", await c.GetStringAsync("/jamsil-kids/admin"));
     }
 }

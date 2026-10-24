@@ -1,0 +1,168 @@
+@page "/{slug}/admin/teams"
+@model ChallengeBible.Web.Pages.Admin.TeamsModel
+@using ChallengeBible.Domain.Rules
+@using ChallengeBible.Infrastructure.Data
+@using ChallengeBible.Web.Services
+@* 확정 시안: 관리-가족팀-단독시안 (팀 카드를 펼쳐 그 자리에서 고치기, 팀 없는 참여자에서 바로 만들기) *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    string Short(string n) => n.Length > 2 ? n[1..] : n;
+    string Who(FamilySolo s) => s.IsGuardian ? "보호자 · 참여자" : (s.GroupLabel ?? "반 없음");
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut"><div class="wrap wide">
+    <h1>가족팀</h1>
+    <p class="lead">가족이 함께 점수를 모으는 팀이에요. 팀 점수는 구성원 시즌 점수의 합이에요. 구성원은 이 부서의 참여자만, 한 사람은 한 팀에만 들어갈 수 있어요.</p>
+
+    @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
+    @if (Model.Error is not null && Model.ErrorFor is null && !Model.CreateOpen) { <p class="err" role="alert">@Model.Error</p> }
+
+    <div class="ft-stats">
+        <div><small>가족팀</small><b class="num">@Model.Board.ActiveTeams<u>팀</u></b></div>
+        <div><small>팀에 든 참여자</small><b class="num">@Model.Board.InTeams<u>명</u></b></div>
+        <div><small>팀 없는 참여자</small><b class="num">@Model.Board.Solo.Count<u>명</u></b></div>
+    </div>
+
+    <form method="get" class="tools">
+        <input class="search" type="search" name="Q" value="@Model.Q" placeholder="가족 · 구성원 이름으로 찾기" aria-label="가족 · 구성원 이름으로 찾기" />
+        <button class="btn s sm" type="submit">찾기</button>
+    </form>
+
+    <details class="ft-new" id="new" open="@Model.CreateOpen">
+        <summary class="btn p sm">+ 새 가족팀</summary>
+        <form method="post" asp-page-handler="Create" asp-route-slug="@slug" class="ft-card">
+            @if (Model.CreateOpen && Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+            <div><h3>팀 이름 <span>· 비우면 "대표 학생 이름 + 가족"</span></h3><input class="in sm" name="name" maxlength="50" placeholder="예: 김철수 가족" /></div>
+            <div><h3>구성원 고르기 <span>· 관계는 만든 뒤에 고쳐요</span></h3>
+                <div class="ft-picks">
+                    @foreach (var s in Model.Board.Solo)
+                    {
+                        var blocked = s.Blocked != FamilyError.None;
+                        <label class="@(blocked ? "no" : "")"><input type="checkbox" name="pick" value="@s.ParticipantId" checked="@(Model.New == s.ParticipantId)" disabled="@blocked" />@s.Name<small>@(blocked ? FamilyTeamService.Message(s.Blocked) : Who(s))</small></label>
+                    }
+                    @if (Model.Board.Solo.Count == 0) { <p class="hint">팀 없는 참여자가 없어요.</p> }
+                </div>
+            </div>
+            <div class="acts"><button type="submit" class="btn p sm">만들기</button></div>
+        </form>
+    </details>
+
+    <ul class="ft-teams">
+        @if (!Model.Shown.Any()) { <li class="empty-box">@(Model.Board.Teams.Count == 0 ? "아직 가족팀이 없어요. \"+ 새 가족팀\"으로 시작하세요." : "찾는 가족이 없어요.")</li> }
+        @foreach (var t in Model.Shown)
+        {
+            var open = Model.Open == t.Id;
+            <li>
+                <details class="ft-team @(t.IsActive ? "" : "off")" open="@open">
+                    <summary>
+                        <span class="tn"><b>@t.DisplayName@if (!t.IsActive) { <em>멈춤</em> }</b>
+                            <span class="chips">@foreach (var m in t.Members) { <span class="@(m.Relation == FamilyRelation.Student ? "" : "k")">@FamilyTeamService.RelationLabel(m.Relation) @m.Name</span> }</span></span>
+                        <span class="tp"><b class="num">@t.Points.ToString("N0")</b><small>올해 점수 · @(t.Members.Count)명</small></span>
+                        <span class="chev" aria-hidden="true">›</span>
+                    </summary>
+                    <div class="ft-ed">
+                        @if (Model.ErrorFor == t.Id && Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+                        <form method="post" asp-page-handler="Save" asp-route-slug="@slug" asp-route-Q="@Model.Q" id="save-@t.Id" class="ft-f2">
+                            <input type="hidden" name="id" value="@t.Id" />
+                            <div><h3>팀 이름 <span>· 비우면 "@FamilyTeamService.DisplayName(null, t.Members.Select(m => (m.Name, m.Relation)).ToList())"</span></h3><input class="in sm" name="name" value="@t.Name" maxlength="50" /></div>
+                            <div><h3>메모 <span>· 관리자만 봐요</span></h3><input class="in sm" name="memo" value="@t.Memo" maxlength="500" /></div>
+                        </form>
+                        <div>
+                            <h3>구성원 <span>· 순서는 팀 카드 · 홈 화면에 보이는 순서</span></h3>
+                            <ul class="ft-mem">
+                                @for (var i = 0; i < t.Members.Count; i++)
+                                {
+                                    var m = t.Members[i];
+                                    <li>
+                                        <span class="av">@Short(m.Name)</span>
+                                        <span class="nm"><b>@m.Name</b><small>@(m.GroupLabel ?? "반 없음")</small></span>
+                                        <select class="sel" name="rel_@m.MemberId" form="save-@t.Id" aria-label="@(m.Name) 관계">
+                                            @foreach (var r in FamilyRelation.All) { <option value="@r" selected="@(r == m.Relation)">@FamilyTeamService.RelationLabel(r)</option> }
+                                        </select>
+                                        <span class="pt num">@(m.Points)점</span>
+                                        <form method="post" asp-page-handler="Move" asp-route-slug="@slug" asp-route-Q="@Model.Q" class="ord">
+                                            <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="member" value="@m.MemberId" />
+                                            <button type="submit" name="up" value="true" aria-label="@(m.Name) 위로" disabled="@(i == 0)">↑</button>
+                                            <button type="submit" name="up" value="false" aria-label="@(m.Name) 아래로" disabled="@(i == t.Members.Count - 1)">↓</button>
+                                        </form>
+                                        <form method="post" asp-page-handler="Remove" asp-route-slug="@slug" asp-route-Q="@Model.Q">
+                                            <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="member" value="@m.MemberId" />
+                                            <button type="submit" class="btn t">빼기</button>
+                                        </form>
+                                    </li>
+                                }
+                            </ul>
+                            @if (t.IsActive)
+                            {
+                                <form method="post" asp-page-handler="Add" asp-route-slug="@slug" asp-route-Q="@Model.Q" class="row mt">
+                                    <input type="hidden" name="id" value="@t.Id" />
+                                    <select class="sel grow" name="participant" aria-label="더할 사람" disabled="@(!Model.Joinable.Any())">
+                                        @foreach (var s in Model.Joinable) { <option value="@s.ParticipantId">@s.Name · @Who(s)</option> }
+                                        @if (!Model.Joinable.Any()) { <option>팀 없는 참여자가 없어요</option> }
+                                    </select>
+                                    <button type="submit" class="btn s sm" disabled="@(!Model.Joinable.Any())">구성원 더하기</button>
+                                </form>
+                            }
+                        </div>
+                        @if (t.IsActive)
+                        {
+                            <div>
+                                <h3>가족 축하 카드 <span>· 넘은 단계 중 홈 화면 축하 카드를 숨길 것</span></h3>
+                                @if (t.Reached.Count == 0) { <p class="hint">아직 넘은 가족 단계가 없어요.</p> }
+                                <ul class="ft-ms">
+                                    @foreach (var s in t.Reached)
+                                    {
+                                        <li>
+                                            <span><b class="num">@s.Points.ToString("N0")점</b> · @s.Message <small>@(s.Kind == FamilyMilestoneKind.Award ? "축하 + 보상" : "박수")</small></span>
+                                            <form method="post" asp-page-handler="Stage" asp-route-slug="@slug" asp-route-Q="@Model.Q">
+                                                <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="threshold" value="@s.Points" />
+                                                <input type="hidden" name="hide" value="@(s.Hidden ? "false" : "true")" />
+                                                <button type="submit" class="toggle" role="switch" aria-checked="@(s.Hidden ? "false" : "true")" aria-label="@(s.Points)점 축하 카드 보이기"><span class="tr" aria-hidden="true"></span>@(s.Hidden ? "숨김" : "보임")</button>
+                                            </form>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                        <div class="acts">
+                            <button type="submit" class="btn p sm" form="save-@t.Id">저장</button>
+                            @if (t.IsActive)
+                            {
+                                <details class="ask"><summary class="btn d sm">팀 멈추기</summary>
+                                    <form method="post" asp-page-handler="Stop" asp-route-slug="@slug" asp-route-Q="@Model.Q">
+                                        <input type="hidden" name="id" value="@t.Id" />
+                                        <span>@(t.DisplayName)@Ui.EulReul(t.DisplayName) 멈출까요? 순위 · 홈 화면에서 팀이 사라지고 구성원은 다른 팀에 들어갈 수 있어요. 점수는 지우지 않아요.</span>
+                                        <button type="submit" class="btn dd sm">멈추기</button>
+                                    </form>
+                                </details>
+                            }
+                            else
+                            {
+                                <form method="post" asp-page-handler="Resume" asp-route-slug="@slug" asp-route-Q="@Model.Q">
+                                    <input type="hidden" name="id" value="@t.Id" />
+                                    <button type="submit" class="btn s sm">다시 켜기</button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </details>
+            </li>
+        }
+    </ul>
+
+    <h2 class="h2">가족팀 없는 참여자 <small class="num">@(Model.Board.Solo.Count)명</small></h2>
+    @if (Model.Board.Solo.Count > 0)
+    {
+        <ul class="ft-solo">
+            @foreach (var s in Model.Board.Solo)
+            {
+                <li>
+                    <span class="nm"><b>@s.Name</b><small>@Who(s)@(s.IsGuardian ? "" : $" · 올해 {s.Points}점")</small></span>
+                    @if (s.Blocked != FamilyError.None) { <span class="why">@FamilyTeamService.Message(s.Blocked)</span> }
+                    else { <a class="btn s sm" href="?New=@s.ParticipantId#new">이 사람으로 팀 만들기</a> }
+                </li>
+            }
+        </ul>
+    }
+    <p class="note"><b>부모님은 "가족과 함께할 부서"를 이 부서로 고른 분만 팀에 넣을 수 있어요.</b> 다른 부서를 고른 부모님은 여기서는 보호자로 자녀 기록만 봐요.<br>팀에서 빼거나 팀을 멈춰도 그 사람의 점수 · 기록은 지워지지 않아요. 가족 축하 단계는 플랫폼 기본 규칙에서 정해요.</p>
+</div></main>

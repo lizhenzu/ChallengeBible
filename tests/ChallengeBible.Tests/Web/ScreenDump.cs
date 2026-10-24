@@ -189,6 +189,27 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(mom, "/jamsil-kids/guardian", "16-보호자");
         await Save(mom, "/jamsil-kids/guardian?date=2027-01-04", "17-보호자-지난날");
 
+        // 가족팀(확정 시안 관리-가족팀): 김영희가 이 부서를 가족 부서로 고르고 참여자가 되어 김철수와 한 팀
+        int teamId;
+        var momAcc = Acc("younghee");
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            raw.Accounts.Single(a => a.Id == momAcc).FamilyTenantId = kids.Id;
+            raw.MembershipRoles.Add(new MembershipRole { TenantId = kids.Id, MembershipId = mm.Id, Role = Roles.Participant });
+            var momP = new Participant { TenantId = kids.Id, MembershipId = mm.Id };
+            raw.Participants.Add(momP);
+            raw.SaveChanges();
+            var team = new FamilyTeam { TenantId = kids.Id, CreatedUtc = DateTime.UtcNow, Members =
+            [
+                new FamilyMember { TenantId = kids.Id, ParticipantId = raw.Participants.Single(p => p.MembershipId == km.Id).Id, Relation = FamilyRelation.Student, SortOrder = 0 },
+                new FamilyMember { TenantId = kids.Id, ParticipantId = momP.Id, Relation = FamilyRelation.Mother, SortOrder = 1 },
+            ] };
+            raw.FamilyTeams.Add(team);
+            raw.SaveChanges();
+            teamId = team.Id;
+        }
+        await Save(admin, $"/jamsil-kids/admin/teams?Open={teamId}", "12i-관리-가족팀");
+
         // 진급(시안 예시와 같은 지어낸 이름): 유치부 → 유년부(받은 요청), 유년부 → 초등부(보낸 요청)
         var pre = InMemoryDb.SeedTenant(db, "jamsil-pre", "JSPREE");
         var elem = InMemoryDb.SeedTenant(db, "jamsil-elem", "JSELEM");
