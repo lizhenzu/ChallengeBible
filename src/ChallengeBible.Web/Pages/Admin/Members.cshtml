@@ -2,7 +2,8 @@
 @model ChallengeBible.Web.Pages.Admin.MembersModel
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Pages.Admin
-@* 확정 시안: 관리-소속관리-단독시안 (1차: 줄을 펼쳐 바로 처리, 여러 명 진급은 진급 단계에서) *@
+@* 확정 시안: 관리-소속관리-단독시안 (줄을 펼쳐 바로 처리, 소속 탭에서 여러 명 골라 진급 보내기. 반 바꾸기는 다음에) *@
+@{ var picking = Model.Tab == MembershipStatus.Approved; }
 <partial name="_AdminTop" model="Model.Tenant" />
 <main class="admin gut"><div class="wrap wide">
     <h1>소속 관리</h1>
@@ -41,7 +42,12 @@
         {
             var self = m.AccountId == Model.Me;
             var open = Model.ErrorFor == m.MembershipId;
-            <li class="row">
+            <li class="row @(picking ? "pickable" : "")">
+                @if (picking)
+                {
+                    if (m.Roles.Contains(Roles.Participant)) { <input type="checkbox" class="pick" name="pick" value="@m.MembershipId" form="promo" checked="@Model.Picks.Contains(m.MembershipId)" aria-label="@(m.DisplayName) 고르기" /> }
+                    else { <span class="pick-sp"></span> }
+                }
                 <details open="@open">
                     <summary class="line">
                         <span class="av">@(m.DisplayName.Length > 1 ? m.DisplayName[1..] : m.DisplayName)</span>
@@ -134,5 +140,23 @@
             </li>
         }
     </ul>
+    @if (picking && Model.Rows.Any(r => r.Roles.Contains(Roles.Participant)))
+    {
+        <form method="post" id="promo" class="promo" asp-route-slug="@Model.Tenant.Current.Slug" asp-route-Tab="@Model.Tab">
+            <h2 id="promoT">진급 보내기</h2>
+            <p class="hint">보낼 아이를 위 목록에서 고르고, 받을 부서의 참여 코드를 넣어 주세요.@(Model.Picks.Count > 0 ? $" 지금 {Model.Picks.Count}명 골랐어요." : "")</p>
+            <div class="row">
+                <input class="in sm" name="code" value="@Model.PromoCode" placeholder="받을 부서 코드" aria-label="받을 부서 코드" maxlength="8" autocomplete="off" />
+                <button type="submit" class="btn s sm" asp-page-handler="PromoteCheck">부서 확인</button>
+            </div>
+            @if (Model.PromoError is not null) { <p class="found bad" role="alert">@Model.PromoError</p> }
+            @if (Model.PromoTarget is { } target)
+            {
+                <p class="found" role="status">받는 부서: @target.Name</p>
+                <div class="warnbox">받는 부서 선생님이 승인하면 <b>이 부서의 점수 · 기록이 모두 지워지고</b> 그 부서로 옮겨 가요. 승인 전까지는 여기서 계속 미션을 할 수 있어요. 성경 읽음 표시 · 책갈피 · 통독 진도는 그대로 남아요.</div>
+                <div class="acts"><button type="submit" class="btn p sm" asp-page-handler="Promote">@(Model.Picks.Count)명 진급 요청 보내기</button></div>
+            }
+        </form>
+    }
     <datalist id="groups">@foreach (var g in Model.Groups) { <option value="@g"></option> }</datalist>
 </div></main>

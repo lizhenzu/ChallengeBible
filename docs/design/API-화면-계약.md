@@ -148,7 +148,7 @@
 | 주소 | 화면 | 차수 |
 |---|---|---|
 | `/platform` | 플랫폼 홈 | 1차 |
-| `/platform/tenants` | 영역 목록 · 만들기(코드 · 이름 · 시간대 · 대표 색) · 정지 · 영역 관리자 지정 | 1차 |
+| `/platform/tenants` | 영역 목록 · 만들기(코드 · 이름 · 시간대 · 대표 색) · 기본 정보 고치기(이름 · 시간대 · 대표 색, 주소는 그대로) · 정지 · 영역 관리자 지정 | 1차 |
 | `/platform/content/{kind}?month=` | 공용 콘텐츠 달력 · 편집 · 공개 · 월 단위 날짜 생성 | 1차 |
 | `/platform/quizbank` | 퀴즈 문제 은행 | 2차 |
 | `/platform/bible` | 성경 참조 데이터 적재 | 1차(초기 적재 도구) |
@@ -229,7 +229,10 @@
 | `PUT /api/{slug}/admin/members/{id}/group-label` `{ label }` | 그룹 라벨 |
 | `GET /api/{slug}/admin/tenants/lookup?code=` | 진급 대상 영역 이름 확인(이름만 — 0026). code 는 참여 코드(0048) |
 | `POST /api/{slug}/admin/members/{id}/promote` `{ targetJoinCode }` | 진급 요청 보내기 |
-| `POST /api/{slug}/admin/promotions/{id}/approve` · `/reject` | 받은 진급 요청 처리(시스템 연결) |
+| `POST /api/{slug}/admin/promotions/{id}/approve` `{ roles, group }` · `/reject` | 받은 진급 요청 처리. 승인만 시스템 연결, 역할은 참여자 · 보호자만(0058) |
+| `POST /api/{slug}/admin/promotions/{id}/cancel` | 보낸 진급 요청 취소(지우는 것 없음, 0058) |
+
+> 구현(2026-10-24): 위 진급 동작은 지금 화면 폼(Razor Pages 처리기)으로 한다 — 소속 관리 `?handler=PromoteCheck` · `Promote`(여러 명 `pick`, `code`), 진급 화면 `?handler=Approve` · `Reject` · `Cancel`. 받는 쪽은 이름 · 이메일 · 보낸 부서만, 보낸 쪽은 받는 부서 이름 · 상태만 본다(0030).
 | `DELETE /api/{slug}/admin/members/{id}/bible-reads` | 성경 읽음 · 책갈피 초기화(시스템 연결, 0029) |
 | `POST /api/{slug}/admin/members/{id}/reset-password` | 임시 비밀번호 발급(시스템 연결, 0035) → `{ "temporaryPassword": "…" }`. 대상이 플랫폼 관리자이거나 다른 영역 관리자면 403 `ResetNotAllowed` |
 | `GET /api/{slug}/admin/season/{year}/impact?startDate=` | 시작일 변경 시 빠지는 점수가 있는 참여자 수 |

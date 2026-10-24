@@ -16,6 +16,9 @@ public sealed record AdminHome(
     IReadOnlyList<(DateOnly Date, int Count)> Week,
     IReadOnlyList<MissingMember> Missing)
 {
+    /// <summary>받은 진급 요청(기다리는 중) 수와 앞의 몇 명 "이름(보낸 부서)".</summary>
+    public int PromotionCount { get; init; }
+    public IReadOnlyList<string> Promotions { get; init; } = [];
     public int WeekAverage => Week.Count == 0 ? 0 : (int)Math.Round(Week.Average(w => w.Count));
     public (DateOnly Date, int Count) Best => Week.Count == 0 ? default : Week.OrderByDescending(w => w.Count).ThenByDescending(w => w.Date).First();
 }
@@ -83,8 +86,21 @@ public sealed class AdminHomeService(IAppDb db, TenantContext tenant, TenantCloc
             .OrderByDescending(m => m.DaysAgo ?? int.MaxValue).ThenBy(m => m.Name, StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false))
             .ToList();
 
+        // 받은 진급 요청(0030: 받는 쪽은 이름 · 보낸 부서만)
+        var me = tenant.Current.Id;
+        var promotions = await (from r in ctx.PromotionRequests
+                                where r.TargetTenantId == me && r.Status == PromotionStatus.Pending
+                                join a in ctx.Accounts on r.AccountId equals a.Id
+                                join t in ctx.Tenants on r.SourceTenantId equals t.Id
+                                orderby r.RequestedUtc
+                                select a.DisplayName + "(" + t.Name + ")").ToListAsync(ct);
+
         return new(today, nowLocal, requested.Count, pending, await EmptyContentAsync(ctx, today, ct),
-            members.Count, todayDone.Count, byMission, weekStart, week, missing);
+            members.Count, todayDone.Count, byMission, weekStart, week, missing)
+        {
+            PromotionCount = promotions.Count,
+            Promotions = promotions.Take(3).ToList(),
+        };
     }
 
     /// <summary>앞으로 7일 중 말씀 · 퀴즈 콘텐츠가 없는 날(공개된 현재 개정, 공용 또는 이 부서 것). 기도 · 암송은 번호로 반복해서 대상이 아니다(0052 · 0053).</summary>

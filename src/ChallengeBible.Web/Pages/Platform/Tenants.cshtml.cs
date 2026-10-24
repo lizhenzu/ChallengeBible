@@ -39,10 +39,13 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
     {
         "created" => "부서를 만들었어요. 참여 코드를 선생님께 알려 주세요.",
         "saved" => "저장했어요.",
+        "info" => "기본 정보를 저장했어요.",
         "code" => "새 참여 코드를 만들었어요. 예전 코드로는 신청할 수 없어요.",
         "admin" => "부서 관리자를 바꿨어요.",
         "suspended" => "부서를 정지했어요. 데이터는 지우지 않아요.",
         "resumed" => "부서를 다시 열었어요.",
+        "listed" => "참여 신청 화면의 부서 목록에 보여요.",
+        "unlisted" => "참여 신청 화면의 부서 목록에서 숨겼어요. 부서 주소 · 코드로는 신청할 수 있어요.",
         _ => "",
     };
 
@@ -59,6 +62,12 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
             return Page();
         }
         return RedirectToPage(new { Open = t.Id, Ok = "created" });
+    }
+
+    public async Task<IActionResult> OnPostInfoAsync(int id, string name, string timeZoneId, string themeColor, CancellationToken ct)
+    {
+        var errors = await platform.UpdateInfoAsync(Me, id, name, timeZoneId, themeColor, ct);
+        return errors.Ok ? RedirectToPage(new { Open = id, Ok = "info" }) : await RowFail(id, string.Join(" ", errors.Values), ct);
     }
 
     public async Task<IActionResult> OnPostProgramsAsync(int id, bool mission, bool reading, CancellationToken ct)
@@ -83,6 +92,12 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
     {
         await platform.RemoveAdminAsync(Me, id, accountId, ct);
         return RedirectToPage(new { Open = id, Ok = "admin" });
+    }
+
+    public async Task<IActionResult> OnPostListedAsync(int id, bool listed, CancellationToken ct)
+    {
+        await platform.SetJoinListedAsync(Me, id, listed, ct);
+        return RedirectToPage(new { Open = id, Ok = listed ? "listed" : "unlisted" });
     }
 
     public async Task<IActionResult> OnPostStatusAsync(int id, string status, CancellationToken ct)

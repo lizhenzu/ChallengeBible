@@ -6,7 +6,10 @@ using Microsoft.EntityFrameworkCore;
 namespace ChallengeBible.Web.Services;
 
 public sealed record TenantRow(int Id, string Name, string Slug, string JoinCode, string ThemeColor, bool MissionEnabled, bool ReadingEnabled,
-    string Status, int MemberCount, IReadOnlyList<(int AccountId, string Name, string Email)> Admins, DateTime CreatedUtc, string TimeZoneId);
+    string Status, int MemberCount, IReadOnlyList<(int AccountId, string Name, string Email)> Admins, DateTime CreatedUtc, string TimeZoneId)
+{
+    public bool JoinListed { get; init; }
+}
 
 public sealed record NewTenant(string Name, string Slug, string TimeZoneId, string ThemeColor, bool Mission, bool Reading, string? AdminEmail);
 
@@ -54,7 +57,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
                             select new { m.TenantId, a.Id, a.DisplayName, a.Email }).ToListAsync(ct);
         return tenants.Select(t => new TenantRow(t.Id, t.Name, t.Slug, t.JoinCode.Trim(), t.ThemeColor, t.MissionEnabled, t.ReadingEnabled, t.Status,
                 counts.GetValueOrDefault(t.Id),
-                admins.Where(a => a.TenantId == t.Id).Select(a => (a.Id, a.DisplayName, a.Email)).ToList(), t.CreatedUtc, t.TimeZoneId))
+                admins.Where(a => a.TenantId == t.Id).Select(a => (a.Id, a.DisplayName, a.Email)).ToList(), t.CreatedUtc, t.TimeZoneId) { JoinListed = t.JoinListed })
             .ToList();
     }
 
@@ -111,6 +114,23 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         return t.JoinCode;
     }
 
+    /// <summary>기본 정보(이름 · 시간대 · 대표 색) 고치기. 주소(Slug)는 바꾸지 않는다(0048).</summary>
+    public async Task<FieldErrors> UpdateInfoAsync(int actor, int tenantId, string name, string timeZoneId, string themeColor, CancellationToken ct = default)
+    {
+        var errors = new FieldErrors();
+        name = name?.Trim() ?? "";
+        if (name.Length is 0 or > 100) errors["Name"] = "부서 이름을 1 ~ 100자로 써 주세요.";
+        if (!TimeZones.Contains(timeZoneId)) errors["TimeZoneId"] = "시간대를 골라 주세요.";
+        if (!ThemeColors.Contains(themeColor)) errors["ThemeColor"] = "정해 둔 색 중에서 골라 주세요.";
+        if (!errors.Ok) return errors;
+
+        await using var ctx = await OpenAsync(actor, ct);
+        var t = await ctx.Tenants.SingleAsync(x => x.Id == tenantId, ct);
+        (t.Name, t.TimeZoneId, t.ThemeColor) = (name, timeZoneId, themeColor);
+        await ctx.SaveChangesAsync(ct);
+        return errors;
+    }
+
     public async Task<string?> SetProgramsAsync(int actor, int tenantId, bool mission, bool reading, CancellationToken ct = default)
     {
         if (!mission && !reading) return "프로그램을 하나는 켜 주세요(R-150).";
@@ -119,6 +139,15 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         (t.MissionEnabled, t.ReadingEnabled) = (mission, reading);
         await ctx.SaveChangesAsync(ct);
         return null;
+    }
+
+    /// <summary>참여 신청 화면의 부서 목록에 보이기 켜기 · 끄기(0059).</summary>
+    public async Task SetJoinListedAsync(int actor, int tenantId, bool listed, CancellationToken ct = default)
+    {
+        await using var ctx = await OpenAsync(actor, ct);
+        var t = await ctx.Tenants.SingleAsync(x => x.Id == tenantId, ct);
+        t.JoinListed = listed;
+        await ctx.SaveChangesAsync(ct);
     }
 
     public async Task SetStatusAsync(int actor, int tenantId, string status, CancellationToken ct = default)

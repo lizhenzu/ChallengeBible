@@ -64,12 +64,37 @@
                         <span class="tags">
                             @if (t.MissionEnabled) { <span class="tag r-Participant">성경말씀</span> }
                             @if (t.ReadingEnabled) { <span class="tag r-Guardian">성경통독</span> }
+                            @if (t.JoinListed) { <span class="tag ok">목록</span> }
                             <span class="tag @(t.Status == TenantStatus.Active ? "" : "st")">@(t.Status == TenantStatus.Active ? "운영" : "정지")</span>
                         </span>
                         <span class="chev" aria-hidden="true">›</span>
                     </summary>
                     <div class="ed">
                         @if (open && Model.RowError is not null) { <p class="err" role="alert">@Model.RowError</p> }
+                        <form method="post" asp-page-handler="Info" class="basic">
+                            <input type="hidden" name="id" value="@t.Id" />
+                            <h3>기본 정보</h3>
+                            <div class="f"><label for="nm@(t.Id)">부서 이름</label>
+                                <input class="in sm" id="nm@(t.Id)" name="name" value="@t.Name" maxlength="100" />
+                                <p class="hint">참여 신청 목록 · 부서 고르기에 보이는 이름이에요.</p></div>
+                            <div class="f"><label>주소</label>
+                                <p class="ro">/@t.Slug</p>
+                                <p class="hint">만든 뒤에는 바꿀 수 없어요.</p></div>
+                            <div class="f"><label for="tz@(t.Id)">시간대</label>
+                                <select class="sel" id="tz@(t.Id)" name="timeZoneId">
+                                    @foreach (var z in ChallengeBible.Web.Services.PlatformTenantService.TimeZones) { <option value="@z" selected="@(t.TimeZoneId == z)">@z</option> }
+                                </select>
+                                <p class="hint">"오늘"을 정하는 기준이에요. 바꾸면 미션 날짜가 바뀌는 시각이 달라져요. 이미 남긴 기록은 그대로예요.</p></div>
+                            <div class="f"><label>대표 색</label>
+                                <div class="colors">
+                                    @foreach (var c in ChallengeBible.Web.Services.PlatformTenantService.ThemeColors)
+                                    {
+                                        <label class="sw" style="background:@TenantsModel.ColorVar(c)"><input type="radio" name="themeColor" value="@c" checked="@(t.ThemeColor == c)" aria-label="@TenantsModel.ColorLabel(c)" /></label>
+                                    }
+                                </div></div>
+                            <div class="bacts"><button type="submit" class="btn pf sm">기본 정보 저장</button>
+                                <span class="hint">서비스 이름(앱 이름)은 부서 관리자가 바꿔요.</span></div>
+                        </form>
                         <div class="grid2">
                             <form method="post" asp-page-handler="Programs">
                                 <input type="hidden" name="id" value="@t.Id" />
@@ -86,6 +111,15 @@
                                 <p class="code">@t.JoinCode</p>
                                 <button type="submit" class="btn s sm">새 코드로 바꾸기</button>
                                 <p class="hint">바꾸면 예전 코드로는 신청할 수 없어요. 이미 소속된 사람은 그대로예요.</p>
+                            </form>
+                            <form method="post" asp-page-handler="Listed">
+                                <input type="hidden" name="id" value="@t.Id" />@* bool 을 그대로 넣으면 Razor 가 속성을 지우거나 value="value" 로 바꾼다 — 글자로 넣는다 *@
+                                <input type="hidden" name="listed" value="@(t.JoinListed ? "false" : "true")" />
+                                <h3>참여 목록에 보이기</h3>
+                                <button type="submit" class="toggle" role="switch" aria-checked="@(t.JoinListed ? "true" : "false")" aria-label="참여 목록에 보이기">
+                                    <span class="tr" aria-hidden="true"></span>@(t.JoinListed ? "보임" : "숨김")
+                                </button>
+                                <p class="hint">켠 부서만 참여 신청 화면의 목록에 나와요. 숨겨도 부서 주소 · 코드로는 신청할 수 있어요.</p>
                             </form>
                             <div>
                                 <h3>부서 관리자</h3>
@@ -106,7 +140,7 @@
                             </div>
                             <div>
                                 <h3>정보</h3>
-                                <p class="info">주소 <b>/@t.Slug</b><br>시간대 @t.TimeZoneId · 만든 날 @t.CreatedUtc.ToString("yyyy.MM.dd")</p>
+                                <p class="info">만든 날 @t.CreatedUtc.ToString("yyyy.MM.dd")</p>
                             </div>
                         </div>
                         <div class="acts">

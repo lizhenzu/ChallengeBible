@@ -12,6 +12,12 @@ public static class Ui
         return (c - '가') % 28 == 0 ? "가" : "이";
     }
 
+    /// <summary>받침에 따라 "을" / "를".</summary>
+    public static string EulReul(string word) => IGa(word) == "가" ? "를" : "을";
+
+    /// <summary>받침에 따라 "은" / "는".</summary>
+    public static string EunNeun(string word) => IGa(word) == "가" ? "는" : "은";
+
     /// <summary>부서 표시 글자: 이름 마지막 낱말의 첫 글자(예: "잠실새내교회 유년부" → "유").</summary>
     public static string DeptMark(string name)
     {

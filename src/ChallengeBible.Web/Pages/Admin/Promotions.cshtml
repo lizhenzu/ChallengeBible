@@ -1,0 +1,108 @@
+@page "/{slug}/admin/promotions"
+@model ChallengeBible.Web.Pages.Admin.PromotionsModel
+@using ChallengeBible.Infrastructure.Data
+@using ChallengeBible.Web.Pages.Admin
+@using ChallengeBible.Web.Pages.Platform
+@* 확정 시안: 관리-진급-단독시안. 받는 쪽에는 이름 · 이메일 · 보낸 부서만 보인다(0030). 받는 부서 소속은 승인 때 생긴다(0058) *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var here = Model.Tenant.Current;
+    var waiting = Model.Rows.Where(r => r.Status == PromotionStatus.Pending).ToList();
+    var done = Model.Rows.Where(r => r.Status != PromotionStatus.Pending).ToList();
+    string Short(string n) => n.Length > 1 ? n[1..] : n;
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut"><div class="wrap wide">
+    <h1>진급</h1>
+    <p class="lead">학년이 올라간 아이를 다음 부서로 옮겨요. 받는 부서가 승인하면 옮겨지고, 보낸 부서의 점수 · 기록은 지워져요.</p>
+
+    @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
+
+    <nav class="seg" aria-label="받은 요청 · 보낸 요청">
+        <a href="?Tab=in" aria-current="@(Model.Tab == "in" ? "page" : "false")">받은 요청 <span class="num @(Model.ReceivedWaiting > 0 ? "c" : "")">@Model.ReceivedWaiting</span></a>
+        <a href="?Tab=out" aria-current="@(Model.Tab == "out" ? "page" : "false")">보낸 요청 <span class="num">@Model.SentWaiting</span></a>
+    </nav>
+
+    @if (waiting.Count == 0)
+    {
+        <div class="empty-box">@(Model.Tab == "in" ? "기다리는 진급 요청이 없어요." : "기다리는 요청이 없어요. 진급 보내기는 소속 관리에서 여러 명을 골라 할 수 있어요.")</div>
+    }
+    @foreach (var r in waiting)
+    {
+        <article class="req @(Model.Tab == "in" ? "pending" : "")">
+            <div class="who">
+                <span class="av">@Short(r.Name)</span>
+                <div><b>@r.Name</b><small>@r.Email</small></div>
+                <span class="tag w">기다리는 중</span>
+            </div>
+            @if (Model.Tab == "in")
+            {
+                <div class="route">
+                    <span class="deptchip"><i style="background:@TenantsModel.ColorVar(r.OtherColor)"></i>@r.OtherName</span><span class="ar" aria-hidden="true">→</span>
+                    <span class="deptchip"><i style="background:@TenantsModel.ColorVar(here.ThemeColor)"></i>@here.Name</span>
+                    <span class="meta">@Model.Day(r.RequestedUtc) 보냄</span>
+                </div>
+                <div class="warnbox">승인하면 <b>@(r.OtherName)의 점수 · 미션 기록 · 가족팀 자리 · 보호 관계가 지워지고</b> 여기서 새로 시작해요. 계정, 성경 읽음 표시 · 책갈피, 성경통독 진도는 그대로예요. 승인 전까지 지우는 일은 없어요.</div>
+                @if (Model.ErrorFor == r.Id && Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+                <form method="post" asp-page-handler="Approve" asp-route-slug="@slug" asp-route-Tab="in" class="stack">
+                    <input type="hidden" name="id" value="@r.Id" />
+                    <div class="ed2">
+                        <div><h3>여기서 줄 역할</h3>
+                            <div class="rl">
+                                @foreach (var role in PromotionApprover.AllowedRoles)
+                                {
+                                    <label><input type="checkbox" name="roles" value="@role" checked="@(role == Roles.Participant)" />@MembersModel.RoleLabel(role)</label>
+                                }
+                            </div>
+                        </div>
+                        <div><h3>반</h3><input class="sel" name="group" list="groups" placeholder="반 없음" maxlength="50" aria-label="반" /></div>
+                    </div>
+                    <details class="ask ok"><summary class="btn p sm">승인하고 받기</summary>
+                        <div class="askbox"><span>@(r.Name)@Ui.EulReul(r.Name) 받을까요? @(r.OtherName)의 점수 · 기록이 바로 지워져요.</span><button type="submit" class="btn p sm">받기</button></div>
+                    </details>
+                </form>
+                <details class="ask"><summary class="btn d sm">거절</summary>
+                    <form method="post" asp-page-handler="Reject" asp-route-slug="@slug" asp-route-Tab="in">
+                        <input type="hidden" name="id" value="@r.Id" />
+                        <span>거절할까요? @(r.Name)@Ui.EunNeun(r.Name) @(r.OtherName)에 그대로 남고, 그 부서의 "보낸 요청"에 거절됨으로 보여요.</span><button type="submit" class="btn dd sm">거절하기</button>
+                    </form>
+                </details>
+            }
+            else
+            {
+                <div class="route">
+                    <span class="deptchip"><i style="background:@TenantsModel.ColorVar(here.ThemeColor)"></i>@here.Name</span><span class="ar" aria-hidden="true">→</span>
+                    <span class="deptchip"><i style="background:@TenantsModel.ColorVar(r.OtherColor)"></i>@r.OtherName</span>
+                    <span class="meta">@Model.Day(r.RequestedUtc) 보냄 · 받는 부서가 승인하기 전까지 여기서 계속 미션을 해요</span>
+                </div>
+                @if (Model.ErrorFor == r.Id && Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+                <details class="ask"><summary class="btn d sm">요청 취소</summary>
+                    <form method="post" asp-page-handler="Cancel" asp-route-slug="@slug" asp-route-Tab="out">
+                        <input type="hidden" name="id" value="@r.Id" />
+                        <span>요청을 취소할까요? @(r.Name)@Ui.EunNeun(r.Name) 여기에 그대로 남아요.</span><button type="submit" class="btn dd sm">요청 취소</button>
+                    </form>
+                </details>
+            }
+        </article>
+    }
+
+    @if (done.Count > 0)
+    {
+        <h2 class="h2">처리한 요청</h2>
+        <ul class="hist">
+            @foreach (var r in done)
+            {
+                var route = Model.Tab == "in" ? $"{r.OtherName} → {here.Name}" : $"{here.Name} → {r.OtherName}";
+                var when = r.DecidedUtc is { } d ? $"{Model.Day(d)}{(r.DecidedBy is null ? "" : " " + r.DecidedBy)} {PromotionsModel.StatusLabel(r.Status).Replace("됨", "")}" : "";
+                <li>
+                    <span class="av">@Short(r.Name)</span>
+                    <span class="nm"><b>@r.Name</b><small>@route · @when</small></span>
+                    <span class="tag @(r.Status == PromotionStatus.Approved ? "ok" : "")">@PromotionsModel.StatusLabel(r.Status)</span>
+                    @if (Model.Tab == "in" && r.Status == PromotionStatus.Approved) { <a class="lnk" href="/@slug/admin/members?Tab=@MembershipStatus.Approved&Q=@Uri.EscapeDataString(r.Name)">소속 관리에서 보기 →</a> }
+                </li>
+            }
+        </ul>
+    }
+    @if (Model.Tab == "out") { <a class="btn s sm self-start" href="/@slug/admin/members?Tab=@MembershipStatus.Approved">소속 관리에서 진급 보내기 →</a> }
+    <datalist id="groups">@foreach (var g in Model.Groups) { <option value="@g"></option> }</datalist>
+</div></main>
