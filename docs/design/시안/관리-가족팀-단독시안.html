@@ -1,0 +1,275 @@
+<title>가족팀 관리 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/{slug}/admin/teams, R-90 ~ R-97 · 0012 · 0046): 관리 머리말 · 메뉴(가족팀) → 제목 · 숫자 상자(팀 · 팀 없는 참여자)
+     → 찾기 · 새 가족팀 → 팀 카드(이름 · 합계 · 구성원 칩) — 누르면 그 자리에서 편집(이름 · 메모 · 구성원 관계 · 순서 · 빼기 · 더하기, 축하 카드 숨기기, 팀 멈추기)
+     → 가족팀 없는 참여자(바로 팀 만들기). 기본 규칙 "가족팀" 스위치가 꺼지면 메뉴 · 화면이 숨는다(0012) */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --warn: #9A5B00; --warn-bg: #FFF4DE; --bad: #B42318; --bad-bg: #FDECEC;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  button, input, select, textarea { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a:focus-visible, button:focus-visible, summary:focus-visible, label:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+  .hd .t { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+  .hd .t small { font-size: 12px; color: var(--dim); }
+  .hd .t b { font-size: 17px; font-weight: 900; }
+  .hd .t b em { font-style: normal; color: var(--accent); }
+  .back { flex: none; min-height: 40px; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; font-weight: 700; }
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-bottom: -1px; }
+  nav.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); border-bottom: 3px solid transparent; }
+  nav.tabs a[aria-current] { color: var(--fg); border-color: var(--accent); }
+
+  main .wrap { padding-block: 20px 56px; display: flex; flex-direction: column; gap: 16px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  .lead { margin: -8px 0 0; font-size: 13.5px; color: var(--dim); }
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .stats div { padding: 14px; border-radius: 16px; background: var(--soft); display: flex; flex-direction: column; }
+  .stats small { font-size: 12.5px; color: var(--dim); }
+  .stats b { font-size: 24px; font-weight: 900; }
+  .stats b u { text-decoration: none; font-size: 13px; font-weight: 700; color: var(--dim); margin-left: 2px; }
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; }
+  .search { flex: 1 1 220px; min-width: 0; min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 15px; }
+  .btn { min-height: 44px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--line); background: var(--bg); }
+  .btn.p { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+  .btn.d { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, var(--line)); }
+  .btn.t { border: 0; background: none; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; padding: 0 6px; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  h2 { margin: 8px 0 0; font-size: 15px; font-weight: 800; display: flex; justify-content: space-between; align-items: baseline; }
+  h2 small { font-size: 13px; font-weight: 500; color: var(--dim); }
+
+  .teams { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .team { border: 1px solid var(--rule); border-radius: 18px; overflow: hidden; }
+  .team.off { opacity: .6; }
+  .team > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+  .team > summary::-webkit-details-marker { display: none; }
+  .team[open] > summary { border-bottom: 1px solid var(--rule); background: var(--soft); }
+  .tn { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+  .tn b { font-size: 16px; }
+  .tn b em { font-style: normal; font-size: 11.5px; font-weight: 700; color: var(--dim); margin-left: 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .chips span { font-size: 12px; padding: 1px 8px; border-radius: 99px; background: var(--accent-bg); color: var(--accent); font-weight: 700; }
+  .chips span.k { background: var(--soft); color: var(--dim); }
+  .tp { flex: none; text-align: right; line-height: 1.2; }
+  .tp b { font-size: 20px; font-weight: 900; color: var(--accent); }
+  .tp small { display: block; font-size: 11.5px; color: var(--dim); }
+  .chev { flex: none; color: var(--dim); font-size: 18px; transition: transform .15s; }
+  .team[open] .chev { transform: rotate(90deg); }
+
+  .ed { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+  .ed h3 { margin: 0 0 6px; font-size: 13px; color: var(--dim); font-weight: 800; }
+  .ed h3 span { font-weight: 500; }
+  .f2 { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 640px) { .f2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); } }
+  .in { width: 100%; box-sizing: border-box; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 15px; }
+  textarea.in { min-height: 44px; padding: 10px 12px; resize: vertical; }
+  .hint { margin: 4px 0 0; font-size: 12.5px; color: var(--dim); }
+  .mem { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; }
+  .mem li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; flex-wrap: wrap; }
+  .mem li + li { border-top: 1px solid var(--rule); }
+  .mem .av { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; font-size: 12.5px; font-weight: 800; color: var(--dim); }
+  .mem .nm { flex: 1 1 140px; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+  .mem .nm small { font-size: 12px; color: var(--dim); }
+  .mem select { min-height: 38px; padding: 0 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 14px; }
+  .mem .pt { flex: none; width: 56px; text-align: right; font-weight: 800; }
+  .mem .ord { flex: none; display: flex; gap: 2px; }
+  .mem .ord button { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); font-size: 13px; }
+  .add { display: flex; gap: 8px; flex-wrap: wrap; }
+  .add select { flex: 1 1 200px; min-width: 0; min-height: 44px; padding: 0 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 14px; }
+  .ms { display: flex; flex-direction: column; gap: 6px; }
+  .ms label { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px; background: var(--soft); font-size: 14px; cursor: pointer; }
+  .ms label input { accent-color: var(--accent); width: 18px; height: 18px; }
+  .ms label span { flex: 1; }
+  .ms label small { color: var(--dim); }
+  .acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .ask { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px; border-radius: 12px; background: var(--bad-bg); }
+  .ask span { flex: 1 1 220px; color: var(--bad); font-weight: 700; font-size: 14px; }
+
+  .solo { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 16px; overflow: hidden; }
+  .solo li { display: flex; align-items: center; gap: 10px; padding: 10px 14px; flex-wrap: wrap; }
+  .solo li + li { border-top: 1px solid var(--rule); }
+  .solo .nm { flex: 1 1 160px; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+  .solo .nm small { font-size: 12px; color: var(--dim); }
+  .solo .why { font-size: 12.5px; color: var(--warn); font-weight: 700; }
+
+  .dlg-scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.4); display: grid; place-items: end center; padding: 0 max(12px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
+  @media (min-width: 640px) { .dlg-scrim { place-items: center; } }
+  .dlg { width: 100%; max-width: 460px; background: var(--bg); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .dlg h2 { margin: 0; font-size: 18px; }
+  .picks { display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow: auto; }
+  .picks label { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 12px; cursor: pointer; font-size: 14px; }
+  .picks label:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); }
+  .picks label.no { opacity: .55; cursor: not-allowed; }
+  .picks label small { color: var(--dim); margin-left: auto; font-size: 12px; }
+  .note { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--soft); font-size: 12.5px; color: var(--dim); line-height: 1.7; }
+  .note b { color: var(--fg); }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; max-width: calc(100vw - 40px); overflow: hidden; text-overflow: ellipsis; }
+</style>
+
+<header class="gut">
+  <div class="wrap hd">
+    <div class="t"><small>잠실새내교회 유년부</small><b><em>도전!!!</em> 관리</b></div>
+    <a class="back" href="#">부서 홈으로</a>
+  </div>
+  <nav class="wrap tabs" aria-label="관리 메뉴">
+    <a href="#">관리 홈</a><a href="#">소속 관리</a><a href="#" aria-current="page">가족팀</a><a href="#">진급</a><a href="#">콘텐츠</a><a href="#">통독 현황</a><a href="#">시즌</a><a href="#">이름 · 색</a>
+  </nav>
+</header>
+
+<main class="gut"><div class="wrap">
+  <h1>가족팀</h1>
+  <p class="lead">가족이 함께 점수를 모으는 팀이에요. 팀 점수는 구성원 시즌 점수의 합이에요. 구성원은 이 부서의 참여자만, 한 사람은 한 팀에만 들어갈 수 있어요.</p>
+
+  <div class="stats">
+    <div><small>가족팀</small><b class="num" id="sTeams">0<u>팀</u></b></div>
+    <div><small>팀에 든 참여자</small><b class="num" id="sIn">0<u>명</u></b></div>
+    <div><small>팀 없는 참여자</small><b class="num" id="sSolo">0<u>명</u></b></div>
+  </div>
+
+  <div class="tools">
+    <input class="search" id="q" type="search" placeholder="가족 · 구성원 이름으로 찾기" aria-label="가족 · 구성원 이름으로 찾기">
+    <button type="button" class="btn p" id="newTeam">+ 새 가족팀</button>
+  </div>
+
+  <ul class="teams" id="teams"></ul>
+
+  <h2>가족팀 없는 참여자 <small id="soloN"></small></h2>
+  <ul class="solo" id="solo"></ul>
+  <p class="note"><b>부모님은 "가족과 함께할 부서"를 이 부서로 고른 분만 팀에 넣을 수 있어요(0046).</b> 다른 부서를 고른 부모님은 여기서는 보호자로 자녀 기록만 봐요.<br>팀에서 빼거나 팀을 멈춰도 그 사람의 점수 · 기록은 지워지지 않아요. 가족 축하 단계는 기본 규칙에서 정해요.</p>
+</div></main>
+
+<div class="dlg-scrim" id="dlg" hidden>
+  <section class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgT">
+    <h2 id="dlgT">새 가족팀</h2>
+    <div><h3 style="margin:0 0 6px;font-size:13px;color:var(--dim)">팀 이름 <span style="font-weight:500">· 비우면 "대표 학생 이름 + 가족"</span></h3><input class="in" id="dName" maxlength="50" placeholder="예: 김철수 가족"></div>
+    <div><h3 style="margin:0 0 6px;font-size:13px;color:var(--dim)">구성원 고르기 <span style="font-weight:500">· 관계는 만든 뒤에 고쳐요</span></h3><div class="picks" id="dPicks"></div></div>
+    <div class="acts"><button type="button" class="btn" data-close>취소</button><button type="button" class="btn p" id="dGo" disabled>만들기</button></div>
+  </section>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  // 예시(지어낸 이름). p = 올해 점수, kid = 학생, fam = 가족과 함께할 부서(부모만: here · other · none)
+  const P = [
+    { id: 1, n: '김철수', g: '사랑반', p: 324, kid: true }, { id: 2, n: '김영희', g: '', p: 298, kid: false, fam: 'here' }, { id: 3, n: '김대호', g: '', p: 210, kid: false, fam: 'here' },
+    { id: 4, n: '문하늘', g: '믿음반', p: 352, kid: true }, { id: 5, n: '문하람', g: '사랑반', p: 141, kid: true }, { id: 6, n: '문은혜', g: '', p: 260, kid: false, fam: 'here' },
+    { id: 7, n: '서하준', g: '소망반', p: 118, kid: true }, { id: 8, n: '서믿음', g: '', p: 96, kid: false, fam: 'here' },
+    { id: 9, n: '윤사랑', g: '사랑반', p: 205, kid: true }, { id: 10, n: '최민준', g: '믿음반', p: 187, kid: true }, { id: 11, n: '정하늘', g: '소망반', p: 64, kid: true },
+    { id: 12, n: '오성민', g: '', p: 0, kid: false, fam: 'other' }, { id: 13, n: '한지우', g: '믿음반', p: 12, kid: true },
+  ];
+  const REL = [['Student', '학생'], ['Mother', '엄마'], ['Father', '아빠'], ['Grandmother', '할머니'], ['Grandfather', '할아버지'], ['Other', '기타']];
+  const MS = [[1000, '첫 가족 축하', 'AWARD'], [2000, '박수', 'APPLAUSE'], [3000, '가족 축하', 'AWARD'], [4000, '박수', 'APPLAUSE'], [5000, '큰 가족 축하', 'AWARD']];
+  let T = [
+    { id: 1, name: '', memo: '', on: true, m: [[1, 'Student'], [2, 'Mother'], [3, 'Father']], hide: [] },
+    { id: 2, name: '하늘 하람네', memo: '형제가 반이 달라요', on: true, m: [[4, 'Student'], [5, 'Student'], [6, 'Mother']], hide: [] },
+    { id: 3, name: '', memo: '', on: true, m: [[7, 'Student'], [8, 'Mother']], hide: [] },
+  ];
+  let open = 1, ask = null, nextId = 4;
+  const p = (id) => P.find((x) => x.id === id);
+  const rel = (k) => REL.find((r) => r[0] === k)[1];
+  const short = (n) => n.length > 2 ? n.slice(1) : n;
+  const inTeam = () => new Set(T.filter((t) => t.on).flatMap((t) => t.m.map((x) => x[0])));
+  const teamName = (t) => t.name || ((t.m.find((x) => x[1] === 'Student') ? p(t.m.find((x) => x[1] === 'Student')[0]).n : (t.m[0] ? p(t.m[0][0]).n : '새')) + ' 가족');
+  const sum = (t) => t.m.reduce((s, x) => s + p(x[0]).p, 0);
+  const why = (x) => x.kid ? '' : x.fam === 'other' ? '다른 부서를 가족 부서로 골랐어요' : x.fam === 'none' ? '가족 부서를 아직 안 골랐어요' : '';
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2600); }
+
+  function teamHtml(t) {
+    const s = sum(t), reached = MS.filter((m) => s >= m[0]);
+    const free = P.filter((x) => !inTeam().has(x.id) && !why(x));
+    const ed = open === t.id ? `<div class="ed">
+      <div class="f2">
+        <div><h3>팀 이름 <span>· 비우면 "${teamName({ ...t, name: '' })}"</span></h3><input class="in" data-f="name" value="${t.name}" maxlength="50" placeholder="${teamName({ ...t, name: '' })}"></div>
+        <div><h3>메모 <span>· 관리자만 봐요</span></h3><textarea class="in" data-f="memo" maxlength="500" rows="1">${t.memo}</textarea></div>
+      </div>
+      <div><h3>구성원 <span>· 순서는 팀 카드 · 홈 화면에 보이는 순서</span></h3>
+        <ul class="mem">${t.m.map(([id, r], i) => { const x = p(id); return `<li>
+          <span class="av">${short(x.n)}</span><span class="nm"><b>${x.n}</b><small>${x.g || '반 없음'}</small></span>
+          <select data-rel="${i}" aria-label="${x.n} 관계">${REL.map(([k, v]) => `<option value="${k}" ${k === r ? 'selected' : ''}>${v}</option>`).join('')}</select>
+          <span class="pt num">${x.p}점</span>
+          <span class="ord"><button type="button" data-up="${i}" aria-label="위로" ${i === 0 ? 'disabled' : ''}>↑</button><button type="button" data-dn="${i}" aria-label="아래로" ${i === t.m.length - 1 ? 'disabled' : ''}>↓</button></span>
+          <button type="button" class="btn t" data-rm="${i}">빼기</button></li>`; }).join('')}</ul>
+        <div class="add" style="margin-top:8px"><select id="addSel" aria-label="더할 사람">${free.length ? free.map((x) => `<option value="${x.id}">${x.n} · ${x.kid ? (x.g || '반 없음') : '보호자'}</option>`).join('') : '<option value="">팀 없는 참여자가 없어요</option>'}</select><button type="button" class="btn" id="addGo" ${free.length ? '' : 'disabled'}>구성원 더하기</button></div>
+      </div>
+      <div><h3>가족 축하 카드 <span>· 넘은 단계 중 홈 화면 축하 카드를 숨길 것(R-97)</span></h3>
+        ${reached.length ? `<div class="ms">${reached.map((m) => `<label><input type="checkbox" data-hide="${m[0]}" ${t.hide.includes(m[0]) ? 'checked' : ''}><span>${m[0].toLocaleString()}점 · ${m[1]}</span><small>${m[2] === 'AWARD' ? '축하 + 보상' : '박수'}</small></label>`).join('')}</div>` : '<p class="hint">아직 넘은 가족 단계가 없어요. 첫 축하는 1,000점이에요.</p>'}
+      </div>
+      <div class="acts"><button type="button" class="btn p" data-save>저장</button>
+        ${ask === t.id ? `<div class="ask" style="flex:1 1 100%"><span>${teamName(t)}을(를) 멈출까요? 순위 · 홈 화면에서 팀이 사라지고 구성원은 다른 팀에 들어갈 수 있어요. 점수는 지우지 않아요.</span><button type="button" class="btn" data-no>아니요</button><button type="button" class="btn d" data-off>멈추기</button></div>`
+          : t.on ? '<button type="button" class="btn d" data-ask>팀 멈추기</button>' : '<button type="button" class="btn" data-on>다시 켜기</button>'}</div>
+    </div>` : '';
+    return `<li><details class="team ${t.on ? '' : 'off'}" data-id="${t.id}" ${open === t.id ? 'open' : ''}><summary>
+      <span class="tn"><b>${teamName(t)}${t.on ? '' : '<em>멈춤</em>'}</b><span class="chips">${t.m.map(([id, r]) => `<span class="${r === 'Student' ? '' : 'k'}">${rel(r)} ${p(id).n}</span>`).join('')}</span></span>
+      <span class="tp"><b class="num">${s.toLocaleString()}</b><small>올해 점수 · ${t.m.length}명</small></span><span class="chev" aria-hidden="true">›</span></summary>${ed}</details></li>`;
+  }
+  function draw() {
+    const q = $('q').value.trim();
+    const shown = T.filter((t) => !q || teamName(t).includes(q) || t.m.some(([id]) => p(id).n.includes(q)));
+    $('teams').innerHTML = shown.length ? shown.map(teamHtml).join('') : '<li class="hint" style="padding:16px;text-align:center">찾는 가족이 없어요.</li>';
+    const ins = inTeam(), solo = P.filter((x) => !ins.has(x.id));
+    $('sTeams').innerHTML = `${T.filter((t) => t.on).length}<u>팀</u>`; $('sIn').innerHTML = `${ins.size}<u>명</u>`; $('sSolo').innerHTML = `${solo.length}<u>명</u>`;
+    $('soloN').textContent = `${solo.length}명`;
+    $('solo').innerHTML = solo.map((x) => `<li><span class="nm"><b>${x.n}</b><small>${x.kid ? (x.g || '반 없음') + ' · 올해 ' + x.p + '점' : '보호자 · 참여자'}</small></span>${why(x) ? `<span class="why">${why(x)}</span>` : `<button type="button" class="btn" data-start="${x.id}">이 사람으로 팀 만들기</button>`}</li>`).join('');
+  }
+  $('q').addEventListener('input', draw);
+  $('teams').addEventListener('click', (e) => {
+    const sum_ = e.target.closest('summary'); const det = e.target.closest('.team'); if (!det) return;
+    const t = T.find((x) => x.id === +det.dataset.id);
+    if (sum_) { e.preventDefault(); open = open === t.id ? null : t.id; ask = null; return draw(); }
+    const b = e.target.closest('button'); if (!b) return;
+    const d = b.dataset;
+    if (d.up) { const i = +d.up; [t.m[i - 1], t.m[i]] = [t.m[i], t.m[i - 1]]; }
+    if (d.dn) { const i = +d.dn; [t.m[i + 1], t.m[i]] = [t.m[i], t.m[i + 1]]; }
+    if (d.rm) { const x = p(t.m[+d.rm][0]); t.m.splice(+d.rm, 1); toast(`${x.n}을(를) 팀에서 뺐어요 · 점수는 그대로예요`); }
+    if (b.id === 'addGo') { const id = +$('addSel').value; if (!id) return; const x = p(id); t.m.push([id, x.kid ? 'Student' : 'Mother']); toast(`${x.n}을(를) 더했어요 · 관계를 확인해 주세요`); }
+    if ('save' in d) { t.name = det.querySelector('[data-f=name]').value.trim(); t.memo = det.querySelector('[data-f=memo]').value.trim(); toast('저장했어요'); }
+    if ('ask' in d) ask = t.id;
+    if ('no' in d) ask = null;
+    if ('off' in d) { t.on = false; ask = null; toast(`${teamName(t)}을(를) 멈췄어요`); }
+    if ('on' in d) { if (t.m.some(([id]) => inTeam().has(id))) return toast('다른 팀에 들어간 구성원이 있어 다시 켤 수 없어요'); t.on = true; toast('팀을 다시 켰어요'); }
+    draw();
+  });
+  $('teams').addEventListener('change', (e) => {
+    const det = e.target.closest('.team'); const t = T.find((x) => x.id === +det.dataset.id);
+    if (e.target.dataset.rel) t.m[+e.target.dataset.rel][1] = e.target.value;
+    if (e.target.dataset.hide) { const v = +e.target.dataset.hide; t.hide = e.target.checked ? [...t.hide, v] : t.hide.filter((x) => x !== v); toast(e.target.checked ? '이 단계 축하 카드를 홈에서 숨겨요' : '축하 카드를 다시 보여요'); return; }
+    draw();
+  });
+  function openDlg(first) {
+    $('dName').value = '';
+    const ins = inTeam();
+    $('dPicks').innerHTML = P.filter((x) => !ins.has(x.id)).map((x) => `<label class="${why(x) ? 'no' : ''}"><input type="checkbox" value="${x.id}" ${x.id === first ? 'checked' : ''} ${why(x) ? 'disabled' : ''}>${x.n}<small>${why(x) || (x.kid ? x.g || '반 없음' : '보호자')}</small></label>`).join('');
+    $('dGo').disabled = !first; $('dlg').hidden = false;
+  }
+  $('newTeam').onclick = () => openDlg(null);
+  $('solo').addEventListener('click', (e) => { const b = e.target.closest('[data-start]'); if (b) openDlg(+b.dataset.start); });
+  $('dPicks').addEventListener('change', () => { $('dGo').disabled = !$('dPicks').querySelector('input:checked'); });
+  $('dlg').addEventListener('click', (e) => { if (e.target === $('dlg') || e.target.closest('[data-close]')) $('dlg').hidden = true; });
+  $('dGo').onclick = () => {
+    const ids = [...$('dPicks').querySelectorAll('input:checked')].map((i) => +i.value);
+    const t = { id: nextId++, name: $('dName').value.trim(), memo: '', on: true, m: ids.map((id) => [id, p(id).kid ? 'Student' : 'Mother']), hide: [] };
+    T.push(t); open = t.id; $('dlg').hidden = true; draw(); toast(`${teamName(t)}을(를) 만들었어요 · 관계를 확인해 주세요`);
+  };
+  draw();
+</script>

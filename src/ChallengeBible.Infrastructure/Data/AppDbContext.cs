@@ -51,6 +51,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<ChapterProgress> ChapterProgresses => Set<ChapterProgress>();
     public DbSet<SearchLog> SearchLogs => Set<SearchLog>();
 
+    public DbSet<FamilyTeam> FamilyTeams => Set<FamilyTeam>();
+    public DbSet<FamilyMember> FamilyMembers => Set<FamilyMember>();
+    public DbSet<FamilyMilestoneReached> FamilyMilestonesReached => Set<FamilyMilestoneReached>();
+    public DbSet<FamilyMilestoneDismiss> FamilyMilestoneDismisses => Set<FamilyMilestoneDismiss>();
+
     public DbSet<PromotionRequest> PromotionRequests => Set<PromotionRequest>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<PlatformRuleSetVersion> PlatformRuleSetVersions => Set<PlatformRuleSetVersion>();
