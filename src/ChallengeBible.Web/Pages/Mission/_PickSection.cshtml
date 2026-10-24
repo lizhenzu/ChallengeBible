@@ -14,7 +14,7 @@
         {
             var done = d.Done.Contains(item.Item);
             <button type="button" class="pick" data-item="@item.Item.Code()" aria-pressed="@(done ? "true" : "false")" disabled="@(!p.CanAct || done)">
-                <span class="ck" aria-hidden="true">✓</span><b>@item.DisplayName</b><span class="pt">@(done ? "완료 · " : "")@(item.Points)점</span>
+                <b>@item.DisplayName</b><span class="pt">@(done ? "완료 · " : "")@(item.Points)점</span>
             </button>
         }
     </div>
