@@ -10,7 +10,7 @@ namespace ChallengeBible.Web.Pages.Mission;
 /// `from=word|prayer|recite` + `date` 로 열면 그날 미션의 구절을, 아니면 `book · sc · sv · ec · ev` 로 지정한 구절을 보여 준다.
 /// 읽음 · 책갈피(R-112) · 듣기 · 책 개요(R-116)는 해당 표가 생기는 다음 단계에서 붙인다.
 /// </summary>
-public class ReadModel(MissionService missions, TenantContext tenant, BibleTextService bible, BibleMarkService marks) : MissionPageBase(missions, tenant)
+public class ReadModel(MissionService missions, TenantContext tenant, BibleTextService bible, BibleMarkService marks, BibleNoteService notes) : MissionPageBase(missions, tenant)
 {
     public override string Title => "성경 읽기";
 
@@ -53,10 +53,16 @@ public class ReadModel(MissionService missions, TenantContext tenant, BibleTextS
         if (Unit is not (0 or 1 or 3 or 5)) Unit = 0;
         if (Ref is { IsValid: true } r)
         {
-            Slice = BibleTextService.Slice(await bible.RangeAsync(r, Shown, ct), Unit, PageNo);
+            var all = await bible.RangeAsync(r, Shown, ct);
+            Slice = BibleTextService.Slice(all, Unit, PageNo);
             Marks = await marks.MarksAsync(r, ct);   // 읽음 · 책갈피는 범위 전체를 읽어 진도에 쓴다(R-112)
+            if (all.Count > 0) Notes = BibleNoteService.Place(await notes.ForRangeAsync(r, ct), r, all);   // 해설 카드(R-118)
         }
     }
+
+    /// <summary>절(장, 절) 위에 그릴 해설 카드. 카드는 절 기능(읽음 · 책갈피)과 절 순서에 끼지 않는다.</summary>
+    public IReadOnlyDictionary<(short Chapter, short Verse), IReadOnlyList<BibleNote>> Notes { get; private set; } =
+        new Dictionary<(short Chapter, short Verse), IReadOnlyList<BibleNote>>();
 
     public VerseMarks Marks { get; private set; } = new(new HashSet<(short, short)>(), new HashSet<(short, short)>());
     public int ReadCount => Marks.Read.Count;

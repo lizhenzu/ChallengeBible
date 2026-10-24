@@ -54,6 +54,17 @@
             {
                 var read = Model.Marks.Read.Contains((line.Chapter, line.Verse));
                 var star = Model.Marks.Bookmarked.Contains((line.Chapter, line.Verse));
+                if (Model.Notes.TryGetValue((line.Chapter, line.Verse), out var notes))
+                {
+                    foreach (var n in notes)
+                    {
+                        <aside class="brd-ex" aria-label="해설 @n.Range">
+                            <p class="hd"><span class="tag">해설</span><span class="rg">@n.Range</span></p>
+                            @if (n.Title is not null) { <strong>@n.Title</strong> }
+                            @if (n.Body is not null) { <p class="bd">@n.Body</p> }
+                        </aside>
+                    }
+                }
                 <div class="vr@(read ? " read" : "")@(star ? " bm" : "")" data-ch="@line.Chapter" data-v="@line.Verse">
                     <span class="vn num">@(r.StartChapter == r.EndChapter ? line.Verse.ToString() : $"{line.Chapter}:{line.Verse}")</span>
                     <span class="vt">
