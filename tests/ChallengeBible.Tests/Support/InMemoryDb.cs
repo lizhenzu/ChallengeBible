@@ -18,6 +18,10 @@ public sealed class InMemoryDb(string name, RequestScope scope) : IAppDb
 
     public static string NewName() => "cb-" + Guid.NewGuid().ToString("N");
 
+    /// <summary>규칙 읽기(ADR 0060). 규칙 표는 플랫폼 표라 영역 없이 읽는다. 테스트마다 새 기억 칸.</summary>
+    public static ChallengeBible.Web.Services.RuleService Rules(string name) =>
+        new(new InMemoryDb(name, new RequestScope()), new Microsoft.Extensions.Caching.Memory.MemoryCache(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions()));
+
     public static Account SeedAccount(string name, string email, string displayName, int? familyTenantId = null)
     {
         using var db = Raw(name);

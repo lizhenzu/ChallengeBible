@@ -32,7 +32,7 @@ public class HomeModel(MissionService missions, TenantContext tenant) : MissionP
     protected override async Task LoadMoreAsync(CancellationToken ct)
     {
         Week = ParticipantId is int p ? await Missions.RecentDaysAsync(p, Day, ct) : [];
-        NextMilestone = MissionService.NextMilestone(Data!.SeasonPoints);
+        NextMilestone = MissionService.NextMilestone(Data!.Rules, Data.SeasonPoints);
         SeasonStart = await Missions.SeasonStartAsync(Data.Today.Year, ct);
 
         FirstOfMonth = DateOnly.TryParseExact(Month + "-01", "yyyy-MM-dd", out var m) ? m : new DateOnly(Day.Year, Day.Month, 1);

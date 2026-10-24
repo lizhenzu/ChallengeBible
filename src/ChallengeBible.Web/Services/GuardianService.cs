@@ -14,7 +14,7 @@ public sealed record DayLogLine(DateTime AtUtc, Mission Mission, string What, in
 /// 보호자 화면(R-132, 1차로 당김): 이 부서에서 나와 연결된 자녀만 본다. 보기만 한다.
 /// 연결 여부를 서버에서 먼저 확인한 뒤에만 자녀 기록을 읽는다.
 /// </summary>
-public sealed class GuardianService(IAppDb db, TenantContext tenant)
+public sealed class GuardianService(IAppDb db, TenantContext tenant, RuleService ruleService)
 {
     public async Task<List<ChildRow>> ChildrenAsync(CancellationToken ct = default)
     {
@@ -43,7 +43,7 @@ public sealed class GuardianService(IAppDb db, TenantContext tenant)
     {
         if (!await IsMyChildAsync(participantId, ct)) return [];
         await using var ctx = db.Create();
-        var rules = RuleSet.Default;
+        var rules = await ruleService.ForDateAsync(date, ct);   // 그날 적용된 항목 이름(ADR 0060)
         var acts = await ctx.Activities.Where(a => a.ParticipantId == participantId && a.MissionDate == date)
             .Select(a => new { a.PerformedUtc, a.MissionItem, a.Points }).ToListAsync(ct);
         var wrong = await ctx.QuizAttempts.Where(q => q.ParticipantId == participantId && q.MissionDate == date && !q.IsCorrect)

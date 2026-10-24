@@ -37,7 +37,7 @@ public class MissionServiceTests
         scope.SetTenant(t.Id);
         var ctx = new TenantContext();
         ctx.Set(t, null);
-        return new MissionService(new InMemoryDb(_db, scope), ctx, new TenantClock(_time), _time);
+        return new MissionService(new InMemoryDb(_db, scope), ctx, new TenantClock(_time), _time, InMemoryDb.Rules(_db));
     }
 
     private int Ledger() { using var raw = InMemoryDb.Raw(_db); return raw.PointLedgers.Sum(l => l.Points); }

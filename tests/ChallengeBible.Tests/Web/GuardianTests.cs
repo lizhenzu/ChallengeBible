@@ -82,7 +82,7 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal(MemberError.None, await Admin().LinkGuardianAsync(_admin.Id, mom.Id, cheolsu.Id));
 
         var (ctx, scope) = In(mom);
-        var svc = new GuardianService(new InMemoryDb(_db, scope), ctx);
+        var svc = new GuardianService(new InMemoryDb(_db, scope), ctx, InMemoryDb.Rules(_db));
         Assert.Equal(["김철수"], (await svc.ChildrenAsync()).Select(c => c.Name));
         Assert.True(await svc.IsMyChildAsync(pid));
         Assert.False(await svc.IsMyChildAsync(otherPid));
@@ -97,14 +97,14 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
         await Admin().LinkGuardianAsync(_admin.Id, mom.Id, cheolsu.Id);
 
         var (kctx, kscope) = In(cheolsu);
-        var missions = new MissionService(new InMemoryDb(_db, kscope), kctx, new TenantClock(_time), _time);
+        var missions = new MissionService(new InMemoryDb(_db, kscope), kctx, new TenantClock(_time), _time, InMemoryDb.Rules(_db));
         await missions.PressAsync(pid, MissionItem.WordMe, Jan5);
         int wrong;
         using (var raw = InMemoryDb.Raw(_db)) wrong = raw.DailyQuizChoices.First(c => c.Id != raw.DailyQuizzes.Single().CorrectChoiceId).Id;
         await missions.AnswerQuizAsync(pid, Jan5, wrong, null);
 
         var (ctx, scope) = In(mom);
-        var log = await new GuardianService(new InMemoryDb(_db, scope), ctx).DayLogAsync(pid, Jan5);
+        var log = await new GuardianService(new InMemoryDb(_db, scope), ctx, InMemoryDb.Rules(_db)).DayLogAsync(pid, Jan5);
         Assert.Contains(log, l => l.What == "혼자 읽었어요" && l.Points == 1);
         Assert.Contains(log, l => l.What == "오답 · 1번째 도전" && l.Points == 0);
     }

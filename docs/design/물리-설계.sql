@@ -62,6 +62,7 @@ CREATE TABLE app.PlatformRuleSetVersion (
     Id                  int IDENTITY  NOT NULL CONSTRAINT PK_PlatformRuleSetVersion PRIMARY KEY,
     VersionNo           int           NOT NULL CONSTRAINT UQ_PlatformRuleSetVersion_No UNIQUE,
     [Values]            nvarchar(max) NOT NULL CONSTRAINT CK_PlatformRuleSetVersion_Values CHECK (ISJSON([Values]) = 1),
+    EffectiveFrom       date          NOT NULL,     -- 0060: 이 날부터 적용(내일 · 다음 주 시작일). 그날 규칙 = 시작일이 지난 버전 중 번호가 가장 큰 것
     ChangedUtc          datetime2(3)  NOT NULL,
     ChangedByAccountId  int           NOT NULL CONSTRAINT FK_PlatformRuleSetVersion_Account REFERENCES app.Account(Id)
 );

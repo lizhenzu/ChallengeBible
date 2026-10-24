@@ -40,6 +40,8 @@ builder.Services.AddScoped<SeasonService>();
 builder.Services.AddScoped<ContentCalendarService>();
 builder.Services.AddScoped<PlatformHomeService>();
 builder.Services.AddScoped<PlatformAccountService>();
+builder.Services.AddScoped<RuleService>();
+builder.Services.AddScoped<PlatformRuleService>();
 // 해설 표(dbo.eBibleSummary)는 읽기만 한다(ADR 0056): 읽기 전용 계정(BibleNote)이 있으면 그것으로 접속한다.
 var bibleNoteConnection = builder.Configuration.GetConnectionString("BibleNote") ?? connectionString;
 builder.Services.AddSingleton(sp => new BibleNoteService(bibleNoteConnection, sp.GetRequiredService<ILogger<BibleNoteService>>()));

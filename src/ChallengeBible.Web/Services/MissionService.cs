@@ -40,10 +40,13 @@ public sealed record MissionResult(bool Ok, int Added, int SeasonPoints, IReadOn
 /// 그날 콘텐츠(공개 · 현재 개정, 덮어쓰기 우선 R-120), 하루 · 항목 1건(R-21 · R-61), 암송 주 1회(R-51).
 /// 점수는 수행 기록과 원장에 그때 점수로 남긴다(R-63 · R-64).
 /// </summary>
-public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock clock, TimeProvider time)
+public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock clock, TimeProvider time, RuleService ruleService)
 {
-    // 1차는 플랫폼 기본 규칙 하나(06 문서). 규칙 버전 표가 생기면 여기서 읽는다.
-    private static RuleSet Rules => RuleSet.Default;
+    // 1차는 플랫폼 기본 규칙(모든 부서 같음). 미션 날짜에 적용되는 버전을 그 요청 처음에 읽는다(ADR 0060).
+    // 주 시작 요일은 1차에 바꾸지 않으므로 날짜를 모르는 곳(달력 · 이어온 날)도 같은 값을 쓴다.
+    private RuleSet Rules { get; set; } = RuleSet.Default;
+
+    private async Task UseRulesForAsync(DateOnly date, CancellationToken ct) => Rules = await ruleService.ForDateAsync(date, ct);
 
     public DateOnly Today => clock.Today(tenant.Current.TimeZoneId);
 
@@ -63,6 +66,7 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
 
     public async Task<MissionDay> GetDayAsync(int participantId, DateOnly date, CancellationToken ct = default)
     {
+        await UseRulesForAsync(date, ct);
         var today = Today;
         await using var ctx = db.Create();
         var season = await SeasonAsync(ctx, date.Year, ct);
@@ -115,7 +119,7 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
     /// 그날의 암송(0052): 그 주의 내 부서 암송이 있으면 그것, 없으면 그해 몇째 주인지로 공용 암송.
     /// 부서 암송은 실제 날짜라 해가 바뀌면 저절로 공용으로 돌아간다.
     /// </summary>
-    private static async Task<(WeeklyVerse? Verse, Week Week)> VerseAsync(AppDbContext ctx, DateOnly date, CancellationToken ct)
+    private async Task<(WeeklyVerse? Verse, Week Week)> VerseAsync(AppDbContext ctx, DateOnly date, CancellationToken ct)
     {
         var week = Week.Of(date, Rules.WeekStart);
         var mine = await Current(ctx.WeeklyVerses.Where(v => v.TenantId != null && v.StartDate == week.Start)).FirstOrDefaultAsync(ct);
@@ -144,6 +148,7 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
     public async Task<MissionResult> PressAsync(int participantId, MissionItem item, DateOnly date, CancellationToken ct = default)
     {
         if (item == MissionItem.QuizCorrect) throw new ArgumentException("퀴즈는 AnswerQuizAsync 로 해요.", nameof(item));
+        await UseRulesForAsync(date, ct);
         var today = Today;
         await using var ctx = db.Create();
         var season = await SeasonAsync(ctx, date.Year, ct);
@@ -183,6 +188,7 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
     /// <summary>퀴즈 답하기(R-40 ~ R-44). 정답 판정은 서버에서 저장된 정답과 비교한다.</summary>
     public async Task<MissionResult> AnswerQuizAsync(int participantId, DateOnly date, int? choiceId, string? text, CancellationToken ct = default)
     {
+        await UseRulesForAsync(date, ct);
         var today = Today;
         await using var ctx = db.Create();
         var season = await SeasonAsync(ctx, date.Year, ct);
@@ -301,7 +307,7 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
     }
 
     /// <summary>다음 축하 단계까지 남은 점수(없으면 null).</summary>
-    public static int? NextMilestone(int seasonPoints) => Rules.Milestones.Where(m => m > seasonPoints).Order().Cast<int?>().FirstOrDefault();
+    public static int? NextMilestone(RuleSet rules, int seasonPoints) => rules.Milestones.Where(m => m > seasonPoints).Order().Cast<int?>().FirstOrDefault();
 
     public async Task<DateOnly> SeasonStartAsync(int year, CancellationToken ct = default)
     {

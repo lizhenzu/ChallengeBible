@@ -1483,6 +1483,46 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("Participant", "app");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.PlatformRuleSetVersion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ChangedByAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ChangedUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateOnly>("EffectiveFrom")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Values")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Values");
+
+                    b.Property<int>("VersionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id")
+                        .HasName("PK_PlatformRuleSetVersion");
+
+                    b.HasIndex("ChangedByAccountId");
+
+                    b.HasIndex("VersionNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_PlatformRuleSetVersion_No");
+
+                    b.ToTable("PlatformRuleSetVersion", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_PlatformRuleSetVersion_Values", "ISJSON([Values]) = 1");
+                        });
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.PointLedger", b =>
                 {
                     b.Property<long>("Id")
@@ -2361,6 +2401,16 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_Participant_Membership");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.PlatformRuleSetVersion", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                        .WithMany()
+                        .HasForeignKey("ChangedByAccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_PlatformRuleSetVersion_Account");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.PointLedger", b =>

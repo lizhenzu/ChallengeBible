@@ -115,7 +115,7 @@ public class ContentAdminServiceTests
         scope.SetTenant(kids.Id);
         var tctx = new TenantContext();
         tctx.Set(kids, null);
-        var missions = new MissionService(new InMemoryDb(_db, scope), tctx, new TenantClock(_time), _time);
+        var missions = new MissionService(new InMemoryDb(_db, scope), tctx, new TenantClock(_time), _time, InMemoryDb.Rules(_db));
         Assert.Equal(1, (await missions.AnswerQuizAsync(pid, Jan5, correct, null)).Added);
     }
 

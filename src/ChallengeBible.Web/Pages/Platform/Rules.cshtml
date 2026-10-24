@@ -1,0 +1,141 @@
+@page "/platform/rules"
+@model ChallengeBible.Web.Pages.Platform.RulesModel
+@using ChallengeBible.Domain.Rules
+@using ChallengeBible.Web.Pages.Platform
+@using ChallengeBible.Web.Services
+@* 확정 시안: 플랫폼-기본규칙-단독시안 — 지금 버전 띠 → 날짜 · 인정 기간 → 미션 항목 → 퀴즈 → 축하 단계 → 가족 단계 → 기능 → 버전 기록, 아래 띠: 바뀐 점 · 적용 시작 · 새 버전으로 저장 *@
+@{
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+    var latest = Model.Latest;
+    var cur = latest.Rules;
+    var f = Model.Form;
+    string Changed(bool c) => c ? " changed" : "";
+}
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap wide pr">
+    <h1>기본 규칙</h1>
+    <div class="pr-ver">
+        <b class="v">v@(Model.AppliedNo)</b><span>지금 적용 중@(Model.AppliedNo > 1 ? $" · {Model.Versions.Single(v => v.VersionNo == Model.AppliedNo).EffectiveFrom.ToString("yyyy년 M월 d일", ko)}부터" : " · 처음 값")</span>
+        @if (latest.VersionNo != Model.AppliedNo) { <span class="soon">v@(latest.VersionNo)은 @latest.EffectiveFrom.ToString("M월 d일", ko)부터 적용돼요</span> }
+        <span>· 이 값을 쓰는 성경말씀 부서 <b class="num">@(Model.MissionTenants)곳</b> (1차는 모든 부서가 기본 규칙을 써요. 부서별 바꾸기는 2차)</span>
+    </div>
+    @if (Model.Ok is { } ok) { <p class="okmsg" role="status">@(ok)로 저장했어요 · 적용 시작일부터 미션 점수에 쓰여요. 이미 쌓인 점수는 그대로예요.</p> }
+
+    <form method="post" class="pr-form">
+        <section class="pr-card" aria-labelledby="h1">
+            <h2 id="h1">날짜</h2>
+            <div class="row"><div class="l"><b>주 시작 요일</b><small>암송 · 이번 주 점수가 이 요일에 새로 시작해요. 1차에는 바꾸지 않아요(암송 주 번호가 어긋나요).</small></div>
+                <select class="sel" disabled aria-label="주 시작 요일"><option>@(cur.WeekStart == DayOfWeek.Sunday ? "일요일" : cur.WeekStart.ToString())</option></select></div>
+            <div class="row"><div class="l"><b>인정 기간</b><small>오늘 포함 며칠 전까지 미션을 할 수 있나요 (1 ~ 7일)</small></div>
+                <div class="pr-seg@(Changed(f.GraceDays != cur.GraceDays))" role="radiogroup" aria-label="인정 기간">
+                    @for (var n = 1; n <= 7; n++) { <label><input type="radio" name="Form.GraceDays" value="@n" checked="@(f.GraceDays == n)" /><span class="num">@n</span></label> }
+                </div></div>
+        </section>
+
+        <section class="pr-card" aria-labelledby="h2">
+            <h2 id="h2">미션 항목 <small>미션마다 하나는 켜 둬야 해요 (ADR 0032)</small></h2>
+            <div class="pr-tbl"><table>
+                <thead><tr><th>미션</th><th>사용</th><th>아이에게 보이는 이름</th><th>점수</th><th>키</th></tr></thead>
+                <tbody>
+                @for (var i = 0; i < f.Items.Count; i++)
+                {
+                    var it = f.Items[i];
+                    var item = MissionItemCodes.Parse(it.Code);
+                    var b = cur.Item(item);
+                    <tr>
+                        <td class="k">@RulesModel.MissionLabel(item)<input type="hidden" name="Form.Items[@i].Code" value="@it.Code" /></td>
+                        <td><label class="pr-sw@(Changed(it.Enabled != b.Enabled))"><input type="checkbox" name="Form.Items[@i].Enabled" value="true" checked="@it.Enabled" aria-label="@b.DisplayName 사용" /><span></span></label>
+                            <input type="hidden" name="Form.Items[@i].Enabled" value="false" /></td>
+                        <td><input class="in t@(Changed(it.Name != b.DisplayName))" name="Form.Items[@i].Name" value="@it.Name" maxlength="20" aria-label="@RulesModel.MissionLabel(item) 항목 이름" /></td>
+                        <td><input class="in n num@(Changed(it.Points != b.Points))" name="Form.Items[@i].Points" type="number" min="0" max="10" value="@it.Points" aria-label="@it.Name 점수" /></td>
+                        <td class="key">@it.Code</td>
+                    </tr>
+                }
+                </tbody>
+            </table></div>
+            <div class="row"><div class="l"><b>퀴즈 도전 횟수</b><small>하루에 몇 번까지 답할 수 있나요</small></div>
+                <div class="pr-seg@(Changed(f.QuizMaxAttempts != cur.QuizMaxAttempts))" role="radiogroup" aria-label="퀴즈 도전 횟수">
+                    @for (var n = 1; n <= 3; n++) { <label><input type="radio" name="Form.QuizMaxAttempts" value="@n" checked="@(f.QuizMaxAttempts == n)" /><span class="num">@n</span></label> }
+                </div></div>
+            @{
+                var day = f.Items.Where(x => x.Enabled && x.Code != "Recite").Sum(x => x.Points);
+                var wk = f.Items.Where(x => x.Enabled && x.Code == "Recite").Sum(x => x.Points);
+            }
+            <p class="hint">하루 최대 @(day)점 + 주마다 암송 @(wk)점. 이미 쌓인 점수는 바꾼 값과 상관없이 그대로예요.</p>
+        </section>
+
+        <section class="pr-card" aria-labelledby="h3">
+            <h2 id="h3">개인 축하 단계 <small>시즌 점수가 넘으면 축하 창(R-100)</small></h2>
+            <input class="in@(Changed(f.Milestones.Replace(" ", "") != string.Join(",", cur.Milestones)))" name="Form.Milestones" value="@f.Milestones" aria-label="축하 단계 점수(쉼표로 나눔)" />
+            <p class="hint">쉼표로 나눠 써요(예: 3000, 5000, 8000). 목표 점수 = 가장 높은 단계(순위 화면 달성률 기준). 한 번 도달한 단계는 값을 바꿔도 취소되지 않아요.</p>
+        </section>
+
+        <section class="pr-card" aria-labelledby="h4">
+            <h2 id="h4">가족 단계 <small>가족팀 합계가 넘으면 축하 카드(R-96)</small></h2>
+            <div class="pr-tbl"><table>
+                <thead><tr><th>점수</th><th>종류</th><th>문구</th><th>이모지</th><th>사용</th></tr></thead>
+                <tbody>
+                @for (var i = 0; i < f.Family.Count; i++)
+                {
+                    var x = f.Family[i];
+                    var b = i < cur.FamilyMilestones.Count ? cur.FamilyMilestones[i] : null;
+                    <tr>
+                        <td><input class="in n num@(Changed(x.Points != b?.Points))" name="Form.Family[@i].Points" type="number" step="100" min="100" value="@x.Points" aria-label="가족 단계 점수" /></td>
+                        <td><select class="sel@(Changed(x.Kind != b?.Kind))" name="Form.Family[@i].Kind" aria-label="종류">
+                            <option value="Award" selected="@(x.Kind == FamilyMilestoneKind.Award)">축하 + 선물</option>
+                            <option value="Applause" selected="@(x.Kind == FamilyMilestoneKind.Applause)">박수만</option></select></td>
+                        <td><input class="in t@(Changed(x.Message != b?.Message))" name="Form.Family[@i].Message" value="@x.Message" maxlength="50" aria-label="문구" /></td>
+                        <td><input class="in e@(Changed(x.Emoji != b?.Emoji))" name="Form.Family[@i].Emoji" value="@x.Emoji" maxlength="8" aria-label="이모지" /></td>
+                        <td><label class="pr-sw@(Changed(x.Enabled != b?.Enabled))"><input type="checkbox" name="Form.Family[@i].Enabled" value="true" checked="@x.Enabled" aria-label="가족 단계 사용" /><span></span></label>
+                            <input type="hidden" name="Form.Family[@i].Enabled" value="false" /></td>
+                    </tr>
+                }
+                </tbody>
+            </table></div>
+        </section>
+
+        <section class="pr-card" aria-labelledby="h5">
+            <h2 id="h5">기능 <small>2차 화면이지만 값은 미리 둬요</small></h2>
+            @foreach (var (name, label, desc, on, was) in new[]
+            {
+                ("Ranking", "순위", "순위 화면을 보여 줘요", f.Ranking, cur.Features.Ranking),
+                ("FamilyTeam", "가족팀", "가족팀 점수 · 단계를 써요", f.FamilyTeam, cur.Features.FamilyTeam),
+                ("TranslationCompare", "번역 대조", "성경 읽기에서 세 번역을 나란히 볼 수 있어요", f.TranslationCompare, cur.Features.TranslationCompare),
+            })
+            {
+                <div class="row"><div class="l"><b>@label</b><small>@desc</small></div>
+                    <label class="pr-sw@(Changed(on != was))"><input type="checkbox" name="Form.@name" value="true" checked="@on" aria-label="@label 사용" /><span></span></label>
+                    <input type="hidden" name="Form.@name" value="false" /></div>
+            }
+        </section>
+
+        <section class="pr-card" aria-labelledby="h6">
+            <h2 id="h6">버전 기록</h2>
+            <ul class="pr-log">
+                @for (var i = Model.Versions.Count - 1; i >= 0; i--)
+                {
+                    var v = Model.Versions[i];
+                    var what = i == 0 ? "처음 값(기본값)" : string.Join(", ", PlatformRuleService.Diff(Model.Versions[i - 1].Rules, v.Rules));
+                    var who = v.ChangedByAccountId is int id ? Model.Names.GetValueOrDefault(id, "운영자") : "운영자";
+                    <li><span class="v">v@(v.VersionNo)</span><time class="num">@(v.ChangedUtc?.ToString("yyyy.MM.dd") ?? "–")</time>
+                        <span>@who · @what@(i == 0 ? "" : $" ({v.EffectiveFrom.ToString("M월 d일", ko)}부터)")</span></li>
+                }
+            </ul>
+        </section>
+
+        <div class="pr-save gut"><div class="wrap wide">
+            <div class="sum" role="status">
+                @if (Model.Errors.Count > 0) { <span class="bad">@string.Join(" ", Model.Errors)</span> }
+                else if (Model.Changes.Count > 0) { <text>바뀐 값 <b class="num">@(Model.Changes.Count)개</b> · @string.Join(", ", Model.Changes)</text> }
+                else { <text>값을 고친 뒤 "바뀐 점 보기"를 눌러 주세요.</text> }
+            </div>
+            <label>적용 시작 <select class="sel" name="Form.From">
+                <option value="tomorrow" selected="@(f.From != "week")">내일(@Model.Starts.Tomorrow.ToString("M월 d일", ko))부터</option>
+                <option value="week" selected="@(f.From == "week")">다음 주(@Model.Starts.NextWeek.ToString("M월 d일", ko))부터</option>
+            </select></label>
+            <a class="btn s sm" href="/platform/rules">되돌리기</a>
+            <button type="submit" class="btn s sm" asp-page-handler="Preview">바뀐 점 보기</button>
+            <button type="submit" class="btn p sm" asp-page-handler="Save" disabled="@(!Model.Previewed)">새 버전으로 저장</button>
+        </div></div>
+    </form>
+</div></main>

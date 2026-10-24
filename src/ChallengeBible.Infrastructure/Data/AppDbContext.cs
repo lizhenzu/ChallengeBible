@@ -53,6 +53,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
 
     public DbSet<PromotionRequest> PromotionRequests => Set<PromotionRequest>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<PlatformRuleSetVersion> PlatformRuleSetVersions => Set<PlatformRuleSetVersion>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {

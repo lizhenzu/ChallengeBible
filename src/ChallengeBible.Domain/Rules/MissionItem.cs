@@ -22,6 +22,14 @@ public static class MissionItemCodes
     public static MissionItem Parse(string code) =>
         Codes.First(kv => kv.Value == code).Key;
 
+    public static bool TryParse(string? code, out MissionItem item)
+    {
+        foreach (var (k, v) in Codes)
+            if (v == code) { item = k; return true; }
+        item = default;
+        return false;
+    }
+
     public static Mission Mission(this MissionItem item) => item switch
     {
         MissionItem.WordMe or MissionItem.WordParent => Rules.Mission.Word,
