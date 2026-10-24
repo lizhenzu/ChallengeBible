@@ -112,6 +112,46 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
         return errors;
     }
 
+    /// <summary>
+    /// 스스로 바꿀 때(내 계정): 지금 비밀번호가 맞아야 바꾼다(로그인된 휴대폰을 다른 사람이 집어도 못 바꾸게).
+    /// 임시 비밀번호로 들어온 강제 변경(0035)은 <see cref="ChangePasswordAsync"/> 로 — 지금 비밀번호를 묻지 않는다.
+    /// </summary>
+    public async Task<FieldErrors> ChangeOwnPasswordAsync(int accountId, string current, string password, string confirm, CancellationToken ct = default)
+    {
+        await using (var ctx = db.Create())
+        {
+            var account = await ctx.Accounts.AsNoTracking().SingleAsync(a => a.Id == accountId, ct);
+            if (Hasher.VerifyHashedPassword(account, account.PasswordHash, current ?? "") == PasswordVerificationResult.Failed)
+                return new FieldErrors { ["Current"] = "지금 비밀번호가 맞지 않아요." };
+        }
+        return await ChangePasswordAsync(accountId, password, confirm, ct);
+    }
+
+    public const int MaxName = 50;
+
+    /// <summary>이름 바꾸기(1 ~ 50자). 순위 · 가족팀 · 선생님 화면에 이 이름이 보인다. 바꾼 이름을 돌려준다(오류면 null).</summary>
+    public async Task<(string? Name, FieldErrors Errors)> RenameAsync(int accountId, string? name, CancellationToken ct = default)
+    {
+        var errors = new FieldErrors();
+        var n = (name ?? "").Trim();
+        if (n.Length == 0) errors["DisplayName"] = "이름을 써 주세요.";
+        else if (n.Length > MaxName) errors["DisplayName"] = $"이름은 {MaxName}자까지 쓸 수 있어요.";
+        if (!errors.Ok) return (null, errors);
+        await using var ctx = db.Create();
+        var account = await ctx.Accounts.SingleAsync(a => a.Id == accountId, ct);
+        account.DisplayName = n;
+        await ctx.SaveChangesAsync(ct);
+        return (n, errors);
+    }
+
+    /// <summary>내 계정 화면용: 이름 · 이메일 · 가입한 날(UTC).</summary>
+    public async Task<(string Name, string Email, DateTime CreatedUtc)> ProfileAsync(int accountId, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var a = await ctx.Accounts.AsNoTracking().SingleAsync(x => x.Id == accountId, ct);
+        return (a.DisplayName, a.Email, a.CreatedUtc);
+    }
+
     public async Task<bool> MustChangePasswordAsync(int accountId, CancellationToken ct = default)
     {
         await using var ctx = db.Create();

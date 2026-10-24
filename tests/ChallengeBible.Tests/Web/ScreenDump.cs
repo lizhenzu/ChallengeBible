@@ -283,6 +283,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         }
         await Save(mom, "/account/family", "32-가족부서고르기");
         await SavePost(mom, "/account/family", "33-가족부서고르기-바뀌는점", ("handler", ""), ("pick", elem.Id.ToString()));
+        await Save(mom, "/account", "34-내계정", h => h.Replace("<details class=\"ma-ed\">", "<details class=\"ma-ed\" open>"));   // 확정 시안 내계정 — 이름 · 비밀번호 칸을 펼친 모습
 
         // 참여 신청 v2(0059): 목록에 보이기를 켠 부서에서 고르기
         using (var raw = InMemoryDb.Raw(db))
