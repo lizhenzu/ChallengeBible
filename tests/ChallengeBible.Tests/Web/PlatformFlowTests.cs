@@ -73,4 +73,30 @@ public partial class PlatformFlowTests : IClassFixture<WebApplicationFactory<Pro
         using var raw = InMemoryDb.Raw(_db);
         Assert.Contains(raw.Tenants.Single().JoinCode.Trim(), list);
     }
+
+    [GeneratedRegex("name=\"listed\" value=\"([^\"]*)\"")]
+    private static partial Regex ListedRx();
+
+    /// <summary>화면에 그려진 스위치 폼을 그대로 보내면 켜지고, 다시 보내면 꺼진다(0059).</summary>
+    [Fact]
+    public async Task 참여_목록_스위치는_누를_때마다_켜고_끈다()
+    {
+        var t = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
+        var c = await LoggedIn("operator", platformAdmin: true);
+        async Task<bool> Press()
+        {
+            var page = await c.GetStringAsync($"/platform/tenants?Open={t.Id}");
+            var r = await c.PostAsync("/platform/tenants?handler=Listed", new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value,
+                ["id"] = t.Id.ToString(), ["listed"] = ListedRx().Match(page).Groups[1].Value,
+            }));
+            Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+            using var raw = InMemoryDb.Raw(_db);
+            return raw.Tenants.Single().JoinListed;
+        }
+        Assert.True(await Press());
+        Assert.False(await Press());
+        Assert.True(await Press());
+    }
 }
