@@ -182,6 +182,27 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task 북마크_모음은_담은_말씀을_본문과_함께_모으고_정렬한다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        Assert.Contains("아직 담은 말씀이 없어요", await c.GetStringAsync("/jamsil-kids/reading/bookmarks"));
+        var token = TokenRx().Match(await c.GetStringAsync("/jamsil-kids/reading/read/1/24")).Groups[1].Value;
+        foreach (var url in new[] { "/api/me/bible/bookmarks/1/24/7", "/api/me/bible/bookmarks/43/3/16", "/api/me/bible/bookmarks/1/24/2" })
+        {
+            var req = new HttpRequestMessage(HttpMethod.Put, url);
+            req.Headers.Add("RequestVerificationToken", token);
+            Assert.Equal(HttpStatusCode.OK, (await c.SendAsync(req)).StatusCode);
+        }
+        var recent = await c.GetStringAsync("/jamsil-kids/reading/bookmarks");
+        Assert.Contains("3절", recent);
+        Assert.Contains("KRV 43:3:16", recent);
+        Assert.Contains("href=\"/jamsil-kids/reading/read/1/24?v=7\"", recent);   // 본문으로 → 그 절이 보이는 곳
+        var bible = await c.GetStringAsync("/jamsil-kids/reading/bookmarks?sort=bible");
+        Assert.True(bible.IndexOf("창세기 24:2", StringComparison.Ordinal) < bible.IndexOf("창세기 24:7", StringComparison.Ordinal));
+        Assert.True(bible.IndexOf("창세기 24:7", StringComparison.Ordinal) < bible.IndexOf("요한복음 3:16", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task R150_통독을_끈_부서는_통독_화면이_없다()
     {
         var c = await Member("cheolsu", Roles.Participant);

@@ -1,4 +1,5 @@
 using System.Globalization;
+using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
@@ -49,6 +50,29 @@ public class IndexModel(ReadingService reading, TenantContext tenant, BibleTextS
         var lines = await bible.RangeAsync(new BibleRef(r.BookId, r.Chapter, r.Verse, r.Chapter, r.Verse), [BibleTranslation.Krv], ct);
         ResumeText = lines.FirstOrDefault()?.Texts.GetValueOrDefault(BibleTranslation.Krv);
         return Page();
+    }
+}
+
+/// <summary>`/{slug}/reading/bookmarks?sort=recent|bible` 북마크 모음(확정 시안: 통독-북마크, 출처 표시는 뺌).</summary>
+public class BookmarksModel(ReadingService reading, TenantContext tenant, BibleMarkService marks, TenantClock clock) : ReadingPageBase(reading, tenant)
+{
+    public override string Title => "북마크";
+    [BindProperty(SupportsGet = true)] public string Sort { get; set; } = "recent";
+    public IReadOnlyList<BookmarkRow> Rows { get; private set; } = [];
+    public DateOnly Today { get; private set; }
+
+    protected override async Task<IActionResult> LoadAsync(CancellationToken ct)
+    {
+        Rows = await marks.BookmarksAsync(Sort == "bible", ct);
+        Today = clock.Today(Tenant.Current.TimeZoneId);
+        return Page();
+    }
+
+    /// <summary>담은 때: 오늘이면 "오늘 07:40", 아니면 "1월 2일".</summary>
+    public string When(DateTime utc)
+    {
+        var local = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), TimeZoneInfo.FindSystemTimeZoneById(Tenant.Current.TimeZoneId));
+        return DateOnly.FromDateTime(local) == Today ? "오늘 " + local.ToString("HH:mm") : local.ToString("M월 d일", Ko);
     }
 }
 

@@ -122,3 +122,26 @@
 .brd-chnav { margin-top: 14px; display: flex; justify-content: space-between; gap: 10px; }
 .brd-chnav a { min-height: 44px; padding: 0 16px; border-radius: 12px; background: var(--b-grey); display: inline-flex; align-items: center; font-weight: 800; color: var(--b-ink); }
 .rd-done { color: var(--b-acc); font-weight: 800; }
+
+/* 북마크 모음 (확정 시안: 통독-북마크) */
+.rp-head { padding-bottom: 20px; }
+.rp-head h1 { margin: 10px 0 0; font-size: 34px; font-weight: 800; }
+.rp-head h1 small { margin-left: 8px; font-size: 18px; font-weight: 400; color: var(--r-dim); }
+.rp-head p { margin: 10px 0 0; font-size: 14px; color: var(--r-dim); line-height: 1.7; }
+.rp-bmbar { margin-top: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--r-dim); }
+.rp-seg { display: inline-grid; grid-auto-flow: column; padding: 4px; border-radius: 12px; background: var(--r-cell); }
+.rp-seg a { min-height: 40px; padding: 0 16px; border-radius: 9px; display: grid; place-items: center; font-weight: 700; color: var(--r-dim); }
+.rp-seg a[aria-current="true"] { background: var(--bg); color: var(--r-ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.rp-bms { list-style: none; margin: 8px 0 0; padding: 0; }
+.rp-bms li { position: relative; padding: 18px 64px 18px 0; border-bottom: 1px solid var(--r-rule); }
+.rp-bms .h { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.rp-bms .h b { font-size: 17px; color: var(--r-acc); }
+.rp-bms .h small { font-size: 13px; color: var(--r-dim); }
+.rp-bms p { margin: 8px 0 0; font-size: calc(17px * var(--fs, 1)); line-height: 1.8; word-break: keep-all; }
+.rp-bms a { display: inline-flex; min-height: 40px; align-items: center; margin-top: 4px; font-size: 14px; font-weight: 700; color: var(--r-dim); }
+.rp-bms .star { position: absolute; right: 0; top: 18px; width: 52px; height: 52px; border: 0; border-radius: 50%; background: var(--r-cell); color: #B0B6C0; font-size: 18px; }
+.rp-bms .star.on { background: #FFF1C9; color: #E0A000; }
+.rp-bms .star.wait { color: transparent; }
+.rp-bms .star.wait::after { content: ""; position: absolute; inset: 14px; border: 2px solid var(--r-rule); border-top-color: var(--r-acc); border-radius: 50%; animation: rp-spin .8s linear infinite; }
+.rp-bms li.off p, .rp-bms li.off .h { opacity: .45; }
+.rp-empty { margin: 40px 0; text-align: center; color: var(--r-dim); line-height: 1.8; }

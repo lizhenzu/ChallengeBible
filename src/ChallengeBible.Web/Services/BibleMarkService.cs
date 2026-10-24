@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
+/// <summary>북마크 모음의 한 줄: 절 위치 · 담은 때 · 개역개정 본문(없으면 null).</summary>
+public sealed record BookmarkRow(byte BookId, short Chapter, short Verse, DateTime CreatedUtc, string? Text);
+
 /// <summary>한 범위 안에서 내가 읽은 절 · 책갈피한 절(장, 절).</summary>
 public sealed record VerseMarks(IReadOnlySet<(short Chapter, short Verse)> Read, IReadOnlySet<(short Chapter, short Verse)> Bookmarked);
 
@@ -91,6 +94,24 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
         if (row is null) return;
         ctx.Bookmarks.Remove(row);
         await ctx.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// 내 북마크 모두(0041 북마크 화면 — 0029 책갈피를 그대로 씀). 성경말씀 · 성경통독 어디서 담았든 같이 모인다.
+    /// bibleOrder 면 성경 순서, 아니면 최근 담은 순.
+    /// </summary>
+    public async Task<IReadOnlyList<BookmarkRow>> BookmarksAsync(bool bibleOrder, CancellationToken ct = default)
+    {
+        if (scope.AccountId is null) return [];
+        await using var ctx = db.Create();
+        var rows = await (from b in ctx.Bookmarks.AsNoTracking()
+                          join v in ctx.BibleVerses.AsNoTracking().Where(v => v.TranslationId == 1)
+                              on new { b.BookId, b.Chapter, b.Verse } equals new { v.BookId, v.Chapter, v.Verse } into g
+                          from v in g.DefaultIfEmpty()
+                          select new BookmarkRow(b.BookId, b.Chapter, b.Verse, b.CreatedUtc, v == null ? null : v.Text)).ToListAsync(ct);
+        return bibleOrder
+            ? rows.OrderBy(r => r.BookId).ThenBy(r => r.Chapter).ThenBy(r => r.Verse).ToList()
+            : rows.OrderByDescending(r => r.CreatedUtc).ToList();
     }
 
     private static Task<bool> Exists(AppDbContext ctx, byte book, short chapter, short verse, CancellationToken ct) =>

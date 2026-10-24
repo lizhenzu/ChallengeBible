@@ -117,11 +117,14 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             raw.RoundVerseReads.Add(new RoundVerseRead { AccountId = me, RoundNo = 1, BookId = 1, Chapter = 24, Verse = 1, ReadUtc = start.AddDays(4) });
             raw.RoundVerseReads.Add(new RoundVerseRead { AccountId = me, RoundNo = 1, BookId = 1, Chapter = 24, Verse = 2, ReadUtc = start.AddDays(4) });
             raw.ChapterProgresses.Add(new ChapterProgress { AccountId = me, RoundNo = 1, BookId = 1, Chapter = 24, LastViewedVerse = 3, UpdatedUtc = start.AddDays(4) });
+            raw.Bookmarks.Add(new Bookmark { AccountId = me, BookId = 1, Chapter = 24, Verse = 2, CreatedUtc = start.AddDays(4) });
+            raw.Bookmarks.Add(new Bookmark { AccountId = me, BookId = 43, Chapter = 3, Verse = 16, CreatedUtc = start.AddDays(1) });
             raw.SaveChanges();
         }
         await Save(kid, "/jamsil-kids/reading", "18-통독-대시보드");
         await Save(kid, "/jamsil-kids/reading/list?t=ot&b=1", "19-통독-성경목록");
         await Save(kid, "/jamsil-kids/reading/read/1/24?unit=3", "20-통독-본문읽기");
+        await Save(kid, "/jamsil-kids/reading/bookmarks", "21-통독-북마크");
         await Save(kid, "/jamsil-kids/quiz", "08-퀴즈");
         await Save(kid, "/jamsil-kids/prayer", "09-기도");
         await Save(kid, "/jamsil-kids/recite", "10-암송");
