@@ -255,6 +255,21 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await SavePost(admin, $"/jamsil-kids/admin/members?Tab={MembershipStatus.Approved}", "29-소속관리-진급보내기",
             ("handler", "PromoteCheck"), ("pick", mj.Id.ToString()), ("code", "JSELEM"));
 
+        // 가족과 함께할 부서(확정 시안 가족부서고르기): 김영희는 초등부에서도 딸 김민지의 보호자
+        var minji = NewKid("minji2", "김민지");
+        var momElem = InMemoryDb.SeedMembership(db, elem.Id, momAcc, MembershipStatus.Approved, Roles.Guardian);
+        var minjiM = InMemoryDb.SeedMembership(db, elem.Id, minji, MembershipStatus.Approved, Roles.Participant);
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            var pMinji = new Participant { TenantId = elem.Id, MembershipId = minjiM.Id };
+            raw.Participants.Add(pMinji);
+            raw.SaveChanges();
+            raw.GuardianLinks.Add(new GuardianLink { TenantId = elem.Id, GuardianMembershipId = momElem.Id, ParticipantId = pMinji.Id, CreatedByAccountId = momAcc });
+            raw.SaveChanges();
+        }
+        await Save(mom, "/account/family", "32-가족부서고르기");
+        await SavePost(mom, "/account/family", "33-가족부서고르기-바뀌는점", ("handler", ""), ("pick", elem.Id.ToString()));
+
         // 참여 신청 v2(0059): 목록에 보이기를 켠 부서에서 고르기
         using (var raw = InMemoryDb.Raw(db))
         {

@@ -1,0 +1,75 @@
+@page "/account/family"
+@model ChallengeBible.Web.Pages.Account.FamilyModel
+@* 확정 시안: 가족부서고르기-단독시안 (부서 카드 → 바뀌는 점 · 확인 → 정하기). 성별 · 관계는 저장하지 않아 이름과 "내"로 쓴다 *@
+@{
+    var c = Model.Choice;
+    var pick = Model.Picked;
+    var stops = pick is null ? new List<ChallengeBible.Web.Services.FamilyStop>() : c.StopsIf(pick.TenantId);
+    string Dept(string name) => JoinModel.Split(name).Dept;
+}
+<header class="top gut"><div class="wrap">
+    <a class="lnk" href="/account/tenants">← 부서 고르기</a>
+    <span class="who"><b>@User.Identity?.Name</b>님</span>
+</div></header>
+<main class="page gut fam-pick"><div class="wrap">
+    @if (Model.DoneOption is { } d)
+    {
+        <section class="box ok" role="status">
+            <strong>가족과 함께할 부서: @Dept(d.Name)</strong>
+            <p>@(d.IAmParticipant ? $"{Dept(d.Name)}에서 미션과 가족팀을 함께해요." : $"{Dept(d.Name)} 선생님이 참여자 역할을 주면 미션과 가족팀을 시작할 수 있어요.") 다른 부서에서는 보호자로 보기만 해요.</p>
+            <a class="btn p" href="/account/tenants">부서 고르기로 돌아가기</a>
+        </section>
+    }
+    else
+    {
+        <div>
+            <h1>@(c.Current is null ? "가족과 함께할 부서를 골라 주세요" : "가족과 함께할 부서")</h1>
+            <p class="sub">자녀들이 서로 다른 부서에 있으면, 부모님이 미션을 하고 가족팀을 꾸릴 부서를 <b>하나</b> 골라 주세요.</p>
+        </div>
+        <ol class="rules">
+            <li>고른 부서에서 <b>부모님도 미션을 하고 가족팀 점수에 더해져요.</b></li>
+            <li>다른 부서에서는 <b>보호자로 자녀 기록을 보기만</b> 해요. 그 부서의 자녀는 혼자 참여해요.</li>
+            <li>성경통독은 부서와 상관없이 그대로 이어져요.</li>
+        </ol>
+
+        <form method="post" class="stack" novalidate>
+            <input type="hidden" name="was" value="@(Model.Confirming ? Model.Pick : null)" />
+            <div class="fp-opts" role="radiogroup" aria-label="가족과 함께할 부서">
+                @foreach (var o in c.Options)
+                {
+                    var (church, dept) = JoinModel.Split(o.Name);
+                    <label class="fp-opt" style="--c:@ChallengeBible.Web.Pages.Platform.TenantsModel.ColorVar(o.ThemeColor)">
+                        <input type="radio" name="pick" value="@o.TenantId" checked="@(pick?.TenantId == o.TenantId)" />
+                        <span class="rd" aria-hidden="true"></span>
+                        <span class="body">
+                            <span class="nm"><b>@dept</b>@if (church.Length > 0) { <small>@church</small> }@if (o.TenantId == c.Current) { <span class="now">지금 함께하는 부서</span> }</span>
+                            <ul>
+                                <li>자녀: @(o.Children.Count == 0 ? "아직 연결된 자녀가 없어요" : string.Join(", ", o.Children))</li>
+                                <li>가족팀: @(o.TeamName is null ? (o.Children.Count > 0 ? "아직 없음 — 자녀 혼자 참여 중" : "아직 없음") : $"{o.TeamName} · {o.TeamPoints:N0}점 ({string.Join(" · ", o.TeamMembers)})")</li>
+                                <li>@(o.IAmParticipant ? $"내 올해 점수 {o.MyPoints:N0}점" : "나는 보호자로 보기만 하는 중")</li>
+                            </ul>
+                        </span>
+                    </label>
+                }
+            </div>
+
+            @if (Model.Confirming && pick is not null)
+            {
+                <div class="fp-chg" role="status">
+                    <b class="t">@(Dept(pick.Name))@Ui.EuRo(Dept(pick.Name)) @(c.Current is null ? "정하면" : "바꾸면") 이렇게 돼요</b>
+                    <ul>
+                        @foreach (var s in stops)
+                        {
+                            <li><b>@Dept(s.Name)</b>: 내 미션@(s.TeamName is null ? "" : $"과 {s.TeamName} 자리")이 멈춰요. 지금까지의 점수(@(s.MyPoints.ToString("N0"))점)와 기록은 남아요.</li>
+                        }
+                        <li><b>@Dept(pick.Name)</b>: @(pick.IAmParticipant ? "지금처럼 미션과 가족팀을 함께해요." : $"{Dept(pick.Name)} 선생님이 참여자 역할을 주면 미션과 가족팀을 시작할 수 있어요.")</li>
+                        <li>나중에 다시 바꿀 수 있어요.</li>
+                    </ul>
+                    <label><input type="checkbox" name="agree" value="true" />위 내용을 확인했어요</label>
+                </div>
+            }
+            @if (Model.Error is not null) { <p class="hint bad" role="alert">@Model.Error</p> }
+            <button type="submit" class="btn p">@(Model.Confirming && pick is not null ? $"{Dept(pick.Name)}{Ui.EuRo(Dept(pick.Name))} {(c.Current is null ? "정하기" : "바꾸기")}" : c.Current is null ? "이 부서로 정하기" : "고른 부서로 바꾸기")</button>
+        </form>
+    }
+</div></main>

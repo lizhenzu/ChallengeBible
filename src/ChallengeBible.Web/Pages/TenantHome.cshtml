@@ -7,6 +7,10 @@
         <p class="sub" style="margin:0">@Model.Tenant.Current.Name</p>
         <h1>@Model.Tenant.AppName</h1>
     </div>
+    @if (Model.NeedsFamilyChoice)
+    {
+        <a class="dept" href="/account/family"><span class="mk">가</span><div><b>가족과 함께할 부서를 골라 주세요</b><span class="sub" style="margin:0;font-size:13px">고른 부서에서 부모님도 미션을 하고 가족팀을 꾸려요</span></div><span aria-hidden="true">→</span></a>
+    }
     @if (Model.Tenant.Current.MissionEnabled)
     {
         <a class="dept" href="/@Model.Tenant.Current.Slug/word-mission"><span class="mk">말</span><div><b>도전!!!성경말씀</b><span class="sub" style="margin:0;font-size:13px">오늘의 말씀 · 퀴즈 · 기도 · 암송</span></div><span aria-hidden="true">→</span></a>

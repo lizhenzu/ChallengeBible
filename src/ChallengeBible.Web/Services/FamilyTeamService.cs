@@ -95,7 +95,7 @@ public sealed class FamilyTeamService(IAppDb db, ISystemDb systemDb, RequestScop
     }
 
     /// <summary>시즌 점수(시즌 시작일 반영) — 순위와 같은 계산(R-62 · R-80).</summary>
-    private static async Task<Dictionary<int, int>> SeasonPointsAsync(AppDbContext ctx, List<int> ids, DateOnly today, CancellationToken ct)
+    internal static async Task<Dictionary<int, int>> SeasonPointsAsync(AppDbContext ctx, List<int> ids, DateOnly today, CancellationToken ct)
     {
         var start = await ctx.TenantSeasons.Where(s => s.Year == today.Year).Select(s => (DateOnly?)s.StartDate).SingleOrDefaultAsync(ct);
         var season = start is { } d ? Season.Create(today.Year, d) : Season.DefaultFor(today.Year);
