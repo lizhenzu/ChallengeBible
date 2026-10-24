@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>성경 읽기 시안 v2</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/{slug}/read, 기존 jamsilkids DailyMission4/BibleRead 를 따름 — 사용자 요청 2026-10-24):
+     위쪽 줄(미션홈 · 말씀미션 / 글자 크기) → 오늘의 말씀 · 책 장절 · 진도 → 읽기 단위 · 번역(알약) → 오늘 말씀 카드
+     → 절 목록(작은 번호 · 본문 끝 ✓ ★, 저장 중 동그라미) → 큰 파란 "이 페이지 읽음으로 표시" → 아래 링크. 확정 2026-10-24 */
+  :root { --bg: #FFFFFF; --tx: #374151; --ink: #111827; --dim: #9CA3AF; --dim2: #6B7280; --rule: #EEF0F3;
+          --acc: #2F80ED; --accSoft: #EAF2FD; --grey: #F4F6F9; --lightNo: #7FA3DB; --amber: #F59E0B; --mark: #FFF1C9;
+          --ok: #15803D; --okSoft: #EAF7EF; --fs: 1; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #14171B; --tx: #D1D5DB; --ink: #F3F4F6; --dim: #6B7280; --dim2: #9CA3AF; --rule: #262B33;
+          --acc: #6EA8FE; --accSoft: #1C2740; --grey: #1E232B; --lightNo: #6E8FCB; --mark: #4A3F17; --ok: #5CC98A; --okSoft: #1B2A22; } }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); }
+  body { color: var(--tx); font-family: "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; }
+  .num { font-variant-numeric: tabular-nums; }
+  .br { max-width: 560px; margin: 0 auto; padding: 0 16px 40px; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; min-height: 56px; border-bottom: 1px solid var(--rule); }
+  .crumb { font-size: 14px; font-weight: 700; color: var(--ink); display: flex; gap: 8px; }
+  .crumb i { font-style: normal; color: var(--dim); }
+  .fsz { display: flex; gap: 6px; align-items: center; }
+  .fsz button { min-width: 36px; height: 30px; border: 0; border-radius: 8px; background: var(--grey); color: var(--ink); font-size: 12px; font-weight: 800; }
+  .fsz span { font-size: 12px; color: var(--dim2); min-width: 40px; text-align: center; }
+
+  .k { margin-top: 22px; font-size: 13px; font-weight: 800; color: var(--acc); }
+  h1 { margin: 4px 0 0; font-size: calc(30px * var(--fs)); font-weight: 900; color: var(--ink); letter-spacing: -.02em; }
+  h1 small { font-size: .55em; font-weight: 500; color: var(--dim2); margin-left: 4px; }
+  .prog { margin-top: 10px; display: flex; justify-content: space-between; font-size: 13px; color: var(--dim2); }
+  .bar { height: 5px; margin-top: 8px; border-radius: 99px; background: var(--grey); overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--acc); transition: width .3s; }
+
+  .set { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--rule); display: grid; gap: 8px; }
+  .lbl { font-size: 13px; color: var(--dim); }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pills a { min-height: 36px; padding: 0 16px; border-radius: 99px; background: var(--grey); color: var(--dim2); display: inline-flex; align-items: center; font-size: 14px; font-weight: 700; }
+  .pills a[aria-current="true"] { background: var(--acc); color: #fff; }
+
+  .day { margin-top: 18px; padding: 16px 18px; border-radius: 16px; background: var(--accSoft); }
+  .day .tag { display: inline-block; padding: 2px 12px; border-radius: 99px; background: var(--bg); color: var(--acc); font-size: 12.5px; font-weight: 800; }
+  .day strong { display: block; margin-top: 8px; font-size: calc(18px * var(--fs)); color: var(--ink); font-weight: 800; }
+  .day p { margin: 4px 0 0; font-size: calc(14px * var(--fs)); color: var(--dim2); line-height: 1.7; }
+
+  .verses { margin-top: 8px; }
+  .vr { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--rule); }
+  .vr .vn { flex: none; width: 22px; padding-top: 6px; font-size: 12px; font-weight: 800; color: var(--lightNo); text-align: center; }
+  .vr .vt { flex: 1; min-width: 0; font-size: calc(18px * var(--fs)); line-height: 2; color: var(--ink); word-break: keep-all; }
+  .vr.read .vn { color: var(--acc); }
+  .vr.bm .tx { background: linear-gradient(transparent 62%, var(--mark) 62%); }
+  .vr.busy { background: linear-gradient(90deg, transparent, var(--accSoft), transparent); background-size: 200% 100%; animation: shine 1.2s ease-in-out infinite; }
+  .acts { display: inline-flex; gap: 6px; margin-left: 6px; vertical-align: 2px; }
+  .vb { position: relative; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: var(--grey); color: #B0B6C0; font-size: 12px; line-height: 1; display: inline-grid; place-items: center; transition: background .15s, color .15s, transform .12s; }
+  .vb:active { transform: scale(.92); }
+  .vb.rd.on { background: var(--acc); color: #fff; }
+  .vb.st.on { background: var(--amber); color: #fff; }
+  .vb.wait { color: transparent !important; background: var(--bg) !important; box-shadow: inset 0 0 0 1px var(--rule); cursor: progress; }
+  .vb.wait::after { content: ""; position: absolute; inset: 4px; border: 2px solid var(--rule); border-top-color: var(--acc); border-radius: 50%; animation: spin .8s linear infinite; }
+
+  .pager { margin-top: 14px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: var(--dim2); }
+  .pager a { min-height: 40px; padding: 0 14px; border-radius: 10px; background: var(--grey); display: inline-flex; align-items: center; font-weight: 800; color: var(--ink); }
+  .pager a.off { color: var(--dim); pointer-events: none; }
+
+  .rate { margin-top: 22px; padding: 16px 0 6px; border-top: 1px solid var(--rule); }
+  .rate .h { display: flex; justify-content: space-between; align-items: baseline; }
+  .rate .h b { font-size: 15px; color: var(--ink); }
+  .rate .h span { font-size: 26px; font-weight: 300; color: var(--acc); }
+  .rate .h span small { font-size: 14px; font-weight: 700; }
+  .rate .row { margin-top: 8px; display: flex; justify-content: space-between; font-size: 12.5px; color: var(--dim2); }
+  .rate .row a { font-weight: 800; color: var(--ink); }
+  .note { margin: 4px 0 0; font-size: 11.5px; color: var(--amber); }
+
+  .mega { margin-top: 14px; width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px 18px; border: 0; border-radius: 14px; background: var(--acc); color: #fff; text-align: left; position: relative; }
+  .mega .b { flex: 1; display: grid; gap: 2px; }
+  .mega .t { font-size: 16px; font-weight: 800; }
+  .mega .d { font-size: 12px; opacity: .85; }
+  .mega .c { font-size: 12.5px; opacity: .95; margin-top: 4px; }
+  .mega em { font-style: normal; font-size: 24px; }
+  .mega.done { background: var(--okSoft); color: var(--ok); }
+  .mega.wait { cursor: progress; opacity: .85; }
+  .mega.wait em { width: 22px; height: 22px; border: 3px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; font-size: 0; animation: spin .8s linear infinite; }
+
+  .foot { margin-top: 18px; display: flex; justify-content: center; gap: 22px; font-size: 13px; color: var(--dim2); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: 14px; font-weight: 700; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes shine { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+  @media (prefers-reduced-motion: reduce) { .vr.busy, .vb.wait::after, .mega.wait em { animation-duration: 2.5s; } }
+</style></head>
+<body><div class="br">
+  <div class="top">
+    <nav class="crumb"><a href="#">미션홈</a><i>·</i><a href="#">말씀미션</a></nav>
+    <div class="fsz"><button type="button">가−</button><span class="num">100%</span><button type="button">가+</button></div>
+  </div>
+
+  <div class="k">오늘의 말씀</div>
+  <h1>창세기<small>24장 1~6절</small></h1>
+  <div class="prog"><span class="num"><span id="tot">6</span>절 · <b id="cnt">0</b>절 읽음</span><span class="num" id="pct">0%</span></div>
+  <div class="bar"><i id="bar"></i></div>
+
+  <section class="set">
+    <div class="lbl">읽기 단위</div>
+    <div class="pills"><a href="#">한 절</a><a href="#">3절</a><a href="#">5절</a><a href="#" aria-current="true">전체</a></div>
+    <div class="lbl">번역</div>
+    <div class="pills"><a href="#" aria-current="true">개역개정</a><a href="#">현대인</a><a href="#">NIV</a><a href="#">모두</a></div>
+  </section>
+
+  <div class="day"><span class="tag">24장 1~9절</span><strong>믿음의 종의 기도</strong><p>아브라함의 종은 하나님께 먼저 기도하고, 하나님이 길을 열어 주실 거라고 믿었어요.</p></div>
+
+  <div class="verses" id="vs"></div>
+
+  <div class="pager"><a class="off" href="#">◀ 이전</a><span class="num">1–6절 / 6</span><a class="off" href="#">다음 ▶</a></div>
+
+  <!-- 확정(2026-10-24): 통독률 카드 · 오늘 읽은 절은 넣지 않는다(D25 그대로). 큰 버튼 숫자는 이 페이지 기준. 성경통독 링크는 통독 화면이 생긴 뒤에 -->
+  <button type="button" class="mega" id="mega"><span class="b"><span class="t" id="mt">이 페이지 읽음으로 표시</span><span class="d" id="md">넘기기만 해서는 읽음이 되지 않아요</span><span class="c num" id="mc">이 페이지 읽은 절 0 / 6</span></span><em>→</em></button>
+
+  <nav class="foot"><a href="#">미션 홈</a><a href="#">말씀 미션</a><a href="#">홈으로</a></nav>
+</div>
+<script>
+  // 시안 데이터(예시 본문은 짧게 지어 냄 — 실제 화면은 BibleVerse 에서 읽는다)
+  const V = ['아브라함이 나이가 많아 늙었고 하나님께서 그에게 범사에 복을 주셨더라', '아브라함이 자기 집 모든 소유를 맡은 늙은 종에게 이르되', '내가 너에게 하늘의 하나님, 땅의 하나님께 맹세하게 하노니', '너는 내 고향 내 족속에게로 가서 내 아들 이삭을 위하여 아내를 택하라', '종이 이르되 여자가 나를 따라오려 하지 아니하거든 어떻게 하리이까', '아브라함이 그에게 이르되 내 아들을 그리로 데리고 돌아가지 말라'];
+  const st = V.map(() => ({ r: false, b: false }));
+  st[1].b = true;
+  const $ = (id) => document.getElementById(id);
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));   // 느린 서버 흉내(0.9초)
+  function toast(t) { const e = document.createElement('div'); e.className = 'toast'; e.textContent = t; document.body.appendChild(e); setTimeout(() => e.remove(), 1800); }
+  function render() {
+    $('vs').innerHTML = V.map((t, i) => `<div class="vr${st[i].r ? ' read' : ''}${st[i].b ? ' bm' : ''}" data-i="${i}"><span class="vn num">${i + 1}</span><span class="vt"><span class="tx">${t}</span><span class="acts"><button type="button" class="vb rd${st[i].r ? ' on' : ''}" data-k="r" aria-label="${i + 1}절 읽음">✓</button><button type="button" class="vb st${st[i].b ? ' on' : ''}" data-k="b" aria-label="${i + 1}절 책갈피">★</button></span></span></div>`).join('');
+    const n = st.filter((s) => s.r).length, pct = Math.round(n * 100 / V.length);
+    $('cnt').textContent = n; $('pct').textContent = pct + '%'; $('bar').style.width = pct + '%';
+    $('mc').textContent = `이 페이지 읽은 절 ${n} / ${V.length}`;
+    const all = n === V.length;
+    $('mega').classList.toggle('done', all);
+    $('mt').textContent = all ? '이 페이지 다 읽었어요' : '이 페이지 읽음으로 표시';
+    $('md').textContent = all ? '다시 누르면 읽음이 취소돼요' : '넘기기만 해서는 읽음이 되지 않아요';
+  }
+  $('vs').addEventListener('click', async (e) => {
+    const b = e.target.closest('.vb'); if (!b || b.classList.contains('wait')) return;
+    const row = b.closest('.vr'), i = +row.dataset.i, k = b.dataset.k;
+    b.classList.add('wait'); row.classList.add('busy');
+    await wait(900);
+    st[i][k] = !st[i][k]; render();
+    if (k === 'b') toast(st[i].b ? '책갈피에 넣었어요' : '책갈피를 뺐어요');
+  });
+  $('mega').addEventListener('click', async () => {
+    const m = $('mega'); if (m.classList.contains('wait')) return;
+    const all = st.every((s) => s.r);
+    m.classList.add('wait');
+    document.querySelectorAll('.vr').forEach((r) => { if (st[+r.dataset.i].r === all) { r.classList.add('busy'); r.querySelector('.rd').classList.add('wait'); } });
+    await wait(1200);
+    st.forEach((s) => (s.r = !all)); m.classList.remove('wait'); render();
+  });
+  render();
+</script>
+</body></html>

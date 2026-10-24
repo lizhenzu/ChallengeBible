@@ -2,7 +2,8 @@
 @model ReadModel
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Services
-@* 확정 시안: 말씀-성경읽기 — 읽기 단위 · 번역 전환 · 절 목록 · 이전/다음. 읽음 · 책갈피 · 듣기 · 책 개요는 다음 단계 *@
+@* 확정 시안: 말씀-성경읽기-v2(2026-10-24) — 위쪽 줄 · 진도 → 읽기 단위 · 번역 → 오늘 말씀 카드 → 절(본문 끝 ✓ ★, 저장 중 동그라미)
+   → 큰 파란 "이 페이지 읽음으로 표시" → 아래 링크. 통독률 · 오늘 읽은 절은 넣지 않는다(D25). 듣기 · 책 개요는 데이터가 생긴 뒤에 *@
 @{
     var r = Model.Ref;
     var s = Model.Slice;
@@ -10,78 +11,94 @@
     (string Label, int Value)[] units = [("한 절", 1), ("3절", 3), ("5절", 5), ("전체", 0)];
     (string Label, string Value)[] trs = [("개역개정", BibleTranslation.Krv), ("현대인", BibleTranslation.Klb), ("NIV", BibleTranslation.Niv), ("모두", "ALL")];
 }
-<header class="mtop gut"><div class="wrap">
-    <nav class="crumb"><a href="@Model.Link("word-mission")">미션홈</a> · <a href="@Model.Link(Model.BackPage)">@Model.BackText</a></nav>
-    <div class="fs" role="group" aria-label="글자 크기">
+<div class="brd">
+<header class="brd-top">
+    <nav class="brd-crumb"><a href="@Model.Link("word-mission")">미션홈</a><i aria-hidden="true">·</i><a href="@Model.Link(Model.BackPage)">@Model.BackText</a></nav>
+    <div class="fs brd-fs" role="group" aria-label="글자 크기">
         <button type="button" data-fs="-1" aria-label="글자 작게">가−</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
     </div>
-</div></header>
-<main class="mbody gut" data-slug="@Model.Slug"><div class="wrap">
+</header>
+<main class="brd-main" data-slug="@Model.Slug">
     @if (r is null || !r.IsValid)
     {
-        <p class="empty">읽을 구절이 없어요.</p>
+        <p class="brd-empty">읽을 구절이 없어요.</p>
     }
     else if (s.Total == 0)
     {
-        <h1 class="rdh"><span>@r.Book</span> <small>@r.Tail</small></h1>
-        <p class="empty">이 구절의 본문이 아직 없어요. 선생님께 알려 주세요.</p>
+        <h1 class="brd-h">@r.Book<small>@r.Tail</small></h1>
+        <p class="brd-empty">이 구절의 본문이 아직 없어요. 선생님께 알려 주세요.</p>
     }
     else
     {
-        <div class="rdk">@Model.Kicker@if (Model.From == "word") { <text> · @Model.Day.ToString("M월 d일 (ddd)", MissionPageBase.Ko)</text> }</div>
-        <h1 class="rdh"><span>@r.Book</span> <small>@r.Tail</small></h1>
-        <div class="rdprog" data-total="@s.Total">
-            <p class="rdn num"><span>@(s.Total)절 · <b data-readcount>@Model.ReadCount</b>절 읽음</span><span data-readpct>@(Model.ReadPercent)%</span></p>
-            <div class="rdbar" aria-hidden="true"><i data-readbar style="width:@(Model.ReadPercent)%"></i></div>
+        <div class="brd-k">@Model.Kicker@if (Model.From == "word") { <text> · @Model.Day.ToString("M월 d일 (ddd)", MissionPageBase.Ko)</text> }</div>
+        <h1 class="brd-h">@r.Book<small>@r.Tail</small></h1>
+        <div class="rdprog brd-prog" data-total="@s.Total">
+            <p class="num"><span>@(s.Total)절 · <b data-readcount>@Model.ReadCount</b>절 읽음</span><span data-readpct>@(Model.ReadPercent)%</span></p>
+            <div class="brd-bar" aria-hidden="true"><i data-readbar style="width:@(Model.ReadPercent)%"></i></div>
         </div>
 
-        <section class="rdset" aria-label="읽기 설정">
-            <div class="rdl">읽기 단위</div>
-            <div class="rdchips">@foreach (var (label, v) in units) { <a href="@Model.Url(unit: v)" aria-current="@(Model.Unit == v ? "true" : "false")">@label</a> }</div>
-            <div class="rdl">번역</div>
-            <div class="rdchips">@foreach (var (label, v) in trs) { <a href="@Model.Url(tr: v)" aria-current="@(Model.Tr == v ? "true" : "false")">@label</a> }</div>
+        <section class="brd-set" aria-label="읽기 설정">
+            <div class="brd-lbl">읽기 단위</div>
+            <div class="brd-pills">@foreach (var (label, v) in units) { <a href="@Model.Url(unit: v)" aria-current="@(Model.Unit == v ? "true" : "false")">@label</a> }</div>
+            <div class="brd-lbl">번역</div>
+            <div class="brd-pills">@foreach (var (label, v) in trs) { <a href="@Model.Url(tr: v)" aria-current="@(Model.Tr == v ? "true" : "false")">@label</a> }</div>
         </section>
 
         @if (Model.DayTitle is not null)
         {
-            <aside class="rdday"><b>@r.Tail</b><strong>@Model.DayTitle</strong><p>@Model.DaySummary</p></aside>
+            <aside class="brd-day"><span class="tag">@r.Tail</span><strong>@Model.DayTitle</strong><p>@Model.DaySummary</p></aside>
         }
 
-        <ol class="rdv" data-book="@r.BookId">
+        <div class="rdv brd-verses" data-book="@r.BookId">
             @foreach (var line in s.Lines)
             {
                 var read = Model.Marks.Read.Contains((line.Chapter, line.Verse));
                 var star = Model.Marks.Bookmarked.Contains((line.Chapter, line.Verse));
-                <li data-ch="@line.Chapter" data-v="@line.Verse">
-                    <span class="vn num">@(line.Chapter == r.StartChapter && r.StartChapter == r.EndChapter ? line.Verse.ToString() : $"{line.Chapter}:{line.Verse}")</span>
-                    <div class="vt">
+                <div class="vr@(read ? " read" : "")@(star ? " bm" : "")" data-ch="@line.Chapter" data-v="@line.Verse">
+                    <span class="vn num">@(r.StartChapter == r.EndChapter ? line.Verse.ToString() : $"{line.Chapter}:{line.Verse}")</span>
+                    <span class="vt">
                         @foreach (var code in Model.Shown)
                         {
-                            if (line.Texts.TryGetValue(code, out var t)) { <p class="@(multi ? "tr tr-" + code.ToLowerInvariant() : "")">@if (multi) { <em>@BibleTextService.Short(code)</em> }@t</p> }
+                            if (line.Texts.TryGetValue(code, out var t))
+                            {
+                                if (multi) { <span class="tl"><em>@BibleTextService.Short(code)</em><span class="tx">@t</span></span> }
+                                else { <span class="tx">@t</span> }
+                            }
                         }
-                        <span class="vbtn">
-                            <button type="button" class="vm rd" data-mark="read" aria-pressed="@(read ? "true" : "false")" aria-label="@(line.Verse)절 읽음">✓</button>
-                            <button type="button" class="vm st" data-mark="bookmark" aria-pressed="@(star ? "true" : "false")" aria-label="@(line.Verse)절 책갈피">★</button>
+                        <span class="acts">
+                            <button type="button" class="vb rd@(read ? " on" : "")" data-mark="read" aria-pressed="@(read ? "true" : "false")" aria-label="@(line.Verse)절 읽음">✓</button>
+                            <button type="button" class="vb st@(star ? " on" : "")" data-mark="bookmark" aria-pressed="@(star ? "true" : "false")" aria-label="@(line.Verse)절 책갈피">★</button>
                         </span>
-                    </div>
-                </li>
+                    </span>
+                </div>
             }
-        </ol>
+        </div>
+
+        @if (s.Pages > 1)
+        {
+            <nav class="brd-pager" aria-label="쪽 이동">
+                @if (s.Page > 1) { <a href="@Model.Url(page: s.Page - 1)">◀ 이전</a> } else { <span class="off">◀ 이전</span> }
+                <span class="num">@(s.First)–@(s.Last)절 / @s.Total</span>
+                @if (s.Page < s.Pages) { <a href="@Model.Url(page: s.Page + 1)">다음 ▶</a> } else { <span class="off">다음 ▶</span> }
+            </nav>
+        }
 
         var f = s.Lines[0];
         var l = s.Lines[^1];
-        <button type="button" class="rdall @(Model.PageAllRead ? "on" : "")" data-pageall data-sc="@f.Chapter" data-sv="@f.Verse" data-ec="@l.Chapter" data-ev="@l.Verse" data-n="@s.Lines.Count">
-            @(Model.PageAllRead ? $"이 페이지 {s.Lines.Count}절 읽음 취소" : $"이 페이지 {s.Lines.Count}절 모두 읽음")
+        var pageRead = s.Lines.Count(x => Model.Marks.Read.Contains((x.Chapter, x.Verse)));
+        <button type="button" class="mega@(Model.PageAllRead ? " done" : "")" data-pageall data-sc="@f.Chapter" data-sv="@f.Verse" data-ec="@l.Chapter" data-ev="@l.Verse" data-n="@s.Lines.Count">
+            <span class="b">
+                <span class="t" data-megat>@(Model.PageAllRead ? "이 페이지 다 읽었어요" : "이 페이지 읽음으로 표시")</span>
+                <span class="d" data-megad>@(Model.PageAllRead ? "다시 누르면 읽음이 취소돼요" : "넘기기만 해서는 읽음이 되지 않아요")</span>
+                <span class="c num" data-megac>이 페이지 읽은 절 @pageRead / @s.Lines.Count</span>
+            </span>
+            <em aria-hidden="true">→</em>
         </button>
-        <nav class="rdpg" aria-label="쪽 이동">
-            @if (s.Page > 1) { <a href="@Model.Url(page: s.Page - 1)">◀ 이전</a> } else { <span class="off">◀ 이전</span> }
-            <span class="num">@(s.First)–@(s.Last)절 / @s.Total</span>
-            @if (s.Page < s.Pages) { <a href="@Model.Url(page: s.Page + 1)">다음 ▶</a> } else { <span class="off">다음 ▶</span> }
-        </nav>
-        <p class="pnote">넘기기만 해서는 읽음으로 표시되지 않아요. 읽음 표시는 점수와 상관없고, 점수는 @(Model.BackText)에서 받아요.</p>
-        <a class="rdback" href="@Model.Link(Model.BackPage)">다 읽었으면 @(Model.BackText)으로 돌아가기</a>
+        <p class="brd-note">읽음 표시는 점수와 상관없어요. 점수는 @(Model.BackText)에서 받아요.</p>
     }
-</div></main>
+    <nav class="brd-foot"><a href="@Model.Link("word-mission")">미션 홈</a><a href="@Model.Link(Model.BackPage)">@Model.BackText</a><a href="/@Model.Slug">홈으로</a></nav>
+</main>
+</div>
 @Html.AntiForgeryToken()
 <p id="toast" class="toast" role="status" hidden></p>
 <script src="~/js/mission.js" asp-append-version="true"></script>

@@ -144,7 +144,10 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     public async Task R110_성경_읽기는_미션의_구절을_단위만큼_나눠_보여준다()
     {
         var c = await Member("cheolsu", Roles.Participant);
-        var p1 = await c.GetStringAsync("/jamsil-kids/read?from=word");   // 기본: 개역개정 · 3절씩
+        var all = await c.GetStringAsync("/jamsil-kids/read?from=word");   // 기본: 개역개정 · 전체(확정 시안 v2)
+        Assert.Contains("KRV 1:24:9", all);
+        Assert.DoesNotContain("brd-pager", all);                           // 한 쪽이면 쪽 이동 없음
+        var p1 = await c.GetStringAsync("/jamsil-kids/read?from=word&unit=3");
         Assert.Contains("창세기", p1);
         Assert.Contains("24장 1~9절", p1);
         Assert.Contains("KRV 1:24:1", p1);
@@ -152,10 +155,11 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.DoesNotContain("KRV 1:24:4", p1);
         Assert.DoesNotContain("NIV 1:24:1", p1);
         Assert.Contains("1–3절 / 9", p1);
-        var p2 = await c.GetStringAsync("/jamsil-kids/read?from=word&p=2");
+        var p2 = await c.GetStringAsync("/jamsil-kids/read?from=word&unit=3&p=2");
         Assert.Contains("KRV 1:24:4", p2);
         Assert.Contains("4–6절 / 9", p2);
-        Assert.Contains("말씀 미션으로 돌아가기", p2);
+        Assert.Contains("이 페이지 읽은 절 0 / 3", p2);
+        Assert.DoesNotContain("통독률", p2);                                // D25: 통독률은 2차
     }
 
     [Fact]

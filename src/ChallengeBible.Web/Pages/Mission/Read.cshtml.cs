@@ -21,7 +21,7 @@ public class ReadModel(MissionService missions, TenantContext tenant, BibleTextS
     [BindProperty(SupportsGet = true)] public short Ec { get; set; }
     [BindProperty(SupportsGet = true)] public short Ev { get; set; }
     /// <summary>읽기 단위: 1 · 3 · 5 · 0(전체)</summary>
-    [BindProperty(SupportsGet = true)] public int Unit { get; set; } = 3;
+    [BindProperty(SupportsGet = true)] public int Unit { get; set; }   // 기본 전체(확정 시안 v2)
     /// <summary>번역: KRV · KLB · NIV · ALL</summary>
     [BindProperty(SupportsGet = true, Name = "tr")] public string Tr { get; set; } = BibleTranslation.Krv;
     [BindProperty(SupportsGet = true, Name = "p")] public int PageNo { get; set; } = 1;
@@ -50,7 +50,7 @@ public class ReadModel(MissionService missions, TenantContext tenant, BibleTextS
 
         if (!BibleTextService.Codes.Contains(Tr)) Tr = Tr == "ALL" ? "ALL" : BibleTranslation.Krv;
         Shown = Tr == "ALL" ? BibleTextService.Codes : [Tr];
-        if (Unit is not (0 or 1 or 3 or 5)) Unit = 3;
+        if (Unit is not (0 or 1 or 3 or 5)) Unit = 0;
         if (Ref is { IsValid: true } r)
         {
             Slice = BibleTextService.Slice(await bible.RangeAsync(r, Shown, ct), Unit, PageNo);

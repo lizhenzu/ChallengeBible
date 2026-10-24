@@ -78,7 +78,18 @@
       });
       return res.ok;
     };
-    const busy = (el, on) => { el.disabled = on; el.classList.toggle('busy', on); el.setAttribute('aria-busy', String(on)); };
+    // 저장 중(확정 시안 v2): 누른 동그라미 안에서 파란 원이 돌고, 그 절 줄이 은은하게 반짝인다
+    const busy = (el, on) => {
+      el.disabled = on;
+      el.classList.toggle('wait', on);
+      el.setAttribute('aria-busy', String(on));
+      el.closest('[data-ch]')?.classList.toggle('busy', on);
+    };
+    const setMark = (b, on) => {
+      b.setAttribute('aria-pressed', String(on));
+      b.classList.toggle('on', on);
+      b.closest('[data-ch]')?.classList.toggle(b.dataset.mark === 'read' ? 'read' : 'bm', on);
+    };
     const prog = document.querySelector('.rdprog');
     const total = Number(prog?.dataset.total ?? 0);
     const count = document.querySelector('[data-readcount]'), pctEl = document.querySelector('[data-readpct]'), bar = document.querySelector('[data-readbar]');
@@ -91,44 +102,45 @@
       if (bar) bar.style.width = `${pct}%`;
     };
     const all = document.querySelector('[data-pageall]');
+    const readBtns = () => [...verses.querySelectorAll('[data-mark="read"]')];
+    const isOn = (b) => b.getAttribute('aria-pressed') === 'true';
     const refreshAll = () => {
       if (!all) return;
-      const on = [...verses.querySelectorAll('[data-mark="read"]')].every((b) => b.getAttribute('aria-pressed') === 'true');
-      all.classList.toggle('on', on);
-      all.textContent = on ? `이 페이지 ${all.dataset.n}절 읽음 취소` : `이 페이지 ${all.dataset.n}절 모두 읽음`;
+      const n = readBtns().filter(isOn).length, done = n === readBtns().length;
+      all.classList.toggle('done', done);
+      all.querySelector('[data-megat]').textContent = done ? '이 페이지 다 읽었어요' : '이 페이지 읽음으로 표시';
+      all.querySelector('[data-megad]').textContent = done ? '다시 누르면 읽음이 취소돼요' : '넘기기만 해서는 읽음이 되지 않아요';
+      all.querySelector('[data-megac]').textContent = `이 페이지 읽은 절 ${n} / ${all.dataset.n}`;
     };
     verses.addEventListener('click', async (e) => {
       const b = e.target.closest('button[data-mark]');
       if (!b || b.disabled) return;
-      const li = b.closest('li');
-      const on = b.getAttribute('aria-pressed') !== 'true';
+      const row = b.closest('[data-ch]');
+      const on = !isOn(b);
       const kind = b.dataset.mark === 'read' ? 'read' : 'bookmarks';
       busy(b, true);   // 서버가 느려도 눌렸다는 것을 보이게: 끝날 때까지 동그라미가 돈다
-      const ok = await call(on ? 'PUT' : 'DELETE', `/api/me/bible/${kind}/${book}/${li.dataset.ch}/${li.dataset.v}`);
+      const ok = await call(on ? 'PUT' : 'DELETE', `/api/me/bible/${kind}/${book}/${row.dataset.ch}/${row.dataset.v}`);
       busy(b, false);
       if (!ok) { say('잠시 뒤에 다시 해 주세요.'); return; }
-      b.setAttribute('aria-pressed', String(on));
+      setMark(b, on);
       if (kind === 'read') { bump(on ? 1 : -1); refreshAll(); }
       else say(on ? '책갈피에 넣었어요' : '책갈피를 뺐어요');
     });
     all?.addEventListener('click', async () => {
-      const on = !all.classList.contains('on');
+      if (all.disabled) return;
+      const on = !all.classList.contains('done');
       const r = { book: Number(book), startChapter: Number(all.dataset.sc), startVerse: Number(all.dataset.sv), endChapter: Number(all.dataset.ec), endVerse: Number(all.dataset.ev) };
+      const changing = readBtns().filter((x) => isOn(x) !== on);
       busy(all, true);
-      verses.querySelectorAll('[data-mark="read"]').forEach((x) => { if ((x.getAttribute('aria-pressed') === 'true') !== on) busy(x, true); });
+      changing.forEach((x) => busy(x, true));
       const ok = on
         ? await call('PUT', '/api/me/bible/read-range', r)
         : await call('DELETE', `/api/me/bible/read-range?book=${r.book}&startChapter=${r.startChapter}&startVerse=${r.startVerse}&endChapter=${r.endChapter}&endVerse=${r.endVerse}`);
       busy(all, false);
-      verses.querySelectorAll('[data-mark="read"].busy').forEach((x) => busy(x, false));
+      changing.forEach((x) => busy(x, false));
       if (!ok) { say('잠시 뒤에 다시 해 주세요.'); return; }
-      let delta = 0;
-      verses.querySelectorAll('[data-mark="read"]').forEach((x) => {
-        const was = x.getAttribute('aria-pressed') === 'true';
-        if (was !== on) delta += on ? 1 : -1;
-        x.setAttribute('aria-pressed', String(on));
-      });
-      bump(delta);
+      changing.forEach((x) => setMark(x, on));
+      bump(on ? changing.length : -changing.length);
       refreshAll();
     });
   }
