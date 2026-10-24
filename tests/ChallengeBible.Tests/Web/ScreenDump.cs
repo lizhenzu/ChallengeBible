@@ -210,6 +210,15 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await SavePost(admin, $"/jamsil-kids/admin/members?Tab={MembershipStatus.Approved}", "29-소속관리-진급보내기",
             ("handler", "PromoteCheck"), ("pick", mj.Id.ToString()), ("code", "JSELEM"));
 
+        // 참여 신청 v2(0059): 목록에 보이기를 켠 부서에서 고르기
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            foreach (var t in raw.Tenants) t.JoinListed = true;
+            raw.SaveChanges();
+        }
+        await Save(newbie, "/join", "30-참여신청-목록");
+        await Save(newbie, "/join?code=JSELEM", "31-참여신청-주소로");
+
         // 운영자: 가입 → 플랫폼 관리자 → 다시 로그인
         var op = await SignUp("operator", "운영자");
         using (var raw = InMemoryDb.Raw(db)) { raw.Accounts.Single(a => a.Email == "operator@example.com").IsPlatformAdmin = true; raw.SaveChanges(); }

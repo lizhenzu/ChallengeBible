@@ -21,6 +21,8 @@ public sealed class Tenant
     public bool MissionEnabled { get; set; }
     public bool ReadingEnabled { get; set; }
     public bool ReadingBoardPublic { get; set; } = true;
+    /// <summary>참여 신청 화면의 부서 목록에 보이기(0059). 기본 꺼짐 — 꺼져도 부서 주소 · 코드로는 신청할 수 있다.</summary>
+    public bool JoinListed { get; set; }
     public string Status { get; set; } = TenantStatus.Active;
     public DateTime CreatedUtc { get; set; }
 }

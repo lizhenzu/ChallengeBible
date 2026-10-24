@@ -6,7 +6,10 @@ using Microsoft.EntityFrameworkCore;
 namespace ChallengeBible.Web.Services;
 
 public sealed record TenantRow(int Id, string Name, string Slug, string JoinCode, string ThemeColor, bool MissionEnabled, bool ReadingEnabled,
-    string Status, int MemberCount, IReadOnlyList<(int AccountId, string Name, string Email)> Admins, DateTime CreatedUtc, string TimeZoneId);
+    string Status, int MemberCount, IReadOnlyList<(int AccountId, string Name, string Email)> Admins, DateTime CreatedUtc, string TimeZoneId)
+{
+    public bool JoinListed { get; init; }
+}
 
 public sealed record NewTenant(string Name, string Slug, string TimeZoneId, string ThemeColor, bool Mission, bool Reading, string? AdminEmail);
 
@@ -54,7 +57,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
                             select new { m.TenantId, a.Id, a.DisplayName, a.Email }).ToListAsync(ct);
         return tenants.Select(t => new TenantRow(t.Id, t.Name, t.Slug, t.JoinCode.Trim(), t.ThemeColor, t.MissionEnabled, t.ReadingEnabled, t.Status,
                 counts.GetValueOrDefault(t.Id),
-                admins.Where(a => a.TenantId == t.Id).Select(a => (a.Id, a.DisplayName, a.Email)).ToList(), t.CreatedUtc, t.TimeZoneId))
+                admins.Where(a => a.TenantId == t.Id).Select(a => (a.Id, a.DisplayName, a.Email)).ToList(), t.CreatedUtc, t.TimeZoneId) { JoinListed = t.JoinListed })
             .ToList();
     }
 
@@ -119,6 +122,15 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         (t.MissionEnabled, t.ReadingEnabled) = (mission, reading);
         await ctx.SaveChangesAsync(ct);
         return null;
+    }
+
+    /// <summary>참여 신청 화면의 부서 목록에 보이기 켜기 · 끄기(0059).</summary>
+    public async Task SetJoinListedAsync(int actor, int tenantId, bool listed, CancellationToken ct = default)
+    {
+        await using var ctx = await OpenAsync(actor, ct);
+        var t = await ctx.Tenants.SingleAsync(x => x.Id == tenantId, ct);
+        t.JoinListed = listed;
+        await ctx.SaveChangesAsync(ct);
     }
 
     public async Task SetStatusAsync(int actor, int tenantId, string status, CancellationToken ct = default)

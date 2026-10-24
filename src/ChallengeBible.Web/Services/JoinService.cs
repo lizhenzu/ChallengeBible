@@ -4,12 +4,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record JoinTarget(int TenantId, string Name, bool MissionEnabled, bool ReadingEnabled);
+public sealed record JoinTarget(int TenantId, string Name, bool MissionEnabled, bool ReadingEnabled)
+{
+    public string ThemeColor { get; init; } = "blue";
+}
 
 public enum JoinError { None, NotFound, AlreadyMember, NoRole, BadRole }
 
 /// <summary>
-/// 참여 코드로 부서를 찾고 참여 신청을 한다(0045, 0048). 신청은 "신청" 상태 소속을 만들고,
+/// 목록에서 부서를 고르거나(0059) 참여 코드로 부서를 찾아 참여 신청을 한다(0045, 0048). 신청은 "신청" 상태 소속을 만들고,
 /// 부서 관리자가 승인하면 그때 쓸 수 있다(R-130). 신청할 수 있는 역할은 참여자 · 보호자뿐이다.
 /// </summary>
 public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time)
@@ -27,15 +30,44 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
         await using var ctx = db.Create();
         return await ctx.Tenants
             .Where(t => t.JoinCode == c && t.Status == TenantStatus.Active)
-            .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled))
+            .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor })
             .SingleOrDefaultAsync(ct);
     }
 
-    public async Task<(JoinError Error, int? MembershipId)> ApplyAsync(int accountId, string code, IReadOnlyCollection<string> roles, CancellationToken ct = default)
+    /// <summary>참여 신청 화면의 부서 목록(0059): 플랫폼이 "목록에 보이기"를 켠, 운영 중인 부서만.</summary>
+    public async Task<List<JoinTarget>> ListedAsync(CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        return await ctx.Tenants
+            .Where(t => t.JoinListed && t.Status == TenantStatus.Active)
+            .OrderBy(t => t.Name)
+            .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor })
+            .ToListAsync(ct);
+    }
+
+    /// <summary>
+    /// 목록에서 고른 부서로 신청(0059). 목록에 없는 부서는 그 부서의 코드를 함께 받아야 한다
+    /// (부서 주소 · 코드로 찾은 경우) — Id 만 바꿔 숨긴 부서에 신청하지 못하게.
+    /// </summary>
+    public async Task<(JoinError Error, int? MembershipId)> ApplyAsync(int accountId, int tenantId, string? code, IReadOnlyCollection<string> roles, CancellationToken ct = default)
+    {
+        var c = NormalizeCode(code ?? "");
+        JoinTarget? target;
+        await using (var ctx = db.Create())
+            target = await ctx.Tenants
+                .Where(t => t.Id == tenantId && t.Status == TenantStatus.Active && (t.JoinListed || t.JoinCode == c))
+                .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled))
+                .SingleOrDefaultAsync(ct);
+        return await ApplyToAsync(accountId, target, roles, ct);
+    }
+
+    public async Task<(JoinError Error, int? MembershipId)> ApplyAsync(int accountId, string code, IReadOnlyCollection<string> roles, CancellationToken ct = default) =>
+        await ApplyToAsync(accountId, await LookupAsync(code, ct), roles, ct);
+
+    private async Task<(JoinError Error, int? MembershipId)> ApplyToAsync(int accountId, JoinTarget? target, IReadOnlyCollection<string> roles, CancellationToken ct)
     {
         if (roles.Count == 0) return (JoinError.NoRole, null);
         if (roles.Any(r => !AllowedRoles.Contains(r))) return (JoinError.BadRole, null);
-        var target = await LookupAsync(code, ct);
         if (target is null) return (JoinError.NotFound, null);
 
         // 신청은 그 부서의 행을 만드는 일이라, 이 요청의 영역을 그 부서로 정한 뒤 새 연결로 쓴다(RLS BLOCK 조건).

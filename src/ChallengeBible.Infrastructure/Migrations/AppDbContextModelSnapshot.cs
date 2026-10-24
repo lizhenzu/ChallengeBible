@@ -1797,6 +1797,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasColumnType("char(6)")
                         .IsFixedLength();
 
+                    b.Property<bool>("JoinListed")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("MissionEnabled")
                         .HasColumnType("bit");
 
