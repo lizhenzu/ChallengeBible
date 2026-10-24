@@ -178,6 +178,13 @@ public sealed class ReadingService(IAppDb db, RequestScope scope, TenantContext 
     }
 
     /// <summary>대시보드 요약(R-155 · R-156 · R-161).</summary>
+    /// <summary>통독을 시작했는지(회차가 하나라도 있는지). 부서 홈은 이것으로 먼저 보고 시작한 사람만 요약을 읽는다(요약은 처음이면 1회차를 연다, R-153).</summary>
+    public async Task<bool> StartedAsync(CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        return await ctx.ReadingRounds.AnyAsync(ct);
+    }
+
     public async Task<ReadingSummary> SummaryAsync(CancellationToken ct = default)
     {
         await using var ctx = db.Create();

@@ -1,0 +1,144 @@
+/* 부서 홈 메인(확정 시안: 홈메인-단독시안). 공통 부품(.dept .av .wrap 등)과 겹치지 않게 모두 .hm 아래에 둔다 */
+.hm {
+  --accent-soft: var(--accent-bg);
+  --verse-bg: #1E2A44; --verse-fg: #F3F5FA; --verse-dim: #B6C2DA; --vgold: #E0B45A;
+  --rd: #2F7D55; --rd-soft: #E3F1E9; --rd-bar: #CBE5D6;
+  --word: #3D5A96; --quiz: #9A6638; --pray: #6E5A9A; --rec: #3F7A5A;
+  --word-bg: #EEF3FC; --quiz-bg: #FCF4EC; --pray-bg: #F4F1FA; --rec-bg: #EEF6F1;
+  --serif: "Noto Serif KR", "Nanum Myeongjo", "Batang", serif;
+}
+@media (prefers-color-scheme: dark) { .hm {
+  --verse-bg: #0F1625; --verse-fg: #EEF1F7; --verse-dim: #9AA8C4; --vgold: #E9C27A;
+  --rd: #7CC49C; --rd-soft: #1B2A22; --rd-bar: #274034;
+  --word: #A9BDE8; --quiz: #E3B58A; --pray: #C3B3E6; --rec: #9AD0B2;
+  --word-bg: #1C2433; --quiz-bg: #2A2119; --pray-bg: #241F2E; --rec-bg: #1B2A22; } }
+
+.hm .wrap { max-width: 1080px; margin: 0 auto; }
+.hm .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .18em; color: var(--accent); }
+.hm h2 { margin: 4px 0 0; font-size: 22px; font-weight: 900; line-height: 1.4; }
+.hm .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* 머리말 */
+.hm-top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); }
+.hm-top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; border-bottom: 1px solid var(--rule); }
+.hm .tenant { min-height: 44px; font-size: 16px; font-weight: 700; color: var(--dim); display: flex; align-items: center; gap: 6px; min-width: 0; }
+.hm .tenant span { font-size: 10px; }
+.hm-top .r { display: flex; align-items: center; gap: 12px; flex: none; }
+.hm .date { font-size: 13px; letter-spacing: .14em; color: var(--dim); }
+.hm .adm { min-height: 36px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 10px; border: 1px solid var(--rule); font-size: 13px; font-weight: 700; color: var(--dim); }
+
+/* 인사 */
+.hm .hello { background: linear-gradient(180deg, var(--bg) 0, var(--hero) 100%); }
+.hm .hello .wrap { padding-block: 30px; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 18px; }
+.hm .hello h1 { margin: 6px 0 0; font-size: 32px; font-weight: 900; line-height: 1.25; letter-spacing: -.02em; word-break: keep-all; }
+.hm .hello p { margin: 8px 0 0; color: var(--dim); font-size: 16px; }
+.hm .hello p b { color: var(--accent); }
+.hm .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.hm .chips span { padding: 8px 12px; border-radius: 12px; background: var(--bg); border: 1px solid var(--rule); font-size: 13px; }
+.hm .chips b { font-size: 16px; margin-right: 2px; }
+
+/* 오늘의 말씀 */
+.hm .verse { background: var(--verse-bg); color: var(--verse-fg); }
+.hm .verse .wrap { padding-block: 30px; display: grid; gap: 18px; }
+.hm .verse .k { font-size: 12px; font-weight: 700; letter-spacing: .18em; color: var(--vgold); }
+.hm .verse blockquote { margin: 8px 0 0; font-family: var(--serif); font-size: 21px; line-height: 1.75; word-break: keep-all; }
+.hm .verse cite { display: block; margin-top: 8px; font-style: normal; font-size: 13px; color: var(--verse-dim); }
+.hm .verse .side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.hm .verse .side div { border-top: 1px solid rgba(255,255,255,.18); padding-top: 10px; }
+.hm .verse .side small { font-size: 12px; color: var(--verse-dim); }
+.hm .verse .side b { display: block; font-size: 15px; margin-top: 2px; }
+
+.hm main .wrap { padding-block: 30px 40px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 34px; }
+
+/* 안내 카드(가족 부서 고르기 · 자녀 미션 보기) */
+.hm .notice { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--rule); background: var(--bg); }
+.hm .notice b { font-size: 15px; }
+.hm .notice span { font-size: 13px; color: var(--dim); }
+.hm .progs + .notice { margin-top: 12px; }
+
+/* 프로그램 카드 */
+.hm .progs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 14px; }
+.hm .p { display: flex; flex-direction: column; gap: 16px; padding: 22px 20px 20px; border-radius: 24px; }
+.hm .p.m { background: var(--accent-soft); }
+.hm .p.r { background: var(--rd-soft); }
+.hm .p .hd { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.hm .p .nm { font-size: 24px; font-weight: 900; letter-spacing: -.01em; }
+.hm .p.m .nm { color: var(--accent); } .hm .p.r .nm { color: var(--rd); }
+.hm .p .what { font-size: 13px; color: var(--dim); }
+.hm .badge { flex: none; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px; background: var(--bg); }
+.hm .p.m .badge { color: var(--accent); } .hm .p.r .badge { color: var(--rd); }
+.hm .p .now { display: flex; align-items: center; gap: 18px; }
+.hm .ring { position: relative; width: 92px; height: 92px; flex: none; }
+.hm .ring span { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; font-weight: 900; font-size: 20px; }
+.hm .ring small { display: block; font-size: 11px; font-weight: 500; color: var(--dim); }
+.hm .now .txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.hm .now .txt b { font-size: 17px; }
+.hm .now .txt span { font-size: 13px; color: var(--dim); }
+.hm .now .txt .big { font-size: 34px; font-weight: 300; line-height: 1.1; color: var(--fg); }
+.hm .now .txt .big i { font-style: normal; font-size: 14px; color: var(--dim); }
+.hm .mis4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.hm .mis4 span { border-radius: 12px; padding: 10px 6px; text-align: center; font-size: 13px; font-weight: 900; }
+.hm .mis4 small { display: block; font-size: 11px; font-weight: 500; }
+.hm .mis4 .word { background: var(--word-bg); color: var(--word); }
+.hm .mis4 .quiz { background: var(--quiz-bg); color: var(--quiz); }
+.hm .mis4 .prayer { background: var(--pray-bg); color: var(--pray); }
+.hm .mis4 .recite { background: var(--rec-bg); color: var(--rec); }
+.hm .mis4 .cur { box-shadow: 0 0 0 2px currentColor inset; }
+.hm .resume { background: var(--bg); border-radius: 16px; padding: 14px 16px; }
+.hm .resume small { font-size: 12px; font-weight: 700; letter-spacing: .14em; color: var(--rd); }
+.hm .resume p { margin: 4px 0 0; font-family: var(--serif); font-size: 15px; line-height: 1.8; word-break: keep-all; }
+.hm .resume .bar { height: 5px; border-radius: 3px; background: var(--rd-bar); margin-top: 10px; overflow: hidden; }
+.hm .resume .bar i { display: block; height: 5px; background: var(--rd); }
+.hm .resume em { font-style: normal; font-size: 12px; color: var(--dim); }
+.hm .go { display: flex; align-items: center; justify-content: space-between; min-height: 54px; padding: 0 18px; border-radius: 14px; font-size: 16px; font-weight: 700; color: var(--on-accent); margin-top: auto; }
+.hm .p.m .go { background: var(--accent); } .hm .p.r .go { background: var(--rd); }
+
+/* 이번 주 나의 기록 */
+.hm .wk { margin-top: 14px; border: 1px solid var(--rule); border-radius: 20px; padding: 16px; }
+.hm .wk table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.hm .wk th, .hm .wk td { text-align: center; padding: 6px 0; font-size: 12px; }
+.hm .wk th { color: var(--dim); font-weight: 500; }
+.hm .wk th.t { color: var(--accent); font-weight: 900; }
+.hm .wk tbody th, .hm .wk thead th:first-child { text-align: left; width: 50px; }
+.hm .dot { display: inline-grid; place-content: center; width: 30px; height: 30px; border-radius: 50%; font-size: 12px; font-weight: 700; }
+.hm .dot.mp { background: var(--accent-soft); color: var(--accent); }
+.hm .dot.mp.all { background: var(--accent); color: var(--on-accent); }
+.hm .dot.rp { background: var(--rd-soft); color: var(--rd); }
+.hm .dot.e { background: var(--soft); color: var(--dim); font-weight: 400; }
+.hm .dot.tday { box-shadow: 0 0 0 2px var(--fg); }
+.hm .wk .leg { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 12px; color: var(--dim); }
+.hm .wk .leg i { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: -1px; margin-right: 4px; }
+.hm .goal { margin-top: 12px; display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; background: var(--soft); }
+.hm .goal b { font-size: 15px; }
+.hm .goal span { font-size: 13px; color: var(--dim); }
+.hm .goal .bar { flex: 1; height: 6px; border-radius: 3px; background: var(--rule); overflow: hidden; min-width: 60px; }
+.hm .goal .bar i { display: block; height: 6px; min-width: 4px; background: var(--accent); }
+
+/* 우리 부서 */
+.hm .dept { margin-top: 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; padding: 0; background: var(--rule); border: 1px solid var(--rule); border-radius: 18px; overflow: hidden; }
+.hm .dept div { background: var(--bg); padding: 16px; }
+.hm .dept b { display: block; font-size: 30px; font-weight: 300; line-height: 1.2; }
+.hm .dept b i { font-style: normal; font-size: 14px; color: var(--dim); }
+.hm .dept small { font-size: 13px; color: var(--dim); }
+.hm .links { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+.hm .links a { min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--rule); display: inline-flex; align-items: center; font-size: 14px; }
+
+/* 우리 가족팀: 모양은 site.css 의 fh-* 를 쓴다 */
+.hm .fh h2 { font-size: 22px; }
+
+/* 계정 줄 */
+.hm footer { border-top: 1px solid var(--rule); }
+.hm footer .wrap { padding-block: 22px calc(30px + env(safe-area-inset-bottom, 0px)); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; font-size: 14px; color: var(--dim); }
+.hm footer a { min-height: 32px; display: inline-flex; align-items: center; }
+.hm footer form { margin: 0; }
+.hm footer button { border: 0; background: none; padding: 0; min-height: 32px; font-size: 14px; color: var(--dim); }
+
+@media (min-width: 900px) {
+  .hm .hello h1 { font-size: 38px; }
+  .hm .verse .wrap { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: end; }
+  .hm .verse .side { grid-template-columns: minmax(0, 1fr); }
+  .hm main .wrap { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); column-gap: 40px; }
+  .hm main .wrap > .wide { grid-column: 1 / -1; }
+  .hm .progs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hm .fh-box { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: start; column-gap: 32px; }
+}
