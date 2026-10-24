@@ -23,6 +23,8 @@
         <link rel="manifest" href="/@dept.Slug/manifest.webmanifest" />
         <meta name="theme-color" content="@BrandingService.ColorHex(dept.ThemeColor)" />
         <link rel="icon" type="image/svg+xml" href="/@dept.Slug/icon.svg" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="@(dept.AppShortName ?? BrandingService.DefaultShortName)" />
     }
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800;900&family=Noto+Serif+KR:wght@500;700;900&display=swap">
@@ -31,5 +33,6 @@
 <body>
     @RenderBody()
     @await RenderSectionAsync("Scripts", required: false)
+    <script src="~/js/pwa.js" asp-append-version="true" defer></script>
 </body>
 </html>

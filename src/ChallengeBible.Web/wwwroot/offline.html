@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>연결이 끊겼어요 · 도전!!!</title>
+<!-- 확정 시안: 오프라인-단독시안 ①. 서비스 워커(sw.js)가 미리 저장해 두고, 연결 없이 화면을 열면 대신 보여 준다.
+     개인 내용은 담지 않는다. 외부 글꼴 · CSS 없이 이 파일만으로 보이게 스타일을 안에 둔다. -->
+<style>
+  :root { --bg: #FFFFFF; --soft: #F5F6F8; --hero: #F2F5FB; --fg: #1B1F24; --dim: #5B6470; --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; color-scheme: light; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; color-scheme: dark; } }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); }
+  body { color: var(--fg); font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; font-size: 15px; line-height: 1.6; }
+  main { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center;
+         padding: max(28px, env(safe-area-inset-top, 0px)) max(22px, env(safe-area-inset-right, 0px)) max(28px, env(safe-area-inset-bottom, 0px)) max(22px, env(safe-area-inset-left, 0px));
+         background: linear-gradient(180deg, var(--bg) 0, var(--hero) 100%); }
+  .brand { font-size: 17px; font-weight: 900; color: var(--accent); }
+  .ico { width: 96px; height: 96px; border-radius: 50%; background: var(--accent-bg); display: grid; place-items: center; }
+  h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  p { margin: 0; color: var(--dim); font-size: 14.5px; max-width: 30ch; }
+  ul { list-style: none; margin: 4px 0 0; padding: 12px 14px; border-radius: 14px; background: var(--soft); text-align: left; font-size: 13.5px; color: var(--dim); line-height: 1.8; width: 100%; max-width: 300px; }
+  li::before { content: "· "; }
+  button { min-height: 52px; width: 100%; max-width: 300px; border: 0; border-radius: 14px; background: var(--accent); color: var(--on-accent); font: inherit; font-weight: 800; font-size: 16px; cursor: pointer; }
+  button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .sub { font-size: 12.5px; color: var(--dim); }
+</style>
+</head>
+<body>
+<main>
+  <span class="brand">도전!!!</span>
+  <div class="ico" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16.1a5 5 0 0 1 7 0"/><path d="M12 20h.01"/><path d="M3 3l18 18"/></svg></div>
+  <h1>인터넷 연결이 끊겼어요</h1>
+  <p>연결되면 오늘 미션과 성경 읽기를 이어서 할 수 있어요.</p>
+  <ul><li>와이파이나 모바일 데이터가 켜져 있는지 봐 주세요.</li><li>미션 기록은 연결된 뒤에 눌러야 저장돼요.</li></ul>
+  <button type="button" id="retry">다시 연결하기</button>
+  <span class="sub" id="sub" role="status">연결되면 저절로 다시 열려요</span>
+</main>
+<script>
+  // 연결되면 처음 열려던 주소로 다시 연다(서비스 워커가 이 화면을 대신 보여 준 경우 주소는 그대로다)
+  const sub = document.getElementById('sub');
+  document.getElementById('retry').addEventListener('click', () => {
+    if (navigator.onLine) location.reload();
+    else sub.textContent = '아직 연결되지 않았어요 · 잠시 뒤 다시 해 봐요';
+  });
+  window.addEventListener('online', () => location.reload());
+</script>
+</body>
+</html>
