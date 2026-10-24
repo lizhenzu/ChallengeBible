@@ -163,12 +163,41 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task 회차_기록_화면은_확인_뒤에_새_회차를_시작하고_읽은_장이_없으면_하지_않는다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var html = await c.GetStringAsync("/jamsil-kids/reading/rounds");
+        Assert.Contains("회차 기록", html);
+        Assert.Contains("아직 이번 회차에 읽은 장이 없어요", html);
+        async Task<HttpResponseMessage> Post(string t) => await c.PostAsync("/jamsil-kids/reading/rounds",
+            new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = t }));
+
+        // 읽은 장이 없으면 확인 상자도 보이지 않는다(빈 회차를 쌓지 않음 — 서버도 막음)
+        Assert.DoesNotContain("새 회차를 시작할까요?", await c.GetStringAsync("/jamsil-kids/reading/rounds?ask=true"));
+
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var acc = raw.Accounts.Single(a => a.Email == "cheolsu@example.com").Id;
+            raw.ReadingRounds.Add(new ReadingRound { AccountId = acc, RoundNo = 1, StartedUtc = DateTime.UtcNow });
+            raw.ChapterReads.Add(new ChapterRead { AccountId = acc, RoundNo = 1, BookId = 1, Chapter = 1, ReadUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        var ask = await c.GetStringAsync("/jamsil-kids/reading/rounds?ask=true");
+        Assert.Contains("새 회차를 시작할까요?", ask);
+        var r = await Post(TokenRx().Match(ask).Groups[1].Value);
+        Assert.Equal("/jamsil-kids/reading/rounds?Started=2", r.Headers.Location!.OriginalString);
+        var after = await c.GetStringAsync(r.Headers.Location!.OriginalString);
+        Assert.Contains("2회차를 시작했어요", after);
+        Assert.Contains("중간에 닫음", after);
+    }
+
+    [Fact]
     public async Task 통독_화면_세_개가_열리고_홈_카드가_연결된다()
     {
         var c = await Member("cheolsu", Roles.Participant);
         Assert.Contains("href=\"/jamsil-kids/reading\"", await c.GetStringAsync("/jamsil-kids"));
         var dash = await c.GetStringAsync("/jamsil-kids/reading");
-        Assert.Contains("나의 성경 통독 · 1회차", dash);
+        Assert.Contains("나의 성경 통독 · <a href=\"/jamsil-kids/reading/rounds\" title=\"회차 기록\">1회차", dash);   // 회차 기록으로 가는 길
         Assert.Contains("이어 읽기", dash);
         Assert.Contains("창세기 1장 · 1절부터", dash);
         var list = await c.GetStringAsync("/jamsil-kids/reading/list?t=ot&b=1");

@@ -194,4 +194,27 @@ public class ReadingServiceTests
         Assert.Equal(((byte)1, (short)50), ReadingService.PrevChapter(2, 1));
         Assert.Null(ReadingService.PrevChapter(1, 1));
     }
+
+    [Fact]
+    public async Task R153_R154_R155_회차_기록은_새_회차부터_닫은_회차와_읽은_장을_보여_준다()
+    {
+        // 처음에는 저장하지 않은 0장 1회차
+        var empty = await As(_me).RoundsAsync();
+        Assert.Equal((1, RoundState.Reading, 0), (empty.Single().RoundNo, empty.Single().State, empty.Single().Read));
+        Assert.Empty(InMemoryDb.Raw(_db).ReadingRounds);   // 보기만으로는 회차를 열지 않음
+
+        await As(_me).CompleteChapterAsync(1, 24);
+        await As(_me).CompleteChapterAsync(1, 25);
+        Assert.Equal(2, await As(_me).StartNewRoundAsync());   // R-154
+        await As(_me).CompleteChapterAsync(1, 1);
+
+        var rows = await As(_me).RoundsAsync();
+        Assert.Equal([2, 1], rows.Select(r => r.RoundNo));
+        Assert.Equal((RoundState.Reading, 1, (DateOnly?)null), (rows[0].State, rows[0].Read, rows[0].Ended));
+        Assert.Equal((RoundState.Closed, 2), (rows[1].State, rows[1].Read));
+        Assert.NotNull(rows[1].Ended);
+        Assert.Null(rows[1].Days);                              // 걸린 날은 완독일 때만
+        Assert.Equal(0.1, rows[1].Percent);                     // 2 / 1,189 → 0.1%(R-155 소수 첫째 자리)
+        Assert.Equal([1], (await As(_other).RoundsAsync()).Select(r => r.RoundNo));   // 다른 계정의 회차는 안 보임(R-158)
+    }
 }
