@@ -95,7 +95,7 @@
                 }
                 @if (t.ReadingEnabled)
                 {
-                    <a class="p r" href="@(rd is null ? $"/{slug}/reading" : $"/{slug}/reading/read/{rd.Resume.BookId}/{rd.Resume.Chapter}" + (rd.Resume.Verse > 1 ? $"?v={rd.Resume.Verse}" : ""))">
+                    <a class="p r" href="/@slug/reading">
                         <div class="hd"><div><div class="nm">도전!!!성경통독</div><div class="what">성경 전체 1,189장 · 내 속도로</div></div>
                             <span class="badge">@(rd is null ? "시작 전" : $"{rd.RoundNo}독째")</span></div>
                         @if (rd is null)
@@ -122,7 +122,7 @@
                                 <div class="bar"><i style="width:@((book.Total == 0 ? 0 : book.Read * 100.0 / book.Total).ToString("0.#", inv))%"></i></div>
                                 <em class="num">@book.Name @book.Read / @(book.Total)장</em>
                             </div>
-                            <span class="go">이어 읽기 <span aria-hidden="true">→</span></span>
+                            <span class="go">통독 홈 가기 <span aria-hidden="true">→</span></span>
                         }
                     </a>
                 }
