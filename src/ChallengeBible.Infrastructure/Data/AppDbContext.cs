@@ -44,6 +44,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<VerseReadMark> VerseReadMarks => Set<VerseReadMark>();
     public DbSet<Bookmark> Bookmarks => Set<Bookmark>();
 
+    public DbSet<BibleChapter> BibleChapters => Set<BibleChapter>();
+    public DbSet<ReadingRound> ReadingRounds => Set<ReadingRound>();
+    public DbSet<ChapterRead> ChapterReads => Set<ChapterRead>();
+    public DbSet<RoundVerseRead> RoundVerseReads => Set<RoundVerseRead>();
+    public DbSet<ChapterProgress> ChapterProgresses => Set<ChapterProgress>();
+
     protected override void OnModelCreating(ModelBuilder b)
     {
         b.HasDefaultSchema("app");

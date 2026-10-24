@@ -1,0 +1,88 @@
+@page "/{slug}/reading/list"
+@model ChallengeBible.Web.Pages.Reading.ListModel
+@using ChallengeBible.Web.Pages.Reading
+@using ChallengeBible.Web.Services
+@using ChallengeBible.Infrastructure.Data
+@* 확정 시안: 통독-성경목록 — 구약 · 신약 탭 → 전체 진도 → 분류별 책 버튼 → 펼친 책의 장 번호 칸(다 읽음 · 보던 곳 · 아직)
+   "읽으러 가기"면 장을 누르면 본문으로, "다 읽음 표시"면 눌러 바로 완료 · 해제(R-151, 종이 성경으로 읽은 사람) *@
+@{
+    var d = Model.Data;
+    var ko = ReadingPageBase.Ko;
+    var ot = Model.T == "ot";
+    var read = ot ? d.OtRead : d.NtRead;
+    var total = ot ? ReadingSummary.OtTotal : ReadingSummary.NtTotal;
+    var pct = ReadingSummary.Percent(read, total);
+    var r = d.Resume;
+}
+<link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
+<div class="rp">
+<header class="rp-top"><div class="rp-in">
+    <a class="rp-menu" href="/@Model.Slug/reading" aria-label="통독 홈">☰</a>
+    <nav class="rp-crumb"><a href="/@Model.Slug">홈으로</a> · <a href="/@Model.Slug/reading"><b>성경통독</b></a></nav>
+    <span class="rp-date">@d.Today.ToString("M월 d일 dddd", ko)</span>
+</div>
+<nav class="rp-in rp-ttabs" aria-label="구약 · 신약">
+    <a href="@Model.ListUrl("ot")" aria-current="@(ot ? "page" : "false")">구약</a>
+    <a href="@Model.ListUrl("nt")" aria-current="@(!ot ? "page" : "false")">신약</a>
+</nav></header>
+
+<main class="rp-in rp-body" data-reading-list>
+    <div class="rp-k">@(ot ? "구약" : "신약") 전체</div>
+    <div class="rp-big"><b class="num">@(pct.ToString("0.0"))<small>%</small></b><span><strong class="num">@(read)장 읽음</strong><br /><small class="num">@(total.ToString("N0"))장 중 · @(ot ? 39 : 27)권</small></span></div>
+    <div class="rp-bar"><i><b style="width:@(pct.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"></b></i></div>
+
+    @foreach (var g in ListModel.Groups.Where(x => x.Testament == Model.T))
+    {
+        var books = d.Books.Where(b => b.BookId >= g.From && b.BookId <= g.To).ToList();
+        <section class="rp-group">
+            <h2 class="rp-gh"><span>@g.Name · @(books.Count)권</span><span class="num">@books.Sum(b => b.Read) / @(books.Sum(b => b.Total))장</span></h2>
+            <div class="rp-bgrid">
+                @foreach (var b in books)
+                {
+                    var open = Model.B == b.BookId;
+                    <a id="b@(b.BookId)" class="rp-bk@(open ? " open" : "")@(b.Done ? " done" : "")" href="@(open ? Model.ListUrl(Model.T) : Model.ListUrl(Model.T, b.BookId, Model.MarkMode))">
+                        <span>@b.Name</span><b class="num">@b.Read/@b.Total</b><i style="width:@(b.Read * 100 / b.Total)%"></i>
+                    </a>
+                    if (open)
+                    {
+                        var done = Model.DoneOf(b.BookId);
+                        var here = r.BookId == b.BookId ? r.Chapter : (short)0;
+                        var go = here > 0 ? here : (short)Math.Max(1, Enumerable.Range(1, b.Total).FirstOrDefault(c => !done.Contains((short)c)));
+                        <div class="rp-panel" data-book="@b.BookId">
+                            <div class="ph"><strong>@b.Name</strong><span class="num" data-panel-count>@done.Count / @(b.Total)장 · @(b.Total == 0 ? 0 : done.Count * 100 / b.Total)%</span></div>
+                            <div class="seg" role="group" aria-label="누르면">
+                                <a href="@Model.ListUrl(Model.T, b.BookId)" aria-current="@(!Model.MarkMode ? "true" : "false")">읽으러 가기</a>
+                                <a href="@Model.ListUrl(Model.T, b.BookId, mark: true)" aria-current="@(Model.MarkMode ? "true" : "false")">다 읽음 표시</a>
+                            </div>
+                            <p class="hint">@(Model.MarkMode ? "장을 누르면 다 읽음으로 표시하거나 취소해요. 종이 성경으로 읽었을 때 써요." : "장을 누르면 그 장 본문으로 가요.")</p>
+                            <div class="chs">
+                                @for (short c = 1; c <= b.Total; c++)
+                                {
+                                    var cls = (done.Contains(c) ? "done" : "") + (c == here ? " here" : "");
+                                    if (Model.MarkMode)
+                                    {
+                                        <button type="button" class="ch @cls" data-ch="@c" aria-pressed="@(done.Contains(c) ? "true" : "false")" aria-label="@(c)장 다 읽음">@c</button>
+                                    }
+                                    else
+                                    {
+                                        <a class="ch @cls" href="@Model.ReadUrl(b.BookId, c)" aria-label="@(c)장 읽기">@c</a>
+                                    }
+                                }
+                            </div>
+                            <div class="lg"><span><i class="done"></i>다 읽음</span><span><i class="here"></i>보던 곳</span><span><i></i>아직</span></div>
+                            <div class="acts">
+                                <a class="close" href="@Model.ListUrl(Model.T)">닫기</a>
+                                <a class="go" href="@Model.ReadUrl(b.BookId, go)">이어 읽기 @(go)장 →</a>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </section>
+    }
+    <nav class="rp-foot"><a href="/@Model.Slug/reading">통독 홈</a><a href="@Model.ReadUrl(r.BookId, r.Chapter, r.Verse)">이어 읽기</a><a href="/@Model.Slug">홈으로</a></nav>
+</main>
+</div>
+@Html.AntiForgeryToken()
+<p id="toast" class="toast" role="status" hidden></p>
+<script src="~/js/reading.js" asp-append-version="true"></script>

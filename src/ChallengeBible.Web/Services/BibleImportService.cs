@@ -60,6 +60,17 @@ public sealed class BibleImportService(IAppDb db)
             FROM dbo.{{t.Source}} s JOIN b ON b.BibleText = s.BibleText
             WHERE s.BibleData IS NOT NULL AND LTRIM(RTRIM(s.BibleData)) <> N''
             """, [t.Id], ct);   // 빈 절은 옮기지 않는다(0036: 빠진 절은 비워 둔다)
+        if (t.Code == BibleTranslation.Krv)
+        {
+            // 통독의 장마다 절 수는 개역개정 기준(0041). 통독 기록이 참조하므로 지우지 않고 맞추기만 한다
+            await ctx.Database.ExecuteSqlRawAsync("""
+                MERGE app.BibleChapter AS c
+                USING (SELECT BookId, Chapter, COUNT(*) AS n FROM app.BibleVerse WHERE TranslationId = 1 GROUP BY BookId, Chapter) AS v
+                   ON c.BookId = v.BookId AND c.Chapter = v.Chapter
+                WHEN MATCHED AND c.VerseCount <> v.n THEN UPDATE SET VerseCount = v.n
+                WHEN NOT MATCHED THEN INSERT (BookId, Chapter, VerseCount) VALUES (v.BookId, v.Chapter, v.n);
+                """, ct);
+        }
         await tx.CommitAsync(ct);
         return new(true, added, $"{t.Name} {added:N0}절을 옮겼어요.");
     }

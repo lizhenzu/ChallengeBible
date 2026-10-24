@@ -70,13 +70,22 @@
   const verses = document.querySelector('.rdv[data-book]');
   if (verses) {
     const book = verses.dataset.book;
+    // 통독 본문(data-api="reading")은 ✓ 를 회차 절 읽음(R-160)으로, 말씀 본문은 성경 읽음 표시(R-112)로 보낸다. ★ 는 둘 다 책갈피
+    const reading = verses.dataset.api === 'reading', chapter = verses.dataset.chapter;
     const call = async (method, url, body) => {
       const res = await fetch(url, {
         method, credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', RequestVerificationToken: token },
         body: body ? JSON.stringify(body) : undefined,
       });
-      return res.ok;
+      return { ok: res.ok, json: await res.json().catch(() => ({})) };
+    };
+    const doneFlag = document.querySelector('[data-chapterdone]');
+    const afterReading = (json) => {
+      if (!reading) return;
+      if (doneFlag) doneFlag.hidden = !json.chapterDone;
+      if (json.roundCompleted) say(`성경을 다 읽었어요! ${json.newRoundNo}회차를 시작해요`);
+      else if (json.chapterDone) say(`${chapter}장을 다 읽었어요`);
     };
     // 저장 중(확정 시안 v2): 누른 동그라미 안에서 파란 원이 돌고, 그 절 줄이 은은하게 반짝인다
     const busy = (el, on) => {
@@ -119,11 +128,14 @@
       const on = !isOn(b);
       const kind = b.dataset.mark === 'read' ? 'read' : 'bookmarks';
       busy(b, true);   // 서버가 느려도 눌렸다는 것을 보이게: 끝날 때까지 동그라미가 돈다
-      const ok = await call(on ? 'PUT' : 'DELETE', `/api/me/bible/${kind}/${book}/${row.dataset.ch}/${row.dataset.v}`);
+      const url = reading && kind === 'read'
+        ? `/api/me/reading/verses/${book}/${row.dataset.ch}/${row.dataset.v}`
+        : `/api/me/bible/${kind}/${book}/${row.dataset.ch}/${row.dataset.v}`;
+      const { ok, json } = await call(on ? 'PUT' : 'DELETE', url);
       busy(b, false);
       if (!ok) { say('잠시 뒤에 다시 해 주세요.'); return; }
       setMark(b, on);
-      if (kind === 'read') { bump(on ? 1 : -1); refreshAll(); }
+      if (kind === 'read') { bump(on ? 1 : -1); refreshAll(); afterReading(json); }
       else say(on ? '책갈피에 넣었어요' : '책갈피를 뺐어요');
     });
     all?.addEventListener('click', async () => {
@@ -133,15 +145,18 @@
       const changing = readBtns().filter((x) => isOn(x) !== on);
       busy(all, true);
       changing.forEach((x) => busy(x, true));
-      const ok = on
-        ? await call('PUT', '/api/me/bible/read-range', r)
-        : await call('DELETE', `/api/me/bible/read-range?book=${r.book}&startChapter=${r.startChapter}&startVerse=${r.startVerse}&endChapter=${r.endChapter}&endVerse=${r.endVerse}`);
+      const { ok, json } = reading
+        ? await call(on ? 'PUT' : 'DELETE', `/api/me/reading/verses/${r.book}/${r.startChapter}?from=${r.startVerse}&to=${r.endVerse}`)
+        : on
+          ? await call('PUT', '/api/me/bible/read-range', r)
+          : await call('DELETE', `/api/me/bible/read-range?book=${r.book}&startChapter=${r.startChapter}&startVerse=${r.startVerse}&endChapter=${r.endChapter}&endVerse=${r.endVerse}`);
       busy(all, false);
       changing.forEach((x) => busy(x, false));
       if (!ok) { say('잠시 뒤에 다시 해 주세요.'); return; }
       changing.forEach((x) => setMark(x, on));
       bump(on ? changing.length : -changing.length);
       refreshAll();
+      afterReading(json);
     });
   }
 

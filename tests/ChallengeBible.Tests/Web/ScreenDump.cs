@@ -105,6 +105,23 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids/word", "07-말씀");
         await Save(kid, "/jamsil-kids/read?from=word", "07b-성경읽기");
         await Save(kid, "/jamsil-kids/read?from=word&tr=ALL&unit=1", "07c-성경읽기-번역모두");
+
+        // 통독(시안 예시와 비슷하게): 창세기 1~23장을 읽었고 24장 3절에서 멈춤
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            var me = Acc("cheolsu");
+            var start = new DateTime(2027, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            raw.ReadingRounds.Add(new ReadingRound { AccountId = me, RoundNo = 1, StartedUtc = start });
+            for (short c = 1; c <= 23; c++)
+                raw.ChapterReads.Add(new ChapterRead { AccountId = me, RoundNo = 1, BookId = 1, Chapter = c, ReadUtc = start.AddDays(Math.Min(4, (c - 1) / 5)) });
+            raw.RoundVerseReads.Add(new RoundVerseRead { AccountId = me, RoundNo = 1, BookId = 1, Chapter = 24, Verse = 1, ReadUtc = start.AddDays(4) });
+            raw.RoundVerseReads.Add(new RoundVerseRead { AccountId = me, RoundNo = 1, BookId = 1, Chapter = 24, Verse = 2, ReadUtc = start.AddDays(4) });
+            raw.ChapterProgresses.Add(new ChapterProgress { AccountId = me, RoundNo = 1, BookId = 1, Chapter = 24, LastViewedVerse = 3, UpdatedUtc = start.AddDays(4) });
+            raw.SaveChanges();
+        }
+        await Save(kid, "/jamsil-kids/reading", "18-통독-대시보드");
+        await Save(kid, "/jamsil-kids/reading/list?t=ot&b=1", "19-통독-성경목록");
+        await Save(kid, "/jamsil-kids/reading/read/1/24?unit=3", "20-통독-본문읽기");
         await Save(kid, "/jamsil-kids/quiz", "08-퀴즈");
         await Save(kid, "/jamsil-kids/prayer", "09-기도");
         await Save(kid, "/jamsil-kids/recite", "10-암송");
@@ -143,10 +160,13 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         var dir = Environment.GetEnvironmentVariable("CB_SCREENS_DIR")!;
         var html = await c.GetStringAsync(url);
         if (tweak is not null) html = tweak(html);
-        var css = await File.ReadAllTextAsync(Path.Combine(FindWeb(), "wwwroot", "css", "site.css"));
-        // 배포 때는 파일 이름에 지문이 붙는다(/css/site.abc123.css) — 그대로 안에 넣는다
-        html = Regex.Replace(html, "<link rel=\"stylesheet\" href=\"/css/site[^\"]*\\.css[^\"]*\" />", _ => $"<style>{css}</style>");
-        html = Regex.Replace(html, "<script src=\"/js/mission[^\"]*\"></script>", "");
+        // 배포 때는 파일 이름에 지문이 붙는다(/css/site.css?v=…) — 화면이 쓰는 스타일 파일(site · reading)을 그대로 안에 넣는다
+        foreach (var name2 in new[] { "site", "reading" })
+        {
+            var css = await File.ReadAllTextAsync(Path.Combine(FindWeb(), "wwwroot", "css", name2 + ".css"));
+            html = Regex.Replace(html, $"<link rel=\"stylesheet\" href=\"/css/{name2}[^\"]*\\.css[^\"]*\" />", _ => $"<style>{css}</style>");
+        }
+        html = Regex.Replace(html, "<script src=\"/js/(mission|reading)[^\"]*\"></script>", "");
         await File.WriteAllTextAsync(Path.Combine(dir, name + ".html"), html);
     }
 

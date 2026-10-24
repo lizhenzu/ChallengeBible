@@ -163,6 +163,60 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task 통독_화면_세_개가_열리고_홈_카드가_연결된다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        Assert.Contains("href=\"/jamsil-kids/reading\"", await c.GetStringAsync("/jamsil-kids"));
+        var dash = await c.GetStringAsync("/jamsil-kids/reading");
+        Assert.Contains("나의 성경 통독 · 1회차", dash);
+        Assert.Contains("이어 읽기", dash);
+        Assert.Contains("창세기 1장 · 1절부터", dash);
+        var list = await c.GetStringAsync("/jamsil-kids/reading/list?t=ot&b=1");
+        Assert.Contains("율법서 · 5권", list);
+        Assert.Contains("이어 읽기 1장", list);
+        var read = await c.GetStringAsync("/jamsil-kids/reading/read/1/24");
+        Assert.Contains("KRV 1:24:9", read);
+        Assert.Contains("class=\"brd-chs\"", read);           // 장 번호 줄(ADR 0057)
+        Assert.Contains("data-api=\"reading\"", read);
+        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/jamsil-kids/reading/read/1/51")).StatusCode);
+    }
+
+    [Fact]
+    public async Task R150_통독을_끈_부서는_통독_화면이_없다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        using (var raw = InMemoryDb.Raw(_db)) { raw.Tenants.Single(t => t.Id == _kids.Id).ReadingEnabled = false; raw.SaveChanges(); }
+        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/jamsil-kids/reading")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/jamsil-kids/reading/read/1/1")).StatusCode);
+        Assert.DoesNotContain("/jamsil-kids/reading", await c.GetStringAsync("/jamsil-kids"));
+    }
+
+    [Fact]
+    public async Task R160_R162_통독_본문에서_이_페이지를_다_읽으면_장이_완료되고_진도에_반영된다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var html = await c.GetStringAsync("/jamsil-kids/reading/read/1/24");
+        var token = TokenRx().Match(html).Groups[1].Value;
+        async Task<JsonElement> Send(HttpMethod m, string url)
+        {
+            var req = new HttpRequestMessage(m, url);
+            req.Headers.Add("RequestVerificationToken", token);
+            var res = await c.SendAsync(req);
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            return JsonDocument.Parse(await res.Content.ReadAsStringAsync()).RootElement;
+        }
+        Assert.False((await Send(HttpMethod.Put, "/api/me/reading/verses/1/24?from=1&to=8")).GetProperty("chapterDone").GetBoolean());
+        Assert.True((await Send(HttpMethod.Put, "/api/me/reading/verses/1/24/9")).GetProperty("chapterDone").GetBoolean());
+        Assert.Contains("1 / 1,189장", await c.GetStringAsync("/jamsil-kids/reading"));
+        Assert.Contains("다 읽은 장", await c.GetStringAsync("/jamsil-kids/reading/read/1/24"));
+        Assert.False((await Send(HttpMethod.Delete, "/api/me/reading/verses/1/24/9")).GetProperty("chapterDone").GetBoolean());
+        Assert.Contains("0 / 1,189장", await c.GetStringAsync("/jamsil-kids/reading"));
+        // 책 목록에서 바로 완료(R-151)
+        Assert.True((await Send(HttpMethod.Put, "/api/me/reading/chapters/1/1")).GetProperty("chapterDone").GetBoolean());
+        Assert.Contains("1 / 1,189장", await c.GetStringAsync("/jamsil-kids/reading"));
+    }
+
+    [Fact]
     public async Task R112_성경_읽기의_읽음과_책갈피는_PUT_DELETE_로_켜고_끈다()
     {
         var c = await Member("cheolsu", Roles.Participant);

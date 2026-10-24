@@ -673,15 +673,16 @@ a.td::after { content: "›"; margin-left: auto; font-size: 22px; color: var(--d
 .brd-pills a { min-height: 36px; padding: 0 16px; border-radius: 99px; background: var(--b-grey); color: var(--b-dim2); display: inline-flex; align-items: center; font-size: 14px; font-weight: 700; }
 .brd-pills a[aria-current="true"] { background: var(--b-acc); color: #fff; }
 .brd-verses { margin-top: 8px; }
-/* 해설 카드(R-118, ADR 0056): 절 사이에 끼운다. 줄바꿈 문자는 화면에서도 줄바꿈 */
-.brd-ex { --x-bg: #FAF5EC; --x-bar: #8B5E34; --x-rg: #8C7B6B;
-          margin: 14px 0 4px; padding: 14px 16px; border-left: 5px solid var(--x-bar); border-radius: 4px 12px 12px 4px; background: var(--x-bg); overflow-wrap: anywhere; word-break: keep-all; }
-@media (prefers-color-scheme: dark) { .brd-ex { --x-bg: #2A241C; --x-bar: #B9824F; --x-rg: #B3A08C; } }
+/* 해설 카드(R-118, ADR 0056): 절 사이에 끼운다. 대표 색(파랑) 연한 바탕 — 책갈피 노랑과 겹치지 않게. 줄바꿈 문자는 화면에서도 줄바꿈
+   글자 대비 4.5:1 이상(밝음 · 어두움 모두) */
+.brd-ex { --x-tag: #1A66D1; --x-on: #fff; --x-rg: #3D63A0; --x-bd: #5B6472;
+          margin: 14px 0 4px; padding: 14px 16px; border-left: 5px solid var(--b-acc); border-radius: 4px 12px 12px 4px; background: var(--b-accSoft); overflow-wrap: anywhere; word-break: keep-all; }
+@media (prefers-color-scheme: dark) { .brd-ex { --x-tag: var(--b-acc); --x-on: #0B1A33; --x-rg: #9DBCEB; --x-bd: var(--b-dim2); } }
 .brd-ex .hd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
-.brd-ex .tag { padding: 2px 9px; border-radius: 6px; background: var(--x-bar); color: #fff; font-size: 12px; font-weight: 800; }
+.brd-ex .tag { padding: 2px 9px; border-radius: 6px; background: var(--x-tag); color: var(--x-on); font-size: 12px; font-weight: 800; }
 .brd-ex .rg { font-size: 13px; font-weight: 700; color: var(--x-rg); }
 .brd-ex strong { display: block; margin-top: 8px; font-size: calc(17px * var(--fs)); font-weight: 800; color: var(--b-ink); line-height: 1.5; white-space: pre-line; }
-.brd-ex .bd { margin: 4px 0 0; font-size: calc(14.5px * var(--fs)); color: var(--b-dim2); line-height: 1.75; white-space: pre-line; }
+.brd-ex .bd { margin: 4px 0 0; font-size: calc(14.5px * var(--fs)); color: var(--x-bd); line-height: 1.75; white-space: pre-line; }
 .brd .vr { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--b-rule); }
 .brd .vr .vn { flex: none; min-width: 22px; padding-top: 6px; font-size: 12px; font-weight: 800; color: var(--b-no); text-align: center; background: none; height: auto; border-radius: 0; display: block; }
 .brd .vr .vt { flex: 1; min-width: 0; font-size: calc(18px * var(--fs)); line-height: 2; color: var(--b-ink); word-break: keep-all; }

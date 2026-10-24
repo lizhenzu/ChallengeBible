@@ -17,7 +17,7 @@
     }
     @if (Model.Tenant.Current.ReadingEnabled)
     {
-        <div class="dept" aria-disabled="true"><span class="mk">통</span><div><b>도전!!!성경통독</b><span class="sub" style="margin:0;font-size:13px">준비 중이에요</span></div></div>
+        <a class="dept" href="/@Model.Tenant.Current.Slug/reading"><span class="mk">통</span><div><b>도전!!!성경통독</b><span class="sub" style="margin:0;font-size:13px">자유롭게 읽고 장마다 체크 · 진도율</span></div><span aria-hidden="true">→</span></a>
     }
     @if (Model.Tenant.IsAdmin)
     {
