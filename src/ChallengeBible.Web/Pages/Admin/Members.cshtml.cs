@@ -53,8 +53,30 @@ public class MembersModel(MemberAdminService members, PromotionService promotion
         "resume" => "정지를 풀었어요",
         "link" => "보호자를 연결했어요 · 이제 자녀 기록을 볼 수 있어요",
         "unlink" => "보호자 연결을 풀었어요",
+        "regroup" => $"{Moved}명을 {(string.IsNullOrWhiteSpace(To) ? "반 없음" : To)}(으)로 옮겼어요",
         _ => "",
     };
+
+    [BindProperty(SupportsGet = true)] public int Moved { get; set; }
+    [BindProperty(SupportsGet = true)] public string? To { get; set; }
+    public string? RegroupError { get; private set; }
+
+    /// <summary>위 목록에서 고른 참여자들의 반을 한 번에 바꾼다(확정 시안: 관리-소속관리 "반 바꾸기").</summary>
+    public async Task<IActionResult> OnPostRegroupAsync(List<int> pick, string? newGroup, CancellationToken ct)
+    {
+        Tab = MembershipStatus.Approved;
+        if (pick.Count == 0)
+        {
+            RegroupError = "반을 바꿀 아이를 위에서 골라 주세요.";
+            NewGroup = newGroup;
+            await LoadAsync(ct);
+            return Page();
+        }
+        var moved = await members.RegroupAsync(pick, newGroup, ct);
+        return RedirectToPage(new { slug = tenant.Current.Slug, Tab, Q, Role, Group, Ok = "regroup", Moved = moved, To = newGroup?.Trim() });
+    }
+
+    public string? NewGroup { get; private set; }
 
     public async Task OnGetAsync(CancellationToken ct) => await LoadAsync(ct);
 

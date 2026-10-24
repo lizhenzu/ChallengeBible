@@ -57,6 +57,29 @@ public class MemberAdminServiceTests
     }
 
     [Fact]
+    public async Task 여러_명_반_바꾸기는_이_부서의_승인된_참여자만()
+    {
+        Membership Approved(Tenant t, string login, params string[] roles) =>
+            InMemoryDb.SeedMembership(_db, t.Id, InMemoryDb.SeedAccount(_db, login, login).Id, MembershipStatus.Approved, roles);
+        var a = Approved(_kids, "cheolsu", Roles.Participant);
+        var b = Approved(_kids, "seoyeon", Roles.Participant, Roles.Guardian);
+        var teacher = Approved(_kids, "minsu", Roles.Teacher);
+        var waiting = Applicant(_kids, "minjun");
+        var other = Approved(_elem, "jiho", Roles.Participant);
+
+        var moved = await In(_kids).RegroupAsync([a.Id, b.Id, teacher.Id, waiting.Id, other.Id, a.Id], "  믿음반 ");
+        Assert.Equal(2, moved);
+        Assert.Equal(("믿음반", "믿음반"), (Load(a.Id).GroupLabel, Load(b.Id).GroupLabel));
+        Assert.Null(Load(teacher.Id).GroupLabel);                      // 참여자가 아니면 그대로
+        Assert.Null(Load(waiting.Id).GroupLabel);                      // 신청 중이면 그대로
+        Assert.Null(Load(other.Id).GroupLabel);                        // 다른 부서는 보이지도 않는다
+
+        Assert.Equal(1, await In(_kids).RegroupAsync([a.Id], " "));     // 빈칸 = 반 없음
+        Assert.Null(Load(a.Id).GroupLabel);
+        Assert.Equal(0, await In(_kids).RegroupAsync([], "사랑반"));
+    }
+
+    [Fact]
     public async Task 승인은_신청_상태만_역할은_하나_이상()
     {
         var m = Applicant(_kids);

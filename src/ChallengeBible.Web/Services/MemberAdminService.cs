@@ -102,6 +102,23 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         return MemberError.None;
     }
 
+    /// <summary>
+    /// 여러 명 반 바꾸기(확정 시안: 관리-소속관리). 이 부서의 승인된 참여자만 바꾸고 나머지 번호는 건너뛴다.
+    /// 반은 표시 · 필터용이라(용어집 GroupLabel) 따로 기록을 남기지 않는다. 빈칸 = 반 없음. 바꾼 사람 수를 돌려준다.
+    /// </summary>
+    public async Task<int> RegroupAsync(IReadOnlyCollection<int> membershipIds, string? group, CancellationToken ct = default)
+    {
+        var ids = membershipIds.Distinct().ToList();
+        if (ids.Count == 0) return 0;
+        var label = string.IsNullOrWhiteSpace(group) ? null : group.Trim()[..Math.Min(group.Trim().Length, 50)];
+        await using var ctx = db.Create();
+        var targets = await ctx.Memberships.Where(m => ids.Contains(m.Id) && m.Status == MembershipStatus.Approved
+            && m.Roles.Any(r => r.Role == Infrastructure.Data.Roles.Participant)).ToListAsync(ct);
+        foreach (var m in targets) m.GroupLabel = label;
+        await ctx.SaveChangesAsync(ct);
+        return targets.Count;
+    }
+
     public async Task<MemberError> RejectAsync(int actor, int membershipId, CancellationToken ct = default) =>
         await ChangeStatusAsync(actor, membershipId, MembershipStatus.Requested, MembershipStatus.Rejected, ct);
 

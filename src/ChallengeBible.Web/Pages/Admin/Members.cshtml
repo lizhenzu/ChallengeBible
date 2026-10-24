@@ -2,7 +2,7 @@
 @model ChallengeBible.Web.Pages.Admin.MembersModel
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Pages.Admin
-@* 확정 시안: 관리-소속관리-단독시안 (줄을 펼쳐 바로 처리, 소속 탭에서 여러 명 골라 진급 보내기. 반 바꾸기는 다음에) *@
+@* 확정 시안: 관리-소속관리-단독시안 (줄을 펼쳐 바로 처리, 소속 탭에서 여러 명 골라 반 바꾸기 · 진급 보내기) *@
 @{ var picking = Model.Tab == MembershipStatus.Approved; }
 <partial name="_AdminTop" model="Model.Tenant" />
 <main class="admin gut"><div class="wrap wide">
@@ -143,6 +143,14 @@
     @if (picking && Model.Rows.Any(r => r.Roles.Contains(Roles.Participant)))
     {
         <form method="post" id="promo" class="promo" asp-route-slug="@Model.Tenant.Current.Slug" asp-route-Tab="@Model.Tab">
+            <h2 id="regroupT">반 바꾸기</h2>
+            <p class="hint">위 목록에서 아이를 고르고 새 반을 넣어 주세요. 비우면 "반 없음"이에요.@(Model.Picks.Count > 0 ? $" 지금 {Model.Picks.Count}명 골랐어요." : "")</p>
+            <div class="row">
+                <input class="in sm" name="newGroup" value="@Model.NewGroup" list="groups" placeholder="새 반 (예: 사랑반)" aria-label="새 반" maxlength="50" />
+                <button type="submit" class="btn s sm" asp-page-handler="Regroup">고른 아이 반 바꾸기</button>
+            </div>
+            @if (Model.RegroupError is not null) { <p class="found bad" role="alert">@Model.RegroupError</p> }
+
             <h2 id="promoT">진급 보내기</h2>
             <p class="hint">보낼 아이를 위 목록에서 고르고, 받을 부서의 참여 코드를 넣어 주세요.@(Model.Picks.Count > 0 ? $" 지금 {Model.Picks.Count}명 골랐어요." : "")</p>
             <div class="row">

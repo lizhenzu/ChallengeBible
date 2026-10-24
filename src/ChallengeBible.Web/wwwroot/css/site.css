@@ -840,6 +840,8 @@ details.bycode .hint { margin-top: 6px; }
 .list li.row.pickable > details { flex: 1; min-width: 0; }
 .promo { border: 1px solid var(--accent); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 .promo h2 { margin: 0; font-size: 16px; }
+.promo h2 + .hint { margin-top: -6px; }
+.promo #promoT { margin-top: 6px; padding-top: 16px; border-top: 1px solid var(--rule); }   /* 반 바꾸기 | 진급 보내기 */
 .promo .found { font-weight: 700; }
 .promo .found.bad { color: var(--bad); }
 
