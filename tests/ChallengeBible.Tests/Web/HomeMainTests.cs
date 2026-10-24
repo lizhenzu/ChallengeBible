@@ -93,7 +93,9 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var home = await c.GetStringAsync("/jamsil-kids");
         Assert.Contains("1독째", home);
         Assert.Contains("3 / 1,189장", home);
-        Assert.Contains("href=\"/jamsil-kids/reading/read/1/4\"", home);            // 이어 읽기 = 창세기 4장
+        Assert.Contains("이어 읽기 · 창세기 4장", home);                              // 이어 읽기 = 창세기 4장
+        Assert.Contains("class=\"p r\" href=\"/jamsil-kids/reading\"", home);       // 카드를 누르면 통독 홈
+        Assert.DoesNotContain("/jamsil-kids/reading/read/", home);
         Assert.Contains("장 읽은 성경", home);
         Assert.Contains("통독<br />장 수", home);                                    // 이번 주 나의 기록에 통독 줄
     }
