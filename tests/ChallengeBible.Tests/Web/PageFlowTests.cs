@@ -36,6 +36,8 @@ public partial class PageFlowTests : IClassFixture<WebApplicationFactory<Program
         var html = await Client().GetStringAsync("/");
         Assert.Contains("로그인", html);
         Assert.DoesNotContain("유년부", html);
+        var year = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Asia/Seoul")).Year;
+        Assert.Contains($"© {year} 잠실새내 · 주일학교", html);   // 연도는 시스템 날짜
     }
 
     [Fact]
