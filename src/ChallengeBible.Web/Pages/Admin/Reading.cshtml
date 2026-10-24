@@ -1,0 +1,64 @@
+@page "/{slug}/admin/reading"
+@model ChallengeBible.Web.Pages.Admin.ReadingModel
+@* 확정 시안: 관리-통독현황-단독시안 — 통계 4칸 → 참여자 현황 공개 스위치 → 이름 · 상태 · 정렬 → 표 *@
+@{
+    var b = Model.Board;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut"><div class="wrap wide">
+    <h1>통독 현황</h1>
+    <p class="ar-lead">도전!!!성경통독을 하는 소속원의 진도예요. 통독 기록은 계정에 붙어 있어서 다른 부서에서 읽은 것도 함께 보여요.</p>
+    @if (Model.Ok is "on" or "off") { <p class="okmsg" role="status">@(Model.Ok == "on" ? "참여자 현황을 소속원 모두에게 공개했어요" : "참여자 현황 공개를 껐어요")</p> }
+
+    <div class="ar-kpis">
+        <div><small>읽는 사람</small><b class="num">@b.Readers<u>/ @(b.Members)명</u></b></div>
+        <div><small>이번 주 읽은 사람</small><b class="num">@b.ReadThisWeek<u>명</u></b></div>
+        <div><small>평균 진도</small><b class="num">@(b.AvgPercent.ToString("0.0"))<u>%</u></b></div>
+        <div><small>누적 완독</small><b class="num">@b.TotalCompleted<u>번</u></b></div>
+    </div>
+
+    <form class="ar-pub" method="post" asp-page-handler="Public" asp-route-slug="@Model.Tenant.Current.Slug">
+        <div><b>참여자 현황 공개</b>
+            <span>@(b.Public ? "켜짐 — 소속원 모두가 서로의 진도를 볼 수 있어요(점수는 없어요)." : "꺼짐 — 선생님 · 관리자만 이 현황을 봐요. 아이들의 참여자 현황 화면에는 내 진도만 보여요.")</span></div>
+        <input type="hidden" name="on" value="@(b.Public ? "false" : "true")" />
+        <button type="submit" class="ar-sw" role="switch" aria-checked="@(b.Public ? "true" : "false")" aria-label="참여자 현황을 소속원 모두에게 공개"></button>
+    </form>
+
+    <form method="get" class="tools">
+        <input class="search" type="search" name="Q" value="@Model.Q" placeholder="이름으로 찾기" aria-label="이름으로 찾기" />
+        <select class="sel" name="St" aria-label="상태" onchange="this.form.submit()">
+            <option value="">모든 소속원</option>
+            <option value="on" selected="@(Model.St == "on")">읽는 중</option>
+            <option value="old" selected="@(Model.St == "old")">7일 넘게 안 읽음</option>
+            <option value="none" selected="@(Model.St == "none")">아직 시작 안 함</option>
+        </select>
+        <select class="sel" name="Sort" aria-label="정렬" onchange="this.form.submit()">
+            <option value="pct">진도 높은 순</option>
+            <option value="recent" selected="@(Model.Sort == "recent")">최근 읽은 순</option>
+            <option value="name" selected="@(Model.Sort == "name")">이름 순</option>
+        </select>
+        <button class="btn s sm" type="submit">찾기</button>
+    </form>
+
+    <div class="ar-tbl"><table>
+        <thead><tr><th>이름</th><th>반 · 역할</th><th>진도</th><th class="r">회차</th><th class="r">완독</th><th>마지막 읽은 곳</th></tr></thead>
+        <tbody>
+        @foreach (var m in Model.Rows)
+        {
+            var old = m.DaysAgo is >= 7;
+            <tr>
+                <td><span class="nm"><span class="av">@(m.Name.Length > 1 ? m.Name[1..] : m.Name)</span><b>@m.Name</b></span></td>
+                <td><span class="tag">@m.Badge</span></td>
+                <td>@if (m.RoundNo == 0) { <span class="none">아직 시작 안 함</span> }
+                    else { <span class="prog"><span class="b"><i style="width:@(Math.Max(1, m.Percent).ToString("0.0", inv))%"></i></span><span class="num">@(m.Percent.ToString("0.0"))%</span></span> }</td>
+                <td class="r num">@(m.RoundNo > 0 ? $"{m.RoundNo}회차" : "–")</td>
+                <td class="r num">@if (m.Completed > 0) { <span class="done">@(m.Completed)독</span> } else { <text>–</text> }</td>
+                <td class="last @(old ? "old" : "")">@if (m.DaysAgo is int d) { @Model.LastText(m)<small>@ChallengeBible.Web.Services.ReadingBoardService.Ago(d)@(old ? " · 7일 넘음" : "")</small> } else { <span class="none">–</span> }</td>
+            </tr>
+        }
+        @if (Model.Rows.Count == 0) { <tr><td colspan="6" class="none ar-0">찾는 사람이 없어요.</td></tr> }
+        </tbody>
+    </table></div>
+    <p class="ar-lead">@(Model.Rows.Count)명 보기 · 진도 = 지금 회차에서 읽은 장 ÷ 1,189장.</p>
+</div></main>

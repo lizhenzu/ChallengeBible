@@ -848,19 +848,27 @@ CREATE SECURITY POLICY sec.TenantIsolation
     ADD FILTER PREDICATE sec.fn_Account(AccountId) ON app.Bookmark,
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.Bookmark AFTER INSERT,
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.Bookmark AFTER UPDATE,
-    -- 성경통독
+    -- 성경통독: 읽기는 fn_ReadingRead 로 넓지만 쓰기 · 고치기 · 지우기는 본인만(BEFORE UPDATE · DELETE 가 없으면 보이는 남의 기록을 지울 수 있다)
     ADD FILTER PREDICATE sec.fn_ReadingRead(AccountId) ON app.ReadingRound,
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ReadingRound AFTER INSERT,
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ReadingRound AFTER UPDATE,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ReadingRound BEFORE UPDATE,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ReadingRound BEFORE DELETE,
     ADD FILTER PREDICATE sec.fn_ReadingRead(AccountId) ON app.ChapterRead,
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterRead AFTER INSERT,
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterRead AFTER UPDATE,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterRead BEFORE UPDATE,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterRead BEFORE DELETE,
     ADD FILTER PREDICATE sec.fn_ReadingRead(AccountId) ON app.ChapterProgress,
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterProgress AFTER INSERT,
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterProgress AFTER UPDATE,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterProgress BEFORE UPDATE,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.ChapterProgress BEFORE DELETE,
     ADD FILTER PREDICATE sec.fn_ReadingRead(AccountId) ON app.RoundVerseRead,
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.RoundVerseRead AFTER INSERT,
     ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.RoundVerseRead AFTER UPDATE,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.RoundVerseRead BEFORE UPDATE,
+    ADD BLOCK  PREDICATE sec.fn_Account(AccountId) ON app.RoundVerseRead BEFORE DELETE,
     ADD FILTER PREDICATE sec.fn_Tenant(TenantId) ON app.SearchLog,
     ADD BLOCK  PREDICATE sec.fn_Tenant(TenantId) ON app.SearchLog AFTER INSERT
 WITH (STATE = ON, SCHEMABINDING = ON);

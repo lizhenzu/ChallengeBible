@@ -222,6 +222,31 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task R159_참여자_현황은_공개일_때만_보이고_관리자가_통독_현황에서_끈다()
+    {
+        var kid = await Member("cheolsu", Roles.Participant);
+        var admin = await Member("eunhye", Roles.Teacher, Roles.TenantAdmin);
+        var board = await kid.GetStringAsync("/jamsil-kids/reading/participants");
+        Assert.Contains("성경통독 참여자", board);
+        Assert.Contains("아직 완독한 사람이 없어요", board);
+        Assert.Contains("class=\"mine\"", board);                                       // 내 카드에 "나"
+        Assert.Contains("href=\"/jamsil-kids/reading/participants\"", await kid.GetStringAsync("/jamsil-kids/reading"));
+        Assert.NotEqual(HttpStatusCode.OK, (await kid.GetAsync("/jamsil-kids/admin/reading")).StatusCode);   // 관리자만
+
+        var page = await admin.GetStringAsync("/jamsil-kids/admin/reading");
+        Assert.Contains("href=\"/jamsil-kids/admin/reading\"", page);                   // 관리 메뉴 "통독 현황"
+        Assert.Contains("aria-checked=\"true\"", page);
+        var off = await admin.PostAsync("/jamsil-kids/admin/reading?handler=Public", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["on"] = "false",
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, off.StatusCode);
+        Assert.Contains("aria-checked=\"false\"", await admin.GetStringAsync("/jamsil-kids/admin/reading"));
+        Assert.Contains("참여자 현황을 공개하지 않아요",await kid.GetStringAsync("/jamsil-kids/reading/participants"));
+        Assert.Contains("관리자 · 교사에게만 보이는", await admin.GetStringAsync("/jamsil-kids/reading/participants"));
+    }
+
+    [Fact]
     public async Task R150_통독을_끈_부서는_통독_화면이_없다()
     {
         var c = await Member("cheolsu", Roles.Participant);

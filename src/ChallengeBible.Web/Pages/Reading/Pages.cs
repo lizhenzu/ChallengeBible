@@ -102,6 +102,25 @@ public class SearchModel(ReadingService reading, TenantContext tenant, BibleSear
     }
 }
 
+/// <summary>`/{slug}/reading/participants?sort=progress|recent&q=` 참여자 현황(확정 시안: 통독-참여자현황, R-159). 점수 없음(R-157).</summary>
+public class ParticipantsModel(ReadingService reading, TenantContext tenant, ReadingBoardService board) : ReadingPageBase(reading, tenant)
+{
+    public override string Title => "참여자 현황";
+    [BindProperty(SupportsGet = true)] public string Sort { get; set; } = "progress";
+    [BindProperty(SupportsGet = true)] public string? Q { get; set; }
+    public ReadingBoard Board { get; private set; } = null!;
+    public IReadOnlyList<BoardMember> Rows { get; private set; } = [];
+
+    protected override async Task<IActionResult> LoadAsync(CancellationToken ct)
+    {
+        Board = await board.GetAsync(ct);
+        Rows = ReadingBoardService.Sort(Board.Rows, Sort, Q).ToList();
+        return Page();
+    }
+
+    public string LastText(BoardMember m) => m.LastBook is byte b ? $"{BookName(b)} {m.LastChapter}{(b == 19 ? "편" : "장")} · {ReadingBoardService.Ago(m.DaysAgo!.Value)}" : "아직 시작 전";
+}
+
 /// <summary>`/{slug}/reading/bookmarks?sort=recent|bible` 북마크 모음(확정 시안: 통독-북마크, 출처 표시는 뺌).</summary>
 public class BookmarksModel(ReadingService reading, TenantContext tenant, BibleMarkService marks, TenantClock clock) : ReadingPageBase(reading, tenant)
 {

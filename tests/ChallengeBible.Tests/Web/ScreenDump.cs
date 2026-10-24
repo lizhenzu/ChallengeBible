@@ -134,6 +134,17 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         }
         await Save(kid, "/jamsil-kids/reading/search", "22-통독-검색");
         await Save(kid, "/jamsil-kids/reading/search?q=NIV%201:24&tr=ALL&s=all", "23-통독-검색결과");
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            // 이은혜 선생님도 마태복음 1~5장을 읽는 중(어제)
+            var t = Acc("eunhye");
+            var at = new DateTime(2027, 1, 4, 1, 0, 0, DateTimeKind.Utc);
+            raw.ReadingRounds.Add(new ReadingRound { AccountId = t, RoundNo = 1, StartedUtc = at });
+            for (short c = 1; c <= 5; c++) raw.ChapterReads.Add(new ChapterRead { AccountId = t, RoundNo = 1, BookId = 40, Chapter = c, ReadUtc = at });
+            raw.SaveChanges();
+        }
+        await Save(kid, "/jamsil-kids/reading/participants", "24-통독-참여자현황");
+        await Save(admin, "/jamsil-kids/admin/reading", "25-관리-통독현황");
         await Save(kid, "/jamsil-kids/quiz", "08-퀴즈");
         await Save(kid, "/jamsil-kids/prayer", "09-기도");
         await Save(kid, "/jamsil-kids/recite", "10-암송");

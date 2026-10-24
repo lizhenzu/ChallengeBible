@@ -180,3 +180,25 @@
 .rp-res p b { margin-right: 6px; font-size: 11.5px; color: var(--r-acc); }
 .rp-res mark { background: #FFF1C9; color: inherit; padding: 0 1px; }
 @media (prefers-color-scheme: dark) { .rp-res mark { background: #4A3F17; } }
+
+/* 참여자 현황(확정 시안: 통독-참여자현황, R-159). 점수 없이 진도율만 */
+.rp-stats4 { grid-template-columns: repeat(4, 1fr); }
+.rp-stats4 b { font-size: 22px; }
+.rp-hall0 { margin: 0; padding: 18px; border-radius: 14px; background: var(--r-band); color: var(--r-dim); font-size: 14px; line-height: 1.7; text-align: center; }
+.rp-hall { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.rp-hall li { display: flex; gap: 8px; align-items: baseline; padding: 10px 14px; border-radius: 12px; background: var(--r-accSoft); }
+.rp-hall span { font-size: 13px; color: var(--r-acc); font-weight: 800; }
+.rp-ptools { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.rp-ptools input[type=search] { flex: 1 1 160px; min-height: 48px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--r-rule); background: var(--bg); color: var(--r-ink); font-size: 16px; }
+.rp-people { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rp-people li { position: relative; padding: 16px 12px 14px; border-radius: 16px; border: 1px solid var(--r-rule); display: grid; justify-items: center; gap: 2px; text-align: center; }
+.rp-people li.me { border-color: var(--r-acc); background: var(--r-accSoft); }
+.rp-people .mine { position: absolute; top: 8px; left: 8px; padding: 1px 8px; border-radius: 99px; background: var(--r-acc); color: #fff; font-size: 11.5px; font-weight: 800; }
+.rp-people .pr { --p: 0; width: 64px; height: 64px; margin-bottom: 6px; border-radius: 50%; display: grid; place-items: center;
+                 background: radial-gradient(closest-side, var(--bg) 80%, transparent 81%), conic-gradient(var(--r-acc) calc(var(--p) * 1%), var(--r-cell) 0); }
+.rp-people .pr span { font-size: 14px; font-weight: 700; }
+.rp-people b { font-size: 16px; }
+.rp-people .pc { font-size: 20px; font-weight: 300; }
+.rp-people .pc small { font-size: 12px; color: var(--r-dim); }
+.rp-people .bd { font-size: 12px; color: var(--r-acc); font-weight: 700; }
+.rp-people li > small { font-size: 12px; color: var(--r-dim); }

@@ -1,0 +1,78 @@
+@page "/{slug}/reading/participants"
+@model ChallengeBible.Web.Pages.Reading.ParticipantsModel
+@using ChallengeBible.Web.Pages.Reading
+@* 확정 시안: 통독-참여자현황 — 함께 읽는 말씀 · 참여자 현황 → 통계 4칸 → 완독자 명예의 전당 → 이름 찾기 · 진도율순 · 최근순 → 참여자 카드("나" 표시).
+   부서가 공개를 끄면 관리자 · 교사만 본다(R-159). 점수 없음(R-157) *@
+@{
+    var b = Model.Board;
+    var ko = ReadingPageBase.Ko;
+}
+<link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
+<div class="rp">
+<header class="rp-top"><div class="rp-in">
+    <a class="rp-menu" href="/@Model.Slug/reading" aria-label="통독 홈">☰</a>
+    <nav class="rp-crumb"><a href="/@Model.Slug">홈으로</a> · <a href="/@Model.Slug/reading"><b>성경통독</b></a></nav>
+    <span class="rp-date">@b.Today.ToString("M월 d일 dddd", ko)</span>
+</div>
+<div class="rp-in rp-head">
+    <div class="rp-k">함께 읽는 말씀</div>
+    <h1>참여자 현황</h1>
+    @if (b.CanSee)
+    {
+        <div class="rp-stats rp-stats4">
+            <div><b class="num">@b.Readers</b><small>참여자</small></div>
+            <div><b class="num">@b.Finishers</b><small>완독자</small></div>
+            <div><b class="num">@(b.AvgPercent.ToString("0.0"))%</b><small>평균 진도</small></div>
+            <div><b class="num">@b.TotalCompleted</b><small>누적 완독</small></div>
+        </div>
+    }
+</div></header>
+
+<main class="rp-in rp-body">
+    @if (!b.CanSee)
+    {
+        <p class="rp-empty">우리 부서는 참여자 현황을 공개하지 않아요.<br />내 진도는 <a href="/@Model.Slug/reading">통독 홈</a>에서 볼 수 있어요.</p>
+    }
+    else
+    {
+        @if (!b.Public) { <p class="rp-note">공개가 꺼져 있어서 관리자 · 교사에게만 보이는 화면이에요.</p> }
+        <section>
+            <h2 class="rp-h">완독자 명예의 전당</h2>
+            @if (b.HallOfFame.Count == 0)
+            {
+                <p class="rp-hall0">아직 완독한 사람이 없어요. 1,189장을 다 읽으면 여기에 이름이 올라가요!</p>
+            }
+            else
+            {
+                <ul class="rp-hall">@foreach (var m in b.HallOfFame) { <li><b>@m.Name</b><span class="num">@(m.Completed)독</span></li> }</ul>
+            }
+        </section>
+        <section>
+            <h2 class="rp-h">성경통독 참여자 <small class="num">@(Model.Rows.Count)명</small></h2>
+            <form class="rp-ptools" method="get">
+                <input type="hidden" name="sort" value="@Model.Sort" />
+                <input type="search" name="q" value="@Model.Q" placeholder="이름으로 찾기" aria-label="이름으로 찾기" />
+                <div class="rp-seg" role="group" aria-label="정렬">
+                    <a href="?sort=progress&q=@Uri.EscapeDataString(Model.Q ?? "")" aria-current="@(Model.Sort != "recent" ? "true" : "false")">진도율순</a>
+                    <a href="?sort=recent&q=@Uri.EscapeDataString(Model.Q ?? "")" aria-current="@(Model.Sort == "recent" ? "true" : "false")">최근순</a>
+                </div>
+            </form>
+            <ul class="rp-people">
+                @foreach (var m in Model.Rows)
+                {
+                    var given = m.Name.Length > 2 ? m.Name[1..] : m.Name;
+                    <li class="@(m.Me ? "me" : "")">
+                        @if (m.Me) { <span class="mine">나</span> }
+                        <span class="pr" style="--p:@(m.Percent.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture))"><span>@given</span></span>
+                        <b>@m.Name</b>
+                        <span class="pc num">@(m.Percent.ToString("0.0"))<small>%</small></span>
+                        <span class="bd">@m.Badge@(m.Completed > 0 ? $" · {m.Completed}독" : "")</span>
+                        <small>@Model.LastText(m)</small>
+                    </li>
+                }
+            </ul>
+        </section>
+    }
+    <nav class="rp-foot"><a href="/@Model.Slug/reading">통독 홈</a><a href="/@Model.Slug/reading/search">성경 검색</a><a href="/@Model.Slug">홈으로</a></nav>
+</main>
+</div>
