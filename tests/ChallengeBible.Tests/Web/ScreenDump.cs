@@ -165,6 +165,51 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(mom, "/jamsil-kids/guardian", "16-보호자");
         await Save(mom, "/jamsil-kids/guardian?date=2027-01-04", "17-보호자-지난날");
 
+        // 진급(시안 예시와 같은 지어낸 이름): 유치부 → 유년부(받은 요청), 유년부 → 초등부(보낸 요청)
+        var pre = InMemoryDb.SeedTenant(db, "jamsil-pre", "JSPREE");
+        var elem = InMemoryDb.SeedTenant(db, "jamsil-elem", "JSELEM");
+        var jan1 = new DateTime(2027, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            raw.Tenants.Single(t => t.Id == pre.Id).Name = "잠실새내교회 유치부";
+            raw.Tenants.Single(t => t.Id == pre.Id).ThemeColor = "red";
+            raw.Tenants.Single(t => t.Id == elem.Id).Name = "잠실새내교회 초등부";
+            raw.Tenants.Single(t => t.Id == elem.Id).ThemeColor = "green";
+            raw.SaveChanges();
+        }
+        int NewKid(string email, string name)
+        {
+            using var raw = InMemoryDb.Raw(db);
+            var a = new Account { Email = email + "@example.com", DisplayName = name, PasswordHash = "-" };
+            raw.Accounts.Add(a);
+            raw.SaveChanges();
+            return a.Id;
+        }
+        var jiwoo = NewKid("jiwoo", "한지우");
+        InMemoryDb.SeedMembership(db, pre.Id, jiwoo, MembershipStatus.Approved, Roles.Participant);
+        var daon = NewKid("daon", "오다온");
+        var seoa = NewKid("seoa", "진서아");
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            var preTeacher = Acc("eunhye");
+            raw.PromotionRequests.AddRange(
+                new PromotionRequest { AccountId = jiwoo, SourceTenantId = pre.Id, TargetTenantId = kids.Id, RequestedUtc = jan1.AddDays(2), RequestedByAccountId = preTeacher },
+                new PromotionRequest { AccountId = daon, SourceTenantId = pre.Id, TargetTenantId = kids.Id, RequestedUtc = jan1.AddDays(-3), RequestedByAccountId = preTeacher,
+                    Status = PromotionStatus.Approved, DecidedUtc = jan1.AddDays(-2), DecidedByAccountId = Acc("eunhye") },
+                new PromotionRequest { AccountId = seoa, SourceTenantId = kids.Id, TargetTenantId = elem.Id, RequestedUtc = jan1.AddDays(-4), RequestedByAccountId = Acc("eunhye"),
+                    Status = PromotionStatus.Approved, DecidedUtc = jan1.AddDays(-3), DecidedByAccountId = Acc("eunhye") },
+                new PromotionRequest { AccountId = Acc("cheolsu"), SourceTenantId = kids.Id, TargetTenantId = elem.Id, RequestedUtc = jan1.AddDays(1), RequestedByAccountId = Acc("eunhye") });
+            raw.SaveChanges();
+        }
+        await Save(admin, "/jamsil-kids/admin", "26-관리홈-진급요청");
+        await Save(admin, "/jamsil-kids/admin/promotions", "27-진급-받은요청",
+            h => h.Replace("<details class=\"ask ok\">", "<details class=\"ask ok\" open>"));   // 승인 확인 펼침
+        await Save(admin, "/jamsil-kids/admin/promotions?Tab=out", "28-진급-보낸요청");
+        var minjun = NewKid("minjun", "최민준");
+        var mj = InMemoryDb.SeedMembership(db, kids.Id, minjun, MembershipStatus.Approved, Roles.Participant);
+        await SavePost(admin, $"/jamsil-kids/admin/members?Tab={MembershipStatus.Approved}", "29-소속관리-진급보내기",
+            ("handler", "PromoteCheck"), ("pick", mj.Id.ToString()), ("code", "JSELEM"));
+
         // 운영자: 가입 → 플랫폼 관리자 → 다시 로그인
         var op = await SignUp("operator", "운영자");
         using (var raw = InMemoryDb.Raw(db)) { raw.Accounts.Single(a => a.Email == "operator@example.com").IsPlatformAdmin = true; raw.SaveChanges(); }
@@ -180,9 +225,24 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
 
     private static async Task Save(HttpClient c, string url, string name, Func<string, string>? tweak = null)
     {
-        var dir = Environment.GetEnvironmentVariable("CB_SCREENS_DIR")!;
         var html = await c.GetStringAsync(url);
         if (tweak is not null) html = tweak(html);
+        await Write(html, name);
+    }
+
+    /// <summary>폼을 보낸 결과 화면(예: 진급 보내기의 부서 확인)을 저장한다.</summary>
+    private static async Task SavePost(HttpClient c, string url, string name, params (string, string)[] form)
+    {
+        var token = TokenRx().Match(await c.GetStringAsync(url)).Groups[1].Value;
+        var fields = form.Append(("__RequestVerificationToken", token)).Select(x => new KeyValuePair<string, string>(x.Item1, x.Item2));
+        var r = await c.PostAsync(url + (url.Contains('?') ? "&" : "?") + "handler=" + fields.First(f => f.Key == "handler").Value,
+            new FormUrlEncodedContent(fields.Where(f => f.Key != "handler")));
+        await Write(await r.Content.ReadAsStringAsync(), name);
+    }
+
+    private static async Task Write(string html, string name)
+    {
+        var dir = Environment.GetEnvironmentVariable("CB_SCREENS_DIR")!;
         // 배포 때는 파일 이름에 지문이 붙는다(/css/site.css?v=…) — 화면이 쓰는 스타일 파일(site · reading)을 그대로 안에 넣는다
         foreach (var name2 in new[] { "site", "reading" })
         {

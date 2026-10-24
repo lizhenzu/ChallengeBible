@@ -108,6 +108,8 @@ public class PromotionServiceTests
         Assert.True(raw.VerseReadMarks.Any(x => x.AccountId == a.Id));                       // 계정 범위는 그대로(R-158)
         Assert.Equal(_elem.Id, raw.Accounts.Single(x => x.Id == a.Id).LastTenantId);
         Assert.Equal(PromotionStatus.Approved, raw.PromotionRequests.Single().Status);
+        Assert.Equal("박지은", Assert.Single(await In(_elem).Svc.ReceivedAsync()).DecidedBy);
+        Assert.Null(Assert.Single(await In(_kids).Svc.SentAsync()).DecidedBy);   // 보낸 쪽은 상대 선생님 이름을 모른다(0030)
         var log = Assert.Single(raw.AuditLogs);
         Assert.Equal(("PromotionApproved", _elemAdmin.Id, (int?)_elem.Id), (log.Action, log.ActorAccountId, log.TenantId));
     }

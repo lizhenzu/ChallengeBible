@@ -9,7 +9,7 @@ namespace ChallengeBible.Web.Pages.Admin;
 
 /// <summary>`/{slug}/admin/members` 소속 관리(확정 시안: 관리-소속관리). 영역 관리자만.</summary>
 [TenantRoles(Roles.TenantAdmin)]
-public class MembersModel(MemberAdminService members, TenantContext tenant) : PageModel, ITitled
+public class MembersModel(MemberAdminService members, PromotionService promotions, LookupLimiter limiter, TenantContext tenant) : PageModel, ITitled
 {
     public string Title => "소속 관리";
     public TenantContext Tenant => tenant;
@@ -28,6 +28,13 @@ public class MembersModel(MemberAdminService members, TenantContext tenant) : Pa
     public string? Error { get; private set; }
     public int? ErrorFor { get; private set; }
     public int Me => User.AccountId()!.Value;
+
+    // 진급 보내기(시안: 여러 명 골라 → 받을 부서 코드 → 이름 확인 → 보내기)
+    public HashSet<int> Picks { get; private set; } = [];
+    public string? PromoCode { get; private set; }
+    public PromotionTarget? PromoTarget { get; private set; }
+    public string? PromoError { get; private set; }
+    public List<string> PromoSkipped { get; private set; } = [];
 
     public static readonly (string Key, string Label)[] Tabs =
         [(MembershipStatus.Requested, "참여 신청"), (MembershipStatus.Approved, "소속"), (MembershipStatus.Suspended, "정지")];
@@ -66,6 +73,38 @@ public class MembersModel(MemberAdminService members, TenantContext tenant) : Pa
     public Task<IActionResult> OnPostRejectAsync(int id, CancellationToken ct) => Act(id, "reject", members.RejectAsync(Me, id, ct), ct);
     public Task<IActionResult> OnPostSuspendAsync(int id, CancellationToken ct) => Act(id, "suspend", members.SuspendAsync(Me, id, ct), ct);
     public Task<IActionResult> OnPostResumeAsync(int id, CancellationToken ct) => Act(id, "resume", members.ResumeAsync(Me, id, ct), ct);
+
+    /// <summary>받을 부서 이름 확인(이름만, 0026). 참여 코드 찾기와 같은 횟수 제한(0048).</summary>
+    public async Task<IActionResult> OnPostPromoteCheckAsync(List<int> pick, string? code, CancellationToken ct)
+    {
+        Tab = MembershipStatus.Approved;
+        Picks = [.. pick];
+        PromoCode = JoinService.NormalizeCode(code ?? "");
+        if (Picks.Count == 0) PromoError = "보낼 아이를 위에서 골라 주세요.";
+        else if (!limiter.TryTake(Me)) PromoError = PromotionService.Message(PromotionError.TooMany);
+        else
+        {
+            PromoTarget = await promotions.LookupAsync(PromoCode, ct);
+            if (PromoTarget is null) PromoError = PromotionService.Message(PromotionError.TargetNotFound);
+            else if (PromoTarget.TenantId == tenant.Current.Id) { PromoError = PromotionService.Message(PromotionError.SameTenant); PromoTarget = null; }
+        }
+        await LoadAsync(ct);
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostPromoteAsync(List<int> pick, string? code, CancellationToken ct)
+    {
+        Tab = MembershipStatus.Approved;
+        var (e, sent, skipped) = await promotions.SendAsync(Me, pick, code ?? "", ct);
+        if (e == PromotionError.None && skipped.Count == 0)
+            return RedirectToPage("Promotions", new { slug = tenant.Current.Slug, Tab = "out", Ok = "sent" });
+        Picks = [.. pick];
+        PromoCode = JoinService.NormalizeCode(code ?? "");
+        if (e == PromotionError.None) { Ok = null; PromoSkipped = skipped; PromoError = $"{sent}명은 보냈어요. 이미 진행 중인 요청이 있어 건너뛴 아이: {string.Join(", ", skipped)}"; Picks = []; }
+        else PromoError = PromotionService.Message(e);
+        await LoadAsync(ct);
+        return Page();
+    }
 
     private async Task<IActionResult> Act(int id, string ok, Task<MemberError> work, CancellationToken ct)
     {

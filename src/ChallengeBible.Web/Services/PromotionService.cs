@@ -84,7 +84,8 @@ public sealed class PromotionService(IAppDb db, TenantContext tenant, TimeProvid
                           select new PromotionRow(r.Id, a.DisplayName, a.Email, t.Name, t.ThemeColor, r.Status, r.RequestedUtc, r.DecidedUtc,
                               d == null ? null : d.DisplayName))
             .Take(100).ToListAsync(ct);
-        return rows;
+        // 보낸 쪽에는 상대 부서의 이름 · 상태만(0030): 승인 · 거절한 그 부서 선생님 이름은 빼고, 내가 취소한 것만 이름을 둔다
+        return received ? rows : rows.Select(r => r.Status == PromotionStatus.Cancelled ? r : r with { DecidedBy = null }).ToList();
     }
 
     public async Task<int> PendingReceivedCountAsync(CancellationToken ct = default)

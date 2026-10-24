@@ -3,7 +3,7 @@
 @using System.Globalization
 @using M = ChallengeBible.Domain.Rules.Mission
 @using ChallengeBible.Infrastructure.Data
-@* 확정 시안: 관리-홈 (할 일 → 오늘 참여 + 최근 7일 → 오늘 안 한 친구). 진급 요청은 화면이 생긴 뒤에 붙인다 *@
+@* 확정 시안: 관리-홈 (할 일 → 오늘 참여 + 최근 7일 → 오늘 안 한 친구). 받은 진급 요청은 0건이면 숨긴다 *@
 @{
     var d = Model.Data;
     var ko = new CultureInfo("ko-KR");
@@ -20,7 +20,7 @@
         <span class="num">@d.NowLocal.ToString("yyyy년 M월 d일 dddd · tt h:mm", ko) 기준</span>
     </div>
 
-    @if (d.PendingCount > 0 || d.Empty is not null)
+    @if (d.PendingCount > 0 || d.PromotionCount > 0 || d.Empty is not null)
     {
         <section class="ah-card span" aria-labelledby="hTodo">
             <h2 id="hTodo">할 일</h2>
@@ -28,6 +28,10 @@
                 @if (d.PendingCount > 0)
                 {
                     <a class="td a" href="/@slug/admin/members?Tab=@MembershipStatus.Requested"><span class="n num">@d.PendingCount</span><div><b>참여 신청 승인 대기</b><span>@Names(d.Pending)@(d.PendingCount > d.Pending.Count ? $" 외 {d.PendingCount - d.Pending.Count}명" : "")</span></div></a>
+                }
+                @if (d.PromotionCount > 0)
+                {
+                    <a class="td b" href="/@slug/admin/promotions"><span class="n num">@d.PromotionCount</span><div><b>받은 진급 요청</b><span>@string.Join(" · ", d.Promotions)@(d.PromotionCount > d.Promotions.Count ? $" 외 {d.PromotionCount - d.Promotions.Count}명" : "")</span></div></a>
                 }
                 @if (d.Empty is { } e)
                 {
