@@ -1,31 +1,146 @@
 @page "/{slug:regex(^[a-z0-9-]{{2,40}}$)}"
 @model TenantHomeModel
-@* 홈 메인(0044) 1차 간단판: 프로그램 카드. 가족팀 · 오늘 한 줄은 뒤 단계에서 확정 시안대로 *@
-<partial name="_Top" />
-<main class="page gut"><div class="wrap">
+@using ChallengeBible.Infrastructure.Data
+@using ChallengeBible.Web.Auth
+@using ChallengeBible.Web.Services
+@* 확정 시안: 홈메인-단독시안(0044) — 머리말(부서 ▼ · 날짜) → 인사 → 오늘의 말씀 띠 → 프로그램 두 장 → 우리 가족팀 → 이번 주 나의 기록 → 우리 부서 → 계정 줄.
+   확정 8가지: 관리 버튼(머리말) · 보호자 카드 · 가족 부서 안내 유지, 참여자가 아니면 보기만, 꺼진 프로그램은 숨김, 부서 ▼ = 부서 고르기 화면, 계정 줄은 3개, 말씀 없는 날은 띠 숨김 *@
+@{
+    var d = Model.Data;
+    var t = Model.Tenant.Current;
+    var slug = t.Slug;
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    const double C = 238.8;   // 고리 둘레(r = 38)
+    string Dash(double pct) => $"{(C * Math.Clamp(pct, 0, 100) / 100).ToString("0.#", inv)} {C.ToString("0.#", inv)}";
+    var has = d.Missions.Where(m => m.Has).ToList();
+    var done = has.Count(m => m.Done);
+    var left = has.Where(m => !m.Done).ToList();
+    string Go(string key) => key switch { "word" => "말씀 읽으러 가기", "quiz" => "퀴즈 풀러 가기", "prayer" => "기도하러 가기", _ => "암송하러 가기" };
+    var rd = d.Reading;
+}
+<link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+<div class="hm">
+<header class="hm-top gut"><div class="wrap">
+    @if (Model.ManyTenants) { <a class="tenant" href="/account/tenants">@t.Name <span aria-hidden="true">▼</span></a> }
+    else { <span class="tenant">@t.Name</span> }
+    <span class="r">
+        <span class="date num">@d.Today.ToString("yyyy.MM.dd", inv) @d.Today.ToString("ddd", inv).ToUpperInvariant()</span>
+        @if (Model.Tenant.IsAdmin) { <a class="adm" href="/@slug/admin">관리</a> }
+    </span>
+</div></header>
+
+<section class="hello gut"><div class="wrap">
     <div>
-        <p class="sub" style="margin:0">@Model.Tenant.Current.Name</p>
-        <h1>@Model.Tenant.AppName</h1>
+        <div class="eyebrow">@(d.SeasonDay > 0 ? $"{d.SeasonYear} 시즌 · {d.SeasonDay}일째" : $"{d.SeasonYear} 시즌 · 시작 전")</div>
+        <h1>@User.DisplayName()님, 안녕하세요</h1>
+        <p>오늘도 말씀과 함께해요@(d.Streak > 0 ? " · " : "")@if (d.Streak > 0) { <b>@(d.Streak)일째 이어오는 중</b> }</p>
     </div>
+    <div class="chips" aria-label="나의 요약">
+        @if (d.Participant) { <span><b class="num">@d.SeasonPoints.ToString("N0")</b>점 올해 점수</span> }
+        @if (rd is not null) { <span><b class="num">@rd.ReadChapters.ToString("N0")</b>장 읽은 성경</span> }
+        @if (d.Participant) { <span><b class="num">@d.FullDays</b>일 네 가지 다 한 날</span> }
+    </div>
+</div></section>
+
+@if (d.VerseText is not null)
+{
+    <section class="verse gut" aria-label="오늘의 말씀"><div class="wrap">
+        <div>
+            <div class="k">오늘의 말씀 · @d.Today.ToString("M월 d일 dddd", ko)</div>
+            <blockquote>@d.VerseText</blockquote>
+            <cite>@d.VerseRef · 오늘 읽을 범위 @d.WordRange</cite>
+        </div>
+        <div class="side">
+            @if (d.ReciteRange is not null) { <div><small>이번 주 암송 (@d.ReciteStart?.ToString("M'/'d") ~ @d.ReciteEnd?.ToString("M'/'d"))</small><b>@d.ReciteRange</b></div> }
+            @if (d.PrayerTrait is not null) { <div><small>오늘의 기도</small><b>@d.PrayerTrait</b></div> }
+        </div>
+    </div></section>
+}
+
+<main class="gut"><div class="wrap">
     @if (Model.NeedsFamilyChoice)
     {
-        <a class="dept" href="/account/family"><span class="mk">가</span><div><b>가족과 함께할 부서를 골라 주세요</b><span class="sub" style="margin:0;font-size:13px">고른 부서에서 부모님도 미션을 하고 가족팀을 꾸려요</span></div><span aria-hidden="true">→</span></a>
+        <a class="notice wide" href="/account/family"><b>가족과 함께할 부서를 골라 주세요</b><span>고른 부서에서 부모님도 미션을 하고 가족팀을 꾸려요 →</span></a>
     }
-    @if (Model.Tenant.Current.MissionEnabled)
+
+    @if (t.MissionEnabled || t.ReadingEnabled)
     {
-        <a class="dept" href="/@Model.Tenant.Current.Slug/word-mission"><span class="mk">말</span><div><b>도전!!!성경말씀</b><span class="sub" style="margin:0;font-size:13px">오늘의 말씀 · 퀴즈 · 기도 · 암송</span></div><span aria-hidden="true">→</span></a>
+        <section class="wide" aria-labelledby="pg">
+            <div class="eyebrow">오늘 할 것</div>
+            <h2 id="pg">어떤 걸 먼저 할까요?</h2>
+            <div class="progs">
+                @if (t.MissionEnabled)
+                {
+                    var next = d.NextMission;
+                    <a class="p m" href="@(next is not null && d.Participant ? $"/{slug}/{next.Key}" : $"/{slug}/word-mission")">
+                        <div class="hd"><div><div class="nm">도전!!!성경말씀</div><div class="what">매일 말씀 · 기도 · 퀴즈 · 암송</div></div>
+                            <span class="badge">@(!d.Participant ? "보기만" : has.Count == 0 ? "오늘은 쉬어요" : left.Count == 0 ? "다 했어요" : left.Count == 1 ? $"{left[0].Label} 남음" : $"{left.Count}가지 남음")</span></div>
+                        <div class="now">
+                            <div class="ring">
+                                <svg width="92" height="92" viewBox="0 0 92 92" aria-hidden="true"><circle cx="46" cy="46" r="38" fill="none" stroke="var(--bg)" stroke-width="9" /><circle cx="46" cy="46" r="38" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="@Dash(has.Count == 0 ? 0 : done * 100.0 / has.Count)" transform="rotate(-90 46 46)" /></svg>
+                                <span class="num">@done/@has.Count<small>오늘 미션</small></span>
+                            </div>
+                            <div class="txt">
+                                @if (!d.Participant) { <b>보기만 해요</b><span>오늘 말씀 · 퀴즈 · 기도 · 암송을 볼 수 있어요</span> }
+                                else if (has.Count == 0) { <b>오늘은 말씀이 없어요</b><span>내일 다시 만나요</span> }
+                                else if (left.Count == 0) { <b>오늘 미션을 다 했어요!</b><span>오늘 +@(d.DayPoints)점 받았어요</span> }
+                                else { <b>@(left.Count == 1 ? $"오늘 {left[0].Label}만 남았어요" : $"오늘 {string.Join(" · ", left.Select(x => x.Label))}이 남았어요")</b><span>오늘 +@(d.DayPoints)점 받았어요</span> }
+                                @if (d.Participant) { <span class="big num">@d.SeasonPoints.ToString("N0")<i> 점 · 올해</i></span> }
+                            </div>
+                        </div>
+                        <div class="mis4">@foreach (var m in d.Missions) { <span class="@m.Key @(m.Has && !m.Done && m == d.NextMission ? "cur" : "")">@m.Label<small>@m.State</small></span> }</div>
+                        <span class="go">@(d.Participant && d.NextMission is { } nm ? Go(nm.Key) : "미션 홈 가기") <span aria-hidden="true">→</span></span>
+                    </a>
+                }
+                @if (t.ReadingEnabled)
+                {
+                    <a class="p r" href="@(rd is null ? $"/{slug}/reading" : $"/{slug}/reading/read/{rd.Resume.BookId}/{rd.Resume.Chapter}" + (rd.Resume.Verse > 1 ? $"?v={rd.Resume.Verse}" : ""))">
+                        <div class="hd"><div><div class="nm">도전!!!성경통독</div><div class="what">성경 전체 1,189장 · 내 속도로</div></div>
+                            <span class="badge">@(rd is null ? "시작 전" : $"{rd.RoundNo}독째")</span></div>
+                        @if (rd is null)
+                        {
+                            <div class="now"><div class="txt"><b>아직 시작 전이에요</b><span>창세기 1장부터 내 속도로 읽어요 · 점수는 없어요</span></div></div>
+                            <span class="go">통독 시작하기 <span aria-hidden="true">→</span></span>
+                        }
+                        else
+                        {
+                            var pct = ReadingSummary.Percent(rd.ReadChapters, ReadingSummary.Total);
+                            var book = rd.Books.First(b => b.BookId == rd.Resume.BookId);
+                            <div class="now">
+                                <div class="ring">
+                                    <svg width="92" height="92" viewBox="0 0 92 92" aria-hidden="true"><circle cx="46" cy="46" r="38" fill="none" stroke="var(--bg)" stroke-width="9" /><circle cx="46" cy="46" r="38" fill="none" stroke="var(--rd)" stroke-width="9" stroke-linecap="round" stroke-dasharray="@Dash(Math.Max(pct, rd.ReadChapters > 0 ? 1 : 0))" transform="rotate(-90 46 46)" /></svg>
+                                    <span class="num">@(pct.ToString("0.0"))%<small>전체 진도</small></span>
+                                </div>
+                                <div class="txt"><b class="num">@rd.ReadChapters.ToString("N0") / 1,189장</b>
+                                    <span class="num">구약 @rd.OtRead / @ReadingSummary.OtTotal · 신약 @rd.NtRead / @ReadingSummary.NtTotal</span>
+                                    <span class="num">오늘 @(rd.TodayChapters)장@(rd.Streak > 0 ? $" · {rd.Streak}일 연속" : "")</span></div>
+                            </div>
+                            <div class="resume">
+                                <small>이어 읽기 · @book.Name @(rd.Resume.Chapter)@(book.BookId == 19 ? "편" : "장")</small>
+                                @if (Model.Data.ResumeText is { } rt) { <p>"@rt"</p> }
+                                <div class="bar"><i style="width:@((book.Total == 0 ? 0 : book.Read * 100.0 / book.Total).ToString("0.#", inv))%"></i></div>
+                                <em class="num">@book.Name @book.Read / @(book.Total)장</em>
+                            </div>
+                            <span class="go">이어 읽기 <span aria-hidden="true">→</span></span>
+                        }
+                    </a>
+                }
+            </div>
+            @if (t.MissionEnabled && Model.IsGuardian)
+            {
+                <a class="notice" href="/@slug/guardian"><b>자녀 미션 보기</b><span>연결된 자녀의 오늘 미션 · 점수 →</span></a>
+            }
+        </section>
     }
-    @if (Model.Tenant.Current.MissionEnabled && Model.Tenant.Has(ChallengeBible.Infrastructure.Data.Roles.Guardian))
-    {
-        <a class="dept" href="/@Model.Tenant.Current.Slug/guardian"><span class="mk">보</span><div><b>자녀 미션 보기</b><span class="sub" style="margin:0;font-size:13px">연결된 자녀의 오늘 미션 · 점수</span></div><span aria-hidden="true">→</span></a>
-    }
+
     @if (Model.Family is { } f)
     {
         // 확정 시안 홈메인 "우리 가족팀": 총합 · 오늘 · 다음 가족 축하 막대 · 구성원(나 표시)
         var span = (f.NextStage ?? f.Total) - f.PrevStage;
-        var pct = f.NextStage is null ? 100 : span <= 0 ? 0 : Math.Clamp((f.Total - f.PrevStage) * 100.0 / span, 1, 100);
-        <section class="fh" aria-labelledby="fhT">
-            <div class="k">우리 가족팀</div>
+        var fpct = f.NextStage is null ? 100 : span <= 0 ? 0 : Math.Clamp((f.Total - f.PrevStage) * 100.0 / span, 1, 100);
+        <section class="wide fh" aria-labelledby="fhT">
+            <div class="eyebrow">우리 가족팀</div>
             <h2 id="fhT">@f.Name</h2>
             @if (f.Cheer is { } c)
             {
@@ -40,7 +155,7 @@
                     <p>오늘 가족이 <b class="num">+@(f.TodayPoints)점</b> 받았어요 · @(f.TodayPeople)명이 오늘 참여</p>
                     <div class="ms">
                         <div class="row"><span>다음 가족 축하</span><b class="num">@(f.NextStage is { } n ? $"{n - f.Total:N0}점 남음" : "모든 단계를 넘었어요")</b></div>
-                        <div class="bar"><i style="width:@(pct.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"></i></div>
+                        <div class="bar"><i style="width:@(fpct.ToString("0.#", inv))%"></i></div>
                         <div class="ticks" aria-hidden="true"><span>@f.PrevStage.ToString("N0")</span><span>@((f.NextStage ?? f.Total).ToString("N0"))점</span></div>
                     </div>
                     <div class="fh-stages" aria-label="가족 단계">
@@ -71,12 +186,73 @@
             <p class="fh-note">가족 총합은 구성원 모두의 올해 점수를 더한 것이에요. 가족 모두에게 같은 점수가 보여요.</p>
         </section>
     }
-    @if (Model.Tenant.Current.ReadingEnabled)
+
+    @if (d.Participant || rd is not null)
     {
-        <a class="dept" href="/@Model.Tenant.Current.Slug/reading"><span class="mk">통</span><div><b>도전!!!성경통독</b><span class="sub" style="margin:0;font-size:13px">자유롭게 읽고 장마다 체크 · 진도율</span></div><span aria-hidden="true">→</span></a>
+        var w0 = d.Week[0].Date;
+        var w6 = d.Week[^1].Date;
+        <section aria-labelledby="wkT">
+            <div class="eyebrow">이번 주 나의 기록</div>
+            <h2 id="wkT">@w0.ToString("M월 d일", ko) ~ @w6.ToString("M월 d일", ko)</h2>
+            <div class="wk">
+                <table>
+                    <thead><tr><th scope="col"><span class="sr">항목</span></th>
+                        @foreach (var x in d.Week) { <th scope="col" class="@(x.Date == d.Today ? "t" : "")">@x.Date.ToString("ddd", ko) @x.Date.Day</th> }</tr></thead>
+                    <tbody>
+                        @if (d.Participant)
+                        {
+                            <tr><th scope="row">말씀<br />점수</th>
+                                @foreach (var x in d.Week)
+                                {
+                                    <td>@if (x.MissionPoints > 0) { <span class="dot mp @(x.AllFour ? "all" : "") @(x.Date == d.Today ? "tday" : "") num">@x.MissionPoints</span> } else { <span class="dot e @(x.Date == d.Today ? "tday" : "")">–</span> }</td>
+                                }</tr>
+                        }
+                        @if (rd is not null)
+                        {
+                            <tr><th scope="row">통독<br />장 수</th>
+                                @foreach (var x in d.Week)
+                                {
+                                    <td>@if (x.Chapters > 0) { <span class="dot rp @(x.Date == d.Today ? "tday" : "") num">@x.Chapters</span> } else { <span class="dot e @(x.Date == d.Today ? "tday" : "")">–</span> }</td>
+                                }</tr>
+                        }
+                    </tbody>
+                </table>
+                <div class="leg">@if (d.Participant) { <span><i style="background:var(--accent)"></i>네 가지 다 한 날</span><span><i style="background:var(--accent-soft)"></i>말씀 점수</span> }@if (rd is not null) { <span><i style="background:var(--rd-soft)"></i>통독 장 수</span> }</div>
+            </div>
+            @if (d.Participant && d.NextMilestone is { } goal)
+            {
+                <div class="goal">
+                    <div><b>다음 축하까지 @((goal - d.SeasonPoints).ToString("N0"))점</b><br /><span>@(goal.ToString("N0"))점이 되면 축하해요</span></div>
+                    <div class="bar" aria-hidden="true"><i style="width:@((d.SeasonPoints * 100.0 / goal).ToString("0.#", inv))%"></i></div>
+                </div>
+            }
+        </section>
     }
-    @if (Model.Tenant.IsAdmin)
+
+    @if (d.Dept is { } dp)
     {
-        <a class="btn s" href="/@Model.Tenant.Current.Slug/admin">관리</a>
+        <section aria-labelledby="dpT">
+            <div class="eyebrow">우리 부서</div>
+            <h2 id="dpT">@t.Name</h2>
+            <div class="dept">
+                <div><b class="num">@dp.Members<i>명</i></b><small>함께하는 친구 · 선생님</small></div>
+                @if (t.MissionEnabled) { <div><b class="num">@dp.TodayPeople<i>명</i></b><small>오늘 참여</small></div> }
+                @if (dp.YearChapters is int yc) { <div><b class="num">@yc.ToString("N0")<i>장</i></b><small>올해 함께 읽은 성경</small></div> }
+                @if (dp.MyOrderToday is int mo) { <div><b class="num">@mo<i>번째</i></b><small>나는 오늘 @(mo)번째로 참여</small></div> }
+            </div>
+            <div class="links">
+                @if (t.MissionEnabled && d.Rules.Features.Ranking) { <a href="/@slug/ranking">미션 순위</a> }
+                @if (t.ReadingEnabled) { <a href="/@slug/reading/participants">통독 참여자 현황</a> }
+                @if (t.MissionEnabled && d.Rules.Features.Ranking && d.Rules.Features.FamilyTeam) { <a href="/@slug/ranking?t=team">가족팀</a> }
+            </div>
+        </section>
     }
 </div></main>
+
+<footer class="gut"><div class="wrap">
+    <a href="/account/change-password">비밀번호 바꾸기</a>
+    <a href="/account/tenants">부서 바꾸기</a>
+    @if (User.IsPlatformAdmin()) { <a href="/platform">플랫폼</a> }
+    <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit">로그아웃</button></form>
+</div></footer>
+</div>
