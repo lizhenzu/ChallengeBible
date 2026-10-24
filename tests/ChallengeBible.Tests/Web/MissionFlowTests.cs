@@ -144,7 +144,10 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     public async Task R110_성경_읽기는_미션의_구절을_단위만큼_나눠_보여준다()
     {
         var c = await Member("cheolsu", Roles.Participant);
-        var p1 = await c.GetStringAsync("/jamsil-kids/read?from=word");   // 기본: 개역개정 · 3절씩
+        var all = await c.GetStringAsync("/jamsil-kids/read?from=word");   // 기본: 개역개정 · 전체(확정 시안 v2)
+        Assert.Contains("KRV 1:24:9", all);
+        Assert.DoesNotContain("brd-pager", all);                           // 한 쪽이면 쪽 이동 없음
+        var p1 = await c.GetStringAsync("/jamsil-kids/read?from=word&unit=3");
         Assert.Contains("창세기", p1);
         Assert.Contains("24장 1~9절", p1);
         Assert.Contains("KRV 1:24:1", p1);
@@ -152,10 +155,47 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.DoesNotContain("KRV 1:24:4", p1);
         Assert.DoesNotContain("NIV 1:24:1", p1);
         Assert.Contains("1–3절 / 9", p1);
-        var p2 = await c.GetStringAsync("/jamsil-kids/read?from=word&p=2");
+        var p2 = await c.GetStringAsync("/jamsil-kids/read?from=word&unit=3&p=2");
         Assert.Contains("KRV 1:24:4", p2);
         Assert.Contains("4–6절 / 9", p2);
-        Assert.Contains("말씀 미션으로 돌아가기", p2);
+        Assert.Contains("이 페이지 읽은 절 0 / 3", p2);
+        Assert.DoesNotContain("통독률", p2);                                // D25: 통독률은 2차
+    }
+
+    [Fact]
+    public async Task R112_성경_읽기의_읽음과_책갈피는_PUT_DELETE_로_켜고_끈다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var html = await c.GetStringAsync("/jamsil-kids/read?from=word");
+        var token = TokenRx().Match(html).Groups[1].Value;
+        Assert.Contains("0</b>절 읽음", html);
+
+        async Task<HttpStatusCode> Send(HttpMethod m, string url, object? body = null)
+        {
+            var req = new HttpRequestMessage(m, url);
+            req.Headers.Add("RequestVerificationToken", token);
+            if (body is not null) req.Content = JsonContent.Create(body);
+            return (await c.SendAsync(req)).StatusCode;
+        }
+
+        Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Put, "/api/me/bible/read/1/24/1"));
+        Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Put, "/api/me/bible/read/1/24/1"));   // 멱등
+        Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Put, "/api/me/bible/bookmarks/1/24/2"));
+        Assert.Equal(HttpStatusCode.NotFound, await Send(HttpMethod.Put, "/api/me/bible/read/1/24/99"));
+        var after = await c.GetStringAsync("/jamsil-kids/read?from=word");
+        Assert.Contains("1</b>절 읽음", after);
+        Assert.Contains("aria-pressed=\"true\" aria-label=\"1절 읽음\"", after);
+        Assert.Contains("aria-pressed=\"true\" aria-label=\"2절 책갈피\"", after);
+
+        Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Put, "/api/me/bible/read-range", new { book = 1, startChapter = 24, startVerse = 1, endChapter = 24, endVerse = 9 }));
+        Assert.Contains("9</b>절 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
+        Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Delete, "/api/me/bible/read-range?book=1&startChapter=24&startVerse=1&endChapter=24&endVerse=9"));
+        Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Delete, "/api/me/bible/read/1/24/1"));   // 이미 꺼진 것을 다시 꺼도 OK
+        Assert.Contains("0</b>절 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
+
+        // 위조 방지 토큰이 없으면 거절
+        var bad = new HttpRequestMessage(HttpMethod.Put, "/api/me/bible/read/1/24/1");
+        Assert.Equal(HttpStatusCode.BadRequest, (await c.SendAsync(bad)).StatusCode);
     }
 
     [Fact]

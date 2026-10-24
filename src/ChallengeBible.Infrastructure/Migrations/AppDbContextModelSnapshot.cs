@@ -824,6 +824,31 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("BibleVerse", "app");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Bookmark", b =>
+                {
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("BookId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<short>("Chapter")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("Verse")
+                        .HasColumnType("smallint");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("AccountId", "BookId", "Chapter", "Verse")
+                        .HasName("PK_Bookmark");
+
+                    b.HasIndex("BookId");
+
+                    b.ToTable("Bookmark", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.DailyPrayer", b =>
                 {
                     b.Property<int>("Id")
@@ -1565,6 +1590,31 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.VerseReadMark", b =>
+                {
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("BookId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<short>("Chapter")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("Verse")
+                        .HasColumnType("smallint");
+
+                    b.Property<DateTime>("ReadUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("AccountId", "BookId", "Chapter", "Verse")
+                        .HasName("PK_VerseReadMark");
+
+                    b.HasIndex("BookId");
+
+                    b.ToTable("VerseReadMark", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.WeeklyVerse", b =>
                 {
                     b.Property<int>("Id")
@@ -1757,6 +1807,23 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_BibleVerse_Translation");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Bookmark", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_Bookmark_Account");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.BibleBook", null)
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_Bookmark_Book");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.DailyPrayer", b =>
@@ -1999,6 +2066,23 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_TenantSeason_Tenant");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.VerseReadMark", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_VerseReadMark_Account");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.BibleBook", null)
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_VerseReadMark_Book");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.WeeklyVerse", b =>
