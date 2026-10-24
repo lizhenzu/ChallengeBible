@@ -1476,3 +1476,39 @@ main.admin > .wrap.ce { display: flex; flex-direction: column; gap: 14px; }
 .ma-links { display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .ma-links a { font-size: 14px; font-weight: 700; color: var(--accent); min-height: 40px; display: inline-flex; align-items: center; }
 .ma-out { width: 100%; }
+
+/* platform ops (mockup: platform ops) */
+.ops section { display: flex; flex-direction: column; gap: 10px; }
+.ops h1 small { font-size: 13px; font-weight: 500; color: var(--dim); margin-left: 8px; }
+.ops-h { margin: 6px 0 0; font-size: 16px; font-weight: 800; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.ops-h small { font-size: 13px; font-weight: 500; color: var(--dim); }
+.ops-checks { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.ops-checks .ck { border: 1px solid var(--rule); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ops-checks .ck .st { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; }
+.ops-checks .ck .st i { width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+.ops-checks .ck.ok .st { color: var(--ok); }
+.ops-checks .ck.warn { background: var(--warn-bg); border-color: transparent; } .ops-checks .ck.warn .st { color: var(--warn); }
+.ops-checks .ck.bad { background: var(--bad-bg); border-color: transparent; } .ops-checks .ck.bad .st { color: var(--bad); }
+.ops-checks .ck b { font-size: 15px; }
+.ops-checks .ck .v { font-size: 13px; color: var(--dim); overflow-wrap: anywhere; }
+.ops-errs { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 16px; overflow: hidden; }
+.ops-errs > li + li { border-top: 1px solid var(--rule); }
+.ops-errs summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 12px 14px; }
+.ops-errs summary::-webkit-details-marker { display: none; }
+.ops-errs .cnt { min-width: 34px; text-align: center; font-size: 13px; font-weight: 900; padding: 2px 6px; border-radius: 8px; background: var(--bad-bg); color: var(--bad); }
+.ops-errs .em { min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+.ops-errs .em b { font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ops-errs .em small { font-size: 12.5px; color: var(--dim); font-family: ui-monospace, Consolas, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ops-errs .when { font-size: 12.5px; color: var(--dim); text-align: right; }
+.ops-errs .detail { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+.ops-errs .kv { margin: 0; display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 4px 12px; font-size: 13px; }
+.ops-errs .kv dt { color: var(--dim); }
+.ops-errs .kv dd { margin: 0; font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; overflow-wrap: anywhere; }
+.ops-errs pre { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--soft); font-family: ui-monospace, Consolas, monospace; font-size: 12px; line-height: 1.6; overflow-x: auto; white-space: pre; }
+.ops-tbl { overflow-x: auto; border: 1px solid var(--rule); border-radius: 16px; }
+.ops-tbl table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 640px; }
+.ops-tbl th, .ops-tbl td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.ops-tbl th { white-space: nowrap; font-size: 12px; color: var(--dim); font-weight: 800; background: var(--soft); }
+.ops-tbl tr:last-child td { border-bottom: 0; }
+.ops-tbl td.t { white-space: nowrap; color: var(--dim); font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; }
+.ops-tbl .tag { background: var(--accent-bg); color: var(--accent); white-space: nowrap; }

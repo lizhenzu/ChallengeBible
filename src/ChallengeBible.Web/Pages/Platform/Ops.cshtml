@@ -1,0 +1,78 @@
+@page "/platform/ops"
+@model ChallengeBible.Web.Pages.Platform.OpsModel
+@using ChallengeBible.Web.Pages.Platform
+@using ChallengeBible.Web.Services
+@* 확정 시안: 플랫폼-운영점검-단독시안 — 서버 상태 6칸 → 최근 오류 → 감사 로그. 오류에는 개인 내용을 남기지 않는다 *@
+<partial name="_PlatformTop" />
+<main class="admin gut ops"><div class="wrap wide">
+    <h1>운영 점검 <small>@Model.NowLocal.ToString("yyyy년 M월 d일 HH:mm") 기준 · 새로 고치면 다시 점검해요</small></h1>
+
+    <section aria-labelledby="opsS">
+        <h2 id="opsS" class="ops-h">서버 상태</h2>
+        <div class="ops-checks">
+            @foreach (var c in Model.Checks)
+            {
+                <div class="ck @OpsModel.StateClass(c.State)"><span class="st"><i aria-hidden="true"></i>@OpsModel.StateText(c.State)</span><b>@c.Title</b><span class="v">@c.Value</span></div>
+            }
+        </div>
+    </section>
+
+    <section aria-labelledby="opsE">
+        <h2 id="opsE" class="ops-h">최근 오류 <small>앱이 켜진 뒤 · 최근 @(ErrorLog.Capacity)건까지 · 같은 오류는 한 줄로 묶음</small></h2>
+        @if (Model.Errors.Count == 0)
+        {
+            <div class="empty-box">앱이 켜진 뒤 오류가 없어요.</div>
+        }
+        else
+        {
+            <ul class="ops-errs">
+                @foreach (var e in Model.Errors)
+                {
+                    <li><details>
+                        <summary><span class="cnt num">@(e.Count)번</span><span class="em"><b>@e.Type: @e.Message</b><small>@e.Where</small></span><span class="when">@OpsModel.Local(e.LastUtc).ToString("M/d HH:mm")</span></summary>
+                        <div class="detail">
+                            <dl class="kv"><dt>주소</dt><dd>@e.LastUrl</dd><dt>마지막</dt><dd>@OpsModel.Local(e.LastUtc).ToString("yyyy-MM-dd HH:mm:ss")</dd><dt>요청 번호</dt><dd>@e.LastTraceId</dd></dl>
+                            <pre>@e.Stack</pre>
+                        </div>
+                    </details></li>
+                }
+            </ul>
+        }
+        <p class="hint">오류에는 <b>비밀번호 · 접속 문자열 · 입력한 내용을 남기지 않아요.</b> 주소 · 시각 · 요청 번호 · 오류 종류와 위치만 남겨요. 앱이 다시 켜지면(게시 등) 목록은 비어요.</p>
+    </section>
+
+    <section aria-labelledby="opsA" id="audit">
+        <h2 id="opsA" class="ops-h">감사 로그 <small>시스템 연결로 한 일 · 관리 기록</small></h2>
+        <form method="get" class="tools">
+            <select class="sel" name="a" aria-label="종류" onchange="this.form.submit()">
+                <option value="">모든 종류</option>
+                @foreach (var a in Model.Actions) { <option value="@a" selected="@(Model.Action == a)">@OpsService.Label(a)</option> }
+            </select>
+            <select class="sel" name="t" aria-label="부서" onchange="this.form.submit()">
+                <option value="">모든 부서</option>
+                @foreach (var (id, name) in Model.Tenants) { <option value="@id" selected="@(Model.TenantId == id)">@name</option> }
+            </select>
+            <select class="sel" name="d" aria-label="기간" onchange="this.form.submit()">
+                @foreach (var (d, label) in new[] { (7, "최근 7일"), (30, "최근 30일"), (0, "전체") }) { <option value="@d" selected="@(Model.Days == d)">@label</option> }
+            </select>
+            <noscript><button class="btn s sm" type="submit">거르기</button></noscript>
+        </form>
+        @if (Model.Audit.Count == 0)
+        {
+            <div class="empty-box">이 조건의 기록이 없어요.</div>
+        }
+        else
+        {
+            <div class="ops-tbl"><table>
+                <thead><tr><th scope="col">때</th><th scope="col">종류</th><th scope="col">한 사람</th><th scope="col">부서</th><th scope="col">내용</th></tr></thead>
+                <tbody>
+                    @foreach (var r in Model.Audit)
+                    {
+                        <tr><td class="t">@OpsModel.Local(r.OccurredUtc).ToString("MM-dd HH:mm")</td><td><span class="tag">@r.Label</span></td><td>@r.Actor</td><td>@(r.Tenant ?? "—")</td><td>@r.Text</td></tr>
+                    }
+                </tbody>
+            </table></div>
+            @if (Model.More) { <a class="btn s sm self-start" href="@Model.MoreUrl">@(OpsModel.Page50)건 더 보기</a> }
+        }
+    </section>
+</div></main>

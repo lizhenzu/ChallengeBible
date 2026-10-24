@@ -9,6 +9,7 @@
         ("/platform/bible", "성경 데이터"),
         ("/platform/rules", "기본 규칙"),
         ("/platform/accounts", "계정 찾기"),
+        ("/platform/ops", "운영 점검"),
     ];
     // 플랫폼 홈 주소는 다른 플랫폼 주소의 앞부분이라 정확히 같을 때만 현재 화면으로 본다
     bool Current(string href) => href == "/platform" ? path.TrimEnd('/').Equals(href, StringComparison.OrdinalIgnoreCase) : path.StartsWith(href, StringComparison.OrdinalIgnoreCase);
