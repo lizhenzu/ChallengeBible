@@ -61,6 +61,28 @@ public class PlatformTenantServiceTests
     }
 
     [Fact]
+    public async Task 기본_정보를_고치면_이름_시간대_색이_바뀌고_주소는_그대로()
+    {
+        var (t, _) = await Svc.CreateAsync(_op.Id, Input());
+        var e = await Svc.UpdateInfoAsync(_op.Id, t!.Id, "  잠실새내교회 초등부 ", "America/New_York", "green");
+        Assert.True(e.Ok);
+        var row = (await Svc.ListAsync(_op.Id)).Single();
+        Assert.Equal(("잠실새내교회 초등부", "America/New_York", "green", "jamsil-kids"), (row.Name, row.TimeZoneId, row.ThemeColor, row.Slug));
+    }
+
+    [Theory]
+    [InlineData("", "Asia/Seoul", "blue", "Name")]
+    [InlineData("초등부", "Mars/Base", "blue", "TimeZoneId")]
+    [InlineData("초등부", "Asia/Seoul", "pink", "ThemeColor")]
+    public async Task 기본_정보_검사(string name, string tz, string color, string field)
+    {
+        var (t, _) = await Svc.CreateAsync(_op.Id, Input());
+        var e = await Svc.UpdateInfoAsync(_op.Id, t!.Id, name, tz, color);
+        Assert.True(e.ContainsKey(field));
+        Assert.Equal("잠실새내교회 유년부", (await Svc.ListAsync(_op.Id)).Single().Name);   // 하나라도 틀리면 아무것도 바꾸지 않는다
+    }
+
+    [Fact]
     public async Task 첫_관리자를_정하면_승인된_소속과_교사_관리자_역할이_생긴다()
     {
         var (t, e) = await Svc.CreateAsync(_op.Id, Input(admin: "EunHye"));
@@ -112,5 +134,6 @@ public class PlatformTenantServiceTests
     {
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => Svc.ListAsync(_teacher.Id));
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => Svc.CreateAsync(_teacher.Id, Input()));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => Svc.UpdateInfoAsync(_teacher.Id, 1, "초등부", "Asia/Seoul", "blue"));
     }
 }

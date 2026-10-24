@@ -99,4 +99,28 @@ public partial class PlatformFlowTests : IClassFixture<WebApplicationFactory<Pro
         Assert.False(await Press());
         Assert.True(await Press());
     }
+
+    /// <summary>기본 정보 폼으로 이름 · 시간대 · 대표 색을 바꾸고, 주소는 그대로다(플랫폼-부서정보수정 시안).</summary>
+    [Fact]
+    public async Task 기본_정보_폼으로_이름_시간대_색을_바꾼다()
+    {
+        var t = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
+        var c = await LoggedIn("operator", platformAdmin: true);
+        var page = await c.GetStringAsync($"/platform/tenants?Open={t.Id}");
+        Assert.Contains("handler=Info", page);
+
+        var r = await c.PostAsync("/platform/tenants?handler=Info", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value,
+            ["id"] = t.Id.ToString(), ["name"] = "잠실새내교회 초등부", ["timeZoneId"] = "America/New_York", ["themeColor"] = "violet",
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+        var after = await c.GetStringAsync(r.Headers.Location!.OriginalString);
+        Assert.Contains("기본 정보를 저장했어요", after);
+        Assert.Contains("value=\"America/New_York\" selected=\"selected\"", after);
+
+        using var raw = InMemoryDb.Raw(_db);
+        var saved = raw.Tenants.Single();
+        Assert.Equal(("잠실새내교회 초등부", "America/New_York", "violet", "jamsil-kids"), (saved.Name, saved.TimeZoneId, saved.ThemeColor, saved.Slug));
+    }
 }

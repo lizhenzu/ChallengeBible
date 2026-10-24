@@ -114,6 +114,23 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         return t.JoinCode;
     }
 
+    /// <summary>기본 정보(이름 · 시간대 · 대표 색) 고치기. 주소(Slug)는 바꾸지 않는다(0048).</summary>
+    public async Task<FieldErrors> UpdateInfoAsync(int actor, int tenantId, string name, string timeZoneId, string themeColor, CancellationToken ct = default)
+    {
+        var errors = new FieldErrors();
+        name = name?.Trim() ?? "";
+        if (name.Length is 0 or > 100) errors["Name"] = "부서 이름을 1 ~ 100자로 써 주세요.";
+        if (!TimeZones.Contains(timeZoneId)) errors["TimeZoneId"] = "시간대를 골라 주세요.";
+        if (!ThemeColors.Contains(themeColor)) errors["ThemeColor"] = "정해 둔 색 중에서 골라 주세요.";
+        if (!errors.Ok) return errors;
+
+        await using var ctx = await OpenAsync(actor, ct);
+        var t = await ctx.Tenants.SingleAsync(x => x.Id == tenantId, ct);
+        (t.Name, t.TimeZoneId, t.ThemeColor) = (name, timeZoneId, themeColor);
+        await ctx.SaveChangesAsync(ct);
+        return errors;
+    }
+
     public async Task<string?> SetProgramsAsync(int actor, int tenantId, bool mission, bool reading, CancellationToken ct = default)
     {
         if (!mission && !reading) return "프로그램을 하나는 켜 주세요(R-150).";

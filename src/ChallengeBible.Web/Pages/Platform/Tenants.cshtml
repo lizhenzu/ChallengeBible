@@ -71,6 +71,30 @@
                     </summary>
                     <div class="ed">
                         @if (open && Model.RowError is not null) { <p class="err" role="alert">@Model.RowError</p> }
+                        <form method="post" asp-page-handler="Info" class="basic">
+                            <input type="hidden" name="id" value="@t.Id" />
+                            <h3>기본 정보</h3>
+                            <div class="f"><label for="nm@(t.Id)">부서 이름</label>
+                                <input class="in sm" id="nm@(t.Id)" name="name" value="@t.Name" maxlength="100" />
+                                <p class="hint">참여 신청 목록 · 부서 고르기에 보이는 이름이에요.</p></div>
+                            <div class="f"><label>주소</label>
+                                <p class="ro">/@t.Slug</p>
+                                <p class="hint">만든 뒤에는 바꿀 수 없어요.</p></div>
+                            <div class="f"><label for="tz@(t.Id)">시간대</label>
+                                <select class="sel" id="tz@(t.Id)" name="timeZoneId">
+                                    @foreach (var z in ChallengeBible.Web.Services.PlatformTenantService.TimeZones) { <option value="@z" selected="@(t.TimeZoneId == z)">@z</option> }
+                                </select>
+                                <p class="hint">"오늘"을 정하는 기준이에요. 바꾸면 미션 날짜가 바뀌는 시각이 달라져요. 이미 남긴 기록은 그대로예요.</p></div>
+                            <div class="f"><label>대표 색</label>
+                                <div class="colors">
+                                    @foreach (var c in ChallengeBible.Web.Services.PlatformTenantService.ThemeColors)
+                                    {
+                                        <label class="sw" style="background:@TenantsModel.ColorVar(c)"><input type="radio" name="themeColor" value="@c" checked="@(t.ThemeColor == c)" aria-label="@TenantsModel.ColorLabel(c)" /></label>
+                                    }
+                                </div></div>
+                            <div class="bacts"><button type="submit" class="btn pf sm">기본 정보 저장</button>
+                                <span class="hint">서비스 이름(앱 이름)은 부서 관리자가 바꿔요.</span></div>
+                        </form>
                         <div class="grid2">
                             <form method="post" asp-page-handler="Programs">
                                 <input type="hidden" name="id" value="@t.Id" />
@@ -116,7 +140,7 @@
                             </div>
                             <div>
                                 <h3>정보</h3>
-                                <p class="info">주소 <b>/@t.Slug</b><br>시간대 @t.TimeZoneId · 만든 날 @t.CreatedUtc.ToString("yyyy.MM.dd")</p>
+                                <p class="info">만든 날 @t.CreatedUtc.ToString("yyyy.MM.dd")</p>
                             </div>
                         </div>
                         <div class="acts">

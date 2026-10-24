@@ -163,6 +163,14 @@ details.create > summary::-webkit-details-marker { display: none; }
 .adminline small { color: var(--dim); }
 .in.sm { min-height: 42px; font-size: 14px; border-radius: 10px; }
 .info { margin: 0; font-size: 14px; line-height: 1.9; }
+/* 기본 정보 고치기 (확정 시안: 플랫폼-부서정보수정) */
+.basic { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 16px; padding: 14px; border: 1px solid var(--accent); border-radius: 14px; background: var(--accent-bg); }
+.basic h3 { grid-column: 1 / -1; margin: 0; color: var(--accent); }
+.basic .f > label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.basic .in, .basic .sel { width: 100%; box-sizing: border-box; }
+.basic .ro { margin: 0; min-height: 42px; display: flex; align-items: center; padding: 0 12px; border-radius: 10px; background: var(--soft); color: var(--dim); font-family: ui-monospace, Consolas, monospace; font-size: 14px; }
+.basic .bacts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.basic .bacts .hint { margin: 0; }
 
 /* 미션 화면 (확정 시안: 말씀-미션홈 · 말씀 · 퀴즈 · 기도 · 암송). 글자 크기는 --fs (R-167) */
 :root { --fs: 1; --pick: #16A34A; --no: #7FA3DB; --green: #16A34A; --green-no: #6FBF8B; --pickbg: #EAF7EF; --pickbg-press: #DDF1E4; --dim2: #4B5563; }
