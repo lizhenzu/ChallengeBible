@@ -8,9 +8,9 @@ namespace ChallengeBible.Web.Pages.Mission;
 /// <summary>
 /// `/{slug}/read` 성경 읽기(R-110 · R-111 · R-115, 확정 시안: 말씀-성경읽기).
 /// `from=word|prayer|recite` + `date` 로 열면 그날 미션의 구절을, 아니면 `book · sc · sv · ec · ev` 로 지정한 구절을 보여 준다.
-/// 읽음 · 책갈피(R-112) · 듣기 · 책 개요(R-116)는 해당 표가 생기는 다음 단계에서 붙인다.
+/// 본문 위 책 개요(R-116, ADR 0062)는 구절이 시작하는 책 것. 듣기는 해당 표가 생기는 다음 단계에서 붙인다.
 /// </summary>
-public class ReadModel(MissionService missions, TenantContext tenant, BibleTextService bible, BibleMarkService marks, BibleNoteService notes) : MissionPageBase(missions, tenant)
+public class ReadModel(MissionService missions, TenantContext tenant, BibleTextService bible, BibleMarkService marks, BibleNoteService notes, BookOverviewService overview) : MissionPageBase(missions, tenant)
 {
     public override string Title => "성경 읽기";
 
@@ -54,8 +54,12 @@ public class ReadModel(MissionService missions, TenantContext tenant, BibleTextS
             Slice = BibleTextService.Slice(all, Unit, PageNo);
             Marks = await marks.MarksAsync(r, ct);   // 읽음 · 책갈피는 범위 전체를 읽어 진도에 쓴다(R-112)
             if (all.Count > 0) Notes = BibleNoteService.Place(await notes.ForRangeAsync(r, ct), r, all);   // 해설 카드(R-118)
+            Overview = await overview.CardAsync(r.BookId, r.StartChapter, ct);   // 1장에서 시작하면 펼침
         }
     }
+
+    /// <summary>본문 위 책 개요(R-116). 글이 없는 책이면 null.</summary>
+    public BookOverviewCard? Overview { get; private set; }
 
     /// <summary>절(장, 절) 위에 그릴 해설 카드. 카드는 절 기능(읽음 · 책갈피)과 절 순서에 끼지 않는다.</summary>
     public IReadOnlyDictionary<(short Chapter, short Verse), IReadOnlyList<BibleNote>> Notes { get; private set; } =

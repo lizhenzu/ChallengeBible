@@ -125,6 +125,23 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids/reading", "18-통독-대시보드");
         await Save(kid, "/jamsil-kids/reading/list?t=ot&b=1", "19-통독-성경목록");
         await Save(kid, "/jamsil-kids/reading/read/1/24?unit=3", "20-통독-본문읽기");
+        // 책 개요(R-116, 확정 시안 통독-본문읽기-책개요): 1장은 펼침, 다른 장은 접힘
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            raw.BibleBookOverviews.Add(new BibleBookOverview
+            {
+                BookId = 1, Author = "모세", WhenWritten = "예수님이 태어나기 전(B.C.) 1446년 ~ 1406년경",
+                Summary = "하나님이 세상을 만드시고, 아브라함 · 이삭 · 야곱 · 요셉으로 이어지는 믿음의 이야기예요.",
+                Purpose = "하나님이 세상과 사람을 만드시고, 한 가족을 골라 복을 주시겠다고 약속하신 것을 알려 주기 위해 기록했어요.",
+                DetailAuthor = "모세", AuthorDescription = "이스라엘 백성을 이집트에서 이끌어 낸 지도자예요.", WrittenFrom = "B.C. 1446년", WrittenTo = "1406년",
+                AlternativeDate = "B.C. 1290년경", WrittenPlace = "시내 광야", WrittenTarget = "광야에서 지내던 이스라엘 백성", HistoricalPeriod = "창조 ~ 족장 시대",
+                Keywords = "창조, 타락, 언약, 족장", ContentSummary = "1 ~ 11장은 세상의 시작, 12 ~ 50장은 아브라함 · 이삭 · 야곱 · 요셉의 이야기예요.",
+                VideoUrl1 = "https://youtu.be/example1", VideoUrl2 = "https://youtu.be/example2",
+            });
+            raw.SaveChanges();
+        }
+        await Save(kid, "/jamsil-kids/reading/read/1/1?unit=3", "20b-통독-본문-책개요-1장");
+        await Save(kid, "/jamsil-kids/reading/read/1/24?unit=3", "20c-통독-본문-책개요-접힘");
         await Save(kid, "/jamsil-kids/reading/bookmarks", "21-통독-북마크");
         // 회차 기록(확정 시안 통독-회차기록): 지금까지 읽은 회차를 "중간에 닫음"으로 두고 2회차에 두 장, 새 회차 시작 확인을 펼친 모습
         var kidAcc = Acc("cheolsu");

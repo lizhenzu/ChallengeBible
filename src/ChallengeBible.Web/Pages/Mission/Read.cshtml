@@ -3,7 +3,7 @@
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Services
 @* 확정 시안: 말씀-성경읽기-v2(2026-10-24) — 위쪽 줄 · 진도 → 읽기 단위 · 번역 → 절(본문 끝 ✓ ★, 저장 중 동그라미, 절 사이 해설 카드 R-118)
-   → 큰 파란 "이 페이지 읽음으로 표시" → 아래 링크. 통독률 · 오늘 읽은 절은 넣지 않는다(D25). 오늘 말씀 요약 카드는 빼기로 했다(2026-10-24, 요약은 말씀 미션 화면에 있다). 듣기 · 책 개요는 데이터가 생긴 뒤에 *@
+   → 큰 파란 "이 페이지 읽음으로 표시" → 아래 링크. 통독률 · 오늘 읽은 절은 넣지 않는다(D25). 오늘 말씀 요약 카드는 빼기로 했다(2026-10-24, 요약은 말씀 미션 화면에 있다). 읽기 설정 아래 책 개요 카드(R-116, ADR 0062). 듣기는 데이터가 생긴 뒤에 *@
 @{
     var r = Model.Ref;
     var s = Model.Slice;
@@ -43,6 +43,8 @@
             <div class="brd-lbl">번역</div>
             <div class="brd-pills">@foreach (var (label, v) in trs) { <a href="@Model.Url(tr: v)" aria-current="@(Model.Tr == v ? "true" : "false")">@label</a> }</div>
         </section>
+
+        @if (Model.Overview is { } ov) { <partial name="_BookOverview" model="ov" /> }
 
         <div class="rdv brd-verses" data-book="@r.BookId">
             @foreach (var line in s.Lines)

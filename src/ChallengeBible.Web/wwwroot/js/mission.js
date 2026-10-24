@@ -327,3 +327,10 @@
   }));
   apply();
 })();
+
+// 책 개요 카드(R-116): 간략본 · 상세본 탭 바꾸기
+document.querySelectorAll('.bov .tabs button').forEach((b) => b.addEventListener('click', () => {
+  const box = b.closest('.bov');
+  box.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+  box.querySelectorAll('dl[data-pane]').forEach((d) => { d.hidden = d.dataset.pane !== b.dataset.p; });
+}));

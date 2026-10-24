@@ -1,0 +1,47 @@
+@model ChallengeBible.Web.Services.BookOverviewCard
+@using ChallengeBible.Web.Services
+@* 책 개요 카드(R-116, ADR 0062, 확정 시안: 통독-본문읽기-책개요). 통독 본문 · 말씀 성경 읽기 공통. 1장은 펼침, 다른 장은 접힘.
+   탭은 간략본 · 상세본이 둘 다 있을 때만. 탭 바꾸기는 mission.js(스크립트가 없으면 간략본만 보임) *@
+@{
+    var o = Model;
+    var both = o.Brief.Count > 0 && o.Detail.Count > 0;
+    var first = o.Brief.Count > 0 ? "b" : "d";
+}
+<details class="bov" @(o.Open ? "open" : "") aria-label="@o.BookName 개요">
+    <summary>
+        <span class="ic" aria-hidden="true">📖</span>
+        <span class="tt"><b>@o.BookName 개요</b>@if (o.Line.Length > 0) { <span>@o.Line</span> }</span>
+        <span class="chev" aria-hidden="true">▾</span>
+    </summary>
+    <div class="bov-b">
+        @if (both)
+        {
+            <div class="tabs" role="tablist" aria-label="개요 보기">
+                <button type="button" role="tab" aria-selected="true" data-p="b">간략본</button>
+                <button type="button" role="tab" aria-selected="false" data-p="d">상세본</button>
+            </div>
+        }
+        @foreach (var (key, rows) in new[] { ("b", o.Brief), ("d", o.Detail) })
+        {
+            if (rows.Count == 0) { continue; }
+            <dl data-pane="@key" @(key == first ? "" : "hidden")>
+                @foreach (var r in rows)
+                {
+                    <dt>@r.Label</dt>
+                    if (r.Chips) { <dd class="kw">@foreach (var c in BookOverviewService.Chips(r.Text)) { <span>@c</span> }</dd> }
+                    else { <dd>@r.Text</dd> }
+                }
+            </dl>
+        }
+        @if (o.Videos.Count > 0)
+        {
+            <div class="vids">
+                @for (var i = 0; i < o.Videos.Count; i++)
+                {
+                    <a href="@o.Videos[i]" target="_blank" rel="noopener noreferrer">🎬 관련 영상@(o.Videos.Count > 1 ? $" {i + 1}" : "")</a>
+                }
+            </div>
+        }
+        <p class="src">책 개요는 모든 부서가 함께 봐요.</p>
+    </div>
+</details>

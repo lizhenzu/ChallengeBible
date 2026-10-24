@@ -783,6 +783,82 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BibleBookOverview", b =>
+                {
+                    b.Property<byte>("BookId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("AlternativeDate")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Author")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("AuthorDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContentSummary")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DetailAuthor")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("HistoricalBackground")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("HistoricalPeriod")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Keywords")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Purpose")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Summary")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("VideoUrl1")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("VideoUrl2")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("WhenWritten")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("WrittenFrom")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("WrittenPlace")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("WrittenTarget")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WrittenTo")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("BookId")
+                        .HasName("PK_BibleBookOverview");
+
+                    b.ToTable("BibleBookOverview", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BibleChapter", b =>
                 {
                     b.Property<byte>("BookId")
@@ -2282,6 +2358,16 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_AuditLog_Actor");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BibleBookOverview", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.BibleBook", null)
+                        .WithOne()
+                        .HasForeignKey("ChallengeBible.Infrastructure.Data.BibleBookOverview", "BookId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_BibleBookOverview_Book");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BibleChapter", b =>

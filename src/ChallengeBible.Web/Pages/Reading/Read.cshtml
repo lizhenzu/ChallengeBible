@@ -5,7 +5,8 @@
 @using ChallengeBible.Infrastructure.Data
 @* 통독 본문 읽기(ADR 0057): 말씀-성경읽기-v2 모양 + 장 번호 줄. 절마다 ✓(회차 읽음, R-160) · ★(책갈피, R-112),
    "이 페이지 읽음으로 표시"는 보이는 절, 넘기기만으로는 읽음이 아니다(0042). 모든 절이 읽음이면 장 자동 완료(R-162).
-   절 사이 해설 카드(R-118, ADR 0056 결정 7, 확정 시안: 통독-본문읽기-해설카드). 듣기 · 해설 영상(R-166)과 밝기는 다음 묶음 *@
+   절 사이 해설 카드(R-118, ADR 0056 결정 7, 확정 시안: 통독-본문읽기-해설카드). 본문 위 책 개요 카드(R-116, ADR 0062, 확정 시안: 통독-본문읽기-책개요).
+   듣기 · 해설 영상(R-166)과 밝기는 다음 묶음 *@
 @{
     var v = Model.View;
     var s = Model.Slice;
@@ -46,6 +47,8 @@
         <div class="brd-lbl">번역</div>
         <div class="brd-pills">@foreach (var (label, code) in trs) { <a href="@Model.Url(tr: code)" aria-current="@(Model.Tr == code ? "true" : "false")">@label</a> }</div>
     </section>
+
+    @if (Model.Overview is { } ov) { <partial name="_BookOverview" model="ov" /> }
 
     @if (s.Total == 0)
     {
