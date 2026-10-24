@@ -1,0 +1,163 @@
+<title>부서 암송 · 기도 입력 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/{slug}/admin/content/prayer?date= · /recite?week=, 0052 · 0053 · R-120 ~ R-124):
+     콘텐츠 달력 고른 날 → 기도 · 암송 줄의 "우리 부서 것으로 바꾸기" → 입력(공용 내용을 채운 채 시작) | 미리보기 → 초안 저장 · 공개 · 공용으로 되돌리기 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --warn: #9A5B00; --warn-bg: #FFF4DE; --bad: #B42318; --bad-bg: #FDECEC;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root {
+    --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C; color-scheme: dark } }
+  html, body { background: var(--bg); margin: 0; }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  a { color: inherit; text-decoration: none; }
+  button, input, select, textarea { font-family: inherit; color: inherit; }
+  .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  header { border-bottom: 1px solid var(--rule); }
+  .hd { display: flex; align-items: center; justify-content: space-between; min-height: 60px; }
+  .hd small { display: block; font-size: 12px; color: var(--dim); }
+  .hd b { font-size: 17px; font-weight: 900; } .hd b em { font-style: normal; color: var(--accent); }
+  .back { min-height: 40px; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; font-weight: 700; }
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-bottom: -1px; }
+  nav.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); border-bottom: 3px solid transparent; }
+  nav.tabs a[aria-current] { color: var(--fg); border-color: var(--accent); }
+  main .wrap { padding-block: 20px 56px; display: flex; flex-direction: column; gap: 16px; }
+  .crumb { font-size: 14px; font-weight: 700; color: var(--accent); }
+  h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  .lead { margin: -6px 0 0; font-size: 13.5px; color: var(--dim); }
+  .seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--soft); align-self: flex-start; }
+  .seg button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 9px; background: none; font-weight: 800; color: var(--dim); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--bg); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .note { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--soft); font-size: 12.5px; color: var(--dim); line-height: 1.7; }
+  .note b { color: var(--fg); }
+  .entry { border: 1px dashed var(--line); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .entry h2 { margin: 0; font-size: 13px; color: var(--dim); }
+  .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-top: 1px solid var(--rule); }
+  .row:first-of-type { border-top: 0; }
+  .row .k { font-size: 13px; font-weight: 800; min-width: 36px; }
+  .src { font-size: 11.5px; font-weight: 800; padding: 1px 8px; border-radius: 99px; }
+  .s-common { background: var(--accent-bg); color: var(--accent); } .s-over { background: var(--accent); color: var(--on-accent); } .s-draft { color: var(--dim); outline: 1px dashed var(--line); }
+  .row b { flex: 1; min-width: 0; font-size: 14px; }
+  .lnk { font-size: 13px; font-weight: 800; color: var(--accent); }
+  .lnk.off { color: var(--dim); font-weight: 500; }
+  .split { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 860px) { .split { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: start; } }
+  .card { border: 1px solid var(--rule); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .when { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--accent-bg); }
+  .when b { font-size: 16px; } .when span { font-size: 13px; color: var(--dim); }
+  .f label { display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; margin-bottom: 6px; }
+  .f label small { font-weight: 500; color: var(--dim); font-size: 12.5px; }
+  .in { width: 100%; box-sizing: border-box; min-height: 46px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 16px; }
+  textarea.in { min-height: 120px; padding: 10px 12px; line-height: 1.7; resize: vertical; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .range { display: grid; grid-template-columns: 1.4fr repeat(4, minmax(0, 1fr)); gap: 6px; align-items: center; }
+  .range .in { padding: 0 8px; }
+  .range span { text-align: center; color: var(--dim); font-size: 13px; }
+  .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { min-height: 46px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 800; border: 1px solid var(--line); background: var(--bg); cursor: pointer; }
+  .btn.p { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+  .btn.d { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, var(--line)); }
+  .pv h2 { margin: 0; font-size: 13px; font-weight: 800; color: var(--dim); }
+  .kid { border: 1px solid var(--rule); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .kid .k { font-size: 12px; font-weight: 800; letter-spacing: .1em; color: var(--accent); }
+  .kid h3 { margin: 0; font-size: 20px; font-weight: 900; }
+  .kid .ref { font-size: 13px; color: var(--dim); }
+  .kid p { margin: 0; font-size: 15px; line-height: 1.85; }
+  .badge { align-self: flex-start; font-size: 11.5px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: var(--warn-bg); color: var(--warn); }
+  [hidden] { display: none !important; }
+</style>
+
+<header class="gut">
+  <div class="wrap hd"><div><small>잠실새내교회 · 유년부</small><b><em>도전!!!</em> 관리</b></div><a class="back" href="#">부서 홈으로</a></div>
+  <nav class="wrap tabs"><a href="#">관리 홈</a><a href="#">소속 관리</a><a href="#">진급</a><a href="#" aria-current="page">콘텐츠</a><a href="#">통독 현황</a><a href="#">시즌</a><a href="#">이름 · 색</a></nav>
+</header>
+
+<main class="gut"><div class="wrap">
+  <section class="entry" aria-label="들어오는 곳">
+    <h2>① 들어오는 곳 — 콘텐츠 달력에서 1월 6일(수)을 고른 모습</h2>
+    <div class="row"><span class="k">말씀</span><span class="src s-common">공용</span><b>아브라함의 부르심</b><span class="lnk off">우리 부서 것은 2차</span></div>
+    <div class="row"><span class="k">퀴즈</span><span class="src s-common">공용</span><b>아브라함은 어디로 떠났나요?</b><span class="lnk off">우리 부서 것은 2차</span></div>
+    <div class="row"><span class="k">기도</span><span class="src s-common">공용</span><b>순종</b><a class="lnk" href="#" data-go="p">우리 부서 것으로 바꾸기 →</a></div>
+    <div class="row"><span class="k">암송</span><span class="src s-over">우리 부서</span><b>마음을 다하여</b><a class="lnk" href="#" data-go="r">고치기 →</a></div>
+  </section>
+
+  <a class="crumb" href="#">← 콘텐츠 달력</a>
+  <h1 id="ttl">우리 부서 기도 · 1월 6일(수)</h1>
+  <p class="lead" id="lead">이날만 아이들에게 이 기도가 보여요. 다음 달 6일에는 저절로 공용 기도로 돌아가요.</p>
+  <div class="seg" role="group" aria-label="시안 보기"><button type="button" data-k="p" aria-pressed="true">기도 입력</button><button type="button" data-k="r" aria-pressed="false">암송 입력</button></div>
+
+  <div class="split">
+    <form class="card" onsubmit="return false">
+      <div class="when" id="when"><b>1월 6일(수) 하루</b><span>공용 6번 기도 "순종" 대신</span></div>
+
+      <div id="fp">
+        <div class="two">
+          <div class="f"><label>성품 이름</label><input class="in" value="순종" maxlength="30"></div>
+          <div class="f"><label>영어 이름 <small>있으면</small></label><input class="in" value="Obedience" maxlength="40"></div>
+        </div>
+        <div class="f"><label>근거 말씀</label>
+          <div class="range"><select class="in"><option>창세기</option></select><input class="in" value="12"><input class="in" value="1"><input class="in" value="12"><input class="in" value="4"></div></div>
+        <div class="f"><label>기도문 <small>{이름} 자리에 아이 이름 · 한 줄이 한 문단</small></label>
+          <textarea class="in">하나님, {이름}이(가) 아브라함처럼 하나님 말씀을 듣고 바로 따르게 해 주세요.
+엄마 아빠 말씀에도 기쁘게 "네" 하는 {이름}이(가) 되게 해 주세요.</textarea></div>
+      </div>
+
+      <div id="fr" hidden>
+        <div class="f"><label>제목(질문)</label><input class="in" value="마음을 다하여" maxlength="200"></div>
+        <div class="f"><label>외울 구절</label>
+          <div class="range"><select class="in"><option>잠언</option></select><input class="in" value="3"><input class="in" value="5"><input class="in" value="3"><input class="in" value="6"></div></div>
+        <div class="two">
+          <div class="f"><label>공과 번호 <small>있으면</small></label><input class="in" value="2"></div>
+          <div class="f"><label>공과 요약 <small>있으면</small></label><input class="in" value="하나님을 믿어요"></div>
+        </div>
+        <div class="f"><label>핵심 <small>있으면</small></label><input class="in" value="내 생각보다 하나님을 먼저 믿어요."></div>
+        <div class="f"><label>적용 <small>있으면</small></label><input class="in" value="이번 주에 기도하고 나서 결정해 봐요."></div>
+      </div>
+
+      <div class="acts">
+        <button type="button" class="btn p">공개</button>
+        <button type="button" class="btn">초안 저장</button>
+        <button type="button" class="btn d" id="revert" hidden>공용으로 되돌리기</button>
+      </div>
+      <p class="note"><b>처음에는 공용 내용을 채워 두었어요.</b> 고쳐서 공개하면 그 기간에만 우리 부서 것이 보여요. 초안은 아이들에게 보이지 않아요(공용이 보여요).<br>
+        이미 아이들이 한 기록은 그때 내용 그대로 남아요. 지난 날짜는 고칠 수 없어요.</p>
+    </form>
+
+    <aside class="pv">
+      <h2>미리보기 · 아이 화면</h2>
+      <div class="kid" id="kid">
+        <span class="badge">우리 부서</span>
+        <span class="k" id="kk">오늘의 성품기도</span>
+        <h3 id="kh">순종</h3>
+        <span class="ref" id="kr">창세기 12장 1~4절</span>
+        <p id="kp">하나님, 철수가 아브라함처럼 하나님 말씀을 듣고 바로 따르게 해 주세요.</p>
+      </div>
+    </aside>
+  </div>
+</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  function show(k) {
+    document.querySelectorAll('.seg button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.k === k));
+    const p = k === 'p';
+    $('fp').hidden = !p; $('fr').hidden = p; $('revert').hidden = p;
+    $('ttl').textContent = p ? '우리 부서 기도 · 1월 6일(수)' : '우리 부서 암송 · 1월 3일 ~ 9일';
+    $('lead').textContent = p ? '이날만 아이들에게 이 기도가 보여요. 다음 달 6일에는 저절로 공용 기도로 돌아가요.'
+      : '이 주(일요일 ~ 토요일)에만 아이들에게 이 암송이 보여요. 내년 같은 주에는 저절로 공용 암송으로 돌아가요.';
+    $('when').innerHTML = p ? '<b>1월 6일(수) 하루</b><span>공용 6번 기도 "순종" 대신</span>'
+      : '<b>1월 3일(일) ~ 9일(토) 한 주</b><span>공용 1주 암송 대신 · 이미 공개함</span>';
+    $('kk').textContent = p ? '오늘의 성품기도' : '이번 주 암송 구절';
+    $('kh').textContent = p ? '순종' : '마음을 다하여';
+    $('kr').textContent = p ? '창세기 12장 1~4절' : '잠언 3장 5~6절';
+    $('kp').textContent = p ? '하나님, 철수가 아브라함처럼 하나님 말씀을 듣고 바로 따르게 해 주세요.' : '너는 마음을 다하여 여호와를 신뢰하고 네 명철을 의지하지 말라';
+  }
+  document.querySelector('.seg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) show(b.dataset.k); });
+  document.querySelectorAll('[data-go]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); show(a.dataset.go); }));
+</script>

@@ -1,0 +1,97 @@
+@page "/{slug}/admin/content/{kindName:regex(^(prayer|recite)$)}"
+@model ChallengeBible.Web.Pages.Admin.ContentEditModel
+@using ChallengeBible.Infrastructure.Data
+@using ChallengeBible.Web.Services
+@* 확정 시안: 관리-암송기도입력-단독시안 — ← 콘텐츠 달력 → 제목 · 안내 → 입력(공용 내용을 채운 채 시작) | 미리보기 → 공개 · 초안 저장 · 공용으로 되돌리기 *@
+@{
+    var e = Model.Edit;
+    var i = Model.Input;
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+    var prayer = Model.Kind == ContentKind.Prayer;
+    var slug = Model.Tenant.Current.Slug;
+    var span = prayer ? e.From.ToString("M월 d일(ddd)", ko) : $"{e.From.ToString("M월 d일", ko)} ~ {e.To.ToString("d일", ko)}";
+    var range = BibleBooks.Range(i.Book, i.StartChapter, i.StartVerse, i.EndChapter, i.EndVerse);
+    var firstPara = (i.Paragraphs ?? "").Split('\n').Select(x => x.Trim()).FirstOrDefault(x => x.Length > 0)?.Replace("{이름}", "철수") ?? "";
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut"><div class="wrap wide ce">
+    <a class="md-crumb" href="@Model.CalendarUrl">← 콘텐츠 달력</a>
+    <h1>우리 부서 @(prayer ? "기도" : "암송") · @span</h1>
+    <p class="ar-lead">@(prayer
+        ? $"이날만 아이들에게 이 기도가 보여요. 다음 달 {e.From.Day}일에는 저절로 공용 기도로 돌아가요."
+        : "이 주(일요일 ~ 토요일)에만 아이들에게 이 암송이 보여요. 내년 같은 주에는 저절로 공용 암송으로 돌아가요.")</p>
+    @if (Model.Ok == "publish") { <p class="okmsg" role="status">공개했어요 · 아이들 화면에 바로 보여요</p> }
+    @if (Model.Ok == "draft") { <p class="okmsg" role="status">초안으로 저장했어요 · 공개하기 전에는 아이들에게 공용이 보여요</p> }
+    @if (Model.Ok == "revert") { <p class="okmsg" role="status">공용으로 되돌렸어요</p> }
+    @foreach (var k in new[] { "Date", "Status" }) { if (Model.E(k) is { } msg) { <p class="err" role="alert">@msg</p> } }
+
+    <div class="ce-split">
+        <form method="post" asp-route-slug="@slug" asp-route-kindName="@Model.KindName" asp-route-date="@e.From.ToString("yyyy-MM-dd")" class="ce-card stack" novalidate>
+            <div class="when"><b>@span @(prayer ? "하루" : "한 주")</b>
+                <span>@(e.Own switch
+                {
+                    ContentStatus.Published => "우리 부서 것 · 공개함",
+                    ContentStatus.Draft => "우리 부서 것 · 초안(아이들에게는 공용이 보여요)",
+                    _ => e.CommonTitle is null ? "공용 콘텐츠가 없어요" : $"공용 {e.CommonNo}{(prayer ? "번 기도" : "주 암송")} \"{e.CommonTitle}\" 대신",
+                })</span></div>
+            @if (e.Past) { <p class="err">지난 @(prayer ? "날짜" : "주")라 고칠 수 없어요. 보기만 해요.</p> }
+
+            @if (prayer)
+            {
+                <div class="two">
+                    <div class="f"><label for="tn">성품 이름</label><input class="in" id="tn" name="Input.TraitName" value="@i.TraitName" maxlength="30" /><p class="hint bad">@Model.E("TraitName")</p></div>
+                    <div class="f"><label for="te">영어 이름 <small>있으면</small></label><input class="in" id="te" name="Input.TraitNameEn" value="@i.TraitNameEn" maxlength="40" /></div>
+                </div>
+            }
+            else
+            {
+                <div class="f"><label for="rt">제목(질문)</label><input class="in" id="rt" name="Input.Title" value="@i.Title" maxlength="200" /><p class="hint bad">@Model.E("Title")</p></div>
+            }
+            <div class="f"><label>@(prayer ? "근거 말씀" : "외울 구절")</label>
+                <div class="range">
+                    <select class="sel" name="Input.Book" aria-label="책">@foreach (var b in BibleBooks.All()) { <option value="@b.Id" selected="@(b.Id == i.Book)">@b.Name</option> }</select>
+                    <input class="in sm num" type="number" name="Input.StartChapter" value="@i.StartChapter" min="1" aria-label="시작 장" /><span>:</span>
+                    <input class="in sm num" type="number" name="Input.StartVerse" value="@i.StartVerse" min="1" aria-label="시작 절" /><span>~</span>
+                    <input class="in sm num" type="number" name="Input.EndChapter" value="@i.EndChapter" min="1" aria-label="끝 장" /><span>:</span>
+                    <input class="in sm num" type="number" name="Input.EndVerse" value="@i.EndVerse" min="1" aria-label="끝 절" />
+                </div>
+                <p class="hint @(Model.E("Range") is null ? "" : "bad")">@(Model.E("Range") ?? "예: 잠언 3:5 ~ 3:6")</p></div>
+            @if (prayer)
+            {
+                <div class="f"><label for="pp">기도문 <small>{이름} 자리에 아이 이름 · 한 줄이 한 문단</small></label><textarea class="in ta" id="pp" name="Input.Paragraphs">@i.Paragraphs</textarea><p class="hint bad">@Model.E("Paragraphs")</p></div>
+            }
+            else
+            {
+                <div class="two">
+                    <div class="f"><label for="ln">공과 번호 <small>있으면</small></label><input class="in" id="ln" type="number" name="Input.LessonNo" value="@i.LessonNo" min="1" /></div>
+                    <div class="f"><label for="ls">공과 요약 <small>있으면</small></label><input class="in" id="ls" name="Input.LessonSummary" value="@i.LessonSummary" maxlength="200" /></div>
+                </div>
+                <div class="f"><label for="lp">핵심 <small>있으면</small></label><input class="in" id="lp" name="Input.LessonPoint" value="@i.LessonPoint" maxlength="500" /></div>
+                <div class="f"><label for="la">적용 <small>있으면</small></label><input class="in" id="la" name="Input.LessonApply" value="@i.LessonApply" maxlength="500" /></div>
+            }
+
+            @if (!e.Past)
+            {
+                <div class="acts">
+                    <button type="submit" class="btn p sm" asp-page-handler="Publish">공개</button>
+                    @if (e.Own != ContentStatus.Published) { <button type="submit" class="btn s sm" asp-page-handler="Draft">초안 저장</button> }
+                    @if (e.Own is not null) { <button type="submit" class="btn d sm" asp-page-handler="Revert" formnovalidate>공용으로 되돌리기</button> }
+                </div>
+            }
+            <p class="note"><b>@(e.Own is null ? "처음에는 공용 내용을 채워 두었어요." : "지금 우리 부서 내용이에요.")</b> 고쳐서 공개하면 그 기간에만 우리 부서 것이 보여요. 초안은 아이들에게 보이지 않아요(공용이 보여요).<br>
+                이미 아이들이 한 기록은 그때 내용 그대로 남아요. 지난 날짜는 고칠 수 없어요.</p>
+        </form>
+
+        <aside class="ce-pv" aria-label="미리보기">
+            <h2>미리보기 · 아이 화면</h2>
+            <div class="kid">
+                <span class="badge">@(e.Own is null ? "공용 내용" : "우리 부서")</span>
+                <span class="k">@(prayer ? "오늘의 성품기도" : "이번 주 암송 구절")</span>
+                <h3>@(prayer ? i.TraitName : i.Title)</h3>
+                <span class="ref">@range</span>
+                @if (prayer && firstPara.Length > 0) { <p>@firstPara</p> }
+                @if (!prayer && i.LessonPoint is not null) { <p>@i.LessonPoint</p> }
+            </div>
+        </aside>
+    </div>
+</div></main>

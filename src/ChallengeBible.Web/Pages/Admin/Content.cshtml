@@ -67,7 +67,17 @@
             @foreach (var it in sel.Items)
             {
                 <li>
-                    <div class="h"><span class="k">@it.Label</span><span class="src @ContentModel.SourceClass(it.Source)">@ContentModel.SourceLabel(it.Source)</span></div>
+                    <div class="h"><span class="k">@it.Label</span><span class="src @ContentModel.SourceClass(it.Source)">@ContentModel.SourceLabel(it.Source)</span>
+                        @if (it.Kind is "p" or "r")
+                        {
+                            var past = it.Kind == "p" ? sel.Date < d.Today : sel.Date.AddDays(6 - (int)sel.Date.DayOfWeek) < d.Today;
+                            if (!past)
+                            {
+                                <a class="lnk" href="/@Model.Tenant.Current.Slug/admin/content/@(it.Kind == "p" ? "prayer" : "recite")?date=@sel.Date.ToString("yyyy-MM-dd")">@(it.Source == ContentSource.Over || (it.Detail ?? "").StartsWith("우리 부서") ? "고치기 →" : "우리 부서 것으로 바꾸기 →")</a>
+                            }
+                        }
+                        else { <span class="lnk off">우리 부서 것은 2차</span> }
+                    </div>
                     @if (it.Source == ContentSource.None)
                     {
                         <span class="none">콘텐츠가 없어요 — 이날은 "오늘은 없음"으로 보여요</span>
@@ -79,7 +89,6 @@
                 </li>
             }
         </ul>
-        <button type="button" class="btn s sm" disabled>우리 부서 것으로 바꾸기 (2차)</button>
-        <p class="note"><b>1차에서는 보기만 해요.</b> 비어 있거나 고칠 콘텐츠는 플랫폼 관리자에게 알려 주세요. 2차부터 부서가 직접 덮어쓰고 공용으로 되돌릴 수 있어요.<br>콘텐츠가 없는 날은 그 미션이 "오늘은 없음"으로 보이고 완주일이 될 수 없어요(R-122).</p>
+        <p class="note"><b>기도 · 암송은 우리 부서 것으로 바꿀 수 있어요</b>(기도는 그날, 암송은 그 주). 말씀 · 퀴즈는 2차예요 — 비어 있거나 고칠 것은 플랫폼 관리자에게 알려 주세요.<br>콘텐츠가 없는 날은 그 미션이 "오늘은 없음"으로 보이고 완주일이 될 수 없어요(R-122).</p>
     </section>
 </div></main>

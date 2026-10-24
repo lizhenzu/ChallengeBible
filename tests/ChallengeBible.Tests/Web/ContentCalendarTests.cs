@@ -142,7 +142,8 @@ public partial class ContentCalendarTests : IClassFixture<WebApplicationFactory<
         Assert.Contains("2027년 1월", page);
         Assert.Contains("곧 비어요", page);
         Assert.Matches(@"1월 5일 \(화\)\s*<small>오늘</small>", page);                      // 고르지 않으면 오늘
-        Assert.Contains("우리 부서 것으로 바꾸기 (2차)", page);
+        Assert.Contains("href=\"/jamsil-kids/admin/content/prayer?date=2027-01-05\"", page);   // 기도 · 암송은 우리 부서 것으로
+        Assert.Contains("우리 부서 것은 2차", page);                                          // 말씀 · 퀴즈
 
         var day = await admin.GetStringAsync("/jamsil-kids/admin/content?month=2027-01&date=2027-01-07&kind=q");
         Assert.Contains("1월 7일 (목)", day);
