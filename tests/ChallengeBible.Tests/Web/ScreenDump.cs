@@ -151,6 +151,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids/prayer", "09-기도");
         await Save(kid, "/jamsil-kids/recite", "10-암송");
         await Save(kid, "/jamsil-kids/points", "11-내점수");
+        await Save(kid, "/jamsil-kids/ranking", "11c-순위");
         await Save(admin, "/jamsil-kids/admin", "11b-관리홈");
         await Save(admin, "/jamsil-kids/admin/members", "12-소속관리");
         // 이름 · 색: 초록 · "유년부 말씀 챌린지"로 바꾼 뒤 모습(바꾼 기록 1건), 찍고 나서 기본값으로 되돌린다

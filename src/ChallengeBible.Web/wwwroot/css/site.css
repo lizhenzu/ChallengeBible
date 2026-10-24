@@ -471,7 +471,7 @@ ul.log b.z { color: var(--dim); font-weight: 500; }
 .mh-grid .all { background: var(--cell); border-radius: 14px; }
 .mh-grid .today { box-shadow: 0 0 0 3px var(--accent) inset; border-radius: 14px; font-weight: 700; }
 .mh-grid .sel:not(.today) { box-shadow: 0 0 0 2px var(--dim) inset; border-radius: 14px; }
-.mh-tab { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--bg); border-top: 1px solid var(--rule); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+.mh-tab { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--bg); border-top: 1px solid var(--rule); display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
   padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
 .mh-tab a { min-height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; color: var(--dim); }
 .mh-tab a[aria-current] { color: var(--accent); font-weight: 700; }
@@ -1209,3 +1209,54 @@ main.admin > .wrap.ce { display: flex; flex-direction: column; gap: 14px; }
 .ce-pv h3 { margin: 0; font-size: 20px; font-weight: 900; }
 .ce-pv .ref { font-size: 13px; color: var(--dim); }
 .ce-pv p { margin: 0; font-size: 15px; line-height: 1.85; }
+
+/* 참여자 순위(확정 시안: 말씀-순위 "개인", R-80 ~ R-84) */
+.rkp { --rk-gold: #A66A00; --rk-gold-bg: #FFF4D6; }
+@media (prefers-color-scheme: dark) { .rkp { --rk-gold: #F2C063; --rk-gold-bg: #2E2614; } }
+.rkp .k { font-size: 13px; font-weight: 800; color: var(--accent); }
+.rkp h1 { margin: 4px 0 0; font-size: 28px; font-weight: 900; }
+.rkp .sub { font-size: 13px; color: var(--dim); }
+.rkp .tot { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--fg); border-bottom: 1px solid var(--rule); }
+.rkp .tot div { padding: 12px 4px; }
+.rkp .tot div + div { border-left: 1px solid var(--rule); padding-left: 16px; }
+.rkp .tot small { display: block; font-size: 12px; color: var(--dim); }
+.rkp .tot b { font-size: 32px; font-weight: 300; line-height: 1.2; }
+.rkp .tot b u { text-decoration: none; font-size: 14px; color: var(--dim); margin-left: 2px; }
+.rkp .lbl { margin-top: 24px; font-size: 13px; font-weight: 800; color: var(--accent); letter-spacing: .1em; }
+.rkp .av { flex: none; border-radius: 50%; background: var(--accent-bg); color: var(--accent); display: grid; place-content: center; font-weight: 900; }
+.rkp .top3 { margin-top: 10px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: end; }
+.rkp .t3 { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 6px 12px; border-radius: 18px; background: var(--soft); text-align: center; min-width: 0; }
+.rkp .t3.first { background: var(--rk-gold-bg); padding-top: 20px; }
+.rkp .t3.me { box-shadow: 0 0 0 2px var(--accent) inset; }
+.rkp .t3 .no { font-size: 13px; font-weight: 900; color: var(--dim); }
+.rkp .t3.first .no { color: var(--rk-gold); }
+.rkp .t3 .av { width: 54px; height: 54px; font-size: 20px; }
+.rkp .t3.first .av { width: 66px; height: 66px; font-size: 24px; box-shadow: 0 0 0 3px var(--rk-gold); }
+.rkp .t3 b { font-size: 15px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rkp .t3 .p { font-size: 20px; font-weight: 300; }
+.rkp .t3 .p u { text-decoration: none; font-size: 12px; color: var(--dim); }
+.rkp .t3 small { font-size: 12px; color: var(--ok); font-weight: 700; }
+.rkp .filt { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 6px; }
+.rkp .filt a, .rkp .sort a { min-height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid var(--rule); display: inline-flex; align-items: center; font-size: 13px; }
+.rkp .filt a[aria-current="true"], .rkp .sort a[aria-current="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); font-weight: 700; }
+.rkp .srch { margin-top: 10px; display: flex; gap: 8px; }
+.rkp .srch label { flex: 1; display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 12px; }
+.rkp .srch input { flex: 1; min-width: 0; border: 0; outline: none; background: none; font-size: 15px; }
+.rkp .sort { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--dim); }
+.rkp .rk-note { margin: 6px 0 0; font-size: 12px; color: var(--dim); }
+.rkp .rk-list { margin-top: 10px; border-top: 1px solid var(--fg); }
+.rkp .rk { display: grid; grid-template-columns: 28px 44px minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; padding: 12px 6px; border-bottom: 1px solid var(--rule); }
+.rkp .rk.me { background: var(--accent-bg); border-radius: 12px; }
+.rkp .rk .no { font-weight: 900; font-size: 15px; color: var(--dim); text-align: center; }
+.rkp .rk .av { width: 44px; height: 44px; }
+.rkp .rk .nm { font-size: 16px; font-weight: 800; }
+.rkp .rk .nm em { font-style: normal; font-size: 11px; font-weight: 700; color: var(--on-accent); background: var(--accent); border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+.rkp .rk .rs { display: block; font-size: 12px; color: var(--dim); }
+.rkp .rk .rs .tdy { color: var(--ok); font-weight: 700; }
+.rkp .rk .rk-bar { display: block; height: 5px; border-radius: 3px; background: var(--soft); margin-top: 6px; overflow: hidden; }
+.rkp .rk .rk-bar i { display: block; height: 5px; background: var(--accent); }
+.rkp .rk .pv { text-align: right; }
+.rkp .rk .pv b { display: block; font-size: 20px; font-weight: 300; }
+.rkp .rk .pv b u { text-decoration: none; font-size: 12px; color: var(--dim); }
+.rkp .rk .pv small { font-size: 12px; color: var(--dim); }
+.rkp .empty { padding: 26px 0; text-align: center; color: var(--dim); }
