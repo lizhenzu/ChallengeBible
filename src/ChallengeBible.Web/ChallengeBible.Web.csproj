@@ -15,4 +15,15 @@
     <InternalsVisibleTo Include="ChallengeBible.Tests" />
   </ItemGroup>
 
+  <!-- 운영 점검 "버전": 빌드(게시) 때 git 커밋 번호를 InformationalVersion 의 "+커밋"으로 넣는다. git 이 없으면 비워 둔다 -->
+  <Target Name="StampGitCommit" BeforeTargets="GetAssemblyVersion;AddSourceRevisionToInformationalVersion">
+    <Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low" StandardErrorImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_GitCommit" />
+      <Output TaskParameter="ExitCode" PropertyName="_GitExit" />
+    </Exec>
+    <PropertyGroup Condition="'$(_GitExit)' == '0' And '$(_GitCommit)' != ''">
+      <SourceRevisionId>$(_GitCommit)</SourceRevisionId>
+    </PropertyGroup>
+  </Target>
+
 </Project>

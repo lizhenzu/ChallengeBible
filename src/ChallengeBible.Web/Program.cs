@@ -50,6 +50,9 @@ builder.Services.AddScoped<LandingService>();
 builder.Services.AddScoped<FamilyTeamService>();
 builder.Services.AddScoped<FamilyTenantService>();
 builder.Services.AddScoped<MyAccountService>();
+builder.Services.AddSingleton<ErrorLog>();
+builder.Services.AddSingleton<AppInfo>();
+builder.Services.AddScoped<OpsService>();
 // 해설 표(dbo.eBibleSummary)는 읽기만 한다(ADR 0056): 읽기 전용 계정(BibleNote)이 있으면 그것으로 접속한다.
 var bibleNoteConnection = builder.Configuration.GetConnectionString("BibleNote") ?? connectionString;
 builder.Services.AddSingleton(sp => new BibleNoteService(bibleNoteConnection, sp.GetRequiredService<ILogger<BibleNoteService>>()));
@@ -104,6 +107,8 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
+app.UseErrorLog();   // 운영 점검의 최근 오류(서버 메모리, 개인 내용 없음) — 오류 화면보다 안쪽에서 남기고 다시 던진다
+app.Services.GetRequiredService<AppInfo>();   // 가동 시간은 앱이 켜진 때부터
 
 app.UseHttpsRedirection();
 app.UseRouting();

@@ -308,6 +308,15 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(op, "/platform/rules", "13c-플랫폼-기본규칙");
         await Save(op, "/platform/content/word?month=2027-01&date=2027-01-05", "14-공용콘텐츠-말씀");
         await Save(op, "/platform/content/quiz?month=2027-01&date=2027-01-05", "15-공용콘텐츠-퀴즈");
+        // 운영 점검(확정 시안 플랫폼-운영점검): 최근 오류 하나를 남긴 모습 — 위 화면들에서 진급 승인 · 가족 부서 등 감사 로그가 쌓여 있다
+        try { throw new InvalidOperationException("Sequence contains no elements"); }
+        catch (Exception ex)
+        {
+            var h = new Microsoft.AspNetCore.Http.DefaultHttpContext { TraceIdentifier = "00-1c2d9e0a-77ab12cd-00" };
+            h.Request.Method = "GET"; h.Request.Path = "/jamsil-elem/word-mission";
+            app.Services.GetRequiredService<ErrorLog>().Record(h, ex);
+        }
+        await Save(op, "/platform/ops?d=0", "15c-플랫폼-운영점검", x => x.Replace("<li><details>", "<li><details open>"));
     }
 
     private static async Task Save(HttpClient c, string url, string name, Func<string, string>? tweak = null)
