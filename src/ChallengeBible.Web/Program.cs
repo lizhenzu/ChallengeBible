@@ -46,6 +46,7 @@ builder.Services.AddScoped<MemberDetailService>();
 builder.Services.AddScoped<TenantContentService>();
 builder.Services.AddScoped<RankingService>();
 builder.Services.AddScoped<HomeService>();
+builder.Services.AddScoped<LandingService>();
 builder.Services.AddScoped<FamilyTeamService>();
 builder.Services.AddScoped<FamilyTenantService>();
 // 해설 표(dbo.eBibleSummary)는 읽기만 한다(ADR 0056): 읽기 전용 계정(BibleNote)이 있으면 그것으로 접속한다.
