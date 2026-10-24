@@ -838,6 +838,11 @@ details.bycode .hint { margin-top: 6px; }
 .list li.row.pickable > .pick { flex: none; width: 22px; height: 22px; margin: 19px 0 0 14px; align-self: flex-start; accent-color: var(--accent); }
 .list li.row.pickable > .pick-sp { flex: none; width: 22px; margin-left: 14px; }
 .list li.row.pickable > details { flex: 1; min-width: 0; }
+/* 소속 관리 줄 오른쪽 위의 "자세히 →"(펼치지 않아도 상세로). 줄의 › 화살표 왼쪽에 놓는다 */
+.list li.row { position: relative; }
+.list li.row > .row-more { position: absolute; top: 14px; right: 44px; z-index: 1; min-height: 32px; display: inline-flex; align-items: center; padding: 0 8px; font-size: 13px; font-weight: 800; color: var(--accent); }
+.list li.row .line .tags { margin-right: 64px; }
+@media (max-width: 520px) { .list li.row .line .who { padding-right: 70px; } }
 .promo { border: 1px solid var(--accent); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 .promo h2 { margin: 0; font-size: 16px; }
 .promo h2 + .hint { margin-top: -6px; }

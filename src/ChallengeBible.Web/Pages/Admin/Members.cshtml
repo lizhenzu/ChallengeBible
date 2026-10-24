@@ -48,6 +48,8 @@
                     if (m.Roles.Contains(Roles.Participant)) { <input type="checkbox" class="pick" name="pick" value="@m.MembershipId" form="promo" checked="@Model.Picks.Contains(m.MembershipId)" aria-label="@(m.DisplayName) 고르기" /> }
                     else { <span class="pick-sp"></span> }
                 }
+                @* 펼치지 않아도 바로 상세로 가는 링크(신청 중이 아닌 소속원만) *@
+                @if (m.Status != MembershipStatus.Requested) { <a class="row-more" href="/@Model.Tenant.Current.Slug/admin/members/@m.MembershipId" aria-label="@(m.DisplayName) 자세히 보기">자세히 →</a> }
                 <details open="@open">
                     <summary class="line">
                         <span class="av">@(m.DisplayName.Length > 1 ? m.DisplayName[1..] : m.DisplayName)</span>
