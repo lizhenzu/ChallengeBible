@@ -22,6 +22,16 @@ public sealed class BrandingService(IAppDb db, TenantContext tenant, TimeProvide
     /// <summary>매니페스트 theme_color · 아이콘 바탕(밝은 화면 색, site.css 의 --c-* 와 같다).</summary>
     public static string ColorHex(string c) => c switch { "green" => "#1F7A5C", "red" => "#B2462E", "violet" => "#6A4BB5", _ => "#2B59C3" };
 
+    /// <summary>
+    /// 홈 화면 아이콘 PNG(아이폰 180 · 안드로이드 192 · 512). 서버에 한글 글꼴이 있는지 몰라 대표 색마다 미리 만들어 둔 파일을 쓴다
+    /// (`tools/screens/icons.js` → `wwwroot/icons`, 글자는 "도전"). 아이콘 아래 이름은 매니페스트의 짧은 이름.
+    /// </summary>
+    public static string IconPng(string color, int size)
+    {
+        var c = color is "green" or "red" or "violet" ? color : "blue";
+        return size == 180 ? $"/icons/apple-touch-icon-{c}.png" : $"/icons/icon-{(size >= 512 ? 512 : 192)}-{c}.png";
+    }
+
     /// <summary>홈 화면 아이콘 글자: 짧은 이름에서 한글 · 영문 · 숫자 앞 2자.</summary>
     public static string IconText(string shortName)
     {

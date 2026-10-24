@@ -14,7 +14,8 @@ self.addEventListener('activate', (e) => {
 
 /** 화면 모양 파일: 같은 주소의 /css · /js · 부서 아이콘. */
 function isAsset(url) {
-  return url.origin === self.location.origin && (url.pathname.startsWith('/css/') || url.pathname.startsWith('/js/') || /^\/[a-z0-9-]+\/icon\.svg$/.test(url.pathname));
+  return url.origin === self.location.origin && (url.pathname.startsWith('/css/') || url.pathname.startsWith('/js/') || url.pathname.startsWith('/icons/')
+    || /^\/[a-z0-9-]+\/icon\.svg$/.test(url.pathname));
 }
 
 self.addEventListener('fetch', (e) => {
