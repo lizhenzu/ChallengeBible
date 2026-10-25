@@ -119,6 +119,24 @@
 .brd-chs a { aspect-ratio: 1 / 1; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 800; background: var(--b-grey); color: var(--b-dim2); }
 .brd-chs a.done { background: var(--b-accSoft); color: var(--b-acc); }
 .brd-chs a.cur { background: var(--b-acc); color: #fff; }
+/* 도구 줄 + 펼치기(확정 시안: 통독-본문읽기-보기설정-3안 ㄴ안): [장] [보기] [듣기] 한 줄, 누른 것만 아래 판으로 */
+.rnv { margin-top: 16px; }
+.rnv-bar { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; }
+.rnv-tb { min-width: 0; min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--b-rule); background: var(--bg); font-size: 14px; color: var(--b-ink); }
+.rnv-tb b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rnv-tb small { color: var(--b-dim2); font-size: 12px; white-space: nowrap; }
+.rnv-tb i { font-style: normal; color: var(--b-dim2); font-size: 11px; transition: transform .15s; }
+.rnv-tb[aria-expanded="true"] { border-color: var(--b-acc); box-shadow: 0 0 0 1px var(--b-acc) inset; }
+.rnv-tb[aria-expanded="true"] i { transform: rotate(180deg); }
+.rnv-tb.yt { background: #FDE8E8; border-color: #F6C9C9; }
+@media (prefers-color-scheme: dark) { .rnv-tb.yt { background: #3A1E20; border-color: #5A2E31; } }
+.rnv-pan { margin-top: 10px; padding: 12px; border-radius: 14px; background: var(--b-grey); }
+.rnv.js .rnv-pan:not(.open) { display: none; }
+.rnv-pan .brd-chs { margin-top: 0; }
+.rnv-pan .brd-chs a:not(.done):not(.cur) { background: var(--bg); }
+.rnv-pan.brd-set { margin-top: 10px; border-top: 0; padding-top: 12px; }
+.rnv-pan .brd-pills a:not([aria-current="true"]) { background: var(--bg); }
+.rnv-pan .bmd { margin-top: 0; flex-wrap: wrap; overflow: visible; }
 .brd-chnav { margin-top: 14px; display: flex; justify-content: space-between; gap: 10px; }
 .brd-chnav a { min-height: 44px; padding: 0 16px; border-radius: 12px; background: var(--b-grey); display: inline-flex; align-items: center; font-weight: 800; color: var(--b-ink); }
 .rd-done { color: var(--b-acc); font-weight: 800; }

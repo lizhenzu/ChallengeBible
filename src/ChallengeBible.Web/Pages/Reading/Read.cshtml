@@ -6,7 +6,7 @@
 @* 통독 본문 읽기(ADR 0057): 말씀-성경읽기-v2 모양 + 장 번호 줄. 절마다 ✓(회차 읽음, R-160) · ★(책갈피, R-112),
    "이 페이지 읽음으로 표시"는 보이는 절, 넘기기만으로는 읽음이 아니다(0042). 모든 절이 읽음이면 장 자동 완료(R-162).
    절 사이 해설 카드(R-118, ADR 0056 결정 7, 확정 시안: 통독-본문읽기-해설카드). 본문 위 책 개요 카드(R-116, ADR 0062, 확정 시안: 통독-본문읽기-책개요).
-   장 진도 아래 듣기 · 영상 줄 + 화면 안 재생 창(R-166, ADR 0063, 확정 시안: 통독-본문읽기-듣기영상). 밝기는 다음 묶음 *@
+   장 진도 아래 도구 줄([장] [보기] [듣기], 확정 시안: 통독-본문읽기-보기설정-3안 ㄴ안) — 듣기는 화면 안 재생 창(R-166, ADR 0063). 밝기는 다음 묶음 *@
 @{
     var v = Model.View;
     var s = Model.Slice;
@@ -17,6 +17,7 @@
     var next = ReadingService.NextChapter(Model.Book, Model.Chapter);
     (string Label, int Value)[] units = [("한 절", 1), ("3절", 3), ("5절", 5), ("전체", 0)];
     (string Label, string Value)[] trs = [("개역개정", BibleTranslation.Krv), ("현대인", BibleTranslation.Klb), ("NIV", BibleTranslation.Niv), ("모두", "ALL")];
+    var unit = Model.Book == 19 ? "편" : "장";
 }
 <link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
 <div class="brd">
@@ -33,21 +34,30 @@
         <p class="num"><span>@(v.VerseCount)절 · <b data-readcount>@v.VersesRead.Count</b>절 읽음<span class="rd-done" data-chapterdone @(v.Done ? "" : "hidden")> · 다 읽은 장</span></span><span data-readpct>@(Model.ReadPercent)%</span></p>
         <div class="brd-bar" aria-hidden="true"><i data-readbar style="width:@(Model.ReadPercent)%"></i></div>
     </div>
-    @if (Model.Media.Count > 0) { <partial name="_MediaBar" model="Model.Media" /> }
-
-    <nav class="brd-chs" aria-label="장 번호">
-        @for (short c = 1; c <= Model.ChapterCount; c++)
-        {
-            <a class="@(c == Model.Chapter ? "cur" : Model.DoneChapters.Contains(c) ? "done" : "")" href="@Model.ReadUrl(Model.Book, c)" aria-current="@(c == Model.Chapter ? "page" : "false")">@c</a>
-        }
-    </nav>
-
-    <section class="brd-set" aria-label="읽기 설정">
-        <div class="brd-lbl">읽기 단위</div>
-        <div class="brd-pills">@foreach (var (label, u) in units) { <a href="@Model.Url(unit: u)" aria-current="@(Model.Unit == u ? "true" : "false")">@label</a> }</div>
-        <div class="brd-lbl">번역</div>
-        <div class="brd-pills">@foreach (var (label, code) in trs) { <a href="@Model.Url(tr: code)" aria-current="@(Model.Tr == code ? "true" : "false")">@label</a> }</div>
-    </section>
+    @* 도구 줄 + 펼치기(확정 시안: 통독-본문읽기-보기설정-3안 ㄴ안): 평소엔 [장] [보기] [듣기] 한 줄, 누른 것만 아래로 펼친다(처음엔 모두 접힘).
+       스크립트가 없으면 판이 모두 펼쳐진 채 보인다(mission.js 가 .js 를 붙이고 접음) *@
+    <div class="rnv" data-rnv>
+        <div class="rnv-bar">
+            <button type="button" class="rnv-tb" data-rnv-open="ch" aria-expanded="false" aria-controls="rnvCh"><b>@(Model.Chapter)@unit</b><small>/ @(Model.ChapterCount)@unit</small><i aria-hidden="true">▾</i></button>
+            <button type="button" class="rnv-tb" data-rnv-open="set" aria-expanded="false" aria-controls="rnvSet"><b>@units.First(x => x.Value == Model.Unit).Label · @trs.First(x => x.Value == Model.Tr).Label</b><i aria-hidden="true">▾</i></button>
+            @if (Model.Media.Count > 0) { <button type="button" class="rnv-tb yt" data-rnv-open="md" aria-expanded="false" aria-controls="rnvMd"><span aria-hidden="true">🎧</span><b>듣기</b><i aria-hidden="true">▾</i></button> }
+        </div>
+        <div class="rnv-pan" id="rnvCh" data-rnv-pan="ch">
+            <nav class="brd-chs" aria-label="장 번호">
+                @for (short c = 1; c <= Model.ChapterCount; c++)
+                {
+                    <a class="@(c == Model.Chapter ? "cur" : Model.DoneChapters.Contains(c) ? "done" : "")" href="@Model.ReadUrl(Model.Book, c)" aria-current="@(c == Model.Chapter ? "page" : "false")">@c</a>
+                }
+            </nav>
+        </div>
+        <section class="rnv-pan brd-set" id="rnvSet" data-rnv-pan="set" aria-label="읽기 설정">
+            <div class="brd-lbl">읽기 단위</div>
+            <div class="brd-pills">@foreach (var (label, u) in units) { <a href="@Model.Url(unit: u)" aria-current="@(Model.Unit == u ? "true" : "false")">@label</a> }</div>
+            <div class="brd-lbl">번역</div>
+            <div class="brd-pills">@foreach (var (label, code) in trs) { <a href="@Model.Url(tr: code)" aria-current="@(Model.Tr == code ? "true" : "false")">@label</a> }</div>
+        </section>
+        @if (Model.Media.Count > 0) { <div class="rnv-pan" id="rnvMd" data-rnv-pan="md"><partial name="_MediaBar" model="Model.Media" /></div> }
+    </div>
 
     @if (Model.Overview is { } ov) { <partial name="_BookOverview" model="ov" /> }
 

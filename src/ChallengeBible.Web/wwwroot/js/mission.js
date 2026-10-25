@@ -328,6 +328,17 @@
   apply();
 })();
 
+// 통독 본문 도구 줄(확정 시안 보기설정 ㄴ안): 누른 버튼의 판만 펼치고, 다시 누르면 접는다. 처음엔 모두 접힘
+document.querySelectorAll('[data-rnv]').forEach((nv) => {
+  nv.classList.add('js');
+  const btns = nv.querySelectorAll('[data-rnv-open]');
+  btns.forEach((b) => b.addEventListener('click', () => {
+    const open = b.getAttribute('aria-expanded') !== 'true';
+    btns.forEach((x) => x.setAttribute('aria-expanded', String(x === b && open)));
+    nv.querySelectorAll('[data-rnv-pan]').forEach((p) => p.classList.toggle('open', open && p.dataset.rnvPan === b.dataset.rnvOpen));
+  }));
+});
+
 // 책 개요 카드(R-116): 간략본 · 상세본 탭 바꾸기
 document.querySelectorAll('.bov .tabs button').forEach((b) => b.addEventListener('click', () => {
   const box = b.closest('.bov');
