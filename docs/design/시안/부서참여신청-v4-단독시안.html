@@ -1,0 +1,134 @@
+<title>부서 참여 신청 v4 시안</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 부서 참여 신청 v4 (2026-10-25 사용자 요청, v3 를 고침)
+     - 부서는 한 줄에 하나: [색 네모 한 글자] 교회 이름(작게) · 부서 이름(굵게) · 프로그램 칩 + 오른쪽 동그라미
+     - 제목 "어느 부서에서 함께할까요?" 한 줄
+     - "내 부서가 안 보이나요?" 안내 없앰, "내 부서로 가기" 없앰
+     - 고르면 아래에서 올라오는 띠 없음 → 목록 아래에 늘 [돌아가기] [부서 참여하기] 두 버튼(고르기 전엔 참여하기가 흐림) */
+  :root { --bg:#FFFFFF; --soft:#F2F4F7; --fg:#1B1F24; --dim:#5B6470; --rule:#E3E6EA; --accent:#2B59C3; --accent-bg:#EAF0FB; --on:#fff;
+          --sun:#FFF4D6; --sun-rule:#F3DFA8; --sun-ink:#5A3B00; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#14171B; --soft:#20252C; --fg:#E8EAED; --dim:#A3AAB4; --rule:#2C323A; --accent:#7FA2F2; --accent-bg:#1C2740; --on:#0E1013;
+          --sun:#2E2614; --sun-rule:#4A3F1E; --sun-ink:#F2D79A; } }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); font-family: "Noto Sans KR", system-ui, sans-serif; font-size: 15px; line-height: 1.6; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  .gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 560px; margin: 0 auto; }
+
+  .pick { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; background: #1B1F24; color: #fff; font: 13px system-ui; }
+  .pick b { align-self: center; margin-right: 4px; white-space: nowrap; }
+  .pick button { padding: 6px 10px; border-radius: 8px; border: 1px solid #555; background: #2A2F36; color: #fff; }
+  .pick button[aria-pressed="true"] { background: #2B59C3; border-color: #2B59C3; }
+
+  header.top .wrap { min-height: 60px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--rule); }
+  .tn { font-weight: 900; color: var(--accent); font-size: 17px; }
+  header.top a { font-size: 14px; font-weight: 700; color: var(--dim); }
+
+  main .wrap { padding-block: 26px 40px; }
+  .k { font-size: 12px; font-weight: 800; letter-spacing: .18em; color: var(--accent); }
+  h1 { margin: 6px 0 0; font-size: clamp(20px, 6vw, 26px); font-weight: 900; line-height: 1.3; letter-spacing: -.03em; white-space: nowrap; }
+  .sub { margin: 6px 0 0; color: var(--dim); font-size: 14px; word-break: keep-all; }
+
+  .now { margin-top: 16px; display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 14px; background: var(--sun); border: 1px solid var(--sun-rule); color: var(--sun-ink); font-size: 13.5px; word-break: keep-all; }
+  .now .e { font-size: 20px; }
+
+  .list { margin-top: 18px; display: grid; gap: 10px; }
+  .row { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px 16px; border-radius: 16px; border: 1.5px solid var(--rule); background: var(--bg); text-align: left; }
+  .row .mk { flex: none; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 18px; }
+  .row .tx { flex: 1; min-width: 0; display: grid; line-height: 1.35; }
+  .row .tx small { font-size: 12.5px; color: var(--dim); }
+  .row .tx b { font-size: 17px; font-weight: 900; word-break: keep-all; }
+  .row .pg { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 5px; }
+  .row .pg span { font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 6px; background: var(--soft); color: var(--dim); }
+  .row .rd { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #C5CBD3; }
+  .row[aria-checked="true"] { border-color: var(--accent); background: var(--accent-bg); }
+  .row[aria-checked="true"] .rd { border: 7px solid var(--accent); background: var(--bg); }
+  .row.off { opacity: .55; cursor: default; }
+  .row.off .st { flex: none; font-size: 12px; font-weight: 800; color: var(--accent); }
+
+  .wait { margin-top: 18px; padding: 16px; border-radius: 16px; border: 2px solid var(--accent); background: var(--accent-bg); display: grid; gap: 8px; }
+  .wait .tag { justify-self: start; padding: 3px 10px; border-radius: 99px; background: var(--accent); color: var(--on); font-size: 12px; font-weight: 800; }
+  .wait .row { padding: 0; border: 0; background: none; }
+  .wait p { margin: 0; font-size: 13.5px; color: var(--dim); word-break: keep-all; }
+  .wait .x { justify-self: start; border: 0; background: none; padding: 0; font-size: 13px; font-weight: 700; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; }
+
+  .acts { margin-top: 22px; display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+  .acts .b { min-height: 52px; border-radius: 14px; font-size: 16px; font-weight: 800; display: grid; place-items: center; }
+  .acts .back { border: 1.5px solid var(--rule); background: var(--bg); color: var(--fg); }
+  .acts .go { border: 0; background: var(--accent); color: var(--on); }
+  .acts .go:disabled { opacity: .4; cursor: default; }
+  .acts.one { grid-template-columns: 1fr; }
+
+  body[data-v="wait"] .v-new { display: none; }
+  body:not([data-v="wait"]) .v-wait { display: none; }
+  body:not([data-v="lobby"]):not([data-v="wait"]) .v-lobby { display: none; }
+</style>
+
+<div class="pick" role="group" aria-label="시안 상태">
+  <b>보기</b>
+  <button type="button" data-set="new" aria-pressed="true">처음 들어옴</button>
+  <button type="button" data-set="lobby" aria-pressed="false">임시 부서에서 옴</button>
+  <button type="button" data-set="sel" aria-pressed="false">부서 고름</button>
+  <button type="button" data-set="wait" aria-pressed="false">승인 기다리는 중</button>
+</div>
+<div style="margin:12px;padding:12px 14px;border:2px dashed #2B59C3;border-radius:12px;font:14px/1.7 system-ui;color:#2B59C3;background:#fff">
+<b>시안 · 부서 참여 신청 v4</b> — v3 를 고침<br>
+· 부서는 <b>한 줄에 하나</b>(보내 주신 화면처럼): 색 네모 · 교회 이름 · 부서 이름 · 프로그램 · 오른쪽 동그라미<br>
+· 제목 한 줄, "내 부서가 안 보이나요?" 안내 · "내 부서로 가기" 없앰<br>
+· 고르면 올라오는 띠 대신 <b>목록 아래에 늘 [돌아가기] [부서 참여하기]</b> — 고르기 전엔 참여하기가 흐림<br>
+· 위 검은 줄로 상태를 바꿔 볼 수 있어요(시안에서만)</div>
+
+<header class="top gut"><div class="wrap"><span class="tn">도전!!!</span><a href="#">내 계정</a></div></header>
+
+<main class="gut"><div class="wrap">
+  <div class="k">참여 신청</div>
+  <h1 class="v-new">어느 부서에서 함께할까요?</h1>
+  <h1 class="v-wait">승인을 기다리고 있어요</h1>
+  <p class="sub v-new">내 부서를 골라 주세요. 부서 관리자가 승인하면 시작해요.</p>
+
+  <div class="now v-lobby v-new"><span class="e" aria-hidden="true">🏠</span><span>지금은 <b>처음 오신 분</b>에서 미션 · 통독을 하고 있어요. 승인되면 지금까지의 기록이 그 부서로 옮겨져요.</span></div>
+
+  <div class="wait v-wait">
+    <span class="tag">승인 기다리는 중</span>
+    <div class="row"><span class="mk" style="background:#2B59C3">유</span><span class="tx"><small>잠실새내교회</small><b>유년부</b></span></div>
+    <p>부서 관리자가 승인하면 로그인할 때 바로 부서 홈으로 들어가요. 그동안 "처음 오신 분"에서 미션 · 통독을 계속해요.</p>
+    <button type="button" class="x">신청 취소하기</button>
+  </div>
+
+  <div class="list v-new" role="radiogroup" aria-label="참여할 부서">
+    <button type="button" class="row" role="radio" aria-checked="false"><span class="mk" style="background:#B2462E">유</span><span class="tx"><small>잠실새내교회</small><b>유치부</b><span class="pg"><span>도전!!!성경말씀</span></span></span><span class="rd" aria-hidden="true"></span></button>
+    <button type="button" class="row" role="radio" aria-checked="false"><span class="mk" style="background:#2B59C3">유</span><span class="tx"><small>잠실새내교회</small><b>유년부</b><span class="pg"><span>도전!!!성경말씀</span><span>도전!!!성경통독</span></span></span><span class="rd" aria-hidden="true"></span></button>
+    <button type="button" class="row" role="radio" aria-checked="false"><span class="mk" style="background:#1F7A5C">초</span><span class="tx"><small>잠실새내교회</small><b>초등부</b><span class="pg"><span>도전!!!성경말씀</span><span>도전!!!성경통독</span></span></span><span class="rd" aria-hidden="true"></span></button>
+    <div class="row off" aria-disabled="true"><span class="mk" style="background:#6A4BB5">청</span><span class="tx"><small>잠실새내교회</small><b>청년부 성경통독</b></span><span class="st">이미 소속</span></div>
+    <button type="button" class="row" role="radio" aria-checked="false"><span class="mk" style="background:#2B59C3">주</span><span class="tx"><small>은혜교회</small><b>주일학교</b><span class="pg"><span>도전!!!성경말씀</span></span></span><span class="rd" aria-hidden="true"></span></button>
+    <button type="button" class="row" role="radio" aria-checked="false"><span class="mk" style="background:#1F7A5C">장</span><span class="tx"><small>은혜교회</small><b>장년 통독모임</b><span class="pg"><span>도전!!!성경통독</span></span></span><span class="rd" aria-hidden="true"></span></button>
+  </div>
+
+  <div class="acts v-new">
+    <a class="b back" href="#">돌아가기</a>
+    <button type="button" class="b go" id="go" disabled>부서 참여하기</button>
+  </div>
+  <div class="acts one v-wait">
+    <a class="b back" href="#">돌아가기</a>
+  </div>
+</div></main>
+
+<script>
+  const rows = () => document.querySelectorAll('.list .row[role="radio"]');
+  const pick = (t) => {
+    rows().forEach(x => x.setAttribute('aria-checked', String(x === t)));
+    document.getElementById('go').disabled = !t;
+  };
+  const set = (v) => {
+    document.querySelectorAll('[data-set]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.set === v)));
+    document.body.dataset.v = v === 'sel' ? 'lobby' : v;
+    pick(v === 'sel' ? rows()[1] : null);
+  };
+  document.querySelectorAll('[data-set]').forEach(b => b.onclick = () => set(b.dataset.set));
+  rows().forEach(t => t.onclick = () => pick(t));
+  document.body.dataset.v = 'new';
+  if (location.hash.length > 1) set(location.hash.slice(1));
+</script>
