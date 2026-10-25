@@ -1,0 +1,41 @@
+@page "/platform/families"
+@model ChallengeBible.Web.Pages.Platform.FamiliesModel
+@* 확정 시안: 플랫폼-온가족-단독시안 "목록" — 맨 위 신청(글 그대로 → 묶기 · 거절), 아래 온가족 목록 · 찾기 *@
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap pfam">
+    <div>
+        <h1>온가족</h1>
+        <p class="ar-lead">부서를 넘어 한 집안을 묶어요. 점수는 보기만, 시상은 부서 가족팀으로.</p>
+    </div>
+    @if (Model.Ok == "rejected") { <p class="okmsg" role="status">신청을 거절했어요</p> }
+
+    @if (Model.Requests.Count > 0)
+    {
+        <h2>신청 <span class="n">@Model.Requests.Count</span></h2>
+        @foreach (var r in Model.Requests)
+        {
+            <section class="pf-req">
+                <div class="who"><span><b>@r.Requester</b> · @r.RequesterDepts</span><span>@r.RequestedUtc.ToString("M월 d일")</span></div>
+                <blockquote>@r.Body</blockquote>
+                <div class="acts">
+                    <a class="btn p sm" href="/platform/families/new?request=@r.Id&amp;pick=@r.RequesterId">묶기</a>
+                    <form method="post" asp-page-handler="Reject"><input type="hidden" name="requestId" value="@r.Id" /><button type="submit" class="btn s sm">거절</button></form>
+                </div>
+            </section>
+        }
+    }
+
+    <h2>온가족 <span class="n dim">@Model.Families.Count</span></h2>
+    <form method="get" class="pa-find" role="search">
+        <input class="search" type="search" name="q" value="@Model.Q" placeholder="이름 · 이메일로 찾기" aria-label="온가족 찾기" />
+        <button type="submit" class="btn s sm">찾기</button>
+        <a class="btn s sm" href="/platform/families/new">+ 새로</a>
+    </form>
+    <div class="pf-list">
+        @if (Model.Families.Count == 0) { <p class="ph-muted">@(string.IsNullOrWhiteSpace(Model.Q) ? "아직 온가족이 없어요." : "찾는 온가족이 없어요.")</p> }
+        @foreach (var f in Model.Families)
+        {
+            <a class="pf-fam" href="/platform/families/@f.Id"><span aria-hidden="true">🏡</span><span class="tx"><b>@f.Name</b><small>@(f.People.Count)명 · @FamiliesModel.Depts(f)</small></span><span class="pt num">@f.Total.ToString("N0")</span></a>
+        }
+    </div>
+</div></main>

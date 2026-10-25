@@ -1412,6 +1412,70 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Family", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedByAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id")
+                        .HasName("PK_Family");
+
+                    b.HasIndex("CreatedByAccountId");
+
+                    b.ToTable("Family", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyLink", b =>
+                {
+                    b.Property<int>("FamilyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AddedByAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("AddedUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("Relation")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<byte>("SortOrder")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("FamilyId", "AccountId")
+                        .HasName("PK_FamilyLink");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_FamilyLink_Account");
+
+                    b.HasIndex("AddedByAccountId");
+
+                    b.ToTable("FamilyLink", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_FamilyLink_Relation", "Relation IN ('Student','Mother','Father','Grandmother','Grandfather','Other')");
+                        });
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyMember", b =>
                 {
                     b.Property<int>("Id")
@@ -1515,6 +1579,61 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasName("PK_FamilyMilestoneReached");
 
                     b.ToTable("FamilyMilestoneReached", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("DecidedByAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DecidedUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int?>("FamilyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RequestedUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("RequesterAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.HasKey("Id")
+                        .HasName("PK_FamilyRequest");
+
+                    b.HasIndex("DecidedByAccountId");
+
+                    b.HasIndex("FamilyId");
+
+                    b.HasIndex("RequesterAccountId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_FamilyRequest_Open")
+                        .HasFilter("[Status] = 'Requested'");
+
+                    b.HasIndex("Status", "RequestedUtc")
+                        .HasDatabaseName("IX_FamilyRequest_Status");
+
+                    b.ToTable("FamilyRequest", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_FamilyRequest_Status", "Status IN ('Requested','Approved','Rejected')");
+                        });
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyTeam", b =>
@@ -2620,6 +2739,40 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasConstraintName("FK_DailyWord_Tenant");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Family", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByAccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_Family_CreatedBy");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyLink", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_FamilyLink_Account");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AddedByAccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_FamilyLink_AddedBy");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Family", null)
+                        .WithMany("Links")
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_FamilyLink_Family");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyMember", b =>
                 {
                     b.HasOne("ChallengeBible.Infrastructure.Data.FamilyTeam", null)
@@ -2666,6 +2819,28 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_FamilyMilestoneReached_Team");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyRequest", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                        .WithMany()
+                        .HasForeignKey("DecidedByAccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("FK_FamilyRequest_DecidedBy");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Family", null)
+                        .WithMany()
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("FK_FamilyRequest_Family");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                        .WithMany()
+                        .HasForeignKey("RequesterAccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_FamilyRequest_Requester");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyTeam", b =>
@@ -2956,6 +3131,11 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Navigation("AcceptedAnswers");
 
                     b.Navigation("Choices");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Family", b =>
+                {
+                    b.Navigation("Links");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyTeam", b =>

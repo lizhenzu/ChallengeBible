@@ -22,8 +22,8 @@
         <div class="box wait"><p><b>@w.TenantName</b> · 승인 기다리는 중</p></div>
     }
     <a class="btn s" href="/join">+ 다른 부서 참여 신청</a>
-    @if (Model.Family is { } f)
+    @if (Model.IsGuardian)
     {
-        <p class="fam-line">@(f.CurrentOption is { } o ? $"가족과 함께하는 부서는 {o.Name}예요." : "가족과 함께할 부서를 아직 고르지 않았어요.")<a href="/account/family">@(f.Current is null ? "고르기" : "바꾸기")</a></p>
+        <p class="fam-line">@(Model.AwardDept is { } a ? $"시상 부서는 {a}예요." : "시상 부서가 아직 정해지지 않았어요. 플랫폼 관리자가 정해요.")<a href="/account/family">온가족</a></p>
     }
 </div></main>

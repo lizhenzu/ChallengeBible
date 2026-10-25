@@ -6,48 +6,45 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace ChallengeBible.Web.Pages.Account;
 
 /// <summary>
-/// `/account/family` 가족과 함께할 부서(확정 시안: 가족부서고르기, 0046 · R-168). 보호자 계정만 — 아니면 부서 고르기로.
-/// JS 없이: 부서를 고르고 정하기 → 멈추는 곳이 있으면 "바뀌는 점"과 확인 체크를 보여 주고, 체크해야 바꾼다.
+/// `/account/family` 온가족(확정 시안: 온가족, 0065 · R-175 ~ R-179). 로그인한 누구나.
+/// 온가족이 있으면 누적 총점 · 구성원(보기만), 없으면 신청 · 신청 기다림. 보호자면 시상 부서를 보기만 한다(플랫폼 관리자가 정함).
+/// (0046 의 "가족과 함께할 부서" 고르기 · 바꾸기 화면은 이것으로 바뀌었다.)
 /// </summary>
-public class FamilyModel(FamilyTenantService family) : PageModel, ITitled
+public class FamilyModel(OnFamilyService families) : PageModel, ITitled
 {
-    public string Title => "가족과 함께할 부서";
-
-    [BindProperty(SupportsGet = true)] public int? Pick { get; set; }
-    [BindProperty(SupportsGet = true)] public int? Done { get; set; }
-
-    public FamilyChoice Choice { get; private set; } = null!;
-    public bool Confirming { get; private set; }
-    public string? Error { get; private set; }
+    public string Title => "온가족";
     private int Me => User.AccountId()!.Value;
 
-    public FamilyOption? Picked => Choice.Options.FirstOrDefault(o => o.TenantId == (Pick ?? Choice.Current));
-    public FamilyOption? DoneOption => Done is { } d ? Choice.Options.FirstOrDefault(o => o.TenantId == d) : null;
+    public MyOnFamily View { get; private set; } = null!;
+    [BindProperty] public string? Body { get; set; }
+    public string? Error { get; private set; }
 
-    public async Task<IActionResult> OnGetAsync(CancellationToken ct) => await LoadAsync(ct) ? Page() : RedirectToPage("/Account/Tenants");
+    public async Task OnGetAsync(CancellationToken ct) => View = await families.MyAsync(Me, ct);
 
-    public async Task<IActionResult> OnPostAsync(int pick, bool agree, int? was, CancellationToken ct)
+    public async Task<IActionResult> OnPostRequestAsync(CancellationToken ct)
     {
-        if (!await LoadAsync(ct)) return RedirectToPage("/Account/Tenants");
-        Pick = pick;
-        if (Choice.Options.All(o => o.TenantId != pick)) { Error = "고를 수 있는 부서가 아니에요."; return Page(); }
-        if (pick == Choice.Current) { Error = "지금 함께하는 부서예요."; return Page(); }
-        // 멈추는 곳이 있으면 먼저 알려 주고 확인받는다(0046 결정 4)
-        if (Choice.StopsIf(pick).Count > 0 && !agree)
-        {
-            Confirming = true;
-            if (was == pick) Error = "바꾸기 전에 \"위 내용을 확인했어요\"에 체크해 주세요.";
-            return Page();
-        }
-        if (!await family.ChooseAsync(Me, pick, ct)) { Error = "고를 수 있는 부서가 아니에요."; return Page(); }
-        return RedirectToPage(new { Done = pick });
+        var e = await families.RequestAsync(Me, Body, ct);
+        if (e == OnFamilyError.None) return RedirectToPage();
+        Error = OnFamilyService.Message(e);
+        View = await families.MyAsync(Me, ct);
+        return Page();
     }
 
-    private async Task<bool> LoadAsync(CancellationToken ct)
+    public async Task<IActionResult> OnPostCancelAsync(CancellationToken ct)
     {
-        var c = await family.GetAsync(Me, ct);
-        if (c is null) return false;
-        Choice = c;
-        return true;
+        await families.CancelAsync(Me, ct);
+        return RedirectToPage();
     }
+
+    /// <summary>둥근 표시 글자: 이름의 두 번째 글자(김철수 → 철), 한 글자 이름이면 그 글자.</summary>
+    public static string Initial(string name) => name.Length >= 2 ? name[1..2] : name.Length == 1 ? name : "?";
+
+    /// <summary>마지막 참여일 → "오늘" · "어제" · "N일 전". 점수가 없으면 null.</summary>
+    public static string? Ago(DateOnly? last, DateOnly today) => last switch
+    {
+        null => null,
+        { } d when d >= today => "오늘",
+        { } d when d == today.AddDays(-1) => "어제",
+        { } d => $"{today.DayNumber - d.DayNumber}일 전",
+    };
 }

@@ -76,7 +76,7 @@
 <main class="gut"><div class="wrap">
     @if (Model.NeedsFamilyChoice)
     {
-        <a class="notice wide" href="/account/family"><b>가족과 함께할 부서를 골라 주세요</b><span>고른 부서에서 부모님도 미션을 하고 가족팀을 꾸려요 →</span></a>
+        <a class="notice wide" href="/account/family"><b>시상 부서가 아직 정해지지 않았어요</b><span>플랫폼 관리자가 정하면 그 부서에서 부모님도 미션 · 가족팀을 함께해요 →</span></a>
     }
 
     @if (t.MissionEnabled || t.ReadingEnabled)
@@ -181,7 +181,7 @@
                     </div>
                     @if (Model.FamilyDept is { } dept)
                     {
-                        <div class="fh-dept"><div><small>가족과 함께하는 부서</small><b>@dept</b></div><a class="btn s sm" href="/account/family">바꾸기</a></div>
+                        <div class="fh-dept"><div><small>시상 부서(플랫폼 관리자가 정해요)</small><b>@dept</b></div></div>
                     }
                 </div>
                 <ul class="fh-mem">
@@ -199,6 +199,17 @@
                 </ul>
             </div>
             <p class="fh-note">가족 총합은 구성원 모두의 올해 점수를 더한 것이에요. 가족 모두에게 같은 점수가 보여요.</p>
+            @if (Model.OnFamily is { } of)
+            {
+                <a class="ofl" href="/account/family"><span aria-hidden="true">🏡</span><span class="tx"><small>온가족 · 보기만</small><b>@of.Name <span class="num">@of.Total.ToString("N0")점</span></b></span><span class="go">보기 ›</span></a>
+            }
+        </section>
+    }
+    else if (Model.OnFamily is { } of)
+    {
+        @* 가족팀이 없어도 온가족이 있으면 한 줄(확정 시안 온가족 "부서 홈 칸") *@
+        <section class="wide" aria-label="온가족">
+            <a class="ofl" href="/account/family"><span aria-hidden="true">🏡</span><span class="tx"><small>온가족 · 보기만</small><b>@of.Name <span class="num">@of.Total.ToString("N0")점</span></b></span><span class="go">보기 ›</span></a>
         </section>
     }
 

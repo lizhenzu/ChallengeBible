@@ -219,8 +219,8 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         MemberError.BadState => "이미 처리됐어요. 화면을 새로 고쳐 주세요.",
         MemberError.SelfAdminRemove => "내 관리자 역할은 여기서 뺄 수 없어요.",
         MemberError.SelfSuspend => "나를 정지할 수는 없어요.",
-        MemberError.FamilyTenantNotChosen => "부모님이 먼저 가족과 함께할 부서를 골라야 해요.",
-        MemberError.FamilyTenantElsewhere => "이 부모님은 다른 부서를 가족과 함께할 부서로 골랐어요. 여기서는 보호자로만 함께해요.",
+        MemberError.FamilyTenantNotChosen => "플랫폼 관리자가 먼저 부모님의 시상 부서를 정해야 해요.",
+        MemberError.FamilyTenantElsewhere => "이 부모님의 시상 부서는 다른 부서예요. 여기서는 보호자로만 함께해요.",
         _ => "",
     };
 }

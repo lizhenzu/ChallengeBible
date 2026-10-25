@@ -1,0 +1,54 @@
+@page "/platform/families/new"
+@model ChallengeBible.Web.Pages.Platform.FamilyNewModel
+@using ChallengeBible.Infrastructure.Data
+@* 확정 시안: 플랫폼-온가족-단독시안 "신청에서 묶기" — 신청 글 · 이름 · 계정 찾아 넣기 · 넣을 구성원(관계) · 만들기 *@
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap pfam">
+    <div>
+        <a class="lnk" href="/platform/families">← 온가족</a>
+        <h1>@(Model.From is { } fr ? $"{fr.Requester} 님의 신청" : "새 온가족")</h1>
+    </div>
+    @if (Model.From is { } f) { <section class="pf-req thin"><blockquote>@f.Body</blockquote></section> }
+
+    <h2>계정 찾아 넣기</h2>
+    <form method="get" class="pa-find" role="search">
+        @if (Model.RequestId is int r) { <input type="hidden" name="request" value="@r" /> }
+        @foreach (var p in Model.Pick) { <input type="hidden" name="pick" value="@p" /> }
+        <input class="search" type="search" name="q" value="@Model.Q" placeholder="이름 · 이메일로 찾기" aria-label="계정 찾기" />
+        <button type="submit" class="btn p sm">찾기</button>
+    </form>
+    @if (!string.IsNullOrWhiteSpace(Model.Q))
+    {
+        <div class="pf-list">
+            @if (Model.Hits.Count == 0) { <p class="ph-muted">찾는 계정이 없어요.</p> }
+            @foreach (var h in Model.Hits)
+            {
+                <div class="pf-hit"><span class="tx"><b>@h.Name</b><small>@h.Email · @h.Depts</small></span>
+                    @if (h.FamilyId is not null) { <span class="tag bad">다른 온가족에 있음</span> }
+                    else if (Model.Pick.Contains(h.Id)) { <span class="tag">넣음</span> }
+                    else { <a class="btn p sm" href="@Model.Url(Model.Pick.Append(h.Id), Model.Q)">넣기</a> }
+                </div>
+            }
+        </div>
+    }
+
+    <form method="post" class="pfam-f">
+        @if (Model.RequestId is int rr) { <input type="hidden" name="request" value="@rr" /> }
+        @foreach (var p in Model.Pick) { <input type="hidden" name="pick" value="@p" /> }
+        <div class="f"><label for="nm">온가족 이름 <small>· 비우면 "{대표}네 온가족"</small></label><input id="nm" class="in" name="name" maxlength="@FamilyAdminService.NameMax" /></div>
+        <h2>넣을 구성원 <span class="n">@Model.Picked.Count</span></h2>
+        <div class="pf-mem">
+            @if (Model.Picked.Count == 0) { <p class="ph-muted">위에서 찾아 넣어 주세요.</p> }
+            @foreach (var h in Model.Picked)
+            {
+                <div class="pf-m"><div class="top"><span class="av" aria-hidden="true">@ChallengeBible.Web.Pages.Account.FamilyModel.Initial(h.Name)</span><span class="tx"><b>@h.Name</b><small>@h.Depts</small></span>
+                    <select class="sel" name="rel_@h.Id" aria-label="@(h.Name) 관계">@foreach (var rel in FamilyRelation.All) { <option value="@rel" selected="@(rel == FamilyNewModel.Guess(h))">@FamilyTeamService.RelationLabel(rel)</option> }</select>
+                    <a class="x" href="@Model.Url(Model.Pick.Where(x => x != h.Id), Model.Q)">빼기</a></div>
+                    @if (h.FamilyId is not null) { <p class="err">이미 다른 온가족에 있어요.</p> }
+                </div>
+            }
+        </div>
+        @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+        <button type="submit" class="btn p wide" disabled="@(Model.Picked.Count == 0)">온가족 만들기</button>
+    </form>
+</div></main>
