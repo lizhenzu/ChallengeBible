@@ -171,7 +171,7 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
             // 정렬은 레코드로 바꾸기 전에 한다 — 생성자 결과로 정렬하면 SQL Server 가 번역하지 못한다(InMemory 는 통과)
             .OrderBy(x => x.t.Name)
             .Select(x => new MyMembership(
-                x.m.Id, x.t.Id, x.t.Slug, x.t.Name, x.m.Status, x.t.Status == TenantStatus.Active, x.t.MissionEnabled, x.t.ReadingEnabled, x.m.RequestedUtc))
+                x.m.Id, x.t.Id, x.t.Slug, x.t.Name, x.m.Status, x.t.Status == TenantStatus.Active, x.t.MissionEnabled, x.t.ReadingEnabled, x.m.RequestedUtc, x.t.IsLobby))
             .ToListAsync(ct);
     }
 
@@ -184,4 +184,4 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
 }
 
 public sealed record MyMembership(int MembershipId, int TenantId, string Slug, string TenantName, string Status,
-    bool TenantActive, bool MissionEnabled, bool ReadingEnabled, DateTime RequestedUtc);
+    bool TenantActive, bool MissionEnabled, bool ReadingEnabled, DateTime RequestedUtc, bool IsLobby = false);

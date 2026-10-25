@@ -2,93 +2,95 @@
 @model JoinModel
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Pages.Platform
-@* 확정 시안: 부서참여신청-v2-단독시안 (목록에서 고르기, 목록에 없으면 코드로 찾기 — 0059) *@
+@* 확정 시안: 부서참여신청-v3-단독시안(②안, 2026-10-25) — 교회별로 묶은 부서 큰 칸을 누르면 아래 "참여 신청하기" 띠.
+   찾기 칸 · 코드로 찾기 · 역할 고르기 없음(역할은 관리자가 승인 때). 문구는 "선생님" 대신 "관리자"(사용자) *@
+@{
+    var groups = Model.Depts.GroupBy(d => JoinModel.Split(d.Name).Church).ToList();
+}
 <partial name="_Top" />
-<main class="page gut"><div class="wrap">
+<main class="page gut jv3"><div class="wrap">
     @if (Model.Welcome == 1)
     {
         <div class="box ok" role="status"><strong>가입했어요!</strong><p>이제 아래에서 내 부서를 골라 참여 신청을 하면 돼요.</p></div>
     }
 
-    @foreach (var w in Model.Waiting)
-    {
-        <section class="box wait" role="status">
-            <span class="tag w" style="align-self:flex-start">승인 기다리는 중</span>
-            <strong>승인을 기다리고 있어요</strong>
-            <div class="dept"><span class="mk">@Ui.DeptMark(w.TenantName)</span><div><b>@w.TenantName</b></div></div>
-            <p style="font-size:14px;color:var(--dim)">선생님이 승인하면 로그인할 때 바로 부서 홈으로 들어가요. 오래 걸리면 부서 선생님께 말해 주세요.</p>
-            <form method="post" asp-page-handler="Cancel">
-                <input type="hidden" name="tenantId" value="@w.TenantId" />
-                <button type="submit" class="btn t">신청 취소하기</button>
-            </form>
-        </section>
-    }
-
     <div>
-        <h1>@(Model.Waiting.Count > 0 || Model.HasApproved ? "다른 부서에 참여 신청" : "내 부서에 참여 신청")</h1>
-        <p class="sub">아래에서 <b>내 부서</b>를 골라 주세요. 선생님이 승인하면 시작할 수 있어요.</p>
-    </div>
-
-    <div class="step">
-        <h2><span class="n">01</span>부서 고르기</h2>
-        @if (Model.AnyListed)
+        <div class="k">참여 신청</div>
+        @if (Model.Waiting.Count > 0)
         {
-            <form method="get" class="row">
-                <input class="search" type="search" name="Q" value="@Model.Q" placeholder="교회 · 부서 이름으로 찾기" aria-label="교회 · 부서 이름으로 찾기" />
-                <button type="submit" class="btn s sm">찾기</button>
-            </form>
+            <h1>승인을 기다리고 있어요</h1>
+        }
+        else
+        {
+            <h1>어느 부서에서<br />함께할까요?</h1>
+            <p class="sub">내 교회의 부서를 눌러 골라 주세요. 부서 관리자가 승인하면 시작해요.</p>
         }
     </div>
 
-    <form method="post" asp-page-handler="Apply" class="stack" novalidate>
-        <input type="hidden" name="Q" value="@Model.Q" />
-        <div class="depts" role="radiogroup" aria-label="참여할 부서">
+    @if (Model.Waiting.Count > 0)
+    {
+        @foreach (var w in Model.Waiting)
+        {
+            var (church, dept) = JoinModel.Split(w.TenantName);
+            <section class="jwait" role="status">
+                <span class="tag">승인 기다리는 중</span>
+                <div class="row"><span class="mk">@Ui.DeptMark(w.TenantName)</span><div>@if (church.Length > 0) { <small>@church</small> }<b>@dept</b></div></div>
+                <p>관리자가 승인하면 로그인할 때 바로 부서 홈으로 들어가요.@(Model.InLobby ? " 그동안 \"처음 오신 분\"에서 미션 · 통독을 계속해요." : "")</p>
+                <form method="post" asp-page-handler="Cancel">
+                    <input type="hidden" name="tenantId" value="@w.TenantId" />
+                    <button type="submit" class="x">신청 취소하기</button>
+                </form>
+            </section>
+        }
+    }
+    else
+    {
+        @if (Model.InLobby)
+        {
+            <div class="jnow"><span aria-hidden="true">🏠</span><span>지금은 <b>처음 오신 분</b>에서 미션 · 통독을 하고 있어요. 승인되면 지금까지의 기록이 그 부서로 옮겨져요.</span></div>
+        }
+
+        <form method="post" asp-page-handler="Apply" novalidate>
+            @if (Model.Found is not null) { <input type="hidden" name="Code" value="@Model.Code" /> }
             @if (Model.Depts.Count == 0)
             {
-                <div class="none">@(Model.AnyListed ? "찾는 부서가 없어요. 아래 \"부서 코드로 찾기\"를 써 보세요." : "선생님께 받은 부서 코드로 찾아 주세요.")</div>
+                <div class="none">지금 고를 수 있는 부서가 없어요. 부서 관리자에게 받은 초대 주소로 들어와 주세요.</div>
             }
-            @foreach (var d in Model.Depts)
+            @foreach (var g in groups)
             {
-                var (church, dept) = JoinModel.Split(d.Name);
-                var mine = Model.Mine.GetValueOrDefault(d.TenantId);
-                <label class="pick @(mine is null ? "" : "mine")">
-                    <input type="radio" name="TenantId" value="@d.TenantId" checked="@(Model.TenantId == d.TenantId)" disabled="@(mine is not null)" />
-                    <span class="mk" style="background:@TenantsModel.ColorVar(d.ThemeColor)">@Ui.DeptMark(d.Name)</span>
-                    <div>@if (church.Length > 0) { <small>@church</small> }<b>@dept</b>
-                        <span class="tags">@if (d.MissionEnabled) { <span>도전!!!성경말씀</span> }@if (d.ReadingEnabled) { <span>도전!!!성경통독</span> }</span>
+                <section class="church" aria-label="@(g.Key.Length > 0 ? g.Key : "부서")">
+                    @if (g.Key.Length > 0) { <h2><i aria-hidden="true">⛪</i>@g.Key</h2> }
+                    <div class="tiles" role="radiogroup" aria-label="@(g.Key.Length > 0 ? g.Key + " 부서" : "참여할 부서")">
+                        @foreach (var d in g)
+                        {
+                            var name = JoinModel.Split(d.Name).Dept;
+                            var mine = Model.Mine.GetValueOrDefault(d.TenantId);
+                            <label class="tile @(mine is null ? "" : "off")">
+                                <input type="radio" name="TenantId" value="@d.TenantId" data-name="@d.Name" checked="@(Model.TenantId == d.TenantId)" disabled="@(mine is not null)" />
+                                @if (mine is null) { <span class="ck" aria-hidden="true">✓</span> }
+                                <span class="mk" style="background:@TenantsModel.ColorVar(d.ThemeColor)">@Ui.DeptMark(d.Name)</span>
+                                <b>@name</b>
+                                @if (mine is not null) { <span class="st">@mine</span> }
+                                else { <span class="pg">@if (d.MissionEnabled) { <span>말씀</span> }@if (d.ReadingEnabled) { <span>통독</span> }</span> }
+                            </label>
+                        }
                     </div>
-                    @if (mine is not null) { <span class="st">@mine</span> } else { <span class="rd" aria-hidden="true"></span> }
-                </label>
+                </section>
             }
-        </div>
-        @if (Model.PickError is not null) { <p class="hint bad" role="alert">@Model.PickError</p> }
+            @if (Model.PickError is not null) { <p class="hint bad" role="alert">@Model.PickError</p> }
 
-        <details class="bycode" open="@(Model.CodeOpen || Model.CodeError is not null || !Model.AnyListed)">
-            <summary>목록에 내 부서가 없나요? 부서 코드로 찾기</summary>
-            <div class="row">
-                <input class="in code" name="Code" value="@Model.Code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="8"
-                       placeholder="예: JSKIDS" aria-label="부서 코드" aria-invalid="@(Model.CodeError is null ? "false" : "true")" />
-                <button type="submit" class="btn s sm" asp-page-handler="Find" formnovalidate>찾기</button>
-            </div>
-            <p class="hint @(Model.CodeError is null ? "" : "bad")">@(Model.CodeError ?? (Model.Found is { } f ? $"찾았어요: {f.Name}" : "선생님께 받은 영어 · 숫자 6자 코드예요. 목록에 안 보이는 부서도 코드로 찾을 수 있어요."))</p>
-        </details>
+            <div class="help"><b>내 부서가 안 보이나요?</b><br />부서 관리자에게 받은 <b>초대 주소</b>로 들어오면 그 부서가 바로 보여요.</div>
 
-        <div class="step">
-            <h2><span class="n">02</span>어떻게 함께할까요? <small>둘 다 골라도 돼요</small></h2>
-            <div class="roles">
-                <label class="role"><input type="checkbox" name="SelectedRoles" value="@Roles.Participant" @(Model.SelectedRoles.Contains(Roles.Participant) ? "checked" : "") />
-                    <div><b>미션에 참여해요</b><span>매일 말씀 · 퀴즈 · 기도 · 암송을 하고 점수를 모아요.</span></div></label>
-                <label class="role"><input type="checkbox" name="SelectedRoles" value="@Roles.Guardian" @(Model.SelectedRoles.Contains(Roles.Guardian) ? "checked" : "") />
-                    <div><b>자녀를 지켜보는 보호자예요</b><span>자녀의 미션과 점수를 봐요. 자녀 연결은 선생님이 해 줘요.</span></div></label>
-            </div>
-            @if (Model.RoleError is not null) { <p class="hint bad">@Model.RoleError</p> }
-        </div>
-        <button type="submit" class="btn p">@(Model.Picked is { } p ? $"{p.Name}에 참여 신청하기" : "참여 신청하기")</button>
-        <div class="note"><b>선생님이 승인하면 바로 시작할 수 있어요.</b><br>교사 · 관리자 역할은 신청할 수 없고, 선생님이 정해 줘요.</div>
-    </form>
+            <div class="jgo" aria-live="polite"><div class="wrap gut">
+                <span class="who"><small>고른 부서</small><b data-join-name>@(Model.Picked?.Name ?? "부서를 골라 주세요")</b></span>
+                <button type="submit">참여 신청하기</button>
+            </div></div>
+        </form>
+    }
 
     @if (Model.HasApproved)
     {
         <a class="btn s" href="/">내 부서로 가기</a>
     }
 </div></main>
+<script src="~/js/join.js" asp-append-version="true"></script>

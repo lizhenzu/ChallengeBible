@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace ChallengeBible.Web.Pages;
 
 /// <summary>
-/// `/join` 참여 신청(0045, 0048, 0059 — 확정 시안: 부서참여신청-v2). ① 목록에서 부서 고르기(목록에 없으면 코드로 찾기)
-/// → ② 역할 고르기 → 신청 → 승인 기다림. 부서 주소로 들어오면 그 부서가 골라진 채로 열린다.
+/// `/join` 참여 신청(0045, 0048, 0059 — 확정 시안: 부서참여신청-v3). 교회별로 묶은 부서 칸을 골라 신청 → 승인 기다림.
+/// 찾기 칸 · 코드 칸 · 역할 고르기는 없다(2026-10-25 사용자): 신청은 참여자로 받고, 역할은 관리자가 승인 때 정한다.
+/// 목록에 안 보이는 부서는 관리자가 준 초대 주소(`/join?code=…`)로 들어오면 그 부서 칸이 보인다.
 /// </summary>
 public class JoinModel(JoinService join, AccountService accounts, LookupLimiter limiter) : PageModel, ITitled
 {
@@ -30,6 +31,8 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
     public bool CodeOpen { get; private set; }
     public List<MyMembership> Waiting { get; private set; } = [];
     public bool HasApproved { get; private set; }
+    /// <summary>임시 부서 "처음 오신 분"에서 왔는지(0064) — 노란 안내.</summary>
+    public bool InLobby { get; private set; }
     /// <summary>이미 소속 · 신청한 부서 → 표시 문구(신청할 수 없음, 0027).</summary>
     public Dictionary<int, string> Mine { get; private set; } = [];
 
@@ -55,6 +58,7 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
 
     public async Task<IActionResult> OnPostApplyAsync(CancellationToken ct)
     {
+        SelectedRoles = [Roles.Participant];   // v3: 역할은 묻지 않는다 — 보낸 값은 쓰지 않음
         if (TenantId != 0 || !string.IsNullOrWhiteSpace(Code))
         {
             // 목록에서 고른 부서, 또는 고르지 않고 코드만 넣은 경우(예전 방식) 그 코드의 부서
@@ -102,6 +106,7 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
         var mine = await accounts.MyMembershipsAsync(Me, ct);
         Waiting = mine.Where(m => m.Status == MembershipStatus.Requested).ToList();
         HasApproved = mine.Any(m => m.Status == MembershipStatus.Approved && m.TenantActive);
+        InLobby = mine.Any(m => m.IsLobby && m.Status == MembershipStatus.Approved);
         Mine = mine.ToDictionary(m => m.TenantId, m => m.Status switch
         {
             MembershipStatus.Approved or MembershipStatus.Suspended => "이미 소속",
