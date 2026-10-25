@@ -1448,6 +1448,56 @@ main.admin > .wrap.ce { display: flex; flex-direction: column; gap: 14px; }
 .ofl .tx small { font-size: 12px; color: var(--dim); }
 .ofl .tx b { font-size: 15px; }
 .ofl .go { font-size: 13px; font-weight: 800; color: var(--accent); }
+/* 플랫폼 > 온가족(목록 · 새로 묶기 · 상세) — 확정 시안 플랫폼-온가족 */
+main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
+.pfam .lnk { font-size: 13.5px; font-weight: 700; color: var(--dim); }
+.pfam h1 { margin: 4px 0 0; }
+.pfam h2 { margin: 8px 0 0; font-size: 15px; font-weight: 800; color: var(--dim); display: flex; gap: 8px; align-items: center; }
+.pfam h2 .n { padding: 0 8px; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: 12px; }
+.pfam h2 .n.dim { background: var(--dim); }
+.pf-req { padding: 14px 16px; border-radius: 16px; border: 2px solid var(--accent); background: var(--accent-bg); display: grid; gap: 8px; }
+.pf-req.thin { border-width: 1.5px; }
+.pf-req .who { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--dim); }
+.pf-req .who b { color: var(--fg); font-size: 15px; }
+.pf-req blockquote { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--bg); font-size: 13.5px; white-space: pre-line; }
+.pf-req .acts { display: flex; gap: 8px; }
+.pfam .pa-find { flex-wrap: wrap; }
+.pf-list { display: grid; gap: 8px; }
+.pf-fam { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--line); color: var(--fg); text-decoration: none; }
+.pf-fam > span:first-child { font-size: 22px; }
+.pf-fam .tx, .pf-hit .tx, .pf-m .tx { flex: 1; min-width: 0; display: grid; line-height: 1.35; }
+.pf-fam .tx b, .pf-hit .tx b { font-size: 15.5px; }
+.pf-fam .tx small, .pf-hit .tx small, .pf-m .tx small { font-size: 12.5px; color: var(--dim); word-break: keep-all; }
+.pf-fam .pt, .pf-m .pt { font-weight: 900; }
+.pf-hit { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--soft); font-size: 14px; }
+.pf-hit form { margin: 0; }
+.tag.bad { background: var(--bad-bg); color: var(--bad); }
+.pf-tot { padding: 14px 16px; border-radius: 16px; background: var(--soft); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.pf-tot b { font-size: 24px; font-weight: 900; }
+.pfam-f { display: grid; gap: 12px; }
+.pf-mem { display: grid; gap: 10px; }
+.pf-m { padding: 14px; border-radius: 16px; border: 1.5px solid var(--line); display: grid; gap: 10px; }
+.pf-m .top { display: flex; align-items: center; gap: 12px; }
+.pf-m .av { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; color: #fff; background: var(--accent); }
+.pf-m .tx b { font-size: 15.5px; }
+.pf-m .top .sel { flex: none; }
+.pf-m .top .x, .pf-m .ctl .x { border: 0; background: none; padding: 0; color: var(--bad); font-weight: 700; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.pf-m .ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13.5px; }
+.pf-m .ctl form { margin: 0; }
+.pf-m .ctl .rm { margin-left: auto; }
+.pf-m .ord { display: flex; gap: 4px; }
+.pf-m .ord button { width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+.pf-m .ord button:disabled { opacity: .35; cursor: default; }
+.pf-m .err { margin: 0; }
+.pf-aw { padding: 10px 12px; border-radius: 12px; background: #FFF6E8; border: 1px solid #F2DDB8; color: #6A4300; display: grid; gap: 6px; font-size: 13px; }
+.pf-aw.none { border-style: dashed; }
+.pf-aw label { font-weight: 800; }
+.pf-aw .row { display: flex; gap: 8px; }
+.pf-aw .row .sel { flex: 1; min-width: 0; }
+@media (prefers-color-scheme: dark) { .pf-aw { background: #2C2416; border-color: #4A3C20; color: #F0D49C; } }
+.btn.wide { width: 100%; }
+.pf-danger { margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+.pf-danger small { color: var(--dim); font-size: 12.5px; }
 .fam-line { margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--soft); font-size: 14px; color: var(--dim); }
 .fam-line a { color: var(--accent); font-weight: 800; margin-left: 6px; }
 

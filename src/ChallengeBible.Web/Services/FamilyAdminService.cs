@@ -44,9 +44,9 @@ public sealed class FamilyAdminService(ISystemDb systemDb, FamilyTenantService f
                           join t in ctx.Tenants on m.TenantId equals t.Id
                           where ids.Contains(m.AccountId) && m.Status == MembershipStatus.Approved && t.Status == TenantStatus.Active
                           orderby t.Name
-                          select new { m.AccountId, t.Name, Roles = m.Roles.Select(r => r.Role).ToList() }).ToListAsync(ct);
+                          select new { m.AccountId, t.Name, t.IsLobby, Roles = m.Roles.Select(r => r.Role).ToList() }).ToListAsync(ct);
         return rows.GroupBy(r => r.AccountId).ToDictionary(g => g.Key, g => string.Join(" / ", g.Select(r =>
-            $"{JoinDept(r.Name)} {string.Join(" · ", r.Roles.Where(x => x is Roles.Participant or Roles.Guardian).OrderByDescending(x => x == Roles.Guardian).Select(RoleLabel))}".Trim())));
+            $"{(r.IsLobby ? r.Name : JoinDept(r.Name))} {string.Join(" · ", r.Roles.Where(x => x is Roles.Participant or Roles.Guardian).OrderByDescending(x => x == Roles.Guardian).Select(RoleLabel))}".Trim())));
     }
 
     private static string JoinDept(string name) => Pages.JoinModel.Split(name).Dept;
