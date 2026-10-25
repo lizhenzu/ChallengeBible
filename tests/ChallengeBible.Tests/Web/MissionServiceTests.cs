@@ -318,7 +318,7 @@ public class MissionServiceTests
         scope.SetTenant(_kids.Id);
         var tctx = new TenantContext();
         tctx.Set(_kids, null);
-        var members = new MemberAdminService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), tctx, _time);
+        var members = new MemberAdminService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), tctx, _time, new LobbyService(new InMemorySystemDb(_db), _time));
 
         await members.ApproveAsync(admin.Id, m.Id, [Roles.Participant], null);
         using (var raw = InMemoryDb.Raw(_db)) Assert.True(raw.Participants.Single(p => p.MembershipId == m.Id).IsActive);

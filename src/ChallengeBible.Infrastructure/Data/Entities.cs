@@ -23,6 +23,11 @@ public sealed class Tenant
     public bool ReadingBoardPublic { get; set; } = true;
     /// <summary>참여 신청 화면의 부서 목록에 보이기(0059). 기본 꺼짐 — 꺼져도 부서 주소 · 코드로는 신청할 수 있다.</summary>
     public bool JoinListed { get; set; }
+    /// <summary>
+    /// 임시 부서 "처음 오신 분"(0064): 가입하면 승인 없이 바로 참여자가 되는 부서. 하나뿐이다.
+    /// 순위 · 참여자 현황 · 가족팀 · "우리 부서" 숫자를 숨기고, 참여 신청 대상이 아니다.
+    /// </summary>
+    public bool IsLobby { get; set; }
     public string Status { get; set; } = TenantStatus.Active;
     public DateTime CreatedUtc { get; set; }
 }

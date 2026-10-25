@@ -18,7 +18,7 @@ public enum MemberError
 /// 소속 관리(API 계약 4-4 · 5-4): 신청 승인 · 거절, 역할, 반(그룹 라벨), 정지 · 해제.
 /// 모든 조회 · 저장은 이 부서 안에서만 된다(전역 필터 + RLS). 부르는 화면이 관리자인지 먼저 검사한다.
 /// </summary>
-public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantContext tenant, TimeProvider time)
+public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantContext tenant, TimeProvider time, LobbyService lobby)
 {
     public async Task<List<MemberRow>> ListAsync(MemberFilter f, CancellationToken ct = default)
     {
@@ -99,6 +99,8 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
             m.DecidedByAccountId = actor;
         }
         await ctx.SaveChangesAsync(ct);
+        // R-173 · R-174: 처음 승인된 진짜 부서면 임시 부서 기록을 옮기고 임시 소속을 멈춘다(0064). 임시 부서 자신의 승인은 아님
+        if (approve && !tenant.IsLobby) await lobby.LeaveAsync(actor, m.AccountId, m.TenantId, ct);
         return MemberError.None;
     }
 

@@ -19,6 +19,7 @@ public partial class PageFlowTests : IClassFixture<WebApplicationFactory<Program
         _app = app.WithWebHostBuilder(b => b.ConfigureServices(s =>
         {
             s.AddScoped<IAppDb>(sp => new InMemoryDb(_db, sp.GetRequiredService<RequestScope>()));
+            s.AddSingleton<ISystemDb>(new InMemorySystemDb(_db));   // 가입 때 임시 부서 확인(0064)
         }));
     }
 

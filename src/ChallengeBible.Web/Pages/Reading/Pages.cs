@@ -113,6 +113,7 @@ public class ParticipantsModel(ReadingService reading, TenantContext tenant, Rea
 
     protected override async Task<IActionResult> LoadAsync(CancellationToken ct)
     {
+        if (tenant.IsLobby) return NotFound();   // 임시 부서: 모르는 사람끼리 이름 · 진도가 보이지 않게(0064)
         Board = await board.GetAsync(ct);
         Rows = ReadingBoardService.Sort(Board.Rows, Sort, Q).ToList();
         return Page();

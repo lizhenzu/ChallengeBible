@@ -29,6 +29,7 @@ internal sealed class TenantConfig : IEntityTypeConfiguration<Tenant>
         e.Property(x => x.AppShortName).HasMaxLength(12);
         e.Property(x => x.Status).HasMaxLength(20).IsUnicode(false);
         e.Property(x => x.CreatedUtc).HasColumnType("datetime2(3)");
+        e.HasIndex(x => x.IsLobby).IsUnique().HasFilter("[IsLobby] = 1").HasDatabaseName("UX_Tenant_Lobby");   // 임시 부서는 하나(0064)
     }
 }
 

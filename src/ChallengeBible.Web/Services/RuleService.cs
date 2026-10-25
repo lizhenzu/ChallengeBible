@@ -13,8 +13,9 @@ public sealed record RuleVersion(int VersionNo, DateOnly EffectiveFrom, RuleSet 
 /// 점수 · 수행 규칙 읽기(ADR 0060). 어떤 날의 규칙 = 적용 시작일이 그날 이전인 버전 가운데 번호가 가장 큰 것.
 /// 표가 비어 있으면 코드 기본값(<see cref="RuleSet.Default"/>, v1). 규칙 표는 플랫폼 표라 영역과 상관없이 읽는다.
 /// 자주 읽으므로 잠깐 기억해 두고, 저장하면 <see cref="Forget"/> 로 지운다.
+/// 임시 부서(0064)의 요청이면 그날 규칙에서 "순위" · "가족팀" 스위치를 끈다 — 이 스위치를 보는 화면 · 서비스가 모두 저절로 숨긴다.
 /// </summary>
-public sealed class RuleService(IAppDb db, IMemoryCache cache)
+public sealed class RuleService(IAppDb db, IMemoryCache cache, Tenancy.TenantContext? tenant = null)
 {
     private const string CacheKey = "rules:versions";
     public static readonly JsonSerializerOptions Json = new() { Converters = { new JsonStringEnumConverter() } };
@@ -42,5 +43,9 @@ public sealed class RuleService(IAppDb db, IMemoryCache cache)
         versions.Where(v => v.EffectiveFrom <= date).MaxBy(v => v.VersionNo)?.Rules ?? RuleSet.Default;
 
     /// <summary>그날(미션 날짜)에 적용되는 규칙.</summary>
-    public async Task<RuleSet> ForDateAsync(DateOnly date, CancellationToken ct = default) => Pick(await VersionsAsync(ct), date);
+    public async Task<RuleSet> ForDateAsync(DateOnly date, CancellationToken ct = default)
+    {
+        var r = Pick(await VersionsAsync(ct), date);
+        return tenant?.IsLobby == true ? r with { Features = r.Features with { Ranking = false, FamilyTeam = false } } : r;
+    }
 }

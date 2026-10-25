@@ -21,6 +21,8 @@ public class TenantHomeModel(TenantContext tenant, FamilyTenantService family, F
     public HomeView Data { get; private set; } = null!;
     /// <summary>승인된 소속이 둘 이상이면 머리말 "부서 ▼" → 부서 고르기(확정 6).</summary>
     public bool ManyTenants { get; private set; }
+    /// <summary>임시 부서(0064, R-172)에서 승인을 기다리는 내 신청의 부서 이름. 비어 있으면 "내 부서 찾기" 띠.</summary>
+    public IReadOnlyList<string> Waiting { get; private set; } = [];
 
     public async Task OnGetAsync(CancellationToken ct)
     {
@@ -30,5 +32,8 @@ public class TenantHomeModel(TenantContext tenant, FamilyTenantService family, F
         if (Family is not null && IsGuardian) FamilyDept = await family.CurrentNameAsync(me, ct);
         Data = await home.GetAsync(ct);
         ManyTenants = (await accounts.WhereToGoAsync(me, ct)).ApprovedCount > 1;
+        if (tenant.IsLobby)
+            Waiting = (await accounts.MyMembershipsAsync(me, ct))
+                .Where(m => m.Status == MembershipStatus.Requested && m.TenantActive).Select(m => m.TenantName).ToList();
     }
 }

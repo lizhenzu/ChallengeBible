@@ -28,7 +28,7 @@ public class MemberAdminServiceTests
         scope.SetTenant(t.Id);
         var ctx = new TenantContext();
         ctx.Set(t, null);
-        return new MemberAdminService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), ctx, TimeProvider.System);
+        return new MemberAdminService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), ctx, TimeProvider.System, new LobbyService(new InMemorySystemDb(_db), TimeProvider.System));
     }
 
     private Membership Load(int id)
