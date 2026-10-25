@@ -315,6 +315,19 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(newbie, "/join", "30-참여신청-목록");
         await Save(newbie, "/join?code=JSELEM", "31-참여신청-주소로");
 
+        // 임시 부서 "처음 오신 분"(0064, 확정 시안 임시부서-내부서찾기 ㄱ안): 가입하면 바로 여기, 맨 위 "내 부서 찾기" 띠
+        var lobby = InMemoryDb.SeedTenant(db, "welcome", "WELCOM");
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            var t = raw.Tenants.Single(x => x.Id == lobby.Id);
+            (t.Name, t.IsLobby, t.ReadingBoardPublic, t.JoinListed) = ("처음 오신 분", true, false, false);
+            raw.SaveChanges();
+        }
+        var fresh = await SignUp("jiho", "박지호");
+        await Save(fresh, "/welcome", "05c-임시부서-홈");
+        InMemoryDb.SeedMembership(db, kids.Id, Acc("jiho"), MembershipStatus.Requested, Roles.Participant);
+        await Save(fresh, "/welcome", "05d-임시부서-승인기다림");
+
         // 운영자: 가입 → 플랫폼 관리자 → 다시 로그인
         var op = await SignUp("operator", "운영자");
         using (var raw = InMemoryDb.Raw(db)) { raw.Accounts.Single(a => a.Email == "operator@example.com").IsPlatformAdmin = true; raw.SaveChanges(); }

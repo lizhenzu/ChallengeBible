@@ -70,7 +70,7 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
     private MemberAdminService Admin()
     {
         var (ctx, scope) = In(null);
-        return new MemberAdminService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), ctx, _time);
+        return new MemberAdminService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), ctx, _time, new LobbyService(new InMemorySystemDb(_db), _time));
     }
 
     [Fact]

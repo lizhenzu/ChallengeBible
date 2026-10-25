@@ -91,6 +91,7 @@ public sealed class LandingService(IAppDb db, ISystemDb systemDb, TenantClock cl
         var week = Enumerable.Range(0, 7).Select(i => start.AddDays(i)).Select(d => new LandingDay(d, byDay.GetValueOrDefault(d))).ToList();
 
         var chapters = await ctx.ChapterReads.CountAsync(c => c.ReadUtc >= yearUtc, ct);
-        return new LandingStats(active.Count, people, byDay.GetValueOrDefault(today), chapters, week);
+        var depts = await ctx.Tenants.CountAsync(t => t.Status == TenantStatus.Active && !t.IsLobby, ct);   // 임시 부서(0064)는 "함께하는 부서"에 세지 않는다
+        return new LandingStats(depts, people, byDay.GetValueOrDefault(today), chapters, week);
     }
 }

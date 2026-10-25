@@ -30,6 +30,21 @@
     </span>
 </div></header>
 
+@if (Model.Tenant.IsLobby)
+{
+    @* 임시 부서(0064, R-172, 확정 시안: 임시부서-내부서찾기 ㄱ안): 홈 맨 위 띠로 내 부서 찾기 · 승인 기다림 *@
+    <section class="fb gut" aria-label="내 부서"><div class="wrap">
+        @if (Model.Waiting.Count == 0)
+        {
+            <div class="fbx"><div><b>아직 우리 부서가 없어요</b><span>교회 · 모임 선생님이 알려 준 부서를 찾아 참여 신청해요. 승인되면 여기서 한 미션 기록 · 점수도 그 부서로 옮겨져요.</span></div><a class="go" href="/join">내 부서 찾기 →</a></div>
+        }
+        else
+        {
+            <div class="fbx"><div><b>@(string.Join(" · ", Model.Waiting)) 승인을 기다리는 중이에요</b><span>선생님이 승인하면 그 부서로 바로 옮겨 가요. 그동안 여기서 미션 · 통독을 계속해요.</span></div><a class="go s" href="/join">신청 보기</a></div>
+        }
+    </div></section>
+}
+
 <section class="hello gut"><div class="wrap">
     <div>
         <div class="eyebrow">@(d.SeasonDay > 0 ? $"{d.SeasonYear} 시즌 · {d.SeasonDay}일째" : $"{d.SeasonYear} 시즌 · 시작 전")</div>
@@ -251,7 +266,7 @@
 
 <footer class="gut"><div class="wrap">
     <a href="/account">내 계정</a>
-    <a href="/account/tenants">부서 바꾸기</a>
+    @if (Model.Tenant.IsLobby) { <a href="/join">내 부서 찾기</a> } else { <a href="/account/tenants">부서 바꾸기</a> }
     @if (User.IsPlatformAdmin()) { <a href="/platform">플랫폼</a> }
     <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit">로그아웃</button></form>
 </div></footer>
