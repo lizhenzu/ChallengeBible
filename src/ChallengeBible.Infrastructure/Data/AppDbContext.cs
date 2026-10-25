@@ -28,6 +28,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<BibleTranslation> BibleTranslations => Set<BibleTranslation>();
     public DbSet<BibleVerse> BibleVerses => Set<BibleVerse>();
     public DbSet<BibleBookOverview> BibleBookOverviews => Set<BibleBookOverview>();
+    public DbSet<ChapterMedia> ChapterMedia => Set<ChapterMedia>();
     public DbSet<DailyWord> DailyWords => Set<DailyWord>();
     public DbSet<DailyPrayer> DailyPrayers => Set<DailyPrayer>();
     public DbSet<DailyQuiz> DailyQuizzes => Set<DailyQuiz>();
