@@ -18,6 +18,8 @@ public sealed class TenantContext
     public bool Has(string role) => IsApproved && Roles.Contains(role);
     public bool IsAdmin => Has(Infrastructure.Data.Roles.TenantAdmin);
     public bool IsStaff => IsAdmin || Has(Infrastructure.Data.Roles.Teacher);
+    /// <summary>임시 부서 "처음 오신 분"(0064): 순위 · 참여자 현황 · 가족팀 · "우리 부서" 숫자를 숨긴다(모르는 사람끼리 이름 · 기록이 보이지 않게).</summary>
+    public bool IsLobby => Tenant?.IsLobby == true;
     public string AppName => Tenant?.AppName ?? Services.BrandingService.DefaultName;   // 0038 — 비어 있으면 기본 이름
     public string AppShortName => Tenant?.AppShortName ?? Services.BrandingService.DefaultShortName;
 

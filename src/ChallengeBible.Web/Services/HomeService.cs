@@ -126,7 +126,7 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
             ReciteRange = day?.Recite?.Range, ReciteStart = day?.Recite?.Start, ReciteEnd = day?.Recite?.End, PrayerTrait = day?.Prayer?.Trait,
             Missions = list, NextMission = list.FirstOrDefault(m => m.Has && !m.Done),
             Reading = sum, ResumeText = resumeText, Week = weekDays,
-            Dept = await DeptAsync(today, pid, ct),
+            Dept = tenant.IsLobby ? null : await DeptAsync(today, pid, ct),   // 임시 부서는 "우리 부서" 숫자를 숨긴다(0064)
         };
     }
 

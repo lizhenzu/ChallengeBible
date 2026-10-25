@@ -14,6 +14,7 @@ public enum JoinError { None, NotFound, AlreadyMember, NoRole, BadRole }
 /// <summary>
 /// 목록에서 부서를 고르거나(0059) 참여 코드로 부서를 찾아 참여 신청을 한다(0045, 0048). 신청은 "신청" 상태 소속을 만들고,
 /// 부서 관리자가 승인하면 그때 쓸 수 있다(R-130). 신청할 수 있는 역할은 참여자 · 보호자뿐이다.
+/// 임시 부서(0064)는 신청 대상이 아니다(목록 · 코드 · 번호 모두에서 뺌) — 가입하면 저절로 들어간다.
 /// </summary>
 public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time)
 {
@@ -29,7 +30,7 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
         if (c.Length != 6) return null;
         await using var ctx = db.Create();
         return await ctx.Tenants
-            .Where(t => t.JoinCode == c && t.Status == TenantStatus.Active)
+            .Where(t => t.JoinCode == c && t.Status == TenantStatus.Active && !t.IsLobby)
             .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor })
             .SingleOrDefaultAsync(ct);
     }
@@ -39,7 +40,7 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
     {
         await using var ctx = db.Create();
         return await ctx.Tenants
-            .Where(t => t.JoinListed && t.Status == TenantStatus.Active)
+            .Where(t => t.JoinListed && t.Status == TenantStatus.Active && !t.IsLobby)
             .OrderBy(t => t.Name)
             .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor })
             .ToListAsync(ct);
@@ -55,7 +56,7 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
         JoinTarget? target;
         await using (var ctx = db.Create())
             target = await ctx.Tenants
-                .Where(t => t.Id == tenantId && t.Status == TenantStatus.Active && (t.JoinListed || t.JoinCode == c))
+                .Where(t => t.Id == tenantId && t.Status == TenantStatus.Active && !t.IsLobby && (t.JoinListed || t.JoinCode == c))
                 .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled))
                 .SingleOrDefaultAsync(ct);
         return await ApplyToAsync(accountId, target, roles, ct);

@@ -2049,6 +2049,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedUtc")
                         .HasColumnType("datetime2(3)");
 
+                    b.Property<bool>("IsLobby")
+                        .HasColumnType("bit");
+
                     b.Property<string>("JoinCode")
                         .IsRequired()
                         .HasMaxLength(6)
@@ -2099,6 +2102,11 @@ namespace ChallengeBible.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("PK_Tenant");
+
+                    b.HasIndex("IsLobby")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Tenant_Lobby")
+                        .HasFilter("[IsLobby] = 1");
 
                     b.HasIndex("JoinCode")
                         .IsUnique()
