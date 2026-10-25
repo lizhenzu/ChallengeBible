@@ -1,0 +1,18 @@
+@model IReadOnlyList<ChallengeBible.Web.Services.MediaButton>
+@* 듣기 · 영상 줄(R-166, ADR 0063, 확정 시안: 통독-본문읽기-듣기영상). 통독 본문 · 말씀 성경 읽기 공통, 장 진도 아래.
+   누르면 화면 안 재생 창(아래 .ytm)에서 처음부터 무한 반복 — mission.js. 영상 번호(11자)만 data 로 넘긴다 *@
+<div class="bmd" role="group" aria-label="듣기 · 영상">
+    @foreach (var b in Model)
+    {
+        <button type="button" class="@(b.Listen ? "yt" : "")" data-yt="@b.VideoId" data-yt-title="@b.PlayerTitle" data-yt-icon="@b.Icon">
+            <span class="i" aria-hidden="true">@b.Icon</span><span class="t"><b>@b.Title</b><small>@b.Sub</small></span>
+        </button>
+    }
+</div>
+<div class="ytm" id="ytm" hidden role="dialog" aria-modal="true" aria-labelledby="ytmT">
+    <div class="box">
+        <div class="hd"><b id="ytmT"></b><button type="button" class="stop" data-yt-stop>⏹ 정지</button><button type="button" class="x" data-yt-close>✕ 닫기</button></div>
+        <div class="fr" data-yt-host></div>
+        <div class="ft"><span data-yt-status>▶ 재생 중</span><em>∞ 무한 반복</em></div>
+    </div>
+</div>

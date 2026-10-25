@@ -136,12 +136,16 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
                 DetailAuthor = "모세", AuthorDescription = "이스라엘 백성을 이집트에서 이끌어 낸 지도자예요.", WrittenFrom = "B.C. 1446년", WrittenTo = "1406년",
                 AlternativeDate = "B.C. 1290년경", WrittenPlace = "시내 광야", WrittenTarget = "광야에서 지내던 이스라엘 백성", HistoricalPeriod = "창조 ~ 족장 시대",
                 Keywords = "창조, 타락, 언약, 족장", ContentSummary = "1 ~ 11장은 세상의 시작, 12 ~ 50장은 아브라함 · 이삭 · 야곱 · 요셉의 이야기예요.",
-                VideoUrl1 = "https://youtu.be/example1", VideoUrl2 = "https://youtu.be/example2",
+                VideoUrl1 = "dLv2ndgXrbo", VideoUrl2 = "jIcsdztsKBE",
             });
+            // 듣기 · 영상(R-166, 확정 시안 통독-본문읽기-듣기영상): 창세기 24장 듣기
+            raw.ChapterMedia.Add(new ChapterMedia { BookId = 1, Chapter = 24, Kind = ChapterMediaKind.Listen, SortOrder = 1, YoutubeVideoId = "cMKPbDZhToo", DurationSec = 492 });
             raw.SaveChanges();
         }
         await Save(kid, "/jamsil-kids/reading/read/1/1?unit=3", "20b-통독-본문-책개요-1장");
         await Save(kid, "/jamsil-kids/reading/read/1/24?unit=3", "20c-통독-본문-책개요-접힘");
+        await Save(kid, "/jamsil-kids/reading/read/1/24?unit=3", "20d-통독-본문-듣기-재생창",
+            h => h.Replace("id=\"ytm\" hidden", "id=\"ytm\"").Replace("<b id=\"ytmT\"></b>", "<b id=\"ytmT\">🎧 창세기 24장 듣기</b>"));   // 재생 창 열린 모습
         await Save(kid, "/jamsil-kids/reading/bookmarks", "21-통독-북마크");
         // 회차 기록(확정 시안 통독-회차기록): 지금까지 읽은 회차를 "중간에 닫음"으로 두고 2회차에 두 장, 새 회차 시작 확인을 펼친 모습
         var kidAcc = Acc("cheolsu");

@@ -683,6 +683,31 @@ a.td::after { content: "›"; margin-left: auto; font-size: 22px; color: var(--d
 .brd-pills a { min-height: 36px; padding: 0 16px; border-radius: 99px; background: var(--b-grey); color: var(--b-dim2); display: inline-flex; align-items: center; font-size: 14px; font-weight: 700; }
 .brd-pills a[aria-current="true"] { background: var(--b-acc); color: #fff; }
 .brd-verses { margin-top: 8px; }
+/* 듣기 · 영상 줄(R-166, ADR 0063, 확정 시안: 통독-본문읽기-듣기영상): 장 진도 아래. 듣기는 빨강(유튜브) 바탕 아이콘, 개요 해설은 회색 */
+.bmd { margin-top: 14px; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.bmd::-webkit-scrollbar { display: none; }
+.bmd button { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 6px 14px 6px 8px; border: 1px solid var(--b-rule); border-radius: 14px; background: var(--bg); text-align: left; }
+.bmd .i { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; font-size: 16px; background: var(--b-grey); }
+.bmd .yt .i { background: #FDE8E8; }
+@media (prefers-color-scheme: dark) { .bmd .yt .i { background: #3A1E20; } }
+.bmd .t { display: grid; line-height: 1.3; }
+.bmd .t b { font-size: 14px; color: var(--b-ink); }
+.bmd .t small { font-size: 12px; color: var(--b-dim2); }
+/* 재생 창: 아래에서 올라오는 판(휴대폰), 넓은 화면은 가운데 */
+.ytm { position: fixed; inset: 0; z-index: 60; background: rgba(15,18,24,.6); display: flex; align-items: flex-end; justify-content: center; }
+.ytm[hidden] { display: none; }
+.ytm .box { width: 100%; max-width: 640px; background: var(--bg); border-radius: 20px 20px 0 0; overflow: hidden; padding-bottom: env(safe-area-inset-bottom, 0px); }
+@media (min-width: 700px) { .ytm { align-items: center; } .ytm .box { border-radius: 20px; } }
+.ytm .hd { display: flex; align-items: center; gap: 8px; padding: 12px 14px; }
+.ytm .hd b { flex: 1; min-width: 0; font-size: 15px; color: var(--b-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ytm .hd button { min-height: 38px; padding: 0 14px; border: 0; border-radius: 99px; font-size: 13px; font-weight: 800; }
+.ytm .stop { background: #E5484D; color: #fff; }
+.ytm .x { background: var(--b-grey); color: var(--b-ink); }
+.ytm .fr { position: relative; padding-bottom: 56.25%; background: #000; }
+.ytm .fr iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.ytm .ft { display: flex; justify-content: space-between; gap: 10px; padding: 10px 14px 14px; font-size: 12.5px; color: var(--b-dim2); }
+.ytm .ft em { flex: none; font-style: normal; font-weight: 800; color: var(--b-acc); }
+
 /* 책 개요 카드(R-116, ADR 0062, 확정 시안: 통독-본문읽기-책개요): 해설(파랑) · 책갈피(노랑)와 겹치지 않게 회색 띠 + 진한 글자. 1장은 펼침, 다른 장은 접힘 */
 .bov { margin: 16px 0 6px; border: 1px solid var(--b-rule); border-radius: 14px; background: var(--b-grey); overflow: hidden; }
 .bov > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 14px 16px; }
@@ -705,8 +730,6 @@ a.td::after { content: "›"; margin-left: auto; font-size: 22px; color: var(--d
 .bov dd { font-size: calc(15px * var(--fs)); line-height: 1.75; color: var(--b-ink); word-break: keep-all; overflow-wrap: anywhere; white-space: pre-line; }
 .bov .kw { display: flex; flex-wrap: wrap; gap: 6px; white-space: normal; }
 .bov .kw span { padding: 2px 10px; border-radius: 99px; background: var(--b-grey); font-size: 13px; font-weight: 700; }
-.bov .vids { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
-.bov .vids a { min-height: 40px; padding: 0 14px; border-radius: 10px; background: var(--bg); border: 1px solid var(--b-rule); display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 800; color: var(--b-ink); }
 .bov .src { margin: 10px 0 0; font-size: 12px; color: var(--b-dim); }
 @media (max-width: 380px) { .bov dl { grid-template-columns: 1fr; } .bov dd { border-top: 0; padding-top: 0; } }
 

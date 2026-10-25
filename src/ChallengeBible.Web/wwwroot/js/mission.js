@@ -334,3 +334,39 @@ document.querySelectorAll('.bov .tabs button').forEach((b) => b.addEventListener
   box.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
   box.querySelectorAll('dl[data-pane]').forEach((d) => { d.hidden = d.dataset.pane !== b.dataset.p; });
 }));
+
+// 듣기 · 영상(R-166, ADR 0063): 화면 안 재생 창. 처음부터 재생, 끝나면 다시 처음부터(loop + playlist). 정지 = 영상을 내림, 닫기 = 창도 닫음
+(() => {
+  const box = document.getElementById('ytm');
+  if (!box) return;
+  const host = box.querySelector('[data-yt-host]');
+  const title = box.querySelector('#ytmT');
+  const status = box.querySelector('[data-yt-status]');
+  let last = null;
+  function play(id) {
+    if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return;
+    const f = document.createElement('iframe');
+    f.src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&loop=1&playlist=' + id + '&rel=0&playsinline=1';
+    f.title = title.textContent;
+    f.allow = 'autoplay; encrypted-media; picture-in-picture';
+    f.allowFullscreen = true;
+    f.referrerPolicy = 'strict-origin-when-cross-origin';
+    host.replaceChildren(f);
+    status.textContent = '▶ 재생 중';
+  }
+  function stop() { host.replaceChildren(); status.textContent = '⏹ 정지됨 · 정지를 다시 누르면 처음부터'; }
+  function close() { host.replaceChildren(); box.hidden = true; if (last) last.focus(); }
+  document.querySelectorAll('[data-yt]').forEach((b) => b.addEventListener('click', () => {
+    last = b;
+    title.textContent = b.dataset.ytIcon + ' ' + b.dataset.ytTitle;
+    box.hidden = false;
+    play(b.dataset.yt);
+    box.querySelector('[data-yt-close]').focus();
+  }));
+  box.querySelector('[data-yt-stop]').addEventListener('click', () => {
+    if (host.firstChild) stop(); else if (last) play(last.dataset.yt);
+  });
+  box.querySelector('[data-yt-close]').addEventListener('click', close);
+  box.addEventListener('click', (e) => { if (e.target === box) close(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !box.hidden) close(); });
+})();

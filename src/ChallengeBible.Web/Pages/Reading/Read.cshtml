@@ -6,7 +6,7 @@
 @* 통독 본문 읽기(ADR 0057): 말씀-성경읽기-v2 모양 + 장 번호 줄. 절마다 ✓(회차 읽음, R-160) · ★(책갈피, R-112),
    "이 페이지 읽음으로 표시"는 보이는 절, 넘기기만으로는 읽음이 아니다(0042). 모든 절이 읽음이면 장 자동 완료(R-162).
    절 사이 해설 카드(R-118, ADR 0056 결정 7, 확정 시안: 통독-본문읽기-해설카드). 본문 위 책 개요 카드(R-116, ADR 0062, 확정 시안: 통독-본문읽기-책개요).
-   듣기 · 해설 영상(R-166)과 밝기는 다음 묶음 *@
+   장 진도 아래 듣기 · 영상 줄 + 화면 안 재생 창(R-166, ADR 0063, 확정 시안: 통독-본문읽기-듣기영상). 밝기는 다음 묶음 *@
 @{
     var v = Model.View;
     var s = Model.Slice;
@@ -33,6 +33,7 @@
         <p class="num"><span>@(v.VerseCount)절 · <b data-readcount>@v.VersesRead.Count</b>절 읽음<span class="rd-done" data-chapterdone @(v.Done ? "" : "hidden")> · 다 읽은 장</span></span><span data-readpct>@(Model.ReadPercent)%</span></p>
         <div class="brd-bar" aria-hidden="true"><i data-readbar style="width:@(Model.ReadPercent)%"></i></div>
     </div>
+    @if (Model.Media.Count > 0) { <partial name="_MediaBar" model="Model.Media" /> }
 
     <nav class="brd-chs" aria-label="장 번호">
         @for (short c = 1; c <= Model.ChapterCount; c++)
