@@ -56,6 +56,9 @@
 | `PromotionPending` | 409 | 0030 | 이미 진행 중인 진급 요청이 있어요 |
 | `ResetNotAllowed` | 403 | 0035 | 이 계정은 플랫폼 관리자에게 초기화를 요청해 주세요 |
 | `MustChangePassword` | 403 | 0035 | 새 비밀번호로 바꿔 주세요 |
+| `FamilyTenantNotChosen` | 409 | R-179 | 플랫폼 관리자가 먼저 시상 부서를 정해야 해요 |
+| `AlreadyInFamily` | 409 | R-175 | 이미 다른 온가족에 들어 있어요 |
+| `FamilyRequestOpen` | 409 | R-176 | 이미 보낸 온가족 신청이 있어요 |
 
 ## 3. 권한 표
 
@@ -75,6 +78,10 @@
 | 참여자 성경 읽음 초기화 (0029) | | | | ● | ● |
 | 비밀번호 임시 초기화 (0035, 다른 영역 관리자 · 플랫폼 관리자 계정 제외) | | | | ● | ● |
 | 영역 · 공용 콘텐츠 · 퀴즈 은행 · 성경 · 플랫폼 규칙 · 감사 로그 · 사용량 | | | | | ● |
+| 온가족 총점 보기 — 내 온가족(구성원 본인이면 역할 무관, R-178) | ● | ● | ● | ● | ● |
+| 온가족 신청 (R-176, 계정 누구나) | ● | ● | ● | ● | ● |
+| 온가족 총점 — 내 영역 사람이 있는 온가족(다른 영역 이름 가림) | | | | ● | ● |
+| 온가족 묶기 · 빼기 · 해체 · 신청 처리, 부모 시상 부서 정하기 (R-175, R-176, R-179) | | | | | ● |
 
 - 한 사람이 역할을 여러 개 가지면 합집합(0027). 권한은 역할 · 정책으로만 판단한다(X-11).
 
@@ -90,6 +97,7 @@
 | `/account` | 내 계정: 이름 · 사진 · 소속 영역 목록 | 1차 |
 | `/account/tenants` | 영역 선택 · 전환(R-135) | 1차 |
 | `/{slug}/join` | 소속 신청(희망 역할: 참여자 · 보호자) | 1차 |
+| `/account/family` | **온가족**(0065): 온가족 이름 · 누적 총점 · 구성원 카드(이름 · 관계 · 부서 · 누적 점수 · 마지막 참여일) · "시상은 부서 가족팀 점수로 해요" · 내 시상 부서(보호자면, 보기만 — R-179). 온가족이 없으면 [온가족 신청하기], 신청 중이면 "확인 기다리는 중" + 취소. (0046 의 "가족과 함께할 부서" 고르기 · 바꾸기는 없앰) | 1차 |
 
 ### 4-2. 참여자
 | 주소 | 화면 | ViewModel 주요 값 | 차수 |
@@ -106,6 +114,7 @@
 | `/{slug}/points?month=` | 내 점수 | 날짜별 말씀 · 기도 · 퀴즈 · 암송 · 합계 | 1차 |
 | `/{slug}/ranking?year=` | 순위 | 카드(R-81), 본인 강조 | 2차 |
 | `/{slug}/teams?year=` | 가족팀 | 팀 카드 · 구성원 점수 · 가족 단계 | 2차 |
+| `/{slug}` 홈의 "우리 가족팀" 칸 아래 | 온가족 총점 한 줄(온가족이 있을 때만, 보기만 — R-177) → `/account/family` | 온가족 이름 · 누적 총점 | 1차 |
 
 ### 4-2b. 성경통독 참여자 (0039, 0040, 0041 — Bible2 구성) — 1차
 | 주소 | 화면 | ViewModel 주요 값 |
@@ -142,7 +151,7 @@
 | `/{slug}/admin/branding` | 서비스 이름 · 짧은 이름(비우면 기본 "도전!!!성경말씀"), 대표 색 — 0038 | 1차 |
 | `/{slug}/manifest.webmanifest` | 영역별 PWA 매니페스트(이름 · 짧은 이름 · 대표 색 · start_url `/{slug}/`) — 0038 | 1차 |
 | `/{slug}/admin/season` | 시즌 시작일(빠지는 점수 경고 — 0028), 지난 시즌 보기 | 1차 |
-| `/{slug}/admin/teams` | 가족팀 관리 · 단계 카드 숨김 | 2차 |
+| `/{slug}/admin/teams` | 가족팀 관리 · 단계 카드 숨김. 구성원 옆에 "온가족 총점"(다른 부서 이름 가림, R-178) | 2차 |
 
 ### 4-5. 플랫폼 관리자
 | 주소 | 화면 | 차수 |
@@ -154,6 +163,8 @@
 | `/platform/bible` | 성경 참조 데이터 적재 | 1차(초기 적재 도구) |
 | `/platform/rules` | 플랫폼 기본 규칙 | 1차 |
 | `/platform/accounts` | 계정 찾기 · 비밀번호 초기화 | 1차 |
+| `/platform/families` | **온가족**(0065): 신청 목록(신청 글 · [묶기] · [거절]), 온가족 목록(이름 · 구성원 수 · 누적 총점), 찾기 | 1차 |
+| `/platform/families/{id}` · `/platform/families/new` | 온가족 상세: 계정 찾아 넣기 · 빼기 · 관계 · 순서 · 이름 · 해체, 구성원마다 소속 부서와 **시상 부서 정하기**(보호자인 구성원, R-179) | 1차 |
 | `/platform/audit`, `/platform/usage` | 감사 로그 · 사용량 | 2차 |
 | `/platform/enter/{slug}` | 영역 진입 · 대리 접속(감사 로그) | 2차 |
 
@@ -239,7 +250,17 @@
 | `PUT /api/{slug}/admin/season/{year}` `{ startDate }` | 시즌 시작일 변경(0028) |
 | `PUT /api/{slug}/admin/branding` `{ appName, appShortName, themeColor }` | 서비스 이름 · 짧은 이름 · 대표 색. 빈 값(`null`)이면 기본값으로 되돌림(0038) |
 | `PUT /api/platform/tenants/{id}/programs` `{ mission, reading }` | 영역의 프로그램 켜기(플랫폼 관리자, 하나 이상 — R-150) |
-| `PUT /api/me/family-tenant` `{ tenantSlug }` (구현: 화면 `/account/family` 폼 — 바뀌는 점이 있으면 "확인했어요" 체크 뒤에만 바꾼다) | 보호자가 "가족과 함께할 부서" 고르기 · 바꾸기(0046, R-168). 바꾸면 이전 부서 참여 · 가족팀 자리 멈춤(시스템 연결). 다른 부서에서 참여자 역할 부여 · 가족팀 추가 시도는 409 `FamilyTenantElsewhere`, 아직 고르지 않았으면 409 `FamilyTenantNotChosen` |
+| ~~`PUT /api/me/family-tenant`~~ → `PUT /api/platform/accounts/{accountId}/family-tenant` `{ tenantId }` (구현: `/platform/families/{id}` 폼 — 바뀌는 점이 있으면 "확인했어요" 체크 뒤에만) | **플랫폼 관리자**가 부모의 시상 부서를 정함 · 바꿈(0065, R-179). 바꾸면 이전 부서 참여 · 가족팀 자리 멈춤(시스템 연결). 다른 부서에서 참여자 역할 부여 · 가족팀 추가 시도는 409 `FamilyTenantElsewhere`, 아직 정하지 않았으면 409 `FamilyTenantNotChosen` |
+
+### 5-4c. 온가족 — 1차 (0065, R-175 ~ R-179). 구현은 화면 폼 POST(다른 화면과 같게)
+| 메서드 · 주소 | 용도 |
+|---|---|
+| `GET /account/family` | 내 온가족 + 누적 총점(구성원별). 없으면 신청 상태 |
+| `POST /account/family?handler=Request` `{ body }` | 온가족 신청(1 ~ 500자). 처리 안 된 신청이 있으면 409 `FamilyRequestOpen` |
+| `POST /account/family?handler=Cancel` | 내 신청 취소(Requested 일 때만) |
+| `POST /platform/families?handler=Reject` `{ requestId }` | 신청 거절 |
+| `POST /platform/families/new` `{ name?, requestId?, members: [{ accountId, relation }] }` | 온가족 만들기(신청에서 왔으면 그 신청을 Approved + FamilyId). 이미 다른 온가족에 있는 계정이면 409 `AlreadyInFamily` |
+| `POST /platform/families/{id}?handler=Add` `{ accountId, relation }` · `?handler=Remove` `{ accountId }` · `?handler=Save` `{ name, order[], relations[] }` · `?handler=Dissolve` | 넣기 · 빼기 · 고치기 · 해체(구성원 0 명이면 자동 해체). 모두 감사 로그 |
 
 ### 5-4a. 보호자 — 1차 (R-132, 0046)
 | 메서드 · 주소 | 용도 |
