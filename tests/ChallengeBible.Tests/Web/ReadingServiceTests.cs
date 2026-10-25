@@ -84,7 +84,7 @@ public class ReadingServiceTests
         var r2 = await As(_me).SetVersesAsync(1, 24, 3, 3, on: true);
         Assert.True(r2.ChapterDone);
         Assert.Single(InMemoryDb.Raw(_db).ChapterReads);
-        Assert.Equal(0.0, r2.Progress, 1);                               // 1 / 1189 = 0.08% → 소수 첫째 자리 0.0
+        Assert.Equal(0.1, r2.Progress, 1);                               // 1 / 1189 = 0.08% → 한 장이라도 읽었으면 최소 0.1(R-155)
         await As(_me).SetVersesAsync(1, 24, 2, 2, on: false);
         Assert.Empty(InMemoryDb.Raw(_db).ChapterReads);
         Assert.False((await As(_me).ChapterAsync(1, 24))!.Done);
@@ -136,6 +136,9 @@ public class ReadingServiceTests
     public async Task R155_진도율은_소수_첫째_자리까지_구약_신약을_나눠_센다()
     {
         Assert.Equal(1.9, ReadingSummary.Percent(23, 1189));   // 1.934… → 1.9 (버림)
+        Assert.Equal(0.1, ReadingSummary.Percent(1, 1189));    // R-155: 1장(0.08%)도 0.0% 가 아니라 0.1%
+        Assert.Equal(0, ReadingSummary.Percent(0, 1189));
+        Assert.Equal(99.9, ReadingSummary.Percent(1188, 1189)); // 다 읽기 전엔 100% 아님
         for (short c = 1; c <= 23; c++) await As(_me).CompleteChapterAsync(1, c);
         await As(_me).CompleteChapterAsync(40, 1);
         var s = await As(_me).SummaryAsync();

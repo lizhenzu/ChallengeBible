@@ -68,7 +68,7 @@
         </div>
         <div class="side">
             @if (d.ReciteRange is not null) { <div><small>이번 주 암송 (@d.ReciteStart?.ToString("M'/'d") ~ @d.ReciteEnd?.ToString("M'/'d"))</small><b>@d.ReciteRange</b></div> }
-            @if (d.PrayerTrait is not null) { <div><small>오늘의 기도</small><b>@d.PrayerTrait</b></div> }
+            @if (d.PrayerTrait is not null) { <div><small>오늘의 기도</small><b>@d.PrayerTrait@(d.PrayerRange is null ? "" : $" · {d.PrayerRange}")</b></div> }
         </div>
     </div></section>
 }

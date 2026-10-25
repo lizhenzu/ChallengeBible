@@ -36,14 +36,20 @@
             <p class="num"><span>@(s.Total)절 · <b data-readcount>@Model.ReadCount</b>절 읽음</span><span data-readpct>@(Model.ReadPercent)%</span></p>
             <div class="brd-bar" aria-hidden="true"><i data-readbar style="width:@(Model.ReadPercent)%"></i></div>
         </div>
-        @if (Model.Media.Count > 0) { <partial name="_MediaBar" model="Model.Media" /> }
-
-        <section class="brd-set" aria-label="읽기 설정">
-            <div class="brd-lbl">읽기 단위</div>
-            <div class="brd-pills">@foreach (var (label, v) in units) { <a href="@Model.Url(unit: v)" aria-current="@(Model.Unit == v ? "true" : "false")">@label</a> }</div>
-            <div class="brd-lbl">번역</div>
-            <div class="brd-pills">@foreach (var (label, v) in trs) { <a href="@Model.Url(tr: v)" aria-current="@(Model.Tr == v ? "true" : "false")">@label</a> }</div>
-        </section>
+        @* 도구 줄(통독 본문과 같은 모양, 확정 시안 보기설정 ㄴ안 — 이 화면은 장 번호판이 없어 [보기] [듣기]만, 처음엔 접힘) *@
+        <div class="rnv" data-rnv>
+            <div class="rnv-bar two">
+                <button type="button" class="rnv-tb" data-rnv-open="set" aria-expanded="false" aria-controls="rnvSet"><b>@units.First(x => x.Value == Model.Unit).Label · @trs.First(x => x.Value == Model.Tr).Label</b><i aria-hidden="true">▾</i></button>
+                @if (Model.Media.Count > 0) { <button type="button" class="rnv-tb yt" data-rnv-open="md" aria-expanded="false" aria-controls="rnvMd"><span aria-hidden="true">🎧</span><b>듣기</b><i aria-hidden="true">▾</i></button> }
+            </div>
+            <section class="rnv-pan brd-set" id="rnvSet" data-rnv-pan="set" aria-label="읽기 설정">
+                <div class="brd-lbl">읽기 단위</div>
+                <div class="brd-pills">@foreach (var (label, v) in units) { <a href="@Model.Url(unit: v)" aria-current="@(Model.Unit == v ? "true" : "false")">@label</a> }</div>
+                <div class="brd-lbl">번역</div>
+                <div class="brd-pills">@foreach (var (label, v) in trs) { <a href="@Model.Url(tr: v)" aria-current="@(Model.Tr == v ? "true" : "false")">@label</a> }</div>
+            </section>
+            @if (Model.Media.Count > 0) { <div class="rnv-pan" id="rnvMd" data-rnv-pan="md"><partial name="_MediaBar" model="Model.Media" /></div> }
+        </div>
 
         @if (Model.Overview is { } ov) { <partial name="_BookOverview" model="ov" /> }
 

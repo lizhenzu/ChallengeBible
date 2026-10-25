@@ -28,7 +28,8 @@ public sealed record ReadingSummary(
     public static int Total => ReadingService.TotalChapters;
     public static int OtTotal => ReadingService.OtChapters;
     public static int NtTotal => ReadingService.TotalChapters - ReadingService.OtChapters;
-    public static double Percent(int read, int total) => total == 0 ? 0 : Math.Floor(read * 1000.0 / total) / 10;   // 소수 첫째 자리(R-155)
+    /// <summary>R-155: 소수 첫째 자리까지 버림(다 읽기 전엔 100% 가 되지 않게). 한 장이라도 읽었으면 0.1% 이상(1장 = 0.08% 가 0.0% 로 보이지 않게).</summary>
+    public static double Percent(int read, int total) => total == 0 || read <= 0 ? 0 : Math.Max(0.1, Math.Floor(read * 1000.0 / total) / 10);
 }
 public sealed record ChapterView(byte BookId, short Chapter, int VerseCount, bool Done, IReadOnlySet<short> VersesRead, int RoundNo);
 public sealed record ReadingResult(bool Ok, bool ChapterDone, double Progress, bool RoundCompleted, int? NewRoundNo, string? Error = null);

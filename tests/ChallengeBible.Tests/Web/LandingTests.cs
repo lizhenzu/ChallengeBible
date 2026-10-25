@@ -33,7 +33,9 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
     {
         ContentSeed.Word(_db, Jan5);
         ContentSeed.Verse(_db, 1);
+        ContentSeed.Prayer(_db, Jan5);
         var html = await Page();
+        Assert.Contains("<small>오늘의 기도</small><b>신뢰 · 잠언 3장 5~6절</b>", html);    // 성품 + 본문 범위(2026-10-25 결정)
         Assert.Contains("aria-label=\"오늘의 말씀\"", html);
         Assert.Contains("창세기 24:1 · 오늘 읽을 범위 창세기 24장 1~9절", html);
         Assert.Contains("이번 주 암송 (1/3 ~ 1/9)", html);
