@@ -46,7 +46,7 @@
                     <div class="who"><span class="av">@(d.Name.Length > 1 ? d.Name[^2..] : d.Name)</span><div><h2>@d.Name</h2><small>@d.Email</small></div></div>
                     <div class="facts">
                         <div><small>가입</small><b class="num">@d.CreatedUtc.ToString("yyyy.MM.dd")</b></div>
-                        <div><small>가족과 함께할 부서</small><b>@(d.FamilyTenant ?? "–")</b></div>
+                        <div><small>시상 부서</small><b>@(d.FamilyTenant ?? "–")</b></div>
                     </div>
                     <div>
                         <h3>소속 부서</h3>
@@ -59,7 +59,7 @@
                                     <li><i style="background:@TenantsModel.ColorVar(m.ThemeColor)"></i><b>@m.Tenant</b>
                                         @foreach (var r in m.Roles) { <span class="tag @(r == Roles.TenantAdmin ? "a" : "")">@MembersModel.RoleLabel(r)</span> }
                                         @if (AccountsModel.StatusLabel(m.Status) is { Length: > 0 } st) { <span class="tag s">@st</span> }
-                                        @if (m.Family) { <span class="tag f">가족 부서</span> }</li>
+                                        @if (m.Family) { <span class="tag f">시상 부서</span> }</li>
                                 }
                             </ul>
                         }

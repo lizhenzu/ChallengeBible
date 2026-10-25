@@ -14,7 +14,7 @@
 <partial name="_AdminTop" model="Model.Tenant" />
 <main class="admin gut"><div class="wrap wide">
     <h1>진급</h1>
-    <p class="lead">학년이 올라간 아이를 다음 부서로 옮겨요. 받는 부서가 승인하면 옮겨지고, 보낸 부서의 점수 · 기록은 지워져요.</p>
+    <p class="lead">학년이 올라간 아이를 다음 부서로 옮겨요. 받는 부서가 승인하면 점수 · 미션 기록도 함께 옮겨져요(보낸 부서에서는 빠져요).</p>
 
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
 
@@ -42,7 +42,7 @@
                     <span class="deptchip"><i style="background:@TenantsModel.ColorVar(here.ThemeColor)"></i>@here.Name</span>
                     <span class="meta">@Model.Day(r.RequestedUtc) 보냄</span>
                 </div>
-                <div class="warnbox">승인하면 <b>@(r.OtherName)의 점수 · 미션 기록 · 가족팀 자리 · 보호 관계가 지워지고</b> 여기서 새로 시작해요. 계정, 성경 읽음 표시 · 책갈피, 성경통독 진도는 그대로예요. 승인 전까지 지우는 일은 없어요.</div>
+                <div class="warnbox">승인하면 <b>@(r.OtherName)의 점수 · 미션 기록이 날짜 그대로 여기로 옮겨지고</b>(참여자로 받을 때), 그곳의 가족팀 자리 · 보호 관계는 지워져요. 옮긴 점수 중 이번 시즌 날짜에 든 것은 여기 순위 · 축하 · 가족팀에도 들어가요. 계정, 성경 읽음 표시 · 책갈피, 성경통독 진도는 그대로예요.</div>
                 @if (Model.ErrorFor == r.Id && Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
                 <form method="post" asp-page-handler="Approve" asp-route-slug="@slug" asp-route-Tab="in" class="stack">
                     <input type="hidden" name="id" value="@r.Id" />
@@ -58,7 +58,7 @@
                         <div><h3>반</h3><input class="sel" name="group" list="groups" placeholder="반 없음" maxlength="50" aria-label="반" /></div>
                     </div>
                     <details class="ask ok"><summary class="btn p sm">승인하고 받기</summary>
-                        <div class="askbox"><span>@(r.Name)@Ui.EulReul(r.Name) 받을까요? @(r.OtherName)의 점수 · 기록이 바로 지워져요.</span><button type="submit" class="btn p sm">받기</button></div>
+                        <div class="askbox"><span>@(r.Name)@Ui.EulReul(r.Name) 받을까요? @(r.OtherName)의 점수 · 기록이 여기로 옮겨지고 그곳에서는 빠져요.</span><button type="submit" class="btn p sm">받기</button></div>
                     </details>
                 </form>
                 <details class="ask"><summary class="btn d sm">거절</summary>

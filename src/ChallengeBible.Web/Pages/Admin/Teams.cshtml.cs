@@ -12,7 +12,7 @@ namespace ChallengeBible.Web.Pages.Admin;
 /// 기본 규칙 "가족팀" 스위치가 꺼지면 404(0012 — 화면 숨김만으로 막지 않음). JS 없이 폼마다 서버가 다시 그린다.
 /// </summary>
 [TenantRoles(Roles.TenantAdmin)]
-public class TeamsModel(FamilyTeamService teams, TenantContext tenant) : PageModel, ITitled
+public class TeamsModel(FamilyTeamService teams, TenantContext tenant, OnFamilyService onFamily) : PageModel, ITitled
 {
     public string Title => "가족팀";
     public TenantContext Tenant => tenant;
@@ -95,9 +95,17 @@ public class TeamsModel(FamilyTeamService teams, TenantContext tenant) : PageMod
         return Page();
     }
 
+    /// <summary>이 부서 사람의 계정 Id → 그 사람이 든 온가족(R-178, 다른 부서 구성원은 이름을 가림). 팀 카드 안에 총점 한 줄.</summary>
+    public Dictionary<int, FamilyBoardView> OnFamilies { get; private set; } = [];
+
+    /// <summary>이 팀 구성원이 든 온가족들(겹치면 하나로).</summary>
+    public IEnumerable<FamilyBoardView> LinkedFamiliesOf(FamilyTeamView t) =>
+        t.Members.Select(m => OnFamilies.GetValueOrDefault(m.AccountId)).OfType<FamilyBoardView>().DistinctBy(f => f.Id);
+
     private async Task<bool> LoadAsync(CancellationToken ct)
     {
         Board = await teams.GetAsync(ct);
+        if (Board.Enabled) OnFamilies = await onFamily.ForTenantAsync(Me, tenant.Current.Id, ct);
         return Board.Enabled;
     }
 }

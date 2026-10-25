@@ -1,0 +1,201 @@
+<title>플랫폼 온가족 시안</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 플랫폼 > 온가족(ADR 0065, R-175 ~ R-179) — 플랫폼 관리자만
+     목록(신청 · 온가족) → 신청에서 묶기 → 온가족 상세(구성원 · 관계 · 순서 · 빼기 · 해체 · 부모의 시상 부서 정하기) */
+  :root { --bg:#FFFFFF; --soft:#F2F4F7; --fg:#1B1F24; --dim:#5B6470; --rule:#E3E6EA; --accent:#2B59C3; --accent-bg:#EAF0FB; --on:#fff;
+          --warm:#FFF6E8; --warm-rule:#F2DDB8; --warm-ink:#6A4300; --bad:#B42318; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#14171B; --soft:#20252C; --fg:#E8EAED; --dim:#A3AAB4; --rule:#2C323A; --accent:#7FA2F2; --accent-bg:#1C2740; --on:#0E1013;
+          --warm:#2C2416; --warm-rule:#4A3C20; --warm-ink:#F0D49C; --bad:#F2867A; } }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); font-family: "Noto Sans KR", system-ui, sans-serif; font-size: 15px; line-height: 1.6; }
+  a { color: inherit; text-decoration: none; }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  .gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 640px; margin: 0 auto; }
+
+  .pick { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; background: #1B1F24; color: #fff; font: 13px system-ui; }
+  .pick b { align-self: center; margin-right: 4px; white-space: nowrap; }
+  .pick button { padding: 6px 10px; border-radius: 8px; border: 1px solid #555; background: #2A2F36; color: #fff; }
+  .pick button[aria-pressed="true"] { background: #2B59C3; border-color: #2B59C3; }
+  .memo { margin: 12px; padding: 12px 14px; border: 2px dashed #2B59C3; border-radius: 12px; font: 14px/1.7 system-ui; color: #2B59C3; background: #fff; }
+
+  header.top .wrap { min-height: 60px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--rule); }
+  .tn { font-weight: 900; color: var(--accent); font-size: 17px; }
+  .tn small { font-size: 12px; color: var(--dim); font-weight: 700; margin-left: 6px; }
+  header.top a { font-size: 14px; font-weight: 700; color: var(--dim); }
+
+  main .wrap { padding-block: 22px 40px; display: grid; gap: 16px; }
+  .k { font-size: 12px; font-weight: 800; letter-spacing: .18em; color: var(--accent); }
+  h1 { margin: 4px 0 0; font-size: clamp(20px, 6vw, 26px); font-weight: 900; line-height: 1.3; letter-spacing: -.03em; }
+  h2 { margin: 8px 0 0; font-size: 15px; font-weight: 800; color: var(--dim); display: flex; gap: 8px; align-items: center; }
+  h2 .n { padding: 0 8px; border-radius: 99px; background: var(--accent); color: var(--on); font-size: 12px; }
+  .sub { margin: 4px 0 0; color: var(--dim); font-size: 14px; word-break: keep-all; }
+
+  .req { padding: 14px 16px; border-radius: 16px; border: 2px solid var(--accent); background: var(--accent-bg); display: grid; gap: 8px; }
+  .req .who { display: flex; justify-content: space-between; font-size: 13px; color: var(--dim); }
+  .req .who b { color: var(--fg); font-size: 15px; }
+  .req blockquote { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--bg); font-size: 13.5px; white-space: pre-line; }
+  .req .acts { display: flex; gap: 8px; }
+  .b { min-height: 44px; padding: 0 16px; border-radius: 12px; font-weight: 800; border: 0; background: var(--accent); color: var(--on); display: inline-grid; place-items: center; }
+  .b.line { border: 1.5px solid var(--rule); background: var(--bg); color: var(--fg); }
+  .b.bad { border: 1.5px solid var(--bad); background: var(--bg); color: var(--bad); }
+  .b.wide { width: 100%; min-height: 52px; font-size: 16px; }
+
+  .find { display: flex; gap: 8px; }
+  .find input { flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1.5px solid var(--rule); background: var(--bg); }
+
+  .list { display: grid; gap: 8px; }
+  .fam { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--rule); }
+  .fam .e { font-size: 22px; }
+  .fam .tx { flex: 1; min-width: 0; display: grid; line-height: 1.35; }
+  .fam .tx b { font-size: 15.5px; }
+  .fam .tx small { font-size: 12.5px; color: var(--dim); }
+  .fam .pt { font-weight: 900; }
+
+  .mem { display: grid; gap: 10px; }
+  .m { padding: 14px; border-radius: 16px; border: 1.5px solid var(--rule); display: grid; gap: 10px; }
+  .m .top { display: flex; align-items: center; gap: 12px; }
+  .m .av { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; color: #fff; }
+  .m .tx { flex: 1; min-width: 0; display: grid; line-height: 1.35; }
+  .m .tx b { font-size: 15.5px; }
+  .m .tx small { font-size: 12.5px; color: var(--dim); word-break: keep-all; }
+  .m .pt { font-weight: 900; }
+  .m .ord { display: flex; gap: 4px; }
+  .m .ord button { width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--rule); background: var(--bg); }
+  .m .ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13.5px; }
+  .m select { min-height: 38px; padding: 0 10px; border-radius: 10px; border: 1.5px solid var(--rule); background: var(--bg); }
+  .m .x { margin-left: auto; border: 0; background: none; color: var(--bad); font-weight: 700; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+  .aw { padding: 10px 12px; border-radius: 12px; background: var(--warm); border: 1px solid var(--warm-rule); color: var(--warm-ink); display: grid; gap: 6px; font-size: 13px; }
+  .aw label { font-weight: 800; }
+  .aw select { width: 100%; }
+  .aw.none { border-style: dashed; }
+
+  .hit { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--soft); font-size: 14px; }
+  .hit .tx { flex: 1; display: grid; line-height: 1.35; }
+  .hit small { color: var(--dim); font-size: 12.5px; }
+  .hit .tag { font-size: 12px; font-weight: 800; color: var(--bad); }
+
+  .tot { padding: 14px 16px; border-radius: 16px; background: var(--soft); display: flex; justify-content: space-between; align-items: baseline; }
+  .tot b { font-size: 24px; font-weight: 900; }
+  .field { display: grid; gap: 6px; }
+  .field label { font-weight: 800; font-size: 14px; }
+  .field input { min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1.5px solid var(--rule); background: var(--bg); }
+  .danger { margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--rule); display: grid; gap: 6px; }
+  .danger small { color: var(--dim); font-size: 12.5px; }
+  [hidden] { display: none !important; }
+</style>
+
+<div class="pick" role="group" aria-label="시안 상태">
+  <b>보기</b>
+  <button type="button" data-set="list" aria-pressed="true">목록</button>
+  <button type="button" data-set="new" aria-pressed="false">신청에서 묶기</button>
+  <button type="button" data-set="detail" aria-pressed="false">온가족 상세</button>
+</div>
+<div class="memo">
+<b>시안 · 플랫폼 &gt; 온가족</b>(ADR 0065) — 플랫폼 관리자만<br>
+· 목록: 맨 위에 <b>신청</b>(신청 글 그대로) → [묶기] · [거절], 아래에 온가족 목록 · 찾기<br>
+· 묶기: 계정을 이름 · 이메일로 찾아 넣고 관계를 고름. 이미 다른 온가족이면 넣을 수 없음<br>
+· 상세: 구성원마다 모든 부서 소속이 보이고, <b>보호자(부모)는 시상 부서</b>를 여기서 정함<br>
+· 예시 사람은 모두 지어낸 이름</div>
+
+<header class="top gut"><div class="wrap"><span class="tn">도전!!!<small>플랫폼</small></span><a href="#">← 플랫폼 홈</a></div></header>
+
+<main class="gut"><div class="wrap">
+
+  <!-- 목록 -->
+  <div data-only="list">
+    <div class="k">플랫폼 관리</div>
+    <h1>온가족</h1>
+    <p class="sub">부서를 넘어 한 집안을 묶어요. 점수는 보기만, 시상은 부서 가족팀으로.</p>
+  </div>
+  <h2 data-only="list">신청 <span class="n">1</span></h2>
+  <section class="req" data-only="list">
+    <div class="who"><span><b>이은정</b> · 유년부 보호자</span><span>10월 25일</span></div>
+    <blockquote>김철수 — 잠실새내교회 유년부
+김영희 — 잠실새내교회 초등부
+이은정(엄마) — 유년부</blockquote>
+    <div class="acts"><button type="button" class="b" data-go="new">묶기</button><button type="button" class="b line">거절</button></div>
+  </section>
+  <h2 data-only="list">온가족 <span class="n" style="background:var(--dim)">3</span></h2>
+  <div class="find" data-only="list"><input type="search" placeholder="이름 · 이메일로 찾기" aria-label="온가족 찾기"><a class="b line" href="#" data-go="new">+ 새로</a></div>
+  <div class="list" data-only="list">
+    <a class="fam" href="#" data-go="detail"><span class="e" aria-hidden="true">🏡</span><span class="tx"><b>김철수네 온가족</b><small>4명 · 유년부 · 초등부 · 장년 통독모임</small></span><span class="pt">4,320</span></a>
+    <a class="fam" href="#"><span class="e" aria-hidden="true">🏡</span><span class="tx"><b>박하늘네 온가족</b><small>3명 · 유치부 · 유년부</small></span><span class="pt">2,105</span></a>
+    <a class="fam" href="#"><span class="e" aria-hidden="true">🏡</span><span class="tx"><b>최소망네 온가족</b><small>2명 · 초등부</small></span><span class="pt">880</span></a>
+  </div>
+
+  <!-- 신청에서 묶기 -->
+  <div data-only="new">
+    <div class="k">온가족 · 새로 묶기</div>
+    <h1>이은정 님의 신청</h1>
+  </div>
+  <section class="req" data-only="new" style="border-width:1.5px">
+    <blockquote>김철수 — 잠실새내교회 유년부
+김영희 — 잠실새내교회 초등부
+이은정(엄마) — 유년부</blockquote>
+  </section>
+  <div class="field" data-only="new"><label for="nm">온가족 이름(비우면 "김철수네 온가족")</label><input id="nm" placeholder="김철수네 온가족"></div>
+  <h2 data-only="new">계정 찾아 넣기</h2>
+  <div class="find" data-only="new"><input type="search" value="김영희" aria-label="계정 찾기"><button type="button" class="b">찾기</button></div>
+  <div class="list" data-only="new">
+    <div class="hit"><span class="tx"><b>김영희</b><small>yh***@example.com · 초등부 참여자</small></span><button type="button" class="b">넣기</button></div>
+    <div class="hit"><span class="tx"><b>김영희</b><small>kim***@example.com · 장년 통독모임</small></span><span class="tag">다른 온가족에 있음</span></div>
+  </div>
+  <h2 data-only="new">넣을 구성원 <span class="n">3</span></h2>
+  <div class="mem" data-only="new">
+    <div class="m"><div class="top"><span class="av" style="background:#2B59C3">철</span><span class="tx"><b>김철수</b><small>유년부 참여자</small></span><select aria-label="관계"><option>학생</option></select></div></div>
+    <div class="m"><div class="top"><span class="av" style="background:#1F7A5C">영</span><span class="tx"><b>김영희</b><small>초등부 참여자</small></span><select aria-label="관계"><option>학생</option></select></div></div>
+    <div class="m"><div class="top"><span class="av" style="background:#B2462E">은</span><span class="tx"><b>이은정</b><small>유년부 보호자 · 참여자, 초등부 보호자</small></span><select aria-label="관계"><option>엄마</option></select></div></div>
+  </div>
+  <button type="button" class="b wide" data-only="new" data-go="detail">온가족 만들기</button>
+
+  <!-- 상세 -->
+  <div data-only="detail">
+    <div class="k">온가족</div>
+    <h1>김철수네 온가족</h1>
+  </div>
+  <div class="tot" data-only="detail"><span>처음부터 모은 점수</span><b>4,320점</b></div>
+  <h2 data-only="detail">구성원 <span class="n">4</span></h2>
+  <div class="mem" data-only="detail">
+    <div class="m">
+      <div class="top"><span class="av" style="background:#2B59C3">철</span><span class="tx"><b>김철수</b><small>유년부 참여자</small></span><span class="pt">1,820</span></div>
+      <div class="ctl"><select aria-label="관계"><option>학생</option></select><span class="ord"><button type="button" aria-label="위로">▲</button><button type="button" aria-label="아래로">▼</button></span><button type="button" class="x">빼기</button></div>
+    </div>
+    <div class="m">
+      <div class="top"><span class="av" style="background:#1F7A5C">영</span><span class="tx"><b>김영희</b><small>초등부 참여자</small></span><span class="pt">1,540</span></div>
+      <div class="ctl"><select aria-label="관계"><option>학생</option></select><span class="ord"><button type="button" aria-label="위로">▲</button><button type="button" aria-label="아래로">▼</button></span><button type="button" class="x">빼기</button></div>
+    </div>
+    <div class="m">
+      <div class="top"><span class="av" style="background:#B2462E">은</span><span class="tx"><b>이은정</b><small>유년부 보호자 · 참여자 / 초등부 보호자</small></span><span class="pt">960</span></div>
+      <div class="aw"><label for="aw1">시상 부서(이 부서 가족팀에서만 축하 · 선물)</label>
+        <select id="aw1"><option>잠실새내교회 유년부</option><option>잠실새내교회 초등부</option></select>
+        <span>바꾸면 지금 부서의 참여 · 가족팀 자리는 멈추고 기록은 남아요.</span></div>
+      <div class="ctl"><select aria-label="관계"><option>엄마</option></select><span class="ord"><button type="button" aria-label="위로">▲</button><button type="button" aria-label="아래로">▼</button></span><button type="button" class="x">빼기</button></div>
+    </div>
+    <div class="m">
+      <div class="top"><span class="av" style="background:#6A4BB5">민</span><span class="tx"><b>김민호</b><small>장년 통독모임(통독만) / 유년부 보호자</small></span><span class="pt">0</span></div>
+      <div class="aw none"><label for="aw2">시상 부서 — 아직 안 정함</label>
+        <select id="aw2"><option>정하지 않음</option><option>잠실새내교회 유년부</option><option>잠실새내교회 장년 통독모임</option></select>
+        <span>정하기 전에는 어느 부서에서도 미션 참여자 · 가족팀이 될 수 없어요.</span></div>
+      <div class="ctl"><select aria-label="관계"><option>아빠</option></select><span class="ord"><button type="button" aria-label="위로">▲</button><button type="button" aria-label="아래로">▼</button></span><button type="button" class="x">빼기</button></div>
+    </div>
+  </div>
+  <h2 data-only="detail">더 넣기</h2>
+  <div class="find" data-only="detail"><input type="search" placeholder="이름 · 이메일로 찾기" aria-label="계정 찾기"><button type="button" class="b">찾기</button></div>
+  <button type="button" class="b wide" data-only="detail">저장</button>
+  <div class="danger" data-only="detail"><button type="button" class="b bad">온가족 해체</button><small>구성원 묶음만 풀려요. 부서 기록 · 점수 · 가족팀은 그대로예요.</small></div>
+</div></main>
+
+<script>
+  const set = (v) => {
+    document.querySelectorAll('[data-set]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.set === v)));
+    document.querySelectorAll('[data-only]').forEach(el => el.hidden = !el.dataset.only.split(' ').includes(v));
+    window.scrollTo(0, 0);
+  };
+  document.querySelectorAll('[data-set]').forEach(b => b.onclick = () => set(b.dataset.set));
+  document.querySelectorAll('[data-go]').forEach(b => b.onclick = (e) => { e.preventDefault(); set(b.dataset.go); });
+  set(location.hash.length > 1 ? location.hash.slice(1) : 'list');
+</script>

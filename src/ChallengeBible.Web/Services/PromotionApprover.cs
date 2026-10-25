@@ -7,7 +7,8 @@ namespace ChallengeBible.Web.Services;
 /// <summary>
 /// 진급 승인 처리기(0026, 0030 결정 3 · 4, 물리 설계 3-3). 진급에서 시스템 연결을 쓰는 곳은 여기 한 곳뿐이다.
 /// 받는 부서 관리자의 권한을 이 부서 연결로 먼저 확인한 뒤, 시스템 연결의 한 트랜잭션에서
-/// 받는 부서 소속을 만들고(0058) 보낸 부서의 그 소속과 딸린 기록을 완전히 지운다(0022, R-139). 실행 사실은 AuditLog 에 남긴다.
+/// 받는 부서 소속을 만들고(0058), 참여자로 받으면 보낸 부서의 미션 기록 · 점수를 날짜 그대로 옮긴 뒤(0066, RecordMover)
+/// 보낸 부서의 그 소속과 딸린 기록을 지운다(0022, R-139). 실행 사실은 AuditLog 에 남긴다.
 /// 통독 · 읽음 · 책갈피는 계정 범위라 그대로 둔다(R-158).
 /// </summary>
 public sealed class PromotionApprover(IAppDb db, ISystemDb systemDb, TenantContext tenant, TimeProvider time)
@@ -41,14 +42,38 @@ public sealed class PromotionApprover(IAppDb db, ISystemDb systemDb, TenantConte
             .SingleOrDefaultAsync(m => m.TenantId == req.TargetTenantId && m.AccountId == req.AccountId, ct);
         if (target is { Status: MembershipStatus.Approved or MembershipStatus.Suspended }) return PromotionError.AlreadyMember;
 
-        // 보낸 부서의 소속과 딸린 기록 완전 삭제(0022)
+        // 받는 부서 소속 만들기 · 승인(먼저 — 옮길 참여자가 있어야 한다, 0066)
+        if (target is null)
+        {
+            target = new Membership { TenantId = req.TargetTenantId, AccountId = req.AccountId, RequestedUtc = now };
+            sys.Memberships.Add(target);
+        }
+        else sys.MembershipRoles.RemoveRange(target.Roles);
+        target.Status = MembershipStatus.Approved;
+        target.GroupLabel = string.IsNullOrWhiteSpace(group) ? null : group.Trim()[..Math.Min(group.Trim().Length, 50)];
+        target.DecidedUtc = now;
+        target.DecidedByAccountId = actor;
+        await sys.SaveChangesAsync(ct);
+        foreach (var r in want) sys.MembershipRoles.Add(new MembershipRole { TenantId = target.TenantId, MembershipId = target.Id, Role = r });
+        Participant? newP = null;
+        if (want.Contains(Roles.Participant))
+        {
+            newP = await sys.Participants.SingleOrDefaultAsync(p => p.TenantId == target.TenantId && p.MembershipId == target.Id, ct);
+            if (newP is null) sys.Participants.Add(newP = new Participant { TenantId = target.TenantId, MembershipId = target.Id });
+            else newP.IsActive = true;
+        }
+        await sys.SaveChangesAsync(ct);
+
+        // 보낸 부서의 기록을 새 부서로 옮긴 뒤(0066, R-139) 보낸 부서의 소속과 딸린 기록을 지운다(0022)
         var source = await sys.Memberships.Include(m => m.Roles)
             .SingleOrDefaultAsync(m => m.TenantId == req.SourceTenantId && m.AccountId == req.AccountId, ct);
         var removed = 0;
+        var moved = new LobbyMove(0, 0, 0, 0, 0);
         if (source is not null)
         {
             var t = source.TenantId;
             var pids = await sys.Participants.Where(p => p.TenantId == t && p.MembershipId == source.Id).Select(p => p.Id).ToListAsync(ct);
+            if (newP is not null && pids.Count == 1) moved = await RecordMover.CopyAsync(sys, t, pids[0], target.TenantId, newP.Id, ct);
             sys.PointLedgers.RemoveRange(await sys.PointLedgers.Where(x => x.TenantId == t && pids.Contains(x.ParticipantId)).ToListAsync(ct));
             sys.QuizAttempts.RemoveRange(await sys.QuizAttempts.Where(x => x.TenantId == t && pids.Contains(x.ParticipantId)).ToListAsync(ct));
             sys.MilestonesReached.RemoveRange(await sys.MilestonesReached.Where(x => x.TenantId == t && pids.Contains(x.ParticipantId)).ToListAsync(ct));
@@ -65,21 +90,6 @@ public sealed class PromotionApprover(IAppDb db, ISystemDb systemDb, TenantConte
             await sys.SaveChangesAsync(ct);
         }
 
-        // 받는 부서 소속 만들기 · 승인
-        if (target is null)
-        {
-            target = new Membership { TenantId = req.TargetTenantId, AccountId = req.AccountId, RequestedUtc = now };
-            sys.Memberships.Add(target);
-        }
-        else sys.MembershipRoles.RemoveRange(target.Roles);
-        target.Status = MembershipStatus.Approved;
-        target.GroupLabel = string.IsNullOrWhiteSpace(group) ? null : group.Trim()[..Math.Min(group.Trim().Length, 50)];
-        target.DecidedUtc = now;
-        target.DecidedByAccountId = actor;
-        await sys.SaveChangesAsync(ct);
-        foreach (var r in want) sys.MembershipRoles.Add(new MembershipRole { TenantId = target.TenantId, MembershipId = target.Id, Role = r });
-        if (want.Contains(Roles.Participant)) sys.Participants.Add(new Participant { TenantId = target.TenantId, MembershipId = target.Id });
-
         req.Status = PromotionStatus.Approved;
         req.DecidedUtc = now;
         req.DecidedByAccountId = actor;
@@ -88,7 +98,7 @@ public sealed class PromotionApprover(IAppDb db, ISystemDb systemDb, TenantConte
         sys.AuditLogs.Add(new AuditLog
         {
             OccurredUtc = now, ActorAccountId = actor, Action = "PromotionApproved", TenantId = req.TargetTenantId,
-            Detail = $"request={req.Id} account={req.AccountId} source={req.SourceTenantId} target={req.TargetTenantId} activities={removed}",
+            Detail = $"request={req.Id} account={req.AccountId} source={req.SourceTenantId} target={req.TargetTenantId} activities={removed} moved={moved.Activities} points={moved.Points} quiz={moved.QuizAttempts} milestones={moved.Milestones} skipped={moved.Skipped}",
         });
         await sys.SaveChangesAsync(ct);
         if (tx is not null) await tx.CommitAsync(ct);

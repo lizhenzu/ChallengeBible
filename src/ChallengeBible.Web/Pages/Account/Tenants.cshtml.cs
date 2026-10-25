@@ -11,8 +11,9 @@ public class TenantsModel(AccountService accounts, FamilyTenantService family) :
     public string Title => "부서 고르기";
     public List<MyMembership> Approved { get; private set; } = [];
     public List<MyMembership> Waiting { get; private set; } = [];
-    /// <summary>보호자 계정이면 가족과 함께할 부서(0046) — 아래 줄 "가족과 함께하는 부서는 … · 바꾸기". 보호자가 아니면 null.</summary>
-    public FamilyChoice? Family { get; private set; }
+    /// <summary>보호자 계정이면 아래 줄 "시상 부서"(R-179, 플랫폼 관리자가 정함 — 보기만). 보호자가 아니면 false.</summary>
+    public bool IsGuardian { get; private set; }
+    public string? AwardDept { get; private set; }
 
     public async Task OnGetAsync(CancellationToken ct)
     {
@@ -20,6 +21,7 @@ public class TenantsModel(AccountService accounts, FamilyTenantService family) :
         var mine = await accounts.MyMembershipsAsync(me, ct);
         Approved = mine.Where(m => m.Status == MembershipStatus.Approved && m.TenantActive).ToList();
         Waiting = mine.Where(m => m.Status == MembershipStatus.Requested).ToList();
-        Family = await family.GetAsync(me, ct);
+        AwardDept = await family.CurrentNameAsync(me, ct);
+        IsGuardian = AwardDept is not null || await family.NeedsChoiceAsync(me, ct);
     }
 }

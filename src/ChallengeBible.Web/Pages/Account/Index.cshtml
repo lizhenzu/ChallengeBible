@@ -42,12 +42,12 @@
             {
                 <li><span class="mk" style="background:@ChallengeBible.Web.Pages.Platform.TenantsModel.ColorVar(d.ThemeColor)">@Ui.DeptMark(d.Name)</span>
                     <a class="nm" href="/@d.Slug"><b>@d.Name</b><small>@string.Join(" · ", d.Roles.Select(IndexModel.RoleLabel))</small></a>
-                    @if (d.IsFamily) { <span class="tag ok">가족과 함께</span> }</li>
+                    @if (d.IsFamily && Model.IsGuardian) { <span class="tag ok">시상 부서</span> }</li>
             }
         </ul>
         <div class="ma-links">
             @if (Model.Depts.Count > 1) { <a href="/account/tenants">부서 고르기 →</a> }
-            @if (Model.IsGuardian) { <a href="/account/family">가족과 함께할 부서 @(Model.Depts.Any(d => d.IsFamily) ? "바꾸기" : "고르기") →</a> }
+            <a href="/account/family">온가족 →</a>
             <a href="/join">다른 부서 참여 신청 →</a>
         </div>
     </section>

@@ -112,6 +112,31 @@ public class PromotionServiceTests
         Assert.Null(Assert.Single(await In(_kids).Svc.SentAsync()).DecidedBy);   // 보낸 쪽은 상대 선생님 이름을 모른다(0030)
         var log = Assert.Single(raw.AuditLogs);
         Assert.Equal(("PromotionApproved", _elemAdmin.Id, (int?)_elem.Id), (log.Action, log.ActorAccountId, log.TenantId));
+
+        // 0066: 지우기 전에 새 부서 참여자에게 날짜 그대로 옮겼다(기록 · 점수 · 퀴즈 · 축하)
+        var np = raw.Participants.Single(p => p.TenantId == _elem.Id && p.MembershipId == now.Id).Id;
+        var act = Assert.Single(raw.Activities.Where(x => x.TenantId == _elem.Id && x.ParticipantId == np));
+        Assert.Equal((new DateOnly(2027, 1, 4), "Word.Me", 1), (act.MissionDate, act.MissionItem, act.Points));
+        var led = Assert.Single(raw.PointLedgers.Where(x => x.TenantId == _elem.Id && x.ParticipantId == np));
+        Assert.Equal((act.Id, 1), (led.ActivityId, led.Points));
+        Assert.Single(raw.QuizAttempts.Where(x => x.TenantId == _elem.Id && x.ParticipantId == np));
+        Assert.Single(raw.MilestonesReached.Where(x => x.TenantId == _elem.Id && x.ParticipantId == np && x.Threshold == 3000));
+        Assert.Contains("moved=1 points=1 quiz=1 milestones=1", log.Detail);
+    }
+
+    [Fact]
+    public async Task R139_보호자로만_받으면_옮길_참여자가_없어_기록은_지워지기만_한다()
+    {
+        var (a, m, pid) = Kid();
+        var id = await SendOne(m);
+
+        Assert.Equal(PromotionError.None, await In(_elem).Approver.ApproveAsync(_elemAdmin.Id, id, [Roles.Guardian], null));
+
+        using var raw = InMemoryDb.Raw(_db);
+        Assert.False(raw.Participants.Any(p => p.TenantId == _elem.Id));
+        Assert.False(raw.Activities.Any());                         // 이전 부서 것도 지워지고 새 부서에도 없다
+        Assert.False(raw.PointLedgers.Any());
+        Assert.Contains("moved=0", Assert.Single(raw.AuditLogs).Detail);
     }
 
     [Fact]

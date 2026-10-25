@@ -1,0 +1,94 @@
+@page "/platform/families/{id:int}"
+@model ChallengeBible.Web.Pages.Platform.FamilyModel
+@using ChallengeBible.Infrastructure.Data
+@using ChallengeBible.Web.Services
+@* 확정 시안: 플랫폼-온가족-단독시안 "온가족 상세" — 이름 · 누적 점수 → 구성원(관계 · 순서 · 빼기, 보호자는 시상 부서) → 더 넣기 → 저장 → 해체 *@
+@{
+    var d = Model.Detail;
+    var b = d.Board;
+    var last = d.Members.Count - 1;
+}
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap pfam">
+    <div>
+        <a class="lnk" href="/platform/families">← 온가족</a>
+        <h1>@b.Name</h1>
+    </div>
+    @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
+    @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+    <div class="pf-tot"><span>처음부터 모은 점수</span><b class="num">@(b.Total.ToString("N0"))점</b></div>
+
+    <form method="post" asp-page-handler="Save" id="famSave" class="pfam-f">
+        <div class="f"><label for="nm">온가족 이름 <small>· 비우면 "{대표}네 온가족"</small></label><input id="nm" class="in" name="name" value="@d.RawName" maxlength="@FamilyAdminService.NameMax" /></div>
+    </form>
+
+    <h2>구성원 <span class="n">@d.Members.Count</span></h2>
+    <div class="pf-mem">
+        @for (var i = 0; i < d.Members.Count; i++)
+        {
+            var m = d.Members[i];
+            var p = m.Person;
+            <div class="pf-m">
+                <div class="top"><span class="av" aria-hidden="true">@ChallengeBible.Web.Pages.Account.FamilyModel.Initial(p.Name)</span>
+                    <span class="tx"><b>@p.Name</b><small>@m.Depts</small></span><span class="pt num">@p.Points.ToString("N0")</span></div>
+                @if (m.IsGuardian)
+                {
+                    <form method="post" asp-page-handler="Award" class="pf-aw @(m.AwardTenantId is null ? "none" : "")">
+                        <input type="hidden" name="account" value="@p.AccountId" />
+                        <label for="aw@(p.AccountId)">@(m.AwardTenantId is null ? "시상 부서 — 아직 안 정함" : "시상 부서(이 부서 가족팀에서만 축하 · 선물)")</label>
+                        <div class="row">
+                            <select class="sel" id="aw@(p.AccountId)" name="tenant">
+                                @if (m.AwardTenantId is null) { <option value="0">정하지 않음</option> }
+                                @foreach (var (tid, tname) in m.AwardOptions) { <option value="@tid" selected="@(m.AwardTenantId == tid)">@tname</option> }
+                            </select>
+                            <button type="submit" class="btn s sm">정하기</button>
+                        </div>
+                        <span>@(m.AwardTenantId is null ? "정하기 전에는 어느 부서에서도 미션 참여자 · 가족팀이 될 수 없어요." : "바꾸면 지금 부서의 참여 · 가족팀 자리는 멈추고 기록은 남아요.")</span>
+                    </form>
+                }
+                <div class="ctl">
+                    <select class="sel" name="rel_@p.AccountId" form="famSave" aria-label="@(p.Name) 관계">
+                        @foreach (var rel in FamilyRelation.All) { <option value="@rel" selected="@(rel == p.Relation)">@FamilyTeamService.RelationLabel(rel)</option> }
+                    </select>
+                    <form method="post" asp-page-handler="Move" class="ord">
+                        <input type="hidden" name="account" value="@p.AccountId" />
+                        <button type="submit" name="up" value="true" aria-label="@(p.Name) 위로" disabled="@(i == 0)">▲</button>
+                        <button type="submit" name="up" value="false" aria-label="@(p.Name) 아래로" disabled="@(i == last)">▼</button>
+                    </form>
+                    <form method="post" asp-page-handler="Remove" class="rm"><input type="hidden" name="account" value="@p.AccountId" /><button type="submit" class="x">빼기</button></form>
+                </div>
+            </div>
+        }
+    </div>
+
+    <h2>더 넣기</h2>
+    <form method="get" class="pa-find" role="search">
+        <input class="search" type="search" name="q" value="@Model.Q" placeholder="이름 · 이메일로 찾기" aria-label="계정 찾기" />
+        <button type="submit" class="btn s sm">찾기</button>
+    </form>
+    @if (!string.IsNullOrWhiteSpace(Model.Q))
+    {
+        <div class="pf-list">
+            @if (Model.Hits.Count == 0) { <p class="ph-muted">찾는 계정이 없어요.</p> }
+            @foreach (var h in Model.Hits)
+            {
+                <div class="pf-hit"><span class="tx"><b>@h.Name</b><small>@h.Email · @h.Depts</small></span>
+                    @if (h.FamilyId == b.Id) { <span class="tag">이 온가족</span> }
+                    else if (h.FamilyId is not null) { <span class="tag bad">다른 온가족에 있음</span> }
+                    else { <form method="post" asp-page-handler="Add"><input type="hidden" name="account" value="@h.Id" /><button type="submit" class="btn p sm">넣기</button></form> }
+                </div>
+            }
+        </div>
+    }
+
+    <button type="submit" class="btn p wide" form="famSave">저장</button>
+
+    <div class="pf-danger">
+        <details class="ask"><summary class="btn d sm">온가족 해체</summary>
+            <form method="post" asp-page-handler="Dissolve">
+                <span>@(b.Name)@Ui.EulReul(b.Name) 해체할까요? 구성원 묶음만 풀려요.</span><button type="submit" class="btn dd sm">해체하기</button>
+            </form>
+        </details>
+        <small>구성원 묶음만 풀려요. 부서 기록 · 점수 · 가족팀은 그대로예요.</small>
+    </div>
+</div></main>

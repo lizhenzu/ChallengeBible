@@ -565,6 +565,42 @@ CREATE TABLE app.FamilyMilestoneDismiss (                                       
 );
 
 -- =====================================================================
+-- 5-2. 플랫폼 범위 — 온가족 (0065, R-175 ~ R-178). TenantId 없음, RLS 없음(앱 정책)
+-- =====================================================================
+
+CREATE TABLE app.Family (
+    Id                  int IDENTITY  NOT NULL CONSTRAINT PK_Family PRIMARY KEY,
+    Name                nvarchar(30)  NULL,                -- 비면 "{대표 구성원} 온가족"
+    CreatedUtc          datetime2(3)  NOT NULL,
+    CreatedByAccountId  int           NOT NULL CONSTRAINT FK_Family_CreatedBy REFERENCES app.Account(Id)
+);
+
+CREATE TABLE app.FamilyLink (
+    FamilyId          int          NOT NULL CONSTRAINT FK_FamilyLink_Family REFERENCES app.Family(Id),
+    AccountId         int          NOT NULL CONSTRAINT FK_FamilyLink_Account REFERENCES app.Account(Id),
+    Relation          varchar(20)  NOT NULL CONSTRAINT CK_FamilyLink_Relation
+                      CHECK (Relation IN ('Student','Mother','Father','Grandmother','Grandfather','Other')),
+    SortOrder         tinyint      NOT NULL,
+    AddedUtc          datetime2(3) NOT NULL,
+    AddedByAccountId  int          NOT NULL CONSTRAINT FK_FamilyLink_AddedBy REFERENCES app.Account(Id),
+    CONSTRAINT PK_FamilyLink PRIMARY KEY (FamilyId, AccountId),
+    CONSTRAINT UQ_FamilyLink_Account UNIQUE (AccountId)                             -- 한 계정 한 온가족(R-175)
+);
+
+CREATE TABLE app.FamilyRequest (                                                 -- R-176
+    Id                  int IDENTITY   NOT NULL CONSTRAINT PK_FamilyRequest PRIMARY KEY,
+    RequesterAccountId  int            NOT NULL CONSTRAINT FK_FamilyRequest_Requester REFERENCES app.Account(Id),
+    Body                nvarchar(500)  NOT NULL,
+    Status              varchar(20)    NOT NULL CONSTRAINT CK_FamilyRequest_Status CHECK (Status IN ('Requested','Approved','Rejected')),
+    RequestedUtc        datetime2(3)   NOT NULL,
+    DecidedUtc          datetime2(3)   NULL,
+    DecidedByAccountId  int            NULL CONSTRAINT FK_FamilyRequest_DecidedBy REFERENCES app.Account(Id),
+    FamilyId            int            NULL CONSTRAINT FK_FamilyRequest_Family REFERENCES app.Family(Id)
+);
+CREATE UNIQUE INDEX UX_FamilyRequest_Open ON app.FamilyRequest (RequesterAccountId) WHERE Status = 'Requested';   -- 처리 안 된 신청 1건
+CREATE INDEX IX_FamilyRequest_Status ON app.FamilyRequest (Status, RequestedUtc);                                   -- 플랫폼 신청 목록
+
+-- =====================================================================
 -- 6. 계정 범위 — 성경 읽기 (0029)
 -- =====================================================================
 

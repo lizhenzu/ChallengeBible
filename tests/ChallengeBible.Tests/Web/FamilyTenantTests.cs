@@ -59,31 +59,12 @@ public partial class FamilyTenantTests : IClassFixture<WebApplicationFactory<Pro
         raw.SaveChanges();
     }
 
-    private FamilyTenantService Svc() => new(new InMemorySystemDb(_db), new TenantClock(_time), _time);
+    private FamilyTenantService Svc() => new(new InMemorySystemDb(_db), _time);
 
     [Fact]
-    public async Task 보호자에게_내가_보호자인_부서마다_자녀_가족팀_내_점수를_보여_준다()
+    public async Task R168_R179_다른_부서로_바꾸면_이전_부서_참여와_가족팀_자리만_멈추고_점수는_남는다()
     {
-        var c = await Svc().GetAsync(_mom);
-        Assert.NotNull(c);
-        Assert.Null(c.Current);
-        var kids = c.Options.Single(o => o.TenantId == _kids.Id);
-        Assert.Equal(["김철수"], kids.Children);
-        Assert.Equal(("김철수 가족", 64, true, 22), (kids.TeamName, kids.TeamPoints, kids.IAmParticipant, kids.MyPoints));
-        var elem = c.Options.Single(o => o.TenantId == _elem.Id);
-        Assert.Equal(["김민지"], elem.Children);
-        Assert.Equal(((string?)null, false), (elem.TeamName, elem.IAmParticipant));
-        Assert.Equal([_kids.Id], c.StopsIf(_elem.Id).Select(s => s.TenantId));   // 초등부를 고르면 유년부가 멈춘다
-        Assert.Empty(c.StopsIf(_kids.Id));
-
-        var cheolsuAccount = InMemoryDb.Raw(_db).Accounts.Single(a => a.Email == "cheolsu@example.com").Id;
-        Assert.Null(await Svc().GetAsync(cheolsuAccount));   // 보호자가 아니면 없음
-    }
-
-    [Fact]
-    public async Task R168_다른_부서로_바꾸면_이전_부서_참여와_가족팀_자리만_멈추고_점수는_남는다()
-    {
-        Assert.True(await Svc().ChooseAsync(_mom, _elem.Id));
+        Assert.True(await Svc().ChooseAsync(_mom, _mom, _elem.Id));
         using (var raw = InMemoryDb.Raw(_db))
         {
             Assert.Equal(_elem.Id, raw.Accounts.Single(a => a.Id == _mom).FamilyTenantId);
@@ -95,11 +76,11 @@ public partial class FamilyTenantTests : IClassFixture<WebApplicationFactory<Pro
             Assert.Equal(2, raw.PointLedgers.Count());                                                       // 점수 · 기록은 남음
             var momElem = raw.Memberships.Single(x => x.TenantId == _elem.Id && x.AccountId == _mom).Id;
             Assert.False(raw.MembershipRoles.Any(r => r.MembershipId == momElem && r.Role == Roles.Participant)); // 새 부서 참여자는 선생님이 준다
-            Assert.Equal("FamilyTenant", raw.AuditLogs.Single().Action);
+            Assert.Equal(FamilyTenantService.SetAction, raw.AuditLogs.Single().Action);
         }
-        Assert.True(await Svc().ChooseAsync(_mom, _elem.Id));   // 같은 부서 다시 → 그대로
+        Assert.True(await Svc().ChooseAsync(_mom, _mom, _elem.Id));   // 같은 부서 다시 → 그대로
         Assert.Single(InMemoryDb.Raw(_db).AuditLogs);
-        Assert.False(await Svc().ChooseAsync(_mom, InMemoryDb.SeedTenant(_db, "other", "OTHERX").Id));   // 보호자가 아닌 부서
+        Assert.False(await Svc().ChooseAsync(_mom, _mom, InMemoryDb.SeedTenant(_db, "other", "OTHERX").Id));   // 소속이 없는 부서
     }
 
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
@@ -122,35 +103,25 @@ public partial class FamilyTenantTests : IClassFixture<WebApplicationFactory<Pro
         return c;
     }
 
-    private static Task<HttpResponseMessage> Post(HttpClient c, string token, params (string, string)[] form) =>
-        c.PostAsync("/account/family", new FormUrlEncodedContent(form.Append(("__RequestVerificationToken", token)).Select(x => new KeyValuePair<string, string>(x.Item1, x.Item2))));
-
     [Fact]
-    public async Task 화면_흐름_안내_바뀌는_점_확인_뒤에_바꾼다()
+    public async Task R179_부모는_시상_부서를_보기만_하고_정하기는_플랫폼_관리자()
     {
         var c = await LoggedIn("younghee@example.com");
-        Assert.Contains("가족과 함께할 부서를 골라 주세요", await c.GetStringAsync("/jamsil-kids"));          // 부서 홈 안내(0046)
-        Assert.Contains("href=\"/account/family\"", await c.GetStringAsync("/account/tenants"));
+        Assert.Contains("시상 부서가 아직 정해지지 않았어요", await c.GetStringAsync("/jamsil-kids"));     // 부서 홈 안내(고르기 버튼 없음)
+        Assert.Contains("플랫폼 관리자가 정해요", await c.GetStringAsync("/account/tenants"));
 
-        var page = await c.GetStringAsync("/account/family");
-        Assert.Contains("김민지", page);
-        Assert.Contains("김철수 가족 · 64점", page);
-        var token = TokenRx().Match(page).Groups[1].Value;
+        var page = await c.GetStringAsync("/account/family");                                              // 이제 온가족 화면(0065)
+        Assert.Contains("내 시상 부서", page);
+        Assert.DoesNotContain("name=\"pick\"", page);                                                       // 부모가 고르는 칸 없음
 
-        // 확인 없이 보내면 바뀌는 점을 보여 주고 바꾸지 않는다
-        var ask = await (await Post(c, token, ("pick", _elem.Id.ToString()))).Content.ReadAsStringAsync();
-        Assert.Contains("이렇게 돼요", ask);
-        Assert.Contains("김철수 가족 자리", ask);
-        Assert.Null(InMemoryDb.Raw(_db).Accounts.Single(a => a.Id == _mom).FamilyTenantId);
+        Assert.True(await Svc().ChooseAsync(_mom, _mom, _elem.Id));                                         // (플랫폼 관리자 처리기가 부르는 것과 같은 일)
+        Assert.DoesNotContain("시상 부서가 아직 정해지지 않았어요", await c.GetStringAsync("/jamsil-elem"));
+        Assert.Contains("시상 부서는", await c.GetStringAsync("/account/tenants"));
 
-        var done = await Post(c, token, ("pick", _elem.Id.ToString()), ("agree", "true"));
-        Assert.Equal(HttpStatusCode.Redirect, done.StatusCode);
-        Assert.Contains("선생님이 참여자 역할을 주면 미션과 가족팀을 시작할 수 있어요", await c.GetStringAsync(done.Headers.Location!.OriginalString));
-        Assert.Equal(_elem.Id, InMemoryDb.Raw(_db).Accounts.Single(a => a.Id == _mom).FamilyTenantId);
-        Assert.DoesNotContain("가족과 함께할 부서를 골라 주세요", await c.GetStringAsync("/jamsil-elem"));
-
-        // 보호자가 아니면 부서 고르기로
+        // 보호자가 아니어도 온가족 화면은 열리고 시상 부서 칸은 없다
         var kid = await LoggedIn("cheolsu@example.com");
-        Assert.Equal("/account/tenants", (await kid.GetAsync("/account/family")).Headers.Location!.OriginalString);
+        var kidPage = await kid.GetStringAsync("/account/family");
+        Assert.Contains("온가족이 아직 없어요", kidPage);
+        Assert.DoesNotContain("내 시상 부서", kidPage);
     }
 }

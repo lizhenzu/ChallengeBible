@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record FamilyMemberView(int MemberId, int ParticipantId, string Name, string? GroupLabel, string Relation, int Points);
+public sealed record FamilyMemberView(int MemberId, int ParticipantId, string Name, string? GroupLabel, string Relation, int Points, int AccountId = 0);
 public sealed record FamilyStage(int Points, string Message, FamilyMilestoneKind Kind, bool Hidden);
 public sealed record FamilyTeamView(int Id, string? Name, string DisplayName, string? Memo, bool IsActive, int Points,
     IReadOnlyList<FamilyMemberView> Members, IReadOnlyList<FamilyStage> Reached);
@@ -105,7 +105,7 @@ public sealed class FamilyTeamService(IAppDb db, ISystemDb systemDb, RequestScop
         var views = teams.Select(t =>
         {
             var members = t.Members.Where(m => byId.ContainsKey(m.ParticipantId)).OrderBy(m => m.SortOrder).ThenBy(m => m.Id)
-                .Select(m => { var p = byId[m.ParticipantId]; return new FamilyMemberView(m.Id, m.ParticipantId, p.DisplayName, p.GroupLabel, m.Relation, points.GetValueOrDefault(m.ParticipantId)); })
+                .Select(m => { var p = byId[m.ParticipantId]; return new FamilyMemberView(m.Id, m.ParticipantId, p.DisplayName, p.GroupLabel, m.Relation, points.GetValueOrDefault(m.ParticipantId), p.AccountId); })
                 .ToList();
             var sum = members.Sum(m => m.Points);   // R-92 단순 합
             var reached = stages.Where(s => sum >= s.Points).Select(s => new FamilyStage(s.Points, s.Message, s.Kind, dismissed.Contains((t.Id, s.Points)))).ToList();
@@ -413,8 +413,8 @@ public sealed class FamilyTeamService(IAppDb db, ISystemDb systemDb, RequestScop
         FamilyError.NoMember => "구성원을 한 명 이상 골라 주세요.",
         FamilyError.NotParticipant => "이 부서의 승인된 참여자만 넣을 수 있어요.",
         FamilyError.AlreadyInTeam => "이미 다른 가족팀에 들어 있어요. 한 사람은 한 팀에만 들어가요.",
-        FamilyError.FamilyTenantNotChosen => "부모님이 아직 가족과 함께할 부서를 고르지 않았어요.",
-        FamilyError.FamilyTenantElsewhere => "이 부모님은 다른 부서를 가족과 함께할 부서로 골랐어요.",
+        FamilyError.FamilyTenantNotChosen => "부모님의 시상 부서가 아직 정해지지 않았어요(플랫폼 관리자가 정해요).",
+        FamilyError.FamilyTenantElsewhere => "이 부모님의 시상 부서는 다른 부서예요.",
         FamilyError.BadRelation => "관계를 다시 골라 주세요.",
         FamilyError.MembersElsewhere => "다른 팀에 들어간 구성원이 있어 다시 켤 수 없어요.",
         FamilyError.NotReached => "아직 넘지 않은 단계예요.",

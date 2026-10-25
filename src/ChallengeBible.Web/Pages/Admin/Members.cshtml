@@ -164,7 +164,7 @@
             @if (Model.PromoTarget is { } target)
             {
                 <p class="found" role="status">받는 부서: @target.Name</p>
-                <div class="warnbox">받는 부서 선생님이 승인하면 <b>이 부서의 점수 · 기록이 모두 지워지고</b> 그 부서로 옮겨 가요. 승인 전까지는 여기서 계속 미션을 할 수 있어요. 성경 읽음 표시 · 책갈피 · 통독 진도는 그대로 남아요.</div>
+                <div class="warnbox">받는 부서 관리자가 승인하면 <b>점수 · 미션 기록이 그 부서로 옮겨지고</b> 이 부서에서는 빠져요(가족팀 자리 · 보호 관계는 지워져요). 승인 전까지는 여기서 계속 미션을 할 수 있어요. 성경 읽음 표시 · 책갈피 · 통독 진도는 그대로 남아요.</div>
                 <div class="acts"><button type="submit" class="btn p sm" asp-page-handler="Promote">@(Model.Picks.Count)명 진급 요청 보내기</button></div>
             }
         </form>

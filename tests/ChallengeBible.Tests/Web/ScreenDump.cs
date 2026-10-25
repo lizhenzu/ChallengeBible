@@ -302,8 +302,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             raw.GuardianLinks.Add(new GuardianLink { TenantId = elem.Id, GuardianMembershipId = momElem.Id, ParticipantId = pMinji.Id, CreatedByAccountId = momAcc });
             raw.SaveChanges();
         }
-        await Save(mom, "/account/family", "32-가족부서고르기");
-        await SavePost(mom, "/account/family", "33-가족부서고르기-바뀌는점", ("handler", ""), ("pick", elem.Id.ToString()));
+        await Save(mom, "/account/family", "32-온가족-없음");   // 확정 시안 온가족 "없음 · 신청"(0065 — 부모가 고르던 화면은 없어짐)
         await Save(mom, "/account", "34-내계정", h => h.Replace("<details class=\"ma-ed\">", "<details class=\"ma-ed\" open>"));   // 확정 시안 내계정 — 이름 · 비밀번호 칸을 펼친 모습
 
         // 참여 신청 v2(0059): 목록에 보이기를 켠 부서에서 고르기
@@ -342,6 +341,28 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(op, "/platform/rules", "13c-플랫폼-기본규칙");
         await Save(op, "/platform/content/word?month=2027-01&date=2027-01-05", "14-공용콘텐츠-말씀");
         await Save(op, "/platform/content/quiz?month=2027-01&date=2027-01-05", "15-공용콘텐츠-퀴즈");
+        // 온가족(확정 시안 플랫폼-온가족): 영희 · 철수를 묶은 모습과 그 상세
+        int famId;
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            var f = new Family { CreatedUtc = DateTime.UtcNow, CreatedByAccountId = Acc("operator") };
+            f.Links.Add(new FamilyLink { AccountId = Acc("younghee"), Relation = FamilyRelation.Mother, SortOrder = 0, AddedUtc = DateTime.UtcNow, AddedByAccountId = Acc("operator") });
+            f.Links.Add(new FamilyLink { AccountId = Acc("cheolsu"), Relation = FamilyRelation.Student, SortOrder = 1, AddedUtc = DateTime.UtcNow, AddedByAccountId = Acc("operator") });
+            raw.Families.Add(f);
+            raw.FamilyRequests.Add(new FamilyRequest { RequesterAccountId = Acc("jiho"), Body = "박지호 — 잠실새내교회 유년부\n박지민 — 잠실새내교회 초등부", RequestedUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+            famId = f.Id;
+        }
+        await Save(op, "/platform/families", "15d-플랫폼-온가족");
+        var reqId = InMemoryDb.Raw(db).FamilyRequests.Single().Id;
+        await Save(op, $"/platform/families/new?request={reqId}&pick={Acc("jiho")}&q=" + Uri.EscapeDataString("김"), "15f-플랫폼-온가족묶기");
+        await Save(op, $"/platform/families/{famId}?q=" + Uri.EscapeDataString("김"), "15e-플랫폼-온가족상세");
+        // 확정 시안 온가족(사용자 쪽): 엄마 · 아이 화면, 신청 기다림, 부서 홈 한 줄, 부서 관리자 보기
+        await Save(mom, "/account/family", "32a-온가족-엄마");
+        await Save(kid, "/account/family", "32b-온가족-아이");
+        await Save(fresh, "/account/family", "32c-온가족-신청기다림");
+        await Save(kid, "/jamsil-kids", "32d-부서홈-온가족");
+        await Save(admin, $"/jamsil-kids/admin/teams?Open={teamId}", "32e-관리-가족팀-온가족");
         // 운영 점검(확정 시안 플랫폼-운영점검): 최근 오류 하나를 남긴 모습 — 위 화면들에서 진급 승인 · 가족 부서 등 감사 로그가 쌓여 있다
         try { throw new InvalidOperationException("Sequence contains no elements"); }
         catch (Exception ex)
