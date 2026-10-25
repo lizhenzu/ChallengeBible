@@ -99,7 +99,7 @@ public class TeamsModel(FamilyTeamService teams, TenantContext tenant, OnFamilyS
     public Dictionary<int, FamilyBoardView> OnFamilies { get; private set; } = [];
 
     /// <summary>이 팀 구성원이 든 온가족들(겹치면 하나로).</summary>
-    public IEnumerable<FamilyBoardView> OnFamiliesOf(FamilyTeamView t) =>
+    public IEnumerable<FamilyBoardView> LinkedFamiliesOf(FamilyTeamView t) =>
         t.Members.Select(m => OnFamilies.GetValueOrDefault(m.AccountId)).OfType<FamilyBoardView>().DistinctBy(f => f.Id);
 
     private async Task<bool> LoadAsync(CancellationToken ct)

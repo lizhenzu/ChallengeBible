@@ -257,7 +257,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         var html = await c.GetStringAsync("/jamsil-kids/admin/teams");
         Assert.Contains("아직 가족팀이 없어요", html);
         Assert.Contains("href=\"/jamsil-kids/admin/teams\"", await c.GetStringAsync("/jamsil-kids/admin"));   // 관리 메뉴 "가족팀"
-        Assert.Contains("다른 부서를 가족과 함께할 부서로 골랐어요", html);                                     // 오성민(0046)
+        Assert.Contains("시상 부서는 다른 부서예요", html);                                                     // 오성민(0046 → 0065 문구)
 
         var created = await c.PostAsync("/jamsil-kids/admin/teams?handler=Create", new FormUrlEncodedContent(new[]
         {
