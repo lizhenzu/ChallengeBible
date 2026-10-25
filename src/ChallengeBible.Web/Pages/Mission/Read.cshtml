@@ -3,7 +3,7 @@
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Services
 @* 확정 시안: 말씀-성경읽기-v2(2026-10-24) — 위쪽 줄 · 진도 → 읽기 단위 · 번역 → 절(본문 끝 ✓ ★, 저장 중 동그라미, 절 사이 해설 카드 R-118)
-   → 큰 파란 "이 페이지 읽음으로 표시" → 아래 링크. 통독률 · 오늘 읽은 절은 넣지 않는다(D25). 오늘 말씀 요약 카드는 빼기로 했다(2026-10-24, 요약은 말씀 미션 화면에 있다). 읽기 설정 아래 책 개요 카드(R-116, ADR 0062). 듣기는 데이터가 생긴 뒤에 *@
+   → 큰 파란 "이 페이지 읽음으로 표시" → 아래 링크. 통독률 · 오늘 읽은 절은 넣지 않는다(D25). 오늘 말씀 요약 카드는 빼기로 했다(2026-10-24, 요약은 말씀 미션 화면에 있다). 읽기 설정 아래 책 개요 카드(R-116, ADR 0062). 진도 아래 듣기 · 영상 줄(R-166, ADR 0063) *@
 @{
     var r = Model.Ref;
     var s = Model.Slice;
@@ -36,6 +36,7 @@
             <p class="num"><span>@(s.Total)절 · <b data-readcount>@Model.ReadCount</b>절 읽음</span><span data-readpct>@(Model.ReadPercent)%</span></p>
             <div class="brd-bar" aria-hidden="true"><i data-readbar style="width:@(Model.ReadPercent)%"></i></div>
         </div>
+        @if (Model.Media.Count > 0) { <partial name="_MediaBar" model="Model.Media" /> }
 
         <section class="brd-set" aria-label="읽기 설정">
             <div class="brd-lbl">읽기 단위</div>

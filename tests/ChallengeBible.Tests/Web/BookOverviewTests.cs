@@ -77,9 +77,8 @@ public partial class BookOverviewTests : IClassFixture<WebApplicationFactory<Pro
         Assert.Contains("data-p=\"d\">상세본</button>", html);
         Assert.Contains("<dd>B.C. 1446 ~ B.C. 1406(다른 설: B.C. 1290년경)</dd>", html);
         Assert.Matches("<dd class=\"kw\">\\s*<span>창조</span>\\s*<span>언약</span>\\s*<span>족장</span>", html);   // 핵심어는 칩
-        Assert.Contains("href=\"https://youtu.be/abc\" target=\"_blank\" rel=\"noopener noreferrer\"", html);
-        Assert.DoesNotContain("javascript:alert", html);                              // http(s) 주소만
-        Assert.Contains("🎬 관련 영상</a>", html);                                     // 하나뿐이면 번호 없음
+        Assert.DoesNotContain("관련 영상", html);                                      // 책 개요 영상은 듣기 · 영상 줄로(ADR 0063)
+        Assert.DoesNotContain("javascript:alert", html);
     }
 
     [Fact]
@@ -128,15 +127,6 @@ public partial class BookOverviewTests : IClassFixture<WebApplicationFactory<Pro
         var html = await (await Kid()).GetStringAsync("/jamsil-kids/read?from=word");
         Assert.Contains("<details class=\"bov\"  aria-label=\"창세기 개요\">", html);    // 창세기 24장에서 시작 → 접힘
     }
-
-    [Theory]
-    [InlineData("dLv2ndgXrbo", "https://www.youtube.com/watch?v=dLv2ndgXrbo")]   // 옛 Bible2 는 영상 번호만 저장
-    [InlineData(" https://youtu.be/abc ", "https://youtu.be/abc")]
-    [InlineData("javascript:alert(1)", null)]
-    [InlineData("", null)]
-    [InlineData("not a url", null)]
-    public void R116_영상_칸은_유튜브_번호나_http_주소만(string value, string? expected) =>
-        Assert.Equal(expected, BookOverviewService.VideoUrl(value));
 
     [Fact]
     public void 연대는_부터_까지가_같으면_하나만()

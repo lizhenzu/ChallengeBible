@@ -983,6 +983,58 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("Bookmark", "app");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterMedia", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<byte>("BookId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<short>("Chapter")
+                        .HasColumnType("smallint");
+
+                    b.Property<int?>("DurationSec")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<byte>("SortOrder")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("YoutubeVideoId")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.HasKey("Id")
+                        .HasName("PK_ChapterMedia");
+
+                    b.HasIndex("BookId", "Chapter", "Kind", "SortOrder")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_ChapterMedia_Slot");
+
+                    b.ToTable("ChapterMedia", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_ChapterMedia_Kind", "Kind IN ('Listen','Overview')");
+                        });
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterProgress", b =>
                 {
                     b.Property<int>("AccountId")
@@ -2420,6 +2472,16 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_Bookmark_Book");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterMedia", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.BibleBook", null)
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_ChapterMedia_Book");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterProgress", b =>

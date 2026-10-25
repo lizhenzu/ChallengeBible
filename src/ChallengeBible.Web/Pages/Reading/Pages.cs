@@ -213,7 +213,7 @@ public class ListModel(ReadingService reading, TenantContext tenant) : ReadingPa
 /// `/{slug}/reading/read/{book}/{chapter}?unit=&tr=&p=&v=` 장 본문 읽기(R-160 · R-161 · R-165).
 /// 화면을 열면 보던 위치(장 · 보이는 첫 절)를 남긴다 — 읽음과 무관(R-161).
 /// </summary>
-public class ReadModel(ReadingService reading, TenantContext tenant, BibleTextService bible, BibleMarkService marks, BibleNoteService notes, BookOverviewService overview) : ReadingPageBase(reading, tenant)
+public class ReadModel(ReadingService reading, TenantContext tenant, BibleTextService bible, BibleMarkService marks, BibleNoteService notes, BookOverviewService overview, ChapterMediaService media) : ReadingPageBase(reading, tenant)
 {
     public override string Title => $"{BookName(Book)} {Chapter}장";
     [BindProperty(SupportsGet = true)] public byte Book { get; set; }
@@ -235,6 +235,8 @@ public class ReadModel(ReadingService reading, TenantContext tenant, BibleTextSe
     public int ChapterCount => BibleBooks.All().First(b => b.Id == Book).ChapterCount;
     /// <summary>본문 위 책 개요(R-116, ADR 0062). 글이 없는 책이면 null.</summary>
     public BookOverviewCard? Overview { get; private set; }
+    /// <summary>장 진도 아래 듣기 · 영상 버튼(R-166, ADR 0063). 없으면 빈 목록 → 줄을 숨긴다.</summary>
+    public IReadOnlyList<MediaButton> Media { get; private set; } = [];
 
     protected override async Task<IActionResult> LoadAsync(CancellationToken ct)
     {
@@ -243,6 +245,7 @@ public class ReadModel(ReadingService reading, TenantContext tenant, BibleTextSe
         if (view is null) return NotFound();
         View = view;
         Overview = await overview.CardAsync(Book, Chapter, ct);
+        Media = await media.ButtonsAsync(Book, Chapter, ct);
         if (!BibleTextService.Codes.Contains(Tr)) Tr = Tr == "ALL" ? "ALL" : BibleTranslation.Krv;
         Shown = Tr == "ALL" ? BibleTextService.Codes : [Tr];
         if (Unit is not (0 or 1 or 3 or 5)) Unit = 0;

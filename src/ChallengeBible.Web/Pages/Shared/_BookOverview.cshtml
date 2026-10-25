@@ -1,7 +1,8 @@
 @model ChallengeBible.Web.Services.BookOverviewCard
 @using ChallengeBible.Web.Services
 @* 책 개요 카드(R-116, ADR 0062, 확정 시안: 통독-본문읽기-책개요). 통독 본문 · 말씀 성경 읽기 공통. 1장은 펼침, 다른 장은 접힘.
-   탭은 간략본 · 상세본이 둘 다 있을 때만. 탭 바꾸기는 mission.js(스크립트가 없으면 간략본만 보임) *@
+   탭은 간략본 · 상세본이 둘 다 있을 때만. 탭 바꾸기는 mission.js(스크립트가 없으면 간략본만 보임).
+   책 개요 영상은 "듣기 · 영상" 줄(_MediaBar, ADR 0063)에서 *@
 @{
     var o = Model;
     var both = o.Brief.Count > 0 && o.Detail.Count > 0;
@@ -32,15 +33,6 @@
                     else { <dd>@r.Text</dd> }
                 }
             </dl>
-        }
-        @if (o.Videos.Count > 0)
-        {
-            <div class="vids">
-                @for (var i = 0; i < o.Videos.Count; i++)
-                {
-                    <a href="@o.Videos[i]" target="_blank" rel="noopener noreferrer">🎬 관련 영상@(o.Videos.Count > 1 ? $" {i + 1}" : "")</a>
-                }
-            </div>
         }
         <p class="src">책 개요는 모든 부서가 함께 봐요.</p>
     </div>

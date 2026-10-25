@@ -49,6 +49,7 @@ builder.Services.AddScoped<HomeService>();
 builder.Services.AddScoped<LandingService>();
 builder.Services.AddScoped<LobbyService>();
 builder.Services.AddScoped<BookOverviewService>();
+builder.Services.AddScoped<ChapterMediaService>();
 builder.Services.AddScoped<FamilyTeamService>();
 builder.Services.AddScoped<FamilyTenantService>();
 builder.Services.AddScoped<MyAccountService>();
