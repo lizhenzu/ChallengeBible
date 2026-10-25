@@ -8,6 +8,7 @@
         <p class="ar-lead">부서를 넘어 한 집안을 묶어요. 점수는 보기만, 시상은 부서 가족팀으로.</p>
     </div>
     @if (Model.Ok == "rejected") { <p class="okmsg" role="status">신청을 거절했어요</p> }
+    @if (Model.Ok == "dissolved") { <p class="okmsg" role="status">온가족을 해체했어요 · 부서 기록 · 점수는 그대로예요</p> }
 
     @if (Model.Requests.Count > 0)
     {

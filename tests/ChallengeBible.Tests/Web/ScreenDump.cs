@@ -342,6 +342,19 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(op, "/platform/rules", "13c-플랫폼-기본규칙");
         await Save(op, "/platform/content/word?month=2027-01&date=2027-01-05", "14-공용콘텐츠-말씀");
         await Save(op, "/platform/content/quiz?month=2027-01&date=2027-01-05", "15-공용콘텐츠-퀴즈");
+        // 온가족(확정 시안 플랫폼-온가족): 영희 · 철수를 묶은 모습과 그 상세
+        int famId;
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            var f = new Family { CreatedUtc = DateTime.UtcNow, CreatedByAccountId = Acc("operator") };
+            f.Links.Add(new FamilyLink { AccountId = Acc("younghee"), Relation = FamilyRelation.Mother, SortOrder = 0, AddedUtc = DateTime.UtcNow, AddedByAccountId = Acc("operator") });
+            f.Links.Add(new FamilyLink { AccountId = Acc("cheolsu"), Relation = FamilyRelation.Student, SortOrder = 1, AddedUtc = DateTime.UtcNow, AddedByAccountId = Acc("operator") });
+            raw.Families.Add(f);
+            raw.SaveChanges();
+            famId = f.Id;
+        }
+        await Save(op, "/platform/families", "15d-플랫폼-온가족");
+        await Save(op, $"/platform/families/{famId}?q=" + Uri.EscapeDataString("김"), "15e-플랫폼-온가족상세");
         // 운영 점검(확정 시안 플랫폼-운영점검): 최근 오류 하나를 남긴 모습 — 위 화면들에서 진급 승인 · 가족 부서 등 감사 로그가 쌓여 있다
         try { throw new InvalidOperationException("Sequence contains no elements"); }
         catch (Exception ex)
