@@ -1584,44 +1584,36 @@ main.admin > .wrap.ce { display: flex; flex-direction: column; gap: 14px; }
 .ops-tbl td.t { white-space: nowrap; color: var(--dim); font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; }
 .ops-tbl .tag { background: var(--accent-bg); color: var(--accent); white-space: nowrap; }
 
-/* 참여 신청 v3(확정 시안: 부서참여신청-v3 ②안): 교회별 묶음 · 부서 큰 칸 · 고르면 아래 "참여 신청하기" 띠. 모두 .jv3 아래 */
-main.page.jv3 > .wrap { padding-bottom: 140px; }
-.jv3 .k { font-size: 12px; font-weight: 800; letter-spacing: .18em; color: var(--accent); }
-.jv3 h1 { margin: 6px 0 0; font-size: 28px; font-weight: 900; line-height: 1.3; letter-spacing: -.02em; word-break: keep-all; }
-.jv3 .jnow { display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 16px; background: var(--fb-bg, #FFF4D6); border: 1px solid var(--fb-rule, #F3DFA8); color: var(--fb-ink, #5A3B00); font-size: 14px; word-break: keep-all; }
-.jv3 .jnow > span:first-child { font-size: 22px; }
-@media (prefers-color-scheme: dark) { .jv3 .jnow { background: #2E2614; border-color: #4A3F1E; color: #F2D79A; } }
-.jv3 .jwait { padding: 16px; border-radius: 18px; border: 2px solid var(--accent); background: var(--accent-bg); display: grid; gap: 8px; }
-.jv3 .jwait .tag { justify-self: start; background: var(--accent); color: var(--on-accent); font-weight: 800; }
-.jv3 .jwait .row { display: flex; align-items: center; gap: 12px; }
-.jv3 .jwait .row small { display: block; font-size: 12.5px; color: var(--dim); }
-.jv3 .jwait b { font-size: 17px; }
-.jv3 .jwait p { margin: 0; font-size: 13.5px; color: var(--dim); }
-.jv3 .jwait .x { justify-self: start; border: 0; background: none; padding: 0; font-size: 13px; font-weight: 700; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; }
-.jv3 .mk { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 17px; background: var(--accent); flex: none; }
-.jv3 .church + .church, .jv3 .church { margin-top: 22px; }
-.jv3 .church h2 { margin: 0 0 10px; display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: var(--dim); }
-.jv3 .church h2 i { font-style: normal; font-size: 18px; }
-.jv3 .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.jv3 .tile { position: relative; display: grid; gap: 8px; align-content: start; padding: 16px 14px 14px; border-radius: 20px; border: 2px solid var(--rule); background: var(--bg); min-height: 132px; cursor: pointer; }
-.jv3 .tile input { position: absolute; opacity: 0; pointer-events: none; }
-.jv3 .tile b { font-size: 17px; font-weight: 900; line-height: 1.3; word-break: keep-all; }
-.jv3 .tile .pg { display: flex; flex-wrap: wrap; gap: 4px; }
-.jv3 .tile .pg span { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 99px; background: var(--soft); color: var(--dim); }
-.jv3 .tile .ck { position: absolute; top: 12px; right: 12px; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--rule); display: grid; place-items: center; font-size: 14px; font-weight: 900; color: transparent; }
-.jv3 .tile:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); box-shadow: 0 8px 20px -14px var(--accent); }
-.jv3 .tile:has(input:checked) .ck { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.jv3 .tile:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 3px; }
-.jv3 .tile.off { opacity: .55; cursor: default; }
-.jv3 .tile .st { font-size: 12px; font-weight: 800; color: var(--accent); }
-.jv3 .none { padding: 24px 16px; border-radius: 16px; background: var(--soft); color: var(--dim); text-align: center; word-break: keep-all; }
-.jv3 .help { margin-top: 24px; padding: 14px 16px; border-radius: 16px; background: var(--soft); font-size: 13.5px; color: var(--dim); word-break: keep-all; }
-.jv3 .help b { color: var(--fg); }
-.jv3 .jgo { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--bg); border-top: 1px solid var(--rule); box-shadow: 0 -10px 30px -18px rgba(0,0,0,.35); padding-bottom: env(safe-area-inset-bottom, 0px); transform: translateY(110%); transition: transform .2s; }
-.jv3:has(input[name="TenantId"]:checked) .jgo { transform: none; }
-.jv3 .jgo .wrap { display: flex; align-items: center; gap: 12px; padding-block: 12px; max-width: 440px; margin: 0 auto; }
-.jv3 .jgo .who { flex: 1; min-width: 0; display: grid; line-height: 1.35; }
-.jv3 .jgo .who small { font-size: 12px; color: var(--dim); }
-.jv3 .jgo .who b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.jv3 .jgo button { flex: none; min-height: 52px; padding: 0 22px; border: 0; border-radius: 14px; background: var(--accent); color: var(--on-accent); font-size: 16px; font-weight: 800; }
-@media (prefers-reduced-motion: reduce) { .jv3 .jgo { transition: none; } }
+/* 참여 신청 v4(확정 시안: 부서참여신청-v4): 한 줄에 한 부서 + 오른쪽 동그라미, 아래에 늘 [돌아가기] [부서 참여하기]. 모두 .jv4 아래 */
+.jv4 .k { font-size: 12px; font-weight: 800; letter-spacing: .18em; color: var(--accent); }
+.jv4 h1 { margin: 6px 0 0; font-size: clamp(20px, 6vw, 26px); font-weight: 900; line-height: 1.3; letter-spacing: -.03em; white-space: nowrap; }
+.jv4 .jnow { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 14px; background: #FFF4D6; border: 1px solid #F3DFA8; color: #5A3B00; font-size: 13.5px; word-break: keep-all; }
+.jv4 .jnow > span:first-child { font-size: 20px; }
+@media (prefers-color-scheme: dark) { .jv4 .jnow { background: #2E2614; border-color: #4A3F1E; color: #F2D79A; } }
+.jv4 .jwait { padding: 16px; border-radius: 16px; border: 2px solid var(--accent); background: var(--accent-bg); display: grid; gap: 8px; }
+.jv4 .jwait .tag { justify-self: start; background: var(--accent); color: var(--on-accent); font-weight: 800; }
+.jv4 .jwait .jrow { padding: 0; border: 0; background: none; cursor: default; }
+.jv4 .jwait p { margin: 0; font-size: 13.5px; color: var(--dim); word-break: keep-all; }
+.jv4 .jwait .x { justify-self: start; border: 0; background: none; padding: 0; font-size: 13px; font-weight: 700; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; }
+.jv4 .jlist { display: grid; gap: 10px; }
+.jv4 .jrow { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 16px; border: 1.5px solid var(--rule); background: var(--bg); cursor: pointer; }
+.jv4 .jrow input { position: absolute; opacity: 0; pointer-events: none; }
+.jv4 .jrow .mk { flex: none; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 18px; background: var(--accent); }
+.jv4 .jrow .tx { flex: 1; min-width: 0; display: grid; line-height: 1.35; }
+.jv4 .jrow .tx small { font-size: 12.5px; color: var(--dim); }
+.jv4 .jrow .tx b { font-size: 17px; font-weight: 900; word-break: keep-all; }
+.jv4 .jrow .pg { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 5px; }
+.jv4 .jrow .pg span { font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 6px; background: var(--soft); color: var(--dim); }
+.jv4 .jrow .rd { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #C5CBD3; }
+.jv4 .jrow:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); }
+.jv4 .jrow:has(input:checked) .rd { border: 7px solid var(--accent); background: var(--bg); }
+.jv4 .jrow:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 3px; }
+.jv4 .jrow.off { opacity: .55; cursor: default; }
+.jv4 .jrow .st { flex: none; font-size: 12px; font-weight: 800; color: var(--accent); }
+.jv4 .none { padding: 24px 16px; border-radius: 16px; background: var(--soft); color: var(--dim); text-align: center; word-break: keep-all; }
+.jv4 .jacts { margin-top: 22px; display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+.jv4 .jacts.one { grid-template-columns: 1fr; }
+.jv4 .jacts > * { min-height: 52px; border-radius: 14px; font-size: 16px; font-weight: 800; display: grid; place-items: center; text-decoration: none; }
+.jv4 .jacts .back { border: 1.5px solid var(--rule); background: var(--bg); color: var(--fg); }
+.jv4 .jacts .go { border: 0; background: var(--accent); color: var(--on-accent); cursor: pointer; }
+.jv4:not(:has(input[name="TenantId"]:checked)) .jacts .go { opacity: .4; pointer-events: none; }

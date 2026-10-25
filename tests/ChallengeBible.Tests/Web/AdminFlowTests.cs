@@ -59,7 +59,7 @@ public partial class AdminFlowTests : IClassFixture<WebApplicationFactory<Progra
         var (c, _) = await SignedUp("cheolsu", "김철수");
         var r = await c.GetAsync("/jamsil-kids");
         Assert.Equal("/join?code=JSKIDS", r.Headers.Location!.OriginalString);
-        Assert.Contains("잠실새내교회 유년부", await c.GetStringAsync("/join?code=JSKIDS"));
+        Assert.Matches(@"<small>잠실새내교회</small>\s*<b>유년부</b>", await c.GetStringAsync("/join?code=JSKIDS"));
     }
 
     [Fact]

@@ -85,13 +85,19 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
 
         // 부서 주소(코드)로 들어오면 숨긴 부서도 골라진 채로 보인다
         var byCode = await c.GetStringAsync("/join?code=HBMID1");
-        Assert.Matches($"value=\"{_hidden.Id}\" data-name=\"[^\"]*\" checked=\"checked\"", byCode);
+        Assert.Contains($"value=\"{_hidden.Id}\" checked=\"checked\"", byCode);
 
-        // v3(확정 시안 부서참여신청-v3): 찾기 칸 · 코드 칸 · 역할 고르기가 없다
+        // v3 · v4(확정 시안 부서참여신청-v4): 찾기 칸 · 코드 칸 · 역할 고르기 · 안내 상자가 없고, 아래에 늘 두 버튼
         Assert.DoesNotContain("name=\"Q\"", html);
         Assert.DoesNotContain("부서 코드로 찾기", html);
         Assert.DoesNotContain("name=\"SelectedRoles\"", html);
+        Assert.DoesNotContain("내 부서가 안 보이나요", html);
+        Assert.DoesNotContain("내 부서로 가기", html);
         Assert.Contains("부서 관리자가 승인하면 시작해요", html);
+        Assert.Contains("어느 부서에서 함께할까요?", html);
+        Assert.Contains("도전!!!성경말씀", html);
+        Assert.Contains(">돌아가기</a>", html);
+        Assert.Contains(">부서 참여하기</button>", html);
 
         var r = await c.PostAsync("/join?handler=Apply", new FormUrlEncodedContent(new[]
         {

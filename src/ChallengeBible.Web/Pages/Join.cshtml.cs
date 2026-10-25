@@ -30,14 +30,12 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
     public string? RoleError { get; private set; }
     public bool CodeOpen { get; private set; }
     public List<MyMembership> Waiting { get; private set; } = [];
-    public bool HasApproved { get; private set; }
     /// <summary>임시 부서 "처음 오신 분"에서 왔는지(0064) — 노란 안내.</summary>
     public bool InLobby { get; private set; }
     /// <summary>이미 소속 · 신청한 부서 → 표시 문구(신청할 수 없음, 0027).</summary>
     public Dictionary<int, string> Mine { get; private set; } = [];
 
     private int Me => User.AccountId()!.Value;
-    public JoinTarget? Picked => Depts.FirstOrDefault(d => d.TenantId == TenantId);
 
     public async Task OnGetAsync(CancellationToken ct)
     {
@@ -105,7 +103,6 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
     {
         var mine = await accounts.MyMembershipsAsync(Me, ct);
         Waiting = mine.Where(m => m.Status == MembershipStatus.Requested).ToList();
-        HasApproved = mine.Any(m => m.Status == MembershipStatus.Approved && m.TenantActive);
         InLobby = mine.Any(m => m.IsLobby && m.Status == MembershipStatus.Approved);
         Mine = mine.ToDictionary(m => m.TenantId, m => m.Status switch
         {
