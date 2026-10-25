@@ -2,13 +2,10 @@
 @model JoinModel
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Pages.Platform
-@* 확정 시안: 부서참여신청-v3-단독시안(②안, 2026-10-25) — 교회별로 묶은 부서 큰 칸을 누르면 아래 "참여 신청하기" 띠.
-   찾기 칸 · 코드로 찾기 · 역할 고르기 없음(역할은 관리자가 승인 때). 문구는 "선생님" 대신 "관리자"(사용자) *@
-@{
-    var groups = Model.Depts.GroupBy(d => JoinModel.Split(d.Name).Church).ToList();
-}
+@* 확정 시안: 부서참여신청-v4-단독시안(2026-10-25) — 한 줄에 한 부서(색 네모 · 교회 · 부서 · 프로그램 · 오른쪽 동그라미),
+   아래에 늘 [돌아가기] [부서 참여하기](고르기 전엔 참여하기가 흐림). 찾기 칸 · 코드로 찾기 · 역할 고르기 · 안내 상자 없음 *@
 <partial name="_Top" />
-<main class="page gut jv3"><div class="wrap">
+<main class="page gut jv4"><div class="wrap">
     @if (Model.Welcome == 1)
     {
         <div class="box ok" role="status"><strong>가입했어요!</strong><p>이제 아래에서 내 부서를 골라 참여 신청을 하면 돼요.</p></div>
@@ -22,8 +19,8 @@
         }
         else
         {
-            <h1>어느 부서에서<br />함께할까요?</h1>
-            <p class="sub">내 교회의 부서를 눌러 골라 주세요. 부서 관리자가 승인하면 시작해요.</p>
+            <h1>어느 부서에서 함께할까요?</h1>
+            <p class="sub">내 부서를 골라 주세요. 부서 관리자가 승인하면 시작해요.</p>
         }
     </div>
 
@@ -34,14 +31,15 @@
             var (church, dept) = JoinModel.Split(w.TenantName);
             <section class="jwait" role="status">
                 <span class="tag">승인 기다리는 중</span>
-                <div class="row"><span class="mk">@Ui.DeptMark(w.TenantName)</span><div>@if (church.Length > 0) { <small>@church</small> }<b>@dept</b></div></div>
-                <p>관리자가 승인하면 로그인할 때 바로 부서 홈으로 들어가요.@(Model.InLobby ? " 그동안 \"처음 오신 분\"에서 미션 · 통독을 계속해요." : "")</p>
+                <div class="jrow"><span class="mk">@Mark(dept)</span><span class="tx">@if (church.Length > 0) { <small>@church</small> }<b>@dept</b></span></div>
+                <p>부서 관리자가 승인하면 로그인할 때 바로 부서 홈으로 들어가요.@(Model.InLobby ? " 그동안 \"처음 오신 분\"에서 미션 · 통독을 계속해요." : "")</p>
                 <form method="post" asp-page-handler="Cancel">
                     <input type="hidden" name="tenantId" value="@w.TenantId" />
                     <button type="submit" class="x">신청 취소하기</button>
                 </form>
             </section>
         }
+        <div class="jacts one"><a class="back" href="/">돌아가기</a></div>
     }
     else
     {
@@ -56,41 +54,37 @@
             {
                 <div class="none">지금 고를 수 있는 부서가 없어요. 부서 관리자에게 받은 초대 주소로 들어와 주세요.</div>
             }
-            @foreach (var g in groups)
+            else
             {
-                <section class="church" aria-label="@(g.Key.Length > 0 ? g.Key : "부서")">
-                    @if (g.Key.Length > 0) { <h2><i aria-hidden="true">⛪</i>@g.Key</h2> }
-                    <div class="tiles" role="radiogroup" aria-label="@(g.Key.Length > 0 ? g.Key + " 부서" : "참여할 부서")">
-                        @foreach (var d in g)
-                        {
-                            var name = JoinModel.Split(d.Name).Dept;
-                            var mine = Model.Mine.GetValueOrDefault(d.TenantId);
-                            <label class="tile @(mine is null ? "" : "off")">
-                                <input type="radio" name="TenantId" value="@d.TenantId" data-name="@d.Name" checked="@(Model.TenantId == d.TenantId)" disabled="@(mine is not null)" />
-                                @if (mine is null) { <span class="ck" aria-hidden="true">✓</span> }
-                                <span class="mk" style="background:@TenantsModel.ColorVar(d.ThemeColor)">@Ui.DeptMark(d.Name)</span>
+                <div class="jlist" role="radiogroup" aria-label="참여할 부서">
+                    @foreach (var d in Model.Depts)
+                    {
+                        var (church, name) = JoinModel.Split(d.Name);
+                        var mine = Model.Mine.GetValueOrDefault(d.TenantId);
+                        <label class="jrow @(mine is null ? "" : "off")">
+                            <input type="radio" name="TenantId" value="@d.TenantId" checked="@(Model.TenantId == d.TenantId)" disabled="@(mine is not null)" />
+                            <span class="mk" style="background:@TenantsModel.ColorVar(d.ThemeColor)" aria-hidden="true">@Mark(name)</span>
+                            <span class="tx">
+                                @if (church.Length > 0) { <small>@church</small> }
                                 <b>@name</b>
-                                @if (mine is not null) { <span class="st">@mine</span> }
-                                else { <span class="pg">@if (d.MissionEnabled) { <span>말씀</span> }@if (d.ReadingEnabled) { <span>통독</span> }</span> }
-                            </label>
-                        }
-                    </div>
-                </section>
+                                @if (mine is null) { <span class="pg">@if (d.MissionEnabled) { <span>도전!!!성경말씀</span> }@if (d.ReadingEnabled) { <span>도전!!!성경통독</span> }</span> }
+                            </span>
+                            @if (mine is not null) { <span class="st">@mine</span> }
+                            else { <span class="rd" aria-hidden="true"></span> }
+                        </label>
+                    }
+                </div>
             }
             @if (Model.PickError is not null) { <p class="hint bad" role="alert">@Model.PickError</p> }
 
-            <div class="help"><b>내 부서가 안 보이나요?</b><br />부서 관리자에게 받은 <b>초대 주소</b>로 들어오면 그 부서가 바로 보여요.</div>
-
-            <div class="jgo" aria-live="polite"><div class="wrap gut">
-                <span class="who"><small>고른 부서</small><b data-join-name>@(Model.Picked?.Name ?? "부서를 골라 주세요")</b></span>
-                <button type="submit">참여 신청하기</button>
-            </div></div>
+            <div class="jacts">
+                <a class="back" href="/">돌아가기</a>
+                <button type="submit" class="go">부서 참여하기</button>
+            </div>
         </form>
     }
-
-    @if (Model.HasApproved)
-    {
-        <a class="btn s" href="/">내 부서로 가기</a>
-    }
 </div></main>
-<script src="~/js/join.js" asp-append-version="true"></script>
+@functions {
+    /// <summary>색 네모 안 글자: 부서 이름 첫 글자(시안 v4).</summary>
+    private static string Mark(string dept) => dept.Length > 0 ? dept[..1] : "?";
+}

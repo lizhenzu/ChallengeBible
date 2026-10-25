@@ -69,7 +69,7 @@ public partial class PageFlowTests : IClassFixture<WebApplicationFactory<Program
             ["Code"] = "jskids",
         }));
         var foundHtml = await found.Content.ReadAsStringAsync();
-        Assert.Contains("잠실새내교회 유년부", foundHtml);
+        Assert.Matches(@"<small>잠실새내교회</small>\s*<b>유년부</b>", foundHtml);
 
         var applied = await c.PostAsync("/join?handler=Apply", new FormUrlEncodedContent(new[]
         {
