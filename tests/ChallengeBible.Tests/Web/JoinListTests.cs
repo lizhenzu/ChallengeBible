@@ -5,6 +5,7 @@ using ChallengeBible.Infrastructure.Tenancy;
 using ChallengeBible.Tests.Support;
 using ChallengeBible.Web.Services;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ChallengeBible.Tests.Web;
@@ -84,16 +85,26 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
 
         // 부서 주소(코드)로 들어오면 숨긴 부서도 골라진 채로 보인다
         var byCode = await c.GetStringAsync("/join?code=HBMID1");
-        Assert.Matches($"value=\"{_hidden.Id}\" checked=\"checked\"", byCode);
+        Assert.Matches($"value=\"{_hidden.Id}\" data-name=\"[^\"]*\" checked=\"checked\"", byCode);
+
+        // v3(확정 시안 부서참여신청-v3): 찾기 칸 · 코드 칸 · 역할 고르기가 없다
+        Assert.DoesNotContain("name=\"Q\"", html);
+        Assert.DoesNotContain("부서 코드로 찾기", html);
+        Assert.DoesNotContain("name=\"SelectedRoles\"", html);
+        Assert.Contains("부서 관리자가 승인하면 시작해요", html);
 
         var r = await c.PostAsync("/join?handler=Apply", new FormUrlEncodedContent(new[]
         {
             new KeyValuePair<string, string>("__RequestVerificationToken", TokenRx().Match(html).Groups[1].Value),
-            new("TenantId", _kids.Id.ToString()), new("SelectedRoles", Roles.Participant),
+            new("TenantId", _kids.Id.ToString()), new("SelectedRoles", Roles.Guardian),   // 보내도 쓰지 않음 — 참여자로 신청
         }));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
         var after = await c.GetStringAsync("/join");
         Assert.Contains("승인을 기다리고 있어요", after);
         Assert.Contains("승인 기다리는 중", after);
+        using var raw = InMemoryDb.Raw(_db);
+        var m = raw.Memberships.Include(x => x.Roles).Single(x => x.TenantId == _kids.Id && x.Status == MembershipStatus.Requested);
+        Assert.Equal([Roles.Participant], m.Roles.Select(x => x.Role));
+        Assert.DoesNotContain("어느 부서에서", after);                                // 기다리는 동안엔 목록 대신 기다림 카드
     }
 }
