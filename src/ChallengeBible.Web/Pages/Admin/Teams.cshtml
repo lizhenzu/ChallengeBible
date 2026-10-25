@@ -118,7 +118,7 @@
                                 <div class="of-mem">
                                     @foreach (var p in of.People.Where(p => !p.Hidden))
                                     {
-                                        <div class="of-m"><span class="av" aria-hidden="true">@Short(p.Name)</span><span class="tx"><b>@p.Name<em>@FamilyTeamService.RelationLabel(p.Relation)</em></b></span><span class="pt"><b class="num">@p.Points.ToString("N0")</b></span></div>
+                                        <div class="of-m"><span class="av" aria-hidden="true">@ChallengeBible.Web.Pages.Account.FamilyModel.Initial(p.Name)</span><span class="tx"><b>@p.Name<em>@FamilyTeamService.RelationLabel(p.Relation)</em></b></span><span class="pt"><b class="num">@p.Points.ToString("N0")</b></span></div>
                                     }
                                     @if (hidden.Count > 0)
                                     {

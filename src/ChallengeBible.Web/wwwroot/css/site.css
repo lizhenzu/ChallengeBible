@@ -1447,7 +1447,7 @@ main.admin > .wrap.ce { display: flex; flex-direction: column; gap: 14px; }
 .ofl .tx { flex: 1; display: grid; line-height: 1.35; }
 .ofl .tx small { font-size: 12px; color: var(--dim); }
 .ofl .tx b { font-size: 15px; }
-.ofl .go { font-size: 13px; font-weight: 800; color: var(--accent); }
+.ofl .go, .hm .ofl .go { display: inline; min-height: 0; padding: 0; margin: 0; background: none; font-size: 13px; font-weight: 800; color: var(--accent); }
 /* 플랫폼 > 온가족(목록 · 새로 묶기 · 상세) — 확정 시안 플랫폼-온가족 */
 main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .pfam .lnk { font-size: 13.5px; font-weight: 700; color: var(--dim); }
