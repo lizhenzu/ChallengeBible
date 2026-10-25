@@ -39,7 +39,7 @@ INSERT #OK
 SELECT m.*, CASE WHEN m.BookId IS NOT NULL
                    AND EXISTS (SELECT 1 FROM app.BibleChapter c WHERE c.BookId = m.BookId AND c.Chapter = m.Jang)
                    AND LEN(m.VideoId) = 11
-                   AND PATINDEX(N'%[^A-Za-z0-9_-]%', m.VideoId COLLATE Latin1_General_BIN) = 0
+                   AND PATINDEX(N'%[^A-Za-z0-9]%', REPLACE(REPLACE(m.VideoId, N'-', N''), N'_', N'') COLLATE Latin1_General_BIN) = 0   -- - · _ 는 빼고 검사([_-] 는 SQL Server 가 잘못 읽음)
               THEN 1 ELSE 0 END
 FROM #M m;
 
