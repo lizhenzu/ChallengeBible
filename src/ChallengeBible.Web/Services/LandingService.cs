@@ -21,6 +21,7 @@ public sealed class LandingView
     public DateOnly? ReciteStart { get; init; }
     public DateOnly? ReciteEnd { get; init; }
     public string? PrayerTrait { get; init; }
+    public string? PrayerRange { get; init; }
     public LandingStats Stats { get; init; } = new(0, 0, 0, 0, []);
 }
 
@@ -61,6 +62,7 @@ public sealed class LandingService(IAppDb db, ISystemDb systemDb, TenantClock cl
             ReciteRange = verse is null ? null : BibleBooks.Range(verse.BookId, verse.StartChapter, verse.StartVerse, verse.EndChapter, verse.EndVerse),
             ReciteStart = verse is null ? null : week.Start, ReciteEnd = verse is null ? null : week.End,
             PrayerTrait = prayer?.TraitName,
+            PrayerRange = prayer is null ? null : BibleBooks.Range(prayer.BookId, prayer.StartChapter, prayer.StartVerse, prayer.EndChapter, prayer.EndVerse),
             Stats = await cache.GetOrCreateAsync(CacheKey, e => { e.AbsoluteExpirationRelativeToNow = CacheFor; return StatsAsync(today, ct); }) ?? new(0, 0, 0, 0, []),
         };
     }

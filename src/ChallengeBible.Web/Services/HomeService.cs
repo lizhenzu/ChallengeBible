@@ -33,6 +33,8 @@ public sealed class HomeView
     public DateOnly? ReciteStart { get; init; }
     public DateOnly? ReciteEnd { get; init; }
     public string? PrayerTrait { get; init; }
+    /// <summary>오늘의 기도 본문 범위(예: 시편 23장 1~3절) — 기도 제목 칸이 없어 성품 이름과 함께 보인다(2026-10-25 사용자 결정).</summary>
+    public string? PrayerRange { get; init; }
     // 말씀 카드
     public IReadOnlyList<HomeMission> Missions { get; init; } = [];
     public HomeMission? NextMission { get; init; }
@@ -123,7 +125,7 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
             Participant = pid is not null, SeasonPoints = day?.SeasonPoints ?? 0, Streak = streak, FullDays = fullDays, DayPoints = pid is null ? 0 : day?.DayPoints ?? 0,
             NextMilestone = MissionService.NextMilestone(r, day?.SeasonPoints ?? 0), Rules = r,
             VerseText = verseText, VerseRef = verseRef, WordRange = day?.Word?.Range,
-            ReciteRange = day?.Recite?.Range, ReciteStart = day?.Recite?.Start, ReciteEnd = day?.Recite?.End, PrayerTrait = day?.Prayer?.Trait,
+            ReciteRange = day?.Recite?.Range, ReciteStart = day?.Recite?.Start, ReciteEnd = day?.Recite?.End, PrayerTrait = day?.Prayer?.Trait, PrayerRange = day?.Prayer?.Range,
             Missions = list, NextMission = list.FirstOrDefault(m => m.Has && !m.Done),
             Reading = sum, ResumeText = resumeText, Week = weekDays,
             Dept = tenant.IsLobby ? null : await DeptAsync(today, pid, ct),   // 임시 부서는 "우리 부서" 숫자를 숨긴다(0064)

@@ -53,11 +53,13 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     [Fact]
     public async Task 참여자_홈은_말씀띠_미션카드_다음할일_계정줄을_보인다()
     {
+        ContentSeed.Prayer(_db, Jan5);
         var (c, _) = await Member("cheolsu", Roles.Participant);
         var home = await c.GetStringAsync("/jamsil-kids");
         Assert.Contains("김철수님, 안녕하세요", home);
+        Assert.Contains("<small>오늘의 기도</small><b>신뢰 · 잠언 3장 5~6절</b>", home);   // 성품 + 본문 범위
         Assert.Contains("창세기 24:1", home);                                       // 오늘의 말씀 띠: 첫 절
-        Assert.Contains("0/2<small>오늘 미션</small>", home);                        // 오늘 있는 미션은 말씀 · 퀴즈 두 가지
+        Assert.Contains("0/3<small>오늘 미션</small>", home);                        // 오늘 있는 미션은 말씀 · 퀴즈 · 기도 세 가지
         Assert.Contains("href=\"/jamsil-kids/word\"", home);                         // 다음 할 일 = 말씀
         Assert.Contains("말씀 읽으러 가기", home);
         Assert.Contains("점 올해 점수", home);

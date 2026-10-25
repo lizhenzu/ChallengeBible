@@ -102,6 +102,10 @@ public partial class ChapterMediaTests : IClassFixture<WebApplicationFactory<Pro
         Seed();
         var html = await (await Kid()).GetStringAsync("/jamsil-kids/read?from=word");   // 창세기 24:1~9
         Assert.Contains("data-yt=\"dLv2ndgXrbo\"", html);
+        Assert.Contains("class=\"rnv-bar two\"", html);                                // 같은 도구 줄 — 장 번호판 없이 [보기] [듣기]
+        Assert.Contains("data-rnv-open=\"set\" aria-expanded=\"false\"", html);
+        Assert.Contains("data-rnv-open=\"md\"", html);
+        Assert.DoesNotContain("data-rnv-open=\"ch\"", html);
     }
 
     [Theory]
