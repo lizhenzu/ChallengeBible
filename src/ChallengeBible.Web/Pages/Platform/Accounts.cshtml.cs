@@ -8,7 +8,7 @@ namespace ChallengeBible.Web.Pages.Platform;
 
 /// <summary>`/platform/accounts?q=&amp;id=` 계정 찾기(확정 시안: 플랫폼-계정찾기, 0035 · 0029). 플랫폼 관리자만.</summary>
 [Authorize(Policy = CurrentUser.PlatformAdminPolicy)]
-public class AccountsModel(PlatformAccountService accounts) : PageModel, ITitled
+public class AccountsModel(PlatformAccountService accounts, ImpersonationService imp) : PageModel, ITitled
 {
     public string Title => "계정 찾기";
     private int Me => User.AccountId()!.Value;
@@ -24,10 +24,27 @@ public class AccountsModel(PlatformAccountService accounts) : PageModel, ITitled
     public string? Error { get; private set; }
     public bool AskMarks { get; private set; }
 
-    public async Task OnGetAsync(bool askMarks, CancellationToken ct)
+    public bool AskImp { get; private set; }
+
+    public async Task OnGetAsync(bool askMarks, bool askImp, CancellationToken ct)
     {
         AskMarks = askMarks;
+        AskImp = askImp;
         await LoadAsync(ct);
+    }
+
+    /// <summary>가장 시작(ADR 0067): 확인 뒤 이 계정으로 로그인을 바꾸고 그 계정의 첫 화면으로.</summary>
+    public async Task<IActionResult> OnPostImpersonateAsync(CancellationToken ct)
+    {
+        var (e, target) = Id is int id ? await imp.StartAsync(Me, id, ct) : (ImpersonateError.NotFound, null);
+        if (target is null)
+        {
+            Error = ImpersonationService.Message(e);
+            await LoadAsync(ct);
+            return Page();
+        }
+        await CurrentUser.SignInAsync(HttpContext, target, Me);
+        return Redirect("/");
     }
 
     public async Task<IActionResult> OnPostResetPasswordAsync(CancellationToken ct)
@@ -59,6 +76,8 @@ public class AccountsModel(PlatformAccountService accounts) : PageModel, ITitled
         Detail = id is int x ? await accounts.DetailAsync(Me, x, ct) : null;
         Id = Detail?.Id;
     }
+
+    public string ImpUrl(int id) => $"/platform/accounts?q={Uri.EscapeDataString(Q ?? "")}&id={id}&askImp=true#imp";
 
     public string Url(int id, bool askMarks = false) =>
         $"/platform/accounts?q={Uri.EscapeDataString(Q ?? "")}&id={id}" + (askMarks ? "&askMarks=true#marks" : "");

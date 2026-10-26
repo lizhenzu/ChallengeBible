@@ -38,6 +38,18 @@ public sealed class AuditLog
     public required string Action { get; set; }
     public int? TenantId { get; set; }
     public string? Detail { get; set; }
+    /// <summary>플랫폼 관리자가 가장 중에 남긴 기록이면 그 관리자 계정(0067). 저장 때 AuditContext 에서 채운다.</summary>
+    public int? ImpersonatorAccountId { get; set; }
+}
+
+/// <summary>
+/// 이 요청(비동기 흐름)의 가장한 플랫폼 관리자(0067). 요청 처음에 쿠키에서 넣고, AppDbContext 가 저장할 때 새 AuditLog 에 채운다.
+/// 일반 연결 · 시스템 연결 모두에 같이 걸리도록 연결 밖(비동기 흐름)에 둔다.
+/// </summary>
+public static class AuditContext
+{
+    private static readonly AsyncLocal<int?> Current = new();
+    public static int? Impersonator { get => Current.Value; set => Current.Value = value; }
 }
 
 internal sealed class PromotionRequestConfig : IEntityTypeConfiguration<PromotionRequest>

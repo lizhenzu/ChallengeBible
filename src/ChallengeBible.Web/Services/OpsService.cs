@@ -101,6 +101,8 @@ public sealed class OpsService(ISystemDb systemDb, AppInfo app, TimeProvider tim
         "FamilyLinked" => "온가족 묶기",
         "FamilyUnlinked" => "온가족 빼기 · 해체",
         "FamilySaved" => "온가족 고치기",
+        ImpersonationService.StartAction => "가장 시작",
+        ImpersonationService.StopAction => "가장 복귀",
         PlatformRuleService.LogAction => "기본 규칙",
         BrandingService.LogAction => "이름 · 색",
         SeasonService.LogAction => "시즌",
