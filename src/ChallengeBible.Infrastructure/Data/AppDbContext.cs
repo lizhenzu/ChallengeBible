@@ -85,6 +85,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
         b.Entity<PromotionRequest>().HasQueryFilter(p => !FilterTenants || p.SourceTenantId == CurrentTenantId || p.TargetTenantId == CurrentTenantId);
     }
 
+    // 가장 중(0067)에 남기는 감사 로그에는 가장한 플랫폼 관리자를 함께 적는다
+    private void StampImpersonator()
+    {
+        if (AuditContext.Impersonator is not int imp) return;
+        foreach (var e in ChangeTracker.Entries<AuditLog>().Where(e => e.State == EntityState.Added && e.Entity.ImpersonatorAccountId is null))
+            e.Entity.ImpersonatorAccountId = imp;
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        StampImpersonator();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        StampImpersonator();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
     private Expression<Func<T, bool>> TenantFilter<T>() where T : ITenantOwned =>
         e => !FilterTenants || e.TenantId == CurrentTenantId;
 

@@ -24,7 +24,14 @@ public static class CurrentUser
 
     public static string DisplayName(this ClaimsPrincipal user) => user.FindFirstValue(ClaimTypes.Name) ?? "";
 
-    public static Task SignInAsync(HttpContext http, Account account)
+    /// <summary>가장(0067): 이 쿠키를 연 플랫폼 관리자 계정 Id. 있으면 "가장 중" 띠 · [복귀].</summary>
+    public const string ImpersonatorClaim = "imp";
+
+    public static int? ImpersonatorId(this ClaimsPrincipal user) =>
+        int.TryParse(user.FindFirstValue(ImpersonatorClaim), out var id) ? id : null;
+
+    /// <summary>impersonator 가 있으면 가장 로그인: 그 계정 그대로 + 가장한 관리자 Id. 임시 비밀번호 표시는 넣지 않는다(남의 비밀번호를 바꾸게 하지 않음).</summary>
+    public static Task SignInAsync(HttpContext http, Account account, int? impersonator = null)
     {
         var claims = new List<Claim>
         {
@@ -32,7 +39,8 @@ public static class CurrentUser
             new(ClaimTypes.Name, account.DisplayName),
         };
         if (account.IsPlatformAdmin) claims.Add(new(PlatformAdminClaim, "1"));
-        if (account.MustChangePassword) claims.Add(new(MustChangePasswordClaim, "1"));
+        if (impersonator is int imp) claims.Add(new(ImpersonatorClaim, imp.ToString()));
+        else if (account.MustChangePassword) claims.Add(new(MustChangePasswordClaim, "1"));
         return SignInAsync(http, claims);
     }
 
@@ -80,6 +88,7 @@ public static class CurrentUser
         app.Use(async (http, next) =>
         {
             if (http.User.AccountId() is int id) http.RequestServices.GetRequiredService<RequestScope>().SetAccount(id);
+            AuditContext.Impersonator = http.User.ImpersonatorId();   // 가장 중 감사 로그에 함께 적힌다(0067)
             await next();
         });
 }

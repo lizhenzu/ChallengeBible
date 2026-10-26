@@ -338,6 +338,20 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(op, "/platform", "13a-플랫폼홈");
         await Save(op, "/platform/tenants", "13-플랫폼부서");
         await Save(op, "/platform/accounts?q=" + Uri.EscapeDataString("김"), "13b-플랫폼-계정찾기");
+        // 가장(확정 시안 플랫폼-가장): 들어가기 확인 → 다른 운영자 창에서 이은혜(유년부 관리자)로 들어간 관리 홈(맨 위 보라 띠)
+        var askImp = $"/platform/accounts?q=eunhye&id={Acc("eunhye")}&askImp=true";
+        await Save(op, askImp, "13d-플랫폼-가장확인");
+        var opImp = app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var lp = await opImp.GetStringAsync("/account/login");
+        await opImp.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = TokenRx().Match(lp).Groups[1].Value, ["Email"] = "operator@example.com", ["Password"] = "1234",
+        }));
+        await opImp.PostAsync($"/platform/accounts?handler=Impersonate&q=eunhye&id={Acc("eunhye")}", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = TokenRx().Match(await opImp.GetStringAsync(askImp)).Groups[1].Value,
+        }));
+        await Save(opImp, "/jamsil-kids/admin", "13e-가장중-관리홈");
         await Save(op, "/platform/rules", "13c-플랫폼-기본규칙");
         await Save(op, "/platform/content/word?month=2027-01&date=2027-01-05", "14-공용콘텐츠-말씀");
         await Save(op, "/platform/content/quiz?month=2027-01&date=2027-01-05", "15-공용콘텐츠-퀴즈");

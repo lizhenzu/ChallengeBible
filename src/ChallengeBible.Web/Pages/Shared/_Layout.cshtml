@@ -32,6 +32,14 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
+    @if (User.ImpersonatorId() is not null)
+    {
+        @* 가장 중(ADR 0067, 확정 시안 플랫폼-가장): 모든 화면 맨 위 보라 띠 + [복귀] *@
+        <div class="imp-bar" role="status"><div class="wrap gut">
+            <span><b>가장 중</b> · @(User.DisplayName())님으로 보고 있어요</span>
+            <form method="post" action="/account/impersonate/stop">@Html.AntiForgeryToken()<button type="submit">복귀</button></form>
+        </div></div>
+    }
     @RenderBody()
     @await RenderSectionAsync("Scripts", required: false)
     <script src="~/js/pwa.js" asp-append-version="true" defer></script>

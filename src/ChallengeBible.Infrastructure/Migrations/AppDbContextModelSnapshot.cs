@@ -195,6 +195,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
+                    b.Property<int?>("ImpersonatorAccountId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("OccurredUtc")
                         .HasColumnType("datetime2(3)");
 

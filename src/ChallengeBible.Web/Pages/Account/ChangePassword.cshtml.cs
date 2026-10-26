@@ -24,6 +24,7 @@ public class ChangePasswordModel(AccountService accounts) : PageModel, ITitled
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
+        if (User.ImpersonatorId() is not null) return Forbid();   // 가장 중에는 남의 비밀번호를 바꾸지 않는다(0067)
         var me = User.AccountId()!.Value;
         Forced = await accounts.MustChangePasswordAsync(me, ct);
         Errors = Forced

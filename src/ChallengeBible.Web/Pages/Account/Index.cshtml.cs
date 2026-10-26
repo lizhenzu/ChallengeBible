@@ -38,6 +38,7 @@ public class IndexModel(AccountService accounts, MyAccountService mine) : PageMo
 
     public async Task<IActionResult> OnPostNameAsync(CancellationToken ct)
     {
+        if (User.ImpersonatorId() is not null) return Forbid();   // 가장 중에는 이름 · 비밀번호를 바꾸지 않는다(0067)
         var (name, errors) = await accounts.RenameAsync(Me, DisplayName, ct);
         if (name is null) { Errors = errors; Open = "name"; await LoadAsync(ct); return Page(); }
         await CurrentUser.RenamedAsync(HttpContext, name);
@@ -46,6 +47,7 @@ public class IndexModel(AccountService accounts, MyAccountService mine) : PageMo
 
     public async Task<IActionResult> OnPostPasswordAsync(CancellationToken ct)
     {
+        if (User.ImpersonatorId() is not null) return Forbid();
         Errors = await accounts.ChangeOwnPasswordAsync(Me, Current, Password, PasswordConfirm, ct);
         if (!Errors.Ok) { Open = "pw"; await LoadAsync(ct); return Page(); }
         return RedirectToPage(new { Ok = "pw" });
