@@ -178,7 +178,7 @@
 .ld .steps span { font-size: 14px; color: var(--dim); word-break: keep-all; }
 .ld /* 마지막 권유 */
   .end { color: var(--fg); background: var(--sky); }
-.ld .end .wrap { padding-block: 60px; text-align: center; }
+.ld .end .wrap { padding-block: 60px 24px; text-align: center; }
 .ld .end h2 { font-family: var(--serif); font-size: 28px; }
 .ld .end p { margin: 10px auto 0; color: var(--dim); max-width: 440px; word-break: keep-all; }
 .ld .end .cta { max-width: 420px; margin: 24px auto 0; }
