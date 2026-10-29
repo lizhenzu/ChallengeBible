@@ -22,8 +22,11 @@
 <div class="ld">
 <header class="ld-top gut">
   <div class="wrap">
-    <span class="tn">도전<i>!!!</i></span>
-    <a class="login" href="/account/login">로그인</a>
+    <div class="org">
+      <small>대한예수교장로회</small>
+      <a class="church" href="https://www.jamsilkids.com/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)">잠실새내교회<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
+    </div>
+    <time class="today" datetime="@d.Today.ToString("yyyy-MM-dd")"><small class="yr">@d.Today.ToString("yyyy년", ko)</small> <b>@d.Today.ToString("M월 d일", ko)</b> <small>@d.Today.ToString("dddd", ko)</small></time>
   </div>
 </header>
 

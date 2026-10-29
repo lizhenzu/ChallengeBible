@@ -43,6 +43,19 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
+    public async Task 머리말은_교단_교회_이름과_오늘_날짜뿐이고_메뉴_버튼이_없다()
+    {
+        var html = await Page();
+        Assert.Contains("<small>대한예수교장로회</small>", html);
+        Assert.Contains("href=\"https://www.jamsilkids.com/\" target=\"_blank\" rel=\"noopener\"", html);   // 교회 홈페이지는 새 창
+        Assert.Contains("<time class=\"today\" datetime=\"2027-01-05\">", html);
+        Assert.Contains("<b>1월 5일</b> <small>화요일</small>", html);
+        Assert.DoesNotContain("class=\"login\"", html);                        // 머리말 로그인 버튼은 없앰(본문 버튼은 그대로)
+        Assert.DoesNotContain("hamburger", html, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("href=\"/account/login\"", html);
+    }
+
+    [Fact]
     public async Task 부서_덮어쓰기_말씀은_보이지_않고_공용이_없으면_카드를_숨긴다()
     {
         var kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
@@ -81,7 +94,7 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("2<i>명</i></b><small>오늘 말씀과 함께한 사람", html);
         Assert.Contains("2<i>장</i></b><small>올해 함께 읽은 성경", html);
         Assert.Contains("<span class=\"num\">2</span><i style=\"height:94px\"></i>오늘", html);
-        Assert.DoesNotContain("잠실새내교회", html);   // 부서 이름은 내보내지 않음
+        Assert.DoesNotContain("잠실새내교회 유년부", html);   // 부서 이름은 내보내지 않음(머리말의 교회 이름과는 별개)
         Assert.DoesNotContain("k1", html);
     }
 
