@@ -1,0 +1,75 @@
+# 휴대폰에서도 게시: GitHub 앱 > Actions > "Publish to SmarterASP" > Run workflow.
+# 버튼을 누를 때만 실행(실DB SQL 을 먼저 돌려야 하는 변경이 있어서 자동 게시는 하지 않는다).
+# 테스트 → 게시(dotnet publish) → Web Deploy 로 SmarterASP 에 올림. 서버의 appsettings.Production.json 은 건드리지 않는다.
+# 접속 정보는 저장소 Settings > Secrets and variables > Actions 의 Secret 4개(WEBDEPLOY_URL · WEBDEPLOY_SITE · WEBDEPLOY_USER · WEBDEPLOY_PASSWORD).
+name: Publish to SmarterASP
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "게시할 브랜치(보통 main)"
+        required: true
+        default: main
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Test
+        run: dotnet test tests/ChallengeBible.Tests -c Release
+
+      - name: Publish
+        run: dotnet publish src/ChallengeBible.Web/ChallengeBible.Web.csproj -c Release -o out --no-self-contained
+
+      - name: Keep server settings
+        shell: pwsh
+        run: |
+          # 서버에 있는 설정 파일을 덮지 않도록 게시 결과에서 뺀다(저장소에는 원래 없음)
+          Remove-Item out/appsettings.Production.json -ErrorAction SilentlyContinue
+          Remove-Item out/appsettings.Development.json -ErrorAction SilentlyContinue
+
+      - name: Install Web Deploy
+        shell: pwsh
+        run: |
+          $exe = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          if (-not (Test-Path $exe)) { choco install webdeploy -y --no-progress }
+          if (-not (Test-Path $exe)) { throw "msdeploy.exe not found" }
+
+      - name: Deploy
+        shell: pwsh
+        env:
+          WD_URL: ${{ secrets.WEBDEPLOY_URL }}
+          WD_SITE: ${{ secrets.WEBDEPLOY_SITE }}
+          WD_USER: ${{ secrets.WEBDEPLOY_USER }}
+          WD_PASS: ${{ secrets.WEBDEPLOY_PASSWORD }}
+        run: |
+          foreach ($n in 'WD_URL','WD_SITE','WD_USER','WD_PASS') { if (-not [Environment]::GetEnvironmentVariable($n)) { throw "Secret missing: $n" } }
+          $src = (Resolve-Path out).Path
+          $exe = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          # AppOffline: 올리는 동안 잠긴 dll 문제를 막는다. DoNotDeleteRule: 서버에만 있는 파일(설정 · 로그)은 지우지 않는다(VS 프로필의 SkipExtraFilesOnServer 와 같음).
+          & $exe -verb:sync `
+            "-source:contentPath=$src" `
+            "-dest:contentPath=$env:WD_SITE,computerName=$env:WD_URL,userName=$env:WD_USER,password=$env:WD_PASS,authType=Basic" `
+            -enableRule:AppOffline -enableRule:DoNotDeleteRule `
+            -allowUntrusted -retryAttempts:3 -retryInterval:3000
+          if ($LASTEXITCODE -ne 0) { throw "msdeploy failed: $LASTEXITCODE" }
+
+      - name: Version
+        shell: pwsh
+        run: git rev-parse --short HEAD
