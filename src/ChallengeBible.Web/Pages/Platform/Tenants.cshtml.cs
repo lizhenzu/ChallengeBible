@@ -22,7 +22,7 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
     [BindProperty] public string TimeZoneId { get; set; } = "Asia/Seoul";
     [BindProperty] public string ThemeColor { get; set; } = "blue";
     [BindProperty] public bool Mission { get; set; } = true;
-    [BindProperty] public bool Reading { get; set; }
+    [BindProperty] public bool Reading { get; set; } = true;
     [BindProperty] public string? AdminEmail { get; set; }
 
     public List<TenantRow> Rows { get; private set; } = [];
