@@ -90,15 +90,25 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task R172_임시_부서_홈은_내_부서_찾기_띠만_있고_남의_기록은_숨긴다()
+    public async Task R172_임시_부서_1단계는_윗부분만_있고_남의_기록은_숨긴다()
     {
         var (c, _) = await SignUp();
         var home = await c.GetStringAsync("/welcome");
-        Assert.Contains("아직 우리 부서가 없어요", home);
-        Assert.Contains("<a class=\"go\" href=\"/join\">내 부서 찾기 →</a>", home);
+        Assert.Contains("시작까지 3단계", home);                                          // 0068 1단계: 윗부분만
+        Assert.Contains("href=\"/join\">내 부서 찾기 <svg", home);                       // 큰 버튼 → 부서 고르기
+        Assert.Contains("<a href=\"/welcome/today\">먼저 미션 해 보기 ›</a>", home);       // 작은 길 → 미션 화면
+        Assert.DoesNotContain("미션 수행하러 가기", home);
+        Assert.DoesNotContain("어떤 걸 먼저 할까요?", home);                              // 아랫부분(미션 · 통독 카드)은 미션 화면으로
+        Assert.DoesNotContain("aria-label=\"오늘의 말씀\"", home);
         Assert.DoesNotContain("aria-labelledby=\"dpT\"", home);                       // "우리 부서" 숫자 칸 없음
         Assert.DoesNotContain("/welcome/ranking", home);
-        Assert.Contains("<a href=\"/join\">내 부서 찾기</a>", home);                    // 계정 줄
+        Assert.Contains("<a href=\"/join\">내 부서 찾기</a>", home);                    // 계정 줄(로그아웃도 여기 있음)
+        var today = await c.GetStringAsync("/welcome/today");                         // 미션 화면 = 지금 홈 아랫부분
+        Assert.Contains("어떤 걸 먼저 할까요?", today);
+        Assert.Contains("<a href=\"/welcome\">← 처음 화면</a>", today);
+        Assert.DoesNotContain("승인 기다리는 중", today);                                // 신청 전이라 표시 없음
+        Assert.DoesNotContain("시작까지 3단계", today);
+        Assert.DoesNotContain("/welcome/ranking", today);
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/welcome/ranking")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/welcome/ranking?t=team")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/welcome/reading/participants")).StatusCode);
@@ -107,13 +117,32 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task R172_신청해_두면_승인_기다리는_중으로_바뀐다()
+    public async Task R172_신청해_두면_2단계_승인_기다리는_중으로_바뀐다()
     {
         var (c, _) = await SignUp();
         InMemoryDb.SeedMembership(_db, _kids.Id, AccountId(), MembershipStatus.Requested, Roles.Participant);
         var home = await c.GetStringAsync("/welcome");
-        Assert.Contains("잠실새내교회 유년부 승인을 기다리는 중이에요", home);
-        Assert.Contains("신청 보기", home);
+        Assert.Contains("<span>잠실새내교회 유년부</span>", home);                        // 참여 신청 ✓ + 신청한 부서
+        Assert.Contains("관리자 승인 <span class=\"wl-tag wl-wait\">기다리는 중</span>", home);
+        Assert.Contains("href=\"/welcome/today\">미션 수행하러 가기 <svg", home);          // 큰 버튼 → 미션 화면
+        Assert.Contains("href=\"/join\">신청 보기 <svg", home);
+        Assert.DoesNotContain("먼저 미션 해 보기", home);                                  // 1단계 전용 링크
+        Assert.DoesNotContain("어떤 걸 먼저 할까요?", home);
+        var today = await c.GetStringAsync("/welcome/today");
+        Assert.Contains("승인 기다리는 중</span>", today);                                  // 미션 화면 맨 위 표시
+        Assert.Contains("어떤 걸 먼저 할까요?", today);
+    }
+
+    [Fact]
+    public async Task 일반_부서는_today_주소로_가도_원래_홈으로_보낸다()
+    {
+        var (c, _) = await SignUp();
+        InMemoryDb.SeedMembership(_db, _kids.Id, AccountId(), MembershipStatus.Approved, Roles.Participant);
+        var r = await c.GetAsync("/jamsil-kids/today");                                  // 일반 부서 홈은 한 화면 그대로 — today 는 홈으로
+        Assert.Equal("/jamsil-kids", r.Headers.Location!.OriginalString);
+        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/jamsil-kids")).StatusCode);
+        Assert.Contains("어떤 걸 먼저 할까요?", await c.GetStringAsync("/jamsil-kids"));
+        Assert.DoesNotContain("시작까지 3단계", await c.GetStringAsync("/jamsil-kids"));
     }
 
     [Fact]

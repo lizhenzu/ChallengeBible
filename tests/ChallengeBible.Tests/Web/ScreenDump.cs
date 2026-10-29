@@ -324,8 +324,10 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         }
         var fresh = await SignUp("jiho", "박지호");
         await Save(fresh, "/welcome", "05c-임시부서-홈");
+        await Save(fresh, "/welcome/today", "05e-임시부서-미션화면");
         InMemoryDb.SeedMembership(db, kids.Id, Acc("jiho"), MembershipStatus.Requested, Roles.Participant);
         await Save(fresh, "/welcome", "05d-임시부서-승인기다림");
+        await Save(fresh, "/welcome/today", "05f-임시부서-미션화면-승인기다림");
 
         // 운영자: 가입 → 플랫폼 관리자 → 다시 로그인
         var op = await SignUp("operator", "운영자");

@@ -149,6 +149,65 @@
 .hm footer form { margin: 0; }
 .hm footer button { border: 0; background: none; padding: 0; min-height: 32px; font-size: 14px; color: var(--dim); }
 
+/* 임시 부서 홈 두 단계(0068, 확정 시안: 임시부서-홈-두단계). 하늘색 머리말 → 1 · 2단계 윗부분만 / 미션 화면(← 처음 화면 + 아랫부분). 일반 부서 홈에는 영향 없음(.lobby 아래만) */
+.hm.lobby { --sky: #EAF4FF; --sky-rule: #CFE3FA; --okc: #2F7D55; --ok-soft: #E3F1E9; --wait: #A66A00; --wait-soft: #FFF4D6; --acc-soft: #E8EEFA; }
+@media (prefers-color-scheme: dark) { .hm.lobby { --sky: #172235; --sky-rule: #263852; --okc: #7CC49C; --ok-soft: #1B2A22; --wait: #F2C063; --wait-soft: #2E2614; --acc-soft: #22304A; } }
+.hm .wl { background: var(--sky); word-break: keep-all; overflow-wrap: anywhere; }
+.hm .wl-top .wrap { max-width: 480px; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; padding-block: 8px; }
+.hm .wl-org { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.hm .wl-org small { font-size: 12px; color: var(--dim); }
+.hm .wl-org b { font-size: 20px; font-weight: 900; color: var(--accent); }
+.hm .wl-today { text-align: right; font-size: 13px; color: var(--dim); white-space: nowrap; }
+.hm .wl-today b { font-size: 17px; font-weight: 800; color: var(--fg); }
+.hm .wl-hi .wrap { max-width: 480px; padding-block: 18px 30px; }
+.hm .wl-k { font-size: 12px; font-weight: 700; letter-spacing: .2em; color: var(--accent); }
+.hm .wl .wl-hi h1 { margin: 6px 0 0; font-size: 30px; line-height: 1.3; font-weight: 900; letter-spacing: -.02em; }
+.hm .wl-hi p.wl-sub { margin: 8px 0 0; color: var(--dim); font-size: 15px; }
+.hm .wl-card { margin-top: 18px; background: var(--bg); border: 1px solid var(--sky-rule); border-radius: 22px; padding: 18px 18px 20px; box-shadow: 0 16px 32px -26px rgba(43,89,195,.5); }
+.hm .wl .wl-card h2 { margin: 0; font-size: 16px; font-weight: 900; line-height: 1.5; }
+.hm .wl-steps { list-style: none; margin: 12px 0 0; padding: 0; display: grid; }
+.hm .wl-steps li { position: relative; display: flex; gap: 12px; padding-bottom: 14px; }
+.hm .wl-steps li:last-child { padding-bottom: 0; }
+.hm .wl-steps li:not(:last-child)::after { content: ""; position: absolute; left: 15px; top: 34px; bottom: 2px; width: 2px; background: var(--rule); }
+.hm .wl-ic { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 900; z-index: 1; }
+.hm .wl-done .wl-ic { background: var(--okc); color: #fff; }
+.hm .wl-now .wl-ic { background: var(--accent); color: var(--on-accent); box-shadow: 0 0 0 4px var(--acc-soft); }
+.hm .wl-wait .wl-ic { background: var(--wait-soft); color: var(--wait); }
+.hm .wl-later .wl-ic { background: var(--soft); color: var(--dim); }
+.hm .wl-tx { min-width: 0; padding-top: 4px; }
+.hm .wl-tx b { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 15px; }
+.hm .wl-tx span { display: block; font-size: 13px; color: var(--dim); }
+.hm .wl-tag { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+.hm .wl-tag.wl-done { background: var(--ok-soft); color: var(--okc); }
+.hm .wl-tag.wl-now { background: var(--acc-soft); color: var(--accent); }
+.hm .wl-tag.wl-wait { background: var(--wait-soft); color: var(--wait); }
+.hm .wl-tag.wl-later { background: var(--soft); color: var(--dim); }
+.hm .wl-btn { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 54px; padding: 0 18px; border-radius: 14px; font-size: 16px; font-weight: 800; }
+.hm .wl .wl-btn.wl-p { background: var(--accent); color: var(--on-accent); }
+.hm .wl .wl-btn.wl-s { margin-top: 10px; min-height: 48px; background: var(--bg); color: var(--accent); border: 1px solid var(--sky-rule); font-size: 15px; }
+.hm .wl-try { margin-top: 12px; display: flex; justify-content: center; }
+.hm .wl-try a { min-height: 44px; display: inline-flex; align-items: center; gap: 4px; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; }
+.hm .wl-keep { margin: 12px 0 0; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--dim); }
+.hm .wl-keep svg { flex: none; margin-top: 3px; color: var(--okc); }
+.hm .wl-back .wrap { max-width: 480px; padding-block: 2px 14px; }
+.hm .wl-back a { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--accent); }
+.hm .wl-back .pill { margin-left: 8px; display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; background: var(--wait-soft); color: var(--wait); font-size: 12.5px; font-weight: 800; }
+/* 미션 화면의 오늘의 말씀: 남색 띠 → 흰 말씀 카드(첫 화면과 같은 모양) */
+.hm.lobby .verse { background: transparent; color: var(--fg); padding-top: 22px; }
+.hm.lobby .verse .wrap { position: relative; background: var(--bg); border: 1px solid var(--rule); border-radius: 22px; padding: 24px 20px 20px; box-shadow: 0 18px 34px -28px rgba(43,89,195,.45); }
+.hm.lobby .verse .wrap::before { content: "\201C"; position: absolute; right: 16px; top: -6px; font-family: var(--serif); font-size: 96px; line-height: 1; color: var(--accent); opacity: .16; pointer-events: none; }
+.hm.lobby .verse .k { color: var(--accent); }
+.hm.lobby .verse blockquote { font-size: 20px; font-weight: 700; }
+.hm.lobby .verse cite, .hm.lobby .verse .side small { color: var(--dim); }
+.hm.lobby .verse .side div { border-top-color: var(--rule); }
+@media (max-width: 380px) {
+  .hm .wl .wl-hi h1 { font-size: 26px; }
+  .hm .wl-org b { font-size: 18px; }
+  .hm .wl-today b { font-size: 15px; }
+  .hm .wl-today .yr { display: none; }
+  .hm.lobby .verse blockquote { font-size: 18px; }
+}
+
 @media (min-width: 900px) {
   .hm .hello h1 { font-size: 38px; }
   .hm .verse .wrap { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: end; }
