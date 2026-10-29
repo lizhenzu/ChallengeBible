@@ -47,7 +47,7 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
     {
         var html = await Page();
         Assert.Contains("<small>대한예수교장로회</small>", html);
-        Assert.Contains("href=\"https://www.jamsilkids.com/\" target=\"_blank\" rel=\"noopener\"", html);   // 교회 홈페이지는 새 창
+        Assert.Contains("href=\"https://www.saenae.org/\" target=\"_blank\" rel=\"noopener\"", html);   // 교회 홈페이지는 새 창
         Assert.Contains("<time class=\"today\" datetime=\"2027-01-05\">", html);
         Assert.Contains("<b>1월 5일</b> <small>화요일</small>", html);
         Assert.DoesNotContain("class=\"login\"", html);                        // 머리말 로그인 버튼은 없앰(본문 버튼은 그대로)
