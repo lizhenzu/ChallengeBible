@@ -34,16 +34,19 @@
 .ld .btn.s { background: var(--bg); border: 1px solid var(--sky-rule); color: var(--fg); }
 .ld .btn.b { background: var(--accent); color: var(--on-accent); }
 .ld .btn.o { border: 1px solid var(--rule); }
-.ld /* 머리말: 첫 장면 위에 겹친다 */
-  header.ld-top { position: absolute; inset: 0 0 auto; z-index: 5; color: var(--fg); }
-.ld header.ld-top .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 64px; }
-.ld .tn { font-size: 18px; font-weight: 900; letter-spacing: .02em; }
-.ld .tn { color: var(--accent); }
-.ld .tn i { font-style: normal; color: var(--accent); }
-.ld header.ld-top a.login { min-height: 40px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 10px; background: var(--bg); border: 1px solid var(--sky-rule); font-size: 14px; font-weight: 700; }
+/* 머리말: 교단 · 교회 이름(왼쪽, 교회 홈페이지 링크)과 오늘 날짜(오른쪽). 흰 띠 + 아래 얇은 선, 메뉴 버튼 없음 */
+.ld header.ld-top { position: relative; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--rule); color: var(--fg); }
+.ld header.ld-top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; padding-block: 8px; }
+.ld .org { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.25; }
+.ld .org small { font-size: 12px; font-weight: 500; color: var(--dim); }
+.ld .church { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; font-size: 20px; font-weight: 900; letter-spacing: -.01em; color: var(--accent); white-space: nowrap; }
+.ld .church svg { width: 13px; height: 13px; flex: none; margin-top: -6px; }
+.ld .today { flex: none; text-align: right; font-size: 13px; color: var(--dim); white-space: nowrap; }
+.ld .today b { font-size: 17px; font-weight: 800; color: var(--fg); margin: 0 1px; }
+.ld .today small { font-size: 13px; }
 .ld /* 첫 장면 */
   .hero { position: relative; overflow: hidden; color: var(--fg); background: var(--sky); }
-.ld .hero .wrap { position: relative; padding-block: 104px 90px; display: grid; gap: 36px; }
+.ld .hero .wrap { position: relative; padding-block: 44px 90px; display: grid; gap: 36px; }
 .ld .hero h1 { margin: 12px 0 0; font-family: var(--serif); font-size: 40px; font-weight: 900; line-height: 1.3; letter-spacing: -.02em; word-break: keep-all; }
 .ld .hero h1 em { font-style: normal; color: var(--accent); }
 .ld .hero .sub { margin: 14px 0 0; font-size: 16px; color: var(--dim); word-break: keep-all; max-width: 520px; }
@@ -182,10 +185,16 @@
 .ld footer.ld-foot { background: var(--sky); color: var(--dim); }
 .ld footer.ld-foot .wrap { padding-block: 0 calc(28px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; text-align: center; }
 .ld .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
+/* 좁은 휴대폰(≤ 420px): 머리말에서 연도는 빼고 월 · 일 · 요일만 */
+@media (max-width: 420px) {
+  .ld .today .yr { display: none; }
+}
 /* 아주 좁은 휴대폰(≤ 380px): 글자 · 그림을 줄여 겹치거나 넘치지 않게 */
 @media (max-width: 380px) {
   .ld .gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
   .ld .hero h1 { font-size: 34px; }
+  .ld .church { font-size: 18px; }
+  .ld .today b { font-size: 15px; }
   .ld h2 { font-size: 23px; }
   .ld .end h2 { font-size: 25px; }
   .ld .shots { height: 330px; margin: 0; }
@@ -205,7 +214,7 @@
 }
 @media (min-width: 900px) {
   .ld h2 { font-size: 32px; }
-  .ld .hero .wrap { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; padding-block: 120px 120px; }
+  .ld .hero .wrap { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; padding-block: 72px 120px; }
   .ld .hero h1 { font-size: 54px; }
   .ld .cta { grid-auto-flow: column; justify-content: start; }
   .ld .shots { height: 420px; }
