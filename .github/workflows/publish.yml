@@ -59,16 +59,22 @@ jobs:
           WD_USER: ${{ secrets.WEBDEPLOY_USER }}
           WD_PASS: ${{ secrets.WEBDEPLOY_PASSWORD }}
         run: |
-          foreach ($n in 'WD_URL','WD_SITE','WD_USER','WD_PASS') { if (-not [Environment]::GetEnvironmentVariable($n)) { throw "Secret missing: $n" } }
+          # Secret 앞뒤 빈칸 · 탭 · 줄바꿈은 지운다(붙여 넣을 때 섞여 들어가기 쉬움)
+          $url  = "$env:WD_URL".Trim()
+          $site = "$env:WD_SITE".Trim()
+          $user = "$env:WD_USER".Trim()
+          $pass = "$env:WD_PASS".Trim()
+          foreach ($v in @(@('WEBDEPLOY_URL',$url),@('WEBDEPLOY_SITE',$site),@('WEBDEPLOY_USER',$user),@('WEBDEPLOY_PASSWORD',$pass))) { if (-not $v[1]) { throw "Secret missing: $($v[0])" } }
           $src = (Resolve-Path out).Path
           $exe = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-          # AppOffline: 올리는 동안 잠긴 dll 문제를 막는다. DoNotDeleteRule: 서버에만 있는 파일(설정 · 로그)은 지우지 않는다(VS 프로필의 SkipExtraFilesOnServer 와 같음).
-          & $exe -verb:sync `
-            "-source:contentPath=$src" `
-            "-dest:contentPath=$env:WD_SITE,computerName=$env:WD_URL,userName=$env:WD_USER,password=$env:WD_PASS,authType=Basic" `
-            -enableRule:AppOffline -enableRule:DoNotDeleteRule `
-            -allowUntrusted -retryAttempts:3 -retryInterval:3000
-          if ($LASTEXITCODE -ne 0) { throw "msdeploy failed: $LASTEXITCODE" }
+          # 인자를 한 줄로 만들어 그대로 넘긴다(PowerShell 이 따옴표로 감싸면 msdeploy 가 못 읽음).
+          # AppOffline: 올리는 동안 잠긴 dll 문제를 막는다. DoNotDeleteRule: 서버에만 있는 파일(설정 · 로그)은 지우지 않는다.
+          $argLine = "-verb:sync " +
+            "-source:contentPath=`"$src`" " +
+            "-dest:contentPath=`"$site`",computerName=`"$url`",userName=`"$user`",password=`"$pass`",authType=Basic " +
+            "-enableRule:AppOffline -enableRule:DoNotDeleteRule -allowUntrusted -retryAttempts:3 -retryInterval:3000"
+          $p = Start-Process -FilePath $exe -ArgumentList $argLine -NoNewWindow -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "msdeploy failed: $($p.ExitCode)" }
 
       - name: Version
         shell: pwsh
