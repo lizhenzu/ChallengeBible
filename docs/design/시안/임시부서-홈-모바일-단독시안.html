@@ -1760,7 +1760,8 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .wl .wl-btn.wl-s { background: var(--bg); color: var(--accent); border: 1px solid var(--sky-rule); }
 .wl-keep { margin: 12px 0 0; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--dim); }
 .wl-keep svg { flex: none; margin-top: 3px; color: var(--okc); }
-.mock { position: sticky; top: 0; z-index: 20; background: #1B1F24; color: #fff; font-size: 13px; }
+.mock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: #1B1F24; color: #fff; font-size: 13px; padding-bottom: env(safe-area-inset-bottom, 0px); box-shadow: 0 -6px 18px rgba(0,0,0,.25); }
+body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important; }
 .mock .wrap { display: flex; align-items: center; gap: 8px; min-height: 48px; }
 .mock b { margin-right: auto; font-weight: 700; opacity: .8; }
 .mock button { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid #555; background: transparent; color: #fff; font-size: 13px; font-weight: 700; }
