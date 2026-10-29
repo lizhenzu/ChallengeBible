@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>임시 부서 홈 · 모바일</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&family=Noto+Serif+KR:wght@600;700&display=swap">
+<style>
+/* 시안: 임시 부서 "처음 오신 분" 홈(/welcome) — 휴대폰 먼저. 첫 화면(로그인 전)과 같은 하늘색 · 같은 머리말 모양.
+   순서: 머리말(부서 이름 · 날짜) → 환영 → 시작까지 3단계(지금 할 일 버튼 하나) → 오늘의 말씀(밝은 종이) → 오늘의 미션(줄 목록 + 큰 버튼 하나) → 성경통독(한 줄) → 이번 주 기록(비었을 땐 안내) → 계정 줄.
+   상태 A = 아직 부서 없음, 상태 B = 승인 기다림. 맨 위 "시안 보기" 띠는 시안에만 있다. */
+:root {
+  --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA;
+  --accent: #2B59C3; --accent-soft: #E8EEFA; --on-accent: #FFFFFF;
+  --sky: #EAF4FF; --sky-rule: #CFE3FA; --ok: #2F7D55; --ok-soft: #E3F1E9; --wait: #A66A00; --wait-soft: #FFF4D6;
+  --rd: #2F7D55; --rd-soft: #E3F1E9;
+  --word: #3D5A96; --quiz: #9A6638; --pray: #6E5A9A; --rec: #3F7A5A;
+  --word-bg: #EEF3FC; --quiz-bg: #FCF4EC; --pray-bg: #F4F1FA; --rec-bg: #EEF6F1;
+  --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --serif: "Noto Serif KR", "Nanum Myeongjo", "Batang", serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A;
+  --accent: #7FA2F2; --accent-soft: #22304A; --on-accent: #0E1013;
+  --sky: #172235; --sky-rule: #263852; --ok: #7CC49C; --ok-soft: #1B2A22; --wait: #F2C063; --wait-soft: #2E2614;
+  --rd: #7CC49C; --rd-soft: #1B2A22;
+  --word: #A9BDE8; --quiz: #E3B58A; --pray: #C3B3E6; --rec: #9AD0B2;
+  --word-bg: #1C2433; --quiz-bg: #2A2119; --pray-bg: #241F2E; --rec-bg: #1B2A22;
+  color-scheme: dark } }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); }
+body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; }
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; color: inherit; cursor: pointer; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+[hidden] { display: none !important; }
+.gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 480px; margin: 0 auto; }
+.num { font-variant-numeric: tabular-nums; }
+svg { flex: none; }
+
+/* 시안 보기 띠(시안에만) */
+.mock { position: sticky; top: 0; z-index: 20; background: #1B1F24; color: #fff; font-size: 13px; }
+.mock .wrap { display: flex; align-items: center; gap: 8px; min-height: 48px; }
+.mock b { margin-right: auto; font-weight: 700; opacity: .8; }
+.mock button { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid #555; background: transparent; color: #fff; font-size: 13px; font-weight: 700; }
+.mock button[aria-pressed="true"] { background: #fff; color: #1B1F24; border-color: #fff; }
+
+/* 머리말 + 환영: 첫 화면과 같은 하늘색, 흰 띠 없음 */
+.sky { background: var(--sky); }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; padding-block: 8px; }
+.org { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.org small { font-size: 12px; color: var(--dim); }
+.org b { font-size: 20px; font-weight: 900; color: var(--accent); }
+.today { text-align: right; font-size: 13px; color: var(--dim); white-space: nowrap; }
+.today b { font-size: 17px; font-weight: 800; color: var(--fg); }
+
+.hello .wrap { padding-block: 18px 26px; }
+.hello .k { font-size: 12px; font-weight: 700; letter-spacing: .2em; color: var(--accent); }
+.hello h1 { margin: 6px 0 0; font-size: 30px; line-height: 1.3; font-weight: 900; letter-spacing: -.02em; }
+.hello p { margin: 8px 0 0; color: var(--dim); font-size: 15px; }
+
+/* 시작까지 3단계 */
+.steps-card { margin-top: 18px; background: var(--bg); border: 1px solid var(--sky-rule); border-radius: 22px; padding: 18px 18px 20px; box-shadow: 0 16px 32px -26px rgba(43,89,195,.5); }
+.steps-card h2 { margin: 0; font-size: 16px; font-weight: 900; }
+.steps { list-style: none; margin: 12px 0 0; padding: 0; display: grid; }
+.steps li { position: relative; display: flex; gap: 12px; padding-bottom: 14px; }
+.steps li:last-child { padding-bottom: 0; }
+.steps li:not(:last-child)::after { content: ""; position: absolute; left: 15px; top: 34px; bottom: 2px; width: 2px; background: var(--rule); }
+.steps .ic { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 900; z-index: 1; }
+.steps .done .ic { background: var(--ok); color: #fff; }
+.steps .now .ic { background: var(--accent); color: var(--on-accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.steps .wait .ic { background: var(--wait-soft); color: var(--wait); }
+.steps .later .ic { background: var(--soft); color: var(--dim); }
+.steps .tx { min-width: 0; padding-top: 4px; }
+.steps .tx b { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 15px; }
+.steps .tx span { display: block; font-size: 13px; color: var(--dim); }
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+.tag.done { background: var(--ok-soft); color: var(--ok); }
+.tag.now { background: var(--accent-soft); color: var(--accent); }
+.tag.wait { background: var(--wait-soft); color: var(--wait); }
+.tag.later { background: var(--soft); color: var(--dim); }
+.btn { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 54px; padding: 0 18px; border-radius: 14px; font-size: 16px; font-weight: 800; border: 0; }
+.btn.p { background: var(--accent); color: var(--on-accent); }
+.btn.s { background: var(--bg); color: var(--accent); border: 1px solid var(--sky-rule); }
+.steps-card .btn { margin-top: 16px; }
+.keep { margin: 12px 0 0; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--dim); }
+.keep svg { margin-top: 3px; color: var(--ok); }
+
+/* 본문 */
+main .wrap { padding-block: 22px 8px; display: grid; gap: 18px; }
+.card { border-radius: 22px; padding: 18px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .18em; color: var(--accent); }
+.card h2 { margin: 2px 0 0; font-size: 19px; font-weight: 900; letter-spacing: -.01em; }
+
+/* 오늘의 말씀: 밝은 종이 */
+.word { background: var(--bg); border: 1px solid var(--rule); }
+.word blockquote { margin: 10px 0 0; font-family: var(--serif); font-size: 19px; font-weight: 700; line-height: 1.75; }
+.word cite { display: block; margin-top: 6px; font-style: normal; font-size: 13px; color: var(--dim); }
+.word .two { margin-top: 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.word .two div { background: var(--soft); border-radius: 14px; padding: 10px 12px; }
+.word .two small { display: block; font-size: 12px; color: var(--dim); }
+.word .two b { font-size: 14px; }
+
+/* 오늘의 미션: 줄 목록 */
+.ms { background: var(--accent-soft); }
+.ms .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.ms .hd span { font-size: 13px; color: var(--dim); white-space: nowrap; }
+.bar4 { margin-top: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.bar4 i { height: 6px; border-radius: 3px; background: var(--bg); }
+.rows { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.rows a { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 10px 14px; border-radius: 16px; background: var(--bg); }
+.rows .mi { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; }
+.rows .w .mi { background: var(--word-bg); color: var(--word); }
+.rows .q .mi { background: var(--quiz-bg); color: var(--quiz); }
+.rows .p .mi { background: var(--pray-bg); color: var(--pray); }
+.rows .r .mi { background: var(--rec-bg); color: var(--rec); }
+.rows .tx { flex: 1; min-width: 0; }
+.rows .tx b { display: block; font-size: 15px; }
+.rows .tx small { display: block; font-size: 12.5px; color: var(--dim); }
+.rows .st { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 800; color: var(--dim); white-space: nowrap; }
+.rows .cur { box-shadow: 0 0 0 2px var(--accent) inset; }
+.rows .cur .st { color: var(--accent); }
+.ms .btn { margin-top: 14px; }
+
+/* 성경통독: 한 줄 */
+.rdc { background: var(--rd-soft); display: flex; align-items: center; gap: 14px; }
+.rdc .mi { width: 44px; height: 44px; border-radius: 14px; background: var(--bg); color: var(--rd); display: grid; place-items: center; }
+.rdc .tx { flex: 1; min-width: 0; }
+.rdc .tx b { display: block; font-size: 16px; color: var(--rd); font-weight: 900; }
+.rdc .tx small { font-size: 13px; color: var(--dim); }
+.rdc a.go { flex: none; min-height: 44px; display: inline-flex; align-items: center; gap: 4px; padding: 0 14px; border-radius: 12px; background: var(--rd); color: #fff; font-size: 14px; font-weight: 800; }
+
+/* 이번 주 기록: 비었을 때 */
+.wk { border: 1px solid var(--rule); background: var(--bg); }
+.days { margin-top: 12px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); text-align: center; gap: 4px; font-size: 12px; color: var(--dim); }
+.days i { display: block; margin: 4px auto 0; width: 30px; height: 30px; border-radius: 50%; background: var(--soft); }
+.days .t { color: var(--accent); font-weight: 900; }
+.days .t i { background: transparent; border: 2px dashed var(--accent); }
+.wk p { margin: 12px 0 0; font-size: 13.5px; color: var(--dim); text-align: center; }
+
+/* 계정 줄 */
+.acct { list-style: none; margin: 6px 0 0; padding: 0; border-top: 1px solid var(--rule); }
+.acct a, .acct button { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 52px; padding: 0 2px; border: 0; border-bottom: 1px solid var(--rule); background: none; font-size: 15px; font-weight: 700; text-align: left; }
+.acct span { color: var(--dim); }
+.foot { padding-block: 18px calc(28px + env(safe-area-inset-bottom, 0px)); font-size: 12.5px; color: var(--dim); text-align: center; }
+
+@media (max-width: 380px) {
+  .gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .hello h1 { font-size: 26px; }
+  .org b { font-size: 18px; }
+  .today b { font-size: 15px; }
+  .today .yr { display: none; }
+  .word blockquote { font-size: 17px; }
+  .rows .tx small { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="mock gut" role="region" aria-label="시안 보기(시안에만 있음)"><div class="wrap">
+  <b>시안 보기</b>
+  <button type="button" data-s="a" aria-pressed="true">A 부서 없음</button>
+  <button type="button" data-s="b" aria-pressed="false">B 승인 기다림</button>
+</div></div>
+
+<div class="sky">
+  <header class="top gut"><div class="wrap">
+    <div class="org"><small>내 부서를 찾는 동안</small><b>처음 오신 분</b></div>
+    <span class="today"><span class="yr">2027년 </span><b>1월 5일</b> 화요일</span>
+  </div></header>
+
+  <section class="hello gut" aria-labelledby="hi"><div class="wrap">
+    <div class="k">환영해요</div>
+    <h1 id="hi">지호님,<br>반가워요!</h1>
+    <p data-a>내 부서를 찾는 동안에도 오늘 미션을 할 수 있어요.</p>
+    <p data-b hidden>신청을 보냈어요. 기다리는 동안 오늘 미션을 해 볼까요?</p>
+
+    <div class="steps-card">
+      <h2>시작까지 3단계</h2>
+      <ol class="steps">
+        <li class="done"><span class="ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>
+          <div class="tx"><b>가입 <span class="tag done">완료</span></b><span>이름 · 이메일만 받았어요</span></div></li>
+
+        <li class="now" data-a><span class="ic" aria-hidden="true">2</span>
+          <div class="tx"><b>내 부서 찾기 <span class="tag now">지금 할 일</span></b><span>목록에서 내 교회 · 부서를 골라 신청해요</span></div></li>
+        <li class="done" data-b hidden><span class="ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>
+          <div class="tx"><b>참여 신청 <span class="tag done">완료</span></b><span>잠실새내교회 유년부</span></div></li>
+
+        <li class="later" data-a><span class="ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+          <div class="tx"><b>관리자 승인 <span class="tag later">다음 단계</span></b><span>승인되면 그 부서로 바로 옮겨 가요</span></div></li>
+        <li class="wait" data-b hidden><span class="ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+          <div class="tx"><b>관리자 승인 <span class="tag wait">기다리는 중</span></b><span>승인되면 그 부서로 바로 옮겨 가요</span></div></li>
+      </ol>
+      <a class="btn p" href="#" data-a>내 부서 찾기 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a class="btn s" href="#" data-b hidden>신청 보기 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+      <p class="keep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>여기서 한 미션 기록 · 점수는 부서로 그대로 옮겨져요.</p>
+    </div>
+  </div></section>
+</div>
+
+<main class="gut"><div class="wrap">
+
+  <section class="card word" aria-labelledby="wd">
+    <div class="eyebrow">오늘의 말씀 · 1월 5일</div>
+    <h2 id="wd" hidden>오늘의 말씀</h2>
+    <blockquote>아브라함이 나이가 많아 늙었고 여호와께서 그에게 범사에 복을 주셨더라</blockquote>
+    <cite>창세기 24:1 · 오늘 읽을 범위 창세기 24장 1~9절</cite>
+    <div class="two">
+      <div><small>이번 주 암송 <span class="num">(1/3 ~ 1/9)</span></small><b>요한복음 3:16</b></div>
+      <div><small>오늘의 기도</small><b>신뢰 · 잠언 3장 5~6절</b></div>
+    </div>
+  </section>
+
+  <section class="card ms" aria-labelledby="mt">
+    <div class="hd"><h2 id="mt">오늘의 미션</h2><span>4개 남았어요 · 하루 5분</span></div>
+    <div class="bar4" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <ul class="rows">
+      <li class="w"><a class="cur" href="#">
+        <span class="mi" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H2z"/><path d="M22 5h-7a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h8z"/></svg></span>
+        <span class="tx"><b>말씀</b><small>오늘 범위를 읽어요</small></span>
+        <span class="st">지금 하기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a></li>
+      <li class="q"><a href="#">
+        <span class="mi" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></span>
+        <span class="tx"><b>퀴즈</b><small>말씀에서 한 문제</small></span>
+        <span class="st">할 수 있어요</span></a></li>
+      <li class="p"><a href="#">
+        <span class="mi" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-1 3-4 5-4 9a4 4 0 0 0 8 0c0-4-3-6-4-9z"/><path d="M12 21v-5"/></svg></span>
+        <span class="tx"><b>기도</b><small>오늘의 성품 기도</small></span>
+        <span class="st">할 수 있어요</span></a></li>
+      <li class="r"><a href="#">
+        <span class="mi" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></svg></span>
+        <span class="tx"><b>암송</b><small>이번 주 구절 · 주 1번</small></span>
+        <span class="st">할 수 있어요</span></a></li>
+    </ul>
+    <a class="btn p" href="#">말씀 읽으러 가기 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </section>
+
+  <section class="card rdc" aria-label="도전!!!성경통독">
+    <span class="mi" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg></span>
+    <span class="tx"><b>도전!!!성경통독</b><small>성경 1,189장 · 내 속도로</small></span>
+    <a class="go" href="#">시작하기</a>
+  </section>
+
+  <section class="card wk" aria-labelledby="wkT">
+    <div class="eyebrow">이번 주 나의 기록</div>
+    <h2 id="wkT">1월 3일 ~ 1월 9일</h2>
+    <div class="days num" aria-hidden="true"><span>일<i></i></span><span>월<i></i></span><span class="t">화<i></i></span><span>수<i></i></span><span>목<i></i></span><span>금<i></i></span><span>토<i></i></span></div>
+    <p>첫 미션을 하면 여기에 이번 주 기록이 쌓여요.</p>
+  </section>
+
+  <ul class="acct" aria-label="계정">
+    <li><a href="#">내 계정 <span aria-hidden="true">›</span></a></li>
+    <li><a href="#">내 부서 찾기 <span aria-hidden="true">›</span></a></li>
+    <li><button type="button">로그아웃 <span aria-hidden="true">›</span></button></li>
+  </ul>
+</div></main>
+<footer class="foot gut"><div class="wrap">© 2027 잠실새내 · 주일학교</div></footer>
+
+<script>
+// 시안 보기: A(부서 없음) / B(승인 기다림)
+document.querySelectorAll('.mock button').forEach((b) => b.addEventListener('click', () => {
+  const s = b.dataset.s;
+  document.querySelectorAll('.mock button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  document.querySelectorAll('[data-a]').forEach((e) => { e.hidden = s !== 'a'; });
+  document.querySelectorAll('[data-b]').forEach((e) => { e.hidden = s !== 'b'; });
+}));
+if (location.hash === '#b') document.querySelector('.mock button[data-s="b"]').click();
+</script>
+</body>
+</html>
