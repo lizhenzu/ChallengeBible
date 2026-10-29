@@ -89,6 +89,15 @@ public partial class PlatformFlowTests : IClassFixture<WebApplicationFactory<Pro
         Assert.Contains(raw.Tenants.Single().JoinCode.Trim(), list);
     }
 
+    [Fact]
+    public async Task 새_부서_만들기는_성경말씀_성경통독이_둘_다_기본으로_켜져_있다()
+    {
+        var c = await LoggedIn("operator", platformAdmin: true);
+        var page = await c.GetStringAsync("/platform/tenants");
+        Assert.Matches("<input[^>]*type=\"checkbox\"[^>]*id=\"Mission\"[^>]*checked|<input[^>]*checked[^>]*id=\"Mission\"", page);
+        Assert.Matches("<input[^>]*type=\"checkbox\"[^>]*id=\"Reading\"[^>]*checked|<input[^>]*checked[^>]*id=\"Reading\"", page);
+    }
+
     [GeneratedRegex("name=\"listed\" value=\"([^\"]*)\"")]
     private static partial Regex ListedRx();
 
