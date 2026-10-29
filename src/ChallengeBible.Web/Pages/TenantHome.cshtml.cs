@@ -2,6 +2,7 @@ using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace ChallengeBible.Web.Pages;
@@ -26,9 +27,13 @@ public class TenantHomeModel(TenantContext tenant, FamilyTenantService family, F
     public bool ManyTenants { get; private set; }
     /// <summary>임시 부서(0064, R-172)에서 승인을 기다리는 내 신청의 부서 이름. 비어 있으면 "내 부서 찾기" 띠.</summary>
     public IReadOnlyList<string> Waiting { get; private set; } = [];
+    /// <summary>`/{slug}/today` — 임시 부서의 "미션 화면"(0068). 임시 부서 `/{slug}` 는 1 · 2단계(윗부분만)이고 미션은 여기서 한다.</summary>
+    [FromRoute(Name = "view")] public string? Screen { get; set; }
+    public bool TodayScreen => Screen == "today";
 
-    public async Task OnGetAsync(CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
+        if (TodayScreen && !tenant.IsLobby) return Redirect($"/{tenant.Current.Slug}");   // 일반 부서 홈은 한 화면 그대로
         var me = User.AccountId()!.Value;
         if (IsGuardian) NeedsFamilyChoice = await family.NeedsChoiceAsync(me, ct);
         if (tenant.Current.MissionEnabled) Family = await teams.MyFamilyAsync(ct);
@@ -39,5 +44,6 @@ public class TenantHomeModel(TenantContext tenant, FamilyTenantService family, F
         if (tenant.IsLobby)
             Waiting = (await accounts.MyMembershipsAsync(me, ct))
                 .Where(m => m.Status == MembershipStatus.Requested && m.TenantActive).Select(m => m.TenantName).ToList();
+        return Page();
     }
 }
