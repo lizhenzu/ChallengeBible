@@ -103,6 +103,10 @@
 .hm .resume em { font-style: normal; font-size: 12px; color: var(--dim); }
 .hm .go { display: flex; align-items: center; justify-content: space-between; min-height: 54px; padding: 0 18px; border-radius: 14px; font-size: 16px; font-weight: 700; color: var(--on-accent); margin-top: auto; }
 .hm .p.m .go { background: var(--accent); } .hm .p.r .go { background: var(--rd); }
+/* 미션 카드: 아무 데나 = 미션 홈(덮개), 아래 버튼 = 이어서 하기(덮개 위) */
+.hm .p.m { position: relative; }
+.hm .p .cover { position: absolute; inset: 0; border-radius: inherit; z-index: 1; }
+.hm .p.m .go { position: relative; z-index: 2; text-decoration: none; }
 
 /* 이번 주 나의 기록 */
 .hm .wk { margin-top: 14px; border: 1px solid var(--rule); border-radius: 20px; padding: 16px; }

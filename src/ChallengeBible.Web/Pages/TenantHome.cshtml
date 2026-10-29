@@ -88,7 +88,9 @@
                 @if (t.MissionEnabled)
                 {
                     var next = d.NextMission;
-                    <a class="p m" href="@(next is not null && d.Participant ? $"/{slug}/{next.Key}" : $"/{slug}/word-mission")">
+                    @* 카드 아무 데나 = 미션 홈(덮개 링크), 아래 버튼 = 미션 이어서 하기(다음 할 일). 링크 안에 링크를 넣지 않으려고 덮개 방식 *@
+                    <div class="p m">
+                        <a class="cover" href="/@slug/word-mission" aria-label="도전!!!성경말씀 미션 홈"></a>
                         <div class="hd"><div><div class="nm">도전!!!성경말씀</div><div class="what">매일 말씀 · 기도 · 퀴즈 · 암송</div></div>
                             <span class="badge">@(!d.Participant ? "보기만" : has.Count == 0 ? "오늘은 쉬어요" : left.Count == 0 ? "다 했어요" : left.Count == 1 ? $"{left[0].Label} 남음" : $"{left.Count}가지 남음")</span></div>
                         <div class="now">
@@ -105,8 +107,8 @@
                             </div>
                         </div>
                         <div class="mis4">@foreach (var m in d.Missions) { <span class="@m.Key @(m.Has && !m.Done && m == d.NextMission ? "cur" : "")">@m.Label<small>@m.State</small></span> }</div>
-                        <span class="go">@(d.Participant && d.NextMission is { } nm ? Go(nm.Key) : "미션 홈 가기") <span aria-hidden="true">→</span></span>
-                    </a>
+                        <a class="go" href="@(next is not null && d.Participant ? $"/{slug}/{next.Key}" : $"/{slug}/word-mission")">@(d.Participant && d.NextMission is { } nm ? Go(nm.Key) : "미션 홈 가기") <span aria-hidden="true">→</span></a>
+                    </div>
                 }
                 @if (t.ReadingEnabled)
                 {
