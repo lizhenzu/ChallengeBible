@@ -92,7 +92,8 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("내가 읽었어요<b>+1점</b>", html);
         Assert.Contains("기회는 하루 2번", html);
         Assert.Contains("3,000점이 되면", html);        // 첫 축하 단계
-        Assert.Contains("첫 1,000점! 가족 선물이 있어요", html);   // 첫 가족 단계
+        Assert.DoesNotContain("가족 선물", html);                  // 선물 · 보상은 부서마다 다르고 확정 전이라 첫 화면에 쓰지 않음
+        Assert.DoesNotContain("class=\"cheer\"", html);
         Assert.Contains("href=\"/account/signup\"", html);
         Assert.Contains("href=\"/account/login\"", html);
     }
