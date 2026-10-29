@@ -55,9 +55,9 @@ public sealed record RuleSet
         Milestones = [3000, 5000, 8000],
         FamilyMilestones =
         [
-            new(1000, FamilyMilestoneKind.Award, "첫 1,000점! 가족 선물이 있어요", "🎁", true),
+            new(1000, FamilyMilestoneKind.Award, "첫 1,000점! 가족이 함께 해냈어요", "🎉", true),
             new(2000, FamilyMilestoneKind.Applause, "2,000점 돌파, 박수!", "👏", true),
-            new(3000, FamilyMilestoneKind.Award, "3,000점! 가족 선물이 있어요", "🎁", true),
+            new(3000, FamilyMilestoneKind.Award, "3,000점! 가족이 함께 해냈어요", "🎉", true),
             new(4000, FamilyMilestoneKind.Applause, "4,000점 돌파, 박수!", "👏", true),
             new(5000, FamilyMilestoneKind.Award, "5,000점! 최고의 가족", "🏆", true),
         ],

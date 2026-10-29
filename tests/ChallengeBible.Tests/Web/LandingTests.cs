@@ -38,7 +38,7 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("<small>오늘의 기도</small><b>신뢰 · 잠언 3장 5~6절</b>", html);    // 성품 + 본문 범위(2026-10-25 결정)
         Assert.Contains("aria-label=\"오늘의 말씀\"", html);
         Assert.Contains("창세기 24:1 · 오늘 읽을 범위 창세기 24장 1~9절", html);
-        Assert.Contains("이번 주 암송 (1/3 ~ 1/9)", html);
+        Assert.Contains("이번 주 암송 <span class=\"nw\">(1/3 ~ 1/9)</span>", html);   // 날짜 범위는 한 덩어리(줄바꿈에서 안 갈라짐)
         Assert.Contains("© 2027 잠실새내 · 주일학교", html);                       // 올해 = 시스템 날짜
     }
 
