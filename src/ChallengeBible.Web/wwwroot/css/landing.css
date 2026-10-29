@@ -15,12 +15,14 @@
     --word: #A9BDE8; --quiz: #E3B58A; --pray: #C3B3E6; --rec: #9AD0B2;
     --word-bg: #1C2433; --quiz-bg: #2A2119; --pray-bg: #241F2E; --rec-bg: #1B2A22; color-scheme: dark }
 }
-.ld { background: var(--bg); color: var(--fg); font-family: var(--sans); overflow-x: hidden; }
+/* 한글은 단어(띄어쓰기) 단위로만 줄을 바꾼다. 아주 긴 한 덩어리만 예외로 꺾는다 */
+.ld { background: var(--bg); color: var(--fg); font-family: var(--sans); overflow-x: hidden; word-break: keep-all; overflow-wrap: anywhere; }
 .ld [hidden] { display: none !important; }
 .ld a { color: inherit; text-decoration: none; }
 .ld button { font-family: inherit; color: inherit; cursor: pointer; }
 .ld a:focus-visible, .ld button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .ld .num { font-variant-numeric: tabular-nums; }
+.ld .nw { white-space: nowrap; }
 .ld .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
 .ld .wrap { max-width: 1080px; margin: 0 auto; }
 .ld .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .2em; color: var(--accent); }
@@ -121,7 +123,7 @@
 .ld .pane.pr li b { color: var(--pray); }
 .ld .pane.rc li b { color: var(--rec); }
 .ld .day { margin-top: 14px; display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 18px; border: 1px solid var(--rule); }
-.ld .day b { font-size: 26px; font-weight: 300; color: var(--accent); }
+.ld .day b { flex: none; white-space: nowrap; font-size: 26px; font-weight: 300; color: var(--accent); }
 .ld .day span { font-size: 14px; color: var(--dim); word-break: keep-all; }
 .ld /* 성경 1, .ld 189장 지도 */
   .rdb { background: var(--rd-soft); }
@@ -151,8 +153,6 @@
 .ld .fam li span { flex: 1; font-size: 14px; }
 .ld .fam li span small { display: block; font-size: 12px; color: var(--dim); }
 .ld .fam li em { font-style: normal; font-size: 18px; font-weight: 300; }
-.ld .fam .cheer { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--sun); color: var(--sun-fg); font-size: 14px; font-weight: 700; }
-.ld .fam .cheer span { font-size: 22px; }
 .ld /* 지금 함께하는 사람들 */
   .stats { margin-top: 22px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .ld .stats div { border-radius: 18px; padding: 16px; background: var(--soft); }
@@ -182,6 +182,27 @@
 .ld footer.ld-foot { background: var(--sky); color: var(--dim); }
 .ld footer.ld-foot .wrap { padding-block: 0 calc(28px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; text-align: center; }
 .ld .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
+/* 아주 좁은 휴대폰(≤ 380px): 글자 · 그림을 줄여 겹치거나 넘치지 않게 */
+@media (max-width: 380px) {
+  .ld .gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .ld .hero h1 { font-size: 34px; }
+  .ld h2 { font-size: 23px; }
+  .ld .end h2 { font-size: 25px; }
+  .ld .shots { height: 330px; margin: 0; }
+  .ld .ph { width: 146px; padding: 9px 9px 11px; border-radius: 20px; }
+  .ld .ph.a { left: 0; top: 54px; }
+  .ld .ph.b { right: 0; top: 34px; }
+  .ld .ph .rw svg { width: 40px; height: 40px; }
+  .ld .ph .rw b { font-size: 18px; }
+  .ld .ph .tiles span { padding: 4px 5px; font-size: 10px; }
+  .ld .ph .tiles small { font-size: 8.5px; }
+  .ld .ph .vs { font-size: 10.5px; line-height: 1.6; }
+  .ld .paper { padding: 26px 18px 20px; }
+  .ld .paper blockquote { font-size: 20px; }
+  .ld .stats b { font-size: 30px; }
+  .ld .fam .tot b { font-size: 44px; }
+  .ld .week { gap: 4px; padding-inline: 8px; }
+}
 @media (min-width: 900px) {
   .ld h2 { font-size: 32px; }
   .ld .hero .wrap { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; padding-block: 120px 120px; }

@@ -83,7 +83,7 @@
           <cite>@d.VerseRef · 오늘 읽을 범위 @d.WordRange</cite>
         </div>
         <div class="side">
-          @if (d.ReciteRange is not null) { <div><small>이번 주 암송 (@d.ReciteStart?.ToString("M'/'d") ~ @d.ReciteEnd?.ToString("M'/'d"))</small><b>@d.ReciteRange</b></div> }
+          @if (d.ReciteRange is not null) { <div><small>이번 주 암송 <span class="nw">(@d.ReciteStart?.ToString("M'/'d") ~ @d.ReciteEnd?.ToString("M'/'d"))</span></small><b>@d.ReciteRange</b></div> }
           @if (d.PrayerTrait is not null) { <div><small>오늘의 기도</small><b>@d.PrayerTrait@(d.PrayerRange is null ? "" : $" · {d.PrayerRange}")</b></div> }
         </div>
       </div>
@@ -158,7 +158,6 @@
           <li><span class="av">철</span><span>철수<small>학생 · 오늘 4/4</small></span><em class="num">@famKid.ToString("N0")</em></li>
           <li><span class="av">엄</span><span>엄마<small>엄마 · 오늘 3/4</small></span><em class="num">@((famTotal - famKid).ToString("N0"))</em></li>
         </ul>
-        <div class="cheer"><span aria-hidden="true">@fam.Emoji</span>@fam.Message</div>
       </div>
     </div>
   </section>

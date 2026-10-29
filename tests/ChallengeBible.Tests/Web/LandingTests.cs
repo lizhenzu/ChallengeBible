@@ -38,7 +38,7 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("<small>오늘의 기도</small><b>신뢰 · 잠언 3장 5~6절</b>", html);    // 성품 + 본문 범위(2026-10-25 결정)
         Assert.Contains("aria-label=\"오늘의 말씀\"", html);
         Assert.Contains("창세기 24:1 · 오늘 읽을 범위 창세기 24장 1~9절", html);
-        Assert.Contains("이번 주 암송 (1/3 ~ 1/9)", html);
+        Assert.Contains("이번 주 암송 <span class=\"nw\">(1/3 ~ 1/9)</span>", html);   // 날짜 범위는 한 덩어리(줄바꿈에서 안 갈라짐)
         Assert.Contains("© 2027 잠실새내 · 주일학교", html);                       // 올해 = 시스템 날짜
     }
 
@@ -92,7 +92,8 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("내가 읽었어요<b>+1점</b>", html);
         Assert.Contains("기회는 하루 2번", html);
         Assert.Contains("3,000점이 되면", html);        // 첫 축하 단계
-        Assert.Contains("첫 1,000점! 가족 선물이 있어요", html);   // 첫 가족 단계
+        Assert.DoesNotContain("가족 선물", html);                  // 선물 · 보상은 부서마다 다르고 확정 전이라 첫 화면에 쓰지 않음
+        Assert.DoesNotContain("class=\"cheer\"", html);
         Assert.Contains("href=\"/account/signup\"", html);
         Assert.Contains("href=\"/account/login\"", html);
     }
