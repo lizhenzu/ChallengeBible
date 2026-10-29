@@ -60,8 +60,9 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("<small>오늘의 기도</small><b>신뢰 · 잠언 3장 5~6절</b>", home);   // 성품 + 본문 범위
         Assert.Contains("창세기 24:1", home);                                       // 오늘의 말씀 띠: 첫 절
         Assert.Contains("0/3<small>오늘 미션</small>", home);                        // 오늘 있는 미션은 말씀 · 퀴즈 · 기도 세 가지
-        Assert.Contains("href=\"/jamsil-kids/word\"", home);                         // 다음 할 일 = 말씀
-        Assert.Contains("말씀 읽으러 가기", home);
+        Assert.Contains("<a class=\"go\" href=\"/jamsil-kids/word\">말씀 읽으러 가기", home);   // 아래 버튼 = 다음 할 일(말씀)
+        Assert.Contains("<a class=\"cover\" href=\"/jamsil-kids/word-mission\"", home);     // 카드 아무 데나 = 미션 홈
+        Assert.DoesNotContain("<a class=\"p m\"", home);                              // 링크 안에 링크 없음(카드는 div)
         Assert.Contains("점 올해 점수", home);
         Assert.Contains("href=\"/account\"", home);                                  // 확정 7: 계정 줄 3개(비밀번호 바꾸기는 내 계정 안으로)
         Assert.Contains(">부서 바꾸기</a>", home);
@@ -108,7 +109,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var (c, _) = await Member("eunhye", Roles.Teacher);
         var home = await c.GetStringAsync("/jamsil-kids");
         Assert.Contains("보기만 해요", home);                                        // 확정 4
-        Assert.Contains("href=\"/jamsil-kids/word-mission\"", home);
+        Assert.Contains("<a class=\"cover\" href=\"/jamsil-kids/word-mission\"", home);
+        Assert.Contains("<a class=\"go\" href=\"/jamsil-kids/word-mission\">미션 홈 가기", home);   // 참여자가 아니면 버튼도 미션 홈
         Assert.DoesNotContain("점 올해 점수", home);
         Assert.DoesNotContain("말씀<br />점수", home);
     }
