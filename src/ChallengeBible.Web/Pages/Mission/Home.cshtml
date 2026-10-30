@@ -3,7 +3,9 @@
 @using System.Globalization
 @using ChallengeBible.Web.Auth
 @using ChallengeBible.Domain.Missions
-@* 확정 시안: 말씀-미션홈 (왼쪽 나의 기록 · 오른쪽 오늘 미션 · 달력, 휴대폰은 1단 + 아래 메뉴) *@
+@* 확정 시안: 미션홈-옛모양(ADR 0069) — 옛 사이트 "밝은 흰색 버전" 모양 · 구성, 모든 부서.
+   홈으로 · 날짜 → 환영 → 인사 → 나의 기록 → 최근 7일 → 네 칸 숫자 → (다 했을 때만) 오늘 완료 → 미션 카드 4장 → 이달 달력 → 맨 끝 메뉴 줄.
+   점수는 코드에 쓰지 않고 규칙(RuleSet)에서 읽는다. *@
 @{
     var d = Model.Data!;
     var r = d.Rules;
@@ -17,158 +19,148 @@
     var dayWord = Model.IsToday ? "오늘" : "이날";
     var none = $"{dayWord}은 없음";
 
-    // 카드: 키, 클래스, 번호, 이름, 콘텐츠 있나, 한 줄 설명(둘째 줄 포함), 완료, 점수 글자, 끝난 상태 글자
-    (string Key, string Cls, string No, string Label, Mission M, bool Has, string Sub1, string? Sub2, bool Over)[] cards =
+    // 카드: 키, 클래스, 번호, 이름, 콘텐츠 있나, 한 줄 설명(둘째 줄 포함), 끝난 상태, 가기 글자
+    (string Key, string Cls, string No, string Label, Mission M, bool Has, string Sub1, string? Sub2, bool Over, string Go)[] cards =
     [
-        ("word", "word", "01", "말씀", Mission.Word, d.Word is not null, d.Word?.Range ?? none, d.Word?.Title, false),
-        ("quiz", "quiz", "02", "퀴즈", Mission.Quiz, d.Quiz is not null,
+        ("word", "w", "01", "말씀", Mission.Word, d.Word is not null, d.Word?.Range ?? none, d.Word?.Title, false, "읽기 ›"),
+        ("quiz", "q", "02", "퀴즈", Mission.Quiz, d.Quiz is not null,
             d.Quiz is null ? none : d.QuizState.Solved ? "정답을 맞혔어요" : quizLeft > 0 ? $"{dayWord} 말씀에서 한 문제" : $"{d.QuizState.MaxAttempts}번 모두 틀렸어요",
-            d.Quiz is null || d.QuizState.Solved || quizLeft <= 0 ? null : $"{quizLeft}번 도전할 수 있어요", d.Quiz is not null && !d.QuizState.Solved && quizLeft <= 0),
-        ("prayer", "pray", "03", "기도", Mission.Prayer, d.Prayer is not null, d.Prayer?.Trait ?? none, d.Prayer?.Range, false),
-        ("recite", "rec", "04", "암송", Mission.Recite, d.Recite is not null, d.Recite is null ? "이번 주 없음" : d.Recite.Range, d.Recite is null ? null : d.Recite.Title, false),
+            d.Quiz is null || d.QuizState.Solved || quizLeft <= 0 ? null : $"{quizLeft}번 도전할 수 있어요", d.Quiz is not null && !d.QuizState.Solved && quizLeft <= 0, "풀기 ›"),
+        ("prayer", "pr", "03", "기도", Mission.Prayer, d.Prayer is not null, d.Prayer?.Trait ?? none, d.Prayer?.Range, false, "기도 ›"),
+        ("recite", "r", "04", "암송", Mission.Recite, d.Recite is not null, d.Recite is null ? "이번 주 없음" : d.Recite.Range, d.Recite is null ? null : d.Recite.Title, false, "외우기 ›"),
     ];
     var withContent = cards.Where(c => c.Has).ToList();
     var doneN = withContent.Count(c => Done(c.M));
     var left = withContent.Where(c => !Done(c.M)).ToList();
     var firstLeft = canAct ? left.FirstOrDefault(c => !c.Over).Key : null;
-    var circ = 289.0;
-    var dash = withContent.Count == 0 ? 0 : circ * doneN / withContent.Count;
+    var dash = withContent.Count == 0 ? 0 : 94.2 * doneN / withContent.Count;
     var streakText = Model.ParticipantId is null ? "" : Model.Streak > 0 ? $"{Model.Streak}일째 이어오는 중" : "오늘 시작해 봐요";
     var monthScores = Model.MonthDays;
     var monthTotal = monthScores.Sum(s => s.Total);
+    string Inv(double v) => v.ToString("0.#", CultureInfo.InvariantCulture);
 }
-<header class="mh-top gut"><div class="wrap">
-    <a class="mh-homelink" href="/@Model.Slug">홈으로</a>
-    <span class="mh-date num">@Model.Day.ToString("yyyy.MM.dd ddd", CultureInfo.InvariantCulture).ToUpperInvariant()</span>
-</div></header>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;600;800&display=swap">
+<div class="qz" data-slug="@Model.Slug">
+    <div class="qzBar">
+        <a class="qzHome" href="/@Model.Slug">홈으로</a>
+        <div class="qzDate num">@Model.Day.ToString("yyyy.MM.dd ddd", CultureInfo.InvariantCulture).ToUpperInvariant()</div>
+    </div>
 
-<main class="mh gut" data-slug="@Model.Slug"><div class="wrap mh-cols">
-    <div>
-        <section class="mh-blk mh-brand"><b>도전!!!성경말씀</b><p>@Model.Tenant.Current.Name</p></section>
-        <section class="mh-blk mh-hello">
-            <h1>@(User.DisplayName())님, 안녕하세요</h1>
-            <p>@Model.Day.ToString("M월 d일 (ddd)", ko)@if (streakText != "") { <text> · <b>@streakText</b></text> }</p>
-            @if (d.Today < Model.SeasonStart)
-            {
-                <p class="mh-note">곧 시작해요! @Model.SeasonStart.ToString("M월 d일")부터 미션을 할 수 있어요.</p>   @* 0028 *@
-            }
-        </section>
-        <section class="mh-blk mh-rec" aria-label="나의 기록">
-            <h2>나의 기록</h2>
-            <div class="mh-row">
-                <div class="mh-ring">
-                    <svg width="108" height="108" viewBox="0 0 108 108" aria-hidden="true">
-                        <circle cx="54" cy="54" r="46" fill="none" stroke="var(--bar-soft)" stroke-width="9" />
-                        <circle cx="54" cy="54" r="46" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="@dash.ToString("0.#", CultureInfo.InvariantCulture) 289" transform="rotate(-90 54 54)" />
-                    </svg>
-                    <span><b class="num">@(withContent.Count == 0 ? "–" : $"{doneN}/{withContent.Count}")</b><small>@dayWord 미션</small></span>
-                </div>
-                <div class="mh-pts">
-                    <small>올해 총 점수</small>
-                    <span class="mh-big num">@d.SeasonPoints.ToString("N0")<i> 점</i></span>
-                    <p>@dayWord <b class="num">+@(d.DayPoints)점</b> 받았어요</p>
-                </div>
-            </div>
-        </section>
-        <section class="mh-blk mh-wk" aria-label="최근 7일">
-            <div class="mh-h"><span>최근 7일<b class="num">@(Model.Week.Sum(w => w.Points))점</b></span><small>하루 최대 @(maxPerDay)점</small></div>
-            <div class="mh-bars">
-                @foreach (var (date, pts) in Model.Week)
-                {
-                    var cls = date == Model.Day ? "today" : Model.CompleteDates.Contains(date) ? "all" : "";
-                    <div><em class="num">@pts</em><i class="@cls" style="height:@(Math.Max(4, Math.Min(100, pts * 100 / maxPerDay)))px"></i></div>
-                }
-            </div>
-            <div class="mh-days">
-                @foreach (var (date, _) in Model.Week)
-                {
-                    <span class="@(date == Model.Day ? "t" : "")">@(date == Model.Day ? "오늘" : date.ToString("ddd", ko))<b class="num">@date.Day</b></span>
-                }
-            </div>
-            <div class="mh-legend"><span><i style="background:var(--accent)"></i>보는 날</span><span><i style="background:var(--bar)"></i>네 가지 다 한 날</span><span><i style="background:var(--bar-soft)"></i>그 외</span></div>
-        </section>
-        <div class="mh-stats">
-            <div><small>이어온 날</small><b class="num">@Model.Streak<i>일</i></b></div>
-            <div><small>이달 수행</small><b class="num">@(monthScores.Count(s => s.Total > 0))<i>/@(monthScores.Count)</i></b></div>
-            <div><small>이달 점수</small><b class="num">@monthTotal<i>점</i></b></div>
-            <div><small>네 가지 다 한 날</small><b class="num">@(monthScores.Count(s => s.Complete))<i>일</i></b></div>
+    <div class="hPg">
+        <div class="hK">도전!!! 성경말씀</div>
+        <div class="hKs">"거룩한 습관 만들기" 프로그램에 오심을 환영해요.</div>
+    </div>
+    <div class="hI">
+        <h1>@(User.DisplayName())님, 안녕하세요</h1>
+        <div class="hD">@Model.Day.ToString("M월 d일 (ddd)", ko)@if (streakText != "") { <text> · <b>@streakText</b></text> }</div>
+        @if (d.Today < Model.SeasonStart)
+        {
+            <p class="hNote">곧 시작해요! @Model.SeasonStart.ToString("M월 d일")부터 미션을 할 수 있어요.</p>   @* 0028 *@
+        }
+        @if (!Model.IsToday)
+        {
+            <div class="hView"><span>@Model.DayLabel(Model.Day) 미션을 보고 있어요 · @(canAct ? "지금도 할 수 있어요" : "보기만 할 수 있어요")</span><a href="@Model.HomeUrl(d.Today)">오늘로</a></div>
+        }
+    </div>
+
+    <div class="hSh first" id="rec">나의 기록</div>
+    <div class="hTop">
+        <div class="hRing" role="img" aria-label="@dayWord 미션 @(withContent.Count)개 중 @(doneN)개 완료">
+            <svg viewBox="0 0 36 36" aria-hidden="true">
+                <circle cx="18" cy="18" r="15" fill="none" stroke="#E8ECF2" stroke-width="3.6" />
+                <circle cx="18" cy="18" r="15" fill="none" stroke="#2F80ED" stroke-width="3.6" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="@Inv(94.2 - dash)" />
+            </svg>
+            <span class="hRingC"><b class="num">@(withContent.Count == 0 ? "–" : $"{doneN}/{withContent.Count}")</b><small>@dayWord 미션</small></span>
+        </div>
+        <div>
+            <div class="hSumL">올해 총 포인트</div>
+            <div class="hSumV num">@d.SeasonPoints.ToString("N0")<u>점</u></div>
+            <div class="hSumT">@dayWord <b class="num">+@(d.DayPoints)점</b> 받았어요</div>
         </div>
     </div>
 
-    <div>
-        <section class="mh-blk" aria-label="미션" style="padding-top:20px">
-            @if (!Model.IsToday)
-            {
-                <div class="mh-viewing"><span>@Model.DayLabel(Model.Day) 미션을 보고 있어요 · @(canAct ? "지금도 할 수 있어요" : "보기만 할 수 있어요")</span><a href="@Model.HomeUrl(d.Today)">오늘로</a></div>
-            }
-            <div class="mh-band">
-                @if (withContent.Count == 0)
-                {
-                    <span class="mh-stamp">없음</span>
-                    <strong>@dayWord 미션이 아직 없어요</strong>
-                    <p>선생님이 콘텐츠를 올리면 여기에 나와요.</p>
-                }
-                else if (left.Count == 0)
-                {
-                    <span class="mh-stamp">@(Model.IsToday ? "오늘" : $"{Model.Day.Day}일")<br />완료</span>
-                    <strong>@dayWord 네 가지 모두 했어요</strong>
-                    <p>+@(d.DayPoints)점@(Model.IsToday && Model.Streak > 0 ? $" · {Model.Streak}일째 이어서 하고 있어요" : "")</p>
-                }
-                else
-                {
-                    <span class="mh-stamp">@(left.Count)가지<br />남음</span>
-                    <strong>@string.Join(" · ", left.Select(c => c.Label))@(left.Count == 1 ? "만" : Ui.IGa(left[^1].Label)) 남았어요</strong>
-                    <p>+@(d.DayPoints)점@(canAct ? "" : " · " + Model.BlockReason)</p>
-                }
-            </div>
-            <div class="mh-missions">
-                @foreach (var c in cards)
-                {
-                    var done = Done(c.M);
-                    var earned = Earned(c.M);
-                    <a class="mh-m @c.Cls@(c.Key == firstLeft ? " next" : "")@(!c.Has ? " none" : "")" href="@Model.Link(c.Key)">
-                        <span class="n num">@c.No</span><span class="t">@c.Label</span>
-                        <span class="s">@c.Sub1@if (c.Sub2 is not null) { <br />@c.Sub2 }</span>
-                        <span class="p">@(!c.Has ? "" : done ? (earned > 0 ? $"+{earned}점" : c.M == Mission.Recite ? "이번 주 완료" : "완료") : c.M == Mission.Quiz ? $"정답 +{Max(c.M)}점" : $"+{Max(c.M)}점")</span>
-                        <span class="st">@if (done) { <span class="mh-done">완료</span> } else { <span class="mh-todo">@(!c.Has ? "없음" : c.Over ? "끝남" : canAct ? "할 차례" : "못 함")</span> }</span>
-                    </a>
-                }
-            </div>
-            @if (Model.ParticipantId is null) { <p class="mh-note">@Model.BlockReason</p> }
-        </section>
-
-        <section class="mh-blk mh-cal" id="cal" aria-label="달력">
-            <div class="mh-h2">
-                <h2 class="num">@Model.FirstOfMonth.ToString("yyyy년 M월")</h2>
-                <div class="mh-arr">
-                    @if (Model.HasPrevMonth) { <a href="@Model.HomeUrl(Model.Day, Model.FirstOfMonth.AddMonths(-1))#cal" aria-label="이전 달">←</a> } else { <span></span> }
-                    @if (Model.HasNextMonth) { <a href="@Model.HomeUrl(Model.Day, Model.FirstOfMonth.AddMonths(1))#cal" aria-label="다음 달">→</a> } else { <span></span> }
-                </div>
-            </div>
-            <div class="mh-dow"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
-            <div class="mh-grid">
-                @foreach (var day in Model.Cells())
-                {
-                    var inMonth = day.Month == Model.FirstOfMonth.Month;
-                    if (!inMonth) { <span class="o"><span class="num">@day.Day</span></span>; continue; }
-                    var s = Model.ScoreOf(day);
-                    var cls = string.Join(" ", new[] { s?.Complete == true ? "all" : null, day == d.Today ? "today" : null, day > d.Today ? "f" : null, day == Model.Day ? "sel" : null }.Where(x => x is not null));
-                    var inner = $"<span class=\"num\">{day.Day}</span><small class=\"num\">{(s is null ? "–" : s.Total.ToString())}</small>";
-                    if (day > d.Today) { <span class="@cls" aria-label="@day.ToString("M월 d일") 아직 오지 않은 날">@Html.Raw(inner)</span> }
-                    else { <a class="@cls" href="@Model.HomeUrl(day, Model.FirstOfMonth)" aria-label="@day.ToString("M월 d일") @(s is null ? "기록 없음" : $"{s.Total}점")">@Html.Raw(inner)</a> }
-                }
-            </div>
-            <div class="mh-legend"><span><i style="border:2px solid var(--accent);box-sizing:border-box"></i>오늘</span><span><i style="background:var(--cell)"></i>네 가지 모두</span><span>숫자 = 그날 받은 점수 · 날짜를 누르면 그날 미션</span></div>
-        </section>
+    <div class="hChd"><span class="hChT">최근 7일 <b class="num">@(Model.Week.Sum(w => w.Points))점</b></span><span class="hChM">하루 최대 @(maxPerDay)점</span></div>
+    <div class="hBars">
+        @foreach (var (date, pts) in Model.Week)
+        {
+            var cls = date == Model.Day ? "end" : Model.CompleteDates.Contains(date) ? "all" : pts == 0 ? "zero" : "";
+            <a class="hBar @cls" href="@Model.HomeUrl(date)"><b class="num">@pts</b><i style="height:@(pts == 0 ? "2px" : Inv(Math.Min(100.0, pts * 100.0 / maxPerDay)) + "%")"></i><em>@(date == Model.Day ? "오늘" : date.ToString("ddd", ko))<small class="num">@date.Day</small></em></a>
+        }
     </div>
-</div></main>
+    <div class="hLg"><span><i style="background:#2F80ED"></i>보는 날</span><span><i style="background:#8DB5F3"></i>네 가지 다 한 날</span><span><i style="background:#CFE0FA"></i>그 외</span></div>
 
-<nav class="mh-tab" aria-label="주 메뉴">
-    <a href="/@Model.Slug/word-mission" aria-current="page"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /></svg>홈</a>
-    <a href="#cal"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>달력</a>
-    <a href="/@Model.Slug/points"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>내 점수</a>
-    @if (Model.Data?.Rules.Features.Ranking == true)
+    <div class="hFacts">
+        <div><div class="k">이어온 날</div><div class="v num">@Model.Streak<u>일</u></div></div>
+        <div><div class="k">이달 수행</div><div class="v num">@(monthScores.Count(s => s.Total > 0))<u>/@(monthScores.Count)</u></div></div>
+        <div><div class="k">이달 점수</div><div class="v num">@monthTotal<u>점</u></div></div>
+        <div><div class="k">네 가지 다 한 날</div><div class="v num">@(monthScores.Count(s => s.Complete))<u>일</u></div></div>
+    </div>
+
+    @if (withContent.Count > 0 && left.Count == 0)
     {
-        <a href="/@Model.Slug/ranking"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4" /></svg>순위</a>
+        <div class="hParty" role="status">
+            <div class="hSeal">@(Model.IsToday ? "오늘" : $"{Model.Day.Day}일")<br />완료</div>
+            <b>@dayWord 네 가지 모두 했어요</b>
+            <span>+@(d.DayPoints)점@(Model.IsToday && Model.Streak > 0 ? $" · {Model.Streak}일째 이어서 하고 있어요" : "")</span>
+        </div>
     }
-</nav>
+    @if (withContent.Count == 0)
+    {
+        <p class="hNote">@dayWord 미션이 아직 없어요 · 관리자가 콘텐츠를 올리면 여기에 나와요.</p>
+    }
+    else if (left.Count > 0 && !canAct && Model.ParticipantId is not null)
+    {
+        <p class="hNote">@Model.BlockReason</p>
+    }
+    @if (Model.ParticipantId is null) { <p class="hNote">@Model.BlockReason</p> }
+
+    <div class="hMs" aria-label="미션">
+        @foreach (var c in cards)
+        {
+            var done = Done(c.M);
+            var earned = Earned(c.M);
+            var state = !c.Has ? "없음" : c.Over ? "끝남" : canAct ? null : "못 함";
+            <a class="hM @c.Cls@(done ? " ok" : "")@(c.Key == firstLeft ? " next" : "")@(!c.Has ? " none" : "")" href="@Model.Link(c.Key)">
+                @if (done) { <span class="hStamp">완료</span> }
+                <span class="hNo num">@c.No</span><span class="hN">@c.Label</span>
+                <span class="hS"><span>@c.Sub1</span>@if (c.Sub2 is not null) { <span>@c.Sub2</span> }</span>
+                <span class="hP">
+                    @if (!c.Has) { <span>@state</span> }
+                    else if (done) { <span class="num">@(earned > 0 ? $"+{earned}점" : c.M == Mission.Recite ? "이번 주 완료" : "완료")</span> }
+                    else { <span class="num">@(Max(c.M))점</span><span class="hGo">@(state ?? c.Go)</span> }
+                </span>
+            </a>
+        }
+    </div>
+
+    <div class="hSh" id="cal"><span class="num">@Model.FirstOfMonth.ToString("yyyy년 M월")</span>
+        <span class="hCalNav">
+            @if (Model.HasPrevMonth) { <a href="@Model.HomeUrl(Model.Day, Model.FirstOfMonth.AddMonths(-1))#cal" aria-label="이전 달">←</a> } else { <span></span> }
+            @if (Model.HasNextMonth) { <a href="@Model.HomeUrl(Model.Day, Model.FirstOfMonth.AddMonths(1))#cal" aria-label="다음 달">→</a> } else { <span></span> }
+        </span>
+    </div>
+    <div class="hCalG">
+        @foreach (var w in new[] { "일", "월", "화", "수", "목", "금", "토" }) { <div class="hCalWd">@w</div> }
+        @foreach (var day in Model.Cells())
+        {
+            var inMonth = day.Month == Model.FirstOfMonth.Month;
+            if (!inMonth) { <span class="hCalD mute"><span class="num">@day.Day</span><span class="hCalP">–</span></span>; continue; }
+            var s = Model.ScoreOf(day);
+            var cls = string.Join(" ", new[] { s is { Total: > 0 } ? "has" : null, day == d.Today ? "today" : null, day > d.Today ? "f" : null, day == Model.Day && day != d.Today ? "sel" : null }.Where(x => x is not null));
+            var inner = $"<span class=\"num\">{day.Day}</span><span class=\"hCalP num\">{(s is null ? "–" : s.Total.ToString())}</span>";
+            if (day > d.Today) { <span class="hCalD @cls" aria-label="@day.ToString("M월 d일") 아직 오지 않은 날">@Html.Raw(inner)</span> }
+            else { <a class="hCalD @cls" href="@Model.HomeUrl(day, Model.FirstOfMonth)" aria-label="@day.ToString("M월 d일") @(s is null ? "기록 없음" : $"{s.Total}점")">@Html.Raw(inner)</a> }
+        }
+    </div>
+    <div class="hLeg"><span><i style="box-shadow:inset 0 0 0 2px #2F80ED"></i>오늘</span><span>숫자 = 그날 받은 점수 · 날짜를 누르면 그날 미션</span></div>
+
+    <nav class="hTab" aria-label="주 메뉴">
+        <a href="/@Model.Slug/word-mission" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /></svg>홈</a>
+        <a href="#cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>달력</a>
+        <a href="/@Model.Slug/points"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>내 점수</a>
+        @if (Model.Data?.Rules.Features.Ranking == true)
+        {
+            <a href="/@Model.Slug/ranking"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4" /></svg>순위</a>
+        }
+    </nav>
+</div>

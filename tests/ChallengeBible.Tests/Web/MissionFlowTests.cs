@@ -418,16 +418,23 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
-    public async Task 미션_홈은_남은_미션과_날짜_칩을_보여준다()
+    public async Task 미션_홈은_옛_모양으로_남은_미션과_달력을_보여준다()
     {
+        // 확정 시안 미션홈-옛모양(ADR 0069): 환영 → 인사 → 나의 기록 → 최근 7일 → 네 칸 숫자 → 미션 카드 4장 → 이달 달력 → 맨 끝 메뉴 줄
         var c = await Member("cheolsu", Roles.Participant);
         var html = await c.GetStringAsync("/jamsil-kids/word-mission");
         Assert.Contains("김철수님, 안녕하세요", html);
-        Assert.Contains("말씀 · 퀴즈가 남았어요", html);   // 기도 · 암송은 콘텐츠가 없어서 남은 것에 안 들어감
-        // 확정 시안: 날짜 칩 대신 달력에서 날짜를 눌러 그날 미션을 본다(오늘 이전 날짜는 ?date= 링크)
+        Assert.Contains("\"거룩한 습관 만들기\" 프로그램에 오심을 환영해요.", html);
+        Assert.Contains("올해 총 포인트", html);
+        Assert.Contains("네 가지 다 한 날", html);
+        Assert.DoesNotContain("오늘 네 가지 모두 했어요", html);        // 다 했을 때만 도장 칸
+        Assert.Contains("class=\"hM w next\"", html);                    // 말씀이 다음 할 것(파란 테두리), 기도 · 암송은 콘텐츠 없음
+        Assert.Contains("class=\"hM q\"", html);
+        Assert.Contains("class=\"hM pr none\"", html);
+        // 날짜를 눌러 그날 미션을 본다(오늘 이전 날짜는 ?date= 링크), 최근 7일 막대도 같은 링크
         Assert.Contains("?date=2027-01-04", html);
-        Assert.Contains("class=\"mh-grid\"", html);
-        Assert.Contains("class=\"mh-m word", html);
-        Assert.Contains("올해 총 점수", html);
+        Assert.Contains("class=\"hCalG\"", html);
+        Assert.Contains("class=\"hTab\"", html);                          // 아래 메뉴 줄은 페이지 안(따라다니지 않음)
+        Assert.DoesNotContain("우리 가족", html);                        // 더 보기 · 우리 가족 · 선물은 뺌
     }
 }
