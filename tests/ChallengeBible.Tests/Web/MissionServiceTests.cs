@@ -286,6 +286,89 @@ public class MissionServiceTests
     }
 
     [Fact]
+    public async Task R24_오늘_한_말씀은_취소하면_점수가_빠지고_다시_할_수_있다()
+    {
+        ContentSeed.Word(_db, Jan5);
+        await Svc().PressAsync(_pid, MissionItem.WordMe, Jan5);
+        var u = await Svc().UndoAsync(_pid, MissionItem.WordMe, Jan5);
+        Assert.Equal((true, -1, 0, "취소했어요 · -1점"), (u.Ok, u.Added, u.SeasonPoints, u.Message));
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.Activities);
+        Assert.Equal(0, Ledger());
+        var again = await Svc().UndoAsync(_pid, MissionItem.WordMe, Jan5);                 // 멱등: 또 보내도 0점 성공
+        Assert.Equal((true, 0, "이미 취소했어요."), (again.Ok, again.Added, again.Message));
+        Assert.Equal(1, (await Svc().PressAsync(_pid, MissionItem.WordMe, Jan5)).Added);    // 다시 하면 다시 점수
+    }
+
+    [Fact]
+    public async Task R24_기도는_한_항목만_취소된다()
+    {
+        ContentSeed.Prayer(_db, Jan5);
+        await Svc().PressAsync(_pid, MissionItem.PrayerMe, Jan5);
+        await Svc().PressAsync(_pid, MissionItem.PrayerOthers, Jan5);
+        await Svc().UndoAsync(_pid, MissionItem.PrayerMe, Jan5);
+        Assert.Equal(new[] { MissionItem.PrayerOthers }, (await Svc().GetDayAsync(_pid, Jan5)).Done);
+        Assert.Equal(1, Ledger());
+    }
+
+    [Fact]
+    public async Task R24_지난_날짜는_취소할_수_없다()
+    {
+        var jan4 = new DateOnly(2027, 1, 4);
+        ContentSeed.Word(_db, jan4);
+        await Svc().PressAsync(_pid, MissionItem.WordMe, jan4);
+        var u = await Svc().UndoAsync(_pid, MissionItem.WordMe, jan4);
+        Assert.Equal((false, "오늘 한 것만 취소할 수 있어요."), (u.Ok, u.Message));
+        Assert.Equal(1, Ledger());
+    }
+
+    [Fact]
+    public async Task R24_암송은_이번_주_것만_취소한다()
+    {
+        ContentSeed.Verse(_db, 1);
+        await Svc().PressAsync(_pid, MissionItem.Recite, new DateOnly(2027, 1, 4));          // 이번 주(1/3 ~ 1/9)에 한 암송
+        using (var raw = InMemoryDb.Raw(_db))                                                // 지난주(12/27 ~ 1/2) 암송(인정 기간이 지나 직접 넣음)
+        {
+            var old = new Activity { TenantId = _kids.Id, ParticipantId = _pid, MissionItem = "Recite", MissionDate = new DateOnly(2027, 1, 1),
+                ReciteStartDate = new DateOnly(2026, 12, 27), WeeklyVerseId = 999, Points = 1 };
+            raw.Activities.Add(old);
+            raw.SaveChanges();
+            raw.PointLedgers.Add(new PointLedger { TenantId = _kids.Id, ParticipantId = _pid, MissionDate = old.MissionDate, MissionItem = "Recite", Points = 1, ActivityId = old.Id });
+            raw.SaveChanges();
+        }
+        var last = await Svc().UndoAsync(_pid, MissionItem.Recite, new DateOnly(2027, 1, 1));
+        Assert.Equal((false, "이번 주 암송만 취소할 수 있어요."), (last.Ok, last.Message));
+        var now = await Svc().UndoAsync(_pid, MissionItem.Recite, Jan5);                    // 다른 날을 보고 있어도 이번 주면 된다
+        Assert.Equal((true, -1), (now.Ok, now.Added));
+        Assert.False((await Svc().GetDayAsync(_pid, Jan5)).RecitedThisWeek);
+        Assert.Equal(1, Ledger());
+    }
+
+    [Fact]
+    public async Task R24_퀴즈는_취소할_수_없다()
+    {
+        Assert.False(Svc().CanUndo(MissionItem.QuizCorrect, Jan5));
+        await Assert.ThrowsAsync<ArgumentException>(() => Svc().UndoAsync(_pid, MissionItem.QuizCorrect, Jan5));
+    }
+
+    [Fact]
+    public async Task R24_R101_취소로_단계_아래로_내려가면_도달_기록도_지워_다시_축하()
+    {
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var filler = new Activity { TenantId = _kids.Id, ParticipantId = _pid, MissionItem = "Word.Parent", MissionDate = new DateOnly(2027, 1, 2), DailyWordId = 999, Points = 2999 };
+            raw.Activities.Add(filler);
+            raw.SaveChanges();
+            raw.PointLedgers.Add(new PointLedger { TenantId = _kids.Id, ParticipantId = _pid, MissionDate = filler.MissionDate, MissionItem = filler.MissionItem, Points = 2999, ActivityId = filler.Id });
+            raw.SaveChanges();
+        }
+        ContentSeed.Word(_db, Jan5);
+        Assert.Equal([3000], (await Svc().PressAsync(_pid, MissionItem.WordMe, Jan5)).NewMilestones);
+        await Svc().UndoAsync(_pid, MissionItem.WordMe, Jan5);
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.MilestonesReached);
+        Assert.Equal([3000], (await Svc().PressAsync(_pid, MissionItem.WordMe, Jan5)).NewMilestones);   // 다시 넘으면 또 축하
+    }
+
+    [Fact]
     public async Task R72_R73_완주일은_네_미션을_모두_한_날_이번_달은_오늘까지()
     {
         var jan4 = new DateOnly(2027, 1, 4);

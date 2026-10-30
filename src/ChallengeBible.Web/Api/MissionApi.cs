@@ -9,6 +9,7 @@ namespace ChallengeBible.Web.Api;
 public sealed record PressRequest(DateOnly Date, string[]? Items);
 public sealed record QuizRequest(DateOnly Date, int? ChoiceId, string? AnswerText);
 public sealed record DateRequest(DateOnly Date);
+public sealed record UndoRequest(DateOnly Date, string? Item);
 
 /// <summary>FamilyMilestone: 이 점수로 가족팀 합계가 처음 넘은 단계(R-96, 시안 가족축하 ①). 없으면 null.</summary>
 public sealed record MissionResponse(bool Ok, int PointsEarned, int SeasonTotal, IReadOnlyList<string> CompletedItems,
@@ -34,6 +35,21 @@ public static class MissionApi
             var res = await s.PressAsync(pid, MissionItem.Recite, r.Date, h.RequestAborted);
             return Results.Ok(new MissionResponse(res.Ok, res.Added, res.SeasonPoints, res.Ok ? ["Recite"] : [], res.NewMilestones, Msg(res),
                 FamilyMilestone: await Family(f, pid, res.Added, h)));
+        });
+
+        // 완료 취소(R-24, ADR 0070): 말씀 · 기도는 오늘, 암송은 이번 주. 퀴즈는 없음. 멱등(이미 취소됐으면 0점 성공)
+        g.MapPost("/undo", async (UndoRequest r, MissionService s, FamilyTeamService f, HttpContext h) =>
+        {
+            var pid = (int)h.Items[ParticipantEndpointFilter.ParticipantKey]!;
+            if (r.Item is null || TryParse(r.Item) is not { } item || item == MissionItem.QuizCorrect)
+                return Results.BadRequest(new { code = "BadItem", message = "취소할 수 없는 항목이에요." });
+            var res = await s.UndoAsync(pid, item, r.Date, h.RequestAborted);
+            if (!res.Ok) return Results.Ok(new MissionResponse(false, 0, res.SeasonPoints, [], [], res.Message));
+            if (res.Added < 0) await f.DropUnreachedAsync(pid, h.RequestAborted);
+            var day = await s.GetDayAsync(pid, r.Date, h.RequestAborted);
+            IReadOnlyList<string> done = item == MissionItem.Recite ? (day.RecitedThisWeek ? ["Recite"] : [])
+                : day.Done.Where(d => d.Mission() == item.Mission()).Select(d => d.Code()).ToList();
+            return Results.Ok(new MissionResponse(true, res.Added, day.SeasonPoints, done, [], res.Message));
         });
 
         g.MapPost("/quiz/attempts", async (QuizRequest r, MissionService s, FamilyTeamService f, HttpContext h) =>

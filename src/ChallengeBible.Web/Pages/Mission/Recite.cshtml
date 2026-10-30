@@ -43,12 +43,14 @@
         }
         <section class="sec @(d.RecitedThisWeek ? "done" : "")" data-pickbox>
             <h2><span class="n">@pickNo</span>외웠나요? <small data-pickstate>@(d.RecitedThisWeek ? "이번 주 완료" : "눌러서 알려 주세요")</small></h2>
-            <div class="picks" data-api="recite">
-                <button type="button" class="pick" data-item="Recite" aria-pressed="@(d.RecitedThisWeek ? "true" : "false")" disabled="@(!Model.CanAct || d.RecitedThisWeek)">
+            @{ var undo = Model.CanUndo(MissionItem.Recite); }   @* 완료 취소(R-24): 이번 주 암송만 *@
+            <div class="picks" data-api="recite" data-undo="@(undo ? "1" : "0")">
+                <button type="button" class="pick" data-item="Recite" data-pt="@d.Rules.Item(MissionItem.Recite).Points" aria-pressed="@(d.RecitedThisWeek ? "true" : "false")" disabled="@(d.RecitedThisWeek ? !undo : !Model.CanAct)">
                     <b>암송했어요</b><span class="pt">@(d.RecitedThisWeek ? "✓ 완료 +" : "")@(d.Rules.Item(MissionItem.Recite).Points)점</span>
                 </button>
             </div>
             <p class="pnote">한 주에 한 번 · @(d.Rules.Item(MissionItem.Recite).Points)점. 외운 날에 점수가 들어가요.</p>
+            @if (undo) { <p class="uhint" data-uhint hidden="@(!d.RecitedThisWeek)">잘못 눌렀으면 완료 버튼을 한 번 더 눌러 취소해요 (이번 주만)</p> }
         </section>
     }
 </div></main>

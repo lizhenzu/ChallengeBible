@@ -185,6 +185,55 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
         return await RecordAsync(ctx, act, today, ct);
     }
 
+    /// <summary>오늘 이 항목을 취소할 수 있나(R-24): 말씀 · 기도는 오늘, 암송은 이번 주 날짜에서. 퀴즈는 없음.</summary>
+    public bool CanUndo(MissionItem item, DateOnly date)
+    {
+        var today = Today;
+        return item.Mission() switch
+        {
+            Mission.Quiz => false,
+            Mission.Recite => Week.Of(date, Rules.WeekStart).Start == Week.Of(today, Rules.WeekStart).Start,
+            _ => date == today,
+        };
+    }
+
+    /// <summary>
+    /// 완료 취소(R-24, ADR 0070): 수행 기록 · 원장 줄을 지워 점수를 빼고, 줄어든 시즌 점수 아래로 내려간 축하 단계 도달 기록도 지운다.
+    /// 이미 취소된 것을 또 보내면 0점으로 성공(멱등). Added 는 빠진 점수(0 이하).
+    /// </summary>
+    public async Task<MissionResult> UndoAsync(int participantId, MissionItem item, DateOnly date, CancellationToken ct = default)
+    {
+        if (item == MissionItem.QuizCorrect) throw new ArgumentException("퀴즈는 취소할 수 없어요.", nameof(item));
+        await UseRulesForAsync(date, ct);
+        var today = Today;
+        if (!CanUndo(item, date)) return Fail(item == MissionItem.Recite ? "이번 주 암송만 취소할 수 있어요." : "오늘 한 것만 취소할 수 있어요.");
+        await using var ctx = db.Create();
+        var code = item.Code();
+        var q = ctx.Activities.Where(a => a.ParticipantId == participantId && a.MissionItem == code);
+        var weekStart = Week.Of(date, Rules.WeekStart).Start;
+        var act = item == MissionItem.Recite
+            ? await q.FirstOrDefaultAsync(a => a.ReciteStartDate == weekStart, ct)
+            : await q.FirstOrDefaultAsync(a => a.MissionDate == date, ct);
+        if (act is null) return await Already(ctx, participantId, today, "이미 취소했어요.", ct);
+
+        var lines = await ctx.PointLedgers.Where(l => l.ActivityId == act.Id).ToListAsync(ct);
+        var points = lines.Sum(l => l.Points);
+        ctx.PointLedgers.RemoveRange(lines);   // 원장이 수행 기록을 가리키므로 원장 먼저
+        await ctx.SaveChangesAsync(ct);
+        ctx.Activities.Remove(act);
+        await ctx.SaveChangesAsync(ct);
+
+        var total = await SeasonPointsAsync(ctx, participantId, today, ct);
+        var year = (short)today.Year;
+        var above = await ctx.MilestonesReached.Where(m => m.ParticipantId == participantId && m.Year == year && m.Threshold > total).ToListAsync(ct);
+        if (above.Count > 0)
+        {
+            ctx.MilestonesReached.RemoveRange(above);   // 다시 넘으면 또 축하(R-101)
+            await ctx.SaveChangesAsync(ct);
+        }
+        return new MissionResult(true, -points, total, [], points > 0 ? $"취소했어요 · -{points}점" : "취소했어요");
+    }
+
     /// <summary>퀴즈 답하기(R-40 ~ R-44). 정답 판정은 서버에서 저장된 정답과 비교한다.</summary>
     public async Task<MissionResult> AnswerQuizAsync(int participantId, DateOnly date, int? choiceId, string? text, CancellationToken ct = default)
     {

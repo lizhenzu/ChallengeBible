@@ -85,6 +85,28 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task R24_오늘_완료는_다시_눌러_취소한다_지난날과_퀴즈는_안_된다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var html = await c.GetStringAsync("/jamsil-kids/word");
+        var t = TokenRx().Match(html).Groups[1].Value;
+        await Api(c, t, "/api/jamsil-kids/missions/word", new { date = "2027-01-05", items = new[] { "Word.Me" } });
+        var page = await c.GetStringAsync("/jamsil-kids/word");
+        Assert.Contains("data-undo=\"1\"", page);
+        Assert.Matches("data-item=\"Word.Me\" data-pt=\"1\" aria-pressed=\"true\">", page);   // 완료 버튼도 눌린다(disabled 없음 → 확인 창)
+        Assert.Contains("한 번 더 눌러 취소해요 (오늘만)", page);
+
+        var r = await Api(c, t, "/api/jamsil-kids/missions/undo", new { date = "2027-01-05", item = "Word.Me" });
+        var j = JsonDocument.Parse(await r.Content.ReadAsStringAsync()).RootElement;
+        Assert.Equal((-1, 0, "취소했어요 · -1점"), (j.GetProperty("pointsEarned").GetInt32(), j.GetProperty("seasonTotal").GetInt32(), j.GetProperty("message").GetString()));
+        Assert.Empty(j.GetProperty("completedItems").EnumerateArray());
+        Assert.DoesNotContain("aria-pressed=\"true\"", await c.GetStringAsync("/jamsil-kids/word"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, (await Api(c, t, "/api/jamsil-kids/missions/undo", new { date = "2027-01-05", item = "Quiz.Correct" })).StatusCode);
+        Assert.DoesNotContain("data-undo=\"1\"", await c.GetStringAsync("/jamsil-kids/word?date=2027-01-04"));   // 지난 날짜 화면은 취소 없음
+    }
+
+    [Fact]
     public async Task R23_아무것도_고르지_않으면_거절()
     {
         var c = await Member("cheolsu", Roles.Participant);
