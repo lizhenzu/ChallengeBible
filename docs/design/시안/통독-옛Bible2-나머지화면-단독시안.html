@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>통독 나머지 화면 옛 배치 시안</title>
+<style>
+/* 시안(2026-10-31): 통독 목록 · 검색 · 북마크 · 참여자 현황 · 회차 기록을 옛 Views/Bible2(List · Search · Bookmarks · Participants · ResetProgress)와 같은 구조 · 배치로.
+   틀(왼쪽 목차 · ☰ 서랍 · 위 줄)은 확정한 대시보드 시안과 같다. 색은 지금 통독 색. 맨 아래 검은 띠는 시안에만 있다 */
+:root { --acc: #2B59C3; --accSoft: #DCE5F7; --band: #F2F4F7; --ink: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --cell: #E9ECF1; --l1: #C9D7F2; --l2: #8FA9E3; --bg: #fff; --red: #DC2626; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Malgun Gothic", system-ui, sans-serif; padding-bottom: 60px; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; }
+[hidden] { display: none !important; }
+.dr { position: fixed; top: 0; bottom: 0; left: 0; width: 240px; background: var(--band); border-right: 1px solid var(--rule); display: none; flex-direction: column; }
+.dr-hd { display: flex; align-items: center; height: 56px; padding: 0 22px; font-weight: 900; color: var(--acc); }
+.lbl2 { font-size: 10px; font-weight: 800; letter-spacing: .2em; color: var(--acc); padding: 14px 22px 4px; }
+.it { display: block; margin: 0 10px; padding: 9px 12px; border-radius: 10px; font-size: 14px; }
+.it.on { background: var(--bg); color: var(--acc); font-weight: 800; }
+.ft { margin-top: auto; padding: 14px 22px; border-top: 1px solid var(--rule); font-size: 13px; }
+.top { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 18px; background: var(--bg); border-bottom: 1px solid var(--rule); }
+.hb { width: 40px; height: 40px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); font-size: 17px; }
+@media (min-width: 769px) { .dr { display: flex; } .main { margin-left: 240px; } .hb { display: none; } .top { padding: 0 32px; } }
+.b { --pad: 18px; max-width: 880px; margin: 0 auto; padding: 4px var(--pad) 40px; }
+@media (min-width: 769px) { .b { --pad: 32px; } }
+.k { margin-top: 22px; font-size: 11px; font-weight: 800; letter-spacing: .2em; color: var(--acc); }
+.T { margin: 6px 0 0; font-size: 26px; font-weight: 900; }
+.T small { margin-left: 6px; font-size: 14px; font-weight: 600; color: var(--dim); }
+.lbl { display: flex; justify-content: space-between; align-items: baseline; margin: 28px 0 10px; font-size: 12px; font-weight: 800; letter-spacing: .2em; color: var(--acc); }
+.lbl small { font-size: 11.5px; letter-spacing: 0; font-weight: 400; color: var(--dim); }
+.pg { height: 6px; margin-top: 6px; border-radius: 3px; background: var(--cell); overflow: hidden; }
+.pg i { display: block; height: 100%; background: var(--acc); }
+.seg { display: flex; margin-top: 18px; }
+.seg a, .seg button { flex: 1; text-align: center; padding: 10px 0; border: 1px solid var(--rule); background: var(--bg); font-size: 14px; }
+.seg > :first-child { border-radius: 10px 0 0 10px; } .seg > :last-child { border-radius: 0 10px 10px 0; } .seg > * + * { border-left: 0; }
+.seg .on { background: var(--acc); border-color: var(--acc); color: #fff; font-weight: 800; }
+.empty { margin-top: 24px; padding: 34px 16px; text-align: center; border: 1px dashed var(--rule); border-radius: 14px; color: var(--dim); }
+.empty b { display: block; color: var(--ink); font-size: 16px; margin-bottom: 6px; }
+
+/* 목록(옛 List) */
+.sum { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; }
+.sum .big { font-size: 42px; font-weight: 300; line-height: 1; }
+.sum .big small { font-size: 18px; }
+.sum .r { text-align: right; font-size: 12.5px; color: var(--dim); line-height: 1.6; }
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 18px; }
+@media (min-width: 560px) { .grid { grid-template-columns: repeat(6, 1fr); } }
+@media (min-width: 1000px) { .grid { grid-template-columns: repeat(7, 1fr); } }
+.bk { position: relative; overflow: hidden; padding: 8px 6px 10px; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); font-size: 12.5px; text-align: left; white-space: nowrap; }
+.bk small { display: block; font-size: 10.5px; color: var(--dim); }
+.bk i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--acc); }
+.bk.dn { background: var(--accSoft); border-color: var(--l1); }
+.bk.sel { border-color: var(--acc); box-shadow: inset 0 0 0 1px var(--acc); }
+.panel { grid-column: 1 / -1; margin: 4px 0 8px; padding: 14px; border: 1px solid var(--acc); border-radius: 12px; background: var(--band); }
+.ph { display: flex; justify-content: space-between; align-items: baseline; }
+.ph small { font-size: 12px; color: var(--dim); }
+.chs { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 4px; margin-top: 10px; }
+.chs a { display: grid; place-items: center; height: 40px; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); font-size: 13px; }
+.chs .r { background: var(--l2); border-color: var(--l2); color: #fff; }
+.chs .nx { border-color: var(--acc); color: var(--acc); font-weight: 900; }
+.panel .go { display: flex; gap: 6px; margin-top: 12px; }
+.panel .go > * { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--rule); background: var(--bg); font-size: 13.5px; }
+.panel .go .p { flex: 1; text-align: right; background: var(--acc); border-color: var(--acc); color: #fff; font-weight: 800; }
+.panel .go .m.on { border-color: var(--acc); color: var(--acc); font-weight: 800; }
+
+/* 검색(옛 Search) */
+.box { display: flex; margin-top: 18px; border: 1.5px solid var(--acc); border-radius: 12px; overflow: hidden; }
+.box input { flex: 1; min-width: 0; border: 0; padding: 14px; font: inherit; font-size: 15px; }
+.box button { border: 0; background: var(--acc); color: #fff; padding: 0 18px; font-weight: 800; }
+.opts { display: flex; gap: 6px; margin-top: 8px; font-size: 12.5px; color: var(--dim); }
+.opts select { font: inherit; padding: 4px 6px; border: 1px solid var(--rule); border-radius: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.chips a { padding: 6px 12px; border: 1px solid var(--rule); border-radius: 99px; font-size: 13px; }
+.res { display: flex; justify-content: space-between; align-items: baseline; margin-top: 26px; padding-bottom: 8px; border-bottom: 1px solid var(--ink); }
+.res small { color: var(--dim); }
+.bookh { margin-top: 16px; font-size: 12.5px; font-weight: 800; color: var(--acc); }
+.bookh small { margin-left: 4px; color: var(--dim); font-weight: 400; }
+.rr { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--rule); font-size: 14.5px; line-height: 1.75; }
+.rr .ref { flex: none; width: 48px; font-size: 12px; color: var(--dim); padding-top: 3px; }
+.rr p { margin: 0; } mark { background: #FFF1BF; padding: 0 1px; }
+
+/* 북마크(옛 Bookmarks) */
+.sort { display: flex; gap: 6px; margin-top: 16px; }
+.sort button { padding: 7px 14px; border: 1px solid var(--rule); border-radius: 99px; background: var(--bg); font-size: 13px; }
+.sort .on { background: var(--ink); border-color: var(--ink); color: #fff; }
+.card { position: relative; margin-top: 10px; padding: 18px 18px 14px 40px; border: 1px solid var(--rule); border-radius: 14px; }
+.card .q { position: absolute; left: 14px; top: 8px; font-size: 34px; color: var(--l1); font-family: Georgia, serif; }
+.card p { margin: 0; font-size: 15.5px; line-height: 1.8; }
+.card .m { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; }
+.card .m small { margin-left: 8px; color: var(--dim); }
+.card .act { display: flex; gap: 6px; }
+.card .act > * { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--rule); background: var(--bg); font-size: 12.5px; }
+.card .act .go { background: var(--acc); border-color: var(--acc); color: #fff; font-weight: 800; }
+
+/* 참여자(옛 Participants) */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 18px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); }
+.stats div { padding: 12px 0; text-align: center; font-size: 11.5px; color: var(--dim); }
+.stats div + div { border-left: 1px solid var(--rule); }
+.stats b { display: block; font-size: 22px; font-weight: 300; color: var(--ink); }
+.hall { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+.hall .h { flex: none; width: 84px; text-align: center; font-size: 12.5px; }
+.av { display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto 6px; border-radius: 50%; background: var(--accSoft); color: var(--acc); font-weight: 900; }
+.hall .av { box-shadow: 0 0 0 3px #F5C451; }
+.hall small { display: block; color: var(--dim); }
+.ctrl { display: flex; gap: 6px; }
+.ctrl input { flex: 1; min-width: 0; padding: 9px 12px; border: 1px solid var(--rule); border-radius: 10px; font: inherit; font-size: 14px; }
+.ctrl button { padding: 0 12px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); font-size: 13px; }
+.ctrl .on { background: var(--ink); border-color: var(--ink); color: #fff; }
+.pgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+@media (min-width: 640px) { .pgrid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1000px) { .pgrid { grid-template-columns: repeat(4, 1fr); } }
+.pc { position: relative; padding: 14px 12px 12px; border: 1px solid var(--rule); border-radius: 14px; text-align: center; }
+.pc .tag { position: absolute; right: 8px; top: 8px; padding: 1px 8px; border-radius: 99px; background: #FFF4D6; color: #A66A00; font-size: 11px; font-weight: 800; }
+.pc .ring { width: 66px; height: 66px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; }
+.pc .ring .av { width: 52px; height: 52px; margin: 0; }
+.pc b { display: block; margin-top: 6px; font-size: 14px; }
+.pc .p { font-size: 20px; font-weight: 300; } .pc .p small { font-size: 12px; }
+.pc .mm { font-size: 11.5px; color: var(--dim); }
+.pc .bar { height: 4px; margin-top: 8px; border-radius: 2px; background: var(--cell); overflow: hidden; } .pc .bar i { display: block; height: 100%; background: var(--acc); }
+.foot { margin-top: 26px; text-align: center; font-size: 12.5px; color: var(--dim); }
+
+/* 회차 기록(옛 ResetProgress 모양) */
+.dk { margin: 0 calc(var(--pad) * -1); padding: 26px var(--pad) 24px; background: var(--acc); color: #fff; }
+.dk .k { margin: 0; color: #fff; opacity: .75; }
+.dk .T em { font-style: normal; color: #FFE08A; }
+.dk .who { margin-top: 6px; font-size: 13px; opacity: .85; }
+.bigx { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 22px; font-size: 13px; color: var(--dim); text-align: center; }
+.bigx b { display: block; font-size: 40px; font-weight: 300; color: var(--ink); }
+.bigx .to b { color: var(--acc); font-weight: 600; }
+.bigx i { font-style: normal; font-size: 26px; color: var(--l2); }
+.rows { margin-top: 18px; border-top: 1px solid var(--ink); }
+.rows div { display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--rule); font-size: 14px; }
+.rows span { color: var(--dim); }
+.warn { margin-top: 16px; padding: 14px 16px; border-radius: 12px; background: var(--band); font-size: 13.5px; line-height: 1.7; }
+.warn ol { margin: 6px 0; padding-left: 20px; }
+.btn { display: block; width: 100%; margin-top: 16px; padding: 15px; border: 0; border-radius: 12px; background: var(--acc); color: #fff; font-size: 16px; font-weight: 900; }
+.back { display: block; margin-top: 10px; text-align: center; font-size: 13.5px; color: var(--dim); }
+.hist div { display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--rule); font-size: 14px; }
+.hist small { color: var(--dim); }
+
+.mock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; background: #1B1F24; padding: 9px 10px; display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.mock button { min-height: 34px; padding: 0 12px; border-radius: 99px; border: 1px solid #555; background: transparent; color: #fff; font: 700 13px system-ui; }
+.mock button[aria-pressed="true"] { background: #fff; color: #1B1F24; }
+</style>
+</head>
+<body>
+<nav class="dr" aria-label="성경 통독 메뉴">
+  <div class="dr-hd">도전!!!성경통독</div>
+  <div class="lbl2">목차</div>
+  <a class="it" href="#">대시보드</a><a class="it" data-on="list" href="#">구약 읽기</a><a class="it" href="#">신약 읽기</a>
+  <a class="it" data-on="search" href="#">성경 검색</a><a class="it" data-on="bm" href="#">북마크</a><a class="it" data-on="pp" href="#">참여자 현황</a><a class="it" data-on="rd" href="#">회차 기록</a>
+  <div class="ft"><a href="#">← 부서 홈으로</a></div>
+</nav>
+<div class="main">
+<header class="top"><button class="hb" aria-label="메뉴 열기">☰</button><b id="ttl">구약 읽기</b></header>
+
+<!-- 목록 -->
+<div class="b" data-s="list">
+  <nav class="seg"><a class="on" href="#">구약</a><a href="#">신약</a></nav>
+  <div class="sum"><div><div class="k" style="margin:0">구약 전체</div><div class="big">2.2<small>%</small></div></div><div class="r">20장 읽음<br>929장 중 · 39권</div></div>
+  <div class="pg"><i style="width:2.2%"></i></div>
+  <div class="grid">
+    <button class="bk sel">창세기<small>20/50</small><i style="width:40%"></i></button>
+    <div class="panel">
+      <div class="ph"><b>창세기</b><small>20 / 50장 · 40%</small></div>
+      <div class="chs" id="chs"></div>
+      <div class="go"><button>닫기</button><button class="m">✓ 바로 완료 표시</button><a class="p" href="#">이어 읽기 21장 →</a></div>
+    </div>
+    <button class="bk">출애굽기<small>0/40</small></button><button class="bk">레위기<small>0/27</small></button><button class="bk">민수기<small>0/36</small></button>
+    <button class="bk">신명기<small>0/34</small></button><button class="bk">여호수아<small>0/24</small></button><button class="bk">사사기<small>0/21</small></button>
+    <button class="bk dn">룻기<small>4/4</small><i style="width:100%"></i></button><button class="bk">사무엘상<small>0/31</small></button><button class="bk">사무엘하<small>0/24</small></button>
+  </div>
+</div>
+
+<!-- 검색 -->
+<div class="b" data-s="search" hidden>
+  <div class="k">말씀 찾기</div><h1 class="T">성경 검색</h1>
+  <form class="box" onsubmit="return false"><input value="사랑" aria-label="찾을 말" /><button>검색 →</button></form>
+  <div class="opts">번역 <select><option>개역개정</option></select> 범위 <select><option>성경 전체</option></select></div>
+  <div class="chips"><a href="#">사랑</a><a href="#">믿음</a><a href="#">은혜</a><a href="#">평안</a><a href="#">소망</a></div>
+  <div class="res"><b>"사랑" 검색 결과</b><small>총 527개</small></div>
+  <div class="bookh">창세기<small>12개</small></div>
+  <a class="rr" href="#"><span class="ref">22:2</span><p>여호와께서 이르시되 네 아들 네 <mark>사랑</mark>하는 독자 이삭을 데리고 모리아 땅으로 가서…</p></a>
+  <a class="rr" href="#"><span class="ref">24:67</span><p>이삭이 리브가를 인도하여 그의 어머니 사라의 장막으로 들이고 그를 맞이하여 아내로 삼고 <mark>사랑</mark>하였으니…</p></a>
+</div>
+
+<!-- 북마크 -->
+<div class="b" data-s="bm" hidden>
+  <div class="k">마음에 담은 말씀</div><h1 class="T">북마크<small>2개</small></h1>
+  <div class="sort"><button class="on">최근 저장순</button><button>성경 순서</button></div>
+  <article class="card"><span class="q">“</span><p>내가 너를 떠나지 아니하고 버리지 아니하리라</p>
+    <div class="m"><div><b>여호수아 1:5</b><small>2026.10.30</small></div><div class="act"><button>삭제</button><a class="go" href="#">읽기 →</a></div></div></article>
+  <article class="card"><span class="q">“</span><p>태초에 하나님이 천지를 창조하시니라</p>
+    <div class="m"><div><b>창세기 1:1</b><small>2026.10.21</small></div><div class="act"><button>삭제</button><a class="go" href="#">읽기 →</a></div></div></article>
+</div>
+
+<!-- 참여자 -->
+<div class="b" data-s="pp" hidden>
+  <div class="k">함께 읽는 말씀</div><h1 class="T">참여자 현황</h1>
+  <div class="stats"><div><b>12</b>참여자</div><div><b>2</b>완독자</div><div><b>18.4%</b>평균 진도</div><div><b>3</b>누적 완독</div></div>
+  <div class="lbl">완독자 명예의 전당<small>2명</small></div>
+  <div class="hall"><div class="h"><span class="av">철수</span>김철수<small>2독</small></div><div class="h"><span class="av">영희</span>이영희<small>1독</small></div></div>
+  <div class="lbl">성경통독 참여자<small>12명</small></div>
+  <div class="ctrl"><input placeholder="이름 검색" /><button class="on">진도율순</button><button>최근순</button></div>
+  <div class="pgrid" id="pg"></div>
+  <div class="foot">말씀을 읽는 것이 복입니다 — 요한계시록 1:3</div>
+</div>
+
+<!-- 회차 기록 -->
+<div class="b" data-s="rd" hidden>
+  <header class="dk"><div class="k">BIBLE ROUNDS</div><h1 class="T">성경 완독을<br><em>향해 가요</em></h1><div class="who">김철수님 · 지금 1회차</div></header>
+  <div class="bigx"><div>지금<b>1</b>회차</div><i aria-hidden="true">→</i><div class="to">새 회차<b>2</b>회차</div></div>
+  <div class="rows"><div><span>읽은 장</span><b>25 / 1,189장</b></div><div><span>시작한 날</span><b>2026.10.01</b></div></div>
+  <div class="pg"><i style="width:2.1%"></i></div>
+  <div class="warn"><b>새 회차를 시작하면</b><ol><li>지금 회차 기록은 <b>그대로 남아요</b>(아래 회차 기록)</li><li>창세기 1장부터 새로 읽어요</li></ol></div>
+  <button class="btn">2회차 새로 시작하기</button>
+  <a class="back" href="#">대시보드로 돌아가기</a>
+  <div class="lbl">회차 기록<small>1개</small></div>
+  <div class="hist"><div><span>1회차 · 2026.10.01 ~ 진행 중</span><small>25장</small></div></div>
+</div>
+</div>
+<div class="mock">
+  <button data-v="list">구약 읽기(목록)</button><button data-v="search">성경 검색</button><button data-v="bm">북마크</button><button data-v="pp">참여자 현황</button><button data-v="rd">회차 기록</button>
+</div>
+<script>
+// 시안용 채우기 · 화면 바꾸기
+const chs = document.getElementById('chs');
+for (let i = 1; i <= 50; i++) chs.insertAdjacentHTML('beforeend', `<a class="${i <= 20 ? 'r' : i === 21 ? 'nx' : ''}" href="#">${i}</a>`);
+const pg = document.getElementById('pg');
+[['김철수', 100, '2독'], ['이영희', 100, '1독'], ['박민수', 46.2], ['최지우', 21.5], ['정하늘', 8.3], ['한소망', 2.1]].forEach(([n, p, t]) =>
+  pg.insertAdjacentHTML('beforeend', `<div class="pc">${t ? `<span class="tag">${t}</span>` : ''}<div class="ring" style="background:conic-gradient(var(--acc) 0 ${p}%,var(--cell) 0)"><span class="av">${n.slice(1)}</span></div><b>${n}</b><div class="p">${p.toFixed(2)}<small>%</small></div><div class="mm">마태복음 · 오늘</div><div class="bar"><i style="width:${p}%"></i></div></div>`));
+const names = { list: '구약 읽기', search: '성경 검색', bm: '북마크', pp: '참여자 현황', rd: '회차 기록' };
+function show(v) {
+  document.querySelectorAll('[data-s]').forEach((e) => { e.hidden = e.dataset.s !== v; });
+  document.querySelectorAll('.mock button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+  document.querySelectorAll('.it').forEach((a) => a.classList.toggle('on', a.dataset.on === v));
+  document.getElementById('ttl').textContent = names[v];
+}
+document.querySelectorAll('.mock button').forEach((b) => b.addEventListener('click', () => show(b.dataset.v)));
+show(location.hash.slice(1) || 'list');
+</script>
+</body>
+</html>

@@ -20,44 +20,42 @@
     var unit = Model.Book == 19 ? "편" : "장";
 }
 <link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
-<div class="brd">
-<header class="brd-top">
-    <nav class="brd-crumb"><a href="/@Model.Slug/reading">통독 홈</a><i aria-hidden="true">·</i><a href="@Model.ListUrl(t, Model.Book)">@name 목록</a></nav>
-    <div class="fs brd-fs" role="group" aria-label="글자 크기">
-        <button type="button" data-fs="-1" aria-label="글자 작게">가−</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
+<link rel="stylesheet" href="~/css/reading-b2.css" asp-append-version="true" />
+<div class="rp b2">
+@await Html.PartialAsync("_ReadingNav", new ReadingNav(Model, t, $"{name} {Model.Chapter}{unit}", NoTop: true))
+<div class="b2main brd b2r">
+@* 확정 시안: 통독-옛Bible2-본문읽기(0071) — 옛 Bible2 Read 배치: 파란 머리(☰ · 경로 · 글자 크기 | 구약 · 성경 통독 | 책 이름 + 큰 장 번호 | 절 진도)
+   → 장 번호 줄 → 설정 칸(읽기 단위 · 번역 · 듣기 해설) → 책 개요 → 절 목록 → 큰 완료 버튼 → 이전 · 다음 장 → 대시보드 · 목록 · 부서 홈 *@
+<header class="b2rh"><div class="b2ri">
+    <div class="cr">
+        <button type="button" class="b2hb" data-b2open aria-label="메뉴 열기" aria-controls="b2dr">☰</button>
+        <span class="path"><a href="@Model.ListUrl(t)">@(t == "ot" ? "구약" : "신약")</a> › <b>@name @(Model.Chapter)@unit</b></span>
+        <div class="fs" role="group" aria-label="글자 크기">
+            <button type="button" data-fs="-1" aria-label="글자 작게">가−</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
+        </div>
     </div>
-</header>
-<main class="brd-main" data-slug="@Model.Slug">
-    <div class="brd-k">@(t == "ot" ? "구약" : "신약") · 성경 통독 · @(v.RoundNo)회차</div>
-    <h1 class="brd-h">@name<small>@(Model.Chapter)@(Model.Book == 19 ? "편" : "장")</small></h1>
-    <div class="rdprog brd-prog" data-total="@v.VerseCount">
+    <div class="hk">@(t == "ot" ? "구약" : "신약") · 성경 통독 · @(v.RoundNo)회차</div>
+    <h1 class="ht">@name<b class="num">@Model.Chapter</b><small>@unit</small></h1>
+    <div class="rdprog" data-total="@v.VerseCount">
         <p class="num"><span>@(v.VerseCount)절 · <b data-readcount>@v.VersesRead.Count</b>절 읽음<span class="rd-done" data-chapterdone @(v.Done ? "" : "hidden")> · 다 읽은 장</span></span><span data-readpct>@(Model.ReadPercent)%</span></p>
-        <div class="brd-bar" aria-hidden="true"><i data-readbar style="width:@(Model.ReadPercent)%"></i></div>
+        <div class="bar" aria-hidden="true"><i data-readbar style="width:@(Model.ReadPercent)%"></i></div>
     </div>
-    @* 도구 줄 + 펼치기(확정 시안: 통독-본문읽기-보기설정-3안 ㄴ안): 평소엔 [장] [보기] [듣기] 한 줄, 누른 것만 아래로 펼친다(처음엔 모두 접힘).
-       스크립트가 없으면 판이 모두 펼쳐진 채 보인다(mission.js 가 .js 를 붙이고 접음) *@
-    <div class="rnv" data-rnv>
-        <div class="rnv-bar">
-            <button type="button" class="rnv-tb" data-rnv-open="ch" aria-expanded="false" aria-controls="rnvCh"><b>@(Model.Chapter)@unit</b><small>/ @(Model.ChapterCount)@unit</small><i aria-hidden="true">▾</i></button>
-            <button type="button" class="rnv-tb" data-rnv-open="set" aria-expanded="false" aria-controls="rnvSet"><b>@units.First(x => x.Value == Model.Unit).Label · @trs.First(x => x.Value == Model.Tr).Label</b><i aria-hidden="true">▾</i></button>
-            @if (Model.Media.Count > 0) { <button type="button" class="rnv-tb yt" data-rnv-open="md" aria-expanded="false" aria-controls="rnvMd"><span aria-hidden="true">🎧</span><b>듣기</b><i aria-hidden="true">▾</i></button> }
-        </div>
-        <div class="rnv-pan" id="rnvCh" data-rnv-pan="ch">
-            <nav class="brd-chs" aria-label="장 번호">
-                @for (short c = 1; c <= Model.ChapterCount; c++)
-                {
-                    <a class="@(c == Model.Chapter ? "cur" : Model.DoneChapters.Contains(c) ? "done" : "")" href="@Model.ReadUrl(Model.Book, c)" aria-current="@(c == Model.Chapter ? "page" : "false")">@c</a>
-                }
-            </nav>
-        </div>
-        <section class="rnv-pan brd-set" id="rnvSet" data-rnv-pan="set" aria-label="읽기 설정">
-            <div class="brd-lbl">읽기 단위</div>
-            <div class="brd-pills">@foreach (var (label, u) in units) { <a href="@Model.Url(unit: u)" aria-current="@(Model.Unit == u ? "true" : "false")">@label</a> }</div>
-            <div class="brd-lbl">번역</div>
-            <div class="brd-pills">@foreach (var (label, code) in trs) { <a href="@Model.Url(tr: code)" aria-current="@(Model.Tr == code ? "true" : "false")">@label</a> }</div>
-        </section>
-        @if (Model.Media.Count > 0) { <div class="rnv-pan" id="rnvMd" data-rnv-pan="md"><partial name="_MediaBar" model="Model.Media" /></div> }
-    </div>
+</div></header>
+<main class="b2ri" data-slug="@Model.Slug">
+    <nav class="b2chs" aria-label="장 번호">
+        @for (short c = 1; c <= Model.ChapterCount; c++)
+        {
+            <a class="@(c == Model.Chapter ? "cur" : Model.DoneChapters.Contains(c) ? "done" : "")" href="@Model.ReadUrl(Model.Book, c)" aria-current="@(c == Model.Chapter ? "page" : "false")">@c</a>
+        }
+    </nav>
+    <script>document.querySelector('.b2chs .cur')?.scrollIntoView({ block: 'nearest', inline: 'center' });   // 지금 장이 줄 가운데 보이게</script>
+    <section class="b2sheet" aria-label="읽기 설정">
+        <div class="brd-lbl">읽기 단위</div>
+        <div class="brd-pills">@foreach (var (label, u) in units) { <a href="@Model.Url(unit: u)" aria-current="@(Model.Unit == u ? "true" : "false")">@label</a> }</div>
+        <div class="brd-lbl">번역</div>
+        <div class="brd-pills">@foreach (var (label, code) in trs) { <a href="@Model.Url(tr: code)" aria-current="@(Model.Tr == code ? "true" : "false")">@label</a> }</div>
+        @if (Model.Media.Count > 0) { <div class="brd-lbl">듣기 · 해설</div><partial name="_MediaBar" model="Model.Media" /> }
+    </section>
 
     @if (Model.Overview is { } ov) { <partial name="_BookOverview" model="ov" /> }
 
@@ -129,8 +127,9 @@
         </nav>
         <p class="brd-note">통독에는 점수가 없어요. 장의 모든 절을 읽음으로 표시하면 그 장이 다 읽은 장이 돼요.</p>
     }
-    <nav class="brd-foot"><a href="/@Model.Slug/reading">통독 홈</a><a href="@Model.ListUrl(t, Model.Book)">목록</a><a href="/@Model.Slug">홈으로</a></nav>
+    <nav class="b2btm"><a href="/@Model.Slug/reading">대시보드</a><a href="@Model.ListUrl(t, Model.Book)">@(t == "ot" ? "구약" : "신약") 목록</a><a href="/@Model.Slug">부서 홈</a></nav>
 </main>
+</div>
 </div>
 @Html.AntiForgeryToken()
 <p id="toast" class="toast" role="status" hidden></p>

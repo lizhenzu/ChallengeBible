@@ -221,13 +221,14 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         var dash = await c.GetStringAsync("/jamsil-kids/reading");
         Assert.Contains("나의 성경 통독 · <a href=\"/jamsil-kids/reading/rounds\" title=\"회차 기록\">1회차", dash);   // 회차 기록으로 가는 길
         Assert.Contains("이어 읽기", dash);
-        Assert.Contains("창세기 1장 · 1절부터", dash);
+        Assert.Contains("<div class=\"t\">창세기 1장</div>", dash);                     // 옛 Bible2 배치(0071): 이어 읽기 큰 칸
+        Assert.Contains("class=\"b2it on\" aria-current=\"page\">대시보드</a>", dash);   // 왼쪽 목차
         var list = await c.GetStringAsync("/jamsil-kids/reading/list?t=ot&b=1");
-        Assert.Contains("율법서 · 5권", list);
-        Assert.Contains("이어 읽기 1장", list);
+        Assert.Contains("aria-current=\"page\">구약 읽기</a>", list);                    // 옛 Bible2 List 배치(0071): 목차에서 구약 읽기
+        Assert.Contains("읽기 시작 1장 →", list);                                       // 누른 책 아래 장 번호 칸
         var read = await c.GetStringAsync("/jamsil-kids/reading/read/1/24");
         Assert.Contains("KRV 1:24:9", read);
-        Assert.Contains("class=\"brd-chs\"", read);           // 장 번호 줄(ADR 0057)
+        Assert.Contains("class=\"b2chs\"", read);             // 장 번호 줄(ADR 0057 · 0071)
         Assert.Contains("data-api=\"reading\"", read);
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/jamsil-kids/reading/read/1/51")).StatusCode);
     }

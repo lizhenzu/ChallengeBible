@@ -3,48 +3,42 @@
 @using ChallengeBible.Web.Pages.Reading
 @* 확정 시안: 통독-북마크 — 머리말 → 마음에 담은 말씀 · 북마크 N절 → 최근 담은 순 · 성경 순서 → ★ 카드(구절 · 담은 때 · 본문 · 본문으로 →).
    출처(성경말씀 · 성경통독) 표시는 뺀다(사용자 결정 2026-10-24) *@
-@{ var ko = ReadingPageBase.Ko; }
 <link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
-<div class="rp">
-<header class="rp-top"><div class="rp-in">
-    <a class="rp-menu" href="/@Model.Slug/reading" aria-label="통독 홈">☰</a>
-    <nav class="rp-crumb"><a href="/@Model.Slug">홈으로</a> · <a href="/@Model.Slug/reading"><b>성경통독</b></a></nav>
-    <span class="rp-date">@Model.Today.ToString("M월 d일 dddd", ko)</span>
-</div>
-<div class="rp-in rp-head">
-    <div class="rp-k">마음에 담은 말씀</div>
-    <h1>북마크<small class="num" data-bmcount>@(Model.Rows.Count)절</small></h1>
-    <p>성경말씀 · 성경통독 어디서 ★ 을 눌러도 여기에 모여요. 학년이 바뀌어도 그대로예요.</p>
-</div></header>
-
-<main class="rp-in rp-body">
-    <div class="rp-bmbar">
-        <div class="rp-seg" role="group" aria-label="정렬">
-            <a href="?sort=recent" aria-current="@(Model.Sort != "bible" ? "true" : "false")">최근 담은 순</a>
-            <a href="?sort=bible" aria-current="@(Model.Sort == "bible" ? "true" : "false")">성경 순서</a>
-        </div>
-        <span>개역개정</span>
-    </div>
+<link rel="stylesheet" href="~/css/reading-b2.css" asp-append-version="true" />
+<div class="rp b2">
+@await Html.PartialAsync("_ReadingNav", new ReadingNav(Model, "bookmark", "북마크"))
+<div class="b2main"><main class="b2b">
+    @* 옛 Bible2 Bookmarks 배치(0071): 마음에 담은 말씀 · 북마크 N → 정렬 두 개 → 말씀 카드(“ · 구절 · 담은 날 · [삭제] [읽기 →]) *@
+    <div class="k">마음에 담은 말씀</div>
+    <h1 class="T">북마크<small class="num" data-bmcount>@(Model.Rows.Count)절</small></h1>
     @if (Model.Rows.Count == 0)
     {
-        <p class="rp-empty">아직 담은 말씀이 없어요.<br />성경을 읽다가 마음에 남는 절의 ★ 을 눌러 보세요.</p>
+        <div class="empty"><b>아직 담은 말씀이 없어요</b>성경을 읽다가 절 끝 ★ 을 누르면<br />여기에 모아 둘게요<br /><a href="@Model.ListUrl("ot")">성경 읽으러 가기</a></div>
     }
     else
     {
-        <ul class="rp-bms" data-bookmarks>
+        <nav class="bsort" aria-label="정렬">
+            <a href="?sort=recent" aria-current="@(Model.Sort != "bible" ? "true" : "false")">최근 저장순</a>
+            <a href="?sort=bible" aria-current="@(Model.Sort == "bible" ? "true" : "false")">성경 순서</a>
+        </nav>
+        <ul class="bcards" data-bookmarks>
             @foreach (var b in Model.Rows)
             {
                 <li data-book="@b.BookId" data-ch="@b.Chapter" data-v="@b.Verse">
-                    <div class="h"><b class="num">@ReadingPageBase.BookName(b.BookId) @(b.Chapter):@(b.Verse)</b><small>@Model.When(b.CreatedUtc)</small></div>
+                    <span class="q" aria-hidden="true">“</span>
                     <p>@(b.Text ?? "본문이 아직 없어요.")</p>
-                    <a href="@Model.ReadUrl(b.BookId, b.Chapter, b.Verse)">본문으로 →</a>
-                    <button type="button" class="star on" data-unstar aria-label="@ReadingPageBase.BookName(b.BookId) @(b.Chapter):@(b.Verse) 북마크 빼기">★</button>
+                    <div class="m">
+                        <div><b class="num">@ReadingPageBase.BookName(b.BookId) @(b.Chapter):@(b.Verse)</b><small>@Model.When(b.CreatedUtc)</small></div>
+                        <div class="act">
+                            <button type="button" class="star on" data-unstar aria-label="@ReadingPageBase.BookName(b.BookId) @(b.Chapter):@(b.Verse) 북마크 빼기 · 다시 담기"><span class="a">삭제</span><span class="b">다시 담기</span></button>
+                            <a class="go" href="@Model.ReadUrl(b.BookId, b.Chapter, b.Verse)">읽기 →</a>
+                        </div>
+                    </div>
                 </li>
             }
         </ul>
     }
-    <nav class="rp-foot"><a href="/@Model.Slug/reading">통독 홈</a><a href="@Model.ListUrl("ot")">성경 목록</a><a href="/@Model.Slug">홈으로</a></nav>
-</main>
+</main></div>
 </div>
 @Html.AntiForgeryToken()
 <p id="toast" class="toast" role="status" hidden></p>
