@@ -137,3 +137,16 @@ body:has(.mbody) .toast { bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 .okpop .bar i { display: block; height: 100%; width: 100%; background: #93B9F2; transition-property: width; transition-timing-function: linear; }
 .okpop .cd { margin-top: 6px; font-size: 11.5px; color: #9CA3AF; }
 @media (prefers-reduced-motion: reduce) { .okpop .bar i { transition: none; } }
+
+/* 완료 취소(확정 시안 미션완료취소 ①, R-24): 오늘이면 완료 버튼을 다시 누를 수 있음 → 확인 창 */
+body:has(.mbody) .pick[aria-pressed="true"]:not(:disabled) { cursor: pointer; }
+body:has(.mbody) .uhint { margin: 0; font-size: 12px; color: #9CA3AF; }
+body:has(.mbody) .uhint[hidden] { display: none; }
+.okpop.undo { padding: 22px 20px 16px; }
+.okpop.undo h2 { margin: 0; font-size: 19px; }
+.okpop.undo p { margin: 8px 0 0; font-size: 14px; line-height: 1.55; color: #6B7280; }
+.okpop.undo p b { color: #DC2626; }
+.okpop.undo .bt { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
+.okpop.undo .bt button { min-height: 48px; border-radius: 14px; border: 1px solid #E5E7EB; background: #F8FAFC; color: #374151; font: inherit; font-size: 15px; font-weight: 900; cursor: pointer; }
+.okpop.undo .bt button.no { background: #DC2626; border-color: #DC2626; color: #fff; }
+.okpop.undo .bt button:focus-visible { outline: 3px solid #93B9F2; outline-offset: 2px; }

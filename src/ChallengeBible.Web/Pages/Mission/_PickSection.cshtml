@@ -1,22 +1,25 @@
 @model ChallengeBible.Web.Pages.Mission.PickSection
 @using ChallengeBible.Domain.Missions
-@* 확정 시안: 말씀 · 기도 미션의 선택 구역 — 번호는 하나라도 했으면 초록, 안내 문구, 하나만 눌러도 미션 완료 *@
+@* 확정 시안: 말씀 · 기도 미션의 선택 구역 — 번호는 하나라도 했으면 초록, 안내 문구, 하나만 눌러도 미션 완료.
+   완료 취소(확정 시안 미션완료취소 ①, R-24): 오늘이면 완료 버튼을 다시 눌러 확인 창 → 취소 *@
 @{
     var p = Model.Page; var d = p.Data!;
     var items = d.Rules.Items.Where(i => i.Enabled && i.Item.Mission() == Model.Mission).ToList();
     var n = items.Count(i => d.Done.Contains(i.Item));
     var total = items.Sum(i => i.Points);
+    var undo = items.Count > 0 && p.CanUndo(items[0].Item);
 }
 <section class="sec @(n > 0 ? "done" : "")" data-pickbox>
     <h2><span class="n">@Model.No</span>@Model.Title <small data-pickstate>@(n == 0 ? "눌러서 알려 주세요" : n == items.Count ? "모두 했어요" : "미션 완료")</small></h2>
-    <div class="picks" data-api="@Model.Api">
+    <div class="picks" data-api="@Model.Api" data-undo="@(undo ? "1" : "0")">
         @foreach (var item in items)
         {
             var done = d.Done.Contains(item.Item);
-            <button type="button" class="pick" data-item="@item.Item.Code()" aria-pressed="@(done ? "true" : "false")" disabled="@(!p.CanAct || done)">
+            <button type="button" class="pick" data-item="@item.Item.Code()" data-pt="@item.Points" aria-pressed="@(done ? "true" : "false")" disabled="@(done ? !undo : !p.CanAct)">
                 <b>@item.DisplayName</b><span class="pt">@(done ? "✓ 완료 +" : "")@(item.Points)점</span>
             </button>
         }
     </div>
     @if (items.Count > 1) { <p class="pnote">둘 중 하나만 눌러도 미션 완료예요 · 둘 다 하면 @(total)점</p> }
+    @if (undo) { <p class="uhint" data-uhint hidden="@(n == 0)">잘못 눌렀으면 완료 버튼을 한 번 더 눌러 취소해요 (오늘만)</p> }
 </section>

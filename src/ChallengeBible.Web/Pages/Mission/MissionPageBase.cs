@@ -24,6 +24,8 @@ public abstract class MissionPageBase(MissionService missions, TenantContext ten
 
     public bool IsToday => Data is not null && Day == Data.Today;
     public bool CanAct => ParticipantId is not null && Data?.Window == Domain.Missions.WindowResult.Open;
+    /// <summary>완료 취소(R-24): 참여자가 말씀 · 기도는 오늘, 암송은 이번 주 날짜를 볼 때.</summary>
+    public bool CanUndo(Domain.Rules.MissionItem item) => ParticipantId is not null && Data is not null && missions.CanUndo(item, Day);
     public string Slug => tenant.Current.Slug;
 
     public static readonly CultureInfo Ko = new("ko-KR");

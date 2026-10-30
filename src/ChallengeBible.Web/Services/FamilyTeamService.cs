@@ -369,6 +369,23 @@ public sealed class FamilyTeamService(IAppDb db, ISystemDb systemDb, RequestScop
             By: team.Members.FirstOrDefault(m => m.Pid == participantId).Name);
     }
 
+    /// <summary>완료 취소(R-24, ADR 0070)로 가족 합계가 줄면 그 아래로 내려간 가족 축하 도달 기록을 지운다(다시 넘으면 또 축하).</summary>
+    public async Task DropUnreachedAsync(int participantId, CancellationToken ct = default)
+    {
+        var (r, today) = await RulesAsync(ct);
+        if (!r.Features.FamilyTeam) return;
+        await using var ctx = db.Create();
+        var (teams, season, _, _) = await LoadTeamsAsync(ctx, today, ct);
+        var team = teams.FirstOrDefault(t => t.Members.Any(m => m.Pid == participantId));
+        if (team.Team is null) return;
+        var total = team.Members.Sum(m => season.GetValueOrDefault(m.Pid));
+        var year = (short)today.Year;
+        var above = await ctx.FamilyMilestonesReached.Where(x => x.FamilyTeamId == team.Team.Id && x.Year == year && x.Threshold > total).ToListAsync(ct);
+        if (above.Count == 0) return;
+        ctx.FamilyMilestonesReached.RemoveRange(above);
+        await ctx.SaveChangesAsync(ct);
+    }
+
     /// <summary>순위 "가족팀" 탭(시안 말씀-순위, R-92 · R-94): 활성 팀을 팀 점수순(같으면 이름순).</summary>
     public async Task<FamilyRanking> RankingAsync(CancellationToken ct = default)
     {

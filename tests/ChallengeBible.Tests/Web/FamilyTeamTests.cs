@@ -227,6 +227,26 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Equal([1000], (await In(_kids).RankingAsync()).Teams[0].Badges.Select(b => b.Points));   // 순위 배지는 그대로
     }
 
+    [Fact]
+    public async Task R24_완료_취소로_가족_합계가_단계_아래로_내려가면_가족_축하_기록을_지워_다시_축하()
+    {
+        await In(_kids).CreateAsync(null, [P("cheolsu"), P("younghee"), P("daeho")]);   // 1,050점
+        Assert.NotNull(await In(_kids).RecordReachedAsync(P("cheolsu")));
+        await In(_kids).DropUnreachedAsync(P("cheolsu"));                                // 아직 1,050점 — 그대로
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Single(raw.FamilyMilestonesReached);
+
+        using (var raw = InMemoryDb.Raw(_db))                                              // 취소로 합계가 1,000 아래(50점)로
+        {
+            raw.PointLedgers.RemoveRange(raw.PointLedgers.Where(l => l.ParticipantId == P("cheolsu") || l.ParticipantId == P("younghee") || l.ParticipantId == P("daeho")));
+            raw.SaveChanges();
+        }
+        Pts("cheolsu", 50);
+        await In(_kids).DropUnreachedAsync(P("cheolsu"));
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.FamilyMilestonesReached);
+        Pts("younghee", 950);
+        Assert.Equal(1000, (await In(_kids).RecordReachedAsync(P("younghee")))!.Points);   // 다시 넘으면 또 축하
+    }
+
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
     private static partial Regex TokenRx();
 

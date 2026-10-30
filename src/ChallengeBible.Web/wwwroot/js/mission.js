@@ -255,10 +255,65 @@
     });
   }
 
+  // 완료 취소 확인 창(확정 시안 미션완료취소 ①, R-24). 고르면 true
+  function confirmUndo(label, pt) {
+    return new Promise((done) => {
+      const dlg = document.createElement('div');
+      dlg.className = 'okpop-bg';
+      dlg.innerHTML = `<section class="okpop undo" role="alertdialog" aria-modal="true" aria-labelledby="unT" aria-describedby="unD">
+        <h2 id="unT">완료를 취소할까요?</h2>
+        <p id="unD"><span data-l></span> · <b>-${Number(pt) || 0}점</b><br>그 점수로 받은 축하도 함께 없어져요.</p>
+        <div class="bt"><button type="button" data-keep>그대로 두기</button><button type="button" class="no" data-undo>취소하기</button></div>
+      </section>`;
+      dlg.querySelector('[data-l]').textContent = label;   // 이름은 글자로만
+      function close(v) { document.removeEventListener('keydown', esc); dlg.remove(); done(v); }
+      function esc(e) { if (e.key === 'Escape') close(false); }
+      dlg.addEventListener('click', (e) => {
+        if (e.target.closest('[data-undo]')) close(true);
+        else if (e.target === dlg || e.target.closest('[data-keep]')) close(false);
+      });
+      document.addEventListener('keydown', esc);
+      document.body.appendChild(dlg);
+      dlg.querySelector('[data-keep]').focus();
+    });
+  }
+
+  // 구역 번호 · 상태 글자 · 아래 메뉴 · 안내를 지금 켜진 항목 수에 맞춘다
+  function pickState(box) {
+    const api = box.dataset.api;
+    const sec = box.closest('[data-pickbox]');
+    const all = box.querySelectorAll('button.pick').length, on = box.querySelectorAll('button.pick[aria-pressed="true"]').length;
+    sec?.classList.toggle('done', on > 0);
+    const st = sec?.querySelector('[data-pickstate]');
+    if (st) st.textContent = on === 0 ? '눌러서 알려 주세요' : api === 'recite' ? '이번 주 완료' : on === all ? '모두 했어요' : '미션 완료';
+    navState(on > 0 ? '✓ 완료' : '진행중', on > 0);   // 이 화면 메뉴 칸: 안 했으면 "진행중"(_MissionNav)
+    const hint = sec?.querySelector('[data-uhint]');
+    if (hint) hint.hidden = on === 0;
+  }
+
+  async function undo(box, b) {
+    const label = b.querySelector('b')?.textContent.trim() ?? '';
+    if (!(await confirmUndo(label, b.dataset.pt))) return;
+    b.disabled = true;
+    const { ok, json } = await post('undo', { date, item: b.dataset.item });
+    b.disabled = false;
+    if (!ok || json.ok === false) { say(json.message ?? '잠시 뒤에 다시 해 주세요.'); return; }
+    b.setAttribute('aria-pressed', 'false');
+    const pt = b.querySelector('.pt');
+    if (pt) pt.textContent = pt.textContent.replace('✓ 완료 +', '');
+    pickState(box);
+    const season = document.querySelector('[data-season]');
+    if (season && typeof json.seasonTotal === 'number') season.textContent = json.seasonTotal.toLocaleString('ko-KR');
+    const day = document.querySelector('[data-daypoints]');
+    if (day && json.pointsEarned < 0) day.textContent = String(Math.max(0, Number(day.textContent) + json.pointsEarned));
+    say(json.message ?? '취소했어요');
+  }
+
   // 말씀 · 기도 · 암송 항목
   document.querySelectorAll('.picks[data-api]').forEach((box) => box.addEventListener('click', async (e) => {
     const b = e.target.closest('button.pick');
     if (!b || b.disabled) return;
+    if (b.getAttribute('aria-pressed') === 'true') { if (box.dataset.undo === '1') await undo(box, b); return; }
     b.disabled = true;
     const api = box.dataset.api;
     const { ok, json } = await post(api, api === 'recite' ? { date } : { date, items: [b.dataset.item] });
@@ -266,13 +321,8 @@
       b.setAttribute('aria-pressed', 'true');
       const pt = b.querySelector('.pt');
       if (pt && !pt.textContent.startsWith('✓')) pt.textContent = '✓ 완료 +' + pt.textContent;   // 옛 모양: "✓ 완료 +1점"
-      // 구역 번호 · 상태 글자 · 아래 메뉴를 시안처럼 바꾼다
-      const sec = box.closest('[data-pickbox]');
-      const all = box.querySelectorAll('button.pick').length, on = box.querySelectorAll('button.pick[aria-pressed="true"]').length;
-      sec?.classList.add('done');
-      const st = sec?.querySelector('[data-pickstate]');
-      if (st) st.textContent = api === 'recite' ? '이번 주 완료' : on === all ? '모두 했어요' : '미션 완료';
-      navState('✓ 완료', true);
+      if (box.dataset.undo === '1') b.disabled = false;   // 오늘이면 다시 눌러 취소(R-24)
+      pickState(box);
       after(json, b.querySelector('b')?.textContent.trim());
     } else {
       b.disabled = false;
