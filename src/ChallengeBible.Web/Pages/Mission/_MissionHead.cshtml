@@ -2,7 +2,8 @@
 @{ var p = Model.Page; var dow = p.Day.DayOfWeek; }
 @* 미션 화면 위쪽: 홈으로 · 미션홈 / 글자 크기 → 오늘의 ○○ · 달력 배지 · 제목 · 범위.
    모양은 옛 사이트 DailyMission4 "밝은 흰색 버전" 그대로(mission-old.css, 모든 부서) *@
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;600;800;900&family=Inter:wght@300;500&display=swap">
+@* 옛 사이트처럼 Gothic A1 글꼴 파일은 불러오지 않는다(없으면 맑은 고딕으로 보임) — 날짜 쪽지 숫자용 Inter 만 *@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500&display=swap">
 <link rel="stylesheet" href="~/css/mission-old.css" asp-append-version="true" />
 <header class="mtop gut"><div class="wrap">
     <nav class="crumb"><a href="/@p.Slug">홈으로</a> · <a href="@p.Link("word-mission")">미션홈</a></nav>
