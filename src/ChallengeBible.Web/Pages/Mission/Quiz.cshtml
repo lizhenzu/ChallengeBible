@@ -11,7 +11,9 @@
     var choice = q?.Format == QuizFormat.Choice;
     var triesText = s.Solved ? "정답!" : left <= 0 ? "오늘은 끝" : s.AttemptsUsed > 0 ? $"{left}번 남았어요" : $"기회 {s.MaxAttempts}번";
     var triesCls = s.Solved ? "ok" : s.AttemptsUsed > 0 ? "warn" : "";
-    var bg = q?.Background?.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
+    // 옮겨 온 퀴즈 중에는 배경 칸에 "blank" 라는 글자만 든 것이 있다 — 빈 배경으로 본다(옛 사이트도 이런 배경은 보이지 않음)
+    var bg = (q?.Background?.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [])
+        .Where(x => !x.Equals("blank", StringComparison.OrdinalIgnoreCase)).ToArray();
     var no = 0;
     string N() => (++no).ToString("00");
 }
