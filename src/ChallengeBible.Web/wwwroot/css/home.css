@@ -109,7 +109,10 @@
 .hm .go.nx .t small { font-size: 12px; font-weight: 700; opacity: .8; }
 .hm .go.nx .pill { flex: none; padding: 7px 12px; border-radius: 8px; background: var(--bg); color: var(--accent); font-size: 14px; font-weight: 900; white-space: nowrap; }
 /* 미션 카드: 아무 데나 = 미션 홈(덮개), 아래 버튼 = 이어서 하기(덮개 위) */
-.hm .p.m { position: relative; }
+.hm .p.m, .hm .p.r { position: relative; }
+/* 통독 카드: 아무 데나 = 통독 홈(덮개), "이어 읽기" 칸 = 그 장 읽기(덮개 위) */
+.hm .p.r .resume { position: relative; z-index: 2; display: block; color: inherit; text-decoration: none; }
+.hm .p.r .resume:hover { box-shadow: 0 0 0 2px var(--rd); }
 .hm .p .cover { position: absolute; inset: 0; border-radius: inherit; z-index: 1; }
 .hm .p.m .go { position: relative; z-index: 2; text-decoration: none; }
 
