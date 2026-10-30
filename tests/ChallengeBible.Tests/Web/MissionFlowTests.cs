@@ -228,7 +228,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("읽기 시작 1장 →", list);                                       // 누른 책 아래 장 번호 칸
         var read = await c.GetStringAsync("/jamsil-kids/reading/read/1/24");
         Assert.Contains("KRV 1:24:9", read);
-        Assert.Contains("class=\"brd-chs\"", read);           // 장 번호 줄(ADR 0057)
+        Assert.Contains("class=\"b2chs\"", read);             // 장 번호 줄(ADR 0057 · 0071)
         Assert.Contains("data-api=\"reading\"", read);
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/jamsil-kids/reading/read/1/51")).StatusCode);
     }

@@ -168,6 +168,34 @@
 .b2b .pcards .bar i { display: block; height: 100%; background: var(--r-acc); }
 .b2b .pfoot { margin-top: 26px; text-align: center; font-size: 12.5px; color: var(--r-dim); }
 
+/* 본문 읽기(옛 Read): 파란 머리 → 장 번호 줄 → 설정 칸 → 개요 → 절 → 큰 버튼 → 장 이동 → 아래 버튼. 절 · 해설 · 큰 버튼 모양은 .brd(site.css · reading.css) 그대로 */
+.b2main.b2r { max-width: none; margin-right: 0; padding: 0 0 calc(40px + env(safe-area-inset-bottom, 0px)); --b-acc: var(--r-acc); --b-accSoft: var(--r-accSoft); }
+.b2r .b2ri { max-width: 760px; margin: 0 auto; padding: 0 18px; }
+@media (min-width: 769px) { .b2r .b2ri { padding: 0 32px; } }
+.b2rh { background: var(--r-acc); color: #fff; padding: 12px 0 18px; }
+.b2rh a { color: #fff; }
+.b2rh .cr { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.b2rh .b2hb { background: transparent; border-color: rgba(255, 255, 255, .45); color: #fff; }
+.b2rh .path { flex: 1; min-width: 0; font-size: 13.5px; opacity: .9; }
+.b2rh .fs { flex: none; display: flex; border: 1px solid rgba(255, 255, 255, .45); border-radius: 8px; overflow: hidden; }
+.b2rh .fs button { min-width: 36px; height: 32px; padding: 0 6px; border: 0; background: transparent; color: #fff; font-size: 13px; }
+.b2rh .fs .pct { font-size: 11.5px; background: rgba(255, 255, 255, .15); }
+.b2rh .hk { margin-top: 16px; font-size: 11px; font-weight: 800; letter-spacing: .2em; opacity: .8; }
+.b2rh .ht { display: flex; align-items: baseline; gap: 6px; margin: 4px 0 0; font-size: 26px; font-weight: 900; color: #fff; }
+.b2rh .ht b { font-size: 46px; font-weight: 300; line-height: 1; }
+.b2rh .ht small { font-size: 16px; font-weight: 600; opacity: .8; }
+.b2rh .rdprog { margin-top: 12px; }
+.b2rh .rdprog p { display: flex; justify-content: space-between; margin: 0; font-size: 12.5px; opacity: .92; }
+.b2rh .rdprog .bar { height: 5px; margin-top: 6px; border-radius: 3px; background: rgba(255, 255, 255, .25); overflow: hidden; }
+.b2rh .rdprog .bar i { display: block; height: 100%; background: #fff; transition: width .3s; }
+.b2r .b2chs { display: flex; gap: 4px; overflow-x: auto; padding: 12px 0; border-bottom: 1px solid var(--r-rule); scrollbar-width: none; }
+.b2r .b2chs a { flex: none; min-width: 38px; height: 34px; display: grid; place-items: center; border: 1px solid var(--r-rule); border-radius: 8px; font-size: 13px; color: var(--r-ink); }
+.b2r .b2chs .done { background: var(--r-accSoft); border-color: var(--r-l2); color: var(--r-acc); }
+.b2r .b2chs .cur { background: var(--r-acc); border-color: var(--r-acc); color: #fff; font-weight: 900; }
+.b2r .b2sheet { display: grid; gap: 6px; margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: var(--r-band); }
+.b2r .b2btm { display: flex; gap: 6px; margin-top: 18px; }
+.b2r .b2btm a { flex: 1; padding: 11px 0; text-align: center; border: 1px solid var(--r-rule); border-radius: 12px; font-size: 13.5px; color: var(--r-dim); }
+
 /* 회차 기록(옛 ResetProgress 모양): 파란 머리 → 지금 → 새 회차 → 줄 → 안내 → 버튼 → 지난 회차 */
 .b2b .rdk { margin: 0 calc(var(--pad) * -1); padding: 22px var(--pad) 24px; background: var(--r-acc); color: #fff; }
 .b2b .rdk .k { margin: 0; color: #fff; opacity: .8; }

@@ -71,8 +71,8 @@ public partial class ChapterMediaTests : IClassFixture<WebApplicationFactory<Pro
         Assert.Contains("data-yt=\"cMKPbDZhToo\"", html);                               // 주소에서 영상 번호를 뽑음
         Assert.Contains("<b>개요 해설 2</b>", html);
         Assert.Contains("id=\"ytm\" hidden", html);                                     // 재생 창은 누르기 전엔 숨김
-        Assert.Contains("data-rnv-open=\"md\"", html);                               // 도구 줄 [🎧 듣기] 버튼(보기설정 ㄴ안)
-        Assert.True(html.IndexOf("data-rnv-pan=\"md\"") < html.IndexOf("class=\"bmd\""));   // 영상 버튼은 듣기 판 안
+        Assert.Contains("<div class=\"brd-lbl\">듣기 · 해설</div>", html);            // 옛 Bible2 Read 배치(0071): 설정 칸 안 "듣기 · 해설"
+        Assert.True(html.IndexOf("class=\"b2sheet\"") < html.IndexOf("class=\"bmd\""));   // 영상 버튼은 설정 칸 안
     }
 
     [Fact]
@@ -90,10 +90,9 @@ public partial class ChapterMediaTests : IClassFixture<WebApplicationFactory<Pro
         var html = await (await Kid()).GetStringAsync("/jamsil-kids/reading/read/1/24");
         Assert.DoesNotContain("class=\"bmd\"", html);
         Assert.DoesNotContain("id=\"ytm\"", html);
-        Assert.DoesNotContain("data-rnv-open=\"md\"", html);                          // 듣기 버튼도 없음
-        Assert.Contains("<b>24장</b><small>/ 50장</small>", html);                   // 도구 줄: 장 · 보기(처음엔 접힘)
-        Assert.Contains("<b>전체 · 개역개정</b>", html);
-        Assert.Contains("data-rnv-open=\"ch\" aria-expanded=\"false\"", html);
+        Assert.DoesNotContain("듣기 · 해설", html);                                    // 듣기 칸도 없음
+        Assert.Contains("class=\"b2chs\"", html);                                     // 옛 Bible2 Read 배치(0071): 장 번호 줄 · 설정 칸은 늘 보임
+        Assert.Contains("class=\"cur\" href=\"/jamsil-kids/reading/read/1/24\" aria-current=\"page\">24</a>", html);
     }
 
     [Fact]
