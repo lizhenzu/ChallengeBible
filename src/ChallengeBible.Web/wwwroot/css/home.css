@@ -199,6 +199,7 @@
 /* 미션 화면의 오늘의 말씀: 남색 띠 → 흰 말씀 카드(첫 화면과 같은 모양) */
 .hm.lobby .verse { background: transparent; color: var(--fg); padding-top: 22px; }
 .hm.lobby .verse .wrap { position: relative; background: var(--bg); border: 1px solid var(--rule); border-radius: 22px; padding: 24px 20px 20px; box-shadow: 0 18px 34px -28px rgba(43,89,195,.45); }
+.hm.lobby .verse .wrap { grid-template-columns: minmax(0, 1fr); }   /* 오른쪽 칸이 없어 한 줄로 넓게(데스크톱) */
 .hm.lobby .verse .k { color: var(--accent); }
 .hm.lobby .verse blockquote { font-size: 20px; font-weight: 700; }
 .hm.lobby .verse cite, .hm.lobby .verse .side small { color: var(--dim); }

@@ -115,10 +115,14 @@ else
             <blockquote>@d.VerseText</blockquote>
             <cite>@d.VerseRef · 오늘 읽을 범위 @d.WordRange</cite>
         </div>
-        <div class="side">
-            @if (d.ReciteRange is not null) { <div><small>이번 주 암송 (@d.ReciteStart?.ToString("M'/'d") ~ @d.ReciteEnd?.ToString("M'/'d"))</small><b>@d.ReciteRange</b></div> }
-            @if (d.PrayerTrait is not null) { <div><small>오늘의 기도</small><b>@d.PrayerTrait@(d.PrayerRange is null ? "" : $" · {d.PrayerRange}")</b></div> }
-        </div>
+        @* 임시 부서 미션 화면은 말씀만(이번 주 암송 · 오늘의 기도 칸 없음, 2026-10-30 사용자) *@
+        @if (!lobby)
+        {
+            <div class="side">
+                @if (d.ReciteRange is not null) { <div><small>이번 주 암송 (@d.ReciteStart?.ToString("M'/'d") ~ @d.ReciteEnd?.ToString("M'/'d"))</small><b>@d.ReciteRange</b></div> }
+                @if (d.PrayerTrait is not null) { <div><small>오늘의 기도</small><b>@d.PrayerTrait@(d.PrayerRange is null ? "" : $" · {d.PrayerRange}")</b></div> }
+            </div>
+        }
     </div></section>
 }
 
