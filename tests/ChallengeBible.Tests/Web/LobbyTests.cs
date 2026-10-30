@@ -143,7 +143,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task 미션_화면의_말씀_카드에는_암송_기도_칸이_없고_일반_부서_홈에는_있다()
+    public async Task 미션_화면과_일반_부서_홈의_말씀_카드에는_암송_기도_칸이_없다()
     {
         ContentSeed.Verse(_db, 1);
         ContentSeed.Prayer(_db, Jan5);
@@ -156,7 +156,9 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("<cite class=\"ref\">창세기 24:1</cite>", today);                  // 말씀 자리만(오른쪽 끝)
         Assert.DoesNotContain("오늘 읽을 범위", today);
         InMemoryDb.SeedMembership(_db, _kids.Id, AccountId(), MembershipStatus.Approved, Roles.Participant);
-        Assert.Contains("<small>오늘의 기도</small>", await c.GetStringAsync("/jamsil-kids"));   // 일반 부서 홈은 그대로
+        var kids = await c.GetStringAsync("/jamsil-kids");                               // 일반 부서 홈도 같은 모양(2026-10-31)
+        Assert.DoesNotContain("<small>오늘의 기도</small>", kids);
+        Assert.Contains("<cite class=\"ref\">창세기 24:1</cite>", kids);
     }
 
     [Fact]
