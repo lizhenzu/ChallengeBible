@@ -18,7 +18,11 @@
 <header class="admintop gut">
     <div class="wrap wide hd">
         <div class="t row-t"><b><em>도전!!!</em></b><span class="pl">플랫폼</span></div>
-        <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit" class="back">로그아웃</button></form>
+        @* 확정 시안 플랫폼-처음화면버튼 ①(2026-10-31): 부서 관리 머리말("부서 홈으로")과 같은 둥근 버튼 *@
+        <div class="row-t">
+            <a class="back home" href="/"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>처음 화면</a>
+            <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit" class="back">로그아웃</button></form>
+        </div>
     </div>
     <nav class="wrap wide tabs" aria-label="플랫폼 메뉴">
         @foreach (var (href, label) in menu)

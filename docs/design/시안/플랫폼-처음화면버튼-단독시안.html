@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>플랫폼 처음 화면 버튼 시안</title>
+<style>
+/* 시안(2026-10-31): /platform 머리말에 "/" (처음 화면)으로 가는 버튼. 부서 관리 머리말("플랫폼" · "부서 홈으로")과 같은 둥근 버튼 모양.
+   ① 오른쪽: [처음 화면] [로그아웃]  ② 왼쪽 "도전!!! 플랫폼" 글자를 눌러도 처음 화면 + 오른쪽 [⌂] 아이콘 */
+* { box-sizing: border-box; }
+body { margin: 0; background: #fff; font-family: "Malgun Gothic", system-ui, sans-serif; color: #111827; }
+a { color: inherit; text-decoration: none; }
+.opt { margin: 24px auto; max-width: 760px; border: 1px solid #E5E7EB; border-radius: 16px; overflow: hidden; }
+.opt > p { margin: 0; padding: 10px 16px; background: #1B1F24; color: #fff; font-size: 13px; font-weight: 700; }
+.top { border-bottom: 1px solid #EEF0F3; padding: 0 16px; }
+.hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+.t { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 900; }
+.t em { font-style: normal; color: #2F80ED; }
+.t .pl { font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: #EEF2F7; color: #6B7280; }
+.r { display: flex; gap: 8px; align-items: center; }
+.back { min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 1px solid #D1D5DB; border-radius: 99px; font-size: 13px; font-weight: 700; background: #fff; }
+.back.ic { width: 40px; padding: 0; justify-content: center; }
+.back svg { width: 16px; height: 16px; }
+.new { outline: 3px solid #F59E0B; outline-offset: 2px; }
+.tabs { display: flex; gap: 4px; overflow-x: auto; }
+.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: #6B7280; border-bottom: 3px solid transparent; }
+.tabs a.on { color: #111827; border-color: #2F80ED; }
+.body { padding: 18px 16px 28px; }
+.body h1 { margin: 0; font-size: 24px; }
+.note { margin: 6px 16px 14px; font-size: 12.5px; color: #92400E; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><symbol id="home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></symbol></svg>
+
+<section class="opt">
+  <p>① 오른쪽에 [⌂ 처음 화면] 버튼 (추천 · 부서 관리 머리말과 같은 자리 · 모양)</p>
+  <header class="top">
+    <div class="hd">
+      <div class="t"><em>도전!!!</em><span class="pl">플랫폼</span></div>
+      <div class="r">
+        <a class="back new" href="/"><svg><use href="#home"/></svg>처음 화면</a>
+        <a class="back" href="#">로그아웃</a>
+      </div>
+    </div>
+    <nav class="tabs"><a class="on">플랫폼 홈</a><a>부서</a><a>공용 콘텐츠</a><a>성경 데이터</a><a>기본 규칙</a><a>계정 찾기</a><a>온가족</a><a>운영 점검</a></nav>
+  </header>
+  <div class="body"><h1>플랫폼 홈</h1></div>
+  <p class="note">노란 테두리 = 새로 붙는 버튼(시안에만)</p>
+</section>
+
+<section class="opt">
+  <p>② 왼쪽 "도전!!! 플랫폼" 글자 = 처음 화면 링크 + 오른쪽 작은 [⌂] 아이콘</p>
+  <header class="top">
+    <div class="hd">
+      <a class="t new" href="/"><em>도전!!!</em><span class="pl">플랫폼</span></a>
+      <div class="r">
+        <a class="back ic new" href="/" aria-label="처음 화면"><svg><use href="#home"/></svg></a>
+        <a class="back" href="#">로그아웃</a>
+      </div>
+    </div>
+    <nav class="tabs"><a class="on">플랫폼 홈</a><a>부서</a><a>공용 콘텐츠</a><a>성경 데이터</a><a>기본 규칙</a><a>계정 찾기</a><a>온가족</a><a>운영 점검</a></nav>
+  </header>
+  <div class="body"><h1>플랫폼 홈</h1></div>
+  <p class="note">노란 테두리 = 새로 붙는 곳(시안에만)</p>
+</section>
+</body>
+</html>
