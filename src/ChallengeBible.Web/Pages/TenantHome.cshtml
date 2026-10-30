@@ -147,7 +147,9 @@
                 }
                 @if (t.ReadingEnabled)
                 {
-                    <a class="p r" href="/@slug/reading">
+                    @* 카드 아무 데나 = 통독 홈(덮개 링크), "이어 읽기" 칸 = 그 장 읽기(2026-10-31 사용자). 링크 안에 링크를 넣지 않으려고 덮개 방식 *@
+                    <div class="p r">
+                        <a class="cover" href="/@slug/reading" aria-label="도전!!!성경통독 홈"></a>
                         <div class="hd"><div><div class="nm">도전!!!성경통독</div><div class="what">성경 전체 1,189장 · 내 속도로</div></div>
                             <span class="badge">@(rd is null ? "시작 전" : $"{rd.RoundNo}독째")</span></div>
                         @if (rd is null)
@@ -168,15 +170,15 @@
                                     <span class="num">구약 @rd.OtRead / @ReadingSummary.OtTotal · 신약 @rd.NtRead / @ReadingSummary.NtTotal</span>
                                     <span class="num">오늘 @(rd.TodayChapters)장@(rd.Streak > 0 ? $" · {rd.Streak}일 연속" : "")</span></div>
                             </div>
-                            <div class="resume">
+                            <a class="resume" href="/@slug/reading/read/@rd.Resume.BookId/@rd.Resume.Chapter">
                                 <small>이어 읽기 · @book.Name @(rd.Resume.Chapter)@(book.BookId == 19 ? "편" : "장")</small>
                                 @if (Model.Data.ResumeText is { } rt) { <p>"@rt"</p> }
                                 <div class="bar"><i style="width:@((book.Total == 0 ? 0 : book.Read * 100.0 / book.Total).ToString("0.#", inv))%"></i></div>
                                 <em class="num">@book.Name @book.Read / @(book.Total)장</em>
-                            </div>
+                            </a>
                             <span class="go">통독 홈 가기 <span aria-hidden="true">→</span></span>
                         }
-                    </a>
+                    </div>
                 }
             </div>
             @if (t.MissionEnabled && Model.IsGuardian)
