@@ -98,3 +98,96 @@
 .b2b .books i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--r-acc); }
 .b2b .books .dn { background: var(--r-accSoft); border-color: var(--r-l1); }
 .b2b .books > a:hover, .b2b .books > .bk:hover { border-color: var(--r-acc); }
+
+/* 목록(옛 List): 전체 % → 책 칸 한 판 → 누른 책 아래 장 번호 칸(.rp-panel, reading.css) */
+.b2b .lsum { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; }
+.b2b .lsum .big { font-size: 42px; font-weight: 300; line-height: 1.1; }
+.b2b .lsum .big small { font-size: 18px; }
+.b2b .lsum .r { text-align: right; font-size: 12.5px; line-height: 1.6; color: var(--r-dim); }
+.b2b .lbooks { margin-top: 18px; }
+.b2b .lbooks > .sel { border-color: var(--r-acc); box-shadow: inset 0 0 0 1px var(--r-acc); }
+.b2b .lbooks .rp-panel { margin: 4px 0 8px; background: var(--r-band); border-color: var(--r-acc); }
+.b2b .rp-panel .seg { margin-top: 0; }
+.b2b .rp-panel .seg a[aria-current="true"] { background: var(--r-acc); border-color: var(--r-acc); color: #fff; box-shadow: none; }
+.b2b .rp-panel .chs { grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 4px; }   /* 옛 List: 작은 네모 칸 */
+.b2b .rp-panel .ch { aspect-ratio: auto; height: 40px; border: 1px solid var(--r-rule); border-radius: 8px; background: var(--bg); font-size: 13px; font-weight: 600; }
+.b2b .rp-panel .ch.done { background: var(--r-l2); border-color: var(--r-l2); color: #fff; }
+.b2b .rp-panel .ch.here { border-color: var(--r-acc); box-shadow: none; color: var(--r-acc); font-weight: 900; }
+.b2b .rp-panel .lg i { border-radius: 3px; }
+.b2b .rp-panel .lg i.done { background: var(--r-l2); }
+
+/* 검색(옛 Search): 파란 검색 칸 */
+.b2 .rp-sform { border-color: var(--r-acc); }
+.b2 .rp-sform button { background: var(--r-acc); color: #fff; }
+.b2 .rp-rhead, .b2 .rp-rank { border-color: var(--r-ink); }
+
+/* 북마크(옛 Bookmarks): 정렬 두 개 → 말씀 카드 */
+.b2b .bsort { display: flex; gap: 6px; margin-top: 16px; }
+.b2b .bsort a { padding: 7px 14px; border: 1px solid var(--r-rule); border-radius: 99px; font-size: 13px; }
+.b2b .bsort a[aria-current="true"] { background: var(--r-ink); border-color: var(--r-ink); color: var(--bg); }
+.b2b .bcards { list-style: none; margin: 0; padding: 0; }
+.b2b .bcards li { position: relative; margin-top: 10px; padding: 18px 18px 14px 40px; border: 1px solid var(--r-rule); border-radius: 14px; }
+.b2b .bcards li.off { opacity: .55; }
+.b2b .bcards .q { position: absolute; left: 14px; top: 6px; font-family: Georgia, serif; font-size: 34px; color: var(--r-l1); }
+.b2b .bcards p { margin: 0; font-size: calc(15.5px * var(--fs, 1)); line-height: 1.8; word-break: keep-all; }
+.b2b .bcards .m { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; }
+.b2b .bcards .m small { margin-left: 8px; color: var(--r-dim); }
+.b2b .bcards .act { display: flex; flex: none; gap: 6px; }
+.b2b .bcards .act > * { min-height: 34px; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid var(--r-rule); border-radius: 8px; background: var(--bg); font-size: 12.5px; color: var(--r-ink); }
+.b2b .bcards .act .go { background: var(--r-acc); border-color: var(--r-acc); color: #fff; font-weight: 800; }
+.b2b .bcards .star .b, .b2b .bcards .star:not(.on) .a { display: none; }
+.b2b .bcards .star:not(.on) .b { display: inline; }
+
+/* 참여자(옛 Participants): 숫자 4칸 → 명예의 전당 → 찾기 · 정렬 → 카드 */
+.b2b .cells.c4 { grid-template-columns: repeat(4, 1fr); }
+.b2b .cells.c4 b { font-size: 22px; }
+.b2b .av { display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto; border-radius: 50%; background: var(--r-accSoft); color: var(--r-acc); font-size: 13px; font-weight: 900; }
+.b2b .hall { display: flex; gap: 10px; overflow-x: auto; list-style: none; margin: 0; padding: 4px 2px; }
+.b2b .hall li { flex: none; width: 84px; text-align: center; font-size: 12.5px; }
+.b2b .hall .av { margin-bottom: 6px; box-shadow: 0 0 0 3px #F5C451; }
+.b2b .hall b, .b2b .hall small { display: block; }
+.b2b .hall small { color: var(--r-dim); }
+.b2b .pctrl { display: flex; gap: 6px; }
+.b2b .pctrl input[type="search"] { flex: 1; min-width: 0; min-height: 40px; padding: 0 12px; border: 1px solid var(--r-rule); border-radius: 10px; font: inherit; font-size: 14px; background: var(--bg); color: var(--r-ink); }
+.b2b .pctrl a { flex: none; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid var(--r-rule); border-radius: 10px; font-size: 13px; }
+.b2b .pctrl a[aria-current="true"] { background: var(--r-ink); border-color: var(--r-ink); color: var(--bg); }
+.b2b .pcards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; list-style: none; margin: 10px 0 0; padding: 0; }
+@media (min-width: 640px) { .b2b .pcards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1000px) { .b2b .pcards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.b2b .pcards li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 14px 12px 12px; border: 1px solid var(--r-rule); border-radius: 14px; text-align: center; }
+.b2b .pcards li.me { border-color: var(--r-acc); box-shadow: inset 0 0 0 1px var(--r-acc); }
+.b2b .pcards .tag { position: absolute; right: 8px; top: 8px; padding: 1px 8px; border-radius: 99px; background: #FFF4D6; color: #A66A00; font-size: 11px; font-weight: 800; }
+.b2b .pcards .mine { position: absolute; left: 8px; top: 8px; padding: 1px 8px; border-radius: 99px; background: var(--r-acc); color: #fff; font-size: 11px; font-weight: 800; }
+.b2b .pcards .ring { width: 66px; height: 66px; margin: 0 0 6px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--r-acc) 0 calc(var(--p) * 1%), var(--r-cell) 0); }
+.b2b .pcards b { font-size: 14px; }
+.b2b .pcards .pc { font-size: 20px; font-weight: 300; }
+.b2b .pcards .pc small { font-size: 12px; }
+.b2b .pcards .bd { font-size: 11.5px; font-weight: 700; color: var(--r-acc); }
+.b2b .pcards .mm { font-size: 11.5px; color: var(--r-dim); }
+.b2b .pcards .bar { align-self: stretch; height: 4px; margin-top: 6px; border-radius: 2px; background: var(--r-cell); overflow: hidden; }
+.b2b .pcards .bar i { display: block; height: 100%; background: var(--r-acc); }
+.b2b .pfoot { margin-top: 26px; text-align: center; font-size: 12.5px; color: var(--r-dim); }
+
+/* 회차 기록(옛 ResetProgress 모양): 파란 머리 → 지금 → 새 회차 → 줄 → 안내 → 버튼 → 지난 회차 */
+.b2b .rdk { margin: 0 calc(var(--pad) * -1); padding: 22px var(--pad) 24px; background: var(--r-acc); color: #fff; }
+.b2b .rdk .k { margin: 0; color: #fff; opacity: .8; }
+.b2b .rdk .T em { font-style: normal; color: #FFE08A; }
+.b2b .rdk .who { margin-top: 6px; font-size: 13px; opacity: .85; }
+.b2b .rbig { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 22px; text-align: center; font-size: 13px; color: var(--r-dim); }
+.b2b .rbig b { display: block; font-size: 40px; font-weight: 300; color: var(--r-ink); }
+.b2b .rbig .to b { font-weight: 700; color: var(--r-acc); }
+.b2b .rbig i { font-style: normal; font-size: 26px; color: var(--r-l2); }
+.b2b .rrows { margin-top: 18px; border-top: 1px solid var(--r-ink); }
+.b2b .rrows div { display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--r-rule); font-size: 14px; }
+.b2b .rrows span { color: var(--r-dim); }
+.b2b .rwarn { margin-top: 16px; padding: 14px 16px; border-radius: 12px; background: var(--r-band); font-size: 13.5px; line-height: 1.7; }
+.b2b .rwarn ol { margin: 6px 0; padding-left: 20px; }
+.b2b .racts { display: grid; grid-template-columns: auto 1fr; gap: 8px; margin-top: 10px; }
+.b2b .rbtn { display: grid; place-items: center; width: 100%; min-height: 52px; margin-top: 16px; padding: 0 18px; border: 0; border-radius: 12px; background: var(--r-acc); color: #fff; font: inherit; font-size: 16px; font-weight: 900; }
+.b2b .racts .rbtn { margin-top: 0; }
+.b2b .rbtn.s { background: var(--bg); color: var(--r-ink); border: 1px solid var(--r-rule); }
+.b2b .rback { display: block; margin-top: 10px; padding: 8px; text-align: center; font-size: 13.5px; color: var(--r-dim); }
+.b2b .rhist { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--r-ink); }
+.b2b .rhist li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--r-rule); font-size: 14px; }
+.b2b .rhist small { color: var(--r-dim); }
+.b2b .rhist .r { text-align: right; } .b2b .rhist .r small { display: block; }

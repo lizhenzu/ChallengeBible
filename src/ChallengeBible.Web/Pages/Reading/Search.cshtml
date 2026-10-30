@@ -12,15 +12,13 @@
     var trName = Model.Tr switch { "KLB" => "현대인의성경", "NIV" => "NIV", "ALL" => "세 번역 나란히", _ => "개역개정" };
 }
 <link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
-<div class="rp">
-<header class="rp-top"><div class="rp-in">
-    <a class="rp-menu" href="/@Model.Slug/reading" aria-label="통독 홈">☰</a>
-    <nav class="rp-crumb"><a href="/@Model.Slug">홈으로</a> · <a href="/@Model.Slug/reading"><b>성경통독</b></a></nav>
-    <span class="rp-date">@Model.NowLocal.ToString("M월 d일 dddd", ko)</span>
-</div>
-<div class="rp-in rp-head">
-    <div class="rp-k">말씀 찾기</div>
-    <h1>성경 검색</h1>
+<link rel="stylesheet" href="~/css/reading-b2.css" asp-append-version="true" />
+<div class="rp b2">
+@await Html.PartialAsync("_ReadingNav", new ReadingNav(Model, "search", "성경 검색"))
+<div class="b2main"><div class="b2b">
+<div class="b2head">
+    <div class="k">말씀 찾기</div>
+    <h1 class="T">성경 검색</h1>
     <form class="rp-sform" method="get" role="search">
         <input type="search" name="q" value="@Model.Term" maxlength="50" placeholder="단어나 구절 — 사랑, 믿음, 요 3:16…" aria-label="찾을 말" />
         <button type="submit">검색 →</button>
@@ -31,9 +29,9 @@
             <a href="?q=@Uri.EscapeDataString(w)" aria-current="@(Model.Term == w ? "true" : "false")">@w</a>
         }
     </div>
-</div></header>
+</div>
 
-<main class="rp-in rp-body">
+<main>
     @if (r is null)
     {
         <section>
@@ -96,6 +94,6 @@
             }
         </section>
     }
-    <nav class="rp-foot"><a href="/@Model.Slug/reading">통독 홈</a><a href="/@Model.Slug/reading/bookmarks">북마크</a><a href="/@Model.Slug">홈으로</a></nav>
 </main>
+</div></div>
 </div>
