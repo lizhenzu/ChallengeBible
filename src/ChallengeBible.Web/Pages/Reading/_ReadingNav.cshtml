@@ -1,0 +1,50 @@
+@model ChallengeBible.Web.Pages.Reading.ReadingNav
+@* 통독 공통 틀(확정 시안 통독-옛Bible2, 0071): 넓은 화면 = 왼쪽 고정 목차 / 좁은 화면 = ☰ 서랍. 위 줄(☰ · 화면 이름)은 본문 읽기에서 뺀다(머리 안에 ☰) *@
+@{
+    var p = Model.Page;
+    var s = p.Slug;
+    string On(string key) => Model.Key == key ? "on" : "";
+    (string Href, string Label, string Key)[] menu =
+    [
+        ($"/{s}/reading", "대시보드", "home"),
+        (p.ListUrl("ot"), "구약 읽기", "ot"),
+        (p.ListUrl("nt"), "신약 읽기", "nt"),
+        ($"/{s}/reading/search", "성경 검색", "search"),
+        ($"/{s}/reading/bookmarks", "북마크", "bookmark"),
+    ];
+    if (!p.Tenant.IsLobby) menu = [.. menu, ($"/{s}/reading/participants", "참여자 현황", "participants")];
+    menu = [.. menu, ($"/{s}/reading/rounds", "회차 기록", "rounds")];
+}
+<div class="b2ov" data-b2close hidden></div>
+<nav class="b2dr" id="b2dr" aria-label="성경 통독 메뉴">
+    <div class="b2dr-hd"><a href="/@s/reading">도전!!!성경통독</a><button type="button" class="b2dr-x" data-b2close aria-label="메뉴 닫기">✕</button></div>
+    <div class="b2lbl">목차</div>
+    @foreach (var (href, label, key) in menu)
+    {
+        <a href="@href" class="b2it @On(key)" aria-current="@(Model.Key == key ? "page" : "false")">@label</a>
+    }
+    <div class="b2lbl">빠른 이동</div>
+    <div class="b2q">
+        <a href="@p.ReadUrl(1, 1)">창세기<small>1장</small></a>
+        <a href="@p.ReadUrl(40, 1)">마태복음<small>1장</small></a>
+        <a href="@p.ReadUrl(19, 23)">시편<small>23편</small></a>
+        <a href="@p.ReadUrl(43, 3)">요한복음<small>3장</small></a>
+    </div>
+    <div class="b2ft"><a href="/@s">← 부서 홈으로</a></div>
+</nav>
+@if (!Model.NoTop)
+{
+    <header class="b2top"><button type="button" class="b2hb" data-b2open aria-label="메뉴 열기" aria-controls="b2dr">☰</button><b>@Model.Title</b></header>
+}
+<script>
+    // ☰ 서랍 열기 · 닫기(좁은 화면)
+    (() => {
+        const dr = document.getElementById('b2dr'), ov = document.querySelector('.b2ov');
+        const set = (open) => { dr.classList.toggle('open', open); ov.hidden = !open; };
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('[data-b2open]')) set(true);
+            else if (e.target.closest('[data-b2close]')) set(false);
+        });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') set(false); });
+    })();
+</script>

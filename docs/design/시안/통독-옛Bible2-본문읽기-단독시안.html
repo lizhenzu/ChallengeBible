@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>통독 본문 읽기 옛 배치 시안</title>
+<style>
+/* 시안(2026-10-31): /{slug}/reading/read/{book}/{chapter} 를 옛 Views/Bible2/Read 와 같은 구조 · 배치로. 색은 지금 통독 색(옛 검정 머리 → 파랑 머리).
+   순서: 머리(☰ · 경로 · 글자 크기 | 구약 · 성경 통독 | 책 이름 + 큰 장 번호 | N절 · N절 읽음 · % 막대) → 장 번호 줄 → 설정 칸(읽기 단위 · 번역 · 듣기 해설)
+   → 책 개요(접힘) → 절 목록(절 끝 ✓ ★, 해설 카드) → 큰 "이 장 다 읽음" 버튼 → 이전 · 다음 장 → 대시보드 · 목록 · 홈. 왼쪽 목차는 대시보드와 같음 */
+:root { --acc: #2B59C3; --accSoft: #DCE5F7; --band: #F2F4F7; --ink: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --cell: #E9ECF1; --l2: #8FA9E3; --bg: #fff; --ok: #16A34A; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Malgun Gothic", system-ui, sans-serif; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; }
+.dr { position: fixed; top: 0; bottom: 0; left: 0; width: 240px; background: var(--band); border-right: 1px solid var(--rule); display: none; flex-direction: column; }
+.dr-hd { display: flex; align-items: center; height: 56px; padding: 0 22px; font-weight: 900; color: var(--acc); }
+.lbl2 { font-size: 10px; font-weight: 800; letter-spacing: .2em; color: var(--acc); padding: 14px 22px 4px; }
+.it { display: block; margin: 0 10px; padding: 9px 12px; border-radius: 10px; font-size: 14px; }
+.it.on { background: var(--bg); color: var(--acc); font-weight: 800; }
+@media (min-width: 769px) { .dr { display: flex; } .main { margin-left: 240px; } .hb { display: none !important; } }
+.in { max-width: 760px; margin: 0 auto; padding: 0 18px; }
+@media (min-width: 769px) { .in { padding: 0 32px; } }
+/* 머리(옛 .b2rHead) */
+.hd { background: var(--acc); color: #fff; padding: 12px 0 18px; }
+.cr { display: flex; align-items: center; gap: 10px; }
+.hb { width: 36px; height: 36px; border: 1px solid rgba(255,255,255,.4); border-radius: 10px; background: transparent; color: #fff; }
+.path { flex: 1; font-size: 13px; opacity: .85; } .path b { opacity: 1; }
+.fs { display: flex; border: 1px solid rgba(255,255,255,.4); border-radius: 8px; overflow: hidden; }
+.fs button { width: 32px; height: 30px; border: 0; background: transparent; color: #fff; }
+.fs button:nth-child(1) { font-size: 12px; } .fs button:nth-child(2) { font-size: 14px; background: rgba(255,255,255,.18); } .fs button:nth-child(3) { font-size: 17px; }
+.hk { margin-top: 16px; font-size: 11px; font-weight: 800; letter-spacing: .2em; opacity: .75; }
+.ht { margin: 4px 0 0; font-size: 26px; font-weight: 900; display: flex; align-items: baseline; gap: 6px; }
+.ht b { font-size: 46px; font-weight: 300; line-height: 1; } .ht small { font-size: 16px; font-weight: 600; opacity: .8; }
+.meta { display: flex; justify-content: space-between; margin-top: 12px; font-size: 12.5px; opacity: .9; }
+.prog { height: 5px; margin-top: 6px; border-radius: 3px; background: rgba(255,255,255,.25); overflow: hidden; }
+.prog i { display: block; height: 100%; width: 32%; background: #fff; }
+/* 장 번호 줄 */
+.pills { display: flex; gap: 4px; overflow-x: auto; padding: 12px 0; border-bottom: 1px solid var(--rule); scrollbar-width: none; }
+.pills a { flex: none; min-width: 38px; height: 34px; display: grid; place-items: center; border: 1px solid var(--rule); border-radius: 8px; font-size: 13px; }
+.pills .r { background: var(--accSoft); border-color: var(--l2); color: var(--acc); }
+.pills .on { background: var(--acc); border-color: var(--acc); color: #fff; font-weight: 900; }
+/* 설정 칸(옛 .b2rSheet) */
+.sheet { margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: var(--band); }
+.sl { margin-top: 8px; font-size: 11px; font-weight: 800; letter-spacing: .15em; color: var(--dim); } .sl:first-child { margin-top: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.chips button { padding: 6px 12px; border: 1px solid var(--rule); border-radius: 99px; background: var(--bg); font-size: 13px; }
+.chips .on { background: var(--acc); border-color: var(--acc); color: #fff; font-weight: 800; }
+/* 책 개요 */
+.ov { margin-top: 12px; border: 1px solid var(--rule); border-radius: 14px; }
+.ov button { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border: 0; background: none; font-weight: 800; }
+.ov small { margin-left: 6px; padding: 1px 8px; border-radius: 99px; background: var(--accSoft); color: var(--acc); font-size: 11px; }
+/* 절 목록 */
+.vl { margin-top: 10px; }
+.v { display: flex; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+.v .n { flex: none; width: 24px; padding-top: 4px; text-align: right; font-size: 12px; font-weight: 800; color: var(--l2); }
+.v p { flex: 1; margin: 0; font-size: 17px; line-height: 1.85; }
+.v .act { flex: none; display: flex; gap: 4px; padding-top: 2px; }
+.v .act button { width: 32px; height: 32px; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); color: var(--dim); }
+.v.read p { color: var(--dim); } .v.read .ck { background: var(--ok); border-color: var(--ok); color: #fff; }
+.v .bm.on { color: #E8A100; border-color: #F5C451; }
+.sum { margin: 10px 0 2px 34px; padding: 12px 14px; border-left: 3px solid var(--l2); border-radius: 0 12px 12px 0; background: var(--band); font-size: 13.5px; line-height: 1.7; }
+.sum .tg { display: inline-block; margin-right: 6px; padding: 0 8px; border-radius: 99px; background: var(--acc); color: #fff; font-size: 11px; font-weight: 800; }
+/* 큰 완료 버튼 · 이동 */
+.mega { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; margin-top: 22px; padding: 18px 20px; border: 0; border-radius: 16px; background: var(--acc); color: #fff; text-align: left; }
+.mega b { display: block; font-size: 18px; } .mega span { display: block; font-size: 12.5px; opacity: .85; margin-top: 2px; }
+.mega i { flex: none; width: 46px; height: 46px; border-radius: 50%; background: #fff; color: var(--acc); display: grid; place-items: center; font-style: normal; font-size: 22px; font-weight: 900; }
+.cnav { display: flex; justify-content: space-between; margin-top: 14px; }
+.cnav a { padding: 12px 14px; border: 1px solid var(--rule); border-radius: 12px; font-size: 14px; }
+.cnav .nx { background: var(--band); font-weight: 800; }
+.btm { display: flex; gap: 6px; margin: 18px 0 40px; }
+.btm a { flex: 1; text-align: center; padding: 11px 0; border: 1px solid var(--rule); border-radius: 12px; font-size: 13.5px; color: var(--dim); }
+</style>
+</head>
+<body>
+<nav class="dr" aria-label="성경 통독 메뉴">
+  <div class="dr-hd">도전!!!성경통독</div>
+  <div class="lbl2">목차</div>
+  <a class="it" href="#">대시보드</a><a class="it on" href="#">구약 읽기</a><a class="it" href="#">신약 읽기</a>
+  <a class="it" href="#">성경 검색</a><a class="it" href="#">북마크</a><a class="it" href="#">참여자 현황</a><a class="it" href="#">회차 기록</a>
+</nav>
+<div class="main">
+  <header class="hd"><div class="in">
+    <div class="cr"><button class="hb" aria-label="메뉴 열기">☰</button><span class="path"><a href="#">구약</a> › <b>창세기 1장</b></span>
+      <div class="fs" role="group" aria-label="글자 크기"><button>가</button><button>가</button><button>가</button></div></div>
+    <div class="hk">구약 · 성경 통독</div>
+    <h1 class="ht">창세기<b>1</b><small>장</small></h1>
+    <div class="meta"><span>31절 · 10절 읽음</span><span>32%</span></div>
+    <div class="prog"><i></i></div>
+  </div></header>
+  <div class="in">
+    <div class="pills" id="pills"></div>
+    <section class="sheet">
+      <div class="sl">읽기 단위</div><div class="chips"><button>한 절</button><button>3절</button><button>5절</button><button class="on">전체</button></div>
+      <div class="sl">번역</div><div class="chips"><button class="on">개역개정</button><button>현대인</button><button>NIV</button><button>모두</button></div>
+      <div class="sl">듣기 · 해설</div><div class="chips"><button>▶ 장 듣기</button><button>개요 해설 1</button><button>개요 해설 2</button></div>
+    </section>
+    <div class="ov"><button>창세기 개요<small>간략본</small><span style="margin-left:auto">▾</span></button></div>
+    <div class="vl">
+      <div class="v read"><span class="n">1</span><p>태초에 하나님이 천지를 창조하시니라</p><span class="act"><button class="ck">✓</button><button class="bm on">★</button></span></div>
+      <div class="sum"><span class="tg">해설</span>창세기 1:1 ~ 1:5 · 하나님은 말씀으로 빛을 지으시고 어둠과 나누셨다.</div>
+      <div class="v read"><span class="n">2</span><p>땅이 혼돈하고 공허하며 흑암이 깊음 위에 있고 하나님의 영은 수면 위에 운행하시니라</p><span class="act"><button class="ck">✓</button><button class="bm">★</button></span></div>
+      <div class="v"><span class="n">3</span><p>하나님이 이르시되 빛이 있으라 하시니 빛이 있었고</p><span class="act"><button class="ck">✓</button><button class="bm">★</button></span></div>
+      <div class="v"><span class="n">4</span><p>빛이 하나님이 보시기에 좋았더라 하나님이 빛과 어둠을 나누사</p><span class="act"><button class="ck">✓</button><button class="bm">★</button></span></div>
+    </div>
+    <button class="mega"><div><b>이 장 다 읽었어요</b><span>누르면 남은 절을 모두 읽음으로 · 오늘 읽은 절 10</span></div><i>→</i></button>
+    <nav class="cnav"><span></span><a class="nx" href="#">창세기 2장 ›</a></nav>
+    <div class="btm"><a href="#">대시보드</a><a href="#">구약 목록</a><a href="#">부서 홈</a></div>
+  </div>
+</div>
+<script>
+const p = document.getElementById('pills');
+for (let i = 1; i <= 50; i++) p.insertAdjacentHTML('beforeend', `<a class="${i === 1 ? 'on' : ''}" href="#">${i}</a>`);
+</script>
+</body>
+</html>

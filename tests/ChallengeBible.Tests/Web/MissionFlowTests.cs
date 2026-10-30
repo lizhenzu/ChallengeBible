@@ -221,7 +221,8 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         var dash = await c.GetStringAsync("/jamsil-kids/reading");
         Assert.Contains("나의 성경 통독 · <a href=\"/jamsil-kids/reading/rounds\" title=\"회차 기록\">1회차", dash);   // 회차 기록으로 가는 길
         Assert.Contains("이어 읽기", dash);
-        Assert.Contains("창세기 1장 · 1절부터", dash);
+        Assert.Contains("<div class=\"t\">창세기 1장</div>", dash);                     // 옛 Bible2 배치(0071): 이어 읽기 큰 칸
+        Assert.Contains("class=\"b2it on\" aria-current=\"page\">대시보드</a>", dash);   // 왼쪽 목차
         var list = await c.GetStringAsync("/jamsil-kids/reading/list?t=ot&b=1");
         Assert.Contains("율법서 · 5권", list);
         Assert.Contains("이어 읽기 1장", list);
