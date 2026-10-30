@@ -30,23 +30,33 @@
     okPopup(label, json, rest);
   }
 
-  // 미션 완료 안내 창 — 옛 사이트 DailyMission4 의 "🎁 안내" 창(2026-10-31 사용자). 10초 뒤 저절로 닫힌다(닫기 · 바깥 · Esc 로도).
+  // 미션 완료 안내 창(확정 시안 미션완료안내 ②안 "새 카드", 2026-10-31). 10초 뒤 저절로 닫힌다(확인 · 바깥 · Esc 로도).
   const OK_SECONDS = 10;
   function okPopup(label, json, then) {
     const fmt = (n) => Number(n ?? 0).toLocaleString('ko-KR');
+    const mission = document.querySelector('.mnav a[aria-current="page"] .L')?.textContent.trim() || '미션';
+    const kind = document.querySelector('.mhead .k')?.textContent.trim() || '';
     const dlg = document.createElement('div');
     dlg.className = 'okpop-bg';
     dlg.innerHTML = `<section class="okpop" role="dialog" aria-modal="true" aria-labelledby="okT">
-      <h2 id="okT"><span aria-hidden="true">🎁</span> 안내</h2>
-      <p class="l1"><span aria-hidden="true">🎉</span> <span data-l></span> 스티커 완료! (+${Number(json.pointsEarned ?? 0)})</p>
-      <p class="l2"><span aria-hidden="true">⭐</span> 올해 총 ${fmt(json.seasonTotal)}점 모았어요!</p>
-      <p class="tot"><span aria-hidden="true">⭐</span> 모은 포인트 : <b class="num">${fmt(json.seasonTotal)}</b> 점</p>
-      <button type="button" class="okpop-close" data-close>닫기</button>
-      <p class="cd"><span data-cd>${OK_SECONDS}</span>초 후 자동으로 닫혀요.</p>
+      <div class="seal" aria-hidden="true"><span><span data-m></span><br />완료</span></div>
+      <div class="what" data-k></div>
+      <h2 id="okT" data-l></h2>
+      <span class="pill num">+${Number(json.pointsEarned ?? 0)}점</span>
+      <div class="tot">올해 모은 포인트<b class="num">${fmt(json.seasonTotal)}<u>점</u></b></div>
+      <button type="button" class="okpop-close" data-close>확인</button>
+      <div class="bar" aria-hidden="true"><i></i></div>
+      <div class="cd"><span data-cd>${OK_SECONDS}</span>초 뒤 저절로 닫혀요</div>
     </section>`;
-    dlg.querySelector('[data-l]').textContent = label || '미션';   // 이름은 글자로만 넣는다
+    // 이름 · 문구는 글자로만 넣는다
+    dlg.querySelector('[data-m]').textContent = mission;
+    dlg.querySelector('[data-k]').textContent = kind;
+    dlg.querySelector('[data-l]').textContent = label || `${mission} 미션을 했어요`;
     let left = OK_SECONDS;
     const cd = dlg.querySelector('[data-cd]');
+    const bar = dlg.querySelector('.bar i');
+    bar.style.transitionDuration = `${OK_SECONDS}s`;
+    requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.width = '0%'; }));   // 10초 동안 줄어드는 막대
     const timer = setInterval(() => { left -= 1; cd.textContent = String(left); if (left <= 0) close(); }, 1000);
     function esc(e) { if (e.key === 'Escape') close(); }
     function close() {
@@ -321,7 +331,7 @@
         tries.textContent = '정답!'; tries.className = 'ok';
         tell(`정답! +${pts}점`, 'ok');
         if (label) { label.classList.add('ans', 'fixed'); tag(label, '정답'); }
-        after(json, '퀴즈 정답');
+        after(json, '정답을 맞혔어요');
         finish(json, true);
         return;
       }
