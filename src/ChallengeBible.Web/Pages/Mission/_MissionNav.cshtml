@@ -16,7 +16,7 @@
     {
         var done = has && Done(m);
         var here = key == Model.Current;
-        var state = !has ? "없음" : done ? "완료" : key == "quiz" && d.Quiz is not null && d.QuizState.State != QuizState.CanTry ? "끝남" : here ? "진행중" : "아직";
+        var state = !has ? "없음" : done ? "✓ 완료" : key == "quiz" && d.Quiz is not null && d.QuizState.State != QuizState.CanTry ? "끝남" : here ? "진행중" : "아직";
         <a href="@p.Link(key)" class="@(done ? "dn" : "")" aria-current="@(here ? "page" : "false")" data-nav="@key"><span class="L">@label</span><span class="S @(done ? "done" : "")">@state</span></a>
     }
 </nav>

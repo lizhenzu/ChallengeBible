@@ -224,14 +224,14 @@
     if (ok && json.ok !== false) {
       b.setAttribute('aria-pressed', 'true');
       const pt = b.querySelector('.pt');
-      if (pt && !pt.textContent.startsWith('완료') && !pt.textContent.startsWith('이번 주')) pt.textContent = (api === 'recite' ? '이번 주 완료 · ' : '완료 · ') + pt.textContent;
+      if (pt && !pt.textContent.startsWith('✓')) pt.textContent = '✓ 완료 +' + pt.textContent;   // 옛 모양: "✓ 완료 +1점"
       // 구역 번호 · 상태 글자 · 아래 메뉴를 시안처럼 바꾼다
       const sec = box.closest('[data-pickbox]');
       const all = box.querySelectorAll('button.pick').length, on = box.querySelectorAll('button.pick[aria-pressed="true"]').length;
       sec?.classList.add('done');
       const st = sec?.querySelector('[data-pickstate]');
       if (st) st.textContent = api === 'recite' ? '이번 주 완료' : on === all ? '모두 했어요' : '미션 완료';
-      navState('완료', true);
+      navState('✓ 완료', true);
       after(json);
     } else {
       b.disabled = false;
@@ -264,7 +264,7 @@
       if (ans) { ans.classList.remove('dim', 'bad'); ans.classList.add('ans', 'fixed'); tag(ans, solved ? '정답' : '정답은 이것'); }
       go.innerHTML = `${solved ? '정답을 맞혔어요' : `오늘은 ${max}번 도전했어요`} <em aria-hidden="true">✓</em>`;
       go.disabled = true;
-      navState(solved ? '완료' : '끝남', solved);
+      navState(solved ? '✓ 완료' : '끝남', solved);
       const ex = document.getElementById('explain');
       if (ex && json.explanation) {
         ex.querySelector('p').textContent = json.explanation;

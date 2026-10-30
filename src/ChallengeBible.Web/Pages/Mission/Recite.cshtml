@@ -45,7 +45,7 @@
             <h2><span class="n">@pickNo</span>외웠나요? <small data-pickstate>@(d.RecitedThisWeek ? "이번 주 완료" : "눌러서 알려 주세요")</small></h2>
             <div class="picks" data-api="recite">
                 <button type="button" class="pick" data-item="Recite" aria-pressed="@(d.RecitedThisWeek ? "true" : "false")" disabled="@(!Model.CanAct || d.RecitedThisWeek)">
-                    <b>암송했어요</b><span class="pt">@(d.RecitedThisWeek ? "이번 주 완료 · " : "")@(d.Rules.Item(MissionItem.Recite).Points)점</span>
+                    <b>암송했어요</b><span class="pt">@(d.RecitedThisWeek ? "✓ 완료 +" : "")@(d.Rules.Item(MissionItem.Recite).Points)점</span>
                 </button>
             </div>
             <p class="pnote">한 주에 한 번 · @(d.Rules.Item(MissionItem.Recite).Points)점. 외운 날에 점수가 들어가요.</p>
