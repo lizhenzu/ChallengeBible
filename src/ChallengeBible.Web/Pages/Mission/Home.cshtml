@@ -39,7 +39,7 @@
     var monthTotal = monthScores.Sum(s => s.Total);
     string Inv(double v) => v.ToString("0.#", CultureInfo.InvariantCulture);
 }
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;600;800&display=swap">
+@* 옛 사이트처럼 Gothic A1 글꼴 파일은 불러오지 않는다(없으면 맑은 고딕으로 보임) *@
 <div class="qz" data-slug="@Model.Slug">
     <div class="qzBar">
         <a class="qzHome" href="/@Model.Slug">홈으로</a>
