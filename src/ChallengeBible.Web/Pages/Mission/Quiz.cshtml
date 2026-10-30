@@ -11,9 +11,16 @@
     var choice = q?.Format == QuizFormat.Choice;
     var triesText = s.Solved ? "정답!" : left <= 0 ? "오늘은 끝" : s.AttemptsUsed > 0 ? $"{left}번 남았어요" : $"기회 {s.MaxAttempts}번";
     var triesCls = s.Solved ? "ok" : s.AttemptsUsed > 0 ? "warn" : "";
-    // 옮겨 온 퀴즈 중에는 배경 칸에 "blank" 라는 글자만 든 것이 있다 — 빈 배경으로 본다(옛 사이트도 이런 배경은 보이지 않음)
+    // 옮겨 온 퀴즈 중에는 배경 칸에 "blank" 라는 글자만 든 것이 있다 — 빈 배경으로 본다
     var bg = (q?.Background?.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [])
         .Where(x => !x.Equals("blank", StringComparison.OrdinalIgnoreCase)).ToArray();
+    // 옛 사이트(DailyMission4 Quiz)와 같게: 배경이 따로 없고 문제 글이 "배경 … Q. 질문" 모양이면 배경과 질문을 가른다
+    var question = q?.Question ?? "";
+    if (bg.Length == 0 && QuizModel.SplitQuestion(question) is { Bg.Length: > 0 } sp)
+    {
+        bg = sp.Bg.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        question = sp.Q;
+    }
     var no = 0;
     string N() => (++no).ToString("00");
 }
@@ -32,7 +39,7 @@
             </section>
         }
         <section class="sec done"><h2><span class="n">@N()</span>문제 <small class="kind">@(choice ? "객관식" : "주관식")</small></h2>
-            <p class="qq">@q.Question</p>
+            <p class="qq">@question</p>
         </section>
         <section class="sec @(s.Solved ? "done" : "")" id="quiz" data-max="@s.MaxAttempts" data-used="@s.AttemptsUsed" data-points="@pts" data-finished="@(finished ? "1" : "0")">
             <h2><span class="n">@N()</span>@(choice ? "정답을 골라요" : "정답을 써요") <small id="tries" class="@triesCls">@triesText</small></h2>
@@ -56,6 +63,12 @@
             else
             {
                 <input class="in qtext" id="answerText" name="answer" maxlength="200" placeholder="답을 써 주세요" disabled="@(!Model.CanAct || finished)" aria-label="답" />
+            }
+            @if (!finished && q.Explanation is not null)
+            {
+                @* 옛 사이트처럼 풀기 전에도 해설을 "힌트"로 펼쳐 볼 수 있다 *@
+                <button type="button" class="more" data-fold="qhint" data-more="힌트 보기 ＋" data-less="힌트 닫기 －" aria-expanded="false" aria-controls="qhint">힌트 보기 ＋</button>
+                <div class="qhint" id="qhint" hidden>@q.Explanation</div>
             }
             <p class="msg @(s.Solved ? "ok" : "")" id="qmsg" role="status">@(s.Solved ? $"정답! +{pts}점" : finished ? $"오늘은 {s.MaxAttempts}번 도전했어요. 내일 새 퀴즈에 도전해요" : "")</p>
             <button type="button" class="qgo" id="qgo" disabled>

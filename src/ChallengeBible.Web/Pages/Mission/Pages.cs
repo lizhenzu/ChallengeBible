@@ -86,6 +86,22 @@ public class QuizModel(MissionService missions, TenantContext tenant) : MissionP
     public override string Title => "퀴즈 미션";
     public int? CorrectChoiceId { get; private set; }
 
+    /// <summary>
+    /// 옛 사이트(DailyMission4 Quiz)와 같게: 문제 글이 "배경 … (줄 바꿈)Q. 질문" 모양이면 배경과 질문을 가르고 앞머리 표식을 뗀다.
+    /// 표식(Q. · Q) · 질문. · [문제])이 줄 맨 앞에 없으면 배경은 비우고 전체가 질문.
+    /// </summary>
+    public static (string Bg, string Q) SplitQuestion(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return ("", "");
+        var text = raw.Replace("\r\n", "\n").Trim();
+        var idx = new[] { "\nQ.", "\nQ)", "\n질문.", "\n[문제]" }.Select(m => text.IndexOf(m, StringComparison.Ordinal)).Where(p => p >= 0).DefaultIfEmpty(-1).First();
+        if (idx < 0) return ("", text);
+        var q = text[idx..].Trim();
+        foreach (var m in new[] { "Q.", "Q)", "질문.", "[문제]" })
+            if (q.StartsWith(m, StringComparison.Ordinal)) { q = q[m.Length..].Trim(); break; }
+        return (text[..idx].Trim(), q);
+    }
+
     protected override async Task LoadMoreAsync(CancellationToken ct)
     {
         var s = Data!.QuizState;
