@@ -1,6 +1,9 @@
 @model ChallengeBible.Web.Pages.Mission.MissionHead
-@{ var p = Model.Page; }
-@* 미션 화면 위쪽: 홈으로 · 미션홈 / 글자 크기 → 오늘의 ○○ · 달력 배지 · 제목 · 범위 *@
+@{ var p = Model.Page; var dow = p.Day.DayOfWeek; }
+@* 미션 화면 위쪽: 홈으로 · 미션홈 / 글자 크기 → 오늘의 ○○ · 달력 배지 · 제목 · 범위.
+   모양은 옛 사이트 DailyMission4 "밝은 흰색 버전" 그대로(mission-old.css, 모든 부서) *@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;600;800;900&family=Inter:wght@300;500&display=swap">
+<link rel="stylesheet" href="~/css/mission-old.css" asp-append-version="true" />
 <header class="mtop gut"><div class="wrap">
     <nav class="crumb"><a href="/@p.Slug">홈으로</a> · <a href="@p.Link("word-mission")">미션홈</a></nav>
     <div class="fs" role="group" aria-label="글자 크기">
@@ -11,7 +14,7 @@
     <div class="k">@Model.Label</div>
     <div class="ttl">
         <div class="cal" aria-label="@p.Day.ToString("yyyy년 M월 d일 dddd", ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko)">
-            <div class="m num">@p.Day.ToString("yyyy.MM")</div><div class="d num">@p.Day.ToString("dd")</div><div class="w">@p.Day.ToString("dddd", ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko)</div>
+            <div class="m num">@p.Day.ToString("yyyy.MM")</div><div class="d num">@p.Day.ToString("dd")</div><div class="w @(dow == DayOfWeek.Sunday ? "sun" : dow == DayOfWeek.Saturday ? "sat" : "")">@p.Day.ToString("dddd", ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko)</div>
         </div>
         <div><h1>@Model.Title@if (Model.TitleEn is not null) { <span class="en"> (@Model.TitleEn)</span> }</h1>@if (Model.Ref is not null) { <div class="ref">@Model.Ref</div> }</div>
     </div>

@@ -27,7 +27,7 @@
             </section>
         }
         <section class="sec done"><h2><span class="n">@no2</span>오늘의 기도문</h2>
-            @foreach (var para in PrayerModel.Shown(p.Paragraphs)) { <p class="story">@PrayerModel.Paragraph(para)</p> }
+            @foreach (var para in PrayerModel.Shown(p.Paragraphs)) { <p class="story pray">@PrayerModel.Paragraph(para)</p> }
         </section>
         @await Html.PartialAsync("_PickSection", new PickSection(Model, no3, "누구를 위해 기도했나요?", Mission.Prayer, "prayer"))
     }
