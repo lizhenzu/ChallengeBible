@@ -62,7 +62,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("<small>오늘의 기도</small>", home);                    // 말씀 카드는 말씀만
         Assert.Contains("<cite class=\"ref\">창세기 24:1</cite>", home);             // 오늘의 말씀 카드: 첫 절
         Assert.Contains("0/3<small>오늘 미션</small>", home);                        // 오늘 있는 미션은 말씀 · 퀴즈 · 기도 세 가지
-        Assert.Contains("<a class=\"go\" href=\"/jamsil-kids/word\">말씀 읽으러 가기", home);   // 아래 버튼 = 다음 할 일(말씀)
+        Assert.Contains("<a class=\"go nx\" href=\"/jamsil-kids/word\"><span class=\"t\"><small>3개 중 0개 완료</small>다음은 말씀 차례예요</span><span class=\"pill\">말씀 ", home);   // 아래 버튼 = 다음 미션(시안 ⑤)
         Assert.Contains("<a class=\"cover\" href=\"/jamsil-kids/word-mission\"", home);     // 카드 아무 데나 = 미션 홈
         Assert.DoesNotContain("<a class=\"p m\"", home);                              // 링크 안에 링크 없음(카드는 div)
         Assert.Contains("href=\"/account\"", home);                                 // 확정 7: 계정 줄 3개(비밀번호 바꾸기는 내 계정 안으로)

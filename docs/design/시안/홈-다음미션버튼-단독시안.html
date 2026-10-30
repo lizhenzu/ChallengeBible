@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>홈 다음 미션 버튼 시안</title>
+<style>
+/* 시안(2026-10-31): 부서 홈 성경말씀 카드 아래 버튼 "기도하러 가기" → 다음 미션을 알려 주는 문구. 3안 */
+body { margin: 0; padding: 16px; background: #fff; font-family: "Malgun Gothic", system-ui, sans-serif; }
+.opt { max-width: 460px; margin: 0 auto 14px; }
+.opt > p { margin: 0 0 6px; font-size: 13px; font-weight: 800; color: #6B7280; }
+.go { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 52px; padding: 0 18px; border-radius: 14px; background: #2B59C3; color: #fff; font-size: 16px; font-weight: 800; }
+.go small { display: block; font-size: 11.5px; font-weight: 700; opacity: .75; }
+.go.w { background: #fff; color: #1F2937; border: 1.5px solid #2B59C3; justify-content: flex-start; }
+.go.w .ic { font-size: 22px; }
+.go.w .t { flex: 1; } .go.w .t small { color: #2B59C3; opacity: 1; }
+.go .pill { padding: 6px 12px; border-radius: 99px; background: #fff; color: #2B59C3; font-size: 14px; font-weight: 900; }
+.go.o { background: #F3EEFB; color: #5B3E96; border: 1.5px solid #7B5FB8; }
+.go.o b { color: #4A2C86; }
+.go .tag { padding: 2px 8px; border-radius: 99px; background: rgba(255,255,255,.2); font-size: 12px; margin-right: 6px; }
+</style>
+</head>
+<body>
+<div class="opt"><p>④ 흰 버튼 · 아이콘 + 다음 미션</p>
+  <div class="go w"><span class="ic">🙏</span><span class="t"><small>다음 미션</small>기도</span><span>→</span></div></div>
+<div class="opt"><p>⑤ 진행 표시 · 3/4 다음은 기도</p>
+  <div class="go"><span><small>4개 중 3개 완료</small>이제 기도만 하면 끝!</span><span class="pill">기도 →</span></div></div>
+<div class="opt"><p>⑥ 응원 문구 · 한 줄</p>
+  <div class="go o"><span>👉 다음 미션은 <b>기도</b>예요</span><span>→</span></div></div>
+</body>
+</html>
