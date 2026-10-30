@@ -22,10 +22,9 @@
     var intro = lobby && !Model.TodayScreen;   // 0068: 임시 부서 `/{slug}` = 1단계(부서 안 고름) · 2단계(승인 기다림), 윗부분만
 }
 <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
-<div class="hm@(lobby ? " lobby" : "")">
-@if (lobby)
-{
-    @* 임시 부서(0064 · 0068, 확정 시안: 임시부서-홈-두단계): 하늘색 머리말 → 1 · 2단계(윗부분만) 또는 미션 화면(← 처음 화면 + 아랫부분) *@
+<div class="hm sky@(lobby ? " lobby" : "")">
+@* 하늘색 머리말(0064 · 0068, 확정 시안: 임시부서-홈-두단계). 일반 부서 홈도 임시 부서 미션 화면(/welcome/today)과 같은 모양(2026-10-31 사용자):
+   머리말 → (임시 부서) 1 · 2단계 윗부분만 또는 "← 처음 화면" / (일반 부서) 부서 이름 · 관리 줄 → 흰 말씀 카드 → 아랫부분 *@
     <div class="wl@(intro ? "" : " wl-wide")">
         <header class="wl-top gut"><div class="wrap">
             <div class="wl-org"><small>대한예수교장로회</small><a class="church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)">잠실새내교회<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a></div>
@@ -72,38 +71,22 @@
                 </div>
             </div></section>
         }
-        else
+        else if (lobby)
         {
             <nav class="wl-back gut" aria-label="돌아가기"><div class="wrap">
                 <a href="/@slug">← 처음 화면</a>@if (Model.Waiting.Count > 0) { <span class="pill">승인 기다리는 중</span> }
             </div></nav>
         }
+        else
+        {
+            @* 일반 부서: "← 처음 화면" 자리에 부서 이름(둘 이상이면 ▼ = 부서 고르기) · 관리 버튼 *@
+            <nav class="wl-back wl-dept gut" aria-label="부서"><div class="wrap">
+                @if (Model.ManyTenants) { <a class="tenant" href="/account/tenants">@t.Name <span aria-hidden="true">▼</span></a> }
+                else { <span class="tenant">@t.Name</span> }
+                @if (Model.Tenant.IsAdmin) { <a class="adm" href="/@slug/admin">관리</a> }
+            </div></nav>
+        }
     </div>
-}
-else
-{
-<header class="hm-top gut"><div class="wrap">
-    @if (Model.ManyTenants) { <a class="tenant" href="/account/tenants">@t.Name <span aria-hidden="true">▼</span></a> }
-    else { <span class="tenant">@t.Name</span> }
-    <span class="r">
-        <span class="date num">@d.Today.ToString("yyyy.MM.dd", inv) @d.Today.ToString("ddd", inv).ToUpperInvariant()</span>
-        @if (Model.Tenant.IsAdmin) { <a class="adm" href="/@slug/admin">관리</a> }
-    </span>
-</div></header>
-
-<section class="hello gut"><div class="wrap">
-    <div>
-        <div class="eyebrow">@(d.SeasonDay > 0 ? $"{d.SeasonYear} 시즌 · {d.SeasonDay}일째" : $"{d.SeasonYear} 시즌 · 시작 전")</div>
-        <h1>@User.DisplayName()님, 안녕하세요</h1>
-        <p>오늘도 말씀과 함께해요@(d.Streak > 0 ? " · " : "")@if (d.Streak > 0) { <b>@(d.Streak)일째 이어오는 중</b> }</p>
-    </div>
-    <div class="chips" aria-label="나의 요약">
-        @if (d.Participant) { <span><b class="num">@d.SeasonPoints.ToString("N0")</b>점 올해 점수</span> }
-        @if (rd is not null) { <span><b class="num">@rd.ReadChapters.ToString("N0")</b>장 읽은 성경</span> }
-        @if (d.Participant) { <span><b class="num">@d.FullDays</b>일 네 가지 다 한 날</span> }
-    </div>
-</div></section>
-}
 
 @if (!intro)
 {
@@ -113,17 +96,8 @@ else
         <div>
             <div class="k">오늘의 말씀 · @d.Today.ToString("M월 d일 dddd", ko)</div>
             <blockquote>@d.VerseText</blockquote>
-            @if (lobby) { <cite class="ref">@d.VerseRef</cite> }   @* 임시 부서 미션 화면: 말씀 자리만, 오른쪽 끝(2026-10-30 사용자) *@
-            else { <cite>@d.VerseRef · 오늘 읽을 범위 @d.WordRange</cite> }
+            <cite class="ref">@d.VerseRef</cite>   @* 말씀 자리만, 오른쪽 끝 · 이번 주 암송 · 오늘의 기도 칸 없음(2026-10-30 사용자, 일반 부서도 같게 2026-10-31) *@
         </div>
-        @* 임시 부서 미션 화면은 말씀만(이번 주 암송 · 오늘의 기도 칸 없음, 2026-10-30 사용자) *@
-        @if (!lobby)
-        {
-            <div class="side">
-                @if (d.ReciteRange is not null) { <div><small>이번 주 암송 (@d.ReciteStart?.ToString("M'/'d") ~ @d.ReciteEnd?.ToString("M'/'d"))</small><b>@d.ReciteRange</b></div> }
-                @if (d.PrayerTrait is not null) { <div><small>오늘의 기도</small><b>@d.PrayerTrait@(d.PrayerRange is null ? "" : $" · {d.PrayerRange}")</b></div> }
-            </div>
-        }
     </div></section>
 }
 
