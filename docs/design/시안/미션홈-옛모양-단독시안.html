@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>미션 홈 · 옛 모양</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;600;800&display=swap">
+<style>
+/* 시안(2026-10-30): 미션 홈(/{slug}/word-mission)을 옛 사이트 DailyMission4/Index "밝은 흰색 버전"과 같은 모양 · 구성으로(모든 부서).
+   참조: YuYunBu Views/DailyMission4/Dashboard.cshtml 의 <style> + wwwroot/css/mission3/bone.css.
+   범위: 맨 위 "홈으로 · 날짜" → 인사 → 나의 기록 → 최근 7일 → 네 칸 숫자 → (다 했을 때) 오늘 완료 → 미션 카드 4장 → 이달 달력 → 아래 메뉴 줄(따라다니지 않고 맨 끝에).
+   뺀 것: 더 보기 · 우리 가족 · 선물/크레딧. 달력은 "네 가지 다 한 날" 배경 없음(사용자). 점수 숫자는 구현 때 규칙(RuleSet)에서 읽는다.
+   맨 아래 검은 "시안 보기" 띠는 시안에만 있다. */
+:root {
+  --hBlue: #2F80ED; --hBlueSoft: #EAF2FD; --hNoBlue: #7FA3DB; --hInk: #111827; --hTx: #374151; --hDim: #9CA3AF; --hDim2: #6B7280; --hLine: #EEF0F3; --hSoft: #F4F6F9;
+  --bg: #FFFFFF; color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); }
+body { color: var(--hTx); font-family: "Gothic A1", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif; word-break: keep-all; overflow-wrap: anywhere; padding-bottom: 120px; }
+a { color: inherit; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--hBlue); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+.qz { --pad: 22px; width: 100%; max-width: 680px; margin: 0 auto; padding: 20px var(--pad) 0; background: #fff; }
+.qzBar { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 13px; border-bottom: 1px solid var(--hLine); }
+.qzHome { font-size: 13px; font-weight: 600; letter-spacing: .08em; color: var(--hDim2); text-decoration: none; min-height: 32px; display: inline-flex; align-items: center; }
+.qzDate { font-size: 10.5px; font-weight: 500; letter-spacing: .12em; color: var(--hDim); font-variant-numeric: tabular-nums; }
+
+/* 인사 */
+.hPg { margin-top: 22px; padding-bottom: 18px; border-bottom: 1px solid var(--hLine); }
+.hK { font-size: 20px; font-weight: 800; color: var(--hBlue); letter-spacing: -.01em; }
+.hKs { margin-top: 5px; font-size: 12px; color: var(--hDim2); }
+.hI { margin-top: 18px; }
+.hI h2 { margin: 6px 0 0; font-size: 24px; font-weight: 800; letter-spacing: -.02em; color: var(--hInk); }
+.hD { margin-top: 4px; font-size: 13px; color: var(--hDim2); }
+.hD b { color: var(--hBlue); font-weight: 800; }
+
+/* 섹션 제목 */
+.hSh { display: flex; justify-content: space-between; align-items: baseline; margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--hLine); font-size: 16px; font-weight: 800; color: var(--hInk); }
+.hSh.first { margin-top: 22px; }
+
+/* 나의 기록 */
+.hTop { display: flex; align-items: center; gap: 16px; margin-top: 14px; }
+.hRing { position: relative; width: 84px; height: 84px; flex: none; }
+.hRing svg { width: 84px; height: 84px; display: block; transform: rotate(-90deg); }
+.hRingC { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.hRingC b { font-size: 19px; font-weight: 800; color: var(--hInk); line-height: 1.1; }
+.hRingC small { font-size: 10px; color: var(--hDim2); margin-top: 2px; }
+.hSumL { font-size: 12px; color: var(--hDim2); }
+.hSumV { font-size: 40px; font-weight: 300; color: var(--hBlue); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.hSumV u { text-decoration: none; font-size: 15px; color: var(--hDim2); margin-left: 3px; }
+.hSumT { font-size: 13px; color: var(--hTx); margin-top: 2px; }
+.hSumT b { color: var(--hBlue); font-weight: 800; }
+
+/* 최근 7일 */
+.hChd { display: flex; justify-content: space-between; align-items: baseline; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--hLine); font-size: 13px; color: var(--hTx); }
+.hChT b { color: var(--hBlue); font-weight: 800; margin-left: 4px; }
+.hChM { font-size: 11px; color: var(--hDim); }
+.hBars { display: flex; align-items: flex-end; gap: 8px; height: 120px; margin-top: 8px; padding-bottom: 32px; position: relative; }
+.hBars::before { content: ""; position: absolute; left: 0; right: 0; bottom: 32px; border-top: 1px solid var(--hLine); }
+.hBar { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; position: relative; text-decoration: none; color: inherit; }
+.hBar i { display: block; width: 100%; max-width: 24px; background: #CFE0FA; border-radius: 4px 4px 0 0; min-height: 2px; }
+.hBar.all i { background: #8DB5F3; }
+.hBar.end i { background: var(--hBlue); }
+.hBar b { font-size: 10px; font-weight: 600; color: var(--hDim2); margin-bottom: 3px; }
+.hBar.zero b { color: #D1D5DB; }
+.hBar em { font-style: normal; position: absolute; bottom: -32px; font-size: 10px; color: var(--hDim); text-align: center; line-height: 1.25; white-space: nowrap; }
+.hBar em small { display: block; font-size: 12px; color: var(--hTx); margin-top: 1px; }
+.hBar.end em small { color: var(--hBlue); font-weight: 800; }
+.hLg { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; font-size: 10.5px; color: var(--hDim); }
+.hLg i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+
+/* 네 칸 숫자 */
+.hFacts { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hLine); }
+.hFacts > div { text-align: center; min-width: 0; }
+.hFacts > div + div { border-left: 1px solid var(--hLine); }
+.hFacts .k { font-size: 10.5px; color: var(--hDim); }
+.hFacts .v { font-size: 20px; font-weight: 300; color: var(--hInk); margin-top: 3px; font-variant-numeric: tabular-nums; }
+.hFacts .v u { text-decoration: none; font-size: 10.5px; color: var(--hDim); margin-left: 1px; }
+
+/* 오늘 완료 도장 칸(네 가지 다 했을 때만) */
+.hParty { margin-top: 26px; padding: 16px 14px; text-align: center; background: linear-gradient(160deg, #FFF8E8, #F6E7C8); border-radius: 14px; }
+.hSeal { width: 58px; height: 58px; margin: 0 auto; border-radius: 50%; border: 2.5px solid #C9A25A; color: #6E5530; background: #fff; display: grid; place-items: center; font-weight: 800; font-size: 12px; line-height: 1.2; transform: rotate(-8deg); }
+.hParty b { display: block; font-size: 18px; font-weight: 800; color: #6E5530; margin-top: 8px; }
+.hParty span { display: block; font-size: 12px; color: var(--hDim2); margin-top: 3px; }
+
+/* 미션 카드 4장 */
+.hMs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: 24px; }
+a.hM { position: relative; display: flex; flex-direction: column; min-height: 132px; padding: 12px 12px 11px; border-radius: 14px; text-decoration: none; overflow: hidden; transition: transform .12s; }
+a.hM:active { transform: scale(.98); }
+a.hM.w  { background: #E8F0FB; color: #2F5E99; }
+a.hM.q  { background: #FDF1E3; color: #A35B12; }
+a.hM.pr { background: #F3ECFA; color: #6B4A9A; }
+a.hM.r  { background: #E9F5EE; color: #2F7A52; }
+.hNo { font-size: 12.5px; letter-spacing: .12em; opacity: .7; }
+.hN  { font-weight: 800; font-size: 19px; margin-top: 4px; }
+.hS  { display: block; font-size: 11px; line-height: 1.45; margin-top: 3px; opacity: .88; min-width: 0; }
+.hS span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hP { margin-top: auto; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; font-weight: 800; }
+.hGo { background: rgba(255,255,255,.78); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+a.hM.next { box-shadow: inset 0 0 0 2.5px var(--hBlue); }
+a.hM.next .hGo { background: var(--hBlue); color: #fff; }
+a.hM.ok  { opacity: .62; }
+.hStamp { position: absolute; right: 8px; top: 8px; width: 44px; height: 44px; border-radius: 50%; border: 2.5px solid #2F7A52; color: #2F7A52; background: rgba(255,255,255,.7); display: grid; place-items: center; font-weight: 800; font-size: 12px; transform: rotate(-12deg); }
+
+/* 이달 달력 — 가는 줄, 오늘은 파란 테두리. 네 가지 다 한 날 배경은 없음(사용자 2026-10-30) */
+.hCalNav { display: inline-flex; gap: 14px; }
+.hCalNav a { color: var(--hDim2); text-decoration: none; font-size: 18px; line-height: 1; min-width: 28px; min-height: 28px; display: inline-grid; place-items: center; }
+.hCalG { display: grid; grid-template-columns: repeat(7, 1fr); margin-top: 8px; }
+.hCalWd { text-align: center; font-size: 10.5px; color: var(--hDim); padding: 4px 0 6px; }
+a.hCalD { display: block; text-align: center; padding: 6px 0 5px; border-top: 1px solid var(--hLine); font-size: 14px; color: var(--hTx); text-decoration: none; }
+.hCalP { display: block; font-size: 10px; color: var(--hDim); margin-top: 1px; }
+a.hCalD.mute { color: #D1D5DB; } a.hCalD.mute .hCalP { color: #E5E7EB; }
+a.hCalD.has .hCalP { color: var(--hBlue); font-weight: 800; }
+a.hCalD.today { box-shadow: inset 0 0 0 2px var(--hBlue); border-radius: 8px; font-weight: 800; }
+.hLeg { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; font-size: 10.5px; color: var(--hDim); }
+.hLeg i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+
+/* 아래 메뉴 줄 — 따라다니지 않고 페이지 맨 끝에 한 번(사용자 2026-10-30) */
+.hTab { display: flex; margin: 28px calc(var(--pad) * -1) 0; border-top: 1px solid var(--hLine); }
+.hTab a { flex: 1 1 0; min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; font-size: 12px; font-weight: 600; color: var(--hDim2); border-right: 1px solid var(--hLine); }
+.hTab a:last-child { border-right: 0; }
+.hTab a[aria-current="page"] { color: var(--hBlue); }
+.hTab svg { width: 22px; height: 22px; }
+
+@media (max-width: 640px) {
+  .qz { --pad: 16px; padding-top: 16px; }
+}
+
+/* 시안 보기 띠(시안에만) */
+.mock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: #1B1F24; color: #fff; font-size: 13px; box-shadow: 0 -6px 18px rgba(0,0,0,.25); padding: 10px max(16px, env(safe-area-inset-left, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)); }
+.mock .in { max-width: 680px; margin: 0 auto; display: flex; align-items: center; gap: 8px; }
+.mock b { margin-right: auto; opacity: .8; }
+.mock button { min-height: 38px; padding: 0 12px; border-radius: 999px; border: 1px solid #555; background: transparent; color: #fff; font: 700 13px system-ui, sans-serif; }
+.mock button[aria-pressed="true"] { background: #fff; color: #1B1F24; border-color: #fff; }
+</style>
+</head>
+<body>
+<div class="qz">
+  <div class="qzBar">
+    <a class="qzHome" href="#">홈으로</a>
+    <div class="qzDate">2026.10.30 FRI</div>
+  </div>
+
+  <div class="hPg">
+    <div class="hK">도전!!! 성경말씀</div>
+    <div class="hKs">"거룩한 습관 만들기" 프로그램에 오심을 환영해요.</div>
+  </div>
+  <div class="hI">
+    <h2>김철수님, 안녕하세요</h2>
+    <div class="hD">10월 30일 (금) · <b data-s="a">5일째 이어오는 중</b><b data-s="b" hidden>4일째 이어오는 중</b></div>
+  </div>
+
+  <div class="hSh first">나의 기록</div>
+  <div class="hTop">
+    <div class="hRing" role="img" aria-label="오늘 미션 4개 중 완료 수">
+      <svg viewBox="0 0 36 36" aria-hidden="true">
+        <circle cx="18" cy="18" r="15" fill="none" stroke="#E8ECF2" stroke-width="3.6" />
+        <circle data-s="a" cx="18" cy="18" r="15" fill="none" stroke="#2F80ED" stroke-width="3.6" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="0" />
+        <circle data-s="b" hidden cx="18" cy="18" r="15" fill="none" stroke="#2F80ED" stroke-width="3.6" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="47.1" />
+      </svg>
+      <span class="hRingC"><b><span data-s="a">4/4</span><span data-s="b" hidden>2/4</span></b><small>오늘 미션</small></span>
+    </div>
+    <div>
+      <div class="hSumL">올해 총 포인트</div>
+      <div class="hSumV"><span data-s="a">124</span><span data-s="b" hidden>119</span><u>점</u></div>
+      <div class="hSumT">오늘 <b><span data-s="a">+6</span><span data-s="b" hidden>+3</span></b>점 받았어요</div>
+    </div>
+  </div>
+
+  <div class="hChd"><span class="hChT">최근 7일 <b><span data-s="a">31점</span><span data-s="b" hidden>28점</span></b></span><span class="hChM">하루 최대 6점</span></div>
+  <div class="hBars">
+    <a class="hBar" href="#"><b>4</b><i style="height:67%"></i><em>토<small>24</small></em></a>
+    <a class="hBar all" href="#"><b>6</b><i style="height:100%"></i><em>일<small>25</small></em></a>
+    <a class="hBar" href="#"><b>4</b><i style="height:67%"></i><em>월<small>26</small></em></a>
+    <a class="hBar zero" href="#"><b>0</b><i style="height:2px"></i><em>화<small>27</small></em></a>
+    <a class="hBar" href="#"><b>5</b><i style="height:83%"></i><em>수<small>28</small></em></a>
+    <a class="hBar" href="#"><b>6</b><i style="height:100%"></i><em>목<small>29</small></em></a>
+    <a class="hBar end" href="#"><b><span data-s="a">6</span><span data-s="b" hidden>3</span></b><i data-s="a" style="height:100%"></i><i data-s="b" hidden style="height:50%"></i><em>오늘<small>30</small></em></a>
+  </div>
+  <div class="hLg"><span><i style="background:#2F80ED"></i>오늘</span><span><i style="background:#8DB5F3"></i>네 가지 다 한 날</span><span><i style="background:#CFE0FA"></i>그 외</span></div>
+
+  <div class="hFacts">
+    <div><div class="k">이어온 날</div><div class="v"><span data-s="a">5</span><span data-s="b" hidden>4</span><u>일</u></div></div>
+    <div><div class="k">이달 수행</div><div class="v">27<u>/30</u></div></div>
+    <div><div class="k">이달 점수</div><div class="v"><span data-s="a">124</span><span data-s="b" hidden>119</span><u>점</u></div></div>
+    <div><div class="k">네 가지 다 한 날</div><div class="v"><span data-s="a">9</span><span data-s="b" hidden>8</span><u>일</u></div></div>
+  </div>
+
+  <div class="hParty" data-s="a">
+    <div class="hSeal">오늘<br />완료</div>
+    <b>오늘 네 가지 모두 했어요</b>
+    <span>+6점 · 5일째 이어서 하고 있어요</span>
+  </div>
+
+  <div class="hMs">
+    <a class="hM w ok" href="#"><span class="hStamp">완료</span><span class="hNo">01</span><span class="hN">말씀</span>
+      <span class="hS"><span>시편 18편 30~50절</span><span>내 길을 완전하게 하시는 하나님</span></span><span class="hP"><span>+2점</span></span></a>
+    <a class="hM q ok" href="#"><span class="hStamp">완료</span><span class="hNo">02</span><span class="hN">퀴즈</span>
+      <span class="hS"><span>정답을 맞혔어요</span></span><span class="hP"><span>+1점</span></span></a>
+    <a class="hM pr ok" href="#" data-s="a"><span class="hStamp">완료</span><span class="hNo">03</span><span class="hN">기도</span>
+      <span class="hS"><span>결단 · 잠언 4:27</span></span><span class="hP"><span>+2점</span></span></a>
+    <a class="hM pr next" href="#" data-s="b" hidden><span class="hNo">03</span><span class="hN">기도</span>
+      <span class="hS"><span>결단 · 잠언 4:27</span></span><span class="hP"><span>2점</span><span class="hGo">기도 ›</span></span></a>
+    <a class="hM r ok" href="#" data-s="a"><span class="hStamp">완료</span><span class="hNo">04</span><span class="hN">암송</span>
+      <span class="hS"><span>창세기 1:1</span><span>이번 주 암송 구절</span></span><span class="hP"><span>+1점</span></span></a>
+    <a class="hM r" href="#" data-s="b" hidden><span class="hNo">04</span><span class="hN">암송</span>
+      <span class="hS"><span>창세기 1:1</span><span>이번 주 암송 구절</span></span><span class="hP"><span>1점</span><span class="hGo">외우기 ›</span></span></a>
+  </div>
+
+  <div class="hSh" id="cal"><span>2026년 10월</span><span class="hCalNav"><a href="#" aria-label="지난달">←</a><a href="#" aria-label="다음달">→</a></span></div>
+  <div class="hCalG" id="calG"></div>
+  <div class="hLeg"><span><i style="box-shadow:inset 0 0 0 2px #2F80ED"></i>오늘</span><span>숫자 = 그날 받은 점수</span></div>
+
+  <nav class="hTab" aria-label="주 메뉴">
+    <a href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /></svg>홈</a>
+    <a href="#cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>달력</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>내 점수</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4" /></svg>순위</a>
+  </nav>
+</div>
+
+<div class="mock" role="region" aria-label="시안 보기(시안에만 있음)"><div class="in">
+  <b>시안 보기</b>
+  <button type="button" data-v="a" aria-pressed="true">네 가지 다 함</button>
+  <button type="button" data-v="b" aria-pressed="false">아직 남음</button>
+</div></div>
+
+<script>
+// 이달 달력(예시 점수): 10월 1일이 목요일. 31일은 아직 안 온 날(–)
+(function () {
+  const pts = [4,4,6,4,4,4,4,4,4,5,4,4,4,4,4,4,5,5,4,4,4,4,4,5,4,4,4,2,2,6,null];
+  const g = document.getElementById('calG');
+  const wd = ['일','월','화','수','목','금','토'];
+  let h = wd.map((w) => `<div class="hCalWd">${w}</div>`).join('');
+  [27,28,29,30].forEach((d) => { h += `<a class="hCalD mute" href="#">${d}<span class="hCalP">–</span></a>`; });
+  pts.forEach((p, i) => {
+    const d = i + 1;
+    const cls = [p ? 'has' : '', d === 30 ? 'today' : ''].join(' ');
+    h += `<a class="hCalD ${cls}" href="#" data-day="${d}">${d}<span class="hCalP">${p ?? '–'}</span></a>`;
+  });
+  g.innerHTML = h;
+})();
+function show(v) {
+  document.querySelectorAll('.mock button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.v === v)));
+  document.querySelectorAll('[data-s="a"]').forEach((e) => { e.hidden = v !== 'a'; });
+  document.querySelectorAll('[data-s="b"]').forEach((e) => { e.hidden = v !== 'b'; });
+  const t = document.querySelector('.hCalD[data-day="30"] .hCalP'); if (t) t.textContent = v === 'a' ? '6' : '3';
+}
+document.querySelectorAll('.mock button').forEach((b) => b.addEventListener('click', () => show(b.dataset.v)));
+show(location.hash === '#b' ? 'b' : 'a');
+</script>
+</body>
+</html>
