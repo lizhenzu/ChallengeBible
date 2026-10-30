@@ -113,7 +113,8 @@ else
         <div>
             <div class="k">오늘의 말씀 · @d.Today.ToString("M월 d일 dddd", ko)</div>
             <blockquote>@d.VerseText</blockquote>
-            <cite>@d.VerseRef · 오늘 읽을 범위 @d.WordRange</cite>
+            @if (lobby) { <cite class="ref">@d.VerseRef</cite> }   @* 임시 부서 미션 화면: 말씀 자리만, 오른쪽 끝(2026-10-30 사용자) *@
+            else { <cite>@d.VerseRef · 오늘 읽을 범위 @d.WordRange</cite> }
         </div>
         @* 임시 부서 미션 화면은 말씀만(이번 주 암송 · 오늘의 기도 칸 없음, 2026-10-30 사용자) *@
         @if (!lobby)

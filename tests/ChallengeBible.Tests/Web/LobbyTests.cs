@@ -153,6 +153,8 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.DoesNotContain("<small>오늘의 기도</small>", today);                        // 오른쪽 "이번 주 암송 · 오늘의 기도" 칸은 없다(2026-10-30)
         Assert.DoesNotContain("이번 주 암송", today);
         Assert.DoesNotContain("class=\"side\"", today);
+        Assert.Contains("<cite class=\"ref\">창세기 24:1</cite>", today);                  // 말씀 자리만(오른쪽 끝)
+        Assert.DoesNotContain("오늘 읽을 범위", today);
         InMemoryDb.SeedMembership(_db, _kids.Id, AccountId(), MembershipStatus.Approved, Roles.Participant);
         Assert.Contains("<small>오늘의 기도</small>", await c.GetStringAsync("/jamsil-kids"));   // 일반 부서 홈은 그대로
     }
