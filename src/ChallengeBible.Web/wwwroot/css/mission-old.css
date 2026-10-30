@@ -91,7 +91,10 @@ body:has(.mbody) .qopt.bad .t { color: #B42318; }
 body:has(.mbody) .qopt.bad i, body:has(.mbody) .qopt.bad small { color: #E5484D; }
 body:has(.mbody) .qtext { margin-top: 4px; min-height: 0; padding: 14px; border: 0; border-radius: 14px; background: #F4F6F9; font-size: 16px; color: #111827; }
 body:has(.mbody) .qtext:focus { background: #EAF2FD; box-shadow: inset 0 0 0 2px #2F80ED; outline: 0; }
+body:has(.mbody) .qhint { margin-top: -2px; padding: 10px 12px; border-radius: 12px; background: #F9FAFB; font-size: calc(14px * var(--fs)); line-height: 1.75; color: #374151; white-space: pre-line; word-break: keep-all; }
+body:has(.mbody) .qhint[hidden] { display: none; }
 body:has(.mbody) .msg { font-size: 12.5px; color: #6B7280; }
+body:has(.mbody) .msg:empty { display: none; }
 body:has(.mbody) .msg.ok { color: #16A34A; }
 body:has(.mbody) .qgo { margin-top: 6px; min-height: 0; font-size: calc(15.5px * var(--fs)); color: #2F80ED; border-bottom-color: #2F80ED; }
 body:has(.mbody) .qgo em { font-size: 17px; }
