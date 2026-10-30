@@ -95,14 +95,21 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         var (c, _) = await SignUp();
         var home = await c.GetStringAsync("/welcome");
         Assert.Contains("시작까지 3단계", home);                                          // 0068 1단계: 윗부분만
-        Assert.Contains("href=\"/join\">내 부서 찾기 <svg", home);                       // 큰 버튼 → 부서 고르기
-        Assert.Contains("<a href=\"/welcome/today\">먼저 미션 해 보기 ›</a>", home);       // 작은 길 → 미션 화면
+        Assert.Contains("href=\"/join\">내 부서 참여 <svg", home);                       // 큰 버튼 → 부서 고르기(이름은 "참여", 2026-10-30 고침)
+        Assert.Contains("class=\"wl-btn wl-s\" href=\"/welcome/today\">먼저 미션 해 보기 <svg", home);   // 흰 큰 버튼 → 미션 화면
+        Assert.Contains("<small>대한예수교장로회</small>", home);                          // 머리말 = 교단 · 교회(첫 화면과 같음)
+        Assert.Contains("https://www.saenae.org/", home);
+        Assert.DoesNotContain("내 부서를 찾는 동안", home);
+        Assert.Contains("먼저 내가 참여할 부서를 신청해요.", home);
+        Assert.DoesNotContain("교회 · 부서를", home);                                    // 교회를 찾는 것이 아님
+        Assert.DoesNotContain("내 부서 찾기", home);
+        Assert.Contains("<p class=\"copy\">© 2027 잠실새내 · 주일학교</p>", home);          // 맨 아래 © 줄(해는 오늘 날짜)
         Assert.DoesNotContain("미션 수행하러 가기", home);
         Assert.DoesNotContain("어떤 걸 먼저 할까요?", home);                              // 아랫부분(미션 · 통독 카드)은 미션 화면으로
         Assert.DoesNotContain("aria-label=\"오늘의 말씀\"", home);
         Assert.DoesNotContain("aria-labelledby=\"dpT\"", home);                       // "우리 부서" 숫자 칸 없음
         Assert.DoesNotContain("/welcome/ranking", home);
-        Assert.Contains("<a href=\"/join\">내 부서 찾기</a>", home);                    // 계정 줄(로그아웃도 여기 있음)
+        Assert.Contains("<a href=\"/join\">내 부서 참여</a>", home);                    // 계정 줄(로그아웃도 여기 있음)
         var today = await c.GetStringAsync("/welcome/today");                         // 미션 화면 = 지금 홈 아랫부분
         Assert.Contains("어떤 걸 먼저 할까요?", today);
         Assert.Contains("<a href=\"/welcome\">← 처음 화면</a>", today);
@@ -143,6 +150,10 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/jamsil-kids")).StatusCode);
         Assert.Contains("어떤 걸 먼저 할까요?", await c.GetStringAsync("/jamsil-kids"));
         Assert.DoesNotContain("시작까지 3단계", await c.GetStringAsync("/jamsil-kids"));
+        var kidsHome = await c.GetStringAsync("/jamsil-kids");                            // 맨 아래: 계정 줄 가운데 + © 줄(모든 부서 홈, 2026-10-30)
+        Assert.Contains("<div class=\"acct\">", kidsHome);
+        Assert.Contains("<p class=\"copy\">© 2027 잠실새내 · 주일학교</p>", kidsHome);
+        Assert.Contains("<a href=\"/account/tenants\">부서 바꾸기</a>", kidsHome);
     }
 
     [Fact]

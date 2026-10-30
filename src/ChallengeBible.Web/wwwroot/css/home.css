@@ -144,7 +144,9 @@
 
 /* 계정 줄 */
 .hm footer { border-top: 1px solid var(--rule); }
-.hm footer .wrap { padding-block: 22px calc(30px + env(safe-area-inset-bottom, 0px)); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; font-size: 14px; color: var(--dim); }
+.hm footer .wrap { padding-block: 22px calc(30px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; font-size: 14px; color: var(--dim); }
+.hm footer .acct { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 20px; }
+.hm footer .copy { margin: 0; font-size: 12.5px; color: var(--dim); }
 .hm footer a { min-height: 32px; display: inline-flex; align-items: center; }
 .hm footer form { margin: 0; }
 .hm footer button { border: 0; background: none; padding: 0; min-height: 32px; font-size: 14px; color: var(--dim); }
@@ -184,9 +186,9 @@
 .hm .wl-tag.wl-later { background: var(--soft); color: var(--dim); }
 .hm .wl-btn { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 54px; padding: 0 18px; border-radius: 14px; font-size: 16px; font-weight: 800; }
 .hm .wl .wl-btn.wl-p { background: var(--accent); color: var(--on-accent); }
-.hm .wl .wl-btn.wl-s { margin-top: 10px; min-height: 48px; background: var(--bg); color: var(--accent); border: 1px solid var(--sky-rule); font-size: 15px; }
-.hm .wl-try { margin-top: 12px; display: flex; justify-content: center; }
-.hm .wl-try a { min-height: 44px; display: inline-flex; align-items: center; gap: 4px; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; }
+.hm .wl .wl-btn.wl-s { margin-top: 10px; background: var(--bg); color: var(--accent); border: 1px solid var(--sky-rule); }
+.hm .wl-org .church { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; font-size: 20px; font-weight: 900; letter-spacing: -.01em; color: var(--accent); white-space: nowrap; }
+.hm .wl-org .church svg { width: 13px; height: 13px; flex: none; margin-top: -6px; }
 .hm .wl-keep { margin: 12px 0 0; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--dim); }
 .hm .wl-keep svg { flex: none; margin-top: 3px; color: var(--okc); }
 .hm .wl-back .wrap { max-width: 480px; padding-block: 2px 14px; }

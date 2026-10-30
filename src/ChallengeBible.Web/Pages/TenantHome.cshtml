@@ -28,7 +28,7 @@
     @* 임시 부서(0064 · 0068, 확정 시안: 임시부서-홈-두단계): 하늘색 머리말 → 1 · 2단계(윗부분만) 또는 미션 화면(← 처음 화면 + 아랫부분) *@
     <div class="wl">
         <header class="wl-top gut"><div class="wrap">
-            <div class="wl-org"><small>내 부서를 찾는 동안</small><b>@t.Name</b></div>
+            <div class="wl-org"><small>대한예수교장로회</small><a class="church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)">잠실새내교회<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a></div>
             <span class="wl-today"><span class="yr">@d.Today.ToString("yyyy년", ko) </span><b>@d.Today.ToString("M월 d일", ko)</b> @d.Today.ToString("dddd", ko)</span>
         </div></header>
         @if (intro)
@@ -37,7 +37,7 @@
             <section class="wl-hi gut" aria-labelledby="wlHi"><div class="wrap">
                 <div class="wl-k">환영해요</div>
                 <h1 id="wlHi">@(User.DisplayName())님,<br>반가워요!</h1>
-                <p class="wl-sub">@(step2 ? "신청을 보냈어요. 관리자가 승인하면 그 부서로 옮겨 가요." : "먼저 내 교회 · 부서를 찾아 참여 신청해요.")</p>
+                <p class="wl-sub">@(step2 ? "신청을 보냈어요. 관리자가 승인하면 그 부서로 옮겨 가요." : "먼저 내가 참여할 부서를 신청해요.")</p>
                 <div class="wl-card">
                     <h2>시작까지 3단계</h2>
                     <ol class="wl-steps">
@@ -46,7 +46,7 @@
                         @if (!step2)
                         {
                             <li class="wl-now"><span class="wl-ic" aria-hidden="true">2</span>
-                                <div class="wl-tx"><b>내 부서 찾기 <span class="wl-tag wl-now">지금 할 일</span></b><span>목록에서 내 교회 · 부서를 골라 신청해요</span></div></li>
+                                <div class="wl-tx"><b>내 부서 참여 <span class="wl-tag wl-now">지금 할 일</span></b><span>목록에서 내 부서를 골라 신청해요</span></div></li>
                             <li class="wl-later"><span class="wl-ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
                                 <div class="wl-tx"><b>관리자 승인 <span class="wl-tag wl-later">다음 단계</span></b><span>승인되면 그 부서로 바로 옮겨 가요</span></div></li>
                         }
@@ -60,7 +60,8 @@
                     </ol>
                     @if (!step2)
                     {
-                        <a class="wl-btn wl-p" href="/join">내 부서 찾기 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+                        <a class="wl-btn wl-p" href="/join">내 부서 참여 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+                        <a class="wl-btn wl-s" href="/@slug/today">먼저 미션 해 보기 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
                     }
                     else
                     {
@@ -69,7 +70,6 @@
                     }
                     <p class="wl-keep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>여기서 한 미션 기록 · 점수는 부서로 그대로 옮겨져요.</p>
                 </div>
-                @if (!step2) { <div class="wl-try"><a href="/@slug/today">먼저 미션 해 보기 ›</a></div> }
             </div></section>
         }
         else
@@ -328,9 +328,12 @@ else
 }
 
 <footer class="gut"><div class="wrap">
-    <a href="/account">내 계정</a>
-    @if (Model.Tenant.IsLobby) { <a href="/join">내 부서 찾기</a> } else { <a href="/account/tenants">부서 바꾸기</a> }
-    @if (User.IsPlatformAdmin()) { <a href="/platform">플랫폼</a> }
-    <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit">로그아웃</button></form>
+    <div class="acct">
+        <a href="/account">내 계정</a>
+        @if (Model.Tenant.IsLobby) { <a href="/join">내 부서 참여</a> } else { <a href="/account/tenants">부서 바꾸기</a> }
+        @if (User.IsPlatformAdmin()) { <a href="/platform">플랫폼</a> }
+        <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit">로그아웃</button></form>
+    </div>
+    <p class="copy">© @d.Today.Year 잠실새내 · 주일학교</p>
 </div></footer>
 </div>
