@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>미션 완료 안내 시안</title>
+<style>
+/* 시안(2026-10-31): 미션(말씀 · 퀴즈 · 기도 · 암송)을 완료하면 뜨는 안내 창. 10초 동안 떠 있다가 저절로 닫힘(닫기 · 바깥 · Esc 로도).
+   ① 옛 사이트 "🎁 안내" 창 그대로  ② 새 카드(도장 · 점수 · 줄어드는 10초 막대)  ③ 아래에서 올라오는 칸(화면을 덜 가림)
+   맨 아래 검은 띠는 시안에만 있다. */
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #fff; font-family: "Malgun Gothic", system-ui, sans-serif; color: #374151; }
+.page { max-width: 680px; margin: 0 auto; padding: 20px 16px 140px; }
+.page .k { font-size: 12px; font-weight: 800; color: #2F80ED; }
+.page h1 { margin: 8px 0 4px; font-size: 23px; color: #111827; }
+.page p { margin: 0; font-size: 13px; color: #6B7280; }
+.page .sec { margin-top: 22px; padding-top: 16px; border-top: 1px solid #EEF0F3; font-weight: 800; color: #111827; }
+.page .pk { margin-top: 10px; padding: 13px 14px; border-radius: 14px; background: #F4F6F9; display: flex; justify-content: space-between; font-weight: 800; color: #6B7280; }
+.page .pk span { color: #15803D; font-size: 12.5px; }
+.bg { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); display: flex; align-items: center; justify-content: center; padding: 16px; }
+[hidden] { display: none !important; }
+
+/* ① 옛 모양 그대로 */
+.o1 { width: min(560px, 94vw); padding: 18px 16px 14px; border-radius: 22px; background: #fff; border: 1px solid #E2E8F0; box-shadow: 0 26px 70px rgba(15, 23, 42, .28); text-align: center; color: #0F172A; }
+.o1 h2 { margin: 0 0 8px; font-size: 20px; font-weight: 900; }
+.o1 p { margin: 0; font-size: 14px; line-height: 1.6; }
+.o1 .tot { margin-top: 4px; font-weight: 900; }
+.o1 .tot b { margin-left: 10px; font-size: 30px; color: #FF7A00; vertical-align: -3px; }
+.o1 button { width: 100%; margin-top: 14px; padding: 12px; border-radius: 16px; border: 1px solid #E2E8F0; background: #F8FAFC; font: inherit; font-weight: 900; }
+.o1 .cd { margin-top: 10px; font-size: 12.5px; font-weight: 900; color: #475569; }
+
+/* ② 새 카드 — 초록 도장, 무엇을 했는지 크게, 점수 알약, 올해 총점, 10초 막대 */
+.o2 { width: min(380px, 92vw); padding: 26px 22px 18px; border-radius: 24px; background: #fff; box-shadow: 0 24px 60px rgba(15, 23, 42, .25); text-align: center; }
+.o2 .seal { width: 76px; height: 76px; margin: 0 auto; border-radius: 50%; border: 3px solid #16A34A; color: #16A34A; display: grid; place-items: center; font-weight: 900; font-size: 15px; line-height: 1.15; transform: rotate(-8deg); background: #F0FAF3; }
+.o2 .what { margin-top: 14px; font-size: 13px; color: #6B7280; }
+.o2 h2 { margin: 4px 0 0; font-size: 21px; font-weight: 900; color: #111827; word-break: keep-all; }
+.o2 .pill { display: inline-block; margin-top: 10px; padding: 4px 14px; border-radius: 99px; background: #EAF2FD; color: #2F80ED; font-weight: 900; font-size: 15px; }
+.o2 .tot { margin-top: 16px; padding-top: 14px; border-top: 1px solid #EEF0F3; font-size: 13px; color: #6B7280; }
+.o2 .tot b { display: block; margin-top: 2px; font-size: 34px; font-weight: 300; color: #2F80ED; font-variant-numeric: tabular-nums; }
+.o2 .tot b u { text-decoration: none; font-size: 15px; color: #6B7280; margin-left: 2px; }
+.o2 button { width: 100%; margin-top: 16px; min-height: 50px; border: 0; border-radius: 14px; background: #2F80ED; color: #fff; font: inherit; font-size: 16px; font-weight: 900; }
+.o2 .bar { margin-top: 12px; height: 4px; border-radius: 99px; background: #EEF0F3; overflow: hidden; }
+.o2 .bar i { display: block; height: 100%; width: 70%; background: #93B9F2; }
+.o2 .cd { margin-top: 6px; font-size: 11.5px; color: #9CA3AF; }
+
+/* ③ 아래에서 올라오는 칸 — 화면을 덜 가리고, 엄지로 닫기 쉬움 */
+.bg.bot { align-items: flex-end; padding: 0 0 56px; background: rgba(15, 23, 42, .3); }   /* 아래 56px 는 시안 띠 자리(시안에만) */
+.o3 { width: 100%; max-width: 680px; padding: 18px 20px calc(18px + env(safe-area-inset-bottom, 0px)); border-radius: 22px 22px 0 0; background: #fff; box-shadow: 0 -12px 40px rgba(15, 23, 42, .18); }
+.o3 .row { display: flex; align-items: center; gap: 14px; }
+.o3 .ck { flex: none; width: 52px; height: 52px; border-radius: 50%; background: #16A34A; color: #fff; display: grid; place-items: center; font-size: 26px; font-weight: 900; }
+.o3 .tx { flex: 1; min-width: 0; }
+.o3 .tx small { display: block; font-size: 12.5px; color: #6B7280; }
+.o3 .tx b { display: block; font-size: 18px; font-weight: 900; color: #111827; }
+.o3 .pt { flex: none; text-align: right; }
+.o3 .pt b { display: block; font-size: 22px; font-weight: 900; color: #2F80ED; }
+.o3 .pt small { font-size: 11.5px; color: #9CA3AF; }
+.o3 .tot { margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: #F4F6F9; display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: #6B7280; }
+.o3 .tot b { font-size: 24px; font-weight: 300; color: #2F80ED; }
+.o3 button { width: 100%; margin-top: 12px; min-height: 50px; border: 0; border-radius: 14px; background: #111827; color: #fff; font: inherit; font-size: 16px; font-weight: 900; }
+.o3 .cd { margin-top: 8px; text-align: center; font-size: 11.5px; color: #9CA3AF; }
+
+.mock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: #1B1F24; color: #fff; padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; font: 13px system-ui; }
+.mock button { min-height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid #555; background: transparent; color: #fff; font: 700 13px system-ui; }
+.mock button[aria-pressed="true"] { background: #fff; color: #1B1F24; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="k">오늘의 성품기도</div>
+  <h1>배움 (Teachability)</h1>
+  <p>잠언 23장 12절</p>
+  <div class="sec">03 누구를 위해 기도했나요?</div>
+  <div class="pk">나를 위해 기도했어요<span>✓ 완료 +1점</span></div>
+</div>
+
+<div class="bg" data-o="1"><section class="o1" role="dialog" aria-label="안내">
+  <h2>🎁 안내</h2>
+  <p>🎉 나를 위해 기도했어요 스티커 완료! (+1)</p>
+  <p>⭐ 올해 총 1,137점 모았어요!</p>
+  <p class="tot">⭐ 모은 포인트 : <b>1,137</b> 점</p>
+  <button type="button">닫기</button>
+  <p class="cd">10초 후 자동으로 닫혀요.</p>
+</section></div>
+
+<div class="bg" data-o="2" hidden><section class="o2" role="dialog" aria-label="미션 완료">
+  <div class="seal">기도<br />완료</div>
+  <div class="what">오늘의 성품기도</div>
+  <h2>나를 위해 기도했어요</h2>
+  <span class="pill">+1점</span>
+  <div class="tot">올해 모은 포인트<b>1,137<u>점</u></b></div>
+  <button type="button">확인</button>
+  <div class="bar" aria-hidden="true"><i></i></div>
+  <div class="cd">7초 뒤 저절로 닫혀요</div>
+</section></div>
+
+<div class="bg bot" data-o="3" hidden><section class="o3" role="dialog" aria-label="미션 완료">
+  <div class="row">
+    <span class="ck" aria-hidden="true">✓</span>
+    <div class="tx"><small>기도 미션 완료</small><b>나를 위해 기도했어요</b></div>
+    <div class="pt"><b>+1점</b><small>스티커</small></div>
+  </div>
+  <div class="tot"><span>올해 모은 포인트</span><b>1,137점</b></div>
+  <button type="button">확인</button>
+  <div class="cd">7초 뒤 저절로 닫혀요</div>
+</section></div>
+
+<div class="mock">
+  <button data-v="1" aria-pressed="true">① 옛 모양 그대로</button>
+  <button data-v="2" aria-pressed="false">② 새 카드</button>
+  <button data-v="3" aria-pressed="false">③ 아래에서 올라옴</button>
+</div>
+<script>
+function show(v) {
+  document.querySelectorAll('.mock button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+  document.querySelectorAll('[data-o]').forEach((e) => { e.hidden = e.dataset.o !== v; });
+}
+document.querySelectorAll('.mock button').forEach((b) => b.addEventListener('click', () => show(b.dataset.v)));
+show(location.hash.length > 1 ? location.hash.slice(1) : '1');
+</script>
+</body>
+</html>

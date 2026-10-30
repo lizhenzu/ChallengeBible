@@ -19,16 +19,57 @@
     return { ok: res.ok, json };
   }
 
-  function after(json) {
+  function after(json, label) {
     const season = document.querySelector('[data-season]');
     if (season && typeof json.seasonTotal === 'number' && json.seasonTotal > 0) season.textContent = json.seasonTotal.toLocaleString('ko-KR');
     const day = document.querySelector('[data-daypoints]');
     if (day && json.pointsEarned > 0) day.textContent = String(Number(day.textContent) + json.pointsEarned);
-    // 개인 축하 → 가족 축하 순서(시안 가족축하 ①)
+    // 완료 안내(10초) → 개인 축하 → 가족 축하 순서(시안 가족축하 ①)
     const fam = json.familyMilestone ? () => celebrateFamily(json.familyMilestone) : null;
-    if (json.milestonesReached?.length) celebrate(json.milestonesReached.at(-1), json, fam);
-    else if (fam) { say(json.message); fam(); }
-    else say(json.message);
+    const rest = json.milestonesReached?.length ? () => celebrate(json.milestonesReached.at(-1), json, fam) : fam;
+    okPopup(label, json, rest);
+  }
+
+  // 미션 완료 안내 창(확정 시안 미션완료안내 ②안 "새 카드", 2026-10-31). 10초 뒤 저절로 닫힌다(확인 · 바깥 · Esc 로도).
+  const OK_SECONDS = 10;
+  function okPopup(label, json, then) {
+    const fmt = (n) => Number(n ?? 0).toLocaleString('ko-KR');
+    const mission = document.querySelector('.mnav a[aria-current="page"] .L')?.textContent.trim() || '미션';
+    const kind = document.querySelector('.mhead .k')?.textContent.trim() || '';
+    const dlg = document.createElement('div');
+    dlg.className = 'okpop-bg';
+    dlg.innerHTML = `<section class="okpop" role="dialog" aria-modal="true" aria-labelledby="okT">
+      <div class="seal" aria-hidden="true"><span><span data-m></span><br />완료</span></div>
+      <div class="what" data-k></div>
+      <h2 id="okT" data-l></h2>
+      <span class="pill num">+${Number(json.pointsEarned ?? 0)}점</span>
+      <div class="tot">올해 모은 포인트<b class="num">${fmt(json.seasonTotal)}<u>점</u></b></div>
+      <button type="button" class="okpop-close" data-close>확인</button>
+      <div class="bar" aria-hidden="true"><i></i></div>
+      <div class="cd"><span data-cd>${OK_SECONDS}</span>초 뒤 저절로 닫혀요</div>
+    </section>`;
+    // 이름 · 문구는 글자로만 넣는다
+    dlg.querySelector('[data-m]').textContent = mission;
+    dlg.querySelector('[data-k]').textContent = kind;
+    dlg.querySelector('[data-l]').textContent = label || `${mission} 미션을 했어요`;
+    let left = OK_SECONDS;
+    const cd = dlg.querySelector('[data-cd]');
+    const bar = dlg.querySelector('.bar i');
+    bar.style.transitionDuration = `${OK_SECONDS}s`;
+    requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.width = '0%'; }));   // 10초 동안 줄어드는 막대
+    const timer = setInterval(() => { left -= 1; cd.textContent = String(left); if (left <= 0) close(); }, 1000);
+    function esc(e) { if (e.key === 'Escape') close(); }
+    function close() {
+      if (!dlg.isConnected) return;
+      clearInterval(timer);
+      document.removeEventListener('keydown', esc);
+      dlg.remove();
+      then?.();
+    }
+    dlg.addEventListener('click', (e) => { if (e.target === dlg || e.target.closest('[data-close]')) close(); });
+    document.addEventListener('keydown', esc);
+    document.body.appendChild(dlg);
+    dlg.querySelector('[data-close]').focus();
   }
 
   // 가족 축하 창(R-96, 확정 시안: 가족축하 ①). 내 점수로 가족 합계가 단계를 처음 넘을 때만 뜬다.
@@ -232,7 +273,7 @@
       const st = sec?.querySelector('[data-pickstate]');
       if (st) st.textContent = api === 'recite' ? '이번 주 완료' : on === all ? '모두 했어요' : '미션 완료';
       navState('✓ 완료', true);
-      after(json);
+      after(json, b.querySelector('b')?.textContent.trim());
     } else {
       b.disabled = false;
       say(json.message ?? '잠시 뒤에 다시 해 주세요.');
@@ -290,7 +331,7 @@
         tries.textContent = '정답!'; tries.className = 'ok';
         tell(`정답! +${pts}점`, 'ok');
         if (label) { label.classList.add('ans', 'fixed'); tag(label, '정답'); }
-        after(json);
+        after(json, '정답을 맞혔어요');
         finish(json, true);
         return;
       }
