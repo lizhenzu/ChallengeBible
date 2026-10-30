@@ -113,6 +113,8 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         var today = await c.GetStringAsync("/welcome/today");                         // 미션 화면 = 지금 홈 아랫부분
         Assert.Contains("어떤 걸 먼저 할까요?", today);
         Assert.Contains("<a href=\"/welcome\">← 처음 화면</a>", today);
+        Assert.Contains("class=\"wl wl-wide\"", today);                               // 미션 화면 머리말은 아래 카드와 같은 폭(데스크톱 정렬)
+        Assert.DoesNotContain("wl-wide", home);                                       // 1 · 2단계는 좁은 카드 폭 그대로
         Assert.DoesNotContain("승인 기다리는 중", today);                                // 신청 전이라 표시 없음
         Assert.DoesNotContain("시작까지 3단계", today);
         Assert.DoesNotContain("/welcome/ranking", today);
