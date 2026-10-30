@@ -120,3 +120,14 @@ body:has(.mbody) .mnav a.dn .L { color: #16A34A; }
 body:has(.mbody) .mnav a[aria-current="page"] .L { color: #111827; }
 body:has(.mbody) .mnav a[aria-current="page"] .S:not(.done) { color: #2F80ED; }
 body:has(.mbody) .toast { bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+
+/* 미션 완료 안내 창 — 옛 사이트 "🎁 안내" 창(2026-10-31). 10초 뒤 저절로 닫힘(mission.js okPopup) */
+.okpop-bg { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, .45); }
+.okpop { width: min(560px, 94vw); padding: 18px 16px 14px; border-radius: 22px; background: #fff; border: 1px solid #E2E8F0; box-shadow: 0 26px 70px rgba(15, 23, 42, .28); text-align: center; color: #0F172A; font-family: "Gothic A1", "Malgun Gothic", system-ui, sans-serif; }
+.okpop h2 { margin: 0 0 8px; font-size: 20px; font-weight: 900; }
+.okpop p { margin: 0; font-size: 14px; line-height: 1.6; word-break: keep-all; }
+.okpop .tot { margin-top: 4px; font-weight: 900; }
+.okpop .tot b { margin-left: 10px; font-size: 30px; font-weight: 900; color: #FF7A00; vertical-align: -3px; }
+.okpop-close { width: 100%; margin-top: 14px; padding: 12px 14px; border-radius: 16px; border: 1px solid #E2E8F0; background: #F8FAFC; color: #0F172A; font: inherit; font-weight: 900; cursor: pointer; }
+.okpop-close:focus-visible { outline: 3px solid #2F80ED; outline-offset: 2px; }
+.okpop .cd { margin-top: 10px; font-size: 12.5px; font-weight: 900; color: #475569; }
