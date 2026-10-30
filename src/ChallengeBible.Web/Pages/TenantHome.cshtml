@@ -16,7 +16,6 @@
     var has = d.Missions.Where(m => m.Has).ToList();
     var done = has.Count(m => m.Done);
     var left = has.Where(m => !m.Done).ToList();
-    string Go(string key) => key switch { "word" => "말씀 읽으러 가기", "quiz" => "퀴즈 풀러 가기", "prayer" => "기도하러 가기", _ => "암송하러 가기" };
     var rd = d.Reading;
     var lobby = Model.Tenant.IsLobby;
     var intro = lobby && !Model.TodayScreen;   // 0068: 임시 부서 `/{slug}` = 1단계(부서 안 고름) · 2단계(승인 기다림), 윗부분만
@@ -135,7 +134,15 @@
                             </div>
                         </div>
                         <div class="mis4">@foreach (var m in d.Missions) { <span class="@m.Key @(m.Has && !m.Done && m == d.NextMission ? "cur" : "")">@m.Label<small>@m.State</small></span> }</div>
-                        <a class="go" href="@(next is not null && d.Participant ? $"/{slug}/{next.Key}" : $"/{slug}/word-mission")">@(d.Participant && d.NextMission is { } nm ? Go(nm.Key) : "미션 홈 가기") <span aria-hidden="true">→</span></a>
+                        @if (d.Participant && next is not null)
+                        {
+                            @* 확정 시안 홈-다음미션버튼 ⑤(2026-10-31): "N개 중 M개 완료 / 이제 ○○만 하면 끝!" + 오른쪽 [○○ →] *@
+                            <a class="go nx" href="/@slug/@next.Key"><span class="t"><small>@(has.Count)개 중 @(done)개 완료</small>@(left.Count == 1 ? $"이제 {next.Label}만 하면 끝!" : $"다음은 {next.Label} 차례예요")</span><span class="pill">@next.Label <span aria-hidden="true">→</span></span></a>
+                        }
+                        else
+                        {
+                            <a class="go" href="/@slug/word-mission">미션 홈 가기 <span aria-hidden="true">→</span></a>
+                        }
                     </div>
                 }
                 @if (t.ReadingEnabled)
