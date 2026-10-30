@@ -60,6 +60,7 @@ public partial class PlatformFlowTests : IClassFixture<WebApplicationFactory<Pro
         var c = await LoggedIn("operator", platformAdmin: true);
         var home = await c.GetStringAsync("/platform");
         Assert.Contains("aria-current=\"page\">플랫폼 홈", home);
+        Assert.Matches("<a class=\"back home\" href=\"/\">.*처음 화면</a>", home);   // 머리말에서 처음 화면으로(확정 시안 ①)
         Assert.Contains("운영 중인 부서", home);
         Assert.Contains(kids.Name, home);
         Assert.Contains("관리자가 없는 부서", home);
