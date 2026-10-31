@@ -159,6 +159,14 @@
       if (!reading) return;
       if (doneFlag) doneFlag.hidden = !json.chapterDone;
       if (doneBanner) doneBanner.hidden = !json.chapterDone;
+      const ca = document.querySelector('[data-chapterall]');   // 절을 눌러 장이 다 차거나 풀리면 큰 버튼도 맞춘다
+      if (ca && ca.getAttribute('aria-pressed') !== String(!!json.chapterDone)) {
+        ca.setAttribute('aria-pressed', String(!!json.chapterDone));
+        ca.classList.toggle('done', !!json.chapterDone);
+        ca.querySelector('.t').textContent = json.chapterDone ? '이 장 읽음 표시를 취소할까요?' : '이 장 읽음으로 표시';
+        ca.querySelector('.d')?.toggleAttribute('hidden', !!json.chapterDone);
+        ca.querySelector('em').textContent = json.chapterDone ? '✓' : '→';
+      }
       if (json.roundCompleted) say(`성경을 다 읽었어요! ${json.newRoundNo}회차를 시작해요`);
       else if (json.chapterDone) say(`${chapter}장을 다 읽었어요`);
     };
@@ -210,8 +218,22 @@
       busy(b, false);
       if (!ok) { say('잠시 뒤에 다시 해 주세요.'); return; }
       setMark(b, on);
-      if (kind === 'read') { bump(on ? 1 : -1); refreshAll(); afterReading(json); }
+      if (kind === 'read') {
+        bump(on ? 1 : -1); refreshAll(); afterReading(json);
+        const td = document.querySelector('[data-chapterall] .c');   // "오늘 읽은 절 N"
+        if (td) td.textContent = `오늘 읽은 절 ${Math.max(0, Number(td.textContent.replace(/\D/g, '')) + (on ? 1 : -1))}`;
+      }
       else say(on ? '책갈피에 넣었어요' : '책갈피를 뺐어요');
+    });
+    // 통독 본문 큰 버튼(옛 Bible2, ADR 0072): 이 장 전체 읽음 · 다시 누르면 취소. 절 · 진도가 모두 바뀌므로 다시 불러온다
+    const chAll = document.querySelector('[data-chapterall]');
+    chAll?.addEventListener('click', async () => {
+      if (chAll.disabled) return;
+      const on = chAll.getAttribute('aria-pressed') !== 'true';
+      busy(chAll, true);
+      const { ok } = await call(on ? 'PUT' : 'DELETE', `/api/me/reading/chapters/${chAll.dataset.book}/${chAll.dataset.chapter}`);
+      if (!ok) { busy(chAll, false); say('잠시 뒤에 다시 해 주세요.'); return; }
+      location.reload();
     });
     all?.addEventListener('click', async () => {
       if (all.disabled) return;

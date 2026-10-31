@@ -83,6 +83,16 @@ public sealed class ReadingService(IAppDb db, RequestScope scope, TenantContext 
         return new(true, true, completed ? 0 : await ProgressAsync(ctx, round.RoundNo, ct), completed, next);
     }
 
+    /// <summary>오늘(부서 시간대) 읽음으로 표시한 절 수 — 본문 읽기 큰 버튼의 "오늘 읽은 절 N"(옛 Bible2, ADR 0072).</summary>
+    public async Task<int> TodayVersesAsync(CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var today = clock.Today(tenant.Current.TimeZoneId);
+        var since = Now.AddHours(-36);   // 어느 시간대든 오늘이 이 안에 든다. 나머지는 부서 날짜로 거른다
+        var times = await ctx.RoundVerseReads.Where(v => v.ReadUtc >= since).Select(v => v.ReadUtc).ToListAsync(ct);
+        return times.Count(t => Local(t) == today);
+    }
+
     /// <summary>장 완료 해제: 그 회차의 장 완료와 절 읽음을 지운다. 성경 읽음 표시(0029)는 그대로(R-152 해제 연동 없음).</summary>
     public async Task<ReadingResult> UndoChapterAsync(byte book, short chapter, CancellationToken ct = default)
     {
