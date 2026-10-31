@@ -1,4 +1,6 @@
 @model ChallengeBible.Web.Pages.Reading.ReadingNav
+@inject ChallengeBible.Web.Services.AccountService Accounts
+@using ChallengeBible.Web.Auth
 @* 통독 공통 틀(확정 시안 통독-옛Bible2, 0071): 넓은 화면 = 왼쪽 고정 목차 / 좁은 화면 = ☰ 서랍. 위 줄(☰ · 화면 이름)은 본문 읽기에서 뺀다(머리 안에 ☰) *@
 @{
     var p = Model.Page;
@@ -14,7 +16,11 @@
     ];
     if (!p.Tenant.IsLobby) menu = [.. menu, ($"/{s}/reading/participants", "참여자 현황", "participants")];
     menu = [.. menu, ($"/{s}/reading/rounds", "회차 기록", "rounds")];
+    // 색 테마(ADR 0073): 계정에 남긴 값. 바로 아래 스크립트가 그리기 전에 .rp 에 붙인다(깜빡임 없게)
+    var theme = User.AccountId() is int me ? await Accounts.ReadingThemeAsync(me) : null;
+    (string Key, string Label)[] themes = [("default", "기본"), ("paper", "한지 · 나무"), ("forest", "숲 · 세이지"), ("sand", "모래 · 하늘")];
 }
+<script>document.currentScript.closest('.rp').dataset.theme = '@(theme ?? "default")';</script>
 <div class="b2ov" data-b2close hidden></div>
 <nav class="b2dr" id="b2dr" aria-label="성경 통독 메뉴">
     <div class="b2dr-hd"><a href="/@s/reading">도전!!!성경통독</a><button type="button" class="b2dr-x" data-b2close aria-label="메뉴 닫기">✕</button></div>
@@ -30,6 +36,14 @@
         <a href="@p.ReadUrl(19, 23)">시편<small>23편</small></a>
         <a href="@p.ReadUrl(43, 3)">요한복음<small>3장</small></a>
     </div>
+    <div class="b2lbl">색 테마</div>
+    <div class="b2th" role="group" aria-label="색 테마">
+        @foreach (var (key, label) in themes)
+        {
+            <button type="button" data-theme-pick="@key" aria-pressed="@((theme ?? "default") == key ? "true" : "false")"><i class="sw sw-@key" aria-hidden="true"></i>@label</button>
+        }
+    </div>
+    @Html.AntiForgeryToken()
     <div class="b2ft"><a href="/@s">← 부서 홈으로</a></div>
 </nav>
 @if (!Model.NoTop)
@@ -46,6 +60,22 @@
             else if (e.target.closest('[data-b2close]')) set(false);
         });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') set(false); });
+
+        // 색 테마 고르기(ADR 0073): 누르면 바로 바뀌고 계정에 남긴다
+        dr.addEventListener('click', async (e) => {
+            const b = e.target.closest('[data-theme-pick]');
+            if (!b) return;
+            const key = b.dataset.themePick, root = dr.closest('.rp'), before = root.dataset.theme;
+            root.dataset.theme = key;
+            dr.querySelectorAll('[data-theme-pick]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+            const token = dr.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+            const res = await fetch('/api/me/reading/theme', { method: 'PUT', credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', RequestVerificationToken: token }, body: JSON.stringify({ theme: key }) }).catch(() => null);
+            if (!res?.ok) {   // 못 남겼으면 되돌린다
+                root.dataset.theme = before;
+                dr.querySelectorAll('[data-theme-pick]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.themePick === before)));
+            }
+        });
 
         // 화면 옮길 때(옛 Bible2): 맨 위 진행 줄 + 늦어지면 "잠시만 기다려 주세요 · 이동하고 있어요" 창
         const line = document.createElement('div');

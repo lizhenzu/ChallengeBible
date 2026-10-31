@@ -49,6 +49,8 @@ public sealed class Account
     public bool MustChangePassword { get; set; }
     public int? FamilyTenantId { get; set; }
     public int? LastTenantId { get; set; }
+    /// <summary>통독 화면 색 테마(ADR 0073): null = 기본(파랑) · paper · forest · sand. 계정에 두어 어느 기기에서도 같다.</summary>
+    public string? ReadingTheme { get; set; }
     public string Status { get; set; } = "Active";
     public DateTime CreatedUtc { get; set; }
 }

@@ -44,6 +44,7 @@ internal sealed class AccountConfig : IEntityTypeConfiguration<Account>
         e.Property(x => x.PasswordHash).HasMaxLength(200).IsUnicode(false);
         e.Property(x => x.DisplayName).HasMaxLength(50);
         e.Property(x => x.PhotoPath).HasMaxLength(260);
+        e.Property(x => x.ReadingTheme).HasMaxLength(16).IsUnicode(false);
         e.Property(x => x.Status).HasMaxLength(20).IsUnicode(false);
         e.Property(x => x.CreatedUtc).HasColumnType("datetime2(3)");
         e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.FamilyTenantId).HasConstraintName("FK_Account_FamilyTenant").OnDelete(DeleteBehavior.NoAction);
