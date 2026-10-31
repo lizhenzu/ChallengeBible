@@ -111,16 +111,14 @@
             }
         </div>
 
-        var f = s.Lines[0];
-        var l = s.Lines[^1];
-        var pageRead = s.Lines.Count(x => v.VersesRead.Contains(x.Verse));
-        <button type="button" class="mega@(Model.PageAllRead ? " done" : "")" data-pageall data-sc="@f.Chapter" data-sv="@f.Verse" data-ec="@l.Chapter" data-ev="@l.Verse" data-n="@s.Lines.Count">
+        @* 옛 Bible2 Read(ADR 0072): 큰 버튼 = 이 장 전체 읽음 표시 · 다시 누르면 취소. 안에 "오늘 읽은 절 N" *@
+        <button type="button" class="mega@(v.Done ? " done" : "")" data-chapterall data-book="@Model.Book" data-chapter="@Model.Chapter" aria-pressed="@(v.Done ? "true" : "false")">
             <span class="b">
-                <span class="t" data-megat>@(Model.PageAllRead ? "이 페이지 다 읽었어요" : "이 페이지 읽음으로 표시")</span>
-                <span class="d" data-megad>@(Model.PageAllRead ? "다시 누르면 읽음이 취소돼요" : "넘기기만 해서는 읽음이 되지 않아요")</span>
-                <span class="c num" data-megac>이 페이지 읽은 절 @pageRead / @s.Lines.Count</span>
+                <span class="t">@(v.Done ? "이 장 읽음 표시를 취소할까요?" : "이 장 읽음으로 표시")</span>
+                @if (!v.Done) { <span class="d">누르면 이 장의 모든 절이 읽음이 돼요</span> }
+                <span class="c num">오늘 읽은 절 @Model.TodayVerses</span>
             </span>
-            <em aria-hidden="true">→</em>
+            <em aria-hidden="true">@(v.Done ? "✓" : "→")</em>
         </button>
         <nav class="brd-chnav" aria-label="장 이동">
             @* 옛 Bible2: 책 이름이 늘 붙는다("← 창세기 23장" · "창세기 25장 →") *@

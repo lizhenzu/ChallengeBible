@@ -270,8 +270,12 @@ public class ReadModel(ReadingService reading, TenantContext tenant, BibleTextSe
         if (lines.Count > 0) Notes = BibleNoteService.Place(await notes.ForRangeAsync(range, ct), range, lines);
         DoneChapters = (await Reading.DoneChaptersAsync(ct)).GetValueOrDefault(Book) ?? new HashSet<short>();
         if (Slice.Lines.Count > 0) await Reading.SavePositionAsync(Book, Chapter, Slice.Lines[0].Verse, ct);
+        TodayVerses = await Reading.TodayVersesAsync(ct);
         return Page();
     }
+
+    /// <summary>오늘 읽음으로 표시한 절 수(큰 버튼 "오늘 읽은 절 N", ADR 0072).</summary>
+    public int TodayVerses { get; private set; }
 
     public int ReadPercent => View.VerseCount == 0 ? 0 : (int)Math.Round(View.VersesRead.Count * 100.0 / View.VerseCount);
     public bool PageAllRead => Slice.Lines.Count > 0 && Slice.Lines.All(l => View.VersesRead.Contains(l.Verse));

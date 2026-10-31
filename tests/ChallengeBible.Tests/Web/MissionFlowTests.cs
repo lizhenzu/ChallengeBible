@@ -59,9 +59,9 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     /// <summary>미션 화면의 위조 방지 토큰을 API 헤더로.</summary>
     private static async Task<string> PageToken(HttpClient c, string url) => TokenRx().Match(await c.GetStringAsync(url)).Groups[1].Value;
 
-    private static async Task<HttpResponseMessage> Api(HttpClient c, string token, string path, object body)
+    private static async Task<HttpResponseMessage> Api(HttpClient c, string token, string path, object? body, HttpMethod? method = null)
     {
-        var req = new HttpRequestMessage(HttpMethod.Post, path) { Content = JsonContent.Create(body) };
+        var req = new HttpRequestMessage(method ?? HttpMethod.Post, path) { Content = body is null ? null : JsonContent.Create(body) };
         req.Headers.Add("RequestVerificationToken", token);
         return await c.SendAsync(req);
     }
@@ -233,6 +233,25 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("class=\"nx\" href=\"/jamsil-kids/reading/read/1/25\">창세기 25장", read);   // 이전 · 다음 장에 책 이름이 늘 붙는다
         Assert.Contains("data-api=\"reading\"", read);
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/jamsil-kids/reading/read/1/51")).StatusCode);
+    }
+
+    [Fact]
+    public async Task 통독_본문_큰_버튼은_이_장_전체_읽음이고_오늘_읽은_절을_센다_0072()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var read = await c.GetStringAsync("/jamsil-kids/reading/read/1/24");
+        Assert.Contains("data-chapterall data-book=\"1\" data-chapter=\"24\" aria-pressed=\"false\"", read);
+        Assert.Contains("이 장 읽음으로 표시", read);
+        Assert.Contains("오늘 읽은 절 0", read);
+        Assert.DoesNotContain("data-pageall", read);                                    // 페이지 단위 버튼은 통독 본문에서 없어짐
+
+        var token = TokenRx().Match(read).Groups[1].Value;
+        Assert.Equal(HttpStatusCode.OK, (await Api(c, token, "/api/me/reading/chapters/1/24", null, HttpMethod.Put)).StatusCode);
+        read = await c.GetStringAsync("/jamsil-kids/reading/read/1/24");
+        Assert.Contains("aria-pressed=\"true\"", read);
+        Assert.Contains("이 장 읽음 표시를 취소할까요?", read);
+        Assert.Contains("오늘 읽은 절 9", read);                                         // 창세기 24장 시험 본문 9절이 오늘 읽음
+        Assert.Contains("data-donebanner role=\"status\" >이 장을 다 읽었어요", read);
     }
 
     [Fact]
