@@ -154,9 +154,11 @@
       return { ok: res.ok, json: await res.json().catch(() => ({})) };
     };
     const doneFlag = document.querySelector('[data-chapterdone]');
+    const doneBanner = document.querySelector('[data-donebanner]');   // 옛 Bible2: 맨 위 "이 장을 다 읽었어요" 띠
     const afterReading = (json) => {
       if (!reading) return;
       if (doneFlag) doneFlag.hidden = !json.chapterDone;
+      if (doneBanner) doneBanner.hidden = !json.chapterDone;
       if (json.roundCompleted) say(`성경을 다 읽었어요! ${json.newRoundNo}회차를 시작해요`);
       else if (json.chapterDone) say(`${chapter}장을 다 읽었어요`);
     };

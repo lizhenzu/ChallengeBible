@@ -42,6 +42,7 @@
     </div>
 </div></header>
 <main class="b2ri" data-slug="@Model.Slug">
+    <div class="b2done" data-donebanner role="status" @(v.Done ? "" : "hidden")>이 장을 다 읽었어요</div>   @* 옛 Bible2: 장을 다 읽으면 맨 위 띠 *@
     <nav class="b2chs" aria-label="장 번호">
         @for (short c = 1; c <= Model.ChapterCount; c++)
         {
@@ -65,6 +66,15 @@
     }
     else
     {
+        @* 옛 Bible2: 쪽 이동(‹ 이전 / 다음 ›)은 절 목록 위 *@
+        @if (s.Pages > 1)
+        {
+            <nav class="brd-pager" aria-label="쪽 이동">
+                @if (s.Page > 1) { <a href="@Model.Url(page: s.Page - 1)">◀ 이전</a> } else { <span class="off">◀ 이전</span> }
+                <span class="num">@(s.First)–@(s.Last)절 / @s.Total</span>
+                @if (s.Page < s.Pages) { <a href="@Model.Url(page: s.Page + 1)">다음 ▶</a> } else { <span class="off">다음 ▶</span> }
+            </nav>
+        }
         <div class="rdv brd-verses" data-book="@Model.Book" data-chapter="@Model.Chapter" data-api="reading">
             @foreach (var line in s.Lines)
             {
@@ -101,15 +111,6 @@
             }
         </div>
 
-        @if (s.Pages > 1)
-        {
-            <nav class="brd-pager" aria-label="쪽 이동">
-                @if (s.Page > 1) { <a href="@Model.Url(page: s.Page - 1)">◀ 이전</a> } else { <span class="off">◀ 이전</span> }
-                <span class="num">@(s.First)–@(s.Last)절 / @s.Total</span>
-                @if (s.Page < s.Pages) { <a href="@Model.Url(page: s.Page + 1)">다음 ▶</a> } else { <span class="off">다음 ▶</span> }
-            </nav>
-        }
-
         var f = s.Lines[0];
         var l = s.Lines[^1];
         var pageRead = s.Lines.Count(x => v.VersesRead.Contains(x.Verse));
@@ -122,8 +123,9 @@
             <em aria-hidden="true">→</em>
         </button>
         <nav class="brd-chnav" aria-label="장 이동">
-            @if (prev is { } pv) { <a href="@Model.ReadUrl(pv.Book, pv.Chapter)">◀ @(pv.Book == Model.Book ? "" : ReadingPageBase.BookName(pv.Book) + " ")@(pv.Chapter)장</a> } else { <span></span> }
-            <a href="@Model.ReadUrl(next.Book, next.Chapter)">@(next.Book == Model.Book ? "" : ReadingPageBase.BookName(next.Book) + " ")@(next.Chapter)장 ▶</a>
+            @* 옛 Bible2: 책 이름이 늘 붙는다("← 창세기 23장" · "창세기 25장 →") *@
+            @if (prev is { } pv) { <a href="@Model.ReadUrl(pv.Book, pv.Chapter)">◀ @ReadingPageBase.BookName(pv.Book) @(pv.Chapter)@(pv.Book == 19 ? "편" : "장")</a> } else { <span></span> }
+            <a class="nx" href="@Model.ReadUrl(next.Book, next.Chapter)">@ReadingPageBase.BookName(next.Book) @(next.Chapter)@(next.Book == 19 ? "편" : "장") ▶</a>
         </nav>
         <p class="brd-note">통독에는 점수가 없어요. 장의 모든 절을 읽음으로 표시하면 그 장이 다 읽은 장이 돼요.</p>
     }
