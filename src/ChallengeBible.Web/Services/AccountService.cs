@@ -144,6 +144,28 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
         return (n, errors);
     }
 
+    /// <summary>통독 색 테마(ADR 0073): 기본(null) 밖에 고를 수 있는 키.</summary>
+    public static readonly string[] ReadingThemes = ["paper", "forest", "sand"];
+
+    /// <summary>내 통독 테마(없으면 null = 기본).</summary>
+    public async Task<string?> ReadingThemeAsync(int accountId, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        return await ctx.Accounts.Where(a => a.Id == accountId).Select(a => a.ReadingTheme).SingleOrDefaultAsync(ct);
+    }
+
+    /// <summary>통독 테마 바꾸기. "default" · 빈 값 = 기본. 모르는 키면 false.</summary>
+    public async Task<bool> SetReadingThemeAsync(int accountId, string? theme, CancellationToken ct = default)
+    {
+        var t = string.IsNullOrWhiteSpace(theme) || theme == "default" ? null : theme;
+        if (t is not null && !ReadingThemes.Contains(t)) return false;
+        await using var ctx = db.Create();
+        var account = await ctx.Accounts.SingleAsync(a => a.Id == accountId, ct);
+        account.ReadingTheme = t;
+        await ctx.SaveChangesAsync(ct);
+        return true;
+    }
+
     /// <summary>내 계정 화면용: 이름 · 이메일 · 가입한 날(UTC).</summary>
     public async Task<(string Name, string Email, DateTime CreatedUtc)> ProfileAsync(int accountId, CancellationToken ct = default)
     {

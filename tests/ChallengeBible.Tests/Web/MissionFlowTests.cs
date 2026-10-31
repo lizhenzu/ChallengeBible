@@ -236,6 +236,23 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task 통독_색_테마는_계정에_남고_모든_통독_화면에_붙는다_0073()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var dash = await c.GetStringAsync("/jamsil-kids/reading");
+        Assert.Contains("dataset.theme = 'default'", dash);
+        Assert.Contains("data-theme-pick=\"forest\" aria-pressed=\"false\"", dash);
+        var token = TokenRx().Match(dash).Groups[1].Value;
+        Assert.Equal(HttpStatusCode.OK, (await Api(c, token, "/api/me/reading/theme", new { theme = "forest" }, HttpMethod.Put)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await Api(c, token, "/api/me/reading/theme", new { theme = "neon" }, HttpMethod.Put)).StatusCode);
+        foreach (var url in new[] { "/jamsil-kids/reading", "/jamsil-kids/reading/list", "/jamsil-kids/reading/read/1/24", "/jamsil-kids/reading/rounds" })
+            Assert.Contains("dataset.theme = 'forest'", await c.GetStringAsync(url));
+        Assert.Contains("data-theme-pick=\"forest\" aria-pressed=\"true\"", await c.GetStringAsync("/jamsil-kids/reading/search"));
+        await Api(c, token, "/api/me/reading/theme", new { theme = "default" }, HttpMethod.Put);
+        Assert.Contains("dataset.theme = 'default'", await c.GetStringAsync("/jamsil-kids/reading"));
+    }
+
+    [Fact]
     public async Task 통독_본문_큰_버튼은_이_장_전체_읽음이고_오늘_읽은_절을_센다_0072()
     {
         var c = await Member("cheolsu", Roles.Participant);

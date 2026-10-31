@@ -66,6 +66,11 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasMaxLength(260)
                         .HasColumnType("nvarchar(260)");
 
+                    b.Property<string>("ReadingTheme")
+                        .HasMaxLength(16)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(16)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)

@@ -1,8 +1,10 @@
+using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 
 namespace ChallengeBible.Web.Api;
 
 public sealed record PositionRequest(short Verse);
+public sealed record ThemeRequest(string? Theme);
 
 /// <summary>
 /// 도전!!!성경통독 — 계정 범위 JSON API(API 계약 5-3b, 0040 · 0042). 켜기 PUT · 끄기 DELETE(X-17), 로그인 + 위조 방지 토큰.
@@ -31,6 +33,12 @@ public static class ReadingApi
             await s.SavePositionAsync(book, chapter, r.Verse, ct) ? Results.Ok(new { ok = true }) : NotFound());
 
         g.MapPost("/rounds", async (ReadingService s, CancellationToken ct) => Results.Ok(new { ok = true, roundNo = await s.StartNewRoundAsync(ct) }));
+
+        // 통독 색 테마(ADR 0073): 계정에 남긴다. "default" 또는 빈 값 = 기본(파랑)
+        g.MapPut("/theme", async (ThemeRequest r, AccountService s, HttpContext h, CancellationToken ct) =>
+            await s.SetReadingThemeAsync(h.User.AccountId()!.Value, r.Theme, ct)
+                ? Results.Ok(new { ok = true })
+                : Results.BadRequest(new { code = "BadTheme", message = "없는 테마예요." }));
     }
 
     private static IResult Reply(ReadingResult r) => r.Ok
