@@ -46,5 +46,24 @@
             else if (e.target.closest('[data-b2close]')) set(false);
         });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') set(false); });
+
+        // 화면 옮길 때(옛 Bible2): 맨 위 진행 줄 + 늦어지면 "잠시만 기다려 주세요 · 이동하고 있어요" 창
+        const line = document.createElement('div');
+        line.className = 'b2line'; line.setAttribute('aria-hidden', 'true'); line.innerHTML = '<i></i>';
+        const wait = document.createElement('div');
+        wait.className = 'b2wait'; wait.setAttribute('role', 'status'); wait.setAttribute('aria-live', 'polite');
+        wait.innerHTML = '<div class="card"><div class="sp" aria-hidden="true"></div><div class="t">잠시만 기다려 주세요</div><div class="s">이동하고 있어요</div></div>';
+        document.body.append(line, wait);
+        let timer;
+        const reset = () => { clearTimeout(timer); line.classList.remove('on'); wait.classList.remove('on'); };
+        addEventListener('pageshow', reset);   // 뒤로 가기로 돌아왔을 때
+        document.addEventListener('click', (e) => {
+            const a = e.target.closest('a[href]');
+            if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || a.target === '_blank' || a.hasAttribute('download')) return;
+            const u = new URL(a.href, location.href);
+            if (u.origin !== location.origin || (u.pathname === location.pathname && u.search === location.search)) return;
+            line.classList.add('on');
+            timer = setTimeout(() => wait.classList.add('on'), 500);
+        });
     })();
 </script>

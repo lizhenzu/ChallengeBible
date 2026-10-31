@@ -76,8 +76,15 @@
             else
             {
                 <ul class="rp-res">
+                    @{ byte lastBook = 0; }
                     @foreach (var h in r.Hits)
                     {
+                        @if (h.BookId != lastBook)
+                        {
+                            lastBook = h.BookId;
+                            @* 옛 Bible2 Search: 결과를 책별 머리글("창세기 12개")로 묶는다 *@
+                            <li class="bookh">@ReadingPageBase.BookName(h.BookId)<small class="num">@(r.Books.FirstOrDefault(x => x.BookId == h.BookId).Count)개</small></li>
+                        }
                         <li>
                             <div class="ref"><a href="@Model.ReadUrl(h.BookId, h.Chapter, h.Verse)">@ReadingPageBase.BookName(h.BookId) @(h.Chapter):@(h.Verse)</a><small>본문으로 →</small></div>
                             @foreach (var code in Model.Shown)

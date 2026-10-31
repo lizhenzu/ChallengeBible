@@ -74,5 +74,20 @@
 </main></div>
 </div>
 @Html.AntiForgeryToken()
+<script>
+    // 옛 Bible2 List: 장 번호 칸은 누른 책이 있는 줄의 끝(맨 오른쪽 칸 뒤)에서 펼쳐진다 — 그 줄이 끊기지 않게 옮긴다
+    (() => {
+        const grid = document.querySelector('.lbooks'), panel = grid?.querySelector('.rp-panel');
+        const sel = grid?.querySelector('a.sel');
+        if (!panel || !sel) return;
+        const cells = [...grid.querySelectorAll(':scope > a')];
+        let last = sel;
+        for (let i = cells.indexOf(sel) + 1; i < cells.length; i++) {
+            if (cells[i].offsetTop !== sel.offsetTop) break;
+            last = cells[i];
+        }
+        last.after(panel);
+    })();
+</script>
 <p id="toast" class="toast" role="status" hidden></p>
 <script src="~/js/reading.js" asp-append-version="true"></script>
