@@ -1,4 +1,4 @@
-﻿BEGIN TRANSACTION;
+BEGIN TRANSACTION;
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
     WHERE [MigrationId] = N'20261031003613_ReadingTheme'
@@ -17,5 +17,4 @@ BEGIN
 END;
 
 COMMIT;
-GO
 
