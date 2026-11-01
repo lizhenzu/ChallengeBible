@@ -241,6 +241,13 @@ body:has(.rp[data-theme]) { background: var(--bg); }
 .b2r .b2chs .done { background: var(--r-accSoft); border-color: var(--r-l2); color: var(--r-acc); }
 .b2r .b2chs .cur { background: var(--r-acc); border-color: var(--r-acc); color: #fff; font-weight: 900; }
 .b2r .b2sheet { display: grid; gap: 6px; margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: var(--r-band); }
+/* 설정 판 버튼: 판과 바탕이 겹쳐 경계가 묻히지 않게, 페이지 바탕 + 그림자로 띄운다(어느 테마에서도) */
+.b2r .b2sheet .brd-pills a:not([aria-current="true"]), .b2r .b2sheet .bmd button {
+  background: var(--bg); border-color: transparent; color: var(--r-ink, var(--b-ink));
+  box-shadow: 0 1px 3px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.06); }
+@media (prefers-color-scheme: dark) {
+  .b2r .b2sheet .brd-pills a:not([aria-current="true"]), .b2r .b2sheet .bmd button { box-shadow: 0 1px 3px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.1); } }
+.b2r .b2sheet .bmd { padding: 2px 2px 4px; }
 .b2r .b2btm { display: flex; gap: 6px; margin-top: 18px; }
 .b2r .b2btm a { flex: 1; padding: 11px 0; text-align: center; border: 1px solid var(--r-rule); border-radius: 12px; font-size: 13.5px; color: var(--r-dim); }
 
