@@ -236,7 +236,7 @@ body:has(.rp[data-theme]) { background: var(--bg); }
 .b2r .b2done { margin-top: 12px; padding: 10px 14px; border-radius: 10px; background: var(--r-accSoft); color: var(--r-acc); font-size: 14px; font-weight: 800; text-align: center; }
 .b2r .b2done[hidden] { display: none; }
 .b2r .brd-chnav .nx { background: var(--r-band); font-weight: 800; }
-.b2r .b2chs { display: flex; gap: 4px; overflow-x: auto; padding: 12px 0; border-bottom: 1px solid var(--r-rule); scrollbar-width: none; }
+.b2r .b2chs { display: flex; flex-wrap: wrap; gap: 4px; padding: 12px 0; border-bottom: 1px solid var(--r-rule); }
 .b2r .b2chs a { flex: none; min-width: 38px; height: 34px; display: grid; place-items: center; border: 1px solid var(--r-rule); border-radius: 8px; font-size: 13px; color: var(--r-ink); }
 .b2r .b2chs .done { background: var(--r-accSoft); border-color: var(--r-l2); color: var(--r-acc); }
 .b2r .b2chs .cur { background: var(--r-acc); border-color: var(--r-acc); color: #fff; font-weight: 900; }
