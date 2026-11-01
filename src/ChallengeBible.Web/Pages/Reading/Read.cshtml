@@ -49,7 +49,6 @@
             <a class="@(c == Model.Chapter ? "cur" : Model.DoneChapters.Contains(c) ? "done" : "")" href="@Model.ReadUrl(Model.Book, c)" aria-current="@(c == Model.Chapter ? "page" : "false")">@c</a>
         }
     </nav>
-    <script>document.querySelector('.b2chs .cur')?.scrollIntoView({ block: 'nearest', inline: 'center' });   // 지금 장이 줄 가운데 보이게</script>
     <section class="b2sheet" aria-label="읽기 설정">
         <div class="brd-lbl">읽기 단위</div>
         <div class="brd-pills">@foreach (var (label, u) in units) { <a href="@Model.Url(unit: u)" aria-current="@(Model.Unit == u ? "true" : "false")">@label</a> }</div>
