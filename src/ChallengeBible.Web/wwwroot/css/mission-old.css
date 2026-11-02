@@ -5,6 +5,8 @@ body:has(.mbody) {
   --bg: #FFFFFF; --fg: #111827; --dim: #9CA3AF; --dim2: #6B7280; --rule: #EEF0F3; --line: #EEF0F3; --soft: #F4F6F9;
   --accent: #2F80ED; --accent-bg: #EAF2FD; --no: #7FA3DB; --green: #16A34A; --green-no: #6FBF8B; --pickbg: #EAF7EF; --pickbg-press: #DDF1E4;
   --ok-bg: #EAF7EF; --bad: #E5484D; --bad-bg: #FDEEF0;
+  /* 파란 강조의 진한 · 옅은 단계 — 색 테마(0074)가 덮어쓴다 */
+  --acc2: #1D5FBF; --acc-mid: #3B6EA8; --acc-l1: #93B9F2; --acc-l0: #D6E4FA; --acc-faint: #F3F7FD;
   background: #FFFFFF; color: #374151; color-scheme: light;
   font-family: "Gothic A1", "Malgun Gothic", system-ui, sans-serif;
 }
@@ -20,19 +22,19 @@ body:has(.mbody) .fs button { color: #5C5F66; }
 
 /* 제목: 오늘의 ○○(파란 작은 글자) → 달력 쪽지 + 큰 제목 · 범위 */
 body:has(.mbody) .mhead .wrap { padding-block: 0; gap: 0; }
-body:has(.mbody) .mhead .k { margin-top: 18px; font-size: 12px; font-weight: 800; letter-spacing: .02em; color: #2F80ED; }
+body:has(.mbody) .mhead .k { margin-top: 18px; font-size: 12px; font-weight: 800; letter-spacing: .02em; color: var(--accent); }
 body:has(.mbody) .mhead .ttl { margin-top: 10px; gap: 14px; align-items: flex-start; }
 body:has(.mbody) .cal { width: 60px; margin-top: 4px; border: 1px solid #E2E0DB; border-radius: 0; background: #fff; }
 body:has(.mbody) .cal .m { font-family: "Inter", system-ui, sans-serif; font-size: 10px; letter-spacing: .08em; background: #16181C; color: #F7F6F3; padding: 3px 0; }
 body:has(.mbody) .cal .d { font-family: "Inter", system-ui, sans-serif; font-weight: 300; font-size: 26px; line-height: 1.1; padding-top: 3px; color: #16181C; }
 body:has(.mbody) .cal .w { font-size: 10.5px; font-weight: 600; color: #9A7B4F; padding-bottom: 5px; }
 body:has(.mbody) .cal .w.sun { color: #B4531F; }
-body:has(.mbody) .cal .w.sat { color: #3B6EA8; }
+body:has(.mbody) .cal .w.sat { color: var(--acc-mid); }
 body:has(.mbody) .mhead h1 { margin: 0; font-size: calc(23px * var(--fs)); font-weight: 800; line-height: 1.35; letter-spacing: -.02em; color: #111827; }
 body:has(.mbody) .mhead h1 .en { font-weight: 600; color: #6B7280; }
 body:has(.mbody) .mhead .ref { font-size: calc(13px * var(--fs)); color: #6B7280; margin-top: 4px; }
-body:has(.mbody) .note-day, body:has(.mbody) .note-block { margin-top: 14px; border-radius: 0; padding: 10px 12px; background: #F3F7FD; color: #6B7280; font-weight: 400; font-size: 12.5px; }
-body:has(.mbody) .note-day a { color: #2F80ED; }
+body:has(.mbody) .note-day, body:has(.mbody) .note-block { margin-top: 14px; border-radius: 0; padding: 10px 12px; background: var(--acc-faint); color: #6B7280; font-weight: 400; font-size: 12.5px; }
+body:has(.mbody) .note-day a { color: var(--accent); }
 
 /* 01 · 02 · 03 칸 — 카드 · 테두리 없이 연한 회색 줄로만 */
 body:has(.mbody) .mbody .wrap { padding-block: 26px 0; }
@@ -46,14 +48,14 @@ body:has(.mbody) .mbody .empty { margin-top: 0; padding: 26px 0; color: #6B7280;
 
 /* 말씀: 오늘 이야기(앞 3줄 + 이야기 더 보기) · 성경 읽기(파란 밑줄 글자) */
 body:has(.mbody) .story { font-size: calc(15.5px * var(--fs)); line-height: 1.9; color: #374151; white-space: pre-line; }
-body:has(.mbody) .more { margin-top: -4px; padding: 4px 0; min-height: 0; font-size: 12.5px; font-weight: 700; color: #2F80ED; }
-body:has(.mbody) .wlnk { margin-top: 2px; font-size: calc(15.5px * var(--fs)); color: #2F80ED; border-bottom-color: #2F80ED; text-decoration: none; }
+body:has(.mbody) .more { margin-top: -4px; padding: 4px 0; min-height: 0; font-size: 12.5px; font-weight: 700; color: var(--accent); }
+body:has(.mbody) .wlnk { margin-top: 2px; font-size: calc(15.5px * var(--fs)); color: var(--accent); border-bottom-color: var(--accent); text-decoration: none; }
 body:has(.mbody) .wlnk em { font-size: 17px; }
 
 /* 어떻게 읽었나요? · 누구를 위해 기도했나요? · 외웠나요? — 연한 초록 줄, 한 것은 회색 + "✓ 완료 +N점" */
 body:has(.mbody) .pick { min-height: 0; padding: 13px 14px; background: #EAF7EF; }
 body:has(.mbody) .pick b { font-size: calc(15.5px * var(--fs)); color: #1F2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-body:has(.mbody) .pick .pt { font-size: 12.5px; color: #2F80ED; }
+body:has(.mbody) .pick .pt { font-size: 12.5px; color: var(--accent); }
 body:has(.mbody) .pick[aria-pressed="true"] { background: #F4F6F9; }
 body:has(.mbody) .pick[aria-pressed="true"] b { color: #6B7280; }
 body:has(.mbody) .pick[aria-pressed="true"] .pt { color: #15803D; }
@@ -63,11 +65,11 @@ body:has(.mbody) .pnote { font-size: 12px; color: #9CA3AF; }
 /* 기도: 본문(접힘, 절 번호 흐린 파랑) · 기도문(크게, 이름은 연한 노랑 밑줄) */
 body:has(.mbody) .vlines { gap: 4px; padding-top: 4px; }
 body:has(.mbody) .vlines p { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 6px; font-size: calc(14.5px * var(--fs)); line-height: 1.85; color: #6B7280; }
-body:has(.mbody) .vlines .num { margin: 0; padding-top: 4px; font-size: 11px; font-weight: 800; color: #7FA3DB; text-align: right; vertical-align: baseline; }
-body:has(.mbody) .rdmore { color: #2F80ED; font-size: 12.5px; }
+body:has(.mbody) .vlines .num { margin: 0; padding-top: 4px; font-size: 11px; font-weight: 800; color: var(--no); text-align: right; vertical-align: baseline; }
+body:has(.mbody) .rdmore { color: var(--accent); font-size: 12.5px; }
 body:has(.mbody) .story.pray { margin-top: 0; font-size: calc(17px * var(--fs)); line-height: 2.05; color: #1F2937; }
 body:has(.mbody) .story.pray + .story.pray { margin-top: 2px; }
-body:has(.mbody) .story .nm { color: #1D5FBF; font-weight: 800; background: linear-gradient(transparent 62%, #FFF1BF 62%); padding: 0 2px; }
+body:has(.mbody) .story .nm { color: var(--acc2); font-weight: 800; background: linear-gradient(transparent 62%, #FFF1BF 62%); padding: 0 2px; }
 /* ○○ 는 이 화면 글꼴(Gothic A1 · 휴대폰 기본)에서 작게 나와서, 예전처럼 Noto Sans KR 의 큰 동그라미로 */
 .story .nm i { font-style: normal; font-family: "Noto Sans KR", "Malgun Gothic", sans-serif; letter-spacing: .02em; }
 
@@ -77,12 +79,12 @@ body:has(.mbody) .qq { font-size: calc(18px * var(--fs)); line-height: 1.6; colo
 body:has(.mbody) .qopts { margin-top: 4px; }
 body:has(.mbody) .qopt { background: #F4F6F9; box-shadow: none; }
 body:has(.mbody) .qopt:active { background: #E9EDF3; }
-body:has(.mbody) .qopt i { color: #7FA3DB; }
+body:has(.mbody) .qopt i { color: var(--no); }
 body:has(.mbody) .qopt .t { font-size: calc(15.5px * var(--fs)); color: #1F2937; }
 body:has(.mbody) .qopt .t small { font-size: 11.5px; }
-body:has(.mbody) .qopt.sel { background: #EAF2FD; box-shadow: none; }
-body:has(.mbody) .qopt.sel .t { color: #1D5FBF; }
-body:has(.mbody) .qopt.sel i { color: #2F80ED; }
+body:has(.mbody) .qopt.sel { background: var(--accent-bg); box-shadow: none; }
+body:has(.mbody) .qopt.sel .t { color: var(--acc2); }
+body:has(.mbody) .qopt.sel i { color: var(--accent); }
 body:has(.mbody) .qopt.ans { background: #EAF7EF; }
 body:has(.mbody) .qopt.ans .t { color: #15803D; }
 body:has(.mbody) .qopt.ans i, body:has(.mbody) .qopt.ans small { color: #16A34A; }
@@ -90,35 +92,35 @@ body:has(.mbody) .qopt.bad { background: #FDEEF0; }
 body:has(.mbody) .qopt.bad .t { color: #B42318; }
 body:has(.mbody) .qopt.bad i, body:has(.mbody) .qopt.bad small { color: #E5484D; }
 body:has(.mbody) .qtext { margin-top: 4px; min-height: 0; padding: 14px; border: 0; border-radius: 14px; background: #F4F6F9; font-size: 16px; color: #111827; }
-body:has(.mbody) .qtext:focus { background: #EAF2FD; box-shadow: inset 0 0 0 2px #2F80ED; outline: 0; }
+body:has(.mbody) .qtext:focus { background: var(--accent-bg); box-shadow: inset 0 0 0 2px var(--accent); outline: 0; }
 body:has(.mbody) .qhint { margin-top: -2px; padding: 10px 12px; border-radius: 12px; background: #F9FAFB; font-size: calc(14px * var(--fs)); line-height: 1.75; color: #374151; white-space: pre-line; word-break: keep-all; }
 body:has(.mbody) .qhint[hidden] { display: none; }
 body:has(.mbody) .msg { font-size: 12.5px; color: #6B7280; }
 body:has(.mbody) .msg:empty { display: none; }
 body:has(.mbody) .msg.ok { color: #16A34A; }
-body:has(.mbody) .qgo { margin-top: 6px; min-height: 0; font-size: calc(15.5px * var(--fs)); color: #2F80ED; border-bottom-color: #2F80ED; }
+body:has(.mbody) .qgo { margin-top: 6px; min-height: 0; font-size: calc(15.5px * var(--fs)); color: var(--accent); border-bottom-color: var(--accent); }
 body:has(.mbody) .qgo em { font-size: 17px; }
 body:has(.mbody) .qgo:disabled { color: #C4C9D2; border-bottom-color: #E5E7EB; opacity: 1; }
 
 /* 암송: 외울 구절(가장 크고 진하게) · 공과 요점(접힘, 왼쪽 파란 선) */
 body:has(.mbody) .rverse { gap: 0; margin-top: 2px; }
 body:has(.mbody) .rverse p { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 6px; font-size: calc(19px * var(--fs)); line-height: 1.95; font-weight: 700; color: #1F2937; }
-body:has(.mbody) .rverse i { padding-top: 7px; font-size: 12px; font-weight: 800; color: #7FA3DB; text-align: right; }
+body:has(.mbody) .rverse i { padding-top: 7px; font-size: 12px; font-weight: 800; color: var(--no); text-align: right; }
 body:has(.mbody) .story.big { font-size: calc(19px * var(--fs)); font-weight: 700; color: #1F2937; }
 body:has(.mbody) .gls { gap: 12px; }
-body:has(.mbody) .gls p { padding-left: 12px; border-left: 3px solid #D6E4FA; font-size: calc(15px * var(--fs)); line-height: 1.85; color: #374151; white-space: pre-line; }
-body:has(.mbody) .gls b { margin-bottom: 2px; font-size: 12px; color: #7FA3DB; letter-spacing: .02em; }
+body:has(.mbody) .gls p { padding-left: 12px; border-left: 3px solid var(--acc-l0); font-size: calc(15px * var(--fs)); line-height: 1.85; color: #374151; white-space: pre-line; }
+body:has(.mbody) .gls b { margin-bottom: 2px; font-size: 12px; color: var(--no); letter-spacing: .02em; }
 
 /* 아래 미션 탭 — 따라다니지 않고 맨 끝에, 흰 바탕 · 지금 화면은 파란 윗줄 · 끝낸 미션은 초록 글자 */
 body:has(.mbody) .mnav { position: static; max-width: 680px; margin: 24px auto 0; background: #FFFFFF; border-top: 1px solid #E5E7EB; }
 body:has(.mbody) .mnav a { min-height: 0; padding: 11px 2px 13px; color: #9CA3AF; }
-body:has(.mbody) .mnav a[aria-current="page"]::before { top: -1px; left: 0; right: 0; height: 2px; border-radius: 0; background: #2F80ED; }
+body:has(.mbody) .mnav a[aria-current="page"]::before { top: -1px; left: 0; right: 0; height: 2px; border-radius: 0; background: var(--accent); }
 body:has(.mbody) .mnav .L { font-size: 15px; font-weight: 800; }
 body:has(.mbody) .mnav .S { font-size: 11.5px; font-weight: 600; margin-top: 3px; color: #C4C9D2; }
 body:has(.mbody) .mnav .S.done { color: #6FBF8B; }
 body:has(.mbody) .mnav a.dn .L { color: #16A34A; }
 body:has(.mbody) .mnav a[aria-current="page"] .L { color: #111827; }
-body:has(.mbody) .mnav a[aria-current="page"] .S:not(.done) { color: #2F80ED; }
+body:has(.mbody) .mnav a[aria-current="page"] .S:not(.done) { color: var(--accent); }
 body:has(.mbody) .toast { bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
 
 /* 미션 완료 안내 창 — 확정 시안 미션완료안내 ②안 "새 카드"(2026-10-31). 10초 뒤 저절로 닫힘(mission.js okPopup) */
@@ -127,14 +129,14 @@ body:has(.mbody) .toast { bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 .okpop .seal { width: 76px; height: 76px; margin: 0 auto; border-radius: 50%; border: 3px solid #16A34A; background: #F0FAF3; color: #16A34A; display: grid; place-items: center; font-weight: 900; font-size: 15px; line-height: 1.15; transform: rotate(-8deg); }
 .okpop .what { margin-top: 14px; font-size: 13px; color: #6B7280; }
 .okpop h2 { margin: 4px 0 0; font-size: 21px; font-weight: 900; color: #111827; word-break: keep-all; }
-.okpop .pill { display: inline-block; margin-top: 10px; padding: 4px 14px; border-radius: 99px; background: #EAF2FD; color: #2F80ED; font-weight: 900; font-size: 15px; }
+.okpop .pill { display: inline-block; margin-top: 10px; padding: 4px 14px; border-radius: 99px; background: var(--accent-bg); color: var(--accent); font-weight: 900; font-size: 15px; }
 .okpop .tot { margin-top: 16px; padding-top: 14px; border-top: 1px solid #EEF0F3; font-size: 13px; color: #6B7280; }
-.okpop .tot b { display: block; margin-top: 2px; font-size: 34px; font-weight: 300; color: #2F80ED; font-variant-numeric: tabular-nums; }
+.okpop .tot b { display: block; margin-top: 2px; font-size: 34px; font-weight: 300; color: var(--accent); font-variant-numeric: tabular-nums; }
 .okpop .tot b u { text-decoration: none; font-size: 15px; color: #6B7280; margin-left: 2px; }
-.okpop-close { width: 100%; margin-top: 16px; min-height: 50px; border: 0; border-radius: 14px; background: #2F80ED; color: #fff; font: inherit; font-size: 16px; font-weight: 900; cursor: pointer; }
-.okpop-close:focus-visible { outline: 3px solid #93B9F2; outline-offset: 2px; }
+.okpop-close { width: 100%; margin-top: 16px; min-height: 50px; border: 0; border-radius: 14px; background: var(--accent); color: #fff; font: inherit; font-size: 16px; font-weight: 900; cursor: pointer; }
+.okpop-close:focus-visible { outline: 3px solid var(--acc-l1); outline-offset: 2px; }
 .okpop .bar { margin-top: 12px; height: 4px; border-radius: 99px; background: #EEF0F3; overflow: hidden; }
-.okpop .bar i { display: block; height: 100%; width: 100%; background: #93B9F2; transition-property: width; transition-timing-function: linear; }
+.okpop .bar i { display: block; height: 100%; width: 100%; background: var(--acc-l1); transition-property: width; transition-timing-function: linear; }
 .okpop .cd { margin-top: 6px; font-size: 11.5px; color: #9CA3AF; }
 @media (prefers-reduced-motion: reduce) { .okpop .bar i { transition: none; } }
 
@@ -149,4 +151,4 @@ body:has(.mbody) .uhint[hidden] { display: none; }
 .okpop.undo .bt { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
 .okpop.undo .bt button { min-height: 48px; border-radius: 14px; border: 1px solid #E5E7EB; background: #F8FAFC; color: #374151; font: inherit; font-size: 15px; font-weight: 900; cursor: pointer; }
 .okpop.undo .bt button.no { background: #DC2626; border-color: #DC2626; color: #fff; }
-.okpop.undo .bt button:focus-visible { outline: 3px solid #93B9F2; outline-offset: 2px; }
+.okpop.undo .bt button:focus-visible { outline: 3px solid var(--acc-l1); outline-offset: 2px; }

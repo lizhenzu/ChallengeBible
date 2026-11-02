@@ -1719,7 +1719,11 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
   :root[data-mtheme="sand"]:has(.hm) { --m-bg: #171B1C; --m-band: #1F2526; --m-rule: #2E3638; --m-ink: #E5EAEA; --m-dim: #9EAAAC; --m-acc: #7CC0CB; --m-accbg: #1F3539; --m-l2: #4F8A92; --m-verse: #242B2C; --m-gold: #EBD08F; } }
 :root[data-mtheme]:has(.hm) { --bg: var(--m-bg); --fg: var(--m-ink); --dim: var(--m-dim); --rule: var(--m-rule); --soft: var(--m-band); --accent: var(--m-acc); --accent-bg: var(--m-accbg); }
 :root[data-mtheme] .hm.sky { --accent-soft: var(--m-accbg); --acc-soft: var(--m-accbg); --sky: var(--m-band); --sky-rule: var(--m-rule); --verse-bg: var(--m-verse); --vgold: var(--m-gold); }
-:root[data-mtheme] body:has(.mbody) { --bg: var(--m-bg); --rule: var(--m-rule); --line: var(--m-rule); --soft: var(--m-band); --accent: var(--m-acc); --accent-bg: var(--m-accbg); --no: var(--m-l2); background: var(--m-bg); }
+:root[data-mtheme] body:has(.mbody) { --bg: var(--m-bg); --rule: var(--m-rule); --line: var(--m-rule); --soft: var(--m-band); --accent: var(--m-acc); --accent-bg: var(--m-accbg); --no: var(--m-l2); background: var(--m-bg);
+  --acc2: var(--m-acc2); --acc-mid: var(--m-acc); --acc-l1: var(--m-l2); --acc-l0: var(--m-accbg); --acc-faint: color-mix(in srgb, var(--m-accbg) 45%, var(--m-bg)); }
+@media not (prefers-color-scheme: dark) {   /* 말씀 본문 읽기(/read): 밝은 화면에서만 테마 강조색 */
+  :root[data-mtheme] .brd { --b-acc: var(--m-acc); --b-accSoft: var(--m-accbg); --b-no: var(--m-l2); --b-rule: var(--m-rule); --b-grey: var(--m-band); } }
+:root[data-mtheme="paper"] { --m-acc2: #6E5234; } :root[data-mtheme="forest"] { --m-acc2: #3B5F41; } :root[data-mtheme="sand"] { --m-acc2: #2F6470; }
 
 /* 부서 홈 맨 아래 "색 테마" 줄(0074) */
 .mth { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 13.5px; color: var(--dim); }
