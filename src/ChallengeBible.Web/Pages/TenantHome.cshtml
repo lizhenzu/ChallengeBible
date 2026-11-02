@@ -78,15 +78,7 @@
                 <a href="/@slug">← 처음 화면</a>@if (Model.Waiting.Count > 0) { <span class="pill">승인 기다리는 중</span> }
             </div></nav>
         }
-        else
-        {
-            @* 일반 부서: "← 처음 화면" 자리에 부서 이름(둘 이상이면 ▼ = 부서 고르기) · 관리 버튼 *@
-            <nav class="wl-back wl-dept gut" aria-label="부서"><div class="wrap">
-                @if (Model.ManyTenants) { <a class="tenant" href="/account/tenants">@t.Name <span aria-hidden="true">▼</span></a> }
-                else { <span class="tenant">@t.Name</span> }
-                @if (Model.Tenant.IsAdmin) { <a class="adm" href="/@slug/admin">관리</a> }
-            </div></nav>
-        }
+        @* 일반 부서: 부서 이름 줄은 지웠다(2026-11-03 사용자). 부서 바꾸기 · 관리는 맨 아래 계정 줄 *@
     </div>
 
 @if (!intro)
@@ -256,6 +248,7 @@
     <div class="acct">
         <a href="/account">내 계정</a>
         @if (Model.Tenant.IsLobby) { <a href="/join">내 부서 참여</a> } else { <a href="/account/tenants">부서 바꾸기</a> }
+        @if (Model.Tenant.IsAdmin) { <a class="adm" href="/@slug/admin">관리</a> }
         @if (User.IsPlatformAdmin()) { <a href="/platform">플랫폼</a> }
         <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit">로그아웃</button></form>
     </div>
