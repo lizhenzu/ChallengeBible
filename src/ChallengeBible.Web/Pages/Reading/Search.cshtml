@@ -20,7 +20,7 @@
     <div class="k">말씀 찾기</div>
     <h1 class="T">성경 검색</h1>
     <form class="rp-sform" method="get" role="search">
-        <input type="search" name="q" value="@Model.Term" maxlength="50" placeholder="단어나 구절 — 사랑, 믿음, 요 3:16…" aria-label="찾을 말" />
+        <input type="search" name="q" value="@Model.Term" maxlength="50" placeholder="단어나 구절 — 사랑, 믿음, 요 3:16…" aria-label="찾을 말" @(string.IsNullOrEmpty(Model.Term) ? "autofocus" : "") />
         <button type="submit">검색 →</button>
     </form>
     <div class="rp-sugg" aria-label="추천 단어">
