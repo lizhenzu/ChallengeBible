@@ -54,7 +54,7 @@ public class ReadModel(MissionService missions, TenantContext tenant, BibleTextS
             Slice = BibleTextService.Slice(all, Unit, PageNo);
             Marks = await marks.MarksAsync(r, ct);   // 읽음 · 책갈피는 범위 전체를 읽어 진도에 쓴다(R-112)
             if (all.Count > 0) Notes = BibleNoteService.Place(await notes.ForRangeAsync(r, ct), r, all);   // 해설 카드(R-118)
-            Overview = (await overview.CardAsync(r.BookId, r.StartChapter, ct)) is { } card ? card with { Open = false } : null;   // 미션 말씀 화면은 항상 접어 둔다
+            Overview = await overview.CardAsync(r.BookId, r.StartChapter, ct);
             Media = await media.ButtonsAsync(r.BookId, r.StartChapter, ct);       // 듣기 · 영상(R-166): 구절이 시작하는 장
         }
     }

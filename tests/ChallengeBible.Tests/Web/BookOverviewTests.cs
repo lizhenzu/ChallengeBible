@@ -67,11 +67,11 @@ public partial class BookOverviewTests : IClassFixture<WebApplicationFactory<Pro
     };
 
     [Fact]
-    public async Task R116_그_책_1장에서는_개요가_펼쳐져_간략본_상세본이_보인다()
+    public async Task R116_개요는_1장에서도_접혀_있고_간략본_상세본이_들어_있다()
     {
         Seed(Genesis());
         var html = await (await Kid()).GetStringAsync("/jamsil-kids/reading/read/1/1");
-        Assert.Contains("<details class=\"bov\" open aria-label=\"창세기 개요\">", html);
+        Assert.Contains("<details class=\"bov\"  aria-label=\"창세기 개요\">", html);
         Assert.Contains("<dt>저자</dt>", html);
         Assert.Contains("<dd>모세</dd>", html);
         Assert.Contains("data-p=\"d\">상세본</button>", html);
