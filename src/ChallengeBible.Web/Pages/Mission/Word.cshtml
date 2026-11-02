@@ -23,7 +23,6 @@
         </section>
         @await Html.PartialAsync("_PickSection", new PickSection(Model, "03", "어떻게 읽었나요?", Mission.Word, "word"))
     }
-<partial name="_MissionThemePick" />
 </div></main>
 @Html.AntiForgeryToken()
 @await Html.PartialAsync("_MissionNav", new MissionNav(Model, "word"))

@@ -39,13 +39,6 @@ public static class ReadingApi
             await s.SetReadingThemeAsync(h.User.AccountId()!.Value, r.Theme, ct)
                 ? Results.Ok(new { ok = true })
                 : Results.BadRequest(new { code = "BadTheme", message = "없는 테마예요." }));
-
-        // 성경말씀 미션 색 테마(ADR 0074): 통독과 같은 키, 계정에 따로 남긴다
-        app.MapGroup("/api/me/mission").RequireAuthorization().AddEndpointFilter<AntiforgeryEndpointFilter>()
-            .MapPut("/theme", async (ThemeRequest r, AccountService s, HttpContext h, CancellationToken ct) =>
-                await s.SetMissionThemeAsync(h.User.AccountId()!.Value, r.Theme, ct)
-                    ? Results.Ok(new { ok = true })
-                    : Results.BadRequest(new { code = "BadTheme", message = "없는 테마예요." }));
     }
 
     private static IResult Reply(ReadingResult r) => r.Ok

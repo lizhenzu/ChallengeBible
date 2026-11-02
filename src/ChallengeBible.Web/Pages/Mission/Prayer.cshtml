@@ -31,7 +31,6 @@
         </section>
         @await Html.PartialAsync("_PickSection", new PickSection(Model, no3, "누구를 위해 기도했나요?", Mission.Prayer, "prayer"))
     }
-<partial name="_MissionThemePick" />
 </div></main>
 @Html.AntiForgeryToken()
 @await Html.PartialAsync("_MissionNav", new MissionNav(Model, "prayer"))
