@@ -222,9 +222,9 @@ body:has(.rp[data-theme]) { background: var(--bg); }
 .b2rh .cr { display: flex; align-items: center; gap: 10px; min-height: 44px; }
 .b2rh .b2hb { background: transparent; border-color: rgba(255, 255, 255, .45); color: #fff; }
 .b2rh .path { flex: 1; min-width: 0; font-size: 13.5px; opacity: .9; }
-.b2rh .fs { flex: none; display: flex; border: 1px solid rgba(255, 255, 255, .45); border-radius: 8px; overflow: hidden; }
-.b2rh .fs button { min-width: 36px; height: 32px; padding: 0 6px; border: 0; background: transparent; color: #fff; font-size: 13px; }
-.b2rh .fs .pct { font-size: 11.5px; background: rgba(255, 255, 255, .15); }
+.b2rh .fs { background: rgba(255, 255, 255, .18); }   /* 색 머리 띠 위: 흰 글자 · 반투명 선 */
+.b2rh .fs button { color: #fff; }
+.b2rh .fs .pct { color: rgba(255, 255, 255, .85); border-color: rgba(255, 255, 255, .4); }
 .b2rh .hk { margin-top: 16px; font-size: 11px; font-weight: 800; letter-spacing: .2em; opacity: .8; }
 .b2rh .ht { display: flex; align-items: baseline; gap: 6px; margin: 4px 0 0; font-size: 26px; font-weight: 900; color: #fff; }
 .b2rh .ht b { font-size: 46px; font-weight: 300; line-height: 1; }

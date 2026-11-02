@@ -181,9 +181,11 @@ details.create > summary::-webkit-details-marker { display: none; }
 .mtop .crumb { font-size: 14px; color: var(--dim); }
 .mtop .crumb a, .mtop .crumb b { color: var(--fg); font-weight: 700; }
 .mtop .date { font-size: 13px; color: var(--dim); }
-.fs { display: flex; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
-.fs button { min-width: 40px; height: 38px; border: 0; background: var(--bg); font-size: 13px; font-weight: 700; }
-.fs .pct { min-width: 52px; border-left: 1px solid var(--rule); border-right: 1px solid var(--rule); color: var(--dim); }
+/* 글자 크기: 둥근 알약 [가− | 100% | 가+] — 100% 양옆에 짧은 세로 경계선 */
+.fs { flex: none; display: inline-flex; align-items: center; padding: 3px; border-radius: 99px; background: rgba(120, 134, 150, .14); }
+.fs button { min-width: 42px; height: 32px; padding: 0 8px; border: 0; border-radius: 99px; background: transparent; color: inherit; font-size: 14px; font-weight: 800; line-height: 1; }
+.fs .pct { min-width: 54px; height: 18px; border-radius: 0; border-left: 1.5px solid rgba(120, 134, 150, .45); border-right: 1.5px solid rgba(120, 134, 150, .45);
+  font-size: 12px; font-weight: 600; color: var(--dim); font-variant-numeric: tabular-nums; }
 .mhead .wrap { padding-block: 8px 4px; display: flex; flex-direction: column; gap: 10px; }
 .mhead .k { font-size: 13px; font-weight: 800; color: var(--accent); }
 .mhead .ttl { display: flex; gap: 14px; align-items: center; }
@@ -668,9 +670,6 @@ a.td::after { content: "›"; margin-left: auto; font-size: 22px; color: var(--d
 .brd-crumb { display: flex; gap: 8px; font-size: 14px; font-weight: 700; color: var(--b-ink); }
 .brd-crumb a { min-height: 44px; display: inline-flex; align-items: center; }
 .brd-crumb i { font-style: normal; color: var(--b-dim); align-self: center; }
-.brd .brd-fs { border: 0; gap: 6px; align-items: center; overflow: visible; }
-.brd .brd-fs button { min-width: 36px; height: 30px; border: 0; border-radius: 8px; background: var(--b-grey); color: var(--b-ink); font-size: 12px; font-weight: 800; }
-.brd .brd-fs .pct { min-width: 44px; background: none; border: 0; color: var(--b-dim2); font-weight: 500; }
 .brd-k { margin-top: 22px; font-size: 13px; font-weight: 800; color: var(--b-acc); }
 .brd-h { margin: 4px 0 0; font-size: calc(30px * var(--fs)); font-weight: 900; color: var(--b-ink); letter-spacing: -.02em; line-height: 1.3; }
 .brd-h small { font-size: .55em; font-weight: 500; color: var(--b-dim2); margin-left: 6px; letter-spacing: 0; }
