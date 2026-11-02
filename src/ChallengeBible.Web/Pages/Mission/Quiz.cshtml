@@ -81,7 +81,6 @@
             <p class="story">@q.Explanation</p>
         </section>
     }
-<partial name="_MissionThemePick" />
 </div></main>
 @Html.AntiForgeryToken()
 @await Html.PartialAsync("_MissionNav", new MissionNav(Model, "quiz"))

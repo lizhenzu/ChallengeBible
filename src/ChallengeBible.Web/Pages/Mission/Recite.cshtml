@@ -53,7 +53,6 @@
             @if (undo) { <p class="uhint" data-uhint hidden="@(!d.RecitedThisWeek)">잘못 눌렀으면 완료 버튼을 한 번 더 눌러 취소해요 (이번 주만)</p> }
         </section>
     }
-<partial name="_MissionThemePick" />
 </div></main>
 @Html.AntiForgeryToken()
 @await Html.PartialAsync("_MissionNav", new MissionNav(Model, "recite"))
