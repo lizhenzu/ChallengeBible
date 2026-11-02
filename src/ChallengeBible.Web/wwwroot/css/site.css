@@ -1725,9 +1725,11 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
   :root[data-mtheme] .brd { --b-acc: var(--m-acc); --b-accSoft: var(--m-accbg); --b-no: var(--m-l2); --b-rule: var(--m-rule); --b-grey: var(--m-band); } }
 :root[data-mtheme="paper"] { --m-acc2: #6E5234; } :root[data-mtheme="forest"] { --m-acc2: #3B5F41; } :root[data-mtheme="sand"] { --m-acc2: #2F6470; }
 
-/* 부서 홈 맨 아래 "색 테마" 줄(0074) */
+/* "색 테마" 줄(0074): 미션 네 화면 맨 아래 */
 .mth { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 13.5px; color: var(--dim); }
 .mth span { margin-right: 4px; }
 .mth .sw { width: 28px; height: 28px; padding: 0; border-radius: 50%; border: 2px solid var(--bg); box-shadow: 0 0 0 1px var(--line); cursor: pointer; }
 .mth .sw[aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--accent); }
+.mbody .mth { margin: 22px 0 0; padding-top: 14px; border-top: 1px solid var(--rule); justify-content: space-between; }   /* 미션 화면 맨 아래(B안) */
+.mbody .mth span { margin-right: auto; }
 .mth .sw-default { background: #EAF4FF; } .mth .sw-paper { background: #E3D2B4; } .mth .sw-forest { background: #A9C8A3; } .mth .sw-sand { background: #A9CDD2; }

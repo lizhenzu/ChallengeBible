@@ -257,9 +257,11 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     {
         var c = await Member("cheolsu", Roles.Participant);
         var home = await c.GetStringAsync("/jamsil-kids");
-        Assert.Contains("data-mtheme-pick=\"sand\"", home);
+        Assert.DoesNotContain("data-mtheme-pick", home);                     // 고르는 곳은 부서 홈이 아니라 미션 화면(B안)
         Assert.DoesNotContain("data-mtheme=\"", home);                       // 기본은 붙이지 않는다
-        var token = TokenRx().Match(home).Groups[1].Value;
+        var word = await c.GetStringAsync("/jamsil-kids/word");
+        Assert.Contains("data-mtheme-pick=\"sand\"", word);
+        var token = TokenRx().Match(word).Groups[1].Value;
         Assert.Equal(HttpStatusCode.OK, (await Api(c, token, "/api/me/mission/theme", new { theme = "sand" }, HttpMethod.Put)).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await Api(c, token, "/api/me/mission/theme", new { theme = "neon" }, HttpMethod.Put)).StatusCode);
         foreach (var url in new[] { "/jamsil-kids", "/jamsil-kids/word" })
