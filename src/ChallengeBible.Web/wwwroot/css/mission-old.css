@@ -68,6 +68,8 @@ body:has(.mbody) .rdmore { color: #2F80ED; font-size: 12.5px; }
 body:has(.mbody) .story.pray { margin-top: 0; font-size: calc(17px * var(--fs)); line-height: 2.05; color: #1F2937; }
 body:has(.mbody) .story.pray + .story.pray { margin-top: 2px; }
 body:has(.mbody) .story .nm { color: #1D5FBF; font-weight: 800; background: linear-gradient(transparent 62%, #FFF1BF 62%); padding: 0 2px; }
+/* ○○ 는 이 화면 글꼴(Gothic A1 · 휴대폰 기본)에서 작게 나와서, 예전처럼 Noto Sans KR 의 큰 동그라미로 */
+.story .nm i { font-style: normal; font-family: "Noto Sans KR", "Malgun Gothic", sans-serif; letter-spacing: .02em; }
 
 /* 퀴즈: 배경 · 문제 · 보기(연회색 줄, 번호는 흐린 파랑) · 답 제출하기(파란 밑줄 글자) · 해설 */
 body:has(.mbody) .qbg { font-size: calc(15px * var(--fs)); line-height: 1.85; color: #374151; }
