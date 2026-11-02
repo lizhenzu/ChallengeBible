@@ -37,6 +37,7 @@ builder.Services.AddScoped<BibleSearchService>();
 builder.Services.AddScoped<ReadingBoardService>();
 builder.Services.AddScoped<BrandingService>();
 builder.Services.AddScoped<SeasonService>();
+builder.Services.AddScoped<MilestoneService>();
 builder.Services.AddScoped<ContentCalendarService>();
 builder.Services.AddScoped<PlatformHomeService>();
 builder.Services.AddScoped<PlatformAccountService>();

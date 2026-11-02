@@ -186,6 +186,76 @@ public partial class SeasonTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
+    public async Task R100_R104_축하_단계는_부서마다_정하고_이미_넘은_단계는_받음으로_기록된다_0077()
+    {
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.PointLedgers.Add(new PointLedger { TenantId = _kids.Id, ParticipantId = _p1, MissionDate = new DateOnly(2027, 1, 2), MissionItem = "Word.Me", Points = 150, RecordedUtc = DateTime.UtcNow });
+            raw.SaveChanges();   // p1 = 155점
+        }
+        var admin = await Member("eunhye", Roles.TenantAdmin);
+        var page = await admin.GetStringAsync("/jamsil-kids/admin/season");
+        Assert.Contains("플랫폼 기본 사용 중", page);
+        Assert.Contains("3,000점 <i", page);
+
+        var draft = await admin.GetStringAsync("/jamsil-kids/admin/season?m=100,200&add=300");   // 단계 더하기(저장 전 미리 보기)
+        Assert.Contains("300점 <i", draft);
+        Assert.Contains("이미 넘은 아이: 100점 1명", draft);
+        Assert.Contains("value=\"100,200,300\"", draft);
+
+        var token = TokenRx().Match(draft).Groups[1].Value;
+        Task<HttpResponseMessage> Post(string handler, Dictionary<string, string> form)
+        {
+            form["__RequestVerificationToken"] = token;
+            return admin.PostAsync($"/jamsil-kids/admin/season?handler={handler}", new FormUrlEncodedContent(form));
+        }
+
+        var bad = await Post("Milestones", new() { ["m"] = "50,200" });
+        Assert.Equal(HttpStatusCode.OK, bad.StatusCode);
+        Assert.Contains("100점 이상", await bad.Content.ReadAsStringAsync());
+
+        Assert.Equal(HttpStatusCode.Redirect, (await Post("Milestones", new() { ["m"] = "300,100,200" })).StatusCode);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            Assert.Equal("100,200,300", raw.Tenants.Single(t => t.Id == _kids.Id).Milestones);
+            Assert.Null(raw.Tenants.Single(t => t.Id == _elem.Id).Milestones);                       // 다른 부서는 그대로
+            Assert.Equal([100], raw.MilestonesReached.Where(m => m.ParticipantId == _p1).Select(m => m.Threshold).ToList());   // R-104
+            Assert.Contains(raw.AuditLogs, l => l.Action == MilestoneService.LogAction && l.Detail == "축하 단계 플랫폼 기본 → 100 · 200 · 300");
+        }
+        var saved = await admin.GetStringAsync("/jamsil-kids/admin/season");
+        Assert.Contains("부서 값", saved);
+        Assert.Contains("플랫폼 기본으로", saved);
+
+        // 규칙 읽기가 부서 값으로 덮는다(축하 창 · 다음 축하 · 목표 점수)
+        Assert.Equal([100, 200, 300], (await RulesFor(_kids)).Milestones);
+        Assert.Equal(ChallengeBible.Domain.Rules.RuleSet.Default.Milestones, (await RulesFor(_elem)).Milestones);
+
+        Assert.Equal(HttpStatusCode.Redirect, (await Post("MilestonesReset", [])).StatusCode);
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Null(raw.Tenants.Single(t => t.Id == _kids.Id).Milestones);
+    }
+
+    private async Task<ChallengeBible.Domain.Rules.RuleSet> RulesFor(Tenant t)
+    {
+        var scope = new RequestScope();
+        scope.SetTenant(t.Id);
+        var tc = new TenantContext();
+        using (var raw = InMemoryDb.Raw(_db)) tc.Set(raw.Tenants.Single(x => x.Id == t.Id), null);
+        var rules = new RuleService(new InMemoryDb(_db, scope), new Microsoft.Extensions.Caching.Memory.MemoryCache(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions()), tc);
+        return await rules.ForDateAsync(new DateOnly(2027, 1, 5));
+    }
+
+    [Fact]
+    public void 축하_단계_글자는_정렬하고_틀리면_안내한다()
+    {
+        Assert.Equal([1000, 2000], MilestoneService.Parse(" 2000, 1000,1000 "));
+        Assert.Null(MilestoneService.Parse("1000,abc"));
+        Assert.Null(MilestoneService.Parse(""));
+        Assert.Null(MilestoneService.Check([100, 1_000_000]));
+        Assert.NotNull(MilestoneService.Check([.. Enumerable.Range(1, 11).Select(i => i * 100)]));
+        Assert.NotNull(MilestoneService.Check([]));
+    }
+
+    [Fact]
     public async Task 교사는_시즌_화면을_못_본다()
     {
         var teacher = await Member("minsu", Roles.Teacher);

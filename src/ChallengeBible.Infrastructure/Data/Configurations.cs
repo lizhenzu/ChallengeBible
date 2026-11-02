@@ -25,6 +25,7 @@ internal sealed class TenantConfig : IEntityTypeConfiguration<Tenant>
         e.HasIndex(x => x.JoinCode).IsUnique().HasDatabaseName("UQ_Tenant_JoinCode");
         e.Property(x => x.TimeZoneId).HasMaxLength(64).IsUnicode(false);
         e.Property(x => x.ThemeColor).HasMaxLength(20).IsUnicode(false);
+        e.Property(x => x.Milestones).HasMaxLength(100).IsUnicode(false);
         e.Property(x => x.AppName).HasMaxLength(30);
         e.Property(x => x.AppShortName).HasMaxLength(12);
         e.Property(x => x.Status).HasMaxLength(20).IsUnicode(false);

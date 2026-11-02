@@ -2246,6 +2246,11 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<bool>("JoinListed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Milestones")
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
                     b.Property<bool>("MissionEnabled")
                         .HasColumnType("bit");
 
