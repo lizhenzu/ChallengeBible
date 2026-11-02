@@ -149,10 +149,8 @@
     {
         <section class="hj-card hj-sr" aria-label="말씀 찾기">
             <div class="tg"><b>📖 말씀 찾기</b><span>궁금한 단어 하나로 성경 전체를 찾아봐요</span></div>
-            <form method="get" action="/@slug/reading/search" role="search">
-                <input type="search" name="q" placeholder="예) 사랑, 믿음, 소망, 예수…" aria-label="찾을 말씀" />
-                <button type="submit">검색</button>
-            </form>
+            @* 홈에서는 입력받지 않고 누르면 검색 화면으로(2026-11-03 사용자) *@
+            <a class="go" href="/@slug/reading/search" aria-label="말씀 찾기 화면으로"><span>예) 사랑, 믿음, 소망, 예수…</span><b>검색</b></a>
             <div class="kw">@foreach (var k in new[] { "두려워하지 말라", "은혜", "평안", "기도" }) { <a href="/@slug/reading/search?q=@Uri.EscapeDataString(k)">"@k"</a> }</div>
         </section>
     }
