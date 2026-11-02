@@ -42,10 +42,12 @@ public sealed class RuleService(IAppDb db, IMemoryCache cache, Tenancy.TenantCon
     public static RuleSet Pick(IReadOnlyList<RuleVersion> versions, DateOnly date) =>
         versions.Where(v => v.EffectiveFrom <= date).MaxBy(v => v.VersionNo)?.Rules ?? RuleSet.Default;
 
-    /// <summary>그날(미션 날짜)에 적용되는 규칙.</summary>
+    /// <summary>그날(미션 날짜)에 적용되는 규칙. 축하 단계는 부서 값이 있으면 그것(0077).</summary>
     public async Task<RuleSet> ForDateAsync(DateOnly date, CancellationToken ct = default)
     {
         var r = Pick(await VersionsAsync(ct), date);
+        // 0077: 부서가 축하 단계를 정해 두었으면 그 값(축하 창 · 다음 축하 · 목표 점수가 모두 따른다)
+        if (MilestoneService.Parse(tenant?.Tenant?.Milestones) is { } own) r = r with { Milestones = own };
         return tenant?.IsLobby == true ? r with { Features = r.Features with { Ranking = false, FamilyTeam = false } } : r;
     }
 }

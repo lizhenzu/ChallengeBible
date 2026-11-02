@@ -1023,6 +1023,26 @@ main.admin > .wrap.br { display: grid; gap: 18px; grid-template-columns: minmax(
 .sn-log li.none { color: var(--dim); }
 .sn-log time { flex: none; width: 92px; color: var(--dim); font-size: 13px; }
 .sn-muted { margin: 0; font-size: 14px; color: var(--dim); }
+/* 0077 우리 부서 축하 단계(확정 시안 ms A안: 알약 · ✕ · 단계 더하기 · 막대 미리보기) */
+.ms-tag { font-size: 12px; font-weight: 800; border-radius: 999px; padding: 3px 10px; background: #FFF1E3; color: #C46A10; vertical-align: middle; margin-left: 4px; }
+.ms-tag.p { background: var(--soft); color: var(--dim); }
+.ms-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ms-chips a, .ms-chips span { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 8px 14px; background: #FFF1E3; color: #B45F0C; font-weight: 800; font-size: 15px; text-decoration: none; }
+.ms-chips a i { font-style: normal; color: #E0A066; }
+.ms-add { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ms-add input { width: 140px; min-height: 44px; padding: 0 12px; border: 1.5px dashed #F0B47A; border-radius: 12px; font: inherit; font-size: 15px; background: var(--bg); color: var(--fg); }
+.ms-line { position: relative; height: 44px; margin: 4px 10px 0; }
+.ms-line::before { content: ""; position: absolute; left: 0; right: 0; top: 10px; height: 6px; border-radius: 6px; background: var(--soft); }
+.ms-line span { position: absolute; top: 3px; transform: translateX(-50%); text-align: center; font-size: 12px; font-weight: 800; color: #B45F0C; white-space: nowrap; }
+.ms-line span::before { content: ""; display: block; width: 18px; height: 18px; margin: 0 auto 4px; border-radius: 50%; background: #F08A24; border: 3px solid var(--bg); box-shadow: 0 0 0 1px #F0B47A; }
+.ms-pv { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--soft); font-size: 14px; line-height: 1.6; }
+.ms-pv b { color: #C46A10; }
+.ms-btns { display: flex; gap: 8px; }
+.ms-btns form { flex: 1; display: flex; }
+.ms-btns .btn { flex: 1; }
+@media (prefers-color-scheme: dark) {
+  .ms-tag, .ms-chips a, .ms-chips span { background: #3A2A18; color: #FFC58A; }
+}
 
 /* 관리 · 콘텐츠 달력(확정 시안: 관리-콘텐츠달력, R-120 ~ R-123) */
 main.admin > .wrap.cc { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }

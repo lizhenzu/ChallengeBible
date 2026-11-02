@@ -13,17 +13,38 @@ namespace ChallengeBible.Web.Pages.Admin;
 /// `?d=` 로 새 시작일을 고르면 빠지는 점수를 서버에서 계산해 보여 주고, "확인했어요"에 체크해야 바꾼다.
 /// </summary>
 [TenantRoles(Roles.TenantAdmin)]
-public class SeasonModel(SeasonService seasons, TenantContext tenant) : PageModel, ITitled
+public class SeasonModel(SeasonService seasons, MilestoneService milestones, TenantContext tenant) : PageModel, ITitled
 {
     public string Title => "시즌";
     public TenantContext Tenant => tenant;
 
     [BindProperty(SupportsGet = true)] public DateOnly? D { get; set; }
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }
+    /// <summary>0077: 고치는 중인 축하 단계("1000,2000") · 더할 점수.</summary>
+    [BindProperty(SupportsGet = true)] public string? M { get; set; }
+    [BindProperty(SupportsGet = true)] public int? Add { get; set; }
 
     public SeasonView View { get; private set; } = null!;
     public SeasonImpact? Impact { get; private set; }
     public string? Error { get; private set; }
+    public MilestoneView Ms { get; private set; } = null!;
+    public IReadOnlyList<int> Draft => Ms.Current;
+    public IReadOnlyDictionary<int, int> Passed => Ms.Passed;
+    public string? MsError { get; private set; }
+
+    public async Task<IActionResult> OnPostMilestonesAsync(string? m, CancellationToken ct)
+    {
+        var list = MilestoneService.Parse(m);
+        var (changed, error) = list is null ? (false, "축하 단계를 하나 이상 넣어 주세요.") : await milestones.SaveAsync(User.AccountId()!.Value, list, ct);
+        if (error is not null) { M = m; MsError = error; await LoadAsync(ct); return Page(); }
+        return Redirect($"/{tenant.Current.Slug}/admin/season?ok={(changed ? "ms" : "same")}#ms");
+    }
+
+    public async Task<IActionResult> OnPostMilestonesResetAsync(CancellationToken ct)
+    {
+        var (changed, _) = await milestones.SaveAsync(User.AccountId()!.Value, null, ct);
+        return Redirect($"/{tenant.Current.Slug}/admin/season?ok={(changed ? "msreset" : "same")}#ms");
+    }
 
     public async Task OnGetAsync(CancellationToken ct) => await LoadAsync(ct);
 
@@ -46,6 +67,14 @@ public class SeasonModel(SeasonService seasons, TenantContext tenant) : PageMode
     {
         View = await seasons.GetAsync(ct);
         if (D is { } d && d != View.Current.StartDate) Impact = await seasons.ImpactAsync(d, ct);
+        var draft = MilestoneService.Parse(M)?.ToList();
+        if (Add is int a)
+        {
+            draft ??= [.. (await milestones.GetAsync(null, ct)).Current];
+            var next = draft.Append(a).Distinct().Order().ToList();
+            if (MilestoneService.Check(next) is { } err) MsError = err; else draft = next;
+        }
+        Ms = await milestones.GetAsync(draft, ct);
     }
 
     public string Md(DateOnly d) => SeasonService.Md(d);

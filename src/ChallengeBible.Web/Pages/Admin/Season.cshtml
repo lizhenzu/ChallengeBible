@@ -91,6 +91,57 @@
         <p class="sn-muted">새해가 되면 시즌 점수 · 축하 단계 · 가족 단계가 새로 시작해요. 성경 읽음 표시 · 북마크 · 통독 진도는 그대로 이어져요.</p>
     </section>
 
+    @{
+        // 0077 우리 부서 축하 단계(확정 시안 ms A안). 고치는 중인 목록은 주소 ?m= 에 두고, 저장해야 반영된다.
+        var ms = Model.Ms;
+        var draft = Model.Draft;
+        var dirty = !draft.SequenceEqual(ms.Own ? MilestoneService.Parse(Model.Tenant.Current.Milestones)! : ms.Platform);
+        var top = draft.Count == 0 ? 1 : draft.Max();
+        string Without(int x) => MilestoneService.Format(draft.Where(d => d != x));
+        var passed = draft.Where(d => Model.Passed.GetValueOrDefault(d) > 0).ToList();
+    }
+    <section class="sn-card" id="ms" aria-labelledby="hMs">
+        <h2 id="hMs">우리 부서 축하 단계 <span class="ms-tag @(ms.Own ? "" : "p")">@(ms.Own ? "부서 값" : "플랫폼 기본 사용 중")</span></h2>
+        <p class="sn-muted">점수가 이 단계를 넘으면 아이 화면에 축하 창이 떠요. 가장 높은 단계가 목표 점수예요.</p>
+        @if (Model.Ok == "ms") { <p class="okmsg" role="status">축하 단계를 저장했어요</p> }
+        @if (Model.Ok == "msreset") { <p class="okmsg" role="status">플랫폼 기본 축하 단계로 돌렸어요</p> }
+        @if (Model.MsError is not null) { <p class="err" role="alert">@Model.MsError</p> }
+        <ul class="ms-chips" aria-label="축하 단계">
+            @foreach (var d in draft)
+            {
+                <li>@if (draft.Count > 1) { <a href="?m=@Without(d)#ms" aria-label="@MilestoneService.N(d)점 빼기">@MilestoneService.N(d)점 <i aria-hidden="true">✕</i></a> } else { <span>@MilestoneService.N(d)점</span> }</li>
+            }
+        </ul>
+        @if (draft.Count < MilestoneService.MaxCount)
+        {
+            <form method="get" class="ms-add" action="#ms">
+                <input type="hidden" name="m" value="@MilestoneService.Format(draft)" />
+                <input type="number" name="add" min="@MilestoneService.MinPoints" max="@MilestoneService.MaxPoints" step="100" placeholder="예) 2000" aria-label="더할 단계 점수" required />
+                <button type="submit" class="btn s sm">＋ 단계 더하기</button>
+            </form>
+        }
+        <div class="ms-line" aria-hidden="true">@foreach (var d in draft) { <span style="left:@((d * 100.0 / top).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%">@MilestoneService.N(d)@(d == top ? " 목표" : "")</span> }</div>
+        @if (passed.Count > 0)
+        {
+            <p class="ms-pv">이미 넘은 아이: @string.Join(" · ", passed.Select(d => $"{MilestoneService.N(d)}점 {Model.Passed[d]}명")) — @(dirty ? "저장하면 " : "")<b>축하를 이미 받은 것으로 기록</b>되고 축하 창은 다시 뜨지 않아요.</p>
+        }
+        <p class="sn-muted">플랫폼 기본: @string.Join(" · ", ms.Platform.Select(MilestoneService.N))점 · 1 ~ @(MilestoneService.MaxCount)단계 · @(MilestoneService.N(MilestoneService.MinPoints))점 이상</p>
+        <div class="ms-btns">
+            @if (ms.Own)
+            {
+                <form method="post" asp-page-handler="MilestonesReset" asp-route-slug="@slug"><button type="submit" class="btn s sm">플랫폼 기본으로</button></form>
+            }
+            <form method="post" asp-page-handler="Milestones" asp-route-slug="@slug">
+                <input type="hidden" name="m" value="@MilestoneService.Format(draft)" />
+                <button type="submit" class="btn p sm" @(dirty ? "" : "disabled")>@(dirty ? "저장" : "바뀐 것 없음")</button>
+            </form>
+        </div>
+        @if (ms.Log.Count > 0)
+        {
+            <ul class="sn-log">@foreach (var l in ms.Log) { <li><time class="num">@Model.LocalDate(l.OccurredUtc)</time><span>@l.Actor · @l.Detail</span></li> }</ul>
+        }
+    </section>
+
     <section class="sn-card" aria-labelledby="hLog">
         <h2 id="hLog">바꾼 기록</h2>
         <ul class="sn-log">
