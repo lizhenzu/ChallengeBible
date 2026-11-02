@@ -133,6 +133,9 @@ body:has(.mbody) .toast { bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 .okpop .tot b u { text-decoration: none; font-size: 15px; color: #6B7280; margin-left: 2px; }
 .okpop-close { width: 100%; margin-top: 16px; min-height: 50px; border: 0; border-radius: 14px; background: #2F80ED; color: #fff; font: inherit; font-size: 16px; font-weight: 900; cursor: pointer; }
 .okpop-close:focus-visible { outline: 3px solid #93B9F2; outline-offset: 2px; }
+/* 0075: 다음 미션 버튼이 주 버튼, 확인은 옅게 */
+.okpop-next { display: grid; place-items: center; width: 100%; margin-top: 16px; min-height: 52px; border-radius: 14px; background: #2F80ED; color: #fff; font-size: 17px; font-weight: 900; text-decoration: none; }
+.okpop-next:not([hidden]) + .okpop-close { margin-top: 8px; min-height: 44px; background: #EEF3FB; color: #3B6EA8; }
 .okpop .bar { margin-top: 12px; height: 4px; border-radius: 99px; background: #EEF0F3; overflow: hidden; }
 .okpop .bar i { display: block; height: 100%; width: 100%; background: #93B9F2; transition-property: width; transition-timing-function: linear; }
 .okpop .cd { margin-top: 6px; font-size: 11.5px; color: #9CA3AF; }
