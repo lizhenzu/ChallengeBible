@@ -137,7 +137,7 @@ public class PrayerModel(MissionService missions, TenantContext tenant, BibleTex
 
     public static Microsoft.AspNetCore.Html.IHtmlContent Paragraph(string text) =>
         new Microsoft.AspNetCore.Html.HtmlString(NameSlot.Replace(
-            System.Net.WebUtility.HtmlEncode(text.Replace("**", "")), m => $"<b class=\"nm\">○○{m.Groups[1].Value}</b>"));
+            System.Net.WebUtility.HtmlEncode(text.Replace("**", "")), m => $"<b class=\"nm\"><i>○○</i>{m.Groups[1].Value}</b>"));
 }
 
 public class ReciteModel(MissionService missions, TenantContext tenant, BibleTextService bible) : MissionPageBase(missions, tenant)
