@@ -204,6 +204,8 @@
 .hm .wl-back .pill { margin-left: 8px; display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; background: var(--wait-soft); color: var(--wait); font-size: 12.5px; font-weight: 800; }
 /* 미션 화면(/today): 아래 카드(말씀 · 미션 · 통독)가 넓게 펼쳐지므로 머리말 · "← 처음 화면"도 같은 폭에 맞춘다(데스크톱에서 좌우 가장자리가 어긋나던 것) */
 .hm .wl-wide .wl-top .wrap, .hm .wl-wide .wl-back .wrap { max-width: 720px; }   /* 0076 본문(main.hj) 폭과 같게 */
+/* 부서 홈 머리말은 흰 바탕(2026-11-03 사용자) — 하늘색 띠가 화면 끝까지 펼쳐져 카드와 폭이 어긋나 보이던 것 */
+.hm .wl.wl-wide { background: var(--bg); }
 /* 일반 부서: "← 처음 화면" 자리에 부서 이름 · 관리 */
 .hm .wl-dept .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .hm .wl-dept .tenant { color: var(--fg); font-weight: 800; }
