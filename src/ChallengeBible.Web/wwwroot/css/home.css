@@ -258,6 +258,11 @@
 .hm .hj-ring svg { display: block; }
 .hm .hj-ring > span { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; font-size: 11px; font-weight: 700; color: var(--dim); line-height: 1.2; }
 .hm .hj-ring b { display: block; font-size: 18px; font-weight: 900; color: var(--fg); }
+/* 오늘 미션 원은 조금 크게(2026-11-03 사용자) — viewBox 라 그림은 저절로 커진다 */
+.hm .hj-ring.o { width: 92px; height: 92px; }
+.hm .hj-ring.o svg { width: 100%; height: 100%; }
+.hm .hj-ring.o > span { font-size: 12px; }
+.hm .hj-ring.o b { font-size: 22px; }
 .hm .hj-ring.g > span { color: var(--hj-green); font-weight: 900; }
 .hm .hj-ring.g i { display: block; font-style: normal; font-size: 22px; }
 .hm .hj-grow { display: flex; align-items: center; gap: 14px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--rule); }
