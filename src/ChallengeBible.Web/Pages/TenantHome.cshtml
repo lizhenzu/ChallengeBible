@@ -106,45 +106,53 @@
         <a class="notice wide" href="/account/family"><b>시상 부서가 아직 정해지지 않았어요</b><span>플랫폼 관리자가 정하면 그 부서에서 부모님도 미션 · 가족팀을 함께해요 →</span></a>
     }
 
-    @if (t.MissionEnabled || t.ReadingEnabled)
+    @if (t.MissionEnabled)
     {
-        <section class="wide" aria-labelledby="pg">
-            <div class="eyebrow">오늘 할 것</div>
-            <h2 id="pg">어떤 걸 먼저 할까요?</h2>
-            <div class="progs">
-                @if (t.MissionEnabled)
+        // 0075 "오늘" 블록(확정 시안 A): 인사 · 연속일 → 큰 진행 링 → 이어서 하기 → 미션 4줄
+        var next = d.NextMission;
+        const double C2 = 351.9;   // 큰 고리 둘레(r = 56)
+        var pctToday = has.Count == 0 ? 0 : done * 100.0 / has.Count;
+        <section class="wide td" aria-labelledby="tdT">
+            <div class="td-hd">
+                <h2 id="tdT">안녕, @(User.DisplayName())!</h2>
+                @if (d.Participant) { <span class="fire num">🔥 @(d.Streak > 0 ? $"{d.Streak}일째" : "오늘 시작")</span> }
+            </div>
+            <div class="td-ring" role="img" aria-label="오늘 미션 @(has.Count)개 중 @(done)개 완료">
+                <svg width="140" height="140" viewBox="0 0 140 140" aria-hidden="true"><circle cx="70" cy="70" r="56" fill="none" stroke="var(--accent-soft)" stroke-width="14" /><circle cx="70" cy="70" r="56" fill="none" stroke="var(--accent)" stroke-width="14" stroke-linecap="round" stroke-dasharray="@((C2 * pctToday / 100).ToString("0.#", inv)) @C2.ToString("0.#", inv)" transform="rotate(-90 70 70)" /></svg>
+                <span class="num">@done/@has.Count<small>오늘 미션</small></span>
+            </div>
+            @if (!d.Participant)
+            {
+                <a class="td-go" href="/@slug/word-mission">오늘 미션 보기<small>보호자 · 선생님은 보기만 해요</small></a>
+            }
+            else if (has.Count == 0)
+            {
+                <a class="td-go off" href="/@slug/word-mission">오늘은 말씀이 없어요<small>내일 다시 만나요</small></a>
+            }
+            else if (next is null)
+            {
+                <a class="td-go all" href="/@slug/word-mission">🎉 오늘 미션 다 했어요!<small>오늘 +@(d.DayPoints)점 · 올해 @d.SeasonPoints.ToString("N0")점</small></a>
+            }
+            else
+            {
+                <a class="td-go" href="/@slug/@next.Key"><span aria-hidden="true">▶ </span>@(done == 0 ? "시작하기" : "이어서 하기") · @next.Label<small>@(left.Count == 1 ? "이것만 하면 오늘 끝!" : $"{left.Count}개 남았어요") · 오늘 +@(d.DayPoints)점</small></a>
+            }
+            <ul class="td-li">
+                @foreach (var (m, i) in d.Missions.Select((m, k) => (m, k + 1)))
                 {
-                    var next = d.NextMission;
-                    @* 카드 아무 데나 = 미션 홈(덮개 링크), 아래 버튼 = 미션 이어서 하기(다음 할 일). 링크 안에 링크를 넣지 않으려고 덮개 방식 *@
-                    <div class="p m">
-                        <a class="cover" href="/@slug/word-mission" aria-label="도전!!!성경말씀 미션 홈"></a>
-                        <div class="hd"><div><div class="nm">도전!!!성경말씀</div><div class="what">매일 말씀 · 기도 · 퀴즈 · 암송</div></div>
-                            <span class="badge">@(!d.Participant ? "보기만" : has.Count == 0 ? "오늘은 쉬어요" : left.Count == 0 ? "다 했어요" : left.Count == 1 ? $"{left[0].Label} 남음" : $"{left.Count}가지 남음")</span></div>
-                        <div class="now">
-                            <div class="ring">
-                                <svg width="92" height="92" viewBox="0 0 92 92" aria-hidden="true"><circle cx="46" cy="46" r="38" fill="none" stroke="var(--bg)" stroke-width="9" /><circle cx="46" cy="46" r="38" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="@Dash(has.Count == 0 ? 0 : done * 100.0 / has.Count)" transform="rotate(-90 46 46)" /></svg>
-                                <span class="num">@done/@has.Count<small>오늘 미션</small></span>
-                            </div>
-                            <div class="txt">
-                                @if (!d.Participant) { <b>보기만 해요</b><span>오늘 말씀 · 퀴즈 · 기도 · 암송을 볼 수 있어요</span> }
-                                else if (has.Count == 0) { <b>오늘은 말씀이 없어요</b><span>내일 다시 만나요</span> }
-                                else if (left.Count == 0) { <b>오늘 미션을 다 했어요!</b><span>오늘 +@(d.DayPoints)점 받았어요</span> }
-                                else { <b>@(left.Count == 1 ? $"오늘 {left[0].Label}만 남았어요" : $"오늘 {string.Join(" · ", left.Select(x => x.Label))}이 남았어요")</b><span>오늘 +@(d.DayPoints)점 받았어요</span> }
-                                @if (d.Participant) { <span class="big num">@d.SeasonPoints.ToString("N0")<i> 점 · 올해</i></span> }
-                            </div>
-                        </div>
-                        <div class="mis4">@foreach (var m in d.Missions) { <span class="@m.Key @(m.Has && !m.Done && m == d.NextMission ? "cur" : "")">@m.Label<small>@m.State</small></span> }</div>
-                        @if (d.Participant && next is not null)
-                        {
-                            @* 확정 시안 홈-다음미션버튼 ⑤(2026-10-31): "N개 중 M개 완료 / 이제 ○○만 하면 끝!" + 오른쪽 [○○ →] *@
-                            <a class="go nx" href="/@slug/@next.Key"><span class="t"><small>@(has.Count)개 중 @(done)개 완료</small>@(left.Count == 1 ? $"이제 {next.Label}만 하면 끝!" : $"다음은 {next.Label} 차례예요")</span><span class="pill">@next.Label <span aria-hidden="true">→</span></span></a>
-                        }
-                        else
-                        {
-                            <a class="go" href="/@slug/word-mission">미션 홈 가기 <span aria-hidden="true">→</span></a>
-                        }
-                    </div>
+                    <li class="@(m.Has ? "" : "no")"><a href="/@slug/@m.Key">
+                        <span class="ck @(m.Done ? "ok" : "")" aria-hidden="true">@(m.Done ? "✓" : i.ToString())</span>@m.Label<em>@m.State</em>
+                    </a></li>
                 }
+            </ul>
+            <a class="td-more" href="/@slug/word-mission">미션 홈 · 이달 기록 보기 <span aria-hidden="true">→</span></a>
+        </section>
+    }
+
+    @if (t.ReadingEnabled || (t.MissionEnabled && Model.IsGuardian))
+    {
+        <section class="wide" aria-label="프로그램">
+            <div class="progs">
                 @if (t.ReadingEnabled)
                 {
                     @* 카드 아무 데나 = 통독 홈(덮개 링크), "이어 읽기" 칸 = 그 장 읽기(2026-10-31 사용자). 링크 안에 링크를 넣지 않으려고 덮개 방식 *@
@@ -324,4 +332,13 @@
     </div>
     <p class="copy">© @d.Today.Year 잠실새내 · 주일학교</p>
 </div></footer>
+@if (!intro)
+{
+    @* 0075: 아래 탭(오늘 · 달력 · 내 점수 · 통독). 끈 프로그램 탭은 숨긴다 *@
+    <nav class="tabs" aria-label="아래 메뉴">
+        <a href="/@slug" aria-current="page"><i aria-hidden="true">🏠</i>오늘</a>
+        @if (t.MissionEnabled) { <a href="/@slug/calendar"><i aria-hidden="true">📅</i>달력</a><a href="/@slug/points"><i aria-hidden="true">⭐</i>내 점수</a> }
+        @if (t.ReadingEnabled) { <a href="/@slug/reading"><i aria-hidden="true">📖</i>통독</a> }
+    </nav>
+}
 </div>

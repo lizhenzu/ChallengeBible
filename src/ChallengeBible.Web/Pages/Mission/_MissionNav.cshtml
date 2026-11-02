@@ -9,6 +9,9 @@
         ("word", "말씀", Mission.Word, d.Word is not null), ("quiz", "퀴즈", Mission.Quiz, d.Quiz is not null),
         ("prayer", "기도", Mission.Prayer, d.Prayer is not null), ("recite", "암송", Mission.Recite, d.Recite is not null),
     ];
+    // 0075: 이 미션을 끝낸 뒤 이어 갈 미션(내용 있고 아직 안 했고, 끝나 버린 퀴즈가 아닌 것)
+    var nextTab = tabs.FirstOrDefault(x => x.Key != Model.Current && x.Has && !Done(x.M)
+        && !(x.Key == "quiz" && d.QuizState.State != QuizState.CanTry));
 }
 @* 확정 시안: 아래 미션 메뉴 — 이름 밑에 완료 · 진행중 · 아직 *@
 <nav class="mnav" aria-label="미션">
@@ -23,5 +26,6 @@
 <p id="toast" class="toast" role="status" hidden></p>
 @* 축하 창(확정 시안: 말씀-축하팝업)이 쓰는 값: 축하 단계 목록, 내 점수 주소, 부서 · 이름 *@
 <div id="cb-ms" hidden data-milestones="@string.Join(",", p.Data!.Rules.Milestones)" data-points="/@p.Slug/points"
-     data-who="@p.Tenant.Current.Name · @ChallengeBible.Web.Auth.CurrentUser.DisplayName(p.User)"></div>
+     data-who="@p.Tenant.Current.Name · @ChallengeBible.Web.Auth.CurrentUser.DisplayName(p.User)"
+     data-home="/@p.Slug" data-today="@(p.IsToday ? "1" : "")" data-next="@(nextTab.Key is null || !p.IsToday ? "" : p.Link(nextTab.Key))" data-next-label="@nextTab.Label"></div>
 <script src="~/js/mission.js" asp-append-version="true"></script>

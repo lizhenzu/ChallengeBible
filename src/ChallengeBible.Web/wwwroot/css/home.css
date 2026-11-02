@@ -235,3 +235,33 @@
   .hm .progs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hm .fh-box { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: start; column-gap: 32px; }
 }
+
+/* 0075 "today" block (A): greeting + streak, big ring, continue button, 4 mission rows */
+.hm .td { display: flex; flex-direction: column; gap: 14px; padding: 22px 20px 18px; border-radius: 24px; background: var(--bg); border: 1px solid var(--rule); }
+.hm .td-hd { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.hm .td-hd h2 { margin: 0; font-size: 22px; font-weight: 900; }
+.hm .fire { flex: none; font-size: 13px; font-weight: 800; color: #C2410C; background: #FFF1E6; border-radius: 999px; padding: 5px 11px; }
+.hm .td-ring { position: relative; width: 140px; height: 140px; margin: 2px auto 0; }
+.hm .td-ring span { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; font-size: 32px; font-weight: 900; }
+.hm .td-ring small { display: block; font-size: 12px; font-weight: 600; color: var(--dim); }
+.hm .td-go { display: block; text-align: center; padding: 16px 14px; border-radius: 18px; background: var(--accent); color: #fff; font-size: 18px; font-weight: 900; text-decoration: none; box-shadow: 0 4px 0 color-mix(in srgb, var(--accent) 70%, #000); }
+.hm .td-go small { display: block; margin-top: 3px; font-size: 12.5px; font-weight: 600; opacity: .9; }
+.hm .td-go:active { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb, var(--accent) 70%, #000); }
+.hm .td-go.all { background: #2F7D55; box-shadow: 0 4px 0 #1F5A3C; }
+.hm .td-go.off { background: var(--accent-soft); color: var(--accent); box-shadow: none; }
+.hm .td-li { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 16px; overflow: hidden; }
+.hm .td-li li + li { border-top: 1px solid var(--rule); }
+.hm .td-li a { display: flex; align-items: center; gap: 12px; padding: 13px 14px; font-size: 16px; font-weight: 800; color: var(--fg); text-decoration: none; }
+.hm .td-li em { margin-left: auto; font-style: normal; font-size: 13px; font-weight: 600; color: var(--dim); }
+.hm .td-li .no a { opacity: .45; }
+.hm .ck { width: 26px; height: 26px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 900; border: 2px solid var(--rule); color: var(--dim); }
+.hm .ck.ok { background: #22A06B; border-color: #22A06B; color: #fff; }
+.hm .td-more { align-self: center; font-size: 13px; font-weight: 700; color: var(--accent); text-decoration: none; }
+.hm .progs:has(> .p:only-child) { grid-template-columns: minmax(0, 1fr); }
+
+/* 0075 bottom tabs */
+.hm { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+.hm .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; justify-content: center; background: var(--bg); border-top: 1px solid var(--rule); padding-bottom: env(safe-area-inset-bottom); }
+.hm .tabs a { flex: 1; max-width: 140px; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 8px 0 9px; font-size: 11.5px; font-weight: 700; color: var(--dim); text-decoration: none; }
+.hm .tabs a i { font-style: normal; font-size: 19px; line-height: 1.2; }
+.hm .tabs a[aria-current="page"] { color: var(--accent); }
