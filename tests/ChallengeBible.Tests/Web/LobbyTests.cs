@@ -105,13 +105,13 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.DoesNotContain("내 부서 찾기", home);
         Assert.Contains("<p class=\"copy\">© 2027 잠실새내 · 주일학교</p>", home);          // 맨 아래 © 줄(해는 오늘 날짜)
         Assert.DoesNotContain("미션 수행하러 가기", home);
-        Assert.DoesNotContain("<section class=\"wide td\"", home);                              // 아랫부분(미션 · 통독 카드)은 미션 화면으로
+        Assert.DoesNotContain("<section class=\"hj-card hj-pg m\"", home);                              // 아랫부분(미션 · 통독 카드)은 미션 화면으로
         Assert.DoesNotContain("aria-label=\"오늘의 말씀\"", home);
         Assert.DoesNotContain("aria-labelledby=\"dpT\"", home);                       // "우리 부서" 숫자 칸 없음
         Assert.DoesNotContain("/welcome/ranking", home);
         Assert.Contains("<a href=\"/join\">내 부서 참여</a>", home);                    // 계정 줄(로그아웃도 여기 있음)
         var today = await c.GetStringAsync("/welcome/today");                         // 미션 화면 = 지금 홈 아랫부분
-        Assert.Contains("<section class=\"wide td\"", today);
+        Assert.Contains("<section class=\"hj-card hj-pg m\"", today);
         Assert.Contains("<a href=\"/welcome\">← 처음 화면</a>", today);
         Assert.Contains("class=\"wl wl-wide\"", today);                               // 미션 화면 머리말은 아래 카드와 같은 폭(데스크톱 정렬)
         Assert.DoesNotContain("wl-wide", home);                                       // 1 · 2단계는 좁은 카드 폭 그대로
@@ -136,10 +136,10 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("href=\"/welcome/today\">미션 수행하러 가기 <svg", home);          // 큰 버튼 → 미션 화면
         Assert.Contains("href=\"/join\">신청 보기 <svg", home);
         Assert.DoesNotContain("먼저 미션 해 보기", home);                                  // 1단계 전용 링크
-        Assert.DoesNotContain("<section class=\"wide td\"", home);
+        Assert.DoesNotContain("<section class=\"hj-card hj-pg m\"", home);
         var today = await c.GetStringAsync("/welcome/today");
         Assert.Contains("승인 기다리는 중</span>", today);                                  // 미션 화면 맨 위 표시
-        Assert.Contains("<section class=\"wide td\"", today);
+        Assert.Contains("<section class=\"hj-card hj-pg m\"", today);
     }
 
     [Fact]
@@ -153,12 +153,12 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.DoesNotContain("<small>오늘의 기도</small>", today);                        // 오른쪽 "이번 주 암송 · 오늘의 기도" 칸은 없다(2026-10-30)
         Assert.DoesNotContain("이번 주 암송", today);
         Assert.DoesNotContain("class=\"side\"", today);
-        Assert.Contains("<cite class=\"ref\">창세기 24:1</cite>", today);                  // 말씀 자리만(오른쪽 끝)
+        Assert.Contains("<cite class=\"ref\">(창세기 24:1)</cite>", today);                  // 말씀 자리만(오른쪽 끝)
         Assert.DoesNotContain("오늘 읽을 범위", today);
         InMemoryDb.SeedMembership(_db, _kids.Id, AccountId(), MembershipStatus.Approved, Roles.Participant);
         var kids = await c.GetStringAsync("/jamsil-kids");                               // 일반 부서 홈도 같은 모양(2026-10-31)
         Assert.DoesNotContain("<small>오늘의 기도</small>", kids);
-        Assert.Contains("<cite class=\"ref\">창세기 24:1</cite>", kids);
+        Assert.Contains("<cite class=\"ref\">(창세기 24:1)</cite>", kids);
     }
 
     [Fact]
@@ -169,7 +169,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         var r = await c.GetAsync("/jamsil-kids/today");                                  // 일반 부서 홈은 한 화면 그대로 — today 는 홈으로
         Assert.Equal("/jamsil-kids", r.Headers.Location!.OriginalString);
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/jamsil-kids")).StatusCode);
-        Assert.Contains("<section class=\"wide td\"", await c.GetStringAsync("/jamsil-kids"));
+        Assert.Contains("<section class=\"hj-card hj-pg m\"", await c.GetStringAsync("/jamsil-kids"));
         Assert.DoesNotContain("시작까지 3단계", await c.GetStringAsync("/jamsil-kids"));
         var kidsHome = await c.GetStringAsync("/jamsil-kids");                            // 맨 아래: 계정 줄 가운데 + © 줄(모든 부서 홈, 2026-10-30)
         Assert.Contains("<div class=\"acct\">", kidsHome);

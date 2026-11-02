@@ -60,15 +60,19 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("<span class=\"tenant\">잠실새내교회 유년부</span>", home);       // "← 처음 화면" 자리에 부서 이름
         Assert.DoesNotContain("님, 안녕하세요", home);                               // 인사 · 점수 칩 없음
         Assert.DoesNotContain("<small>오늘의 기도</small>", home);                    // 말씀 카드는 말씀만
-        Assert.Contains("<cite class=\"ref\">창세기 24:1</cite>", home);             // 오늘의 말씀 카드: 첫 절
-        Assert.Contains("0/3<small>오늘 미션</small>", home);                        // 오늘 있는 미션은 말씀 · 퀴즈 · 기도 세 가지
-        Assert.Contains("<a class=\"td-go\" href=\"/jamsil-kids/word\"><span aria-hidden=\"true\">▶ </span>시작하기 · 말씀<small>3개 남았어요", home);   // 0075 큰 버튼 = 다음 미션
-        Assert.Contains("안녕, 김철수!", home);                                         // 0075 인사
-        Assert.Contains("🔥 오늘 시작", home);                                        // 0075 연속일(아직 0일)
-        Assert.Contains("href=\"/jamsil-kids/word-mission\">미션 홈 · 이달 기록 보기", home);
-        Assert.Contains("<nav class=\"tabs\"", home);                                 // 0075 아래 탭
-        Assert.Contains("href=\"/jamsil-kids/calendar\"", home);
-        Assert.Contains("href=\"/jamsil-kids/points\"", home);
+        Assert.Contains("<cite class=\"ref\">(창세기 24:1)</cite>", home);           // 0076 말씀 한 줄 띠: 첫 절
+        Assert.Contains("<b class=\"num\">0/3</b>오늘 미션", home);                  // 오늘 있는 미션은 말씀 · 퀴즈 · 기도 세 가지
+        Assert.Contains("<a class=\"cur\" href=\"/jamsil-kids/word\">말씀<small>할 차례 ›</small>", home);   // 다음 할 일 칸
+        Assert.Contains("김철수 <u>님</u>", home);                                    // 0076 인사 카드
+        Assert.Contains("<small>나의 점수</small>", home);                            // R-190 성장: 0점 = 씨앗 0%, 새싹까지 400점
+        Assert.Contains("씨앗 0%", home);
+        Assert.Contains("씨앗으로 자라는 중", home);
+        Assert.Contains("<small>새싹까지</small><b class=\"num\">400<u>점</u>", home);
+        Assert.DoesNotContain("도토리", home);
+        Assert.Contains("href=\"/jamsil-kids/points\"", home);                      // 성장일지
+        Assert.Contains("action=\"/jamsil-kids/reading/search\"", home);             // 말씀 찾기
+        Assert.DoesNotContain("<nav class=\"tabs\"", home);                          // 0076: 아래 탭 · 이어서 하기 버튼 없음
+        Assert.DoesNotContain("td-go", home);
         var word = await c.GetStringAsync("/jamsil-kids/word");                     // 0075 완료 창 "다음: 퀴즈 →"
         Assert.Contains("data-today=\"1\" data-next=\"/jamsil-kids/quiz\" data-next-label=\"퀴즈\"", word);
         Assert.Contains("href=\"/account\"", home);                                 // 확정 7: 계정 줄 3개(비밀번호 바꾸기는 내 계정 안으로)
@@ -102,12 +106,11 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         }
         var home = await c.GetStringAsync("/jamsil-kids");
         Assert.Contains("1독째", home);
-        Assert.Contains("3 / 1,189장", home);
-        Assert.Contains("이어 읽기 · 창세기 4장", home);                              // 이어 읽기 = 창세기 4장
-        Assert.Contains("<a class=\"cover\" href=\"/jamsil-kids/reading\"", home);  // 카드 아무 데나 = 통독 홈
-        Assert.Contains("<a class=\"resume\" href=\"/jamsil-kids/reading/read/1/4\">", home);   // 이어 읽기 칸 = 그 장 읽기
-        Assert.DoesNotContain("<a class=\"p r\"", home);                              // 링크 안에 링크 없음(카드는 div)
-        Assert.Contains("통독<br />장 수", home);                                    // 이번 주 나의 기록에 통독 줄
+        Assert.Contains("<b class=\"num\">3</b><small>읽은 장</small>", home);
+        Assert.Contains("<b class=\"num\">1,186</b><small>남은 장</small>", home);
+        Assert.Contains("<a class=\"hj-box r\" href=\"/jamsil-kids/reading/read/1/4\">", home);   // 이어 읽을 곳 = 창세기 4장
+        Assert.Contains("<b>창세기</b><span>4장", home);
+        Assert.Contains("href=\"/jamsil-kids/reading\">📖 도전!!! 성경통독", home);   // 카드 제목 = 통독 홈
     }
 
     [Fact]
@@ -115,8 +118,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     {
         var (c, _) = await Member("eunhye", Roles.Teacher);
         var home = await c.GetStringAsync("/jamsil-kids");
-        Assert.Contains("보기만 해요", home);                                        // 확정 4
-        Assert.Contains("<a class=\"td-go\" href=\"/jamsil-kids/word-mission\">오늘 미션 보기", home);   // 참여자가 아니면 버튼도 미션 홈
+        Assert.Contains("<small>보기만</small>", home);                              // 확정 4: 미션 칸은 보기만
+        Assert.DoesNotContain("<small>나의 점수</small>", home);                     // 성장 · 점수 없음
         Assert.DoesNotContain("🔥", home);                                            // 연속일 없음
         Assert.DoesNotContain("점 올해 점수", home);
         Assert.DoesNotContain("말씀<br />점수", home);
@@ -150,8 +153,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         using (var raw = InMemoryDb.Raw(_db)) { raw.Tenants.Single(t => t.Id == _kids.Id).MissionEnabled = false; raw.SaveChanges(); }
         var (c, _) = await Member("cheolsu", Roles.Participant);
         var home = await c.GetStringAsync("/jamsil-kids");
-        Assert.DoesNotContain("class=\"nm\">도전!!!성경말씀", home);                  // 확정 5
-        Assert.Contains("class=\"nm\">도전!!!성경통독", home);
+        Assert.DoesNotContain("🎯 도전!!! 성경말씀", home);                          // 확정 5
+        Assert.Contains("📖 도전!!! 성경통독", home);
     }
 
     [Fact]
@@ -173,8 +176,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         req.Headers.Add("RequestVerificationToken", TokenRx().Match(html).Groups[1].Value);
         (await c.SendAsync(req)).EnsureSuccessStatusCode();
         var home = await c.GetStringAsync("/jamsil-kids");
-        Assert.Contains("나는 오늘 1번째로 참여", home);
-        Assert.Contains("1/2<small>오늘 미션</small>", home);
-        Assert.Contains("href=\"/jamsil-kids/quiz\"", home);                         // 다음 할 일 = 퀴즈
+        Assert.Contains("<b class=\"num\">1<u>번째</u></b>", home);
+        Assert.Contains("<b class=\"num\">1/2</b>오늘 미션", home);
+        Assert.Contains("<a class=\"cur\" href=\"/jamsil-kids/quiz\">", home);       // 다음 할 일 = 퀴즈
     }
 }

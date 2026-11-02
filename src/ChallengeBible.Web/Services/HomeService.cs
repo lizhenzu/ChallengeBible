@@ -29,6 +29,9 @@ public sealed class HomeView
     public string? VerseText { get; init; }
     public string? VerseRef { get; init; }
     public string? WordRange { get; init; }
+    public string? WordTitle { get; init; }
+    /// <summary>나의 점수 성장 단계(R-190) — 참여자만.</summary>
+    public Domain.Points.Growth? Growth { get; init; }
     public string? ReciteRange { get; init; }
     public DateOnly? ReciteStart { get; init; }
     public DateOnly? ReciteEnd { get; init; }
@@ -124,7 +127,8 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
             Today = today, SeasonYear = today.Year, SeasonDay = today >= seasonStart ? today.DayNumber - seasonStart.DayNumber + 1 : 0,
             Participant = pid is not null, SeasonPoints = day?.SeasonPoints ?? 0, Streak = streak, FullDays = fullDays, DayPoints = pid is null ? 0 : day?.DayPoints ?? 0,
             NextMilestone = MissionService.NextMilestone(r, day?.SeasonPoints ?? 0), Rules = r,
-            VerseText = verseText, VerseRef = verseRef, WordRange = day?.Word?.Range,
+            VerseText = verseText, VerseRef = verseRef, WordRange = day?.Word?.Range, WordTitle = day?.Word?.Title,
+            Growth = pid is null ? null : Domain.Points.PointMath.GrowthOf(day?.SeasonPoints ?? 0, r.GrowthStages),
             ReciteRange = day?.Recite?.Range, ReciteStart = day?.Recite?.Start, ReciteEnd = day?.Recite?.End, PrayerTrait = day?.Prayer?.Trait, PrayerRange = day?.Prayer?.Range,
             Missions = list, NextMission = list.FirstOrDefault(m => m.Has && !m.Done),
             Reading = sum, ResumeText = resumeText, Week = weekDays,
