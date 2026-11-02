@@ -149,16 +149,15 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         ContentSeed.Prayer(_db, Jan5);
         var (c, _) = await SignUp();
         var today = await c.GetStringAsync("/welcome/today");
-        Assert.Contains("aria-label=\"오늘의 말씀\"", today);                              // 말씀 카드는 있고
         Assert.DoesNotContain("<small>오늘의 기도</small>", today);                        // 오른쪽 "이번 주 암송 · 오늘의 기도" 칸은 없다(2026-10-30)
         Assert.DoesNotContain("이번 주 암송", today);
         Assert.DoesNotContain("class=\"side\"", today);
-        Assert.Contains("<cite class=\"ref\">(창세기 24:1)</cite>", today);                  // 말씀 자리만(오른쪽 끝)
+        Assert.DoesNotContain("class=\"hj-rib\"", today);                                  // 말씀 한 줄 띠는 지움(2026-11-03)
         Assert.DoesNotContain("오늘 읽을 범위", today);
         InMemoryDb.SeedMembership(_db, _kids.Id, AccountId(), MembershipStatus.Approved, Roles.Participant);
         var kids = await c.GetStringAsync("/jamsil-kids");                               // 일반 부서 홈도 같은 모양(2026-10-31)
         Assert.DoesNotContain("<small>오늘의 기도</small>", kids);
-        Assert.Contains("<cite class=\"ref\">(창세기 24:1)</cite>", kids);
+        Assert.DoesNotContain("class=\"hj-rib\"", kids);
     }
 
     [Fact]

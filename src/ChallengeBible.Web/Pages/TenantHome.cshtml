@@ -85,10 +85,7 @@
 {
 @* 0076 확정 시안(hk.png): 말씀 한 줄 띠 → 인사 카드(나의 점수 성장) → 말씀 찾기 → 성경말씀 카드 → 성경통독 카드 → 가족팀 · 우리 부서 *@
 <main class="gut hj"><div class="wrap">
-    @if (d.VerseText is not null)
-    {
-        <p class="hj-rib" aria-label="오늘의 말씀"><b aria-hidden="true">✝</b> @d.VerseText <cite class="ref">(@d.VerseRef)</cite></p>
-    }
+    @* 맨 위 말씀 한 줄 띠는 지웠다(2026-11-03 사용자) *@
     @if (Model.NeedsFamilyChoice)
     {
         <a class="notice" href="/account/family"><b>시상 부서가 아직 정해지지 않았어요</b><span>플랫폼 관리자가 정하면 그 부서에서 부모님도 미션 · 가족팀을 함께해요 →</span></a>

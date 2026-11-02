@@ -60,7 +60,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("class=\"tenant\"", home);                              // 소속 하나 · 관리자 아님 → 부서 이름 줄 없음(2026-11-03)
         Assert.DoesNotContain("님, 안녕하세요", home);                               // 인사 · 점수 칩 없음
         Assert.DoesNotContain("<small>오늘의 기도</small>", home);                    // 말씀 카드는 말씀만
-        Assert.Contains("<cite class=\"ref\">(창세기 24:1)</cite>", home);           // 0076 말씀 한 줄 띠: 첫 절
+        Assert.DoesNotContain("class=\"hj-rib\"", home);                             // 말씀 한 줄 띠는 지움(2026-11-03)
         Assert.Contains("<b class=\"num\">0/3</b>오늘 미션", home);                  // 오늘 있는 미션은 말씀 · 퀴즈 · 기도 세 가지
         Assert.Contains("<a class=\"cur\" href=\"/jamsil-kids/word\">말씀<small>할 차례 ›</small>", home);   // 다음 할 일 칸
         Assert.Contains("김철수 <u>님</u>", home);                                    // 0076 인사 카드
