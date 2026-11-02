@@ -253,6 +253,24 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task 말씀_색_테마는_통독과_따로_계정에_남고_미션_화면에만_붙는다_0074()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var home = await c.GetStringAsync("/jamsil-kids");
+        Assert.Contains("data-mtheme-pick=\"sand\"", home);
+        Assert.DoesNotContain("data-mtheme=\"", home);                       // 기본은 붙이지 않는다
+        var token = TokenRx().Match(home).Groups[1].Value;
+        Assert.Equal(HttpStatusCode.OK, (await Api(c, token, "/api/me/mission/theme", new { theme = "sand" }, HttpMethod.Put)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await Api(c, token, "/api/me/mission/theme", new { theme = "neon" }, HttpMethod.Put)).StatusCode);
+        foreach (var url in new[] { "/jamsil-kids", "/jamsil-kids/word" })
+            Assert.Contains("data-mtheme=\"sand\"", await c.GetStringAsync(url));
+        Assert.DoesNotContain("data-mtheme=\"sand\"", await c.GetStringAsync("/jamsil-kids/reading"));   // 통독은 따로
+        Assert.Contains("dataset.theme = 'default'", await c.GetStringAsync("/jamsil-kids/reading"));
+        await Api(c, token, "/api/me/mission/theme", new { theme = "default" }, HttpMethod.Put);
+        Assert.DoesNotContain("data-mtheme=\"", await c.GetStringAsync("/jamsil-kids"));
+    }
+
+    [Fact]
     public async Task 통독_본문_큰_버튼은_이_장_전체_읽음이고_오늘_읽은_절을_센다_0072()
     {
         var c = await Member("cheolsu", Roles.Participant);

@@ -1,4 +1,5 @@
 ﻿@inject ChallengeBible.Web.Tenancy.TenantContext Tenant
+@inject ChallengeBible.Web.Services.AccountService Accounts
 @using ChallengeBible.Web.Services
 @{
     // 화면 제목은 각 화면 모델(ITitled)에서 읽는다 — ViewBag · TempData 를 쓰지 않는다(X-13).
@@ -11,9 +12,13 @@
     var blueOnly = dept is not null && (path.StartsWith($"/{dept.Slug}/reading", StringComparison.OrdinalIgnoreCase)
                                         || path.Equals($"/{dept.Slug}/read", StringComparison.OrdinalIgnoreCase));
     var color = dept is null || blueOnly ? "blue" : dept.ThemeColor;
+    // 성경말씀 미션 색 테마(ADR 0074): 부서의 미션 화면(통독 · 관리 밖)에서 내가 고른 테마. 기본은 붙이지 않는다
+    var missionArea = dept is not null && !path.StartsWith($"/{dept.Slug}/reading", StringComparison.OrdinalIgnoreCase)
+                                       && !path.StartsWith($"/{dept.Slug}/admin", StringComparison.OrdinalIgnoreCase);
+    var mtheme = missionArea && User.AccountId() is int me ? await Accounts.MissionThemeAsync(me) : null;
 }
 <!DOCTYPE html>
-<html lang="ko" data-color="@color">
+<html lang="ko" data-color="@color"@if (AccountService.ReadingThemes.Contains(mtheme)) {<text> data-mtheme="@mtheme"</text>}>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />

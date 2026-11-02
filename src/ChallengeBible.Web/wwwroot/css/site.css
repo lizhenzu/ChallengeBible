@@ -1707,3 +1707,23 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .jv4 .jacts .back { border: 1.5px solid var(--rule); background: var(--bg); color: var(--fg); }
 .jv4 .jacts .go { border: 0; background: var(--accent); color: var(--on-accent); cursor: pointer; }
 .jv4:not(:has(input[name="TenantId"]:checked)) .jacts .go { opacity: .4; pointer-events: none; }
+
+/* 성경말씀 미션 색 테마(ADR 0074): <html data-mtheme> — 통독(0073)과 같은 색 묶음, 계정에 따로 남긴다.
+   부서 홈(.hm)은 어두운 모드에서 어두운 색, 미션 네 화면(.mbody)은 늘 밝은 화면이라 밝은 색만 쓴다. */
+:root[data-mtheme="paper"] { --m-bg: #FBF7EF; --m-band: #F3EBDD; --m-rule: #E6DCCB; --m-ink: #3B3228; --m-dim: #7A6D5E; --m-acc: #8A6A45; --m-accbg: #EFE3CF; --m-l2: #C4A57A; --m-verse: #4A3B29; --m-gold: #F0D29A; }
+:root[data-mtheme="forest"] { --m-bg: #F6F8F2; --m-band: #EAF0E3; --m-rule: #DCE4D2; --m-ink: #26322A; --m-dim: #66756A; --m-acc: #4E7A55; --m-accbg: #DDEBD9; --m-l2: #93B98F; --m-verse: #2D4433; --m-gold: #E5D48A; }
+:root[data-mtheme="sand"] { --m-bg: #FAF8F3; --m-band: #EFEBE1; --m-rule: #E3DED2; --m-ink: #2C3437; --m-dim: #6E777A; --m-acc: #3E7F8C; --m-accbg: #DCEBEC; --m-l2: #8DBCC2; --m-verse: #284347; --m-gold: #EBD08F; }
+@media (prefers-color-scheme: dark) {
+  :root[data-mtheme="paper"]:has(.hm) { --m-bg: #1E1A15; --m-band: #28221B; --m-rule: #3A3128; --m-ink: #EDE4D6; --m-dim: #B3A592; --m-acc: #D2A877; --m-accbg: #3A2E20; --m-l2: #8C6F4B; --m-verse: #2E271F; --m-gold: #E9C27A; }
+  :root[data-mtheme="forest"]:has(.hm) { --m-bg: #161C17; --m-band: #1E2620; --m-rule: #2C372E; --m-ink: #E3EBE2; --m-dim: #9DAE9F; --m-acc: #8CC495; --m-accbg: #22362A; --m-l2: #5A8A62; --m-verse: #222B24; --m-gold: #E5D48A; }
+  :root[data-mtheme="sand"]:has(.hm) { --m-bg: #171B1C; --m-band: #1F2526; --m-rule: #2E3638; --m-ink: #E5EAEA; --m-dim: #9EAAAC; --m-acc: #7CC0CB; --m-accbg: #1F3539; --m-l2: #4F8A92; --m-verse: #242B2C; --m-gold: #EBD08F; } }
+:root[data-mtheme]:has(.hm) { --bg: var(--m-bg); --fg: var(--m-ink); --dim: var(--m-dim); --rule: var(--m-rule); --soft: var(--m-band); --accent: var(--m-acc); --accent-bg: var(--m-accbg); }
+:root[data-mtheme] .hm.sky { --accent-soft: var(--m-accbg); --acc-soft: var(--m-accbg); --sky: var(--m-band); --sky-rule: var(--m-rule); --verse-bg: var(--m-verse); --vgold: var(--m-gold); }
+:root[data-mtheme] body:has(.mbody) { --bg: var(--m-bg); --rule: var(--m-rule); --line: var(--m-rule); --soft: var(--m-band); --accent: var(--m-acc); --accent-bg: var(--m-accbg); --no: var(--m-l2); background: var(--m-bg); }
+
+/* 부서 홈 맨 아래 "색 테마" 줄(0074) */
+.mth { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 13.5px; color: var(--dim); }
+.mth span { margin-right: 4px; }
+.mth .sw { width: 28px; height: 28px; padding: 0; border-radius: 50%; border: 2px solid var(--bg); box-shadow: 0 0 0 1px var(--line); cursor: pointer; }
+.mth .sw[aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--accent); }
+.mth .sw-default { background: #EAF4FF; } .mth .sw-paper { background: #E3D2B4; } .mth .sw-forest { background: #A9C8A3; } .mth .sw-sand { background: #A9CDD2; }

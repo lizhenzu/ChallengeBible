@@ -316,6 +316,34 @@
 }
 
 <footer class="gut"><div class="wrap">
+    @* 색 테마(ADR 0074): 누르면 바로 바뀌고 계정에 남긴다. 지금 값은 <html data-mtheme> 에서 읽는다 *@
+    <div class="mth" role="group" aria-label="색 테마">
+        <span>색 테마</span>
+        @foreach (var (key, label) in new[] { ("default", "기본"), ("paper", "종이"), ("forest", "숲"), ("sand", "모래") })
+        {
+            <button type="button" class="sw sw-@key" data-mtheme-pick="@key" aria-label="@label" title="@label"></button>
+        }
+        @Html.AntiForgeryToken()
+    </div>
+    <script>
+        (() => {
+            const box = document.currentScript.previousElementSibling, root = document.documentElement;
+            const mark = (k) => box.querySelectorAll('[data-mtheme-pick]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.mthemePick === k)));
+            const now = () => root.dataset.mtheme || 'default';
+            mark(now());
+            box.addEventListener('click', async (e) => {
+                const b = e.target.closest('[data-mtheme-pick]');
+                if (!b) return;
+                const before = now(), key = b.dataset.mthemePick;
+                const set = (k) => { if (k === 'default') delete root.dataset.mtheme; else root.dataset.mtheme = k; mark(k); };
+                set(key);
+                const token = box.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+                const res = await fetch('/api/me/mission/theme', { method: 'PUT', credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', RequestVerificationToken: token }, body: JSON.stringify({ theme: key }) }).catch(() => null);
+                if (!res?.ok) set(before);   // 못 남겼으면 되돌린다
+            });
+        })();
+    </script>
     <div class="acct">
         <a href="/account">내 계정</a>
         @if (Model.Tenant.IsLobby) { <a href="/join">내 부서 참여</a> } else { <a href="/account/tenants">부서 바꾸기</a> }
