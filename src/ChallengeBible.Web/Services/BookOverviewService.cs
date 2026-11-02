@@ -56,7 +56,7 @@ public sealed class BookOverviewService(IAppDb db)
 
         if (brief.Count == 0 && detail.Count == 0) return null;   // 글이 없는 책은 카드를 숨김
         var line = (T(o.Summary) ?? T(o.ContentSummary) ?? "").Split('\n')[0];
-        return new BookOverviewCard(o.BookId, BibleBooks.NameOf(o.BookId), line, chapter == 1, brief, detail);
+        return new BookOverviewCard(o.BookId, BibleBooks.NameOf(o.BookId), line, false, brief, detail);   // 항상 접어 둔다(1장에서도)
     }
 
     /// <summary>핵심어 "창조, 언약 · 족장" → 칩 하나씩.</summary>
