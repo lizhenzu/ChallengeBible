@@ -166,6 +166,25 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
         return true;
     }
 
+    /// <summary>내 성경말씀 미션 테마(ADR 0074, 없으면 null = 기본). 통독 테마와 따로.</summary>
+    public async Task<string?> MissionThemeAsync(int accountId, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        return await ctx.Accounts.Where(a => a.Id == accountId).Select(a => a.MissionTheme).SingleOrDefaultAsync(ct);
+    }
+
+    /// <summary>미션 테마 바꾸기. 키는 통독과 같다. 모르는 키면 false.</summary>
+    public async Task<bool> SetMissionThemeAsync(int accountId, string? theme, CancellationToken ct = default)
+    {
+        var t = string.IsNullOrWhiteSpace(theme) || theme == "default" ? null : theme;
+        if (t is not null && !ReadingThemes.Contains(t)) return false;
+        await using var ctx = db.Create();
+        var account = await ctx.Accounts.SingleAsync(a => a.Id == accountId, ct);
+        account.MissionTheme = t;
+        await ctx.SaveChangesAsync(ct);
+        return true;
+    }
+
     /// <summary>내 계정 화면용: 이름 · 이메일 · 가입한 날(UTC).</summary>
     public async Task<(string Name, string Email, DateTime CreatedUtc)> ProfileAsync(int accountId, CancellationToken ct = default)
     {

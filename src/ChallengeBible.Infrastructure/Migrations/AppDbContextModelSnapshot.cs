@@ -53,6 +53,11 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<int?>("LastTenantId")
                         .HasColumnType("int");
 
+                    b.Property<string>("MissionTheme")
+                        .HasMaxLength(16)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(16)");
+
                     b.Property<bool>("MustChangePassword")
                         .HasColumnType("bit");
 

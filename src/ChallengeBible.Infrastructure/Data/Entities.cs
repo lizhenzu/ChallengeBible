@@ -51,6 +51,8 @@ public sealed class Account
     public int? LastTenantId { get; set; }
     /// <summary>통독 화면 색 테마(ADR 0073): null = 기본(파랑) · paper · forest · sand. 계정에 두어 어느 기기에서도 같다.</summary>
     public string? ReadingTheme { get; set; }
+    /// <summary>성경말씀 미션 화면 색 테마(ADR 0074): 통독과 같은 키, 따로 남긴다. null = 기본(하늘).</summary>
+    public string? MissionTheme { get; set; }
     public string Status { get; set; } = "Active";
     public DateTime CreatedUtc { get; set; }
 }
