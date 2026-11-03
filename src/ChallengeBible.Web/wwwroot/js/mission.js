@@ -44,8 +44,7 @@
       <h2 id="okT" data-l></h2>
       <span class="pill num">+${Number(json.pointsEarned ?? 0)}점</span>
       <div class="tot">올해 모은 포인트<b class="num">${fmt(json.seasonTotal)}<u>점</u></b></div>
-      <button type="button" class="okpop-close" data-close>확인</button>
-      <div class="bar" aria-hidden="true"><i></i></div>
+      <button type="button" class="okpop-close" data-close><i aria-hidden="true"></i><span>확인</span></button>
       <div class="cd"><span data-cd>${OK_SECONDS}</span>초 뒤 저절로 닫혀요</div>
     </section>`;
     // 이름 · 문구는 글자로만 넣는다
@@ -55,9 +54,9 @@
     // 0075 의 "다음: ○○ →" 버튼은 지웠다(2026-11-03 사용자) — 확인 버튼 하나
     let left = OK_SECONDS;
     const cd = dlg.querySelector('[data-cd]');
-    const bar = dlg.querySelector('.bar i');
+    const bar = dlg.querySelector('.okpop-close i');
     bar.style.transitionDuration = `${OK_SECONDS}s`;
-    requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.width = '0%'; }));   // 10초 동안 줄어드는 막대
+    requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.width = '0%'; }));   // 확인 버튼이 10초 동안 진한 색 → 흐린 색(2026-11-03 시안)
     const timer = setInterval(() => { left -= 1; cd.textContent = String(left); if (left <= 0) close(); }, 1000);
     function esc(e) { if (e.key === 'Escape') close(); }
     function close() {
