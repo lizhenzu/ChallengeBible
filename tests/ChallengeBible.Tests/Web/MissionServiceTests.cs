@@ -140,7 +140,7 @@ public class MissionServiceTests
     [InlineData("**{이름}(이)**가 자유롭게 해 주세요.", "<b class=\"nm\"><i>○○</i>(이)</b>가 자유롭게 해 주세요.")]
     [InlineData("하나님, {이름}을 지켜 주세요.", "하나님, <b class=\"nm\"><i>○○</i></b>을 지켜 주세요.")]
     [InlineData("<script>", "&lt;script&gt;")]
-    [InlineData("하나님,\n\n지켜 주세요.\r\n \r\n아멘!", "하나님,\n지켜 주세요.\n아멘!")]   // 빈 줄은 한 줄바꿈으로(2026-11-03)
+    [InlineData("하나님,\n\n지켜 주세요.\n함께해 주세요.\r\n \r\n아멘!", "하나님,<span class=\"half\" aria-hidden=\"true\"></span>지켜 주세요.\n함께해 주세요.<span class=\"half\" aria-hidden=\"true\"></span>아멘!")]   // 빈 줄은 반 줄 빈칸으로(2026-11-03)
     public void R32_0054_기도문_이름_자리는_동그라미_두개로_강조(string text, string html) =>
         Assert.Equal(html, ChallengeBible.Web.Pages.Mission.PrayerModel.Paragraph(text).ToString());
 
