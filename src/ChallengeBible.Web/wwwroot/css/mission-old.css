@@ -82,8 +82,8 @@ body:has(.mbody) .story .nm { color: #1D5FBF; font-weight: 800; background: line
 .story .nm i { font-style: normal; font-family: "Noto Sans KR", "Malgun Gothic", sans-serif; letter-spacing: .02em; }
 
 /* 퀴즈: 배경 · 문제 · 보기(연회색 줄, 번호는 흐린 파랑) · 답 제출하기(파란 밑줄 글자) · 해설 */
-/* 퀴즈 배경은 문제와 같은 17px · 400, 줄 간격 1.5(2026-11-03 사용자) */
-body:has(.mbody) .qbg { font-size: calc(17px * var(--fs)); line-height: 1.5; font-weight: 400; color: #1F2937; }
+/* 퀴즈 배경은 문제와 같은 17px · 400, 줄 간격 1.6(2026-11-03 사용자) */
+body:has(.mbody) .qbg { font-size: calc(17px * var(--fs)); line-height: 1.6; font-weight: 400; color: #1F2937; }
 body:has(.mbody) .qq { font-size: calc(17px * var(--fs)); line-height: 1.6; font-weight: 400; color: #111827; }
 body:has(.mbody) .qopts { margin-top: 4px; }
 body:has(.mbody) .qopt { background: #F4F6F9; box-shadow: none; }
