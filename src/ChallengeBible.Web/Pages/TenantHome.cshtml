@@ -168,7 +168,7 @@
                 @foreach (var m in d.Missions)
                 {
                     var cls = !m.Has ? "no" : m.Done ? "ok" : d.Participant && m == d.NextMission ? "cur" : "";
-                    <a class="@cls" href="/@slug/@m.Key">@m.Label<small>@(!d.Participant && m.Has ? "보기만" : m.Done ? "✓ " + m.State : m == d.NextMission ? m.State + " ›" : m.State)</small></a>
+                    <a class="@cls" href="/@slug/@m.Key">@m.Label<small>@(!d.Participant && m.Has ? "보기만" : m.Done ? m.State : m == d.NextMission ? m.State + " ›" : m.State)</small></a>
                 }
             </div>
             @if (d.Participant && d.SeasonDay > 0)
