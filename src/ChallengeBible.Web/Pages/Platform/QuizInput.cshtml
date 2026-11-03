@@ -1,0 +1,26 @@
+@page "/platform/quiz-input"
+@model QuizInputModel
+@* 확정 시안: qput.png(ADR 0079) — 날짜 → JSON → 넣기. 틀리면 쓴 JSON 은 그대로 남는다. 예제는 잘못 눌러도 들어가지 않게 자리 글자로만 *@
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap wide qput">
+    <h1>퀴즈 넣기</h1>
+    <p class="sub">하루치 공용 퀴즈를 JSON 으로 넣어요. 같은 날을 다시 넣으면 그날 퀴즈를 바꿔요.</p>
+
+    @if (Model.Ok is not null) { <p class="okmsg" role="status">@Model.OkMessage</p> }
+    @if (Model.Errors.Count > 0)
+    {
+        <div class="errmsg" role="alert"><b>넣지 못했어요</b>@foreach (var e in Model.Errors) { <br />@e }</div>
+    }
+
+    <form method="post" class="stack">
+        <div class="f">
+            <label for="qDate">날짜</label>
+            <input class="in" id="qDate" type="date" name="Date" value="@Model.Date" required />
+        </div>
+        <div class="f">
+            <label for="qJson">JSON</label>
+            <textarea class="in qput-json" id="qJson" name="Json" rows="14" spellcheck="false" placeholder="@QuizInputModel.Sample" required>@Model.Json</textarea>
+        </div>
+        <button type="submit" class="btn p">넣기</button>
+    </form>
+</div></main>

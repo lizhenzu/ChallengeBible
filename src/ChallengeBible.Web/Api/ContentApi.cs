@@ -11,6 +11,8 @@ namespace ChallengeBible.Web.Api;
 public sealed record QuizPutRequest(string? Question, string? Background, string? Format, List<string>? Choices, int? CorrectNumber,
     List<string>? AcceptedAnswers, string? Explanation, bool Publish = true);
 
+public sealed record QuizPutResult(FieldErrors Errors, bool Created, string? Status, int? Id);
+
 /// <summary>
 /// 공용 콘텐츠 입력 API(ADR 0079, R-125): `PUT /api/platform/quizzes/{yyyy-MM-dd}` 로 하루치 퀴즈를 넣는다.
 /// 프로그램이 부르므로 쿠키 대신 `X-Api-Key`. 키가 설정되어 있지 않으면 없는 주소처럼 답한다.
@@ -44,6 +46,20 @@ public static class ContentApi
 
         if (!int.TryParse(config["ContentApi:ActorAccountId"], out var actor))
             return NotReady(logs, "ContentApi:ActorAccountId 가 없어요.");
+        try
+        {
+            var r = await SaveAsync(content, actor, day, body, ct);
+            if (!r.Errors.Ok) return Invalid(r.Errors);
+            return Results.Ok(new { date = day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), id = r.Id, status = r.Status, created = r.Created });
+        }
+        catch (UnauthorizedAccessException) { return NotReady(logs, "ContentApi:ActorAccountId 가 활성 플랫폼 관리자가 아니에요."); }
+    }
+
+    /// <summary>검사하고 저장(API · 관리 화면 "퀴즈 넣기" 공통). 플랫폼 관리자가 아니면 UnauthorizedAccessException.</summary>
+    public static async Task<QuizPutResult> SaveAsync(ContentAdminService content, int actor, DateOnly day, QuizPutRequest body, CancellationToken ct = default)
+    {
+        var errors = Check(body);
+        if (!errors.Ok) return new(errors, false, null, null);
         var choice = (body.Format ?? QuizFormat.Choice) == QuizFormat.Choice;
         var input = new ContentInput
         {
@@ -52,15 +68,11 @@ public static class ContentApi
             CorrectIndex = choice ? body.CorrectNumber!.Value - 1 : -1,
             AcceptedAnswers = choice ? null : string.Join("\n", body.AcceptedAnswers!),
         };
-        try
-        {
-            var created = (await content.LoadAsync(actor, ContentKind.Quiz, day, ct)).Id is null;
-            errors = await content.SaveAsync(actor, ContentKind.Quiz, input, body.Publish, ct);
-            if (!errors.Ok) return Invalid(errors);
-            var (_, status, id) = await content.LoadAsync(actor, ContentKind.Quiz, day, ct);
-            return Results.Ok(new { date = day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), id, status, created });
-        }
-        catch (UnauthorizedAccessException) { return NotReady(logs, "ContentApi:ActorAccountId 가 활성 플랫폼 관리자가 아니에요."); }
+        var created = (await content.LoadAsync(actor, ContentKind.Quiz, day, ct)).Id is null;
+        errors = await content.SaveAsync(actor, ContentKind.Quiz, input, body.Publish, ct);
+        if (!errors.Ok) return new(errors, false, null, null);
+        var (_, status, id) = await content.LoadAsync(actor, ContentKind.Quiz, day, ct);
+        return new(errors, created, status, id);
     }
 
     /// <summary>화면 검사(<see cref="ContentAdminService.Validate"/>)가 보지 않는 API 값 · DB 칸 길이를 먼저 본다.</summary>
