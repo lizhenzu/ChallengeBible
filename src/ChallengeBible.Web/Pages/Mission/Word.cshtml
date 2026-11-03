@@ -19,7 +19,20 @@
             <button type="button" class="more" id="storyMore" aria-expanded="false" aria-controls="story" hidden>이야기 더 보기 ＋</button>
         </section>
         <section class="sec"><h2><span class="n">02</span>성경 읽기 <small>@w.Range</small></h2>
-            <a class="wlnk" href="/@Model.Slug/read?from=word@(Model.IsToday ? "" : "&date=" + Model.Day.ToString("yyyy-MM-dd"))">@chapter 읽으러 가기 <em aria-hidden="true">→</em></a>
+            @{ var readUrl = $"/{Model.Slug}/read?from=word" + (Model.IsToday ? "" : "&date=" + Model.Day.ToString("yyyy-MM-dd")); }
+            @if (Model.FirstVerse is { } fv && fv.Texts.GetValueOrDefault("KRV") is { Length: > 0 } fvt)
+            {
+                @* 첫 구절 먼저 · "더 보기"로 성경 읽기 화면(2026-11-03 확정 시안 wv.png) *@
+                <div class="wvbox">
+                    <div class="ref">@chapter</div>
+                    <p><i class="num">@fv.Verse</i>@fvt</p>
+                    <a class="more" href="@readUrl">더 보기 →</a>
+                </div>
+            }
+            else
+            {
+                <a class="wlnk" href="@readUrl">@chapter 읽으러 가기 <em aria-hidden="true">→</em></a>
+            }
         </section>
         @await Html.PartialAsync("_PickSection", new PickSection(Model, "03", "어떻게 읽었나요?", Mission.Word, "word"))
     }
