@@ -247,7 +247,7 @@
 .hm .hj-rib b { color: var(--hj-blue); margin-right: 2px; }
 .hm .hj-rib .ref { font-style: normal; color: var(--dim); font-weight: 600; font-size: 12.5px; }
 .hm .hj-card { display: block; background: var(--bg); border: 1px solid var(--rule); border-radius: 20px; padding: 18px; }
-.hm .hj-hi-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.hm .hj-hi-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }   /* 사진은 위 · 가로선 사이 가운데(2026-11-03 사용자) */
 .hm .hj-hi small { color: var(--dim); font-size: 13px; }
 .hm .hj-hi h1 { margin: 2px 0 8px; font-size: 28px; font-weight: 900; }
 .hm .hj-hi h1 u { text-decoration: none; font-size: 15px; color: var(--dim); font-weight: 600; }
