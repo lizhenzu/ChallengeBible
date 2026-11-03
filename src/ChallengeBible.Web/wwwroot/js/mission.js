@@ -44,7 +44,6 @@
       <h2 id="okT" data-l></h2>
       <span class="pill num">+${Number(json.pointsEarned ?? 0)}점</span>
       <div class="tot">올해 모은 포인트<b class="num">${fmt(json.seasonTotal)}<u>점</u></b></div>
-      <a class="okpop-next" data-next hidden></a>
       <button type="button" class="okpop-close" data-close>확인</button>
       <div class="bar" aria-hidden="true"><i></i></div>
       <div class="cd"><span data-cd>${OK_SECONDS}</span>초 뒤 저절로 닫혀요</div>
@@ -53,15 +52,7 @@
     dlg.querySelector('[data-m]').textContent = mission;
     dlg.querySelector('[data-k]').textContent = kind;
     dlg.querySelector('[data-l]').textContent = label || `${mission} 미션을 했어요`;
-    // 0075: 바로 다음 미션으로(오늘 화면일 때만). 남은 게 없으면 홈으로. 축하 창이 이어 뜨면 축하를 먼저 보인다
-    const ms = document.getElementById('cb-ms')?.dataset ?? {};
-    if (ms.today) {
-      const nx = dlg.querySelector('[data-next]');
-      nx.href = ms.next || ms.home;
-      nx.textContent = ms.next ? `다음: ${ms.nextLabel} →` : '오늘 미션 끝! 홈으로 →';
-      nx.hidden = false;
-      nx.addEventListener('click', (e) => { if (then) { e.preventDefault(); close(); } });
-    }
+    // 0075 의 "다음: ○○ →" 버튼은 지웠다(2026-11-03 사용자) — 확인 버튼 하나
     let left = OK_SECONDS;
     const cd = dlg.querySelector('[data-cd]');
     const bar = dlg.querySelector('.bar i');
