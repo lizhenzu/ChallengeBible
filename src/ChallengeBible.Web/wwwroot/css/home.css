@@ -265,6 +265,8 @@
 .hm .hj-ring b { font-size: 24px; }
 .hm .hj-ring.g > span { color: var(--hj-green); font-weight: 900; }
 .hm .hj-ring.g i { display: block; font-style: normal; font-size: 28px; }
+.hm .hj-ring.g i .pea { display: block; width: 40px; height: 40px; margin: 0 auto; }
+.hm .hj-stg .st .pea { display: block; width: 1.4em; height: 1.4em; margin: 0 auto; }
 .hm .hj-grow { display: flex; align-items: center; gap: 14px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--rule); }
 .hm .hj-gtx { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .hm .hj-gtx small, .hm .hj-gnx small { font-size: 12px; font-weight: 700; color: var(--hj-blue); }

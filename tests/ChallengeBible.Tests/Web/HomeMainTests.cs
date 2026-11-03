@@ -67,6 +67,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("<small>나의 점수</small>", home);                            // R-190 성장: 0점 = 씨앗 0%, 새싹까지 400점
         Assert.Contains("씨앗 0%", home);
         Assert.Contains("씨앗으로 자라는 중", home);
+        Assert.Contains("<svg class=\"pea\"", home);                                  // 씨앗 그림 = 완두콩 꼬투리(2026-11-03), 🌰 이모지는 안 씀
+        Assert.DoesNotContain("🌰", home);
         Assert.DoesNotContain("새싹까지", home);                                       // 오른쪽 "다음 단계까지 N점"은 지움(2026-11-03)
         Assert.DoesNotContain("도토리", home);
         Assert.Contains("href=\"/jamsil-kids/points\"", home);                      // 성장일지

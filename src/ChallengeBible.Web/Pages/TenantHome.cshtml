@@ -20,6 +20,10 @@
     var lobby = Model.Tenant.IsLobby;
     var intro = lobby && !Model.TodayScreen;
     // 받침에 맞는 "로 / 으로"(받침 없음 · ㄹ 받침 = 로)
+    // 씨앗 단계 그림: 🌰(밤) 대신 완두콩 꼬투리(2026-11-03 사용자 확정 E). 새 이모지는 기기마다 □ 로 깨지므로 그림으로 그린다
+    static Microsoft.AspNetCore.Html.IHtmlContent Ico(string e) => e == "🌰"
+        ? new Microsoft.AspNetCore.Html.HtmlString("<svg class=\"pea\" viewBox=\"0 0 40 40\"><path d=\"M4 26C10 12 26 8 36 12c-2 12-16 20-30 17z\" fill=\"#6CC04A\"/><path d=\"M7 26c8-1 18-6 26-12\" stroke=\"#4E9A33\" stroke-width=\"1.5\" fill=\"none\"/><circle cx=\"13\" cy=\"23\" r=\"3.6\" fill=\"#A6E07A\"/><circle cx=\"20\" cy=\"20\" r=\"3.8\" fill=\"#A6E07A\"/><circle cx=\"27\" cy=\"16.5\" r=\"3.6\" fill=\"#A6E07A\"/><path d=\"M34 12c1-3 3-4 5-4\" stroke=\"#4E9A33\" stroke-width=\"1.8\" fill=\"none\" stroke-linecap=\"round\"/></svg>")
+        : new Microsoft.AspNetCore.Html.HtmlString(System.Net.WebUtility.HtmlEncode(e));
     static string Ro(string w) { var c = w.Length == 0 ? 'a' : w[^1]; var j = c is >= '가' and <= '힣' ? (c - '가') % 28 : 0; return j == 0 || j == 8 ? "로" : "으로"; }   // 0068: 임시 부서 `/{slug}` = 1단계(부서 안 고름) · 2단계(승인 기다림), 윗부분만
 }
 <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
@@ -112,7 +116,7 @@
             <a class="hj-grow" href="/@slug/points" aria-label="나의 점수 성장일지">
                 <span class="hj-ring g" aria-hidden="true">
                     <svg width="76" height="76" viewBox="0 0 76 76"><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-green-l)" stroke-width="8" /><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-green)" stroke-width="8" stroke-linecap="round" stroke-dasharray="@((G * g.Percent / 100).ToString("0.#", inv)) @G.ToString("0.#", inv)" transform="rotate(-90 38 38)" /></svg>
-                    <span><i>@cur.Emoji</i>@cur.Name @(g.Percent)%</span>
+                    <span><i>@Ico(cur.Emoji)</i>@cur.Name @(g.Percent)%</span>
                 </span>
                 <span class="hj-gtx"><small>나의 점수</small><b class="num">@d.SeasonPoints.ToString("N0")<u>점</u></b>
                     <em>@(g.Done ? $"{cur.Name}까지 모두 자랐어요" : $"{cur.Name}{Ro(cur.Name)} 자라는 중")</em></span>
@@ -124,7 +128,7 @@
                     var s = stages[i];
                     var state = i < g.Stage || g.Done ? "d" : i == g.Stage ? "c" : "";
                     if (i > 0) { <li class="ln @(i <= g.Stage || g.Done ? "d" : "")" aria-hidden="true"></li> }
-                    <li class="st @state" aria-current="@(state == "c" ? "step" : "false")"><span aria-hidden="true">@s.Emoji</span><small>@s.Name</small></li>
+                    <li class="st @state" aria-current="@(state == "c" ? "step" : "false")"><span aria-hidden="true">@Ico(s.Emoji)</span><small>@s.Name</small></li>
                 }
             </ol>
             <a class="hj-more" href="/@slug/points">@if (d.Streak > 0) { <span>🔥 @(d.Streak)일째 이어 하는 중 · </span> }<b>성장일지 ›</b></a>
