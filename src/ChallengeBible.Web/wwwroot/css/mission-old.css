@@ -67,6 +67,8 @@ body:has(.mbody) .vlines .num { margin: 0; padding-top: 4px; font-size: 11px; fo
 body:has(.mbody) .rdmore { color: #2F80ED; font-size: 12.5px; }
 body:has(.mbody) .story.pray { margin-top: 0; font-size: calc(17px * var(--fs)); line-height: 2.05; color: #1F2937; }
 body:has(.mbody) .story.pray + .story.pray { margin-top: 2px; }
+/* 기도문 빈 줄 = 반 줄 빈칸(2026-11-03 사용자) */
+.story .half { display: block; height: 1em; height: .5lh; }
 body:has(.mbody) .story .nm { color: #1D5FBF; font-weight: 800; background: linear-gradient(transparent 62%, #FFF1BF 62%); padding: 0 2px; }
 /* ○○ 는 이 화면 글꼴(Gothic A1 · 휴대폰 기본)에서 작게 나와서, 예전처럼 Noto Sans KR 의 큰 동그라미로 */
 .story .nm i { font-style: normal; font-family: "Noto Sans KR", "Malgun Gothic", sans-serif; letter-spacing: .02em; }
