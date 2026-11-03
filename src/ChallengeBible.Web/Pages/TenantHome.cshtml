@@ -177,7 +177,7 @@
                 <div class="hj-bar o" aria-hidden="true"><i style="width:@fp.ToString("0.#", inv)%"></i></div>
                 <div class="hj-bl"><span>올해 네 가지 다 한 날 @(d.FullDays)일 / @(d.SeasonDay)일</span><b>@((int)fp)%</b></div>
             }
-            @if (d.Dept is { } dq && dq.TodayPeople > 0) { <span class="hj-pill">● 오늘 @(dq.TodayPeople)명 참여 중</span> }
+            @* "● 오늘 N명 참여 중" 줄은 지웠다(2026-11-03 사용자) — 아래 "우리 부서 오늘 참여"에 같은 숫자 *@
         </section>
     }
 
