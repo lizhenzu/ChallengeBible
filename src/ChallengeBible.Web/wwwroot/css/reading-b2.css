@@ -279,6 +279,7 @@ body:has(.rp[data-theme]) { background: var(--bg); }
 .srch .b2b .k { font-size: 11px; letter-spacing: .12em; }
 .srch .b2b .T { font-size: 19px; }
 .srch .rp-sform { margin-top: 12px; border-width: 1.5px; border-radius: 12px; }
+.srch .rp-sform:focus-within { outline: none; }   /* 입력 중 바깥 테두리 없음(2026-11-03) — 안쪽 초록 선 한 줄만 */
 .srch .rp-sform input { min-height: 42px; padding: 0 12px; font-size: 14px; }
 .srch .rp-sform button { padding: 0 14px; font-size: 14px; }
 .srch .rp-sugg { margin-top: 10px; gap: 6px; }
