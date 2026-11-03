@@ -103,7 +103,7 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
             list.Add(new("word", "말씀", day.Word is not null, Did(Mission.Word), day.Word is null ? "없음" : Did(Mission.Word) ? "완료" : "대기 중"));
             list.Add(new("quiz", "퀴즈", day.Quiz is not null, quizDone, day.Quiz is null ? "없음" : day.QuizState.Solved ? "완료" : quizDone ? "끝남" : "대기 중"));
             list.Add(new("prayer", "기도", day.Prayer is not null, Did(Mission.Prayer), day.Prayer is null ? "없음" : Did(Mission.Prayer) ? "완료" : "대기 중"));
-            list.Add(new("recite", "암송", day.Recite is not null, day.RecitedThisWeek, day.Recite is null ? "없음" : day.RecitedThisWeek ? "이번 주 완료" : "대기 중"));
+            list.Add(new("recite", "암송", day.Recite is not null, day.RecitedThisWeek, day.Recite is null ? "없음" : day.RecitedThisWeek ? "완료" : "대기 중"));
         }
 
         ReadingSummary? sum = null;

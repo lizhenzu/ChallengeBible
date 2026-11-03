@@ -168,8 +168,9 @@
             <div class="hj-m4">
                 @foreach (var m in d.Missions)
                 {
-                    var cls = !m.Has ? "no" : m.Done ? "ok" : d.Participant && m == d.NextMission ? "cur" : "";
-                    <a class="@cls" href="/@slug/@m.Key">@m.Label<small>@(!d.Participant && m.Has ? "보기만" : m.Done ? m.State : m == d.NextMission ? m.State + " ›" : m.State)</small></a>
+                    @* 대기 중인 미션은 모두 같은 주황(2026-11-03 사용자) — 예전엔 다음 하나만 주황 *@
+                    var cls = !m.Has ? "no" : m.Done ? "ok" : d.Participant ? "cur" : "";
+                    <a class="@cls" href="/@slug/@m.Key">@m.Label<small>@(!d.Participant && m.Has ? "보기만" : m.Done || !m.Has ? m.State : m.State + " ›")</small></a>
                 }
             </div>
             @if (d.Participant && d.SeasonDay > 0)
