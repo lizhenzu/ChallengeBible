@@ -139,10 +139,13 @@ public class PrayerModel(MissionService missions, TenantContext tenant, BibleTex
     private static readonly System.Text.RegularExpressions.Regex BlankLines = new(@"\r?\n[ \t]*(\r?\n[ \t]*)+");
     private const string HalfGap = "<span class=\"half\" aria-hidden=\"true\"></span>";
 
+    // 맨 끝 "아멘"은 다음 줄 오른쪽에(2026-11-03 사용자)
+    private static readonly System.Text.RegularExpressions.Regex Amen = new(@"\s*(아멘[!.~]*)\s*$");
+
     public static Microsoft.AspNetCore.Html.IHtmlContent Paragraph(string text) =>
-        new Microsoft.AspNetCore.Html.HtmlString(NameSlot.Replace(
+        new Microsoft.AspNetCore.Html.HtmlString(Amen.Replace(NameSlot.Replace(
             System.Net.WebUtility.HtmlEncode(BlankLines.Replace(text.Replace("**", "").Trim(), "\u0001")), m => $"<b class=\"nm\"><i>○○</i>{m.Groups[1].Value}</b>")
-            .Replace("\u0001", HalfGap));
+            .Replace("\u0001", HalfGap), "<span class=\"amen\">$1</span>"));
 }
 
 public class ReciteModel(MissionService missions, TenantContext tenant, BibleTextService bible) : MissionPageBase(missions, tenant)
