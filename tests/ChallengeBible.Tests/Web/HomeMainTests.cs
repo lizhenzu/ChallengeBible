@@ -72,7 +72,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("새싹까지", home);                                       // 오른쪽 "다음 단계까지 N점"은 지움(2026-11-03)
         Assert.DoesNotContain("도토리", home);
         Assert.Contains("href=\"/jamsil-kids/points\"", home);                      // 성장일지
-        Assert.Contains("<a class=\"go\" href=\"/jamsil-kids/reading/search\"", home);            // 말씀 찾기
+        Assert.Contains("<a class=\"sx\" href=\"/jamsil-kids/reading/search\"", home);            // 말씀 찾기
         Assert.DoesNotContain("<nav class=\"tabs\"", home);                          // 0076: 아래 탭 · 이어서 하기 버튼 없음
         Assert.DoesNotContain("td-go", home);
         var word = await c.GetStringAsync("/jamsil-kids/word");                     // 0075 완료 창 "다음: 퀴즈 →"
