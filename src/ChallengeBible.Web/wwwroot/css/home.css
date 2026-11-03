@@ -246,7 +246,9 @@
 .hm .hj-rib { margin: 0; padding: 10px 14px; border-radius: 14px; background: var(--bg); border: 1px solid var(--rule); font-size: 13.5px; font-weight: 700; line-height: 1.5; }
 .hm .hj-rib b { color: var(--hj-blue); margin-right: 2px; }
 .hm .hj-rib .ref { font-style: normal; color: var(--dim); font-weight: 600; font-size: 12.5px; }
-.hm .hj-card { display: block; background: var(--bg); border: 1px solid var(--rule); border-radius: 20px; padding: 18px; }
+.hm .hj-card { display: block; background: var(--bg); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 14px; }
+/* 카드 좌우 여백은 좁게 · 모서리는 작게(2026-11-03 확정 시안) */
+.hm main.hj.gut { padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); }
 .hm .hj-hi-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }   /* 사진은 위 · 가로선 사이 가운데(2026-11-03 사용자) */
 .hm .hj-hi small { color: var(--dim); font-size: 13px; }
 .hm .hj-hi h1 { margin: 2px 0 8px; font-size: 28px; font-weight: 900; }
@@ -289,7 +291,7 @@
 .hm .hj-sr .tg { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--dim); }
 .hm .hj-sr .tg b { color: var(--hj-blue); background: var(--hj-blue-l); border-radius: 8px; padding: 4px 9px; font-size: 12.5px; }
 /* 검색 칸 모양(2026-11-03 확정 시안): 회색 테두리 둥근 칸 + 오른쪽 꽉 찬 파란 버튼, 안내 글은 한 줄(넘치면 …). 옛 .hm .go 규칙과 겹치지 않게 .sx */
-.hm .hj-sr .sx { display: flex; align-items: stretch; margin-top: 10px; height: 54px; border: 2px solid var(--hj-sx-line); border-radius: 16px; overflow: hidden; background: var(--hj-sx-bg); }
+.hm .hj-sr .sx { display: flex; align-items: stretch; margin-top: 10px; height: 54px; border: 2px solid var(--hj-sx-line); border-radius: 12px; overflow: hidden; background: var(--hj-sx-bg); }
 .hm .hj-sr .sx .ph { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 0 14px; }
 .hm .hj-sr .sx .ph i { flex: none; font-style: normal; font-size: 20px; line-height: 1; }
 .hm .hj-sr .sx .ph em { flex: 1; min-width: 0; font-style: normal; font-size: 15px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
