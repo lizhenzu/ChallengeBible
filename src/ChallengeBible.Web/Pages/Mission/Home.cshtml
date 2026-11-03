@@ -59,7 +59,7 @@
         }
         @if (!Model.IsToday)
         {
-            <div class="hView"><span>@Model.DayLabel(Model.Day) 미션을 보고 있어요 · @(canAct ? "지금도 할 수 있어요" : "보기만 할 수 있어요")</span><a href="@Model.HomeUrl(d.Today)">오늘로</a></div>
+            <div class="hView"><span>@Model.DayLabel(Model.Day) 미션을 보고 있어요 · @(canAct ? "지금도 할 수 있어요" : Model.Day > d.Today ? "오늘 이후는 보기만 가능해요" : "보기만 할 수 있어요")</span><a href="@Model.HomeUrl(d.Today)">오늘로</a></div>
         }
     </div>
 
@@ -96,7 +96,7 @@
         <div><div class="k">네 가지 다 한 날</div><div class="v num">@(monthScores.Count(s => s.Complete))<u>일</u></div></div>
     </div>
 
-    @if (withContent.Count > 0 && left.Count == 0)
+    @if (withContent.Count > 0 && left.Count == 0 && Model.Day <= d.Today)   @* 오늘 이후는 할 수 없으니 "다 했어요" 칸을 보이지 않는다 *@
     {
         <div class="hParty" role="status">
             <div class="hSeal">@(Model.IsToday ? "오늘" : $"{Model.Day.Day}일")<br />완료</div>
@@ -108,7 +108,7 @@
     {
         <p class="hNote">@dayWord 미션이 아직 없어요 · 관리자가 콘텐츠를 올리면 여기에 나와요.</p>
     }
-    else if (left.Count > 0 && !canAct && Model.ParticipantId is not null)
+    else if (left.Count > 0 && !canAct && Model.ParticipantId is not null && Model.Day <= d.Today)   // 미래는 위 안내("오늘 이후는 보기만 가능해요")로 충분
     {
         <p class="hNote">@Model.BlockReason</p>
     }
@@ -148,8 +148,9 @@
             var s = Model.ScoreOf(day);
             var cls = string.Join(" ", new[] { s is { Total: > 0 } ? "has" : null, day == d.Today ? "today" : null, day > d.Today ? "f" : null, day == Model.Day && day != d.Today ? "sel" : null }.Where(x => x is not null));
             var inner = $"<span class=\"num\">{day.Day}</span><span class=\"hCalP num\">{(s is null ? "–" : s.Total.ToString())}</span>";
-            if (day > d.Today) { <span class="hCalD @cls" aria-label="@day.ToString("M월 d일") 아직 오지 않은 날">@Html.Raw(inner)</span> }
-            else { <a class="hCalD @cls" href="@Model.HomeUrl(day, Model.FirstOfMonth)" aria-label="@day.ToString("M월 d일") @(s is null ? "기록 없음" : $"{s.Total}점")">@Html.Raw(inner)</a> }
+            @* 오늘 이후 날짜도 눌러서 미리 볼 수 있다(보기만, 2026-11-04 사용자) *@
+            var label = day > d.Today ? "미리 보기 · 보기만 가능" : s is null ? "기록 없음" : $"{s.Total}점";
+            <a class="hCalD @cls" href="@Model.HomeUrl(day, Model.FirstOfMonth)" aria-label="@day.ToString("M월 d일") @label">@Html.Raw(inner)</a>
         }
     </div>
     <div class="hLeg"><span><i style="box-shadow:inset 0 0 0 2px #2F80ED"></i>오늘</span><span>숫자 = 그날 받은 점수 · 날짜를 누르면 그날 미션</span></div>

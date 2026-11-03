@@ -138,7 +138,7 @@ public sealed class MissionService(IAppDb db, TenantContext tenant, TenantClock 
 
     public static string WindowMessage(WindowResult w, int graceDays) => w switch
     {
-        WindowResult.Future => "아직 오지 않은 날이에요.",
+        WindowResult.Future => "오늘 이후는 보기만 가능해요.",
         WindowResult.TooOld => $"이 날짜는 할 수 없어요 (오늘 포함 {graceDays}일 안만 가능).",
         WindowResult.BeforeSeason => "곧 시작해요. 시즌 시작일부터 미션을 할 수 있어요.",
         _ => "",

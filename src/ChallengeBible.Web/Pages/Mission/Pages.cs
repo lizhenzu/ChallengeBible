@@ -36,7 +36,7 @@ public class HomeModel(MissionService missions, TenantContext tenant) : MissionP
         SeasonStart = await Missions.SeasonStartAsync(Data.Today.Year, ct);
 
         FirstOfMonth = DateOnly.TryParseExact(Month + "-01", "yyyy-MM-dd", out var m) ? m : new DateOnly(Day.Year, Day.Month, 1);
-        if (FirstOfMonth > new DateOnly(Data.Today.Year, Data.Today.Month, 1)) FirstOfMonth = new DateOnly(Data.Today.Year, Data.Today.Month, 1);
+        if (FirstOfMonth > LastPreviewMonth) FirstOfMonth = LastPreviewMonth;
         if (ParticipantId is int pid)
         {
             MonthDays = await Missions.MonthAsync(pid, FirstOfMonth.Year, FirstOfMonth.Month, ct);
@@ -63,7 +63,9 @@ public class HomeModel(MissionService missions, TenantContext tenant) : MissionP
     }
 
     public bool HasPrevMonth => FirstOfMonth > new DateOnly(SeasonStart.Year, SeasonStart.Month, 1);
-    public bool HasNextMonth => FirstOfMonth < new DateOnly(Data!.Today.Year, Data.Today.Month, 1);
+    /// <summary>미리 볼 수 있는 마지막 달: 오늘 달부터 12개월 뒤까지(오늘 이후는 보기만, 2026-11-04).</summary>
+    public DateOnly LastPreviewMonth => new DateOnly(Data!.Today.Year, Data.Today.Month, 1).AddMonths(12);
+    public bool HasNextMonth => FirstOfMonth < LastPreviewMonth;
 
     /// <summary>미션 홈 주소: 보는 날(`date`)과 달력 달(`month`)을 함께 싣는다.</summary>
     public string HomeUrl(DateOnly? date = null, DateOnly? month = null)
