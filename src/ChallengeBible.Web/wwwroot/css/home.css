@@ -323,8 +323,13 @@
 .hm .hj-m4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
 .hm .hj-m4 a { border-radius: 12px; padding: 9px 2px; text-align: center; font-size: 14px; font-weight: 900; background: var(--soft); color: var(--dim); }
 .hm .hj-m4 small { display: block; font-size: 11px; font-weight: 600; }
-.hm .hj .hj-m4 .ok { background: var(--hj-mint-l); color: var(--hj-mint); }
-.hm .hj .hj-m4 .cur { background: var(--hj-org-l); color: var(--hj-org); box-shadow: inset 0 0 0 2px var(--hj-org); }
+.hm .hj .hj-m4 .ok { background: var(--hj-mint-l); }
+.hm .hj .hj-m4 .cur { background: var(--hj-org-l); box-shadow: inset 0 0 0 2px var(--hj-org); }
+/* 미션 이름은 진한 글자, 상태만 색(2026-11-03): 완료 초록 · 지금 주황 · 대기 중 회색 */
+.hm .hj .hj-m4 a { color: var(--fg); }
+.hm .hj-m4 small { margin-top: 2px; font-size: 11.5px; font-weight: 700; color: var(--dim); }
+.hm .hj .hj-m4 .ok small { color: var(--hj-mint); }
+.hm .hj .hj-m4 .cur small { color: var(--hj-org); }
 .hm .hj-m4 .no { opacity: .5; }
 .hm .hj-bar { height: 8px; border-radius: 9px; background: var(--soft); margin-top: 14px; overflow: hidden; }
 .hm .hj-bar i { display: block; height: 100%; border-radius: 9px; background: linear-gradient(90deg, color-mix(in srgb, var(--hj-org) 60%, #fff), var(--hj-org)); }
