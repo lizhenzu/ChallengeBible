@@ -323,8 +323,10 @@
 .hm .hj-m4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
 .hm .hj-m4 a { border-radius: 12px; padding: 9px 2px; text-align: center; font-size: 14px; font-weight: 900; background: var(--soft); color: var(--dim); }
 .hm .hj-m4 small { display: block; font-size: 11px; font-weight: 600; }
-.hm .hj .hj-m4 .ok { background: var(--hj-mint-l); }
-.hm .hj .hj-m4 .cur { background: var(--hj-org-l); box-shadow: inset 0 0 0 2px var(--hj-org); }
+/* 테두리는 칸마다 제 색을 옅게(2026-11-03 A안) */
+.hm .hj .hj-m4 a { box-shadow: inset 0 0 0 1.5px var(--rule); }
+.hm .hj .hj-m4 .ok { background: var(--hj-mint-l); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--hj-mint) 30%, var(--bg)); }
+.hm .hj .hj-m4 .cur { background: var(--hj-org-l); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--hj-org) 55%, var(--bg)); }
 /* 미션 이름은 진한 글자, 상태만 색(2026-11-03): 완료 초록 · 지금 주황 · 대기 중 회색 */
 .hm .hj .hj-m4 a { color: var(--fg); }
 .hm .hj-m4 small { margin-top: 2px; font-size: 11.5px; font-weight: 700; color: var(--dim); }
