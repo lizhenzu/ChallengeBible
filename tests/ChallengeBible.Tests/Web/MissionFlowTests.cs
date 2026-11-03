@@ -437,7 +437,9 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         var c = await Member("cheolsu", Roles.Participant);
         var html = await c.GetStringAsync("/jamsil-kids/word");
         Assert.Contains("href=\"/jamsil-kids/read?from=word\"", html);
-        Assert.Contains("창세기 24장 읽으러 가기", html);
+        Assert.Contains("<div class=\"ref\">창세기 24장</div>", html);   // 본문이 있으면 첫 구절 + 더 보기(2026-11-03)
+        Assert.Contains("<i class=\"num\">1</i>", html);
+        Assert.Contains("<a class=\"more\" href=\"/jamsil-kids/read?from=word\">더 보기 →</a>", html);
     }
 
     [Fact]
@@ -462,7 +464,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("id=\"story\"", html);
         Assert.Contains("id=\"storyMore\"", html);      // 3줄을 넘길 때만 JS 가 보인다
         Assert.Contains("10초", html);                  // 읽는 시간
-        Assert.Contains("읽으러 가기", html);
+        Assert.Contains("더 보기 →", html);
     }
 
     [Fact]

@@ -76,9 +76,19 @@ public class HomeModel(MissionService missions, TenantContext tenant) : MissionP
     }
 }
 
-public class WordModel(MissionService missions, TenantContext tenant) : MissionPageBase(missions, tenant)
+public class WordModel(MissionService missions, TenantContext tenant, BibleTextService bible) : MissionPageBase(missions, tenant)
 {
     public override string Title => "말씀 미션";
+
+    /// <summary>02 성경 읽기에 먼저 보여 줄 첫 구절(개역개정, 2026-11-03 사용자). 본문이 없으면 null — "읽으러 가기" 버튼만.</summary>
+    public VerseLine? FirstVerse { get; private set; }
+
+    protected override async Task LoadMoreAsync(CancellationToken ct)
+    {
+        if (Data!.Word is not { } w) return;
+        var r = w.Ref;
+        FirstVerse = (await bible.RangeAsync(r with { EndChapter = r.StartChapter, EndVerse = r.StartVerse }, [Infrastructure.Data.BibleTranslation.Krv], ct)).FirstOrDefault();
+    }
 }
 
 public class QuizModel(MissionService missions, TenantContext tenant) : MissionPageBase(missions, tenant)

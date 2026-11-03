@@ -70,6 +70,12 @@ body:has(.mbody) .story.pray { margin-top: 0; font-size: calc(17px * var(--fs));
 body:has(.mbody) .story.pray + .story.pray { margin-top: 2px; }
 /* 기도문 빈 줄 = 반 줄 빈칸(2026-11-03 사용자) */
 .story .half { display: block; height: 1em; height: .5lh; }
+/* 말씀 미션 02 성경 읽기: 첫 구절 + 더 보기(2026-11-03 확정 시안 wv.png) */
+.wvbox { border-radius: 14px; background: #F7F9FC; padding: 14px 16px 12px; box-shadow: inset 0 0 0 1px #E6EAF0; }
+.wvbox .ref { font-size: 12px; font-weight: 800; color: #7FA3DB; }
+.wvbox p { margin: 6px 0 0; display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 6px; font-size: calc(17px * var(--fs, 1)); line-height: 1.95; font-weight: 400; color: #1F2937; word-break: keep-all; }
+.wvbox p i { font-style: normal; padding-top: 6px; font-size: 12px; font-weight: 800; color: #7FA3DB; text-align: right; }
+.wvbox .more { margin-top: 6px; display: flex; justify-content: flex-end; font-size: 14px; font-weight: 800; color: #2F80ED; text-decoration: none; }
 .story .amen { display: block; text-align: right; }   /* 맨 끝 "아멘"은 다음 줄 오른쪽(2026-11-03) */
 body:has(.mbody) .story .nm { color: #1D5FBF; font-weight: 800; background: linear-gradient(transparent 62%, #FFF1BF 62%); padding: 0 2px; }
 /* ○○ 는 이 화면 글꼴(Gothic A1 · 휴대폰 기본)에서 작게 나와서, 예전처럼 Noto Sans KR 의 큰 동그라미로 */
