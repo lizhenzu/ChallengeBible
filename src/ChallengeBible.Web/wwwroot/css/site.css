@@ -469,7 +469,7 @@ a.hM.none { opacity: .5; }
 .hCalD { display: block; text-align: center; padding: 6px 0 5px; border-top: 1px solid var(--hLine); font-size: 14px; color: var(--hTx); text-decoration: none; }
 .hCalP { display: block; font-size: 10px; color: var(--hDim); margin-top: 1px; }
 .hCalD.mute { color: #D1D5DB; } .hCalD.mute .hCalP { color: #E5E7EB; }
-.hCalD.f { color: #C4C9D1; }
+.hCalD.f { color: #9CA3AF; }   /* 오늘 이후: 눌러서 미리 볼 수 있어 너무 흐리지 않게 */
 .hCalD.has .hCalP { color: var(--hBlue); font-weight: 800; }
 .hCalD.sel { background: #EAF2FD; border-radius: 8px; }
 .hCalD.today { box-shadow: inset 0 0 0 2px var(--hBlue); border-radius: 8px; font-weight: 800; }
