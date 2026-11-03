@@ -15,6 +15,12 @@
     <InternalsVisibleTo Include="ChallengeBible.Tests" />
   </ItemGroup>
 
+  <!-- 얼굴 사진 폴더(ADR 0078): 개발 중 올린 사진이 게시 · 정적 파일 목록에 섞이지 않게 뺀다 -->
+  <ItemGroup>
+    <Content Remove="wwwroot\profile\**" />
+    <None Remove="wwwroot\profile\**" />
+  </ItemGroup>
+
   <!-- 운영 점검 "버전": 빌드(게시) 때 git 커밋 번호를 InformationalVersion 의 "+커밋"으로 넣는다. git 이 없으면 비워 둔다 -->
   <Target Name="StampGitCommit" BeforeTargets="GetAssemblyVersion;AddSourceRevisionToInformationalVersion">
     <Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low" StandardErrorImportance="low">

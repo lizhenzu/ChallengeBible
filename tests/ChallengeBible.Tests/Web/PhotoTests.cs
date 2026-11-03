@@ -99,6 +99,23 @@ public partial class PhotoTests : IClassFixture<WebApplicationFactory<Program>>,
     }
 
     [Fact]
+    public async Task R201_wwwroot_profile_에_둔_사진도_주소로_바로_열리지_않는다()
+    {
+        var env = _app.Services.GetRequiredService<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
+        var dir = Path.Combine(env.WebRootPath, "profile");
+        var created = !Directory.Exists(dir);
+        Directory.CreateDirectory(dir);
+        var file = Path.Combine(dir, "7-123.jpg");
+        await File.WriteAllBytesAsync(file, Jpeg);
+        try
+        {
+            var res = await _app.CreateClient(new() { AllowAutoRedirect = false }).GetAsync("/profile/7-123.jpg");
+            Assert.NotEqual(HttpStatusCode.OK, res.StatusCode);   // /profile/… 는 앞단에서 막는다
+        }
+        finally { File.Delete(file); if (created) Directory.Delete(dir); }
+    }
+
+    [Fact]
     public async Task R202_사진이_아니거나_400KB_넘으면_받지_않는다()
     {
         var (kid, kidId) = await SignUp("cheolsu", "김철수");

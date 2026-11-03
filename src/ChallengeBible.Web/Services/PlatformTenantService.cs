@@ -22,7 +22,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
     public static readonly string[] ThemeColors = ["blue", "green", "red", "violet"];   // 0033 정해 둔 색
     public static readonly string[] TimeZones = ["Asia/Seoul", "America/Los_Angeles", "America/New_York"];
     /// <summary>주소로 쓰면 다른 화면과 겹치는 낱말.</summary>
-    public static readonly string[] ReservedSlugs = ["platform", "account", "join", "admin", "api", "css", "js", "lib", "error", "static"];
+    public static readonly string[] ReservedSlugs = ["platform", "account", "join", "admin", "api", "css", "js", "lib", "error", "static", "profile"];   // profile = 얼굴 사진 폴더(0078)
     private const string CodeChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";   // 0 · O · 1 · I 빼고(0048)
 
     [GeneratedRegex("^[a-z0-9]+(-[a-z0-9]+)*$")]

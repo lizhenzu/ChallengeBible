@@ -16,6 +16,7 @@ DataProtectionKeys/
 node_modules/
 wwwroot/uploads/
 App_Data/photos/
+wwwroot/profile/
 
 # dotnet new gitignore
 ## Ignore Visual Studio temporary files, build results, and
