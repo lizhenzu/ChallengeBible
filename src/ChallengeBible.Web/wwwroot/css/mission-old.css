@@ -104,9 +104,9 @@ body:has(.mbody) .qgo:disabled { color: #C4C9D2; border-bottom-color: #E5E7EB; o
 
 /* 암송: 외울 구절(가장 크고 진하게) · 공과 요점(접힘, 왼쪽 파란 선) */
 body:has(.mbody) .rverse { gap: 0; margin-top: 2px; }
-body:has(.mbody) .rverse p { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 6px; font-size: calc(19px * var(--fs)); line-height: 1.95; font-weight: 700; color: #1F2937; }
+body:has(.mbody) .rverse p { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 6px; font-size: calc(19px * var(--fs)); line-height: 1.95; font-weight: 500; color: #1F2937; }
 body:has(.mbody) .rverse i { padding-top: 7px; font-size: 12px; font-weight: 800; color: #7FA3DB; text-align: right; }
-body:has(.mbody) .story.big { font-size: calc(19px * var(--fs)); font-weight: 700; color: #1F2937; }
+body:has(.mbody) .story.big { font-size: calc(19px * var(--fs)); font-weight: 500; color: #1F2937; }
 body:has(.mbody) .gls { gap: 12px; }
 body:has(.mbody) .gls p { padding-left: 12px; border-left: 3px solid #D6E4FA; font-size: calc(15px * var(--fs)); line-height: 1.85; color: #374151; white-space: pre-line; }
 body:has(.mbody) .gls b { margin-bottom: 2px; font-size: 12px; color: #7FA3DB; letter-spacing: .02em; }
