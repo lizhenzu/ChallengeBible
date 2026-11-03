@@ -116,11 +116,7 @@
                 </span>
                 <span class="hj-gtx"><small>나의 점수</small><b class="num">@d.SeasonPoints.ToString("N0")<u>점</u></b>
                     <em>@(g.Done ? $"{cur.Name}까지 모두 자랐어요" : $"{cur.Name}{Ro(cur.Name)} 자라는 중")</em></span>
-                @if (!g.Done)
-                {
-                    var nextName = g.Stage + 1 < stages.Count ? stages[g.Stage + 1].Name : "완성";
-                    <span class="hj-gnx"><small>@(nextName)까지</small><b class="num">@g.ToNext.ToString("N0")<u>점</u></b></span>
-                }
+                @* 오른쪽 "○○까지 N점"은 지웠다(2026-11-03 사용자) *@
             </a>
             <ol class="hj-stg" aria-label="성장 단계">
                 @for (var i = 0; i < stages.Count; i++)
