@@ -135,9 +135,12 @@ public class PrayerModel(MissionService missions, TenantContext tenant, BibleTex
     public static IReadOnlyList<string> Shown(IReadOnlyList<string> paragraphs) =>
         paragraphs.Any(p => p.Contains("{이름}")) ? paragraphs.Where(p => p.Contains("{이름}")).ToList() : paragraphs;
 
+    // 빈 줄(줄바꿈 둘 이상)은 한 줄바꿈으로 — "하나님," 아래 · "예수님의 이름으로" 위 큰 빈칸을 줄인다(2026-11-03 사용자)
+    private static readonly System.Text.RegularExpressions.Regex BlankLines = new(@"\r?\n[ \t]*(\r?\n[ \t]*)+");
+
     public static Microsoft.AspNetCore.Html.IHtmlContent Paragraph(string text) =>
         new Microsoft.AspNetCore.Html.HtmlString(NameSlot.Replace(
-            System.Net.WebUtility.HtmlEncode(text.Replace("**", "")), m => $"<b class=\"nm\"><i>○○</i>{m.Groups[1].Value}</b>"));
+            System.Net.WebUtility.HtmlEncode(BlankLines.Replace(text.Replace("**", "").Trim(), "\n")), m => $"<b class=\"nm\"><i>○○</i>{m.Groups[1].Value}</b>"));
 }
 
 public class ReciteModel(MissionService missions, TenantContext tenant, BibleTextService bible) : MissionPageBase(missions, tenant)
