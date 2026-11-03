@@ -18,9 +18,20 @@
     <a class="md-crumb md-span" href="/@slug/admin/members?Tab=@MembershipStatus.Approved">← 소속 관리</a>
 
     <section class="md-who md-span" aria-label="소속원">
-        <span class="av">@(d.Name.Length > 1 ? d.Name[^2..] : d.Name)</span>
+        <span class="av">@if (Model.Photo is { } ph) { <img src="/@slug/photo/@d.AccountId?v=@ph" alt="" /> } else { @(d.Name.Length > 1 ? d.Name[^2..] : d.Name) }</span>
         <div class="nm">
             <h1>@d.Name</h1>
+            @* 0078: 관리자가 사진 올리기 · 바꾸기 · 지우기(R-200, R-203) *@
+            <div class="md-ph">
+                <form method="post" asp-page-handler="Photo" enctype="multipart/form-data" data-photo>
+                    <label>@(Model.Photo is null ? "사진 올리기" : "사진 바꾸기")<input type="file" name="photo" accept="image/*" class="pp-file" /></label>
+                    <noscript><button type="submit">올리기</button></noscript>
+                </form>
+                @if (Model.Photo is not null) { <form method="post" asp-page-handler="PhotoDelete"><button type="submit">사진 지우기</button></form> }
+                @if (Model.Ok == "photo") { <span class="okmsg" role="status">사진을 바꿨어요</span> }
+                @if (Model.Ok == "photo0") { <span class="okmsg" role="status">사진을 지웠어요</span> }
+                @if (Model.PhotoError is not null) { <span class="hint bad" role="alert">@Model.PhotoError</span> }
+            </div>
             <div class="meta">@d.Email@(d.GroupLabel is null ? "" : $" · {d.GroupLabel}")@(d.DecidedUtc is { } at ? $" · {Model.Local(at, "yyyy년 M월 d일")} 승인" : "")</div>
             <div class="tags">
                 @foreach (var r in d.Roles) { <span class="tag r-@r">@MembersModel.RoleLabel(r)</span> }
@@ -151,3 +162,4 @@
         navigator.clipboard?.writeText(b.dataset.copy).then(() => { b.textContent = '복사했어요'; }, () => { b.textContent = '길게 눌러 복사'; });
     }));
 </script>
+<script src="~/js/photo.js" asp-append-version="true"></script>

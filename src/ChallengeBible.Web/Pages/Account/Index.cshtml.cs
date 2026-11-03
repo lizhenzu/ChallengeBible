@@ -11,8 +11,10 @@ namespace ChallengeBible.Web.Pages.Account;
 /// `/account` 내 계정(확정 시안: 내계정): 이름 바꾸기 · 이메일 보기 · 내 부서 · 비밀번호 바꾸기(지금 비밀번호 확인) · 로그아웃.
 /// 이메일은 로그인 주소라 바꾸지 않는다(확정).
 /// </summary>
-public class IndexModel(AccountService accounts, MyAccountService mine) : PageModel, ITitled
+public class IndexModel(AccountService accounts, MyAccountService mine, PhotoService photos) : PageModel, ITitled
 {
+    /// <summary>내 사진 파일 이름(0078).</summary>
+    public string? Photo { get; private set; }
     public string Title => "내 계정";
 
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }
@@ -59,6 +61,7 @@ public class IndexModel(AccountService accounts, MyAccountService mine) : PageMo
         (Name, Email) = (name, email);
         Joined = TenantClock.ToTenantDate(new DateTimeOffset(DateTime.SpecifyKind(created, DateTimeKind.Utc)), "Asia/Seoul");
         Depts = await mine.DeptsAsync(Me, ct);
+        Photo = await photos.FileOfAsync(Me, ct);
     }
 
     public static string RoleLabel(string r) => r switch

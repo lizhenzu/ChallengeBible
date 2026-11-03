@@ -15,6 +15,7 @@ secrets.json
 DataProtectionKeys/
 node_modules/
 wwwroot/uploads/
+App_Data/photos/
 
 # dotnet new gitignore
 ## Ignore Visual Studio temporary files, build results, and

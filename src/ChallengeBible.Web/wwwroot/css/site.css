@@ -1641,6 +1641,23 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .ma-me div { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
 .ma-me b { font-size: 20px; }
 .ma-me small { color: var(--dim); font-size: 13px; overflow-wrap: anywhere; }
+/* 0078 얼굴 사진: 내 계정 동그라미 · 내 사진 화면 · 회원 상세 */
+.ma-me a.av, .md-who .av { overflow: hidden; }
+.ma-me .av img, .md-who .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ma-me .ph-go { flex: none; font-size: 13px; font-weight: 800; color: var(--accent); }
+.pp { text-align: center; }
+.pp-av { width: 150px; height: 150px; margin: 4px auto 12px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; font-size: 56px; font-weight: 900; color: var(--accent); background: var(--accent-bg); box-shadow: 0 0 0 1px var(--rule); }
+.pp-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pp h1 { margin: 0; font-size: 20px; }
+.pp-up, .pp form { margin-top: 10px; }
+.pp-btn { position: relative; width: 100%; min-height: 48px; justify-content: center; }
+.pp-file { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.pp-del { color: var(--bad, #D6453D); }
+.pp-note { margin: 14px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--soft); font-size: 12.5px; color: var(--dim); line-height: 1.6; text-align: left; }
+.md-ph { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 8px; font-size: 13px; }
+.md-ph label { position: relative; color: var(--accent); font-weight: 800; cursor: pointer; }
+.md-ph .pp-file { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.md-ph button { border: 0; background: none; padding: 0; font: inherit; font-weight: 800; color: var(--bad, #D6453D); cursor: pointer; }
 .ma-kv { margin: 0; display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 8px 12px; font-size: 14px; }
 .ma-kv dt { color: var(--dim); }
 .ma-kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
