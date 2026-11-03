@@ -357,9 +357,10 @@
 .hm .hj-line .ar { color: var(--dim); font-size: 18px; }
 .hm .hj-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 /* 홈 아래 우리 부서 칸(2026-11-03 B안): 카드 하나를 가는 선으로 셋, 숫자만 색 */
-.hm .hj .hj-dept { display: grid; grid-template-columns: 1fr 1px 1fr 1px 1fr; align-items: center; padding: 14px 0; }
+.hm .hj .hj-dept { display: grid; grid-template-columns: 1fr 1px 1fr 1px 1fr; align-items: center; padding: 6px; }
 .hm .hj-dept > i { height: 44px; background: var(--rule); }
-.hm .hj-dept > span { min-width: 0; text-align: center; }
+.hm .hj-dept > a { min-width: 0; text-align: center; padding: 8px 0; border-radius: 10px; -webkit-tap-highlight-color: transparent; }
+.hm .hj-dept > a[href]:active { background: var(--soft); }
 .hm .hj-dept .b { --c: var(--hj-blue); } .hm .hj-dept .m { --c: var(--hj-mint); } .hm .hj-dept .s { --c: var(--hj-n3-l); }
 .hm .hj-dept b { display: block; font-size: 24px; font-weight: 900; color: var(--c); }
 .hm .hj-dept b u { text-decoration: none; margin-left: 2px; font-size: 12.5px; color: var(--dim); }
