@@ -396,8 +396,13 @@ body:has(.qz) { background: #fff; color-scheme: light; }
 .hD { margin-top: 4px; font-size: 13px; color: var(--hDim2); }
 .hD b { color: var(--hBlue); font-weight: 800; }
 .hNote { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: #F4F6F9; font-size: 13px; color: var(--hDim2); }
-.hView { margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: #EAF2FD; display: flex; justify-content: space-between; gap: 10px; align-items: center; font-size: 13px; color: #1F4E96; }
-.hView a { font-weight: 800; color: var(--hBlue); white-space: nowrap; }
+/* 오늘이 아닌 날을 볼 때: 눈에 띄는 주황 카드(확정 시안 미션홈-다른날카드) */
+.hDay { margin-top: 16px; padding: 16px 16px 14px; border-radius: 16px; background: #FFF4E0; border: 2px solid #F2B45A; color: #7A4A00; }
+.hDay .t { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; color: #7A4A00; }
+.hDay .t svg { flex: none; color: #B4690E; }
+.hDay p { margin: 8px 0 0; font-size: 14px; line-height: 1.65; color: #7A4A00; }
+.hDay p b { font-weight: 800; }
+.hDay .go { margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; border-radius: 12px; background: #B4690E; color: #fff; font-size: 15px; font-weight: 800; text-decoration: none; }
 
 .hSh { display: flex; justify-content: space-between; align-items: baseline; margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--hLine); font-size: 16px; font-weight: 800; color: var(--hInk); }
 .hSh.first { margin-top: 22px; }
