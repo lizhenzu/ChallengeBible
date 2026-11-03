@@ -294,8 +294,8 @@
 .hm .hj-sr .tg { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--dim); }
 .hm .hj-sr .tg b { color: var(--hj-blue); background: var(--hj-blue-l); border-radius: 8px; padding: 4px 9px; font-size: 12.5px; }
 /* 검색 칸 모양(2026-11-03 확정 시안): 회색 테두리 둥근 칸 + 오른쪽 꽉 찬 파란 버튼, 안내 글은 한 줄(넘치면 …). 옛 .hm .go 규칙과 겹치지 않게 .sx */
-/* 2026-11-03 B안: 입력 칸(얇은 1px 선) · 버튼을 따로 두고 딱 붙임, 높이 둘 다 52px */
-.hm .hj-sr .sx { display: flex; margin-top: 10px; height: 52px; }
+/* 2026-11-03 B안: 입력 칸(얇은 1px 선) · 버튼을 따로 두고 딱 붙임, 높이 둘 다 46px(2026-11-03 52 → 46) */
+.hm .hj-sr .sx { display: flex; margin-top: 10px; height: 46px; }
 .hm .hj-sr .sx .ph { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 0 14px; border: 1px solid var(--hj-sx-line); border-right: 0; border-radius: 12px 0 0 12px; background: var(--hj-sx-bg); }
 .hm .hj-sr .sx .ph i { flex: none; font-style: normal; font-size: 18px; line-height: 1; }
 .hm .hj-sr .sx .ph em { flex: 1; min-width: 0; font-style: normal; font-size: 15px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
