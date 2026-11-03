@@ -159,6 +159,88 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
         Assert.Equal("BadJson", (await res.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
     }
 
+    // ── 관리 화면 "퀴즈 넣기"(키 설정 없이) ──
+
+    private async Task<(HttpClient C, int Id)> SignUp(string login, bool platform)
+    {
+        var c = Client(key: null);
+        await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = Token(await c.GetStringAsync("/account/signup")),
+            ["DisplayName"] = "운영자", ["Email"] = login + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
+        }));
+        int id;
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var a = raw.Accounts.Single(x => x.Email == login + "@example.com");
+            a.IsPlatformAdmin = platform;
+            raw.SaveChanges();
+            id = a.Id;
+        }
+        var token = Token(await c.GetStringAsync("/account/login"));   // 관리자 표시는 로그인할 때 읽는다
+        await c.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = token, ["Email"] = login + "@example.com", ["Password"] = "1234",
+        }));
+        return (c, id);
+    }
+
+    private static string Token(string html) =>
+        System.Text.RegularExpressions.Regex.Match(html, "name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"").Groups[1].Value;
+
+    private static async Task<HttpResponseMessage> PostScreen(HttpClient c, string date, string json) =>
+        await c.PostAsync("/platform/quiz-input", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = Token(await c.GetStringAsync("/platform/quiz-input")), ["Date"] = date, ["Json"] = json,
+        }));
+
+    private const string SampleJson = """{"question":"첫 사람은?","choices":["아담","노아"],"correctNumber":1}""";
+
+    [Fact]
+    public async Task R125_화면은_플랫폼_관리자만_연다()
+    {
+        Assert.NotEqual(HttpStatusCode.OK, (await Client(key: null).GetAsync("/platform/quiz-input")).StatusCode);   // 로그인 전
+        var (member, _) = await SignUp("kid", platform: false);
+        Assert.NotEqual(HttpStatusCode.OK, (await member.GetAsync("/platform/quiz-input")).StatusCode);
+        var (op, _) = await SignUp("op", platform: true);
+        var html = await op.GetStringAsync("/platform/quiz-input");
+        Assert.Contains("href=\"/platform/quiz-input\" aria-current=\"page\"", html);
+        Assert.Contains("correctNumber", html);   // 예제 자리 글자
+    }
+
+    [Fact]
+    public async Task R125_화면에서_JSON_을_넣으면_저장되고_다시_넣으면_바뀐다()
+    {
+        var (op, id) = await SignUp("op", platform: true);
+        var res = await PostScreen(op, "2027-01-05", SampleJson);
+        Assert.Equal(HttpStatusCode.Redirect, res.StatusCode);
+        Assert.Contains("2027-01-05 퀴즈를 새로 넣었어요 · 공개", await op.GetStringAsync(res.Headers.Location!.OriginalString));
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var q = raw.DailyQuizzes.IgnoreQueryFilters().Single();
+            Assert.Equal(id, q.CreatedByAccountId);   // 만든 사람 = 로그인한 관리자
+            Assert.Equal(new DateOnly(2027, 1, 5), q.ExposeDate);
+        }
+        res = await PostScreen(op, "2027-01-05", SampleJson);
+        Assert.Contains("2027-01-05 퀴즈를 바꿨어요", await op.GetStringAsync(res.Headers.Location!.OriginalString));
+    }
+
+    [Theory]
+    [InlineData("2027-01-05", """{"question":"문제","choices":["가","나"],"correctNumber":3}""", "correctNumber: ")]
+    [InlineData("2027-01-05", "{ not json", "JSON 모양이 틀렸어요")]
+    [InlineData("", SampleJson, "날짜를 골라 주세요")]
+    public async Task R125_화면에서_틀리면_안내하고_쓴_JSON_은_남는다(string date, string json, string message)
+    {
+        var (op, _) = await SignUp("op", platform: true);
+        var res = await PostScreen(op, date, json);
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        var html = System.Net.WebUtility.HtmlDecode(await res.Content.ReadAsStringAsync());
+        Assert.Contains(message, html);
+        Assert.Contains(">" + json + "</textarea>", html);
+        using var raw = InMemoryDb.Raw(_db);
+        Assert.Empty(raw.DailyQuizzes.IgnoreQueryFilters());
+    }
+
     [Fact]
     public async Task R125_넣는_계정이_플랫폼_관리자가_아니면_503()
     {

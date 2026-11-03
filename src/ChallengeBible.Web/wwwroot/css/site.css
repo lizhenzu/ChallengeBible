@@ -1641,6 +1641,9 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .ma-me div { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
 .ma-me b { font-size: 20px; }
 .ma-me small { color: var(--dim); font-size: 13px; overflow-wrap: anywhere; }
+/* 0079 퀴즈 넣기 */
+.qput { max-width: 720px; }
+.qput .qput-json { width: 100%; min-height: 300px; padding: 10px 12px; font: 13px/1.55 ui-monospace, Consolas, monospace; resize: vertical; }
 /* 0078 얼굴 사진: 내 계정 동그라미 · 내 사진 화면 · 회원 상세 */
 .ma-me a.av, .md-who .av { overflow: hidden; }
 .ma-me .av img, .md-who .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
