@@ -119,6 +119,13 @@ app.UseErrorLog();   // 운영 점검의 최근 오류(서버 메모리, 개인 
 app.Services.GetRequiredService<AppInfo>();   // 가동 시간은 앱이 켜진 때부터
 
 app.UseHttpsRedirection();
+// 얼굴 사진 폴더(wwwroot/profile, 0078)는 주소로 바로 열지 않는다 — 권한을 보는 /{slug}/photo/{계정} 으로만(R-201)
+app.Use((ctx, next) =>
+{
+    if (!ctx.Request.Path.StartsWithSegments("/profile")) return next();
+    ctx.Response.StatusCode = StatusCodes.Status404NotFound;
+    return Task.CompletedTask;
+});
 app.UseRouting();
 app.UseAuthentication();
 app.UseRequestScope();

@@ -13,7 +13,9 @@ public sealed class PhotoService(IAppDb db, IWebHostEnvironment env, IConfigurat
     public const int MaxBytes = 400 * 1024;
     public const string LogAction = "Photo";
 
-    private string Dir => config["Photos:Dir"] is { Length: > 0 } d ? d : Path.Combine(env.ContentRootPath, "App_Data", "photos");
+    // 기본 = wwwroot/profile(2026-11-03 사용자, 나중에 사이트 밖으로 옮길 예정). `/profile/…` 주소는 Program.cs 앞단에서 막아
+    // 권한을 보는 /{slug}/photo/{계정} 으로만 나간다.
+    private string Dir => config["Photos:Dir"] is { Length: > 0 } d ? d : Path.Combine(env.WebRootPath ?? Path.Combine(env.ContentRootPath, "wwwroot"), "profile");
 
     /// <summary>머리 바이트로 본 형식(JPEG · PNG · WebP), 아니면 null.</summary>
     public static string? Kind(ReadOnlySpan<byte> b) =>

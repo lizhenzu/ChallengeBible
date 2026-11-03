@@ -1657,6 +1657,26 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .md-ph { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 8px; font-size: 13px; }
 .md-ph label { position: relative; color: var(--accent); font-weight: 800; cursor: pointer; }
 .md-ph .pp-file { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+/* 사진 자르기 화면(확정 시안 crop.png) — photo.js 가 만든다 */
+.crop-on, .crop-on body { overflow: hidden; }
+.crop { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; background: #0F1218; color: #fff; }
+.crop button { font: inherit; cursor: pointer; }
+.crop-bar { display: flex; justify-content: space-between; align-items: center; padding: max(10px, env(safe-area-inset-top, 0px)) 8px 10px; }
+.crop-bar b { font-size: 16px; }
+.crop-bar button { min-height: 44px; padding: 0 10px; border: 0; background: none; color: #CFD5DF; font-size: 15px; }
+.crop-bar .crop-ok { color: #7FB0FF; font-weight: 800; }
+.crop-stage { position: relative; flex: 1; min-height: 0; overflow: hidden; touch-action: none; cursor: grab; }
+.crop-stage canvas { position: absolute; inset: 0; }
+.crop-mask { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 50%, transparent var(--r, 120px), rgba(0, 0, 0, .6) calc(var(--r, 120px) + 1px)); }
+.crop-ring { position: absolute; left: 50%; top: 50%; width: calc(var(--r, 120px) * 2); height: calc(var(--r, 120px) * 2); transform: translate(-50%, -50%); border-radius: 50%; border: 2px solid #fff; pointer-events: none; }
+.crop-tip { position: absolute; left: 0; right: 0; bottom: 10px; margin: 0; text-align: center; font-size: 12.5px; color: #D9DEE7; pointer-events: none; }
+.crop-zoom { display: flex; align-items: center; gap: 12px; padding: 14px 20px 4px; font-size: 18px; }
+.crop-zoom input { flex: 1; accent-color: #7FB0FF; }
+.crop-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px 16px max(16px, env(safe-area-inset-bottom, 0px)); }
+.crop-btns button { min-height: 48px; border: 0; border-radius: 12px; font-weight: 800; font-size: 15px; }
+.crop-rot { background: #232A36; color: #E5E9F0; }
+.crop-go { background: #3B7BEA; color: #fff; }
+.crop-go:disabled { opacity: .6; }
 .md-ph button { border: 0; background: none; padding: 0; font: inherit; font-weight: 800; color: var(--bad, #D6453D); cursor: pointer; }
 .ma-kv { margin: 0; display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 8px 12px; font-size: 14px; }
 .ma-kv dt { color: var(--dim); }
