@@ -106,7 +106,9 @@
                     <span>@(d.Today.DayOfWeek == DayOfWeek.Sunday || d.Today.DayOfWeek == DayOfWeek.Monday ? "새 한 주가 시작됐어요." : "오늘도 반가워요.")</span>
                     <span>오늘 말씀부터 읽어 볼까요?</span></p>
             </div>
-            <span class="hj-av" aria-hidden="true">@(name.Length > 0 ? name[..1] : "?")</span>
+            @* 0078: 누르면 내 사진 화면(올리기 · 바꾸기 · 지우기). 사진이 없으면 이름 첫 글자 *@
+            <a class="hj-av" href="/account/photo?back=/@slug" aria-label="내 사진 바꾸기">@if (Model.MyPhoto is { } ph)
+                { <img src="/account/photo?handler=img&amp;v=@ph" alt="" /> } else { <span aria-hidden="true">@(name.Length > 0 ? name[..1] : "?")</span> }<i class="cam" aria-hidden="true">📷</i></a>
         </div>
         @if (d.Growth is { } g)
         {

@@ -15,7 +15,9 @@
 
     <section class="ma-card" aria-labelledby="maInfo">
         <h2 id="maInfo">내 정보</h2>
-        <div class="ma-me"><span class="av">@Short(Model.Name)</span><div><b>@Model.Name</b><small>@Model.Email</small></div></div>
+        @* 0078: 동그라미 · "내 사진 바꾸기" → 내 사진 화면 *@
+        <div class="ma-me"><a class="av" href="/account/photo" aria-label="내 사진">@if (Model.Photo is { } ph) { <img src="/account/photo?handler=img&amp;v=@ph" alt="" /> } else { @Short(Model.Name) }</a>
+            <div><b>@Model.Name</b><small>@Model.Email</small></div><a class="ph-go" href="/account/photo">내 사진 바꾸기 ›</a></div>
         <dl class="ma-kv">
             <dt>이메일</dt><dd>@Model.Email<small>로그인할 때 쓰는 주소라 여기서는 바꿀 수 없어요.</small></dd>
             <dt>가입한 날</dt><dd>@Model.Joined.ToString("yyyy년 M월 d일")</dd>

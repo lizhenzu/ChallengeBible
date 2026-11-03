@@ -1,0 +1,33 @@
+@page "/account/photo"
+@model ChallengeBible.Web.Pages.Account.PhotoModel
+@using ChallengeBible.Web.Services
+@* 확정 시안: ph.png ② 내 사진(ADR 0078) — 큰 동그라미 → 사진 바꾸기 · 지우기 → 안내 *@
+<header class="top gut"><div class="wrap">
+    <a class="lnk" href="@Model.BackUrl">← 돌아가기</a>
+</div></header>
+<main class="page gut ma"><div class="wrap">
+    <section class="ma-card pp" aria-labelledby="ppT">
+        <span class="pp-av">@if (Model.File is { } f) { <img src="/account/photo?handler=img&amp;v=@f" alt="내 사진" /> } else { <span aria-hidden="true">@(Model.Name.Length > 0 ? Model.Name[..1] : "?")</span> }</span>
+        <h1 id="ppT">내 사진</h1>
+        <p class="hint">같은 부서 친구들에게 보여요</p>
+        @if (Model.Ok == "1") { <p class="okmsg" role="status">사진을 바꿨어요</p> }
+        @if (Model.Ok == "0") { <p class="okmsg" role="status">사진을 지웠어요</p> }
+        @if (Model.Error is not null) { <p class="hint bad" role="alert">@Model.Error</p> }
+
+        <form method="post" enctype="multipart/form-data" class="pp-up" data-photo>
+            <input type="hidden" name="Back" value="@Model.BackUrl" />
+            <label class="btn p pp-btn">📷 @(Model.File is null ? "사진 올리기" : "사진 바꾸기")
+                <input type="file" name="photo" accept="image/*" class="pp-file" /></label>
+            <noscript><button type="submit" class="btn s pp-btn">올리기</button></noscript>
+        </form>
+        @if (Model.File is not null)
+        {
+            <form method="post" asp-page-handler="Delete">
+                <input type="hidden" name="Back" value="@Model.BackUrl" />
+                <button type="submit" class="btn s pp-btn pp-del">사진 지우기</button>
+            </form>
+        }
+        <p class="pp-note">· 얼굴이 잘 보이는 사진을 골라요. 가운데를 네모로 잘라 작게 줄여서 올려요(@(PhotoService.MaxBytes / 1024)KB 까지).<br />· 관리자 선생님도 사진을 바꾸거나 지울 수 있어요.</p>
+    </section>
+</div></main>
+<script src="~/js/photo.js" asp-append-version="true"></script>

@@ -9,8 +9,10 @@ namespace ChallengeBible.Web.Pages;
 
 /// <summary>`/{slug}` 부서 홈 메인(확정 시안: 홈메인, 0044). 부서 결정 · 소속 검사는 TenantPageFilter 가 한다.</summary>
 public class TenantHomeModel(TenantContext tenant, FamilyTenantService family, FamilyTeamService teams, HomeService home, AccountService accounts,
-    OnFamilyService onFamily) : PageModel, ITitled
+    OnFamilyService onFamily, PhotoService photos) : PageModel, ITitled
 {
+    /// <summary>내 사진 파일 이름(0078) — 없으면 이름 첫 글자.</summary>
+    public string? MyPhoto { get; private set; }
     public string Title => "";
     public TenantContext Tenant => tenant;
     /// <summary>보호자인데 시상 부서가 아직 정해지지 않음 → 안내 카드(R-179, 플랫폼 관리자가 정함).</summary>
@@ -35,6 +37,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTenantService family, F
     {
         if (TodayScreen && !tenant.IsLobby) return Redirect($"/{tenant.Current.Slug}");   // 일반 부서 홈은 한 화면 그대로
         var me = User.AccountId()!.Value;
+        MyPhoto = await photos.FileOfAsync(me, ct);
         if (IsGuardian) NeedsFamilyChoice = await family.NeedsChoiceAsync(me, ct);
         if (tenant.Current.MissionEnabled) Family = await teams.MyFamilyAsync(ct);
         if (Family is not null && IsGuardian) FamilyDept = await family.CurrentNameAsync(me, ct);

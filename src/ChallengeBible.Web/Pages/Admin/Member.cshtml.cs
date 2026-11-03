@@ -9,8 +9,27 @@ namespace ChallengeBible.Web.Pages.Admin;
 
 /// <summary>`/{slug}/admin/members/{id}?month=&amp;date=` 참여자 상세(확정 시안: 관리-참여자상세, 0035 · 0029). 영역 관리자만.</summary>
 [TenantRoles(Roles.TenantAdmin)]
-public class MemberModel(MemberDetailService details, TenantContext tenant) : PageModel, ITitled
+public class MemberModel(MemberDetailService details, TenantContext tenant, PhotoService photos) : PageModel, ITitled
 {
+    /// <summary>이 사람 사진 파일 이름(0078) — 관리자가 올리기 · 바꾸기 · 지우기(R-200, R-203).</summary>
+    public string? Photo { get; private set; }
+    public string? PhotoError { get; private set; }
+
+    public async Task<IActionResult> OnPostPhotoAsync(IFormFile? photo, CancellationToken ct)
+    {
+        if (await photos.AccountOfMembershipAsync(Id, ct) is not int acc) return NotFound();
+        PhotoError = await photos.SaveAsync(acc, photo, User.AccountId()!.Value, tenant.Current.Id, ct);
+        if (PhotoError is null) return RedirectToPage(new { slug = tenant.Current.Slug, Id, Ok = "photo" });
+        return await LoadAsync(ct) ? Page() : NotFound();
+    }
+
+    public async Task<IActionResult> OnPostPhotoDeleteAsync(CancellationToken ct)
+    {
+        if (await photos.AccountOfMembershipAsync(Id, ct) is not int acc) return NotFound();
+        await photos.DeleteAsync(acc, User.AccountId()!.Value, tenant.Current.Id, ct);
+        return RedirectToPage(new { slug = tenant.Current.Slug, Id, Ok = "photo0" });
+    }
+
     public string Title => Detail?.Name ?? "참여자";
     public TenantContext Tenant => tenant;
 
@@ -52,6 +71,7 @@ public class MemberModel(MemberDetailService details, TenantContext tenant) : Pa
         if (ShownMonth > new DateOnly(Today.Year, Today.Month, 1)) ShownMonth = new DateOnly(Today.Year, Today.Month, 1);
         Detail = await details.GetAsync(Id, ShownMonth, ct);
         if (Detail is null) return false;
+        Photo = await photos.FileOfAsync(Detail.AccountId, ct);
         if (Detail.ParticipantId is int pid)
         {
             var dates = Date is { } one ? [one] : await details.RecentActiveDaysAsync(pid, 2, ct);
