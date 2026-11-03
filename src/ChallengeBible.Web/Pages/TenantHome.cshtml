@@ -158,7 +158,8 @@
                     <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-org-l)" stroke-width="8" /><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-org)" stroke-width="8" stroke-linecap="round" stroke-dasharray="@((C2 * pctToday / 100).ToString("0.#", inv)) @C2.ToString("0.#", inv)" transform="rotate(-90 38 38)" /></svg>
                     <span><b class="num">@done/@has.Count</b>오늘 미션</span>
                 </span>
-                <a class="hj-box o" href="/@slug/word">
+                @* 오늘의 말씀 칸 → 미션홈(2026-11-03 사용자) *@
+                <a class="hj-box o" href="/@slug/word-mission">
                     <small>오늘의 말씀</small>
                     @if (d.WordTitle is not null) { <b>@d.WordTitle</b><span>@d.WordRange ›</span> }
                     else { <b>오늘은 말씀이 없어요</b><span>내일 다시 만나요</span> }

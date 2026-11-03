@@ -62,7 +62,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("<small>오늘의 기도</small>", home);                    // 말씀 카드는 말씀만
         Assert.DoesNotContain("class=\"hj-rib\"", home);                             // 말씀 한 줄 띠는 지움(2026-11-03)
         Assert.Contains("<b class=\"num\">0/3</b>오늘 미션", home);                  // 오늘 있는 미션은 말씀 · 퀴즈 · 기도 세 가지
-        Assert.Contains("<a class=\"cur\" href=\"/jamsil-kids/word\">말씀<small>대기 중 ›</small>", home);   // 다음 할 일 칸
+        Assert.Contains("<a class=\"cur\" href=\"/jamsil-kids/word\">말씀<small>대기 중 ›</small>", home);
+        Assert.Contains("<a class=\"hj-box o\" href=\"/jamsil-kids/word-mission\">", home);   // 오늘의 말씀 칸 → 미션홈(2026-11-03)   // 다음 할 일 칸
         Assert.Contains("김철수 <u>님</u>", home);                                    // 0076 인사 카드
         Assert.Contains("<small>나의 점수</small>", home);                            // R-190 성장: 0점 = 씨앗 0%, 새싹까지 400점
         Assert.Contains("씨앗 0%", home);
