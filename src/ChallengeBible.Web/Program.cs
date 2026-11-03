@@ -138,6 +138,7 @@ app.MapMissionApi();
 app.MapBibleApi();
 app.MapReadingApi();
 app.MapBrandingApi();
+app.MapContentApi();
 
 app.Run();
 
