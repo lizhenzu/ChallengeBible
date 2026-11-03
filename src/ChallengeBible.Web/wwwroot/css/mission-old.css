@@ -134,10 +134,12 @@ body:has(.mbody) .toast { bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 .okpop-close { width: 100%; margin-top: 16px; min-height: 50px; border: 0; border-radius: 14px; background: #2F80ED; color: #fff; font: inherit; font-size: 16px; font-weight: 900; cursor: pointer; }
 .okpop-close:focus-visible { outline: 3px solid #93B9F2; outline-offset: 2px; }
 /* 0075: 다음 미션 버튼이 주 버튼, 확인은 옅게 */
-.okpop .bar { margin-top: 12px; height: 4px; border-radius: 99px; background: #EEF0F3; overflow: hidden; }
-.okpop .bar i { display: block; height: 100%; width: 100%; background: #93B9F2; transition-property: width; transition-timing-function: linear; }
-.okpop .cd { margin-top: 6px; font-size: 11.5px; color: #9CA3AF; }
-@media (prefers-reduced-motion: reduce) { .okpop .bar i { transition: none; } }
+/* 확인 버튼 = 남은 시간(2026-11-03 시안 okb): 진한 파랑이 왼쪽으로 줄며 흐린 파랑이 드러난다 */
+.okpop .okpop-close { position: relative; overflow: hidden; background: #B9D3F7; }
+.okpop .okpop-close i { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: #2F80ED; transition-property: width; transition-timing-function: linear; }
+.okpop .okpop-close span { position: relative; text-shadow: 0 1px 2px rgba(31, 79, 160, .55); }
+.okpop .cd { margin-top: 10px; font-size: 13px; color: #8A919C; }
+@media (prefers-reduced-motion: reduce) { .okpop .okpop-close i { transition: none; } }
 
 /* 완료 취소(확정 시안 미션완료취소 ①, R-24): 오늘이면 완료 버튼을 다시 누를 수 있음 → 확인 창 */
 body:has(.mbody) .pick[aria-pressed="true"]:not(:disabled) { cursor: pointer; }
