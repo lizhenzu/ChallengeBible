@@ -10,7 +10,7 @@ namespace ChallengeBible.Web.Services;
 /// <summary>미션 네 가지의 오늘 상태(홈 말씀 카드 "미션 4칸").</summary>
 public sealed record HomeMission(string Key, string Label, bool Has, bool Done, string State);
 public sealed record HomeWeekDay(DateOnly Date, int MissionPoints, bool AllFour, int Chapters);
-public sealed record HomeDept(int Members, int TodayPeople, int? YearChapters, int? MyOrderToday);
+public sealed record HomeDept(int Members, int TodayPeople, int? YearChapters, int? MyOrderToday, int Participants = 0);
 
 /// <summary>부서 홈 메인(확정 시안: 홈메인)에 필요한 것. 프로그램이 꺼졌거나 참여자가 아니면 그 부분은 null · 0.</summary>
 public sealed class HomeView
@@ -157,6 +157,9 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
             var from = TimeZoneInfo.ConvertTimeToUtc(new DateTime(today.Year, 1, 1), TimeZoneInfo.FindSystemTimeZoneById(t.TimeZoneId));   // 부서 시간 1월 1일 0시
             chapters = await ctx.ChapterReads.IgnoreQueryFilters().CountAsync(c => ids.Contains(c.AccountId) && c.ReadUtc >= from, ct);
         }
-        return new HomeDept(members, firsts.Count, chapters, order);
+        // 부서 참여자 수(2026-11-03 홈 아래 칸): 승인된 소속의 참여자
+        var participants = await (from pa in ctx.Participants join m in ctx.Memberships on pa.MembershipId equals m.Id
+                                  where m.Status == MembershipStatus.Approved select pa.Id).CountAsync(ct);
+        return new HomeDept(members, firsts.Count, chapters, order, participants);
     }
 }

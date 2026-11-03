@@ -205,9 +205,9 @@
                     </a>
                 </div>
                 <div class="hj-n3">
-                    <div><b class="num">@rd.ReadChapters.ToString("N0")</b><small>읽은 장</small></div>
-                    <div><b class="num">@((ReadingSummary.Total - rd.ReadChapters).ToString("N0"))</b><small>남은 장</small></div>
-                    <div><b class="num">@ReadingSummary.Total.ToString("N0")</b><small>전체</small></div>
+                    <div class="r"><b class="num">@rd.ReadChapters.ToString("N0")</b><small>읽은 장</small></div>
+                    <div class="l"><b class="num">@((ReadingSummary.Total - rd.ReadChapters).ToString("N0"))</b><small>남은 장</small></div>
+                    <div class="t"><b class="num">@ReadingSummary.Total.ToString("N0")</b><small>전체</small></div>
                 </div>
             }
         </section>
@@ -238,10 +238,12 @@
 
     @if (d.Dept is { } dp && t.MissionEnabled)
     {
-        <div class="hj-two">
-            <a class="hj-card hj-mini" href="@(d.Rules.Features.Ranking ? $"/{slug}/ranking" : null)"><small>우리 부서 오늘 참여</small><b class="num">@dp.TodayPeople<u>명</u></b></a>
-            <div class="hj-card hj-mini"><small>나는 오늘</small>@if (dp.MyOrderToday is int mo) { <b class="num">@mo<u>번째</u></b> } else { <b>아직</b> }</div>
-        </div>
+        @* 2026-11-03 B안: 카드 하나를 선으로 셋 — 우리 부서 참여자(파랑) · 오늘 참여(초록) · 나는 오늘(노랑) *@
+        <a class="hj-card hj-dept" href="@(d.Rules.Features.Ranking ? $"/{slug}/ranking" : null)">
+            <span class="b"><b class="num">@dp.Participants<u>명</u></b><small>우리 부서 참여자</small></span><i aria-hidden="true"></i>
+            <span class="m"><b class="num">@dp.TodayPeople<u>명</u></b><small>오늘 참여</small></span><i aria-hidden="true"></i>
+            <span class="s">@if (dp.MyOrderToday is int mo) { <b class="num">@mo<u>번째</u></b> } else { <b>아직</b> }<small>나는 오늘</small></span>
+        </a>
     }
 </div></main>
 }
