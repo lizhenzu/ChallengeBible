@@ -137,7 +137,7 @@
         {
             var done = Done(c.M);
             var earned = Earned(c.M);
-            var state = !c.Has ? "없음" : c.Over ? "끝남" : canAct ? null : "못 함";
+            var state = !c.Has ? "없음" : c.Over ? "끝남" : canAct ? null : Model.Day > d.Today ? "수행예정" : "미수행";
             <a class="hM @c.Cls@(done ? " ok" : "")@(c.Key == firstLeft ? " next" : "")@(!c.Has ? " none" : "")" href="@Model.Link(c.Key)">
                 @if (done) { <span class="hStamp">완료</span> }
                 <span class="hNo num">@c.No</span><span class="hN">@c.Label</span>
