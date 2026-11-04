@@ -32,7 +32,34 @@ public partial class MissionFlowTests
 
         var word = await c.GetStringAsync("/jamsil-kids/word?date=2027-01-07");                             // 그날 말씀도 열림
         Assert.Contains("믿음의 종의 기도", word);
-        Assert.Contains("오늘 이후는 보기만 가능해요.", word);
+        Assert.Contains("오늘 이후의 미션은 <b>보기만 할 수 있고</b>", word);
+    }
+
+    [Theory]
+    [InlineData("word")]
+    [InlineData("quiz")]
+    [InlineData("prayer")]
+    [InlineData("recite")]
+    public async Task 각_미션_화면에도_다른_날_카드가_있고_버튼은_그_미션의_오늘로_간다(string page)
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var html = await c.GetStringAsync($"/jamsil-kids/{page}?date=2027-01-07");
+        Assert.Contains("오늘이 아닌 날을 보고 있어요", html);
+        Assert.Contains("<b>1월 7일 목요일</b> 미션을 미리 보고 있어요.", html);
+        Assert.Contains($"class=\"go\" href=\"/jamsil-kids/{page}\">오늘 날짜로 이동", html);
+        Assert.DoesNotContain(">오늘로<", html);
+        Assert.DoesNotContain("오늘 이후는 보기만 가능해요.", html);                                            // 카드와 같은 안내를 또 쓰지 않는다
+
+        Assert.DoesNotContain("오늘이 아닌 날을 보고 있어요", await c.GetStringAsync($"/jamsil-kids/{page}"));   // 오늘은 카드 없음
+    }
+
+    [Fact]
+    public async Task 참여자가_아니면_다른_날에도_보기만_안내가_남는다()
+    {
+        var c = await Member("younghee", Roles.Guardian);
+        var html = await c.GetStringAsync("/jamsil-kids/word?date=2027-01-07");
+        Assert.Contains("오늘이 아닌 날을 보고 있어요", html);
+        Assert.Contains("보호자 · 선생님은 보기만 해요.", html);
     }
 
     [Fact]
@@ -80,7 +107,7 @@ public partial class MissionFlowTests
         var c = await Member("cheolsu", Roles.Participant);
         var future = await c.GetStringAsync("/jamsil-kids/quiz?date=2027-01-07");
         Assert.Contains("종은 우물가에서 가장 먼저 무엇을 했나요?", future);                                    // 문제는 미리 볼 수 있고
-        Assert.Contains("오늘 이후는 보기만 가능해요.", future);
+        Assert.Contains("오늘 이후의 미션은 <b>보기만 할 수 있고</b>", future);
         Assert.DoesNotContain("먼저 하나님께 기도했어요", future);                                              // 해설은 끝난 뒤에만(서버가 안 내보냄)
         Assert.DoesNotContain("정답은 이것", future);
         Assert.Contains("disabled", future);                                                                 // 고르기 · 제출은 막힘
