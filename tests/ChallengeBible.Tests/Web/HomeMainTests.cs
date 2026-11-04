@@ -81,7 +81,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var word = await c.GetStringAsync("/jamsil-kids/word");                     // 0075 완료 창 "다음: 퀴즈 →"
         Assert.Contains("data-today=\"1\" data-next=\"/jamsil-kids/quiz\" data-next-label=\"퀴즈\"", word);
         Assert.Contains("href=\"/account\"", home);                                 // 확정 7: 계정 줄 3개(비밀번호 바꾸기는 내 계정 안으로)
-        Assert.Contains(">부서 바꾸기</a>", home);
+        Assert.DoesNotContain("부서 바꾸기", home);                                  // 홈 맨 아래 "부서 바꾸기"는 뺌(2026-11-05)
         Assert.Contains("로그아웃</button>", home);
         Assert.DoesNotContain("▼", home);                                            // 확정 6: 소속이 하나면 ▼ 없음
         Assert.DoesNotContain(">관리</a>", home);                                    // 확정 1: 관리 버튼은 관리자만
@@ -163,12 +163,13 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
-    public async Task 소속이_둘이면_맨_아래_부서_바꾸기로_간다()
+    public async Task 소속이_둘이면_내_계정에서_부서를_고르고_홈_맨_아래에는_부서_바꾸기가_없다()
     {
         var (c, me) = await Member("cheolsu", Roles.Participant);
         var other = InMemoryDb.SeedTenant(_db, "jamsil-elem", "JSELEM");
         InMemoryDb.SeedMembership(_db, other.Id, me, MembershipStatus.Approved, Roles.Participant);
-        Assert.Contains("<a href=\"/account/tenants\">부서 바꾸기</a>", await c.GetStringAsync("/jamsil-kids"));   // 확정 6 — 부서 이름 줄은 지움(2026-11-03)
+        Assert.DoesNotContain("부서 바꾸기", await c.GetStringAsync("/jamsil-kids"));                          // 홈 맨 아래 버튼은 뺌(2026-11-05)
+        Assert.Contains("<a href=\"/account/tenants\">부서 고르기 →</a>", await c.GetStringAsync("/account"));   // 길은 내 계정에
     }
 
     [Fact]
