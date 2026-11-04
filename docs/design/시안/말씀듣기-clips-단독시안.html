@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>말씀 듣기 구간</title>
+<style>
+:root { --bg:#fff; --ink:#111827; --dim:#6B7280; --rule:#E5E7EB; --grey:#F3F4F6; --acc:#2F7BE8; --red-bg:#FDE8E8; --red-line:#F6C9C9; --page:#E9ECF1; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--page); color:var(--ink); font-family:system-ui,-apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif; }
+.wrap { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; padding:16px; }
+.col { width:100%; max-width:358px; }
+.tag { margin:0 0 8px; font-size:15px; font-weight:800; }
+.tag small { display:block; margin-top:2px; font-size:12.5px; font-weight:500; color:var(--dim); line-height:1.45; }
+.ph { padding:14px; border-radius:18px; background:var(--bg); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.k { font-size:13px; font-weight:800; color:var(--acc); }
+h1 { margin:3px 0 12px; font-size:26px; font-weight:900; letter-spacing:-.02em; }
+h1 small { font-size:.55em; font-weight:500; color:var(--dim); margin-left:6px; letter-spacing:0; }
+
+/* 도구 줄 */
+.bar { display:grid; gap:8px; }
+.bar.now { grid-template-columns:minmax(0,1fr) auto; }
+.bar.half { grid-template-columns:1fr 1fr; }
+.tb { min-width:0; min-height:46px; display:flex; align-items:center; justify-content:center; gap:6px; padding:0 12px; border-radius:12px; border:1px solid var(--rule); background:var(--bg); font-size:14px; }
+.tb b { white-space:nowrap; }
+.tb i { font-style:normal; color:var(--dim); font-size:11px; }
+.tb.yt { background:var(--red-bg); border-color:var(--red-line); }
+.tb.open { box-shadow:0 0 0 1px var(--acc) inset; border-color:var(--acc); }
+.tb.open i { transform:rotate(180deg); }
+
+/* 도구 줄 — 듣기를 구간과 함께 한 줄 전체로 */
+.tb.wide { justify-content:flex-start; gap:8px; min-height:52px; }
+.tb.wide .cl { margin-left:auto; font-size:13px; font-weight:700; color:#B4332F; font-variant-numeric:tabular-nums; }
+.tb.wide i { margin-left:2px; }
+
+/* 펼친 칸 */
+.pan { margin-top:10px; padding:12px; border-radius:14px; background:var(--grey); }
+.btns { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.now-btns { display:flex; flex-wrap:wrap; gap:8px; }
+.mb { display:flex; align-items:center; gap:8px; min-height:52px; min-width:0; padding:8px 12px 8px 8px; border:1px solid var(--rule); border-radius:14px; background:var(--bg); text-align:left; }
+.mb.full { grid-column:1 / -1; padding:10px 14px 10px 10px; }
+.ic { flex:none; width:32px; height:32px; border-radius:10px; display:grid; place-items:center; font-size:16px; background:var(--grey); }
+.yt .ic { background:var(--red-bg); }
+.t { display:grid; min-width:0; line-height:1.35; }
+.t b { font-size:14px; }
+.t small { font-size:12px; color:var(--dim); }
+.mb.full .ic { width:38px; height:38px; font-size:18px; }
+.mb.full .t b { font-size:15px; }
+
+/* 구간 */
+.cl-list { display:grid; gap:2px; margin-top:3px; font-size:13px; font-weight:700; color:#B4332F; font-variant-numeric:tabular-nums; }
+.cl-list span { display:flex; gap:7px; }
+.cl-list em { font-style:normal; font-weight:600; color:var(--dim); min-width:30px; }
+.whole { margin-top:3px; font-size:13px; color:var(--dim); }
+.sub { margin:14px 0 6px; font-size:12.5px; font-weight:700; color:var(--dim); }
+.sub:first-of-type { margin-top:14px; }
+.onlycard { margin-top:8px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#14171B; --ink:#E8EAED; --dim:#A3AAB4; --rule:#2C323A; --grey:#1F242B; --red-bg:#3A1E20; --red-line:#5A2E31; --page:#0E1013; } .cl-list, .tb.wide .cl { color:#F09A80 !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="col">
+    <p class="tag">지금</p>
+    <div class="ph">
+      <div class="k">오늘의 말씀 · 11월 4일 (수)</div>
+      <h1>고린도후서<small>3장 1~18절</small></h1>
+      <div class="bar now">
+        <div class="tb"><b>전체 · 개역개정</b><i>▾</i></div>
+        <div class="tb yt open"><span>🎧</span><b>듣기</b><i>▾</i></div>
+      </div>
+      <div class="pan">
+        <div class="now-btns">
+          <div class="mb yt"><span class="ic">🎧</span><span class="t"><b>유튜브 듣기</b><small>고린도후서 3장</small></span></div>
+          <div class="mb"><span class="ic">🎬</span><span class="t"><b>개요 해설 1</b><small>고린도후서</small></span></div>
+          <div class="mb"><span class="ic">🎬</span><span class="t"><b>개요 해설 2</b><small>고린도후서</small></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <p class="tag">ㄱ안 · 펼친 칸에서 보여 주기<small>도구 줄은 반반. 펼치면 유튜브 듣기가 한 줄을 다 쓰고 구간이 보인다. 해설은 아래 반반.</small></p>
+    <div class="ph">
+      <div class="k">오늘의 말씀 · 11월 4일 (수)</div>
+      <h1>고린도후서<small>3장 1~18절</small></h1>
+      <div class="bar half">
+        <div class="tb"><b>전체 · 개역개정</b><i>▾</i></div>
+        <div class="tb yt open"><span>🎧</span><b>듣기</b><i>▾</i></div>
+      </div>
+      <div class="pan">
+        <div class="btns">
+          <div class="mb full yt"><span class="ic">🎧</span><span class="t"><b>유튜브 듣기</b>
+            <span class="cl-list"><span><em>3장</em>1:05 ~ 7:40</span></span></span></div>
+          <div class="mb"><span class="ic">🎬</span><span class="t"><b>개요 해설 1</b><small>고린도후서</small></span></div>
+          <div class="mb"><span class="ic">🎬</span><span class="t"><b>개요 해설 2</b><small>고린도후서</small></span></div>
+        </div>
+      </div>
+      <p class="sub">장을 넘는 날(구간 둘)</p>
+      <div class="mb full yt onlycard" style="border-color:var(--rule)"><span class="ic">🎧</span><span class="t"><b>유튜브 듣기</b>
+        <span class="cl-list"><span><em>3장</em>6:20 ~ 끝까지</span><span><em>4장</em>처음 ~ 1:10</span></span></span></div>
+      <p class="sub">구간이 없는 날</p>
+      <div class="mb full yt onlycard"><span class="ic">🎧</span><span class="t"><b>유튜브 듣기</b><span class="whole">3장 전체 · 8:12</span></span></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <p class="tag">ㄴ안 · 펼치지 않아도 보여 주기<small>듣기가 도구 줄 한 줄을 다 쓰고 구간이 바로 보인다. 도구 줄이 두 줄이 된다. 구간 둘 이상이면 "구간 2개"로 줄이고 펼친 칸에서 자세히.</small></p>
+    <div class="ph">
+      <div class="k">오늘의 말씀 · 11월 4일 (수)</div>
+      <h1>고린도후서<small>3장 1~18절</small></h1>
+      <div class="bar">
+        <div class="tb"><b>전체 · 개역개정</b><i>▾</i></div>
+        <div class="tb yt wide open"><span>🎧</span><b>듣기</b><span class="cl">3장 1:05 ~ 7:40</span><i>▾</i></div>
+      </div>
+      <div class="pan">
+        <div class="btns">
+          <div class="mb full yt"><span class="ic">🎧</span><span class="t"><b>유튜브 듣기</b>
+            <span class="cl-list"><span><em>3장</em>1:05 ~ 7:40</span></span></span></div>
+          <div class="mb"><span class="ic">🎬</span><span class="t"><b>개요 해설 1</b><small>고린도후서</small></span></div>
+          <div class="mb"><span class="ic">🎬</span><span class="t"><b>개요 해설 2</b><small>고린도후서</small></span></div>
+        </div>
+      </div>
+      <p class="sub">장을 넘는 날(구간 둘)</p>
+      <div class="tb yt wide"><span>🎧</span><b>듣기</b><span class="cl">구간 2개</span><i>▾</i></div>
+      <p class="sub">구간이 없는 날</p>
+      <div class="tb yt wide"><span>🎧</span><b>듣기</b><span class="cl" style="color:var(--dim);font-weight:500">3장 전체</span><i>▾</i></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

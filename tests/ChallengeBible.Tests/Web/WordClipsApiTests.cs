@@ -223,8 +223,20 @@ public partial class WordClipsApiTests(WebApplicationFactory<Program> app) : ICl
             new DailyWordClip { Chapter = 99, YoutubeVideoId = "jIcsdztsKBE", EndSec = 30 });
         var html = await c.GetStringAsync("/jamsil-kids/read?from=word");
         Assert.Equal("[{\"v\":\"dLv2ndgXrbo\",\"s\":65,\"e\":90},{\"v\":\"cMKPbDZhToo\",\"s\":0,\"e\":null},{\"v\":\"jIcsdztsKBE\",\"s\":0,\"e\":30}]", ClipsOf(html));
-        Assert.Contains("<b>유튜브 듣기</b><small>창세기 24장</small>", html);         // 버튼 모양은 그대로, 장 전체 길이만 뺌
+        Assert.Contains("<span><em>24장</em>1:05 ~ 1:30</span>", html);                 // 버튼에 재생 구간(확정 시안 말씀듣기-clips ㄱ안)
+        Assert.Contains("<span><em>25장</em>전체</span>", html);
+        Assert.Contains("<span><em>99장</em>처음 ~ 0:30</span>", html);
+        Assert.Equal(3, Regex.Matches(html, "<em>\\d+장</em>").Count);                  // 건너뛴 구간은 글에도 없음
+        Assert.DoesNotContain("8:12", html);                                           // 장 전체 길이는 뺌
     }
+
+    [Theory]
+    [InlineData(null, null, "전체")]
+    [InlineData(65, 460, "1:05 ~ 7:40")]
+    [InlineData(380, null, "6:20 ~ 끝까지")]
+    [InlineData(null, 70, "처음 ~ 1:10")]
+    public void R127_구간_글은_분초와_처음_끝으로_쓴다(int? start, int? end, string text) =>
+        Assert.Equal(text, ChapterMediaService.ClipRange(start, end));
 
     [Fact]
     public async Task R127_구간이_없는_날은_지금처럼_장_전체다()
@@ -234,7 +246,8 @@ public partial class WordClipsApiTests(WebApplicationFactory<Program> app) : ICl
         var html = await c.GetStringAsync("/jamsil-kids/read?from=word");
         Assert.Null(ClipsOf(html));
         Assert.Contains("data-yt=\"dLv2ndgXrbo\"", html);
-        Assert.Contains("<small>창세기 24장 · 8:12</small>", html);
+        Assert.Contains("<small>24장 전체 · 8:12</small>", html);
+        Assert.DoesNotContain("class=\"clp\"", html);
     }
 
     [Fact]
