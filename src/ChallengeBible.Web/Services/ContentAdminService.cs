@@ -70,7 +70,24 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
         return ctx;
     }
 
-    /// <summary>공용을 날짜 대신 번호로 두고 반복하는 종류: 기도(매달 1 ~ 31일, 0053) · 암송(매년 1 ~ 55주, 0052).</summary>
+    /// <summary>그날 말씀 영상 구간을 통째로 바꾼다(R-127, ADR 0081). 빈 목록 = 지움. 플랫폼 관리자가 아니면 UnauthorizedAccessException.</summary>
+    public async Task SaveWordClipsAsync(int actor, DateOnly date, IReadOnlyList<DailyWordClip> clips, CancellationToken ct = default)
+    {
+        await using var ctx = await OpenAsync(actor, ct);
+        ctx.DailyWordClips.RemoveRange(await ctx.DailyWordClips.Where(c => c.WordDate == date).ToListAsync(ct));
+        var now = time.GetUtcNow().UtcDateTime;
+        byte seq = 0;
+        foreach (var c in clips)
+        {
+            c.WordDate = date;
+            c.Seq = seq++;
+            c.UpdatedUtc = now;
+            ctx.DailyWordClips.Add(c);
+        }
+        await ctx.SaveChangesAsync(ct);
+    }
+
+    /// <summary>공용을 날짜 대신 번호로 두고 반복하는 종류:기도(매달 1 ~ 31일, 0053) · 암송(매년 1 ~ 55주, 0052).</summary>
     public static bool BySlot(ContentKind kind) => kind is ContentKind.Prayer or ContentKind.Recite;
 
     public static byte MaxSlot(ContentKind kind) => kind == ContentKind.Prayer ? DailyPrayer.MaxDayNo : WeeklyVerse.MaxWeekNo;

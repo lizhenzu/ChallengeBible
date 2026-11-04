@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -5,7 +6,11 @@ using Microsoft.EntityFrameworkCore;
 namespace ChallengeBible.Web.Services;
 
 /// <summary>"듣기 · 영상" 줄의 버튼 하나. 재생 창에는 유튜브 영상 번호(11자)만 넘긴다.</summary>
-public sealed record MediaButton(string Icon, string Title, string Sub, string VideoId, string PlayerTitle, bool Listen);
+/// <param name="Clips">그날 구간 재생 목록(JSON, ADR 0081). null 이면 영상 전체를 반복한다.</param>
+public sealed record MediaButton(string Icon, string Title, string Sub, string VideoId, string PlayerTitle, bool Listen, string? Clips = null);
+
+/// <summary>재생 창에 넘기는 구간 하나: 영상 번호 · 시작(초) · 끝(초, 없으면 영상 끝까지).</summary>
+public sealed record PlayClip(string V, int S, int? E);
 
 /// <summary>
 /// 듣기 · 영상(R-166, ADR 0063, 확정 시안 통독-본문읽기-듣기영상): 그 장의 듣기 · 해설(`app.ChapterMedia`) + 그 책의 개요 해설(책 개요 영상).
@@ -42,6 +47,35 @@ public sealed partial class ChapterMediaService(IAppDb db)
             var title = ov.Count > 1 ? $"개요 해설 {i + 1}" : "개요 해설";
             list.Add(new("🎬", title, name, ov[i], $"{name} {title}", false));
         }
+        return list;
+    }
+
+    /// <summary>그날 영상 구간이 있으면 "듣기" 버튼이 장 전체 대신 그 구간을 재생하게 한다(R-127, ADR 0081). 구간이 없는 날은 그대로.</summary>
+    public async Task<IReadOnlyList<MediaButton>> WithWordClipsAsync(IReadOnlyList<MediaButton> buttons, byte bookId, short chapter, DateOnly date, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var clips = await ctx.DailyWordClips.AsNoTracking().Where(c => c.WordDate == date).OrderBy(c => c.Seq).ToListAsync(ct);
+        if (clips.Count == 0) return buttons;
+        var chapters = clips.Where(c => c.YoutubeVideoId is null).Select(c => c.Chapter).Distinct().ToList();
+        var listen = await ctx.ChapterMedia.AsNoTracking().Where(m => m.BookId == bookId && m.Kind == ChapterMediaKind.Listen && chapters.Contains(m.Chapter))
+            .OrderBy(m => m.SortOrder).ToListAsync(ct);
+        return WithClips(buttons, bookId, chapter, clips, listen);
+    }
+
+    /// <summary>구간을 재생 목록으로 바꾼다. 영상이 비었으면 그 장의 기본 듣기 영상, 그것도 없으면 그 구간은 건너뛴다. 남는 구간이 없으면 버튼은 그대로.</summary>
+    public static IReadOnlyList<MediaButton> WithClips(IReadOnlyList<MediaButton> buttons, byte bookId, short chapter, IEnumerable<DailyWordClip> clips, IEnumerable<ChapterMedia> listen)
+    {
+        var plays = clips.Select(c => (Id: VideoId(c.YoutubeVideoId) ?? listen.Where(m => m.Chapter == c.Chapter).Select(m => VideoId(m.YoutubeVideoId)).FirstOrDefault(v => v is not null), c.StartSec, c.EndSec))
+            .Where(c => c.Id is not null).Select(c => new PlayClip(c.Id!, c.StartSec ?? 0, c.EndSec)).ToList();
+        if (plays.Count == 0) return buttons;
+
+        var json = JsonSerializer.Serialize(plays, JsonSerializerOptions.Web);
+        var name = BibleBooks.NameOf(bookId);
+        var place = $"{name} {chapter}{(bookId == 19 ? "편" : "장")}";   // 장 전체 길이는 구간과 맞지 않아 뺀다
+        var list = buttons.ToList();
+        var at = list.FindIndex(b => b.Listen);
+        if (at >= 0) list[at] = list[at] with { Sub = place, VideoId = plays[0].V, Clips = json };
+        else list.Insert(0, new("🎧", "유튜브 듣기", place, plays[0].V, $"{place} 듣기", true, json));
         return list;
     }
 

@@ -1425,6 +1425,47 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.DailyWordClip", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<short>("Chapter")
+                        .HasColumnType("smallint");
+
+                    b.Property<int?>("EndSec")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("Seq")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int?>("StartSec")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("WordDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("YoutubeVideoId")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.HasKey("Id")
+                        .HasName("PK_DailyWordClip");
+
+                    b.HasIndex("WordDate", "Seq")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_DailyWordClip_Slot");
+
+                    b.ToTable("DailyWordClip", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Family", b =>
                 {
                     b.Property<int>("Id")

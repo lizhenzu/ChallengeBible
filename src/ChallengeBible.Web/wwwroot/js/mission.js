@@ -469,8 +469,90 @@ document.querySelectorAll('.bov .tabs button').forEach((b) => b.addEventListener
   const title = box.querySelector('#ytmT');
   const status = box.querySelector('[data-yt-status]');
   let last = null;
+  let run = 0;      // 구간 재생 차례 번호: 유튜브 API 를 기다리는 사이 정지 · 닫기 · 다른 버튼을 누르면 옛 재생을 버린다
+  let player = null;
+  const VIDEO = /^[A-Za-z0-9_-]{11}$/;
+
+  function clear() {
+    run++;
+    if (player) { try { player.destroy(); } catch { /* 이미 내려간 영상 */ } player = null; }
+    host.replaceChildren();
+  }
+
+  // 유튜브 플레이어 API 는 그날 구간을 재생할 때만 부른다
+  let ytWaiting = null;
+  function youtubeApi() {
+    if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
+    if (!ytWaiting) {
+      ytWaiting = new Promise((ok, fail) => {
+        const before = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = () => { if (before) before(); ok(window.YT); };
+        const s = document.createElement('script');
+        s.src = 'https://www.youtube.com/iframe_api';
+        s.onerror = () => { ytWaiting = null; s.remove(); fail(new Error('youtube api')); };
+        document.head.appendChild(s);
+      });
+    }
+    return ytWaiting;
+  }
+
+  // 그날 구간(R-127, ADR 0081): 구간 끝에 닿으면 다음 구간의 시작으로, 마지막 뒤에는 처음부터 반복한다
+  function playClips(text) {
+    let clips;
+    try { clips = JSON.parse(text).filter((c) => VIDEO.test(c.v)); } catch { return false; }
+    if (clips.length === 0) return false;
+    clear();
+    const mine = run;
+    const slot = document.createElement('div');
+    host.replaceChildren(slot);
+    status.textContent = '▶ 영상을 불러오는 중';
+    const shown = (i) => { status.textContent = '▶ 재생 중 · 구간 ' + (i + 1) + ' / ' + clips.length; };
+    const settings = (c) => { const o = { videoId: c.v, startSeconds: c.s }; if (c.e) o.endSeconds = c.e; return o; };
+    youtubeApi().then((YT) => {
+      if (mine !== run) return;
+      let at = 0;
+      let failed = 0;     // 모든 구간이 재생되지 않으면 돌지 않고 멈춘다
+      let begun = false;  // 유튜브는 새 영상을 부르자마자 "끝남"을 한 번 보낸다 — 이 구간이 재생된 뒤의 "끝남"만 믿는다
+      const go = (i) => { at = i % clips.length; begun = false; shown(at); player.loadVideoById(settings(clips[at])); };
+      const vars = { autoplay: 1, rel: 0, playsinline: 1, start: clips[0].s };
+      if (clips[0].e) vars.end = clips[0].e;
+      player = new YT.Player(slot, {
+        host: 'https://www.youtube-nocookie.com',
+        width: '100%', height: '100%',
+        videoId: clips[0].v,
+        playerVars: vars,
+        events: {
+          onReady: (e) => { if (mine === run) { shown(0); e.target.playVideo(); } },
+          onStateChange: (e) => {
+            if (mine !== run) return;
+            if (e.data === YT.PlayerState.PLAYING) { failed = 0; begun = true; }
+            if (e.data !== YT.PlayerState.ENDED) return;
+            if (begun) { go(at + 1); return; }
+            // 재생도 안 되고 끝난 채면(시작 시간이 영상 길이를 넘는 구간 등) 다음 구간으로
+            const was = at;
+            setTimeout(() => {
+              if (mine === run && !begun && at === was && player.getPlayerState() === YT.PlayerState.ENDED) go(at + 1);
+            }, 3000);
+          },
+          onError: () => {
+            if (mine !== run) return;
+            if (++failed >= clips.length) status.textContent = '⚠ 영상을 재생할 수 없어요';
+            else go(at + 1);
+          },
+        },
+      });
+    }).catch(() => { if (mine === run) status.textContent = '⚠ 영상을 불러오지 못했어요'; });
+    return true;
+  }
+
+  function start(b) {
+    if (b.dataset.ytClips && playClips(b.dataset.ytClips)) return;
+    play(b.dataset.yt);
+  }
+
   function play(id) {
-    if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return;
+    if (!VIDEO.test(id)) return;
+    clear();
     const f = document.createElement('iframe');
     f.src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&loop=1&playlist=' + id + '&rel=0&playsinline=1';
     f.title = title.textContent;
@@ -480,17 +562,17 @@ document.querySelectorAll('.bov .tabs button').forEach((b) => b.addEventListener
     host.replaceChildren(f);
     status.textContent = '▶ 재생 중';
   }
-  function stop() { host.replaceChildren(); status.textContent = '⏹ 정지됨 · 정지를 다시 누르면 처음부터'; }
-  function close() { host.replaceChildren(); box.hidden = true; if (last) last.focus(); }
+  function stop() { clear(); status.textContent = '⏹ 정지됨 · 정지를 다시 누르면 처음부터'; }
+  function close() { clear(); box.hidden = true; if (last) last.focus(); }
   document.querySelectorAll('[data-yt]').forEach((b) => b.addEventListener('click', () => {
     last = b;
     title.textContent = b.dataset.ytIcon + ' ' + b.dataset.ytTitle;
     box.hidden = false;
-    play(b.dataset.yt);
+    start(b);
     box.querySelector('[data-yt-close]').focus();
   }));
   box.querySelector('[data-yt-stop]').addEventListener('click', () => {
-    if (host.firstChild) stop(); else if (last) play(last.dataset.yt);
+    if (host.firstChild) stop(); else if (last) start(last);
   });
   box.querySelector('[data-yt-close]').addEventListener('click', close);
   box.addEventListener('click', (e) => { if (e.target === box) close(); });
