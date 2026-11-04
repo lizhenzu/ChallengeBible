@@ -27,6 +27,8 @@ public partial class MissionFlowTests
         Assert.DoesNotContain(">오늘로<", future);
         Assert.DoesNotContain("class=\"hView\"", future);
         Assert.DoesNotContain("네 가지 모두 했어요", future);                                                  // 미래에는 "다 했어요" 칸이 없다
+        Assert.Contains("<span class=\"hGo\">수행예정</span>", future);                                       // 미션 카드 문구
+        Assert.DoesNotContain("미수행", future);
 
         var word = await c.GetStringAsync("/jamsil-kids/word?date=2027-01-07");                             // 그날 말씀도 열림
         Assert.Contains("믿음의 종의 기도", word);
@@ -36,6 +38,7 @@ public partial class MissionFlowTests
     [Fact]
     public async Task 지난_날은_할_수_있으면_지금도_할_수_있어요_아니면_보기만_할_수_있어요()
     {
+        ContentSeed.Word(_db, new DateOnly(2027, 1, 2));
         var c = await Member("cheolsu", Roles.Participant);
         var ok = await c.GetStringAsync("/jamsil-kids/word-mission?date=2027-01-04");                       // 어제 = 인정 기간 안
         Assert.Contains("<b>1월 4일 월요일</b> 미션을 보고 있어요. 이 날의 미션은 <b>지금도 할 수 있어요</b>(오늘 포함 ", ok);
@@ -44,6 +47,8 @@ public partial class MissionFlowTests
 
         var old = await c.GetStringAsync("/jamsil-kids/word-mission?date=2027-01-02");                      // 인정 기간 밖
         Assert.Contains("<b>1월 2일 토요일</b> 미션을 보고 있어요. 지난 날의 미션은 <b>보기만 할 수 있어요</b>(오늘 포함 ", old);
+        Assert.Contains("<span class=\"hGo\">미수행</span>", old);                                            // 미션 카드 문구
+        Assert.DoesNotContain("수행예정", old);
 
         Assert.DoesNotContain("오늘이 아닌 날을 보고 있어요", await c.GetStringAsync("/jamsil-kids/word-mission"));   // 오늘은 카드 없음
     }
