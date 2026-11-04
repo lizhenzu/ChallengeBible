@@ -15,10 +15,16 @@ public sealed record QuizPutRequest(string? Question, string? Background, string
 public sealed record WordPutRequest(string? Title, int? Book, int? StartChapter, int? StartVerse, int? EndChapter, int? EndVerse,
     string? Summary, string? Commentary, bool Publish = true);
 
+/// <summary>말씀 영상 구간 하나(ADR 0081). start · end 는 "분:초", 비우면 처음부터 · 끝까지. youtube 를 비우면 그 장의 기본 듣기 영상.</summary>
+public sealed record WordClipPut(int? Chapter, string? Youtube, string? Start, string? End);
+
+/// <summary>그날 구간 목록(ADR 0081). 통째로 바꾼다. 빈 목록 = 지움, 칸이 빠지면 오류(실수로 지우지 않게).</summary>
+public sealed record WordClipsPutRequest(List<WordClipPut?>? Clips);
+
 public sealed record QuizPutResult(FieldErrors Errors, bool Created, string? Status, int? Id);
 
 /// <summary>
-/// 공용 콘텐츠 입력 API: `PUT /api/platform/quizzes/{yyyy-MM-dd}`(ADR 0079, R-125) · `PUT /api/platform/words/{yyyy-MM-dd}`(ADR 0080, R-126) 로 하루치를 넣는다.
+/// 공용 콘텐츠 입력 API: `PUT /api/platform/quizzes/{yyyy-MM-dd}`(ADR 0079, R-125) · `PUT /api/platform/words/{yyyy-MM-dd}`(ADR 0080, R-126) · `PUT /api/platform/words/{yyyy-MM-dd}/clips`(ADR 0081, R-127) 로 하루치를 넣는다.
 /// 프로그램이 부르므로 쿠키 대신 `X-Api-Key`. 키가 설정되어 있지 않으면 없는 주소처럼 답한다.
 /// 저장은 화면과 같은 <see cref="ContentAdminService"/> — 공개된 날을 다시 넣으면 새 개정이 되고 지난 기록은 그대로(R-124).
 /// </summary>
@@ -26,18 +32,30 @@ public static class ContentApi
 {
     public const string KeyHeader = "X-Api-Key";
     public const int MinKeyLength = 32, MaxChoices = 4, MaxQuestion = 1000, MaxChoice = 300, MaxAnswer = 200, MaxLongText = 4000,
-        MaxWordTitle = 100, MaxWordText = 20000, MaxBook = 66, MaxChapter = 150, MaxVerse = 176;
+        MaxWordTitle = 100, MaxWordText = 20000, MaxBook = 66, MaxChapter = 150, MaxVerse = 176, MaxClips = 50;
 
     public static void MapContentApi(this WebApplication app)
     {
         app.MapPut("/api/platform/quizzes/{date}", (string date, HttpContext http, IConfiguration config, ContentAdminService content, ILoggerFactory logs, CancellationToken ct) =>
-            PutAsync<QuizPutRequest>(date, http, config, logs, Check, (actor, day, body) => SaveAsync(content, actor, day, body, ct), ct)).AllowAnonymous();
+            PutAsync<QuizPutRequest>(date, http, config, logs, Check, async (actor, day, body) => Stored(day, await SaveAsync(content, actor, day, body, ct)), ct)).AllowAnonymous();
         app.MapPut("/api/platform/words/{date}", (string date, HttpContext http, IConfiguration config, ContentAdminService content, ILoggerFactory logs, CancellationToken ct) =>
-            PutAsync<WordPutRequest>(date, http, config, logs, Check, (actor, day, body) => SaveAsync(content, actor, day, body, ct), ct)).AllowAnonymous();
+            PutAsync<WordPutRequest>(date, http, config, logs, Check, async (actor, day, body) => Stored(day, await SaveAsync(content, actor, day, body, ct)), ct)).AllowAnonymous();
+        app.MapPut("/api/platform/words/{date}/clips", (string date, HttpContext http, IConfiguration config, ContentAdminService content, ILoggerFactory logs, CancellationToken ct) =>
+            PutAsync<WordClipsPutRequest>(date, http, config, logs, r => ReadClips(r).Errors, async (actor, day, body) =>
+            {
+                var clips = ReadClips(body).Clips;
+                await content.SaveWordClipsAsync(actor, day, clips, ct);
+                return Results.Ok(new { date = Day(day), count = clips.Count });
+            }, ct)).AllowAnonymous();
     }
 
+    private static string Day(DateOnly day) => day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    private static IResult Stored(DateOnly day, QuizPutResult r) =>
+        !r.Errors.Ok ? Invalid(r.Errors) : Results.Ok(new { date = Day(day), id = r.Id, status = r.Status, created = r.Created });
+
     private static async Task<IResult> PutAsync<T>(string date, HttpContext http, IConfiguration config, ILoggerFactory logs,
-        Func<T, FieldErrors> check, Func<int, DateOnly, T, Task<QuizPutResult>> save, CancellationToken ct) where T : class
+        Func<T, FieldErrors> check, Func<int, DateOnly, T, Task<IResult>> save, CancellationToken ct) where T : class
     {
         var key = config["ContentApi:Key"];
         if (key is null || key.Length < MinKeyLength) return Results.NotFound();
@@ -57,12 +75,7 @@ public static class ContentApi
 
         if (!int.TryParse(config["ContentApi:ActorAccountId"], out var actor))
             return NotReady(logs, "ContentApi:ActorAccountId 가 없어요.");
-        try
-        {
-            var r = await save(actor, day, body);
-            if (!r.Errors.Ok) return Invalid(r.Errors);
-            return Results.Ok(new { date = day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), id = r.Id, status = r.Status, created = r.Created });
-        }
+        try { return await save(actor, day, body); }
         catch (UnauthorizedAccessException) { return NotReady(logs, "ContentApi:ActorAccountId 가 활성 플랫폼 관리자가 아니에요."); }
     }
 
@@ -104,6 +117,46 @@ public static class ContentApi
         if (!errors.Ok) return new(errors, false, null, null);
         var (_, status, id) = await content.LoadAsync(actor, kind, day, ct);
         return new(errors, created, status, id);
+    }
+
+    /// <summary>구간 목록의 형식만 본다(ADR 0081): 장이 그날 말씀 범위 안인지 · 차례인지는 보지 않는다. "0:00" 은 옛 데이터처럼 처음 · 끝으로 읽는다.</summary>
+    public static (FieldErrors Errors, List<DailyWordClip> Clips) ReadClips(WordClipsPutRequest r)
+    {
+        var e = new FieldErrors();
+        var clips = new List<DailyWordClip>();
+        if (r.Clips is null) { e["clips"] = "구간 목록을 써 주세요. 지우려면 빈 목록을 보내요."; return (e, clips); }
+        if (r.Clips.Count > MaxClips) { e["clips"] = $"구간은 {MaxClips}개까지예요."; return (e, clips); }
+
+        for (var i = 0; i < r.Clips.Count; i++)
+        {
+            var at = $"clips[{i}]";
+            if (r.Clips[i] is not { } c) { e[at] = "빈 구간이 있어요."; continue; }
+            if (c.Chapter is not (>= 1 and <= MaxChapter)) e[$"{at}.chapter"] = "장 번호를 써 주세요.";
+            var video = ChapterMediaService.VideoId(c.Youtube);
+            if (video is null && !string.IsNullOrWhiteSpace(c.Youtube)) e[$"{at}.youtube"] = "유튜브 주소나 영상 번호(11자)를 써 주세요.";
+            var okStart = TryClock(c.Start, out var start);
+            var okEnd = TryClock(c.End, out var end);
+            if (!okStart) e[$"{at}.start"] = "시간은 분:초 로 써 주세요(예: 12:34).";
+            if (!okEnd) e[$"{at}.end"] = "시간은 분:초 로 써 주세요(예: 12:34).";
+            else if (okStart && end <= start) e[$"{at}.end"] = "끝은 시작보다 뒤여야 해요.";
+            if (c.Chapter is >= 1 and <= MaxChapter)
+                clips.Add(new DailyWordClip { Chapter = (short)c.Chapter.Value, YoutubeVideoId = video, StartSec = start, EndSec = end });
+        }
+        return (e, clips);
+    }
+
+    /// <summary>"분:초" → 초. 비었거나 0 이면 null(처음 · 끝). 모양이 틀리면 false.</summary>
+    private static bool TryClock(string? text, out int? seconds)
+    {
+        seconds = null;
+        if (string.IsNullOrWhiteSpace(text)) return true;
+        var p = text.Trim().Split(':');
+        if (p.Length != 2 || p[0].Length is < 1 or > 3 || p[1].Length is < 1 or > 2 || !p.All(x => x.All(char.IsAsciiDigit))) return false;
+        var (m, s) = (int.Parse(p[0], CultureInfo.InvariantCulture), int.Parse(p[1], CultureInfo.InvariantCulture));
+        if (s >= 60) return false;
+        var total = m * 60 + s;
+        seconds = total == 0 ? null : total;
+        return true;
     }
 
     /// <summary>말씀: DB 칸에 들어가는 값인지 먼저 본다. 책의 장 수 · 범위 순서는 <see cref="ContentAdminService.Validate"/> 가 본다.</summary>

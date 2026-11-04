@@ -17,6 +17,7 @@
 |---|---|---|
 | 말씀 넣기 · 바꾸기 | `PUT` | `/api/platform/words/{date}` |
 | 퀴즈 넣기 · 바꾸기 | `PUT` | `/api/platform/quizzes/{date}` |
+| 말씀 영상 구간 바꾸기 · 지우기 | `PUT` | `/api/platform/words/{date}/clips` — [말씀 영상 구간 API 가이드](말씀-구간-API-가이드.md) |
 
 ## 2. 공통 규칙
 

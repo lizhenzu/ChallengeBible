@@ -681,6 +681,18 @@ CREATE TABLE app.RoundVerseRead (                                               
     CONSTRAINT FK_RoundVerseRead_Chapter FOREIGN KEY (BookId, Chapter) REFERENCES app.BibleChapter (BookId, Chapter)
 );
 
+CREATE TABLE app.DailyWordClip (                                                -- 플랫폼(R-127, ADR 0081)
+    Id              int IDENTITY  NOT NULL CONSTRAINT PK_DailyWordClip PRIMARY KEY,
+    WordDate        date          NOT NULL,
+    Seq             tinyint       NOT NULL,
+    Chapter         smallint      NOT NULL,
+    YoutubeVideoId  varchar(20)   NULL,
+    StartSec        int           NULL,
+    EndSec          int           NULL,
+    UpdatedUtc      datetime2     NOT NULL,
+    CONSTRAINT UQ_DailyWordClip_Slot UNIQUE (WordDate, Seq)
+);
+
 CREATE TABLE app.ChapterMedia (                                                 -- 플랫폼(R-166)
     Id              int IDENTITY  NOT NULL CONSTRAINT PK_ChapterMedia PRIMARY KEY,
     BookId          tinyint       NOT NULL,

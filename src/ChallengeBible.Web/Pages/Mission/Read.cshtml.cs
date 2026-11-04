@@ -56,6 +56,7 @@ public class ReadModel(MissionService missions, TenantContext tenant, BibleTextS
             if (all.Count > 0) Notes = BibleNoteService.Place(await notes.ForRangeAsync(r, ct), r, all);   // 해설 카드(R-118)
             Overview = await overview.CardAsync(r.BookId, r.StartChapter, ct);
             Media = await media.ButtonsAsync(r.BookId, r.StartChapter, ct);       // 듣기 · 영상(R-166): 구절이 시작하는 장
+            if (From == "word") Media = await media.WithWordClipsAsync(Media, r.BookId, r.StartChapter, Day, ct);   // 그날 구간이 있으면 구간만(R-127)
         }
     }
 

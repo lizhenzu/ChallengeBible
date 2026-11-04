@@ -4,7 +4,7 @@
 <div class="bmd" role="group" aria-label="듣기 · 영상">
     @foreach (var b in Model)
     {
-        <button type="button" class="@(b.Listen ? "yt" : "")" data-yt="@b.VideoId" data-yt-title="@b.PlayerTitle" data-yt-icon="@b.Icon">
+        <button type="button" class="@(b.Listen ? "yt" : "")" data-yt="@b.VideoId" data-yt-title="@b.PlayerTitle" data-yt-icon="@b.Icon" data-yt-clips="@b.Clips">
             <span class="i" aria-hidden="true">@b.Icon</span><span class="t"><b>@b.Title</b><small>@b.Sub</small></span>
         </button>
     }
