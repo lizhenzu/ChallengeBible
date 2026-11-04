@@ -19,11 +19,9 @@
         </div>
         <div><h1>@Model.Title@if (Model.TitleEn is not null) { <span class="en"> (@Model.TitleEn)</span> }</h1>@if (Model.Ref is not null) { <div class="ref">@Model.Ref</div> }</div>
     </div>
-    @if (!p.IsToday)
-    {
-        <p class="note-day" role="status">@p.DayLabel(p.Day) 미션을 보고 있어요. <a href="@($"/{p.Slug}/{p.HttpContext.Request.Path.Value!.Split('/').Last()}")">오늘로</a></p>   @* R-75 *@
-    }
-    @if (!p.CanAct)
+    @await Html.PartialAsync("_DayCard", p)   @* R-75 *@
+    @* 참여자가 다른 날을 볼 때 "보기만" 안내는 주황 카드에 들어 있어 또 쓰지 않는다 *@
+    @if (!p.CanAct && !(p.ParticipantId is not null && !p.IsToday && p.Data!.Window is ChallengeBible.Domain.Missions.WindowResult.Future or ChallengeBible.Domain.Missions.WindowResult.TooOld))
     {
         <p class="note-block">@p.BlockReason</p>
     }

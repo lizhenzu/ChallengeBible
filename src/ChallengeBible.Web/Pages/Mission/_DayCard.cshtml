@@ -1,0 +1,26 @@
+@model ChallengeBible.Web.Pages.Mission.MissionPageBase
+@* 확정 시안 미션홈-다른날카드(ADR 0069 고침, 2026-11-04): 오늘이 아닌 날은 주황 카드 + 긴 문장 + [오늘 날짜로 이동].
+   미션 홈 · 말씀 · 퀴즈 · 기도 · 암송 공용. 버튼은 지금 화면의 오늘로 간다(R-75). *@
+@if (!Model.IsToday)
+{
+    var d = Model.Data!;
+    var dayText = Model.DayLabel(Model.Day);
+    var grace = d.Rules.GraceDays;
+    var todayUrl = $"/{Model.Slug}/{Model.HttpContext.Request.Path.Value!.Split('/').Last()}";
+    <section class="hDay" role="status">
+        <div class="t"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>오늘이 아닌 날을 보고 있어요</div>
+        @if (Model.Day > d.Today)
+        {
+            <p><b>@dayText</b> 미션을 미리 보고 있어요. 오늘 이후의 미션은 <b>보기만 할 수 있고</b>, 그날이 되면 할 수 있어요.</p>
+        }
+        else if (Model.CanAct)
+        {
+            <p><b>@dayText</b> 미션을 보고 있어요. 이 날의 미션은 <b>지금도 할 수 있어요</b>(오늘 포함 @(grace)일 안의 날만 할 수 있어요).</p>
+        }
+        else
+        {
+            <p><b>@dayText</b> 미션을 보고 있어요. 지난 날의 미션은 <b>보기만 할 수 있어요</b>(오늘 포함 @(grace)일 안의 날만 할 수 있어요).</p>
+        }
+        <a class="go" href="@todayUrl">오늘 날짜로 이동 <span aria-hidden="true">→</span></a>
+    </section>
+}
