@@ -11,22 +11,33 @@ namespace ChallengeBible.Web.Api;
 public sealed record QuizPutRequest(string? Question, string? Background, string? Format, List<string>? Choices, int? CorrectNumber,
     List<string>? AcceptedAnswers, string? Explanation, bool Publish = true);
 
+/// <summary>말씀 입력 요청 본문(ADR 0080). book 은 성경 책 번호(1 창세기 ~ 66 요한계시록).</summary>
+public sealed record WordPutRequest(string? Title, int? Book, int? StartChapter, int? StartVerse, int? EndChapter, int? EndVerse,
+    string? Summary, string? Commentary, bool Publish = true);
+
 public sealed record QuizPutResult(FieldErrors Errors, bool Created, string? Status, int? Id);
 
 /// <summary>
-/// 공용 콘텐츠 입력 API(ADR 0079, R-125): `PUT /api/platform/quizzes/{yyyy-MM-dd}` 로 하루치 퀴즈를 넣는다.
+/// 공용 콘텐츠 입력 API: `PUT /api/platform/quizzes/{yyyy-MM-dd}`(ADR 0079, R-125) · `PUT /api/platform/words/{yyyy-MM-dd}`(ADR 0080, R-126) 로 하루치를 넣는다.
 /// 프로그램이 부르므로 쿠키 대신 `X-Api-Key`. 키가 설정되어 있지 않으면 없는 주소처럼 답한다.
 /// 저장은 화면과 같은 <see cref="ContentAdminService"/> — 공개된 날을 다시 넣으면 새 개정이 되고 지난 기록은 그대로(R-124).
 /// </summary>
 public static class ContentApi
 {
     public const string KeyHeader = "X-Api-Key";
-    public const int MinKeyLength = 32, MaxChoices = 4, MaxQuestion = 1000, MaxChoice = 300, MaxAnswer = 200, MaxLongText = 4000;
+    public const int MinKeyLength = 32, MaxChoices = 4, MaxQuestion = 1000, MaxChoice = 300, MaxAnswer = 200, MaxLongText = 4000,
+        MaxWordTitle = 100, MaxWordText = 20000, MaxBook = 66, MaxChapter = 150, MaxVerse = 176;
 
-    public static void MapContentApi(this WebApplication app) =>
-        app.MapPut("/api/platform/quizzes/{date}", PutQuizAsync).AllowAnonymous();
+    public static void MapContentApi(this WebApplication app)
+    {
+        app.MapPut("/api/platform/quizzes/{date}", (string date, HttpContext http, IConfiguration config, ContentAdminService content, ILoggerFactory logs, CancellationToken ct) =>
+            PutAsync<QuizPutRequest>(date, http, config, logs, Check, (actor, day, body) => SaveAsync(content, actor, day, body, ct), ct)).AllowAnonymous();
+        app.MapPut("/api/platform/words/{date}", (string date, HttpContext http, IConfiguration config, ContentAdminService content, ILoggerFactory logs, CancellationToken ct) =>
+            PutAsync<WordPutRequest>(date, http, config, logs, Check, (actor, day, body) => SaveAsync(content, actor, day, body, ct), ct)).AllowAnonymous();
+    }
 
-    private static async Task<IResult> PutQuizAsync(string date, HttpContext http, IConfiguration config, ContentAdminService content, ILoggerFactory logs, CancellationToken ct)
+    private static async Task<IResult> PutAsync<T>(string date, HttpContext http, IConfiguration config, ILoggerFactory logs,
+        Func<T, FieldErrors> check, Func<int, DateOnly, T, Task<QuizPutResult>> save, CancellationToken ct) where T : class
     {
         var key = config["ContentApi:Key"];
         if (key is null || key.Length < MinKeyLength) return Results.NotFound();
@@ -35,20 +46,20 @@ public static class ContentApi
         if (!DateOnly.TryParseExact(date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var day))
             return Fail(StatusCodes.Status400BadRequest, "BadDate", "날짜는 yyyy-MM-dd 로 써 주세요.");
 
-        QuizPutRequest? body;
-        try { body = await http.Request.ReadFromJsonAsync<QuizPutRequest>(ct); }
+        T? body;
+        try { body = await http.Request.ReadFromJsonAsync<T>(ct); }
         catch (Exception e) when (e is JsonException or InvalidOperationException or BadHttpRequestException)
         { return Fail(StatusCodes.Status400BadRequest, "BadJson", "본문은 JSON 이어야 해요."); }
         if (body is null) return Fail(StatusCodes.Status400BadRequest, "BadJson", "본문은 JSON 이어야 해요.");
 
-        var errors = Check(body);
+        var errors = check(body);
         if (!errors.Ok) return Invalid(errors);
 
         if (!int.TryParse(config["ContentApi:ActorAccountId"], out var actor))
             return NotReady(logs, "ContentApi:ActorAccountId 가 없어요.");
         try
         {
-            var r = await SaveAsync(content, actor, day, body, ct);
+            var r = await save(actor, day, body);
             if (!r.Errors.Ok) return Invalid(r.Errors);
             return Results.Ok(new { date = day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), id = r.Id, status = r.Status, created = r.Created });
         }
@@ -68,11 +79,48 @@ public static class ContentApi
             CorrectIndex = choice ? body.CorrectNumber!.Value - 1 : -1,
             AcceptedAnswers = choice ? null : string.Join("\n", body.AcceptedAnswers!),
         };
-        var created = (await content.LoadAsync(actor, ContentKind.Quiz, day, ct)).Id is null;
-        errors = await content.SaveAsync(actor, ContentKind.Quiz, input, body.Publish, ct);
+        return await StoreAsync(content, actor, ContentKind.Quiz, day, input, body.Publish, ct);
+    }
+
+    /// <summary>말씀을 검사하고 저장. 플랫폼 관리자가 아니면 UnauthorizedAccessException.</summary>
+    public static async Task<QuizPutResult> SaveAsync(ContentAdminService content, int actor, DateOnly day, WordPutRequest body, CancellationToken ct = default)
+    {
+        var errors = Check(body);
         if (!errors.Ok) return new(errors, false, null, null);
-        var (_, status, id) = await content.LoadAsync(actor, ContentKind.Quiz, day, ct);
+        var input = new ContentInput
+        {
+            Date = day, Title = body.Title, Summary = body.Summary, Commentary = body.Commentary,
+            Book = (byte)body.Book!.Value,
+            StartChapter = (short)body.StartChapter!.Value, StartVerse = (short)body.StartVerse!.Value,
+            EndChapter = (short)body.EndChapter!.Value, EndVerse = (short)body.EndVerse!.Value,
+        };
+        return await StoreAsync(content, actor, ContentKind.Word, day, input, body.Publish, ct);
+    }
+
+    private static async Task<QuizPutResult> StoreAsync(ContentAdminService content, int actor, ContentKind kind, DateOnly day, ContentInput input, bool publish, CancellationToken ct)
+    {
+        var created = (await content.LoadAsync(actor, kind, day, ct)).Id is null;
+        var errors = await content.SaveAsync(actor, kind, input, publish, ct);
+        if (!errors.Ok) return new(errors, false, null, null);
+        var (_, status, id) = await content.LoadAsync(actor, kind, day, ct);
         return new(errors, created, status, id);
+    }
+
+    /// <summary>말씀: DB 칸에 들어가는 값인지 먼저 본다. 책의 장 수 · 범위 순서는 <see cref="ContentAdminService.Validate"/> 가 본다.</summary>
+    public static FieldErrors Check(WordPutRequest r)
+    {
+        var e = new FieldErrors();
+        if (string.IsNullOrWhiteSpace(r.Title)) e["title"] = "제목을 써 주세요.";
+        else if (r.Title.Trim().Length > MaxWordTitle) e["title"] = $"제목은 {MaxWordTitle}자까지예요.";
+        if (string.IsNullOrWhiteSpace(r.Summary)) e["summary"] = "오늘 이야기를 써 주세요.";
+        else if (r.Summary.Trim().Length > MaxWordText) e["summary"] = $"오늘 이야기는 {MaxWordText}자까지예요.";
+        if (r.Commentary?.Trim().Length > MaxWordText) e["commentary"] = $"해설은 {MaxWordText}자까지예요.";
+        if (r.Book is not (>= 1 and <= MaxBook)) e["book"] = $"책 번호는 1 ~ {MaxBook} 이에요.";
+        if (r.StartChapter is not (>= 1 and <= MaxChapter)) e["startChapter"] = "시작 장을 써 주세요.";
+        if (r.StartVerse is not (>= 1 and <= MaxVerse)) e["startVerse"] = "시작 절을 써 주세요.";
+        if (r.EndChapter is not (>= 1 and <= MaxChapter)) e["endChapter"] = "끝 장을 써 주세요.";
+        if (r.EndVerse is not (>= 1 and <= MaxVerse)) e["endVerse"] = "끝 절을 써 주세요.";
+        return e;
     }
 
     /// <summary>화면 검사(<see cref="ContentAdminService.Validate"/>)가 보지 않는 API 값 · DB 칸 길이를 먼저 본다.</summary>
