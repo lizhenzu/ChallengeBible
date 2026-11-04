@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>홈 · 부서 이름 색</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+/* 시안(2026-11-05): 홈 인사 카드 "유년부에 오심을 환영해요"에서 부서 이름만 약간 크게 + 구별되는 색.
+   세 가지 색(① 주황 ② 보라 ③ 부서가 고른 색 — 예: 파랑)을 맨 아래 띠로 바꿔 본다. 띠는 시안에만. */
+:root { --ink: #111827; --dim: #6B7280; --blue: #2F6FD8; --green: #2E9E5B; --line: #E5E7EB; color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #fff; }
+body { color: var(--ink); font-family: "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif; word-break: keep-all; padding: 0 16px 120px; }
+.top { max-width: 520px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 14px 4px 18px; }
+.top small { display: block; font-size: 13px; color: var(--dim); }
+.top b { font-size: 24px; font-weight: 900; color: #1F4FB8; }
+.top .d { font-size: 15px; color: var(--dim); } .top .d b { font-size: 18px; color: var(--ink); }
+.card { max-width: 520px; margin: 0 auto; border: 1px solid var(--line); border-radius: 22px; padding: 22px 20px 20px; }
+.hi { display: flex; justify-content: space-between; gap: 12px; }
+.hi .k { font-size: 15px; color: var(--dim); }
+.hi h1 { margin: 6px 0 0; font-size: 34px; font-weight: 900; } .hi h1 small { font-size: 17px; color: var(--dim); font-weight: 500; margin-left: 4px; }
+.av { width: 96px; height: 96px; border-radius: 50%; background: #EEF2F7; display: grid; place-items: center; font-size: 40px; flex: none; }
+.wel { margin: 16px 0 0; font-size: 17px; font-weight: 800; color: var(--ink); line-height: 1.5; }
+/* ── 바뀐 곳: 부서 이름 ── 약간 크게(17 → 21px) + 구별 색 + 아래 옅은 밑줄로 한 덩어리 */
+.dept { font-size: 21px; font-weight: 900; padding: 0 2px; border-radius: 6px; }
+body[data-c="1"] .dept { color: #D9730D; background: linear-gradient(transparent 62%, #FFE7CC 62%); }
+body[data-c="2"] .dept { color: #7A3FC4; background: linear-gradient(transparent 62%, #EFE3FB 62%); }
+body[data-c="3"] .dept { color: #1F4FB8; background: linear-gradient(transparent 62%, #DCE7FB 62%); }
+.sub { margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--blue); line-height: 1.7; }
+.hr { height: 1px; background: var(--line); margin: 18px 0; }
+.score { display: flex; align-items: center; gap: 16px; }
+.ring { width: 96px; height: 96px; border-radius: 50%; border: 10px solid #E3F3E9; border-top-color: var(--green); display: grid; place-items: center; font-weight: 800; color: var(--green); font-size: 13px; }
+.score small { color: var(--blue); font-weight: 700; } .score b { display: block; font-size: 36px; font-weight: 900; } .score em { font-style: normal; color: var(--green); font-weight: 800; }
+.mock { position: fixed; left: 0; right: 0; bottom: 0; background: #1B1F24; color: #fff; padding: 10px max(16px, env(safe-area-inset-left, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)); }
+.mock .in { max-width: 520px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.mock b { margin-right: auto; font: 700 13px system-ui, sans-serif; opacity: .8; }
+.mock button { min-height: 38px; padding: 0 12px; border-radius: 999px; border: 1px solid #555; background: transparent; color: #fff; font: 700 13px system-ui, sans-serif; }
+.mock button[aria-pressed="true"] { background: #fff; color: #1B1F24; }
+</style>
+</head>
+<body data-c="1">
+<div class="top"><div><small>대한예수교장로회</small><b>잠실새내교회 ↗</b></div><div class="d"><b>11월 5일</b> 목요일</div></div>
+<section class="card">
+  <div class="hi">
+    <div><div class="k">안녕하세요</div><h1>이진수<small>님</small></h1></div>
+    <div class="av" aria-hidden="true">🙂</div>
+  </div>
+  <p class="wel"><span class="dept">유년부</span>에 오심을 환영해요</p>
+  <p class="sub">오늘도 반가워요.<br>오늘 말씀부터 읽어 볼까요?</p>
+  <div class="hr"></div>
+  <div class="score"><div class="ring">씨앗 6%</div><div><small>나의 점수</small><b>26점</b><em>씨앗으로 자라는 중</em></div></div>
+</section>
+<div class="mock" role="region" aria-label="시안 보기(시안에만 있음)"><div class="in">
+  <b>부서 이름 색</b>
+  <button type="button" data-v="1" aria-pressed="true">① 주황</button>
+  <button type="button" data-v="2" aria-pressed="false">② 보라</button>
+  <button type="button" data-v="3" aria-pressed="false">③ 부서 색(예: 파랑)</button>
+</div></div>
+<script>
+function show(v) { document.body.dataset.c = v; document.querySelectorAll('.mock button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.v === v))); }
+document.querySelectorAll('.mock button').forEach((b) => b.addEventListener('click', () => show(b.dataset.v)));
+if (['#2', '#3'].includes(location.hash)) show(location.hash.slice(1));
+</script>
+</body>
+</html>
