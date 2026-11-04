@@ -159,6 +159,101 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
         Assert.Equal("BadJson", (await res.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
     }
 
+    // ── 말씀 입력(ADR 0080, R-126) ──
+
+    private const string WordUrl = "/api/platform/words/2027-01-05";
+
+    private static readonly object Word = new
+    {
+        title = "믿음의 시작", book = 1, startChapter = 12, startVerse = 1, endChapter = 12, endVerse = 9, summary = "아브람이 길을 떠나요.", commentary = "해설",
+    };
+
+    [Fact]
+    public async Task R126_말씀을_넣고_같은_날을_다시_넣으면_새_개정이다()
+    {
+        var actor = Admin();
+        var c = Client(actor: actor);
+        var res = await c.SendAsync(Put(Word, url: WordUrl));
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        var json = await res.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("2027-01-05", json.GetProperty("date").GetString());
+        Assert.Equal(ContentStatus.Published, json.GetProperty("status").GetString());
+        Assert.True(json.GetProperty("created").GetBoolean());
+
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var w = raw.DailyWords.IgnoreQueryFilters().Single();
+            Assert.Null(w.TenantId);
+            Assert.Equal(actor, w.CreatedByAccountId);
+            Assert.Equal(new DateOnly(2027, 1, 5), w.ExposeDate);
+            Assert.Equal("믿음의 시작", w.Title);
+            Assert.Equal("아브람이 길을 떠나요.", w.Summary);
+            Assert.Equal("해설", w.Commentary);
+            Assert.Equal((1, 12, 1, 12, 9), ((int)w.BookId, (int)w.StartChapter, (int)w.StartVerse, (int)w.EndChapter, (int)w.EndVerse));
+        }
+
+        res = await c.SendAsync(Put(new { title = "둘째", book = 40, startChapter = 5, startVerse = 1, endChapter = 5, endVerse = 12, summary = "산상수훈" }, url: WordUrl));
+        Assert.False((await res.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("created").GetBoolean());
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var rows = raw.DailyWords.IgnoreQueryFilters().OrderBy(x => x.Revision).ToList();
+            Assert.Equal(2, rows.Count);
+            Assert.Equal(ContentStatus.Archived, rows[0].Status);
+            Assert.True(rows[1].IsCurrent);
+            Assert.Equal("둘째", rows[1].Title);
+        }
+
+        res = await c.SendAsync(Put(new { title = "초안", book = 1, startChapter = 1, startVerse = 1, endChapter = 1, endVerse = 2, summary = "요약", publish = false }, url: WordUrl));
+        Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);   // 공개된 날은 초안으로 되돌리지 못한다
+        Assert.True((await res.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("errors").TryGetProperty("status", out _));
+    }
+
+    [Fact]
+    public async Task R126_초안으로도_넣는다()
+    {
+        var res = await Client(actor: Admin()).SendAsync(Put(new { title = "제목", book = 1, startChapter = 1, startVerse = 1, endChapter = 1, endVerse = 2, summary = "요약", publish = false }, url: WordUrl));
+        Assert.Equal(ContentStatus.Draft, (await res.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("status").GetString());
+    }
+
+    public static TheoryData<object, string> BadWord => new()
+    {
+        { new { book = 1, startChapter = 1, startVerse = 1, endChapter = 1, endVerse = 2, summary = "요약" }, "title" },
+        { new { title = new string('가', ContentApi.MaxWordTitle + 1), book = 1, startChapter = 1, startVerse = 1, endChapter = 1, endVerse = 2, summary = "요약" }, "title" },
+        { new { title = "제목", book = 1, startChapter = 1, startVerse = 1, endChapter = 1, endVerse = 2 }, "summary" },
+        { new { title = "제목", startChapter = 1, startVerse = 1, endChapter = 1, endVerse = 2, summary = "요약" }, "book" },
+        { new { title = "제목", book = 67, startChapter = 1, startVerse = 1, endChapter = 1, endVerse = 2, summary = "요약" }, "book" },
+        { new { title = "제목", book = 300, startChapter = 1, startVerse = 1, endChapter = 1, endVerse = 2, summary = "요약" }, "book" },
+        { new { title = "제목", book = 1, startChapter = 0, startVerse = 1, endChapter = 1, endVerse = 2, summary = "요약" }, "startChapter" },
+        { new { title = "제목", book = 1, startChapter = 1, startVerse = 1, endChapter = 70000, endVerse = 2, summary = "요약" }, "endChapter" },
+        { new { title = "제목", book = 1, startChapter = 1, startVerse = 177, endChapter = 1, endVerse = 2, summary = "요약" }, "startVerse" },
+        { new { title = "제목", book = 1, startChapter = 1, startVerse = 1, endChapter = 1, summary = "요약" }, "endVerse" },
+        { new { title = "제목", book = 1, startChapter = 51, startVerse = 1, endChapter = 51, endVerse = 2, summary = "요약" }, "range" },   // 창세기는 50장
+        { new { title = "제목", book = 1, startChapter = 2, startVerse = 1, endChapter = 1, endVerse = 2, summary = "요약" }, "range" },     // 끝이 시작보다 앞
+    };
+
+    [Theory]
+    [MemberData(nameof(BadWord))]
+    public async Task R126_틀린_값은_칸별로_알려_주고_넣지_않는다(object body, string field)
+    {
+        var res = await Client(actor: Admin()).SendAsync(Put(body, url: WordUrl));
+        Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+        Assert.True((await res.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("errors").TryGetProperty(field, out _));
+        using var raw = InMemoryDb.Raw(_db);
+        Assert.Empty(raw.DailyWords.IgnoreQueryFilters());
+    }
+
+    [Fact]
+    public async Task R126_키와_날짜와_계정은_퀴즈와_똑같이_막는다()
+    {
+        Assert.Equal(HttpStatusCode.NotFound, (await Client(key: null, actor: Admin()).SendAsync(Put(Word, url: WordUrl))).StatusCode);
+        var c = Client(actor: Admin());
+        Assert.Equal(HttpStatusCode.Unauthorized, (await c.SendAsync(Put(Word, key: "틀린 키", url: WordUrl))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await c.SendAsync(Put(Word, url: "/api/platform/words/2027-13-01"))).StatusCode);
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, (await Client(actor: Admin(platform: false)).SendAsync(Put(Word, url: WordUrl))).StatusCode);
+        using var raw = InMemoryDb.Raw(_db);
+        Assert.Empty(raw.DailyWords.IgnoreQueryFilters());
+    }
+
     // ── 관리 화면 "퀴즈 넣기"(키 설정 없이) ──
 
     private async Task<(HttpClient C, int Id)> SignUp(string login, bool platform)
