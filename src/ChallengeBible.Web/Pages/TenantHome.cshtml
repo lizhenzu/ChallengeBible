@@ -82,7 +82,7 @@
                 <a href="/@slug">← 처음 화면</a>@if (Model.Waiting.Count > 0) { <span class="pill">승인 기다리는 중</span> }
             </div></nav>
         }
-        @* 일반 부서: 부서 이름 줄은 지웠다(2026-11-03 사용자). 부서 바꾸기 · 관리는 맨 아래 계정 줄 *@
+        @* 일반 부서: 부서 이름 줄은 지웠다(2026-11-03 사용자). 부서가 둘 이상이면 내 계정 > "부서 고르기 →" *@
     </div>
 
 @if (!intro)
@@ -253,7 +253,7 @@
 <footer class="gut"><div class="wrap">
     <div class="acct">
         <a href="/account">내 계정</a>
-        @if (Model.Tenant.IsLobby) { <a href="/join">내 부서 참여</a> } else { <a href="/account/tenants">부서 바꾸기</a> }
+        @if (Model.Tenant.IsLobby) { <a href="/join">내 부서 참여</a> }   @* 일반 부서의 "부서 바꾸기"는 뺐다(2026-11-05 사용자). 부서가 둘 이상이면 내 계정 > "부서 고르기 →" *@
         @if (Model.Tenant.IsAdmin) { <a class="adm" href="/@slug/admin">관리</a> }
         @if (User.IsPlatformAdmin()) { <a href="/platform">플랫폼</a> }
         <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit">로그아웃</button></form>
