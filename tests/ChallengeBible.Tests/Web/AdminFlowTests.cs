@@ -115,6 +115,6 @@ public partial class AdminFlowTests : IClassFixture<WebApplicationFactory<Progra
 
         var home = await kid.GetAsync("/");
         Assert.Equal("/jamsil-kids", home.Headers.Location!.OriginalString);
-        Assert.Contains("<b>유년부에 오심을 환영해요</b>", await kid.GetStringAsync("/jamsil-kids"));   // 교회 이름은 머리말에만(2026-11-03)
+        Assert.Contains("<b><em class=\"hj-dname\">유년부</em>에 오심을 환영해요</b>", await kid.GetStringAsync("/jamsil-kids"));   // 교회 이름은 머리말에만(2026-11-03), 부서 이름은 주황(2026-11-05)
     }
 }
