@@ -150,6 +150,18 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids/reading/read/1/24?unit=3", "20c-통독-본문-책개요-접힘");
         await Save(kid, "/jamsil-kids/reading/read/1/24?unit=3", "20d-통독-본문-듣기-재생창",
             h => h.Replace("id=\"ytm\" hidden", "id=\"ytm\"").Replace("<b id=\"ytmT\"></b>", "<b id=\"ytmT\">🎧 창세기 24장 듣기</b>"));   // 재생 창 열린 모습
+        // 말씀 듣기 구간(R-127, 확정 시안 말씀듣기-clips ㄱ안): 듣기 칸을 펼친 모습 — 구간 하나 · 구간 둘 · 구간 없는 날
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            raw.DailyWordClips.Add(new DailyWordClip { WordDate = jan[4], Seq = 0, Chapter = 24, StartSec = 65, EndSec = 460 });
+            raw.DailyWordClips.Add(new DailyWordClip { WordDate = jan[3], Seq = 0, Chapter = 24, StartSec = 380 });
+            raw.DailyWordClips.Add(new DailyWordClip { WordDate = jan[3], Seq = 1, Chapter = 25, YoutubeVideoId = "dLv2ndgXrbo", EndSec = 70 });
+            raw.SaveChanges();
+        }
+        static string OpenListen(string h) => h.Replace("class=\"rnv-pan\" id=\"rnvMd\"", "class=\"rnv-pan open\" id=\"rnvMd\"").Replace("data-rnv-open=\"md\" aria-expanded=\"false\"", "data-rnv-open=\"md\" aria-expanded=\"true\"");
+        await Save(kid, "/jamsil-kids/read?from=word", "07d-성경읽기-듣기-구간하나", OpenListen);
+        await Save(kid, "/jamsil-kids/read?from=word&date=2027-01-04", "07e-성경읽기-듣기-구간둘", OpenListen);
+        await Save(kid, "/jamsil-kids/read?from=word&date=2027-01-03", "07f-성경읽기-듣기-구간없음", OpenListen);
         await Save(kid, "/jamsil-kids/reading/bookmarks", "21-통독-북마크");
         // 회차 기록(확정 시안 통독-회차기록): 지금까지 읽은 회차를 "중간에 닫음"으로 두고 2회차에 두 장, 새 회차 시작 확인을 펼친 모습
         var kidAcc = Acc("cheolsu");
