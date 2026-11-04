@@ -102,7 +102,9 @@
                 <small>안녕하세요</small>
                 <h1 id="hiT">@name <u>님</u></h1>
                 @* 교회 이름은 머리말에 있으니 부서 이름만(2026-11-03 사용자): "잠실새내교회 유년부" → "유년부" *@
-                <p><b>@(lobby ? "도전!!! 성경말씀에" : (t.Name.StartsWith("잠실새내교회 ") ? t.Name["잠실새내교회 ".Length..] : t.Name) + "에") 오심을 환영해요</b>
+                @* 부서 이름만 조금 크게 · 주황 + 옅은 밑줄(확정 시안 홈-부서이름색 ①, 2026-11-05) *@
+                @{ var deptName = lobby ? null : t.Name.StartsWith("잠실새내교회 ") ? t.Name["잠실새내교회 ".Length..] : t.Name; }
+                <p>@if (deptName is null) { <b>도전!!! 성경말씀에 오심을 환영해요</b> } else { <b><em class="hj-dname">@deptName</em>에 오심을 환영해요</b> }
                     <span>@(d.Today.DayOfWeek == DayOfWeek.Sunday || d.Today.DayOfWeek == DayOfWeek.Monday ? "새 한 주가 시작됐어요." : "오늘도 반가워요.")</span>
                     <span>오늘 말씀부터 읽어 볼까요?</span></p>
             </div>
