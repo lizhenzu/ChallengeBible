@@ -225,12 +225,8 @@
       }
       else say(on ? '책갈피에 넣었어요' : '책갈피를 뺐어요');
     });
-    // 큰 읽음 버튼의 대기 카드(ADR 0082): 카드가 보이도록 최소 시간은 기다린다. 닫는 것은 부르는 쪽에서
-    const withCard = async (message, work) => {
-      window.cbWait?.show(message);
-      const [res] = await Promise.all([work.catch(() => ({ ok: false, json: {} })), window.cbWait?.hold()]);
-      return res;
-    };
+    // 큰 읽음 버튼의 대기 카드(ADR 0082)
+    const withCard = (message, work) => window.cbWait.during(message, work);
     const cardText = (on) => (on ? '읽음으로 표시하고 있어요' : '읽음 표시를 취소하고 있어요');
     // 통독 본문 큰 버튼(옛 Bible2, ADR 0072): 이 장 전체 읽음 · 다시 누르면 취소. 절 · 진도가 모두 바뀌므로 다시 불러온다
     const chAll = document.querySelector('[data-chapterall]');
@@ -239,7 +235,7 @@
       const on = chAll.getAttribute('aria-pressed') !== 'true';
       busy(chAll, true);
       const { ok } = await withCard(cardText(on), call(on ? 'PUT' : 'DELETE', `/api/me/reading/chapters/${chAll.dataset.book}/${chAll.dataset.chapter}`));
-      if (!ok) { window.cbWait?.hide(); busy(chAll, false); say('잠시 뒤에 다시 해 주세요.'); return; }
+      if (!ok) { window.cbWait.hide(); busy(chAll, false); say('잠시 뒤에 다시 해 주세요.'); return; }
       location.reload();   // 새 화면이 열릴 때까지 카드를 그대로 둔다
     });
     all?.addEventListener('click', async () => {
@@ -254,7 +250,7 @@
         : on
           ? call('PUT', '/api/me/bible/read-range', r)
           : call('DELETE', `/api/me/bible/read-range?book=${r.book}&startChapter=${r.startChapter}&startVerse=${r.startVerse}&endChapter=${r.endChapter}&endVerse=${r.endVerse}`));
-      window.cbWait?.hide();
+      window.cbWait.hide();
       busy(all, false);
       changing.forEach((x) => busy(x, false));
       if (!ok) { say('잠시 뒤에 다시 해 주세요.'); return; }

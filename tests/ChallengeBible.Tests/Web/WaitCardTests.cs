@@ -34,6 +34,14 @@ public class WaitCardTests(WebApplicationFactory<Program> app) : IClassFixture<W
         Assert.Contains(message, js);
     }
 
+    [Fact]
+    public async Task Reading_list_mark_button_uses_card()
+    {
+        var js = await Client().GetStringAsync("/js/reading.js");
+        Assert.Contains("cbWait.during", js);
+        Assert.Contains("읽음으로 표시하고 있어요", js);
+    }
+
     [Theory]
     [InlineData("잠시만 기다려 주세요")]
     [InlineData("말씀을 펼치고 있어요")]
