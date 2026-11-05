@@ -1,8 +1,9 @@
 // 페이지 이동 대기 카드(ADR 0082, 확정 시안 wait-card.png 1안).
-// 누르면 맨 위 진행 줄을 바로, 0.3초가 지나도 이동이 안 끝났으면 카드를 보여 준다.
+// 누르면 진행 줄과 카드를 바로 보여 준다. 링크는 카드가 보이도록 0.6초 뒤에 옮기고, 폼은 늦추지 않는다.
 // 그 자리에서 처리하는 동작(preventDefault) · 새 창 · 다운로드 · data-nowait 에는 나오지 않는다.
+// 다른 처리기가 모두 돈 뒤에 판단하도록 window 에서 듣는다.
 (() => {
-    const DELAY_MS = 300;
+    const LINK_HOLD_MS = 600;
     const GIVE_UP_MS = 15000;   // 이동이 일어나지 않은 경우(응답이 파일 등) 카드가 남지 않게
     const MOVING = '이동하고 있어요';
     const ME = '내 정보를 확인하고 있어요';
@@ -66,32 +67,31 @@
         line.classList.remove('on');
         wait.classList.remove('on');
     };
-    addEventListener('pageshow', reset);   // 뒤로 가기로 돌아왔을 때
+    // 뒤로 가기로 복원될 때만 닫는다. 처음 열릴 때의 pageshow 까지 받으면 로딩 중에 누른 링크의 이동이 취소된다.
+    addEventListener('pageshow', (e) => { if (e.persisted) reset(); });
 
-    const start = (e, message) => {
-        // 뒤에 달린 처리기가 막을 수 있으므로 이벤트가 다 돈 뒤에 본다
-        setTimeout(() => {
-            if (e.defaultPrevented) return;
-            reset();
-            sub.textContent = message;
-            line.classList.add('on');
-            timers = [
-                setTimeout(() => wait.classList.add('on'), DELAY_MS),
-                setTimeout(reset, GIVE_UP_MS),
-            ];
-        }, 0);
+    const start = (message) => {
+        reset();
+        sub.textContent = message;
+        line.classList.add('on');
+        wait.classList.add('on');
+        timers = [setTimeout(reset, GIVE_UP_MS)];
     };
 
-    document.addEventListener('click', (e) => {
+    window.addEventListener('click', (e) => {
+        if (e.defaultPrevented) return;
         const a = e.target.closest && e.target.closest('a[href]');
         if (!a || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-        if (a.target === '_blank' || a.hasAttribute('download') || a.hasAttribute('data-nowait')) return;
+        if ((a.target && a.target !== '_self') || a.hasAttribute('download') || a.hasAttribute('data-nowait')) return;
         const u = new URL(a.href, location.href);
         if (u.origin !== location.origin || (u.pathname === location.pathname && u.search === location.search)) return;
-        start(e, forPage(u.pathname));
+        e.preventDefault();
+        start(forPage(u.pathname));
+        timers.push(setTimeout(() => location.assign(u.href), LINK_HOLD_MS));
     });
 
-    document.addEventListener('submit', (e) => {
+    window.addEventListener('submit', (e) => {
+        if (e.defaultPrevented) return;
         const f = e.target;
         const by = e.submitter;
         if (f.hasAttribute('data-nowait') || (by && by.hasAttribute('data-nowait'))) return;
@@ -99,6 +99,6 @@
         const action = (by && by.getAttribute('formaction')) || f.getAttribute('action') || location.href;
         const method = ((by && by.getAttribute('formmethod')) || f.getAttribute('method') || 'get').toLowerCase();
         const u = new URL(action, location.href);
-        start(e, method === 'post' ? forPost(u.pathname) : forPage(u.pathname));
+        start(method === 'post' ? forPost(u.pathname) : forPage(u.pathname));
     });
 })();
