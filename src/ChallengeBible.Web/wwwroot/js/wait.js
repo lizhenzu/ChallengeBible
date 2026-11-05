@@ -78,6 +78,9 @@
         timers = [setTimeout(reset, GIVE_UP_MS)];
     };
 
+    // 화면을 옮기지 않는 큰 동작(mission.js 의 "이 페이지 읽음으로 표시" 등)에서도 쓴다
+    window.cbWait = { show: start, hide: reset, hold: () => new Promise((r) => setTimeout(r, LINK_HOLD_MS)) };
+
     window.addEventListener('click', (e) => {
         if (e.defaultPrevented) return;
         const a = e.target.closest && e.target.closest('a[href]');
