@@ -240,16 +240,24 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     {
         var c = await Member("cheolsu", Roles.Participant);
         var dash = await c.GetStringAsync("/jamsil-kids/reading");
-        Assert.Contains("dataset.theme = 'default'", dash);
-        Assert.Contains("data-theme-pick=\"forest\" aria-pressed=\"false\"", dash);
+        // 아직 고르지 않으면 숲 · 세이지가 기본
+        Assert.Contains("dataset.theme = 'forest'", dash);
+        Assert.Contains("data-theme-pick=\"forest\" aria-pressed=\"true\"", dash);
         var token = TokenRx().Match(dash).Groups[1].Value;
-        Assert.Equal(HttpStatusCode.OK, (await Api(c, token, "/api/me/reading/theme", new { theme = "forest" }, HttpMethod.Put)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await Api(c, token, "/api/me/reading/theme", new { theme = "paper" }, HttpMethod.Put)).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await Api(c, token, "/api/me/reading/theme", new { theme = "neon" }, HttpMethod.Put)).StatusCode);
         foreach (var url in new[] { "/jamsil-kids/reading", "/jamsil-kids/reading/list", "/jamsil-kids/reading/read/1/24", "/jamsil-kids/reading/rounds" })
-            Assert.Contains("dataset.theme = 'forest'", await c.GetStringAsync(url));
-        Assert.Contains("data-theme-pick=\"forest\" aria-pressed=\"true\"", await c.GetStringAsync("/jamsil-kids/reading/search"));
+            Assert.Contains("dataset.theme = 'paper'", await c.GetStringAsync(url));
+        Assert.Contains("data-theme-pick=\"paper\" aria-pressed=\"true\"", await c.GetStringAsync("/jamsil-kids/reading/search"));
+        // 파랑을 고르면 고른 값으로 남는다(기본으로 돌아가지 않는다)
         await Api(c, token, "/api/me/reading/theme", new { theme = "default" }, HttpMethod.Put);
-        Assert.Contains("dataset.theme = 'default'", await c.GetStringAsync("/jamsil-kids/reading"));
+        var blue = await c.GetStringAsync("/jamsil-kids/reading");
+        Assert.Contains("dataset.theme = 'default'", blue);
+        Assert.Contains("data-theme-pick=\"default\" aria-pressed=\"true\"", blue);
+        Assert.Contains("data-theme-pick=\"forest\" aria-pressed=\"false\"", blue);
+        // 빈 값 = 고르지 않음 → 다시 숲 · 세이지
+        await Api(c, token, "/api/me/reading/theme", new { theme = "" }, HttpMethod.Put);
+        Assert.Contains("dataset.theme = 'forest'", await c.GetStringAsync("/jamsil-kids/reading"));
     }
 
     [Fact]
