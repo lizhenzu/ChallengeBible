@@ -34,7 +34,7 @@ public static class ReadingApi
 
         g.MapPost("/rounds", async (ReadingService s, CancellationToken ct) => Results.Ok(new { ok = true, roundNo = await s.StartNewRoundAsync(ct) }));
 
-        // 통독 색 테마(ADR 0073): 계정에 남긴다. "default" 또는 빈 값 = 기본(파랑)
+        // 통독 색 테마(ADR 0073): 계정에 남긴다. "default" = 파랑, 빈 값 = 고르지 않음(숲 · 세이지)
         g.MapPut("/theme", async (ThemeRequest r, AccountService s, HttpContext h, CancellationToken ct) =>
             await s.SetReadingThemeAsync(h.User.AccountId()!.Value, r.Theme, ct)
                 ? Results.Ok(new { ok = true })

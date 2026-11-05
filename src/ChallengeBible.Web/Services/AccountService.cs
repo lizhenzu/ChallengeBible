@@ -144,20 +144,23 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
         return (n, errors);
     }
 
-    /// <summary>통독 색 테마(ADR 0073): 기본(null) 밖에 고를 수 있는 키.</summary>
-    public static readonly string[] ReadingThemes = ["paper", "forest", "sand"];
+    /// <summary>통독 색 테마(ADR 0073): 고를 수 있는 키. "default" 는 파랑.</summary>
+    public static readonly string[] ReadingThemes = ["default", "paper", "forest", "sand"];
 
-    /// <summary>내 통독 테마(없으면 null = 기본).</summary>
+    /// <summary>아직 고르지 않은 계정(null)에 보이는 테마.</summary>
+    public const string DefaultReadingTheme = "forest";
+
+    /// <summary>내 통독 테마(고르지 않았으면 null).</summary>
     public async Task<string?> ReadingThemeAsync(int accountId, CancellationToken ct = default)
     {
         await using var ctx = db.Create();
         return await ctx.Accounts.Where(a => a.Id == accountId).Select(a => a.ReadingTheme).SingleOrDefaultAsync(ct);
     }
 
-    /// <summary>통독 테마 바꾸기. "default" · 빈 값 = 기본. 모르는 키면 false.</summary>
+    /// <summary>통독 테마 바꾸기. 빈 값 = 고르지 않음(기본 테마). "default"(파랑)는 고른 값으로 남긴다. 모르는 키면 false.</summary>
     public async Task<bool> SetReadingThemeAsync(int accountId, string? theme, CancellationToken ct = default)
     {
-        var t = string.IsNullOrWhiteSpace(theme) || theme == "default" ? null : theme;
+        var t = string.IsNullOrWhiteSpace(theme) ? null : theme;
         if (t is not null && !ReadingThemes.Contains(t)) return false;
         await using var ctx = db.Create();
         var account = await ctx.Accounts.SingleAsync(a => a.Id == accountId, ct);
