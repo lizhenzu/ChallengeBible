@@ -26,6 +26,15 @@ public class WaitCardTests(WebApplicationFactory<Program> app) : IClassFixture<W
     }
 
     [Theory]
+    [InlineData("읽음으로 표시하고 있어요")]
+    [InlineData("읽음 표시를 취소하고 있어요")]
+    public async Task Mark_read_button_has_card_message(string message)
+    {
+        var js = await Client().GetStringAsync("/js/mission.js");
+        Assert.Contains(message, js);
+    }
+
+    [Theory]
     [InlineData("잠시만 기다려 주세요")]
     [InlineData("말씀을 펼치고 있어요")]
     [InlineData("퀴즈를 준비하고 있어요")]
