@@ -55,20 +55,6 @@ body:has(.rp[data-theme]) { background: var(--bg); }
   .b2top { padding: 0 32px; }
 }
 
-/* 화면 옮길 때(옛 Bible2): 맨 위 진행 줄 · 이동 안내 창 */
-.b2line { position: fixed; top: 0; left: 0; right: 0; z-index: 90; height: 3px; opacity: 0; pointer-events: none; }
-.b2line.on { opacity: 1; }
-.b2line i { display: block; height: 100%; width: 0; background: var(--r-acc); }
-.b2line.on i { width: 85%; transition: width 6s cubic-bezier(.1, .6, .3, 1); }
-.b2wait { position: fixed; inset: 0; z-index: 85; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, .35); }
-.b2wait.on { display: flex; }
-.b2wait .card { display: grid; justify-items: center; gap: 8px; padding: 24px 30px; border-radius: 18px; background: var(--bg); box-shadow: 0 20px 50px rgba(15, 23, 42, .25); text-align: center; }
-.b2wait .sp { width: 30px; height: 30px; border: 3px solid var(--r-cell); border-top-color: var(--r-acc); border-radius: 50%; animation: b2spin .8s linear infinite; }
-.b2wait .t { font-weight: 800; }
-.b2wait .s { font-size: 13px; color: var(--r-dim); }
-@keyframes b2spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .b2wait .sp { animation: none; } .b2line.on i { transition: none; } }
-
 /* 본문 칸(옛 .b2i): 최대 880px */
 .b2b { --pad: 18px; max-width: 880px; margin: 0 auto; padding: 4px var(--pad) 40px; }
 @media (min-width: 769px) { .b2b { --pad: 32px; } }

@@ -1782,3 +1782,25 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .jv4 .jacts .back { border: 1.5px solid var(--rule); background: var(--bg); color: var(--fg); }
 .jv4 .jacts .go { border: 0; background: var(--accent); color: var(--on-accent); cursor: pointer; }
 .jv4:not(:has(input[name="TenantId"]:checked)) .jacts .go { opacity: .4; pointer-events: none; }
+
+/* 페이지 이동: 맨 위 진행 줄 + 대기 카드(ADR 0082, 확정 시안 wait-card.png 1안) */
+.wline { position: fixed; top: 0; left: 0; right: 0; z-index: 1001; height: 3px; opacity: 0; pointer-events: none; }
+.wline.on { opacity: 1; }
+.wline i { display: block; height: 100%; width: 0; background: var(--accent); }
+.wline.on i { width: 85%; transition: width 6s cubic-bezier(.1, .6, .3, 1); }
+.wcard { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(20, 28, 45, .42); }
+.wcard.on { display: flex; animation: wfade .18s ease-out; }
+.wcard .card { display: block; width: 236px; max-width: 100%; margin: 0; padding: 26px 20px 22px; border: 0; border-radius: 24px; background: var(--bg); color: var(--fg); text-align: center; box-shadow: 0 14px 36px rgba(20, 28, 45, .24); }
+.wcard .bk { display: block; margin: 0 auto 14px; overflow: visible; }
+.wcard .cover { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 3; stroke-linejoin: round; }
+.wcard .spine { fill: none; stroke: var(--accent); stroke-width: 3; }
+.wcard .txt { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; opacity: .55; }
+.wcard .t { font-size: 17px; font-weight: 800; line-height: 1.5; }
+.wcard .s { margin-top: 3px; font-size: 13px; line-height: 1.5; color: var(--dim); word-break: keep-all; }
+.wcard .dots { display: flex; justify-content: center; gap: 6px; margin-top: 14px; }
+.wcard .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); opacity: .25; animation: wdot 1.2s infinite; }
+.wcard .dots i:nth-child(2) { animation-delay: .2s; }
+.wcard .dots i:nth-child(3) { animation-delay: .4s; }
+@keyframes wfade { from { opacity: 0; } }
+@keyframes wdot { 0%, 60%, 100% { opacity: .25; transform: none; } 30% { opacity: 1; transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .wcard.on, .wcard .dots i { animation: none; } .wcard .dots i { opacity: .6; } .wline.on i { transition: none; } }
