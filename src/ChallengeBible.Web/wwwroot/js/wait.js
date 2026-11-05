@@ -70,16 +70,37 @@
     // 뒤로 가기로 복원될 때만 닫는다. 처음 열릴 때의 pageshow 까지 받으면 로딩 중에 누른 링크의 이동이 취소된다.
     addEventListener('pageshow', (e) => { if (e.persisted) reset(); });
 
+    // 통독 화면은 사용자가 고른 테마 색을 따른다(카드는 .rp 밖 body 에 있어 값을 옮겨 준다). 테마를 그 자리에서 바꿀 수 있어 띄울 때마다 읽는다
+    const THEME = [['--accent', '--r-acc'], ['--accent-bg', '--r-accSoft'], ['--bg', '--bg'], ['--fg', '--r-ink'], ['--dim', '--r-dim']];
+    const followTheme = () => {
+        const rp = document.querySelector('.rp');
+        if (!rp) return;
+        const cs = getComputedStyle(rp);
+        for (const [to, from] of THEME) {
+            const value = cs.getPropertyValue(from).trim();
+            if (value) { wait.style.setProperty(to, value); line.style.setProperty(to, value); }
+        }
+    };
+
     const start = (message) => {
         reset();
+        followTheme();
         sub.textContent = message;
         line.classList.add('on');
         wait.classList.add('on');
         timers = [setTimeout(reset, GIVE_UP_MS)];
     };
 
-    // 화면을 옮기지 않는 큰 동작(mission.js 의 "이 페이지 읽음으로 표시" 등)에서도 쓴다
-    window.cbWait = { show: start, hide: reset, hold: () => new Promise((r) => setTimeout(r, LINK_HOLD_MS)) };
+    // 화면을 옮기지 않는 큰 동작(읽음 표시 등)에서도 쓴다. during: 카드를 띄우고 작업과 최소 시간을 기다린다. 닫는 것은 부르는 쪽에서(hide)
+    const hold = () => new Promise((r) => setTimeout(r, LINK_HOLD_MS));
+    window.cbWait = {
+        hide: reset,
+        during: async (message, work) => {
+            start(message);
+            const [res] = await Promise.all([work.catch(() => ({ ok: false, json: {} })), hold()]);
+            return res;
+        },
+    };
 
     window.addEventListener('click', (e) => {
         if (e.defaultPrevented) return;

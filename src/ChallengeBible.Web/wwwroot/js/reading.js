@@ -21,7 +21,10 @@
       if (!b || b.disabled) return;
       const on = b.getAttribute('aria-pressed') !== 'true';
       wait(b, true);
-      const { ok, json } = await call(on ? 'PUT' : 'DELETE', `/api/me/reading/chapters/${book}/${b.dataset.ch}`);
+      const { ok, json } = await window.cbWait.during(   // 대기 카드(ADR 0082)
+        on ? '읽음으로 표시하고 있어요' : '읽음 표시를 취소하고 있어요',
+        call(on ? 'PUT' : 'DELETE', `/api/me/reading/chapters/${book}/${b.dataset.ch}`));
+      window.cbWait.hide();
       wait(b, false);
       if (!ok) { say('잠시 뒤에 다시 해 주세요.'); return; }
       b.setAttribute('aria-pressed', String(on));
