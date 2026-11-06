@@ -732,8 +732,8 @@ a.td::after { content: "›"; margin-left: auto; font-size: 22px; color: var(--d
 /* 재생 창: 아래에서 올라오는 판(휴대폰), 넓은 화면은 가운데 */
 .ytm { position: fixed; inset: 0; z-index: 60; background: rgba(15,18,24,.6); display: flex; align-items: flex-end; justify-content: center; }
 .ytm[hidden] { display: none; }
-.ytm .box { width: 100%; max-width: 640px; background: var(--bg); border-radius: 20px 20px 0 0; overflow: hidden; padding-bottom: env(safe-area-inset-bottom, 0px); }
-@media (min-width: 700px) { .ytm { align-items: center; } .ytm .box { border-radius: 20px; } }
+.ytm .box { width: 100%; max-width: 640px; background: var(--bg); border-radius: 0; overflow: hidden; padding-bottom: env(safe-area-inset-bottom, 0px); }
+@media (min-width: 700px) { .ytm { align-items: center; } }
 .ytm .hd { display: flex; align-items: center; gap: 8px; padding: 12px 14px; }
 .ytm .hd b { flex: 1; min-width: 0; font-size: 15px; color: var(--b-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ytm .hd button { min-height: 38px; padding: 0 14px; border: 0; border-radius: 99px; font-size: 13px; font-weight: 800; }
