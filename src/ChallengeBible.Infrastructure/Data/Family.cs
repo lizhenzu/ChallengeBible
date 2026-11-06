@@ -61,6 +61,8 @@ public sealed class FamilyInvite : ITenantOwned
     public int InvitedByParticipantId { get; set; }
     public string Relation { get; set; } = FamilyRelation.Student;
     public DateTime CreatedUtc { get; set; }
+    /// <summary>"다음에 할래요"를 누른 날(영역 시간대의 날짜, R-212). 이 날에는 부서 홈 배너에 보이지 않는다.</summary>
+    public DateOnly? SnoozedOn { get; set; }
 }
 
 /// <summary>가족 단계 도달(R-96) — 시즌 · 단계마다 한 번.</summary>

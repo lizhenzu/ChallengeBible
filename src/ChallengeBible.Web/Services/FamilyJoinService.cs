@@ -16,8 +16,8 @@ public sealed record FamilyMine(int TeamId, string Name, string? RawName, int To
 public sealed record FamilyPending(int RequestId, int TeamId, string TeamName, string Relation);
 /// <summary>우리 팀이 보내고 수락을 기다리는 초대(R-211).</summary>
 public sealed record FamilySentInvite(int InviteId, string Name, string Relation);
-/// <summary>내가 받은 초대(R-212). Relation = 초대한 사람이 고른 역할(처음 골라 둘 값).</summary>
-public sealed record FamilyReceivedInvite(int InviteId, string TeamName, string InvitedBy, string Relation, IReadOnlyList<FamilySearchMember> Members);
+/// <summary>내가 받은 초대(R-212). Relation = 초대한 사람이 고른 역할(처음 골라 둘 값). SnoozedToday = 오늘 "다음에 할래요"를 눌러 부서 홈 배너에서 숨김.</summary>
+public sealed record FamilyReceivedInvite(int InviteId, string TeamName, string InvitedBy, string Relation, IReadOnlyList<FamilySearchMember> Members, bool SnoozedToday);
 /// <summary>초대할 수 있는 사람(R-211). 이름만 보인다.</summary>
 public sealed record FamilyCandidate(int ParticipantId, string Name);
 public sealed record FamilyState(bool Enabled, int? ParticipantId, bool IsGuardian, FamilyMine? Mine, FamilyPending? Pending, IReadOnlyList<FamilyReceivedInvite> Invites);
@@ -125,13 +125,13 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
                               join a in ctx.Accounts on m.AccountId equals a.Id
                               where i.ParticipantId == me.ParticipantId
                               orderby i.Id
-                              select new { i.Id, i.FamilyTeamId, i.Relation, By = a.DisplayName }).ToListAsync(ct);
+                              select new { i.Id, i.FamilyTeamId, i.Relation, i.SnoozedOn, By = a.DisplayName }).ToListAsync(ct);
             foreach (var row in rows)
             {
                 var t = all.FirstOrDefault(x => x.Team.Id == row.FamilyTeamId);
                 if (t.Team is null) continue;   // 멈춘 팀의 초대는 보이지 않는다
                 var ms = t.Members.Select(m => new FamilySearchMember(m.Name, m.M.Relation)).ToList();
-                invites.Add(new FamilyReceivedInvite(row.Id, FamilyTeamService.DisplayName(t.Team.Name, ms.Select(m => (m.Name, m.Relation)).ToList()), row.By, row.Relation, ms));
+                invites.Add(new FamilyReceivedInvite(row.Id, FamilyTeamService.DisplayName(t.Team.Name, ms.Select(m => (m.Name, m.Relation)).ToList()), row.By, row.Relation, ms, row.SnoozedOn == today));
             }
         }
 
@@ -374,6 +374,18 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         var invite = await ctx.FamilyInvites.SingleOrDefaultAsync(i => i.Id == inviteId && i.ParticipantId == me.ParticipantId, ct);
         if (invite is null) return FamilyError.NotFound;
         ctx.FamilyInvites.Remove(invite);
+        await ctx.SaveChangesAsync(ct);
+        return FamilyError.None;
+    }
+
+    /// <summary>R-212: "다음에 할래요". 지금 받은 초대를 오늘 하루 부서 홈 배너에서 숨긴다. 초대는 그대로 남고, 이후 새로 온 초대는 다시 보인다.</summary>
+    public async Task<FamilyError> SnoozeInvitesAsync(CancellationToken ct = default)
+    {
+        if (!await EnabledAsync(ct)) return FamilyError.Disabled;
+        await using var ctx = db.Create();
+        if (await MeAsync(ctx, ct) is not { } me) return FamilyError.NotParticipant;
+        var (_, today) = await teams.RulesAsync(ct);
+        foreach (var i in await ctx.FamilyInvites.Where(i => i.ParticipantId == me.ParticipantId).ToListAsync(ct)) i.SnoozedOn = today;
         await ctx.SaveChangesAsync(ct);
         return FamilyError.None;
     }

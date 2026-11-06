@@ -139,12 +139,15 @@
     @if (Model.Invites.Count > 0)
     {
         var first = Model.Invites[0];
-        <a class="hj-card hj-inv" href="/@slug/family-team">
-            <span class="h"><span class="ic" aria-hidden="true">💌</span>
+        <section class="hj-card hj-inv" aria-label="가족팀 초대">
+            <div class="h"><span class="ic" aria-hidden="true">💌</span>
                 <span class="tx"><b>가족팀 초대가 왔어요!</b>
-                    <small>@(Model.Invites.Count > 1 ? $"{first.TeamName} 외 {Model.Invites.Count - 1}팀에서 초대했어요" : $"{first.InvitedBy}님이 {first.TeamName}{Ro(first.TeamName)} 초대했어요")</small></span></span>
-            <span class="ivgo">초대 확인하기 ›</span>
-        </a>
+                    <small>@(Model.Invites.Count > 1 ? $"{first.TeamName} 외 {Model.Invites.Count - 1}팀에서 초대했어요" : $"{first.InvitedBy}님이 {first.TeamName}{Ro(first.TeamName)} 초대했어요")</small></span></div>
+            <div class="ivrow">
+                <a class="ivgo" href="/@slug/family-team">초대 확인하기 ›</a>
+                <form method="post" asp-page-handler="SnoozeInvites" asp-route-slug="@slug"><button type="submit" class="ivlater">다음에 할래요</button></form>
+            </div>
+        </section>
     }
 
     @if (t.ReadingEnabled)
