@@ -1,8 +1,8 @@
 @model string
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Services
-@* "나는 누구인가요?" 여섯 칸(ADR 0083). 모델 = 처음 골라 둘 역할. 글자 "…으로"는 data-as 로 큰 버튼이 따라간다 *@
-<div class="fmt-who" role="radiogroup" aria-label="나는 누구인가요?">
+@* "나는 누구인가요?" 여섯 칸(ADR 0083). 모델 = 처음 골라 둘 역할. 글자 "…으로"는 data-as 로 큰 버튼이 따라간다. 다른 사람의 역할을 고를 때는 ViewData["WhoLabel"] *@
+<div class="fmt-who" role="radiogroup" aria-label="@(ViewData["WhoLabel"] ?? "나는 누구인가요?")">
     @foreach (var r in FamilyRelation.All)
     {
         <label><input type="radio" name="relation" value="@r" checked="@(r == Model)" data-as="@ChallengeBible.Web.Pages.Mission.FamilyTeamModel.AsRelation(r)" /><span><u aria-hidden="true">@ChallengeBible.Web.Pages.Mission.FamilyTeamModel.Emoji(r)</u>@FamilyTeamService.RelationLabel(r)</span></label>

@@ -560,6 +560,26 @@ CREATE TABLE app.FamilyJoinRequest (
 CREATE UNIQUE INDEX UX_FamilyJoinRequest_OneTeam ON app.FamilyJoinRequest (TenantId, ParticipantId);
 CREATE INDEX IX_FamilyJoinRequest_Team ON app.FamilyJoinRequest (TenantId, FamilyTeamId);
 
+-- 가족팀 초대(R-211 ~ R-213, ADR 0084): 팀 · 사람마다 한 줄, 처리되면 지운다
+CREATE TABLE app.FamilyInvite (
+    Id                     int IDENTITY NOT NULL,
+    TenantId               int          NOT NULL,
+    FamilyTeamId           int          NOT NULL,
+    ParticipantId          int          NOT NULL,
+    InvitedByParticipantId int          NOT NULL,
+    Relation               varchar(20)  NOT NULL CONSTRAINT CK_FamilyInvite_Relation
+        CHECK (Relation IN ('Student','Mother','Father','Grandmother','Grandfather','Other')),
+    CreatedUtc             datetime2(3) NOT NULL,
+    CONSTRAINT PK_FamilyInvite PRIMARY KEY NONCLUSTERED (Id),
+    CONSTRAINT UQ_FamilyInvite_TenantId_Id UNIQUE CLUSTERED (TenantId, Id),
+    CONSTRAINT FK_FamilyInvite_Team FOREIGN KEY (TenantId, FamilyTeamId) REFERENCES app.FamilyTeam (TenantId, Id),
+    CONSTRAINT FK_FamilyInvite_Participant FOREIGN KEY (TenantId, ParticipantId) REFERENCES app.Participant (TenantId, Id),
+    CONSTRAINT FK_FamilyInvite_InvitedBy FOREIGN KEY (TenantId, InvitedByParticipantId) REFERENCES app.Participant (TenantId, Id)
+);
+CREATE UNIQUE INDEX UX_FamilyInvite_TeamParticipant ON app.FamilyInvite (TenantId, FamilyTeamId, ParticipantId);
+CREATE INDEX IX_FamilyInvite_Participant ON app.FamilyInvite (TenantId, ParticipantId);
+CREATE INDEX IX_FamilyInvite_InvitedBy ON app.FamilyInvite (TenantId, InvitedByParticipantId);
+
 CREATE TABLE app.FamilyMilestoneReached (
     TenantId      int          NOT NULL,
     FamilyTeamId  int          NOT NULL,
@@ -904,6 +924,9 @@ CREATE SECURITY POLICY sec.TenantIsolation
     ADD FILTER PREDICATE sec.fn_Tenant(TenantId) ON app.FamilyJoinRequest,
     ADD BLOCK  PREDICATE sec.fn_Tenant(TenantId) ON app.FamilyJoinRequest AFTER INSERT,
     ADD BLOCK  PREDICATE sec.fn_Tenant(TenantId) ON app.FamilyJoinRequest AFTER UPDATE,
+    ADD FILTER PREDICATE sec.fn_Tenant(TenantId) ON app.FamilyInvite,
+    ADD BLOCK  PREDICATE sec.fn_Tenant(TenantId) ON app.FamilyInvite AFTER INSERT,
+    ADD BLOCK  PREDICATE sec.fn_Tenant(TenantId) ON app.FamilyInvite AFTER UPDATE,
     ADD FILTER PREDICATE sec.fn_Tenant(TenantId) ON app.FamilyMilestoneReached,
     ADD BLOCK  PREDICATE sec.fn_Tenant(TenantId) ON app.FamilyMilestoneReached AFTER INSERT,
     ADD BLOCK  PREDICATE sec.fn_Tenant(TenantId) ON app.FamilyMilestoneReached AFTER UPDATE,

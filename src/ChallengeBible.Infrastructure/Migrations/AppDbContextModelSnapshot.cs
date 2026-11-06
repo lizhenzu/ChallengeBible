@@ -1492,6 +1492,61 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("Family", "app");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyInvite", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("FamilyTeamId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("InvitedByParticipantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ParticipantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Relation")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id")
+                        .HasName("PK_FamilyInvite");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+
+                    b.HasAlternateKey("TenantId", "Id")
+                        .HasName("UQ_FamilyInvite_TenantId_Id");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasAlternateKey("TenantId", "Id"));
+
+                    b.HasIndex("TenantId", "InvitedByParticipantId")
+                        .HasDatabaseName("IX_FamilyInvite_InvitedBy");
+
+                    b.HasIndex("TenantId", "ParticipantId")
+                        .HasDatabaseName("IX_FamilyInvite_Participant");
+
+                    b.HasIndex("TenantId", "FamilyTeamId", "ParticipantId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_FamilyInvite_TeamParticipant");
+
+                    b.ToTable("FamilyInvite", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_FamilyInvite_Relation", "Relation IN ('Student','Mother','Father','Grandmother','Grandfather','Other')");
+                        });
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyJoinRequest", b =>
                 {
                     b.Property<int>("Id")
@@ -2855,6 +2910,33 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_Family_CreatedBy");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyInvite", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.FamilyTeam", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "FamilyTeamId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_FamilyInvite_Team");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Participant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "InvitedByParticipantId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_FamilyInvite_InvitedBy");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Participant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "ParticipantId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_FamilyInvite_Participant");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyJoinRequest", b =>

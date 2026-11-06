@@ -84,6 +84,26 @@ public class PromotionServiceTests
     }
 
     [Fact]
+    public async Task R213_승인하면_이전_부서에서_받거나_보낸_가족_초대가_지워진다()
+    {
+        var (_, m, pid) = Kid();
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var team = new FamilyTeam { TenantId = _kids.Id, CreatedUtc = DateTime.UtcNow };
+            raw.FamilyTeams.Add(team);
+            raw.SaveChanges();
+            raw.FamilyInvites.Add(new FamilyInvite { TenantId = _kids.Id, FamilyTeamId = team.Id, ParticipantId = pid, InvitedByParticipantId = 999, Relation = FamilyRelation.Student, CreatedUtc = DateTime.UtcNow });
+            raw.FamilyInvites.Add(new FamilyInvite { TenantId = _kids.Id, FamilyTeamId = team.Id, ParticipantId = 999, InvitedByParticipantId = pid, Relation = FamilyRelation.Student, CreatedUtc = DateTime.UtcNow });
+            raw.FamilyInvites.Add(new FamilyInvite { TenantId = _kids.Id, FamilyTeamId = team.Id, ParticipantId = 998, InvitedByParticipantId = 999, Relation = FamilyRelation.Student, CreatedUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        var id = await SendOne(m);
+        Assert.Equal(PromotionError.None, await In(_elem).Approver.ApproveAsync(_elemAdmin.Id, id, [Roles.Participant], null));
+        using var after = InMemoryDb.Raw(_db);
+        Assert.Equal(998, after.FamilyInvites.Single().ParticipantId);   // 다른 사람들 사이의 초대는 그대로
+    }
+
+    [Fact]
     public async Task R139_승인하면_새_부서_소속이_되고_이전_부서_기록은_모두_지워진다()
     {
         var (a, m, pid) = Kid();

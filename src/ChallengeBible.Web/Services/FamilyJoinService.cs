@@ -12,15 +12,21 @@ public sealed record FamilyMineMember(int MemberId, string Name, string Relation
 public sealed record FamilyJoinRow(int RequestId, string Name, string Relation);
 /// <summary>우리 가족팀. RawName = 사람이 지은 이름(비었으면 null). Pct = 지난 단계에서 다음 단계까지 온 정도.</summary>
 public sealed record FamilyMine(int TeamId, string Name, string? RawName, int Total, int? Next, double Pct,
-    IReadOnlyList<FamilyMineMember> Members, IReadOnlyList<FamilyJoinRow> Requests);
+    IReadOnlyList<FamilyMineMember> Members, IReadOnlyList<FamilyJoinRow> Requests, IReadOnlyList<FamilySentInvite> Sent);
 public sealed record FamilyPending(int RequestId, int TeamId, string TeamName, string Relation);
-public sealed record FamilyState(bool Enabled, int? ParticipantId, bool IsGuardian, FamilyMine? Mine, FamilyPending? Pending);
-/// <summary>미션 홈 입구. Name 이 null 이면 팀 없음(PendingTeam = 신청 중인 팀).</summary>
-public sealed record FamilyEntry(string? Name, int Total, int? Next, double Pct, int Waiting, string? PendingTeam);
+/// <summary>우리 팀이 보내고 수락을 기다리는 초대(R-211).</summary>
+public sealed record FamilySentInvite(int InviteId, string Name, string Relation);
+/// <summary>내가 받은 초대(R-212). Relation = 초대한 사람이 고른 역할(처음 골라 둘 값).</summary>
+public sealed record FamilyReceivedInvite(int InviteId, string TeamName, string InvitedBy, string Relation, IReadOnlyList<FamilySearchMember> Members);
+/// <summary>초대할 수 있는 사람(R-211). 이름만 보인다.</summary>
+public sealed record FamilyCandidate(int ParticipantId, string Name);
+public sealed record FamilyState(bool Enabled, int? ParticipantId, bool IsGuardian, FamilyMine? Mine, FamilyPending? Pending, IReadOnlyList<FamilyReceivedInvite> Invites);
+/// <summary>미션 홈 입구. Name 이 null 이면 팀 없음(PendingTeam = 신청 중인 팀, InviteTeam = 먼저 받은 초대의 팀, Waiting = 기다리는 신청이나 받은 초대 수).</summary>
+public sealed record FamilyEntry(string? Name, int Total, int? Next, double Pct, int Waiting, string? PendingTeam, string? InviteTeam);
 
 /// <summary>
-/// 가족이 스스로 꾸리는 가족팀(ADR 0083, R-204 ~ R-210). 이 부서 연결로 읽고 쓴다(전역 필터 + RLS).
-/// 부르는 사람은 이 부서의 참여자여야 하고, 수락 · 거절 · 내보내기 · 이름 바꾸기는 그 팀의 활성 구성원만 한다.
+/// 가족이 스스로 꾸리는 가족팀(ADR 0083 · 0084, R-204 ~ R-213). 이 부서 연결로 읽고 쓴다(전역 필터 + RLS).
+/// 부르는 사람은 이 부서의 참여자여야 하고, 수락 · 거절 · 내보내기 · 이름 바꾸기 · 초대는 그 팀의 활성 구성원만, 받은 초대의 수락 · 거절은 초대받은 본인만 한다.
 /// 다른 부서 가족팀 확인(R-210)만 시스템 연결로 읽는다.
 /// </summary>
 public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScope scope, TenantContext tenant, FamilyTeamService teams, TimeProvider time)
@@ -41,15 +47,20 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
     }
 
     /// <summary>R-210: 이 계정이 다른 부서의 가족팀에 들어 있는지.</summary>
-    private async Task<bool> InOtherDeptAsync(int accountId, CancellationToken ct)
+    private async Task<bool> InOtherDeptAsync(int accountId, CancellationToken ct) =>
+        (await InOtherDeptAsync([accountId], ct)).Count > 0;
+
+    private async Task<HashSet<int>> InOtherDeptAsync(IReadOnlyList<int> accountIds, CancellationToken ct)
     {
+        if (accountIds.Count == 0) return [];
         var here = tenant.Current.Id;
-        await using var sys = systemDb.Create(scope.AccountId ?? accountId);
-        return await (from f in sys.FamilyMembers
-                      join p in sys.Participants on new { f.TenantId, Id = f.ParticipantId } equals new { p.TenantId, p.Id }
-                      join m in sys.Memberships on new { p.TenantId, Id = p.MembershipId } equals new { m.TenantId, m.Id }
-                      where f.IsActive && f.TenantId != here && m.AccountId == accountId
-                      select f.Id).AnyAsync(ct);
+        await using var sys = systemDb.Create(scope.AccountId ?? accountIds[0]);
+        var found = await (from f in sys.FamilyMembers
+                           join p in sys.Participants on new { f.TenantId, Id = f.ParticipantId } equals new { p.TenantId, p.Id }
+                           join m in sys.Memberships on new { p.TenantId, Id = p.MembershipId } equals new { m.TenantId, m.Id }
+                           where f.IsActive && f.TenantId != here && accountIds.Contains(m.AccountId)
+                           select m.AccountId).ToListAsync(ct);
+        return [.. found];
     }
 
     /// <summary>만들기 · 신청 앞 공통 검사.</summary>
@@ -74,10 +85,10 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
 
     public async Task<FamilyState> StateAsync(CancellationToken ct = default)
     {
-        if (!await EnabledAsync(ct)) return new FamilyState(false, null, false, null, null);
+        if (!await EnabledAsync(ct)) return new FamilyState(false, null, false, null, null, []);
         await using var ctx = db.Create();
         var me = await MeAsync(ctx, ct);
-        if (me is null) return new FamilyState(true, null, false, null, null);
+        if (me is null) return new FamilyState(true, null, false, null, null, []);
         var (r, today) = await teams.RulesAsync(ct);
         var (all, season, _, _) = await teams.LoadTeamsAsync(ctx, today, ct);
 
@@ -94,8 +105,34 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
                                   where q.FamilyTeamId == team.Team.Id
                                   orderby q.Id
                                   select new FamilyJoinRow(q.Id, a.DisplayName, q.Relation)).ToListAsync(ct);
+            var sent = await (from i in ctx.FamilyInvites
+                              join p in ctx.Participants on i.ParticipantId equals p.Id
+                              join m in ctx.Memberships on p.MembershipId equals m.Id
+                              join a in ctx.Accounts on m.AccountId equals a.Id
+                              where i.FamilyTeamId == team.Team.Id
+                              orderby i.Id
+                              select new FamilySentInvite(i.Id, a.DisplayName, i.Relation)).ToListAsync(ct);
             mine = new FamilyMine(team.Team.Id, FamilyTeamService.DisplayName(team.Team.Name, members.Select(m => (m.Name, m.Relation)).ToList()),
-                team.Team.Name, total, FamilyTeamService.Next(r, total), FamilyTeamService.StagePct(r, total), members, requests);
+                team.Team.Name, total, FamilyTeamService.Next(r, total), FamilyTeamService.StagePct(r, total), members, requests, sent);
+        }
+
+        var invites = new List<FamilyReceivedInvite>();
+        if (mine is null)
+        {
+            var rows = await (from i in ctx.FamilyInvites
+                              join p in ctx.Participants on i.InvitedByParticipantId equals p.Id
+                              join m in ctx.Memberships on p.MembershipId equals m.Id
+                              join a in ctx.Accounts on m.AccountId equals a.Id
+                              where i.ParticipantId == me.ParticipantId
+                              orderby i.Id
+                              select new { i.Id, i.FamilyTeamId, i.Relation, By = a.DisplayName }).ToListAsync(ct);
+            foreach (var row in rows)
+            {
+                var t = all.FirstOrDefault(x => x.Team.Id == row.FamilyTeamId);
+                if (t.Team is null) continue;   // 멈춘 팀의 초대는 보이지 않는다
+                var ms = t.Members.Select(m => new FamilySearchMember(m.Name, m.M.Relation)).ToList();
+                invites.Add(new FamilyReceivedInvite(row.Id, FamilyTeamService.DisplayName(t.Team.Name, ms.Select(m => (m.Name, m.Relation)).ToList()), row.By, row.Relation, ms));
+            }
         }
 
         FamilyPending? pending = null;
@@ -106,7 +143,7 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
             var name = target.Team is null ? "가족팀" : FamilyTeamService.DisplayName(target.Team.Name, target.Members.Select(m => (m.Name, m.M.Relation)).ToList());
             pending = new FamilyPending(own.Id, own.FamilyTeamId, name, own.Relation);
         }
-        return new FamilyState(true, me.ParticipantId, me.IsGuardian, mine, pending);
+        return new FamilyState(true, me.ParticipantId, me.IsGuardian, mine, pending, invites);
     }
 
     /// <summary>미션 홈 입구. 쓸 수 없거나 참여자가 아니면 null.</summary>
@@ -115,8 +152,8 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         var s = await StateAsync(ct);
         if (!s.Enabled || s.ParticipantId is null) return null;
         return s.Mine is { } m
-            ? new FamilyEntry(m.Name, m.Total, m.Next, m.Pct, m.Requests.Count, null)
-            : new FamilyEntry(null, 0, null, 0, 0, s.Pending?.TeamName);
+            ? new FamilyEntry(m.Name, m.Total, m.Next, m.Pct, m.Requests.Count, null, null)
+            : new FamilyEntry(null, 0, null, 0, s.Invites.Count, s.Pending?.TeamName, s.Invites.FirstOrDefault()?.TeamName);
     }
 
     /// <summary>R-205: 사람 이름 · 팀 이름으로 찾기.</summary>
@@ -162,6 +199,7 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         var t = new FamilyTeam { TenantId = tenant.Current.Id, Name = FamilyTeamService.Clean(name, 50), CreatedUtc = time.GetUtcNow().UtcDateTime };
         t.Members.Add(new FamilyMember { TenantId = t.TenantId, ParticipantId = me!.ParticipantId, Relation = relation });
         ctx.FamilyTeams.Add(t);
+        await DropInvitesToAsync(ctx, me.ParticipantId, ct);   // R-213
         return await SaveAsync(ctx, FamilyError.AlreadyInTeam, ct);
     }
 
@@ -213,12 +251,22 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
             await ctx.SaveChangesAsync(ct);
             return block;
         }
-        var order = (byte)(team!.Members.Max(m => m.SortOrder) + 1);
-        var old = team.Members.SingleOrDefault(m => m.ParticipantId == q!.ParticipantId);   // 예전에 멈춘 자리
-        if (old is not null) { old.IsActive = true; old.Relation = q!.Relation; old.SortOrder = order; }
-        else team.Members.Add(new FamilyMember { TenantId = team.TenantId, ParticipantId = q!.ParticipantId, Relation = q.Relation, SortOrder = order });
+        Seat(team!, q!.ParticipantId, q.Relation);
+        await DropInvitesToAsync(ctx, q.ParticipantId, ct);   // R-213
         return await SaveAsync(ctx, FamilyError.AlreadyInTeam, ct);
     }
+
+    /// <summary>팀에 자리를 준다. 예전에 멈춘 자리가 있으면 되살린다.</summary>
+    private static void Seat(FamilyTeam team, int participantId, string relation)
+    {
+        var order = (byte)(team.Members.Max(m => m.SortOrder) + 1);
+        var old = team.Members.SingleOrDefault(m => m.ParticipantId == participantId);
+        if (old is not null) { old.IsActive = true; old.Relation = relation; old.SortOrder = order; }
+        else team.Members.Add(new FamilyMember { TenantId = team.TenantId, ParticipantId = participantId, Relation = relation, SortOrder = order });
+    }
+
+    private static async Task DropInvitesToAsync(AppDbContext ctx, int participantId, CancellationToken ct) =>
+        ctx.FamilyInvites.RemoveRange(await ctx.FamilyInvites.Where(i => i.ParticipantId == participantId).ToListAsync(ct));
 
     public async Task<FamilyError> RejectAsync(int requestId, CancellationToken ct = default)
     {
@@ -239,6 +287,95 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         var q = await ctx.FamilyJoinRequests.SingleOrDefaultAsync(x => x.Id == requestId, ct);
         if (q is null) return (null, null, FamilyError.NotFound);
         return q.FamilyTeamId == team.Id ? (team, q, FamilyError.None) : (null, null, FamilyError.NotMember);
+    }
+
+    // ── 초대 ──
+
+    /// <summary>R-211: 같은 부서 참여자 중 초대할 수 있는 사람을 이름으로 찾는다. 팀 구성원만, 이름만 보인다.</summary>
+    public async Task<IReadOnlyList<FamilyCandidate>> CandidatesAsync(string? q, CancellationToken ct = default)
+    {
+        var word = q?.Trim();
+        if (string.IsNullOrEmpty(word) || !await EnabledAsync(ct)) return [];
+        await using var ctx = db.Create();
+        if (await MeAsync(ctx, ct) is not { } me || await MyTeamAsync(ctx, me, ct) is not { } team) return [];
+        var rows = await (from p in ctx.Participants
+                          join m in ctx.Memberships on p.MembershipId equals m.Id
+                          join a in ctx.Accounts on m.AccountId equals a.Id
+                          where p.IsActive && m.Status == MembershipStatus.Approved && a.DisplayName.Contains(word)
+                              && !ctx.FamilyMembers.Any(f => f.ParticipantId == p.Id && f.IsActive)
+                              && !ctx.FamilyInvites.Any(i => i.FamilyTeamId == team.Id && i.ParticipantId == p.Id)
+                              && !ctx.FamilyJoinRequests.Any(r => r.FamilyTeamId == team.Id && r.ParticipantId == p.Id)
+                          orderby a.DisplayName, p.Id
+                          select new { p.Id, a.DisplayName, m.AccountId }).Take(SearchMax * 2).ToListAsync(ct);
+        var elsewhere = await InOtherDeptAsync(rows.Select(x => x.AccountId).ToList(), ct);
+        return rows.Where(x => !elsewhere.Contains(x.AccountId)).Take(SearchMax).Select(x => new FamilyCandidate(x.Id, x.DisplayName)).ToList();
+    }
+
+    /// <summary>R-211: 팀 구성원이 역할을 골라 초대한다. 상대가 수락해야 합류된다.</summary>
+    public async Task<FamilyError> InviteAsync(int participantId, string relation, CancellationToken ct = default)
+    {
+        if (!await EnabledAsync(ct)) return FamilyError.Disabled;
+        if (!FamilyRelation.All.Contains(relation)) return FamilyError.BadRelation;
+        await using var ctx = db.Create();
+        if (await MeAsync(ctx, ct) is not { } me) return FamilyError.NotParticipant;
+        if (await MyTeamAsync(ctx, me, ct) is not { } team) return FamilyError.NotMember;
+        var who = await (from p in ctx.Participants
+                         join m in ctx.Memberships on p.MembershipId equals m.Id
+                         where p.Id == participantId && p.IsActive && m.Status == MembershipStatus.Approved
+                         select (int?)m.AccountId).SingleOrDefaultAsync(ct);
+        if (who is null) return FamilyError.NotFound;
+        if (await ctx.FamilyMembers.AnyAsync(f => f.ParticipantId == participantId && f.IsActive, ct)) return FamilyError.TargetInTeam;
+        if (await ctx.FamilyJoinRequests.AnyAsync(r => r.FamilyTeamId == team.Id && r.ParticipantId == participantId, ct)) return FamilyError.TargetRequested;
+        if (await ctx.FamilyInvites.AnyAsync(i => i.FamilyTeamId == team.Id && i.ParticipantId == participantId, ct)) return FamilyError.AlreadyInvited;
+        if (await InOtherDeptAsync(who.Value, ct)) return FamilyError.TargetOtherDept;
+        ctx.FamilyInvites.Add(new FamilyInvite { TenantId = tenant.Current.Id, FamilyTeamId = team.Id, ParticipantId = participantId,
+            InvitedByParticipantId = me.ParticipantId, Relation = relation, CreatedUtc = time.GetUtcNow().UtcDateTime });
+        return await SaveAsync(ctx, FamilyError.AlreadyInvited, ct);
+    }
+
+    /// <summary>R-211: 우리 팀이 보낸 초대는 구성원 누구든 취소한다.</summary>
+    public async Task<FamilyError> CancelInviteAsync(int inviteId, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        if (await MeAsync(ctx, ct) is not { } me) return FamilyError.NotParticipant;
+        if (await MyTeamAsync(ctx, me, ct) is not { } team) return FamilyError.NotMember;
+        var invite = await ctx.FamilyInvites.SingleOrDefaultAsync(i => i.Id == inviteId, ct);
+        if (invite is null) return FamilyError.NotFound;
+        if (invite.FamilyTeamId != team.Id) return FamilyError.NotMember;
+        ctx.FamilyInvites.Remove(invite);
+        await ctx.SaveChangesAsync(ct);
+        return FamilyError.None;
+    }
+
+    /// <summary>R-212: 초대받은 본인이 역할을 확인하고 수락한다. 내 합류 신청과 받은 초대는 함께 지운다(R-213).</summary>
+    public async Task<FamilyError> AcceptInviteAsync(int inviteId, string relation, CancellationToken ct = default)
+    {
+        if (!await EnabledAsync(ct)) return FamilyError.Disabled;
+        if (!FamilyRelation.All.Contains(relation)) return FamilyError.BadRelation;
+        await using var ctx = db.Create();
+        if (await MeAsync(ctx, ct) is not { } me) return FamilyError.NotParticipant;
+        var invite = await ctx.FamilyInvites.SingleOrDefaultAsync(i => i.Id == inviteId && i.ParticipantId == me.ParticipantId, ct);
+        if (invite is null) return FamilyError.NotFound;
+        if (await ctx.FamilyMembers.AnyAsync(f => f.ParticipantId == me.ParticipantId && f.IsActive, ct)) return FamilyError.AlreadyInTeam;
+        if (await InOtherDeptAsync(me.AccountId, ct)) return FamilyError.InOtherDept;
+        var team = await ctx.FamilyTeams.Include(t => t.Members).SingleOrDefaultAsync(t => t.Id == invite.FamilyTeamId && t.IsActive && t.Members.Any(m => m.IsActive), ct);
+        if (team is null) return FamilyError.NotFound;
+        Seat(team, me.ParticipantId, relation);
+        await DropInvitesToAsync(ctx, me.ParticipantId, ct);
+        ctx.FamilyJoinRequests.RemoveRange(await ctx.FamilyJoinRequests.Where(q => q.ParticipantId == me.ParticipantId).ToListAsync(ct));
+        return await SaveAsync(ctx, FamilyError.AlreadyInTeam, ct);
+    }
+
+    /// <summary>R-212: 초대받은 본인이 거절한다. 기록을 남기지 않는다.</summary>
+    public async Task<FamilyError> RejectInviteAsync(int inviteId, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        if (await MeAsync(ctx, ct) is not { } me) return FamilyError.NotParticipant;
+        var invite = await ctx.FamilyInvites.SingleOrDefaultAsync(i => i.Id == inviteId && i.ParticipantId == me.ParticipantId, ct);
+        if (invite is null) return FamilyError.NotFound;
+        ctx.FamilyInvites.Remove(invite);
+        await ctx.SaveChangesAsync(ct);
+        return FamilyError.None;
     }
 
     /// <summary>R-208: 나가기. 마지막 사람이면 팀도 사라진다.</summary>

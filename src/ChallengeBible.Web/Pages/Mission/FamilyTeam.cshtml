@@ -3,7 +3,7 @@
 @using System.Globalization
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Services
-@* 확정 시안: family-team-self(ADR 0083) — ② 찾기 ③ 합류 신청 ④ 새 팀 ⑤ 우리 가족팀 *@
+@* 확정 시안: family-team-self(ADR 0083) — ② 찾기 ③ 합류 신청 ④ 새 팀 ⑤ 우리 가족팀 / family-invite(ADR 0084) — 가족 초대 · 받은 초대 *@
 @{
     var s = Model.State;
     var home = $"/{Model.Slug}/word-mission";
@@ -19,6 +19,36 @@
         <div class="fmt-bar"><a href="@home">‹ 미션 홈</a></div>
         <h1>우리 가족팀</h1>
         <p class="fmt-sub">가족팀은 이 부서의 참여자가 함께 꾸려요. 참여자가 되면 팀을 만들거나 합류할 수 있어요.</p>
+    }
+    else if (s.Mine is not null && Model.Add)
+    {
+        ViewData["WhoLabel"] = "이 가족의 누구인가요?";
+        <div class="fmt-bar"><a href="@self">‹ 우리 가족팀</a></div>
+        <h1>가족 초대하기</h1>
+        <p class="fmt-sub">같은 부서 참여자 중 아직 가족팀이 없는 분을 찾을 수 있어요.</p>
+        <form method="get" action="@self" class="fmt-search" role="search">
+            <input type="hidden" name="Add" value="true" />
+            <input type="search" name="Q" value="@Model.Q" placeholder="이름" aria-label="초대할 사람의 이름" />
+            <button type="submit">찾기</button>
+        </form>
+        @if (!string.IsNullOrWhiteSpace(Model.Q) && Model.Candidates.Count == 0) { <p class="fmt-note c">찾는 분이 없어요. 아직 참여자가 아니거나 이미 가족팀이 있는 분은 찾을 수 없어요.</p> }
+        @if (Model.Candidates.Count > 0)
+        {
+            <form method="post" asp-page-handler="Invite" asp-route-slug="@Model.Slug" data-fmt-form>
+                <input type="hidden" name="Q" value="@Model.Q" />
+                <div role="radiogroup" aria-label="초대할 사람">
+                    @foreach (var c in Model.Candidates)
+                    {
+                        var cn = Model.Split(c.Name);
+                        <label class="fmt-pick"><input type="radio" name="participant" value="@c.ParticipantId" checked="@(c == Model.Candidates[0])" data-name="@c.Name" /><span>@cn.Before@if (cn.Hit != "") {<mark>@cn.Hit</mark>}@cn.After</span><b aria-hidden="true"></b></label>
+                    }
+                </div>
+                <h2 data-fmt-who="{n}님은 이 가족의 누구인가요?">이 가족의 누구인가요?</h2>
+                <partial name="_FamilyWho" model="FamilyRelation.Student" />
+                <button type="submit" class="fmt-btn" data-fmt-go="{r} 초대 보내기">초대 보내기</button>
+                <p class="fmt-note c">상대가 수락해야 합류돼요.</p>
+            </form>
+        }
     }
     else if (s.Mine is { } m)
     {
@@ -83,6 +113,18 @@
                 </li>
             }
         </ul>
+        <a class="fmt-btn line" href="@self?Add=true">＋ 가족 초대하기</a>
+        @if (m.Sent.Count > 0)
+        {
+            <h2>보낸 초대 <i class="num">@m.Sent.Count</i></h2>
+            @foreach (var i in m.Sent)
+            {
+                <div class="fmt-sent">
+                    <div class="m">@i.Name<small>@FamilyTeamModel.AsRelation(i.Relation) 초대 · 수락을 기다리는 중</small></div>
+                    <form method="post" asp-page-handler="InviteCancel" asp-route-slug="@Model.Slug"><input type="hidden" name="invite" value="@i.InviteId" /><button type="submit" aria-label="@(i.Name)님 초대 취소">취소</button></form>
+                </div>
+            }
+        }
         <details class="fmt-ask leave"><summary>팀 나가기</summary>
             <form method="post" asp-page-handler="Leave" asp-route-slug="@Model.Slug">
                 <span>@(m.Members.Count == 1 ? "마지막 구성원이에요. 나가면 팀이 사라져요." : "내 점수는 그대로이고 팀 점수에서만 빠져요. 다른 팀에 가려면 나온 뒤 신청해요.")</span>
@@ -121,7 +163,23 @@
     {
         <div class="fmt-bar"><a href="@home">‹ 미션 홈</a></div>
         <h1>가족팀 찾기</h1>
-        <p class="fmt-sub">가족의 이름이나 팀 이름으로 찾아 보세요.</p>
+        <p class="fmt-sub">@(s.Invites.Count > 0 ? "받은 초대가 있어요." : "가족의 이름이나 팀 이름으로 찾아 보세요.")</p>
+        @foreach (var i in s.Invites)
+        {
+            <form method="post" asp-page-handler="InviteAccept" asp-route-slug="@Model.Slug" class="fmt-rq fmt-inv" data-fmt-form>
+                <input type="hidden" name="invite" value="@i.InviteId" />
+                <div class="h">@i.TeamName</div>
+                <p>@(i.InvitedBy)님이 @FamilyTeamModel.AsRelation(i.Relation) 초대했어요. 역할이 다르면 바꿔서 수락하세요.</p>
+                <div class="fmt-chips">@foreach (var x in i.Members) {<span>@x.Name<b>@FamilyTeamService.RelationLabel(x.Relation)</b></span>}</div>
+                <div class="q">나는 누구인가요?</div>
+                <partial name="_FamilyWho" model="i.Relation" />
+                <div class="a">
+                    <button type="submit" class="fmt-btn sm" data-fmt-go="{r} 수락">수락</button>
+                    <button type="submit" class="fmt-btn sm line" asp-page-handler="InviteReject" asp-route-slug="@Model.Slug">거절</button>
+                </div>
+            </form>
+        }
+        @if (s.Invites.Count > 0) { <p class="fmt-note c">수락하면 바로 팀에 들어가요. 다른 팀에 낸 합류 신청과 받은 초대는 함께 취소돼요.</p> }
         @if (s.Pending is { } p)
         {
             <div class="fmt-card">
@@ -160,7 +218,13 @@
     // 고른 역할을 큰 버튼 글자에 넣는다("학생으로 합류 신청"). 스크립트가 없어도 버튼은 동작한다
     document.querySelectorAll('[data-fmt-form]').forEach((form) => {
         const go = form.querySelector('[data-fmt-go]');
-        const show = () => { const on = form.querySelector('input[name="relation"]:checked'); if (on) go.textContent = go.dataset.fmtGo.replace('{r}', on.dataset.as); };
+        const who = form.querySelector('[data-fmt-who]');
+        const show = () => {
+            const on = form.querySelector('input[name="relation"]:checked');
+            if (on) go.textContent = go.dataset.fmtGo.replace('{r}', on.dataset.as);
+            const person = form.querySelector('input[name="participant"]:checked');
+            if (who && person) who.textContent = who.dataset.fmtWho.replace('{n}', person.dataset.name);
+        };
         form.addEventListener('change', show);
         show();
     });

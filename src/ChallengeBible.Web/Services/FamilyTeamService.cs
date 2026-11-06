@@ -49,6 +49,7 @@ public sealed record FamilyRanking(bool Enabled, int Year, DateOnly Today, int F
 public enum FamilyError
 {
     None, Disabled, NotFound, NotParticipant, AlreadyInTeam, BadRelation, HasPending, InOtherDept, NotMember,
+    TargetInTeam, TargetRequested, AlreadyInvited, TargetOtherDept,
 }
 
 /// <summary>
@@ -151,6 +152,7 @@ public sealed class FamilyTeamService(IAppDb db, TenantContext tenant, TenantClo
         if (rest.Count > 0 && !(t.IsActive && rest.All(x => !x.IsActive))) return;
         ctx.FamilyMembers.RemoveRange(rest);
         ctx.FamilyJoinRequests.RemoveRange(await ctx.FamilyJoinRequests.Where(q => q.FamilyTeamId == t.Id).ToListAsync(ct));
+        ctx.FamilyInvites.RemoveRange(await ctx.FamilyInvites.Where(i => i.FamilyTeamId == t.Id).ToListAsync(ct));
         ctx.FamilyMilestonesReached.RemoveRange(await ctx.FamilyMilestonesReached.Where(x => x.FamilyTeamId == t.Id).ToListAsync(ct));
         ctx.FamilyMilestoneDismisses.RemoveRange(await ctx.FamilyMilestoneDismisses.Where(x => x.FamilyTeamId == t.Id).ToListAsync(ct));
         ctx.FamilyTeams.Remove(t);
@@ -329,6 +331,10 @@ public sealed class FamilyTeamService(IAppDb db, TenantContext tenant, TenantClo
         FamilyError.HasPending => "이미 신청한 팀이 있어요. 신청을 취소한 뒤 다시 해 주세요.",
         FamilyError.InOtherDept => "다른 부서의 가족팀에 들어 있어요. 한 사람은 한 부서의 가족팀에만 들어가요.",
         FamilyError.NotMember => "이 팀의 구성원만 할 수 있어요.",
+        FamilyError.TargetInTeam => "그분은 이미 가족팀에 들어 있어요.",
+        FamilyError.TargetRequested => "그분이 이미 합류를 신청했어요. 우리 가족팀 화면에서 수락해 주세요.",
+        FamilyError.AlreadyInvited => "이미 초대를 보냈어요.",
+        FamilyError.TargetOtherDept => "그분은 다른 부서의 가족팀에 들어 있어요.",
         _ => "",
     };
 }
