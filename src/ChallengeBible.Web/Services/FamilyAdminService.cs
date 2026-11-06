@@ -7,16 +7,15 @@ namespace ChallengeBible.Web.Services;
 public sealed record FamilyRequestRow(int Id, int RequesterId, string Requester, string RequesterDepts, string Body, DateTime RequestedUtc);
 /// <summary>계정 찾기 결과. Depts = "유년부 참여자" 처럼, FamilyId = 이미 든 온가족(있으면 넣을 수 없음).</summary>
 public sealed record FamilyHit(int Id, string Name, string Email, string Depts, int? FamilyId);
-/// <summary>온가족 상세의 구성원 한 명: 소속 부서 · 역할, 보호자면 시상 부서와 고를 수 있는 부서.</summary>
-public sealed record FamilyAdminMember(FamilyPerson Person, string Depts, bool IsGuardian, int? AwardTenantId, IReadOnlyList<(int Id, string Name)> AwardOptions);
+/// <summary>온가족 상세의 구성원 한 명: 소속 부서 · 역할.</summary>
+public sealed record FamilyAdminMember(FamilyPerson Person, string Depts);
 public sealed record FamilyAdminDetail(FamilyBoardView Board, IReadOnlyList<FamilyAdminMember> Members, string? RawName);
 
 /// <summary>
 /// 온가족 관리(0065, R-175 · R-176 · R-179, 확정 시안: 플랫폼-온가족) — 플랫폼 관리자만, 시작마다 확인.
 /// 여러 부서 계정을 보고 온가족 표를 쓰므로 시스템 연결(물리 설계 3-3 "온가족 관리"). 모든 변경은 AuditLog 에 남긴다.
-/// 시상 부서 정하기는 FamilyTenantService(0046 처리기)를 플랫폼 관리자가 부른다.
 /// </summary>
-public sealed class FamilyAdminService(ISystemDb systemDb, FamilyTenantService familyTenant, TimeProvider time)
+public sealed class FamilyAdminService(ISystemDb systemDb, TimeProvider time)
 {
     public const int NameMax = 30;
 
@@ -116,18 +115,7 @@ public sealed class FamilyAdminService(ISystemDb systemDb, FamilyTenantService f
         if (raw is null || await OnFamilyService.LoadAsync(ctx, id, ct) is not { } board) return null;
         var ids = board.People.Select(p => p.AccountId).ToList();
         var depts = await DeptSummaryAsync(ctx, ids, ct);
-        var award = await ctx.Accounts.Where(a => ids.Contains(a.Id)).ToDictionaryAsync(a => a.Id, a => a.FamilyTenantId, ct);
-        var mems = await (from m in ctx.Memberships
-                          join t in ctx.Tenants on m.TenantId equals t.Id
-                          where ids.Contains(m.AccountId) && m.Status == MembershipStatus.Approved && t.Status == TenantStatus.Active && !t.IsLobby
-                          orderby t.Name
-                          select new { m.AccountId, t.Id, t.Name, Guardian = m.Roles.Any(r => r.Role == Roles.Guardian) }).ToListAsync(ct);
-        var members = board.People.Select(p =>
-        {
-            var mine = mems.Where(m => m.AccountId == p.AccountId).ToList();
-            return new FamilyAdminMember(p, depts.GetValueOrDefault(p.AccountId, "소속 없음"), mine.Any(m => m.Guardian),
-                award.GetValueOrDefault(p.AccountId), mine.Select(m => (m.Id, m.Name)).ToList());
-        }).ToList();
+        var members = board.People.Select(p => new FamilyAdminMember(p, depts.GetValueOrDefault(p.AccountId, "소속 없음"))).ToList();
         return new FamilyAdminDetail(board, members, raw.Name);
     }
 
@@ -246,12 +234,5 @@ public sealed class FamilyAdminService(ISystemDb systemDb, FamilyTenantService f
         ctx.Families.Remove(await ctx.Families.SingleAsync(f => f.Id == familyId, ct));
         Log(ctx, actor, "FamilyUnlinked", $"family={familyId} dissolved");
         await ctx.SaveChangesAsync(ct);
-    }
-
-    /// <summary>부모의 시상 부서 정하기 · 바꾸기(R-179) — 플랫폼 관리자 확인 뒤 0046 처리기로.</summary>
-    public async Task<bool> SetAwardTenantAsync(int actor, int accountId, int tenantId, CancellationToken ct = default)
-    {
-        await using (var ctx = await OpenAsync(actor, ct)) { }
-        return await familyTenant.ChooseAsync(actor, accountId, tenantId, ct);
     }
 }

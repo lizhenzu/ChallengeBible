@@ -9,7 +9,7 @@ namespace ChallengeBible.Web.Pages.Platform;
 
 /// <summary>
 /// `/platform/families/{id}?q=` 온가족 상세(확정 시안: 플랫폼-온가족 "온가족 상세", 0065, R-175 · R-179).
-/// 구성원(모든 부서 소속 · 누적 점수) · 관계 · 순서 · 빼기 · 더 넣기 · 이름, 보호자는 시상 부서 정하기, 해체(한 번 더 묻기). JS 없이 폼마다.
+/// 구성원(모든 부서 소속 · 누적 점수) · 관계 · 순서 · 빼기 · 더 넣기 · 이름, 해체(한 번 더 묻기). JS 없이 폼마다.
 /// </summary>
 [Authorize(Policy = CurrentUser.PlatformAdminPolicy)]
 public class FamilyModel(FamilyAdminService families) : PageModel, ITitled
@@ -31,7 +31,6 @@ public class FamilyModel(FamilyAdminService families) : PageModel, ITitled
         "saved" => "저장했어요",
         "added" => "구성원을 넣었어요 · 관계를 확인해 주세요",
         "removed" => "구성원을 뺐어요 · 부서 기록 · 점수는 그대로예요",
-        "award" => "시상 부서를 정했어요",
         _ => "",
     };
 
@@ -72,19 +71,6 @@ public class FamilyModel(FamilyAdminService families) : PageModel, ITitled
         if (e == OnFamilyError.None) return Done("added");
         Error = e == OnFamilyError.AlreadyInFamily ? "이미 다른 온가족에 든 사람이에요." : "넣을 수 없어요. 화면을 새로 고쳐 주세요.";
         return await LoadAsync(ct) ? Page() : NotFound();
-    }
-
-    /// <summary>보호자의 시상 부서 정하기 · 바꾸기(R-179) — 그 사람이 승인된 부서 중 하나.</summary>
-    public async Task<IActionResult> OnPostAwardAsync(int account, int tenant, CancellationToken ct)
-    {
-        if (!await LoadAsync(ct)) return NotFound();
-        var m = Detail.Members.FirstOrDefault(x => x.Person.AccountId == account);
-        if (m is null || !m.IsGuardian || m.AwardOptions.All(o => o.Id != tenant) || !await families.SetAwardTenantAsync(Me, account, tenant, ct))
-        {
-            Error = "고를 수 있는 부서가 아니에요.";
-            return Page();
-        }
-        return Done("award");
     }
 
     public async Task<IActionResult> OnPostDissolveAsync(CancellationToken ct) =>

@@ -90,10 +90,6 @@
 @* 0076 확정 시안(hk.png): 말씀 한 줄 띠 → 인사 카드(나의 점수 성장) → 말씀 찾기 → 성경말씀 카드 → 성경통독 카드 → 가족팀 · 우리 부서 *@
 <main class="gut hj"><div class="wrap">
     @* 맨 위 말씀 한 줄 띠는 지웠다(2026-11-03 사용자) *@
-    @if (Model.NeedsFamilyChoice)
-    {
-        <a class="notice" href="/account/family"><b>시상 부서가 아직 정해지지 않았어요</b><span>플랫폼 관리자가 정하면 그 부서에서 부모님도 미션 · 가족팀을 함께해요 →</span></a>
-    }
 
     @{ var name = User.DisplayName(); }
     <section class="hj-card hj-hi" aria-labelledby="hiT">
@@ -224,8 +220,7 @@
     {
         var span = (f.NextStage ?? f.Total) - f.PrevStage;
         var fpct = f.NextStage is null ? 100 : span <= 0 ? 0 : Math.Clamp((f.Total - f.PrevStage) * 100.0 / span, 1, 100);
-        var famHref = d.Rules.Features.Ranking ? $"/{slug}/ranking?t=team" : null;
-        <a class="hj-card hj-line" href="@famHref">
+        <a class="hj-card hj-line" href="/@slug/family-team">
             <span class="ic y" aria-hidden="true">👨‍👩‍👧</span>
             <span class="tx"><b>우리 가족팀 · <span class="num">@f.Total.ToString("N0")</span>점</b>
                 <small>@f.Name · @(f.NextStage is { } n ? $"다음 가족 축하까지 {n - f.Total:N0}점" : "모든 가족 단계를 넘었어요")</small>

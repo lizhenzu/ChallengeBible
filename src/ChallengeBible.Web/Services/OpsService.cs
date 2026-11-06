@@ -95,7 +95,7 @@ public sealed class OpsService(ISystemDb systemDb, AppInfo app, TimeProvider tim
     {
         "PromotionApproved" => "진급 승인",
         "FamilyTenant" => "가족 부서",
-        FamilyTenantService.SetAction => "시상 부서",
+        "FamilyTenantSet" => "시상 부서",   // 옛 기록(0083 으로 기능은 없어짐)
         "FamilyRequested" => "온가족 신청",
         "FamilyRequestDecided" => "온가족 신청 처리",
         "FamilyLinked" => "온가족 묶기",

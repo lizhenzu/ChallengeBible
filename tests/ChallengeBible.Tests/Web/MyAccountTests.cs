@@ -77,13 +77,11 @@ public partial class MyAccountTests : IClassFixture<WebApplicationFactory<Progra
         var id = Account("younghee@example.com", "김영희");
         InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, Roles.Participant, Roles.Guardian);
         InMemoryDb.SeedMembership(_db, _elem.Id, id, MembershipStatus.Approved, Roles.Guardian);
-        using (var raw = InMemoryDb.Raw(_db)) { raw.Accounts.Single(a => a.Id == id).FamilyTenantId = _kids.Id; raw.SaveChanges(); }
 
         var c = await LoggedIn("younghee@example.com");
         var page = await c.GetStringAsync("/account");
         Assert.Contains("younghee@example.com", page);
         Assert.Contains("참여자 · 보호자", page);
-        Assert.Contains("시상 부서", page);   // 0065: "가족과 함께" → 시상 부서(플랫폼 관리자가 정함)
         Assert.Contains("href=\"/account/family\"", page);
 
         var r = await Post(c, "/account?handler=Name", TokenRx().Match(page).Groups[1].Value, ("DisplayName", "김영희 엄마"));

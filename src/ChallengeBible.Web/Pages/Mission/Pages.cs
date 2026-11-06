@@ -15,9 +15,11 @@ public sealed record PickSection(MissionPageBase Page, string No, string Title, 
 /// <summary>_MissionNav 모델.</summary>
 public sealed record MissionNav(MissionPageBase Page, string Current);
 
-public class HomeModel(MissionService missions, TenantContext tenant) : MissionPageBase(missions, tenant)
+public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoinService family) : MissionPageBase(missions, tenant)
 {
     public override string Title => "미션 홈";
+    /// <summary>맨 아래 가족팀 입구(ADR 0083). 쓸 수 없거나 참여자가 아니면 null.</summary>
+    public FamilyEntry? Family { get; private set; }
     public IReadOnlyList<(DateOnly Date, int Points)> Week { get; private set; } = [];
     public int? NextMilestone { get; private set; }
     public DateOnly SeasonStart { get; private set; }
@@ -31,6 +33,7 @@ public class HomeModel(MissionService missions, TenantContext tenant) : MissionP
 
     protected override async Task LoadMoreAsync(CancellationToken ct)
     {
+        Family = await family.EntryAsync(ct);
         Week = ParticipantId is int p ? await Missions.RecentDaysAsync(p, Day, ct) : [];
         NextMilestone = MissionService.NextMilestone(Data!.Rules, Data.SeasonPoints);
         SeasonStart = await Missions.SeasonStartAsync(Data.Today.Year, ct);

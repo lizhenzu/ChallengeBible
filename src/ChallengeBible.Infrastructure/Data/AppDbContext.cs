@@ -56,6 +56,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
 
     public DbSet<FamilyTeam> FamilyTeams => Set<FamilyTeam>();
     public DbSet<FamilyMember> FamilyMembers => Set<FamilyMember>();
+    public DbSet<FamilyJoinRequest> FamilyJoinRequests => Set<FamilyJoinRequest>();
     public DbSet<FamilyMilestoneReached> FamilyMilestonesReached => Set<FamilyMilestoneReached>();
     public DbSet<FamilyMilestoneDismiss> FamilyMilestoneDismisses => Set<FamilyMilestoneDismiss>();
     public DbSet<Family> Families => Set<Family>();

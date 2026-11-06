@@ -7,7 +7,7 @@ namespace ChallengeBible.Tests.Web;
 
 /// <summary>
 /// 온가족(ADR 0065, R-175 ~ R-178). 김철수 = 유년부, 김민지 = 초등부, 김영희(엄마) = 유년부 참여자 · 보호자. 운영자 = 플랫폼 관리자.
-/// 화면 흐름은 FamilyPageTests, 시상 부서(R-179)는 FamilyTenantTests · FamilyPageTests.
+/// 화면 흐름은 FamilyPageTests.
 /// </summary>
 public class OnFamilyServiceTests
 {
@@ -54,7 +54,7 @@ public class OnFamilyServiceTests
     }
 
     private OnFamilyService Svc() => new(new InMemorySystemDb(_db), new TenantClock(_time), _time);
-    private FamilyAdminService Admin() => new(new InMemorySystemDb(_db), new FamilyTenantService(new InMemorySystemDb(_db), _time), _time);
+    private FamilyAdminService Admin() => new(new InMemorySystemDb(_db), _time);
 
     private async Task<int> Make(params (int Account, string Relation)[] members)
     {

@@ -9,11 +9,9 @@ using Microsoft.EntityFrameworkCore;
 namespace ChallengeBible.Web.Services;
 
 public sealed record FamilyMemberView(int MemberId, int ParticipantId, string Name, string? GroupLabel, string Relation, int Points, int AccountId = 0);
-public sealed record FamilyStage(int Points, string Message, FamilyMilestoneKind Kind, bool Hidden);
-public sealed record FamilyTeamView(int Id, string? Name, string DisplayName, string? Memo, bool IsActive, int Points,
-    IReadOnlyList<FamilyMemberView> Members, IReadOnlyList<FamilyStage> Reached);
-/// <summary>팀 없는 참여자. Blocked = 부모님이 가족 부서를 이 부서로 고르지 않아 팀에 넣을 수 없는 이유(0046).</summary>
-public sealed record FamilySolo(int ParticipantId, string Name, string? GroupLabel, bool IsGuardian, int Points, FamilyError Blocked);
+public sealed record FamilyTeamView(int Id, string? Name, string DisplayName, bool IsActive, int Points, IReadOnlyList<FamilyMemberView> Members);
+/// <summary>팀 없는 참여자.</summary>
+public sealed record FamilySolo(int ParticipantId, string Name, string? GroupLabel, bool IsGuardian, int Points);
 public sealed record FamilyBoard(bool Enabled, int Year, IReadOnlyList<FamilyTeamView> Teams, IReadOnlyList<FamilySolo> Solo)
 {
     public int ActiveTeams => Teams.Count(t => t.IsActive);
@@ -50,15 +48,15 @@ public sealed record FamilyRanking(bool Enabled, int Year, DateOnly Today, int F
 
 public enum FamilyError
 {
-    None, Disabled, NotFound, NoMember, NotParticipant, AlreadyInTeam, FamilyTenantNotChosen, FamilyTenantElsewhere, BadRelation, MembersElsewhere, NotReached,
+    None, Disabled, NotFound, NotParticipant, AlreadyInTeam, BadRelation, HasPending, InOtherDept, NotMember,
 }
 
 /// <summary>
-/// 가족팀 관리(확정 시안: 관리-가족팀, R-90 ~ R-97, 0012 · 0046). 이 부서 연결로만 읽고 쓴다(전역 필터 + RLS).
+/// 가족팀 보기와 관리자 바로잡기(R-90 ~ R-97, 0012 · 0083). 이 부서 연결로만 읽고 쓴다(전역 필터 + RLS).
 /// 팀 점수 = 활성 구성원 시즌 점수의 합(R-92). 기본 규칙 "가족팀" 스위치가 꺼지면 모든 동작을 막는다(0012).
-/// 부모님(다른 부서 포함 어디서든 보호자 역할) 은 "가족과 함께할 부서"가 이 부서일 때만 넣는다 — 다른 부서의 역할을 봐야 해서 시스템 연결로 읽기만 한다.
+/// 가족이 직접 하는 만들기 · 합류는 FamilyJoinService.
 /// </summary>
-public sealed class FamilyTeamService(IAppDb db, ISystemDb systemDb, RequestScope scope, TenantContext tenant, TenantClock clock, RuleService rules, TimeProvider time)
+public sealed class FamilyTeamService(IAppDb db, TenantContext tenant, TenantClock clock, RuleService rules, TimeProvider time)
 {
     public static string RelationLabel(string r) => r switch
     {
@@ -75,7 +73,7 @@ public sealed class FamilyTeamService(IAppDb db, ISystemDb systemDb, RequestScop
         return lead.Name is null ? "가족팀" : $"{lead.Name} 가족";
     }
 
-    private async Task<(RuleSet Rules, DateOnly Today)> RulesAsync(CancellationToken ct)
+    internal async Task<(RuleSet Rules, DateOnly Today)> RulesAsync(CancellationToken ct)
     {
         var today = clock.Today(tenant.Current.TimeZoneId);
         return (await rules.ForDateAsync(today, ct), today);
@@ -97,10 +95,7 @@ public sealed class FamilyTeamService(IAppDb db, ISystemDb systemDb, RequestScop
         var points = await SeasonPointsAsync(ctx, people.Select(p => p.Id).ToList(), today, ct);
 
         var teams = await ctx.FamilyTeams.AsNoTracking().Include(t => t.Members).OrderBy(t => t.Id).ToListAsync(ct);
-        var dismissed = (await ctx.FamilyMilestoneDismisses.Where(d => d.Year == today.Year).Select(d => new { d.FamilyTeamId, d.Threshold }).ToListAsync(ct))
-            .Select(d => (d.FamilyTeamId, d.Threshold)).ToHashSet();
         var byId = people.ToDictionary(p => p.Id);
-        var stages = r.FamilyMilestones.Where(m => m.Enabled).OrderBy(m => m.Points).ToList();
 
         var views = teams.Select(t =>
         {
@@ -108,17 +103,14 @@ public sealed class FamilyTeamService(IAppDb db, ISystemDb systemDb, RequestScop
                 .Select(m => { var p = byId[m.ParticipantId]; return new FamilyMemberView(m.Id, m.ParticipantId, p.DisplayName, p.GroupLabel, m.Relation, points.GetValueOrDefault(m.ParticipantId), p.AccountId); })
                 .ToList();
             var sum = members.Sum(m => m.Points);   // R-92 단순 합
-            var reached = stages.Where(s => sum >= s.Points).Select(s => new FamilyStage(s.Points, s.Message, s.Kind, dismissed.Contains((t.Id, s.Points)))).ToList();
-            return new FamilyTeamView(t.Id, t.Name, DisplayName(t.Name, members.Select(m => (m.Name, m.Relation)).ToList()), t.Memo, t.IsActive, sum, members, t.IsActive ? reached : []);
+            return new FamilyTeamView(t.Id, t.Name, DisplayName(t.Name, members.Select(m => (m.Name, m.Relation)).ToList()), t.IsActive, sum, members);
         }).ToList();
 
         var inTeam = teams.Where(t => t.IsActive).SelectMany(t => t.Members).Where(m => m.IsActive).Select(m => m.ParticipantId).ToHashSet();
-        var soloPeople = people.Where(p => !inTeam.Contains(p.Id)).ToList();
-        var blocks = await FamilyTenantChecksAsync(soloPeople.Select(p => p.AccountId).ToList(), ct);
         var ko = StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false);
-        var solo = soloPeople
-            .Select(p => new FamilySolo(p.Id, p.DisplayName, p.GroupLabel, p.IsGuardian, points.GetValueOrDefault(p.Id), blocks.GetValueOrDefault(p.AccountId)))
-            .OrderBy(s => s.Blocked != FamilyError.None).ThenBy(s => s.Name, ko).ToList();
+        var solo = people.Where(p => !inTeam.Contains(p.Id))
+            .Select(p => new FamilySolo(p.Id, p.DisplayName, p.GroupLabel, p.IsGuardian, points.GetValueOrDefault(p.Id)))
+            .OrderBy(s => s.Name, ko).ToList();
         return new FamilyBoard(true, today.Year, views, solo);
     }
 
@@ -133,145 +125,41 @@ public sealed class FamilyTeamService(IAppDb db, ISystemDb systemDb, RequestScop
             .GroupBy(l => l.ParticipantId).Select(g => new { g.Key, P = g.Sum(x => x.Points) }).ToDictionaryAsync(x => x.Key, x => x.P, ct);
     }
 
-    /// <summary>
-    /// 0046 · R-168: 어느 부서에서든 보호자 역할이 있는 계정은 가족 부서가 이 부서여야 가족팀에 들어간다.
-    /// 다른 부서의 역할 · 계정의 가족 부서를 봐야 해서 시스템 연결로 읽기만 한다(관리자 확인은 화면에서 먼저).
-    /// </summary>
-    private async Task<Dictionary<int, FamilyError>> FamilyTenantChecksAsync(List<int> accountIds, CancellationToken ct)
-    {
-        if (accountIds.Count == 0) return [];
-        await using var sys = systemDb.Create(scope.AccountId ?? 0);
-        var guardians = await (from r in sys.MembershipRoles
-                               join m in sys.Memberships on new { r.TenantId, Id = r.MembershipId } equals new { m.TenantId, m.Id }
-                               where r.Role == Roles.Guardian && accountIds.Contains(m.AccountId)
-                               select m.AccountId).Distinct().ToListAsync(ct);
-        if (guardians.Count == 0) return [];
-        var family = await sys.Accounts.Where(a => guardians.Contains(a.Id)).Select(a => new { a.Id, a.FamilyTenantId }).ToListAsync(ct);
-        return family.ToDictionary(a => a.Id, a => a.FamilyTenantId is null ? FamilyError.FamilyTenantNotChosen
-            : a.FamilyTenantId == tenant.Current.Id ? FamilyError.None : FamilyError.FamilyTenantElsewhere);
-    }
-
-    /// <summary>넣을 수 있는 참여자인지(이 부서 승인 · 활성 참여자, 활성 팀 없음, 0046). 문제가 없으면 None.</summary>
-    private async Task<FamilyError> CheckJoinableAsync(AppDbContext ctx, IReadOnlyCollection<int> participantIds, int? exceptTeam, CancellationToken ct)
-    {
-        var ok = await (from p in ctx.Participants
-                        join m in ctx.Memberships on p.MembershipId equals m.Id
-                        where participantIds.Contains(p.Id) && p.IsActive && m.Status == MembershipStatus.Approved
-                        select new { p.Id, m.AccountId }).ToListAsync(ct);
-        if (ok.Count != participantIds.Count) return FamilyError.NotParticipant;
-        if (await ctx.FamilyMembers.AnyAsync(f => participantIds.Contains(f.ParticipantId) && f.IsActive && f.FamilyTeamId != exceptTeam, ct)) return FamilyError.AlreadyInTeam;
-        var blocks = await FamilyTenantChecksAsync(ok.Select(x => x.AccountId).ToList(), ct);
-        return blocks.Values.FirstOrDefault(v => v != FamilyError.None);
-    }
-
-    private async Task<string> DefaultRelationAsync(AppDbContext ctx, int participantId, CancellationToken ct) =>
-        await (from p in ctx.Participants join m in ctx.Memberships on p.MembershipId equals m.Id
-               where p.Id == participantId select m.Roles.Any(x => x.Role == Roles.Guardian)).SingleAsync(ct)
-            ? FamilyRelation.Mother : FamilyRelation.Student;
-
-    public async Task<(FamilyError Error, int? TeamId)> CreateAsync(string? name, IReadOnlyCollection<int> participantIds, CancellationToken ct = default)
-    {
-        if (!await EnabledAsync(ct)) return (FamilyError.Disabled, null);
-        var ids = participantIds.Distinct().ToList();
-        if (ids.Count == 0) return (FamilyError.NoMember, null);
-        await using var ctx = db.Create();
-        var e = await CheckJoinableAsync(ctx, ids, null, ct);
-        if (e != FamilyError.None) return (e, null);
-        var t = new FamilyTeam { TenantId = tenant.Current.Id, Name = Clean(name, 50), CreatedUtc = time.GetUtcNow().UtcDateTime };
-        byte order = 0;
-        foreach (var id in ids)
-            t.Members.Add(new FamilyMember { TenantId = t.TenantId, ParticipantId = id, Relation = await DefaultRelationAsync(ctx, id, ct), SortOrder = order++ });
-        ctx.FamilyTeams.Add(t);
-        await ctx.SaveChangesAsync(ct);
-        return (FamilyError.None, t.Id);
-    }
-
-    /// <summary>이름 · 메모 · 구성원 관계 저장. relations: 구성원 Id → 관계.</summary>
-    public async Task<FamilyError> SaveAsync(int teamId, string? name, string? memo, IReadOnlyDictionary<int, string> relations, CancellationToken ct = default)
-    {
-        if (relations.Values.Any(r => !FamilyRelation.All.Contains(r))) return FamilyError.BadRelation;
-        return await WithTeamAsync(teamId, (ctx, t) =>
+    /// <summary>관리자 바로잡기(R-210): 팀 이름 고치기. 비우면 R-93.</summary>
+    public Task<FamilyError> RenameAsync(int teamId, string? name, CancellationToken ct = default) =>
+        WithTeamAsync(teamId, (ctx, t) =>
         {
             t.Name = Clean(name, 50);
-            t.Memo = Clean(memo, 500);
-            foreach (var m in t.Members) if (relations.TryGetValue(m.Id, out var r)) m.Relation = r;
             return Task.FromResult(FamilyError.None);
         }, ct);
-    }
 
-    public Task<FamilyError> AddMemberAsync(int teamId, int participantId, CancellationToken ct = default) =>
-        WithTeamAsync(teamId, async (ctx, t) =>
-        {
-            if (!t.IsActive) return FamilyError.NotFound;
-            var e = await CheckJoinableAsync(ctx, [participantId], t.Id, ct);
-            if (e != FamilyError.None) return e;
-            var order = (byte)(t.Members.Count == 0 ? 0 : t.Members.Max(m => m.SortOrder) + 1);
-            var old = t.Members.SingleOrDefault(m => m.ParticipantId == participantId);
-            if (old is not null) { old.IsActive = true; old.SortOrder = order; }
-            else t.Members.Add(new FamilyMember { TenantId = t.TenantId, ParticipantId = participantId, Relation = await DefaultRelationAsync(ctx, participantId, ct), SortOrder = order });
-            return FamilyError.None;
-        }, ct);
-
-    /// <summary>구성원 빼기 — 그 사람의 점수 · 기록은 그대로(점수는 참여자에 붙는다).</summary>
+    /// <summary>관리자 바로잡기(R-210): 구성원 빼기 — 그 사람의 점수 · 기록은 그대로(점수는 참여자에 붙는다). 마지막 사람이면 팀도 사라진다(R-208).</summary>
     public Task<FamilyError> RemoveMemberAsync(int teamId, int memberId, CancellationToken ct = default) =>
-        WithTeamAsync(teamId, (ctx, t) =>
+        WithTeamAsync(teamId, async (ctx, t) =>
         {
             var m = t.Members.SingleOrDefault(x => x.Id == memberId);
-            if (m is null) return Task.FromResult(FamilyError.NotFound);
-            ctx.FamilyMembers.Remove(m);
-            return Task.FromResult(FamilyError.None);
-        }, ct);
-
-    /// <summary>표시 순서를 한 칸 옮긴다(up = 위로).</summary>
-    public Task<FamilyError> MoveAsync(int teamId, int memberId, bool up, CancellationToken ct = default) =>
-        WithTeamAsync(teamId, (ctx, t) =>
-        {
-            var list = t.Members.OrderBy(m => m.SortOrder).ThenBy(m => m.Id).ToList();
-            var i = list.FindIndex(m => m.Id == memberId);
-            if (i < 0) return Task.FromResult(FamilyError.NotFound);
-            var j = up ? i - 1 : i + 1;
-            if (j >= 0 && j < list.Count) (list[i], list[j]) = (list[j], list[i]);
-            for (var k = 0; k < list.Count; k++) list[k].SortOrder = (byte)k;
-            return Task.FromResult(FamilyError.None);
-        }, ct);
-
-    /// <summary>팀 멈추기: 구성원도 멈춰 다른 팀에 들어갈 수 있게 한다(R-91). 다시 켜기는 구성원이 다른 팀에 없을 때만.</summary>
-    public Task<FamilyError> SetActiveAsync(int teamId, bool active, CancellationToken ct = default) =>
-        WithTeamAsync(teamId, async (ctx, t) =>
-        {
-            if (active)
-            {
-                var ids = t.Members.Select(m => m.ParticipantId).ToList();
-                if (await ctx.FamilyMembers.AnyAsync(f => ids.Contains(f.ParticipantId) && f.IsActive && f.FamilyTeamId != t.Id, ct)) return FamilyError.MembersElsewhere;
-            }
-            t.IsActive = active;
-            foreach (var m in t.Members) m.IsActive = active;
+            if (m is null) return FamilyError.NotFound;
+            await DropMemberAsync(ctx, t, m, ct);
             return FamilyError.None;
         }, ct);
 
-    /// <summary>R-97: 넘은 가족 단계의 홈 축하 카드 숨기기 · 다시 보이기(그해 시즌).</summary>
-    public async Task<FamilyError> SetStageHiddenAsync(int actor, int teamId, int threshold, bool hidden, CancellationToken ct = default)
+    /// <summary>R-208: 구성원 한 줄을 지운다. 활성 구성원이 더 없으면 팀 · 축하 기록 · 신청도 지운다. 저장은 부르는 쪽에서.</summary>
+    internal static async Task DropMemberAsync(AppDbContext ctx, FamilyTeam t, FamilyMember m, CancellationToken ct)
     {
-        var board = await GetAsync(ct);
-        if (!board.Enabled) return FamilyError.Disabled;
-        var team = board.Teams.SingleOrDefault(t => t.Id == teamId);
-        if (team is null) return FamilyError.NotFound;
-        if (team.Reached.All(s => s.Points != threshold)) return FamilyError.NotReached;
-        await using var ctx = db.Create();
-        var year = (short)board.Year;
-        var row = await ctx.FamilyMilestoneDismisses.SingleOrDefaultAsync(d => d.FamilyTeamId == teamId && d.Year == year && d.Threshold == threshold, ct);
-        if (hidden && row is null)
-            ctx.FamilyMilestoneDismisses.Add(new FamilyMilestoneDismiss { TenantId = tenant.Current.Id, FamilyTeamId = teamId, Year = year, Threshold = threshold,
-                DismissedUtc = time.GetUtcNow().UtcDateTime, DismissedByAccountId = actor });
-        else if (!hidden && row is not null) ctx.FamilyMilestoneDismisses.Remove(row);
-        await ctx.SaveChangesAsync(ct);
-        return FamilyError.None;
+        ctx.FamilyMembers.Remove(m);
+        var rest = t.Members.Where(x => x.Id != m.Id).ToList();
+        if (rest.Count > 0 && !(t.IsActive && rest.All(x => !x.IsActive))) return;
+        ctx.FamilyMembers.RemoveRange(rest);
+        ctx.FamilyJoinRequests.RemoveRange(await ctx.FamilyJoinRequests.Where(q => q.FamilyTeamId == t.Id).ToListAsync(ct));
+        ctx.FamilyMilestonesReached.RemoveRange(await ctx.FamilyMilestonesReached.Where(x => x.FamilyTeamId == t.Id).ToListAsync(ct));
+        ctx.FamilyMilestoneDismisses.RemoveRange(await ctx.FamilyMilestoneDismisses.Where(x => x.FamilyTeamId == t.Id).ToListAsync(ct));
+        ctx.FamilyTeams.Remove(t);
     }
 
     // ── 보기(홈 "우리 가족팀" · 순위 "가족팀" 탭) ──
 
     /// <summary>활성 팀과 구성원(이 부서 승인 · 활성 참여자만), 구성원 시즌 점수 · 오늘 점수 · 마지막 점수일.</summary>
-    private async Task<(List<(FamilyTeam Team, List<(FamilyMember M, string Name, int Pid)> Members)> Teams,
+    internal async Task<(List<(FamilyTeam Team, List<(FamilyMember M, string Name, int Pid)> Members)> Teams,
         Dictionary<int, int> Season, Dictionary<int, int> Today, Dictionary<int, DateOnly> Last)> LoadTeamsAsync(AppDbContext ctx, DateOnly today, CancellationToken ct)
     {
         var names = await (from p in ctx.Participants
@@ -292,7 +180,7 @@ public sealed class FamilyTeamService(IAppDb db, ISystemDb systemDb, RequestScop
         return (teams, season, todayPts, last);
     }
 
-    private static int? Next(RuleSet r, int total) =>
+    internal static int? Next(RuleSet r, int total) =>
         r.FamilyMilestones.Where(m => m.Enabled && m.Points > total).OrderBy(m => m.Points).Select(m => (int?)m.Points).FirstOrDefault();
 
     /// <summary>홈 "우리 가족팀"(시안 홈메인): 나(이 소속)의 참여자가 든 활성 팀. 없거나 스위치가 꺼지면 null.</summary>
@@ -421,20 +309,26 @@ public sealed class FamilyTeamService(IAppDb db, ISystemDb systemDb, RequestScop
         return e;
     }
 
-    private static string? Clean(string? s, int max) => string.IsNullOrWhiteSpace(s) ? null : s.Trim()[..Math.Min(s.Trim().Length, max)];
+    internal static string? Clean(string? s, int max) => string.IsNullOrWhiteSpace(s) ? null : s.Trim()[..Math.Min(s.Trim().Length, max)];
+
+    /// <summary>지난 단계에서 다음 단계까지 온 정도(0 ~ 100). 모든 단계를 넘었으면 100.</summary>
+    public static double StagePct(RuleSet r, int total)
+    {
+        if (Next(r, total) is not { } next) return 100;
+        var prev = r.FamilyMilestones.Where(s => s.Enabled && s.Points <= total).Select(s => s.Points).DefaultIfEmpty(0).Max();
+        return next <= prev ? 0 : Math.Clamp((total - prev) * 100.0 / (next - prev), 0, 100);
+    }
 
     public static string Message(FamilyError e) => e switch
     {
-        FamilyError.Disabled => "기본 규칙에서 가족팀이 꺼져 있어요.",
-        FamilyError.NotFound => "이 부서에서 찾을 수 없어요. 화면을 새로 고쳐 주세요.",
-        FamilyError.NoMember => "구성원을 한 명 이상 골라 주세요.",
-        FamilyError.NotParticipant => "이 부서의 승인된 참여자만 넣을 수 있어요.",
-        FamilyError.AlreadyInTeam => "이미 다른 가족팀에 들어 있어요. 한 사람은 한 팀에만 들어가요.",
-        FamilyError.FamilyTenantNotChosen => "부모님의 시상 부서가 아직 정해지지 않았어요(플랫폼 관리자가 정해요).",
-        FamilyError.FamilyTenantElsewhere => "이 부모님의 시상 부서는 다른 부서예요.",
-        FamilyError.BadRelation => "관계를 다시 골라 주세요.",
-        FamilyError.MembersElsewhere => "다른 팀에 들어간 구성원이 있어 다시 켤 수 없어요.",
-        FamilyError.NotReached => "아직 넘지 않은 단계예요.",
+        FamilyError.Disabled => "가족팀을 쓸 수 없어요.",
+        FamilyError.NotFound => "찾을 수 없어요. 화면을 새로 고쳐 주세요.",
+        FamilyError.NotParticipant => "이 부서의 참여자만 할 수 있어요.",
+        FamilyError.AlreadyInTeam => "이미 가족팀에 들어 있어요. 다른 팀에 가려면 먼저 나와 주세요.",
+        FamilyError.BadRelation => "나는 누구인지 골라 주세요.",
+        FamilyError.HasPending => "이미 신청한 팀이 있어요. 신청을 취소한 뒤 다시 해 주세요.",
+        FamilyError.InOtherDept => "다른 부서의 가족팀에 들어 있어요. 한 사람은 한 부서의 가족팀에만 들어가요.",
+        FamilyError.NotMember => "이 팀의 구성원만 할 수 있어요.",
         _ => "",
     };
 }

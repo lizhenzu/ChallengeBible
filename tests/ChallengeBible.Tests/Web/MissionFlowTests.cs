@@ -506,6 +506,6 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("?date=2027-01-04", html);
         Assert.Contains("class=\"hCalG\"", html);
         Assert.Contains("class=\"hTab\"", html);                          // 아래 메뉴 줄은 페이지 안(따라다니지 않음)
-        Assert.DoesNotContain("우리 가족", html);                        // 더 보기 · 우리 가족 · 선물은 뺌
+        Assert.Contains("우리 가족팀 만들기", html);                     // 맨 아래 가족팀 입구(0083 — 0069 에서 뺐던 "우리 가족"을 입구로 되살림)
     }
 }
