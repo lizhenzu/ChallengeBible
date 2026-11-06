@@ -1,0 +1,27 @@
+@model (ChallengeBible.Web.Services.RosterPerson P, bool ParticipantTab, bool ShowPoints)
+@* 명단 한 줄(ADR 0085). 이름 아래에 이메일. 전체 탭은 오른쪽에 "참여자" 표시, 참여자 탭은 점수 · "오늘 참여" *@
+@{
+    var p = Model.P;
+    var sub = p.Email + (string.IsNullOrWhiteSpace(p.GroupLabel) ? "" : " · " + p.GroupLabel);
+}
+<div class="rst-row@(p.Me ? " me" : "")">
+    <span class="av k-@ChallengeBible.Web.Pages.Mission.RosterModel.KindKey(p.Kind)" aria-hidden="true">@ChallengeBible.Web.Pages.Mission.RosterModel.Initial(p.Name)</span>
+    <div class="nm"><b>@p.Name</b>@if (p.Me) { <em>나</em> }@if (Model.ParticipantTab) { <span class="kd k-@ChallengeBible.Web.Pages.Mission.RosterModel.KindKey(p.Kind)">@ChallengeBible.Web.Pages.Mission.RosterModel.KindName(p.Kind)</span> }
+        <small>@sub</small></div>
+    @if (!Model.ParticipantTab)
+    {
+        @if (p.IsParticipant) { <span class="tag">참여자</span> }
+    }
+    else if (Model.ShowPoints && p.Points > 0)
+    {
+        <div class="pt"><b class="num">@p.Points.ToString("N0")점</b>@if (p.TodayDone) { <small>오늘 참여</small> }</div>
+    }
+    else if (p.TodayDone)
+    {
+        <div class="pt"><small>오늘 참여</small></div>
+    }
+    else if (Model.ShowPoints)
+    {
+        <div class="pt none">아직</div>
+    }
+</div>
