@@ -79,6 +79,10 @@ public sealed class PromotionApprover(IAppDb db, ISystemDb systemDb, TenantConte
             sys.MilestonesReached.RemoveRange(await sys.MilestonesReached.Where(x => x.TenantId == t && pids.Contains(x.ParticipantId)).ToListAsync(ct));
             sys.GuardianLinks.RemoveRange(await sys.GuardianLinks.Where(x => x.TenantId == t && (pids.Contains(x.ParticipantId) || x.GuardianMembershipId == source.Id)).ToListAsync(ct));
             sys.FamilyInvites.RemoveRange(await sys.FamilyInvites.Where(x => x.TenantId == t && (pids.Contains(x.ParticipantId) || pids.Contains(x.InvitedByParticipantId))).ToListAsync(ct));   // R-213
+            sys.FamilyJoinRequests.RemoveRange(await sys.FamilyJoinRequests.Where(x => x.TenantId == t && pids.Contains(x.ParticipantId)).ToListAsync(ct));   // R-208
+            var seats = await sys.FamilyMembers.Where(x => x.TenantId == t && pids.Contains(x.ParticipantId)).ToListAsync(ct);
+            foreach (var seat in seats)   // R-208: 팀 자리를 비우고, 마지막 사람이었으면 팀도 지운다
+                await FamilyTeamService.DropMemberAsync(sys, await sys.FamilyTeams.Include(x => x.Members).SingleAsync(x => x.TenantId == t && x.Id == seat.FamilyTeamId, ct), seat, ct);
             await sys.SaveChangesAsync(ct);
             var acts = await sys.Activities.Where(x => x.TenantId == t && pids.Contains(x.ParticipantId)).ToListAsync(ct);
             removed = acts.Count;

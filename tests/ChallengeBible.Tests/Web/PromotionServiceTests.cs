@@ -83,6 +83,66 @@ public class PromotionServiceTests
         Assert.False(raw.Memberships.Any(x => x.TenantId == _elem.Id && x.AccountId == m.AccountId));    // 0058: 승인 때 만든다
     }
 
+    /// <summary>시험용 팀: 구성원 참여자 번호를 받아 만든다.</summary>
+    private int SeedTeam(params int[] members)
+    {
+        using var raw = InMemoryDb.Raw(_db);
+        var team = new FamilyTeam { TenantId = _kids.Id, Name = "웃음폭탄네", CreatedUtc = DateTime.UtcNow };
+        foreach (var p in members) team.Members.Add(new FamilyMember { TenantId = _kids.Id, ParticipantId = p });
+        raw.FamilyTeams.Add(team);
+        raw.SaveChanges();
+        return team.Id;
+    }
+
+    [Fact]
+    public async Task R208_승인하면_가족팀_자리만_빠지고_다른_구성원의_팀은_남는다()
+    {
+        var (_, m, pid) = Kid();
+        var team = SeedTeam(pid, 999);
+        var id = await SendOne(m);
+        Assert.Equal(PromotionError.None, await In(_elem).Approver.ApproveAsync(_elemAdmin.Id, id, [Roles.Participant], null));
+        using var raw = InMemoryDb.Raw(_db);
+        Assert.Equal(999, raw.FamilyMembers.Single(x => x.FamilyTeamId == team).ParticipantId);
+        Assert.True(raw.FamilyTeams.Any(x => x.Id == team));
+    }
+
+    [Fact]
+    public async Task R208_승인으로_마지막_구성원이_빠지면_팀과_딸린_기록이_지워진다()
+    {
+        var (_, m, pid) = Kid();
+        var team = SeedTeam(pid);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.FamilyJoinRequests.Add(new FamilyJoinRequest { TenantId = _kids.Id, FamilyTeamId = team, ParticipantId = 999, Relation = FamilyRelation.Student, CreatedUtc = DateTime.UtcNow });
+            raw.FamilyMilestonesReached.Add(new FamilyMilestoneReached { TenantId = _kids.Id, FamilyTeamId = team, Year = 2027, Threshold = 500, ReachedUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        var id = await SendOne(m);
+        Assert.Equal(PromotionError.None, await In(_elem).Approver.ApproveAsync(_elemAdmin.Id, id, [Roles.Participant], null));
+        using var after = InMemoryDb.Raw(_db);
+        Assert.Empty(after.FamilyTeams);
+        Assert.Empty(after.FamilyMembers);
+        Assert.Empty(after.FamilyJoinRequests);
+        Assert.Empty(after.FamilyMilestonesReached);
+    }
+
+    [Fact]
+    public async Task R208_승인하면_이전_부서에_낸_합류_신청이_지워진다()
+    {
+        var (_, m, pid) = Kid();
+        var team = SeedTeam(999);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.FamilyJoinRequests.Add(new FamilyJoinRequest { TenantId = _kids.Id, FamilyTeamId = team, ParticipantId = pid, Relation = FamilyRelation.Student, CreatedUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        var id = await SendOne(m);
+        Assert.Equal(PromotionError.None, await In(_elem).Approver.ApproveAsync(_elemAdmin.Id, id, [Roles.Participant], null));
+        using var after = InMemoryDb.Raw(_db);
+        Assert.Empty(after.FamilyJoinRequests);
+        Assert.Single(after.FamilyMembers);
+    }
+
     [Fact]
     public async Task R213_승인하면_이전_부서에서_받거나_보낸_가족_초대가_지워진다()
     {
