@@ -47,6 +47,7 @@ builder.Services.AddScoped<PlatformRuleService>();
 builder.Services.AddScoped<MemberDetailService>();
 builder.Services.AddScoped<TenantContentService>();
 builder.Services.AddScoped<RankingService>();
+builder.Services.AddScoped<RosterService>();
 builder.Services.AddScoped<HomeService>();
 builder.Services.AddScoped<LandingService>();
 builder.Services.AddScoped<LobbyService>();

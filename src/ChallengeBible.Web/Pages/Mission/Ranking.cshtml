@@ -15,7 +15,7 @@
 </div></header>
 <main class="mbody gut"><div class="wrap rkp">
     <div class="k">도전!!!성경말씀</div>
-    <h1>참여자</h1>
+    <h1>순위</h1>
     <div class="sub num">@(d.Year) 시즌 · 목표 @(d.Target.ToString("N0"))점 · @d.Today.ToString("M월 d일", ko) 기준</div>
 
     @if (Model.Families.Enabled)
@@ -84,7 +84,7 @@
     }
     else
     {
-    <div class="tot"><div><small>참여자</small><b class="num">@d.Rows.Count<u>명</u></b></div><div><small>목표 달성</small><b class="num">@d.Achieved<u>명</u></b></div></div>
+    <div class="tot"><div><small>점수 있는 참여자</small><b class="num">@d.Rows.Count<u>명</u></b></div><div><small>목표 달성</small><b class="num">@d.Achieved<u>명</u></b></div></div>
 
     @if (d.Rows.Count == 0)
     {

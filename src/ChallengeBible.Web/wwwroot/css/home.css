@@ -239,8 +239,8 @@
 }
 
 /* 0076 department home (confirmed mockup hk): ribbon, greeting + growth, search, two program cards, family / dept */
-.hm .hj { --hj-org: #F08A24; --hj-org-l: #FFF1E3; --hj-blue: #3B7BEA; --hj-blue-l: #E9F1FE; --hj-green: #3BAA5C; --hj-green-l: #E3F3E7; --hj-mint: #22A57F; --hj-mint-l: #E3F6EF; --hj-sun: #FFB938; --hj-sun-l: #FFF5DD; }
-@media (prefers-color-scheme: dark) { .hm .hj { --hj-org: #FFAE5E; --hj-org-l: #3A2A18; --hj-blue: #7FA9F5; --hj-blue-l: #1D2A44; --hj-green: #6FCB8A; --hj-green-l: #1C3324; --hj-mint: #5ED0AE; --hj-mint-l: #173229; --hj-sun: #F2C063; --hj-sun-l: #33291A; } }
+.hm .hj { --hj-org: #F08A24; --hj-org-l: #FFF1E3; --hj-blue: #3B7BEA; --hj-blue-l: #E9F1FE; --hj-green: #3BAA5C; --hj-green-l: #E3F3E7; --hj-mint: #22A57F; --hj-mint-l: #E3F6EF; --hj-sun: #FFB938; --hj-sun-l: #FFF5DD; --hj-purple: #7C5CE0; }
+@media (prefers-color-scheme: dark) { .hm .hj { --hj-org: #FFAE5E; --hj-org-l: #3A2A18; --hj-blue: #7FA9F5; --hj-blue-l: #1D2A44; --hj-green: #6FCB8A; --hj-green-l: #1C3324; --hj-mint: #5ED0AE; --hj-mint-l: #173229; --hj-sun: #F2C063; --hj-sun-l: #33291A; --hj-purple: #A794F0; } }
 .hm main.hj .wrap { padding-block: 14px 24px; gap: 12px; }
 .hm .hj a { color: inherit; text-decoration: none; }
 .hm .hj-rib { margin: 0; padding: 10px 14px; border-radius: 14px; background: var(--bg); border: 1px solid var(--rule); font-size: 13.5px; font-weight: 700; line-height: 1.5; }
@@ -364,7 +364,7 @@
 .hm .hj-dept > i { height: 44px; background: var(--rule); }
 .hm .hj-dept > a { min-width: 0; text-align: center; padding: 8px 0; border-radius: 10px; -webkit-tap-highlight-color: transparent; }
 .hm .hj-dept > a[href]:active { background: var(--soft); }
-.hm .hj-dept .b { --c: var(--hj-blue); } .hm .hj-dept .m { --c: var(--hj-mint); } .hm .hj-dept .s { --c: var(--hj-n3-l); }
+.hm .hj-dept .b { --c: var(--hj-blue); } .hm .hj-dept .pn { --c: var(--hj-purple); } .hm .hj-dept .m { --c: var(--hj-mint); }
 .hm .hj-dept b { display: block; font-size: 24px; font-weight: 900; color: var(--c); }
 .hm .hj-dept b u { text-decoration: none; margin-left: 2px; font-size: 12.5px; color: var(--dim); }
 .hm .hj-dept small { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; color: var(--dim); }

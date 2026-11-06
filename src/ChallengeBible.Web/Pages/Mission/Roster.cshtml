@@ -1,0 +1,69 @@
+@page "/{slug}/roster"
+@model RosterModel
+@using ChallengeBible.Web.Services
+@* 확정 시안: dept-roster(ADR 0085) — 탭(전체 · 참여자) → 구분 · 찾기 → 목록. 전체는 구분별, 참여자는 점수 있는 분 · 없는 분 *@
+@{
+    var d = Model.Data;
+    var slug = Model.Tenant.Current.Slug;
+    var kinds = new[] { RankKind.Student, RankKind.Parent, RankKind.Teacher };
+    var ko = StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false);
+}
+<header class="mtop gut"><div class="wrap">
+    <nav class="crumb"><a href="/@slug">홈으로</a></nav>
+    <span class="date num">@d.Today.Year</span>
+</div></header>
+<main class="mbody gut"><div class="wrap rst">
+    <h1>명단</h1>
+    <p class="sub">@(Model.ParticipantTab ? "미션에 참여하는 분이에요." + (d.ShowPoints ? " 점수가 없어도 보여요." : "") : "부서에 함께하는 모든 분이에요.")</p>
+
+    <nav class="rst-tabs" aria-label="전체 · 참여자">
+        <a href="@Model.Url(tab: "all")" aria-current="@(Model.ParticipantTab ? "false" : "page")">전체<em class="num">@d.AllCount</em></a>
+        <a href="@Model.Url(tab: "participant")" aria-current="@(Model.ParticipantTab ? "page" : "false")">참여자<em class="num">@d.ParticipantCount</em></a>
+    </nav>
+
+    <nav class="rst-chips" aria-label="구분">
+        <a href="@Model.Url(kind: "all")" aria-current="@(Model.Kind is not ("student" or "parent" or "teacher") ? "true" : "false")">전체</a>
+        @foreach (var k in kinds.Where(k => Model.InTab.Any(p => p.Kind == k)))
+        {
+            <a href="@Model.Url(kind: RosterModel.KindKey(k))" aria-current="@(Model.Kind == RosterModel.KindKey(k) ? "true" : "false")">@RosterModel.KindName(k)</a>
+        }
+    </nav>
+    <form class="rst-srch" method="get" role="search">
+        @if (Model.ParticipantTab) { <input type="hidden" name="t" value="participant" /> }
+        @if (Model.Kind is "student" or "parent" or "teacher") { <input type="hidden" name="f" value="@Model.Kind" /> }
+        <label><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></svg>
+            <input type="search" name="q" value="@Model.Q" placeholder="이름 · 이메일 찾기" aria-label="이름 · 이메일 찾기" /></label>
+    </form>
+
+    @if (Model.Shown.Count == 0)
+    {
+        <div class="empty">@(string.IsNullOrWhiteSpace(Model.Q) ? "아직 이 명단에 아무도 없어요" : "찾는 사람이 없어요")</div>
+    }
+    else if (Model.ParticipantTab && d.ShowPoints)
+    {
+        var scored = Model.Shown.Where(p => p.Points > 0).OrderByDescending(p => p.Points).ThenBy(p => p.Name, ko).ToList();
+        var none = Model.Shown.Where(p => p.Points <= 0).ToList();
+        @if (scored.Count > 0) { <div class="rst-sec">점수 있는 분 <span class="num">@scored.Count</span></div> }
+        @foreach (var p in scored) { <partial name="_RosterRow" model="(p, true, d.ShowPoints)" /> }
+        @if (none.Count > 0) { <div class="rst-sec">아직 점수가 없는 분 <span class="num">@none.Count</span></div> }
+        @foreach (var p in none) { <partial name="_RosterRow" model="(p, true, d.ShowPoints)" /> }
+        @if (scored.Count > 0)
+        {
+            <a class="rst-note" href="/@slug/ranking">점수가 있는 <b class="num">@d.People.Count(p => p.IsParticipant && p.Points > 0)명</b>의 순위는 <b>순위</b>에서 볼 수 있어요. ›</a>
+        }
+    }
+    else if (Model.ParticipantTab)
+    {
+        @foreach (var p in Model.Shown) { <partial name="_RosterRow" model="(p, true, d.ShowPoints)" /> }
+    }
+    else
+    {
+        @foreach (var k in kinds)
+        {
+            var list = Model.Shown.Where(p => p.Kind == k).ToList();
+            if (list.Count == 0) { continue; }
+            <div class="rst-sec">@RosterModel.KindName(k) <span class="num">@list.Count</span></div>
+            @foreach (var p in list) { <partial name="_RosterRow" model="(p, false, d.ShowPoints)" /> }
+        }
+    }
+</div></main>

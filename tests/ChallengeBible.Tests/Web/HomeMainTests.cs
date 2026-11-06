@@ -65,7 +65,13 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("<a class=\"cur\" href=\"/jamsil-kids/word\">말씀<small>대기 중 ›</small>", home);
         Assert.Contains("<a class=\"cur\" href=\"/jamsil-kids/quiz\">퀴즈<small>대기 중 ›</small>", home);   // 대기 중은 모두 같은 주황(2026-11-03)
         Assert.Contains("<a class=\"hj-box o\" href=\"/jamsil-kids/word-mission\">", home);
-        Assert.Matches("<b class=\"num\">\\d+<u>명</u></b><small>우리 부서 참여자</small>", home);   // 아래 칸 셋(2026-11-03 B안)   // 오늘의 말씀 칸 → 미션홈(2026-11-03)   // 다음 할 일 칸
+        Assert.Matches("<b class=\"num\">\\d+<u>명</u></b><small>전체</small>", home);              // 아래 칸 셋(ADR 0085, 2026-11-07): 전체 · 참여자 · 오늘 참여
+        Assert.Matches("<b class=\"num\">\\d+<u>명</u></b><small>참여자</small>", home);
+        Assert.Matches("<b class=\"num\">\\d+<u>명</u></b><small>오늘 참여</small>", home);
+        Assert.DoesNotContain("우리 부서 참여자", home);
+        Assert.DoesNotContain("나는 오늘", home);
+        Assert.Contains("href=\"/jamsil-kids/roster\"", home);
+        Assert.Contains("href=\"/jamsil-kids/roster?t=participant\"", home);
         Assert.Contains("김철수 <u>님</u>", home);                                    // 0076 인사 카드
         Assert.Contains("<small>나의 점수</small>", home);                            // R-190 성장: 0점 = 씨앗 0%, 새싹까지 400점
         Assert.Contains("씨앗 0%", home);
@@ -173,7 +179,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
-    public async Task 우리_부서에_오늘_참여_순서가_보인다()
+    public async Task 오늘_참여가_카드에_반영되고_나는_오늘_순서는_더_이상_보이지_않는다()
     {
         var (c, _) = await Member("cheolsu", Roles.Participant);
         var html = await c.GetStringAsync("/jamsil-kids/word");
@@ -182,7 +188,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         req.Headers.Add("RequestVerificationToken", TokenRx().Match(html).Groups[1].Value);
         (await c.SendAsync(req)).EnsureSuccessStatusCode();
         var home = await c.GetStringAsync("/jamsil-kids");
-        Assert.Contains("<b class=\"num\">1<u>번째</u></b>", home);
+        Assert.Contains("<b class=\"num\">1<u>명</u></b><small>오늘 참여</small>", home);   // ADR 0085: "나는 오늘 N번째" 칸은 뺐다
+        Assert.DoesNotContain("번째", home);
         Assert.Contains("<b class=\"num\">1/2</b>오늘 미션", home);
         Assert.Contains("<a class=\"cur\" href=\"/jamsil-kids/quiz\">", home);       // 다음 할 일 = 퀴즈
     }

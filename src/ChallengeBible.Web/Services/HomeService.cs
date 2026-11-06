@@ -10,7 +10,8 @@ namespace ChallengeBible.Web.Services;
 /// <summary>미션 네 가지의 오늘 상태(홈 말씀 카드 "미션 4칸").</summary>
 public sealed record HomeMission(string Key, string Label, bool Has, bool Done, string State);
 public sealed record HomeWeekDay(DateOnly Date, int MissionPoints, bool AllFour, int Chapters);
-public sealed record HomeDept(int Members, int TodayPeople, int? YearChapters, int? MyOrderToday, int Participants = 0);
+/// <summary>홈 카드 숫자. Members = 승인된 모든 소속원(명단 "전체"), Participants = 활성 참여자(명단 "참여자").</summary>
+public sealed record HomeDept(int Members, int TodayPeople, int? YearChapters, int Participants = 0);
 
 /// <summary>부서 홈 메인(확정 시안: 홈메인)에 필요한 것. 프로그램이 꺼졌거나 참여자가 아니면 그 부분은 null · 0.</summary>
 public sealed class HomeView
@@ -132,22 +133,18 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
             ReciteRange = day?.Recite?.Range, ReciteStart = day?.Recite?.Start, ReciteEnd = day?.Recite?.End, PrayerTrait = day?.Prayer?.Trait, PrayerRange = day?.Prayer?.Range,
             Missions = list, NextMission = list.FirstOrDefault(m => m.Has && !m.Done),
             Reading = sum, ResumeText = resumeText, Week = weekDays,
-            Dept = tenant.IsLobby ? null : await DeptAsync(today, pid, ct),   // 임시 부서는 "우리 부서" 숫자를 숨긴다(0064)
+            Dept = tenant.IsLobby ? null : await DeptAsync(today, ct),   // 임시 부서는 "우리 부서" 숫자를 숨긴다(0064)
         };
     }
 
-    private async Task<HomeDept> DeptAsync(DateOnly today, int? pid, CancellationToken ct)
+    private async Task<HomeDept> DeptAsync(DateOnly today, CancellationToken ct)
     {
         var t = tenant.Current;
         await using var ctx = db.Create();
         var members = await ctx.Memberships.CountAsync(m => m.Status == MembershipStatus.Approved, ct);
-        var firsts = t.MissionEnabled
-            ? await ctx.Activities.Where(a => a.MissionDate == today).GroupBy(a => a.ParticipantId)
-                .Select(g => new { g.Key, First = g.Min(a => a.PerformedUtc) }).ToListAsync(ct)
-            : [];
-        int? order = null;
-        if (pid is int p && firsts.FirstOrDefault(f => f.Key == p) is { } mine)
-            order = firsts.Count(f => f.First < mine.First) + 1;
+        var todayPeople = t.MissionEnabled
+            ? await ctx.Activities.Where(a => a.MissionDate == today).Select(a => a.ParticipantId).Distinct().CountAsync(ct)
+            : 0;
 
         int? chapters = null;
         if (t.ReadingEnabled && (t.ReadingBoardPublic || tenant.IsStaff))
@@ -157,9 +154,9 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
             var from = TimeZoneInfo.ConvertTimeToUtc(new DateTime(today.Year, 1, 1), TimeZoneInfo.FindSystemTimeZoneById(t.TimeZoneId));   // 부서 시간 1월 1일 0시
             chapters = await ctx.ChapterReads.IgnoreQueryFilters().CountAsync(c => ids.Contains(c.AccountId) && c.ReadUtc >= from, ct);
         }
-        // 부서 참여자 수(2026-11-03 홈 아래 칸): 승인된 소속의 참여자
+        // 참여자 수(명단 "참여자"와 같은 기준, ADR 0085): 승인된 소속의 활성 참여자
         var participants = await (from pa in ctx.Participants join m in ctx.Memberships on pa.MembershipId equals m.Id
-                                  where m.Status == MembershipStatus.Approved select pa.Id).CountAsync(ct);
-        return new HomeDept(members, firsts.Count, chapters, order, participants);
+                                  where pa.IsActive && m.Status == MembershipStatus.Approved select pa.Id).CountAsync(ct);
+        return new HomeDept(members, todayPeople, chapters, participants);
     }
 }

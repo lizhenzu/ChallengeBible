@@ -12,7 +12,7 @@ namespace ChallengeBible.Web.Pages.Mission;
 /// </summary>
 public class RankingModel(RankingService ranking, FamilyTeamService families, TenantContext tenant) : PageModel, ITitled
 {
-    public string Title => "참여자";
+    public string Title => "순위";
     public TenantContext Tenant => tenant;
 
     [BindProperty(SupportsGet = true, Name = "t")] public string Tab { get; set; } = "person";
