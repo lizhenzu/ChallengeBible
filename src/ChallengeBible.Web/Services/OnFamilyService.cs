@@ -18,8 +18,8 @@ public sealed record FamilyBoardView(int Id, string Name, IReadOnlyList<FamilyPe
     public int DeptCount => People.Where(p => !p.Hidden).SelectMany(p => p.Depts).Distinct().Count();
 }
 
-/// <summary>내 계정 > 온가족. AwardDept 는 보호자일 때 시상 부서 이름(정하지 않았으면 null).</summary>
-public sealed record MyOnFamily(FamilyBoardView? Family, FamilyRequest? Open, bool IsGuardian, string? AwardDept, DateOnly Today);
+/// <summary>내 계정 > 온가족. </summary>
+public sealed record MyOnFamily(FamilyBoardView? Family, FamilyRequest? Open, bool IsGuardian, DateOnly Today);
 
 public enum OnFamilyError { None, Empty, TooLong, RequestOpen, AlreadyInFamily, NotFound }
 
@@ -85,10 +85,7 @@ public sealed class OnFamilyService(ISystemDb systemDb, TenantClock clock, TimeP
             : null;
         var guardian = await sys.Memberships.AnyAsync(m => m.AccountId == accountId && m.Status == MembershipStatus.Approved
             && m.Roles.Any(r => r.Role == Roles.Guardian), ct);
-        var award = guardian
-            ? await (from a in sys.Accounts join t in sys.Tenants on a.FamilyTenantId equals t.Id where a.Id == accountId select t.Name).SingleOrDefaultAsync(ct)
-            : null;
-        return new MyOnFamily(board, open, guardian, award, clock.Today(PlatformHomeService.PlatformTimeZone));
+        return new MyOnFamily(board, open, guardian, clock.Today(PlatformHomeService.PlatformTimeZone));
     }
 
     /// <summary>부서 홈 한 줄(R-177): 내 온가족 이름 · 총점. 없으면 null.</summary>

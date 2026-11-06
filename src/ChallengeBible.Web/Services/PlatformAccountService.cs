@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 namespace ChallengeBible.Web.Services;
 
 public sealed record AccountHit(int Id, string Name, string Email, bool PlatformAdmin, bool TenantAdmin, IReadOnlyList<string> Tenants);
-public sealed record AccountMembership(string Tenant, string ThemeColor, string Status, IReadOnlyList<string> Roles, bool Family);
-public sealed record AccountDetail(int Id, string Name, string Email, bool PlatformAdmin, DateTime CreatedUtc, string? FamilyTenant,
+public sealed record AccountMembership(string Tenant, string ThemeColor, string Status, IReadOnlyList<string> Roles);
+public sealed record AccountDetail(int Id, string Name, string Email, bool PlatformAdmin, DateTime CreatedUtc,
     IReadOnlyList<AccountMembership> Memberships, IReadOnlyList<string> AdminOf, IReadOnlyList<PlatformLog> Log);
 
 /// <summary>
@@ -89,7 +89,6 @@ public sealed class PlatformAccountService(ISystemDb systemDb, TimeProvider time
         var a = await ctx.Accounts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
         if (a is null) return null;
         var mems = await MembershipsAsync(ctx, [id], ct);
-        var family = a.FamilyTenantId is int f ? await ctx.Tenants.Where(t => t.Id == f).Select(t => t.Name).SingleOrDefaultAsync(ct) : null;
 
         // 이 계정이 한 일 + 이 계정에 한 일(Detail 에 "account={id} " 로 적힌 기록: 비밀번호 · 읽음 초기화, 진급)
         var marker = $"account={id} ";
@@ -99,8 +98,8 @@ public sealed class PlatformAccountService(ISystemDb systemDb, TimeProvider time
                           orderby l.OccurredUtc descending, l.Id descending
                           select new { l.OccurredUtc, actorAcc.DisplayName, actorAcc.IsPlatformAdmin, l.TenantId, l.Action, l.Detail }).Take(30).ToListAsync(ct);
         var tenants = await ctx.Tenants.AsNoTracking().ToDictionaryAsync(t => t.Id, t => t.Name, ct);
-        return new AccountDetail(a.Id, a.DisplayName, a.Email, a.IsPlatformAdmin, a.CreatedUtc, family,
-            mems.Select(m => new AccountMembership(m.Tenant, m.Color, m.Status, m.Roles, m.TenantId == a.FamilyTenantId)).ToList(),
+        return new AccountDetail(a.Id, a.DisplayName, a.Email, a.IsPlatformAdmin, a.CreatedUtc,
+            mems.Select(m => new AccountMembership(m.Tenant, m.Color, m.Status, m.Roles)).ToList(),
             mems.Where(m => m.Status == MembershipStatus.Approved && m.Roles.Contains(Roles.TenantAdmin)).Select(m => m.Tenant).ToList(),
             logs.Select(l => new PlatformLog(l.OccurredUtc, l.IsPlatformAdmin ? $"{l.DisplayName}(운영자)" : l.DisplayName,
                 l.TenantId is int t ? tenants.GetValueOrDefault(t) : null, PlatformHomeService.LogText(l.Action, l.Detail))).ToList());

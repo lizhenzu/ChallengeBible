@@ -40,6 +40,17 @@ public static class FamilyRelation
     public static readonly string[] All = [Student, Mother, Father, Grandmother, Grandfather, Other];
 }
 
+/// <summary>가족팀 합류 신청(R-206 · R-207, ADR 0083). 참여자당 한 줄(한 번에 한 팀). 처리되면 지운다.</summary>
+public sealed class FamilyJoinRequest : ITenantOwned
+{
+    public int Id { get; set; }
+    public int TenantId { get; set; }
+    public int FamilyTeamId { get; set; }
+    public int ParticipantId { get; set; }
+    public string Relation { get; set; } = FamilyRelation.Student;
+    public DateTime CreatedUtc { get; set; }
+}
+
 /// <summary>가족 단계 도달(R-96) — 시즌 · 단계마다 한 번.</summary>
 public sealed class FamilyMilestoneReached : ITenantOwned
 {
@@ -92,6 +103,25 @@ internal sealed class FamilyMemberConfig : IEntityTypeConfiguration<FamilyMember
         // 같은 영역의 참여자만(R-90, T-3 복합 외래 키)
         e.HasOne<Participant>().WithMany().HasForeignKey(x => new { x.TenantId, x.ParticipantId }).HasPrincipalKey(p => new { p.TenantId, p.Id })
             .HasConstraintName("FK_FamilyMember_Participant").OnDelete(DeleteBehavior.NoAction);
+    }
+}
+
+internal sealed class FamilyJoinRequestConfig : IEntityTypeConfiguration<FamilyJoinRequest>
+{
+    public void Configure(EntityTypeBuilder<FamilyJoinRequest> e)
+    {
+        e.ToTable("FamilyJoinRequest", t => t.HasCheckConstraint("CK_FamilyJoinRequest_Relation",
+            $"Relation IN ({string.Join(",", FamilyRelation.All.Select(s => $"'{s}'"))})"));
+        e.HasKey(x => x.Id).HasName("PK_FamilyJoinRequest").IsClustered(false);
+        e.HasAlternateKey(x => new { x.TenantId, x.Id }).HasName("UQ_FamilyJoinRequest_TenantId_Id").IsClustered();
+        e.HasIndex(x => new { x.TenantId, x.ParticipantId }).IsUnique().HasDatabaseName("UX_FamilyJoinRequest_OneTeam");   // R-206
+        e.HasIndex(x => new { x.TenantId, x.FamilyTeamId }).HasDatabaseName("IX_FamilyJoinRequest_Team");
+        e.Property(x => x.Relation).HasMaxLength(20).IsUnicode(false);
+        e.Property(x => x.CreatedUtc).HasColumnType("datetime2(3)");
+        e.HasOne<FamilyTeam>().WithMany().HasForeignKey(x => new { x.TenantId, x.FamilyTeamId }).HasPrincipalKey(t => new { t.TenantId, t.Id })
+            .HasConstraintName("FK_FamilyJoinRequest_Team").OnDelete(DeleteBehavior.NoAction);
+        e.HasOne<Participant>().WithMany().HasForeignKey(x => new { x.TenantId, x.ParticipantId }).HasPrincipalKey(p => new { p.TenantId, p.Id })
+            .HasConstraintName("FK_FamilyJoinRequest_Participant").OnDelete(DeleteBehavior.NoAction);
     }
 }
 

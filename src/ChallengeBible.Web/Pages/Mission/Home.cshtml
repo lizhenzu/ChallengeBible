@@ -4,7 +4,7 @@
 @using ChallengeBible.Web.Auth
 @using ChallengeBible.Domain.Missions
 @* 확정 시안: 미션홈-옛모양(ADR 0069) — 옛 사이트 "밝은 흰색 버전" 모양 · 구성, 모든 부서.
-   홈으로 · 날짜 → 환영 → 인사 → 나의 기록 → 최근 7일 → 네 칸 숫자 → (다 했을 때만) 오늘 완료 → 미션 카드 4장 → 이달 달력 → 맨 끝 메뉴 줄.
+   홈으로 · 날짜 → 환영 → 인사 → 나의 기록 → 최근 7일 → 네 칸 숫자 → (다 했을 때만) 오늘 완료 → 미션 카드 4장 → 이달 달력 → 가족팀 입구(0083) → 맨 끝 메뉴 줄.
    점수는 코드에 쓰지 않고 규칙(RuleSet)에서 읽는다. *@
 @{
     var d = Model.Data!;
@@ -151,6 +151,32 @@
         }
     </div>
     <div class="hLeg"><span><i style="box-shadow:inset 0 0 0 2px #2F80ED"></i>오늘</span><span>숫자 = 그날 받은 점수 · 날짜를 누르면 그날 미션</span></div>
+
+    @* 가족팀 입구(확정 시안 family-team-self ①, ADR 0083): 팀이 없으면 만들기, 있으면 점수와 기다리는 신청 수 *@
+    @if (Model.Family is { } fam)
+    {
+        <a class="hFam@(fam.Name is null ? " new" : "")" href="/@Model.Slug/family-team">
+            <span class="ic" aria-hidden="true">👨‍👩‍👧</span>
+            <span class="m">
+                @if (fam.Name is { } fn)
+                {
+                    <b>@fn · <span class="num">@fam.Total.ToString("N0")</span>점</b>
+                    <small>@(fam.Next is { } fnx ? $"다음 가족 축하까지 {fnx - fam.Total:N0}점" : "모든 가족 단계를 넘었어요")</small>
+                    <span class="pb" aria-hidden="true"><i style="width:@Inv(fam.Pct)%"></i></span>
+                }
+                else if (fam.PendingTeam is { } pt)
+                {
+                    <b>@pt 합류 신청 중</b><small>가족이 수락하면 함께해요</small>
+                }
+                else
+                {
+                    <b>우리 가족팀 만들기</b><small>가족이 함께 모은 점수로 축하받아요</small>
+                }
+            </span>
+            @if (fam.Waiting > 0) { <span class="ct num" aria-label="기다리는 신청 @(fam.Waiting)건">@fam.Waiting</span> }
+            <span class="ar" aria-hidden="true">›</span>
+        </a>
+    }
 
     <nav class="hTab" aria-label="주 메뉴">
         <a href="/@Model.Slug/word-mission" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /></svg>홈</a>

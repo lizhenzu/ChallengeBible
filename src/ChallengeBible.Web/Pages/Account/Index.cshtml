@@ -43,8 +43,7 @@
             @foreach (var d in Model.Depts)
             {
                 <li><span class="mk" style="background:@ChallengeBible.Web.Pages.Platform.TenantsModel.ColorVar(d.ThemeColor)">@Ui.DeptMark(d.Name)</span>
-                    <a class="nm" href="/@d.Slug"><b>@d.Name</b><small>@string.Join(" · ", d.Roles.Select(IndexModel.RoleLabel))</small></a>
-                    @if (d.IsFamily && Model.IsGuardian) { <span class="tag ok">시상 부서</span> }</li>
+                    <a class="nm" href="/@d.Slug"><b>@d.Name</b><small>@string.Join(" · ", d.Roles.Select(IndexModel.RoleLabel))</small></a></li>
             }
         </ul>
         <div class="ma-links">

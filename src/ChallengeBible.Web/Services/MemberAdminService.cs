@@ -11,7 +11,7 @@ public sealed record MemberFilter(string Status, string? Query, string? Role, st
 
 public enum MemberError
 {
-    None, NotFound, NoRole, BadState, SelfAdminRemove, SelfSuspend, FamilyTenantNotChosen, FamilyTenantElsewhere,
+    None, NotFound, NoRole, BadState, SelfAdminRemove, SelfSuspend,
 }
 
 /// <summary>
@@ -75,9 +75,6 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         if (approve ? m.Status != MembershipStatus.Requested : m.Status != MembershipStatus.Approved) return MemberError.BadState;
         if (m.AccountId == actor && m.Roles.Any(r => r.Role == Infrastructure.Data.Roles.TenantAdmin) && !want.Contains(Infrastructure.Data.Roles.TenantAdmin))
             return MemberError.SelfAdminRemove;
-
-        var family = await CheckFamilyTenantAsync(actor, m.AccountId, want, ct);
-        if (family != MemberError.None) return family;
 
         ctx.MembershipRoles.RemoveRange(m.Roles.Where(r => !want.Contains(r.Role)));
         foreach (var r in want.Where(r => m.Roles.All(x => x.Role != r)))
@@ -144,23 +141,6 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         return MemberError.None;
     }
 
-    /// <summary>
-    /// R-168 · ADR 0046: 보호자인 계정은 "가족과 함께할 부서"에서만 참여자가 될 수 있다.
-    /// 다른 부서의 보호자 역할을 봐야 해서 시스템 연결로 읽는다(물리 설계 3-3 — 읽기만, 관리자 화면에서 이미 권한 확인).
-    /// </summary>
-    private async Task<MemberError> CheckFamilyTenantAsync(int actor, int accountId, IReadOnlyCollection<string> want, CancellationToken ct)
-    {
-        if (!want.Contains(Infrastructure.Data.Roles.Participant)) return MemberError.None;
-        await using var sys = systemDb.Create(actor);
-        var isGuardian = want.Contains(Infrastructure.Data.Roles.Guardian)
-            || await sys.MembershipRoles.AnyAsync(r => r.Role == Infrastructure.Data.Roles.Guardian
-                && sys.Memberships.Any(m => m.TenantId == r.TenantId && m.Id == r.MembershipId && m.AccountId == accountId), ct);
-        if (!isGuardian) return MemberError.None;
-        var familyTenant = await sys.Accounts.Where(a => a.Id == accountId).Select(a => a.FamilyTenantId).SingleAsync(ct);
-        if (familyTenant is null) return MemberError.FamilyTenantNotChosen;
-        return familyTenant == tenant.Current.Id ? MemberError.None : MemberError.FamilyTenantElsewhere;
-    }
-
     // ── 보호 관계(R-132): 1차는 소속 관리의 줄 편집 안에서 연결한다 ──
 
     /// <summary>이 부서에서 보호자 역할이 있는 승인된 소속.</summary>
@@ -219,8 +199,6 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         MemberError.BadState => "이미 처리됐어요. 화면을 새로 고쳐 주세요.",
         MemberError.SelfAdminRemove => "내 관리자 역할은 여기서 뺄 수 없어요.",
         MemberError.SelfSuspend => "나를 정지할 수는 없어요.",
-        MemberError.FamilyTenantNotChosen => "플랫폼 관리자가 먼저 부모님의 시상 부서를 정해야 해요.",
-        MemberError.FamilyTenantElsewhere => "이 부모님의 시상 부서는 다른 부서예요. 여기서는 보호자로만 함께해요.",
         _ => "",
     };
 }

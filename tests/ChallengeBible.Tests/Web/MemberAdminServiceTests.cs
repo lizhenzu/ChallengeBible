@@ -133,37 +133,6 @@ public class MemberAdminServiceTests
     }
 
     [Fact]
-    public async Task R168_보호자는_가족_부서를_고르기_전에는_참여자가_될_수_없다()
-    {
-        var m = Applicant(_kids, "younghee", Roles.Participant, Roles.Guardian);
-        Assert.Equal(MemberError.FamilyTenantNotChosen, await In(_kids).ApproveAsync(_admin.Id, m.Id, [Roles.Participant, Roles.Guardian], null));
-        // 보호자로만은 승인된다
-        Assert.Equal(MemberError.None, await In(_kids).ApproveAsync(_admin.Id, m.Id, [Roles.Guardian], null));
-    }
-
-    [Fact]
-    public async Task R168_가족_부서가_다른_부서면_여기서는_보호자로만()
-    {
-        var parent = InMemoryDb.SeedAccount(_db, "younghee", "김영희", familyTenantId: _kids.Id);
-        var inElem = InMemoryDb.SeedMembership(_db, _elem.Id, parent.Id, MembershipStatus.Requested, Roles.Participant, Roles.Guardian);
-        var elemAdmin = InMemoryDb.SeedAccount(_db, "woosung", "정우성");
-        Assert.Equal(MemberError.FamilyTenantElsewhere, await In(_elem).ApproveAsync(elemAdmin.Id, inElem.Id, [Roles.Participant, Roles.Guardian], null));
-
-        // 가족 부서(유년부)에서는 참여자 + 보호자로 승인된다
-        var inKids = InMemoryDb.SeedMembership(_db, _kids.Id, parent.Id, MembershipStatus.Requested, Roles.Participant, Roles.Guardian);
-        Assert.Equal(MemberError.None, await In(_kids).ApproveAsync(_admin.Id, inKids.Id, [Roles.Participant, Roles.Guardian], null));
-    }
-
-    [Fact]
-    public async Task R168_다른_부서에서_보호자인_계정도_가족_부서_검사를_받는다()
-    {
-        var parent = InMemoryDb.SeedAccount(_db, "daeho", "김대호", familyTenantId: _elem.Id);
-        InMemoryDb.SeedMembership(_db, _elem.Id, parent.Id, MembershipStatus.Approved, Roles.Guardian);
-        var hereOnlyParticipant = InMemoryDb.SeedMembership(_db, _kids.Id, parent.Id, MembershipStatus.Requested, Roles.Participant);
-        Assert.Equal(MemberError.FamilyTenantElsewhere, await In(_kids).ApproveAsync(_admin.Id, hereOnlyParticipant.Id, [Roles.Participant], null));
-    }
-
-    [Fact]
     public async Task 목록은_상태_이름_반으로_거른다()
     {
         var a = Applicant(_kids, "seoyeon");

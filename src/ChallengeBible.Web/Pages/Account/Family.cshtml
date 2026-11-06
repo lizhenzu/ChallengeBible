@@ -37,14 +37,6 @@
                 </div>
             }
         </div>
-        @if (v.IsGuardian)
-        {
-            <section class="of-mine" aria-label="내 시상 부서">
-                <small>내 시상 부서</small>
-                <b>@(v.AwardDept ?? "아직 정해지지 않았어요")</b>
-                <small>@(v.AwardDept is null ? "플랫폼 관리자가 정하면 그 부서에서 미션 · 가족팀을 함께해요." : "이 부서의 가족팀에서만 축하 · 선물을 받아요. 바꾸려면 플랫폼 관리자에게 말씀해 주세요.")</small>
-            </section>
-        }
         <p class="of-ghost">구성원을 넣거나 빼려면 플랫폼 관리자에게 말씀해 주세요.</p>
     }
     else if (v.Open is { } r)
@@ -78,13 +70,5 @@
             @if (Model.Error is not null) { <p class="hint bad" role="alert">@Model.Error</p> }
             <button type="submit" class="btn p">온가족 신청하기</button>
         </form>
-        @if (v.IsGuardian)
-        {
-            <section class="of-mine" aria-label="내 시상 부서">
-                <small>내 시상 부서</small>
-                <b>@(v.AwardDept ?? "아직 정해지지 않았어요")</b>
-                <small>플랫폼 관리자가 정해요. 이 부서의 가족팀에서만 축하 · 선물을 받아요.</small>
-            </section>
-        }
     }
 </div></main>

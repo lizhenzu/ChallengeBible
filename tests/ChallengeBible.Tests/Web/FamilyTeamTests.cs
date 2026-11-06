@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ChallengeBible.Tests.Web;
 
-/// <summary>가족팀 관리(확정 시안: 관리-가족팀, R-90 ~ R-97, 0012 · 0046). 오늘 = 2027-01-05(서울).</summary>
+/// <summary>가족팀 보기 · 관리자 바로잡기(R-90 ~ R-97, 0012 · 0083). 만들기 · 합류는 FamilyJoinTests. 오늘 = 2027-01-05(서울).</summary>
 public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private static readonly DateOnly Jan5 = new(2027, 1, 5);
@@ -35,11 +35,9 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         _kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         _elem = InMemoryDb.SeedTenant(_db, "jamsil-elem", "JSELEM");
         Add(_kids, "cheolsu", "김철수", [Roles.Participant], "사랑반");
-        Add(_kids, "younghee", "김영희", [Roles.Participant, Roles.Guardian], family: "kids");
-        Add(_kids, "daeho", "김대호", [Roles.Participant, Roles.Guardian], family: "kids");
+        Add(_kids, "younghee", "김영희", [Roles.Participant, Roles.Guardian]);
+        Add(_kids, "daeho", "김대호", [Roles.Participant, Roles.Guardian]);
         Add(_kids, "haneul", "문하늘", [Roles.Participant], "믿음반");
-        Add(_kids, "seongmin", "오성민", [Roles.Participant, Roles.Guardian], family: "elem");   // 다른 부서를 가족 부서로(0046)
-        Add(_kids, "nobody", "정모름", [Roles.Participant, Roles.Guardian]);                    // 아직 안 고름
         Add(_elem, "jiho", "윤지호", [Roles.Participant]);                                     // 다른 부서 참여자
         Pts("cheolsu", 600);
         Pts("younghee", 300);
@@ -47,9 +45,9 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         Pts("haneul", 40);
     }
 
-    private void Add(Tenant t, string login, string name, string[] roles, string? group = null, string? family = null)
+    private void Add(Tenant t, string login, string name, string[] roles, string? group = null)
     {
-        var a = InMemoryDb.SeedAccount(_db, login + "@example.com", name, family switch { "kids" => _kids.Id, "elem" => _elem.Id, _ => null }).Id;
+        var a = InMemoryDb.SeedAccount(_db, login + "@example.com", name).Id;
         var m = InMemoryDb.SeedMembership(_db, t.Id, a, MembershipStatus.Approved, roles);
         using var raw = InMemoryDb.Raw(_db);
         raw.Memberships.Single(x => x.Id == m.Id).GroupLabel = group;
@@ -76,94 +74,65 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         using (var raw = InMemoryDb.Raw(_db))
             tc.Set(raw.Tenants.Single(x => x.Id == t.Id),
                 viewer is null ? null : new Membership { Id = _p[viewer].M.Id, Status = MembershipStatus.Approved, Roles = [new MembershipRole { Role = Roles.Participant }] });
-        return new FamilyTeamService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), scope, tc, new TenantClock(_time), InMemoryDb.Rules(_db), _time);
+        return new FamilyTeamService(new InMemoryDb(_db, scope), tc, new TenantClock(_time), InMemoryDb.Rules(_db), _time);
     }
 
     private int P(string login) => _p[login].Pid;
 
+    /// <summary>팀 시드. 관계: 학생은 학생, 보호자는 엄마.</summary>
+    private int Team(string? name, params string[] logins)
+    {
+        using var raw = InMemoryDb.Raw(_db);
+        var t = new FamilyTeam { TenantId = _kids.Id, Name = name, CreatedUtc = DateTime.UtcNow };
+        byte order = 0;
+        foreach (var l in logins)
+            t.Members.Add(new FamilyMember { TenantId = _kids.Id, ParticipantId = P(l), SortOrder = order++,
+                Relation = l is "younghee" or "daeho" ? FamilyRelation.Mother : FamilyRelation.Student });
+        raw.FamilyTeams.Add(t);
+        raw.SaveChanges();
+        return t.Id;
+    }
+
     [Fact]
-    public async Task R90_R92_R93_팀을_만들면_합계는_구성원_시즌_점수의_합_이름이_비면_대표_학생_가족()
+    public async Task R92_R93_합계는_구성원_시즌_점수의_합_이름이_비면_대표_학생_가족()
     {
         var svc = In(_kids);
-        var (e, id) = await svc.CreateAsync(" ", [P("younghee"), P("cheolsu"), P("daeho")]);
-        Assert.Equal(FamilyError.None, e);
+        var id = Team(null, "younghee", "cheolsu", "daeho");
         var team = Assert.Single((await svc.GetAsync()).Teams);
         Assert.Equal(1050, team.Points);
         Assert.Equal("김철수 가족", team.DisplayName);   // 첫 구성원이 엄마여도 대표는 학생(R-93)
-        Assert.Equal([FamilyRelation.Mother, FamilyRelation.Student, FamilyRelation.Mother], team.Members.Select(m => m.Relation));   // 보호자는 엄마로 시작
 
-        // 관계 · 이름 저장, 순서 옮기기
-        var dad = team.Members.Single(m => m.Name == "김대호");
-        Assert.Equal(FamilyError.None, await svc.SaveAsync(id!.Value, "철수네", "메모", new Dictionary<int, string> { [dad.MemberId] = FamilyRelation.Father }));
-        Assert.Equal(FamilyError.None, await svc.MoveAsync(id.Value, dad.MemberId, up: true));
-        team = (await svc.GetAsync()).Teams.Single();
-        Assert.Equal(("철수네", "메모"), (team.DisplayName, team.Memo));
-        Assert.Equal(["김영희", "김대호", "김철수"], team.Members.Select(m => m.Name));
-        Assert.Equal(FamilyRelation.Father, team.Members[1].Relation);
-        Assert.Equal(FamilyError.BadRelation, await svc.SaveAsync(id.Value, null, null, new Dictionary<int, string> { [dad.MemberId] = "Uncle" }));
+        Assert.Equal(FamilyError.None, await svc.RenameAsync(id, "철수네"));
+        Assert.Equal("철수네", (await svc.GetAsync()).Teams.Single().DisplayName);
     }
 
     [Fact]
-    public async Task R91_한_사람은_활성_팀_하나에만_팀을_멈추면_다른_팀에_들어갈_수_있다()
+    public async Task R210_관리자가_구성원을_빼면_점수는_그대로_마지막_사람이면_팀이_사라진다()
     {
         var svc = In(_kids);
-        var (_, a) = await svc.CreateAsync(null, [P("cheolsu")]);
-        Assert.Equal(FamilyError.AlreadyInTeam, (await svc.CreateAsync(null, [P("cheolsu"), P("haneul")])).Error);
-        Assert.Equal(FamilyError.None, await svc.SetActiveAsync(a!.Value, false));
-        var (e, b) = await svc.CreateAsync(null, [P("cheolsu")]);
-        Assert.Equal(FamilyError.None, e);
-        Assert.Equal(FamilyError.MembersElsewhere, await svc.SetActiveAsync(a.Value, true));   // 철수가 다른 팀에 있어 다시 켤 수 없다
+        var id = Team("철수네", "cheolsu", "younghee");
         var board = await svc.GetAsync();
-        Assert.Equal(1, board.ActiveTeams);
         Assert.DoesNotContain(board.Solo, s => s.Name == "김철수");
+        var team = board.Teams.Single();
 
-        // 빼면 팀 없는 참여자로, 점수는 그대로
-        var member = board.Teams.Single(t => t.Id == b).Members.Single();
-        Assert.Equal(FamilyError.None, await svc.RemoveMemberAsync(b!.Value, member.MemberId));
-        Assert.Contains((await svc.GetAsync()).Solo, s => s.Name == "김철수" && s.Points == 600);
-    }
+        Assert.Equal(FamilyError.None, await svc.RemoveMemberAsync(id, team.Members.Single(m => m.Name == "김영희").MemberId));
+        board = await svc.GetAsync();
+        Assert.Contains(board.Solo, s => s.Name == "김영희" && s.Points == 300);
+        Assert.Equal(600, board.Teams.Single().Points);
 
-    [Fact]
-    public async Task R90_0046_같은_부서_참여자만_부모님은_가족_부서가_여기일_때만()
-    {
-        var svc = In(_kids);
-        Assert.Equal(FamilyError.NotParticipant, (await svc.CreateAsync(null, [_p["jiho"].Pid])).Error);   // 다른 부서 참여자
-        Assert.Equal(FamilyError.FamilyTenantElsewhere, (await svc.CreateAsync(null, [P("seongmin")])).Error);
-        Assert.Equal(FamilyError.FamilyTenantNotChosen, (await svc.CreateAsync(null, [P("nobody")])).Error);
-        Assert.Equal(FamilyError.NoMember, (await svc.CreateAsync(null, [])).Error);
-        var solo = (await svc.GetAsync()).Solo;
-        Assert.Equal(FamilyError.FamilyTenantElsewhere, solo.Single(s => s.Name == "오성민").Blocked);
-        Assert.Equal(FamilyError.None, solo.Single(s => s.Name == "김철수").Blocked);
-        Assert.DoesNotContain(solo, s => s.Name == "윤지호");
-
-        var (_, id) = await svc.CreateAsync(null, [P("cheolsu")]);
-        Assert.Equal(FamilyError.FamilyTenantElsewhere, await svc.AddMemberAsync(id!.Value, P("seongmin")));
-        Assert.Equal(FamilyError.None, await svc.AddMemberAsync(id.Value, P("younghee")));
-    }
-
-    [Fact]
-    public async Task R97_넘은_단계만_축하_카드를_숨기고_다시_보인다()
-    {
-        var svc = In(_kids);
-        var (_, id) = await svc.CreateAsync(null, [P("cheolsu"), P("younghee"), P("daeho")]);   // 1,050점 → 1,000 단계만
-        var team = (await svc.GetAsync()).Teams.Single();
-        Assert.Equal([1000], team.Reached.Select(s => s.Points));
-        Assert.Equal(FamilyError.NotReached, await svc.SetStageHiddenAsync(1, id!.Value, 2000, true));
-        Assert.Equal(FamilyError.None, await svc.SetStageHiddenAsync(1, id.Value, 1000, true));
-        Assert.True((await svc.GetAsync()).Teams.Single().Reached.Single().Hidden);
-        Assert.Equal(FamilyError.None, await svc.SetStageHiddenAsync(1, id.Value, 1000, false));
-        Assert.False((await svc.GetAsync()).Teams.Single().Reached.Single().Hidden);
+        Assert.Equal(FamilyError.None, await svc.RemoveMemberAsync(id, board.Teams.Single().Members.Single().MemberId));
+        Assert.Empty((await svc.GetAsync()).Teams);
+        using var raw = InMemoryDb.Raw(_db);
+        Assert.Empty(raw.FamilyTeams);
     }
 
     [Fact]
     public async Task R131_다른_부서의_팀은_보이지도_고쳐지지도_않는다()
     {
-        var (_, id) = await In(_kids).CreateAsync(null, [P("cheolsu")]);
+        var id = Team(null, "cheolsu");
         var other = In(_elem);
         Assert.Empty((await other.GetAsync()).Teams);
-        Assert.Equal(FamilyError.NotFound, await other.SaveAsync(id!.Value, "가로채기", null, new Dictionary<int, string>()));
-        Assert.Equal(FamilyError.NotFound, await other.SetActiveAsync(id.Value, false));
-        Assert.Equal(FamilyError.NotFound, await other.AddMemberAsync(id.Value, _p["jiho"].Pid));
+        Assert.Equal(FamilyError.NotFound, await other.RenameAsync(id, "가로채기"));
         using var raw = InMemoryDb.Raw(_db);
         Assert.Null(raw.FamilyTeams.Single().Name);
     }
@@ -171,8 +140,8 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
     [Fact]
     public async Task R92_R94_순위_가족팀은_팀_점수순_마지막_참여일과_다음_가족_축하()
     {
-        await In(_kids).CreateAsync(null, [P("cheolsu"), P("younghee"), P("daeho")]);   // 1,050점
-        await In(_kids).CreateAsync("하늘이네", [P("haneul")]);                           // 40점
+        Team(null, "cheolsu", "younghee", "daeho");   // 1,050점
+        Team("하늘이네", "haneul");                           // 40점
         var r = await In(_kids, "cheolsu").RankingAsync();
         Assert.True(r.Enabled);
         Assert.Equal(["김철수 가족", "하늘이네"], r.Teams.Select(t => t.Name));
@@ -187,7 +156,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
     [Fact]
     public async Task 홈_우리_가족팀은_구성원에게만_오늘_점수와_한_미션을_보여_준다()
     {
-        await In(_kids).CreateAsync(null, [P("cheolsu"), P("younghee")]);
+        Team(null, "cheolsu", "younghee");
         using (var raw = InMemoryDb.Raw(_db))
         {
             var act = new Activity { TenantId = _kids.Id, ParticipantId = P("younghee"), MissionItem = "Word.Me", MissionDate = Jan5, Points = 1 };
@@ -209,7 +178,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
     [Fact]
     public async Task R96_R97_가족_단계는_팀마다_시즌에_한_번_기록하고_홈_카드는_숨긴_단계를_빼고_보인다()
     {
-        var (_, id) = await In(_kids).CreateAsync(null, [P("cheolsu"), P("younghee"), P("daeho")]);   // 1,050점
+        var id = Team(null, "cheolsu", "younghee", "daeho");   // 1,050점
         var c = await In(_kids).RecordReachedAsync(P("cheolsu"));
         Assert.NotNull(c);
         Assert.Equal((1000, 1050, (int?)2000, "Award"), (c.Points, c.Total, c.Next, c.Kind));
@@ -222,7 +191,12 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         var home = await In(_kids, "cheolsu").MyFamilyAsync();
         Assert.Equal(1000, home!.Cheer!.Points);
         Assert.Equal([true, false, false, false, false], home.Stages.Select(s => s.On));
-        await In(_kids).SetStageHiddenAsync(1, id!.Value, 1000, true);
+        using (var raw = InMemoryDb.Raw(_db))   // 예전에 관리자가 숨긴 카드는 숨긴 채로
+        {
+            var admin = raw.Accounts.First().Id;
+            raw.FamilyMilestoneDismisses.Add(new FamilyMilestoneDismiss { TenantId = _kids.Id, FamilyTeamId = id, Year = 2027, Threshold = 1000, DismissedUtc = DateTime.UtcNow, DismissedByAccountId = admin });
+            raw.SaveChanges();
+        }
         Assert.Null((await In(_kids, "cheolsu").MyFamilyAsync())!.Cheer);                     // R-97 숨긴 단계는 카드에서 빠짐
         Assert.Equal([1000], (await In(_kids).RankingAsync()).Teams[0].Badges.Select(b => b.Points));   // 순위 배지는 그대로
     }
@@ -230,7 +204,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
     [Fact]
     public async Task R24_완료_취소로_가족_합계가_단계_아래로_내려가면_가족_축하_기록을_지워_다시_축하()
     {
-        await In(_kids).CreateAsync(null, [P("cheolsu"), P("younghee"), P("daeho")]);   // 1,050점
+        Team(null, "cheolsu", "younghee", "daeho");   // 1,050점
         Assert.NotNull(await In(_kids).RecordReachedAsync(P("cheolsu")));
         await In(_kids).DropUnreachedAsync(P("cheolsu"));                                // 아직 1,050점 — 그대로
         using (var raw = InMemoryDb.Raw(_db)) Assert.Single(raw.FamilyMilestonesReached);
@@ -268,7 +242,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
     }
 
     [Fact]
-    public async Task 화면_흐름_관리자가_만들고_관계를_저장한다()
+    public async Task 화면_흐름_관리자는_이름을_고치고_구성원을_뺄_뿐_만들_수_없다()
     {
         var admin = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜");
         InMemoryDb.SeedMembership(_db, _kids.Id, admin.Id, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
@@ -277,31 +251,26 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         var html = await c.GetStringAsync("/jamsil-kids/admin/teams");
         Assert.Contains("아직 가족팀이 없어요", html);
         Assert.Contains("href=\"/jamsil-kids/admin/teams\"", await c.GetStringAsync("/jamsil-kids/admin"));   // 관리 메뉴 "가족팀"
-        Assert.Contains("시상 부서는 다른 부서예요", html);                                                     // 오성민(0046 → 0065 문구)
+        Assert.DoesNotContain("새 가족팀", html);
 
-        var created = await c.PostAsync("/jamsil-kids/admin/teams?handler=Create", new FormUrlEncodedContent(new[]
-        {
-            new KeyValuePair<string, string>("__RequestVerificationToken", TokenRx().Match(html).Groups[1].Value),
-            new("name", ""), new("pick", P("cheolsu").ToString()), new("pick", P("younghee").ToString()),
-        }));
-        Assert.Equal(HttpStatusCode.Redirect, created.StatusCode);
-        var page = await c.GetStringAsync(created.Headers.Location!.OriginalString);
+        var teamId = Team(null, "cheolsu", "younghee");
+        var page = await c.GetStringAsync("/jamsil-kids/admin/teams");
         Assert.Contains("김철수 가족", page);
         Assert.Contains("900", page);   // 600 + 300
 
-        int teamId, momMember;
-        using (var raw = InMemoryDb.Raw(_db)) { teamId = raw.FamilyTeams.Single().Id; momMember = raw.FamilyMembers.Single(m => m.ParticipantId == P("younghee")).Id; }
-        var saved = await c.PostAsync("/jamsil-kids/admin/teams?handler=Save", new FormUrlEncodedContent(new[]
+        var saved = await c.PostAsync("/jamsil-kids/admin/teams?handler=Rename", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            new KeyValuePair<string, string>("__RequestVerificationToken", TokenRx().Match(page).Groups[1].Value),
-            new("id", teamId.ToString()), new("name", "철수네"), new("memo", ""), new($"rel_{momMember}", FamilyRelation.Grandmother),
+            ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["id"] = teamId.ToString(), ["name"] = "철수네",
         }));
         Assert.Equal(HttpStatusCode.Redirect, saved.StatusCode);
-        using (var raw = InMemoryDb.Raw(_db))
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal("철수네", raw.FamilyTeams.Single().Name);
+
+        // 만들기 처리기는 없다
+        var made = await c.PostAsync("/jamsil-kids/admin/teams?handler=Create", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            Assert.Equal("철수네", raw.FamilyTeams.Single().Name);
-            Assert.Equal(FamilyRelation.Grandmother, raw.FamilyMembers.Single(m => m.Id == momMember).Relation);
-        }
+            ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["pick"] = P("haneul").ToString(),
+        }));
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Single(raw.FamilyTeams);
 
         // 참여자는 관리 화면을 못 보고, 홈 · 순위 가족팀 탭에서 본다
         var kid = await LoggedIn("cheolsu@example.com");
@@ -309,6 +278,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         var home = await kid.GetStringAsync("/jamsil-kids");
         Assert.Contains("우리 가족팀", home);
         Assert.Contains("철수네", home);
+        Assert.Contains("href=\"/jamsil-kids/family-team\"", home);
         var rank = await kid.GetStringAsync("/jamsil-kids/ranking?t=team");
         Assert.Contains("우리 가족", rank);
         Assert.Contains("철수네", rank);
@@ -325,7 +295,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         }
         var svc = In(_kids);
         Assert.False((await svc.GetAsync()).Enabled);
-        Assert.Equal(FamilyError.Disabled, (await svc.CreateAsync(null, [P("cheolsu")])).Error);
+        Assert.Equal(FamilyError.Disabled, await svc.RenameAsync(1, "x"));
 
         // 화면도 막고(404) 메뉴에서도 숨긴다
         var admin = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜");

@@ -78,15 +78,12 @@ public partial class FamilyPageTests : IClassFixture<WebApplicationFactory<Progr
     }
 
     [Fact]
-    public async Task 상세는_플랫폼_관리자만_보고_구성원_모든_부서와_보호자의_시상_부서_고르기를_보인다()
+    public async Task 상세는_플랫폼_관리자만_보고_구성원_모든_부서를_보인다()
     {
         var op = await LoggedIn("operator@example.com", platformAdmin: true);
         var html = await op.GetStringAsync(Url);
         Assert.Contains("김철수네 온가족", html);                          // 이름이 비면 첫 학생 이름
         Assert.Contains("처음부터 모은 점수", html);
-        Assert.Contains("시상 부서 — 아직 안 정함", html);                 // 보호자 · 아직 안 정함(R-179)
-        Assert.Contains("정하기 전에는 어느 부서에서도", html);
-        Assert.Single(Regex.Matches(html, "class=\"pf-aw"));               // 철수(참여자)는 시상 부서 칸 없음
         Assert.Contains("온가족 해체", html);
 
         Assert.Equal(404, (int)(await op.GetAsync("/platform/families/9999")).StatusCode);
@@ -143,21 +140,6 @@ public partial class FamilyPageTests : IClassFixture<WebApplicationFactory<Progr
         var r = await Post(op, "Add", new() { ["account"] = _minji.ToString() });
         Assert.Contains("이미 다른 온가족에 든 사람이에요", await r.Content.ReadAsStringAsync());
         Assert.Equal(2, Links().Count);
-    }
-
-    [Fact]
-    public async Task 시상_부서는_보호자가_승인된_부서만_정할_수_있다()
-    {
-        var op = await LoggedIn("operator@example.com", platformAdmin: true);
-        var bad = await Post(op, "Award", new() { ["account"] = _cheolsu.ToString(), ["tenant"] = _kids.Id.ToString() });   // 보호자 아님
-        Assert.Contains("고를 수 있는 부서가 아니에요", await bad.Content.ReadAsStringAsync());
-        bad = await Post(op, "Award", new() { ["account"] = _mom.ToString(), ["tenant"] = "0" });
-        Assert.Contains("고를 수 있는 부서가 아니에요", await bad.Content.ReadAsStringAsync());
-
-        var r = await Post(op, "Award", new() { ["account"] = _mom.ToString(), ["tenant"] = _elem.Id.ToString() });
-        Assert.Equal($"{Url}?ok=award", r.Headers.Location!.OriginalString);
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(_elem.Id, raw.Accounts.Single(a => a.Id == _mom).FamilyTenantId);
-        Assert.Contains("시상 부서(이 부서 가족팀에서만 축하 · 선물)", await op.GetStringAsync(Url));
     }
 
     [Fact]

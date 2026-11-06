@@ -7,7 +7,7 @@ namespace ChallengeBible.Web.Pages.Account;
 
 /// <summary>
 /// `/account/family` 온가족(확정 시안: 온가족, 0065 · R-175 ~ R-179). 로그인한 누구나.
-/// 온가족이 있으면 누적 총점 · 구성원(보기만), 없으면 신청 · 신청 기다림. 보호자면 시상 부서를 보기만 한다(플랫폼 관리자가 정함).
+/// 온가족이 있으면 누적 총점 · 구성원(보기만), 없으면 신청 · 신청 기다림.
 /// (0046 의 "가족과 함께할 부서" 고르기 · 바꾸기 화면은 이것으로 바뀌었다.)
 /// </summary>
 public class FamilyModel(OnFamilyService families) : PageModel, ITitled

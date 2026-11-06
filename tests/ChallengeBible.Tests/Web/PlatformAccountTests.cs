@@ -58,13 +58,11 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
     }
 
     [Fact]
-    public async Task 자세히는_모든_부서_소속과_가족_부서()
+    public async Task 자세히는_모든_부서_소속()
     {
         var d = (await Service().DetailAsync(_op, _jieun))!;
         Assert.Equal(2, d.Memberships.Count);
         Assert.Equal([_pre.Name], d.AdminOf);
-        Assert.Equal(_kids.Name, d.FamilyTenant);
-        Assert.True(d.Memberships.Single(m => m.Tenant == _kids.Name).Family);
     }
 
     [Fact]

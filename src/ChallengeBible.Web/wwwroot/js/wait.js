@@ -19,6 +19,7 @@
         [/^word-mission$/, '오늘의 미션을 불러오고 있어요'],
         [/^calendar$/, '달력을 넘기고 있어요'],
         [/^(points|ranking)$/, '점수를 모으고 있어요'],
+        [/^family-team$/, '우리 가족을 찾고 있어요'],
     ];
 
     const clean = (pathname) => pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
