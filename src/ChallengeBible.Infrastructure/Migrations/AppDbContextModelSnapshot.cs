@@ -1518,6 +1518,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
 
+                    b.Property<DateOnly?>("SnoozedOn")
+                        .HasColumnType("date");
+
                     b.Property<int>("TenantId")
                         .HasColumnType("int");
 

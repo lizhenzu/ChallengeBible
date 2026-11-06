@@ -570,6 +570,7 @@ CREATE TABLE app.FamilyInvite (
     Relation               varchar(20)  NOT NULL CONSTRAINT CK_FamilyInvite_Relation
         CHECK (Relation IN ('Student','Mother','Father','Grandmother','Grandfather','Other')),
     CreatedUtc             datetime2(3) NOT NULL,
+    SnoozedOn              date         NULL,   -- "다음에 할래요"를 누른 날(영역 시간대, R-212)
     CONSTRAINT PK_FamilyInvite PRIMARY KEY NONCLUSTERED (Id),
     CONSTRAINT UQ_FamilyInvite_TenantId_Id UNIQUE CLUSTERED (TenantId, Id),
     CONSTRAINT FK_FamilyInvite_Team FOREIGN KEY (TenantId, FamilyTeamId) REFERENCES app.FamilyTeam (TenantId, Id),

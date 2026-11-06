@@ -17,7 +17,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     public TenantContext Tenant => tenant;
     /// <summary>"우리 가족팀" 칸(확정 시안 홈메인) — 내가 든 활성 가족팀이 없으면 null.</summary>
     public FamilyHome? Family { get; private set; }
-    /// <summary>받은 가족팀 초대(확정 시안 home-invite, R-212) — 말씀 찾기 위 배너. 팀이 있으면 비어 있다.</summary>
+    /// <summary>받은 가족팀 초대(확정 시안 home-invite, R-212) — 말씀 찾기 위 배너. 팀이 있거나 오늘 "다음에 할래요"를 눌렀으면 비어 있다.</summary>
     public IReadOnlyList<FamilyReceivedInvite> Invites { get; private set; } = [];
     /// <summary>온가족 한 줄(확정 시안 온가족 "부서 홈 칸", R-177) — 온가족이 없으면 null.</summary>
     public (string Name, int Total)? OnFamily { get; private set; }
@@ -31,13 +31,20 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     [FromRoute(Name = "view")] public string? Screen { get; set; }
     public bool TodayScreen => Screen == "today";
 
+    /// <summary>초대 배너 "다음에 할래요"(R-212): 오늘은 숨기고 내일 다시 보인다.</summary>
+    public async Task<IActionResult> OnPostSnoozeInvitesAsync(CancellationToken ct)
+    {
+        await familyJoin.SnoozeInvitesAsync(ct);
+        return Redirect($"/{tenant.Current.Slug}");
+    }
+
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (TodayScreen && !tenant.IsLobby) return Redirect($"/{tenant.Current.Slug}");   // 일반 부서 홈은 한 화면 그대로
         var me = User.AccountId()!.Value;
         MyPhoto = await photos.FileOfAsync(me, ct);
         if (tenant.Current.MissionEnabled) Family = await teams.MyFamilyAsync(ct);
-        if (tenant.Current.MissionEnabled && Family is null) Invites = (await familyJoin.StateAsync(ct)).Invites;
+        if (tenant.Current.MissionEnabled && Family is null) Invites = (await familyJoin.StateAsync(ct)).Invites.Where(i => !i.SnoozedToday).ToList();
         OnFamily = await onFamily.LineAsync(me, ct);
         Data = await home.GetAsync(ct);
         ManyTenants = (await accounts.WhereToGoAsync(me, ct)).ApprovedCount > 1;
