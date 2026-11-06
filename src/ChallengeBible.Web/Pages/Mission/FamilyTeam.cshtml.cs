@@ -8,7 +8,7 @@ namespace ChallengeBible.Web.Pages.Mission;
 
 /// <summary>
 /// `/{slug}/family-team` 가족이 스스로 꾸리는 가족팀(확정 시안: family-team-self, ADR 0083, R-204 ~ R-210). 이 부서 승인 소속원.
-/// 팀이 있으면 "우리 가족팀", 없으면 찾기 · 새 팀(`?New=true`) · 합류 신청(`?Join=팀`). 기본 규칙 스위치가 꺼졌거나 임시 부서면 404. JS 없이 폼마다 서버가 다시 그린다.
+/// 팀이 있으면 "우리 가족팀" · 가족 초대(`?Add=true`, 시안 family-invite, ADR 0084), 없으면 받은 초대 · 찾기 · 새 팀(`?New=true`) · 합류 신청(`?Join=팀`). 기본 규칙 스위치가 꺼졌거나 임시 부서면 404. JS 없이 폼마다 서버가 다시 그린다.
 /// </summary>
 public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : PageModel, ITitled
 {
@@ -19,9 +19,11 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : Pag
     [BindProperty(SupportsGet = true)] public bool New { get; set; }
     [BindProperty(SupportsGet = true)] public int? Join { get; set; }
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }
+    [BindProperty(SupportsGet = true)] public bool Add { get; set; }
 
     public FamilyState State { get; private set; } = null!;
     public IReadOnlyList<FamilySearchHit> Hits { get; private set; } = [];
+    public IReadOnlyList<FamilyCandidate> Candidates { get; private set; } = [];
     public FamilySearchHit? JoinTeam { get; private set; }
     public string? Error { get; private set; }
     public string? NameInput { get; private set; }
@@ -40,6 +42,10 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : Pag
         "kicked" => "팀에서 내보냈어요. 그 사람의 점수는 그대로예요",
         "renamed" => "팀 이름을 바꿨어요",
         "relation" => "내 역할을 바꿨어요",
+        "invited" => "초대를 보냈어요. 상대가 수락하면 합류돼요",
+        "invitecancelled" => "초대를 취소했어요",
+        "inviteaccepted" => "가족팀에 합류했어요",
+        "inviterejected" => "초대를 거절했어요",
         _ => "",
     };
 
@@ -84,6 +90,16 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : Pag
     public Task<IActionResult> OnPostRenameAsync(string? name, CancellationToken ct) => Act(join.RenameAsync(name, ct), "renamed", ct);
     public Task<IActionResult> OnPostRelationAsync(string? relation, CancellationToken ct) => Act(join.SetRelationAsync(relation ?? "", ct), "relation", ct);
 
+    public Task<IActionResult> OnPostInviteAsync(int participant, string? relation, CancellationToken ct)
+    {
+        Add = true;
+        return Act(join.InviteAsync(participant, relation ?? "", ct), "invited", ct);
+    }
+
+    public Task<IActionResult> OnPostInviteCancelAsync(int invite, CancellationToken ct) => Act(join.CancelInviteAsync(invite, ct), "invitecancelled", ct);
+    public Task<IActionResult> OnPostInviteAcceptAsync(int invite, string? relation, CancellationToken ct) => Act(join.AcceptInviteAsync(invite, relation ?? "", ct), "inviteaccepted", ct);
+    public Task<IActionResult> OnPostInviteRejectAsync(int invite, CancellationToken ct) => Act(join.RejectInviteAsync(invite, ct), "inviterejected", ct);
+
     private async Task<IActionResult> Act(Task<FamilyError> work, string ok, CancellationToken ct)
     {
         var e = await work;
@@ -102,6 +118,7 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : Pag
             Hits = await join.SearchAsync(Q, ct);
             if (Join is int id) JoinTeam = await join.TeamAsync(id, ct);
         }
+        else if (Add) Candidates = await join.CandidatesAsync(Q, ct);
         return Page();
     }
 }

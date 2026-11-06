@@ -1822,7 +1822,7 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .fmt-note.c { text-align: center; }
 .fmt-btn { display: block; width: 100%; height: 44px; margin-top: 11px; border: 0; border-radius: 12px; background: var(--accent); color: var(--on-accent); font-size: 14.5px; font-weight: 800; text-align: center; line-height: 44px; text-decoration: none; cursor: pointer; padding: 0 10px; }
 .fmt-btn.sm { height: 38px; line-height: 38px; font-size: 13.5px; margin-top: 0; }
-.fmt-btn.line { background: var(--bg); color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.fmt-btn.line { display: block; min-height: 0; padding: 0 10px; background: var(--bg); color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }   /* 공용 .line(목록 줄)의 모양을 되돌린다 */
 .fmt-btn.no { background: var(--bg); color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); }
 .fmt-search { display: flex; gap: 8px; }
 .fmt-search input { flex: 1; min-width: 0; height: 46px; padding: 0 14px; border-radius: 13px; border: 1.5px solid var(--accent); background: var(--bg); font-size: 16px; }
@@ -1880,4 +1880,28 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .fmt-mem .p { font-weight: 800; color: var(--accent); }
 .fmt-mem .me { margin-left: 4px; color: var(--accent); font-size: 11.5px; font-weight: 800; }
 .fmt-ask.out[open] { flex-basis: 100%; }
-@media (prefers-color-scheme: dark) { .hFam .ic { background: #33291A; } .fmt-rq { background: #2C2416; box-shadow: inset 0 0 0 1px #4A3C22; color: var(--fg); } .fmt-rq .w b, .fmt-ex span { color: #F2C063; } .fmt-ex span { background: #2C2416; } }
+.fmt-mem + .fmt-btn { margin-top: 6px; }
+.fmt-sent { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 11px 14px; border-radius: 15px; background: var(--soft); }
+.fmt-sent .m { flex: 1; min-width: 0; font-weight: 800; }
+.fmt-sent small { display: block; font-size: 12.5px; font-weight: 600; color: var(--dim); word-break: keep-all; }
+.fmt-sent button { flex: none; height: 32px; padding: 0 13px; border: 0; border-radius: 99px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--rule); color: var(--fg); font-size: 12.5px; font-weight: 800; cursor: pointer; }
+.fmt-pick { position: relative; display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 12px 14px; border-radius: 15px; border: 1px solid var(--rule); font-size: 15px; font-weight: 800; cursor: pointer; }
+.fmt-pick input { position: absolute; opacity: 0; pointer-events: none; }
+.fmt-pick span { flex: 1; min-width: 0; word-break: break-all; }
+.fmt-pick b { flex: none; width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--line); }
+.fmt-pick:has(input:checked) { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+.fmt-pick input:checked ~ b { box-shadow: inset 0 0 0 6px var(--accent); }
+.fmt-pick input:focus-visible ~ b { outline: 3px solid var(--accent); outline-offset: 2px; }
+.fmt-note + .fmt-search { margin-top: 16px; }
+.fmt-inv { margin: 0 0 8px; padding: 15px 14px; }
+.fmt-inv .h { font-size: 17px; font-weight: 900; word-break: break-all; }
+.fmt-inv p { margin: 2px 0 0; font-size: 13px; color: #5B6470; word-break: keep-all; }
+.fmt-inv .fmt-chips > span, .fmt-inv .fmt-who span { background: #fff; }
+.fmt-inv .fmt-who input:checked + span { background: var(--accent-bg); }
+.fmt-inv .q { margin: 12px 0 7px; font-size: 13.5px; font-weight: 800; }
+.fmt-inv .a { margin-top: 10px; }
+.hFam.inv { background: #FFF8E8; border-color: #F6E2B3; color: #1B1F24; }
+.hFam.inv .ic { background: #fff; }
+.hFam.inv small { color: #5B6470; }
+.hFam.inv .ar { color: #98A1AD; }
+@media (prefers-color-scheme: dark) { .hFam .ic { background: #33291A; } .fmt-rq { background: #2C2416; box-shadow: inset 0 0 0 1px #4A3C22; color: var(--fg); } .fmt-rq .w b, .fmt-ex span { color: #F2C063; } .fmt-ex span { background: #2C2416; } .hFam.inv { background: #2C2416; border-color: #4A3C22; color: var(--fg); } .hFam.inv .ic { background: #33291A; } .hFam.inv small { color: var(--dim); } .fmt-inv p { color: var(--dim); } .fmt-inv .fmt-chips > span, .fmt-inv .fmt-who span { background: var(--bg); } }

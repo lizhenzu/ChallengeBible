@@ -51,6 +51,18 @@ public sealed class FamilyJoinRequest : ITenantOwned
     public DateTime CreatedUtc { get; set; }
 }
 
+/// <summary>가족팀 초대(R-211 ~ R-213, ADR 0084). 팀 · 사람마다 한 줄이고 한 사람이 여러 팀의 초대를 받을 수 있다. 처리되면 지운다.</summary>
+public sealed class FamilyInvite : ITenantOwned
+{
+    public int Id { get; set; }
+    public int TenantId { get; set; }
+    public int FamilyTeamId { get; set; }
+    public int ParticipantId { get; set; }
+    public int InvitedByParticipantId { get; set; }
+    public string Relation { get; set; } = FamilyRelation.Student;
+    public DateTime CreatedUtc { get; set; }
+}
+
 /// <summary>가족 단계 도달(R-96) — 시즌 · 단계마다 한 번.</summary>
 public sealed class FamilyMilestoneReached : ITenantOwned
 {
@@ -122,6 +134,28 @@ internal sealed class FamilyJoinRequestConfig : IEntityTypeConfiguration<FamilyJ
             .HasConstraintName("FK_FamilyJoinRequest_Team").OnDelete(DeleteBehavior.NoAction);
         e.HasOne<Participant>().WithMany().HasForeignKey(x => new { x.TenantId, x.ParticipantId }).HasPrincipalKey(p => new { p.TenantId, p.Id })
             .HasConstraintName("FK_FamilyJoinRequest_Participant").OnDelete(DeleteBehavior.NoAction);
+    }
+}
+
+internal sealed class FamilyInviteConfig : IEntityTypeConfiguration<FamilyInvite>
+{
+    public void Configure(EntityTypeBuilder<FamilyInvite> e)
+    {
+        e.ToTable("FamilyInvite", t => t.HasCheckConstraint("CK_FamilyInvite_Relation",
+            $"Relation IN ({string.Join(",", FamilyRelation.All.Select(s => $"'{s}'"))})"));
+        e.HasKey(x => x.Id).HasName("PK_FamilyInvite").IsClustered(false);
+        e.HasAlternateKey(x => new { x.TenantId, x.Id }).HasName("UQ_FamilyInvite_TenantId_Id").IsClustered();
+        e.HasIndex(x => new { x.TenantId, x.FamilyTeamId, x.ParticipantId }).IsUnique().HasDatabaseName("UX_FamilyInvite_TeamParticipant");   // R-211
+        e.HasIndex(x => new { x.TenantId, x.ParticipantId }).HasDatabaseName("IX_FamilyInvite_Participant");
+        e.HasIndex(x => new { x.TenantId, x.InvitedByParticipantId }).HasDatabaseName("IX_FamilyInvite_InvitedBy");
+        e.Property(x => x.Relation).HasMaxLength(20).IsUnicode(false);
+        e.Property(x => x.CreatedUtc).HasColumnType("datetime2(3)");
+        e.HasOne<FamilyTeam>().WithMany().HasForeignKey(x => new { x.TenantId, x.FamilyTeamId }).HasPrincipalKey(t => new { t.TenantId, t.Id })
+            .HasConstraintName("FK_FamilyInvite_Team").OnDelete(DeleteBehavior.NoAction);
+        e.HasOne<Participant>().WithMany().HasForeignKey(x => new { x.TenantId, x.ParticipantId }).HasPrincipalKey(p => new { p.TenantId, p.Id })
+            .HasConstraintName("FK_FamilyInvite_Participant").OnDelete(DeleteBehavior.NoAction);
+        e.HasOne<Participant>().WithMany().HasForeignKey(x => new { x.TenantId, x.InvitedByParticipantId }).HasPrincipalKey(p => new { p.TenantId, p.Id })
+            .HasConstraintName("FK_FamilyInvite_InvitedBy").OnDelete(DeleteBehavior.NoAction);
     }
 }
 

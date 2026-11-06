@@ -78,6 +78,7 @@ public sealed class PromotionApprover(IAppDb db, ISystemDb systemDb, TenantConte
             sys.QuizAttempts.RemoveRange(await sys.QuizAttempts.Where(x => x.TenantId == t && pids.Contains(x.ParticipantId)).ToListAsync(ct));
             sys.MilestonesReached.RemoveRange(await sys.MilestonesReached.Where(x => x.TenantId == t && pids.Contains(x.ParticipantId)).ToListAsync(ct));
             sys.GuardianLinks.RemoveRange(await sys.GuardianLinks.Where(x => x.TenantId == t && (pids.Contains(x.ParticipantId) || x.GuardianMembershipId == source.Id)).ToListAsync(ct));
+            sys.FamilyInvites.RemoveRange(await sys.FamilyInvites.Where(x => x.TenantId == t && (pids.Contains(x.ParticipantId) || pids.Contains(x.InvitedByParticipantId))).ToListAsync(ct));   // R-213
             await sys.SaveChangesAsync(ct);
             var acts = await sys.Activities.Where(x => x.TenantId == t && pids.Contains(x.ParticipantId)).ToListAsync(ct);
             removed = acts.Count;

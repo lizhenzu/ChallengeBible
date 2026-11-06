@@ -418,6 +418,224 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Contains("나는 누구인지 골라 주세요", await r.Content.ReadAsStringAsync());
     }
 
+    private async Task<int> DadInvites(string login, string relation = FamilyRelation.Student)
+    {
+        Assert.Equal(FamilyError.None, await As("dad").InviteAsync(_p[login].Pid, relation));
+        return (await As(login).StateAsync()).Invites.Last().InviteId;
+    }
+
+    [Fact]
+    public async Task R211_찾기는_팀이_없고_초대할_수_있는_같은_부서_사람의_이름만_보인다()
+    {
+        await DadAndKid();   // 아빠 + 철수
+        Add(_kids, "ha2", "문하늘별", Roles.Participant);
+        Add(_kids, "req", "신청하늘", Roles.Participant);
+        Add(_kids, "inv", "초대하늘", Roles.Participant);
+        Add(_kids, "gone", "다른부서하늘", Roles.Participant);
+        AddMembership(_elem, "goneElem", _p["gone"].AccountId, [Roles.Participant]);
+        Assert.Equal(FamilyError.None, await As("goneElem", _elem).CreateAsync("저쪽 팀", FamilyRelation.Student));
+        Assert.Equal(FamilyError.None, await As("req").RequestAsync(await TeamOf("dad"), FamilyRelation.Student));
+        await DadInvites("inv");
+
+        var found = await As("dad").CandidatesAsync(" 하늘 ");
+        Assert.Equal(["문하늘", "문하늘별"], found.Select(c => c.Name));
+
+        Assert.Empty(await As("dad").CandidatesAsync("김철수"));   // 이미 팀에 있다
+        Assert.Empty(await As("dad").CandidatesAsync("윤지호"));   // 다른 부서
+        Assert.Empty(await As("dad").CandidatesAsync("  "));
+        Assert.Empty(await As("mom").CandidatesAsync("하늘"));     // 팀이 없으면 찾을 수 없다
+    }
+
+    [Fact]
+    public async Task R211_구성원만_초대하고_상대는_수락_전까지_합류되지_않는다()
+    {
+        await DadAndKid();
+        Assert.Equal(FamilyError.NotMember, await As("mom").InviteAsync(_p["other"].Pid, FamilyRelation.Student));
+        Assert.Equal(FamilyError.BadRelation, await As("dad").InviteAsync(_p["other"].Pid, "Uncle"));
+        Assert.Equal(FamilyError.TargetInTeam, await As("dad").InviteAsync(_p["cheolsu"].Pid, FamilyRelation.Student));
+        Assert.Equal(FamilyError.NotFound, await As("dad").InviteAsync(_p["jiho"].Pid, FamilyRelation.Student));   // 다른 부서 참여자
+
+        Assert.Equal(FamilyError.None, await As("cheolsu").InviteAsync(_p["other"].Pid, FamilyRelation.Student));   // 만든 사람이 아니어도 된다
+        Assert.Equal(FamilyError.AlreadyInvited, await As("dad").InviteAsync(_p["other"].Pid, FamilyRelation.Student));
+
+        var mine = (await As("dad").StateAsync()).Mine!;
+        Assert.Equal(("문하늘", FamilyRelation.Student), (mine.Sent.Single().Name, mine.Sent.Single().Relation));
+        Assert.Equal(2, mine.Members.Count);
+        var got = await As("other").StateAsync();
+        Assert.Null(got.Mine);
+        var inv = got.Invites.Single();
+        Assert.Equal(("웃음폭탄네", "김철수", 2), (inv.TeamName, inv.InvitedBy, inv.Members.Count));
+    }
+
+    [Fact]
+    public async Task R211_우리_팀에_신청한_사람과_다른_부서_팀에_든_사람은_초대되지_않는다()
+    {
+        Assert.Equal(FamilyError.None, await As("dad").CreateAsync("웃음폭탄네", FamilyRelation.Father));
+        Assert.Equal(FamilyError.None, await As("cheolsu").RequestAsync(await TeamOf("dad"), FamilyRelation.Student));
+        Assert.Equal(FamilyError.TargetRequested, await As("dad").InviteAsync(_p["cheolsu"].Pid, FamilyRelation.Student));
+
+        AddMembership(_elem, "otherElem", _p["other"].AccountId, [Roles.Participant]);
+        Assert.Equal(FamilyError.None, await As("otherElem", _elem).CreateAsync("저쪽 팀", FamilyRelation.Student));
+        Assert.Equal(FamilyError.TargetOtherDept, await As("dad").InviteAsync(_p["other"].Pid, FamilyRelation.Student));
+    }
+
+    [Fact]
+    public async Task R211_초대_취소는_우리_팀_구성원만_한다()
+    {
+        await DadAndKid();
+        var invite = await DadInvites("other");
+        Assert.Equal(FamilyError.None, await As("mom").CreateAsync("다른 팀", FamilyRelation.Mother));
+        Assert.Equal(FamilyError.NotMember, await As("mom").CancelInviteAsync(invite));
+        Assert.Equal(FamilyError.NotMember, await As("other").CancelInviteAsync(invite));
+        Assert.Equal(FamilyError.None, await As("cheolsu").CancelInviteAsync(invite));   // 보낸 사람이 아니어도 된다
+        Assert.Empty((await As("other").StateAsync()).Invites);
+        Assert.Equal(FamilyError.NotFound, await As("dad").CancelInviteAsync(invite));
+    }
+
+    [Fact]
+    public async Task R212_본인이_역할을_바꿔_수락하면_바로_구성원이_된다()
+    {
+        await DadAndKid();
+        var invite = await DadInvites("mom", FamilyRelation.Grandmother);
+        Assert.Equal(FamilyRelation.Grandmother, (await As("mom").StateAsync()).Invites.Single().Relation);
+
+        Assert.Equal(FamilyError.NotFound, await As("other").AcceptInviteAsync(invite, FamilyRelation.Student));   // 다른 사람은 받을 수 없다
+        Assert.Equal(FamilyError.NotFound, await As("dad").AcceptInviteAsync(invite, FamilyRelation.Student));
+        Assert.Equal(FamilyError.BadRelation, await As("mom").AcceptInviteAsync(invite, "Uncle"));
+
+        Assert.Equal(FamilyError.None, await As("mom").AcceptInviteAsync(invite, FamilyRelation.Mother));
+        var mine = (await As("mom").StateAsync()).Mine!;
+        Assert.Equal(3, mine.Members.Count);
+        Assert.Equal(FamilyRelation.Mother, mine.Members.Single(m => m.Me).Relation);
+        Assert.Empty(mine.Sent);
+    }
+
+    [Fact]
+    public async Task R212_거절은_본인만_하고_기록이_남지_않아_다시_초대할_수_있다()
+    {
+        await DadAndKid();
+        var invite = await DadInvites("other");
+        Assert.Equal(FamilyError.NotFound, await As("dad").RejectInviteAsync(invite));
+        Assert.Equal(FamilyError.None, await As("other").RejectInviteAsync(invite));
+        Assert.Empty((await As("dad").StateAsync()).Mine!.Sent);
+        await DadInvites("other");
+    }
+
+    [Fact]
+    public async Task R213_수락하면_다른_신청과_초대가_함께_지워진다()
+    {
+        await DadAndKid();
+        Assert.Equal(FamilyError.None, await As("mom").CreateAsync("다른 팀", FamilyRelation.Mother));
+        Add(_kids, "third", "최셋째", Roles.Participant);
+        Assert.Equal(FamilyError.None, await As("third").CreateAsync("셋째 팀", FamilyRelation.Student));
+
+        var fromDad = await DadInvites("other");
+        Assert.Equal(FamilyError.None, await As("mom").InviteAsync(_p["other"].Pid, FamilyRelation.Student));
+        Assert.Equal(FamilyError.None, await As("other").RequestAsync(await TeamOf("third"), FamilyRelation.Student));   // 신청 중에도 초대를 받는다
+        var s = await As("other").StateAsync();
+        Assert.Equal(2, s.Invites.Count);
+        Assert.NotNull(s.Pending);
+
+        Assert.Equal(FamilyError.None, await As("other").AcceptInviteAsync(fromDad, FamilyRelation.Student));
+        using var raw = InMemoryDb.Raw(_db);
+        Assert.Empty(raw.FamilyInvites);
+        Assert.Empty(raw.FamilyJoinRequests);
+    }
+
+    [Fact]
+    public async Task R213_새_팀을_만들거나_신청이_수락돼도_받은_초대가_지워진다()
+    {
+        Assert.Equal(FamilyError.None, await As("dad").CreateAsync("웃음폭탄네", FamilyRelation.Father));
+        await DadInvites("other");
+        Assert.Equal(FamilyError.None, await As("other").CreateAsync("내 팀", FamilyRelation.Student));
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.FamilyInvites);
+
+        await DadInvites("cheolsu");
+        Assert.Equal(FamilyError.None, await As("cheolsu").RequestAsync(await TeamOf("other"), FamilyRelation.Student));
+        var r = (await As("other").StateAsync()).Mine!.Requests.Single();
+        Assert.Equal(FamilyError.None, await As("other").AcceptAsync(r.RequestId));
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.FamilyInvites);
+    }
+
+    [Fact]
+    public async Task R213_마지막_사람이_나가면_보낸_초대도_사라진다()
+    {
+        Assert.Equal(FamilyError.None, await As("dad").CreateAsync("웃음폭탄네", FamilyRelation.Father));
+        var invite = await DadInvites("other");
+        Assert.Equal(FamilyError.None, await As("dad").LeaveAsync());
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.FamilyInvites);
+        Assert.Empty((await As("other").StateAsync()).Invites);
+        Assert.Equal(FamilyError.NotFound, await As("other").AcceptInviteAsync(invite, FamilyRelation.Student));
+    }
+
+    [Fact]
+    public async Task R213_보낸_사람이_나가도_팀이_남으면_초대는_남는다()
+    {
+        await DadAndKid();
+        var invite = await DadInvites("other");
+        Assert.Equal(FamilyError.None, await As("dad").LeaveAsync());
+        Assert.Equal("김민호", (await As("other").StateAsync()).Invites.Single().InvitedBy);
+        Assert.Equal(FamilyError.None, await As("other").AcceptInviteAsync(invite, FamilyRelation.Student));
+        Assert.Equal(2, (await As("other").StateAsync()).Mine!.Members.Count);
+    }
+
+    [Fact]
+    public async Task R210_R212_다른_부서_팀에_들어가면_초대를_수락할_수_없다()
+    {
+        Assert.Equal(FamilyError.None, await As("dad").CreateAsync("웃음폭탄네", FamilyRelation.Father));
+        var invite = await DadInvites("other");
+        AddMembership(_elem, "otherElem", _p["other"].AccountId, [Roles.Participant]);
+        Assert.Equal(FamilyError.None, await As("otherElem", _elem).CreateAsync("저쪽 팀", FamilyRelation.Student));
+        Assert.Equal(FamilyError.InOtherDept, await As("other").AcceptInviteAsync(invite, FamilyRelation.Student));
+    }
+
+    [Fact]
+    public async Task 화면_흐름_초대하고_받아서_수락한다()
+    {
+        // 찾아서 초대
+        var dad = await LoggedIn("dad@example.com");
+        var page = await dad.GetStringAsync("/jamsil-kids/family-team?New=true");
+        var r = await Post(dad, page, "Create", ("name", "웃음폭탄네"), ("relation", FamilyRelation.Father));
+        var mine = await dad.GetStringAsync(r.Headers.Location!.OriginalString);
+        Assert.Contains("href=\"/jamsil-kids/family-team?Add=true\"", mine);
+        Assert.Contains("가족 초대하기", mine);
+
+        var add = await dad.GetStringAsync("/jamsil-kids/family-team?Add=true&Q=%ED%95%98%EB%8A%98");
+        Assert.Contains("문<mark>하늘</mark>", add);
+        Assert.Contains("초대 보내기", add);
+        r = await Post(dad, add, "Invite", ("participant", _p["other"].Pid.ToString()), ("relation", FamilyRelation.Student));
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+        mine = await dad.GetStringAsync(r.Headers.Location!.OriginalString);
+        Assert.Contains("초대를 보냈어요", mine);
+        Assert.Contains("학생으로 초대 · 수락을 기다리는 중", mine);
+
+        // 잘못 보내면 초대 화면에 이유가 나온다
+        r = await Post(dad, add, "Invite", ("participant", _p["other"].Pid.ToString()), ("relation", FamilyRelation.Student), ("Q", "하늘"));
+        var again = await r.Content.ReadAsStringAsync();
+        Assert.Contains("이미 초대를 보냈어요", again);
+        Assert.Contains("가족 초대하기", again);
+
+        // 입구에 초대 카드, 찾기 화면 맨 위에서 수락
+        var other = await LoggedIn("other@example.com");
+        var home = await other.GetStringAsync("/jamsil-kids/word-mission");
+        Assert.Contains("가족팀 초대가 왔어요", home);
+        Assert.Contains("받은 초대 1건", home);
+        var got = await other.GetStringAsync("/jamsil-kids/family-team");
+        Assert.Contains("김민호님이 학생으로 초대했어요", got);
+        Assert.Contains("handler=InviteReject", got);
+        int invite;
+        using (var raw = InMemoryDb.Raw(_db)) invite = raw.FamilyInvites.Single().Id;
+        r = await Post(other, got, "InviteAccept", ("invite", invite.ToString()), ("relation", FamilyRelation.Other));
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+        var after = await other.GetStringAsync(r.Headers.Location!.OriginalString);
+        Assert.Contains("가족팀에 합류했어요", after);
+        Assert.Contains("구성원 2명", after);
+
+        // 보낸 초대가 사라지고 입구도 팀 점수로 바뀐다
+        Assert.DoesNotContain("보낸 초대", await dad.GetStringAsync("/jamsil-kids/family-team"));
+        Assert.DoesNotContain("가족팀 초대가 왔어요", await other.GetStringAsync("/jamsil-kids/word-mission"));
+    }
+
     [Fact]
     public async Task 화면_교사만이면_만들_수_없다는_안내만_보인다()
     {
