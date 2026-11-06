@@ -21,8 +21,8 @@ public sealed record FamilyReceivedInvite(int InviteId, string TeamName, string 
 /// <summary>초대할 수 있는 사람(R-211). 이름만 보인다.</summary>
 public sealed record FamilyCandidate(int ParticipantId, string Name);
 public sealed record FamilyState(bool Enabled, int? ParticipantId, bool IsGuardian, FamilyMine? Mine, FamilyPending? Pending, IReadOnlyList<FamilyReceivedInvite> Invites);
-/// <summary>미션 홈 입구. Name 이 null 이면 팀 없음(PendingTeam = 신청 중인 팀, InviteTeam = 먼저 받은 초대의 팀, Waiting = 기다리는 신청이나 받은 초대 수).</summary>
-public sealed record FamilyEntry(string? Name, int Total, int? Next, double Pct, int Waiting, string? PendingTeam, string? InviteTeam);
+/// <summary>미션 홈 입구. Name 이 null 이면 팀 없음(PendingTeam = 신청 중인 팀). 받은 초대는 여기에 싣지 않는다(부서 홈 배너, ADR 0084).</summary>
+public sealed record FamilyEntry(string? Name, int Total, int? Next, double Pct, int Waiting, string? PendingTeam);
 
 /// <summary>
 /// 가족이 스스로 꾸리는 가족팀(ADR 0083 · 0084, R-204 ~ R-213). 이 부서 연결로 읽고 쓴다(전역 필터 + RLS).
@@ -152,8 +152,8 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         var s = await StateAsync(ct);
         if (!s.Enabled || s.ParticipantId is null) return null;
         return s.Mine is { } m
-            ? new FamilyEntry(m.Name, m.Total, m.Next, m.Pct, m.Requests.Count, null, null)
-            : new FamilyEntry(null, 0, null, 0, s.Invites.Count, s.Pending?.TeamName, s.Invites.FirstOrDefault()?.TeamName);
+            ? new FamilyEntry(m.Name, m.Total, m.Next, m.Pct, m.Requests.Count, null)
+            : new FamilyEntry(null, 0, null, 0, 0, s.Pending?.TeamName);
     }
 
     /// <summary>R-205: 사람 이름 · 팀 이름으로 찾기.</summary>

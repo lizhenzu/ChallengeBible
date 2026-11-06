@@ -247,6 +247,14 @@
 .hm .hj-rib b { color: var(--hj-blue); margin-right: 2px; }
 .hm .hj-rib .ref { font-style: normal; color: var(--dim); font-weight: 600; font-size: 12.5px; }
 .hm .hj-card { display: block; background: var(--bg); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 14px; }
+/* 받은 가족팀 초대 배너(시안 home-invite): 밝기와 관계없이 같은 주황 */
+.hm .hj-card.hj-inv { padding: 15px; border: 0; border-radius: 18px; background: linear-gradient(135deg, #FFB938, #F08A24); color: #3A2200; box-shadow: 0 6px 16px rgba(240, 138, 36, .35); text-decoration: none; }
+.hm .hj-inv .h { display: flex; align-items: center; gap: 11px; }
+.hm .hj-inv .ic { flex: none; width: 48px; height: 48px; border-radius: 14px; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+.hm .hj-inv .tx { flex: 1; min-width: 0; }
+.hm .hj-inv b { display: block; font-size: 18px; font-weight: 900; line-height: 1.3; }
+.hm .hj-inv small { display: block; margin-top: 1px; font-size: 13px; font-weight: 700; color: #5A3700; word-break: keep-all; overflow-wrap: anywhere; }
+.hm .hj-inv .ivgo { display: block; height: 44px; margin-top: 12px; border-radius: 12px; background: #fff; color: #B85A00; font-size: 15px; font-weight: 900; text-align: center; line-height: 44px; }
 /* 카드 좌우 여백은 좁게 · 모서리는 작게(2026-11-03 확정 시안) */
 .hm main.hj.gut { padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); }
 .hm .hj-hi-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }   /* 사진은 위 · 가로선 사이 가운데(2026-11-03 사용자) */

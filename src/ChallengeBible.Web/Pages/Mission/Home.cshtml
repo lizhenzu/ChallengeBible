@@ -152,17 +152,8 @@
     </div>
     <div class="hLeg"><span><i style="box-shadow:inset 0 0 0 2px #2F80ED"></i>오늘</span><span>숫자 = 그날 받은 점수 · 날짜를 누르면 그날 미션</span></div>
 
-    @* 가족팀 입구(확정 시안 family-team-self ① · family-invite ③, ADR 0083 · 0084): 팀이 없으면 받은 초대 · 신청 중 · 만들기, 있으면 점수와 기다리는 신청 수 *@
-    @if (Model.Family is { InviteTeam: not null } famInv)
-    {
-        <a class="hFam inv" href="/@Model.Slug/family-team">
-            <span class="ic" aria-hidden="true">💌</span>
-            <span class="m"><b>가족팀 초대가 왔어요</b><small>@famInv.InviteTeam@(famInv.Waiting > 1 ? $" 외 {famInv.Waiting - 1}팀" : "")에서 함께하자고 해요</small></span>
-            <span class="ct num" aria-label="받은 초대 @(famInv.Waiting)건">@famInv.Waiting</span>
-            <span class="ar" aria-hidden="true">›</span>
-        </a>
-    }
-    else if (Model.Family is { } fam)
+    @* 가족팀 입구(확정 시안 family-team-self ①, ADR 0083): 팀이 없으면 신청 중 · 만들기, 있으면 점수와 기다리는 신청 수. 받은 초대는 부서 홈 배너로(ADR 0084, 시안 home-invite) *@
+    @if (Model.Family is { } fam)
     {
         <a class="hFam@(fam.Name is null ? " new" : "")" href="/@Model.Slug/family-team">
             <span class="ic" aria-hidden="true">👨‍👩‍👧</span>

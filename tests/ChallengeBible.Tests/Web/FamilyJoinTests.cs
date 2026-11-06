@@ -615,11 +615,19 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Contains("이미 초대를 보냈어요", again);
         Assert.Contains("가족 초대하기", again);
 
-        // 입구에 초대 카드, 찾기 화면 맨 위에서 수락
+        // 부서 홈 말씀 찾기 위에 배너(미션 홈에는 없다), 찾기 화면 맨 위에서 수락
         var other = await LoggedIn("other@example.com");
-        var home = await other.GetStringAsync("/jamsil-kids/word-mission");
-        Assert.Contains("가족팀 초대가 왔어요", home);
-        Assert.Contains("받은 초대 1건", home);
+        var home = await other.GetStringAsync("/jamsil-kids");
+        Assert.Contains("가족팀 초대가 왔어요!", home);
+        Assert.Contains("김민호님이 웃음폭탄네로 초대했어요", home);
+        Assert.Contains("<a class=\"hj-card hj-inv\" href=\"/jamsil-kids/family-team\">", home);
+        Assert.True(home.IndexOf("hj-hi-top", StringComparison.Ordinal) < home.IndexOf("hj-inv", StringComparison.Ordinal));   // 인사 카드 다음
+        Assert.True(home.IndexOf("hj-inv", StringComparison.Ordinal) < home.IndexOf("hj-card hj-sr", StringComparison.Ordinal));   // 말씀 찾기 바로 위
+        var missionHome = await other.GetStringAsync("/jamsil-kids/word-mission");
+        Assert.DoesNotContain("초대가 왔어요", missionHome);
+        Assert.DoesNotContain("class=\"ct num\"", missionHome);                          // 입구 숫자에 초대를 세지 않는다
+        Assert.Contains("우리 가족팀 만들기", missionHome);
+        Assert.DoesNotContain("hj-inv", await dad.GetStringAsync("/jamsil-kids"));        // 보낸 사람 · 팀이 있는 사람에게는 없다
         var got = await other.GetStringAsync("/jamsil-kids/family-team");
         Assert.Contains("김민호님이 학생으로 초대했어요", got);
         Assert.Contains("handler=InviteReject", got);
@@ -633,7 +641,18 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
 
         // 보낸 초대가 사라지고 입구도 팀 점수로 바뀐다
         Assert.DoesNotContain("보낸 초대", await dad.GetStringAsync("/jamsil-kids/family-team"));
-        Assert.DoesNotContain("가족팀 초대가 왔어요", await other.GetStringAsync("/jamsil-kids/word-mission"));
+        Assert.DoesNotContain("가족팀 초대가 왔어요", await other.GetStringAsync("/jamsil-kids"));
+    }
+
+    [Fact]
+    public async Task R212_여러_팀에서_초대받으면_배너는_먼저_온_팀과_나머지_수를_보인다()
+    {
+        Assert.Equal(FamilyError.None, await As("dad").CreateAsync("웃음폭탄네", FamilyRelation.Father));
+        Assert.Equal(FamilyError.None, await As("mom").CreateAsync("말씀 수호대", FamilyRelation.Mother));
+        await DadInvites("other");
+        Assert.Equal(FamilyError.None, await As("mom").InviteAsync(_p["other"].Pid, FamilyRelation.Student));
+        var c = await LoggedIn("other@example.com");
+        Assert.Contains("웃음폭탄네 외 1팀에서 초대했어요", await c.GetStringAsync("/jamsil-kids"));
     }
 
     [Fact]

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace ChallengeBible.Web.Pages;
 
 /// <summary>`/{slug}` 부서 홈 메인(확정 시안: 홈메인, 0044). 부서 결정 · 소속 검사는 TenantPageFilter 가 한다.</summary>
-public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, HomeService home, AccountService accounts,
+public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, FamilyJoinService familyJoin, HomeService home, AccountService accounts,
     OnFamilyService onFamily, PhotoService photos) : PageModel, ITitled
 {
     /// <summary>내 사진 파일 이름(0078) — 없으면 이름 첫 글자.</summary>
@@ -17,6 +17,8 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Home
     public TenantContext Tenant => tenant;
     /// <summary>"우리 가족팀" 칸(확정 시안 홈메인) — 내가 든 활성 가족팀이 없으면 null.</summary>
     public FamilyHome? Family { get; private set; }
+    /// <summary>받은 가족팀 초대(확정 시안 home-invite, R-212) — 말씀 찾기 위 배너. 팀이 있으면 비어 있다.</summary>
+    public IReadOnlyList<FamilyReceivedInvite> Invites { get; private set; } = [];
     /// <summary>온가족 한 줄(확정 시안 온가족 "부서 홈 칸", R-177) — 온가족이 없으면 null.</summary>
     public (string Name, int Total)? OnFamily { get; private set; }
     public bool IsGuardian => tenant.Has(Roles.Guardian);
@@ -35,6 +37,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Home
         var me = User.AccountId()!.Value;
         MyPhoto = await photos.FileOfAsync(me, ct);
         if (tenant.Current.MissionEnabled) Family = await teams.MyFamilyAsync(ct);
+        if (tenant.Current.MissionEnabled && Family is null) Invites = (await familyJoin.StateAsync(ct)).Invites;
         OnFamily = await onFamily.LineAsync(me, ct);
         Data = await home.GetAsync(ct);
         ManyTenants = (await accounts.WhereToGoAsync(me, ct)).ApprovedCount > 1;

@@ -1935,8 +1935,4 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .fmt-inv .fmt-who input:checked + span { background: var(--accent-bg); }
 .fmt-inv .q { margin: 12px 0 7px; font-size: 13.5px; font-weight: 800; }
 .fmt-inv .a { margin-top: 10px; }
-.hFam.inv { background: #FFF8E8; border-color: #F6E2B3; color: #1B1F24; }
-.hFam.inv .ic { background: #fff; }
-.hFam.inv small { color: #5B6470; }
-.hFam.inv .ar { color: #98A1AD; }
-@media (prefers-color-scheme: dark) { .hFam .ic { background: #33291A; } .fmt-rq { background: #2C2416; box-shadow: inset 0 0 0 1px #4A3C22; color: var(--fg); } .fmt-rq .w b, .fmt-ex span { color: #F2C063; } .fmt-ex span { background: #2C2416; } .hFam.inv { background: #2C2416; border-color: #4A3C22; color: var(--fg); } .hFam.inv .ic { background: #33291A; } .hFam.inv small { color: var(--dim); } .fmt-inv p { color: var(--dim); } .fmt-inv .fmt-chips > span, .fmt-inv .fmt-who span { background: var(--bg); } }
+@media (prefers-color-scheme: dark) { .hFam .ic { background: #33291A; } .fmt-rq { background: #2C2416; box-shadow: inset 0 0 0 1px #4A3C22; color: var(--fg); } .fmt-rq .w b, .fmt-ex span { color: #F2C063; } .fmt-ex span { background: #2C2416; } .fmt-inv p { color: var(--dim); } .fmt-inv .fmt-chips > span, .fmt-inv .fmt-who span { background: var(--bg); } }

@@ -135,6 +135,18 @@
         }
     </section>
 
+    @* 받은 가족팀 초대(확정 시안 home-invite, ADR 0084 · R-212): 말씀 찾기 바로 위. 수락 · 거절은 가족팀 화면에서 *@
+    @if (Model.Invites.Count > 0)
+    {
+        var first = Model.Invites[0];
+        <a class="hj-card hj-inv" href="/@slug/family-team">
+            <span class="h"><span class="ic" aria-hidden="true">💌</span>
+                <span class="tx"><b>가족팀 초대가 왔어요!</b>
+                    <small>@(Model.Invites.Count > 1 ? $"{first.TeamName} 외 {Model.Invites.Count - 1}팀에서 초대했어요" : $"{first.InvitedBy}님이 {first.TeamName}{Ro(first.TeamName)} 초대했어요")</small></span></span>
+            <span class="ivgo">초대 확인하기 ›</span>
+        </a>
+    }
+
     @if (t.ReadingEnabled)
     {
         <section class="hj-card hj-sr" aria-label="말씀 찾기">
