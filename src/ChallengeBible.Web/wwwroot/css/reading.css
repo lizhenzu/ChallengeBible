@@ -1,5 +1,5 @@
 /* 성경통독 글자 크기(ADR 0089): 통독 화면에서만 읽는 파일이라 여기서 전체 비율을 정한다. 말씀 미션은 그대로 1. */
-:root { --rs: .85; }
+:root { --rs: .85; --rr: 5px; }
 body { font-size: calc(15px * var(--rs)); }
 /* 도전!!!성경통독 (확정 시안: 통독-대시보드 · 통독-성경목록). 통독 화면에서만 읽는 파일이라 다른 화면과 겹치지 않는다.
    본문 읽기는 말씀-성경읽기-v2 의 .brd 모양(site.css)에 장 번호 줄만 더한다(ADR 0057). */
@@ -10,7 +10,7 @@ body { font-size: calc(15px * var(--rs)); }
 .rp-in { max-width: 640px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
 .rp-top { background: var(--r-band); }
 .rp-top > .rp-in:first-child { display: flex; align-items: center; gap: 12px; min-height: 72px; }
-.rp-menu { width: 44px; height: 44px; border-radius: 12px; background: var(--bg); border: 1px solid var(--r-rule); display: grid; place-items: center; font-size: calc(18px * var(--rs, 1)); }
+.rp-menu { width: 44px; height: 44px; border-radius: 5px; background: var(--bg); border: 1px solid var(--r-rule); display: grid; place-items: center; font-size: calc(18px * var(--rs, 1)); }
 .rp-crumb { flex: 1; font-size: calc(15px * var(--rs, 1)); color: var(--r-dim); }
 .rp-crumb b, .rp-crumb a b { color: var(--r-ink); }
 .rp-date { font-size: calc(13px * var(--rs, 1)); color: var(--r-dim); }
@@ -46,13 +46,13 @@ body { font-size: calc(15px * var(--rs)); }
 .rp-h { margin: 0 0 12px; display: flex; justify-content: space-between; align-items: baseline; font-size: calc(16px * var(--rs, 1)); font-weight: 900; color: var(--r-acc); letter-spacing: .1em; }
 .rp-h small { font-size: max(11px, calc(12.5px * var(--rs, 1))); font-weight: 500; color: var(--r-dim); letter-spacing: 0; }
 .rp-next { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.rp-next a { min-height: 54px; padding: 0 14px; border: 1px solid var(--r-rule); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; }
+.rp-next a { min-height: 54px; padding: 0 14px; border: 1px solid var(--r-rule); border-radius: 5px; display: flex; align-items: center; justify-content: space-between; }
 .rp-next b { color: var(--r-acc); }
 .rp-bar { margin-top: 10px; }
 .rp-bar .t { display: flex; justify-content: space-between; font-size: calc(14px * var(--rs, 1)); }
 .rp-bar .t span:last-child { color: var(--r-dim); }
-.rp-bar > i { display: block; height: 6px; margin-top: 6px; border-radius: 99px; background: var(--r-cell); overflow: hidden; }
-.rp-bar > i > b { display: block; height: 100%; min-width: 4px; background: var(--r-acc); border-radius: 99px; }
+.rp-bar > i { display: block; height: 6px; margin-top: 6px; border-radius: 5px; background: var(--r-cell); overflow: hidden; }
+.rp-bar > i > b { display: block; height: 100%; min-width: 4px; background: var(--r-acc); border-radius: 5px; }
 .rp-bar > i > b.all { background: var(--r-ink); }
 .rp-cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
 .rp-cal .dw { text-align: center; font-size: max(11px, calc(12px * var(--rs, 1))); color: var(--r-dim); padding-bottom: 4px; }
@@ -86,18 +86,18 @@ body { font-size: calc(15px * var(--rs)); }
 .rp-group { margin-top: 22px !important; }
 .rp-gh { margin: 0 0 8px; display: flex; justify-content: space-between; font-size: calc(14px * var(--rs, 1)); font-weight: 800; color: var(--r-dim); }
 .rp-bgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; grid-auto-flow: dense; }
-.rp-bk { position: relative; min-height: 64px; padding: 8px 14px; border: 1px solid var(--r-rule); border-radius: 10px; display: flex; flex-direction: column; justify-content: center; overflow: hidden; scroll-margin-top: 80px; }
+.rp-bk { position: relative; min-height: 64px; padding: 8px 14px; border: 1px solid var(--r-rule); border-radius: 5px; display: flex; flex-direction: column; justify-content: center; overflow: hidden; scroll-margin-top: 80px; }
 .rp-bk span { font-size: calc(15px * var(--rs, 1)); }
 .rp-bk b { font-size: calc(13px * var(--rs, 1)); font-weight: 500; color: var(--r-dim); }
 .rp-bk.done b { color: var(--r-acc); font-weight: 800; }
 .rp-bk i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--r-acc); }
 .rp-bk.open { border: 2px solid var(--r-ink); }
-.rp-panel { grid-column: 1 / -1; border: 1px solid var(--r-ink); border-radius: 14px; padding: 18px; display: grid; gap: 12px; }
+.rp-panel { grid-column: 1 / -1; border: 1px solid var(--r-ink); border-radius: 5px; padding: 18px; display: grid; gap: 12px; }
 .rp-panel .ph { display: flex; justify-content: space-between; align-items: baseline; }
 .rp-panel .ph strong { font-size: calc(22px * var(--rs, 1)); }
 .rp-panel .ph span { font-size: calc(13px * var(--rs, 1)); color: var(--r-dim); }
-.rp-panel .seg { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 12px; background: var(--r-cell); }
-.rp-panel .seg a { min-height: 42px; border-radius: 9px; display: grid; place-items: center; font-weight: 700; color: var(--r-dim); }
+.rp-panel .seg { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 5px; background: var(--r-cell); }
+.rp-panel .seg a { min-height: 42px; border-radius: 5px; display: grid; place-items: center; font-weight: 700; color: var(--r-dim); }
 .rp-panel .seg a[aria-current="true"] { background: var(--bg); color: var(--r-ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
 .rp-panel .hint { margin: 0; font-size: calc(13px * var(--rs, 1)); color: var(--r-dim); }
 .rp-panel .chs { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
@@ -111,7 +111,7 @@ body { font-size: calc(15px * var(--rs)); }
 .rp-panel .lg i.done { background: var(--r-accSoft); }
 .rp-panel .lg i.here { background: none; box-shadow: inset 0 0 0 2px var(--r-acc); }
 .rp-panel .acts { display: grid; grid-template-columns: auto 1fr; gap: 10px; }
-.rp-panel .acts a { min-height: 50px; padding: 0 18px; border-radius: 12px; display: grid; place-items: center; font-weight: 800; }
+.rp-panel .acts a { min-height: 50px; padding: 0 18px; border-radius: 5px; display: grid; place-items: center; font-weight: 800; }
 .rp-panel .acts .close { border: 1px solid var(--r-rule); }
 .rp-panel .acts .go { background: var(--r-acc); color: #fff; }
 @keyframes rp-spin { to { transform: rotate(360deg); } }
@@ -123,7 +123,7 @@ body { font-size: calc(15px * var(--rs)); }
 .brd-chs a.done { background: var(--b-accSoft); color: var(--b-acc); }
 .brd-chs a.cur { background: var(--b-acc); color: #fff; }
 .brd-chnav { margin-top: 14px; display: flex; justify-content: space-between; gap: 10px; }
-.brd-chnav a { min-height: 44px; padding: 0 16px; border-radius: 12px; background: var(--b-grey); display: inline-flex; align-items: center; font-weight: 800; color: var(--b-ink); }
+.brd-chnav a { min-height: 44px; padding: 0 16px; border-radius: 5px; background: var(--b-grey); display: inline-flex; align-items: center; font-weight: 800; color: var(--b-ink); }
 .rd-done { color: var(--b-acc); font-weight: 800; }
 
 /* 북마크 모음 (확정 시안: 통독-북마크) */
@@ -132,8 +132,8 @@ body { font-size: calc(15px * var(--rs)); }
 .rp-head h1 small { margin-left: 8px; font-size: calc(18px * var(--rs, 1)); font-weight: 400; color: var(--r-dim); }
 .rp-head p { margin: 10px 0 0; font-size: calc(14px * var(--rs, 1)); color: var(--r-dim); line-height: 1.7; }
 .rp-bmbar { margin-top: 16px; display: flex; justify-content: space-between; align-items: center; font-size: calc(13px * var(--rs, 1)); color: var(--r-dim); }
-.rp-seg { display: inline-grid; grid-auto-flow: column; padding: 4px; border-radius: 12px; background: var(--r-cell); }
-.rp-seg a { min-height: 40px; padding: 0 16px; border-radius: 9px; display: grid; place-items: center; font-weight: 700; color: var(--r-dim); }
+.rp-seg { display: inline-grid; grid-auto-flow: column; padding: 4px; border-radius: 5px; background: var(--r-cell); }
+.rp-seg a { min-height: 40px; padding: 0 16px; border-radius: 5px; display: grid; place-items: center; font-weight: 700; color: var(--r-dim); }
 .rp-seg a[aria-current="true"] { background: var(--bg); color: var(--r-ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
 .rp-bms { list-style: none; margin: 8px 0 0; padding: 0; }
 .rp-bms li { position: relative; padding: 18px 64px 18px 0; border-bottom: 1px solid var(--r-rule); }
@@ -150,13 +150,13 @@ body { font-size: calc(15px * var(--rs)); }
 .rp-empty { margin: 40px 0; text-align: center; color: var(--r-dim); line-height: 1.8; }
 
 /* 성경 검색 (확정 시안: 통독-성경검색) */
-.rp-sform { margin-top: 16px; display: flex; border: 2px solid var(--r-ink); border-radius: 14px; overflow: hidden; background: var(--bg); }
+.rp-sform { margin-top: 16px; display: flex; border: 2px solid var(--r-ink); border-radius: 5px; overflow: hidden; background: var(--bg); }
 .rp-sform input { flex: 1; min-width: 0; min-height: 56px; padding: 0 18px; border: 0; background: none; font-size: calc(17px * var(--rs, 1)); color: var(--r-ink); }
 .rp-sform input:focus { outline: none; }
 .rp-sform:focus-within { outline: 3px solid var(--r-acc); outline-offset: 2px; }
 .rp-sform button { flex: none; padding: 0 20px; border: 0; background: var(--r-ink); color: var(--bg); font-size: calc(16px * var(--rs, 1)); font-weight: 800; }
 .rp-sugg, .rp-chips { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
-.rp-sugg a, .rp-chips a { min-height: 40px; padding: 0 16px; border: 1px solid var(--r-rule); border-radius: 99px; background: var(--bg); display: inline-flex; align-items: center; gap: 6px; font-size: calc(15px * var(--rs, 1)); }
+.rp-sugg a, .rp-chips a { min-height: 40px; padding: 0 16px; border: 1px solid var(--r-rule); border-radius: 5px; background: var(--bg); display: inline-flex; align-items: center; gap: 6px; font-size: calc(15px * var(--rs, 1)); }
 .rp-chips { margin-top: 6px; }
 .rp-chips a { min-height: 36px; font-size: calc(14px * var(--rs, 1)); }
 .rp-chips a span { color: var(--r-dim); font-size: max(11px, calc(12.5px * var(--rs, 1))); }
@@ -187,16 +187,16 @@ body { font-size: calc(15px * var(--rs)); }
 /* 참여자 현황(확정 시안: 통독-참여자현황, R-159). 점수 없이 진도율만 */
 .rp-stats4 { grid-template-columns: repeat(4, 1fr); }
 .rp-stats4 b { font-size: calc(22px * var(--rs, 1)); }
-.rp-hall0 { margin: 0; padding: 18px; border-radius: 14px; background: var(--r-band); color: var(--r-dim); font-size: calc(14px * var(--rs, 1)); line-height: 1.7; text-align: center; }
+.rp-hall0 { margin: 0; padding: 18px; border-radius: 5px; background: var(--r-band); color: var(--r-dim); font-size: calc(14px * var(--rs, 1)); line-height: 1.7; text-align: center; }
 .rp-hall { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.rp-hall li { display: flex; gap: 8px; align-items: baseline; padding: 10px 14px; border-radius: 12px; background: var(--r-accSoft); }
+.rp-hall li { display: flex; gap: 8px; align-items: baseline; padding: 10px 14px; border-radius: 5px; background: var(--r-accSoft); }
 .rp-hall span { font-size: calc(13px * var(--rs, 1)); color: var(--r-acc); font-weight: 800; }
 .rp-ptools { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
-.rp-ptools input[type=search] { flex: 1 1 160px; min-height: 48px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--r-rule); background: var(--bg); color: var(--r-ink); font-size: calc(16px * var(--rs, 1)); }
+.rp-ptools input[type=search] { flex: 1 1 160px; min-height: 48px; padding: 0 14px; border-radius: 5px; border: 1px solid var(--r-rule); background: var(--bg); color: var(--r-ink); font-size: calc(16px * var(--rs, 1)); }
 .rp-people { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.rp-people li { position: relative; padding: 16px 12px 14px; border-radius: 16px; border: 1px solid var(--r-rule); display: grid; justify-items: center; gap: 2px; text-align: center; }
+.rp-people li { position: relative; padding: 16px 12px 14px; border-radius: 5px; border: 1px solid var(--r-rule); display: grid; justify-items: center; gap: 2px; text-align: center; }
 .rp-people li.me { border-color: var(--r-acc); background: var(--r-accSoft); }
-.rp-people .mine { position: absolute; top: 8px; left: 8px; padding: 1px 8px; border-radius: 99px; background: var(--r-acc); color: #fff; font-size: max(11px, calc(11.5px * var(--rs, 1))); font-weight: 800; }
+.rp-people .mine { position: absolute; top: 8px; left: 8px; padding: 1px 8px; border-radius: 5px; background: var(--r-acc); color: #fff; font-size: max(11px, calc(11.5px * var(--rs, 1))); font-weight: 800; }
 .rp-people .pr { --p: 0; width: 64px; height: 64px; margin-bottom: 6px; border-radius: 50%; display: grid; place-items: center;
                  background: radial-gradient(closest-side, var(--bg) 80%, transparent 81%), conic-gradient(var(--r-acc) calc(var(--p) * 1%), var(--r-cell) 0); }
 .rp-people .pr span { font-size: calc(14px * var(--rs, 1)); font-weight: 700; }
@@ -217,15 +217,15 @@ body { font-size: calc(15px * var(--rs)); }
 .rr { display: flex; flex-direction: column; gap: 14px; }
 .rr-h { margin: 12px 0 0; font-size: calc(15px * var(--rs, 1)); font-weight: 800; display: flex; justify-content: space-between; align-items: baseline; }
 .rr-h small { font-size: calc(13px * var(--rs, 1)); font-weight: 500; color: var(--r-dim); }
-.rr-ok { margin: 8px 0 0; padding: 12px 14px; border-radius: 12px; background: var(--ok-bg); color: var(--ok); font-weight: 700; }
+.rr-ok { margin: 8px 0 0; padding: 12px 14px; border-radius: 5px; background: var(--ok-bg); color: var(--ok); font-weight: 700; }
 .rp-body section.rr-now { margin-top: 0; }
-.rr-now { border: 1px solid var(--r-acc); box-shadow: inset 0 0 0 1px var(--r-acc); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.rr-now { border: 1px solid var(--r-acc); box-shadow: inset 0 0 0 1px var(--r-acc); border-radius: 5px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
 .rr .row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .rr-now .no { font-size: calc(20px * var(--rs, 1)); font-weight: 800; }
 .rr-now .pct { font-size: calc(34px * var(--rs, 1)); font-weight: 300; }
 .rr-now .pct u { text-decoration: none; font-size: calc(15px * var(--rs, 1)); color: var(--r-dim); }
 .rr .meta { margin: 0; font-size: calc(13px * var(--rs, 1)); color: var(--r-dim); }
-.rr-tag { font-size: max(11px, calc(12px * var(--rs, 1))); font-weight: 800; padding: 2px 10px; border-radius: 99px; }
+.rr-tag { font-size: max(11px, calc(12px * var(--rs, 1))); font-weight: 800; padding: 2px 10px; border-radius: 5px; }
 .rr-tag.go { background: var(--r-accSoft); color: var(--r-acc); }
 .rr-tag.ok { background: var(--ok-bg); color: var(--ok); }
 .rr-tag.cl { background: var(--r-band); color: var(--r-dim); }
@@ -234,9 +234,9 @@ body { font-size: calc(15px * var(--rs)); }
 .rr-bar i { display: block; height: 100%; background: var(--r-acc); }
 .rr-bar i.ok { background: var(--ok); }
 .rr-bar i.cl { background: var(--r-dim); opacity: .45; }
-.rr-btn { min-height: 46px; padding: 0 18px; border-radius: 12px; font-size: calc(15px * var(--rs, 1)); font-weight: 800; border: 1px solid var(--r-rule); background: var(--bg); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.rr-btn { min-height: 46px; padding: 0 18px; border-radius: 5px; font-size: calc(15px * var(--rs, 1)); font-weight: 800; border: 1px solid var(--r-rule); background: var(--bg); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
 .rr-btn.d { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, var(--r-rule)); }
-.rr-ask { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 14px; background: var(--warn-bg); }
+.rr-ask { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 5px; background: var(--warn-bg); }
 .rr-ask b.t { color: var(--warn); }
 .rr-ask ul { margin: 0; padding-left: 18px; font-size: calc(14px * var(--rs, 1)); line-height: 1.8; }
 .rr-ask .acts { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -250,6 +250,6 @@ body { font-size: calc(15px * var(--rs)); }
 .rr-list .r { text-align: right; }
 .rr-list .r b { display: block; font-size: calc(18px * var(--rs, 1)); font-weight: 300; }
 .rr-list .r small { font-size: max(11px, calc(12px * var(--rs, 1))); color: var(--r-dim); }
-.rr-empty { padding: 22px; text-align: center; color: var(--r-dim); border: 1px dashed var(--r-rule); border-radius: 14px; font-size: calc(14px * var(--rs, 1)); }
-.rr-note { margin: 8px 0 0; padding: 12px 14px; border-radius: 12px; background: var(--r-band); font-size: calc(13px * var(--rs, 1)); color: var(--r-dim); line-height: 1.8; }
+.rr-empty { padding: 22px; text-align: center; color: var(--r-dim); border: 1px dashed var(--r-rule); border-radius: 5px; font-size: calc(14px * var(--rs, 1)); }
+.rr-note { margin: 8px 0 0; padding: 12px 14px; border-radius: 5px; background: var(--r-band); font-size: calc(13px * var(--rs, 1)); color: var(--r-dim); line-height: 1.8; }
 .rr-note b { color: var(--r-ink); }

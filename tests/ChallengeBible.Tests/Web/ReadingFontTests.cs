@@ -110,6 +110,7 @@ public partial class ReadingFontTests : IClassFixture<WebApplicationFactory<Prog
         if (!EdgePage.Available) return;
         Assert.Equal("OK", await Run(await Kid(), ReadUrl, null, null, AllShrink + VerseGap + """
             eq('reading verse gap', verseGap, '6px');
+            eq('pill corner', getComputedStyle(q('.brd-pills a')).borderTopLeftRadius, '5px');
             eq('rs', rs, '.85');
             eq('label', q('.fs .pct').textContent, '100%');
             eq('fs', root.style.getPropertyValue('--fs'), '1');
@@ -152,6 +153,9 @@ public partial class ReadingFontTests : IClassFixture<WebApplicationFactory<Prog
         Assert.DoesNotContain("reading.css", await c.GetStringAsync("/jamsil-kids/word"));
         Assert.Equal("OK", await Run(c, "/jamsil-kids/word", "2", null, VerseGap + """
             eq('mission keeps gap', verseGap, '12px');
+            var pills = document.createElement('div'); pills.className = 'brd-pills';
+            var pill = document.createElement('a'); pills.appendChild(pill); wrap.appendChild(pills);
+            eq('mission keeps corner', getComputedStyle(pill).borderTopLeftRadius, '99px');
             eq('no scale', rs, '');
             eq('label', q('.fs .pct').textContent, '85%');
             eq('saved', stored('cb.fs'), '2');
