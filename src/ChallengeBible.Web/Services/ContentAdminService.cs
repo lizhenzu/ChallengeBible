@@ -42,9 +42,11 @@ public sealed class ContentInput
     public short EndVerse { get; set; } = 1;
 }
 
-public sealed record ContentDay(DateOnly Date, int? Id, string Status, string? Title);
+/// <param name="Sub">목록 둘째 줄: 성경 범위. 범위가 없는 종류(퀴즈) · 빈 날은 null.</param>
+public sealed record ContentDay(DateOnly Date, int? Id, string Status, string? Title, string? Sub = null);
 
-public sealed record ContentSlot(byte No, int? Id, string Status, string? Title);
+/// <param name="Sub">목록 둘째 줄: 성경 범위. 빈 칸은 null.</param>
+public sealed record ContentSlot(byte No, int? Id, string Status, string? Title, string? Sub = null);
 
 /// <summary>
 /// 플랫폼 공용 콘텐츠(TenantId NULL) 편집(API 계약 4-5, R-120 ~ R-124). 공용은 시스템 연결로만 쓴다(RLS fn_SharedWrite).
@@ -101,11 +103,15 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
         var to = from.AddMonths(1).AddDays(-1);
         var rows = kind switch
         {
-            ContentKind.Word => await Shared(ctx.DailyWords).Where(x => x.ExposeDate >= from && x.ExposeDate <= to).Select(x => new { D = x.ExposeDate, x.Id, x.Status, T = x.Title }).ToListAsync(ct),
-            _ => await Shared(ctx.DailyQuizzes).Where(x => x.ExposeDate >= from && x.ExposeDate <= to).Select(x => new { D = x.ExposeDate, x.Id, x.Status, T = x.Question }).ToListAsync(ct),
+            ContentKind.Word => await Shared(ctx.DailyWords).Where(x => x.ExposeDate >= from && x.ExposeDate <= to)
+                .Select(x => new { D = x.ExposeDate, x.Id, x.Status, T = x.Title, B = x.BookId, SC = x.StartChapter, SV = x.StartVerse, EC = x.EndChapter, EV = x.EndVerse }).ToListAsync(ct),
+            _ => await Shared(ctx.DailyQuizzes).Where(x => x.ExposeDate >= from && x.ExposeDate <= to)
+                .Select(x => new { D = x.ExposeDate, x.Id, x.Status, T = x.Question, B = (byte)0, SC = (short)0, SV = (short)0, EC = (short)0, EV = (short)0 }).ToListAsync(ct),
         };
         return Enumerable.Range(0, to.Day).Select(from.AddDays)
-            .Select(d => rows.FirstOrDefault(r => r.D == d) is { } r ? new ContentDay(d, r.Id, r.Status, r.T) : new ContentDay(d, null, "None", null)).ToList();
+            .Select(d => rows.FirstOrDefault(r => r.D == d) is { } r
+                ? new ContentDay(d, r.Id, r.Status, r.T, r.B == 0 ? null : BibleBooks.Range(r.B, r.SC, r.SV, r.EC, r.EV))
+                : new ContentDay(d, null, "None", null)).ToList();
     }
 
     /// <summary>공용 말씀 한 달의 입력 점검(R-216). 현재 개정만 읽고 말씀이 있는 날만 돌려준다. 플랫폼 관리자가 아니면 UnauthorizedAccessException.</summary>
@@ -133,10 +139,12 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var rows = kind == ContentKind.Prayer
-            ? await Shared(ctx.DailyPrayers).Select(x => new { No = x.DayNo, x.Id, x.Status, T = x.TraitName }).ToListAsync(ct)
-            : await Shared(ctx.WeeklyVerses).Select(x => new { No = x.WeekNo, x.Id, x.Status, T = x.Title }).ToListAsync(ct);
+            ? await Shared(ctx.DailyPrayers).Select(x => new { No = x.DayNo, x.Id, x.Status, T = x.TraitName, B = x.BookId, SC = x.StartChapter, SV = x.StartVerse, EC = x.EndChapter, EV = x.EndVerse }).ToListAsync(ct)
+            : await Shared(ctx.WeeklyVerses).Select(x => new { No = x.WeekNo, x.Id, x.Status, T = x.Title, B = x.BookId, SC = x.StartChapter, SV = x.StartVerse, EC = x.EndChapter, EV = x.EndVerse }).ToListAsync(ct);
         return Enumerable.Range(1, MaxSlot(kind)).Select(n => (byte)n)
-            .Select(n => rows.FirstOrDefault(r => r.No == n) is { } r ? new ContentSlot(n, r.Id, r.Status, r.T) : new ContentSlot(n, null, "None", null)).ToList();
+            .Select(n => rows.FirstOrDefault(r => r.No == n) is { } r
+                ? new ContentSlot(n, r.Id, r.Status, r.T, r.B == 0 ? null : BibleBooks.Range(r.B, r.SC, r.SV, r.EC, r.EV))
+                : new ContentSlot(n, null, "None", null)).ToList();
     }
 
     private static IQueryable<T> Shared<T>(IQueryable<T> q) where T : ContentBase => q.Where(x => x.TenantId == null && x.IsCurrent);

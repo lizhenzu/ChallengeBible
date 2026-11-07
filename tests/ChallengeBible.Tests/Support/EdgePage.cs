@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ChallengeBible.Tests.Support;
 
@@ -14,6 +15,24 @@ internal static class EdgePage
     private const string EdgePath = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe";
 
     public static bool Available => File.Exists(EdgePath);
+
+    public static string WebRoot()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src", "ChallengeBible.Web")))
+            dir = dir.Parent;
+        return Path.Combine(dir!.FullName, "src", "ChallengeBible.Web", "wwwroot");
+    }
+
+    /// <summary>실제 페이지 HTML 에 실제 스크립트 · CSS 와 시험 스크립트를 넣는다.</summary>
+    public static string Inline(string page, string script, string checks)
+    {
+        var root = WebRoot();
+        page = Regex.Replace(page, "<link[^>]*stylesheet[^>]*>", "");
+        page = Regex.Replace(page, "<script[^>]*\\ssrc=[^>]*></script>", "");
+        page = page.Replace("</head>", "<style>" + File.ReadAllText(Path.Combine(root, "css", "site.css")) + "</style></head>");
+        return page.Replace("</body>", "<script>" + File.ReadAllText(Path.Combine(root, "js", script)) + "</script><script>" + checks + "</script></body>");
+    }
 
     /// <summary>시험 결과 글을 돌려준다. 60초 안에 오지 않으면 null.</summary>
     public static async Task<string?> RunAsync(string page)

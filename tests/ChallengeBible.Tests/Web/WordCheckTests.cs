@@ -183,17 +183,9 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
         Assert.NotEqual(HttpStatusCode.OK, r.StatusCode);
     }
 
-    private static string WebRoot()
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "ChallengeBible.sln")) && !Directory.Exists(Path.Combine(dir.FullName, "src", "ChallengeBible.Web")))
-            dir = dir.Parent;
-        return Path.Combine(dir!.FullName, "src", "ChallengeBible.Web", "wwwroot");
-    }
-
     [Fact]
     public void R216_스크립트에_닫는_태그_글자가_없다() =>
-        Assert.DoesNotContain("</script", File.ReadAllText(Path.Combine(WebRoot(), "js", "content-check.js")), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("</script", File.ReadAllText(Path.Combine(EdgePage.WebRoot(), "js", "content-check.js")), StringComparison.OrdinalIgnoreCase);
 
     /// <summary>실제 페이지 HTML + 실제 스크립트 · CSS 를 Edge headless 에서 돌린다. Edge 가 없는 환경에서는 건너뛴다.</summary>
     [Fact]
@@ -224,14 +216,7 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
     }
 
     /// <summary>실제 페이지 HTML 에 실제 스크립트 · CSS 와 시험 스크립트를 넣는다.</summary>
-    private static string Inline(string page, string checks)
-    {
-        var root = WebRoot();
-        page = Regex.Replace(page, "<link[^>]*stylesheet[^>]*>", "");
-        page = Regex.Replace(page, "<script[^>]*\\ssrc=[^>]*></script>", "");
-        page = page.Replace("</head>", "<style>" + File.ReadAllText(Path.Combine(root, "css", "site.css")) + "</style></head>");
-        return page.Replace("</body>", "<script>" + File.ReadAllText(Path.Combine(root, "js", "content-check.js")) + "</script><script>" + checks + "</script></body>");
-    }
+    private static string Inline(string page, string checks) => EdgePage.Inline(page, "content-check.js", checks);
 
     private static DailyQuiz Q(int day, string? background = "배경", string question = "문제", string? hint = "힌트", string format = QuizFormat.Choice, int choices = 4, bool correct = true, string status = ContentStatus.Published, bool isCurrent = true, string[]? answers = null)
     {

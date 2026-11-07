@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>공용 콘텐츠 재디자인 시안</title>
+<style>
+:root{--bg:#fff;--soft:#F5F6F8;--fg:#1B1F24;--dim:#5B6470;--rule:#E3E6EA;--line:#C9CED5;--accent:#2B59C3;--accent-bg:#EAF0FB;--on-accent:#fff;--ok:#16A34A;--ok-bg:#EAF7EF;--warn:#9A5B00;--warn-bg:#FFF4DE;--bad:#B42318;--bad-bg:#FDECEC;
+ --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--sans)}
+.shot{display:none}.shot.show{display:block}
+.cap{font-size:12px;color:var(--dim);background:var(--soft);padding:6px 16px;border-bottom:1px solid var(--rule)}
+.phone{width:360px;position:relative;min-height:760px;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--rule)}
+.top b{color:var(--accent);font-size:17px}.top em{font-style:normal;background:var(--fg);color:var(--bg);font-size:11px;font-weight:700;padding:1px 7px;border-radius:6px;margin-left:6px}
+.top span{font-size:13px;color:var(--dim)}
+.body{padding:12px 16px 16px;flex:1}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--soft);padding:4px;border-radius:12px}
+.tabs a{min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:9px;font-size:14px;font-weight:700;color:var(--dim)}
+.tabs a.on{background:var(--bg);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.mon{display:flex;align-items:center;gap:6px;margin-top:10px}
+.mon a{flex:0 0 44px;height:44px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:10px;font-size:18px}
+.mon b{flex:1;text-align:center;font-size:16px}
+.sum{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+.sum button{font:inherit;font-size:13px;font-weight:600;min-height:36px;padding:0 11px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--dim)}
+.sum button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.sum button.w{color:var(--warn);border-color:var(--warn)}.sum button.b{color:var(--bad);border-color:var(--bad)}
+.chk{display:flex;align-items:center;justify-content:center;min-height:44px;margin-top:8px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-weight:700;color:var(--accent)}
+.list{list-style:none;padding:0;margin-top:10px;border:1px solid var(--rule);border-radius:14px;overflow:hidden}
+.list li{display:flex;align-items:center;gap:10px;min-height:60px;padding:8px 12px;border-top:1px solid var(--rule)}
+.list li:first-child{border-top:0}
+.list li.today{background:var(--accent-bg)}
+.list li.sel{background:var(--accent-bg);box-shadow:inset 3px 0 0 var(--accent)}
+.list .cb{flex:none;width:22px;height:22px;border:2px solid var(--accent);border-radius:6px;background:var(--accent);color:#fff;font-size:14px;line-height:18px;text-align:center}
+.list .d{flex:none;width:40px;text-align:center;font-weight:800;font-size:16px;line-height:1.2}
+.list .d small{display:block;font-size:11px;font-weight:500;color:var(--dim)}
+.list .sun{color:var(--bad)}
+.list .t{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list .t small{display:block;font-size:12px;color:var(--dim);overflow:hidden;text-overflow:ellipsis}
+.list .t.no{color:var(--dim)}
+.list i{flex:none;font-style:normal;color:var(--line);font-size:18px}
+.tag{flex:none;font-size:11.5px;font-weight:800;padding:2px 9px;border-radius:99px;display:inline-block}
+.pub{background:var(--ok-bg);color:var(--ok)}.dra{background:var(--warn-bg);color:var(--warn)}.non{background:var(--bad-bg);color:var(--bad)}
+.dock{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--rule);padding:10px 16px;display:flex;gap:8px}
+.dock a{flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:10px;font-weight:700;font-size:15px;border:1px solid var(--line)}
+.dock a.p{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.ehead{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--rule)}
+.ehead a{min-width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:var(--accent)}
+.ehead a.ar{font-size:20px;color:var(--fg);border:1px solid var(--line);border-radius:10px}
+.ehead div{flex:1;text-align:center;line-height:1.3}
+.ehead b{display:block;font-size:15px}
+.f{margin-top:14px}.f:first-child{margin-top:0}
+.f>label,.f>b{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
+.f small{font-weight:400;color:var(--dim);margin-left:4px}
+.in{display:flex;align-items:center;width:100%;min-height:46px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px;background:var(--bg)}
+.ta{min-height:112px;align-items:flex-start}
+.sel-box{justify-content:space-between}.sel-box span{color:var(--dim);font-size:12px}
+.rg{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:end;margin-top:8px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.pair label{font-size:11px;color:var(--dim);display:block;text-align:center}
+.pair .in{justify-content:center;padding:9px 4px;text-align:center}
+.rg>span{padding-bottom:12px;color:var(--dim)}
+.prev{font-size:13px;color:var(--dim);margin-top:6px}
+.fmt{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--soft);padding:4px;border-radius:10px}
+.fmt a{min-height:40px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:14px;font-weight:700;color:var(--dim)}
+.fmt a.on{background:var(--bg);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.opt{display:flex;align-items:center;gap:8px;margin-top:6px}
+.opt u{flex:none;width:24px;height:24px;border-radius:50%;border:2px solid var(--line);text-decoration:none}
+.opt.ok u{border:7px solid var(--ok)}
+.opt .in{min-height:44px}
+.opt.ok .in{border-color:var(--ok);background:var(--ok-bg)}
+.pc{width:1040px;min-height:800px}
+.pc .top{padding:12px 28px}
+.pc .body{padding:18px 28px 28px}
+.pc .bar{display:flex;align-items:center;gap:12px}
+.pc .tabs{width:320px;flex:none}
+.pc .mon{margin:0;width:260px}
+.pc .sum{margin:0;margin-left:auto;flex-wrap:nowrap}
+.pc .chk{margin:0;padding:0 14px;flex:none}
+.split{display:grid;grid-template-columns:360px 1fr;gap:18px;margin-top:14px;align-items:start}
+.split .list{margin:0}
+.ed{border:1px solid var(--rule);border-radius:14px}
+.ed .hh{display:flex;align-items:center;gap:8px;padding:12px 18px;border-bottom:1px solid var(--rule)}
+.ed .hh b{font-size:17px}
+.ed .hh .ar{margin-left:auto}
+.ed .hh a{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:10px}
+.ed .cc{padding:16px 18px}
+.ed .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ed .dock{border-radius:0 0 14px 14px;justify-content:flex-end;padding:12px 18px}
+.ed .dock a{flex:0 0 150px}
+</style></head><body>
+
+<div class="shot" id="s1"><div class="cap">① 휴대폰 · 목록: 편집 칸 없이 목록부터, 전체 스크롤 하나</div><div class="phone">
+ <div class="top"><div><b>도전!!!</b><em>플랫폼</em></div><span>위쪽 플랫폼 메뉴는 그대로</span></div>
+ <div class="body">
+  <div class="tabs"><a class="on">말씀</a><a>퀴즈</a><a>기도</a><a>암송</a></div>
+  <div class="mon"><a>‹</a><b>2026년 11월</b><a>›</a></div>
+  <div class="sum"><button class="on">전체 30</button><button>공개 27</button><button class="w">초안 2</button><button class="b">없음 1</button></div>
+  <a class="chk">입력 점검 달력 보기 ›</a>
+  <ul class="list">
+   <li><span class="d sun">1<small>일</small></span><span class="t">고난과 위로<small>고린도후서 1장 1~11절</small></span><span class="tag pub">공개</span><i>›</i></li>
+   <li><span class="d">2<small>월</small></span><span class="t">거룩함과 진실함으로<small>고린도후서 1장 12~24절</small></span><span class="tag pub">공개</span><i>›</i></li>
+   <li class="today"><span class="d">7<small>토</small></span><span class="t">그리스도의 편지 <b style="color:var(--accent);font-size:12px">오늘</b><small>고린도후서 3장 1~11절</small></span><span class="tag pub">공개</span><i>›</i></li>
+   <li><span class="cb">✓</span><span class="d">8<small>일</small></span><span class="t">질그릇에 담긴 보배<small>고린도후서 4장 1~12절</small></span><span class="tag dra">초안</span><i>›</i></li>
+   <li><span class="d">9<small>월</small></span><span class="t">겉은 낡아져도<small>고린도후서 4장 13~18절</small></span><span class="tag dra">초안</span><i>›</i></li>
+   <li><span class="d">10<small>화</small></span><span class="t no">비어 있어요 · 눌러서 입력</span><span class="tag non">없음</span><i>›</i></li>
+   <li><span class="d">11<small>수</small></span><span class="t">화목하게 하는 직분<small>고린도후서 5장 11~21절</small></span><span class="tag pub">공개</span><i>›</i></li>
+  </ul>
+ </div>
+ <div class="dock"><a class="p">고른 초안 1개 공개</a></div>
+</div></div>
+
+<div class="shot" id="s2"><div class="cap">② 휴대폰 · 말씀 편집: 날짜를 누르면 이 화면, 저장 버튼은 항상 아래에</div><div class="phone">
+ <div class="ehead"><a>‹ 목록</a><div><b>11월 7일 토요일</b><span class="tag pub">공개</span></div><a class="ar">‹</a><a class="ar">›</a></div>
+ <div class="body">
+  <div class="f"><b>성경 범위</b><div class="in sel-box">고린도후서<span>▾</span></div>
+   <div class="rg"><div><div class="pair"><div><label>시작 장</label><div class="in">3</div></div><div><label>절</label><div class="in">1</div></div></div></div><span>~</span><div><div class="pair"><div><label>끝 장</label><div class="in">3</div></div><div><label>절</label><div class="in">11</div></div></div></div></div>
+   <p class="prev">고린도후서 3장 1~11절</p></div>
+  <div class="f"><label>제목</label><div class="in">그리스도의 편지</div></div>
+  <div class="f"><label>오늘 이야기 <small>아이들 눈높이로 3 ~ 5문장</small></label><div class="in ta">바울은 고린도 교회 사람들이 바로 그리스도의 편지라고 말했어요. 먹으로 쓴 글이 아니라 하나님의 영으로 마음에 쓴 편지예요.</div></div>
+  <div class="f"><label>해설 <small>있으면</small></label><div class="in ta" style="min-height:72px"></div></div>
+ </div>
+ <div class="dock"><a class="p">고친 내용 공개</a></div>
+</div></div>
+
+<div class="shot" id="s3"><div class="cap">③ 휴대폰 · 퀴즈 편집: 초안이면 저장 버튼 2개</div><div class="phone">
+ <div class="ehead"><a>‹ 목록</a><div><b>11월 8일 일요일</b><span class="tag dra">초안</span></div><a class="ar">‹</a><a class="ar">›</a></div>
+ <div class="body">
+  <div class="f"><label>배경</label><div class="in ta" style="min-height:72px">바울은 자기를 질그릇에 비유했어요.</div></div>
+  <div class="f"><label>문제</label><div class="in ta" style="min-height:72px">바울이 질그릇 안에 담겨 있다고 한 것은 무엇일까요?</div></div>
+  <div class="f"><b>답 형식</b><div class="fmt"><a class="on">객관식</a><a>주관식</a></div></div>
+  <div class="f"><b>보기 <small>동그라미를 눌러 정답을 고르세요</small></b>
+   <div class="opt"><u></u><div class="in">금</div></div>
+   <div class="opt ok"><u></u><div class="in">보배</div></div>
+   <div class="opt"><u></u><div class="in">물</div></div>
+   <div class="opt"><u></u><div class="in">흙</div></div></div>
+  <div class="f"><label>힌트 · 해설 <small>풀기 전 "힌트 보기"에도 나와요</small></label><div class="in ta" style="min-height:72px">고린도후서 4장 7절을 읽어 보세요.</div></div>
+ </div>
+ <div class="dock"><a>초안으로 저장</a><a class="p">공개</a></div>
+</div></div>
+
+<div class="shot" id="s4"><div class="cap">④ PC · 넓은 화면은 목록과 편집을 나란히</div><div class="pc">
+ <div class="top"><div><b>도전!!!</b><em>플랫폼</em></div><span>처음 화면 · 로그아웃</span></div>
+ <div class="body">
+  <div class="bar"><div class="tabs"><a class="on">말씀</a><a>퀴즈</a><a>기도</a><a>암송</a></div><div class="mon"><a>‹</a><b>2026년 11월</b><a>›</a></div>
+   <div class="sum"><button class="on">전체 30</button><button>공개 27</button><button class="w">초안 2</button><button class="b">없음 1</button></div><a class="chk">입력 점검 ›</a></div>
+  <div class="split">
+   <ul class="list">
+    <li><span class="d sun">1<small>일</small></span><span class="t">고난과 위로<small>고린도후서 1장 1~11절</small></span><span class="tag pub">공개</span></li>
+    <li><span class="d">2<small>월</small></span><span class="t">거룩함과 진실함으로<small>고린도후서 1장 12~24절</small></span><span class="tag pub">공개</span></li>
+    <li class="sel"><span class="d">7<small>토</small></span><span class="t">그리스도의 편지 <b style="color:var(--accent);font-size:12px">오늘</b><small>고린도후서 3장 1~11절</small></span><span class="tag pub">공개</span></li>
+    <li><span class="d">8<small>일</small></span><span class="t">질그릇에 담긴 보배<small>고린도후서 4장 1~12절</small></span><span class="tag dra">초안</span></li>
+    <li><span class="d">9<small>월</small></span><span class="t">겉은 낡아져도<small>고린도후서 4장 13~18절</small></span><span class="tag dra">초안</span></li>
+    <li><span class="d">10<small>화</small></span><span class="t no">비어 있어요 · 눌러서 입력</span><span class="tag non">없음</span></li>
+    <li><span class="d">11<small>수</small></span><span class="t">화목하게 하는 직분<small>고린도후서 5장 11~21절</small></span><span class="tag pub">공개</span></li>
+   </ul>
+   <section class="ed">
+    <div class="hh"><b>11월 7일 토요일</b><span class="tag pub">공개</span><div class="ar" style="display:flex;gap:6px"><a>‹</a><a>›</a></div></div>
+    <div class="cc">
+     <div class="f"><b>성경 범위</b><div class="two"><div class="in sel-box">고린도후서<span>▾</span></div><div class="rg" style="margin:0"><div class="pair"><div class="in">3</div><div class="in">1</div></div><span style="padding:0;align-self:center">~</span><div class="pair"><div class="in">3</div><div class="in">11</div></div></div></div><p class="prev">고린도후서 3장 1~11절</p></div>
+     <div class="f"><label>제목</label><div class="in">그리스도의 편지</div></div>
+     <div class="f"><label>오늘 이야기 <small>아이들 눈높이로 3 ~ 5문장</small></label><div class="in ta">바울은 고린도 교회 사람들이 바로 그리스도의 편지라고 말했어요. 먹으로 쓴 글이 아니라 하나님의 영으로 마음에 쓴 편지예요.</div></div>
+     <div class="f"><label>해설 <small>있으면</small></label><div class="in ta" style="min-height:72px"></div></div>
+    </div>
+    <div class="dock"><a class="p">고친 내용 공개</a></div>
+   </section>
+  </div>
+ </div>
+</div></div>
+<script>var m=location.hash.slice(1);if(m)document.getElementById(m).classList.add('show');else document.querySelectorAll('.shot').forEach(function(x){x.classList.add('show')});</script>
+</body></html>

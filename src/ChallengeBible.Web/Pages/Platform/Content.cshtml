@@ -3,154 +3,187 @@
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Pages.Platform
 @using ChallengeBible.Web.Services
+@* 확정 시안: platform-content — 휴대폰은 목록 → 날짜를 누르면 편집 화면, 넓은 화면은 나란히. 저장 버튼은 아래에 고정 *@
 @{
     var ko = new System.Globalization.CultureInfo("ko-KR");
     var i = Model.Input;
     string? E(string f) => Model.Errors.GetValueOrDefault(f);
     var kindLabel = ContentModel.Kinds.First(x => x.Key == Model.Kind).Label;
     var published = Model.Status == ContentStatus.Published;
+    var isDate = !Model.BySlot;
+
+    // 날짜 목록과 번호 목록을 한 모양의 줄로 맞춘다
+    var rows = new List<(string Id, string Href, string Big, string Small, bool Sun, string? Title, string? Sub, string Status, bool On, bool Today, string Name, string Value, string Aria)>();
+    if (isDate)
+    {
+        foreach (var d in Model.Days)
+            rows.Add(($"d-{d.Date:yyyy-MM-dd}", Model.Link(d.Date), d.Date.Day.ToString(), d.Date.ToString("ddd", ko), d.Date.DayOfWeek == DayOfWeek.Sunday,
+                d.Title, d.Sub, d.Status, d.Date == Model.Date, d.Date == Model.Today, "dates", d.Date.ToString("yyyy-MM-dd"), d.Date.ToString("M월 d일") + " 고르기"));
+    }
+    else
+    {
+        foreach (var w in Model.Slots)
+        {
+            var small = Model.IsRecite ? (Model.ThisYearWeek(w.No) is { } x ? $"{x.Start:M'/'d}~" : "여유") : (w.No > 28 ? "없는 달" : "매달");
+            rows.Add(($"n-{w.No}", Model.SlotLink(w.No), $"{w.No}{Model.SlotUnit}", small, false,
+                w.Title, w.Sub, w.Status, w.No == Model.No, w.No == Model.TodayNo, "nos", w.No.ToString(), $"{w.No}{Model.SlotUnit} 고르기"));
+        }
+    }
+    int Count(string s) => rows.Count(r => r.Status == s);
+    var hasDraft = Count(ContentStatus.Draft) > 0;
 }
+@section Scripts { <script src="~/js/content-list.js" asp-append-version="true"></script> }
 <partial name="_PlatformTop" />
-<main class="admin gut"><div class="wrap wide">
-    <h1>공용 콘텐츠</h1>
+<main class="admin gut"><div class="wrap wide cp@(Model.HasSelection ? " has-sel" : "")" data-kind="@Model.Kind">
+    <h1 class="cp-title">공용 콘텐츠</h1>
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
     @if (Model.Notice is not null) { <p class="note-block">@Model.Notice</p> }
 
-    <nav class="seg" aria-label="종류">
-        @foreach (var (key, label, _) in ContentModel.Kinds) { <a href="@Model.Link(kind: key)" aria-current="@(key == Model.Kind ? "page" : "false")">@label</a> }
-    </nav>
-    <div class="tools">
-        @if (Model.IsRecite)
+    <div class="cp-head">
+        <nav class="cp-tabs" aria-label="종류">
+            @foreach (var (key, label, _) in ContentModel.Kinds) { <a href="@Model.Link(kind: key)" aria-current="@(key == Model.Kind ? "page" : "false")">@label</a> }
+        </nav>
+        @if (isDate)
         {
-            <b>1 ~ @(WeeklyVerse.MaxWeekNo)주</b><span class="hint">해마다 첫 일요일부터 1주 · 부서가 그 주 암송을 넣으면 그해에만 그것이 먼저예요</span>
+            <div class="cp-mon">
+                <a href="@Model.Link(month: Model.First.AddMonths(-1))" aria-label="이전 달">‹</a>
+                <b>@Model.First.ToString("yyyy년 M월")</b>
+                <a href="@Model.Link(month: Model.First.AddMonths(1))" aria-label="다음 달">›</a>
+            </div>
         }
-        else if (Model.BySlot)
+        else if (Model.IsRecite)
         {
-            <b>1 ~ @(DailyPrayer.MaxDayNo)일</b><span class="hint">매달 같은 날짜에 같은 기도 · 부서가 그날 기도를 넣으면 그날에만 그것이 먼저예요</span>
+            <p class="cp-slot"><b>1 ~ @(WeeklyVerse.MaxWeekNo)주</b> 해마다 첫 일요일부터 1주 · 부서가 그 주 암송을 넣으면 그해에만 그것이 먼저예요</p>
         }
         else
         {
-            <a class="btn s sm" href="@Model.Link(month: Model.First.AddMonths(-1))" aria-label="이전 달">‹</a>
-            <b class="num">@Model.First.ToString("yyyy년 M월")</b>
-            <a class="btn s sm" href="@Model.Link(month: Model.First.AddMonths(1))" aria-label="다음 달">›</a>
-            <a class="btn s sm" href="/platform/content/@Model.Kind/check?month=@Model.First.ToString("yyyy-MM")@(Model.Date is { } checkDate ? $"&date={checkDate:yyyy-MM-dd}" : "")">입력 점검</a>
+            <p class="cp-slot"><b>1 ~ @(DailyPrayer.MaxDayNo)일</b> 매달 같은 날짜에 같은 기도 · 부서가 그날 기도를 넣으면 그날에만 그것이 먼저예요</p>
         }
-        <span class="cnt">
-            @foreach (var g in (Model.BySlot ? Model.Slots.Select(w => w.Status) : Model.Days.Select(d => d.Status)).GroupBy(s => s)) { <span class="@ContentModel.StatusClass(g.Key)">@ContentModel.StatusLabel(g.Key) @g.Count()</span> }
-        </span>
+        <div class="cp-chips" role="group" aria-label="상태로 거르기">
+            <button type="button" data-f="" aria-pressed="true">전체 @rows.Count</button>
+            <button type="button" data-f="@ContentStatus.Published" aria-pressed="false" disabled="@(Count(ContentStatus.Published) == 0)">공개 @Count(ContentStatus.Published)</button>
+            <button type="button" class="w" data-f="@ContentStatus.Draft" aria-pressed="false" disabled="@(!hasDraft)">초안 @Count(ContentStatus.Draft)</button>
+            <button type="button" class="b" data-f="None" aria-pressed="false" disabled="@(Count("None") == 0)">없음 @Count("None")</button>
+        </div>
+        @if (isDate)
+        {
+            <a class="cp-check" href="/platform/content/@Model.Kind/check?month=@Model.First.ToString("yyyy-MM")@(Model.Date is { } checkDate ? $"&date={checkDate:yyyy-MM-dd}" : "")">입력 점검 달력 보기 ›</a>
+        }
     </div>
 
-    <div class="csplit">
-        @if (Model.BySlot)
-        {
-            <form method="post" asp-page-handler="Bulk" asp-route-no="@Model.No" class="days">
-                <ul>
-                    @foreach (var w in Model.Slots)
-                    {
-                        var sub = Model.IsRecite
-                            ? (Model.ThisYearWeek(w.No) is { } x ? $"{x.Start:M'/'d}~" : "여유")
-                            : (w.No > 28 ? "없는 달 있음" : "매달");
-                        <li class="@(w.No == Model.No ? "on" : "")">
-                            <input type="checkbox" name="nos" value="@w.No" disabled="@(w.Status != ContentStatus.Draft)" aria-label="@(w.No)@Model.SlotUnit 고르기" />
-                            <a href="@Model.SlotLink(w.No)">
-                                <span class="d num">@(w.No)@Model.SlotUnit<small>@sub</small></span>
-                                <span class="tt @(w.Title is null ? "none" : "")">@(w.Title ?? "비어 있어요")</span>
-                                <span class="tag @ContentModel.StatusClass(w.Status)">@ContentModel.StatusLabel(w.Status)</span>
-                            </a>
-                        </li>
-                    }
-                </ul>
-                <button type="submit" class="btn p sm">고른 초안 공개</button>
-            </form>
-        }
-        else
-        {
-            <form method="post" asp-page-handler="Bulk" asp-route-month="@Model.First.ToString("yyyy-MM")" class="days">
-                <ul>
-                    @foreach (var d in Model.Days)
-                    {
-                        var on = d.Date == Model.Date;
-                        <li class="@(on ? "on" : "")">
-                            <input type="checkbox" name="dates" value="@d.Date.ToString("yyyy-MM-dd")" disabled="@(d.Status != ContentStatus.Draft)" aria-label="@d.Date.ToString("M월 d일") 고르기" />
-                            <a href="@Model.Link(d.Date)">
-                                <span class="d num @(d.Date.DayOfWeek == DayOfWeek.Sunday ? "sun" : "")">@($"{d.Date.Day}일")<small>@d.Date.ToString("ddd", ko)</small></span>
-                                <span class="tt @(d.Title is null ? "none" : "")">@(d.Title ?? "비어 있어요")</span>
-                                <span class="tag @ContentModel.StatusClass(d.Status)">@ContentModel.StatusLabel(d.Status)</span>
-                            </a>
-                        </li>
-                    }
-                </ul>
-                <button type="submit" class="btn p sm">고른 초안 공개</button>
-            </form>
-        }
-
-        <section class="editor">
-            @if (Model.BySlot ? Model.No is null : Model.Date is null)
+    <div class="cp-split">
+        <form method="post" asp-page-handler="Bulk" asp-route-month="@(isDate ? Model.First.ToString("yyyy-MM") : null)" asp-route-no="@Model.No" class="cp-list">
+            <ul class="cp-rows">
+                @foreach (var r in rows)
+                {
+                    <li id="@r.Id" data-status="@r.Status" class="@(r.On ? "on" : "")@(r.Today ? " today" : "")">
+                        @if (r.Status == ContentStatus.Draft)
+                        {
+                            <label class="cp-cb"><input type="checkbox" name="@r.Name" value="@r.Value" aria-label="@r.Aria" /></label>
+                        }
+                        <a href="@r.Href">
+                            <span class="d@(r.Sun ? " sun" : "")">@r.Big<small>@r.Small</small></span>
+                            <span class="t@(r.Title is null ? " no" : "")">
+                                <span class="l1"><span class="tx">@(r.Title ?? "비어 있어요 · 눌러서 입력")</span>@if (r.Today) { <b class="cp-today">오늘</b> }</span>
+                                @if (r.Sub is not null) { <small>@r.Sub</small> }
+                            </span>
+                            <span class="tag @ContentModel.StatusClass(r.Status)">@ContentModel.StatusLabel(r.Status)</span>
+                            <i aria-hidden="true">›</i>
+                        </a>
+                    </li>
+                }
+            </ul>
+            @if (hasDraft)
             {
-                <p class="empty">왼쪽에서 @(Model.IsRecite ? "주" : "날짜")를 고르세요.</p>
+                <div class="cp-dock" id="cpBulk"><button type="submit" class="btn p">고른 초안 공개</button></div>
+            }
+        </form>
+
+        <section class="cp-edit" aria-label="편집">
+            @if (!Model.HasSelection)
+            {
+                <p class="cp-empty">왼쪽에서 @(Model.IsRecite ? "주" : "날짜")를 고르세요.</p>
             }
             else
             {
                 var slot = Model.IsRecite
-                    ? $"{Model.No}주" + (Model.ThisYearWeek(Model.No!.Value) is { } tw ? $" (올해 {tw.Start:M'/'d} ~ {tw.End:M'/'d})" : " (올해는 없는 주)")
-                    : Model.BySlot ? $"매달 {Model.No}일" : Model.Date!.Value.ToString("M월 d일 (ddd)", ko);
-                <div class="h"><b>@slot @kindLabel</b><span class="tag @ContentModel.StatusClass(Model.Status)">@ContentModel.StatusLabel(Model.Status)</span></div>
-                @if (Model.Status == "None") { <p class="note-block">@(Model.IsRecite ? "이 주는" : "이날은") @(kindLabel)@Ui.IGa(kindLabel) 없어요. 이대로 두면 아이들 화면에 "오늘은 없음"으로 보여요(R-122).</p> }
-                @if (E("Status") is { } st) { <p class="err">@st</p> }
-                @if (E("Date") is { } dt) { <p class="err">@dt</p> }
-                <form method="post" asp-page-handler="Save" asp-route-month="@(Model.BySlot ? null : Model.First.ToString("yyyy-MM"))" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")" asp-route-no="@Model.No" class="stack" novalidate>
-                    @if (Model.Kind != "quiz")
-                    {
-                        <div class="f"><label>성경 범위 <small>@(E("Range") is null ? "" : "")</small></label>
-                            <div class="range">
-                                <select class="sel" name="Input.Book" aria-label="책">
+                    ? $"{Model.No}주" + (Model.ThisYearWeek(Model.No!.Value) is { } tw ? $" ({tw.Start:M'/'d} ~ {tw.End:M'/'d})" : " (올해는 없는 주)")
+                    : Model.BySlot ? $"매달 {Model.No}일" : Model.Date!.Value.ToString("M월 d일 dddd", ko);
+                <div class="cp-ehead">
+                    <a class="back" href="@Model.ListLink">‹ 목록</a>
+                    <div class="tt"><b>@slot</b><span class="tag @ContentModel.StatusClass(Model.Status)">@ContentModel.StatusLabel(Model.Status)</span></div>
+                    @if (Model.PrevLink is { } prev) { <a class="ar" href="@prev" aria-label="앞 @(Model.BySlot ? "번호" : "날짜")">‹</a> } else { <span class="ar off" aria-hidden="true">‹</span> }
+                    @if (Model.NextLink is { } next) { <a class="ar" href="@next" aria-label="다음 @(Model.BySlot ? "번호" : "날짜")">›</a> } else { <span class="ar off" aria-hidden="true">›</span> }
+                </div>
+                <form method="post" asp-page-handler="Save" asp-route-month="@(Model.BySlot ? null : Model.First.ToString("yyyy-MM"))" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")" asp-route-no="@Model.No" class="cp-form" novalidate>
+                    <div class="cp-fields">
+                        @if (Model.Status == "None") { <p class="note-block">@(Model.IsRecite ? "이 주는" : "이날은") @(kindLabel)@Ui.IGa(kindLabel) 없어요. 이대로 두면 아이들 화면에 "오늘은 없음"으로 보여요(R-122).</p> }
+                        @if (E("Status") is { } st) { <p class="err">@st</p> }
+                        @if (E("Date") is { } dt) { <p class="err">@dt</p> }
+                        @if (Model.Kind != "quiz")
+                        {
+                            <div class="f"><label for="bk">성경 범위</label>
+                                <select class="sel cp-book" id="bk" name="Input.Book" data-cp-book>
                                     @foreach (var b in BibleBooks.All()) { <option value="@b.Id" selected="@(b.Id == i.Book)">@b.Name</option> }
                                 </select>
-                                <input class="in sm num" type="number" name="Input.StartChapter" value="@i.StartChapter" min="1" aria-label="시작 장" /><span>:</span>
-                                <input class="in sm num" type="number" name="Input.StartVerse" value="@i.StartVerse" min="1" aria-label="시작 절" /><span>~</span>
-                                <input class="in sm num" type="number" name="Input.EndChapter" value="@i.EndChapter" min="1" aria-label="끝 장" /><span>:</span>
-                                <input class="in sm num" type="number" name="Input.EndVerse" value="@i.EndVerse" min="1" aria-label="끝 절" />
+                                <div class="cp-rg">
+                                    <div class="cp-pair">
+                                        <label>시작 장<input class="in" type="number" inputmode="numeric" name="Input.StartChapter" value="@i.StartChapter" min="1" data-cp-r="sc" /></label>
+                                        <label>절<input class="in" type="number" inputmode="numeric" name="Input.StartVerse" value="@i.StartVerse" min="1" data-cp-r="sv" /></label>
+                                    </div>
+                                    <span aria-hidden="true">~</span>
+                                    <div class="cp-pair">
+                                        <label>끝 장<input class="in" type="number" inputmode="numeric" name="Input.EndChapter" value="@i.EndChapter" min="1" data-cp-r="ec" /></label>
+                                        <label>절<input class="in" type="number" inputmode="numeric" name="Input.EndVerse" value="@i.EndVerse" min="1" data-cp-r="ev" /></label>
+                                    </div>
+                                </div>
+                                @if (E("Range") is { } rangeError) { <p class="hint bad">@rangeError</p> }
+                                else { <p class="hint" data-cp-prev>@(Model.Status == "None" ? "예: 창세기 24:1 ~ 24:9" : BibleBooks.Range(i.Book, i.StartChapter, i.StartVerse, i.EndChapter, i.EndVerse))</p> }
                             </div>
-                            <p class="hint @(E("Range") is null ? "" : "bad")">@(E("Range") ?? "예: 창세기 24:1 ~ 24:9")</p></div>
-                    }
-                    @switch (Model.Kind)
-                    {
-                        case "word":
-                            <div class="f"><label for="t">제목</label><input class="in" id="t" name="Input.Title" value="@i.Title" maxlength="100" /><p class="hint bad">@E("Title")</p></div>
-                            <div class="f"><label for="s">오늘 이야기 <small>아이들 눈높이로 3 ~ 5문장</small></label><textarea class="in ta" id="s" name="Input.Summary">@i.Summary</textarea><p class="hint bad">@E("Summary")</p></div>
-                            <div class="f"><label for="c">해설 <small>있으면</small></label><textarea class="in ta" id="c" name="Input.Commentary">@i.Commentary</textarea></div>
-                            break;
-                        case "prayer":
-                            <div class="grid2">
-                                <div class="f"><label for="tn">성품 이름</label><input class="in" id="tn" name="Input.TraitName" value="@i.TraitName" maxlength="30" /><p class="hint bad">@E("TraitName")</p></div>
-                                <div class="f"><label for="te">영어 이름</label><input class="in" id="te" name="Input.TraitNameEn" value="@i.TraitNameEn" maxlength="40" /></div>
-                            </div>
-                            <div class="f"><label for="pp">기도문 <small>{이름} 자리에 아이 이름이 들어가요 · 한 줄이 한 문단</small></label><textarea class="in ta" id="pp" name="Input.Paragraphs">@i.Paragraphs</textarea><p class="hint bad">@E("Paragraphs")</p></div>
-                            break;
-                        case "quiz":
-                            <div class="f"><label for="q">문제</label><input class="in" id="q" name="Input.Question" value="@i.Question" maxlength="1000" /><p class="hint bad">@E("Question")</p></div>
-                            <div class="f"><label for="bg">배경 <small>있으면</small></label><input class="in" id="bg" name="Input.Background" value="@i.Background" /></div>
-                            <div class="f"><label>형식</label>
-                                <div class="rl"><label><input type="radio" name="Input.Format" value="@QuizFormat.Choice" checked="@(i.Format == QuizFormat.Choice)" />객관식</label><label><input type="radio" name="Input.Format" value="@QuizFormat.Text" checked="@(i.Format == QuizFormat.Text)" />주관식</label></div></div>
-                            <div class="f"><label>보기 <small>객관식 · 정답에 동그라미</small></label>
-                                <div class="opts">
-                                    @for (var k = 0; k < 4; k++)
-                                    {
-                                        <div class="opt"><input type="radio" name="Input.CorrectIndex" value="@k" checked="@(i.CorrectIndex == k)" aria-label="@(k + 1)번이 정답" /><input class="in sm" name="Input.Choices[@k]" value="@(k < i.Choices.Count ? i.Choices[k] : "")" maxlength="300" aria-label="보기 @(k + 1)" /></div>
-                                    }
-                                </div><p class="hint bad">@E("Choices")</p></div>
-                            <div class="f"><label for="aa">맞는 답 <small>주관식 · 한 줄에 하나(띄어쓰기 · 대소문자는 무시)</small></label><textarea class="in ta sm2" id="aa" name="Input.AcceptedAnswers">@i.AcceptedAnswers</textarea><p class="hint bad">@E("AcceptedAnswers")</p></div>
-                            <div class="f"><label for="ex">해설 <small>끝난 뒤 보여 줘요</small></label><textarea class="in ta sm2" id="ex" name="Input.Explanation">@i.Explanation</textarea></div>
-                            break;
-                        default:
-                            @* 공용 암송은 특정 공과와 상관없어 공과 칸을 두지 않는다(저장하면 공과 칸은 비워진다) *@
-                            <div class="f"><label for="rt">제목(질문)</label><input class="in" id="rt" name="Input.Title" value="@i.Title" maxlength="200" /><p class="hint bad">@E("Title")</p></div>
-                            break;
-                    }
-                    @if (published) { <p class="hint">이미 공개됐어요. 고쳐도 이미 한 아이들의 기록 · 점수는 그대로예요(R-124).</p> }
-                    <div class="acts">
-                        @if (!published) { <button type="submit" class="btn s sm" name="publish" value="false">초안으로 저장</button> }
-                        <button type="submit" class="btn p sm" name="publish" value="true">@(published ? "고친 내용 공개" : "공개")</button>
+                        }
+                        @switch (Model.Kind)
+                        {
+                            case "word":
+                                <div class="f"><label for="t">제목</label><input class="in" id="t" name="Input.Title" value="@i.Title" maxlength="100" /><p class="hint bad">@E("Title")</p></div>
+                                <div class="f"><label for="s">오늘 이야기 <small>아이들 눈높이로 3 ~ 5문장</small></label><textarea class="in ta" id="s" name="Input.Summary">@i.Summary</textarea><p class="hint bad">@E("Summary")</p></div>
+                                <div class="f"><label for="c">해설 <small>있으면</small></label><textarea class="in ta sm2" id="c" name="Input.Commentary">@i.Commentary</textarea></div>
+                                break;
+                            case "prayer":
+                                <div class="grid2">
+                                    <div class="f"><label for="tn">성품 이름</label><input class="in" id="tn" name="Input.TraitName" value="@i.TraitName" maxlength="30" /><p class="hint bad">@E("TraitName")</p></div>
+                                    <div class="f"><label for="te">영어 이름</label><input class="in" id="te" name="Input.TraitNameEn" value="@i.TraitNameEn" maxlength="40" /></div>
+                                </div>
+                                <div class="f"><label for="pp">기도문 <small>{이름} 자리에 아이 이름이 들어가요 · 한 줄이 한 문단</small></label><textarea class="in ta" id="pp" name="Input.Paragraphs">@i.Paragraphs</textarea><p class="hint bad">@E("Paragraphs")</p></div>
+                                break;
+                            case "quiz":
+                                <div class="f"><label for="bg">배경 <small>있으면</small></label><textarea class="in ta sm2" id="bg" name="Input.Background">@i.Background</textarea></div>
+                                <div class="f"><label for="q">문제</label><textarea class="in ta sm2" id="q" name="Input.Question" maxlength="1000">@i.Question</textarea><p class="hint bad">@E("Question")</p></div>
+                                <div class="f"><span class="cp-lb">답 형식</span>
+                                    <div class="cp-fmt">
+                                        <label><input type="radio" name="Input.Format" value="@QuizFormat.Choice" checked="@(i.Format == QuizFormat.Choice)" data-cp-format /><span>객관식</span></label>
+                                        <label><input type="radio" name="Input.Format" value="@QuizFormat.Text" checked="@(i.Format == QuizFormat.Text)" data-cp-format /><span>주관식</span></label>
+                                    </div>
+                                </div>
+                                <div class="f" data-cp-for="@QuizFormat.Choice"><span class="cp-lb">보기 <small>동그라미를 눌러 정답을 고르세요</small></span>
+                                    <div class="cp-opts">
+                                        @for (var k = 0; k < 4; k++)
+                                        {
+                                            <div class="cp-opt"><label><input type="radio" name="Input.CorrectIndex" value="@k" checked="@(i.CorrectIndex == k)" aria-label="@(k + 1)번이 정답" /></label><input class="in" name="Input.Choices[@k]" value="@(k < i.Choices.Count ? i.Choices[k] : "")" maxlength="300" aria-label="보기 @(k + 1)" /></div>
+                                        }
+                                    </div><p class="hint bad">@E("Choices")</p></div>
+                                <div class="f" data-cp-for="@QuizFormat.Text"><label for="aa">맞는 답 <small>한 줄에 하나(띄어쓰기 · 대소문자는 무시)</small></label><textarea class="in ta sm2" id="aa" name="Input.AcceptedAnswers">@i.AcceptedAnswers</textarea><p class="hint bad">@E("AcceptedAnswers")</p></div>
+                                <div class="f"><label for="ex">힌트 · 해설 <small>풀기 전 "힌트 보기"와 푼 뒤에 나와요</small></label><textarea class="in ta sm2" id="ex" name="Input.Explanation">@i.Explanation</textarea></div>
+                                break;
+                            default:
+                                @* 공용 암송은 특정 공과와 상관없어 공과 칸을 두지 않는다(저장하면 공과 칸은 비워진다) *@
+                                <div class="f"><label for="rt">제목(질문)</label><input class="in" id="rt" name="Input.Title" value="@i.Title" maxlength="200" /><p class="hint bad">@E("Title")</p></div>
+                                break;
+                        }
+                        @if (published) { <p class="hint">이미 공개됐어요. 고쳐도 이미 한 아이들의 기록 · 점수는 그대로예요(R-124).</p> }
+                    </div>
+                    <div class="cp-dock">
+                        @if (!published) { <button type="submit" class="btn s" name="publish" value="false">초안으로 저장</button> }
+                        <button type="submit" class="btn p" name="publish" value="true">@(published ? "고친 내용 공개" : "공개")</button>
                     </div>
                 </form>
             }
