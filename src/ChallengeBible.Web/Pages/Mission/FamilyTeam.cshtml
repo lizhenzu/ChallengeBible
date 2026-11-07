@@ -91,7 +91,7 @@
                         <small>@FamilyTeamService.RelationLabel(x.Relation)</small>
                         @if (x.Me)
                         {
-                            <details class="fmt-ask"><summary>역할 바꾸기</summary>
+                            <details class="fmt-ask"><summary>관계 설정</summary>
                                 <form method="post" asp-page-handler="Relation" asp-route-slug="@Model.Slug">
                                     <partial name="_FamilyWho" model="x.Relation" />
                                     <button type="submit" class="fmt-btn sm">저장</button>
@@ -169,7 +169,7 @@
             <form method="post" asp-page-handler="InviteAccept" asp-route-slug="@Model.Slug" class="fmt-rq fmt-inv" data-fmt-form>
                 <input type="hidden" name="invite" value="@i.InviteId" />
                 <div class="h">@i.TeamName</div>
-                <p>@(i.InvitedBy)님이 @FamilyTeamModel.AsRelation(i.Relation) 초대했어요. 역할이 다르면 바꿔서 수락하세요.</p>
+                <p>@(i.InvitedBy)님이 @FamilyTeamModel.AsRelation(i.Relation) 초대했어요. 관계가 다르면 바꿔서 수락하세요.</p>
                 <div class="fmt-chips">@foreach (var x in i.Members) {<span>@x.Name<b>@FamilyTeamService.RelationLabel(x.Relation)</b></span>}</div>
                 <div class="q">나는 누구인가요?</div>
                 <partial name="_FamilyWho" model="i.Relation" />

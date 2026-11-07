@@ -44,7 +44,7 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : Pag
         "left" => "가족팀에서 나왔어요. 내 점수는 그대로예요",
         "kicked" => "팀에서 내보냈어요. 그 사람의 점수는 그대로예요",
         "renamed" => "팀 이름을 바꿨어요",
-        "relation" => "내 역할을 바꿨어요",
+        "relation" => "관계를 설정했어요",
         "invited" => "초대를 보냈어요. 상대가 수락하면 합류돼요",
         "invitecancelled" => "초대를 취소했어요",
         "inviteaccepted" => "가족팀에 합류했어요",
