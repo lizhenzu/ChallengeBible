@@ -63,7 +63,16 @@ public partial class ReadingFontTests : IClassFixture<WebApplicationFactory<Prog
 
         """;
 
-    private const string Finish = "\nfetch('/result', { method: 'POST', body: fails.length ? fails.join('\\n') : 'OK' });";
+    /// <summary>절 하나를 만들어 번호와 말씀 글 사이 여백을 본다(시험 자료에 본문이 없어도 된다).</summary>
+    private const string VerseGap = """
+        var wrap = document.createElement('div'); wrap.className = 'brd';
+        var verse = document.createElement('div'); verse.className = 'vr';
+        wrap.appendChild(verse); document.body.appendChild(wrap);
+        var verseGap = getComputedStyle(verse).columnGap;
+
+        """;
+
+    private const string Finish ="\nfetch('/result', { method: 'POST', body: fails.length ? fails.join('\\n') : 'OK' });";
 
     /// <summary>글자가 있는 요소마다 --rs 를 1 로 되돌려 보고, 안 줄어든 것을 찾는다(11px 이하 · 화살표 아이콘은 그대로).</summary>
     private const string AllShrink = """
@@ -99,7 +108,8 @@ public partial class ReadingFontTests : IClassFixture<WebApplicationFactory<Prog
     public async Task R218_통독_글자가_모두_줄고_버튼은_그대로이며_기본이_100이다()
     {
         if (!EdgePage.Available) return;
-        Assert.Equal("OK", await Run(await Kid(), ReadUrl, null, null, AllShrink + """
+        Assert.Equal("OK", await Run(await Kid(), ReadUrl, null, null, AllShrink + VerseGap + """
+            eq('reading verse gap', verseGap, '6px');
             eq('rs', rs, '.85');
             eq('label', q('.fs .pct').textContent, '100%');
             eq('fs', root.style.getPropertyValue('--fs'), '1');
@@ -140,7 +150,8 @@ public partial class ReadingFontTests : IClassFixture<WebApplicationFactory<Prog
         if (!EdgePage.Available) return;
         var c = await Kid();
         Assert.DoesNotContain("reading.css", await c.GetStringAsync("/jamsil-kids/word"));
-        Assert.Equal("OK", await Run(c, "/jamsil-kids/word", "2", null, """
+        Assert.Equal("OK", await Run(c, "/jamsil-kids/word", "2", null, VerseGap + """
+            eq('mission keeps gap', verseGap, '12px');
             eq('no scale', rs, '');
             eq('label', q('.fs .pct').textContent, '85%');
             eq('saved', stored('cb.fs'), '2');

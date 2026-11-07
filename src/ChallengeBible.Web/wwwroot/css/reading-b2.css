@@ -277,3 +277,5 @@ body:has(.rp[data-theme]) { background: var(--bg); }
 .srch .rp-rank i { width: 20px; font-size: calc(15px * var(--rs, 1)); }
 .srch .rp-rank small { font-size: max(11px, calc(11.5px * var(--rs, 1))); }
 .srch .rp-note { font-size: max(11px, calc(11.5px * var(--rs, 1))); }
+/* 통독 본문: 절 번호와 말씀 글 사이 여백을 반으로(사용자 요청 2026-11-07). 말씀 미션은 그대로 */
+.brd .vr { gap: 6px; }
