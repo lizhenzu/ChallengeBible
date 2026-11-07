@@ -431,13 +431,26 @@
 
   // 글자 크기: − 5%씩, + 10%씩, 각 5번(75% ~ 150%), 가운데 = 100% (R-167). 이 기기에 기억.
   const steps = [75, 80, 85, 90, 95, 100, 110, 120, 130, 140, 150];
+  // 성경통독은 기본 크기가 작아져(--rs, ADR 0089) 따로 기억한다. 전에 고른 크기는 보이는 크기가 비슷하게 옮긴다(그대로 100% 였으면 새 100%).
+  const reading = getComputedStyle(document.documentElement).getPropertyValue('--rs').trim();
+  const fsKey = reading ? 'cb.fs.rd' : 'cb.fs';
+  const clampStep = (n) => (Number.isNaN(n) ? 5 : Math.max(0, Math.min(10, n)));
+  const carried = (old) => {
+    if (old === 5) return 5;
+    const want = steps[old] / Number(reading);
+    return steps.reduce((best, s, k) => (Math.abs(s - want) < Math.abs(steps[best] - want) ? k : best), 0);
+  };
   let i = 5;
-  try { i = Math.max(0, Math.min(10, Number(localStorage.getItem('cb.fs') ?? 5))); } catch { /* 저장 못 해도 화면은 된다 */ }
+  try {
+    const saved = localStorage.getItem(fsKey);
+    if (saved !== null) i = clampStep(Number(saved));
+    else if (reading) i = carried(clampStep(Number(localStorage.getItem('cb.fs') ?? 5)));
+  } catch { /* 저장 못 해도 화면은 된다 */ }
   const pct = document.querySelector('.fs .pct');
   const apply = () => {
     document.documentElement.style.setProperty('--fs', String(steps[i] / 100));
     if (pct) pct.textContent = `${steps[i]}%`;
-    try { localStorage.setItem('cb.fs', String(i)); } catch { /* 무시 */ }
+    try { localStorage.setItem(fsKey, String(i)); } catch { /* 무시 */ }
   };
   document.querySelectorAll('.fs button').forEach((b) => b.addEventListener('click', () => {
     const v = Number(b.dataset.fs);
