@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
@@ -17,7 +16,6 @@ namespace ChallengeBible.Tests.Web;
 public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private static readonly DateOnly Day5 = new(2027, 1, 5);
-    private const string EdgePath = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe";
 
     private readonly WebApplicationFactory<Program> _app;
     private readonly string _db = InMemoryDb.NewName();
@@ -154,7 +152,7 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
     [InlineData("abc", false)]
     [InlineData("1000-01", false)]
     [InlineData(null, false)]
-    public void R216_달_값이_틀리면_이번_달로_돌아간다(string? value, bool ok) => Assert.Equal(ok, WordCheckModel.ParseMonth(value) is not null);
+    public void R216_달_값이_틀리면_이번_달로_돌아간다(string? value, bool ok) => Assert.Equal(ok, ContentCheckModel.ParseMonth(value) is not null);
 
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
     private static partial Regex TokenRx();
@@ -195,13 +193,13 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
 
     [Fact]
     public void R216_스크립트에_닫는_태그_글자가_없다() =>
-        Assert.DoesNotContain("</script", File.ReadAllText(Path.Combine(WebRoot(), "js", "word-check.js")), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("</script", File.ReadAllText(Path.Combine(WebRoot(), "js", "content-check.js")), StringComparison.OrdinalIgnoreCase);
 
     /// <summary>실제 페이지 HTML + 실제 스크립트 · CSS 를 Edge headless 에서 돌린다. Edge 가 없는 환경에서는 건너뛴다.</summary>
     [Fact]
     public async Task R216_화면_달력_칩_그날칸이_브라우저에서_맞게_움직인다()
     {
-        if (!File.Exists(EdgePath)) return;
+        if (!EdgePage.Available) return;
 
         var op = await Operator();
         var draft = On(4, status: ContentStatus.Draft);
@@ -222,68 +220,183 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
         var page = await res.Content.ReadAsStringAsync();
         Assert.DoesNotContain("&#x", Regex.Match(page, "id=\"wkData\"[^>]*>(.*?)</script>", RegexOptions.Singleline).Groups[1].Value);
 
+        Assert.Equal("OK", await EdgePage.RunAsync(Inline(page, BrowserChecks)));
+    }
+
+    /// <summary>실제 페이지 HTML 에 실제 스크립트 · CSS 와 시험 스크립트를 넣는다.</summary>
+    private static string Inline(string page, string checks)
+    {
         var root = WebRoot();
         page = Regex.Replace(page, "<link[^>]*stylesheet[^>]*>", "");
         page = Regex.Replace(page, "<script[^>]*\\ssrc=[^>]*></script>", "");
         page = page.Replace("</head>", "<style>" + File.ReadAllText(Path.Combine(root, "css", "site.css")) + "</style></head>");
-        page = page.Replace("</body>", "<script>" + File.ReadAllText(Path.Combine(root, "js", "word-check.js")) + "</script><script>" + BrowserChecks + "</script></body>");
-
-        // Windows 의 Edge 는 --dump-dom 을 표준 출력으로 주지 않아, 이 테스트 안의 작은 서버로 페이지를 주고 결과를 돌려받는다.
-        var probe = new System.Net.Sockets.TcpListener(IPAddress.Loopback, 0);
-        probe.Start();
-        var port = ((IPEndPoint)probe.LocalEndpoint).Port;
-        probe.Stop();
-        using var listener = new HttpListener();
-        listener.Prefixes.Add($"http://127.0.0.1:{port}/");
-        listener.Start();
-        var result = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var server = Task.Run(async () =>
-        {
-            try
-            {
-                while (listener.IsListening)
-                {
-                    var ctx = await listener.GetContextAsync();
-                    if (ctx.Request.HttpMethod == "POST")
-                    {
-                        using var reader = new StreamReader(ctx.Request.InputStream);
-                        result.TrySetResult(await reader.ReadToEndAsync());
-                    }
-                    else if (ctx.Request.Url!.AbsolutePath == "/")
-                    {
-                        var bytes = System.Text.Encoding.UTF8.GetBytes(page);
-                        ctx.Response.ContentType = "text/html; charset=utf-8";
-                        await ctx.Response.OutputStream.WriteAsync(bytes);
-                    }
-                    else ctx.Response.StatusCode = 404;
-                    ctx.Response.Close();
-                }
-            }
-            catch (HttpListenerException) { /* 끝낼 때 멈춘다 */ }
-            catch (ObjectDisposedException) { /* 끝낼 때 멈춘다 */ }
-        });
-
-        var dir = Directory.CreateTempSubdirectory("wordcheck");
-        var psi = new ProcessStartInfo(EdgePath) { UseShellExecute = false };
-        foreach (var a in new[] { "--headless=new", "--disable-gpu", "--no-first-run", "--window-size=500,1400",
-            "--user-data-dir=" + dir.FullName, $"http://127.0.0.1:{port}/" })
-            psi.ArgumentList.Add(a);
-        using var edge = Process.Start(psi)!;
-        try
-        {
-            var finished = await Task.WhenAny(result.Task, Task.Delay(TimeSpan.FromSeconds(60)));
-            Assert.True(finished == result.Task, "화면 시험 결과가 오지 않았어요.");
-            Assert.Equal("OK", (await result.Task).Trim());
-        }
-        finally
-        {
-            try { edge.Kill(entireProcessTree: true); } catch (InvalidOperationException) { /* 이미 끝남 */ }
-            listener.Stop();
-            await server;
-            // Edge 가 일부 창을 늦게 닫으면 임시 폴더가 남을 수 있다. 시험 결과와는 상관없다.
-            try { await Task.Delay(500); dir.Delete(true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
-        }
+        return page.Replace("</body>", "<script>" + File.ReadAllText(Path.Combine(root, "js", "content-check.js")) + "</script><script>" + checks + "</script></body>");
     }
+
+    private static DailyQuiz Q(int day, string? background = "배경", string question = "문제", string? hint = "힌트", string format = QuizFormat.Choice, int choices = 4, bool correct = true, string status = ContentStatus.Published, bool isCurrent = true, string[]? answers = null)
+    {
+        var q = new DailyQuiz
+        {
+            Id = 1000 + day * 10 + (isCurrent ? 1 : 0), ExposeDate = new DateOnly(2027, 1, day), Background = background, Question = question, Explanation = hint,
+            Format = format, Status = status, IsCurrent = isCurrent,
+        };
+        for (var i = 0; i < choices; i++) q.Choices.Add(new DailyQuizChoice { Id = q.Id * 10 + i, SortOrder = (byte)i, Text = $"보기{i + 1}" });
+        if (correct && choices > 0) q.CorrectChoiceId = q.Choices[0].Id;
+        foreach (var a in answers ?? []) q.AcceptedAnswers.Add(new DailyQuizAcceptedAnswer { NormalizedText = a });
+        return q;
+    }
+
+    private static IReadOnlyList<string> QMissing(DailyQuiz q) => QuizCheck.Day(q).Missing;
+
+    [Fact]
+    public void R217_네_가지가_있으면_빠진_곳이_없다() => Assert.Empty(QMissing(Q(1)));
+
+    [Fact]
+    public void R217_배경이_공백뿐이면_없음() => Assert.Equal(["배경"], QMissing(Q(1, background: "  ")));
+
+    [Fact]
+    public void R217_문제가_공백뿐이면_없음() => Assert.Equal(["문제"], QMissing(Q(1, question: " \n")));
+
+    [Fact]
+    public void R217_힌트가_비면_없음() => Assert.Equal(["힌트"], QMissing(Q(1, hint: null)));
+
+    [Fact]
+    public void R217_보기가_3개면_4지선다_없음() => Assert.Equal(["4지선다"], QMissing(Q(1, choices: 3)));
+
+    [Fact]
+    public void R217_보기_하나가_공백이면_4지선다_없음()
+    {
+        var q = Q(1);
+        q.Choices[2].Text = "  ";
+        Assert.Equal(["4지선다"], QMissing(q));
+    }
+
+    [Fact]
+    public void R217_정답이_없으면_4지선다_없음() => Assert.Equal(["4지선다"], QMissing(Q(1, correct: false)));
+
+    [Fact]
+    public void R217_주관식은_맞는_답이_있으면_입력됨() => Assert.Empty(QMissing(Q(1, format: QuizFormat.Text, choices: 0, answers: ["이삭"])));
+
+    [Fact]
+    public void R217_주관식에_맞는_답이_없으면_없음() => Assert.Equal(["4지선다"], QMissing(Q(1, format: QuizFormat.Text, choices: 0)));
+
+    [Fact]
+    public void R217_전부_비면_네_가지가_정해진_순서로_나온다() =>
+        Assert.Equal(["배경", "문제", "4지선다", "힌트"], QMissing(Q(1, background: null, question: "", hint: "", choices: 0)));
+
+    [Fact]
+    public void R217_보기는_정해진_차례대로_나온다()
+    {
+        var q = Q(1);
+        q.Choices.Reverse();
+        var day = QuizCheck.Day(q);
+        Assert.Equal(["보기1", "보기2", "보기3", "보기4"], day.Choices.Select(c => c.Text));
+        Assert.True(day.Choices[0].Correct);
+    }
+
+    private void SeedQuiz(params DailyQuiz[] quizzes)
+    {
+        using var raw = InMemoryDb.Raw(_db);
+        foreach (var q in quizzes) { q.CreatedByAccountId = raw.Accounts.First().Id; raw.DailyQuizzes.Add(q); }
+        raw.SaveChanges();
+    }
+
+    [Fact]
+    public async Task R217_한_달은_현재_개정의_공용_퀴즈만_읽는다()
+    {
+        var op = SeedOperator();
+        var other = Q(6); other.TenantId = 7;
+        var old = Q(1); old.ExposeDate = new DateOnly(2026, 12, 31);
+        SeedQuiz(Q(5, question: "옛 개정", isCurrent: false), Q(5, question: "새 개정"), other, old);
+        var days = await Svc.QuizCheckMonthAsync(op, new DateOnly(2027, 1, 1));
+        Assert.Equal("2027-01-05", Assert.Single(days).Date);
+        Assert.Equal("새 개정", days[0].Question);
+        Assert.Equal(4, days[0].Choices.Count);
+    }
+
+    [Fact]
+    public async Task R217_플랫폼_관리자가_아니면_못_본다()
+    {
+        var who = InMemoryDb.SeedAccount(_db, "kid", "아이");
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => Svc.QuizCheckMonthAsync(who.Id, new DateOnly(2027, 1, 1)));
+    }
+
+    [Fact]
+    public async Task R216_다른_종류_주소는_없는_화면이다()
+    {
+        var op = await Operator();
+        Assert.Equal(HttpStatusCode.NotFound, (await op.GetAsync("/platform/content/prayer/check")).StatusCode);
+    }
+
+    /// <summary>실제 페이지 HTML + 실제 스크립트 · CSS 를 Edge headless 에서 돌린다. Edge 가 없는 환경에서는 건너뛴다.</summary>
+    [Fact]
+    public async Task R217_퀴즈_화면이_브라우저에서_맞게_움직인다()
+    {
+        if (!EdgePage.Available) return;
+
+        var op = await Operator();
+        SeedQuiz(Q(1), Q(2, format: QuizFormat.Text, choices: 0, answers: ["이삭"]), Q(3, choices: 3, correct: false),
+            Q(4, background: "", hint: null, question: "<b>태그</b> & \"따옴표\""), Q(5, format: QuizFormat.Text, choices: 0), Q(6, status: ContentStatus.Draft));
+
+        var res = await op.GetAsync("/platform/content/quiz/check?month=2027-01&date=2027-01-04");
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        Assert.Equal("OK", await EdgePage.RunAsync(Inline(await res.Content.ReadAsStringAsync(), QuizChecks)));
+    }
+
+    /// <summary>자료: 1일 객관식 완성, 2일 주관식 완성, 3일 보기 3개 · 정답 없음, 4일 배경 · 힌트 없음 + 문제에 태그, 5일 주관식 답 없음, 6일 초안, 나머지 없음.</summary>
+    private const string QuizChecks = """
+        (function () {
+          var fails = [];
+          window.addEventListener('error', function (e) { fetch('/result', { method: 'POST', body: 'script error: ' + e.message }); });
+          function eq(name, got, want) { if (String(got) !== String(want)) fails.push(name + ': ' + got + ' != ' + want); }
+          var q = function (s, r) { return (r || document).querySelector(s); };
+          var qa = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+          var cell = function (d) { return q('.wk-cell[data-day="' + d + '"]'); };
+          var chip = function (k) { return q('#wkChips button[data-k="' + k + '"]'); };
+          var status = function () { return qa('.wk-st div').map(function (x) { return x.textContent; }).join('|'); };
+          eq('heading', q('.wk h1').textContent, '퀴즈 입력 점검');
+          qa('.wk-cell').forEach(function (c) { eq('dots ' + c.dataset.day, qa('.wk-dots i', c).length, 4); });
+          eq('done', q('#wkDone').textContent, '31일 중 2일 완성');
+          eq('full 1', cell(1).classList.contains('all'), true);
+          eq('full text 2', cell(2).classList.contains('all'), true);
+          eq('dots 3', qa('i.o', cell(3)).length, 1);
+          eq('dots 4', qa('i.o', cell(4)).length, 2);
+          eq('no row', qa('i.o', cell(20)).length, 4);
+          eq('draft', cell(6).classList.contains('dr'), true);
+          eq('aria', cell(3).getAttribute('aria-label'), '1월 3일, 빠진 곳 4지선다');
+          eq('chip none', chip('퀴즈 없음').textContent, '퀴즈 없음 25');
+          eq('chip choice', chip('4지선다').textContent, '4지선다 없음 2');
+          eq('chip zero', chip('문제').disabled, true);
+
+          eq('status 4', status(), '✕ 배경|✓ 문제|✓ 4지선다|✕ 힌트');
+          var ask = qa('.wk-f')[1];
+          eq('tag as text', q('p', ask).textContent, '<b>태그</b> & "따옴표"');
+          eq('no element', qa('b', q('p', ask)).length, 0);
+          eq('edit', q('.wk-go').getAttribute('href'), '/platform/content/quiz?month=2027-01&date=2027-01-04');
+          eq('edit text', q('.wk-go').textContent, '퀴즈 수정');
+          eq('right answer', qa('.wk-tag.ok').filter(function (t) { return t.textContent === '정답'; }).length, 1);
+
+          cell(3).click();
+          eq('short', q('.wk-day').textContent.indexOf('보기 3개') >= 0, true);
+          eq('no right', q('.wk-day').textContent.indexOf('정답 없음') >= 0, true);
+          cell(2).click();
+          eq('text status', status(), '✓ 배경|✓ 문제|✓ 주관식 답|✓ 힌트');
+          eq('text answer', q('.wk-day').textContent.indexOf('이삭') >= 0, true);
+          cell(5).click();
+          eq('text none', status(), '✓ 배경|✓ 문제|✕ 주관식 답|✓ 힌트');
+          cell(20).click();
+          eq('empty', q('.wk-empty').textContent, '이 날은 아직 퀴즈가 없어요');
+          eq('empty link', q('.wk-go').textContent, '퀴즈 입력하기');
+
+          chip('4지선다').click();
+          eq('filter hit', cell(5).classList.contains('dim'), false);
+          eq('filter off', cell(1).classList.contains('dim'), true);
+          chip('4지선다').click();
+          eq('cleared', qa('.wk-cell.dim').length, 0);
+
+          fetch('/result', { method: 'POST', body: fails.length ? fails.join('\n') : 'OK' });
+        })();
+        """;
 
     /// <summary>자료: 1 · 2 · 3 · 4 · 5일에 말씀(3일은 영상 없음, 4일은 초안, 5일은 이야기 · 영상 없음 + 제목에 태그), 나머지는 없음.</summary>
     private const string BrowserChecks = """
