@@ -111,6 +111,8 @@ public partial class ReadingFontTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Equal("OK", await Run(await Kid(), ReadUrl, null, null, AllShrink + VerseGap + """
             eq('reading verse gap', verseGap, '6px');
             eq('pill corner', getComputedStyle(q('.brd-pills a')).borderTopLeftRadius, '5px');
+            var bar = document.createElement('div'); bar.className = 'bmd'; q('.b2r .b2sheet').appendChild(bar);   // 시험 자료에 영상이 없어 직접 만든다
+            eq('media bar has no extra top gap', getComputedStyle(bar).marginTop, '-2px');
             eq('rs', rs, '.85');
             eq('label', q('.fs .pct').textContent, '100%');
             eq('fs', root.style.getPropertyValue('--fs'), '1');

@@ -233,7 +233,7 @@ body:has(.rp[data-theme]) { background: var(--bg); }
   box-shadow: 0 1px 3px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.06); }
 @media (prefers-color-scheme: dark) {
   .b2r .b2sheet .brd-pills a:not([aria-current="true"]), .b2r .b2sheet .bmd button { box-shadow: 0 1px 3px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.1); } }
-.b2r .b2sheet .bmd { padding: 2px 2px 4px; }
+.b2r .b2sheet .bmd { margin: -2px -2px -4px; padding: 2px 2px 4px; }
 .b2r .b2btm { display: flex; gap: 6px; margin-top: 18px; }
 .b2r .b2btm a { flex: 1; padding: 11px 0; text-align: center; border: 1px solid var(--r-rule); border-radius: 5px; font-size: calc(13.5px * var(--rs, 1)); color: var(--r-dim); }
 
