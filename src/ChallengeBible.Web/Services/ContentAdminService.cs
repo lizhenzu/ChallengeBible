@@ -118,6 +118,16 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
         return words.Select(w => WordCheck.Day(w, clips[w.ExposeDate])).ToList();
     }
 
+    /// <summary>공용 퀴즈 한 달의 입력 점검(R-217). 현재 개정만 읽고 퀴즈가 있는 날만 돌려준다. 플랫폼 관리자가 아니면 UnauthorizedAccessException.</summary>
+    public async Task<List<QuizCheckDay>> QuizCheckMonthAsync(int actor, DateOnly first, CancellationToken ct = default)
+    {
+        await using var ctx = await OpenAsync(actor, ct);
+        var to = first.AddMonths(1).AddDays(-1);
+        var quizzes = await Shared(ctx.DailyQuizzes).AsNoTracking().Include(q => q.Choices).Include(q => q.AcceptedAnswers)
+            .Where(q => q.ExposeDate >= first && q.ExposeDate <= to).OrderBy(q => q.ExposeDate).ToListAsync(ct);
+        return quizzes.Select(QuizCheck.Day).ToList();
+    }
+
     /// <summary>공용 기도 1 ~ 31일(0053) 또는 공용 암송 1 ~ 55주(0052) 목록.</summary>
     public async Task<List<ContentSlot>> SlotsAsync(int actor, ContentKind kind, CancellationToken ct = default)
     {

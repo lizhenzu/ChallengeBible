@@ -1,16 +1,16 @@
-@page "/platform/content/word/check"
-@model ChallengeBible.Web.Pages.Platform.WordCheckModel
-@* 확정 시안: word-check — 달 고르기 → 완성 수 · 빠진 항목 칩 → 달력(칸마다 점 4개) → 고른 날 자세히 (R-216) *@
+@page "/platform/content/{kind}/check"
+@model ChallengeBible.Web.Pages.Platform.ContentCheckModel
+@* 확정 시안: word-check · quiz-check — 달 고르기 → 완성 수 · 빠진 항목 칩 → 달력(칸마다 점 4개) → 고른 날 자세히 (R-216 · R-217) *@
 @section Scripts {
     <script id="wkData" type="application/json">@Html.Raw(Model.DataJson)</script>
-    <script src="~/js/word-check.js" asp-append-version="true"></script>
+    <script src="~/js/content-check.js" asp-append-version="true"></script>
 }
 <partial name="_PlatformTop" />
 <main class="admin gut"><div class="wrap wk">
-    <h1>말씀 입력 점검</h1>
-    <p class="wk-sub">공용 말씀에 빠진 곳이 있는 날을 찾아요</p>
+    <h1>@Model.Noun 입력 점검</h1>
+    <p class="wk-sub">공용 @(Model.Noun)에 빠진 곳이 있는 날을 찾아요</p>
 
-    <form class="wk-bar" method="get" action="/platform/content/word/check" id="wkMonth">
+    <form class="wk-bar" method="get" action="/platform/content/@Model.Kind/check" id="wkMonth">
         <a href="@Model.Link(Model.First.AddMonths(-1))" aria-label="이전 달">‹</a>
         <input type="month" name="month" value="@Model.MonthText(Model.First)" aria-label="달 고르기" min="2000-01" max="2100-12" />
         <a href="@Model.Link(Model.First.AddMonths(1))" aria-label="다음 달">›</a>
@@ -23,8 +23,8 @@
     <div class="wk-grid" id="wkGrid" role="group" aria-label="날짜"></div>
 
     <div class="wk-legend">
-        <div><span><u class="wk-sw all"></u>모두 채움</span><span><u class="wk-sw some"></u>빠진 곳 있음</span><span><u class="wk-sw none"></u>말씀 없음</span><span><u class="wk-sw dr"></u>초안</span></div>
-        <div><span><span class="wk-dots"><i></i></span>입력</span><span><span class="wk-dots"><i class="o"></i></span>없음</span><span>점 순서: 범위 · 제목 · 이야기 · 영상</span></div>
+        <div><span><u class="wk-sw all"></u>모두 채움</span><span><u class="wk-sw some"></u>빠진 곳 있음</span><span><u class="wk-sw none"></u>@Model.Noun 없음</span><span><u class="wk-sw dr"></u>초안</span></div>
+        <div><span><span class="wk-dots"><i></i></span>입력</span><span><span class="wk-dots"><i class="o"></i></span>없음</span><span>점 순서: @Model.DotOrder</span></div>
     </div>
 
     <section class="wk-day" id="wkDay" aria-live="polite"></section>

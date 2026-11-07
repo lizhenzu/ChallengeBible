@@ -1,12 +1,13 @@
-// 말씀 입력 점검(확정 시안 word-check, R-216): 서버가 준 한 달치 자료로 완성 수 · 칩 · 달력 · 그날 칸을 그린다.
+// 말씀 · 퀴즈 입력 점검(확정 시안 word-check · quiz-check, R-216 · R-217): 서버가 준 한 달치 자료로 완성 수 · 칩 · 달력 · 그날 칸을 그린다.
 // 사용자가 입력한 글은 esc 를 거쳐서만 화면에 넣는다.
 (function () {
   var data = document.getElementById('wkData');
   if (!data) return;
   var d = JSON.parse(data.textContent);
-  var ITEMS = ['성경 범위', '제목', '오늘 이야기', '영상 구간'];
-  var NONE = '말씀 없음', DRAFT = '초안';
+  var ITEMS = d.items;
+  var NONE = d.noun + ' 없음', DRAFT = '초안', CHOICE = '4지선다', CLIP = '영상 구간';
   var WEEK = '일월화수목금토';
+  var MARKS = '①②③④';
   var parts = d.month.split('-');
   var year = +parts[0], month = +parts[1];
   var lastDay = new Date(year, month, 0).getDate();
@@ -68,31 +69,52 @@
     }
     $('wkGrid').innerHTML = html;
   }
-  function field(name, value, none) {
-    return '<div class="wk-f"><b>' + name + (none ? '<span class="wk-tag">없음</span>' : '') + '</b>' + (value ? '<p>' + esc(value) + '</p>' : '') + '</div>';
+  function tag(text, ok) { return '<span class="wk-tag' + (ok ? ' ok' : '') + '">' + esc(text) + '</span>'; }
+  function field(name, value) {
+    return '<div class="wk-f"><b>' + name + (value ? '' : tag('없음')) + '</b>' + (value ? '<p>' + esc(value) + '</p>' : '') + '</div>';
+  }
+  function statusGrid(x, rename) {
+    return '<div class="wk-st">' + ITEMS.map(function (k) {
+      var no = x.missing.indexOf(k) >= 0, name = rename ? rename(k) : k;
+      return '<div class="' + (no ? 'x' : 'y') + '">' + (no ? '✕ ' : '✓ ') + esc(name) + '</div>';
+    }).join('') + '</div>';
+  }
+  function wordBody(x) {
+    var clipNone = x.missing.indexOf(CLIP) >= 0;
+    var lines = x.clips.map(function (c) { return esc(c.chapter) + ' ' + esc(c.range); }).join('<br>');
+    return statusGrid(x) + field('제목', x.title) + field('오늘 이야기', x.summary)
+      + (x.commentary ? field('해설', x.commentary) : '')
+      + '<div class="wk-f"><b>영상 구간' + (clipNone ? tag('없음') : '') + '</b>'
+      + (lines ? '<p>' + lines + '</p>' : '')
+      + (clipNone ? '<p class="wk-note">시점을 정한 구간이 없으면 그 장의 기본 듣기 영상을 처음부터 끝까지 재생해요.</p>' : '') + '</div>';
+  }
+  function quizBody(x) {
+    var text = x.format === 'Text';
+    var html = statusGrid(x, function (k) { return text && k === CHOICE ? '주관식 답' : k; }) + field('배경', x.background) + field('문제', x.question);
+    if (text) {
+      html += '<div class="wk-f"><b>맞는 답(주관식)' + (x.answers.length ? '' : tag('없음')) + '</b>'
+        + (x.answers.length ? '<p>' + x.answers.map(esc).join('<br>') + '</p>' : '') + '</div>';
+    } else {
+      var hasRight = x.choices.some(function (c) { return c.correct; });
+      var head = (x.choices.length !== 4 ? tag('보기 ' + x.choices.length + '개') : '') + (hasRight ? '' : tag('정답 없음'));
+      var list = x.choices.map(function (c, i) { return MARKS.charAt(i) + ' ' + esc(c.text) + (c.correct ? ' ' + tag('정답', true) : ''); }).join('<br>');
+      html += '<div class="wk-f"><b>' + CHOICE + head + '</b>' + (list ? '<p>' + list + '</p>' : '') + '</div>';
+    }
+    return html + field('힌트', x.hint);
   }
   function drawDay() {
     var x = rows[sel];
     var date = new Date(year, month - 1, sel);
-    var edit = '/platform/content/word?month=' + d.month + '&date=' + d.month + '-' + pad(sel);
+    var edit = '/platform/content/' + d.kind + '?month=' + d.month + '&date=' + d.month + '-' + pad(sel);
     var html = '<h2>' + month + '월 ' + sel + '일 ' + WEEK.charAt(date.getDay()) + '요일</h2>';
     if (!x) {
-      html += '<p class="wk-empty">이 날은 아직 말씀이 없어요</p><p class="wk-note">이대로 두면 아이들 화면에 "오늘은 없음"으로 보여요.</p>'
-        + '<a class="wk-go" href="' + edit + '">말씀 입력하기</a>';
+      html += '<p class="wk-empty">이 날은 아직 ' + esc(d.noun) + (d.kind === 'quiz' ? '가' : '이') + ' 없어요</p><p class="wk-note">이대로 두면 아이들 화면에 "오늘은 없음"으로 보여요.</p>'
+        + '<a class="wk-go" href="' + edit + '">' + esc(d.noun) + ' 입력하기</a>';
     } else {
-      html += '<p class="wk-ref">' + (x.ref ? esc(x.ref) + ' ' : '') + '<span class="wk-tag' + (isDraft(x) ? '' : ' ok') + '">' + (isDraft(x) ? DRAFT : '공개') + '</span></p><div class="wk-st">';
-      ITEMS.forEach(function (k) {
-        var no = x.missing.indexOf(k) >= 0;
-        html += '<div class="' + (no ? 'x' : 'y') + '">' + (no ? '✕ ' : '✓ ') + k + '</div>';
-      });
-      html += '</div>' + field('제목', x.title, !x.title) + field('오늘 이야기', x.summary, !x.summary);
-      if (x.commentary) html += field('해설', x.commentary, false);
-      var clipNone = x.missing.indexOf('영상 구간') >= 0;
-      var lines = x.clips.map(function (c) { return esc(c.chapter) + ' ' + esc(c.range); }).join('<br>');
-      html += '<div class="wk-f"><b>영상 구간' + (clipNone ? '<span class="wk-tag">없음</span>' : '') + '</b>'
-        + (lines ? '<p>' + lines + '</p>' : '')
-        + (clipNone ? '<p class="wk-note">시점을 정한 구간이 없으면 그 장의 기본 듣기 영상을 처음부터 끝까지 재생해요.</p>' : '') + '</div>'
-        + '<a class="wk-go" href="' + edit + '">말씀 수정</a>';
+      var state = tag(isDraft(x) ? DRAFT : '공개', !isDraft(x));
+      html += '<p class="wk-ref">' + (x.ref ? esc(x.ref) + ' ' : '') + state + '</p>'
+        + (d.kind === 'quiz' ? quizBody(x) : wordBody(x))
+        + '<a class="wk-go" href="' + edit + '">' + esc(d.noun) + ' 수정</a>';
     }
     $('wkDay').innerHTML = html;
   }
