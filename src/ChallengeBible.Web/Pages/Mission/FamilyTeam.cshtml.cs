@@ -31,8 +31,11 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : Pag
     /// <summary>처음 고를 역할: 보호자면 엄마, 아니면 학생.</summary>
     public string DefaultRelation => State.IsGuardian ? FamilyRelation.Mother : FamilyRelation.Student;
 
-    public string OkMessage => Ok switch
+    public string OkMessage => OkText(Ok);
+
+    public static string OkText(string? ok) => ok switch
     {
+        "leftgone" => "가족팀에서 나왔어요. 마지막 구성원이라 팀이 삭제됐어요",
         "created" => "가족팀을 만들었어요. 가족에게 팀 이름을 알려 주세요",
         "requested" => "합류를 신청했어요",
         "cancelled" => "신청을 취소했어요",
@@ -85,7 +88,12 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : Pag
     public Task<IActionResult> OnPostCancelAsync(CancellationToken ct) => Act(join.CancelAsync(ct), "cancelled", ct);
     public Task<IActionResult> OnPostAcceptAsync(int request, CancellationToken ct) => Act(join.AcceptAsync(request, ct), "accepted", ct);
     public Task<IActionResult> OnPostRejectAsync(int request, CancellationToken ct) => Act(join.RejectAsync(request, ct), "rejected", ct);
-    public Task<IActionResult> OnPostLeaveAsync(CancellationToken ct) => Act(join.LeaveAsync(ct), "left", ct);
+    public async Task<IActionResult> OnPostLeaveAsync(CancellationToken ct)
+    {
+        var (error, teamGone) = await join.LeaveReportAsync(ct);
+        return await Act(Task.FromResult(error), teamGone ? "leftgone" : "left", ct);
+    }
+
     public Task<IActionResult> OnPostKickAsync(int member, CancellationToken ct) => Act(join.KickAsync(member, ct), "kicked", ct);
     public Task<IActionResult> OnPostRenameAsync(string? name, CancellationToken ct) => Act(join.RenameAsync(name, ct), "renamed", ct);
     public Task<IActionResult> OnPostRelationAsync(string? relation, CancellationToken ct) => Act(join.SetRelationAsync(relation ?? "", ct), "relation", ct);

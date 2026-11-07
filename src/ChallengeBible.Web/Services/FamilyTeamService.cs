@@ -144,18 +144,19 @@ public sealed class FamilyTeamService(IAppDb db, TenantContext tenant, TenantClo
             return FamilyError.None;
         }, ct);
 
-    /// <summary>R-208: 구성원 한 줄을 지운다. 활성 구성원이 더 없으면 팀 · 축하 기록 · 신청도 지운다. 저장은 부르는 쪽에서.</summary>
-    internal static async Task DropMemberAsync(AppDbContext ctx, FamilyTeam t, FamilyMember m, CancellationToken ct)
+    /// <summary>R-208: 구성원 한 줄을 지운다. 활성 구성원이 더 없으면 팀 · 축하 기록 · 신청도 지우고 true. 저장은 부르는 쪽에서.</summary>
+    internal static async Task<bool> DropMemberAsync(AppDbContext ctx, FamilyTeam t, FamilyMember m, CancellationToken ct)
     {
         ctx.FamilyMembers.Remove(m);
         var rest = t.Members.Where(x => x.Id != m.Id).ToList();
-        if (rest.Count > 0 && !(t.IsActive && rest.All(x => !x.IsActive))) return;
+        if (rest.Count > 0 && !(t.IsActive && rest.All(x => !x.IsActive))) return false;
         ctx.FamilyMembers.RemoveRange(rest);
         ctx.FamilyJoinRequests.RemoveRange(await ctx.FamilyJoinRequests.Where(q => q.FamilyTeamId == t.Id).ToListAsync(ct));
         ctx.FamilyInvites.RemoveRange(await ctx.FamilyInvites.Where(i => i.FamilyTeamId == t.Id).ToListAsync(ct));
         ctx.FamilyMilestonesReached.RemoveRange(await ctx.FamilyMilestonesReached.Where(x => x.FamilyTeamId == t.Id).ToListAsync(ct));
         ctx.FamilyMilestoneDismisses.RemoveRange(await ctx.FamilyMilestoneDismisses.Where(x => x.FamilyTeamId == t.Id).ToListAsync(ct));
         ctx.FamilyTeams.Remove(t);
+        return true;
     }
 
     // ── 보기(홈 "우리 가족팀" · 순위 "가족팀" 탭) ──

@@ -391,15 +391,18 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
     }
 
     /// <summary>R-208: 나가기. 마지막 사람이면 팀도 사라진다.</summary>
-    public async Task<FamilyError> LeaveAsync(CancellationToken ct = default)
+    public async Task<FamilyError> LeaveAsync(CancellationToken ct = default) => (await LeaveReportAsync(ct)).Error;
+
+    /// <summary>R-208: 나가기 + 팀이 함께 삭제됐는지(안내 글에 쓴다).</summary>
+    public async Task<(FamilyError Error, bool TeamGone)> LeaveReportAsync(CancellationToken ct = default)
     {
         await using var ctx = db.Create();
-        if (await MeAsync(ctx, ct) is not { } me) return FamilyError.NotParticipant;
+        if (await MeAsync(ctx, ct) is not { } me) return (FamilyError.NotParticipant, false);
         var team = await MyTeamAsync(ctx, me, ct);
-        if (team is null) return FamilyError.NotMember;
-        await FamilyTeamService.DropMemberAsync(ctx, team, team.Members.Single(m => m.ParticipantId == me.ParticipantId), ct);
+        if (team is null) return (FamilyError.NotMember, false);
+        var gone = await FamilyTeamService.DropMemberAsync(ctx, team, team.Members.Single(m => m.ParticipantId == me.ParticipantId), ct);
         await ctx.SaveChangesAsync(ct);
-        return FamilyError.None;
+        return (FamilyError.None, gone);
     }
 
     /// <summary>R-208: 같은 팀 구성원 내보내기(나는 나가기로).</summary>
