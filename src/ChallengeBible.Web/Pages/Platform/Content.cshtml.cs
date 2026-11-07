@@ -65,6 +65,31 @@ public class ContentModel(ContentAdminService content, TimeProvider time) : Page
 
     public string SlotLink(byte? no) => $"/platform/content/{Kind}" + (no is { } n ? $"?no={n}" : "");
 
+    /// <summary>플랫폼 시간대의 오늘(확정 시안 platform-content: 목록의 "오늘" 표시).</summary>
+    public DateOnly Today { get; private set; }
+    public bool HasSelection => BySlot ? No is not null : Date is not null;
+
+    /// <summary>"오늘"에 해당하는 번호: 기도는 그달 날짜, 암송은 그해 몇째 주.</summary>
+    public int TodayNo => IsRecite ? Domain.Time.Week.Of(Today, DayOfWeek.Sunday).NumberInYear : Today.Day;
+
+    /// <summary>편집 화면 "목록"으로: 고른 줄 자리로 돌아간다.</summary>
+    public string ListLink => BySlot ? $"{SlotLink(null)}#n-{No}" : $"{Link()}#d-{Date:yyyy-MM-dd}";
+
+    public string? PrevLink => Neighbor(-1);
+    public string? NextLink => Neighbor(1);
+
+    private string? Neighbor(int step)
+    {
+        if (BySlot)
+        {
+            var n = (No ?? 0) + step;
+            return n >= 1 && n <= ContentAdminService.MaxSlot(K) ? SlotLink((byte)n) : null;
+        }
+        if (Date is not { } d) return null;
+        var near = d.AddDays(step);
+        return Link(near, month: new DateOnly(near.Year, near.Month, 1));
+    }
+
     /// <summary>올해 그 주의 날짜(안내용). 올해에 없는 주(53 · 54 · 55)는 null.</summary>
     public (DateOnly Start, DateOnly End)? ThisYearWeek(byte no)
     {
@@ -77,8 +102,9 @@ public class ContentModel(ContentAdminService content, TimeProvider time) : Page
         var k = Kinds.FirstOrDefault(x => x.Key == Kind);
         if (k.Key is null) return false;
         K = k.K;
-        var today = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
-        First = DateOnly.TryParseExact((Month ?? "") + "-01", "yyyy-MM-dd", out var f) ? f : new DateOnly(today.Year, today.Month, 1);
+        var today = Domain.Time.TenantClock.ToTenantDate(time.GetUtcNow().UtcDateTime, PlatformHomeService.PlatformTimeZone);
+        Today = today;
+        First =DateOnly.TryParseExact((Month ?? "") + "-01", "yyyy-MM-dd", out var f) ? f : new DateOnly(today.Year, today.Month, 1);
         ThisYear = today.Year;
         No ??= Week;
         return true;
