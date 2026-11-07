@@ -227,6 +227,22 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
     }
 
     [Fact]
+    public async Task R208_마지막_사람이_나갈_때만_팀_삭제를_알린다()
+    {
+        Assert.Equal(FamilyError.None, await As("dad").CreateAsync("웃음폭탄네", FamilyRelation.Father));
+        var id = await TeamOf("dad");
+        Assert.Equal(FamilyError.None, await As("cheolsu").RequestAsync(id, FamilyRelation.Student));
+        var request = (await As("dad").StateAsync()).Mine!.Requests.Single();
+        Assert.Equal(FamilyError.None, await As("dad").AcceptAsync(request.RequestId));
+
+        Assert.Equal((FamilyError.None, false), await As("cheolsu").LeaveReportAsync());
+        Assert.Equal((FamilyError.None, true), await As("dad").LeaveReportAsync());
+        Assert.Equal((FamilyError.NotMember, false), await As("dad").LeaveReportAsync());
+        Assert.Contains("팀이 삭제됐어요", ChallengeBible.Web.Pages.Mission.FamilyTeamModel.OkText("leftgone"));
+        Assert.DoesNotContain("삭제", ChallengeBible.Web.Pages.Mission.FamilyTeamModel.OkText("left"));
+    }
+
+    [Fact]
     public async Task R208_마지막_사람이_나가면_팀과_신청과_축하_기록이_사라진다()
     {
         Assert.Equal(FamilyError.None, await As("dad").CreateAsync("웃음폭탄네", FamilyRelation.Father));
