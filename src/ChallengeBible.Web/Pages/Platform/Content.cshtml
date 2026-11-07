@@ -33,6 +33,10 @@
             <a class="btn s sm" href="@Model.Link(month: Model.First.AddMonths(-1))" aria-label="이전 달">‹</a>
             <b class="num">@Model.First.ToString("yyyy년 M월")</b>
             <a class="btn s sm" href="@Model.Link(month: Model.First.AddMonths(1))" aria-label="다음 달">›</a>
+            @if (Model.Kind == "word")
+            {
+                <a class="btn s sm" href="/platform/content/word/check?month=@Model.First.ToString("yyyy-MM")@(Model.Date is { } checkDate ? $"&date={checkDate:yyyy-MM-dd}" : "")">입력 점검</a>
+            }
         }
         <span class="cnt">
             @foreach (var g in (Model.BySlot ? Model.Slots.Select(w => w.Status) : Model.Days.Select(d => d.Status)).GroupBy(s => s)) { <span class="@ContentModel.StatusClass(g.Key)">@ContentModel.StatusLabel(g.Key) @g.Count()</span> }

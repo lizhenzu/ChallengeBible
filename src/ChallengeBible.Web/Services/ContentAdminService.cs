@@ -108,6 +108,16 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
             .Select(d => rows.FirstOrDefault(r => r.D == d) is { } r ? new ContentDay(d, r.Id, r.Status, r.T) : new ContentDay(d, null, "None", null)).ToList();
     }
 
+    /// <summary>공용 말씀 한 달의 입력 점검(R-216). 현재 개정만 읽고 말씀이 있는 날만 돌려준다. 플랫폼 관리자가 아니면 UnauthorizedAccessException.</summary>
+    public async Task<List<WordCheckDay>> WordCheckMonthAsync(int actor, DateOnly first, CancellationToken ct = default)
+    {
+        await using var ctx = await OpenAsync(actor, ct);
+        var to = first.AddMonths(1).AddDays(-1);
+        var words = await Shared(ctx.DailyWords).AsNoTracking().Where(x => x.ExposeDate >= first && x.ExposeDate <= to).OrderBy(x => x.ExposeDate).ToListAsync(ct);
+        var clips = (await ctx.DailyWordClips.AsNoTracking().Where(c => c.WordDate >= first && c.WordDate <= to).ToListAsync(ct)).ToLookup(c => c.WordDate);
+        return words.Select(w => WordCheck.Day(w, clips[w.ExposeDate])).ToList();
+    }
+
     /// <summary>공용 기도 1 ~ 31일(0053) 또는 공용 암송 1 ~ 55주(0052) 목록.</summary>
     public async Task<List<ContentSlot>> SlotsAsync(int actor, ContentKind kind, CancellationToken ct = default)
     {
