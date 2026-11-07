@@ -25,13 +25,24 @@ internal static class EdgePage
     }
 
     /// <summary>실제 페이지 HTML 에 실제 스크립트 · CSS 와 시험 스크립트를 넣는다.</summary>
-    public static string Inline(string page, string script, string checks)
+    public static string Inline(string page, string script, string checks, params string[] extraCss)
     {
         var root = WebRoot();
         page = Regex.Replace(page, "<link[^>]*stylesheet[^>]*>", "");
         page = Regex.Replace(page, "<script[^>]*\\ssrc=[^>]*></script>", "");
-        page = page.Replace("</head>", "<style>" + File.ReadAllText(Path.Combine(root, "css", "site.css")) + "</style></head>");
+        var css = string.Concat(new[] { "site.css" }.Concat(extraCss).Select(f => File.ReadAllText(Path.Combine(root, "css", f))));
+        page = page.Replace("</head>", "<style>" + css + "</style></head>");
         return page.Replace("</body>", "<script>" + File.ReadAllText(Path.Combine(root, "js", script)) + "</script><script>" + checks + "</script></body>");
+    }
+
+    /// <summary>Edge 는 실행 파일이 곧 끝나고 자식 프로세스가 남는다. 이 시험의 임시 프로필을 쓰는 Edge 만 끈다(쓰고 있는 Edge 는 건드리지 않음).</summary>
+    private static void StopEdgeUsing(string profileName)
+    {
+        var script = "Get-CimInstance Win32_Process -Filter \"name='msedge.exe'\" | Where-Object { $_.CommandLine -like '*" + profileName + "*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }";
+        var psi = new ProcessStartInfo("powershell") { UseShellExecute = false, CreateNoWindow = true };
+        foreach (var a in new[] { "-NoProfile", "-Command", script }) psi.ArgumentList.Add(a);
+        using var stop = Process.Start(psi);
+        stop?.WaitForExit(30000);
     }
 
     /// <summary>시험 결과 글을 돌려준다. 60초 안에 오지 않으면 null.</summary>
@@ -85,6 +96,7 @@ internal static class EdgePage
         finally
         {
             try { edge.Kill(entireProcessTree: true); } catch (InvalidOperationException) { /* 이미 끝남 */ }
+            StopEdgeUsing(dir.Name);
             listener.Stop();
             await server;
             // Edge 가 일부 창을 늦게 닫으면 임시 폴더가 남을 수 있다. 시험 결과와는 상관없다.
