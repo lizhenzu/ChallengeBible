@@ -15,7 +15,7 @@ namespace ChallengeBible.Web.Pages.Platform;
 public class RulesModel(RuleService rules, PlatformRuleService platformRules) : PageModel, ITitled
 {
     public string Title => "기본 규칙";
-    private int Me => User.UserName()!.Value;
+    private string Me => User.UserName()!;
 
     [BindProperty] public RuleForm Form { get; set; } = new();
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }

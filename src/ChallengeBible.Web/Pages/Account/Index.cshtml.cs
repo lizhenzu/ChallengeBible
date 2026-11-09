@@ -30,7 +30,7 @@ public class IndexModel(AccountService accounts, MyAccountService mine, PhotoSer
     public FieldErrors Errors { get; private set; } = new();
     /// <summary>오류가 난 칸은 펼친 채로 다시 보여 준다.</summary>
     public string? Open { get; private set; }
-    private int Me => User.UserName()!.Value;
+    private string Me => User.UserName()!;
 
     public bool IsGuardian => Depts.Any(d => d.Roles.Contains(Roles.Guardian));
 

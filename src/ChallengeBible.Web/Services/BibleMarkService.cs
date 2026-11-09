@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace ChallengeBible.Web.Services;
 
 /// <summary>북마크 모음의 한 줄: 절 위치 · 담은 때 · 개역개정 본문(없으면 null).</summary>
-public sealed record BookmarkRow(byte BookId, short Chapter, short Verse, DateTime CreatedUtc, string? Text);
+public sealed record BookmarkRow(byte BookId, short Chapter, short Verse, DateTime CreatedAt, string? Text);
 
 /// <summary>한 범위 안에서 내가 읽은 절 · 책갈피한 절(장, 절).</summary>
 public sealed record VerseMarks(IReadOnlySet<(short Chapter, short Verse)> Read, IReadOnlySet<(short Chapter, short Verse)> Bookmarked);
@@ -17,7 +17,7 @@ public sealed record VerseMarks(IReadOnlySet<(short Chapter, short Verse)> Read,
 /// </summary>
 public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider time)
 {
-    private int Me => scope.UserName ?? throw new InvalidOperationException("로그인한 요청에서만 써요.");
+    private string Me => scope.UserName ?? throw new InvalidOperationException("로그인한 요청에서만 써요.");
 
     public async Task<VerseMarks> MarksAsync(BibleRef r, CancellationToken ct = default)
     {
@@ -35,7 +35,7 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
         if (!await Exists(ctx, book, chapter, verse, ct)) return false;
         if (!await ctx.VerseReadMarks.AnyAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct))
         {
-            ctx.VerseReadMarks.Add(new VerseReadMark { UserName = Me, BookId = book, Chapter = chapter, Verse = verse, ReadAt = time.GetUtcNow().UtcDateTime });
+            ctx.VerseReadMarks.Add(new ReadingVerse { UserName = Me, BookId = book, Chapter = chapter, Verse = verse, ReadAt = time.GetUtcNow().UtcDateTime });
             await SaveIgnoringDuplicate(ctx, ct);
         }
         return true;
@@ -60,7 +60,7 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
         var already = (await InRange(ctx.VerseReadMarks.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct)).ToHashSet();
         var now = time.GetUtcNow().UtcDateTime;
         var add = verses.Where(v => !already.Contains(v)).ToList();
-        foreach (var v in add) ctx.VerseReadMarks.Add(new VerseReadMark { UserName = Me, BookId = r.BookId, Chapter = v.Chapter, Verse = v.Verse, ReadAt = now });
+        foreach (var v in add) ctx.VerseReadMarks.Add(new ReadingVerse { UserName = Me, BookId = r.BookId, Chapter = v.Chapter, Verse = v.Verse, ReadAt = now });
         if (add.Count > 0) await SaveIgnoringDuplicate(ctx, ct);
         return add.Count;
     }
@@ -81,7 +81,7 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
         if (!await Exists(ctx, book, chapter, verse, ct)) return false;
         if (!await ctx.ReadingBookmarks.AnyAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct))
         {
-            ctx.ReadingBookmarks.Add(new Bookmark { UserName = Me, BookId = book, Chapter = chapter, Verse = verse, CreatedUtc = time.GetUtcNow().UtcDateTime });
+            ctx.ReadingBookmarks.Add(new ReadingBookmark { UserName = Me, BookId = book, Chapter = chapter, Verse = verse, CreatedAt = time.GetUtcNow().UtcDateTime });
             await SaveIgnoringDuplicate(ctx, ct);
         }
         return true;
@@ -108,22 +108,22 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
                           join v in ctx.BibleVerses.AsNoTracking().Where(v => v.TranslationId == 1)
                               on new { b.BookId, b.Chapter, b.Verse } equals new { v.BookId, v.Chapter, v.Verse } into g
                           from v in g.DefaultIfEmpty()
-                          select new BookmarkRow(b.BookId, b.Chapter, b.Verse, b.CreatedUtc, v == null ? null : v.Text)).ToListAsync(ct);
+                          select new BookmarkRow(b.BookId, b.Chapter, b.Verse, b.CreatedAt, v == null ? null : v.Text)).ToListAsync(ct);
         return bibleOrder
             ? rows.OrderBy(r => r.BookId).ThenBy(r => r.Chapter).ThenBy(r => r.Verse).ToList()
-            : rows.OrderByDescending(r => r.CreatedUtc).ToList();
+            : rows.OrderByDescending(r => r.CreatedAt).ToList();
     }
 
     private static Task<bool> Exists(AppDbContext ctx, byte book, short chapter, short verse, CancellationToken ct) =>
         ctx.BibleVerses.AnyAsync(v => v.BookId == book && v.Chapter == chapter && v.Verse == verse, ct);
 
-    private static IQueryable<VerseReadMark> InRange(IQueryable<VerseReadMark> q, BibleRef r)
+    private static IQueryable<ReadingVerse> InRange(IQueryable<ReadingVerse> q, BibleRef r)
     {
         var (sc, sv, ec, ev) = (r.StartChapter, r.StartVerse, r.EndChapter, r.EndVerse);
         return q.Where(x => x.BookId == r.BookId && (x.Chapter > sc || (x.Chapter == sc && x.Verse >= sv)) && (x.Chapter < ec || (x.Chapter == ec && x.Verse <= ev)));
     }
 
-    private static IQueryable<Bookmark> InRange(IQueryable<Bookmark> q, BibleRef r)
+    private static IQueryable<ReadingBookmark> InRange(IQueryable<ReadingBookmark> q, BibleRef r)
     {
         var (sc, sv, ec, ev) = (r.StartChapter, r.StartVerse, r.EndChapter, r.EndVerse);
         return q.Where(x => x.BookId == r.BookId && (x.Chapter > sc || (x.Chapter == sc && x.Verse >= sv)) && (x.Chapter < ec || (x.Chapter == ec && x.Verse <= ev)));

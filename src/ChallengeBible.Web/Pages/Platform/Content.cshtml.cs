@@ -50,7 +50,7 @@ public class ContentModel(ContentAdminService content, TimeProvider time) : Page
         ContentStatus.Published => "s-pub", ContentStatus.Draft => "s-draft", _ => "s-none",
     };
 
-    private int Me => User.UserName()!.Value;
+    private string Me => User.UserName()!;
 
     public string OkMessage => Ok switch
     {

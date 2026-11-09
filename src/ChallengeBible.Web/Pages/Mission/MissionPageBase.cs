@@ -19,13 +19,13 @@ public abstract class MissionPageBase(MissionService missions, TenantContext ten
     [BindProperty(SupportsGet = true)] public DateOnly? Date { get; set; }
 
     public DateOnly Day { get; private set; }
-    public int? ParticipantId { get; private set; }
+    public string? UserName { get; private set; }
     public MissionDay? Data { get; private set; }
 
     public bool IsToday => Data is not null && Day == Data.Today;
-    public bool CanAct => ParticipantId is not null && Data?.Window == Domain.Missions.WindowResult.Open;
+    public bool CanAct => UserName is not null && Data?.Window == Domain.Missions.WindowResult.Open;
     /// <summary>완료 취소(R-24): 참여자가 말씀 · 기도는 오늘, 암송은 이번 주 날짜를 볼 때.</summary>
-    public bool CanUndo(Domain.Rules.MissionItem item) => ParticipantId is not null && Data is not null && missions.CanUndo(item, Day);
+    public bool CanUndo(Domain.Rules.MissionItem item) => UserName is not null && Data is not null && missions.CanUndo(item, Day);
     public string Slug => tenant.Current.Slug;
 
     public static readonly CultureInfo Ko = new("ko-KR");
@@ -36,15 +36,15 @@ public abstract class MissionPageBase(MissionService missions, TenantContext ten
     {
         if (!tenant.Current.MissionEnabled) return NotFound();
         Day = Date ?? missions.Today;
-        ParticipantId = await missions.ParticipantIdAsync(ct);
-        // 참여자가 아니어도 화면은 보여 준다(콘텐츠 보기). 기록은 없으니 빈 참여자 0 으로 읽는다.
-        Data = await missions.GetDayAsync(ParticipantId ?? 0, Day, ct);
+        UserName = await missions.UserNameAsync(ct);
+        // 참여자가 아니어도 화면은 보여 준다(콘텐츠 보기). 기록은 없으니 빈 아이디로 읽는다.
+        Data = await missions.GetDayAsync(UserName ?? "", Day, ct);
         await LoadMoreAsync(ct);
         return Page();
     }
 
     protected virtual Task LoadMoreAsync(CancellationToken ct) => Task.CompletedTask;
 
-    public string BlockReason => ParticipantId is null ? "보호자 · 선생님은 보기만 해요. 미션은 참여자만 할 수 있어요."
+    public string BlockReason => UserName is null ? "보호자 · 선생님은 보기만 해요. 미션은 참여자만 할 수 있어요."
         : MissionService.WindowMessage(Data!.Window, Data.Rules.GraceDays);
 }

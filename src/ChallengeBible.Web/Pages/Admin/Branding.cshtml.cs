@@ -32,7 +32,7 @@ public class BrandingModel(BrandingService branding, TenantContext tenant, Tenan
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
-        var (changed, errors) = await branding.SaveAsync(User.UserName()!.Value, AppName, AppShortName, ThemeColor, ct);
+        var (changed, errors) = await branding.SaveAsync(User.UserName()!, AppName, AppShortName, ThemeColor, ct);
         if (errors.Count > 0)
         {
             Errors = errors;

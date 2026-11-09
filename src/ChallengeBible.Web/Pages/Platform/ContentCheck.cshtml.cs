@@ -39,7 +39,7 @@ public class ContentCheckModel(ContentAdminService content, TimeProvider time) :
         First = ParseMonth(Month) ?? new DateOnly(today.Year, today.Month, 1);
         var last = First.AddMonths(1).AddDays(-1);
         var initial = Date is { } d && d >= First && d <= last ? d : today >= First && today <= last ? today : First;
-        var me = User.UserName()!.Value;
+        var me = User.UserName()!;
         object days = IsQuiz ? await content.QuizCheckMonthAsync(me, First, ct) : await content.WordCheckMonthAsync(me, First, ct);
         string[] items = IsQuiz
             ? [QuizCheck.BackgroundItem, QuizCheck.QuestionItem, QuizCheck.ChoiceItem, QuizCheck.HintItem]

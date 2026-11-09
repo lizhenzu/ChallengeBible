@@ -19,7 +19,7 @@ public class PointsModel(MissionService missions, TenantContext tenant) : PageMo
     public DateOnly First { get; private set; }
     public DateOnly Today { get; private set; }
     public IReadOnlyList<DayScore> Days { get; private set; } = [];
-    public int? ParticipantId { get; private set; }
+    public string? UserName { get; private set; }
     public int SeasonPoints { get; private set; }
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
@@ -27,8 +27,8 @@ public class PointsModel(MissionService missions, TenantContext tenant) : PageMo
         if (!tenant.Current.MissionEnabled) return NotFound();
         Today = missions.Today;
         First = DateOnly.TryParseExact((Month ?? "") + "-01", "yyyy-MM-dd", out var f) && f <= Today ? f : new DateOnly(Today.Year, Today.Month, 1);
-        ParticipantId = await missions.ParticipantIdAsync(ct);
-        if (ParticipantId is int p)
+        UserName = await missions.UserNameAsync(ct);
+        if (UserName is int p)
         {
             Days = await missions.MonthAsync(p, First.Year, First.Month, ct);
             SeasonPoints = (await missions.GetDayAsync(p, Today, ct)).SeasonPoints;

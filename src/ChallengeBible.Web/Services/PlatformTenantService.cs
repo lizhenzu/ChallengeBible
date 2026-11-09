@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace ChallengeBible.Web.Services;
 
 public sealed record TenantRow(int Id, string Name, string Slug, string JoinCode, string ThemeColor, bool MissionEnabled, bool ReadingEnabled,
-    string Status, int MemberCount, IReadOnlyList<(int UserName, string Name, string Email)> Admins, DateTime CreatedUtc, string TimeZoneId)
+    string Status, int MemberCount, IReadOnlyList<(string UserName, string Name, string Email)> Admins, DateTime CreatedUtc, string TimeZoneId)
 {
     public bool JoinListed { get; init; }
 }

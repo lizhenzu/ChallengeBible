@@ -23,7 +23,7 @@ public class PromotionsModel(PromotionService promotions, PromotionApprover appr
     public List<string> Groups { get; private set; } = [];
     public string? Error { get; private set; }
     public int? ErrorFor { get; private set; }
-    private int Me => User.UserName()!.Value;
+    private string Me => User.UserName()!;
 
     public IEnumerable<PromotionRow> Rows => Tab == "out" ? Sent : Received;
     public int ReceivedWaiting => Received.Count(r => r.Status == PromotionStatus.Pending);

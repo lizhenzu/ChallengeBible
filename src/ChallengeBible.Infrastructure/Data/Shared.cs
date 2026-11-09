@@ -111,6 +111,8 @@ public sealed class UserSetting
     public string? ReadingTheme { get; set; }
     /// <summary>성경말씀 미션 화면 색 테마(0074).</summary>
     public string? MissionTheme { get; set; }
+    /// <summary>받은 가족팀 초대를 "다음에 할래요"로 숨긴 때(R-212). 이후 새로 온 초대는 보인다.</summary>
+    public DateTime? FamilyInvitesSnoozedAt { get; set; }
 }
 
 // B. 가입 신청 · 역할 -----------------------------------------------------------
@@ -191,6 +193,23 @@ public sealed class CodeData : ITenantOwned
 
 // C. 가족팀 · 친구팀 · 시상 -------------------------------------------------------
 
+/// <summary>가족 관계. 저장 값은 유년부와 같다: RoleCode 0 학생 · 1 엄마 · 2 아빠 · 3 할머니 · 4 할아버지, RelationKey child · mom · dad · grandma · grandpa.</summary>
+public static class FamilyRelation
+{
+    public const string Student = "Student";
+    public const string Mother = "Mother";
+    public const string Father = "Father";
+    public const string Grandmother = "Grandmother";
+    public const string Grandfather = "Grandfather";
+    public static readonly string[] All = [Student, Mother, Father, Grandmother, Grandfather];
+
+    public static int ToRole(string relation) => Array.IndexOf(All, relation);
+    public static string FromRole(int role) => role >= 0 && role < All.Length ? All[role] : Student;
+    private static readonly string[] Keys = ["child", "mom", "dad", "grandma", "grandpa"];
+    public static string ToKey(string relation) => Keys[Math.Max(0, ToRole(relation))];
+    public static string FromKey(string key) => FromRole(Array.IndexOf(Keys, key));
+}
+
 public static class TeamTypes
 {
     public const string Family = "FAMILY";
@@ -200,9 +219,10 @@ public static class TeamTypes
 public sealed class FamilyTeam : ITenantOwned
 {
     public int TenantId { get; set; }
-    public int FamilyTeamId { get; set; }
-    public required string TeamName { get; set; }
+    public int Id { get; set; }
+    public required string Name { get; set; }
     public bool IsActive { get; set; } = true;
+    public List<FamilyMember> Members { get; set; } = [];
     public string? Memo { get; set; }
     public DateTime InsertDT { get; set; }
     public DateTime UpdateDT { get; set; }
@@ -218,12 +238,14 @@ public sealed class FamilyMember : ITenantOwned
     public int FamilyTeamId { get; set; }
     public required string UserName { get; set; }
     public byte RoleCode { get; set; }
-    public int SortNo { get; set; }
+    public int SortOrder { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime InsertDT { get; set; }
     public DateTime UpdateDT { get; set; }
     public byte RelationCode { get; set; } = 9;
     public string? RelationLabel { get; set; }
+    /// <summary>화면에서 쓰는 관계 이름. 저장은 RoleCode 숫자다.</summary>
+    public string Relation { get => FamilyRelation.FromRole(RoleCode); set => RoleCode = (byte)FamilyRelation.ToRole(value); }
 }
 
 public sealed class FamilyRequest : ITenantOwned
@@ -564,9 +586,9 @@ internal sealed class FamilyTeamConfig : IEntityTypeConfiguration<FamilyTeam>
     public void Configure(EntityTypeBuilder<FamilyTeam> e)
     {
         e.ToTable("DM2_FamilyTeam", SharedConfig.Dbo, t => t.HasCheckConstraint("CK_DM2_FamilyTeam_TeamType", "[TeamType]='FRIEND' OR [TeamType]='FAMILY'"));
-        e.HasKey(x => new { x.TenantId, x.FamilyTeamId }).HasName("PK_DM2_FamilyTeam");
-        e.Property(x => x.FamilyTeamId).ValueGeneratedOnAdd().UseIdentityColumn();
-        e.Property(x => x.TeamName).HasMaxLength(50);
+        e.HasKey(x => new { x.TenantId, x.Id }).HasName("PK_DM2_FamilyTeam");
+        e.Property(x => x.Id).HasColumnName("FamilyTeamId").ValueGeneratedOnAdd().UseIdentityColumn();
+        e.Property(x => x.Name).HasColumnName("TeamName").HasMaxLength(50);
         e.Property(x => x.IsActive).HasDefaultValue(true);
         e.Property(x => x.Memo).HasMaxLength(200);
         e.Property(x => x.InsertDT).HasColumnType("datetime");
@@ -588,7 +610,8 @@ internal sealed class FamilyMemberConfig : IEntityTypeConfiguration<FamilyMember
         e.HasKey(x => new { x.TenantId, x.Id }).HasName("PK_DM2_FamilyMember");
         e.Property(x => x.Id).ValueGeneratedOnAdd().UseIdentityColumn();
         e.Property(x => x.UserName).HasMaxLength(100);
-        e.Property(x => x.SortNo).HasDefaultValue(0);
+        e.Property(x => x.SortOrder).HasColumnName("SortNo").HasDefaultValue(0);
+        e.Ignore(x => x.Relation);
         e.Property(x => x.IsActive).HasDefaultValue(true);
         e.Property(x => x.InsertDT).HasColumnType("datetime");
         e.Property(x => x.UpdateDT).HasColumnType("datetime");
@@ -601,7 +624,7 @@ internal sealed class FamilyMemberConfig : IEntityTypeConfiguration<FamilyMember
             .HasFilter("[IsActive]=(1) AND [RoleCode]=(0) AND [RelationCode]=(0)").HasDatabaseName("UX_DM2_FamilyMember_Team_Self");
         e.HasIndex(x => new { x.TenantId, x.FamilyTeamId, x.UserName }).IsUnique().HasDatabaseName("UX_DM2_FamilyMember_Team_User");
         e.HasIndex(x => x.UserName).IsUnique().HasDatabaseName("UX_DM2_FamilyMember_UserName");
-        e.HasOne<FamilyTeam>().WithMany().HasForeignKey(x => new { x.TenantId, x.FamilyTeamId }).HasConstraintName("FK_DM2_FamilyMember_Team").OnDelete(DeleteBehavior.NoAction);
+        e.HasOne<FamilyTeam>().WithMany(t => t.Members).HasForeignKey(x => new { x.TenantId, x.FamilyTeamId }).HasConstraintName("FK_DM2_FamilyMember_Team").OnDelete(DeleteBehavior.NoAction);
     }
 }
 

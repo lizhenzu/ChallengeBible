@@ -30,7 +30,7 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
     public bool ShowCreate { get; private set; }
     public string? RowError { get; private set; }
 
-    private int Me => User.UserName()!.Value;
+    private string Me => User.UserName()!;
 
     public static string ColorVar(string c) => $"var(--c-{c})";
     public static string ColorLabel(string c) => c switch { "blue" => "파랑", "green" => "초록", "red" => "주황", "violet" => "보라", _ => c };

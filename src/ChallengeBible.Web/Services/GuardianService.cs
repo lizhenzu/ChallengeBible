@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record ChildRow(int ParticipantId, string Name, string? Group, bool Active);
+public sealed record ChildRow(string UserName, string Name, string? Group, bool Active);
 
 public sealed record DayLogLine(DateTime AtUtc, Mission Mission, string What, int Points);
 
@@ -22,7 +22,7 @@ public sealed class GuardianService(IAppDb db, TenantContext tenant, RuleService
         await using var ctx = db.Create();
         return await (from l in ctx.GuardianLinks
                       where l.GuardianMembershipId == me
-                      join p in ctx.Participants on l.ParticipantId equals p.Id
+                      join p in ctx.Participants on l.UserName equals p.Id
                       join m in ctx.Memberships on p.MembershipId equals m.Id
                       join a in ctx.Users on m.UserName equals a.Id
                       orderby a.DisplayName
@@ -31,38 +31,38 @@ public sealed class GuardianService(IAppDb db, TenantContext tenant, RuleService
     }
 
     /// <summary>이 보호자와 연결된 참여자인가(R-132). 아니면 어떤 기록도 주지 않는다.</summary>
-    public async Task<bool> IsMyChildAsync(int participantId, CancellationToken ct = default)
+    public async Task<bool> IsMyChildAsync(string userName, CancellationToken ct = default)
     {
         if (tenant.MembershipId is not int me || !tenant.Has(Roles.Guardian)) return false;
         await using var ctx = db.Create();
-        return await ctx.GuardianLinks.AnyAsync(l => l.GuardianMembershipId == me && l.ParticipantId == participantId, ct);
+        return await ctx.GuardianLinks.AnyAsync(l => l.GuardianMembershipId == me && l.UserName == userName, ct);
     }
 
     /// <summary>그날 한 일: 수행 기록 + 퀴즈 오답(0점). 시각 순.</summary>
-    public async Task<List<DayLogLine>> DayLogAsync(int participantId, DateOnly date, CancellationToken ct = default)
+    public async Task<List<DayLogLine>> DayLogAsync(string userName, DateOnly date, CancellationToken ct = default)
     {
-        if (!await IsMyChildAsync(participantId, ct)) return [];
+        if (!await IsMyChildAsync(userName, ct)) return [];
         await using var ctx = db.Create();
         var rules = await ruleService.ForDateAsync(date, ct);   // 그날 적용된 항목 이름(ADR 0060)
-        var acts = await ctx.Activities.Where(a => a.ParticipantId == participantId && a.MissionDate == date)
-            .Select(a => new { a.PerformedUtc, a.MissionItem, a.Points }).ToListAsync(ct);
-        var wrong = await ctx.QuizAttempts.Where(q => q.ParticipantId == participantId && q.MissionDate == date && !q.IsCorrect)
-            .Select(q => new { q.AttemptedUtc, q.AttemptNo }).ToListAsync(ct);
+        var acts = await ctx.MissionActivities.Where(a => a.UserName == userName && a.MissionDate == date)
+            .Select(a => new { a.PerformedAt, a.MissionItem, a.Points }).ToListAsync(ct);
+        var wrong = await ctx.QuizAttempts.Where(q => q.UserName == userName && q.MissionDate == date && !q.IsCorrect)
+            .Select(q => new { q.AttemptedAt, q.AttemptNo }).ToListAsync(ct);
         return acts.Select(a =>
             {
                 var item = MissionItemCodes.Parse(a.MissionItem);
                 var label = item == MissionItem.QuizCorrect ? "정답" : rules.Item(item).DisplayName;
-                return new DayLogLine(a.PerformedUtc, item.Mission(), label, a.Points);
+                return new DayLogLine(a.PerformedAt, item.Mission(), label, a.Points);
             })
-            .Concat(wrong.Select(w => new DayLogLine(w.AttemptedUtc, Mission.Quiz, $"오답 · {w.AttemptNo}번째 도전", 0)))
+            .Concat(wrong.Select(w => new DayLogLine(w.AttemptedAt, Mission.Quiz, $"오답 · {w.AttemptNo}번째 도전", 0)))
             .OrderByDescending(l => l.AtUtc).ToList();
     }
 
-    public async Task<int> StreakAsync(int participantId, CancellationToken ct = default)
+    public async Task<int> StreakAsync(string userName, CancellationToken ct = default)
     {
-        if (!await IsMyChildAsync(participantId, ct)) return 0;
+        if (!await IsMyChildAsync(userName, ct)) return 0;
         await using var ctx = db.Create();
-        var days = await ctx.PointLedgers.Where(l => l.ParticipantId == participantId).Select(l => l.MissionDate).Distinct().ToListAsync(ct);
+        var days = await ctx.MissionActivities.Where(l => l.UserName == userName).Select(l => l.MissionDate).Distinct().ToListAsync(ct);
         return PointMath.Streak(days);
     }
 }

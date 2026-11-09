@@ -20,12 +20,12 @@ public class ChangePasswordModel(AccountService accounts) : PageModel, ITitled
     public FieldErrors Errors { get; private set; } = new();
 
     public async Task OnGetAsync(CancellationToken ct) =>
-        Forced = await accounts.MustChangePasswordAsync(User.UserName()!.Value, ct);
+        Forced = await accounts.MustChangePasswordAsync(User.UserName()!, ct);
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
         if (User.ImpersonatorId() is not null) return Forbid();   // 가장 중에는 남의 비밀번호를 바꾸지 않는다(0067)
-        var me = User.UserName()!.Value;
+        var me = User.UserName()!;
         Forced = await accounts.MustChangePasswordAsync(me, ct);
         Errors = Forced
             ? await accounts.ChangePasswordAsync(me, Password, PasswordConfirm, ct)

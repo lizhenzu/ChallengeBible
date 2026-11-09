@@ -11,7 +11,7 @@ namespace ChallengeBible.Web.Pages.Platform;
 public class AccountsModel(PlatformAccountService accounts, ImpersonationService imp) : PageModel, ITitled
 {
     public string Title => "계정 찾기";
-    private int Me => User.UserName()!.Value;
+    private string Me => User.UserName()!;
 
     [BindProperty(SupportsGet = true)] public string? Q { get; set; }
     [BindProperty(SupportsGet = true)] public int? Id { get; set; }

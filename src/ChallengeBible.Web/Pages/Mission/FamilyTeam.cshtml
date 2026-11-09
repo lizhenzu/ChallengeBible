@@ -14,7 +14,7 @@
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
     @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
 
-    @if (s.ParticipantId is null)
+    @if (s.UserName is null)
     {
         <div class="fmt-bar"><a href="@home">‹ 미션 홈</a></div>
         <h1>우리 가족팀</h1>
@@ -40,7 +40,7 @@
                     @foreach (var c in Model.Candidates)
                     {
                         var cn = Model.Split(c.Name);
-                        <label class="fmt-pick"><input type="radio" name="participant" value="@c.ParticipantId" checked="@(c == Model.Candidates[0])" data-name="@c.Name" /><span>@cn.Before@if (cn.Hit != "") {<mark>@cn.Hit</mark>}@cn.After</span><b aria-hidden="true"></b></label>
+                        <label class="fmt-pick"><input type="radio" name="participant" value="@c.UserName" checked="@(c == Model.Candidates[0])" data-name="@c.Name" /><span>@cn.Before@if (cn.Hit != "") {<mark>@cn.Hit</mark>}@cn.After</span><b aria-hidden="true"></b></label>
                     }
                 </div>
                 <h2 data-fmt-who="{n}님은 이 가족의 누구인가요?">이 가족의 누구인가요?</h2>

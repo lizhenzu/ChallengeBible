@@ -61,7 +61,7 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
         var t = tenant.Current;
         var today = missions.Today;
         var r = await rules.ForDateAsync(today, ct);
-        var pid = t.MissionEnabled ? await missions.ParticipantIdAsync(ct) : null;
+        var pid = t.MissionEnabled ? await missions.UserNameAsync(ct) : null;
         var seasonStart = await missions.SeasonStartAsync(today.Year, ct);
 
         MissionDay? day = null;
@@ -143,7 +143,7 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
         await using var ctx = db.Create();
         var members = await ctx.Memberships.CountAsync(m => m.Status == MembershipStatus.Approved, ct);
         var todayPeople = t.MissionEnabled
-            ? await ctx.Activities.Where(a => a.MissionDate == today).Select(a => a.ParticipantId).Distinct().CountAsync(ct)
+            ? await ctx.MissionActivities.Where(a => a.MissionDate == today).Select(a => a.UserName).Distinct().CountAsync(ct)
             : 0;
 
         int? chapters = null;

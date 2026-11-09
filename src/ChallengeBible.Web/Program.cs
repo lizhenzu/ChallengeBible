@@ -55,8 +55,6 @@ builder.Services.AddScoped<BookOverviewService>();
 builder.Services.AddScoped<ChapterMediaService>();
 builder.Services.AddScoped<FamilyTeamService>();
 builder.Services.AddScoped<FamilyJoinService>();
-builder.Services.AddScoped<OnFamilyService>();
-builder.Services.AddScoped<FamilyAdminService>();
 builder.Services.AddScoped<ImpersonationService>();
 builder.Services.AddScoped<MyAccountService>();
 builder.Services.AddSingleton<ErrorLog>();

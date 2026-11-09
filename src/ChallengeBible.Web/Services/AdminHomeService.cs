@@ -58,28 +58,28 @@ public sealed class AdminHomeService(IAppDb db, TenantContext tenant, TenantCloc
         var weekFrom = today.AddDays(-6);
         var weekStart = today.AddDays(-(int)today.DayOfWeek);   // 암송은 한 주에 한 번이라 이번 주(일요일 시작) 누적
         var from = weekStart < weekFrom ? weekStart : weekFrom;
-        var acts = (await ctx.Activities.AsNoTracking()
+        var acts = (await ctx.MissionActivities.AsNoTracking()
             .Where(a => a.MissionDate >= from && a.MissionDate <= today)
-            .Select(a => new { a.ParticipantId, a.MissionDate, a.MissionItem }).ToListAsync(ct))
-            .Where(a => memberIds.Contains(a.ParticipantId))
-            .Select(a => (a.ParticipantId, a.MissionDate, Mission: MissionItemCodes.Parse(a.MissionItem).Mission()))
+            .Select(a => new { a.UserName, a.MissionDate, a.MissionItem }).ToListAsync(ct))
+            .Where(a => memberIds.Contains(a.UserName))
+            .Select(a => (a.UserName, a.MissionDate, Mission: MissionItemCodes.Parse(a.MissionItem).Mission()))
             .ToList();
 
         var week = Enumerable.Range(0, 7).Select(i => weekFrom.AddDays(i))
-            .Select(d => (d, acts.Where(a => a.MissionDate == d).Select(a => a.ParticipantId).Distinct().Count())).ToList();
+            .Select(d => (d, acts.Where(a => a.MissionDate == d).Select(a => a.UserName).Distinct().Count())).ToList();
         var todayActs = acts.Where(a => a.MissionDate == today).ToList();
         var byMission = new Dictionary<Mission, int>
         {
-            [Mission.Word] = todayActs.Where(a => a.Mission == Mission.Word).Select(a => a.ParticipantId).Distinct().Count(),
-            [Mission.Quiz] = todayActs.Where(a => a.Mission == Mission.Quiz).Select(a => a.ParticipantId).Distinct().Count(),
-            [Mission.Prayer] = todayActs.Where(a => a.Mission == Mission.Prayer).Select(a => a.ParticipantId).Distinct().Count(),
-            [Mission.Recite] = acts.Where(a => a.MissionDate >= weekStart && a.Mission == Mission.Recite).Select(a => a.ParticipantId).Distinct().Count(),
+            [Mission.Word] = todayActs.Where(a => a.Mission == Mission.Word).Select(a => a.UserName).Distinct().Count(),
+            [Mission.Quiz] = todayActs.Where(a => a.Mission == Mission.Quiz).Select(a => a.UserName).Distinct().Count(),
+            [Mission.Prayer] = todayActs.Where(a => a.Mission == Mission.Prayer).Select(a => a.UserName).Distinct().Count(),
+            [Mission.Recite] = acts.Where(a => a.MissionDate >= weekStart && a.Mission == Mission.Recite).Select(a => a.UserName).Distinct().Count(),
         };
-        var todayDone = todayActs.Select(a => a.ParticipantId).Distinct().ToHashSet();
+        var todayDone = todayActs.Select(a => a.UserName).Distinct().ToHashSet();
 
         // 오늘 아직 안 한 친구: 마지막 미션이 오래된 순(한 번도 안 한 친구가 맨 앞)
-        var lastDates = await ctx.Activities.AsNoTracking().Where(a => a.MissionDate <= today)
-            .GroupBy(a => a.ParticipantId).Select(g => new { g.Key, Last = g.Max(x => x.MissionDate) }).ToListAsync(ct);
+        var lastDates = await ctx.MissionActivities.AsNoTracking().Where(a => a.MissionDate <= today)
+            .GroupBy(a => a.UserName).Select(g => new { g.Key, Last = g.Max(x => x.MissionDate) }).ToListAsync(ct);
         var last = lastDates.ToDictionary(x => x.Key, x => x.Last);
         var missing = members.Where(m => !todayDone.Contains(m.Id))
             .Select(m => new MissingMember(m.DisplayName, m.GroupLabel, last.TryGetValue(m.Id, out var d) ? today.DayNumber - d.DayNumber : null))

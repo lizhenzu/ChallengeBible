@@ -40,8 +40,8 @@ public sealed class SeasonService(IAppDb db, TenantContext tenant, TenantClock c
 
     /// <summary>참여자별 점수 합(그 날짜 범위). 범위가 비면 빈 목록.</summary>
     private static async Task<List<int>> PointsByParticipantAsync(AppDbContext ctx, DateOnly from, DateOnly to, CancellationToken ct) =>
-        from > to ? [] : await ctx.PointLedgers.Where(l => l.MissionDate >= from && l.MissionDate <= to)
-            .GroupBy(l => l.ParticipantId).Select(g => g.Sum(l => l.Points)).Where(p => p != 0).ToListAsync(ct);
+        from > to ? [] : await ctx.MissionActivities.Where(l => l.MissionDate >= from && l.MissionDate <= to)
+            .GroupBy(l => l.UserName).Select(g => g.Sum(l => l.Points)).Where(p => p != 0).ToListAsync(ct);
 
     public async Task<SeasonView> GetAsync(CancellationToken ct = default)
     {
@@ -54,7 +54,7 @@ public sealed class SeasonService(IAppDb db, TenantContext tenant, TenantClock c
         var participants = await ctx.Participants.CountAsync(p => p.IsActive, ct);
 
         var past = new List<PastSeason>();
-        var firstYear = await ctx.PointLedgers.Where(l => l.MissionDate < new DateOnly(today.Year, 1, 1))
+        var firstYear = await ctx.MissionActivities.Where(l => l.MissionDate < new DateOnly(today.Year, 1, 1))
             .OrderBy(l => l.MissionDate).Select(l => (DateOnly?)l.MissionDate).FirstOrDefaultAsync(ct);
         if (firstYear is { } fy)
             for (var y = today.Year - 1; y >= fy.Year; y--)

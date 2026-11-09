@@ -37,9 +37,9 @@ public class GuardianModel(GuardianService guardian, MissionService missions, Te
         Today = missions.Today;
         if (Children.Count == 0) return Page();
 
-        Current = Child is int c ? Children.FirstOrDefault(x => x.ParticipantId == c) : Children[0];
+        Current = Child is int c ? Children.FirstOrDefault(x => x.UserName == c) : Children[0];
         if (Current is null) return NotFound();   // 내 자녀가 아님(R-132)
-        var pid = Current.ParticipantId;
+        var pid = Current.UserName;
 
         Day = Date is { } d && d <= Today ? d : Today;
         TodayData = await missions.GetDayAsync(pid, Today, ct);
@@ -53,5 +53,5 @@ public class GuardianModel(GuardianService guardian, MissionService missions, Te
     }
 
     public string Link(DateOnly? d = null) =>
-        $"/{tenant.Current.Slug}/guardian?child={Current?.ParticipantId}" + (d is { } x && x != Today ? $"&date={x:yyyy-MM-dd}" : "");
+        $"/{tenant.Current.Slug}/guardian?child={Current?.UserName}" + (d is { } x && x != Today ? $"&date={x:yyyy-MM-dd}" : "");
 }

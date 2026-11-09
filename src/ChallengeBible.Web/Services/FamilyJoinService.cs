@@ -19,8 +19,8 @@ public sealed record FamilySentInvite(int InviteId, string Name, string Relation
 /// <summary>내가 받은 초대(R-212). Relation = 초대한 사람이 고른 역할(처음 골라 둘 값). SnoozedToday = 오늘 "다음에 할래요"를 눌러 부서 홈 배너에서 숨김.</summary>
 public sealed record FamilyReceivedInvite(int InviteId, string TeamName, string InvitedBy, string Relation, IReadOnlyList<FamilySearchMember> Members, bool SnoozedToday);
 /// <summary>초대할 수 있는 사람(R-211). 이름만 보인다.</summary>
-public sealed record FamilyCandidate(int ParticipantId, string Name);
-public sealed record FamilyState(bool Enabled, int? ParticipantId, bool IsGuardian, FamilyMine? Mine, FamilyPending? Pending, IReadOnlyList<FamilyReceivedInvite> Invites);
+public sealed record FamilyCandidate(string UserName, string Name);
+public sealed record FamilyState(bool Enabled, string? UserName, bool IsGuardian, FamilyMine? Mine, FamilyPending? Pending, IReadOnlyList<FamilyReceivedInvite> Invites);
 /// <summary>미션 홈 입구. Name 이 null 이면 팀 없음(PendingTeam = 신청 중인 팀). 받은 초대는 여기에 싣지 않는다(부서 홈 배너, ADR 0084).</summary>
 public sealed record FamilyEntry(string? Name, int Total, int? Next, double Pct, int Waiting, string? PendingTeam);
 
@@ -32,35 +32,27 @@ public sealed record FamilyEntry(string? Name, int Total, int? Next, double Pct,
 public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScope scope, TenantContext tenant, FamilyTeamService teams, TimeProvider time)
 {
     private const int SearchMax = 20;
-    private sealed record Me(int ParticipantId, int UserName, bool IsGuardian);
+    private sealed record Me(string UserName, UserRoleKind Kind) { public bool IsGuardian => Kind == UserRoleKind.Parent; }
 
     private async Task<bool> EnabledAsync(CancellationToken ct) =>
         !tenant.IsLobby && tenant.Current.MissionEnabled && await teams.EnabledAsync(ct);   // R-172 · 0012
 
     private async Task<Me?> MeAsync(AppDbContext ctx, CancellationToken ct)
     {
-        if (tenant.MembershipId is not { } mid) return null;
-        return await (from p in ctx.Participants
-                      join m in ctx.Memberships on p.MembershipId equals m.Id
-                      where m.Id == mid && p.IsActive && m.Status == MembershipStatus.Approved
-                      select new Me(p.Id, m.UserName, m.Roles.Any(r => r.Role == Roles.Guardian))).SingleOrDefaultAsync(ct);
+        if (!tenant.IsApproved || scope.UserName is not { } me) return null;
+        return new Me(me, UserRole.KindOf(tenant.RoleCode));
     }
 
     /// <summary>R-210: 이 계정이 다른 부서의 가족팀에 들어 있는지.</summary>
     private async Task<bool> InOtherDeptAsync(string userName, CancellationToken ct) =>
         (await InOtherDeptAsync([userName], ct)).Count > 0;
 
-    private async Task<HashSet<int>> InOtherDeptAsync(IReadOnlyList<int> accountIds, CancellationToken ct)
+    private async Task<HashSet<string>> InOtherDeptAsync(IReadOnlyList<string> accountIds, CancellationToken ct)
     {
         if (accountIds.Count == 0) return [];
         var here = tenant.Current.Id;
         await using var sys = systemDb.Create(scope.UserName ?? accountIds[0]);
-        var found = await (from f in sys.FamilyMembers
-                           join p in sys.Participants on new { f.TenantId, Id = f.ParticipantId } equals new { p.TenantId, p.Id }
-                           join m in sys.Memberships on new { p.TenantId, Id = p.MembershipId } equals new { m.TenantId, m.Id }
-                           where f.IsActive && f.TenantId != here && accountIds.Contains(m.UserName)
-                           select m.UserName).ToListAsync(ct);
-        return [.. found];
+        return [.. await sys.FamilyMembers.Where(f => f.IsActive && f.TenantId != here && accountIds.Contains(f.UserName)).Select(f => f.UserName).ToListAsync(ct)];
     }
 
     /// <summary>만들기 · 신청 앞 공통 검사.</summary>
@@ -68,16 +60,36 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
     {
         if (!FamilyRelation.All.Contains(relation)) return FamilyError.BadRelation;
         if (me is null) return FamilyError.NotParticipant;
-        if (await ctx.FamilyMembers.AnyAsync(f => f.ParticipantId == me.ParticipantId && f.IsActive, ct)) return FamilyError.AlreadyInTeam;
-        if (await ctx.FamilyJoinRequests.AnyAsync(r => r.ParticipantId == me.ParticipantId, ct)) return FamilyError.HasPending;
+        if (!UserRole.CanJoinFamily(me.Kind)) return FamilyError.NotAllowed;
+        if (!UserRole.RelationAllowed(me.Kind, FamilyRelation.ToRole(relation))) return FamilyError.BadRelation;
+        if (await ctx.FamilyMembers.AnyAsync(f => f.UserName == me.UserName && f.IsActive, ct)) return FamilyError.AlreadyInTeam;
+        if (await ctx.FamilyRequests.AnyAsync(r => r.TargetUserName == me.UserName && r.Kind == FamilyRequest.Join, ct)) return FamilyError.HasPending;
         if (await InOtherDeptAsync(me.UserName, ct)) return FamilyError.InOtherDept;
         return FamilyError.None;
     }
 
     /// <summary>내가 활성 구성원인 활성 팀(구성원 포함). 없으면 null.</summary>
+    private static async Task<Dictionary<string, string>> NamesAsync(AppDbContext ctx, List<string> ids, CancellationToken ct) =>
+        (await ctx.Users.AsNoTracking().Where(u => ids.Contains(u.UserName!)).Select(u => new { u.UserName, u.LastName, u.FirstName }).ToListAsync(ct))
+            .ToDictionary(u => u.UserName!, u => AppUser.FullName(u.LastName, u.FirstName));
+
+    /// <summary>팀 이름 재사용 금지(유년부): 지금 쓰는 이름 · 처음 이름(AwardKey) · 시상 기록에 남은 이름은 쓸 수 없다.</summary>
+    private static async Task<bool> NameTakenAsync(AppDbContext ctx, string name, CancellationToken ct) =>
+        await ctx.FamilyTeams.AnyAsync(t => t.Name == name || t.AwardKey == name, ct)
+        || await ctx.TeamAwards.AnyAsync(a => a.AwardKey == name, ct);
+
+    private static async Task<string> AutoNameAsync(AppDbContext ctx, string userName, CancellationToken ct)
+    {
+        var who = (await NamesAsync(ctx, [userName], ct)).GetValueOrDefault(userName, userName);
+        var baseName = who + "네 가족팀";
+        var name = baseName;
+        for (var n = 2; await NameTakenAsync(ctx, name, ct); n++) name = $"{baseName} {n}";
+        return name;
+    }
+
     private static async Task<FamilyTeam?> MyTeamAsync(AppDbContext ctx, Me me, CancellationToken ct)
     {
-        var id = await ctx.FamilyMembers.Where(f => f.ParticipantId == me.ParticipantId && f.IsActive).Select(f => (int?)f.FamilyTeamId).SingleOrDefaultAsync(ct);
+        var id = await ctx.FamilyMembers.Where(f => f.UserName == me.UserName && f.IsActive).Select(f => (int?)f.FamilyTeamId).SingleOrDefaultAsync(ct);
         return id is null ? null : await ctx.FamilyTeams.Include(t => t.Members).SingleOrDefaultAsync(t => t.Id == id && t.IsActive, ct);
     }
 
@@ -93,64 +105,52 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         var (all, season, _, _) = await teams.LoadTeamsAsync(ctx, today, ct);
 
         FamilyMine? mine = null;
-        var team = all.FirstOrDefault(t => t.Members.Any(m => m.Pid == me.ParticipantId));
+        var team = all.FirstOrDefault(t => t.Members.Any(m => m.Pid == me.UserName));
+        var stages = await teams.StagesAsync(ctx, r, today.Year, ct);
         if (team.Team is not null)
         {
-            var members = team.Members.Select(m => new FamilyMineMember(m.M.Id, m.Name, m.M.Relation, season.GetValueOrDefault(m.Pid), m.Pid == me.ParticipantId)).ToList();
+            var members = team.Members.Select(m => new FamilyMineMember(m.M.Id, m.Name, m.M.Relation, season.GetValueOrDefault(m.Pid), m.Pid == me.UserName)).ToList();
             var total = members.Sum(m => m.Points);   // R-92
-            var requests = await (from q in ctx.FamilyJoinRequests
-                                  join p in ctx.Participants on q.ParticipantId equals p.Id
-                                  join m in ctx.Memberships on p.MembershipId equals m.Id
-                                  join a in ctx.Users on m.UserName equals a.Id
-                                  where q.FamilyTeamId == team.Team.Id
-                                  orderby q.Id
-                                  select new FamilyJoinRow(q.Id, a.DisplayName, q.Relation)).ToListAsync(ct);
-            var sent = await (from i in ctx.FamilyInvites
-                              join p in ctx.Participants on i.ParticipantId equals p.Id
-                              join m in ctx.Memberships on p.MembershipId equals m.Id
-                              join a in ctx.Users on m.UserName equals a.Id
-                              where i.FamilyTeamId == team.Team.Id
-                              orderby i.Id
-                              select new FamilySentInvite(i.Id, a.DisplayName, i.Relation)).ToListAsync(ct);
+            var pendingRows = await ctx.FamilyRequests.AsNoTracking().Where(q => q.FamilyTeamId == team.Team.Id).OrderBy(q => q.Id).ToListAsync(ct);
+            var who = await NamesAsync(ctx, pendingRows.Select(q => q.TargetUserName).ToList(), ct);
+            var requests = pendingRows.Where(q => q.Kind == FamilyRequest.Join).Select(q => new FamilyJoinRow(q.Id, who.GetValueOrDefault(q.TargetUserName, q.TargetUserName), FamilyRelation.FromKey(q.RelationKey))).ToList();
+            var sent = pendingRows.Where(q => q.Kind == FamilyRequest.Invite).Select(q => new FamilySentInvite(q.Id, who.GetValueOrDefault(q.TargetUserName, q.TargetUserName), FamilyRelation.FromKey(q.RelationKey))).ToList();
             mine = new FamilyMine(team.Team.Id, FamilyTeamService.DisplayName(team.Team.Name, members.Select(m => (m.Name, m.Relation)).ToList()),
-                team.Team.Name, total, FamilyTeamService.Next(r, total), FamilyTeamService.StagePct(r, total), members, requests, sent);
+                team.Team.Name, total, FamilyTeamService.Next(stages, total), FamilyTeamService.StagePct(stages, total), members, requests, sent);
         }
 
         var invites = new List<FamilyReceivedInvite>();
         if (mine is null)
         {
-            var rows = await (from i in ctx.FamilyInvites
-                              join p in ctx.Participants on i.InvitedByParticipantId equals p.Id
-                              join m in ctx.Memberships on p.MembershipId equals m.Id
-                              join a in ctx.Users on m.UserName equals a.Id
-                              where i.ParticipantId == me.ParticipantId
-                              orderby i.Id
-                              select new { i.Id, i.FamilyTeamId, i.Relation, i.SnoozedOn, By = a.DisplayName }).ToListAsync(ct);
+            var rows = await ctx.FamilyRequests.AsNoTracking().Where(i => i.TargetUserName == me.UserName && i.Kind == FamilyRequest.Invite).OrderBy(i => i.Id).ToListAsync(ct);
+            var by = await NamesAsync(ctx, rows.Select(i => i.FromUserName).ToList(), ct);
+            var snoozedAt = await ctx.UserSettings.AsNoTracking().Where(x => x.UserName == me.UserName).Select(x => x.FamilyInvitesSnoozedAt).FirstOrDefaultAsync(ct);
             foreach (var row in rows)
             {
                 var t = all.FirstOrDefault(x => x.Team.Id == row.FamilyTeamId);
                 if (t.Team is null) continue;   // 멈춘 팀의 초대는 보이지 않는다
                 var ms = t.Members.Select(m => new FamilySearchMember(m.Name, m.M.Relation)).ToList();
-                invites.Add(new FamilyReceivedInvite(row.Id, FamilyTeamService.DisplayName(t.Team.Name, ms.Select(m => (m.Name, m.Relation)).ToList()), row.By, row.Relation, ms, row.SnoozedOn == today));
+                invites.Add(new FamilyReceivedInvite(row.Id, FamilyTeamService.DisplayName(t.Team.Name, ms.Select(m => (m.Name, m.Relation)).ToList()), by.GetValueOrDefault(row.FromUserName, row.FromUserName), FamilyRelation.FromKey(row.RelationKey), ms,
+                    snoozedAt is { } at && TenantClock.ToTenantDate(new DateTimeOffset(DateTime.SpecifyKind(at, DateTimeKind.Utc)), tenant.Current.TimeZoneId) == today && row.CreatedAt <= at));
             }
         }
 
         FamilyPending? pending = null;
-        var own = await ctx.FamilyJoinRequests.AsNoTracking().SingleOrDefaultAsync(q => q.ParticipantId == me.ParticipantId, ct);
+        var own = await ctx.FamilyRequests.AsNoTracking().SingleOrDefaultAsync(q => q.TargetUserName == me.UserName && q.Kind == FamilyRequest.Join, ct);
         if (own is not null)
         {
             var target = all.FirstOrDefault(t => t.Team.Id == own.FamilyTeamId);
             var name = target.Team is null ? "가족팀" : FamilyTeamService.DisplayName(target.Team.Name, target.Members.Select(m => (m.Name, m.M.Relation)).ToList());
-            pending = new FamilyPending(own.Id, own.FamilyTeamId, name, own.Relation);
+            pending = new FamilyPending(own.Id, own.FamilyTeamId, name, FamilyRelation.FromKey(own.RelationKey));
         }
-        return new FamilyState(true, me.ParticipantId, me.IsGuardian, mine, pending, invites);
+        return new FamilyState(true, me.UserName, me.IsGuardian, mine, pending, invites);
     }
 
     /// <summary>미션 홈 입구. 쓸 수 없거나 참여자가 아니면 null.</summary>
     public async Task<FamilyEntry?> EntryAsync(CancellationToken ct = default)
     {
         var s = await StateAsync(ct);
-        if (!s.Enabled || s.ParticipantId is null) return null;
+        if (!s.Enabled || s.UserName is null) return null;
         return s.Mine is { } m
             ? new FamilyEntry(m.Name, m.Total, m.Next, m.Pct, m.Requests.Count, null)
             : new FamilyEntry(null, 0, null, 0, 0, s.Pending?.TeamName);
@@ -196,10 +196,13 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         var me = await MeAsync(ctx, ct);
         var e = await CheckFreeAsync(ctx, me, relation, ct);
         if (e != FamilyError.None) return e;
-        var t = new FamilyTeam { TenantId = tenant.Current.Id, Name = FamilyTeamService.Clean(name, 50), CreatedUtc = time.GetUtcNow().UtcDateTime };
-        t.Members.Add(new FamilyMember { TenantId = t.TenantId, ParticipantId = me!.ParticipantId, Relation = relation });
+        var now = time.GetUtcNow().UtcDateTime;
+        var team = FamilyTeamService.Clean(name, 50) ?? await AutoNameAsync(ctx, me!.UserName, ct);
+        if (await NameTakenAsync(ctx, team, ct)) return FamilyError.NameTaken;
+        var t = new FamilyTeam { TenantId = tenant.Current.Id, Name = team, AwardKey = team, CreatorUserName = me!.UserName, InsertDT = now, UpdateDT = now };
+        t.Members.Add(new FamilyMember { TenantId = t.TenantId, UserName = me.UserName, Relation = relation, InsertDT = now, UpdateDT = now });
         ctx.FamilyTeams.Add(t);
-        await DropInvitesToAsync(ctx, me.ParticipantId, ct);   // R-213
+        await DropInvitesToAsync(ctx, me.UserName, ct);   // R-213
         return await SaveAsync(ctx, FamilyError.AlreadyInTeam, ct);
     }
 
@@ -212,8 +215,8 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         var e = await CheckFreeAsync(ctx, me, relation, ct);
         if (e != FamilyError.None) return e;
         if (!await ctx.FamilyTeams.AnyAsync(t => t.Id == teamId && t.IsActive && t.Members.Any(m => m.IsActive), ct)) return FamilyError.NotFound;
-        ctx.FamilyJoinRequests.Add(new FamilyJoinRequest { TenantId = tenant.Current.Id, FamilyTeamId = teamId, ParticipantId = me!.ParticipantId,
-            Relation = relation, CreatedUtc = time.GetUtcNow().UtcDateTime });
+        ctx.FamilyRequests.Add(new FamilyRequest { TenantId = tenant.Current.Id, FamilyTeamId = teamId, Kind = FamilyRequest.Join, TargetUserName = me!.UserName, FromUserName = me.UserName,
+            RelationKey = FamilyRelation.ToKey(relation), CreatedAt = time.GetUtcNow().UtcDateTime });
         return await SaveAsync(ctx, FamilyError.HasPending, ct);
     }
 
@@ -221,9 +224,9 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
     {
         await using var ctx = db.Create();
         if (await MeAsync(ctx, ct) is not { } me) return FamilyError.NotParticipant;
-        var own = await ctx.FamilyJoinRequests.SingleOrDefaultAsync(q => q.ParticipantId == me.ParticipantId, ct);
+        var own = await ctx.FamilyRequests.SingleOrDefaultAsync(q => q.TargetUserName == me.UserName && q.Kind == FamilyRequest.Join, ct);
         if (own is null) return FamilyError.NotFound;
-        ctx.FamilyJoinRequests.Remove(own);
+        ctx.FamilyRequests.Remove(own);
         await ctx.SaveChangesAsync(ct);
         return FamilyError.None;
     }
@@ -238,35 +241,32 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         var (team, q, err) = await RequestOfMyTeamAsync(ctx, requestId, ct);
         if (err != FamilyError.None) return err;
 
-        var who = await (from p in ctx.Participants
-                         join m in ctx.Memberships on p.MembershipId equals m.Id
-                         where p.Id == q!.ParticipantId && p.IsActive && m.Status == MembershipStatus.Approved
-                         select (int?)m.UserName).SingleOrDefaultAsync(ct);
-        var block = who is null ? FamilyError.NotParticipant
-            : await ctx.FamilyMembers.AnyAsync(f => f.ParticipantId == q!.ParticipantId && f.IsActive, ct) ? FamilyError.AlreadyInTeam
-            : await InOtherDeptAsync(who.Value, ct) ? FamilyError.InOtherDept : FamilyError.None;
-        ctx.FamilyJoinRequests.Remove(q!);
+        var person = q!.TargetUserName;
+        var block = !await IsMemberAsync(ctx, person, ct) ? FamilyError.NotParticipant
+            : await ctx.FamilyMembers.AnyAsync(f => f.UserName == person && f.IsActive, ct) ? FamilyError.AlreadyInTeam
+            : await InOtherDeptAsync(person, ct) ? FamilyError.InOtherDept : FamilyError.None;
+        ctx.FamilyRequests.Remove(q);
         if (block != FamilyError.None)
         {
             await ctx.SaveChangesAsync(ct);
             return block;
         }
-        Seat(team!, q!.ParticipantId, q.Relation);
-        await DropInvitesToAsync(ctx, q.ParticipantId, ct);   // R-213
+        Seat(team!, person, FamilyRelation.FromKey(q.RelationKey), time.GetUtcNow().UtcDateTime);
+        await DropInvitesToAsync(ctx, person, ct);   // R-213
         return await SaveAsync(ctx, FamilyError.AlreadyInTeam, ct);
     }
 
     /// <summary>팀에 자리를 준다. 예전에 멈춘 자리가 있으면 되살린다.</summary>
-    private static void Seat(FamilyTeam team, int participantId, string relation)
+    private static void Seat(FamilyTeam team, string userName, string relation)
     {
         var order = (byte)(team.Members.Max(m => m.SortOrder) + 1);
-        var old = team.Members.SingleOrDefault(m => m.ParticipantId == participantId);
+        var old = team.Members.SingleOrDefault(m => m.UserName == userName);
         if (old is not null) { old.IsActive = true; old.Relation = relation; old.SortOrder = order; }
-        else team.Members.Add(new FamilyMember { TenantId = team.TenantId, ParticipantId = participantId, Relation = relation, SortOrder = order });
+        else team.Members.Add(new FamilyMember { TenantId = team.TenantId, UserName = userName, Relation = relation, SortOrder = order });
     }
 
-    private static async Task DropInvitesToAsync(AppDbContext ctx, int participantId, CancellationToken ct) =>
-        ctx.FamilyInvites.RemoveRange(await ctx.FamilyInvites.Where(i => i.ParticipantId == participantId).ToListAsync(ct));
+    private static async Task DropInvitesToAsync(AppDbContext ctx, string userName, CancellationToken ct) =>
+        ctx.FamilyRequests.RemoveRange(await ctx.FamilyRequests.Where(i => i.TargetUserName == userName && i.Kind == FamilyRequest.Invite).ToListAsync(ct));
 
     public async Task<FamilyError> RejectAsync(int requestId, CancellationToken ct = default)
     {
@@ -274,17 +274,17 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         await using var ctx = db.Create();
         var (_, q, err) = await RequestOfMyTeamAsync(ctx, requestId, ct);
         if (err != FamilyError.None) return err;
-        ctx.FamilyJoinRequests.Remove(q!);
+        ctx.FamilyRequests.Remove(q!);
         await ctx.SaveChangesAsync(ct);
         return FamilyError.None;
     }
 
-    private async Task<(FamilyTeam? Team, FamilyJoinRequest? Request, FamilyError Error)> RequestOfMyTeamAsync(AppDbContext ctx, int requestId, CancellationToken ct)
+    private async Task<(FamilyTeam? Team, FamilyRequest? Request, FamilyError Error)> RequestOfMyTeamAsync(AppDbContext ctx, int requestId, CancellationToken ct)
     {
         if (await MeAsync(ctx, ct) is not { } me) return (null, null, FamilyError.NotParticipant);
         var team = await MyTeamAsync(ctx, me, ct);
         if (team is null) return (null, null, FamilyError.NotMember);
-        var q = await ctx.FamilyJoinRequests.SingleOrDefaultAsync(x => x.Id == requestId, ct);
+        var q = await ctx.FamilyRequests.SingleOrDefaultAsync(x => x.Id == requestId && x.Kind == FamilyRequest.Join, ct);
         if (q is null) return (null, null, FamilyError.NotFound);
         return q.FamilyTeamId == team.Id ? (team, q, FamilyError.None) : (null, null, FamilyError.NotMember);
     }
@@ -298,38 +298,34 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         if (string.IsNullOrEmpty(word) || !await EnabledAsync(ct)) return [];
         await using var ctx = db.Create();
         if (await MeAsync(ctx, ct) is not { } me || await MyTeamAsync(ctx, me, ct) is not { } team) return [];
-        var rows = await (from p in ctx.Participants
-                          join m in ctx.Memberships on p.MembershipId equals m.Id
-                          join a in ctx.Users on m.UserName equals a.Id
-                          where p.IsActive && m.Status == MembershipStatus.Approved && a.DisplayName.Contains(word)
-                              && !ctx.FamilyMembers.Any(f => f.ParticipantId == p.Id && f.IsActive)
-                              && !ctx.FamilyInvites.Any(i => i.FamilyTeamId == team.Id && i.ParticipantId == p.Id)
-                              && !ctx.FamilyJoinRequests.Any(r => r.FamilyTeamId == team.Id && r.ParticipantId == p.Id)
-                          orderby a.DisplayName, p.Id
-                          select new { p.Id, a.DisplayName, m.UserName }).Take(SearchMax * 2).ToListAsync(ct);
+        var taken = await ctx.FamilyMembers.Where(f => f.IsActive).Select(f => f.UserName).ToListAsync(ct);
+        var asked = await ctx.FamilyRequests.Where(r => r.FamilyTeamId == team.Id).Select(r => r.TargetUserName).ToListAsync(ct);
+        var skip = taken.Concat(asked).ToHashSet();
+        var rows = (await FamilyTeamService.PeopleAsync(ctx, ct))
+            .Where(p => p.Name.Contains(word, StringComparison.OrdinalIgnoreCase) && !skip.Contains(p.UserName) && UserRole.CanJoinFamily(UserRole.KindOf(p.RoleCode)))
+            .OrderBy(p => p.Name).Take(SearchMax * 2).ToList();
         var elsewhere = await InOtherDeptAsync(rows.Select(x => x.UserName).ToList(), ct);
-        return rows.Where(x => !elsewhere.Contains(x.UserName)).Take(SearchMax).Select(x => new FamilyCandidate(x.Id, x.DisplayName)).ToList();
+        return rows.Where(x => !elsewhere.Contains(x.UserName)).Take(SearchMax).Select(x => new FamilyCandidate(x.UserName, x.Name)).ToList();
     }
 
     /// <summary>R-211: 팀 구성원이 역할을 골라 초대한다. 상대가 수락해야 합류된다.</summary>
-    public async Task<FamilyError> InviteAsync(int participantId, string relation, CancellationToken ct = default)
+    public async Task<FamilyError> InviteAsync(string userName, string relation, CancellationToken ct = default)
     {
         if (!await EnabledAsync(ct)) return FamilyError.Disabled;
         if (!FamilyRelation.All.Contains(relation)) return FamilyError.BadRelation;
         await using var ctx = db.Create();
         if (await MeAsync(ctx, ct) is not { } me) return FamilyError.NotParticipant;
         if (await MyTeamAsync(ctx, me, ct) is not { } team) return FamilyError.NotMember;
-        var who = await (from p in ctx.Participants
-                         join m in ctx.Memberships on p.MembershipId equals m.Id
-                         where p.Id == participantId && p.IsActive && m.Status == MembershipStatus.Approved
-                         select (int?)m.UserName).SingleOrDefaultAsync(ct);
-        if (who is null) return FamilyError.NotFound;
-        if (await ctx.FamilyMembers.AnyAsync(f => f.ParticipantId == participantId && f.IsActive, ct)) return FamilyError.TargetInTeam;
-        if (await ctx.FamilyJoinRequests.AnyAsync(r => r.FamilyTeamId == team.Id && r.ParticipantId == participantId, ct)) return FamilyError.TargetRequested;
-        if (await ctx.FamilyInvites.AnyAsync(i => i.FamilyTeamId == team.Id && i.ParticipantId == participantId, ct)) return FamilyError.AlreadyInvited;
-        if (await InOtherDeptAsync(who.Value, ct)) return FamilyError.TargetOtherDept;
-        ctx.FamilyInvites.Add(new FamilyInvite { TenantId = tenant.Current.Id, FamilyTeamId = team.Id, ParticipantId = participantId,
-            InvitedByParticipantId = me.ParticipantId, Relation = relation, CreatedUtc = time.GetUtcNow().UtcDateTime });
+        if (!await IsMemberAsync(ctx, target, ct)) return FamilyError.NotFound;
+        var kind = await UserRole.KindAsync(ctx, target, ct);
+        if (!UserRole.CanJoinFamily(kind)) return FamilyError.NotAllowed;
+        if (!UserRole.RelationAllowed(kind, FamilyRelation.ToRole(relation))) return FamilyError.BadRelation;
+        if (await ctx.FamilyMembers.AnyAsync(f => f.UserName == target && f.IsActive, ct)) return FamilyError.TargetInTeam;
+        if (await ctx.FamilyRequests.AnyAsync(r => r.FamilyTeamId == team.Id && r.TargetUserName == target && r.Kind == FamilyRequest.Join, ct)) return FamilyError.TargetRequested;
+        if (await ctx.FamilyRequests.AnyAsync(i => i.FamilyTeamId == team.Id && i.TargetUserName == target && i.Kind == FamilyRequest.Invite, ct)) return FamilyError.AlreadyInvited;
+        if (await InOtherDeptAsync(target, ct)) return FamilyError.TargetOtherDept;
+        ctx.FamilyRequests.Add(new FamilyRequest { TenantId = tenant.Current.Id, FamilyTeamId = team.Id, Kind = FamilyRequest.Invite, TargetUserName = target,
+            FromUserName = me.UserName, RelationKey = FamilyRelation.ToKey(relation), CreatedAt = time.GetUtcNow().UtcDateTime });
         return await SaveAsync(ctx, FamilyError.AlreadyInvited, ct);
     }
 
@@ -339,10 +335,10 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         await using var ctx = db.Create();
         if (await MeAsync(ctx, ct) is not { } me) return FamilyError.NotParticipant;
         if (await MyTeamAsync(ctx, me, ct) is not { } team) return FamilyError.NotMember;
-        var invite = await ctx.FamilyInvites.SingleOrDefaultAsync(i => i.Id == inviteId, ct);
+        var invite = await ctx.FamilyRequests.SingleOrDefaultAsync(i => i.Id == inviteId && i.Kind == FamilyRequest.Invite, ct);
         if (invite is null) return FamilyError.NotFound;
         if (invite.FamilyTeamId != team.Id) return FamilyError.NotMember;
-        ctx.FamilyInvites.Remove(invite);
+        ctx.FamilyRequests.Remove(invite);
         await ctx.SaveChangesAsync(ct);
         return FamilyError.None;
     }
@@ -354,15 +350,17 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         if (!FamilyRelation.All.Contains(relation)) return FamilyError.BadRelation;
         await using var ctx = db.Create();
         if (await MeAsync(ctx, ct) is not { } me) return FamilyError.NotParticipant;
-        var invite = await ctx.FamilyInvites.SingleOrDefaultAsync(i => i.Id == inviteId && i.ParticipantId == me.ParticipantId, ct);
+        var invite = await ctx.FamilyRequests.SingleOrDefaultAsync(i => i.Id == inviteId && i.TargetUserName == me.UserName && i.Kind == FamilyRequest.Invite, ct);
         if (invite is null) return FamilyError.NotFound;
-        if (await ctx.FamilyMembers.AnyAsync(f => f.ParticipantId == me.ParticipantId && f.IsActive, ct)) return FamilyError.AlreadyInTeam;
+        if (!UserRole.CanJoinFamily(me.Kind)) return FamilyError.NotAllowed;
+        if (!UserRole.RelationAllowed(me.Kind, FamilyRelation.ToRole(relation))) return FamilyError.BadRelation;
+        if (await ctx.FamilyMembers.AnyAsync(f => f.UserName == me.UserName && f.IsActive, ct)) return FamilyError.AlreadyInTeam;
         if (await InOtherDeptAsync(me.UserName, ct)) return FamilyError.InOtherDept;
         var team = await ctx.FamilyTeams.Include(t => t.Members).SingleOrDefaultAsync(t => t.Id == invite.FamilyTeamId && t.IsActive && t.Members.Any(m => m.IsActive), ct);
         if (team is null) return FamilyError.NotFound;
-        Seat(team, me.ParticipantId, relation);
-        await DropInvitesToAsync(ctx, me.ParticipantId, ct);
-        ctx.FamilyJoinRequests.RemoveRange(await ctx.FamilyJoinRequests.Where(q => q.ParticipantId == me.ParticipantId).ToListAsync(ct));
+        Seat(team, me.UserName, relation, time.GetUtcNow().UtcDateTime);
+        await DropInvitesToAsync(ctx, me.UserName, ct);
+        ctx.FamilyRequests.RemoveRange(await ctx.FamilyRequests.Where(q => q.TargetUserName == me.UserName && q.Kind == FamilyRequest.Join).ToListAsync(ct));
         return await SaveAsync(ctx, FamilyError.AlreadyInTeam, ct);
     }
 
@@ -371,9 +369,9 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
     {
         await using var ctx = db.Create();
         if (await MeAsync(ctx, ct) is not { } me) return FamilyError.NotParticipant;
-        var invite = await ctx.FamilyInvites.SingleOrDefaultAsync(i => i.Id == inviteId && i.ParticipantId == me.ParticipantId, ct);
+        var invite = await ctx.FamilyRequests.SingleOrDefaultAsync(i => i.Id == inviteId && i.TargetUserName == me.UserName && i.Kind == FamilyRequest.Invite, ct);
         if (invite is null) return FamilyError.NotFound;
-        ctx.FamilyInvites.Remove(invite);
+        ctx.FamilyRequests.Remove(invite);
         await ctx.SaveChangesAsync(ct);
         return FamilyError.None;
     }
@@ -384,8 +382,9 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         if (!await EnabledAsync(ct)) return FamilyError.Disabled;
         await using var ctx = db.Create();
         if (await MeAsync(ctx, ct) is not { } me) return FamilyError.NotParticipant;
-        var (_, today) = await teams.RulesAsync(ct);
-        foreach (var i in await ctx.FamilyInvites.Where(i => i.ParticipantId == me.ParticipantId).ToListAsync(ct)) i.SnoozedOn = today;
+        var setting = await ctx.UserSettings.SingleOrDefaultAsync(x => x.UserName == me.UserName, ct);
+        if (setting is null) ctx.UserSettings.Add(setting = new UserSetting { UserName = me.UserName });
+        setting.FamilyInvitesSnoozedAt = time.GetUtcNow().UtcDateTime;
         await ctx.SaveChangesAsync(ct);
         return FamilyError.None;
     }
@@ -400,7 +399,8 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         if (await MeAsync(ctx, ct) is not { } me) return (FamilyError.NotParticipant, false);
         var team = await MyTeamAsync(ctx, me, ct);
         if (team is null) return (FamilyError.NotMember, false);
-        var gone = await FamilyTeamService.DropMemberAsync(ctx, team, team.Members.Single(m => m.ParticipantId == me.ParticipantId), ct);
+        if (await FamilyTeamService.HasAwardRecordAsync(ctx, tenant.Current.Id, team, ct)) return (FamilyError.AwardLocked, false);
+        var gone = await FamilyTeamService.DropMemberAsync(ctx, team, team.Members.Single(m => m.UserName == me.UserName), ct);
         await ctx.SaveChangesAsync(ct);
         return (FamilyError.None, gone);
     }
@@ -413,7 +413,8 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         var team = await MyTeamAsync(ctx, me, ct);
         if (team is null) return FamilyError.NotMember;
         var m = team.Members.SingleOrDefault(x => x.Id == memberId && x.IsActive);
-        if (m is null || m.ParticipantId == me.ParticipantId) return FamilyError.NotFound;
+        if (m is null || m.UserName == me.UserName) return FamilyError.NotFound;
+        if (await FamilyTeamService.HasAwardRecordAsync(ctx, tenant.Current.Id, team, ct)) return FamilyError.AwardLocked;
         await FamilyTeamService.DropMemberAsync(ctx, team, m, ct);
         await ctx.SaveChangesAsync(ct);
         return FamilyError.None;
@@ -426,7 +427,12 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         if (await MeAsync(ctx, ct) is not { } me) return FamilyError.NotParticipant;
         var team = await MyTeamAsync(ctx, me, ct);
         if (team is null) return FamilyError.NotMember;
-        team.Name = FamilyTeamService.Clean(name, 50);
+        if (FamilyTeamService.Clean(name, 50) is { } n)
+        {
+            if (n != team.Name && await NameTakenAsync(ctx, n, ct)) return FamilyError.NameTaken;
+            team.Name = n;
+            team.UpdateDT = time.GetUtcNow().UtcDateTime;
+        }
         await ctx.SaveChangesAsync(ct);
         return FamilyError.None;
     }
@@ -439,7 +445,9 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         if (await MeAsync(ctx, ct) is not { } me) return FamilyError.NotParticipant;
         var team = await MyTeamAsync(ctx, me, ct);
         if (team is null) return FamilyError.NotMember;
-        team.Members.Single(m => m.ParticipantId == me.ParticipantId).Relation = relation;
+        if (await FamilyTeamService.HasAwardRecordAsync(ctx, tenant.Current.Id, team, ct)) return FamilyError.AwardLocked;
+        if (!UserRole.RelationAllowed(me.Kind, FamilyRelation.ToRole(relation))) return FamilyError.BadRelation;
+        team.Members.Single(m => m.UserName == me.UserName).Relation = relation;
         await ctx.SaveChangesAsync(ct);
         return FamilyError.None;
     }

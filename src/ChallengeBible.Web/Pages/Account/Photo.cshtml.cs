@@ -17,7 +17,7 @@ public class PhotoModel(PhotoService photos, AccountService accounts) : PageMode
     public string? File { get; private set; }
     public string Name { get; private set; } = "";
     public string? Error { get; private set; }
-    private int Me => User.UserName()!.Value;
+    private string Me => User.UserName()!;
 
     /// <summary>돌아갈 곳: 이 사이트 안 주소만(바깥 주소로 보내지 않는다).</summary>
     public string BackUrl => Back is { Length: > 1 } b && b[0] == '/' && b[1] != '/' && b[1] != '\\' ? b : "/account";

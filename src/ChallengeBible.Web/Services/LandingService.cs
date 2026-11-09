@@ -81,9 +81,9 @@ public sealed class LandingService(IAppDb db, ISystemDb systemDb, TenantClock cl
         var yearUtc = TimeZoneInfo.ConvertTimeToUtc(new DateTime(today.Year, 1, 1), tz);
 
         // 최근 7일: 미션을 한 계정(참여자 → 소속 → 계정) + 통독 장을 읽은 계정, 날마다 중복 없이
-        var missions = await (from a in ctx.Activities
+        var missions = await (from a in ctx.MissionActivities
                               where a.MissionDate >= start && a.MissionDate <= today
-                              join p in ctx.Participants on a.ParticipantId equals p.Id
+                              join p in ctx.Participants on a.UserName equals p.Id
                               join m in ctx.Memberships on p.MembershipId equals m.Id
                               select new { a.MissionDate, m.UserName }).Distinct().ToListAsync(ct);
         var reads = await ctx.ReadingChapterReads.Where(c => c.ReadAt >= fromUtc).Select(c => new { c.ReadAt, c.UserName }).ToListAsync(ct);

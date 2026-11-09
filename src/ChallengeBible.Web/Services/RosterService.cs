@@ -46,11 +46,11 @@ public sealed class RosterService(IAppDb db, TenantContext tenant, TenantClock c
             if (from <= to)
             {
                 var ids = pids.Values.ToList();
-                points = await ctx.PointLedgers.Where(l => ids.Contains(l.ParticipantId) && l.MissionDate >= from && l.MissionDate <= to)
-                    .GroupBy(l => l.ParticipantId).Select(g => new { g.Key, P = g.Sum(x => x.Points) }).ToDictionaryAsync(x => x.Key, x => x.P, ct);
+                points = await ctx.MissionActivities.Where(l => ids.Contains(l.UserName) && l.MissionDate >= from && l.MissionDate <= to)
+                    .GroupBy(l => l.UserName).Select(g => new { g.Key, P = g.Sum(x => x.Points) }).ToDictionaryAsync(x => x.Key, x => x.P, ct);
             }
         }
-        var doneToday = (await ctx.Activities.Where(a => a.MissionDate == today).Select(a => a.ParticipantId).Distinct().ToListAsync(ct)).ToHashSet();
+        var doneToday = (await ctx.MissionActivities.Where(a => a.MissionDate == today).Select(a => a.UserName).Distinct().ToListAsync(ct)).ToHashSet();
 
         var people = members.Select(m =>
         {

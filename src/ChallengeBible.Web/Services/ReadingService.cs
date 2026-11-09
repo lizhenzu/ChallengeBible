@@ -44,7 +44,7 @@ public sealed class ReadingService(IAppDb db, RequestScope scope, TenantContext 
     public static readonly int TotalChapters = BibleBooks.All().Sum(b => b.ChapterCount);          // 1,189
     public static readonly int OtChapters = BibleBooks.All().Where(b => b.Testament == "OT").Sum(b => b.ChapterCount);   // 929
 
-    private int Me => scope.UserName ?? throw new InvalidOperationException("로그인한 요청에서만 써요.");
+    private string Me => scope.UserName ?? throw new InvalidOperationException("로그인한 요청에서만 써요.");
     private DateTime Now => time.GetUtcNow().UtcDateTime;
     private DateOnly Local(DateTime utc) => TenantClock.ToTenantDate(new DateTimeOffset(utc, TimeSpan.Zero), tenant.Current.TimeZoneId);
 

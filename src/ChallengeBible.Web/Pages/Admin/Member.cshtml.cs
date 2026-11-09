@@ -18,7 +18,7 @@ public class MemberModel(MemberDetailService details, TenantContext tenant, Phot
     public async Task<IActionResult> OnPostPhotoAsync(IFormFile? photo, CancellationToken ct)
     {
         if (await photos.AccountOfMembershipAsync(Id, ct) is not int acc) return NotFound();
-        PhotoError = await photos.SaveAsync(acc, photo, User.UserName()!.Value, tenant.Current.Id, ct);
+        PhotoError = await photos.SaveAsync(acc, photo, User.UserName()!, tenant.Current.Id, ct);
         if (PhotoError is null) return RedirectToPage(new { slug = tenant.Current.Slug, Id, Ok = "photo" });
         return await LoadAsync(ct) ? Page() : NotFound();
     }
@@ -26,7 +26,7 @@ public class MemberModel(MemberDetailService details, TenantContext tenant, Phot
     public async Task<IActionResult> OnPostPhotoDeleteAsync(CancellationToken ct)
     {
         if (await photos.AccountOfMembershipAsync(Id, ct) is not int acc) return NotFound();
-        await photos.DeleteAsync(acc, User.UserName()!.Value, tenant.Current.Id, ct);
+        await photos.DeleteAsync(acc, User.UserName()!, tenant.Current.Id, ct);
         return RedirectToPage(new { slug = tenant.Current.Slug, Id, Ok = "photo0" });
     }
 
@@ -52,13 +52,13 @@ public class MemberModel(MemberDetailService details, TenantContext tenant, Phot
     public async Task<IActionResult> OnPostResetPasswordAsync(CancellationToken ct)
     {
         Response.Headers.CacheControl = "no-store";   // 임시 비밀번호가 보이는 응답은 브라우저에 남기지 않는다
-        (TemporaryPassword, Error) = await details.ResetPasswordAsync(User.UserName()!.Value, Id, ct);
+        (TemporaryPassword, Error) = await details.ResetPasswordAsync(User.UserName()!, Id, ct);
         return await LoadAsync(ct) ? Page() : NotFound();
     }
 
     public async Task<IActionResult> OnPostResetMarksAsync(string? confirm, CancellationToken ct)
     {
-        Error = await details.ResetMarksAsync(User.UserName()!.Value, Id, confirm, ct);
+        Error = await details.ResetMarksAsync(User.UserName()!, Id, confirm, ct);
         if (Error is null) return RedirectToPage(new { slug = tenant.Current.Slug, Id, Ok = "marks" });
         Ask = "marks";
         return await LoadAsync(ct) ? Page() : NotFound();
@@ -72,7 +72,7 @@ public class MemberModel(MemberDetailService details, TenantContext tenant, Phot
         Detail = await details.GetAsync(Id, ShownMonth, ct);
         if (Detail is null) return false;
         Photo = await photos.FileOfAsync(Detail.UserName, ct);
-        if (Detail.ParticipantId is int pid)
+        if (Detail.UserName is int pid)
         {
             var dates = Date is { } one ? [one] : await details.RecentActiveDaysAsync(pid, 2, ct);
             foreach (var day in dates) Days.Add((day, await details.DayLogAsync(pid, day, ct)));

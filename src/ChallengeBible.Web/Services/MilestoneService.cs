@@ -57,8 +57,8 @@ public sealed class MilestoneService(IAppDb db, TenantContext tenant, RuleServic
         var season = start is { } d ? Domain.Seasons.Season.Create(today.Year, d) : Domain.Seasons.Season.DefaultFor(today.Year);
         var (from, to) = season.ScoringRange(today);
         if (from > to) return [];
-        return await ctx.PointLedgers.Where(l => l.MissionDate >= from && l.MissionDate <= to)
-            .GroupBy(l => l.ParticipantId).Select(g => new { g.Key, P = g.Sum(l => l.Points) }).ToDictionaryAsync(x => x.Key, x => x.P, ct);
+        return await ctx.MissionActivities.Where(l => l.MissionDate >= from && l.MissionDate <= to)
+            .GroupBy(l => l.UserName).Select(g => new { g.Key, P = g.Sum(l => l.Points) }).ToDictionaryAsync(x => x.Key, x => x.P, ct);
     }
 
     /// <summary>화면 값. draft 를 주면 그 목록으로 미리 본다(저장 전).</summary>
@@ -93,11 +93,11 @@ public sealed class MilestoneService(IAppDb db, TenantContext tenant, RuleServic
 
         // R-104: 새 단계 가운데 이미 넘은 것은 받은 것으로 기록 — 다음 미션 때 축하 창이 한꺼번에 뜨지 않게
         var points = await SeasonPointsAsync(ctx, ct);
-        var done = await ctx.MilestonesReached.Where(m => m.Year == year).Select(m => new { m.ParticipantId, m.Threshold }).ToListAsync(ct);
-        var have = done.Select(x => (x.ParticipantId, x.Threshold)).ToHashSet();
+        var done = await ctx.MilestonesReached.Where(m => m.Year == year).Select(m => new { m.UserName, m.Threshold }).ToListAsync(ct);
+        var have = done.Select(x => (x.UserName, x.Threshold)).ToHashSet();
         foreach (var (pid, p) in points)
             foreach (var m in after.Where(m => p >= m && !have.Contains((pid, m))))
-                ctx.MilestonesReached.Add(new MilestoneReached { TenantId = t.Id, ParticipantId = pid, Year = year, Threshold = m, ReachedUtc = now });
+                ctx.MilestonesReached.Add(new MilestoneReached { TenantId = t.Id, UserName = pid, Year = year, Threshold = m, ReachedUtc = now });
 
         ctx.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorUserName = actor, Action = LogAction, TenantId = t.Id,
             Detail = $"축하 단계 {Label(before)} → {Label(clean)}" });

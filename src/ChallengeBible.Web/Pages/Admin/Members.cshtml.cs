@@ -27,7 +27,7 @@ public class MembersModel(MemberAdminService members, PromotionService promotion
     public Dictionary<int, List<int>> Links { get; private set; } = [];
     public string? Error { get; private set; }
     public int? ErrorFor { get; private set; }
-    public int Me => User.UserName()!.Value;
+    public string Me => User.UserName()!;
 
     // 진급 보내기(시안: 여러 명 골라 → 받을 부서 코드 → 이름 확인 → 보내기)
     public HashSet<int> Picks { get; private set; } = [];

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record BoardMember(int UserName, string Name, string Badge, IReadOnlyList<string> Roles, int RoundNo, int Completed,
+public sealed record BoardMember(string UserName, string Name, string Badge, IReadOnlyList<string> Roles, int RoundNo, int Completed,
     int ReadChapters, double Percent, byte? LastBook, short? LastChapter, DateTime? LastUtc, int? DaysAgo, bool Me);
 
 public sealed record ReadingBoard(bool Public, bool CanSee, int Members, int Readers, int Finishers, double AvgPercent, int TotalCompleted,

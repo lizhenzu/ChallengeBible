@@ -243,11 +243,6 @@
             <span class="ar" aria-hidden="true">›</span>
         </a>
     }
-    @if (Model.OnFamily is { } of)
-    {
-        <a class="hj-card hj-line" href="/account/family"><span class="ic y" aria-hidden="true">🏡</span><span class="tx"><b>@of.Name · <span class="num">@of.Total.ToString("N0")</span>점</b><small>온가족 · 보기만</small></span><span class="ar" aria-hidden="true">›</span></a>
-    }
-
     @if (d.Dept is { } dp && t.MissionEnabled)
     {
         @* 2026-11-07(ADR 0085, 시안 dept-roster): 카드 하나를 선으로 셋 — 전체(파랑) · 참여자(보라) · 오늘 참여(초록). "우리 부서" · "나는 오늘" 은 뺐다 *@

@@ -34,13 +34,13 @@ public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoin
     protected override async Task LoadMoreAsync(CancellationToken ct)
     {
         Family = await family.EntryAsync(ct);
-        Week = ParticipantId is int p ? await Missions.RecentDaysAsync(p, Day, ct) : [];
+        Week = UserName is int p ? await Missions.RecentDaysAsync(p, Day, ct) : [];
         NextMilestone = MissionService.NextMilestone(Data!.Rules, Data.SeasonPoints);
         SeasonStart = await Missions.SeasonStartAsync(Data.Today.Year, ct);
 
         FirstOfMonth = DateOnly.TryParseExact(Month + "-01", "yyyy-MM-dd", out var m) ? m : new DateOnly(Day.Year, Day.Month, 1);
         if (FirstOfMonth > LastPreviewMonth) FirstOfMonth = LastPreviewMonth;
-        if (ParticipantId is int pid)
+        if (UserName is int pid)
         {
             MonthDays = await Missions.MonthAsync(pid, FirstOfMonth.Year, FirstOfMonth.Month, ct);
             // 최근 7일 막대의 "네 가지 다 한 날" 표시: 보고 있는 날의 달과 그 앞 달에서 찾는다

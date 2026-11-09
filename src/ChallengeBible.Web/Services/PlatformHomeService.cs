@@ -46,10 +46,10 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
         // 미션: 부서마다 그 부서의 오늘
         var todays = active.ToDictionary(t => t.Id, t => clock.Today(t.TimeZoneId));
         var dates = todays.Values.Distinct().ToList();
-        var acts = await ctx.Activities.AsNoTracking().Where(a => dates.Contains(a.MissionDate))
-            .Select(a => new { a.TenantId, a.MissionDate, a.ParticipantId }).Distinct().ToListAsync(ct);
+        var acts = await ctx.MissionActivities.AsNoTracking().Where(a => dates.Contains(a.MissionDate))
+            .Select(a => new { a.TenantId, a.MissionDate, a.UserName }).Distinct().ToListAsync(ct);
         var todayBy = acts.Where(a => todays.GetValueOrDefault(a.TenantId) == a.MissionDate)
-            .GroupBy(a => a.TenantId).ToDictionary(g => g.Key, g => g.Select(a => a.ParticipantId).Distinct().Count());
+            .GroupBy(a => a.TenantId).ToDictionary(g => g.Key, g => g.Select(a => a.UserName).Distinct().Count());
         var participants = await ctx.Participants.Where(p => p.IsActive).GroupBy(p => p.TenantId)
             .Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N, ct);
 
