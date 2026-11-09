@@ -32,10 +32,9 @@
                 @if (Model.Ok == "photo0") { <span class="okmsg" role="status">사진을 지웠어요</span> }
                 @if (Model.PhotoError is not null) { <span class="hint bad" role="alert">@Model.PhotoError</span> }
             </div>
-            <div class="meta">@d.Email@(d.GroupLabel is null ? "" : $" · {d.GroupLabel}")@(d.DecidedUtc is { } at ? $" · {Model.Local(at, "yyyy년 M월 d일")} 승인" : "")</div>
+            <div class="meta">@d.Email@(d.DecidedUtc is { } at ? $" · {Model.Local(at, "yyyy년 M월 d일")} 승인" : "")</div>
             <div class="tags">
                 @foreach (var r in d.Roles) { <span class="tag r-@r">@MembersModel.RoleLabel(r)</span> }
-                @if (d.Status == MembershipStatus.Suspended) { <span class="tag st">정지</span> }
                 @if (d.Guardians.Count > 0) { <span class="tag">보호자 · @string.Join(" · ", d.Guardians)</span> }
             </div>
         </div>

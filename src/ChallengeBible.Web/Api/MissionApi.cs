@@ -117,7 +117,7 @@ public sealed class ParticipantEndpointFilter(TenantResolver resolver, TenantCon
         if (!tenant.Current.MissionEnabled) return Results.NotFound();   // R-150
         var pid = await missions.UserNameAsync(http.RequestAborted);
         if (pid is null) return Results.Json(new { code = "NotParticipant", message = "참여자만 미션을 할 수 있어요." }, statusCode: 403);
-        http.Items[ParticipantKey] = pid.Value;
+        http.Items[ParticipantKey] = pid;
         return await next(context);
     }
 }

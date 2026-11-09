@@ -76,7 +76,7 @@ public sealed class ReadingService(IAppDb db, RequestScope scope, TenantContext 
         var have = (await ctx.ReadingVerses.Where(v => v.RoundNo == round.RoundNo && v.BookId == book && v.Chapter == chapter).Select(v => v.Verse).ToListAsync(ct)).ToHashSet();
         var now = Now;
         for (short v = 1; v <= count; v++)
-            if (!have.Contains(v)) ctx.ReadingVerses.Add(new RoundVerseRead { UserName = Me, RoundNo = round.RoundNo, BookId = book, Chapter = chapter, Verse = v, ReadAt = now });
+            if (!have.Contains(v)) ctx.ReadingVerses.Add(new ReadingVerse { UserName = Me, RoundNo = round.RoundNo, BookId = book, Chapter = chapter, Verse = v, ReadAt = now });
         var (completed, next) = await MarkChapterDoneAsync(ctx, round, book, chapter, ct);
         await ctx.SaveChangesAsync(ct);
         await marks.ReadRangeAsync(new BibleRef(book, chapter, 1, chapter, count), ct);
@@ -118,7 +118,7 @@ public sealed class ReadingService(IAppDb db, RequestScope scope, TenantContext 
         {
             var now = Now;
             for (var v = from; v <= to; v++)
-                if (!have.Contains(v)) { ctx.ReadingVerses.Add(new RoundVerseRead { UserName = Me, RoundNo = round.RoundNo, BookId = book, Chapter = chapter, Verse = v, ReadAt = now }); have.Add(v); }
+                if (!have.Contains(v)) { ctx.ReadingVerses.Add(new ReadingVerse { UserName = Me, RoundNo = round.RoundNo, BookId = book, Chapter = chapter, Verse = v, ReadAt = now }); have.Add(v); }
             if (have.Count >= count) (completed, next) = await MarkChapterDoneAsync(ctx, round, book, chapter, ct);
         }
         else
@@ -139,7 +139,7 @@ public sealed class ReadingService(IAppDb db, RequestScope scope, TenantContext 
     {
         var exists = await ctx.ReadingChapterReads.AnyAsync(c => c.RoundNo == round.RoundNo && c.BookId == book && c.Chapter == chapter, ct);
         if (exists) return (false, null);
-        ctx.ReadingChapterReads.Add(new ChapterRead { UserName = Me, RoundNo = round.RoundNo, BookId = book, Chapter = chapter, ReadAt = Now });
+        ctx.ReadingChapterReads.Add(new ReadingChapterRead { UserName = Me, RoundNo = round.RoundNo, BookId = book, Chapter = chapter, ReadAt = Now });
         var done = await ctx.ReadingChapterReads.CountAsync(c => c.RoundNo == round.RoundNo, ct) + 1;
         if (done < TotalChapters) return (false, null);
         round.CompletedAt = Now;
@@ -186,8 +186,8 @@ public sealed class ReadingService(IAppDb db, RequestScope scope, TenantContext 
         if (count == 0 || verse < 1 || verse > count) return false;
         var round = await OpenRoundAsync(ctx, ct);
         var row = await ctx.ReadingChapterProgresses.SingleOrDefaultAsync(p => p.RoundNo == round.RoundNo && p.BookId == book && p.Chapter == chapter, ct);
-        if (row is null) ctx.ReadingChapterProgresses.Add(new ChapterProgress { UserName = Me, RoundNo = round.RoundNo, BookId = book, Chapter = chapter, LastViewedVerse = verse, UpdatedUtc = Now });
-        else { row.LastViewedVerse = verse; row.UpdatedUtc = Now; }
+        if (row is null) ctx.ReadingChapterProgresses.Add(new ReadingChapterProgress { UserName = Me, RoundNo = round.RoundNo, BookId = book, Chapter = chapter, LastViewedVerse = verse, UpdatedAt = Now });
+        else { row.LastViewedVerse = verse; row.UpdatedAt = Now; }
         await ctx.SaveChangesAsync(ct);
         return true;
     }
@@ -240,9 +240,9 @@ public sealed class ReadingService(IAppDb db, RequestScope scope, TenantContext 
         var done = inRound.Select(c => (c.BookId, c.Chapter)).ToHashSet();
 
         // 이어 읽기(R-161): 이 회차에서 마지막으로 보던 곳, 없으면 마지막으로 끝낸 장의 다음 장, 그것도 없으면 창세기 1장
-        var pos = await ctx.ReadingChapterProgresses.Where(p => p.RoundNo == round.RoundNo).OrderByDescending(p => p.UpdatedUtc).FirstOrDefaultAsync(ct);
+        var pos = await ctx.ReadingChapterProgresses.Where(p => p.RoundNo == round.RoundNo).OrderByDescending(p => p.UpdatedAt).FirstOrDefaultAsync(ct);
         (byte Book, short Chapter, short Verse, DateTime? At) at = pos is not null
-            ? (pos.BookId, pos.Chapter, pos.LastViewedVerse, pos.UpdatedUtc)
+            ? (pos.BookId, pos.Chapter, pos.LastViewedVerse, pos.UpdatedAt)
             : inRound.OrderByDescending(c => c.ReadAt).Select(c => NextChapter(c.BookId, c.Chapter)).Select(n => (n.Book, n.Chapter, (short)1, (DateTime?)null)).FirstOrDefault();
         if (at.Book == 0) at = (1, 1, 1, null);
         var count = await VerseCountAsync(ctx, at.Book, at.Chapter, ct);

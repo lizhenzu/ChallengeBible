@@ -55,7 +55,7 @@ public class IndexModel(ReadingService reading, TenantContext tenant, BibleTextS
         var r = Data.Resume;
         var lines = await bible.RangeAsync(new BibleRef(r.BookId, r.Chapter, r.Verse, r.Chapter, r.Verse), [BibleTranslation.Krv], ct);
         ResumeText = lines.FirstOrDefault()?.Texts.GetValueOrDefault(BibleTranslation.Krv);
-        if ((await missions.GetDayAsync(0, Data.Today, ct)).Word is { } w)
+        if ((await missions.GetDayAsync("", Data.Today, ct)).Word is { } w)
         {
             var first = new BibleRef(w.Ref.BookId, w.Ref.StartChapter, w.Ref.StartVerse, w.Ref.StartChapter, w.Ref.StartVerse);
             VerseText = (await bible.RangeAsync(first, [BibleTranslation.Krv], ct)).FirstOrDefault()?.Texts.GetValueOrDefault(BibleTranslation.Krv);

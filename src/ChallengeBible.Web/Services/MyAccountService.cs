@@ -15,12 +15,14 @@ public sealed class MyAccountService(ISystemDb systemDb)
     public async Task<IReadOnlyList<MyDept>> DeptsAsync(string userName, CancellationToken ct = default)
     {
         await using var sys = systemDb.Create(userName);
-        var rows = await (from m in sys.Memberships
-                          join t in sys.Tenants on m.TenantId equals t.Id
-                          where m.UserName == userName && m.Status == MembershipStatus.Approved && t.Status == TenantStatus.Active
+        var user = await sys.Users.AsNoTracking().SingleAsync(u => u.UserName == userName, ct);
+        var admin = await AccountService.IsPlatformAdminAsync(sys, user.Id, ct);
+        var rows = await (from d in sys.DeptRoles
+                          join t in sys.Tenants on d.TenantId equals t.Id
+                          where d.UserId == user.Id && t.Status == TenantStatus.Active
                           orderby t.Name
-                          select new { t.Id, t.Name, t.Slug, t.ThemeColor, Roles = m.Roles.Select(r => r.Role).ToList() }).ToListAsync(ct);
-        return rows.Select(r => new MyDept(r.Id, r.Name, r.Slug, r.ThemeColor,
-            Roles.All.Where(x => r.Roles.Contains(x)).ToList())).ToList();
+                          select new { t.Id, t.Name, t.Slug, t.ThemeColor, d.RoleCode }).ToListAsync(ct);
+        var deptAdmin = await (from ur in sys.UserRoles join r in sys.IdentityRoleRows on ur.RoleId equals r.Id where ur.UserId == user.Id && r.Name == IdentityRoles.Admin select ur).AnyAsync(ct);
+        return rows.Select(r => new MyDept(r.Id, r.Name, r.Slug, r.ThemeColor, UserRole.ScreenRoles(r.RoleCode, deptAdmin).ToList())).ToList();
     }
 }

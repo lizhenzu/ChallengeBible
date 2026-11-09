@@ -12,7 +12,7 @@ namespace ChallengeBible.Web.Pages;
 /// </summary>
 public class PhotoModel(PhotoService photos, TenantContext tenant) : PageModel
 {
-    public async Task<IActionResult> OnGetAsync(int id, CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(string id, CancellationToken ct)
     {
         if (tenant.IsLobby && id != User.UserName()) return NotFound();
         if (photos.FullPath(await photos.FileInTenantAsync(id, ct)) is not { } path) return NotFound();

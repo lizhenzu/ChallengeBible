@@ -23,7 +23,7 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
     {
         if (scope.UserName is null || !r.IsValid) return new(new HashSet<(short, short)>(), new HashSet<(short, short)>());
         await using var ctx = db.Create();
-        var read = await InRange(ctx.VerseReadMarks.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct);
+        var read = await InRange(ctx.ReadingVerses.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct);
         var marks = await InRange(ctx.ReadingBookmarks.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct);
         return new(read.Select(x => (x.Chapter, x.Verse)).ToHashSet(), marks.Select(x => (x.Chapter, x.Verse)).ToHashSet());
     }
@@ -33,20 +33,31 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
     {
         await using var ctx = db.Create();
         if (!await Exists(ctx, book, chapter, verse, ct)) return false;
-        if (!await ctx.VerseReadMarks.AnyAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct))
+        if (!await ctx.ReadingVerses.AnyAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct))
         {
-            ctx.VerseReadMarks.Add(new ReadingVerse { UserName = Me, BookId = book, Chapter = chapter, Verse = verse, ReadAt = time.GetUtcNow().UtcDateTime });
+            ctx.ReadingVerses.Add(new ReadingVerse { UserName = Me, RoundNo = await RoundNoAsync(ctx, ct), BookId = book, Chapter = chapter, Verse = verse, ReadAt = time.GetUtcNow().UtcDateTime });
             await SaveIgnoringDuplicate(ctx, ct);
         }
         return true;
     }
 
+    /// <summary>읽음은 진행 중 회차에 붙는다(0090, DM2_ReadingVerse). 회차가 없으면 1회차를 연다.</summary>
+    private async Task<int> RoundNoAsync(AppDbContext ctx, CancellationToken ct)
+    {
+        var open = await ctx.ReadingRounds.Where(x => x.CompletedAt == null && x.ClosedAt == null).Select(x => (int?)x.RoundNo).FirstOrDefaultAsync(ct);
+        if (open is int no) return no;
+        var next = (await ctx.ReadingRounds.Select(x => (int?)x.RoundNo).MaxAsync(ct) ?? 0) + 1;
+        ctx.ReadingRounds.Add(new ReadingRound { UserName = Me, RoundNo = next, StartedAt = time.GetUtcNow().UtcDateTime });
+        await ctx.SaveChangesAsync(ct);
+        return next;
+    }
+
     public async Task UnreadAsync(byte book, short chapter, short verse, CancellationToken ct = default)
     {
         await using var ctx = db.Create();
-        var row = await ctx.VerseReadMarks.SingleOrDefaultAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct);
+        var row = await ctx.ReadingVerses.SingleOrDefaultAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct);
         if (row is null) return;
-        ctx.VerseReadMarks.Remove(row);
+        ctx.ReadingVerses.Remove(row);
         await ctx.SaveChangesAsync(ct);
     }
 
@@ -57,10 +68,11 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
         await using var ctx = db.Create();
         var verses = await InRange(ctx.BibleVerses.AsNoTracking().Where(v => v.BookId == r.BookId), r)
             .Select(v => new { v.Chapter, v.Verse }).Distinct().ToListAsync(ct);
-        var already = (await InRange(ctx.VerseReadMarks.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct)).ToHashSet();
+        var already = (await InRange(ctx.ReadingVerses.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct)).ToHashSet();
         var now = time.GetUtcNow().UtcDateTime;
         var add = verses.Where(v => !already.Contains(v)).ToList();
-        foreach (var v in add) ctx.VerseReadMarks.Add(new ReadingVerse { UserName = Me, BookId = r.BookId, Chapter = v.Chapter, Verse = v.Verse, ReadAt = now });
+        var round = add.Count > 0 ? await RoundNoAsync(ctx, ct) : 0;
+        foreach (var v in add) ctx.ReadingVerses.Add(new ReadingVerse { UserName = Me, RoundNo = round, BookId = r.BookId, Chapter = v.Chapter, Verse = v.Verse, ReadAt = now });
         if (add.Count > 0) await SaveIgnoringDuplicate(ctx, ct);
         return add.Count;
     }
@@ -69,8 +81,8 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
     {
         if (!r.IsValid) return 0;
         await using var ctx = db.Create();
-        var rows = await InRange(ctx.VerseReadMarks, r).ToListAsync(ct);
-        ctx.VerseReadMarks.RemoveRange(rows);
+        var rows = await InRange(ctx.ReadingVerses, r).ToListAsync(ct);
+        ctx.ReadingVerses.RemoveRange(rows);
         await ctx.SaveChangesAsync(ct);
         return rows.Count;
     }

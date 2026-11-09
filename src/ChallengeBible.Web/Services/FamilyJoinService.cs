@@ -1,4 +1,5 @@
 using ChallengeBible.Infrastructure.Data;
+using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Tenancy;
 using ChallengeBible.Web.Tenancy;
 using Microsoft.EntityFrameworkCore;
@@ -257,13 +258,16 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
     }
 
     /// <summary>팀에 자리를 준다. 예전에 멈춘 자리가 있으면 되살린다.</summary>
-    private static void Seat(FamilyTeam team, string userName, string relation)
+    private static void Seat(FamilyTeam team, string userName, string relation, DateTime now)
     {
-        var order = (byte)(team.Members.Max(m => m.SortOrder) + 1);
+        var order = team.Members.Count == 0 ? 0 : team.Members.Max(m => m.SortOrder) + 1;
         var old = team.Members.SingleOrDefault(m => m.UserName == userName);
-        if (old is not null) { old.IsActive = true; old.Relation = relation; old.SortOrder = order; }
-        else team.Members.Add(new FamilyMember { TenantId = team.TenantId, UserName = userName, Relation = relation, SortOrder = order });
+        if (old is not null) { old.IsActive = true; old.Relation = relation; old.SortOrder = order; old.UpdateDT = now; }
+        else team.Members.Add(new FamilyMember { TenantId = team.TenantId, UserName = userName, Relation = relation, SortOrder = order, InsertDT = now, UpdateDT = now });
     }
+
+    private static Task<bool> IsMemberAsync(AppDbContext ctx, string userName, CancellationToken ct) =>
+        (from d in ctx.DeptRoles join u in ctx.Users on d.UserId equals u.Id where u.UserName == userName select d).AnyAsync(ct);
 
     private static async Task DropInvitesToAsync(AppDbContext ctx, string userName, CancellationToken ct) =>
         ctx.FamilyRequests.RemoveRange(await ctx.FamilyRequests.Where(i => i.TargetUserName == userName && i.Kind == FamilyRequest.Invite).ToListAsync(ct));
@@ -309,7 +313,7 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
     }
 
     /// <summary>R-211: 팀 구성원이 역할을 골라 초대한다. 상대가 수락해야 합류된다.</summary>
-    public async Task<FamilyError> InviteAsync(string userName, string relation, CancellationToken ct = default)
+    public async Task<FamilyError> InviteAsync(string target, string relation, CancellationToken ct = default)
     {
         if (!await EnabledAsync(ct)) return FamilyError.Disabled;
         if (!FamilyRelation.All.Contains(relation)) return FamilyError.BadRelation;

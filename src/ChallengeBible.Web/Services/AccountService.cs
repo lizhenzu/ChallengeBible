@@ -126,6 +126,13 @@ public sealed partial class AccountService(IAppDb db, ISystemDb systemDb, TimePr
         (from ur in ctx.UserRoles join r in ctx.IdentityRoleRows on ur.RoleId equals r.Id
          where ur.UserId == userId && r.Name == IdentityRoles.SuperAdmin select ur).AnyAsync(ct);
 
+    /// <summary>쓸 수 있는 플랫폼 관리자인가(시작마다 다시 확인, 물리 설계 3-3).</summary>
+    public static async Task<bool> IsActivePlatformAdminAsync(AppDbContext ctx, string userName, CancellationToken ct)
+    {
+        var u = await ctx.Users.AsNoTracking().FirstOrDefaultAsync(a => a.UserName == userName, ct);
+        return u is not null && !u.IsDisabled(DateTimeOffset.UtcNow) && await IsPlatformAdminAsync(ctx, u.Id, ct);
+    }
+
     private static async Task<UserSetting> SettingAsync(AppDbContext ctx, string userName, CancellationToken ct)
     {
         var s = await ctx.UserSettings.SingleOrDefaultAsync(x => x.UserName == userName, ct);

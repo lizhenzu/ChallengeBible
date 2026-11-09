@@ -69,7 +69,7 @@ public sealed class PlatformRuleService(ISystemDb systemDb, RuleService rules, T
     public async Task<(RuleVersion? Saved, List<string> Errors)> SaveAsync(string actor, RuleSet next, DateOnly effectiveFrom, CancellationToken ct = default)
     {
         await using var ctx = systemDb.Create(actor);
-        if (!await ctx.Users.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
+        if (!await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct))
             throw new UnauthorizedAccessException("플랫폼 관리자만 할 수 있어요.");
 
         var versions = await rules.VersionsAsync(ct);
@@ -102,10 +102,10 @@ public sealed class PlatformRuleService(ISystemDb systemDb, RuleService rules, T
     public DateOnly TodayDate => Today;
 
     /// <summary>버전 기록용 계정 이름.</summary>
-    public async Task<Dictionary<int, string>> NamesAsync(string actor, IEnumerable<int> ids, CancellationToken ct = default)
+    public async Task<Dictionary<string, string>> NamesAsync(string actor, IEnumerable<string> ids, CancellationToken ct = default)
     {
         var list = ids.Distinct().ToList();
         await using var ctx = systemDb.Create(actor);
-        return await ctx.Users.AsNoTracking().Where(a => list.Contains(a.Id)).ToDictionaryAsync(a => a.Id, a => a.DisplayName, ct);
+        return (await ctx.Users.AsNoTracking().Where(a => list.Contains(a.UserName!)).Select(a => new { a.UserName, a.LastName, a.FirstName }).ToListAsync(ct)).ToDictionary(a => a.UserName!, a => AppUser.FullName(a.LastName, a.FirstName));
     }
 }

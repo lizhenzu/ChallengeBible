@@ -14,28 +14,25 @@ public sealed record DayLogLine(DateTime AtUtc, Mission Mission, string What, in
 /// 보호자 화면(R-132, 1차로 당김): 이 부서에서 나와 연결된 자녀만 본다. 보기만 한다.
 /// 연결 여부를 서버에서 먼저 확인한 뒤에만 자녀 기록을 읽는다.
 /// </summary>
-public sealed class GuardianService(IAppDb db, TenantContext tenant, RuleService ruleService)
+public sealed class GuardianService(IAppDb db, ChallengeBible.Infrastructure.Tenancy.RequestScope scope, TenantContext tenant, RuleService ruleService)
 {
     public async Task<List<ChildRow>> ChildrenAsync(CancellationToken ct = default)
     {
-        if (tenant.MembershipId is not int me || !tenant.Has(Roles.Guardian)) return [];
+        if (scope.UserName is not { } me || !tenant.Has(Roles.Guardian)) return [];
         await using var ctx = db.Create();
-        return await (from l in ctx.GuardianLinks
-                      where l.GuardianMembershipId == me
-                      join p in ctx.Participants on l.UserName equals p.Id
-                      join m in ctx.Memberships on p.MembershipId equals m.Id
-                      join a in ctx.Users on m.UserName equals a.Id
-                      orderby a.DisplayName
-                      select new ChildRow(p.Id, a.DisplayName, m.GroupLabel, p.IsActive && m.Status == MembershipStatus.Approved))
-            .ToListAsync(ct);
+        return (await (from l in ctx.GuardianLinks
+                       where l.GuardianUserName == me
+                       join a in ctx.Users on l.StudentUserName equals a.UserName
+                       select new { l.StudentUserName, a.LastName, a.FirstName }).ToListAsync(ct))
+            .Select(x => new ChildRow(x.StudentUserName, AppUser.FullName(x.LastName, x.FirstName), null, true)).OrderBy(x => x.Name).ToList();
     }
 
     /// <summary>이 보호자와 연결된 참여자인가(R-132). 아니면 어떤 기록도 주지 않는다.</summary>
     public async Task<bool> IsMyChildAsync(string userName, CancellationToken ct = default)
     {
-        if (tenant.MembershipId is not int me || !tenant.Has(Roles.Guardian)) return false;
+        if (scope.UserName is not { } me || !tenant.Has(Roles.Guardian)) return false;
         await using var ctx = db.Create();
-        return await ctx.GuardianLinks.AnyAsync(l => l.GuardianMembershipId == me && l.UserName == userName, ct);
+        return await ctx.GuardianLinks.AnyAsync(l => l.GuardianUserName == me && l.StudentUserName == userName, ct);
     }
 
     /// <summary>그날 한 일: 수행 기록 + 퀴즈 오답(0점). 시각 순.</summary>

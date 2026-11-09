@@ -28,7 +28,7 @@ public class PointsModel(MissionService missions, TenantContext tenant) : PageMo
         Today = missions.Today;
         First = DateOnly.TryParseExact((Month ?? "") + "-01", "yyyy-MM-dd", out var f) && f <= Today ? f : new DateOnly(Today.Year, Today.Month, 1);
         UserName = await missions.UserNameAsync(ct);
-        if (UserName is int p)
+        if (UserName is { } p)
         {
             Days = await missions.MonthAsync(p, First.Year, First.Month, ct);
             SeasonPoints = (await missions.GetDayAsync(p, Today, ct)).SeasonPoints;

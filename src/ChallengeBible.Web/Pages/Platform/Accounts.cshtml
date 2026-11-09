@@ -70,7 +70,7 @@
                     {
                         <div class="why no"><b>@string.Join(" · ", d.AdminOf)의 관리자예요.</b> 그 밖의 부서 관리자는 이 계정을 초기화할 수 없어요. 다른 부서의 관리 권한까지 영향을 주기 때문이에요(ADR 0035). 필요하면 여기서 해요.</div>
                     }
-                    else if (!d.Memberships.Any(m => m.Status is MembershipStatus.Approved or MembershipStatus.Suspended))
+                    else if (!d.Memberships.Any(m => m.Status is MembershipStatus.Approved))
                     {
                         <div class="why no"><b>승인된 소속 부서가 없어요.</b> 부서 관리자가 초기화할 수 없으니 필요하면 여기서 해요.</div>
                     }

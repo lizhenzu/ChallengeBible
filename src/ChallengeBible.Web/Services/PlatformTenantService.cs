@@ -36,7 +36,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
     private async Task<AppDbContext> OpenAsync(string actor, CancellationToken ct)
     {
         var ctx = systemDb.Create(actor);
-        if (!await ctx.Users.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
+        if (!await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct))
         {
             await ctx.DisposeAsync();
             throw new UnauthorizedAccessException("플랫폼 관리자만 할 수 있어요.");
@@ -48,13 +48,14 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
     {
         await using var ctx = await OpenAsync(actor, ct);
         var tenants = await ctx.Tenants.AsNoTracking().OrderBy(t => t.Name).ToListAsync(ct);
-        var counts = await ctx.Memberships.Where(m => m.Status == MembershipStatus.Approved)
+        var counts = await ctx.DeptRoles
             .GroupBy(m => m.TenantId).Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N, ct);
-        var admins = await (from r in ctx.MembershipRoles
-                            join m in ctx.Memberships on new { r.TenantId, Id = r.MembershipId } equals new { m.TenantId, m.Id }
-                            join a in ctx.Users on m.UserName equals a.Id
-                            where r.Role == Roles.TenantAdmin && m.Status == MembershipStatus.Approved
-                            select new { m.TenantId, a.Id, a.DisplayName, a.Email }).ToListAsync(ct);
+        var adminIds = await DeptMembership.AdminIdsAsync(ctx, ct);
+        var admins = (await (from d in ctx.DeptRoles
+                             where adminIds.Contains(d.UserId!)
+                             join a in ctx.Users on d.UserId equals a.Id
+                             select new { d.TenantId, Id = a.UserName!, a.LastName, a.FirstName, Email = a.Email ?? "" }).ToListAsync(ct))
+            .Select(a => new { a.TenantId, a.Id, DisplayName = AppUser.FullName(a.LastName, a.FirstName), a.Email }).ToList();
         return tenants.Select(t => new TenantRow(t.Id, t.Name, t.Slug, t.JoinCode.Trim(), t.ThemeColor, t.MissionEnabled, t.ReadingEnabled, t.Status,
                 counts.GetValueOrDefault(t.Id),
                 admins.Where(a => a.TenantId == t.Id).Select(a => (a.Id, a.DisplayName, a.Email)).ToList(), t.CreatedUtc, t.TimeZoneId) { JoinListed = t.JoinListed })
@@ -76,11 +77,11 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
 
         await using var ctx = await OpenAsync(actor, ct);
         if (await ctx.Tenants.AnyAsync(t => t.Slug == slug, ct)) { errors["Slug"] = "이미 쓰고 있는 주소예요."; return (null, errors); }
-        Account? admin = null;
+        AppUser? admin = null;
         if (!string.IsNullOrWhiteSpace(input.AdminEmail))
         {
             var id = AccountService.NormalizeEmail(input.AdminEmail);
-            admin = await ctx.Users.SingleOrDefaultAsync(a => a.Email == id, ct);
+            admin = await ctx.Users.FirstOrDefaultAsync(a => a.NormalizedEmail == AppUser.Normalize(id), ct);
             if (admin is null) { errors["AdminEmail"] = "그 이메일의 계정이 없어요."; return (null, errors); }
         }
 
@@ -91,7 +92,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         };
         ctx.Tenants.Add(t);
         await ctx.SaveChangesAsync(ct);
-        if (admin is not null) await GrantAdminAsync(ctx, actor, t.Id, admin.Id, ct);
+        if (admin is not null) await GrantAdminAsync(ctx, t.Id, admin, ct);
         return (t, errors);
     }
 
@@ -164,26 +165,19 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
     {
         await using var ctx = await OpenAsync(actor, ct);
         var id = AccountService.NormalizeEmail(email ?? "");
-        var a = await ctx.Users.SingleOrDefaultAsync(x => x.Email == id, ct);
+        var a = await ctx.Users.FirstOrDefaultAsync(x => x.NormalizedEmail == AppUser.Normalize(id), ct);
         if (a is null) return "그 이메일의 계정이 없어요.";
-        await GrantAdminAsync(ctx, actor, tenantId, a.Id, ct);
+        await GrantAdminAsync(ctx, tenantId, a, ct);
         return null;
     }
 
-    private async Task GrantAdminAsync(AppDbContext ctx, string actor, int tenantId, string userName, CancellationToken ct)
+    private async Task GrantAdminAsync(AppDbContext ctx, int tenantId, AppUser admin, CancellationToken ct)
     {
         var now = time.GetUtcNow().UtcDateTime;
-        var m = await ctx.Memberships.Include(x => x.Roles).SingleOrDefaultAsync(x => x.TenantId == tenantId && x.UserName == userName, ct);
-        if (m is null)
-        {
-            m = new Membership { TenantId = tenantId, UserName = userName, RequestedUtc = now };
-            ctx.Memberships.Add(m);
-        }
-        m.Status = MembershipStatus.Approved;
-        m.DecidedUtc = now;
-        m.DecidedByUserName = actor;
-        foreach (var r in new[] { Roles.Teacher, Roles.TenantAdmin }.Where(r => m.Roles.All(x => x.Role != r)))
-            m.Roles.Add(new MembershipRole { TenantId = tenantId, Role = r });
+        await DeptMembership.PlaceAsync(ctx, admin, tenantId, UserRole.TeacherCode, now, ct);
+        var role = await ctx.IdentityRoleRows.SingleAsync(r => r.Name == IdentityRoles.Admin, ct);
+        if (!await ctx.UserRoles.AnyAsync(r => r.UserId == admin.Id && r.RoleId == role.Id, ct))
+            ctx.UserRoles.Add(new AppUserRole { UserId = admin.Id, RoleId = role.Id });
         await ctx.SaveChangesAsync(ct);
     }
 
@@ -191,10 +185,12 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
     public async Task RemoveAdminAsync(string actor, int tenantId, string userName, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
-        var role = await ctx.MembershipRoles.SingleOrDefaultAsync(r => r.TenantId == tenantId && r.Role == Roles.TenantAdmin
-            && ctx.Memberships.Any(m => m.TenantId == tenantId && m.Id == r.MembershipId && m.UserName == userName), ct);
-        if (role is null) return;
-        ctx.MembershipRoles.Remove(role);
+        var user = await ctx.Users.AsNoTracking().SingleOrDefaultAsync(u => u.UserName == userName, ct);
+        if (user is null || !await ctx.DeptRoles.AnyAsync(d => d.TenantId == tenantId && d.UserId == user.Id, ct)) return;
+        var role = await ctx.IdentityRoleRows.SingleAsync(r => r.Name == IdentityRoles.Admin, ct);
+        var row = await ctx.UserRoles.SingleOrDefaultAsync(r => r.UserId == user.Id && r.RoleId == role.Id, ct);
+        if (row is null) return;
+        ctx.UserRoles.Remove(row);
         await ctx.SaveChangesAsync(ct);
     }
 }

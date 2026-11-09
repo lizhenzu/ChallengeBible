@@ -70,10 +70,9 @@ public sealed class LandingService(IAppDb db, ISystemDb systemDb, TenantClock cl
     /// <summary>합계만 센다. 시스템 연결이지만 읽기만 하고 부서 · 사람을 알 수 있는 값은 돌려주지 않는다(0061).</summary>
     private async Task<LandingStats> StatsAsync(DateOnly today, CancellationToken ct)
     {
-        await using var ctx = systemDb.Create(0);   // 계정 없음(로그인 전)
+        await using var ctx = systemDb.Create("landing");   // 계정 없음(로그인 전)
         var active = await ctx.Tenants.Where(t => t.Status == TenantStatus.Active).Select(t => t.Id).ToListAsync(ct);
-        var people = await ctx.Memberships.Where(m => m.Status == MembershipStatus.Approved && active.Contains(m.TenantId))
-            .Select(m => m.UserName).Distinct().CountAsync(ct);
+        var people = await ctx.DeptRoles.Where(d => active.Contains(d.TenantId)).Select(d => d.UserId).Distinct().CountAsync(ct);
 
         var tz = TimeZoneInfo.FindSystemTimeZoneById(PlatformHomeService.PlatformTimeZone);
         var start = today.AddDays(-6);
@@ -81,11 +80,7 @@ public sealed class LandingService(IAppDb db, ISystemDb systemDb, TenantClock cl
         var yearUtc = TimeZoneInfo.ConvertTimeToUtc(new DateTime(today.Year, 1, 1), tz);
 
         // 최근 7일: 미션을 한 계정(참여자 → 소속 → 계정) + 통독 장을 읽은 계정, 날마다 중복 없이
-        var missions = await (from a in ctx.MissionActivities
-                              where a.MissionDate >= start && a.MissionDate <= today
-                              join p in ctx.Participants on a.UserName equals p.Id
-                              join m in ctx.Memberships on p.MembershipId equals m.Id
-                              select new { a.MissionDate, m.UserName }).Distinct().ToListAsync(ct);
+        var missions = await ctx.MissionActivities.Where(a => a.MissionDate >= start && a.MissionDate <= today).Select(a => new { a.MissionDate, a.UserName }).Distinct().ToListAsync(ct);
         var reads = await ctx.ReadingChapterReads.Where(c => c.ReadAt >= fromUtc).Select(c => new { c.ReadAt, c.UserName }).ToListAsync(ct);
         var byDay = missions.Select(x => (x.MissionDate, x.UserName))
             .Concat(reads.Select(x => (DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(x.ReadAt, DateTimeKind.Utc), tz)), x.UserName)))

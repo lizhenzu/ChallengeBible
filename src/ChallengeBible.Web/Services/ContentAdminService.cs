@@ -64,7 +64,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
     private async Task<AppDbContext> OpenAsync(string actor, CancellationToken ct)
     {
         var ctx = systemDb.Create(actor);
-        if (!await ctx.Users.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
+        if (!await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct))
         {
             await ctx.DisposeAsync();
             throw new UnauthorizedAccessException("플랫폼 관리자만 할 수 있어요.");

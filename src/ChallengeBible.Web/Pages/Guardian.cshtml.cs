@@ -16,7 +16,7 @@ public class GuardianModel(GuardianService guardian, MissionService missions, Te
     public string Title => "보호자";
     public TenantContext Tenant => tenant;
 
-    [BindProperty(SupportsGet = true)] public int? Child { get; set; }
+    [BindProperty(SupportsGet = true)] public string? Child { get; set; }
     [BindProperty(SupportsGet = true)] public DateOnly? Date { get; set; }
 
     public List<ChildRow> Children { get; private set; } = [];
@@ -37,7 +37,7 @@ public class GuardianModel(GuardianService guardian, MissionService missions, Te
         Today = missions.Today;
         if (Children.Count == 0) return Page();
 
-        Current = Child is int c ? Children.FirstOrDefault(x => x.UserName == c) : Children[0];
+        Current = Child is { } c ? Children.FirstOrDefault(x => x.UserName == c) : Children[0];
         if (Current is null) return NotFound();   // 내 자녀가 아님(R-132)
         var pid = Current.UserName;
 

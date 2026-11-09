@@ -33,11 +33,8 @@ public sealed class RankingService(IAppDb db, TenantContext tenant, TenantClock 
         var season = start is { } d ? Season.Create(today.Year, d) : Season.DefaultFor(today.Year);
         var (from, to) = season.ScoringRange(today);
 
-        var people = await (from p in ctx.Participants
-                            join m in ctx.Memberships.Include(x => x.Roles) on p.MembershipId equals m.Id
-                            join a in ctx.Users on m.UserName equals a.Id
-                            where p.IsActive && m.Status == MembershipStatus.Approved
-                            select new { p.Id, a.DisplayName, m.GroupLabel, Roles = m.Roles.Select(x => x.Role).ToList(), MembershipId = m.Id }).ToListAsync(ct);
+        var adminIds = await DeptMembership.AdminIdsAsync(ctx, ct);
+        var people = (await DeptMembership.PeopleAsync(ctx, ct)).Select(p => new { Id = p.UserName, DisplayName = p.Name, GroupLabel = (string?)null, Roles = UserRole.ScreenRoles(p.RoleCode, adminIds.Contains(p.UserId)).ToList(), MembershipId = p.DeptRoleId }).ToList();
         var ids = people.Select(p => p.Id).ToList();
         var points = from > to ? [] : await ctx.MissionActivities.Where(l => ids.Contains(l.UserName) && l.MissionDate >= from && l.MissionDate <= to)
             .GroupBy(l => l.UserName).Select(g => new { g.Key, P = g.Sum(x => x.Points) }).ToListAsync(ct);

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record RuleVersion(int VersionNo, DateOnly EffectiveFrom, RuleSet Rules, DateTime? ChangedUtc, int? ChangedByUserName);
+public sealed record RuleVersion(int VersionNo, DateOnly EffectiveFrom, RuleSet Rules, DateTime? ChangedUtc, string? ChangedByUserName);
 
 /// <summary>
 /// 점수 · 수행 규칙 읽기(ADR 0060). 어떤 날의 규칙 = 적용 시작일이 그날 이전인 버전 가운데 번호가 가장 큰 것.

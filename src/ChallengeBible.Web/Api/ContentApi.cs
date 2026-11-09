@@ -55,7 +55,7 @@ public static class ContentApi
         !r.Errors.Ok ? Invalid(r.Errors) : Results.Ok(new { date = Day(day), id = r.Id, status = r.Status, created = r.Created });
 
     private static async Task<IResult> PutAsync<T>(string date, HttpContext http, IConfiguration config, ILoggerFactory logs,
-        Func<T, FieldErrors> check, Func<int, DateOnly, T, Task<IResult>> save, CancellationToken ct) where T : class
+        Func<T, FieldErrors> check, Func<string, DateOnly, T, Task<IResult>> save, CancellationToken ct) where T : class
     {
         var key = config["ContentApi:Key"];
         if (key is null || key.Length < MinKeyLength) return Results.NotFound();
@@ -73,7 +73,7 @@ public static class ContentApi
         var errors = check(body);
         if (!errors.Ok) return Invalid(errors);
 
-        if (!int.TryParse(config["ContentApi:ActorUserName"], out var actor))
+        if (config["ContentApi:ActorUserName"] is not { Length: > 0 } actor)
             return NotReady(logs, "ContentApi:ActorUserName 가 없어요.");
         try { return await save(actor, day, body); }
         catch (UnauthorizedAccessException) { return NotReady(logs, "ContentApi:ActorUserName 가 활성 플랫폼 관리자가 아니에요."); }

@@ -28,24 +28,18 @@ public sealed class RosterService(IAppDb db, TenantContext tenant, TenantClock c
         var showPoints = (await rules.ForDateAsync(today, ct)).Features.Ranking;
         await using var ctx = db.Create();
 
-        var members = await (from m in ctx.Memberships
-                             join a in ctx.Users on m.UserName equals a.Id
-                             where m.Status == MembershipStatus.Approved
-                             select new { m.Id, a.DisplayName, a.Email, m.GroupLabel }).ToListAsync(ct);
-        var roles = (await ctx.MembershipRoles.Select(r => new { r.MembershipId, r.Role }).ToListAsync(ct))
-            .GroupBy(r => r.MembershipId).ToDictionary(g => g.Key, g => g.Select(r => r.Role).ToList());
-        var pids = (await ctx.Participants.Where(p => p.IsActive).Select(p => new { p.MembershipId, p.Id }).ToListAsync(ct))
-            .ToDictionary(p => p.MembershipId, p => p.Id);
+        var adminIds = await DeptMembership.AdminIdsAsync(ctx, ct);
+        var members = await DeptMembership.PeopleAsync(ctx, ct);
 
-        var points = new Dictionary<int, int>();
-        if (showPoints && pids.Count > 0)
+        var points = new Dictionary<string, int>();
+        if (showPoints && members.Count > 0)
         {
             var start = await ctx.TenantSeasons.Where(s => s.Year == today.Year).Select(s => (DateOnly?)s.StartDate).SingleOrDefaultAsync(ct);
             var season = start is { } d ? Season.Create(today.Year, d) : Season.DefaultFor(today.Year);
             var (from, to) = season.ScoringRange(today);
             if (from <= to)
             {
-                var ids = pids.Values.ToList();
+                var ids = members.Select(m => m.UserName).ToList();
                 points = await ctx.MissionActivities.Where(l => ids.Contains(l.UserName) && l.MissionDate >= from && l.MissionDate <= to)
                     .GroupBy(l => l.UserName).Select(g => new { g.Key, P = g.Sum(x => x.Points) }).ToDictionaryAsync(x => x.Key, x => x.P, ct);
             }
@@ -54,12 +48,11 @@ public sealed class RosterService(IAppDb db, TenantContext tenant, TenantClock c
 
         var people = members.Select(m =>
         {
-            var mine = roles.GetValueOrDefault(m.Id) ?? [];
+            var mine = UserRole.ScreenRoles(m.RoleCode, adminIds.Contains(m.UserId)).ToList();
             var kind = mine.Any(x => x is Roles.Teacher or Roles.TenantAdmin) ? RankKind.Teacher
                 : mine.Contains(Roles.Guardian) ? RankKind.Parent : RankKind.Student;
-            var pid = pids.TryGetValue(m.Id, out var id) ? id : (int?)null;
-            return new RosterPerson(m.DisplayName, m.Email, m.GroupLabel, kind, pid is not null,
-                pid is int p ? Math.Max(0, points.GetValueOrDefault(p)) : 0, pid is int q && doneToday.Contains(q), m.Id == tenant.MembershipId);
+            return new RosterPerson(m.Name, m.Email, null, kind, true,
+                Math.Max(0, points.GetValueOrDefault(m.UserName)), doneToday.Contains(m.UserName), m.DeptRoleId == tenant.MembershipId);
         }).OrderBy(x => x.Name, StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false)).ToList();
         return new Roster(today, showPoints, people);
     }

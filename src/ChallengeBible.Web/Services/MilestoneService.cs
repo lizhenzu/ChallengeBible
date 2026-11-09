@@ -50,7 +50,7 @@ public sealed class MilestoneService(IAppDb db, TenantContext tenant, RuleServic
     private async Task<IReadOnlyList<int>> PlatformAsync(CancellationToken ct) => RuleService.Pick(await rules.VersionsAsync(ct), Today).Milestones;
 
     /// <summary>올해 시즌 점수(참여자별).</summary>
-    private async Task<Dictionary<int, int>> SeasonPointsAsync(AppDbContext ctx, CancellationToken ct)
+    private async Task<Dictionary<string, int>> SeasonPointsAsync(AppDbContext ctx, CancellationToken ct)
     {
         var today = Today;
         var start = await ctx.TenantSeasons.Where(s => s.Year == today.Year).Select(s => (DateOnly?)s.StartDate).SingleOrDefaultAsync(ct);
@@ -91,13 +91,6 @@ public sealed class MilestoneService(IAppDb db, TenantContext tenant, RuleServic
         var after = clean ?? platform;
         t.Milestones = value;
 
-        // R-104: 새 단계 가운데 이미 넘은 것은 받은 것으로 기록 — 다음 미션 때 축하 창이 한꺼번에 뜨지 않게
-        var points = await SeasonPointsAsync(ctx, ct);
-        var done = await ctx.MilestonesReached.Where(m => m.Year == year).Select(m => new { m.UserName, m.Threshold }).ToListAsync(ct);
-        var have = done.Select(x => (x.UserName, x.Threshold)).ToHashSet();
-        foreach (var (pid, p) in points)
-            foreach (var m in after.Where(m => p >= m && !have.Contains((pid, m))))
-                ctx.MilestonesReached.Add(new MilestoneReached { TenantId = t.Id, UserName = pid, Year = year, Threshold = m, ReachedUtc = now });
 
         ctx.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorUserName = actor, Action = LogAction, TenantId = t.Id,
             Detail = $"축하 단계 {Label(before)} → {Label(clean)}" });

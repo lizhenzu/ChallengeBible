@@ -106,6 +106,7 @@ public sealed class UserSetting
 {
     public required string UserName { get; set; }
     public bool MustChangePassword { get; set; }
+    public string? PhotoPath { get; set; }
     public int? LastTenantId { get; set; }
     /// <summary>통독 화면 색 테마(0073).</summary>
     public string? ReadingTheme { get; set; }
@@ -516,6 +517,7 @@ internal sealed class UserSettingConfig : IEntityTypeConfiguration<UserSetting>
         e.ToTable("UserSetting");
         e.HasKey(x => x.UserName).HasName("PK_UserSetting");
         e.Property(x => x.UserName).HasMaxLength(256);
+        e.Property(x => x.PhotoPath).HasMaxLength(260);
         e.Property(x => x.ReadingTheme).HasMaxLength(20).IsUnicode(false);
         e.Property(x => x.MissionTheme).HasMaxLength(20).IsUnicode(false);
         e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.LastTenantId).HasConstraintName("FK_UserSetting_LastTenant").OnDelete(DeleteBehavior.NoAction);

@@ -32,7 +32,7 @@ public sealed class ContentCalendarService(IAppDb db, TenantContext tenant, Tena
 
     public static string Day(DateOnly d) => d.ToString("M월 d일(ddd)", Ko);
 
-    private sealed record Cand(int? TenantId, string Status, string Title, string Detail, int By, DateTime ByUtc);
+    private sealed record Cand(int? TenantId, string Status, string Title, string Detail, string By, DateTime ByUtc);
 
     public async Task<ContentMonth> GetAsync(DateOnly? month, CancellationToken ct = default)
     {

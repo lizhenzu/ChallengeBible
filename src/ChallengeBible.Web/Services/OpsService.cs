@@ -19,7 +19,7 @@ public sealed class OpsService(ISystemDb systemDb, AppInfo app, TimeProvider tim
     private async Task<AppDbContext> OpenAsync(string actor, CancellationToken ct)
     {
         var ctx = systemDb.Create(actor);
-        if (!await ctx.Users.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
+        if (!await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct))
         {
             await ctx.DisposeAsync();
             throw new UnauthorizedAccessException("플랫폼 관리자만 볼 수 있어요.");
@@ -117,10 +117,10 @@ public sealed class OpsService(ISystemDb systemDb, AppInfo app, TimeProvider tim
     {
         await using var ctx = await OpenAsync(actor, ct);
         var q = from l in ctx.AuditLogs.AsNoTracking()
-                join a in ctx.Users on l.ActorUserName equals a.Id
+                join a in ctx.Users on l.ActorUserName equals a.UserName
                 join t in ctx.Tenants on l.TenantId equals t.Id into tt
                 from t in tt.DefaultIfEmpty()
-                select new { l.Id, l.OccurredUtc, l.Action, l.Detail, l.TenantId, a.DisplayName, a.IsPlatformAdmin, TenantName = t == null ? null : t.Name };
+                select new { l.Id, l.OccurredUtc, l.Action, l.Detail, l.TenantId, DisplayName = AppUser.FullName(a.LastName, a.FirstName), IsPlatformAdmin = ctx.UserRoles.Any(ur => ur.UserId == a.Id && ctx.IdentityRoleRows.Any(r => r.Id == ur.RoleId && r.Name == IdentityRoles.SuperAdmin)), TenantName = t == null ? null : t.Name };
         if (!string.IsNullOrEmpty(action)) q = q.Where(x => x.Action == action);
         if (tenantId is int tid) q = q.Where(x => x.TenantId == tid);
         if (days > 0) { var from = time.GetUtcNow().UtcDateTime.AddDays(-days); q = q.Where(x => x.OccurredUtc >= from); }

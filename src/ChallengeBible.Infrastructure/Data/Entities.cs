@@ -28,6 +28,8 @@ public sealed class Tenant
     /// 순위 · 참여자 현황 · 가족팀 · "우리 부서" 숫자를 숨기고, 참여 신청 대상이 아니다.
     /// </summary>
     public bool IsLobby { get; set; }
+    /// <summary>이 부서의 축하 단계(0077, R-100): "1000,2000,3000"(오름차순). null = 플랫폼 기본 규칙 값.</summary>
+    public string? Milestones { get; set; }
     public string Status { get; set; } = TenantStatus.Active;
     public DateTime CreatedUtc { get; set; }
 }

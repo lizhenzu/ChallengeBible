@@ -17,7 +17,7 @@ public class MemberModel(MemberDetailService details, TenantContext tenant, Phot
 
     public async Task<IActionResult> OnPostPhotoAsync(IFormFile? photo, CancellationToken ct)
     {
-        if (await photos.AccountOfMembershipAsync(Id, ct) is not int acc) return NotFound();
+        if (await photos.AccountOfMembershipAsync(Id, ct) is not { } acc) return NotFound();
         PhotoError = await photos.SaveAsync(acc, photo, User.UserName()!, tenant.Current.Id, ct);
         if (PhotoError is null) return RedirectToPage(new { slug = tenant.Current.Slug, Id, Ok = "photo" });
         return await LoadAsync(ct) ? Page() : NotFound();
@@ -25,7 +25,7 @@ public class MemberModel(MemberDetailService details, TenantContext tenant, Phot
 
     public async Task<IActionResult> OnPostPhotoDeleteAsync(CancellationToken ct)
     {
-        if (await photos.AccountOfMembershipAsync(Id, ct) is not int acc) return NotFound();
+        if (await photos.AccountOfMembershipAsync(Id, ct) is not { } acc) return NotFound();
         await photos.DeleteAsync(acc, User.UserName()!, tenant.Current.Id, ct);
         return RedirectToPage(new { slug = tenant.Current.Slug, Id, Ok = "photo0" });
     }
@@ -72,8 +72,8 @@ public class MemberModel(MemberDetailService details, TenantContext tenant, Phot
         Detail = await details.GetAsync(Id, ShownMonth, ct);
         if (Detail is null) return false;
         Photo = await photos.FileOfAsync(Detail.UserName, ct);
-        if (Detail.UserName is int pid)
         {
+            var pid = Detail.UserName;
             var dates = Date is { } one ? [one] : await details.RecentActiveDaysAsync(pid, 2, ct);
             foreach (var day in dates) Days.Add((day, await details.DayLogAsync(pid, day, ct)));
         }

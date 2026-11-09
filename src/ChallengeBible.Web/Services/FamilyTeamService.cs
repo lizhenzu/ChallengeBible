@@ -192,10 +192,7 @@ public sealed class FamilyTeamService(IAppDb db, RequestScope scope, TenantConte
 
     /// <summary>이 부서 사람들: 아이디 · 이름 · 역할 코드.</summary>
     internal static async Task<List<(string UserName, string Name, string? RoleCode)>> PeopleAsync(AppDbContext ctx, CancellationToken ct) =>
-        (await (from d in ctx.DeptRoles
-                join a in ctx.Users on d.UserId equals a.Id
-                select new { a.UserName, a.LastName, a.FirstName, d.RoleCode }).ToListAsync(ct))
-        .Select(x => (x.UserName!, AppUser.FullName(x.LastName, x.FirstName), x.RoleCode)).ToList();
+        (await DeptMembership.PeopleAsync(ctx, ct)).Select(x => (x.UserName, x.Name, x.RoleCode)).ToList();
 
     /// <summary>이 부서의 가족 축하 단계(0090): 올해 DM2_FamilyMilestoneConfig. 올해 설정이 없으면 플랫폼 기본 규칙 값.</summary>
     internal async Task<List<FamilyMilestoneRule>> StagesAsync(AppDbContext ctx, RuleSet r, int year, CancellationToken ct)
