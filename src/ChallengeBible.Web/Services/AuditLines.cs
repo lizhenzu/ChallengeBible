@@ -13,7 +13,7 @@ public static class AuditLines
 {
     public static Task<List<AuditLine>> ForTenantAsync(AppDbContext ctx, int tenantId, string action, CancellationToken ct, int take = 30) =>
         (from l in ctx.AuditLogs
-         join a in ctx.Accounts on l.ActorAccountId equals a.Id
+         join a in ctx.Users on l.ActorUserName equals a.Id
          where l.TenantId == tenantId && l.Action == action
          orderby l.OccurredUtc descending, l.Id descending
          select new AuditLine(l.OccurredUtc, a.DisplayName, l.Detail ?? "")).Take(take).ToListAsync(ct);

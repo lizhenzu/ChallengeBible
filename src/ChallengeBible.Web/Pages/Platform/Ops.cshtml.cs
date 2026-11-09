@@ -31,7 +31,7 @@ public class OpsModel(OpsService ops, ErrorLog errors, TimeProvider time) : Page
 
     public async Task OnGetAsync(CancellationToken ct)
     {
-        var me = User.AccountId()!.Value;
+        var me = User.UserName()!.Value;
         if (Days is not (7 or 30 or 0)) Days = 30;
         Take = Math.Clamp(Take, Page50, 1000);
         Checks = await ops.ChecksAsync(me, ct);

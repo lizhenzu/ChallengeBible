@@ -27,11 +27,11 @@ public class ReadingServiceTests
         raw.SaveChanges();
     }
 
-    private ReadingService As(int accountId)
+    private ReadingService As(string userName)
     {
         var scope = new RequestScope();
         scope.SetTenant(_kids.Id);
-        scope.SetAccount(accountId);
+        scope.SetAccount(userName);
         var tc = new TenantContext();
         tc.Set(_kids, null);
         var db = new InMemoryDb(_db, scope);
@@ -70,9 +70,9 @@ public class ReadingServiceTests
     public async Task R152_장을_끝내면_성경_읽음_표시에도_남고_해제는_연동하지_않는다()
     {
         await As(_me).CompleteChapterAsync(1, 24);
-        Assert.Equal(3, InMemoryDb.Raw(_db).VerseReadMarks.Count(m => m.AccountId == _me));
+        Assert.Equal(3, InMemoryDb.Raw(_db).VerseReadMarks.Count(m => m.UserName == _me));
         await As(_me).UndoChapterAsync(1, 24);
-        Assert.Equal(3, InMemoryDb.Raw(_db).VerseReadMarks.Count(m => m.AccountId == _me));
+        Assert.Equal(3, InMemoryDb.Raw(_db).VerseReadMarks.Count(m => m.UserName == _me));
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class ReadingServiceTests
         {
             foreach (var b in BibleBooks.All())
                 for (short c = 1; c <= b.ChapterCount; c++)
-                    if (!(b.Id == 66 && c == 22)) raw.ChapterReads.Add(new ChapterRead { AccountId = _me, RoundNo = 1, BookId = b.Id, Chapter = c, ReadUtc = DateTime.UtcNow });
+                    if (!(b.Id == 66 && c == 22)) raw.ChapterReads.Add(new ChapterRead { UserName = _me, RoundNo = 1, BookId = b.Id, Chapter = c, ReadAt = DateTime.UtcNow });
             raw.SaveChanges();
         }
         var r = await As(_me).CompleteChapterAsync(66, 22);   // 요한계시록 22장이 마지막
@@ -126,8 +126,8 @@ public class ReadingServiceTests
         Assert.Equal(2, await As(_me).StartNewRoundAsync());
         using var raw = InMemoryDb.Raw(_db);
         var first = raw.ReadingRounds.Single(r => r.RoundNo == 1);
-        Assert.NotNull(first.ClosedUtc);
-        Assert.Null(first.CompletedUtc);
+        Assert.NotNull(first.ClosedAt);
+        Assert.Null(first.CompletedAt);
         Assert.Single(raw.ChapterReads, c => c.RoundNo == 1);   // 기록은 남는다
         Assert.Equal(0, (await As(_me).SummaryAsync()).CompletedRounds);
     }

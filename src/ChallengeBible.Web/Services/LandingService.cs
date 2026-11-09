@@ -73,7 +73,7 @@ public sealed class LandingService(IAppDb db, ISystemDb systemDb, TenantClock cl
         await using var ctx = systemDb.Create(0);   // 계정 없음(로그인 전)
         var active = await ctx.Tenants.Where(t => t.Status == TenantStatus.Active).Select(t => t.Id).ToListAsync(ct);
         var people = await ctx.Memberships.Where(m => m.Status == MembershipStatus.Approved && active.Contains(m.TenantId))
-            .Select(m => m.AccountId).Distinct().CountAsync(ct);
+            .Select(m => m.UserName).Distinct().CountAsync(ct);
 
         var tz = TimeZoneInfo.FindSystemTimeZoneById(PlatformHomeService.PlatformTimeZone);
         var start = today.AddDays(-6);
@@ -85,14 +85,14 @@ public sealed class LandingService(IAppDb db, ISystemDb systemDb, TenantClock cl
                               where a.MissionDate >= start && a.MissionDate <= today
                               join p in ctx.Participants on a.ParticipantId equals p.Id
                               join m in ctx.Memberships on p.MembershipId equals m.Id
-                              select new { a.MissionDate, m.AccountId }).Distinct().ToListAsync(ct);
-        var reads = await ctx.ChapterReads.Where(c => c.ReadUtc >= fromUtc).Select(c => new { c.ReadUtc, c.AccountId }).ToListAsync(ct);
-        var byDay = missions.Select(x => (x.MissionDate, x.AccountId))
-            .Concat(reads.Select(x => (DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(x.ReadUtc, DateTimeKind.Utc), tz)), x.AccountId)))
+                              select new { a.MissionDate, m.UserName }).Distinct().ToListAsync(ct);
+        var reads = await ctx.ReadingChapterReads.Where(c => c.ReadAt >= fromUtc).Select(c => new { c.ReadAt, c.UserName }).ToListAsync(ct);
+        var byDay = missions.Select(x => (x.MissionDate, x.UserName))
+            .Concat(reads.Select(x => (DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(x.ReadAt, DateTimeKind.Utc), tz)), x.UserName)))
             .GroupBy(x => x.Item1).ToDictionary(g => g.Key, g => g.Select(x => x.Item2).Distinct().Count());
         var week = Enumerable.Range(0, 7).Select(i => start.AddDays(i)).Select(d => new LandingDay(d, byDay.GetValueOrDefault(d))).ToList();
 
-        var chapters = await ctx.ChapterReads.CountAsync(c => c.ReadUtc >= yearUtc, ct);
+        var chapters = await ctx.ReadingChapterReads.CountAsync(c => c.ReadAt >= yearUtc, ct);
         var depts = await ctx.Tenants.CountAsync(t => t.Status == TenantStatus.Active && !t.IsLobby, ct);   // 임시 부서(0064)는 "함께하는 부서"에 세지 않는다
         return new LandingStats(depts, people, byDay.GetValueOrDefault(today), chapters, week);
     }

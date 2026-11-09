@@ -14,7 +14,7 @@ public class PhotoModel(PhotoService photos, TenantContext tenant) : PageModel
 {
     public async Task<IActionResult> OnGetAsync(int id, CancellationToken ct)
     {
-        if (tenant.IsLobby && id != User.AccountId()) return NotFound();
+        if (tenant.IsLobby && id != User.UserName()) return NotFound();
         if (photos.FullPath(await photos.FileInTenantAsync(id, ct)) is not { } path) return NotFound();
         Response.Headers.CacheControl = "private, max-age=86400";   // 주소에 파일 이름(?v=)이 붙어 바뀌면 새로 받는다
         return PhysicalFile(path, PhotoService.ContentType(path));

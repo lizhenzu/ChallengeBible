@@ -127,7 +127,7 @@
                                 @foreach (var a in t.Admins)
                                 {
                                     <form method="post" asp-page-handler="RemoveAdmin" class="adminline">
-                                        <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="accountId" value="@a.AccountId" />
+                                        <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="userName" value="@a.UserName" />
                                         <span>@a.Name <small>@a.Email</small></span><button type="submit" class="btn t">빼기</button>
                                     </form>
                                 }

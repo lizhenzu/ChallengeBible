@@ -57,7 +57,7 @@ public partial class ContentCalendarTests : IClassFixture<WebApplicationFactory<
         using (var raw = InMemoryDb.Raw(_db))
         {
             var w = raw.DailyWords.Single(x => x.Id == over.Id);
-            (w.CreatedByAccountId, w.CreatedUtc) = (me, new DateTime(2026, 12, 27, 3, 0, 0, DateTimeKind.Utc));
+            (w.CreatedByUserName, w.CreatedUtc) = (me, new DateTime(2026, 12, 27, 3, 0, 0, DateTimeKind.Utc));
             raw.SaveChanges();
         }
         ContentSeed.Word(_db, Jan5.AddDays(2), _elem.Id, "다른 부서 말씀");

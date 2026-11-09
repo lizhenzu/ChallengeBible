@@ -48,7 +48,7 @@ public partial class RuleSetTests : IClassFixture<WebApplicationFactory<Program>
     private void Insert(int no, DateOnly from, RuleSet r)
     {
         using var raw = InMemoryDb.Raw(_db);
-        raw.PlatformRuleSetVersions.Add(new PlatformRuleSetVersion { VersionNo = no, EffectiveFrom = from, Values = RuleService.ToJson(r), ChangedUtc = DateTime.UtcNow, ChangedByAccountId = _op });
+        raw.PlatformRuleSetVersions.Add(new PlatformRuleSetVersion { VersionNo = no, EffectiveFrom = from, Values = RuleService.ToJson(r), ChangedUtc = DateTime.UtcNow, ChangedByUserName = _op });
         raw.SaveChanges();
     }
 

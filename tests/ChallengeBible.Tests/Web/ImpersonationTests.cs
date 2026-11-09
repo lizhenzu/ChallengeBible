@@ -94,7 +94,7 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
         using var raw = InMemoryDb.Raw(_db);
         var logs = raw.AuditLogs.Where(l => l.Action.StartsWith("Impersonate")).OrderBy(l => l.Id).ToList();
         Assert.Equal([ImpersonationService.StartAction, ImpersonationService.StopAction], logs.Select(l => l.Action));
-        Assert.All(logs, l => Assert.Equal((_op, (int?)_op), (l.ActorAccountId, l.ImpersonatorAccountId)));
+        Assert.All(logs, l => Assert.Equal((_op, (int?)_op), (l.ActorUserName, l.ImpersonatorUserName)));
         Assert.All(logs, l => Assert.Equal($"account={_jieun}", l.Detail));
     }
 
@@ -120,18 +120,18 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
         {
             using (var ctx = InMemoryDb.Raw(_db))
             {
-                ctx.AuditLogs.Add(new AuditLog { OccurredUtc = DateTime.UtcNow, ActorAccountId = _jieun, Action = "SettingChange" });
+                ctx.AuditLogs.Add(new AuditLog { OccurredUtc = DateTime.UtcNow, ActorUserName = _jieun, Action = "SettingChange" });
                 await ctx.SaveChangesAsync();
             }
             AuditContext.Impersonator = null;
             using (var ctx = InMemoryDb.Raw(_db))
             {
-                ctx.AuditLogs.Add(new AuditLog { OccurredUtc = DateTime.UtcNow, ActorAccountId = _jieun, Action = "SettingChange" });
+                ctx.AuditLogs.Add(new AuditLog { OccurredUtc = DateTime.UtcNow, ActorUserName = _jieun, Action = "SettingChange" });
                 ctx.SaveChanges();
             }
         }
         finally { AuditContext.Impersonator = null; }
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Equal([(int?)_op, null], raw.AuditLogs.OrderBy(l => l.Id).Select(l => l.ImpersonatorAccountId).ToList());
+        Assert.Equal([(int?)_op, null], raw.AuditLogs.OrderBy(l => l.Id).Select(l => l.ImpersonatorUserName).ToList());
     }
 }

@@ -24,7 +24,7 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
         var f = app.WithWebHostBuilder(b =>
         {
             b.UseSetting("ContentApi:Key", key ?? "");
-            b.UseSetting("ContentApi:ActorAccountId", actor?.ToString() ?? "");
+            b.UseSetting("ContentApi:ActorUserName", actor?.ToString() ?? "");
             b.ConfigureServices(s =>
             {
                 s.AddScoped<IAppDb>(sp => new InMemoryDb(_db, sp.GetRequiredService<RequestScope>()));
@@ -83,7 +83,7 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
         {
             var q = raw.DailyQuizzes.IgnoreQueryFilters().Include(x => x.Choices).Single();
             Assert.Null(q.TenantId);
-            Assert.Equal(actor, q.CreatedByAccountId);
+            Assert.Equal(actor, q.CreatedByUserName);
             Assert.Equal(new DateOnly(2027, 1, 5), q.ExposeDate);
             Assert.Equal("창세기 이야기", q.Background);
             Assert.Equal(["아담", "노아", "모세"], q.Choices.OrderBy(x => x.SortOrder).Select(x => x.Text));
@@ -184,7 +184,7 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
         {
             var w = raw.DailyWords.IgnoreQueryFilters().Single();
             Assert.Null(w.TenantId);
-            Assert.Equal(actor, w.CreatedByAccountId);
+            Assert.Equal(actor, w.CreatedByUserName);
             Assert.Equal(new DateOnly(2027, 1, 5), w.ExposeDate);
             Assert.Equal("믿음의 시작", w.Title);
             Assert.Equal("아브람이 길을 떠나요.", w.Summary);
@@ -313,7 +313,7 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
         using (var raw = InMemoryDb.Raw(_db))
         {
             var q = raw.DailyQuizzes.IgnoreQueryFilters().Single();
-            Assert.Equal(id, q.CreatedByAccountId);   // 만든 사람 = 로그인한 관리자
+            Assert.Equal(id, q.CreatedByUserName);   // 만든 사람 = 로그인한 관리자
             Assert.Equal(new DateOnly(2027, 1, 5), q.ExposeDate);
         }
         res = await PostScreen(op, "2027-01-05", SampleJson);

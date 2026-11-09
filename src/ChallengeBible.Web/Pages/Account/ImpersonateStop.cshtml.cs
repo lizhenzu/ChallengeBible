@@ -14,7 +14,7 @@ public class ImpersonateStopModel(ImpersonationService imp) : PageModel
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
-        if (User.ImpersonatorId() is not int admin || User.AccountId() is not int me) return Redirect("/");
+        if (User.ImpersonatorId() is not int admin || User.UserName() is not int me) return Redirect("/");
         var back = await imp.StopAsync(admin, me, ct);
         if (back is null)
         {

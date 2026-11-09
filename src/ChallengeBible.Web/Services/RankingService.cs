@@ -35,7 +35,7 @@ public sealed class RankingService(IAppDb db, TenantContext tenant, TenantClock 
 
         var people = await (from p in ctx.Participants
                             join m in ctx.Memberships.Include(x => x.Roles) on p.MembershipId equals m.Id
-                            join a in ctx.Accounts on m.AccountId equals a.Id
+                            join a in ctx.Users on m.UserName equals a.Id
                             where p.IsActive && m.Status == MembershipStatus.Approved
                             select new { p.Id, a.DisplayName, m.GroupLabel, Roles = m.Roles.Select(x => x.Role).ToList(), MembershipId = m.Id }).ToListAsync(ct);
         var ids = people.Select(p => p.Id).ToList();

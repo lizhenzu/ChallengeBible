@@ -1,7 +1,7 @@
 @* 얇은 머리말: 왼쪽 도전!!!, 오른쪽은 로그인 상태에 따라 *@
 <header class="top gut"><div class="wrap">
     <a class="brand" href="/">도전!!!</a>
-    @if (User.AccountId() is not null)
+    @if (User.UserName() is not null)
     {
         <form method="post" action="/account/logout" asp-antiforgery="true" class="who">
             @if (User.IsPlatformAdmin()) { <a class="plat" href="/platform">플랫폼</a> }

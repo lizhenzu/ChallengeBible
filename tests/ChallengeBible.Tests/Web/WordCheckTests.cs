@@ -104,7 +104,7 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
     private void Seed(params DailyWord[] words)
     {
         using var raw = InMemoryDb.Raw(_db);
-        foreach (var w in words) { w.CreatedByAccountId = raw.Accounts.First().Id; raw.DailyWords.Add(w); }
+        foreach (var w in words) { w.CreatedByUserName = raw.Accounts.First().Id; raw.DailyWords.Add(w); }
         raw.SaveChanges();
     }
 
@@ -282,7 +282,7 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
     private void SeedQuiz(params DailyQuiz[] quizzes)
     {
         using var raw = InMemoryDb.Raw(_db);
-        foreach (var q in quizzes) { q.CreatedByAccountId = raw.Accounts.First().Id; raw.DailyQuizzes.Add(q); }
+        foreach (var q in quizzes) { q.CreatedByUserName = raw.Accounts.First().Id; raw.DailyQuizzes.Add(q); }
         raw.SaveChanges();
     }
 

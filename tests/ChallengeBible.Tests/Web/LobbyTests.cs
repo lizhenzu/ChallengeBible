@@ -56,7 +56,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         return (c, r);
     }
 
-    private int AccountId(string email = "cheolsu") { using var raw = InMemoryDb.Raw(_db); return raw.Accounts.Single(a => a.Email == email + "@example.com").Id; }
+    private int UserName(string email = "cheolsu") { using var raw = InMemoryDb.Raw(_db); return raw.Accounts.Single(a => a.Email == email + "@example.com").Id; }
 
     private async Task PressWord(HttpClient c, DateOnly d)
     {
@@ -73,9 +73,9 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal("/", signup.Headers.Location!.OriginalString);
         var home = await c.GetAsync("/");
         Assert.Equal("/welcome", home.Headers.Location!.OriginalString);
-        var me = AccountId();
+        var me = UserName();
         using var raw = InMemoryDb.Raw(_db);
-        var m = raw.Memberships.Include(x => x.Roles).Single(x => x.TenantId == _lobby.Id && x.AccountId == me);
+        var m = raw.Memberships.Include(x => x.Roles).Single(x => x.TenantId == _lobby.Id && x.UserName == me);
         Assert.Equal(MembershipStatus.Approved, m.Status);
         Assert.Equal([Roles.Participant], m.Roles.Select(r => r.Role));
         Assert.True(raw.Participants.Single(p => p.MembershipId == m.Id).IsActive);
@@ -129,7 +129,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task R172_신청해_두면_2단계_승인_기다리는_중으로_바뀐다()
     {
         var (c, _) = await SignUp();
-        InMemoryDb.SeedMembership(_db, _kids.Id, AccountId(), MembershipStatus.Requested, Roles.Participant);
+        InMemoryDb.SeedMembership(_db, _kids.Id, UserName(), MembershipStatus.Requested, Roles.Participant);
         var home = await c.GetStringAsync("/welcome");
         Assert.Contains("<span>잠실새내교회 유년부</span>", home);                        // 참여 신청 ✓ + 신청한 부서
         Assert.Contains("관리자 승인 <span class=\"wl-tag wl-wait\">기다리는 중</span>", home);
@@ -154,7 +154,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.DoesNotContain("class=\"side\"", today);
         Assert.DoesNotContain("class=\"hj-rib\"", today);                                  // 말씀 한 줄 띠는 지움(2026-11-03)
         Assert.DoesNotContain("오늘 읽을 범위", today);
-        InMemoryDb.SeedMembership(_db, _kids.Id, AccountId(), MembershipStatus.Approved, Roles.Participant);
+        InMemoryDb.SeedMembership(_db, _kids.Id, UserName(), MembershipStatus.Approved, Roles.Participant);
         var kids = await c.GetStringAsync("/jamsil-kids");                               // 일반 부서 홈도 같은 모양(2026-10-31)
         Assert.DoesNotContain("<small>오늘의 기도</small>", kids);
         Assert.DoesNotContain("class=\"hj-rib\"", kids);
@@ -164,7 +164,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task 일반_부서는_today_주소로_가도_원래_홈으로_보낸다()
     {
         var (c, _) = await SignUp();
-        InMemoryDb.SeedMembership(_db, _kids.Id, AccountId(), MembershipStatus.Approved, Roles.Participant);
+        InMemoryDb.SeedMembership(_db, _kids.Id, UserName(), MembershipStatus.Approved, Roles.Participant);
         var r = await c.GetAsync("/jamsil-kids/today");                                  // 일반 부서 홈은 한 화면 그대로 — today 는 홈으로
         Assert.Equal("/jamsil-kids", r.Headers.Location!.OriginalString);
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/jamsil-kids")).StatusCode);
@@ -204,7 +204,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         var (c, _) = await SignUp();
         await PressWord(c, Jan4);
         await PressWord(c, Jan5);
-        var me = AccountId();
+        var me = UserName();
         var admin = InMemoryDb.SeedAccount(_db, "eunhye", "이은혜");
         InMemoryDb.SeedMembership(_db, _kids.Id, admin.Id, MembershipStatus.Approved, Roles.TenantAdmin);
         var req = InMemoryDb.SeedMembership(_db, _kids.Id, me, MembershipStatus.Requested, Roles.Participant);
@@ -219,7 +219,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         var ledger = raw.PointLedgers.Where(l => l.TenantId == _kids.Id && l.ParticipantId == kp).ToList();
         Assert.Equal(acts.Sum(a => a.Points), ledger.Sum(l => l.Points));
         Assert.All(ledger, l => Assert.Contains(acts, a => a.Id == l.ActivityId));    // 원장은 옮긴 새 기록을 가리킴
-        var lm = raw.Memberships.Single(m => m.TenantId == _lobby.Id && m.AccountId == me);
+        var lm = raw.Memberships.Single(m => m.TenantId == _lobby.Id && m.UserName == me);
         Assert.Equal(MembershipStatus.Suspended, lm.Status);                          // 지우지 않고 멈춤
         Assert.False(raw.Participants.Single(p => p.MembershipId == lm.Id).IsActive);
         Assert.Equal(4, raw.Activities.Count(a => a.TenantId == _lobby.Id));          // 임시 부서 쪽 기록은 남음
@@ -231,7 +231,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     {
         var (c, _) = await SignUp();
         await PressWord(c, Jan5);
-        var me = AccountId();
+        var me = UserName();
         var admin = InMemoryDb.SeedAccount(_db, "eunhye", "이은혜");
         InMemoryDb.SeedMembership(_db, _kids.Id, admin.Id, MembershipStatus.Approved, Roles.TenantAdmin);
         var req = InMemoryDb.SeedMembership(_db, _kids.Id, me, MembershipStatus.Requested, Roles.Participant);
@@ -271,7 +271,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task R173_승인되면_첫_화면은_진짜_부서로()
     {
         var (c, _) = await SignUp();
-        var me = AccountId();
+        var me = UserName();
         var admin = InMemoryDb.SeedAccount(_db, "eunhye", "이은혜");
         InMemoryDb.SeedMembership(_db, _kids.Id, admin.Id, MembershipStatus.Approved, Roles.TenantAdmin);
         var req = InMemoryDb.SeedMembership(_db, _kids.Id, me, MembershipStatus.Requested, Roles.Guardian);

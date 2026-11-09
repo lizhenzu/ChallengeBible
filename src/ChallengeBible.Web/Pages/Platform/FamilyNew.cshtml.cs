@@ -15,7 +15,7 @@ namespace ChallengeBible.Web.Pages.Platform;
 public class FamilyNewModel(FamilyAdminService families) : PageModel, ITitled
 {
     public string Title => "온가족 묶기";
-    private int Me => User.AccountId()!.Value;
+    private int Me => User.UserName()!.Value;
 
     [BindProperty(SupportsGet = true, Name = "request")] public int? RequestId { get; set; }
     [BindProperty(SupportsGet = true)] public List<int> Pick { get; set; } = [];

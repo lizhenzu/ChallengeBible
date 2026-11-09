@@ -14,32 +14,35 @@ public sealed class ImpersonationService(ISystemDb systemDb, TimeProvider time)
     public const string StartAction = "ImpersonateStart";
     public const string StopAction = "ImpersonateStop";
 
-    private static Task<bool> IsAdminAsync(AppDbContext ctx, int id, CancellationToken ct) =>
-        ctx.Accounts.AnyAsync(a => a.Id == id && a.IsPlatformAdmin && a.Status == "Active", ct);
+    private async Task<bool> IsAdminAsync(AppDbContext ctx, string userName, CancellationToken ct)
+    {
+        var u = await ctx.Users.AsNoTracking().SingleOrDefaultAsync(a => a.UserName == userName, ct);
+        return u is not null && !u.IsDisabled(time.GetUtcNow()) && await AccountService.IsPlatformAdminAsync(ctx, u.Id, ct);
+    }
 
     /// <summary>대상: 플랫폼 관리자를 뺀 사용 중인 계정. 성공하면 대상 계정(쿠키를 이걸로 바꾼다).</summary>
-    public async Task<(ImpersonateError Error, Account? Target)> StartAsync(int actor, int targetId, CancellationToken ct = default)
+    public async Task<(ImpersonateError Error, AppUser? Target)> StartAsync(string actor, string targetId, CancellationToken ct = default)
     {
         await using var ctx = systemDb.Create(actor);
         if (!await IsAdminAsync(ctx, actor, ct)) return (ImpersonateError.NotAdmin, null);
         if (actor == targetId) return (ImpersonateError.Self, null);
-        var t = await ctx.Accounts.AsNoTracking().SingleOrDefaultAsync(a => a.Id == targetId, ct);
+        var t = await ctx.Users.AsNoTracking().SingleOrDefaultAsync(a => a.UserName == targetId, ct);
         if (t is null) return (ImpersonateError.NotFound, null);
-        if (t.IsPlatformAdmin) return (ImpersonateError.PlatformAdmin, null);
-        if (t.Status != "Active") return (ImpersonateError.Suspended, null);
-        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorAccountId = actor, Action = StartAction, Detail = $"account={targetId}", ImpersonatorAccountId = actor });
+        if (await AccountService.IsPlatformAdminAsync(ctx, t.Id, ct)) return (ImpersonateError.PlatformAdmin, null);
+        if (t.IsDisabled(time.GetUtcNow())) return (ImpersonateError.Suspended, null);
+        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = StartAction, Detail = $"account={targetId}", ImpersonatorUserName = actor });
         await ctx.SaveChangesAsync(ct);
         return (ImpersonateError.None, t);
     }
 
     /// <summary>복귀: 가장한 관리자가 지금도 플랫폼 관리자면 그 계정을 돌려준다(아니면 null — 로그아웃시킨다).</summary>
-    public async Task<Account?> StopAsync(int impersonator, int current, CancellationToken ct = default)
+    public async Task<AppUser?> StopAsync(string impersonator, string current, CancellationToken ct = default)
     {
         await using var ctx = systemDb.Create(impersonator);
         if (!await IsAdminAsync(ctx, impersonator, ct)) return null;
-        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorAccountId = impersonator, Action = StopAction, Detail = $"account={current}", ImpersonatorAccountId = impersonator });
+        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = impersonator, Action = StopAction, Detail = $"account={current}", ImpersonatorUserName = impersonator });
         await ctx.SaveChangesAsync(ct);
-        return await ctx.Accounts.AsNoTracking().SingleAsync(a => a.Id == impersonator, ct);
+        return await ctx.Users.AsNoTracking().SingleAsync(a => a.UserName == impersonator, ct);
     }
 
     public static string Message(ImpersonateError e) => e switch

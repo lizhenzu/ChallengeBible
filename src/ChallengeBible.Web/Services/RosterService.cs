@@ -29,7 +29,7 @@ public sealed class RosterService(IAppDb db, TenantContext tenant, TenantClock c
         await using var ctx = db.Create();
 
         var members = await (from m in ctx.Memberships
-                             join a in ctx.Accounts on m.AccountId equals a.Id
+                             join a in ctx.Users on m.UserName equals a.Id
                              where m.Status == MembershipStatus.Approved
                              select new { m.Id, a.DisplayName, a.Email, m.GroupLabel }).ToListAsync(ct);
         var roles = (await ctx.MembershipRoles.Select(r => new { r.MembershipId, r.Role }).ToListAsync(ct))

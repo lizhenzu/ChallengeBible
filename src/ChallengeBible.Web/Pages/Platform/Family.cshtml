@@ -32,15 +32,15 @@
                 <div class="top"><span class="av" aria-hidden="true">@ChallengeBible.Web.Pages.Account.FamilyModel.Initial(p.Name)</span>
                     <span class="tx"><b>@p.Name</b><small>@m.Depts</small></span><span class="pt num">@p.Points.ToString("N0")</span></div>
                 <div class="ctl">
-                    <select class="sel" name="rel_@p.AccountId" form="famSave" aria-label="@(p.Name) 관계">
+                    <select class="sel" name="rel_@p.UserName" form="famSave" aria-label="@(p.Name) 관계">
                         @foreach (var rel in FamilyRelation.All) { <option value="@rel" selected="@(rel == p.Relation)">@FamilyTeamService.RelationLabel(rel)</option> }
                     </select>
                     <form method="post" asp-page-handler="Move" class="ord">
-                        <input type="hidden" name="account" value="@p.AccountId" />
+                        <input type="hidden" name="account" value="@p.UserName" />
                         <button type="submit" name="up" value="true" aria-label="@(p.Name) 위로" disabled="@(i == 0)">▲</button>
                         <button type="submit" name="up" value="false" aria-label="@(p.Name) 아래로" disabled="@(i == last)">▼</button>
                     </form>
-                    <form method="post" asp-page-handler="Remove" class="rm"><input type="hidden" name="account" value="@p.AccountId" /><button type="submit" class="x">빼기</button></form>
+                    <form method="post" asp-page-handler="Remove" class="rm"><input type="hidden" name="account" value="@p.UserName" /><button type="submit" class="x">빼기</button></form>
                 </div>
             </div>
         }

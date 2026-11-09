@@ -52,7 +52,7 @@ public class MemberAdminServiceTests
         var after = Load(m.Id);
         Assert.Equal(MembershipStatus.Approved, after.Status);
         Assert.Equal("사랑반", after.GroupLabel);
-        Assert.Equal(_admin.Id, after.DecidedByAccountId);
+        Assert.Equal(_admin.Id, after.DecidedByUserName);
         Assert.Equal([Roles.Participant], after.Roles.Select(r => r.Role));
     }
 

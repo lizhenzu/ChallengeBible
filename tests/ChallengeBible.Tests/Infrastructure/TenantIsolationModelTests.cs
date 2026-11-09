@@ -38,7 +38,7 @@ public class TenantIsolationModelTests
     [Fact]
     public void 시스템_연결은_전역_필터를_끈다()
     {
-        using var db = new SystemDbContextFactory(Cs).Create(actorAccountId: 1);
+        using var db = new SystemDbContextFactory(Cs).Create(actorUserName: 1);
         var sql = db.Memberships.ToQueryString();
         Assert.DoesNotContain("[m].[TenantId] = @", sql);
     }

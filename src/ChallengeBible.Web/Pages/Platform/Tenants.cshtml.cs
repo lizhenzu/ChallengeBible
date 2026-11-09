@@ -30,7 +30,7 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
     public bool ShowCreate { get; private set; }
     public string? RowError { get; private set; }
 
-    private int Me => User.AccountId()!.Value;
+    private int Me => User.UserName()!.Value;
 
     public static string ColorVar(string c) => $"var(--c-{c})";
     public static string ColorLabel(string c) => c switch { "blue" => "파랑", "green" => "초록", "red" => "주황", "violet" => "보라", _ => c };
@@ -88,9 +88,9 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
         return err is null ? RedirectToPage(new { Open = id, Ok = "admin" }) : await RowFail(id, err, ct);
     }
 
-    public async Task<IActionResult> OnPostRemoveAdminAsync(int id, int accountId, CancellationToken ct)
+    public async Task<IActionResult> OnPostRemoveAdminAsync(int id, string userName, CancellationToken ct)
     {
-        await platform.RemoveAdminAsync(Me, id, accountId, ct);
+        await platform.RemoveAdminAsync(Me, id, userName, ct);
         return RedirectToPage(new { Open = id, Ok = "admin" });
     }
 

@@ -58,7 +58,7 @@ public sealed class ErrorLog(TimeProvider time)
 /// <summary>운영 점검의 가동 · 버전: 앱이 켜진 시각, 빌드 때 넣은 커밋 번호(InformationalVersion "+커밋"), 빌드 시각.</summary>
 public sealed class AppInfo(TimeProvider time)
 {
-    public DateTime StartedUtc { get; } = time.GetUtcNow().UtcDateTime;
+    public DateTime StartedAt { get; } = time.GetUtcNow().UtcDateTime;
 
     public string Commit { get; } = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion is { } v
         && v.IndexOf('+') is var i and >= 0 ? v[(i + 1)..] : "";

@@ -116,7 +116,7 @@ public class MissionServiceTests
     {
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.TenantSeasons.Add(new TenantSeason { TenantId = _kids.Id, Year = 2027, StartDate = new DateOnly(2027, 1, 10), ChangedByAccountId = 1 });
+            raw.TenantSeasons.Add(new TenantSeason { TenantId = _kids.Id, Year = 2027, StartDate = new DateOnly(2027, 1, 10), ChangedByUserName = 1 });
             raw.SaveChanges();
         }
         ContentSeed.Word(_db, Jan5);

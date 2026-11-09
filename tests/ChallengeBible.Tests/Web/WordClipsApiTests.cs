@@ -25,7 +25,7 @@ public partial class WordClipsApiTests(WebApplicationFactory<Program> app) : ICl
     private WebApplicationFactory<Program> Host(string? key = Key, int? actor = null) => app.WithWebHostBuilder(b =>
     {
         b.UseSetting("ContentApi:Key", key ?? "");
-        b.UseSetting("ContentApi:ActorAccountId", actor?.ToString() ?? "");
+        b.UseSetting("ContentApi:ActorUserName", actor?.ToString() ?? "");
         b.ConfigureServices(s =>
         {
             s.AddScoped<IAppDb>(sp => new InMemoryDb(_db, sp.GetRequiredService<RequestScope>()));

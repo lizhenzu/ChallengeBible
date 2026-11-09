@@ -34,7 +34,7 @@ public class PlatformHomeTests
         raw.Accounts.Single(a => a.Id == _op).IsPlatformAdmin = true;
         foreach (var a in raw.Accounts) a.CreatedUtc = now.AddDays(-30);
         raw.Accounts.Single(a => a.Id == kid2).CreatedUtc = now.AddDays(-2);           // 이번 주 새 계정
-        raw.Memberships.Single(m => m.AccountId == waiting).RequestedUtc = now.AddDays(-5);   // 오래 기다리는 신청
+        raw.Memberships.Single(m => m.UserName == waiting).RequestedUtc = now.AddDays(-5);   // 오래 기다리는 신청
         var p1 = new Participant { TenantId = _kids.Id, MembershipId = km.Id };
         var p2 = new Participant { TenantId = _kids.Id, MembershipId = km2.Id };
         raw.Participants.AddRange(p1, p2);
@@ -42,10 +42,10 @@ public class PlatformHomeTests
         raw.Activities.Add(new Activity { TenantId = _kids.Id, ParticipantId = p1.Id, MissionItem = "Word.Me", MissionDate = Jan5 });
         raw.Activities.Add(new Activity { TenantId = _kids.Id, ParticipantId = p1.Id, MissionItem = "Prayer.Me", MissionDate = Jan5 });
         raw.Activities.Add(new Activity { TenantId = _kids.Id, ParticipantId = p2.Id, MissionItem = "Word.Me", MissionDate = Jan5.AddDays(-1) });   // 어제
-        raw.ChapterReads.Add(new ChapterRead { AccountId = kid, RoundNo = 1, BookId = 1, Chapter = 1, ReadUtc = now });
-        raw.ChapterReads.Add(new ChapterRead { AccountId = kid, RoundNo = 1, BookId = 1, Chapter = 2, ReadUtc = now });
-        raw.ChapterReads.Add(new ChapterRead { AccountId = kid2, RoundNo = 1, BookId = 1, Chapter = 1, ReadUtc = now.AddDays(-1) });
-        raw.AuditLogs.Add(new AuditLog { OccurredUtc = now.AddHours(-1), ActorAccountId = _admin, Action = SeasonService.LogAction, TenantId = _kids.Id, Detail = "2027 시즌 시작일 1월 1일 → 1월 3일" });
+        raw.ChapterReads.Add(new ChapterRead { UserName = kid, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = now });
+        raw.ChapterReads.Add(new ChapterRead { UserName = kid, RoundNo = 1, BookId = 1, Chapter = 2, ReadAt = now });
+        raw.ChapterReads.Add(new ChapterRead { UserName = kid2, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = now.AddDays(-1) });
+        raw.AuditLogs.Add(new AuditLog { OccurredUtc = now.AddHours(-1), ActorUserName = _admin, Action = SeasonService.LogAction, TenantId = _kids.Id, Detail = "2027 시즌 시작일 1월 1일 → 1월 3일" });
         raw.SaveChanges();
     }
 

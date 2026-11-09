@@ -4,7 +4,7 @@
 @* 확정 시안: 온가족-단독시안(0065) — 온가족 있음(누적 총점 · 구성원, 보기만) · 없음(신청) · 신청 기다림. 시상은 부서 가족팀으로만 *@
 @{
     var v = Model.View;
-    var me = User.AccountId();
+    var me = User.UserName();
     string Dept(string name) => string.Join(" · ", JoinModel.Split(name) is var s && s.Church.Length > 0 ? new[] { s.Church, s.Dept } : new[] { s.Dept });
 }
 <header class="top gut"><div class="wrap">
@@ -30,7 +30,7 @@
         <div class="of-mem">
             @foreach (var p in f.People)
             {
-                <div class="of-m @(p.AccountId == me ? "me" : "")">
+                <div class="of-m @(p.UserName == me ? "me" : "")">
                     <span class="av" aria-hidden="true">@FamilyModel.Initial(p.Name)</span>
                     <span class="tx"><b>@p.Name<em>@FamilyTeamService.RelationLabel(p.Relation)</em></b><small>@(p.Depts.Count > 0 ? string.Join(" / ", p.Depts.Select(Dept)) : "소속 부서 없음")</small></span>
                     <span class="pt"><b class="num">@p.Points.ToString("N0")</b><small>@(FamilyModel.Ago(p.Last, v.Today) ?? "아직 없음")</small></span>

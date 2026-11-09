@@ -150,9 +150,9 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
         if (t.ReadingEnabled && (t.ReadingBoardPublic || tenant.IsStaff))
         {
             // 통독 기록은 계정 범위 — 참여자 현황과 같은 기준(공개 또는 관리자 · 교사)에서만 이 부서 승인 소속원 것을 센다(DB 는 fn_ReadingRead)
-            var ids = await ctx.Memberships.Where(m => m.Status == MembershipStatus.Approved).Select(m => m.AccountId).ToListAsync(ct);
+            var ids = await ctx.Memberships.Where(m => m.Status == MembershipStatus.Approved).Select(m => m.UserName).ToListAsync(ct);
             var from = TimeZoneInfo.ConvertTimeToUtc(new DateTime(today.Year, 1, 1), TimeZoneInfo.FindSystemTimeZoneById(t.TimeZoneId));   // 부서 시간 1월 1일 0시
-            chapters = await ctx.ChapterReads.IgnoreQueryFilters().CountAsync(c => ids.Contains(c.AccountId) && c.ReadUtc >= from, ct);
+            chapters = await ctx.ReadingChapterReads.IgnoreQueryFilters().CountAsync(c => ids.Contains(c.UserName) && c.ReadAt >= from, ct);
         }
         // 참여자 수(명단 "참여자"와 같은 기준, ADR 0085): 승인된 소속의 활성 참여자
         var participants = await (from pa in ctx.Participants join m in ctx.Memberships on pa.MembershipId equals m.Id

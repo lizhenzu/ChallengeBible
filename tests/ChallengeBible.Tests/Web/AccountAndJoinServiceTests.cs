@@ -138,7 +138,7 @@ public class AccountAndJoinServiceTests
         var b = InMemoryDb.SeedTenant(_db, "jamsil-elem", "JSELEM");
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.Memberships.Add(new Membership { TenantId = a.Id, AccountId = me.Id, Status = MembershipStatus.Approved });
+            raw.Memberships.Add(new Membership { TenantId = a.Id, UserName = me.Id, Status = MembershipStatus.Approved });
             raw.SaveChanges();
         }
         var go = await Accounts().WhereToGoAsync(me.Id);
@@ -146,7 +146,7 @@ public class AccountAndJoinServiceTests
 
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.Memberships.Add(new Membership { TenantId = b.Id, AccountId = me.Id, Status = MembershipStatus.Approved });
+            raw.Memberships.Add(new Membership { TenantId = b.Id, UserName = me.Id, Status = MembershipStatus.Approved });
             raw.SaveChanges();
         }
         go = await Accounts().WhereToGoAsync(me.Id);

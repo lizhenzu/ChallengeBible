@@ -73,14 +73,14 @@ public static class ContentApi
         var errors = check(body);
         if (!errors.Ok) return Invalid(errors);
 
-        if (!int.TryParse(config["ContentApi:ActorAccountId"], out var actor))
-            return NotReady(logs, "ContentApi:ActorAccountId 가 없어요.");
+        if (!int.TryParse(config["ContentApi:ActorUserName"], out var actor))
+            return NotReady(logs, "ContentApi:ActorUserName 가 없어요.");
         try { return await save(actor, day, body); }
-        catch (UnauthorizedAccessException) { return NotReady(logs, "ContentApi:ActorAccountId 가 활성 플랫폼 관리자가 아니에요."); }
+        catch (UnauthorizedAccessException) { return NotReady(logs, "ContentApi:ActorUserName 가 활성 플랫폼 관리자가 아니에요."); }
     }
 
     /// <summary>검사하고 저장(API · 관리 화면 "퀴즈 넣기" 공통). 플랫폼 관리자가 아니면 UnauthorizedAccessException.</summary>
-    public static async Task<QuizPutResult> SaveAsync(ContentAdminService content, int actor, DateOnly day, QuizPutRequest body, CancellationToken ct = default)
+    public static async Task<QuizPutResult> SaveAsync(ContentAdminService content, string actor, DateOnly day, QuizPutRequest body, CancellationToken ct = default)
     {
         var errors = Check(body);
         if (!errors.Ok) return new(errors, false, null, null);
@@ -96,7 +96,7 @@ public static class ContentApi
     }
 
     /// <summary>말씀을 검사하고 저장. 플랫폼 관리자가 아니면 UnauthorizedAccessException.</summary>
-    public static async Task<QuizPutResult> SaveAsync(ContentAdminService content, int actor, DateOnly day, WordPutRequest body, CancellationToken ct = default)
+    public static async Task<QuizPutResult> SaveAsync(ContentAdminService content, string actor, DateOnly day, WordPutRequest body, CancellationToken ct = default)
     {
         var errors = Check(body);
         if (!errors.Ok) return new(errors, false, null, null);
@@ -110,7 +110,7 @@ public static class ContentApi
         return await StoreAsync(content, actor, ContentKind.Word, day, input, body.Publish, ct);
     }
 
-    private static async Task<QuizPutResult> StoreAsync(ContentAdminService content, int actor, ContentKind kind, DateOnly day, ContentInput input, bool publish, CancellationToken ct)
+    private static async Task<QuizPutResult> StoreAsync(ContentAdminService content, string actor, ContentKind kind, DateOnly day, ContentInput input, bool publish, CancellationToken ct)
     {
         var created = (await content.LoadAsync(actor, kind, day, ct)).Id is null;
         var errors = await content.SaveAsync(actor, kind, input, publish, ct);

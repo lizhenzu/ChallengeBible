@@ -38,8 +38,8 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
         using var raw = InMemoryDb.Raw(_db);
         raw.Accounts.Single(a => a.Id == _op).IsPlatformAdmin = true;
         foreach (var (who, v) in new[] { (_jieun, 1), (_jieun, 2), (_kid, 1) })
-            raw.VerseReadMarks.Add(new VerseReadMark { AccountId = who, BookId = 1, Chapter = 1, Verse = (short)v, ReadUtc = DateTime.UtcNow });
-        raw.Bookmarks.Add(new Bookmark { AccountId = _jieun, BookId = 1, Chapter = 1, Verse = 1, CreatedUtc = DateTime.UtcNow });
+            raw.VerseReadMarks.Add(new VerseReadMark { UserName = who, BookId = 1, Chapter = 1, Verse = (short)v, ReadAt = DateTime.UtcNow });
+        raw.Bookmarks.Add(new Bookmark { UserName = _jieun, BookId = 1, Chapter = 1, Verse = 1, CreatedUtc = DateTime.UtcNow });
         raw.SaveChanges();
     }
 
@@ -87,7 +87,7 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
         Assert.Null(await Service().ResetBibleMarksAsync(_op, _jieun, "jieun2@example.com"));
         Assert.Equal(3, await Service().ResetBibleMarksAsync(_op, _jieun, " JIEUN@example.com "));
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Equal([_kid], raw.VerseReadMarks.Select(m => m.AccountId).ToArray());
+        Assert.Equal([_kid], raw.VerseReadMarks.Select(m => m.UserName).ToArray());
         Assert.Empty(raw.Bookmarks);
         Assert.Contains("읽음 2 · 책갈피 1", raw.AuditLogs.Single().Detail);
     }

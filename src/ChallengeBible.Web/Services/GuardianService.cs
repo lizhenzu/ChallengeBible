@@ -24,7 +24,7 @@ public sealed class GuardianService(IAppDb db, TenantContext tenant, RuleService
                       where l.GuardianMembershipId == me
                       join p in ctx.Participants on l.ParticipantId equals p.Id
                       join m in ctx.Memberships on p.MembershipId equals m.Id
-                      join a in ctx.Accounts on m.AccountId equals a.Id
+                      join a in ctx.Users on m.UserName equals a.Id
                       orderby a.DisplayName
                       select new ChildRow(p.Id, a.DisplayName, m.GroupLabel, p.IsActive && m.Status == MembershipStatus.Approved))
             .ToListAsync(ct);

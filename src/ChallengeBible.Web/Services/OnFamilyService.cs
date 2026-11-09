@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace ChallengeBible.Web.Services;
 
 /// <summary>온가족 구성원 한 명(R-178). Depts = 승인된 소속 부서 이름. Hidden 이면 부서 관리자에게 이름을 가린 사람.</summary>
-public sealed record FamilyPerson(int AccountId, string Name, string Relation, IReadOnlyList<string> Depts, int Points, DateOnly? Last)
+public sealed record FamilyPerson(int UserName, string Name, string Relation, IReadOnlyList<string> Depts, int Points, DateOnly? Last)
 {
     public bool Hidden { get; init; }
 }
@@ -50,78 +50,78 @@ public sealed class OnFamilyService(ISystemDb systemDb, TenantClock clock, TimeP
         var f = await sys.Families.AsNoTracking().Include(x => x.Links).SingleOrDefaultAsync(x => x.Id == familyId, ct);
         if (f is null) return null;
         var links = f.Links.OrderBy(l => l.SortOrder).ThenBy(l => l.AddedUtc).ToList();
-        var ids = links.Select(l => l.AccountId).ToList();
+        var ids = links.Select(l => l.UserName).ToList();
         var names = await sys.Accounts.Where(a => ids.Contains(a.Id)).ToDictionaryAsync(a => a.Id, a => a.DisplayName, ct);
         var mems = await (from m in sys.Memberships
                           join t in sys.Tenants on m.TenantId equals t.Id
-                          where ids.Contains(m.AccountId)
-                          select new { m.Id, m.AccountId, m.Status, t.Name, t.IsLobby, Active = t.Status == TenantStatus.Active }).ToListAsync(ct);
+                          where ids.Contains(m.UserName)
+                          select new { m.Id, m.UserName, m.Status, t.Name, t.IsLobby, Active = t.Status == TenantStatus.Active }).ToListAsync(ct);
         var counted = mems.Where(m => !(m.IsLobby && m.Status != MembershipStatus.Approved)).ToList();
         var memIds = counted.Select(m => m.Id).ToList();
         var parts = await sys.Participants.Where(p => memIds.Contains(p.MembershipId)).Select(p => new { p.Id, p.MembershipId }).ToListAsync(ct);
         var pids = parts.Select(p => p.Id).ToList();
         var sums = await sys.PointLedgers.Where(l => pids.Contains(l.ParticipantId))
             .GroupBy(l => l.ParticipantId).Select(g => new { g.Key, Sum = g.Sum(x => x.Points), Last = g.Max(x => x.MissionDate) }).ToListAsync(ct);
-        var owner = counted.ToDictionary(m => m.Id, m => m.AccountId);
+        var owner = counted.ToDictionary(m => m.Id, m => m.UserName);
         var byAccount = parts.Join(sums, p => p.Id, s => s.Key, (p, s) => new { Account = owner[p.MembershipId], s.Sum, s.Last })
             .GroupBy(x => x.Account).ToDictionary(g => g.Key, g => (Sum: g.Sum(x => x.Sum), Last: g.Max(x => x.Last)));
 
         var people = links.Select(l =>
         {
-            var depts = mems.Where(m => m.AccountId == l.AccountId && m.Status == MembershipStatus.Approved && m.Active).Select(m => m.Name).ToList();
-            var got = byAccount.TryGetValue(l.AccountId, out var s) ? s : (Sum: 0, Last: (DateOnly?)null);
-            return new FamilyPerson(l.AccountId, names.GetValueOrDefault(l.AccountId, "?"), l.Relation, depts, got.Sum, got.Last);
+            var depts = mems.Where(m => m.UserName == l.UserName && m.Status == MembershipStatus.Approved && m.Active).Select(m => m.Name).ToList();
+            var got = byAccount.TryGetValue(l.UserName, out var s) ? s : (Sum: 0, Last: (DateOnly?)null);
+            return new FamilyPerson(l.UserName, names.GetValueOrDefault(l.UserName, "?"), l.Relation, depts, got.Sum, got.Last);
         }).ToList();
         return new FamilyBoardView(f.Id, DisplayName(f.Name, people.Select(p => (p.Name, p.Relation)).ToList()), people);
     }
 
-    public async Task<MyOnFamily> MyAsync(int accountId, CancellationToken ct = default)
+    public async Task<MyOnFamily> MyAsync(string userName, CancellationToken ct = default)
     {
-        await using var sys = systemDb.Create(accountId);
-        var fid = await sys.FamilyLinks.Where(l => l.AccountId == accountId).Select(l => (int?)l.FamilyId).SingleOrDefaultAsync(ct);
+        await using var sys = systemDb.Create(userName);
+        var fid = await sys.FamilyLinks.Where(l => l.UserName == userName).Select(l => (int?)l.FamilyId).SingleOrDefaultAsync(ct);
         var board = fid is int id ? await LoadAsync(sys, id, ct) : null;
         var open = board is null
-            ? await sys.FamilyRequests.AsNoTracking().SingleOrDefaultAsync(r => r.RequesterAccountId == accountId && r.Status == FamilyRequestStatus.Requested, ct)
+            ? await sys.FamilyRequests.AsNoTracking().SingleOrDefaultAsync(r => r.RequesterAccountId == userName && r.Status == FamilyRequestStatus.Requested, ct)
             : null;
-        var guardian = await sys.Memberships.AnyAsync(m => m.AccountId == accountId && m.Status == MembershipStatus.Approved
+        var guardian = await sys.Memberships.AnyAsync(m => m.UserName == userName && m.Status == MembershipStatus.Approved
             && m.Roles.Any(r => r.Role == Roles.Guardian), ct);
         return new MyOnFamily(board, open, guardian, clock.Today(PlatformHomeService.PlatformTimeZone));
     }
 
     /// <summary>부서 홈 한 줄(R-177): 내 온가족 이름 · 총점. 없으면 null.</summary>
-    public async Task<(string Name, int Total)?> LineAsync(int accountId, CancellationToken ct = default)
+    public async Task<(string Name, int Total)?> LineAsync(string userName, CancellationToken ct = default)
     {
-        await using var sys = systemDb.Create(accountId);
-        var fid = await sys.FamilyLinks.Where(l => l.AccountId == accountId).Select(l => (int?)l.FamilyId).SingleOrDefaultAsync(ct);
+        await using var sys = systemDb.Create(userName);
+        var fid = await sys.FamilyLinks.Where(l => l.UserName == userName).Select(l => (int?)l.FamilyId).SingleOrDefaultAsync(ct);
         if (fid is not int id || await LoadAsync(sys, id, ct) is not { } b) return null;
         return (b.Name, b.Total);
     }
 
     /// <summary>온가족 신청(R-176). 이미 온가족이 있거나 처리 안 된 신청이 있으면 막는다.</summary>
-    public async Task<OnFamilyError> RequestAsync(int accountId, string? body, CancellationToken ct = default)
+    public async Task<OnFamilyError> RequestAsync(string userName, string? body, CancellationToken ct = default)
     {
         var text = body?.Trim() ?? "";
         if (text.Length == 0) return OnFamilyError.Empty;
         if (text.Length > BodyMax) return OnFamilyError.TooLong;
-        await using var sys = systemDb.Create(accountId);
-        if (await sys.FamilyLinks.AnyAsync(l => l.AccountId == accountId, ct)) return OnFamilyError.AlreadyInFamily;
-        if (await sys.FamilyRequests.AnyAsync(r => r.RequesterAccountId == accountId && r.Status == FamilyRequestStatus.Requested, ct)) return OnFamilyError.RequestOpen;
+        await using var sys = systemDb.Create(userName);
+        if (await sys.FamilyLinks.AnyAsync(l => l.UserName == userName, ct)) return OnFamilyError.AlreadyInFamily;
+        if (await sys.FamilyRequests.AnyAsync(r => r.RequesterAccountId == userName && r.Status == FamilyRequestStatus.Requested, ct)) return OnFamilyError.RequestOpen;
         var now = time.GetUtcNow().UtcDateTime;
-        sys.FamilyRequests.Add(new FamilyRequest { RequesterAccountId = accountId, Body = text, RequestedUtc = now });
-        sys.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorAccountId = accountId, Action = "FamilyRequested", Detail = $"account={accountId}" });
+        sys.FamilyRequests.Add(new FamilyRequest { RequesterAccountId = userName, Body = text, RequestedUtc = now });
+        sys.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorUserName = userName, Action = "FamilyRequested", Detail = $"account={userName}" });
         await sys.SaveChangesAsync(ct);
         return OnFamilyError.None;
     }
 
     /// <summary>내 신청 취소(처리 안 된 것만). 거절과 같은 상태로 닫는다 — 처리자는 본인.</summary>
-    public async Task<OnFamilyError> CancelAsync(int accountId, CancellationToken ct = default)
+    public async Task<OnFamilyError> CancelAsync(string userName, CancellationToken ct = default)
     {
-        await using var sys = systemDb.Create(accountId);
-        var r = await sys.FamilyRequests.SingleOrDefaultAsync(x => x.RequesterAccountId == accountId && x.Status == FamilyRequestStatus.Requested, ct);
+        await using var sys = systemDb.Create(userName);
+        var r = await sys.FamilyRequests.SingleOrDefaultAsync(x => x.RequesterAccountId == userName && x.Status == FamilyRequestStatus.Requested, ct);
         if (r is null) return OnFamilyError.NotFound;
         r.Status = FamilyRequestStatus.Rejected;
         r.DecidedUtc = time.GetUtcNow().UtcDateTime;
-        r.DecidedByAccountId = accountId;
+        r.DecidedByUserName = userName;
         await sys.SaveChangesAsync(ct);
         return OnFamilyError.None;
     }
@@ -130,17 +130,17 @@ public sealed class OnFamilyService(ISystemDb systemDb, TenantClock clock, TimeP
     /// 부서 관리자 보기(R-178): 이 부서에 승인된 사람이 든 온가족들. 다른 부서 사람은 이름 · 부서를 가린다(Hidden, 점수만).
     /// 키 = 이 부서 계정 Id → 그 사람의 온가족.
     /// </summary>
-    public async Task<Dictionary<int, FamilyBoardView>> ForTenantAsync(int actor, int tenantId, CancellationToken ct = default)
+    public async Task<Dictionary<int, FamilyBoardView>> ForTenantAsync(string actor, int tenantId, CancellationToken ct = default)
     {
         await using var sys = systemDb.Create(actor);
-        var here = await sys.Memberships.Where(m => m.TenantId == tenantId && m.Status == MembershipStatus.Approved).Select(m => m.AccountId).ToListAsync(ct);
-        var links = await sys.FamilyLinks.Where(l => here.Contains(l.AccountId)).Select(l => new { l.AccountId, l.FamilyId }).ToListAsync(ct);
+        var here = await sys.Memberships.Where(m => m.TenantId == tenantId && m.Status == MembershipStatus.Approved).Select(m => m.UserName).ToListAsync(ct);
+        var links = await sys.FamilyLinks.Where(l => here.Contains(l.UserName)).Select(l => new { l.UserName, l.FamilyId }).ToListAsync(ct);
         var result = new Dictionary<int, FamilyBoardView>();
         foreach (var fid in links.Select(l => l.FamilyId).Distinct())
         {
             if (await LoadAsync(sys, fid, ct) is not { } b) continue;
-            var masked = b with { People = b.People.Select(p => here.Contains(p.AccountId) ? p : p with { Name = "", Depts = [], Hidden = true }).ToList() };
-            foreach (var l in links.Where(x => x.FamilyId == fid)) result[l.AccountId] = masked;
+            var masked = b with { People = b.People.Select(p => here.Contains(p.UserName) ? p : p with { Name = "", Depts = [], Hidden = true }).ToList() };
+            foreach (var l in links.Where(x => x.FamilyId == fid)) result[l.UserName] = masked;
         }
         return result;
     }

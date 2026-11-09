@@ -116,7 +116,7 @@
                 {
                     var v = Model.Versions[i];
                     var what = i == 0 ? "처음 값(기본값)" : string.Join(", ", PlatformRuleService.Diff(Model.Versions[i - 1].Rules, v.Rules));
-                    var who = v.ChangedByAccountId is int id ? Model.Names.GetValueOrDefault(id, "운영자") : "운영자";
+                    var who = v.ChangedByUserName is int id ? Model.Names.GetValueOrDefault(id, "운영자") : "운영자";
                     <li><span class="v">v@(v.VersionNo)</span><time class="num">@(v.ChangedUtc?.ToString("yyyy.MM.dd") ?? "–")</time>
                         <span>@who · @what@(i == 0 ? "" : $" ({v.EffectiveFrom.ToString("M월 d일", ko)}부터)")</span></li>
                 }

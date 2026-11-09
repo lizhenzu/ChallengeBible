@@ -20,10 +20,10 @@ public class BibleMarkServiceTests
         _other = InMemoryDb.SeedAccount(_db, "younghee@example.com", "김영희").Id;
     }
 
-    private BibleMarkService As(int accountId)
+    private BibleMarkService As(string userName)
     {
         var scope = new RequestScope();
-        scope.SetAccount(accountId);
+        scope.SetAccount(userName);
         return new BibleMarkService(new InMemoryDb(_db, scope), scope, _time);
     }
 
@@ -31,12 +31,12 @@ public class BibleMarkServiceTests
     public async Task R112_읽음은_두_번_켜도_하나이고_처음_읽은_시각이_남는다()
     {
         Assert.True(await As(_me).ReadAsync(1, 24, 3));
-        var first = InMemoryDb.Raw(_db).VerseReadMarks.Single().ReadUtc;
+        var first = InMemoryDb.Raw(_db).VerseReadMarks.Single().ReadAt;
         _time.Now = _time.Now.AddHours(1);
         Assert.True(await As(_me).ReadAsync(1, 24, 3));   // 다시 켜도(재시도 · 두 번 누름) 그대로
         var row = InMemoryDb.Raw(_db).VerseReadMarks.Single();
-        Assert.Equal(first, row.ReadUtc);
-        Assert.Equal(_me, row.AccountId);
+        Assert.Equal(first, row.ReadAt);
+        Assert.Equal(_me, row.UserName);
     }
 
     [Fact]

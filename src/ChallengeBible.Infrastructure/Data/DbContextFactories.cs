@@ -15,7 +15,7 @@ public interface IAppDb
 /// <summary>시스템 연결(PlatformScope). 물리 설계 3-3 의 처리기만 받는다.</summary>
 public interface ISystemDb
 {
-    AppDbContext Create(int actorAccountId);
+    AppDbContext Create(string actorUserName);
 }
 
 /// <summary>일반 요청용: 이 요청의 영역 · 계정을 세션 값과 전역 필터에 쓴다.</summary>
@@ -25,9 +25,9 @@ public sealed class RequestDbContextFactory(string connectionString, RequestScop
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseSqlServer(connectionString)
-            .AddInterceptors(new SessionContextInterceptor(() => new SessionValues(scope.TenantId, scope.AccountId, PlatformScope: false)))
+            .AddInterceptors(new SessionContextInterceptor(() => new SessionValues(scope.TenantId, scope.UserName, scope.UserId, PlatformScope: false)))
             .Options;
-        return new AppDbContext(options, scope.TenantId) { CurrentAccountId = scope.AccountId };
+        return new AppDbContext(options, scope.TenantId) { CurrentUserName = scope.UserName };
     }
 }
 
@@ -37,11 +37,11 @@ public sealed class RequestDbContextFactory(string connectionString, RequestScop
 /// </summary>
 public sealed class SystemDbContextFactory(string connectionString) : ISystemDb
 {
-    public AppDbContext Create(int actorAccountId)
+    public AppDbContext Create(string actorUserName)
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseSqlServer(connectionString)
-            .AddInterceptors(new SessionContextInterceptor(() => new SessionValues(null, actorAccountId, PlatformScope: true)))
+            .AddInterceptors(new SessionContextInterceptor(() => new SessionValues(null, actorUserName, null, PlatformScope: true)))
             .Options;
         return new AppDbContext(options, tenantId: null) { FilterTenants = false };
     }

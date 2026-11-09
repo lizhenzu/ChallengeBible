@@ -31,7 +31,7 @@ public partial class PromotionFlowTests : IClassFixture<WebApplicationFactory<Pr
 
     private static async Task<string> Token(HttpClient c, string url) => TokenRx().Match(await c.GetStringAsync(url)).Groups[1].Value;
 
-    private async Task<(HttpClient Client, int AccountId)> SignedUp(string email, string name)
+    private async Task<(HttpClient Client, int UserName)> SignedUp(string email, string name)
     {
         var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
@@ -107,7 +107,7 @@ public partial class PromotionFlowTests : IClassFixture<WebApplicationFactory<Pr
 
         using var after = InMemoryDb.Raw(_db);
         Assert.False(after.Memberships.Any(m => m.Id == kid.Id));
-        Assert.True(after.Memberships.Any(m => m.TenantId == _elem.Id && m.AccountId == kidId && m.GroupLabel == "사랑반"));
+        Assert.True(after.Memberships.Any(m => m.TenantId == _elem.Id && m.UserName == kidId && m.GroupLabel == "사랑반"));
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public partial class PromotionFlowTests : IClassFixture<WebApplicationFactory<Pr
         InMemoryDb.SeedMembership(_db, other.Id, someone.Id, MembershipStatus.Approved, Roles.Participant);
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.PromotionRequests.Add(new PromotionRequest { AccountId = someone.Id, SourceTenantId = other.Id, TargetTenantId = _elem.Id, RequestedByAccountId = someone.Id });
+            raw.PromotionRequests.Add(new PromotionRequest { UserName = someone.Id, SourceTenantId = other.Id, TargetTenantId = _elem.Id, RequestedByUserName = someone.Id });
             raw.SaveChanges();
         }
         int reqId;

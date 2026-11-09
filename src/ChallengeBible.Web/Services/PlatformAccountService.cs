@@ -35,19 +35,19 @@ public sealed class PlatformAccountService(ISystemDb systemDb, TimeProvider time
     }
 
     /// <summary>계정의 성경 읽음 표시 · 책갈피를 모두 지운다(0029). 시스템 연결에서만. 저장은 부르는 쪽이.</summary>
-    public static async Task<(int Marks, int Bookmarks)> ClearBibleMarksAsync(AppDbContext ctx, int accountId, CancellationToken ct)
+    public static async Task<(int Marks, int Bookmarks)> ClearBibleMarksAsync(AppDbContext ctx, string userName, CancellationToken ct)
     {
-        var marks = await ctx.VerseReadMarks.IgnoreQueryFilters().Where(m => m.AccountId == accountId).ToListAsync(ct);
-        var books = await ctx.Bookmarks.IgnoreQueryFilters().Where(b => b.AccountId == accountId).ToListAsync(ct);
+        var marks = await ctx.VerseReadMarks.IgnoreQueryFilters().Where(m => m.UserName == userName).ToListAsync(ct);
+        var books = await ctx.ReadingBookmarks.IgnoreQueryFilters().Where(b => b.UserName == userName).ToListAsync(ct);
         ctx.VerseReadMarks.RemoveRange(marks);
-        ctx.Bookmarks.RemoveRange(books);
+        ctx.ReadingBookmarks.RemoveRange(books);
         return (marks.Count, books.Count);
     }
 
-    private async Task<AppDbContext> OpenAsync(int actor, CancellationToken ct)
+    private async Task<AppDbContext> OpenAsync(string actor, CancellationToken ct)
     {
         var ctx = systemDb.Create(actor);
-        if (!await ctx.Accounts.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
+        if (!await ctx.Users.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
         {
             await ctx.DisposeAsync();
             throw new UnauthorizedAccessException("플랫폼 관리자만 할 수 있어요.");
@@ -55,46 +55,46 @@ public sealed class PlatformAccountService(ISystemDb systemDb, TimeProvider time
         return ctx;
     }
 
-    private static async Task<List<(int AccountId, string Tenant, string Color, string Status, List<string> Roles, int TenantId)>> MembershipsAsync(
+    private static async Task<List<(int UserName, string Tenant, string Color, string Status, List<string> Roles, int TenantId)>> MembershipsAsync(
         AppDbContext ctx, IReadOnlyCollection<int> accountIds, CancellationToken ct)
     {
         var rows = await (from m in ctx.Memberships.Include(x => x.Roles)
                           join t in ctx.Tenants on m.TenantId equals t.Id
-                          where accountIds.Contains(m.AccountId) && m.Status != MembershipStatus.Rejected
+                          where accountIds.Contains(m.UserName) && m.Status != MembershipStatus.Rejected
                           orderby t.Name
-                          select new { m.AccountId, t.Name, t.ThemeColor, m.Status, Roles = m.Roles.Select(r => r.Role).ToList(), m.TenantId }).ToListAsync(ct);
-        return rows.Select(r => (r.AccountId, r.Name, r.ThemeColor, r.Status, r.Roles, r.TenantId)).ToList();
+                          select new { m.UserName, t.Name, t.ThemeColor, m.Status, Roles = m.Roles.Select(r => r.Role).ToList(), m.TenantId }).ToListAsync(ct);
+        return rows.Select(r => (r.UserName, r.Name, r.ThemeColor, r.Status, r.Roles, r.TenantId)).ToList();
     }
 
-    public async Task<List<AccountHit>> SearchAsync(int actor, string? q, CancellationToken ct = default)
+    public async Task<List<AccountHit>> SearchAsync(string actor, string? q, CancellationToken ct = default)
     {
         var term = q?.Trim() ?? "";
         if (term.Length == 0) return [];
         await using var ctx = await OpenAsync(actor, ct);
         var lower = term.ToLowerInvariant();
-        var accounts = await ctx.Accounts.AsNoTracking().Where(a => a.Email.Contains(lower) || a.DisplayName.Contains(term))
+        var accounts = await ctx.Users.AsNoTracking().Where(a => a.Email.Contains(lower) || a.DisplayName.Contains(term))
             .OrderBy(a => a.DisplayName).ThenBy(a => a.Email).Take(30).ToListAsync(ct);
         var mems = await MembershipsAsync(ctx, accounts.Select(a => a.Id).ToList(), ct);
         return accounts.Select(a =>
         {
-            var mine = mems.Where(m => m.AccountId == a.Id).ToList();
+            var mine = mems.Where(m => m.UserName == a.Id).ToList();
             return new AccountHit(a.Id, a.DisplayName, a.Email, a.IsPlatformAdmin,
                 mine.Any(m => m.Status == MembershipStatus.Approved && m.Roles.Contains(Roles.TenantAdmin)), mine.Select(m => m.Tenant).ToList());
         }).ToList();
     }
 
-    public async Task<AccountDetail?> DetailAsync(int actor, int id, CancellationToken ct = default)
+    public async Task<AccountDetail?> DetailAsync(string actor, int id, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
-        var a = await ctx.Accounts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
+        var a = await ctx.Users.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
         if (a is null) return null;
         var mems = await MembershipsAsync(ctx, [id], ct);
 
         // 이 계정이 한 일 + 이 계정에 한 일(Detail 에 "account={id} " 로 적힌 기록: 비밀번호 · 읽음 초기화, 진급)
         var marker = $"account={id} ";
         var logs = await (from l in ctx.AuditLogs
-                          join actorAcc in ctx.Accounts on l.ActorAccountId equals actorAcc.Id
-                          where l.ActorAccountId == id || (l.Detail != null && (l.Detail.StartsWith(marker) || l.Detail.Contains(" " + marker)))
+                          join actorAcc in ctx.Users on l.ActorUserName equals actorAcc.Id
+                          where l.ActorUserName == id || (l.Detail != null && (l.Detail.StartsWith(marker) || l.Detail.Contains(" " + marker)))
                           orderby l.OccurredUtc descending, l.Id descending
                           select new { l.OccurredUtc, actorAcc.DisplayName, actorAcc.IsPlatformAdmin, l.TenantId, l.Action, l.Detail }).Take(30).ToListAsync(ct);
         var tenants = await ctx.Tenants.AsNoTracking().ToDictionaryAsync(t => t.Id, t => t.Name, ct);
@@ -106,25 +106,25 @@ public sealed class PlatformAccountService(ISystemDb systemDb, TimeProvider time
     }
 
     /// <summary>임시 비밀번호를 만들고 다음 로그인 때 바꾸게 한다(0035). 플랫폼 관리자 계정은 null.</summary>
-    public async Task<string?> ResetPasswordAsync(int actor, int id, CancellationToken ct = default)
+    public async Task<string?> ResetPasswordAsync(string actor, int id, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
-        var a = await ctx.Accounts.SingleOrDefaultAsync(x => x.Id == id, ct);
+        var a = await ctx.Users.SingleOrDefaultAsync(x => x.Id == id, ct);
         if (a is null || a.IsPlatformAdmin) return null;
         var temp = ApplyTemporaryPassword(a);
-        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorAccountId = actor, Action = ResetPasswordAction, Detail = $"account={id} {a.DisplayName}({a.Email})" });
+        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = ResetPasswordAction, Detail = $"account={id} {a.DisplayName}({a.Email})" });
         await ctx.SaveChangesAsync(ct);
         return temp;
     }
 
     /// <summary>성경 읽음 표시 · 책갈피를 모두 지운다(0029, 되돌릴 수 없음). 확인 이메일이 맞아야 한다. 지운 줄 수, 틀리면 null.</summary>
-    public async Task<int?> ResetBibleMarksAsync(int actor, int id, string? confirmEmail, CancellationToken ct = default)
+    public async Task<int?> ResetBibleMarksAsync(string actor, int id, string? confirmEmail, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
-        var a = await ctx.Accounts.SingleOrDefaultAsync(x => x.Id == id, ct);
+        var a = await ctx.Users.SingleOrDefaultAsync(x => x.Id == id, ct);
         if (a is null || a.IsPlatformAdmin || AccountService.NormalizeEmail(confirmEmail ?? "") != a.Email) return null;
         var (marks, books) = await ClearBibleMarksAsync(ctx, id, ct);
-        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorAccountId = actor, Action = ResetMarksAction,
+        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = ResetMarksAction,
             Detail = $"account={id} {a.DisplayName}({a.Email}) 읽음 {marks} · 책갈피 {books}" });
         await ctx.SaveChangesAsync(ct);
         return marks + books;

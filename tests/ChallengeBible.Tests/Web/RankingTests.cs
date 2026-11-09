@@ -118,7 +118,7 @@ public partial class RankingTests : IClassFixture<WebApplicationFactory<Program>
     {
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.TenantSeasons.Add(new TenantSeason { TenantId = _kids.Id, Year = 2027, StartDate = new DateOnly(2027, 1, 3), ChangedByAccountId = 1 });
+            raw.TenantSeasons.Add(new TenantSeason { TenantId = _kids.Id, Year = 2027, StartDate = new DateOnly(2027, 1, 3), ChangedByUserName = 1 });
             raw.SaveChanges();
         }
         var rows = (await As("cheolsu").GetAsync()).Rows;
@@ -132,7 +132,7 @@ public partial class RankingTests : IClassFixture<WebApplicationFactory<Program>
         using (var raw = InMemoryDb.Raw(_db))
         {
             raw.PlatformRuleSetVersions.Add(new PlatformRuleSetVersion { VersionNo = 2, EffectiveFrom = Jan5,
-                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { Ranking = false } }), ChangedByAccountId = 1 });
+                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { Ranking = false } }), ChangedByUserName = 1 });
             raw.SaveChanges();
         }
         Assert.False((await As("cheolsu").GetAsync()).Enabled);

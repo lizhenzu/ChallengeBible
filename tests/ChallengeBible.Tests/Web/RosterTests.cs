@@ -124,7 +124,7 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
         using (var raw = InMemoryDb.Raw(_db))
         {
             raw.PlatformRuleSetVersions.Add(new PlatformRuleSetVersion { VersionNo = 2, EffectiveFrom = Jan5,
-                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { Ranking = false } }), ChangedByAccountId = 1 });
+                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { Ranking = false } }), ChangedByUserName = 1 });
             raw.SaveChanges();
         }
         var r = await As("cheolsu").GetAsync();

@@ -6,10 +6,14 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace ChallengeBible.Web.Auth;
 
-/// <summary>쿠키 클레임(0034, X-20): 계정 Id · 이름 · 플랫폼 관리자 여부만 둔다. 영역 · 역할은 요청마다 DB 에서 읽는다.</summary>
+/// <summary>쿠키 클레임(0034, X-20): 아이디 · 회원 Id · 이름 · 플랫폼 관리자 여부만 둔다. 영역 · 역할은 요청마다 DB 에서 읽는다.</summary>
+/// <summary>쿠키에 넣을 사람 정보.</summary>
+public sealed record SignedInUser(string UserName, string UserId, string DisplayName, bool IsPlatformAdmin, bool MustChangePassword);
+
 public static class CurrentUser
 {
-    public const string AccountIdClaim = "aid";
+    public const string UserNameClaim = "uname";
+    public const string UserIdClaim = "uid";
     public const string PlatformAdminClaim = "padmin";
     /// <summary>임시 비밀번호로 로그인함(0035) — 새 비밀번호를 정하기 전에는 다른 화면을 쓸 수 없다.</summary>
     public const string MustChangePasswordClaim = "mustpw";
@@ -19,27 +23,28 @@ public static class CurrentUser
 
     public static bool IsPlatformAdmin(this ClaimsPrincipal user) => user.HasClaim(PlatformAdminClaim, "1");
 
-    public static int? AccountId(this ClaimsPrincipal user) =>
-        int.TryParse(user.FindFirstValue(AccountIdClaim), out var id) ? id : null;
+    public static string? UserName(this ClaimsPrincipal user) => user.FindFirstValue(UserNameClaim);
+
+    public static string? UserId(this ClaimsPrincipal user) => user.FindFirstValue(UserIdClaim);
 
     public static string DisplayName(this ClaimsPrincipal user) => user.FindFirstValue(ClaimTypes.Name) ?? "";
 
     /// <summary>가장(0067): 이 쿠키를 연 플랫폼 관리자 계정 Id. 있으면 "가장 중" 띠 · [복귀].</summary>
     public const string ImpersonatorClaim = "imp";
 
-    public static int? ImpersonatorId(this ClaimsPrincipal user) =>
-        int.TryParse(user.FindFirstValue(ImpersonatorClaim), out var id) ? id : null;
+    public static string? ImpersonatorId(this ClaimsPrincipal user) => user.FindFirstValue(ImpersonatorClaim);
 
     /// <summary>impersonator 가 있으면 가장 로그인: 그 계정 그대로 + 가장한 관리자 Id. 임시 비밀번호 표시는 넣지 않는다(남의 비밀번호를 바꾸게 하지 않음).</summary>
-    public static Task SignInAsync(HttpContext http, Account account, int? impersonator = null)
+    public static Task SignInAsync(HttpContext http, SignedInUser account, string? impersonator = null)
     {
         var claims = new List<Claim>
         {
-            new(AccountIdClaim, account.Id.ToString()),
+            new(UserNameClaim, account.UserName),
+            new(UserIdClaim, account.UserId),
             new(ClaimTypes.Name, account.DisplayName),
         };
         if (account.IsPlatformAdmin) claims.Add(new(PlatformAdminClaim, "1"));
-        if (impersonator is int imp) claims.Add(new(ImpersonatorClaim, imp.ToString()));
+        if (impersonator is { } imp) claims.Add(new(ImpersonatorClaim, imp));
         else if (account.MustChangePassword) claims.Add(new(MustChangePasswordClaim, "1"));
         return SignInAsync(http, claims);
     }
@@ -83,11 +88,11 @@ public static class CurrentUser
         || path.StartsWithSegments("/error", StringComparison.OrdinalIgnoreCase)
         || Path.HasExtension(path.Value);   // css · js · 아이콘 · 매니페스트
 
-    /// <summary>요청 처음에 쿠키의 계정을 RequestScope 에 넣는다(이후 DB 세션 값 AccountId).</summary>
+    /// <summary>요청 처음에 쿠키의 계정을 RequestScope 에 넣는다(이후 DB 세션 값 UserName).</summary>
     public static IApplicationBuilder UseRequestScope(this IApplicationBuilder app) =>
         app.Use(async (http, next) =>
         {
-            if (http.User.AccountId() is int id) http.RequestServices.GetRequiredService<RequestScope>().SetAccount(id);
+            if (http.User.UserName() is { } name && http.User.UserId() is { } id) http.RequestServices.GetRequiredService<RequestScope>().SetUser(name, id);
             AuditContext.Impersonator = http.User.ImpersonatorId();   // 가장 중 감사 로그에 함께 적힌다(0067)
             await next();
         });

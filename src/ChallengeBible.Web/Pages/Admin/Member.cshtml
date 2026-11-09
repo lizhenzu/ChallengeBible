@@ -18,7 +18,7 @@
     <a class="md-crumb md-span" href="/@slug/admin/members?Tab=@MembershipStatus.Approved">← 소속 관리</a>
 
     <section class="md-who md-span" aria-label="소속원">
-        <span class="av">@if (Model.Photo is { } ph) { <img src="/@slug/photo/@d.AccountId?v=@ph" alt="" /> } else { @(d.Name.Length > 1 ? d.Name[^2..] : d.Name) }</span>
+        <span class="av">@if (Model.Photo is { } ph) { <img src="/@slug/photo/@d.UserName?v=@ph" alt="" /> } else { @(d.Name.Length > 1 ? d.Name[^2..] : d.Name) }</span>
         <div class="nm">
             <h1>@d.Name</h1>
             @* 0078: 관리자가 사진 올리기 · 바꾸기 · 지우기(R-200, R-203) *@

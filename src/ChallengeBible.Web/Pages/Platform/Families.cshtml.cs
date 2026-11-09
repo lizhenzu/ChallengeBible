@@ -11,7 +11,7 @@ namespace ChallengeBible.Web.Pages.Platform;
 public class FamiliesModel(FamilyAdminService families) : PageModel, ITitled
 {
     public string Title => "온가족";
-    private int Me => User.AccountId()!.Value;
+    private int Me => User.UserName()!.Value;
 
     [BindProperty(SupportsGet = true)] public string? Q { get; set; }
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }

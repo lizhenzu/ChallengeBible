@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
 namespace ChallengeBible.Infrastructure.Data;
 
@@ -15,13 +16,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     /// <summary>필터 기준 영역. 시스템 연결에서는 null 이고 필터를 끈다.</summary>
     public int? CurrentTenantId { get; } = tenantId;
     public bool FilterTenants { get; init; } = true;
-    /// <summary>계정 범위 표(0029)의 필터 기준 계정. 로그인 전이면 null 이라 아무 행도 보이지 않는다.</summary>
-    public int? CurrentAccountId { get; init; }
+    /// <summary>사람 범위 표(통독 · 책갈피)의 필터 기준 아이디. 로그인 전이면 null 이라 아무 행도 보이지 않는다.</summary>
+    public string? CurrentUserName { get; init; }
 
     public DbSet<Tenant> Tenants => Set<Tenant>();
-    public DbSet<Account> Accounts => Set<Account>();
-    public DbSet<Membership> Memberships => Set<Membership>();
-    public DbSet<MembershipRole> MembershipRoles => Set<MembershipRole>();
+    public DbSet<AppUser> Users => Set<AppUser>();
+    public DbSet<AppRole> IdentityRoleRows => Set<AppRole>();
+    public DbSet<AppUserRole> UserRoles => Set<AppUserRole>();
+    public DbSet<UserSetting> UserSettings => Set<UserSetting>();
+    public DbSet<SignupApplication> SignupApplications => Set<SignupApplication>();
+    public DbSet<DeptRoleUserAssoc> DeptRoles => Set<DeptRoleUserAssoc>();
+    public DbSet<CodeData> CodeData => Set<CodeData>();
     public DbSet<TenantSeason> TenantSeasons => Set<TenantSeason>();
 
     public DbSet<BibleBook> BibleBooks => Set<BibleBook>();
@@ -37,32 +42,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<DailyQuizAcceptedAnswer> DailyQuizAcceptedAnswers => Set<DailyQuizAcceptedAnswer>();
     public DbSet<WeeklyVerse> WeeklyVerses => Set<WeeklyVerse>();
 
-    public DbSet<Participant> Participants => Set<Participant>();
     public DbSet<GuardianLink> GuardianLinks => Set<GuardianLink>();
-    public DbSet<Activity> Activities => Set<Activity>();
+    public DbSet<MissionActivity> MissionActivities => Set<MissionActivity>();
     public DbSet<QuizAttempt> QuizAttempts => Set<QuizAttempt>();
-    public DbSet<PointLedger> PointLedgers => Set<PointLedger>();
-    public DbSet<MilestoneReached> MilestonesReached => Set<MilestoneReached>();
 
-    public DbSet<VerseReadMark> VerseReadMarks => Set<VerseReadMark>();
-    public DbSet<Bookmark> Bookmarks => Set<Bookmark>();
+    public DbSet<ReadingBookmark> ReadingBookmarks => Set<ReadingBookmark>();
 
     public DbSet<BibleChapter> BibleChapters => Set<BibleChapter>();
     public DbSet<ReadingRound> ReadingRounds => Set<ReadingRound>();
-    public DbSet<ChapterRead> ChapterReads => Set<ChapterRead>();
-    public DbSet<RoundVerseRead> RoundVerseReads => Set<RoundVerseRead>();
-    public DbSet<ChapterProgress> ChapterProgresses => Set<ChapterProgress>();
+    public DbSet<ReadingVerse> ReadingVerses => Set<ReadingVerse>();
+    public DbSet<ReadingChapterRead> ReadingChapterReads => Set<ReadingChapterRead>();
+    public DbSet<ReadingChapterProgress> ReadingChapterProgresses => Set<ReadingChapterProgress>();
     public DbSet<SearchLog> SearchLogs => Set<SearchLog>();
 
     public DbSet<FamilyTeam> FamilyTeams => Set<FamilyTeam>();
     public DbSet<FamilyMember> FamilyMembers => Set<FamilyMember>();
-    public DbSet<FamilyJoinRequest> FamilyJoinRequests => Set<FamilyJoinRequest>();
-    public DbSet<FamilyInvite> FamilyInvites => Set<FamilyInvite>();
-    public DbSet<FamilyMilestoneReached> FamilyMilestonesReached => Set<FamilyMilestoneReached>();
-    public DbSet<FamilyMilestoneDismiss> FamilyMilestoneDismisses => Set<FamilyMilestoneDismiss>();
-    public DbSet<Family> Families => Set<Family>();
-    public DbSet<FamilyLink> FamilyLinks => Set<FamilyLink>();
     public DbSet<FamilyRequest> FamilyRequests => Set<FamilyRequest>();
+    public DbSet<FamilyNotice> FamilyNotices => Set<FamilyNotice>();
+    public DbSet<FamilyMilestoneConfig> FamilyMilestoneConfigs => Set<FamilyMilestoneConfig>();
+    public DbSet<FamilyMilestoneHidden> FamilyMilestonesHidden => Set<FamilyMilestoneHidden>();
+    public DbSet<TeamAward> TeamAwards => Set<TeamAward>();
 
     public DbSet<PromotionRequest> PromotionRequests => Set<PromotionRequest>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -77,12 +76,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
         {
             var name = typeof(ITenantOwned).IsAssignableFrom(type) ? nameof(TenantFilter)
                      : typeof(ISharedContent).IsAssignableFrom(type) ? nameof(SharedFilter)
-                     : typeof(IAccountOwned).IsAssignableFrom(type) ? nameof(AccountFilter)
+                     : typeof(IPersonOwned).IsAssignableFrom(type) ? nameof(PersonFilter)
                      : null;
             if (name is null) continue;
             var method = typeof(AppDbContext).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Instance)!.MakeGenericMethod(type);
             b.Entity(type).HasQueryFilter((LambdaExpression)method.Invoke(this, null)!);
         }
+
+        // 표시 이름(성 + 이름)을 SQL 로 번역한다. InMemory 에서는 메서드 본문이 그대로 돈다
+        b.HasDbFunction(typeof(AppUser).GetMethod(nameof(AppUser.FullName))!)
+            .HasTranslation(args => new SqlFunctionExpression("CONCAT", args, nullable: false, argumentsPropagateNullability: [false, false], typeof(string), null));
 
         // 진급 요청(0030): 이 영역이 보낸 쪽이거나 받는 쪽인 행만 — RLS sec.fn_Promotion 과 같은 조건
         b.Entity<PromotionRequest>().HasQueryFilter(p => !FilterTenants || p.SourceTenantId == CurrentTenantId || p.TargetTenantId == CurrentTenantId);
@@ -91,9 +94,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     // 가장 중(0067)에 남기는 감사 로그에는 가장한 플랫폼 관리자를 함께 적는다
     private void StampImpersonator()
     {
-        if (AuditContext.Impersonator is not int imp) return;
-        foreach (var e in ChangeTracker.Entries<AuditLog>().Where(e => e.State == EntityState.Added && e.Entity.ImpersonatorAccountId is null))
-            e.Entity.ImpersonatorAccountId = imp;
+        if (AuditContext.Impersonator is not { } imp) return;
+        foreach (var e in ChangeTracker.Entries<AuditLog>().Where(e => e.State == EntityState.Added && e.Entity.ImpersonatorUserName is null))
+            e.Entity.ImpersonatorUserName = imp;
     }
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
@@ -114,7 +117,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     private Expression<Func<T, bool>> SharedFilter<T>() where T : ISharedContent =>
         e => !FilterTenants || e.TenantId == null || e.TenantId == CurrentTenantId;
 
-    // 계정 범위(0029): 영역과 무관하게 이 요청의 계정 것만. 시스템 연결(FilterTenants = false)은 관리자 초기화용
-    private Expression<Func<T, bool>> AccountFilter<T>() where T : IAccountOwned =>
-        e => !FilterTenants || e.AccountId == CurrentAccountId;
+    // 사람 범위: 부서와 무관하게 이 요청의 사람 것만. 시스템 연결(FilterTenants = false)은 관리자 초기화용
+    private Expression<Func<T, bool>> PersonFilter<T>() where T : IPersonOwned =>
+        e => !FilterTenants || e.UserName == CurrentUserName;
 }

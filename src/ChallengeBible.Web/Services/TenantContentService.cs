@@ -70,7 +70,7 @@ public sealed class TenantContentService(IAppDb db, TenantContext tenant, Tenant
     }
 
     /// <summary>저장. publish 면 공개, 아니면 초안. 공개된 것을 고치면 새 개정(R-124).</summary>
-    public async Task<FieldErrors> SaveAsync(int actor, ContentKind kind, DateOnly date, ContentInput input, bool publish, CancellationToken ct = default)
+    public async Task<FieldErrors> SaveAsync(string actor, ContentKind kind, DateOnly date, ContentInput input, bool publish, CancellationToken ct = default)
     {
         if (!Supported(kind)) throw new ArgumentOutOfRangeException(nameof(kind));
         var (from, to) = Span(kind, date);
@@ -102,7 +102,7 @@ public sealed class TenantContentService(IAppDb db, TenantContext tenant, Tenant
             target.Revision = (current?.Revision ?? 0) + 1;
             target.ReplacesId = current?.Id;
             target.CreatedUtc = now;
-            target.CreatedByAccountId = actor;
+            target.CreatedByUserName = actor;
             ctx.Add(target);
         }
         else target = current;   // 초안은 그 자리에서

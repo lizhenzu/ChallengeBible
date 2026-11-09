@@ -13,7 +13,7 @@ public sealed class InMemoryDb(string name, RequestScope scope) : IAppDb
     public AppDbContext Create()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(name).Options;
-        return new AppDbContext(options, scope.TenantId) { CurrentAccountId = scope.AccountId };
+        return new AppDbContext(options, scope.TenantId) { CurrentAccountId = scope.UserName };
     }
 
     public static string NewName() => "cb-" + Guid.NewGuid().ToString("N");
@@ -31,12 +31,12 @@ public sealed class InMemoryDb(string name, RequestScope scope) : IAppDb
         return a;
     }
 
-    public static Membership SeedMembership(string name, int tenantId, int accountId, string status, params string[] roles)
+    public static Membership SeedMembership(string name, int tenantId, string userName, string status, params string[] roles)
     {
         using var db = Raw(name);
         var m = new Membership
         {
-            TenantId = tenantId, AccountId = accountId, Status = status,
+            TenantId = tenantId, UserName = userName, Status = status,
             Roles = roles.Select(r => new MembershipRole { TenantId = tenantId, Role = r }).ToList(),
         };
         db.Memberships.Add(m);

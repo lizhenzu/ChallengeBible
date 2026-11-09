@@ -95,9 +95,9 @@ public partial class OpsTests : IClassFixture<WebApplicationFactory<Program>>
         {
             var opId = raw.Accounts.Single(a => a.Email == "operator@example.com").Id;
             raw.AuditLogs.AddRange(
-                new AuditLog { OccurredUtc = DateTime.UtcNow, ActorAccountId = opId, Action = "PromotionApproved", TenantId = kids.Id, Detail = "x" },
-                new AuditLog { OccurredUtc = DateTime.UtcNow.AddMinutes(-1), ActorAccountId = opId, Action = SeasonService.LogAction, TenantId = kids.Id, Detail = "2027 시즌 시작일 1월 3일" },
-                new AuditLog { OccurredUtc = DateTime.UtcNow.AddDays(-40), ActorAccountId = opId, Action = "FamilyTenant", Detail = "옛 기록" });
+                new AuditLog { OccurredUtc = DateTime.UtcNow, ActorUserName = opId, Action = "PromotionApproved", TenantId = kids.Id, Detail = "x" },
+                new AuditLog { OccurredUtc = DateTime.UtcNow.AddMinutes(-1), ActorUserName = opId, Action = SeasonService.LogAction, TenantId = kids.Id, Detail = "2027 시즌 시작일 1월 3일" },
+                new AuditLog { OccurredUtc = DateTime.UtcNow.AddDays(-40), ActorUserName = opId, Action = "FamilyTenant", Detail = "옛 기록" });
             raw.SaveChanges();
         }
         _app.Services.GetRequiredService<ErrorLog>().Record(Http("/jamsil-kids"), Thrown("보이는 오류"));

@@ -74,7 +74,7 @@ public sealed class MilestoneService(IAppDb db, TenantContext tenant, RuleServic
     }
 
     /// <summary>저장(null = 플랫폼 기본으로). 바뀐 것이 없으면 아무것도 하지 않는다.</summary>
-    public async Task<(bool Changed, string? Error)> SaveAsync(int actor, IReadOnlyList<int>? list, CancellationToken ct = default)
+    public async Task<(bool Changed, string? Error)> SaveAsync(string actor, IReadOnlyList<int>? list, CancellationToken ct = default)
     {
         var clean = list?.Distinct().Order().ToList();
         if (clean is not null && Check(clean) is { } err) return (false, err);
@@ -99,7 +99,7 @@ public sealed class MilestoneService(IAppDb db, TenantContext tenant, RuleServic
             foreach (var m in after.Where(m => p >= m && !have.Contains((pid, m))))
                 ctx.MilestonesReached.Add(new MilestoneReached { TenantId = t.Id, ParticipantId = pid, Year = year, Threshold = m, ReachedUtc = now });
 
-        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorAccountId = actor, Action = LogAction, TenantId = t.Id,
+        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorUserName = actor, Action = LogAction, TenantId = t.Id,
             Detail = $"축하 단계 {Label(before)} → {Label(clean)}" });
         await ctx.SaveChangesAsync(ct);
         return (true, null);

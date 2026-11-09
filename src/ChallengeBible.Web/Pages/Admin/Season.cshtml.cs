@@ -35,14 +35,14 @@ public class SeasonModel(SeasonService seasons, MilestoneService milestones, Ten
     public async Task<IActionResult> OnPostMilestonesAsync(string? m, CancellationToken ct)
     {
         var list = MilestoneService.Parse(m);
-        var (changed, error) = list is null ? (false, "축하 단계를 하나 이상 넣어 주세요.") : await milestones.SaveAsync(User.AccountId()!.Value, list, ct);
+        var (changed, error) = list is null ? (false, "축하 단계를 하나 이상 넣어 주세요.") : await milestones.SaveAsync(User.UserName()!.Value, list, ct);
         if (error is not null) { M = m; MsError = error; await LoadAsync(ct); return Page(); }
         return Redirect($"/{tenant.Current.Slug}/admin/season?ok={(changed ? "ms" : "same")}#ms");
     }
 
     public async Task<IActionResult> OnPostMilestonesResetAsync(CancellationToken ct)
     {
-        var (changed, _) = await milestones.SaveAsync(User.AccountId()!.Value, null, ct);
+        var (changed, _) = await milestones.SaveAsync(User.UserName()!.Value, null, ct);
         return Redirect($"/{tenant.Current.Slug}/admin/season?ok={(changed ? "msreset" : "same")}#ms");
     }
 
@@ -58,7 +58,7 @@ public class SeasonModel(SeasonService seasons, MilestoneService milestones, Ten
 
     private async Task<IActionResult> Save(DateOnly start, string ok, CancellationToken ct)
     {
-        var (changed, error) = await seasons.SaveAsync(User.AccountId()!.Value, start, ct);
+        var (changed, error) = await seasons.SaveAsync(User.UserName()!.Value, start, ct);
         if (error is not null) { Error = error; await LoadAsync(ct); return Page(); }
         return RedirectToPage(new { slug = tenant.Current.Slug, Ok = changed ? ok : "same" });
     }

@@ -40,7 +40,7 @@
         }
         @foreach (var m in Model.Rows)
         {
-            var self = m.AccountId == Model.Me;
+            var self = m.UserName == Model.Me;
             var open = Model.ErrorFor == m.MembershipId;
             <li class="row @(picking ? "pickable" : "")">
                 @if (picking)

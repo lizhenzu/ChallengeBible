@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace ChallengeBible.Web.Services;
 
 public sealed record TenantRow(int Id, string Name, string Slug, string JoinCode, string ThemeColor, bool MissionEnabled, bool ReadingEnabled,
-    string Status, int MemberCount, IReadOnlyList<(int AccountId, string Name, string Email)> Admins, DateTime CreatedUtc, string TimeZoneId)
+    string Status, int MemberCount, IReadOnlyList<(int UserName, string Name, string Email)> Admins, DateTime CreatedUtc, string TimeZoneId)
 {
     public bool JoinListed { get; init; }
 }
@@ -33,10 +33,10 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         for (var i = 0; i < span.Length; i++) span[i] = CodeChars[RandomNumberGenerator.GetInt32(CodeChars.Length)];
     });
 
-    private async Task<AppDbContext> OpenAsync(int actor, CancellationToken ct)
+    private async Task<AppDbContext> OpenAsync(string actor, CancellationToken ct)
     {
         var ctx = systemDb.Create(actor);
-        if (!await ctx.Accounts.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
+        if (!await ctx.Users.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
         {
             await ctx.DisposeAsync();
             throw new UnauthorizedAccessException("플랫폼 관리자만 할 수 있어요.");
@@ -44,7 +44,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         return ctx;
     }
 
-    public async Task<List<TenantRow>> ListAsync(int actor, CancellationToken ct = default)
+    public async Task<List<TenantRow>> ListAsync(string actor, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var tenants = await ctx.Tenants.AsNoTracking().OrderBy(t => t.Name).ToListAsync(ct);
@@ -52,7 +52,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
             .GroupBy(m => m.TenantId).Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N, ct);
         var admins = await (from r in ctx.MembershipRoles
                             join m in ctx.Memberships on new { r.TenantId, Id = r.MembershipId } equals new { m.TenantId, m.Id }
-                            join a in ctx.Accounts on m.AccountId equals a.Id
+                            join a in ctx.Users on m.UserName equals a.Id
                             where r.Role == Roles.TenantAdmin && m.Status == MembershipStatus.Approved
                             select new { m.TenantId, a.Id, a.DisplayName, a.Email }).ToListAsync(ct);
         return tenants.Select(t => new TenantRow(t.Id, t.Name, t.Slug, t.JoinCode.Trim(), t.ThemeColor, t.MissionEnabled, t.ReadingEnabled, t.Status,
@@ -61,7 +61,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
             .ToList();
     }
 
-    public async Task<(Tenant? Tenant, FieldErrors Errors)> CreateAsync(int actor, NewTenant input, CancellationToken ct = default)
+    public async Task<(Tenant? Tenant, FieldErrors Errors)> CreateAsync(string actor, NewTenant input, CancellationToken ct = default)
     {
         var errors = new FieldErrors();
         var name = input.Name?.Trim() ?? "";
@@ -80,7 +80,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         if (!string.IsNullOrWhiteSpace(input.AdminEmail))
         {
             var id = AccountService.NormalizeEmail(input.AdminEmail);
-            admin = await ctx.Accounts.SingleOrDefaultAsync(a => a.Email == id, ct);
+            admin = await ctx.Users.SingleOrDefaultAsync(a => a.Email == id, ct);
             if (admin is null) { errors["AdminEmail"] = "그 이메일의 계정이 없어요."; return (null, errors); }
         }
 
@@ -105,7 +105,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         throw new InvalidOperationException("참여 코드를 만들지 못했어요. 다시 해 주세요.");
     }
 
-    public async Task<string> RegenerateCodeAsync(int actor, int tenantId, CancellationToken ct = default)
+    public async Task<string> RegenerateCodeAsync(string actor, int tenantId, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var t = await ctx.Tenants.SingleAsync(x => x.Id == tenantId, ct);
@@ -115,7 +115,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
     }
 
     /// <summary>기본 정보(이름 · 시간대 · 대표 색) 고치기. 주소(Slug)는 바꾸지 않는다(0048).</summary>
-    public async Task<FieldErrors> UpdateInfoAsync(int actor, int tenantId, string name, string timeZoneId, string themeColor, CancellationToken ct = default)
+    public async Task<FieldErrors> UpdateInfoAsync(string actor, int tenantId, string name, string timeZoneId, string themeColor, CancellationToken ct = default)
     {
         var errors = new FieldErrors();
         name = name?.Trim() ?? "";
@@ -131,7 +131,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         return errors;
     }
 
-    public async Task<string?> SetProgramsAsync(int actor, int tenantId, bool mission, bool reading, CancellationToken ct = default)
+    public async Task<string?> SetProgramsAsync(string actor, int tenantId, bool mission, bool reading, CancellationToken ct = default)
     {
         if (!mission && !reading) return "프로그램을 하나는 켜 주세요(R-150).";
         await using var ctx = await OpenAsync(actor, ct);
@@ -142,7 +142,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
     }
 
     /// <summary>참여 신청 화면의 부서 목록에 보이기 켜기 · 끄기(0059).</summary>
-    public async Task SetJoinListedAsync(int actor, int tenantId, bool listed, CancellationToken ct = default)
+    public async Task SetJoinListedAsync(string actor, int tenantId, bool listed, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var t = await ctx.Tenants.SingleAsync(x => x.Id == tenantId, ct);
@@ -150,7 +150,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         await ctx.SaveChangesAsync(ct);
     }
 
-    public async Task SetStatusAsync(int actor, int tenantId, string status, CancellationToken ct = default)
+    public async Task SetStatusAsync(string actor, int tenantId, string status, CancellationToken ct = default)
     {
         if (status is not (TenantStatus.Active or TenantStatus.Suspended)) throw new ArgumentOutOfRangeException(nameof(status));
         await using var ctx = await OpenAsync(actor, ct);
@@ -160,39 +160,39 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
     }
 
     /// <summary>부서 관리자 지정. 소속이 없으면 승인된 소속을 함께 만든다(API 계약 5-4b).</summary>
-    public async Task<string?> AddAdminAsync(int actor, int tenantId, string email, CancellationToken ct = default)
+    public async Task<string?> AddAdminAsync(string actor, int tenantId, string email, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var id = AccountService.NormalizeEmail(email ?? "");
-        var a = await ctx.Accounts.SingleOrDefaultAsync(x => x.Email == id, ct);
+        var a = await ctx.Users.SingleOrDefaultAsync(x => x.Email == id, ct);
         if (a is null) return "그 이메일의 계정이 없어요.";
         await GrantAdminAsync(ctx, actor, tenantId, a.Id, ct);
         return null;
     }
 
-    private async Task GrantAdminAsync(AppDbContext ctx, int actor, int tenantId, int accountId, CancellationToken ct)
+    private async Task GrantAdminAsync(AppDbContext ctx, string actor, int tenantId, string userName, CancellationToken ct)
     {
         var now = time.GetUtcNow().UtcDateTime;
-        var m = await ctx.Memberships.Include(x => x.Roles).SingleOrDefaultAsync(x => x.TenantId == tenantId && x.AccountId == accountId, ct);
+        var m = await ctx.Memberships.Include(x => x.Roles).SingleOrDefaultAsync(x => x.TenantId == tenantId && x.UserName == userName, ct);
         if (m is null)
         {
-            m = new Membership { TenantId = tenantId, AccountId = accountId, RequestedUtc = now };
+            m = new Membership { TenantId = tenantId, UserName = userName, RequestedUtc = now };
             ctx.Memberships.Add(m);
         }
         m.Status = MembershipStatus.Approved;
         m.DecidedUtc = now;
-        m.DecidedByAccountId = actor;
+        m.DecidedByUserName = actor;
         foreach (var r in new[] { Roles.Teacher, Roles.TenantAdmin }.Where(r => m.Roles.All(x => x.Role != r)))
             m.Roles.Add(new MembershipRole { TenantId = tenantId, Role = r });
         await ctx.SaveChangesAsync(ct);
     }
 
     /// <summary>관리자 역할만 뺀다. 소속은 그대로(시안 안내).</summary>
-    public async Task RemoveAdminAsync(int actor, int tenantId, int accountId, CancellationToken ct = default)
+    public async Task RemoveAdminAsync(string actor, int tenantId, string userName, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var role = await ctx.MembershipRoles.SingleOrDefaultAsync(r => r.TenantId == tenantId && r.Role == Roles.TenantAdmin
-            && ctx.Memberships.Any(m => m.TenantId == tenantId && m.Id == r.MembershipId && m.AccountId == accountId), ct);
+            && ctx.Memberships.Any(m => m.TenantId == tenantId && m.Id == r.MembershipId && m.UserName == userName), ct);
         if (role is null) return;
         ctx.MembershipRoles.Remove(role);
         await ctx.SaveChangesAsync(ct);

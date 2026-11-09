@@ -45,7 +45,7 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
         scope.SetTenant(_kids.Id);
         var ctx = new TenantContext();
         Membership? loaded = null;
-        if (me is not null) { using var raw = InMemoryDb.Raw(_db); loaded = raw.Memberships.Where(m => m.Id == me.Id).Select(m => new Membership { Id = m.Id, TenantId = m.TenantId, AccountId = m.AccountId, Status = m.Status, Roles = m.Roles }).Single(); }
+        if (me is not null) { using var raw = InMemoryDb.Raw(_db); loaded = raw.Memberships.Where(m => m.Id == me.Id).Select(m => new Membership { Id = m.Id, TenantId = m.TenantId, UserName = m.UserName, Status = m.Status, Roles = m.Roles }).Single(); }
         ctx.Set(_kids, loaded);
         return (ctx, scope);
     }

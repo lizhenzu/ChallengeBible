@@ -51,7 +51,7 @@ public class QuizInputModel(ContentAdminService content, TimeProvider time) : Pa
         catch (JsonException) { return Fail("JSON 모양이 틀렸어요. 따옴표 · 쉼표 · 괄호를 확인해 주세요."); }
         if (body is null) return Fail("JSON 을 넣어 주세요.");
 
-        var r = await ContentApi.SaveAsync(content, User.AccountId()!.Value, day, body, ct);
+        var r = await ContentApi.SaveAsync(content, User.UserName()!.Value, day, body, ct);
         if (!r.Errors.Ok) return Fail([.. r.Errors.Select(x => $"{JsonNamingPolicy.CamelCase.ConvertName(x.Key)}: {x.Value}")]);
         return RedirectToPage(new { Date, Ok = r.Created ? "new" : "changed", r.Status });
     }

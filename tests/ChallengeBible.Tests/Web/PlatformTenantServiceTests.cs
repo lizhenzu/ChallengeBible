@@ -88,7 +88,7 @@ public class PlatformTenantServiceTests
         var (t, e) = await Svc.CreateAsync(_op.Id, Input(admin: "EunHye"));
         Assert.True(e.Ok);
         using var raw = InMemoryDb.Raw(_db);
-        var m = raw.Memberships.Include(x => x.Roles).Single(x => x.TenantId == t!.Id && x.AccountId == _teacher.Id);
+        var m = raw.Memberships.Include(x => x.Roles).Single(x => x.TenantId == t!.Id && x.UserName == _teacher.Id);
         Assert.Equal(MembershipStatus.Approved, m.Status);
         Assert.Equal([Roles.Teacher, Roles.TenantAdmin], m.Roles.Select(r => r.Role).Order(StringComparer.Ordinal));
         Assert.Equal("이은혜", (await Svc.ListAsync(_op.Id)).Single().Admins.Single().Name);

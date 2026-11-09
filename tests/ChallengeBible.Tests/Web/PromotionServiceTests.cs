@@ -51,8 +51,8 @@ public class PromotionServiceTests
         raw.PointLedgers.Add(new PointLedger { TenantId = _kids.Id, ParticipantId = p.Id, MissionDate = act.MissionDate, MissionItem = act.MissionItem, Points = 1, ActivityId = act.Id });
         raw.QuizAttempts.Add(new QuizAttempt { TenantId = _kids.Id, ParticipantId = p.Id, MissionDate = act.MissionDate, AttemptNo = 1, DailyQuizId = 1 });
         raw.MilestonesReached.Add(new MilestoneReached { TenantId = _kids.Id, ParticipantId = p.Id, Year = 2027, Threshold = 3000 });
-        raw.GuardianLinks.Add(new GuardianLink { TenantId = _kids.Id, GuardianMembershipId = mom.Id, ParticipantId = p.Id, CreatedByAccountId = _kidsAdmin.Id });
-        raw.VerseReadMarks.Add(new VerseReadMark { AccountId = a.Id, BookId = 43, Chapter = 3, Verse = 16 });
+        raw.GuardianLinks.Add(new GuardianLink { TenantId = _kids.Id, GuardianMembershipId = mom.Id, ParticipantId = p.Id, CreatedByUserName = _kidsAdmin.Id });
+        raw.VerseReadMarks.Add(new VerseReadMark { UserName = a.Id, BookId = 43, Chapter = 3, Verse = 16 });
         raw.Accounts.Single(x => x.Id == a.Id).LastTenantId = _kids.Id;
         raw.SaveChanges();
         return (a, m, p.Id);
@@ -63,7 +63,7 @@ public class PromotionServiceTests
         var (e, sent, _) = await In(_kids).Svc.SendAsync(_kidsAdmin.Id, [m.Id], "jselem");
         Assert.Equal((PromotionError.None, 1), (e, sent));
         using var raw = InMemoryDb.Raw(_db);
-        return raw.PromotionRequests.Single(r => r.AccountId == m.AccountId && r.Status == PromotionStatus.Pending).Id;
+        return raw.PromotionRequests.Single(r => r.UserName == m.UserName && r.Status == PromotionStatus.Pending).Id;
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class PromotionServiceTests
         using var raw = InMemoryDb.Raw(_db);
         Assert.True(raw.Memberships.Any(x => x.Id == m.Id && x.Status == MembershipStatus.Approved));   // 0026 결정 4
         Assert.True(raw.Activities.Any(x => x.ParticipantId == pid));
-        Assert.False(raw.Memberships.Any(x => x.TenantId == _elem.Id && x.AccountId == m.AccountId));    // 0058: 승인 때 만든다
+        Assert.False(raw.Memberships.Any(x => x.TenantId == _elem.Id && x.UserName == m.UserName));    // 0058: 승인 때 만든다
     }
 
     /// <summary>시험용 팀: 구성원 참여자 번호를 받아 만든다.</summary>
@@ -172,7 +172,7 @@ public class PromotionServiceTests
         Assert.Equal(PromotionError.None, await In(_elem).Approver.ApproveAsync(_elemAdmin.Id, id, [Roles.Participant], " 사랑반 "));
 
         using var raw = InMemoryDb.Raw(_db);
-        var now = raw.Memberships.Include(x => x.Roles).Single(x => x.TenantId == _elem.Id && x.AccountId == a.Id);
+        var now = raw.Memberships.Include(x => x.Roles).Single(x => x.TenantId == _elem.Id && x.UserName == a.Id);
         Assert.Equal((MembershipStatus.Approved, "사랑반"), (now.Status, now.GroupLabel));
         Assert.Equal([Roles.Participant], now.Roles.Select(r => r.Role));
         Assert.True(raw.Participants.Any(p => p.TenantId == _elem.Id && p.MembershipId == now.Id && p.IsActive));
@@ -185,13 +185,13 @@ public class PromotionServiceTests
         Assert.False(raw.QuizAttempts.Any(x => x.ParticipantId == pid));
         Assert.False(raw.MilestonesReached.Any(x => x.ParticipantId == pid));
         Assert.False(raw.GuardianLinks.Any(x => x.ParticipantId == pid));
-        Assert.True(raw.VerseReadMarks.Any(x => x.AccountId == a.Id));                       // 계정 범위는 그대로(R-158)
+        Assert.True(raw.VerseReadMarks.Any(x => x.UserName == a.Id));                       // 계정 범위는 그대로(R-158)
         Assert.Equal(_elem.Id, raw.Accounts.Single(x => x.Id == a.Id).LastTenantId);
         Assert.Equal(PromotionStatus.Approved, raw.PromotionRequests.Single().Status);
         Assert.Equal("박지은", Assert.Single(await In(_elem).Svc.ReceivedAsync()).DecidedBy);
         Assert.Null(Assert.Single(await In(_kids).Svc.SentAsync()).DecidedBy);   // 보낸 쪽은 상대 선생님 이름을 모른다(0030)
         var log = Assert.Single(raw.AuditLogs);
-        Assert.Equal(("PromotionApproved", _elemAdmin.Id, (int?)_elem.Id), (log.Action, log.ActorAccountId, log.TenantId));
+        Assert.Equal(("PromotionApproved", _elemAdmin.Id, (int?)_elem.Id), (log.Action, log.ActorUserName, log.TenantId));
 
         // 0066: 지우기 전에 새 부서 참여자에게 날짜 그대로 옮겼다(기록 · 점수 · 퀴즈 · 축하)
         var np = raw.Participants.Single(p => p.TenantId == _elem.Id && p.MembershipId == now.Id).Id;
@@ -235,7 +235,7 @@ public class PromotionServiceTests
         using var raw = InMemoryDb.Raw(_db);
         Assert.True(raw.Memberships.Any(x => x.Id == m.Id && x.Status == MembershipStatus.Approved));
         Assert.True(raw.Activities.Any(x => x.ParticipantId == pid) && raw.Activities.Any(x => x.ParticipantId == pid2));
-        Assert.False(raw.Memberships.Any(x => x.TenantId == _elem.Id && x.AccountId != _elemAdmin.Id));
+        Assert.False(raw.Memberships.Any(x => x.TenantId == _elem.Id && x.UserName != _elemAdmin.Id));
         Assert.Equal([PromotionStatus.Rejected, PromotionStatus.Cancelled], raw.PromotionRequests.OrderBy(r => r.Id).Select(r => r.Status));
         Assert.Empty(raw.AuditLogs);
     }
@@ -299,7 +299,7 @@ public class PromotionServiceTests
         Assert.Equal(PromotionError.None, await approver.ApproveAsync(_elemAdmin.Id, id, [Roles.Participant], null));
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var only = raw.Memberships.Include(x => x.Roles).Single(x => x.TenantId == _elem.Id && x.AccountId == a.Id);
+            var only = raw.Memberships.Include(x => x.Roles).Single(x => x.TenantId == _elem.Id && x.UserName == a.Id);
             Assert.Equal((applied.Id, MembershipStatus.Approved), (only.Id, only.Status));
             Assert.Equal([Roles.Participant], only.Roles.Select(r => r.Role));
         }

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record FamilyMemberView(int MemberId, int ParticipantId, string Name, string? GroupLabel, string Relation, int Points, int AccountId = 0);
+public sealed record FamilyMemberView(int MemberId, int ParticipantId, string Name, string? GroupLabel, string Relation, int Points, int UserName = 0);
 public sealed record FamilyTeamView(int Id, string? Name, string DisplayName, bool IsActive, int Points, IReadOnlyList<FamilyMemberView> Members);
 /// <summary>팀 없는 참여자.</summary>
 public sealed record FamilySolo(int ParticipantId, string Name, string? GroupLabel, bool IsGuardian, int Points);
@@ -90,9 +90,9 @@ public sealed class FamilyTeamService(IAppDb db, TenantContext tenant, TenantClo
         await using var ctx = db.Create();
         var people = await (from p in ctx.Participants
                             join m in ctx.Memberships on p.MembershipId equals m.Id
-                            join a in ctx.Accounts on m.AccountId equals a.Id
+                            join a in ctx.Users on m.UserName equals a.Id
                             where p.IsActive && m.Status == MembershipStatus.Approved
-                            select new { p.Id, m.AccountId, a.DisplayName, m.GroupLabel, IsGuardian = m.Roles.Any(x => x.Role == Roles.Guardian) }).ToListAsync(ct);
+                            select new { p.Id, m.UserName, a.DisplayName, m.GroupLabel, IsGuardian = m.Roles.Any(x => x.Role == Roles.Guardian) }).ToListAsync(ct);
         var points = await SeasonPointsAsync(ctx, people.Select(p => p.Id).ToList(), today, ct);
 
         var teams = await ctx.FamilyTeams.AsNoTracking().Include(t => t.Members).OrderBy(t => t.Id).ToListAsync(ct);
@@ -101,7 +101,7 @@ public sealed class FamilyTeamService(IAppDb db, TenantContext tenant, TenantClo
         var views = teams.Select(t =>
         {
             var members = t.Members.Where(m => byId.ContainsKey(m.ParticipantId)).OrderBy(m => m.SortOrder).ThenBy(m => m.Id)
-                .Select(m => { var p = byId[m.ParticipantId]; return new FamilyMemberView(m.Id, m.ParticipantId, p.DisplayName, p.GroupLabel, m.Relation, points.GetValueOrDefault(m.ParticipantId), p.AccountId); })
+                .Select(m => { var p = byId[m.ParticipantId]; return new FamilyMemberView(m.Id, m.ParticipantId, p.DisplayName, p.GroupLabel, m.Relation, points.GetValueOrDefault(m.ParticipantId), p.UserName); })
                 .ToList();
             var sum = members.Sum(m => m.Points);   // R-92 단순 합
             return new FamilyTeamView(t.Id, t.Name, DisplayName(t.Name, members.Select(m => (m.Name, m.Relation)).ToList()), t.IsActive, sum, members);
@@ -167,7 +167,7 @@ public sealed class FamilyTeamService(IAppDb db, TenantContext tenant, TenantClo
     {
         var names = await (from p in ctx.Participants
                            join m in ctx.Memberships on p.MembershipId equals m.Id
-                           join a in ctx.Accounts on m.AccountId equals a.Id
+                           join a in ctx.Users on m.UserName equals a.Id
                            where p.IsActive && m.Status == MembershipStatus.Approved
                            select new { p.Id, a.DisplayName, p.MembershipId }).ToDictionaryAsync(x => x.Id, ct);
         var teams = (await ctx.FamilyTeams.AsNoTracking().Include(t => t.Members).Where(t => t.IsActive).OrderBy(t => t.Id).ToListAsync(ct))

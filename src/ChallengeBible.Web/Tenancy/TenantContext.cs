@@ -1,4 +1,5 @@
 using ChallengeBible.Infrastructure.Data;
+using ChallengeBible.Web.Services;
 
 namespace ChallengeBible.Web.Tenancy;
 
@@ -11,6 +12,8 @@ public sealed class TenantContext
     public Tenant? Tenant { get; private set; }
     public int? MembershipId { get; private set; }
     public string? MembershipStatus { get; private set; }
+    /// <summary>내 역할 코드(T1001 등). 없으면 학부모.</summary>
+    public string? RoleCode { get; private set; }
     public IReadOnlySet<string> Roles { get; private set; } = new HashSet<string>();
 
     public Tenant Current => Tenant ?? throw new InvalidOperationException("부서 주소가 아닌 요청이에요.");
@@ -23,12 +26,13 @@ public sealed class TenantContext
     public string AppName => Tenant?.AppName ?? Services.BrandingService.DefaultName;   // 0038 — 비어 있으면 기본 이름
     public string AppShortName => Tenant?.AppShortName ?? Services.BrandingService.DefaultShortName;
 
-    internal void Set(Tenant tenant, Membership? me)
+    internal void Set(Tenant tenant, DeptRoleUserAssoc? me, bool isAdmin)
     {
         Tenant = tenant;
         MembershipId = me?.Id;
-        MembershipStatus = me?.Status;
-        Roles = me?.Roles.Select(r => r.Role).ToHashSet() ?? [];
+        MembershipStatus = me is null ? null : Infrastructure.Data.MembershipStatus.Approved;
+        RoleCode = me?.RoleCode;
+        Roles = me is null ? new HashSet<string>() : UserRole.ScreenRoles(me.RoleCode, isAdmin).ToHashSet();
     }
 }
 

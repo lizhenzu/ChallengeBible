@@ -116,14 +116,14 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         {
             var me = Acc("cheolsu");
             var start = new DateTime(2027, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            raw.ReadingRounds.Add(new ReadingRound { AccountId = me, RoundNo = 1, StartedUtc = start });
+            raw.ReadingRounds.Add(new ReadingRound { UserName = me, RoundNo = 1, StartedAt = start });
             for (short c = 1; c <= 23; c++)
-                raw.ChapterReads.Add(new ChapterRead { AccountId = me, RoundNo = 1, BookId = 1, Chapter = c, ReadUtc = start.AddDays(Math.Min(4, (c - 1) / 5)) });
-            raw.RoundVerseReads.Add(new RoundVerseRead { AccountId = me, RoundNo = 1, BookId = 1, Chapter = 24, Verse = 1, ReadUtc = start.AddDays(4) });
-            raw.RoundVerseReads.Add(new RoundVerseRead { AccountId = me, RoundNo = 1, BookId = 1, Chapter = 24, Verse = 2, ReadUtc = start.AddDays(4) });
-            raw.ChapterProgresses.Add(new ChapterProgress { AccountId = me, RoundNo = 1, BookId = 1, Chapter = 24, LastViewedVerse = 3, UpdatedUtc = start.AddDays(4) });
-            raw.Bookmarks.Add(new Bookmark { AccountId = me, BookId = 1, Chapter = 24, Verse = 2, CreatedUtc = start.AddDays(4) });
-            raw.Bookmarks.Add(new Bookmark { AccountId = me, BookId = 43, Chapter = 3, Verse = 16, CreatedUtc = start.AddDays(1) });
+                raw.ChapterReads.Add(new ChapterRead { UserName = me, RoundNo = 1, BookId = 1, Chapter = c, ReadAt = start.AddDays(Math.Min(4, (c - 1) / 5)) });
+            raw.RoundVerseReads.Add(new RoundVerseRead { UserName = me, RoundNo = 1, BookId = 1, Chapter = 24, Verse = 1, ReadAt = start.AddDays(4) });
+            raw.RoundVerseReads.Add(new RoundVerseRead { UserName = me, RoundNo = 1, BookId = 1, Chapter = 24, Verse = 2, ReadAt = start.AddDays(4) });
+            raw.ChapterProgresses.Add(new ChapterProgress { UserName = me, RoundNo = 1, BookId = 1, Chapter = 24, LastViewedVerse = 3, UpdatedUtc = start.AddDays(4) });
+            raw.Bookmarks.Add(new Bookmark { UserName = me, BookId = 1, Chapter = 24, Verse = 2, CreatedUtc = start.AddDays(4) });
+            raw.Bookmarks.Add(new Bookmark { UserName = me, BookId = 43, Chapter = 3, Verse = 16, CreatedUtc = start.AddDays(1) });
             raw.SaveChanges();
         }
         await Save(kid, "/jamsil-kids/reading", "18-통독-대시보드");
@@ -167,11 +167,11 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         var kidAcc = Acc("cheolsu");
         using (var raw = InMemoryDb.Raw(db))
         {
-            var first = raw.ReadingRounds.Single(r => r.AccountId == kidAcc);
-            first.ClosedUtc = new DateTime(2027, 1, 4, 0, 0, 0, DateTimeKind.Utc);
-            raw.ReadingRounds.Add(new ReadingRound { AccountId = kidAcc, RoundNo = first.RoundNo + 1, StartedUtc = new DateTime(2027, 1, 4, 0, 0, 0, DateTimeKind.Utc) });
+            var first = raw.ReadingRounds.Single(r => r.UserName == kidAcc);
+            first.ClosedAt = new DateTime(2027, 1, 4, 0, 0, 0, DateTimeKind.Utc);
+            raw.ReadingRounds.Add(new ReadingRound { UserName = kidAcc, RoundNo = first.RoundNo + 1, StartedAt = new DateTime(2027, 1, 4, 0, 0, 0, DateTimeKind.Utc) });
             foreach (short ch in new short[] { 1, 2 })
-                raw.ChapterReads.Add(new ChapterRead { AccountId = kidAcc, RoundNo = first.RoundNo + 1, BookId = 40, Chapter = ch, ReadUtc = DateTime.UtcNow });
+                raw.ChapterReads.Add(new ChapterRead { UserName = kidAcc, RoundNo = first.RoundNo + 1, BookId = 40, Chapter = ch, ReadAt = DateTime.UtcNow });
             raw.SaveChanges();
         }
         await Save(kid, "/jamsil-kids/reading/rounds?ask=true", "21c-통독-회차기록");
@@ -189,8 +189,8 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             // 이은혜 선생님도 마태복음 1~5장을 읽는 중(어제)
             var t = Acc("eunhye");
             var at = new DateTime(2027, 1, 4, 1, 0, 0, DateTimeKind.Utc);
-            raw.ReadingRounds.Add(new ReadingRound { AccountId = t, RoundNo = 1, StartedUtc = at });
-            for (short c = 1; c <= 5; c++) raw.ChapterReads.Add(new ChapterRead { AccountId = t, RoundNo = 1, BookId = 40, Chapter = c, ReadUtc = at });
+            raw.ReadingRounds.Add(new ReadingRound { UserName = t, RoundNo = 1, StartedAt = at });
+            for (short c = 1; c <= 5; c++) raw.ChapterReads.Add(new ChapterRead { UserName = t, RoundNo = 1, BookId = 40, Chapter = c, ReadAt = at });
             raw.SaveChanges();
         }
         await Save(kid, "/jamsil-kids/reading/participants", "24-통독-참여자현황");
@@ -214,7 +214,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         Brand("유년부 말씀 챌린지", "유년부", "green");
         using (var raw = InMemoryDb.Raw(db))
         {
-            raw.AuditLogs.Add(new AuditLog { OccurredUtc = new DateTime(2027, 1, 4, 1, 0, 0, DateTimeKind.Utc), ActorAccountId = Acc("eunhye"), Action = BrandingService.LogAction,
+            raw.AuditLogs.Add(new AuditLog { OccurredUtc = new DateTime(2027, 1, 4, 1, 0, 0, DateTimeKind.Utc), ActorUserName = Acc("eunhye"), Action = BrandingService.LogAction,
                 TenantId = kids.Id, Detail = "앱 이름 기본 → 유년부 말씀 챌린지, 짧은 이름 기본 → 유년부, 대표 색 파랑 → 초록" });
             raw.SaveChanges();
         }
@@ -230,7 +230,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         var mm = InMemoryDb.SeedMembership(db, kids.Id, Acc("younghee"), MembershipStatus.Approved, Roles.Guardian);
         using (var raw = InMemoryDb.Raw(db))
         {
-            raw.GuardianLinks.Add(new GuardianLink { TenantId = kids.Id, GuardianMembershipId = mm.Id, ParticipantId = raw.Participants.Single(p => p.MembershipId == km.Id).Id, CreatedUtc = DateTime.UtcNow, CreatedByAccountId = Acc("eunhye") });
+            raw.GuardianLinks.Add(new GuardianLink { TenantId = kids.Id, GuardianMembershipId = mm.Id, ParticipantId = raw.Participants.Single(p => p.MembershipId == km.Id).Id, CreatedUtc = DateTime.UtcNow, CreatedByUserName = Acc("eunhye") });
             raw.SaveChanges();
         }
         await Save(admin, $"/jamsil-kids/admin/members?Tab={MembershipStatus.Approved}", "12b-소속관리-승인됨",
@@ -290,12 +290,12 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         {
             var preTeacher = Acc("eunhye");
             raw.PromotionRequests.AddRange(
-                new PromotionRequest { AccountId = jiwoo, SourceTenantId = pre.Id, TargetTenantId = kids.Id, RequestedUtc = jan1.AddDays(2), RequestedByAccountId = preTeacher },
-                new PromotionRequest { AccountId = daon, SourceTenantId = pre.Id, TargetTenantId = kids.Id, RequestedUtc = jan1.AddDays(-3), RequestedByAccountId = preTeacher,
-                    Status = PromotionStatus.Approved, DecidedUtc = jan1.AddDays(-2), DecidedByAccountId = Acc("eunhye") },
-                new PromotionRequest { AccountId = seoa, SourceTenantId = kids.Id, TargetTenantId = elem.Id, RequestedUtc = jan1.AddDays(-4), RequestedByAccountId = Acc("eunhye"),
-                    Status = PromotionStatus.Approved, DecidedUtc = jan1.AddDays(-3), DecidedByAccountId = Acc("eunhye") },
-                new PromotionRequest { AccountId = Acc("cheolsu"), SourceTenantId = kids.Id, TargetTenantId = elem.Id, RequestedUtc = jan1.AddDays(1), RequestedByAccountId = Acc("eunhye") });
+                new PromotionRequest { UserName = jiwoo, SourceTenantId = pre.Id, TargetTenantId = kids.Id, RequestedUtc = jan1.AddDays(2), RequestedByUserName = preTeacher },
+                new PromotionRequest { UserName = daon, SourceTenantId = pre.Id, TargetTenantId = kids.Id, RequestedUtc = jan1.AddDays(-3), RequestedByUserName = preTeacher,
+                    Status = PromotionStatus.Approved, DecidedUtc = jan1.AddDays(-2), DecidedByUserName = Acc("eunhye") },
+                new PromotionRequest { UserName = seoa, SourceTenantId = kids.Id, TargetTenantId = elem.Id, RequestedUtc = jan1.AddDays(-4), RequestedByUserName = Acc("eunhye"),
+                    Status = PromotionStatus.Approved, DecidedUtc = jan1.AddDays(-3), DecidedByUserName = Acc("eunhye") },
+                new PromotionRequest { UserName = Acc("cheolsu"), SourceTenantId = kids.Id, TargetTenantId = elem.Id, RequestedUtc = jan1.AddDays(1), RequestedByUserName = Acc("eunhye") });
             raw.SaveChanges();
         }
         await Save(admin, "/jamsil-kids/admin", "26-관리홈-진급요청");
@@ -316,7 +316,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             var pMinji = new Participant { TenantId = elem.Id, MembershipId = minjiM.Id };
             raw.Participants.Add(pMinji);
             raw.SaveChanges();
-            raw.GuardianLinks.Add(new GuardianLink { TenantId = elem.Id, GuardianMembershipId = momElem.Id, ParticipantId = pMinji.Id, CreatedByAccountId = momAcc });
+            raw.GuardianLinks.Add(new GuardianLink { TenantId = elem.Id, GuardianMembershipId = momElem.Id, ParticipantId = pMinji.Id, CreatedByUserName = momAcc });
             raw.SaveChanges();
         }
         await Save(mom, "/account/family", "32-온가족-없음");   // 확정 시안 온가족 "없음 · 신청"(0065 — 부모가 고르던 화면은 없어짐)
@@ -378,9 +378,9 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         int famId;
         using (var raw = InMemoryDb.Raw(db))
         {
-            var f = new Family { CreatedUtc = DateTime.UtcNow, CreatedByAccountId = Acc("operator") };
-            f.Links.Add(new FamilyLink { AccountId = Acc("younghee"), Relation = FamilyRelation.Mother, SortOrder = 0, AddedUtc = DateTime.UtcNow, AddedByAccountId = Acc("operator") });
-            f.Links.Add(new FamilyLink { AccountId = Acc("cheolsu"), Relation = FamilyRelation.Student, SortOrder = 1, AddedUtc = DateTime.UtcNow, AddedByAccountId = Acc("operator") });
+            var f = new Family { CreatedUtc = DateTime.UtcNow, CreatedByUserName = Acc("operator") };
+            f.Links.Add(new FamilyLink { UserName = Acc("younghee"), Relation = FamilyRelation.Mother, SortOrder = 0, AddedUtc = DateTime.UtcNow, AddedByUserName = Acc("operator") });
+            f.Links.Add(new FamilyLink { UserName = Acc("cheolsu"), Relation = FamilyRelation.Student, SortOrder = 1, AddedUtc = DateTime.UtcNow, AddedByUserName = Acc("operator") });
             raw.Families.Add(f);
             raw.FamilyRequests.Add(new FamilyRequest { RequesterAccountId = Acc("jiho"), Body = "박지호 — 잠실새내교회 유년부\n박지민 — 잠실새내교회 초등부", RequestedUtc = DateTime.UtcNow });
             raw.SaveChanges();

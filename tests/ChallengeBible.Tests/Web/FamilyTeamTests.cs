@@ -21,7 +21,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
     private readonly Tenant _kids, _elem;
-    private readonly Dictionary<string, (int AccountId, Membership M, int Pid)> _p = [];
+    private readonly Dictionary<string, (int UserName, Membership M, int Pid)> _p = [];
 
     public FamilyTeamTests(WebApplicationFactory<Program> app)
     {
@@ -194,7 +194,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         using (var raw = InMemoryDb.Raw(_db))   // 예전에 관리자가 숨긴 카드는 숨긴 채로
         {
             var admin = raw.Accounts.First().Id;
-            raw.FamilyMilestoneDismisses.Add(new FamilyMilestoneDismiss { TenantId = _kids.Id, FamilyTeamId = id, Year = 2027, Threshold = 1000, DismissedUtc = DateTime.UtcNow, DismissedByAccountId = admin });
+            raw.FamilyMilestoneDismisses.Add(new FamilyMilestoneDismiss { TenantId = _kids.Id, FamilyTeamId = id, Year = 2027, Threshold = 1000, DismissedUtc = DateTime.UtcNow, DismissedByUserName = admin });
             raw.SaveChanges();
         }
         Assert.Null((await In(_kids, "cheolsu").MyFamilyAsync())!.Cheer);                     // R-97 숨긴 단계는 카드에서 빠짐
@@ -290,7 +290,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         using (var raw = InMemoryDb.Raw(_db))
         {
             raw.PlatformRuleSetVersions.Add(new PlatformRuleSetVersion { VersionNo = 2, EffectiveFrom = Jan5,
-                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { FamilyTeam = false } }), ChangedByAccountId = 1 });
+                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { FamilyTeam = false } }), ChangedByUserName = 1 });
             raw.SaveChanges();
         }
         var svc = In(_kids);

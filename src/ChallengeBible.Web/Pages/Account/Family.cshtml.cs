@@ -13,7 +13,7 @@ namespace ChallengeBible.Web.Pages.Account;
 public class FamilyModel(OnFamilyService families) : PageModel, ITitled
 {
     public string Title => "온가족";
-    private int Me => User.AccountId()!.Value;
+    private int Me => User.UserName()!.Value;
 
     public MyOnFamily View { get; private set; } = null!;
     [BindProperty] public string? Body { get; set; }

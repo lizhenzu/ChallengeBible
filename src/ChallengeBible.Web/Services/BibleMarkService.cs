@@ -17,14 +17,14 @@ public sealed record VerseMarks(IReadOnlySet<(short Chapter, short Verse)> Read,
 /// </summary>
 public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider time)
 {
-    private int Me => scope.AccountId ?? throw new InvalidOperationException("로그인한 요청에서만 써요.");
+    private int Me => scope.UserName ?? throw new InvalidOperationException("로그인한 요청에서만 써요.");
 
     public async Task<VerseMarks> MarksAsync(BibleRef r, CancellationToken ct = default)
     {
-        if (scope.AccountId is null || !r.IsValid) return new(new HashSet<(short, short)>(), new HashSet<(short, short)>());
+        if (scope.UserName is null || !r.IsValid) return new(new HashSet<(short, short)>(), new HashSet<(short, short)>());
         await using var ctx = db.Create();
         var read = await InRange(ctx.VerseReadMarks.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct);
-        var marks = await InRange(ctx.Bookmarks.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct);
+        var marks = await InRange(ctx.ReadingBookmarks.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct);
         return new(read.Select(x => (x.Chapter, x.Verse)).ToHashSet(), marks.Select(x => (x.Chapter, x.Verse)).ToHashSet());
     }
 
@@ -35,7 +35,7 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
         if (!await Exists(ctx, book, chapter, verse, ct)) return false;
         if (!await ctx.VerseReadMarks.AnyAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct))
         {
-            ctx.VerseReadMarks.Add(new VerseReadMark { AccountId = Me, BookId = book, Chapter = chapter, Verse = verse, ReadUtc = time.GetUtcNow().UtcDateTime });
+            ctx.VerseReadMarks.Add(new VerseReadMark { UserName = Me, BookId = book, Chapter = chapter, Verse = verse, ReadAt = time.GetUtcNow().UtcDateTime });
             await SaveIgnoringDuplicate(ctx, ct);
         }
         return true;
@@ -60,7 +60,7 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
         var already = (await InRange(ctx.VerseReadMarks.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct)).ToHashSet();
         var now = time.GetUtcNow().UtcDateTime;
         var add = verses.Where(v => !already.Contains(v)).ToList();
-        foreach (var v in add) ctx.VerseReadMarks.Add(new VerseReadMark { AccountId = Me, BookId = r.BookId, Chapter = v.Chapter, Verse = v.Verse, ReadUtc = now });
+        foreach (var v in add) ctx.VerseReadMarks.Add(new VerseReadMark { UserName = Me, BookId = r.BookId, Chapter = v.Chapter, Verse = v.Verse, ReadAt = now });
         if (add.Count > 0) await SaveIgnoringDuplicate(ctx, ct);
         return add.Count;
     }
@@ -79,9 +79,9 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
     {
         await using var ctx = db.Create();
         if (!await Exists(ctx, book, chapter, verse, ct)) return false;
-        if (!await ctx.Bookmarks.AnyAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct))
+        if (!await ctx.ReadingBookmarks.AnyAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct))
         {
-            ctx.Bookmarks.Add(new Bookmark { AccountId = Me, BookId = book, Chapter = chapter, Verse = verse, CreatedUtc = time.GetUtcNow().UtcDateTime });
+            ctx.ReadingBookmarks.Add(new Bookmark { UserName = Me, BookId = book, Chapter = chapter, Verse = verse, CreatedUtc = time.GetUtcNow().UtcDateTime });
             await SaveIgnoringDuplicate(ctx, ct);
         }
         return true;
@@ -90,9 +90,9 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
     public async Task UnbookmarkAsync(byte book, short chapter, short verse, CancellationToken ct = default)
     {
         await using var ctx = db.Create();
-        var row = await ctx.Bookmarks.SingleOrDefaultAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct);
+        var row = await ctx.ReadingBookmarks.SingleOrDefaultAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct);
         if (row is null) return;
-        ctx.Bookmarks.Remove(row);
+        ctx.ReadingBookmarks.Remove(row);
         await ctx.SaveChangesAsync(ct);
     }
 
@@ -102,9 +102,9 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
     /// </summary>
     public async Task<IReadOnlyList<BookmarkRow>> BookmarksAsync(bool bibleOrder, CancellationToken ct = default)
     {
-        if (scope.AccountId is null) return [];
+        if (scope.UserName is null) return [];
         await using var ctx = db.Create();
-        var rows = await (from b in ctx.Bookmarks.AsNoTracking()
+        var rows = await (from b in ctx.ReadingBookmarks.AsNoTracking()
                           join v in ctx.BibleVerses.AsNoTracking().Where(v => v.TranslationId == 1)
                               on new { b.BookId, b.Chapter, b.Verse } equals new { v.BookId, v.Chapter, v.Verse } into g
                           from v in g.DefaultIfEmpty()

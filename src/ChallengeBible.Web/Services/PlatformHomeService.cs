@@ -26,10 +26,10 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
     private static readonly CultureInfo Ko = new("ko-KR");
     private static RuleSet Rules => RuleSet.Default;
 
-    public async Task<PlatformHome> GetAsync(int actor, CancellationToken ct = default)
+    public async Task<PlatformHome> GetAsync(string actor, CancellationToken ct = default)
     {
         await using var ctx = systemDb.Create(actor);
-        if (!await ctx.Accounts.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
+        if (!await ctx.Users.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
             throw new UnauthorizedAccessException("플랫폼 관리자만 볼 수 있어요.");
 
         var nowUtc = clock.UtcNow;
@@ -39,9 +39,9 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
 
         var tenants = await ctx.Tenants.AsNoTracking().OrderBy(t => t.Name).ToListAsync(ct);
         var active = tenants.Where(t => t.Status == TenantStatus.Active).ToList();
-        var accounts = await ctx.Accounts.CountAsync(ct);
+        var accounts = await ctx.Users.CountAsync(ct);
         var weekAgo = nowUtc.UtcDateTime.AddDays(-7);
-        var newAccounts = await ctx.Accounts.CountAsync(a => a.CreatedUtc >= weekAgo, ct);
+        var newAccounts = await ctx.Users.CountAsync(a => a.CreatedUtc >= weekAgo, ct);
 
         // 미션: 부서마다 그 부서의 오늘
         var todays = active.ToDictionary(t => t.Id, t => clock.Today(t.TimeZoneId));
@@ -56,12 +56,12 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
         // 통독: 한국 시간 오늘 읽은 장(계정 기록) → 부서별은 그 부서 승인 소속원 중 읽은 사람
         var dayStart = TimeZoneInfo.ConvertTimeToUtc(today.ToDateTime(TimeOnly.MinValue), tz);
         var dayEnd = dayStart.AddDays(1);
-        var reads = await ctx.ChapterReads.AsNoTracking().Where(r => r.ReadUtc >= dayStart && r.ReadUtc < dayEnd)
-            .Select(r => r.AccountId).ToListAsync(ct);
+        var reads = await ctx.ReadingChapterReads.AsNoTracking().Where(r => r.ReadAt >= dayStart && r.ReadAt < dayEnd)
+            .Select(r => r.UserName).ToListAsync(ct);
         var readers = reads.Distinct().ToList();
-        var memberOf = await ctx.Memberships.Where(m => m.Status == MembershipStatus.Approved && readers.Contains(m.AccountId))
-            .Select(m => new { m.TenantId, m.AccountId }).ToListAsync(ct);
-        var readersBy = memberOf.GroupBy(m => m.TenantId).ToDictionary(g => g.Key, g => g.Select(m => m.AccountId).Distinct().Count());
+        var memberOf = await ctx.Memberships.Where(m => m.Status == MembershipStatus.Approved && readers.Contains(m.UserName))
+            .Select(m => new { m.TenantId, m.UserName }).ToListAsync(ct);
+        var readersBy = memberOf.GroupBy(m => m.TenantId).ToDictionary(g => g.Key, g => g.Select(m => m.UserName).Distinct().Count());
 
         var requested = await ctx.Memberships.Where(m => m.Status == MembershipStatus.Requested)
             .Select(m => new { m.TenantId, m.RequestedUtc }).ToListAsync(ct);
@@ -105,7 +105,7 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
 
         // 최근 관리 기록(지금은 진급 승인 · 이름 · 색 · 시즌 시작일만 남는다)
         var logs = await (from l in ctx.AuditLogs
-                          join a in ctx.Accounts on l.ActorAccountId equals a.Id
+                          join a in ctx.Users on l.ActorUserName equals a.Id
                           orderby l.OccurredUtc descending, l.Id descending
                           select new { l.OccurredUtc, a.DisplayName, a.IsPlatformAdmin, l.TenantId, l.Action, l.Detail }).Take(8).ToListAsync(ct);
         var log = logs.Select(l => new PlatformLog(l.OccurredUtc, l.IsPlatformAdmin ? $"{l.DisplayName}(운영자)" : l.DisplayName,

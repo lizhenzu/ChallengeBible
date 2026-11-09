@@ -83,9 +83,9 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
             raw.SaveChanges();
             raw.Activities.Add(new Activity { TenantId = a.Id, ParticipantId = p.Id, MissionItem = "Word.Me", MissionDate = Jan5, Points = 1, PerformedUtc = new DateTime(2027, 1, 4, 23, 0, 0, DateTimeKind.Utc) });
             var at = new DateTime(2027, 1, 4, 23, 30, 0, DateTimeKind.Utc);   // 서울 1월 5일 아침
-            raw.ChapterReads.Add(new ChapterRead { AccountId = k1, RoundNo = 1, BookId = 1, Chapter = 1, ReadUtc = at });   // 미션도 한 k1 — 오늘 한 명으로
-            raw.ChapterReads.Add(new ChapterRead { AccountId = k2, RoundNo = 1, BookId = 1, Chapter = 1, ReadUtc = at });
-            raw.ChapterReads.Add(new ChapterRead { AccountId = k2, RoundNo = 1, BookId = 1, Chapter = 2, ReadUtc = new DateTime(2026, 12, 30, 0, 0, 0, DateTimeKind.Utc) });   // 지난해
+            raw.ChapterReads.Add(new ChapterRead { UserName = k1, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = at });   // 미션도 한 k1 — 오늘 한 명으로
+            raw.ChapterReads.Add(new ChapterRead { UserName = k2, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = at });
+            raw.ChapterReads.Add(new ChapterRead { UserName = k2, RoundNo = 1, BookId = 1, Chapter = 2, ReadAt = new DateTime(2026, 12, 30, 0, 0, 0, DateTimeKind.Utc) });   // 지난해
             raw.SaveChanges();
         }
         var html = await Page();

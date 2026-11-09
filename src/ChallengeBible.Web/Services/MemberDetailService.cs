@@ -8,7 +8,7 @@ namespace ChallengeBible.Web.Services;
 
 public sealed record DetailDayLine(DateTime AtUtc, Mission Mission, string What, int Points);
 public sealed record DetailReading(int RoundNo, int ReadChapters, double Percent, int Completed, byte? LastBook, short? LastChapter, DateTime? LastUtc);
-public sealed record MemberDetail(int MembershipId, int AccountId, string Name, string Email, string Status, string? GroupLabel, DateTime? DecidedUtc,
+public sealed record MemberDetail(int MembershipId, int UserName, string Name, string Email, string Status, string? GroupLabel, DateTime? DecidedUtc,
     IReadOnlyList<string> Roles, IReadOnlyList<string> Guardians, int? ParticipantId,
     int SeasonPoints, int Streak, int ActiveDaysThisMonth, int DaysThisMonth, DetailDayLine? LastMission,
     IReadOnlyList<DayScore> Month, DetailReading? Reading, string? ResetBlocked);
@@ -32,12 +32,12 @@ public sealed class MemberDetailService(IAppDb db, ISystemDb systemDb, TenantCon
         await using var ctx = db.Create();
         var m = await FindAsync(ctx, membershipId, ct);
         if (m is null) return null;
-        var a = await ctx.Accounts.AsNoTracking().SingleAsync(x => x.Id == m.AccountId, ct);
+        var a = await ctx.Users.AsNoTracking().SingleAsync(x => x.Id == m.UserName, ct);
         var pid = await ctx.Participants.Where(p => p.MembershipId == m.Id).Select(p => (int?)p.Id).SingleOrDefaultAsync(ct);
         var guardians = pid is int p0
             ? await (from l in ctx.GuardianLinks
                      join gm in ctx.Memberships on l.GuardianMembershipId equals gm.Id
-                     join ga in ctx.Accounts on gm.AccountId equals ga.Id
+                     join ga in ctx.Users on gm.UserName equals ga.Id
                      where l.ParticipantId == p0
                      orderby ga.DisplayName
                      select ga.DisplayName).ToListAsync(ct)
@@ -69,17 +69,17 @@ public sealed class MemberDetailService(IAppDb db, ISystemDb systemDb, TenantCon
         if (tenant.Current.ReadingEnabled)
         {
             // 통독 기록은 계정 범위라 앱 필터가 "본인만" — 관리자 화면에서만 끄고 이 계정으로 직접 거른다(DB 는 fn_ReadingRead 가 관리자 · 교사에게 허용)
-            var rounds = await ctx.ReadingRounds.IgnoreQueryFilters().AsNoTracking().Where(r => r.AccountId == a.Id)
-                .Select(r => new { r.RoundNo, r.CompletedUtc, r.ClosedUtc }).ToListAsync(ct);
+            var rounds = await ctx.ReadingRounds.IgnoreQueryFilters().AsNoTracking().Where(r => r.UserName == a.Id)
+                .Select(r => new { r.RoundNo, r.CompletedAt, r.ClosedAt }).ToListAsync(ct);
             if (rounds.Count > 0)
             {
-                var roundNo = rounds.Where(r => r.CompletedUtc == null && r.ClosedUtc == null).Select(r => r.RoundNo).DefaultIfEmpty(rounds.Max(r => r.RoundNo)).Max();
-                var reads = await ctx.ChapterReads.IgnoreQueryFilters().AsNoTracking().Where(c => c.AccountId == a.Id)
-                    .Select(c => new { c.RoundNo, c.BookId, c.Chapter, c.ReadUtc }).ToListAsync(ct);
+                var roundNo = rounds.Where(r => r.CompletedAt == null && r.ClosedAt == null).Select(r => r.RoundNo).DefaultIfEmpty(rounds.Max(r => r.RoundNo)).Max();
+                var reads = await ctx.ReadingChapterReads.IgnoreQueryFilters().AsNoTracking().Where(c => c.UserName == a.Id)
+                    .Select(c => new { c.RoundNo, c.BookId, c.Chapter, c.ReadAt }).ToListAsync(ct);
                 var n = reads.Count(r => r.RoundNo == roundNo);
-                var lr = reads.OrderByDescending(r => r.ReadUtc).FirstOrDefault();
-                reading = new DetailReading(roundNo, n, ReadingSummary.Percent(n, ReadingService.TotalChapters), rounds.Count(r => r.CompletedUtc != null),
-                    lr?.BookId, lr?.Chapter, lr?.ReadUtc);
+                var lr = reads.OrderByDescending(r => r.ReadAt).FirstOrDefault();
+                reading = new DetailReading(roundNo, n, ReadingSummary.Percent(n, ReadingService.TotalChapters), rounds.Count(r => r.CompletedAt != null),
+                    lr?.BookId, lr?.Chapter, lr?.ReadAt);
             }
         }
 
@@ -114,55 +114,55 @@ public sealed class MemberDetailService(IAppDb db, ISystemDb systemDb, TenantCon
     }
 
     /// <summary>부서 관리자가 이 계정을 초기화할 수 없는 이유(ADR 0035 결정 4). 할 수 있으면 null. 다른 부서 소속은 시스템 연결로 본다.</summary>
-    private async Task<string?> BlockedAsync(int accountId, CancellationToken ct)
+    private async Task<string?> BlockedAsync(string userName, CancellationToken ct)
     {
-        await using var sys = systemDb.Create(accountId);
-        var acc = await sys.Accounts.AsNoTracking().SingleAsync(x => x.Id == accountId, ct);
+        await using var sys = systemDb.Create(userName);
+        var acc = await sys.Accounts.AsNoTracking().SingleAsync(x => x.Id == userName, ct);
         if (acc.IsPlatformAdmin) return "플랫폼 관리자 계정이에요. 이 계정은 본인이 바꿔요.";
         var otherAdmin = await (from r in sys.MembershipRoles
                                 join om in sys.Memberships on new { r.TenantId, Id = r.MembershipId } equals new { om.TenantId, om.Id }
-                                where om.AccountId == accountId && om.TenantId != tenant.Current.Id && om.Status == MembershipStatus.Approved && r.Role == Roles.TenantAdmin
+                                where om.UserName == userName && om.TenantId != tenant.Current.Id && om.Status == MembershipStatus.Approved && r.Role == Roles.TenantAdmin
                                 select om.Id).AnyAsync(ct);
         return otherAdmin ? "다른 부서의 관리자이기도 한 계정이에요. 그 부서 관리 권한까지 영향을 주니 플랫폼 관리자에게 부탁해 주세요(ADR 0035)." : null;
     }
 
     /// <summary>임시 비밀번호(0035). 이 부서 승인 · 정지 소속만, 막힌 계정이면 (null, 이유).</summary>
-    public async Task<(string? Temp, string? Error)> ResetPasswordAsync(int actor, int membershipId, CancellationToken ct = default)
+    public async Task<(string? Temp, string? Error)> ResetPasswordAsync(string actor, int membershipId, CancellationToken ct = default)
     {
-        int accountId;
+        string userName;
         await using (var ctx = db.Create())
         {
             var m = await FindAsync(ctx, membershipId, ct);
             if (m is null) return (null, "이 부서 소속이 아니에요.");
-            accountId = m.AccountId;
+            userName = m.UserName;
         }
-        if (await BlockedAsync(accountId, ct) is { } why) return (null, why);
+        if (await BlockedAsync(userName, ct) is { } why) return (null, why);
         await using var sys = systemDb.Create(actor);
-        var a = await sys.Accounts.SingleAsync(x => x.Id == accountId, ct);
+        var a = await sys.Accounts.SingleAsync(x => x.Id == userName, ct);
         var temp = PlatformAccountService.ApplyTemporaryPassword(a);
-        sys.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorAccountId = actor, Action = PlatformAccountService.ResetPasswordAction,
-            TenantId = tenant.Current.Id, Detail = $"account={accountId} {a.DisplayName}({a.Email})" });
+        sys.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = PlatformAccountService.ResetPasswordAction,
+            TenantId = tenant.Current.Id, Detail = $"account={userName} {a.DisplayName}({a.Email})" });
         await sys.SaveChangesAsync(ct);
         return (temp, null);
     }
 
     /// <summary>성경 읽음 · 책갈피 지우기(0029). 이름을 똑같이 써야 한다. 막힌 계정이면 이유.</summary>
-    public async Task<string?> ResetMarksAsync(int actor, int membershipId, string? confirmName, CancellationToken ct = default)
+    public async Task<string?> ResetMarksAsync(string actor, int membershipId, string? confirmName, CancellationToken ct = default)
     {
-        int accountId;
+        string userName;
         await using (var ctx = db.Create())
         {
             var m = await FindAsync(ctx, membershipId, ct);
             if (m is null) return "이 부서 소속이 아니에요.";
-            accountId = m.AccountId;
+            userName = m.UserName;
         }
-        if (await BlockedAsync(accountId, ct) is { } why) return why;
+        if (await BlockedAsync(userName, ct) is { } why) return why;
         await using var sys = systemDb.Create(actor);
-        var a = await sys.Accounts.SingleAsync(x => x.Id == accountId, ct);
+        var a = await sys.Accounts.SingleAsync(x => x.Id == userName, ct);
         if ((confirmName ?? "").Trim() != a.DisplayName) return "이름이 맞지 않아요. 똑같이 써 주세요.";
-        var (marks, books) = await PlatformAccountService.ClearBibleMarksAsync(sys, accountId, ct);
-        sys.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorAccountId = actor, Action = PlatformAccountService.ResetMarksAction,
-            TenantId = tenant.Current.Id, Detail = $"account={accountId} {a.DisplayName}({a.Email}) 읽음 {marks} · 책갈피 {books}" });
+        var (marks, books) = await PlatformAccountService.ClearBibleMarksAsync(sys, userName, ct);
+        sys.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = PlatformAccountService.ResetMarksAction,
+            TenantId = tenant.Current.Id, Detail = $"account={userName} {a.DisplayName}({a.Email}) 읽음 {marks} · 책갈피 {books}" });
         await sys.SaveChangesAsync(ct);
         return null;
     }

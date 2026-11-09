@@ -7,7 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record RuleVersion(int VersionNo, DateOnly EffectiveFrom, RuleSet Rules, DateTime? ChangedUtc, int? ChangedByAccountId);
+public sealed record RuleVersion(int VersionNo, DateOnly EffectiveFrom, RuleSet Rules, DateTime? ChangedUtc, int? ChangedByUserName);
 
 /// <summary>
 /// 점수 · 수행 규칙 읽기(ADR 0060). 어떤 날의 규칙 = 적용 시작일이 그날 이전인 버전 가운데 번호가 가장 큰 것.
@@ -34,7 +34,7 @@ public sealed class RuleService(IAppDb db, IMemoryCache cache, Tenancy.TenantCon
         await using var ctx = db.Create();
         var rows = await ctx.PlatformRuleSetVersions.AsNoTracking().OrderBy(v => v.VersionNo).ToListAsync(ct);
         IReadOnlyList<RuleVersion> list = [Initial, .. rows.Select(v => new RuleVersion(v.VersionNo, v.EffectiveFrom, FromJson(v.Values) with { Version = v.VersionNo },
-            v.ChangedUtc, v.ChangedByAccountId))];
+            v.ChangedUtc, v.ChangedByUserName))];
         cache.Set(CacheKey, list, TimeSpan.FromMinutes(5));
         return list;
     }

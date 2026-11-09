@@ -51,10 +51,10 @@ public sealed class ContentCalendarService(IAppDb db, TenantContext tenant, Tena
         await using var ctx = db.Create();
         // 현재 개정만(공개 · 초안). 공용(TenantId null) + 이 부서 것은 전역 필터가 거른다.
         var words = (await ctx.DailyWords.AsNoTracking().Where(w => w.IsCurrent && w.ExposeDate >= from && w.ExposeDate <= to).ToListAsync(ct))
-            .ToLookup(w => w.ExposeDate, w => new Cand(w.TenantId, w.Status, w.Title, BibleBooks.Range(w.BookId, w.StartChapter, w.StartVerse, w.EndChapter, w.EndVerse), w.CreatedByAccountId, w.CreatedUtc));
+            .ToLookup(w => w.ExposeDate, w => new Cand(w.TenantId, w.Status, w.Title, BibleBooks.Range(w.BookId, w.StartChapter, w.StartVerse, w.EndChapter, w.EndVerse), w.CreatedByUserName, w.CreatedUtc));
         var quizzes = (await ctx.DailyQuizzes.AsNoTracking().Include(q => q.Choices).Where(q => q.IsCurrent && q.ExposeDate >= from && q.ExposeDate <= to).ToListAsync(ct))
             .ToLookup(q => q.ExposeDate, q => new Cand(q.TenantId, q.Status, q.Question,
-                q.Format == QuizFormat.Text ? "답 쓰기" : $"보기 {q.Choices.Count}개", q.CreatedByAccountId, q.CreatedUtc));
+                q.Format == QuizFormat.Text ? "답 쓰기" : $"보기 {q.Choices.Count}개", q.CreatedByUserName, q.CreatedUtc));
         var prayers = await ctx.DailyPrayers.AsNoTracking()
             .Where(p => p.IsCurrent && ((p.TenantId != null && p.ExposeDate >= from && p.ExposeDate <= to) || (p.TenantId == null && p.DayNo != null))).ToListAsync(ct);
         var weekFrom = Week.Of(from, Rules.WeekStart).Start;
@@ -64,20 +64,20 @@ public sealed class ContentCalendarService(IAppDb db, TenantContext tenant, Tena
         static string Range(RangedContent c) => BibleBooks.Range(c.BookId, c.StartChapter, c.StartVerse, c.EndChapter, c.EndVerse);
         IEnumerable<Cand> PrayersOn(DateOnly d) => prayers
             .Where(p => p.TenantId != null ? p.ExposeDate == d : p.DayNo == d.Day)
-            .Select(p => new Cand(p.TenantId, p.Status, p.TraitName, Range(p), p.CreatedByAccountId, p.CreatedUtc));
+            .Select(p => new Cand(p.TenantId, p.Status, p.TraitName, Range(p), p.CreatedByUserName, p.CreatedUtc));
         IEnumerable<Cand> VersesOn(DateOnly d)
         {
             var w = Week.Of(d, Rules.WeekStart);
             var span = $"{w.Start:M'/'d} ~ {w.End:M'/'d}";   // ko 문화권에서 "/" 는 "-" 로 바뀌므로 글자로
             return verses.Where(v => v.TenantId != null ? v.StartDate == w.Start : v.WeekNo == w.NumberInYear)
-                .Select(v => new Cand(v.TenantId, v.Status, v.Title, $"{Range(v)} · {span}", v.CreatedByAccountId, v.CreatedUtc));
+                .Select(v => new Cand(v.TenantId, v.Status, v.Title, $"{Range(v)} · {span}", v.CreatedByUserName, v.CreatedUtc));
         }
 
         // 덮어쓰기 만든 사람 이름: 범위 안 부서 콘텐츠의 계정만(부서 관리자 화면이라 이 부서 사람)
         var ids = words.SelectMany(g => g).Concat(quizzes.SelectMany(g => g)).Where(c => c.TenantId != null).Select(c => c.By)
-            .Concat(prayers.Where(p => p.TenantId != null).Select(p => p.CreatedByAccountId))
-            .Concat(verses.Where(v => v.TenantId != null).Select(v => v.CreatedByAccountId)).Distinct().ToList();
-        var names = await ctx.Accounts.AsNoTracking().Where(a => ids.Contains(a.Id)).ToDictionaryAsync(a => a.Id, a => a.DisplayName, ct);
+            .Concat(prayers.Where(p => p.TenantId != null).Select(p => p.CreatedByUserName))
+            .Concat(verses.Where(v => v.TenantId != null).Select(v => v.CreatedByUserName)).Distinct().ToList();
+        var names = await ctx.Users.AsNoTracking().Where(a => ids.Contains(a.Id)).ToDictionaryAsync(a => a.Id, a => a.DisplayName, ct);
         string By(Cand c) => $"{names.GetValueOrDefault(c.By) ?? "부서"} · {c.ByUtc.ToString("M월 d일", Ko)}";
 
         CalendarDay Build(DateOnly d)

@@ -14,7 +14,7 @@ public class TenantsModel(AccountService accounts) : PageModel, ITitled
 
     public async Task OnGetAsync(CancellationToken ct)
     {
-        var me = User.AccountId()!.Value;
+        var me = User.UserName()!.Value;
         var mine = await accounts.MyMembershipsAsync(me, ct);
         Approved = mine.Where(m => m.Status == MembershipStatus.Approved && m.TenantActive).ToList();
         Waiting = mine.Where(m => m.Status == MembershipStatus.Requested).ToList();

@@ -20,7 +20,7 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
     private readonly Tenant _kids, _elem;
-    private readonly Dictionary<string, (int AccountId, Membership M, int Pid)> _p = [];
+    private readonly Dictionary<string, (int UserName, Membership M, int Pid)> _p = [];
 
     public FamilyJoinTests(WebApplicationFactory<Program> app)
     {
@@ -286,7 +286,7 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
     [Fact]
     public async Task R210_한_사람은_한_부서의_가족팀에만_다른_부서_팀에_있으면_막힌다()
     {
-        var dad = _p["dad"].AccountId;
+        var dad = _p["dad"].UserName;
         AddMembership(_elem, "dad-elem", dad, [Roles.Participant, Roles.Guardian]);
         Assert.Equal(FamilyError.None, await As("dad-elem", _elem).CreateAsync("초등부 팀", FamilyRelation.Father));
 
@@ -349,7 +349,7 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         using (var raw = InMemoryDb.Raw(_db))
         {
             raw.PlatformRuleSetVersions.Add(new PlatformRuleSetVersion { VersionNo = 2, EffectiveFrom = new DateOnly(2027, 1, 5),
-                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { FamilyTeam = false } }), ChangedByAccountId = 1 });
+                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { FamilyTeam = false } }), ChangedByUserName = 1 });
             raw.SaveChanges();
         }
         Assert.Null(await As("cheolsu").EntryAsync());
@@ -448,7 +448,7 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Add(_kids, "req", "신청하늘", Roles.Participant);
         Add(_kids, "inv", "초대하늘", Roles.Participant);
         Add(_kids, "gone", "다른부서하늘", Roles.Participant);
-        AddMembership(_elem, "goneElem", _p["gone"].AccountId, [Roles.Participant]);
+        AddMembership(_elem, "goneElem", _p["gone"].UserName, [Roles.Participant]);
         Assert.Equal(FamilyError.None, await As("goneElem", _elem).CreateAsync("저쪽 팀", FamilyRelation.Student));
         Assert.Equal(FamilyError.None, await As("req").RequestAsync(await TeamOf("dad"), FamilyRelation.Student));
         await DadInvites("inv");
@@ -490,7 +490,7 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Equal(FamilyError.None, await As("cheolsu").RequestAsync(await TeamOf("dad"), FamilyRelation.Student));
         Assert.Equal(FamilyError.TargetRequested, await As("dad").InviteAsync(_p["cheolsu"].Pid, FamilyRelation.Student));
 
-        AddMembership(_elem, "otherElem", _p["other"].AccountId, [Roles.Participant]);
+        AddMembership(_elem, "otherElem", _p["other"].UserName, [Roles.Participant]);
         Assert.Equal(FamilyError.None, await As("otherElem", _elem).CreateAsync("저쪽 팀", FamilyRelation.Student));
         Assert.Equal(FamilyError.TargetOtherDept, await As("dad").InviteAsync(_p["other"].Pid, FamilyRelation.Student));
     }
@@ -600,7 +600,7 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
     {
         Assert.Equal(FamilyError.None, await As("dad").CreateAsync("웃음폭탄네", FamilyRelation.Father));
         var invite = await DadInvites("other");
-        AddMembership(_elem, "otherElem", _p["other"].AccountId, [Roles.Participant]);
+        AddMembership(_elem, "otherElem", _p["other"].UserName, [Roles.Participant]);
         Assert.Equal(FamilyError.None, await As("otherElem", _elem).CreateAsync("저쪽 팀", FamilyRelation.Student));
         Assert.Equal(FamilyError.InOtherDept, await As("other").AcceptInviteAsync(invite, FamilyRelation.Student));
     }

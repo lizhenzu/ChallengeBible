@@ -32,9 +32,9 @@ public partial class FamilyPageTests : IClassFixture<WebApplicationFactory<Progr
         InMemoryDb.SeedMembership(_db, _kids.Id, _cheolsu, MembershipStatus.Approved, Roles.Participant);
         InMemoryDb.SeedMembership(_db, _elem.Id, _minji, MembershipStatus.Approved, Roles.Participant);
         using var raw = InMemoryDb.Raw(_db);
-        var f = new Family { CreatedUtc = DateTime.UtcNow, CreatedByAccountId = _mom };
-        f.Links.Add(new FamilyLink { AccountId = _mom, Relation = FamilyRelation.Mother, SortOrder = 0, AddedUtc = DateTime.UtcNow, AddedByAccountId = _mom });
-        f.Links.Add(new FamilyLink { AccountId = _cheolsu, Relation = FamilyRelation.Student, SortOrder = 1, AddedUtc = DateTime.UtcNow, AddedByAccountId = _mom });
+        var f = new Family { CreatedUtc = DateTime.UtcNow, CreatedByUserName = _mom };
+        f.Links.Add(new FamilyLink { UserName = _mom, Relation = FamilyRelation.Mother, SortOrder = 0, AddedUtc = DateTime.UtcNow, AddedByUserName = _mom });
+        f.Links.Add(new FamilyLink { UserName = _cheolsu, Relation = FamilyRelation.Student, SortOrder = 1, AddedUtc = DateTime.UtcNow, AddedByUserName = _mom });
         raw.Families.Add(f);
         raw.SaveChanges();
         _family = f.Id;
@@ -98,13 +98,13 @@ public partial class FamilyPageTests : IClassFixture<WebApplicationFactory<Progr
         var r = await Post(op, "Save", new() { ["name"] = "  우리집  ", [$"rel_{_cheolsu}"] = FamilyRelation.Other, [$"rel_{_mom}"] = "nope" });
         Assert.Equal($"{Url}?ok=saved", r.Headers.Location!.OriginalString);
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal("우리집", raw.Families.Single(f => f.Id == _family).Name);
-        Assert.Equal([(_mom, FamilyRelation.Mother), (_cheolsu, FamilyRelation.Other)], Links().Select(l => (l.AccountId, l.Relation)));   // 모르는 관계는 그대로
+        Assert.Equal([(_mom, FamilyRelation.Mother), (_cheolsu, FamilyRelation.Other)], Links().Select(l => (l.UserName, l.Relation)));   // 모르는 관계는 그대로
 
         await Post(op, "Move", new() { ["account"] = _cheolsu.ToString(), ["up"] = "true" });
-        Assert.Equal([_cheolsu, _mom], Links().Select(l => l.AccountId));
+        Assert.Equal([_cheolsu, _mom], Links().Select(l => l.UserName));
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal("우리집", raw.Families.Single(f => f.Id == _family).Name);   // 이름은 그대로
         await Post(op, "Move", new() { ["account"] = _cheolsu.ToString(), ["up"] = "true" });   // 맨 위에서 더 위로 → 그대로
-        Assert.Equal([_cheolsu, _mom], Links().Select(l => l.AccountId));
+        Assert.Equal([_cheolsu, _mom], Links().Select(l => l.UserName));
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public partial class FamilyPageTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Contains("김민지", found);
         var r = await Post(op, "Add", new() { ["account"] = _minji.ToString() });
         Assert.Equal($"{Url}?ok=added", r.Headers.Location!.OriginalString);
-        Assert.Equal([_mom, _cheolsu, _minji], Links().Select(l => l.AccountId));
+        Assert.Equal([_mom, _cheolsu, _minji], Links().Select(l => l.UserName));
 
         await Post(op, "Remove", new() { ["account"] = _minji.ToString() });
         await Post(op, "Remove", new() { ["account"] = _cheolsu.ToString() });
@@ -130,8 +130,8 @@ public partial class FamilyPageTests : IClassFixture<WebApplicationFactory<Progr
     {
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var other = new Family { CreatedUtc = DateTime.UtcNow, CreatedByAccountId = _minji };
-            other.Links.Add(new FamilyLink { AccountId = _minji, Relation = FamilyRelation.Student, AddedUtc = DateTime.UtcNow, AddedByAccountId = _minji });
+            var other = new Family { CreatedUtc = DateTime.UtcNow, CreatedByUserName = _minji };
+            other.Links.Add(new FamilyLink { UserName = _minji, Relation = FamilyRelation.Student, AddedUtc = DateTime.UtcNow, AddedByUserName = _minji });
             raw.Families.Add(other);
             raw.SaveChanges();
         }

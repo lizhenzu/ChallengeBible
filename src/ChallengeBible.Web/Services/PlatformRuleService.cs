@@ -66,10 +66,10 @@ public sealed class PlatformRuleService(ISystemDb systemDb, RuleService rules, T
     }
 
     /// <summary>새 버전으로 저장. 바뀐 것이 없거나 틀리면 저장하지 않고 이유를 돌려준다.</summary>
-    public async Task<(RuleVersion? Saved, List<string> Errors)> SaveAsync(int actor, RuleSet next, DateOnly effectiveFrom, CancellationToken ct = default)
+    public async Task<(RuleVersion? Saved, List<string> Errors)> SaveAsync(string actor, RuleSet next, DateOnly effectiveFrom, CancellationToken ct = default)
     {
         await using var ctx = systemDb.Create(actor);
-        if (!await ctx.Accounts.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
+        if (!await ctx.Users.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
             throw new UnauthorizedAccessException("플랫폼 관리자만 할 수 있어요.");
 
         var versions = await rules.VersionsAsync(ct);
@@ -84,16 +84,16 @@ public sealed class PlatformRuleService(ISystemDb systemDb, RuleService rules, T
         var no = latest.VersionNo + 1;
         var saved = next with { Version = no, Milestones = next.Milestones.Order().ToList() };
         var now = time.GetUtcNow().UtcDateTime;
-        ctx.PlatformRuleSetVersions.Add(new PlatformRuleSetVersion { VersionNo = no, Values = RuleService.ToJson(saved), EffectiveFrom = effectiveFrom, ChangedUtc = now, ChangedByAccountId = actor });
+        ctx.PlatformRuleSetVersions.Add(new PlatformRuleSetVersion { VersionNo = no, Values = RuleService.ToJson(saved), EffectiveFrom = effectiveFrom, ChangedUtc = now, ChangedByUserName = actor });
         var detail = $"v{no} · {effectiveFrom.ToString("M월 d일", Ko)}부터 · {string.Join(", ", diff)}";
-        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorAccountId = actor, Action = LogAction, Detail = detail.Length > 400 ? detail[..399] + "…" : detail });
+        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorUserName = actor, Action = LogAction, Detail = detail.Length > 400 ? detail[..399] + "…" : detail });
         await ctx.SaveChangesAsync(ct);
         RuleService.Forget(cache);
         return (new RuleVersion(no, effectiveFrom, saved, now, actor), []);
     }
 
     /// <summary>이 규칙을 쓰는 부서 수(운영 중 · 성경말씀 켬). 1차는 모든 부서가 기본 규칙을 쓴다.</summary>
-    public async Task<int> MissionTenantsAsync(int actor, CancellationToken ct = default)
+    public async Task<int> MissionTenantsAsync(string actor, CancellationToken ct = default)
     {
         await using var ctx = systemDb.Create(actor);
         return await ctx.Tenants.CountAsync(t => t.Status == TenantStatus.Active && t.MissionEnabled, ct);
@@ -102,10 +102,10 @@ public sealed class PlatformRuleService(ISystemDb systemDb, RuleService rules, T
     public DateOnly TodayDate => Today;
 
     /// <summary>버전 기록용 계정 이름.</summary>
-    public async Task<Dictionary<int, string>> NamesAsync(int actor, IEnumerable<int> ids, CancellationToken ct = default)
+    public async Task<Dictionary<int, string>> NamesAsync(string actor, IEnumerable<int> ids, CancellationToken ct = default)
     {
         var list = ids.Distinct().ToList();
         await using var ctx = systemDb.Create(actor);
-        return await ctx.Accounts.AsNoTracking().Where(a => list.Contains(a.Id)).ToDictionaryAsync(a => a.Id, a => a.DisplayName, ct);
+        return await ctx.Users.AsNoTracking().Where(a => list.Contains(a.Id)).ToDictionaryAsync(a => a.Id, a => a.DisplayName, ct);
     }
 }

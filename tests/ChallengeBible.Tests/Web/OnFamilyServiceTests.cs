@@ -97,7 +97,7 @@ public class OnFamilyServiceTests
         using (var raw = InMemoryDb.Raw(_db))
         {
             var r = raw.FamilyRequests.Single();
-            Assert.Equal((FamilyRequestStatus.Approved, (int?)id, (int?)_op), (r.Status, r.FamilyId, r.DecidedByAccountId));
+            Assert.Equal((FamilyRequestStatus.Approved, (int?)id, (int?)_op), (r.Status, r.FamilyId, r.DecidedByUserName));
         }
         Assert.Empty(await Admin().RequestsAsync(_op));
         Assert.Equal(OnFamilyError.AlreadyInFamily, await Svc().RequestAsync(_mom, "또"));             // 이미 온가족이면 신청할 필요 없음
@@ -117,7 +117,7 @@ public class OnFamilyServiceTests
         var my = await Svc().MyAsync(_cheolsu);
         var f = Assert.IsType<FamilyBoardView>(my.Family);
         Assert.Equal("김철수네 온가족", f.Name);                                                       // 이름이 비면 대표 학생
-        var pts = f.People.ToDictionary(p => p.AccountId, p => p.Points);
+        var pts = f.People.ToDictionary(p => p.UserName, p => p.Points);
         Assert.Equal(42, pts[_cheolsu]);              // 멈춘 임시 부서 100점은 빼고(이미 부서로 복사됨, R-174)
         Assert.Equal(33, pts[_minji]);                // 초등부 30 + 아직 있는 임시 부서 3
         Assert.Equal(7, pts[_mom]);                   // 역할을 뺀 참여자의 점수도 그대로

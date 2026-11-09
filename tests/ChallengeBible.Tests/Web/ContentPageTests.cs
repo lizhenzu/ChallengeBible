@@ -34,7 +34,7 @@ public partial class ContentPageTests : IClassFixture<WebApplicationFactory<Prog
     private void Seed(params DailyWord[] words)
     {
         using var raw = InMemoryDb.Raw(_db);
-        foreach (var w in words) { w.CreatedByAccountId = raw.Accounts.First().Id; raw.DailyWords.Add(w); }
+        foreach (var w in words) { w.CreatedByUserName = raw.Accounts.First().Id; raw.DailyWords.Add(w); }
         raw.SaveChanges();
     }
 

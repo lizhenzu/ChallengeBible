@@ -68,9 +68,9 @@ public partial class MemberDetailTests : IClassFixture<WebApplicationFactory<Pro
         Act(Jan5, "Word.Me", 1, at.AddMinutes(-30));
         Act(Jan5, "Prayer.Me", 1, at);
         Act(Jan5.AddDays(-1), "Word.Me", 1, at.AddDays(-1));
-        raw.ReadingRounds.Add(new ReadingRound { AccountId = kidId, RoundNo = 1, StartedUtc = at.AddDays(-3) });
-        raw.ChapterReads.Add(new ChapterRead { AccountId = kidId, RoundNo = 1, BookId = 1, Chapter = 1, ReadUtc = at });
-        raw.VerseReadMarks.Add(new VerseReadMark { AccountId = kidId, BookId = 1, Chapter = 1, Verse = 1, ReadUtc = at });
+        raw.ReadingRounds.Add(new ReadingRound { UserName = kidId, RoundNo = 1, StartedAt = at.AddDays(-3) });
+        raw.ChapterReads.Add(new ChapterRead { UserName = kidId, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = at });
+        raw.VerseReadMarks.Add(new VerseReadMark { UserName = kidId, BookId = 1, Chapter = 1, Verse = 1, ReadAt = at });
         raw.SaveChanges();
         return (admin, km, kidId);
     }
@@ -161,6 +161,6 @@ public partial class MemberDetailTests : IClassFixture<WebApplicationFactory<Pro
         var ok = await Post(" 김철수 ");
         Assert.Equal(HttpStatusCode.Redirect, ok.StatusCode);
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Empty(raw.VerseReadMarks.Where(m => m.AccountId == kidId));
+        Assert.Empty(raw.VerseReadMarks.Where(m => m.UserName == kidId));
     }
 }

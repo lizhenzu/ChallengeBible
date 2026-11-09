@@ -15,7 +15,7 @@ namespace ChallengeBible.Web.Pages.Platform;
 public class FamilyModel(FamilyAdminService families) : PageModel, ITitled
 {
     public string Title => "온가족";
-    private int Me => User.AccountId()!.Value;
+    private int Me => User.UserName()!.Value;
 
     [BindProperty(SupportsGet = true)] public int Id { get; set; }
     [BindProperty(SupportsGet = true)] public string? Q { get; set; }
@@ -40,7 +40,7 @@ public class FamilyModel(FamilyAdminService families) : PageModel, ITitled
     public async Task<IActionResult> OnPostSaveAsync(string? name, CancellationToken ct)
     {
         if (!await LoadAsync(ct)) return NotFound();
-        var order = Detail.Members.Select(m => (m.Person.AccountId, Rel(m.Person.AccountId) ?? m.Person.Relation)).ToList();
+        var order = Detail.Members.Select(m => (m.Person.UserName, Rel(m.Person.UserName) ?? m.Person.Relation)).ToList();
         await families.SaveAsync(Me, Id, name, order, ct);
         return Done("saved");
     }
@@ -49,8 +49,8 @@ public class FamilyModel(FamilyAdminService families) : PageModel, ITitled
     public async Task<IActionResult> OnPostMoveAsync(int account, bool up, CancellationToken ct)
     {
         if (!await LoadAsync(ct)) return NotFound();
-        var list = Detail.Members.Select(m => (m.Person.AccountId, m.Person.Relation)).ToList();
-        var i = list.FindIndex(x => x.AccountId == account);
+        var list = Detail.Members.Select(m => (m.Person.UserName, m.Person.Relation)).ToList();
+        var i = list.FindIndex(x => x.UserName == account);
         var j = up ? i - 1 : i + 1;
         if (i >= 0 && j >= 0 && j < list.Count) (list[i], list[j]) = (list[j], list[i]);
         await families.SaveAsync(Me, Id, Detail.RawName, list, ct);
@@ -76,8 +76,8 @@ public class FamilyModel(FamilyAdminService families) : PageModel, ITitled
     public async Task<IActionResult> OnPostDissolveAsync(CancellationToken ct) =>
         await families.DissolveAsync(Me, Id, ct) ? Redirect("/platform/families?ok=dissolved") : NotFound();
 
-    private string? Rel(int accountId) =>
-        Request.Form[$"rel_{accountId}"].ToString() is { Length: > 0 } r && FamilyRelation.All.Contains(r) ? r : null;
+    private string? Rel(string userName) =>
+        Request.Form[$"rel_{userName}"].ToString() is { Length: > 0 } r && FamilyRelation.All.Contains(r) ? r : null;
 
     private IActionResult Done(string? ok) => Redirect($"/platform/families/{Id}" + (ok is null ? "" : $"?ok={ok}"));
 

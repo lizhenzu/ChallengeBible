@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 namespace ChallengeBible.Infrastructure.Tenancy;
 
 /// <summary>
-/// 연결을 열 때마다 SESSION_CONTEXT 에 TenantId · AccountId · PlatformScope 를 읽기 전용으로 넣는다(물리 설계 3-1).
+/// 연결을 열 때마다 SESSION_CONTEXT 에 TenantId · UserName · UserId · PlatformScope 를 읽기 전용으로 넣는다(물리 설계 3-1).
 /// 값이 없으면 넣지 않는다 — 그러면 RLS 가 영역 데이터를 하나도 보여 주지 않는다.
 /// </summary>
 public sealed class SessionContextInterceptor(Func<SessionValues> values) : DbConnectionInterceptor
@@ -25,7 +25,8 @@ public sealed class SessionContextInterceptor(Func<SessionValues> values) : DbCo
     {
         var parts = new List<(string Key, object Value)>();
         if (v.TenantId is int t) parts.Add(("TenantId", t));
-        if (v.AccountId is int a) parts.Add(("AccountId", a));
+        if (v.UserName is { } n) parts.Add(("UserName", n));
+        if (v.UserId is { } u) parts.Add(("UserId", u));
         if (v.PlatformScope) parts.Add(("PlatformScope", 1));
         if (parts.Count == 0) return null;
 
@@ -44,4 +45,4 @@ public sealed class SessionContextInterceptor(Func<SessionValues> values) : DbCo
     }
 }
 
-public readonly record struct SessionValues(int? TenantId, int? AccountId, bool PlatformScope);
+public readonly record struct SessionValues(int? TenantId, string? UserName, string? UserId, bool PlatformScope);

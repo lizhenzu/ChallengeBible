@@ -48,7 +48,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         }));
         using var raw = InMemoryDb.Raw(_db);
         var id = raw.Accounts.Single(a => a.Email == email + "@example.com").Id;
-        var m = new Membership { TenantId = _kids.Id, AccountId = id, Status = MembershipStatus.Approved,
+        var m = new Membership { TenantId = _kids.Id, UserName = id, Status = MembershipStatus.Approved,
             Roles = roles.Select(r => new MembershipRole { TenantId = _kids.Id, Role = r }).ToList() };
         raw.Memberships.Add(m);
         raw.SaveChanges();
@@ -200,8 +200,8 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         using (var raw = InMemoryDb.Raw(_db))
         {
             var acc = raw.Accounts.Single(a => a.Email == "cheolsu@example.com").Id;
-            raw.ReadingRounds.Add(new ReadingRound { AccountId = acc, RoundNo = 1, StartedUtc = DateTime.UtcNow });
-            raw.ChapterReads.Add(new ChapterRead { AccountId = acc, RoundNo = 1, BookId = 1, Chapter = 1, ReadUtc = DateTime.UtcNow });
+            raw.ReadingRounds.Add(new ReadingRound { UserName = acc, RoundNo = 1, StartedAt = DateTime.UtcNow });
+            raw.ChapterReads.Add(new ChapterRead { UserName = acc, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = DateTime.UtcNow });
             raw.SaveChanges();
         }
         var ask = await c.GetStringAsync("/jamsil-kids/reading/rounds?ask=true");

@@ -19,10 +19,10 @@ public sealed class FamilyAdminService(ISystemDb systemDb, TimeProvider time)
 {
     public const int NameMax = 30;
 
-    private async Task<AppDbContext> OpenAsync(int actor, CancellationToken ct)
+    private async Task<AppDbContext> OpenAsync(string actor, CancellationToken ct)
     {
         var ctx = systemDb.Create(actor);
-        if (!await ctx.Accounts.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
+        if (!await ctx.Users.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
         {
             await ctx.DisposeAsync();
             throw new UnauthorizedAccessException("플랫폼 관리자만 할 수 있어요.");
@@ -41,21 +41,21 @@ public sealed class FamilyAdminService(ISystemDb systemDb, TimeProvider time)
     {
         var rows = await (from m in ctx.Memberships
                           join t in ctx.Tenants on m.TenantId equals t.Id
-                          where ids.Contains(m.AccountId) && m.Status == MembershipStatus.Approved && t.Status == TenantStatus.Active
+                          where ids.Contains(m.UserName) && m.Status == MembershipStatus.Approved && t.Status == TenantStatus.Active
                           orderby t.Name
-                          select new { m.AccountId, t.Name, t.IsLobby, Roles = m.Roles.Select(r => r.Role).ToList() }).ToListAsync(ct);
-        return rows.GroupBy(r => r.AccountId).ToDictionary(g => g.Key, g => string.Join(" / ", g.Select(r =>
+                          select new { m.UserName, t.Name, t.IsLobby, Roles = m.Roles.Select(r => r.Role).ToList() }).ToListAsync(ct);
+        return rows.GroupBy(r => r.UserName).ToDictionary(g => g.Key, g => string.Join(" / ", g.Select(r =>
             $"{(r.IsLobby ? r.Name : JoinDept(r.Name))} {string.Join(" · ", r.Roles.Where(x => x is Roles.Participant or Roles.Guardian).OrderByDescending(x => x == Roles.Guardian).Select(RoleLabel))}".Trim())));
     }
 
     private static string JoinDept(string name) => Pages.JoinModel.Split(name).Dept;
     private static string RoleLabel(string r) => r == Roles.Guardian ? "보호자" : "참여자";
 
-    public async Task<List<FamilyRequestRow>> RequestsAsync(int actor, CancellationToken ct = default)
+    public async Task<List<FamilyRequestRow>> RequestsAsync(string actor, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var rows = await (from r in ctx.FamilyRequests
-                          join a in ctx.Accounts on r.RequesterAccountId equals a.Id
+                          join a in ctx.Users on r.RequesterAccountId equals a.Id
                           where r.Status == FamilyRequestStatus.Requested
                           orderby r.RequestedUtc
                           select new { r.Id, r.RequesterAccountId, a.DisplayName, r.Body, r.RequestedUtc }).ToListAsync(ct);
@@ -63,17 +63,17 @@ public sealed class FamilyAdminService(ISystemDb systemDb, TimeProvider time)
         return rows.Select(r => new FamilyRequestRow(r.Id, r.RequesterAccountId, r.DisplayName, depts.GetValueOrDefault(r.RequesterAccountId, "소속 없음"), r.Body, r.RequestedUtc)).ToList();
     }
 
-    public async Task<FamilyRequestRow?> RequestAsync(int actor, int id, CancellationToken ct = default) =>
+    public async Task<FamilyRequestRow?> RequestAsync(string actor, int id, CancellationToken ct = default) =>
         (await RequestsAsync(actor, ct)).FirstOrDefault(r => r.Id == id);
 
     /// <summary>온가족 목록(이름 · 구성원 수 · 부서 · 누적 총점). q 가 있으면 구성원 이름 · 이메일로 거른다.</summary>
-    public async Task<List<FamilyBoardView>> FamiliesAsync(int actor, string? q, CancellationToken ct = default)
+    public async Task<List<FamilyBoardView>> FamiliesAsync(string actor, string? q, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var term = q?.Trim() ?? "";
         var ids = term.Length == 0
             ? await ctx.Families.OrderBy(f => f.Id).Select(f => f.Id).ToListAsync(ct)
-            : await (from l in ctx.FamilyLinks join a in ctx.Accounts on l.AccountId equals a.Id
+            : await (from l in ctx.FamilyLinks join a in ctx.Users on l.UserName equals a.Id
                      where a.DisplayName.Contains(term) || a.Email.Contains(term.ToLowerInvariant())
                      select l.FamilyId).Distinct().ToListAsync(ct);
         var list = new List<FamilyBoardView>();
@@ -81,41 +81,41 @@ public sealed class FamilyAdminService(ISystemDb systemDb, TimeProvider time)
         return list.OrderByDescending(b => b.Total).ThenBy(b => b.Name).ToList();
     }
 
-    public async Task<List<FamilyHit>> SearchAsync(int actor, string? q, CancellationToken ct = default)
+    public async Task<List<FamilyHit>> SearchAsync(string actor, string? q, CancellationToken ct = default)
     {
         var term = q?.Trim() ?? "";
         if (term.Length == 0) return [];
         await using var ctx = await OpenAsync(actor, ct);
         var lower = term.ToLowerInvariant();
-        var accounts = await ctx.Accounts.AsNoTracking().Where(a => a.Status == "Active" && (a.Email.Contains(lower) || a.DisplayName.Contains(term)))
+        var accounts = await ctx.Users.AsNoTracking().Where(a => a.Status == "Active" && (a.Email.Contains(lower) || a.DisplayName.Contains(term)))
             .OrderBy(a => a.DisplayName).ThenBy(a => a.Email).Take(20).ToListAsync(ct);
         var ids = accounts.Select(a => a.Id).ToList();
         var depts = await DeptSummaryAsync(ctx, ids, ct);
-        var fam = await ctx.FamilyLinks.Where(l => ids.Contains(l.AccountId)).ToDictionaryAsync(l => l.AccountId, l => l.FamilyId, ct);
+        var fam = await ctx.FamilyLinks.Where(l => ids.Contains(l.UserName)).ToDictionaryAsync(l => l.UserName, l => l.FamilyId, ct);
         return accounts.Select(a => new FamilyHit(a.Id, a.DisplayName, MaskEmail(a.Email), depts.GetValueOrDefault(a.Id, "소속 없음"),
             fam.TryGetValue(a.Id, out var f) ? f : null)).ToList();
     }
 
     /// <summary>고른 계정들의 이름 · 부서 요약(새로 묶기 화면의 "넣을 구성원").</summary>
-    public async Task<List<FamilyHit>> AccountsAsync(int actor, IReadOnlyCollection<int> ids, CancellationToken ct = default)
+    public async Task<List<FamilyHit>> AccountsAsync(string actor, IReadOnlyCollection<int> ids, CancellationToken ct = default)
     {
         if (ids.Count == 0) return [];
         await using var ctx = await OpenAsync(actor, ct);
-        var accounts = await ctx.Accounts.AsNoTracking().Where(a => ids.Contains(a.Id)).ToListAsync(ct);
+        var accounts = await ctx.Users.AsNoTracking().Where(a => ids.Contains(a.Id)).ToListAsync(ct);
         var depts = await DeptSummaryAsync(ctx, ids, ct);
-        var fam = await ctx.FamilyLinks.Where(l => ids.Contains(l.AccountId)).ToDictionaryAsync(l => l.AccountId, l => l.FamilyId, ct);
+        var fam = await ctx.FamilyLinks.Where(l => ids.Contains(l.UserName)).ToDictionaryAsync(l => l.UserName, l => l.FamilyId, ct);
         return ids.Select(id => accounts.FirstOrDefault(a => a.Id == id)).OfType<Account>()
             .Select(a => new FamilyHit(a.Id, a.DisplayName, MaskEmail(a.Email), depts.GetValueOrDefault(a.Id, "소속 없음"), fam.TryGetValue(a.Id, out var f) ? f : null)).ToList();
     }
 
-    public async Task<FamilyAdminDetail?> DetailAsync(int actor, int id, CancellationToken ct = default)
+    public async Task<FamilyAdminDetail?> DetailAsync(string actor, int id, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var raw = await ctx.Families.Where(f => f.Id == id).Select(f => new { f.Name }).SingleOrDefaultAsync(ct);
         if (raw is null || await OnFamilyService.LoadAsync(ctx, id, ct) is not { } board) return null;
-        var ids = board.People.Select(p => p.AccountId).ToList();
+        var ids = board.People.Select(p => p.UserName).ToList();
         var depts = await DeptSummaryAsync(ctx, ids, ct);
-        var members = board.People.Select(p => new FamilyAdminMember(p, depts.GetValueOrDefault(p.AccountId, "소속 없음"))).ToList();
+        var members = board.People.Select(p => new FamilyAdminMember(p, depts.GetValueOrDefault(p.UserName, "소속 없음"))).ToList();
         return new FamilyAdminDetail(board, members, raw.Name);
     }
 
@@ -125,30 +125,30 @@ public sealed class FamilyAdminService(ISystemDb systemDb, TimeProvider time)
         return string.IsNullOrEmpty(n) ? null : n[..Math.Min(n.Length, NameMax)];
     }
 
-    private void Log(AppDbContext ctx, int actor, string action, string detail) =>
-        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorAccountId = actor, Action = action, Detail = detail });
+    private void Log(AppDbContext ctx, string actor, string action, string detail) =>
+        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = action, Detail = detail });
 
     /// <summary>새로 묶기(R-175). 신청에서 왔으면 그 신청을 승인으로 닫는다(R-176). 이미 다른 온가족인 계정이 있으면 하나도 묶지 않는다.</summary>
-    public async Task<(OnFamilyError Error, int Id)> CreateAsync(int actor, string? name, int? requestId,
-        IReadOnlyList<(int AccountId, string Relation)> members, CancellationToken ct = default)
+    public async Task<(OnFamilyError Error, int Id)> CreateAsync(string actor, string? name, int? requestId,
+        IReadOnlyList<(int UserName, string Relation)> members, CancellationToken ct = default)
     {
-        var want = members.Where(m => FamilyRelation.All.Contains(m.Relation)).DistinctBy(m => m.AccountId).ToList();
+        var want = members.Where(m => FamilyRelation.All.Contains(m.Relation)).DistinctBy(m => m.UserName).ToList();
         if (want.Count == 0) return (OnFamilyError.Empty, 0);
         await using var ctx = await OpenAsync(actor, ct);
-        var ids = want.Select(m => m.AccountId).ToList();
-        if (await ctx.Accounts.CountAsync(a => ids.Contains(a.Id), ct) != ids.Count) return (OnFamilyError.NotFound, 0);
-        if (await ctx.FamilyLinks.AnyAsync(l => ids.Contains(l.AccountId), ct)) return (OnFamilyError.AlreadyInFamily, 0);
+        var ids = want.Select(m => m.UserName).ToList();
+        if (await ctx.Users.CountAsync(a => ids.Contains(a.Id), ct) != ids.Count) return (OnFamilyError.NotFound, 0);
+        if (await ctx.FamilyLinks.AnyAsync(l => ids.Contains(l.UserName), ct)) return (OnFamilyError.AlreadyInFamily, 0);
         var now = time.GetUtcNow().UtcDateTime;
-        var f = new Family { Name = CleanName(name), CreatedUtc = now, CreatedByAccountId = actor };
+        var f = new Family { Name = CleanName(name), CreatedUtc = now, CreatedByUserName = actor };
         byte order = 0;
-        foreach (var m in want) f.Links.Add(new FamilyLink { AccountId = m.AccountId, Relation = m.Relation, SortOrder = order++, AddedUtc = now, AddedByAccountId = actor });
+        foreach (var m in want) f.Links.Add(new FamilyLink { UserName = m.UserName, Relation = m.Relation, SortOrder = order++, AddedUtc = now, AddedByUserName = actor });
         ctx.Families.Add(f);
         await ctx.SaveChangesAsync(ct);
         if (requestId is int rid && await ctx.FamilyRequests.SingleOrDefaultAsync(r => r.Id == rid && r.Status == FamilyRequestStatus.Requested, ct) is { } req)
         {
             req.Status = FamilyRequestStatus.Approved;
             req.DecidedUtc = now;
-            req.DecidedByAccountId = actor;
+            req.DecidedByUserName = actor;
             req.FamilyId = f.Id;
             Log(ctx, actor, "FamilyRequestDecided", $"request={rid} account={req.RequesterAccountId} approved family={f.Id}");
         }
@@ -157,57 +157,57 @@ public sealed class FamilyAdminService(ISystemDb systemDb, TimeProvider time)
         return (OnFamilyError.None, f.Id);
     }
 
-    public async Task<bool> RejectAsync(int actor, int requestId, CancellationToken ct = default)
+    public async Task<bool> RejectAsync(string actor, int requestId, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var r = await ctx.FamilyRequests.SingleOrDefaultAsync(x => x.Id == requestId && x.Status == FamilyRequestStatus.Requested, ct);
         if (r is null) return false;
         r.Status = FamilyRequestStatus.Rejected;
         r.DecidedUtc = time.GetUtcNow().UtcDateTime;
-        r.DecidedByAccountId = actor;
+        r.DecidedByUserName = actor;
         Log(ctx, actor, "FamilyRequestDecided", $"request={requestId} account={r.RequesterAccountId} rejected");
         await ctx.SaveChangesAsync(ct);
         return true;
     }
 
-    public async Task<OnFamilyError> AddAsync(int actor, int familyId, int accountId, string relation, CancellationToken ct = default)
+    public async Task<OnFamilyError> AddAsync(string actor, int familyId, string userName, string relation, CancellationToken ct = default)
     {
         if (!FamilyRelation.All.Contains(relation)) return OnFamilyError.NotFound;
         await using var ctx = await OpenAsync(actor, ct);
         var f = await ctx.Families.Include(x => x.Links).SingleOrDefaultAsync(x => x.Id == familyId, ct);
-        if (f is null || !await ctx.Accounts.AnyAsync(a => a.Id == accountId, ct)) return OnFamilyError.NotFound;
-        if (await ctx.FamilyLinks.AnyAsync(l => l.AccountId == accountId, ct)) return OnFamilyError.AlreadyInFamily;
+        if (f is null || !await ctx.Users.AnyAsync(a => a.Id == userName, ct)) return OnFamilyError.NotFound;
+        if (await ctx.FamilyLinks.AnyAsync(l => l.UserName == userName, ct)) return OnFamilyError.AlreadyInFamily;
         var now = time.GetUtcNow().UtcDateTime;
-        f.Links.Add(new FamilyLink { AccountId = accountId, Relation = relation, SortOrder = (byte)Math.Min(255, f.Links.Count), AddedUtc = now, AddedByAccountId = actor });
-        Log(ctx, actor, "FamilyLinked", $"family={familyId} accounts={accountId}");
+        f.Links.Add(new FamilyLink { UserName = userName, Relation = relation, SortOrder = (byte)Math.Min(255, f.Links.Count), AddedUtc = now, AddedByUserName = actor });
+        Log(ctx, actor, "FamilyLinked", $"family={familyId} accounts={userName}");
         await ctx.SaveChangesAsync(ct);
         return OnFamilyError.None;
     }
 
     /// <summary>빼기(R-175). 마지막 구성원을 빼면 온가족도 없앤다(해체).</summary>
-    public async Task<bool> RemoveAsync(int actor, int familyId, int accountId, CancellationToken ct = default)
+    public async Task<bool> RemoveAsync(string actor, int familyId, string userName, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
-        var link = await ctx.FamilyLinks.SingleOrDefaultAsync(l => l.FamilyId == familyId && l.AccountId == accountId, ct);
+        var link = await ctx.FamilyLinks.SingleOrDefaultAsync(l => l.FamilyId == familyId && l.UserName == userName, ct);
         if (link is null) return false;
         ctx.FamilyLinks.Remove(link);
-        Log(ctx, actor, "FamilyUnlinked", $"family={familyId} account={accountId}");
+        Log(ctx, actor, "FamilyUnlinked", $"family={familyId} account={userName}");
         await ctx.SaveChangesAsync(ct);
         if (!await ctx.FamilyLinks.AnyAsync(l => l.FamilyId == familyId, ct)) await DropAsync(ctx, actor, familyId, ct);
         return true;
     }
 
     /// <summary>이름 · 순서 · 관계 저장. order = 구성원 계정 Id 순서, relations 는 같은 순서.</summary>
-    public async Task<bool> SaveAsync(int actor, int familyId, string? name, IReadOnlyList<(int AccountId, string Relation)> order, CancellationToken ct = default)
+    public async Task<bool> SaveAsync(string actor, int familyId, string? name, IReadOnlyList<(int UserName, string Relation)> order, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var f = await ctx.Families.Include(x => x.Links).SingleOrDefaultAsync(x => x.Id == familyId, ct);
         if (f is null) return false;
         f.Name = CleanName(name);
         byte i = 0;
-        foreach (var (accountId, relation) in order)
+        foreach (var (userName, relation) in order)
         {
-            var l = f.Links.FirstOrDefault(x => x.AccountId == accountId);
+            var l = f.Links.FirstOrDefault(x => x.UserName == userName);
             if (l is null) continue;
             l.SortOrder = i++;
             if (FamilyRelation.All.Contains(relation)) l.Relation = relation;
@@ -218,7 +218,7 @@ public sealed class FamilyAdminService(ISystemDb systemDb, TimeProvider time)
     }
 
     /// <summary>해체: 묶음만 푼다. 부서 기록 · 점수 · 가족팀은 그대로.</summary>
-    public async Task<bool> DissolveAsync(int actor, int familyId, CancellationToken ct = default)
+    public async Task<bool> DissolveAsync(string actor, int familyId, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         if (!await ctx.Families.AnyAsync(f => f.Id == familyId, ct)) return false;
@@ -228,7 +228,7 @@ public sealed class FamilyAdminService(ISystemDb systemDb, TimeProvider time)
         return true;
     }
 
-    private async Task DropAsync(AppDbContext ctx, int actor, int familyId, CancellationToken ct)
+    private async Task DropAsync(AppDbContext ctx, string actor, int familyId, CancellationToken ct)
     {
         foreach (var r in await ctx.FamilyRequests.Where(r => r.FamilyId == familyId).ToListAsync(ct)) r.FamilyId = null;
         ctx.Families.Remove(await ctx.Families.SingleAsync(f => f.Id == familyId, ct));

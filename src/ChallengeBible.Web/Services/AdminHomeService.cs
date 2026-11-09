@@ -41,14 +41,14 @@ public sealed class AdminHomeService(IAppDb db, TenantContext tenant, TenantCloc
         // 소속 참여자: 승인된 소속의 활성 참여자(정지 · 비활성 제외)
         var members = await (from p in ctx.Participants
                              join m in ctx.Memberships on p.MembershipId equals m.Id
-                             join a in ctx.Accounts on m.AccountId equals a.Id
+                             join a in ctx.Users on m.UserName equals a.Id
                              where p.IsActive && m.Status == MembershipStatus.Approved
                              select new { p.Id, a.DisplayName, m.GroupLabel }).ToListAsync(ct);
         var memberIds = members.Select(m => m.Id).ToHashSet();
 
         // 기다리는 신청
         var requested = await (from m in ctx.Memberships.Include(x => x.Roles)
-                               join a in ctx.Accounts on m.AccountId equals a.Id
+                               join a in ctx.Users on m.UserName equals a.Id
                                where m.Status == MembershipStatus.Requested
                                orderby m.RequestedUtc
                                select new { a.DisplayName, m.Roles }).ToListAsync(ct);
@@ -90,7 +90,7 @@ public sealed class AdminHomeService(IAppDb db, TenantContext tenant, TenantCloc
         var me = tenant.Current.Id;
         var promotions = await (from r in ctx.PromotionRequests
                                 where r.TargetTenantId == me && r.Status == PromotionStatus.Pending
-                                join a in ctx.Accounts on r.AccountId equals a.Id
+                                join a in ctx.Users on r.UserName equals a.Id
                                 join t in ctx.Tenants on r.SourceTenantId equals t.Id
                                 orderby r.RequestedUtc
                                 select a.DisplayName + "(" + t.Name + ")").ToListAsync(ct);
