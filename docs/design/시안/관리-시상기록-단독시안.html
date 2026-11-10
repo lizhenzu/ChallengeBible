@@ -1,0 +1,192 @@
+<title>시상 기록 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+  /* 레이아웃(/{slug}/admin/teams/awards, 지시서 2번 · DM2_TeamAward): 관리 머리말 · 메뉴(가족팀) → 제목 → 숫자 2칸(줄 차례 · 올해 준 선물) → 줄 차례(팀 · 넘은 보상 단계 · [선물 줬어요]) → 준 기록(날짜 · 팀 · 단계 · [기록 취소]) → 안내.
+     상태 바꾸기 띠는 화면 맨 아래 */
+  :root {
+    --bg: #FFFFFF; --soft: #F5F6F8; --hero: #F2F5FB; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA; --line: #C9CED5;
+    --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; --ok: #16A34A; --ok-bg: #EAF7EF; --warn: #9A5B00; --warn-bg: #FFF4DE; --bad: #B42318; --bad-bg: #FDECEC;
+    --award: #B45309; --award-bg: #FFF1D6;
+    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C;
+    --award: #F2C063; --award-bg: #2E2614; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A; --line: #3A414A;
+    --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; --ok: #5CC98A; --ok-bg: #1B2A22; --warn: #F2C063; --warn-bg: #2E2614; --bad: #F5A3A6; --bad-bg: #2E1B1C;
+    --award: #F2C063; --award-bg: #2E2614; color-scheme: dark }
+
+  html, body { background: var(--bg); }
+  body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; margin: 0; padding-bottom: 88px; }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+
+  header { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+  .hd .t { display: flex; flex-direction: column; line-height: 1.3; }
+  .hd .t small { font-size: 12px; color: var(--dim); }
+  .hd .t b { font-size: 17px; font-weight: 900; }
+  .hd .t b em { font-style: normal; color: var(--accent); }
+  .back { flex: none; min-height: 40px; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; font-weight: 700; }
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-bottom: -1px; }
+  nav.tabs a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 700; color: var(--dim); border-bottom: 3px solid transparent; }
+  nav.tabs a[aria-current] { color: var(--fg); border-color: var(--accent); }
+
+  main .wrap { padding-block: 18px 40px; display: flex; flex-direction: column; gap: 14px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 900; }
+  h2 { margin: 6px 0 0; font-size: 17px; font-weight: 900; display: flex; align-items: baseline; gap: 8px; }
+  h2 small { font-size: 13px; font-weight: 600; color: var(--dim); }
+  .crumb { font-size: 13px; font-weight: 700; color: var(--accent); }
+  .lead { margin: -6px 0 0; font-size: 13.5px; color: var(--dim); }
+  .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .stats div { padding: 14px; border-radius: 16px; background: var(--soft); display: flex; flex-direction: column; }
+  .stats div.hot { background: var(--award-bg); }
+  .stats small { font-size: 12.5px; color: var(--dim); }
+  .stats b { font-size: 26px; font-weight: 900; }
+  .stats b u { text-decoration: none; font-size: 13px; font-weight: 700; color: var(--dim); margin-left: 2px; }
+
+  .btn { min-height: 46px; padding: 0 16px; border-radius: 12px; font-size: 15px; font-weight: 800; border: 0; background: var(--accent); color: var(--on-accent); }
+  .btn.s { background: var(--bg); color: var(--fg); border: 1px solid var(--line); }
+  .btn.sm { min-height: 40px; padding: 0 12px; font-size: 14px; }
+  .btn.t { background: none; color: var(--dim); min-height: 40px; padding: 0 6px; font-size: 13.5px; text-decoration: underline; text-underline-offset: 3px; }
+
+  .due { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .card { border: 1px solid var(--rule); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .card.hot { border-color: color-mix(in srgb, var(--award) 45%, var(--rule)); }
+  .card .top { display: flex; gap: 12px; align-items: center; }
+  .card .em { flex: none; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 26px; background: var(--award-bg); }
+  .card .nm { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; }
+  .card .nm b { font-size: 16px; font-weight: 900; }
+  .card .nm small { font-size: 13px; color: var(--dim); }
+  .card .pts { margin-left: auto; text-align: right; display: flex; flex-direction: column; line-height: 1.3; }
+  .card .pts b { font-size: 18px; font-weight: 900; }
+  .card .pts small { font-size: 12px; color: var(--dim); }
+  .stage { display: flex; flex-direction: column; gap: 2px; padding: 9px 12px; border-radius: 10px; background: var(--award-bg); color: var(--award); font-size: 14px; font-weight: 800; }
+  .stage span { font-size: 13px; font-weight: 600; color: var(--fg); word-break: keep-all; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { font-size: 12.5px; padding: 3px 9px; border-radius: 99px; background: var(--soft); }
+  .card .act { display: flex; gap: 8px; align-items: center; }
+  .card .act .btn { flex: 1; }
+  .warn { margin: 0; font-size: 12.5px; color: var(--warn); font-weight: 700; }
+
+  .log { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 16px; }
+  .log li { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-top: 1px solid var(--rule); }
+  .log li:first-child { border-top: 0; }
+  .log time { flex: none; width: 52px; font-size: 13px; color: var(--dim); }
+  .log .w { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+  .log .w b { font-size: 14.5px; }
+  .log .w small { font-size: 12.5px; color: var(--dim); }
+  .log li.new { background: var(--ok-bg); }
+  .empty { padding: 22px 16px; text-align: center; color: var(--dim); border: 1px dashed var(--line); border-radius: 16px; font-size: 14px; }
+  .note { padding: 12px 14px; border-radius: 12px; background: var(--soft); font-size: 13.5px; color: var(--dim); margin: 0; }
+  .note b { color: var(--fg); }
+  .okmsg { padding: 10px 14px; border-radius: 12px; background: var(--ok-bg); color: var(--ok); font-weight: 800; font-size: 14px; margin: 0; }
+
+  dialog { border: 0; border-radius: 18px; padding: 20px; width: min(340px, calc(100vw - 32px)); box-sizing: border-box; background: var(--bg); color: var(--fg); }
+  dialog::backdrop { background: rgba(0,0,0,.45); }
+  dialog h3 { margin: 0 0 8px; font-size: 17px; font-weight: 900; }
+  dialog p { margin: 0 0 8px; font-size: 14px; }
+  dialog .lockbox { padding: 10px 12px; border-radius: 10px; background: var(--warn-bg); color: var(--warn); font-size: 13px; font-weight: 700; margin-bottom: 14px; }
+  dialog .row { display: flex; gap: 8px; }
+  dialog .row .btn { flex: 1; }
+
+  .states { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--fg); padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 6px; }
+  .states button { flex: 1; min-height: 44px; border: 0; border-radius: 10px; background: transparent; color: var(--bg); font-size: 13px; font-weight: 800; opacity: .7; }
+  .states button[aria-pressed="true"] { background: var(--bg); color: var(--fg); opacity: 1; }
+</style>
+
+<header class="gut">
+  <div class="wrap hd">
+    <div class="t"><small>잠실새내교회 · 유년부</small><b><em>도전!!!</em> 관리</b></div>
+    <a class="back" href="#">부서 홈으로</a>
+  </div>
+  <nav class="wrap tabs" aria-label="관리 메뉴">
+    <a href="#">관리 홈</a><a href="#">소속 관리</a><a href="#" aria-current="page">가족팀</a><a href="#">진급</a><a href="#">콘텐츠</a><a href="#">통독 현황</a><a href="#">시즌</a><a href="#">이름 · 색</a>
+  </nav>
+</header>
+
+<main class="gut"><div class="wrap">
+  <a class="crumb" href="#">‹ 가족팀</a>
+  <h1>시상 기록</h1>
+  <p class="lead">가족팀이 "축하 + 보상" 단계를 넘으면 여기에 나와요. 선물을 준 뒤 “선물 줬어요”를 눌러 기록해요.</p>
+
+  <p class="okmsg" id="ok" role="status" hidden></p>
+
+  <div class="stats">
+    <div class="hot"><small>선물 줄 차례</small><b class="num" id="nDue">2<u>팀</u></b></div>
+    <div><small>2027년에 준 선물</small><b class="num" id="nGiven">1<u>번</u></b></div>
+  </div>
+
+  <h2>선물 줄 차례 <small id="dueSub">먼저 넘은 순서</small></h2>
+  <ul class="due" id="due"></ul>
+
+  <h2>준 기록 <small>2027년</small></h2>
+  <ul class="log" id="log"></ul>
+
+  <p class="note"><b>알아 두세요.</b> 기록한 팀은 구성원이 나가거나 내보내거나 관계를 바꿀 수 없어요(시상 잠금). 잘못 눌렀다면 “기록 취소”로 되돌려요. 박수만 하는 단계는 선물이 없어서 여기에 나오지 않아요.</p>
+</div></main>
+
+<dialog id="dlg" aria-labelledby="dT">
+  <h3 id="dT">선물을 줬다고 기록할까요?</h3>
+  <p id="dP"></p>
+  <div class="lockbox">🔒 기록하면 이 팀은 구성원이 나가거나, 내보내거나, 관계를 바꿀 수 없어요.</div>
+  <div class="row"><button type="button" class="btn s" id="dNo">취소</button><button type="button" class="btn" id="dYes">기록하기</button></div>
+</dialog>
+
+<div class="states" role="group" aria-label="시안 상태 바꾸기">
+  <button type="button" data-s="due" aria-pressed="true">줄 차례 있음</button>
+  <button type="button" data-s="done" aria-pressed="false">기록한 뒤</button>
+  <button type="button" data-s="none" aria-pressed="false">줄 차례 없음</button>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const DUE = [
+    { id: 1, team: '철수네 가족', who: ['학생 김철수', '엄마 김영희', '아빠 김대호'], pts: 3240, stage: 3000, e: '🎉', x: '3,000점! 가족이 함께 해냈어요', when: '1월 4일에 넘음' },
+    { id: 2, team: '하늘이네', who: ['학생 문하늘', '엄마 이은지'], pts: 1180, stage: 1000, e: '🎉', x: '첫 1,000점! 가족이 함께 해냈어요', when: '1월 5일에 넘음' },
+  ];
+  const LOG0 = [{ d: '1/3', team: '철수네 가족', stage: 1000, by: '이은혜' }];
+  let due, log, fresh = null;
+  const fmt = (n) => n.toLocaleString('ko-KR');
+  function paint() {
+    $('nDue').innerHTML = `${due.length}<u>팀</u>`;
+    $('nGiven').innerHTML = `${log.length}<u>번</u>`;
+    $('nDue').parentElement.className = due.length ? 'hot' : '';
+    $('due').innerHTML = due.length ? due.map((t) => `<li class="card hot">
+        <div class="top"><span class="em" aria-hidden="true">${t.e}</span><div class="nm"><b>${t.team}</b><small>${t.when}</small></div><div class="pts"><b class="num">${fmt(t.pts)}</b><small>팀 점수</small></div></div>
+        <div class="stage">${fmt(t.stage)}점 · 축하 + 보상<span>${t.x}</span></div>
+        <div class="chips">${t.who.map((w) => `<span>${w}</span>`).join('')}</div>
+        <div class="act"><button type="button" class="btn" data-give="${t.id}">🎁 선물 줬어요</button></div>
+      </li>`).join('') : '<li class="empty">지금 선물 줄 팀이 없어요. 가족팀이 “축하 + 보상” 단계를 넘으면 여기에 나와요.</li>';
+    $('log').innerHTML = log.length ? log.map((l, i) => `<li class="${fresh === i ? 'new' : ''}"><time class="num">${l.d}</time><div class="w"><b>${l.team}</b><small>${fmt(l.stage)}점 선물 · ${l.by} 기록</small></div><button type="button" class="btn t" data-undo="${i}">기록 취소</button></li>`).join('')
+      : '<li><span class="w"><small>아직 준 선물이 없어요.</small></span></li>';
+  }
+  function setState(s) {
+    document.querySelectorAll('.states button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.s === s)));
+    $('ok').hidden = true; fresh = null;
+    due = JSON.parse(JSON.stringify(DUE)); log = JSON.parse(JSON.stringify(LOG0));
+    if (s === 'done') { const t = due.shift(); log.unshift({ d: '1/5', team: t.team, stage: t.stage, by: '이은혜' }); fresh = 0; $('ok').textContent = `${t.team}에 ${fmt(t.stage)}점 선물을 기록했어요`; $('ok').hidden = false; }
+    if (s === 'none') { due = []; }
+    paint();
+  }
+  let pick = null;
+  document.addEventListener('click', (e) => {
+    const g = e.target.closest('[data-give]'), u = e.target.closest('[data-undo]');
+    if (g) { pick = due.find((t) => t.id === +g.dataset.give); $('dP').textContent = `${pick.team} · ${fmt(pick.stage)}점 축하 + 보상`; $('dlg').showModal(); }
+    if (u) { const l = log[+u.dataset.undo]; if (confirm(`${l.team}의 ${fmt(l.stage)}점 선물 기록을 지울까요? 잠금도 풀려요.`)) { log.splice(+u.dataset.undo, 1); fresh = null; $('ok').textContent = '기록을 지웠어요'; $('ok').hidden = false; paint(); } }
+  });
+  $('dNo').onclick = () => $('dlg').close();
+  $('dYes').onclick = () => { $('dlg').close(); due = due.filter((t) => t !== pick); log.unshift({ d: '1/5', team: pick.team, stage: pick.stage, by: '이은혜' }); fresh = 0; $('ok').textContent = `${pick.team}에 ${fmt(pick.stage)}점 선물을 기록했어요`; $('ok').hidden = false; paint(); };
+  document.querySelectorAll('.states button').forEach((b) => b.addEventListener('click', () => setState(b.dataset.s)));
+  setState(location.hash.slice(1) || 'due');
+  if (location.hash === '#dialog') { setState('due'); document.querySelector('[data-give]').click(); }
+</script>
