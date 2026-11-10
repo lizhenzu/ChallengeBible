@@ -1,6 +1,8 @@
 -- 유년부와 공유 표로 옮기기 (ADR 0090). 한 번만 실행된다(이미 했으면 아무 일도 하지 않는다).
 -- 시험 데이터(계정 · 소속 · 가족팀 · 미션 · 통독 기록)는 지워진다. 플랫폼 관리자 계정과 콘텐츠는 남는다.
 -- 파일 전체를 실행한다. 실패하면 전체가 되돌아간다.
+SET QUOTED_IDENTIFIER ON;   -- 실행 도구의 기본값이 꺼져 있어도 인덱스 있는 표를 고칠 수 있게
+SET ANSI_NULLS ON;
 SET XACT_ABORT ON;
 BEGIN TRANSACTION;
 IF NOT EXISTS (SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20261110032322_SharedTables')
