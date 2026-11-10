@@ -47,7 +47,7 @@ public sealed class BrandingService(IAppDb db, TenantContext tenant, TimeProvide
     }
 
     /// <summary>저장. 빈칸(공백뿐 포함)은 기본값(null). 바뀐 것이 없으면 아무것도 하지 않는다. 틀리면 칸별 오류.</summary>
-    public async Task<(bool Changed, Dictionary<string, string> Errors)> SaveAsync(int actor, string? appName, string? shortName, string themeColor, CancellationToken ct = default)
+    public async Task<(bool Changed, Dictionary<string, string> Errors)> SaveAsync(string actor, string? appName, string? shortName, string themeColor, CancellationToken ct = default)
     {
         var errors = new Dictionary<string, string>();
         var name = Clean(appName);
@@ -66,7 +66,7 @@ public sealed class BrandingService(IAppDb db, TenantContext tenant, TimeProvide
         if (parts.Count == 0) return (false, errors);
 
         (t.AppName, t.AppShortName, t.ThemeColor) = (name, shortN, themeColor);
-        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorAccountId = actor, Action = LogAction, TenantId = t.Id, Detail = string.Join(", ", parts) });
+        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = LogAction, TenantId = t.Id, Detail = string.Join(", ", parts) });
         await ctx.SaveChangesAsync(ct);
         return (true, errors);
     }

@@ -61,7 +61,7 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
         var t = tenant.Current;
         var today = missions.Today;
         var r = await rules.ForDateAsync(today, ct);
-        var pid = t.MissionEnabled ? await missions.ParticipantIdAsync(ct) : null;
+        var pid = t.MissionEnabled ? await missions.UserNameAsync(ct) : null;
         var seasonStart = await missions.SeasonStartAsync(today.Year, ct);
 
         MissionDay? day = null;
@@ -70,8 +70,8 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
         var weekScores = new Dictionary<DateOnly, DayScore>();
         if (t.MissionEnabled)
         {
-            day = await missions.GetDayAsync(pid ?? 0, today, ct);   // 참여자가 아니어도 오늘 콘텐츠는 보인다
-            if (pid is int p)
+            day = await missions.GetDayAsync(pid ?? "", today, ct);   // 참여자가 아니어도 오늘 콘텐츠는 보인다
+            if (pid is { } p)
             {
                 streak = await missions.StreakAsync(p, today, ct);
                 for (var m = new DateOnly(seasonStart.Year, seasonStart.Month, 1); m <= today; m = m.AddMonths(1))
@@ -141,22 +141,22 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
     {
         var t = tenant.Current;
         await using var ctx = db.Create();
-        var members = await ctx.Memberships.CountAsync(m => m.Status == MembershipStatus.Approved, ct);
+        var people = await DeptMembership.PeopleAsync(ctx, ct);
+        var members = people.Count;
         var todayPeople = t.MissionEnabled
-            ? await ctx.Activities.Where(a => a.MissionDate == today).Select(a => a.ParticipantId).Distinct().CountAsync(ct)
+            ? await ctx.MissionActivities.Where(a => a.MissionDate == today).Select(a => a.UserName).Distinct().CountAsync(ct)
             : 0;
 
         int? chapters = null;
         if (t.ReadingEnabled && (t.ReadingBoardPublic || tenant.IsStaff))
         {
             // 통독 기록은 계정 범위 — 참여자 현황과 같은 기준(공개 또는 관리자 · 교사)에서만 이 부서 승인 소속원 것을 센다(DB 는 fn_ReadingRead)
-            var ids = await ctx.Memberships.Where(m => m.Status == MembershipStatus.Approved).Select(m => m.AccountId).ToListAsync(ct);
+            var ids = people.Select(p => p.UserName).ToList();
             var from = TimeZoneInfo.ConvertTimeToUtc(new DateTime(today.Year, 1, 1), TimeZoneInfo.FindSystemTimeZoneById(t.TimeZoneId));   // 부서 시간 1월 1일 0시
-            chapters = await ctx.ChapterReads.IgnoreQueryFilters().CountAsync(c => ids.Contains(c.AccountId) && c.ReadUtc >= from, ct);
+            chapters = await ctx.ReadingChapterReads.IgnoreQueryFilters().CountAsync(c => ids.Contains(c.UserName) && c.ReadAt >= from, ct);
         }
         // 참여자 수(명단 "참여자"와 같은 기준, ADR 0085): 승인된 소속의 활성 참여자
-        var participants = await (from pa in ctx.Participants join m in ctx.Memberships on pa.MembershipId equals m.Id
-                                  where pa.IsActive && m.Status == MembershipStatus.Approved select pa.Id).CountAsync(ct);
+        var participants = people.Count(p => p.RoleCode == UserRole.StudentCode);
         return new HomeDept(members, todayPeople, chapters, participants);
     }
 }

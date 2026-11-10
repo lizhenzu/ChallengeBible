@@ -29,9 +29,9 @@ public class SignupModel(AccountService accounts, LobbyService lobby) : PageMode
             Password = PasswordConfirm = "";
             return Page();
         }
-        await CurrentUser.SignInAsync(HttpContext, account);
+        await CurrentUser.SignInAsync(HttpContext, await accounts.ToSignedInAsync(account, ct));
         // R-171: 임시 부서 "처음 오신 분"에 바로 들어가 미션 · 통독을 한다(0064). 임시 부서가 아직 없으면 예전처럼 참여 신청으로
-        if (await lobby.EnrollAsync(account.Id, ct)) return Redirect("/");
+        if (await lobby.EnrollAsync(account.UserName!, account.Id, ct)) return Redirect("/");
         return RedirectToPage("/Join", new { welcome = 1 });
     }
 }

@@ -17,7 +17,7 @@
             <div><small>@(Model.First.Month)월 · @(doneDays)일 했어요</small><b class="num">@monthTotal<u>점</u></b></div></div>
     </div>
 
-    @if (Model.ParticipantId is null) { <p class="note-block">참여자만 점수가 있어요. 보호자 · 선생님은 보기만 해요.</p> }
+    @if (Model.UserName is null) { <p class="note-block">참여자만 점수가 있어요. 보호자 · 선생님은 보기만 해요.</p> }
 
     <section class="calbox" aria-label="달력">
         <div class="monbar">

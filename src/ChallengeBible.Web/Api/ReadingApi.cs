@@ -36,7 +36,7 @@ public static class ReadingApi
 
         // 통독 색 테마(ADR 0073): 계정에 남긴다. "default" = 파랑, 빈 값 = 고르지 않음(숲 · 세이지)
         g.MapPut("/theme", async (ThemeRequest r, AccountService s, HttpContext h, CancellationToken ct) =>
-            await s.SetReadingThemeAsync(h.User.AccountId()!.Value, r.Theme, ct)
+            await s.SetReadingThemeAsync(h.User.UserName()!, r.Theme, ct)
                 ? Results.Ok(new { ok = true })
                 : Results.BadRequest(new { code = "BadTheme", message = "없는 테마예요." }));
     }

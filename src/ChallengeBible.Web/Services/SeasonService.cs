@@ -40,8 +40,8 @@ public sealed class SeasonService(IAppDb db, TenantContext tenant, TenantClock c
 
     /// <summary>참여자별 점수 합(그 날짜 범위). 범위가 비면 빈 목록.</summary>
     private static async Task<List<int>> PointsByParticipantAsync(AppDbContext ctx, DateOnly from, DateOnly to, CancellationToken ct) =>
-        from > to ? [] : await ctx.PointLedgers.Where(l => l.MissionDate >= from && l.MissionDate <= to)
-            .GroupBy(l => l.ParticipantId).Select(g => g.Sum(l => l.Points)).Where(p => p != 0).ToListAsync(ct);
+        from > to ? [] : await ctx.MissionActivities.Where(l => l.MissionDate >= from && l.MissionDate <= to)
+            .GroupBy(l => l.UserName).Select(g => g.Sum(l => l.Points)).Where(p => p != 0).ToListAsync(ct);
 
     public async Task<SeasonView> GetAsync(CancellationToken ct = default)
     {
@@ -51,10 +51,10 @@ public sealed class SeasonService(IAppDb db, TenantContext tenant, TenantClock c
         var (next, nextDefault) = await SeasonAsync(ctx, today.Year + 1, ct);
         var (from, to) = cur.ScoringRange(today);
         var points = await PointsByParticipantAsync(ctx, from, to, ct);
-        var participants = await ctx.Participants.CountAsync(p => p.IsActive, ct);
+        var participants = await ctx.DeptRoles.CountAsync(d => d.RoleCode == UserRole.StudentCode, ct);
 
         var past = new List<PastSeason>();
-        var firstYear = await ctx.PointLedgers.Where(l => l.MissionDate < new DateOnly(today.Year, 1, 1))
+        var firstYear = await ctx.MissionActivities.Where(l => l.MissionDate < new DateOnly(today.Year, 1, 1))
             .OrderBy(l => l.MissionDate).Select(l => (DateOnly?)l.MissionDate).FirstOrDefaultAsync(ct);
         if (firstYear is { } fy)
             for (var y = today.Year - 1; y >= fy.Year; y--)
@@ -82,7 +82,7 @@ public sealed class SeasonService(IAppDb db, TenantContext tenant, TenantClock c
     }
 
     /// <summary>올해 또는 다음 해 시작일을 정한다. 틀리면 오류 문구, 같으면 아무것도 하지 않는다(Changed=false).</summary>
-    public async Task<(bool Changed, string? Error)> SaveAsync(int actor, DateOnly newStart, CancellationToken ct = default)
+    public async Task<(bool Changed, string? Error)> SaveAsync(string actor, DateOnly newStart, CancellationToken ct = default)
     {
         var today = Today;
         if (newStart.Year != today.Year && newStart.Year != today.Year + 1)
@@ -93,11 +93,11 @@ public sealed class SeasonService(IAppDb db, TenantContext tenant, TenantClock c
         if (old == newStart && row is not null) return (false, null);
         var now = time.GetUtcNow().UtcDateTime;
         if (row is null)
-            ctx.TenantSeasons.Add(new TenantSeason { TenantId = tenant.Current.Id, Year = (short)newStart.Year, StartDate = newStart, ChangedUtc = now, ChangedByAccountId = actor });
+            ctx.TenantSeasons.Add(new TenantSeason { TenantId = tenant.Current.Id, Year = (short)newStart.Year, StartDate = newStart, ChangedUtc = now, ChangedByUserName = actor });
         else
-            (row.StartDate, row.ChangedUtc, row.ChangedByAccountId) = (newStart, now, actor);
+            (row.StartDate, row.ChangedUtc, row.ChangedByUserName) = (newStart, now, actor);
         var detail = old == newStart ? $"{newStart.Year} 시즌 시작일 {Md(newStart)}로 정함(기본값)" : $"{newStart.Year} 시즌 시작일 {Md(old)} → {Md(newStart)}";
-        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorAccountId = actor, Action = LogAction, TenantId = tenant.Current.Id, Detail = detail });
+        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorUserName = actor, Action = LogAction, TenantId = tenant.Current.Id, Detail = detail });
         await ctx.SaveChangesAsync(ct);
         return (true, null);
     }

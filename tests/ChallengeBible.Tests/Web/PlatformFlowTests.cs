@@ -34,7 +34,7 @@ public partial class PlatformFlowTests : IClassFixture<WebApplicationFactory<Pro
             ["DisplayName"] = email, ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         if (!platformAdmin) return c;
-        using (var raw = InMemoryDb.Raw(_db)) { raw.Accounts.Single(a => a.Email == email + "@example.com").IsPlatformAdmin = true; raw.SaveChanges(); }
+        using (var raw = InMemoryDb.Raw(_db)) { InMemoryDb.AddRole(_db, raw.Users.Single(a => a.Email == email + "@example.com").Id, IdentityRoles.SuperAdmin); raw.SaveChanges(); }
         // 플랫폼 관리자 표시는 로그인할 때 쿠키에 들어간다 → 다시 로그인
         html = await c.GetStringAsync("/account/login");
         await c.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>

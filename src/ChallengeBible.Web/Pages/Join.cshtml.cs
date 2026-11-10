@@ -18,7 +18,8 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
     [BindProperty(SupportsGet = true)] public string Code { get; set; } = "";
     [BindProperty(SupportsGet = true)] public string? Q { get; set; }
     [BindProperty] public int TenantId { get; set; }
-    [BindProperty] public List<string> SelectedRoles { get; set; } = [Roles.Participant];
+    /// <summary>신청할 역할: S 학생 · T 교사 · P 학부모 · E 기타(유년부와 같다). 관리자가 승인할 때 바꿀 수 있다.</summary>
+    [BindProperty] public string RoleKind { get; set; } = SignupRoleKind.Student;
     [BindProperty(SupportsGet = true)] public int Welcome { get; set; }
 
     /// <summary>목록(이름 거르기 적용) + 코드로 찾은 부서가 목록에 없으면 맨 앞에 더한다.</summary>
@@ -35,7 +36,10 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
     /// <summary>이미 소속 · 신청한 부서 → 표시 문구(신청할 수 없음, 0027).</summary>
     public Dictionary<int, string> Mine { get; private set; } = [];
 
-    private int Me => User.AccountId()!.Value;
+    public static readonly (string Kind, string Label)[] RoleChoices =
+        [(SignupRoleKind.Student, "학생"), (SignupRoleKind.Teacher, "교사"), (SignupRoleKind.Parent, "학부모"), (SignupRoleKind.Etc, "기타")];
+
+    private string Me => User.UserName()!;
 
     public async Task OnGetAsync(CancellationToken ct)
     {
@@ -56,13 +60,12 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
 
     public async Task<IActionResult> OnPostApplyAsync(CancellationToken ct)
     {
-        SelectedRoles = [Roles.Participant];   // v3: 역할은 묻지 않는다 — 보낸 값은 쓰지 않음
-        if (TenantId != 0 || !string.IsNullOrWhiteSpace(Code))
+                if (TenantId != 0 || !string.IsNullOrWhiteSpace(Code))
         {
             // 목록에서 고른 부서, 또는 고르지 않고 코드만 넣은 경우(예전 방식) 그 코드의 부서
             var (error, _) = TenantId != 0
-                ? await join.ApplyAsync(Me, TenantId, Code, SelectedRoles, ct)
-                : await join.ApplyAsync(Me, Code, SelectedRoles, ct);
+                ? await join.ApplyAsync(Me, TenantId, Code, RoleKind, ct)
+                : await join.ApplyAsync(Me, Code, RoleKind, ct);
             if (error == JoinError.None) return RedirectToPage(new { Code = (string?)null, Q = (string?)null });
             if (error is JoinError.NoRole or JoinError.BadRole) RoleError = JoinService.Message(error);
             else PickError = error == JoinError.AlreadyMember ? JoinService.Message(error) : "고른 부서에 신청할 수 없어요. 다시 골라 주세요.";
@@ -106,7 +109,7 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
         InLobby = mine.Any(m => m.IsLobby && m.Status == MembershipStatus.Approved);
         Mine = mine.ToDictionary(m => m.TenantId, m => m.Status switch
         {
-            MembershipStatus.Approved or MembershipStatus.Suspended => "이미 소속",
+            MembershipStatus.Approved => "이미 소속",
             MembershipStatus.Requested => "승인 기다리는 중",
             _ => "신청할 수 없음",
         });

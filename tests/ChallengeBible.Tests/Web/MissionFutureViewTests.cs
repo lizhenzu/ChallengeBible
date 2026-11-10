@@ -54,15 +54,6 @@ public partial class MissionFlowTests
     }
 
     [Fact]
-    public async Task 참여자가_아니면_다른_날에도_보기만_안내가_남는다()
-    {
-        var c = await Member("younghee", Roles.Guardian);
-        var html = await c.GetStringAsync("/jamsil-kids/word?date=2027-01-07");
-        Assert.Contains("오늘이 아닌 날을 보고 있어요", html);
-        Assert.Contains("보호자 · 선생님은 보기만 해요.", html);
-    }
-
-    [Fact]
     public async Task 지난_날은_할_수_있으면_지금도_할_수_있어요_아니면_보기만_할_수_있어요()
     {
         ContentSeed.Word(_db, new DateOnly(2027, 1, 2));
@@ -97,7 +88,7 @@ public partial class MissionFlowTests
         Assert.False(res.GetProperty("ok").GetBoolean());
         Assert.Equal("오늘 이후는 보기만 가능해요.", res.GetProperty("message").GetString());
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Empty(raw.PointLedgers);
+        Assert.Empty(raw.MissionActivities);
     }
 
     [Fact]

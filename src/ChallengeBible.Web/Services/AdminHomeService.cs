@@ -39,47 +39,39 @@ public sealed class AdminHomeService(IAppDb db, TenantContext tenant, TenantCloc
         await using var ctx = db.Create();
 
         // 소속 참여자: 승인된 소속의 활성 참여자(정지 · 비활성 제외)
-        var members = await (from p in ctx.Participants
-                             join m in ctx.Memberships on p.MembershipId equals m.Id
-                             join a in ctx.Accounts on m.AccountId equals a.Id
-                             where p.IsActive && m.Status == MembershipStatus.Approved
-                             select new { p.Id, a.DisplayName, m.GroupLabel }).ToListAsync(ct);
+        var members = (await DeptMembership.PeopleAsync(ctx, ct)).Where(p => p.RoleCode == UserRole.StudentCode).Select(p => new { Id = p.UserName, DisplayName = p.Name, GroupLabel = (string?)null }).ToList();
         var memberIds = members.Select(m => m.Id).ToHashSet();
 
         // 기다리는 신청
-        var requested = await (from m in ctx.Memberships.Include(x => x.Roles)
-                               join a in ctx.Accounts on m.AccountId equals a.Id
-                               where m.Status == MembershipStatus.Requested
-                               orderby m.RequestedUtc
-                               select new { a.DisplayName, m.Roles }).ToListAsync(ct);
-        var pending = requested.Take(3).Select(r => new PendingRequest(r.DisplayName, r.Roles.Any(x => x.Role == Roles.Guardian) && r.Roles.All(x => x.Role != Roles.Participant))).ToList();
+        var requested = await ctx.SignupApplications.AsNoTracking().Where(a => a.Status == SignupStatus.Pending).OrderBy(a => a.InsertDT).Select(a => new { a.FullName, a.RoleKind }).ToListAsync(ct);
+        var pending = requested.Take(3).Select(r => new PendingRequest(r.FullName, r.RoleKind.Trim() == SignupRoleKind.Parent)).ToList();
 
         // 최근 7일(오늘 포함) 참여: 날짜별 하루라도 한 참여자
         var weekFrom = today.AddDays(-6);
         var weekStart = today.AddDays(-(int)today.DayOfWeek);   // 암송은 한 주에 한 번이라 이번 주(일요일 시작) 누적
         var from = weekStart < weekFrom ? weekStart : weekFrom;
-        var acts = (await ctx.Activities.AsNoTracking()
+        var acts = (await ctx.MissionActivities.AsNoTracking()
             .Where(a => a.MissionDate >= from && a.MissionDate <= today)
-            .Select(a => new { a.ParticipantId, a.MissionDate, a.MissionItem }).ToListAsync(ct))
-            .Where(a => memberIds.Contains(a.ParticipantId))
-            .Select(a => (a.ParticipantId, a.MissionDate, Mission: MissionItemCodes.Parse(a.MissionItem).Mission()))
+            .Select(a => new { a.UserName, a.MissionDate, a.MissionItem }).ToListAsync(ct))
+            .Where(a => memberIds.Contains(a.UserName))
+            .Select(a => (a.UserName, a.MissionDate, Mission: MissionItemCodes.Parse(a.MissionItem).Mission()))
             .ToList();
 
         var week = Enumerable.Range(0, 7).Select(i => weekFrom.AddDays(i))
-            .Select(d => (d, acts.Where(a => a.MissionDate == d).Select(a => a.ParticipantId).Distinct().Count())).ToList();
+            .Select(d => (d, acts.Where(a => a.MissionDate == d).Select(a => a.UserName).Distinct().Count())).ToList();
         var todayActs = acts.Where(a => a.MissionDate == today).ToList();
         var byMission = new Dictionary<Mission, int>
         {
-            [Mission.Word] = todayActs.Where(a => a.Mission == Mission.Word).Select(a => a.ParticipantId).Distinct().Count(),
-            [Mission.Quiz] = todayActs.Where(a => a.Mission == Mission.Quiz).Select(a => a.ParticipantId).Distinct().Count(),
-            [Mission.Prayer] = todayActs.Where(a => a.Mission == Mission.Prayer).Select(a => a.ParticipantId).Distinct().Count(),
-            [Mission.Recite] = acts.Where(a => a.MissionDate >= weekStart && a.Mission == Mission.Recite).Select(a => a.ParticipantId).Distinct().Count(),
+            [Mission.Word] = todayActs.Where(a => a.Mission == Mission.Word).Select(a => a.UserName).Distinct().Count(),
+            [Mission.Quiz] = todayActs.Where(a => a.Mission == Mission.Quiz).Select(a => a.UserName).Distinct().Count(),
+            [Mission.Prayer] = todayActs.Where(a => a.Mission == Mission.Prayer).Select(a => a.UserName).Distinct().Count(),
+            [Mission.Recite] = acts.Where(a => a.MissionDate >= weekStart && a.Mission == Mission.Recite).Select(a => a.UserName).Distinct().Count(),
         };
-        var todayDone = todayActs.Select(a => a.ParticipantId).Distinct().ToHashSet();
+        var todayDone = todayActs.Select(a => a.UserName).Distinct().ToHashSet();
 
         // 오늘 아직 안 한 친구: 마지막 미션이 오래된 순(한 번도 안 한 친구가 맨 앞)
-        var lastDates = await ctx.Activities.AsNoTracking().Where(a => a.MissionDate <= today)
-            .GroupBy(a => a.ParticipantId).Select(g => new { g.Key, Last = g.Max(x => x.MissionDate) }).ToListAsync(ct);
+        var lastDates = await ctx.MissionActivities.AsNoTracking().Where(a => a.MissionDate <= today)
+            .GroupBy(a => a.UserName).Select(g => new { g.Key, Last = g.Max(x => x.MissionDate) }).ToListAsync(ct);
         var last = lastDates.ToDictionary(x => x.Key, x => x.Last);
         var missing = members.Where(m => !todayDone.Contains(m.Id))
             .Select(m => new MissingMember(m.DisplayName, m.GroupLabel, last.TryGetValue(m.Id, out var d) ? today.DayNumber - d.DayNumber : null))
@@ -90,10 +82,10 @@ public sealed class AdminHomeService(IAppDb db, TenantContext tenant, TenantCloc
         var me = tenant.Current.Id;
         var promotions = await (from r in ctx.PromotionRequests
                                 where r.TargetTenantId == me && r.Status == PromotionStatus.Pending
-                                join a in ctx.Accounts on r.AccountId equals a.Id
+                                join a in ctx.Users on r.UserName equals a.UserName
                                 join t in ctx.Tenants on r.SourceTenantId equals t.Id
                                 orderby r.RequestedUtc
-                                select a.DisplayName + "(" + t.Name + ")").ToListAsync(ct);
+                                select AppUser.FullName(a.LastName, a.FirstName) + "(" + t.Name + ")").ToListAsync(ct);
 
         return new(today, nowLocal, requested.Count, pending, await EmptyContentAsync(ctx, today, ct),
             members.Count, todayDone.Count, byMission, weekStart, week, missing)

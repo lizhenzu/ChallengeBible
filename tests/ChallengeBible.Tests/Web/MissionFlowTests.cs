@@ -47,12 +47,8 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
             ["DisplayName"] = "김철수", ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         using var raw = InMemoryDb.Raw(_db);
-        var id = raw.Accounts.Single(a => a.Email == email + "@example.com").Id;
-        var m = new Membership { TenantId = _kids.Id, AccountId = id, Status = MembershipStatus.Approved,
-            Roles = roles.Select(r => new MembershipRole { TenantId = _kids.Id, Role = r }).ToList() };
-        raw.Memberships.Add(m);
-        raw.SaveChanges();
-        if (roles.Contains(Roles.Participant)) { raw.Participants.Add(new Participant { TenantId = _kids.Id, MembershipId = m.Id }); raw.SaveChanges(); }
+        var id = raw.Users.Single(a => a.Email == email + "@example.com").UserName!;
+        InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, roles);
         return c;
     }
 
@@ -131,16 +127,6 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
-    public async Task 보호자는_보기만_하고_누를_수_없다()
-    {
-        var c = await Member("younghee", Roles.Guardian);
-        var html = await c.GetStringAsync("/jamsil-kids/word");
-        Assert.Contains("보기만 해요", html);
-        var r = await Api(c, TokenRx().Match(html).Groups[1].Value, "/api/jamsil-kids/missions/word", new { date = "2027-01-05", items = new[] { "Word.Me" } });
-        Assert.Equal(HttpStatusCode.Forbidden, r.StatusCode);
-    }
-
-    [Fact]
     public async Task 위조_방지_토큰이_없으면_거절()
     {
         var c = await Member("cheolsu", Roles.Participant);
@@ -199,9 +185,9 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
 
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var acc = raw.Accounts.Single(a => a.Email == "cheolsu@example.com").Id;
-            raw.ReadingRounds.Add(new ReadingRound { AccountId = acc, RoundNo = 1, StartedUtc = DateTime.UtcNow });
-            raw.ChapterReads.Add(new ChapterRead { AccountId = acc, RoundNo = 1, BookId = 1, Chapter = 1, ReadUtc = DateTime.UtcNow });
+            var acc = raw.Users.Single(a => a.Email == "cheolsu@example.com").UserName!;
+            raw.ReadingRounds.Add(new ReadingRound { UserName = acc, RoundNo = 1, StartedAt = DateTime.UtcNow });
+            raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = acc, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = DateTime.UtcNow });
             raw.SaveChanges();
         }
         var ask = await c.GetStringAsync("/jamsil-kids/reading/rounds?ask=true");

@@ -31,7 +31,7 @@ public static class MissionApi
 
         g.MapPost("/recite", async (DateRequest r, MissionService s, FamilyTeamService f, HttpContext h) =>
         {
-            var pid = (int)h.Items[ParticipantEndpointFilter.ParticipantKey]!;
+            var pid = (string)h.Items[ParticipantEndpointFilter.ParticipantKey]!;
             var res = await s.PressAsync(pid, MissionItem.Recite, r.Date, h.RequestAborted);
             return Results.Ok(new MissionResponse(res.Ok, res.Added, res.SeasonPoints, res.Ok ? ["Recite"] : [], res.NewMilestones, Msg(res),
                 FamilyMilestone: await Family(f, pid, res.Added, h)));
@@ -40,12 +40,11 @@ public static class MissionApi
         // 완료 취소(R-24, ADR 0070): 말씀 · 기도는 오늘, 암송은 이번 주. 퀴즈는 없음. 멱등(이미 취소됐으면 0점 성공)
         g.MapPost("/undo", async (UndoRequest r, MissionService s, FamilyTeamService f, HttpContext h) =>
         {
-            var pid = (int)h.Items[ParticipantEndpointFilter.ParticipantKey]!;
+            var pid = (string)h.Items[ParticipantEndpointFilter.ParticipantKey]!;
             if (r.Item is null || TryParse(r.Item) is not { } item || item == MissionItem.QuizCorrect)
                 return Results.BadRequest(new { code = "BadItem", message = "취소할 수 없는 항목이에요." });
             var res = await s.UndoAsync(pid, item, r.Date, h.RequestAborted);
             if (!res.Ok) return Results.Ok(new MissionResponse(false, 0, res.SeasonPoints, [], [], res.Message));
-            if (res.Added < 0) await f.DropUnreachedAsync(pid, h.RequestAborted);
             var day = await s.GetDayAsync(pid, r.Date, h.RequestAborted);
             IReadOnlyList<string> done = item == MissionItem.Recite ? (day.RecitedThisWeek ? ["Recite"] : [])
                 : day.Done.Where(d => d.Mission() == item.Mission()).Select(d => d.Code()).ToList();
@@ -54,7 +53,7 @@ public static class MissionApi
 
         g.MapPost("/quiz/attempts", async (QuizRequest r, MissionService s, FamilyTeamService f, HttpContext h) =>
         {
-            var pid = (int)h.Items[ParticipantEndpointFilter.ParticipantKey]!;
+            var pid = (string)h.Items[ParticipantEndpointFilter.ParticipantKey]!;
             var res = await s.AnswerQuizAsync(pid, r.Date, r.ChoiceId, r.AnswerText, h.RequestAborted);
             var day = await s.GetDayAsync(pid, r.Date, h.RequestAborted);
             var finished = day.QuizState.Solved || day.QuizState.AttemptsUsed >= day.QuizState.MaxAttempts;
@@ -68,12 +67,12 @@ public static class MissionApi
     }
 
     /// <summary>점수를 받았을 때만 가족 단계를 검사한다(R-65 와 같이 0점이면 안 함).</summary>
-    private static async Task<FamilyCelebration?> Family(FamilyTeamService f, int pid, int added, HttpContext h) =>
-        added > 0 ? await f.RecordReachedAsync(pid, h.RequestAborted) : null;
+    private static async Task<FamilyCelebration?> Family(FamilyTeamService f, string pid, int added, HttpContext h) =>
+        added > 0 ? await f.CelebrationAsync(pid, added, h.RequestAborted) : null;
 
     private static async Task<IResult> Press(PressRequest r, Mission mission, MissionService s, FamilyTeamService f, HttpContext h)
     {
-        var pid = (int)h.Items[ParticipantEndpointFilter.ParticipantKey]!;
+        var pid = (string)h.Items[ParticipantEndpointFilter.ParticipantKey]!;
         var items = (r.Items ?? []).Select(TryParse).ToList();
         if (items.Count == 0) return Results.BadRequest(new { code = "NoItemSelected", message = "체크를 선택해 주세요." });   // R-23
         if (items.Any(i => i is null || i.Value.Mission() != mission)) return Results.BadRequest(new { code = "BadItem", message = "알 수 없는 항목이에요." });
@@ -105,7 +104,7 @@ public static class MissionApi
 /// <summary>부서 결정 + 참여자 확인 + 위조 방지 토큰(헤더 RequestVerificationToken).</summary>
 public sealed class ParticipantEndpointFilter(TenantResolver resolver, TenantContext tenant, MissionService missions, IAntiforgery antiforgery) : IEndpointFilter
 {
-    public const string ParticipantKey = "cb.participantId";
+    public const string ParticipantKey = "cb.userName";
 
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
@@ -116,9 +115,9 @@ public sealed class ParticipantEndpointFilter(TenantResolver resolver, TenantCon
         if (r == TenantResolution.NotFound) return Results.NotFound();
         if (r == TenantResolution.NotMember) return Results.Json(new { code = "NotApprovedMember", message = "아직 승인되지 않았어요" }, statusCode: 403);
         if (!tenant.Current.MissionEnabled) return Results.NotFound();   // R-150
-        var pid = await missions.ParticipantIdAsync(http.RequestAborted);
+        var pid = await missions.UserNameAsync(http.RequestAborted);
         if (pid is null) return Results.Json(new { code = "NotParticipant", message = "참여자만 미션을 할 수 있어요." }, statusCode: 403);
-        http.Items[ParticipantKey] = pid.Value;
+        http.Items[ParticipantKey] = pid;
         return await next(context);
     }
 }

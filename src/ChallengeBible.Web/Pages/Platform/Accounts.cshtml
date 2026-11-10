@@ -43,7 +43,7 @@
                 }
                 else
                 {
-                    <div class="who"><span class="av">@(d.Name.Length > 1 ? d.Name[^2..] : d.Name)</span><div><h2>@d.Name</h2><small>@d.Email</small></div></div>
+                    <div class="who"><span class="av">@(d.Name.Length > 1 ? d.Name[^2..] : d.Name)</span><div><h2>@d.Name</h2><small>아이디 @d.Id · @d.Email</small></div></div>
                     <div class="facts">
                         <div><small>가입</small><b class="num">@d.CreatedUtc.ToString("yyyy.MM.dd")</b></div>
                     </div>
@@ -70,7 +70,7 @@
                     {
                         <div class="why no"><b>@string.Join(" · ", d.AdminOf)의 관리자예요.</b> 그 밖의 부서 관리자는 이 계정을 초기화할 수 없어요. 다른 부서의 관리 권한까지 영향을 주기 때문이에요(ADR 0035). 필요하면 여기서 해요.</div>
                     }
-                    else if (!d.Memberships.Any(m => m.Status is MembershipStatus.Approved or MembershipStatus.Suspended))
+                    else if (!d.Memberships.Any(m => m.Status is MembershipStatus.Approved))
                     {
                         <div class="why no"><b>승인된 소속 부서가 없어요.</b> 부서 관리자가 초기화할 수 없으니 필요하면 여기서 해요.</div>
                     }
@@ -97,6 +97,7 @@
                     }
                     @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
                     @if (Model.Ok == "marks") { <p class="okmsg" role="status">성경 읽음 표시와 책갈피를 지웠어요</p> }
+                    @if (Model.Ok == "renamed") { <p class="okmsg" role="status">아이디를 바꿨어요 · 이 사람은 다음부터 새 아이디로 로그인해요</p> }
 
                     <div class="acts">
                         <div class="act"><div><b>임시 비밀번호</b><span>다음 로그인 때 새 비밀번호로 바꿔야 해요. 모든 부서에서 같은 계정이에요.</span></div>
@@ -110,6 +111,16 @@
                         {
                             <div class="pw" role="status"><code>@pw</code><button type="button" class="btn s sm" data-copy="@pw">복사</button><a class="btn p sm" href="@Model.Url(d.Id)">전달했어요</a></div>
                             <p class="pw-warn">이 칸을 닫으면 다시 볼 수 없어요. @(d.Name)님께 직접 알려 주세요.</p>
+                        }
+                        <div class="act" id="rename"><div><b>아이디 바꾸기</b><span>지금 아이디는 @d.Id 예요. 미션 · 통독 · 가족팀 기록의 아이디도 함께 바뀌고, 다음 로그인부터 새 아이디를 써요.</span></div>
+                            @if (!Model.AskRename) { <a class="btn d sm" href="@Model.RenameUrl(d.Id)">아이디 바꾸기</a> }</div>
+                        @if (Model.AskRename)
+                        {
+                            <form method="post" asp-page-handler="Rename" asp-route-q="@Model.Q" asp-route-id="@d.Id" class="ask" role="alert">
+                                <span>새 아이디를 쓰고, 맞는지 확인하려면 이메일 <b>@d.Email</b> 을 똑같이 써 주세요.</span>
+                                <div class="row"><input name="newName" autocomplete="off" maxlength="@PlatformAccountService.MaxUserName" placeholder="새 아이디" aria-label="새 아이디" /></div>
+                                <div class="row"><input name="confirm" autocomplete="off" placeholder="이메일" aria-label="이메일 확인" /><button type="submit" class="btn dd sm">아이디 바꾸기</button><a class="btn s sm" href="@Model.Url(d.Id)">취소</a></div>
+                            </form>
                         }
                         @if (!d.PlatformAdmin)
                         {

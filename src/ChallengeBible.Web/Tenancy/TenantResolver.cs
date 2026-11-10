@@ -22,13 +22,19 @@ public sealed class TenantResolver(IAppDb db, RequestScope scope, TenantContext 
         if (t is null) return TenantResolution.NotFound;
 
         scope.SetTenant(t.Id);
-        Membership? me = null;
-        if (http.User.AccountId() is int accountId)
+        DeptRoleUserAssoc? me = null;
+        var isAdmin = false;
+        if (http.User.UserId() is { } userId)
         {
             await using var ctx = db.Create();   // 영역을 정한 뒤 새 연결(세션 값 TenantId)
-            me = await ctx.Memberships.AsNoTracking().Include(m => m.Roles).SingleOrDefaultAsync(m => m.AccountId == accountId, ct);
+            me = await ctx.DeptRoles.AsNoTracking().FirstOrDefaultAsync(d => d.TenantId == t.Id && d.UserId == userId, ct);
+            if (me is not null)
+                isAdmin = await (from ur in ctx.UserRoles
+                                 join r in ctx.IdentityRoleRows on ur.RoleId equals r.Id
+                                 where ur.UserId == userId && r.Name == IdentityRoles.Admin
+                                 select ur).AnyAsync(ct);
         }
-        tenant.Set(t, me);
+        tenant.Set(t, me, isAdmin);
         return tenant.IsApproved ? TenantResolution.Ok : TenantResolution.NotMember;
     }
 }

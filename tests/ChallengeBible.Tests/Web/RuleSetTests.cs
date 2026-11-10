@@ -22,7 +22,7 @@ public partial class RuleSetTests : IClassFixture<WebApplicationFactory<Program>
     private readonly WebApplicationFactory<Program> _app;
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
-    private readonly int _op, _admin;
+    private readonly string _op, _admin;
 
     public RuleSetTests(WebApplicationFactory<Program> app)
     {
@@ -33,12 +33,12 @@ public partial class RuleSetTests : IClassFixture<WebApplicationFactory<Program>
             s.RemoveAll<TimeProvider>();
             s.AddSingleton<TimeProvider>(FixedTime.SeoulMorning());
         }));
-        _op = InMemoryDb.SeedAccount(_db, "operator@example.com", "운영자").Id;
-        _admin = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜").Id;
+        _op = InMemoryDb.SeedAccount(_db, "operator@example.com", "운영자").UserName!;
+        _admin = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜").UserName!;
         using var raw = InMemoryDb.Raw(_db);
-        var op = raw.Accounts.Single(a => a.Id == _op);
-        op.IsPlatformAdmin = true;
-        op.PasswordHash = new PasswordHasher<Account>().HashPassword(op, "1234");
+        var op = raw.Users.Single(a => a.UserName == _op);
+        InMemoryDb.AddRole(_db, op.Id, IdentityRoles.SuperAdmin);
+        op.PasswordHash = new PasswordHasher<AppUser>().HashPassword(op, "1234");
         raw.SaveChanges();
     }
 
@@ -48,7 +48,7 @@ public partial class RuleSetTests : IClassFixture<WebApplicationFactory<Program>
     private void Insert(int no, DateOnly from, RuleSet r)
     {
         using var raw = InMemoryDb.Raw(_db);
-        raw.PlatformRuleSetVersions.Add(new PlatformRuleSetVersion { VersionNo = no, EffectiveFrom = from, Values = RuleService.ToJson(r), ChangedUtc = DateTime.UtcNow, ChangedByAccountId = _op });
+        raw.PlatformRuleSetVersions.Add(new PlatformRuleSetVersion { VersionNo = no, EffectiveFrom = from, Values = RuleService.ToJson(r), ChangedUtc = DateTime.UtcNow, ChangedByUserName = _op });
         raw.SaveChanges();
     }
 
@@ -86,10 +86,10 @@ public partial class RuleSetTests : IClassFixture<WebApplicationFactory<Program>
     public async Task 미션_점수는_그_미션_날짜에_적용된_버전을_쓴다_이미_쌓인_점수는_그대로()
     {
         var kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
-        var kid = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수").Id;
+        var kid = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수").UserName!;
         var m = InMemoryDb.SeedMembership(_db, kids.Id, kid, MembershipStatus.Approved, Roles.Participant);
-        int pid;
-        using (var raw = InMemoryDb.Raw(_db)) { var p = new Participant { TenantId = kids.Id, MembershipId = m.Id }; raw.Participants.Add(p); raw.SaveChanges(); pid = p.Id; }
+        string pid;
+        pid = m.UserName;
         ContentSeed.Word(_db, Jan5.AddDays(-1));
         ContentSeed.Word(_db, Jan5);
         var scope = new RequestScope();
@@ -98,15 +98,15 @@ public partial class RuleSetTests : IClassFixture<WebApplicationFactory<Program>
         {
             var tc = new TenantContext();
             using var raw = InMemoryDb.Raw(_db);
-            tc.Set(raw.Tenants.Single(t => t.Id == kids.Id), m);
-            return new MissionService(new InMemoryDb(_db, scope), tc, new TenantClock(_time), _time, InMemoryDb.Rules(_db));
+            tc.Set(raw.Tenants.Single(t => t.Id == kids.Id), m is null ? null : raw.DeptRoles.Single(d => d.Id == m.Id));
+            return new MissionService(new InMemoryDb(_db, scope), scope, tc, new TenantClock(_time), _time, InMemoryDb.Rules(_db));
         }
 
         Assert.Equal(1, (await Svc().PressAsync(pid, MissionItem.WordMe, Jan5.AddDays(-1))).Added);   // 어제(인정 기간) = v1
         Insert(2, Jan5, WordMe(3));
         Assert.Equal(3, (await Svc().PressAsync(pid, MissionItem.WordMe, Jan5)).Added);               // 오늘 = v2
         using var check = InMemoryDb.Raw(_db);
-        Assert.Equal([1, 3], check.PointLedgers.OrderBy(l => l.MissionDate).Select(l => l.Points).ToArray());
+        Assert.Equal([1, 3], check.MissionActivities.OrderBy(l => l.MissionDate).Select(l => l.Points).ToArray());
     }
 
     [Fact]

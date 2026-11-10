@@ -15,7 +15,7 @@ namespace ChallengeBible.Web.Pages.Platform;
 public class RulesModel(RuleService rules, PlatformRuleService platformRules) : PageModel, ITitled
 {
     public string Title => "기본 규칙";
-    private int Me => User.AccountId()!.Value;
+    private string Me => User.UserName()!;
 
     [BindProperty] public RuleForm Form { get; set; } = new();
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }
@@ -27,7 +27,7 @@ public class RulesModel(RuleService rules, PlatformRuleService platformRules) : 
     public DateOnly Today { get; private set; }
     public (DateOnly Tomorrow, DateOnly NextWeek) Starts { get; private set; }
     public int MissionTenants { get; private set; }
-    public Dictionary<int, string> Names { get; private set; } = [];
+    public Dictionary<string, string> Names { get; private set; } = [];
     public List<string> Changes { get; private set; } = [];
     public List<string> Errors { get; private set; } = [];
     public bool Previewed { get; private set; }
@@ -73,7 +73,7 @@ public class RulesModel(RuleService rules, PlatformRuleService platformRules) : 
         AppliedNo = Versions.Where(v => v.EffectiveFrom <= Today).Max(v => v.VersionNo);
         Starts = platformRules.StartChoices(Latest.Rules);
         MissionTenants = await platformRules.MissionTenantsAsync(Me, ct);
-        Names = await platformRules.NamesAsync(Me, Versions.Where(v => v.ChangedByAccountId is not null).Select(v => v.ChangedByAccountId!.Value), ct);
+        Names = await platformRules.NamesAsync(Me, Versions.Where(v => v.ChangedByUserName is not null).Select(v => v.ChangedByUserName!), ct);
     }
 
     public static string MissionLabel(MissionItem item) => item.Mission() switch

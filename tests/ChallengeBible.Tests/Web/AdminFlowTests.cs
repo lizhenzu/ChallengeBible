@@ -34,7 +34,7 @@ public partial class AdminFlowTests : IClassFixture<WebApplicationFactory<Progra
     private static async Task<string> Token(HttpClient c, string url) => TokenRx().Match(await c.GetStringAsync(url)).Groups[1].Value;
 
     /// <summary>가입 화면으로 계정을 만들고 로그인된 클라이언트를 돌려준다.</summary>
-    private async Task<(HttpClient Client, int AccountId)> SignedUp(string email, string name)
+    private async Task<(HttpClient Client, string UserName)> SignedUp(string email, string name)
     {
         var c = Client();
         await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
@@ -43,7 +43,7 @@ public partial class AdminFlowTests : IClassFixture<WebApplicationFactory<Progra
             ["DisplayName"] = name, ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         using var raw = InMemoryDb.Raw(_db);
-        return (c, raw.Accounts.Single(a => a.Email == email + "@example.com").Id);
+        return (c, raw.Users.Single(a => a.Email == email + "@example.com").UserName!);
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public partial class AdminFlowTests : IClassFixture<WebApplicationFactory<Progra
 
         var list = await admin.GetStringAsync("/jamsil-kids/admin/members");
         Assert.Contains("김철수", list);
-        Assert.Contains("참여자 희망", list);
+        Assert.Contains("학생 희망", list);
 
         var approve = await admin.PostAsync("/jamsil-kids/admin/members?handler=Approve&Tab=Requested", new FormUrlEncodedContent(new[]
         {

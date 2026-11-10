@@ -44,9 +44,8 @@ public partial class BookOverviewTests : IClassFixture<WebApplicationFactory<Pro
             ["DisplayName"] = "김철수", ["Email"] = "cheolsu@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         using var raw = InMemoryDb.Raw(_db);
-        var id = raw.Accounts.Single(a => a.Email == "cheolsu@example.com").Id;
+        var id = raw.Users.Single(a => a.Email == "cheolsu@example.com").UserName!;
         var m = InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, Roles.Participant);
-        raw.Participants.Add(new Participant { TenantId = _kids.Id, MembershipId = m.Id });
         raw.SaveChanges();
         return c;
     }

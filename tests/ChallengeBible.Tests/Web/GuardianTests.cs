@@ -21,7 +21,7 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
     private readonly Tenant _kids;
-    private readonly Account _admin;
+    private readonly AppUser _admin;
 
     public GuardianTests(WebApplicationFactory<Program> app)
     {
@@ -34,43 +34,45 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
         }));
         _kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         _admin = InMemoryDb.SeedAccount(_db, "eunhye", "이은혜");
-        InMemoryDb.SeedMembership(_db, _kids.Id, _admin.Id, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
+        InMemoryDb.SeedMembership(_db, _kids.Id, _admin.UserName!, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
         ContentSeed.Word(_db, Jan5);
         ContentSeed.ChoiceQuiz(_db, Jan5);
     }
 
-    private (TenantContext Ctx, RequestScope Scope) In(Membership? me)
+    private (TenantContext Ctx, RequestScope Scope) In(SeededMember? me)
     {
         var scope = new RequestScope();
         scope.SetTenant(_kids.Id);
         var ctx = new TenantContext();
-        Membership? loaded = null;
-        if (me is not null) { using var raw = InMemoryDb.Raw(_db); loaded = raw.Memberships.Where(m => m.Id == me.Id).Select(m => new Membership { Id = m.Id, TenantId = m.TenantId, AccountId = m.AccountId, Status = m.Status, Roles = m.Roles }).Single(); }
-        ctx.Set(_kids, loaded);
+        if (me is not null)
+        {
+            scope.SetUser(me.UserName, me.UserId);
+            using var raw = InMemoryDb.Raw(_db);
+            ctx.Set(_kids, raw.DeptRoles.Single(d => d.Id == me.Id));
+        }
+        else ctx.Set(_kids, null);
         return (ctx, scope);
     }
 
-    private (Membership Kid, int Pid) Kid(string login, string name)
+    private (SeededMember Kid, string Pid) Kid(string login, string name)
     {
         var a = InMemoryDb.SeedAccount(_db, login, name);
-        var m = InMemoryDb.SeedMembership(_db, _kids.Id, a.Id, MembershipStatus.Approved, Roles.Participant);
+        var m = InMemoryDb.SeedMembership(_db, _kids.Id, a.UserName!, MembershipStatus.Approved, Roles.Participant);
         using var raw = InMemoryDb.Raw(_db);
-        var p = new Participant { TenantId = _kids.Id, MembershipId = m.Id };
-        raw.Participants.Add(p);
         raw.SaveChanges();
-        return (m, p.Id);
+        return (m, m.UserName);
     }
 
-    private Membership Parent(string login, string name)
+    private SeededMember Parent(string login, string name)
     {
         var a = InMemoryDb.SeedAccount(_db, login, name);
-        return InMemoryDb.SeedMembership(_db, _kids.Id, a.Id, MembershipStatus.Approved, Roles.Guardian);
+        return InMemoryDb.SeedMembership(_db, _kids.Id, a.UserName!, MembershipStatus.Approved, Roles.Guardian);
     }
 
     private MemberAdminService Admin()
     {
         var (ctx, scope) = In(null);
-        return new MemberAdminService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), ctx, _time, new LobbyService(new InMemorySystemDb(_db), _time));
+        return new MemberAdminService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), ctx, _time);
     }
 
     [Fact]
@@ -79,10 +81,10 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
         var (cheolsu, pid) = Kid("cheolsu", "김철수");
         var (_, otherPid) = Kid("minjun", "최민준");
         var mom = Parent("younghee", "김영희");
-        Assert.Equal(MemberError.None, await Admin().LinkGuardianAsync(_admin.Id, mom.Id, cheolsu.Id));
+        Assert.Equal(MemberError.None, await Admin().LinkGuardianAsync(_admin.UserName!, mom.UserName, cheolsu.UserName));
 
         var (ctx, scope) = In(mom);
-        var svc = new GuardianService(new InMemoryDb(_db, scope), ctx, InMemoryDb.Rules(_db));
+        var svc = new GuardianService(new InMemoryDb(_db, scope), scope, ctx, InMemoryDb.Rules(_db));
         Assert.Equal(["김철수"], (await svc.ChildrenAsync()).Select(c => c.Name));
         Assert.True(await svc.IsMyChildAsync(pid));
         Assert.False(await svc.IsMyChildAsync(otherPid));
@@ -94,17 +96,17 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
     {
         var (cheolsu, pid) = Kid("cheolsu", "김철수");
         var mom = Parent("younghee", "김영희");
-        await Admin().LinkGuardianAsync(_admin.Id, mom.Id, cheolsu.Id);
+        await Admin().LinkGuardianAsync(_admin.UserName!, mom.UserName, cheolsu.UserName);
 
         var (kctx, kscope) = In(cheolsu);
-        var missions = new MissionService(new InMemoryDb(_db, kscope), kctx, new TenantClock(_time), _time, InMemoryDb.Rules(_db));
+        var missions = new MissionService(new InMemoryDb(_db, kscope), kscope, kctx, new TenantClock(_time), _time, InMemoryDb.Rules(_db));
         await missions.PressAsync(pid, MissionItem.WordMe, Jan5);
         int wrong;
         using (var raw = InMemoryDb.Raw(_db)) wrong = raw.DailyQuizChoices.First(c => c.Id != raw.DailyQuizzes.Single().CorrectChoiceId).Id;
         await missions.AnswerQuizAsync(pid, Jan5, wrong, null);
 
         var (ctx, scope) = In(mom);
-        var log = await new GuardianService(new InMemoryDb(_db, scope), ctx, InMemoryDb.Rules(_db)).DayLogAsync(pid, Jan5);
+        var log = await new GuardianService(new InMemoryDb(_db, scope), scope, ctx, InMemoryDb.Rules(_db)).DayLogAsync(pid, Jan5);
         Assert.Contains(log, l => l.What == "혼자 읽었어요" && l.Points == 1);
         Assert.Contains(log, l => l.What == "오답 · 1번째 도전" && l.Points == 0);
     }
@@ -114,12 +116,12 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
     {
         var (cheolsu, _) = Kid("cheolsu", "김철수");
         var (notParent, _) = Kid("minjun", "최민준");
-        Assert.Equal(MemberError.NotFound, await Admin().LinkGuardianAsync(_admin.Id, notParent.Id, cheolsu.Id));
+        Assert.Equal(MemberError.NotFound, await Admin().LinkGuardianAsync(_admin.UserName!, notParent.UserName, cheolsu.UserName));
         var mom = Parent("younghee", "김영희");
-        await Admin().LinkGuardianAsync(_admin.Id, mom.Id, cheolsu.Id);
-        Assert.Equal([mom.Id], (await Admin().LinksAsync())[cheolsu.Id]);
-        Assert.Equal(MemberError.None, await Admin().UnlinkGuardianAsync(mom.Id, cheolsu.Id));
-        Assert.False((await Admin().LinksAsync()).ContainsKey(cheolsu.Id));
+        await Admin().LinkGuardianAsync(_admin.UserName!, mom.UserName, cheolsu.UserName);
+        Assert.Equal([mom.UserName], (await Admin().LinksAsync())[cheolsu.UserName]);
+        Assert.Equal(MemberError.None, await Admin().UnlinkGuardianAsync(mom.UserName, cheolsu.UserName));
+        Assert.False((await Admin().LinksAsync()).ContainsKey(cheolsu.UserName));
     }
 
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
@@ -130,8 +132,8 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
         // 계정은 이미 있으니 비밀번호만 정하고 로그인
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var a = raw.Accounts.Single(x => x.Email == login);
-            a.PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<Account>().HashPassword(a, "1234");
+            var a = raw.Users.Single(x => x.Email == login);
+            a.PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<AppUser>().HashPassword(a, "1234");
             raw.SaveChanges();
         }
         var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
@@ -153,7 +155,7 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
         var c = await LoggedIn("younghee");
         Assert.Contains("아직 연결된 자녀가 없어요", await c.GetStringAsync("/jamsil-kids/guardian"));
 
-        await Admin().LinkGuardianAsync(_admin.Id, mom.Id, cheolsu.Id);
+        await Admin().LinkGuardianAsync(_admin.UserName!, mom.UserName, cheolsu.UserName);
         var html = await c.GetStringAsync("/jamsil-kids/guardian");
         Assert.Contains("김철수", html);
         Assert.Contains("오늘은 아직 미션을 하지 않았어요", html);

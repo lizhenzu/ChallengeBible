@@ -26,10 +26,10 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
     private static readonly CultureInfo Ko = new("ko-KR");
     private static RuleSet Rules => RuleSet.Default;
 
-    public async Task<PlatformHome> GetAsync(int actor, CancellationToken ct = default)
+    public async Task<PlatformHome> GetAsync(string actor, CancellationToken ct = default)
     {
         await using var ctx = systemDb.Create(actor);
-        if (!await ctx.Accounts.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
+        if (!await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct))
             throw new UnauthorizedAccessException("플랫폼 관리자만 볼 수 있어요.");
 
         var nowUtc = clock.UtcNow;
@@ -39,32 +39,29 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
 
         var tenants = await ctx.Tenants.AsNoTracking().OrderBy(t => t.Name).ToListAsync(ct);
         var active = tenants.Where(t => t.Status == TenantStatus.Active).ToList();
-        var accounts = await ctx.Accounts.CountAsync(ct);
+        var accounts = await ctx.Users.CountAsync(ct);
         var weekAgo = nowUtc.UtcDateTime.AddDays(-7);
-        var newAccounts = await ctx.Accounts.CountAsync(a => a.CreatedUtc >= weekAgo, ct);
+        var newAccounts = await ctx.Users.CountAsync(a => a.InsertDT >= weekAgo, ct);
 
         // 미션: 부서마다 그 부서의 오늘
         var todays = active.ToDictionary(t => t.Id, t => clock.Today(t.TimeZoneId));
         var dates = todays.Values.Distinct().ToList();
-        var acts = await ctx.Activities.AsNoTracking().Where(a => dates.Contains(a.MissionDate))
-            .Select(a => new { a.TenantId, a.MissionDate, a.ParticipantId }).Distinct().ToListAsync(ct);
+        var acts = await ctx.MissionActivities.AsNoTracking().Where(a => dates.Contains(a.MissionDate))
+            .Select(a => new { a.TenantId, a.MissionDate, a.UserName }).Distinct().ToListAsync(ct);
         var todayBy = acts.Where(a => todays.GetValueOrDefault(a.TenantId) == a.MissionDate)
-            .GroupBy(a => a.TenantId).ToDictionary(g => g.Key, g => g.Select(a => a.ParticipantId).Distinct().Count());
-        var participants = await ctx.Participants.Where(p => p.IsActive).GroupBy(p => p.TenantId)
-            .Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N, ct);
+            .GroupBy(a => a.TenantId).ToDictionary(g => g.Key, g => g.Select(a => a.UserName).Distinct().Count());
+        var participants = await ctx.DeptRoles.Where(p => p.RoleCode == UserRole.StudentCode).GroupBy(p => p.TenantId).Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N, ct);
 
         // 통독: 한국 시간 오늘 읽은 장(계정 기록) → 부서별은 그 부서 승인 소속원 중 읽은 사람
         var dayStart = TimeZoneInfo.ConvertTimeToUtc(today.ToDateTime(TimeOnly.MinValue), tz);
         var dayEnd = dayStart.AddDays(1);
-        var reads = await ctx.ChapterReads.AsNoTracking().Where(r => r.ReadUtc >= dayStart && r.ReadUtc < dayEnd)
-            .Select(r => r.AccountId).ToListAsync(ct);
+        var reads = await ctx.ReadingChapterReads.AsNoTracking().Where(r => r.ReadAt >= dayStart && r.ReadAt < dayEnd)
+            .Select(r => r.UserName).ToListAsync(ct);
         var readers = reads.Distinct().ToList();
-        var memberOf = await ctx.Memberships.Where(m => m.Status == MembershipStatus.Approved && readers.Contains(m.AccountId))
-            .Select(m => new { m.TenantId, m.AccountId }).ToListAsync(ct);
-        var readersBy = memberOf.GroupBy(m => m.TenantId).ToDictionary(g => g.Key, g => g.Select(m => m.AccountId).Distinct().Count());
+        var memberOf = await (from d in ctx.DeptRoles join u in ctx.Users on d.UserId equals u.Id where readers.Contains(u.UserName!) select new { d.TenantId, UserName = u.UserName! }).ToListAsync(ct);
+        var readersBy = memberOf.GroupBy(m => m.TenantId).ToDictionary(g => g.Key, g => g.Select(m => m.UserName).Distinct().Count());
 
-        var requested = await ctx.Memberships.Where(m => m.Status == MembershipStatus.Requested)
-            .Select(m => new { m.TenantId, m.RequestedUtc }).ToListAsync(ct);
+        var requested = await ctx.SignupApplications.Where(a => a.Status == SignupStatus.Pending).Select(a => new { a.TenantId, RequestedUtc = a.InsertDT }).ToListAsync(ct);
         var pendingBy = requested.GroupBy(m => m.TenantId).ToDictionary(g => g.Key, g => g.Count());
 
         var rows = tenants.Select(t => new PlatformTenantToday(t.Id, t.Name, t.Slug, t.ThemeColor, t.MissionEnabled, t.Status != TenantStatus.Active,
@@ -88,10 +85,8 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
         }
         if (drafts.Count > 0)
             todos.Add(new("c", drafts.Count, "공개 전 공용 초안", string.Join(" · ", drafts.Take(3)) + (drafts.Count > 3 ? $" 외 {drafts.Count - 3}건" : ""), "/platform/content"));
-        var admins = await (from r in ctx.MembershipRoles
-                            join m in ctx.Memberships on new { r.TenantId, Id = r.MembershipId } equals new { m.TenantId, m.Id }
-                            where r.Role == Roles.TenantAdmin && m.Status == MembershipStatus.Approved
-                            select m.TenantId).Distinct().ToListAsync(ct);
+        var adminIds = await DeptMembership.AdminIdsAsync(ctx, ct);
+        var admins = await ctx.DeptRoles.Where(d => adminIds.Contains(d.UserId!)).Select(d => d.TenantId).Distinct().ToListAsync(ct);
         var noAdmin = active.Where(t => !admins.Contains(t.Id)).ToList();
         if (noAdmin.Count > 0)
             todos.Add(new("b", noAdmin.Count, "관리자가 없는 부서", string.Join(" · ", noAdmin.Take(2).Select(t => t.Name)) + (noAdmin.Count > 2 ? $" 외 {noAdmin.Count - 2}곳" : ""), "/platform/tenants"));
@@ -105,10 +100,11 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
 
         // 최근 관리 기록(지금은 진급 승인 · 이름 · 색 · 시즌 시작일만 남는다)
         var logs = await (from l in ctx.AuditLogs
-                          join a in ctx.Accounts on l.ActorAccountId equals a.Id
+                          join a in ctx.Users on l.ActorUserName equals a.UserName
                           orderby l.OccurredUtc descending, l.Id descending
-                          select new { l.OccurredUtc, a.DisplayName, a.IsPlatformAdmin, l.TenantId, l.Action, l.Detail }).Take(8).ToListAsync(ct);
-        var log = logs.Select(l => new PlatformLog(l.OccurredUtc, l.IsPlatformAdmin ? $"{l.DisplayName}(운영자)" : l.DisplayName,
+                          select new { l.OccurredUtc, DisplayName = AppUser.FullName(a.LastName, a.FirstName), a.Id, l.TenantId, l.Action, l.Detail }).Take(8).ToListAsync(ct);
+        var supers = (await (from ur in ctx.UserRoles join r in ctx.IdentityRoleRows on ur.RoleId equals r.Id where r.Name == IdentityRoles.SuperAdmin select ur.UserId).ToListAsync(ct)).ToHashSet();
+        var log = logs.Select(l => new PlatformLog(l.OccurredUtc, supers.Contains(l.Id) ? $"{l.DisplayName}(운영자)" : l.DisplayName,
             tenants.FirstOrDefault(t => t.Id == l.TenantId)?.Name, LogText(l.Action, l.Detail))).ToList();
 
         return new(nowLocal, active.Count, tenants.Count - active.Count, accounts, newAccounts,

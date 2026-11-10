@@ -16,7 +16,7 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
     private readonly WebApplicationFactory<Program> _app;
     private readonly string _db = InMemoryDb.NewName();
     private readonly Tenant _kids, _pre;
-    private readonly int _op, _jieun, _jieun2, _kid;
+    private readonly string _op, _jieun, _jieun2, _kid;
 
     public PlatformAccountTests(WebApplicationFactory<Program> app)
     {
@@ -27,19 +27,18 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
         }));
         _kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         _pre = InMemoryDb.SeedTenant(_db, "jamsil-pre", "JSPRE1");
-        _op = InMemoryDb.SeedAccount(_db, "operator@example.com", "운영자").Id;
-        _jieun = InMemoryDb.SeedAccount(_db, "jieun@example.com", "박지은", familyTenantId: _kids.Id).Id;
-        _jieun2 = InMemoryDb.SeedAccount(_db, "jieun2@example.com", "박지은").Id;
-        _kid = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수").Id;
+        _op = InMemoryDb.SeedAccount(_db, "operator@example.com", "운영자").UserName!;
+        _jieun = InMemoryDb.SeedAccount(_db, "jieun@example.com", "박지은", familyTenantId: _kids.Id).UserName!;
+        _jieun2 = InMemoryDb.SeedAccount(_db, "jieun2@example.com", "박지은").UserName!;
+        _kid = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수").UserName!;
         InMemoryDb.SeedMembership(_db, _pre.Id, _jieun, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
-        InMemoryDb.SeedMembership(_db, _kids.Id, _jieun, MembershipStatus.Approved, Roles.Guardian);
         InMemoryDb.SeedMembership(_db, _kids.Id, _jieun2, MembershipStatus.Requested, Roles.Participant);
         InMemoryDb.SeedMembership(_db, _kids.Id, _kid, MembershipStatus.Approved, Roles.Participant);
         using var raw = InMemoryDb.Raw(_db);
-        raw.Accounts.Single(a => a.Id == _op).IsPlatformAdmin = true;
+        InMemoryDb.AddRole(_db, raw.Users.Single(a => a.UserName == _op).Id, IdentityRoles.SuperAdmin);
         foreach (var (who, v) in new[] { (_jieun, 1), (_jieun, 2), (_kid, 1) })
-            raw.VerseReadMarks.Add(new VerseReadMark { AccountId = who, BookId = 1, Chapter = 1, Verse = (short)v, ReadUtc = DateTime.UtcNow });
-        raw.Bookmarks.Add(new Bookmark { AccountId = _jieun, BookId = 1, Chapter = 1, Verse = 1, CreatedUtc = DateTime.UtcNow });
+            raw.ReadingVerses.Add(new ReadingVerse { UserName = who, BookId = 1, Chapter = 1, Verse = (short)v, ReadAt = DateTime.UtcNow });
+        raw.ReadingBookmarks.Add(new ReadingBookmark { UserName = _jieun, BookId = 1, Chapter = 1, Verse = 1, CreatedAt = DateTime.UtcNow });
         raw.SaveChanges();
     }
 
@@ -58,10 +57,10 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
     }
 
     [Fact]
-    public async Task 자세히는_모든_부서_소속()
+    public async Task 자세히는_소속_부서()
     {
         var d = (await Service().DetailAsync(_op, _jieun))!;
-        Assert.Equal(2, d.Memberships.Count);
+        Assert.Single(d.Memberships);
         Assert.Equal([_pre.Name], d.AdminOf);
     }
 
@@ -72,9 +71,9 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
         Assert.Matches("^[a-z]+-\\d{4}$", temp!);
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var a = raw.Accounts.Single(x => x.Id == _jieun);
-            Assert.True(a.MustChangePassword);
-            Assert.NotEqual(PasswordVerificationResult.Failed, new PasswordHasher<Account>().VerifyHashedPassword(a, a.PasswordHash, temp!));
+            var a = raw.Users.Single(x => x.UserName == _jieun);
+            Assert.True(raw.UserSettings.Single(x => x.UserName == _jieun).MustChangePassword);
+            Assert.NotEqual(PasswordVerificationResult.Failed, new PasswordHasher<AppUser>().VerifyHashedPassword(a, a.PasswordHash, temp!));
             Assert.DoesNotContain(temp!, raw.AuditLogs.Single().Detail);     // 원문은 어디에도 남기지 않는다
         }
         Assert.Null(await Service().ResetPasswordAsync(_op, _op));           // 플랫폼 관리자 계정은 안 된다
@@ -87,8 +86,8 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
         Assert.Null(await Service().ResetBibleMarksAsync(_op, _jieun, "jieun2@example.com"));
         Assert.Equal(3, await Service().ResetBibleMarksAsync(_op, _jieun, " JIEUN@example.com "));
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Equal([_kid], raw.VerseReadMarks.Select(m => m.AccountId).ToArray());
-        Assert.Empty(raw.Bookmarks);
+        Assert.Equal([_kid], raw.ReadingVerses.Select(m => m.UserName).ToArray());
+        Assert.Empty(raw.ReadingBookmarks);
         Assert.Contains("읽음 2 · 책갈피 1", raw.AuditLogs.Single().Detail);
     }
 
@@ -114,8 +113,8 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
     {
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var op = raw.Accounts.Single(a => a.Id == _op);
-            op.PasswordHash = new PasswordHasher<Account>().HashPassword(op, "1234");
+            var op = raw.Users.Single(a => a.UserName == _op);
+            op.PasswordHash = new PasswordHasher<AppUser>().HashPassword(op, "1234");
             raw.SaveChanges();
         }
         var op1 = await Login("operator@example.com", "1234");
@@ -156,7 +155,7 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
         Assert.Equal(HttpStatusCode.Redirect, changed.StatusCode);
         Assert.NotEqual("/account/change-password", (await kid.GetAsync("/jamsil-kids")).Headers.Location?.OriginalString);   // 이제 통과
         using var raw = InMemoryDb.Raw(_db);
-        Assert.False(raw.Accounts.Single(a => a.Id == _kid).MustChangePassword);
+        Assert.False(raw.UserSettings.Where(a => a.UserName == _kid).Select(a => a.MustChangePassword).FirstOrDefault());
     }
 
     [Fact]
@@ -164,8 +163,8 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
     {
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var k = raw.Accounts.Single(a => a.Id == _kid);
-            k.PasswordHash = new PasswordHasher<Account>().HashPassword(k, "1234");
+            var k = raw.Users.Single(a => a.UserName == _kid);
+            k.PasswordHash = new PasswordHasher<AppUser>().HashPassword(k, "1234");
             raw.SaveChanges();
         }
         var c = await Login("cheolsu@example.com", "1234");

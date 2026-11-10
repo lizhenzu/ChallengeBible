@@ -23,7 +23,35 @@ namespace ChallengeBible.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Account", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AppRole", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id")
+                        .HasName("PK_Role");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
+
+                    b.ToTable("Role", "Identity");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AppRoleClaim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -31,157 +59,208 @@ namespace ChallengeBible.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("datetime2(3)");
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("DisplayName")
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RoleId")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(254)
-                        .HasColumnType("nvarchar(254)");
-
-                    b.Property<int?>("FamilyTenantId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsPlatformAdmin")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("LastTenantId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("MissionTheme")
-                        .HasMaxLength(16)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(16)");
-
-                    b.Property<bool>("MustChangePassword")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<string>("PhotoPath")
-                        .HasMaxLength(260)
-                        .HasColumnType("nvarchar(260)");
-
-                    b.Property<string>("ReadingTheme")
-                        .HasMaxLength(16)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(16)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id")
-                        .HasName("PK_Account");
+                        .HasName("PK_RoleClaims");
 
-                    b.HasIndex("Email")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_Account_Email");
+                    b.HasIndex("RoleId")
+                        .HasDatabaseName("IX_RoleClaims_RoleId");
 
-                    b.HasIndex("FamilyTenantId");
-
-                    b.HasIndex("LastTenantId");
-
-                    b.ToTable("Account", "app", t =>
-                        {
-                            t.HasCheckConstraint("CK_Account_Status", "Status IN ('Active','Disabled')");
-                        });
+                    b.ToTable("RoleClaims", "Identity");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Activity", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AppUser", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<string>("Id")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("FirstName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("InsertDT")
+                        .HasColumnType("datetime")
+                        .HasColumnName("insertDT");
+
+                    b.Property<string>("LastName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("ProfilePicture")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("UsernameChangeLimit")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<int?>("DailyPrayerId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("DailyQuizId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("DailyWordId")
-                        .HasColumnType("int");
-
-                    b.Property<DateOnly>("MissionDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("MissionItem")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<int>("ParticipantId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("PerformedUtc")
-                        .HasColumnType("datetime2(3)");
-
-                    b.Property<int>("Points")
-                        .HasColumnType("int");
-
-                    b.Property<DateOnly?>("ReciteStartDate")
-                        .HasColumnType("date");
-
-                    b.Property<int>("TenantId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("WeeklyVerseId")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.HasKey("Id")
-                        .HasName("PK_Activity");
+                        .HasName("PK_User");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
 
-                    b.HasAlternateKey("TenantId", "Id")
-                        .HasName("UQ_Activity_TenantId_Id");
-
-                    b.HasIndex("DailyPrayerId");
-
-                    b.HasIndex("DailyQuizId");
-
-                    b.HasIndex("DailyWordId");
-
-                    b.HasIndex("WeeklyVerseId");
-
-                    b.HasIndex("TenantId", "ParticipantId", "MissionDate")
-                        .HasDatabaseName("CX_Activity");
-
-                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("TenantId", "ParticipantId", "MissionDate"));
-
-                    b.HasIndex("TenantId", "ParticipantId", "ReciteStartDate")
+                    b.HasIndex("NormalizedUserName")
                         .IsUnique()
-                        .HasDatabaseName("UX_Activity_Recite")
-                        .HasFilter("[MissionItem] = 'Recite'");
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.HasIndex("TenantId", "ParticipantId", "MissionDate", "MissionItem")
-                        .IsUnique()
-                        .HasDatabaseName("UX_Activity_Daily")
-                        .HasFilter("[MissionItem] <> 'Recite'");
+                    b.HasIndex("UserName")
+                        .HasDatabaseName("IX_IdentityUser_UserName");
 
-                    b.ToTable("Activity", "app", t =>
-                        {
-                            t.HasCheckConstraint("CK_Activity_Content", "(MissionItem IN ('Word.Me','Word.Parent') AND DailyWordId IS NOT NULL AND DailyPrayerId IS NULL AND DailyQuizId IS NULL AND WeeklyVerseId IS NULL AND ReciteStartDate IS NULL)\nOR (MissionItem IN ('Prayer.Me','Prayer.Others') AND DailyWordId IS NULL AND DailyPrayerId IS NOT NULL AND DailyQuizId IS NULL AND WeeklyVerseId IS NULL AND ReciteStartDate IS NULL)\nOR (MissionItem = 'Quiz.Correct' AND DailyWordId IS NULL AND DailyPrayerId IS NULL AND DailyQuizId IS NOT NULL AND WeeklyVerseId IS NULL AND ReciteStartDate IS NULL)\nOR (MissionItem = 'Recite' AND DailyWordId IS NULL AND DailyPrayerId IS NULL AND DailyQuizId IS NULL AND WeeklyVerseId IS NOT NULL AND ReciteStartDate IS NOT NULL)");
+                    b.ToTable("User", "Identity");
+                });
 
-                            t.HasCheckConstraint("CK_Activity_Item", "MissionItem IN ('Word.Me','Word.Parent','Prayer.Me','Prayer.Others','Quiz.Correct','Recite')");
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AppUserClaim", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                            t.HasCheckConstraint("CK_Activity_Points", "Points >= 0");
-                        });
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id")
+                        .HasName("PK_UserClaims");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_UserClaims_UserId");
+
+                    b.ToTable("UserClaims", "Identity");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AppUserLogin", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderKey")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("LoginProvider", "ProviderKey")
+                        .HasName("PK_UserLogins");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_UserLogins_UserId");
+
+                    b.ToTable("UserLogins", "Identity");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AppUserRole", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RoleId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("UserId", "RoleId")
+                        .HasName("PK_UserRoles");
+
+                    b.HasIndex("RoleId")
+                        .HasDatabaseName("IX_UserRoles_RoleId");
+
+                    b.ToTable("UserRoles", "Identity");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AppUserToken", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("LoginProvider")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId", "LoginProvider", "Name")
+                        .HasName("PK_UserTokens");
+
+                    b.ToTable("UserTokens", "Identity");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AuditLog", b =>
@@ -198,15 +277,18 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(40)");
 
-                    b.Property<int>("ActorAccountId")
-                        .HasColumnType("int");
+                    b.Property<string>("ActorUserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("Detail")
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
-                    b.Property<int?>("ImpersonatorAccountId")
-                        .HasColumnType("int");
+                    b.Property<string>("ImpersonatorUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime>("OccurredUtc")
                         .HasColumnType("datetime2(3)");
@@ -216,8 +298,6 @@ namespace ChallengeBible.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("PK_AuditLog");
-
-                    b.HasIndex("ActorAccountId");
 
                     b.HasIndex("OccurredUtc")
                         .HasDatabaseName("IX_AuditLog_Occurred");
@@ -971,31 +1051,6 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("BibleVerse", "app");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Bookmark", b =>
-                {
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<byte>("BookId")
-                        .HasColumnType("tinyint");
-
-                    b.Property<short>("Chapter")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("Verse")
-                        .HasColumnType("smallint");
-
-                    b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("datetime2(3)");
-
-                    b.HasKey("AccountId", "BookId", "Chapter", "Verse")
-                        .HasName("PK_Bookmark");
-
-                    b.HasIndex("BookId");
-
-                    b.ToTable("Bookmark", "app");
-                });
-
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterMedia", b =>
                 {
                     b.Property<int>("Id")
@@ -1048,70 +1103,44 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterProgress", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.CodeData", b =>
                 {
-                    b.Property<int>("AccountId")
+                    b.Property<int>("TenantId")
                         .HasColumnType("int");
 
-                    b.Property<int>("RoundNo")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<byte>("BookId")
-                        .HasColumnType("tinyint");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<short>("Chapter")
-                        .HasColumnType("smallint");
+                    b.Property<int?>("DisplayOrder")
+                        .HasColumnType("int")
+                        .HasColumnName("displayOrder");
 
-                    b.Property<short>("LastViewedVerse")
-                        .HasColumnType("smallint");
+                    b.Property<DateTime>("InsertDT")
+                        .HasColumnType("datetime");
 
-                    b.Property<DateTime>("UpdatedUtc")
-                        .HasColumnType("datetime2(3)");
+                    b.Property<string>("MajorCD")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
-                    b.HasKey("AccountId", "RoundNo", "BookId", "Chapter")
-                        .HasName("PK_ChapterProgress");
+                    b.Property<string>("MinorCD")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
-                    b.HasIndex("AccountId", "UpdatedUtc")
-                        .IsDescending(false, true)
-                        .HasDatabaseName("IX_ChapterProgress_Recent");
+                    b.Property<string>("MinorNM")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
-                    b.HasIndex("BookId", "Chapter");
+                    b.Property<DateTime>("UpdateDT")
+                        .HasColumnType("datetime")
+                        .HasColumnName("updateDT");
 
-                    b.ToTable("ChapterProgress", "app", t =>
-                        {
-                            t.HasCheckConstraint("CK_ChapterProgress_Verse", "LastViewedVerse >= 1");
-                        });
-                });
+                    b.HasKey("TenantId", "Id")
+                        .HasName("PK_CodeData");
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterRead", b =>
-                {
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RoundNo")
-                        .HasColumnType("int");
-
-                    b.Property<byte>("BookId")
-                        .HasColumnType("tinyint");
-
-                    b.Property<short>("Chapter")
-                        .HasColumnType("smallint");
-
-                    b.Property<DateTime>("ReadUtc")
-                        .HasColumnType("datetime2(3)");
-
-                    b.HasKey("AccountId", "RoundNo", "BookId", "Chapter")
-                        .HasName("PK_ChapterRead");
-
-                    b.HasIndex("BookId");
-
-                    b.HasIndex("AccountId", "ReadUtc")
-                        .HasDatabaseName("IX_ChapterRead_Day");
-
-                    b.ToTable("ChapterRead", "app", t =>
-                        {
-                            t.HasCheckConstraint("CK_ChapterRead_Chapter", "Chapter >= 1");
-                        });
+                    b.ToTable("CodeData", "dbo");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.DailyPrayer", b =>
@@ -1125,8 +1154,10 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<byte>("BookId")
                         .HasColumnType("tinyint");
 
-                    b.Property<int>("CreatedByAccountId")
-                        .HasColumnType("int");
+                    b.Property<string>("CreatedByUserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime>("CreatedUtc")
                         .HasColumnType("datetime2(3)");
@@ -1185,8 +1216,6 @@ namespace ChallengeBible.Infrastructure.Migrations
 
                     b.HasIndex("BookId");
 
-                    b.HasIndex("CreatedByAccountId");
-
                     b.HasIndex("DayNo")
                         .IsUnique()
                         .HasDatabaseName("UX_DailyPrayer_Day")
@@ -1225,8 +1254,10 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<int?>("CorrectChoiceId")
                         .HasColumnType("int");
 
-                    b.Property<int>("CreatedByAccountId")
-                        .HasColumnType("int");
+                    b.Property<string>("CreatedByUserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime>("CreatedUtc")
                         .HasColumnType("datetime2(3)");
@@ -1268,8 +1299,6 @@ namespace ChallengeBible.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("PK_DailyQuiz");
-
-                    b.HasIndex("CreatedByAccountId");
 
                     b.HasIndex("ReplacesId");
 
@@ -1355,8 +1384,10 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<string>("Commentary")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("CreatedByAccountId")
-                        .HasColumnType("int");
+                    b.Property<string>("CreatedByUserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime>("CreatedUtc")
                         .HasColumnType("datetime2(3)");
@@ -1407,8 +1438,6 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasName("PK_DailyWord");
 
                     b.HasIndex("BookId");
-
-                    b.HasIndex("CreatedByAccountId");
 
                     b.HasIndex("ReplacesId");
 
@@ -1466,179 +1495,46 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("DailyWordClip", "app");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Family", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.DeptRoleUserAssoc", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CreatedByAccountId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("datetime2(3)");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.HasKey("Id")
-                        .HasName("PK_Family");
-
-                    b.HasIndex("CreatedByAccountId");
-
-                    b.ToTable("Family", "app");
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyInvite", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("datetime2(3)");
-
-                    b.Property<int>("FamilyTeamId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("InvitedByParticipantId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ParticipantId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Relation")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<DateOnly?>("SnoozedOn")
-                        .HasColumnType("date");
-
                     b.Property<int>("TenantId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id")
-                        .HasName("PK_FamilyInvite");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
-
-                    b.HasAlternateKey("TenantId", "Id")
-                        .HasName("UQ_FamilyInvite_TenantId_Id");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasAlternateKey("TenantId", "Id"));
-
-                    b.HasIndex("TenantId", "InvitedByParticipantId")
-                        .HasDatabaseName("IX_FamilyInvite_InvitedBy");
-
-                    b.HasIndex("TenantId", "ParticipantId")
-                        .HasDatabaseName("IX_FamilyInvite_Participant");
-
-                    b.HasIndex("TenantId", "FamilyTeamId", "ParticipantId")
-                        .IsUnique()
-                        .HasDatabaseName("UX_FamilyInvite_TeamParticipant");
-
-                    b.ToTable("FamilyInvite", "app", t =>
-                        {
-                            t.HasCheckConstraint("CK_FamilyInvite_Relation", "Relation IN ('Student','Mother','Father','Grandmother','Grandfather','Other')");
-                        });
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyJoinRequest", b =>
-                {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("datetime2(3)");
+                    b.Property<DateTime>("InsertDT")
+                        .HasColumnType("datetime");
 
-                    b.Property<int>("FamilyTeamId")
-                        .HasColumnType("int");
+                    b.Property<string>("RoleCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("ParticipantId")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("UpdateDT")
+                        .HasColumnType("datetime")
+                        .HasColumnName("updateDT");
 
-                    b.Property<string>("Relation")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("TenantId")
-                        .HasColumnType("int");
+                    b.HasKey("TenantId", "Id")
+                        .HasName("PK_DeptRoleUserAssoc");
 
-                    b.HasKey("Id")
-                        .HasName("PK_FamilyJoinRequest");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_DeptRoleUserAssoc_UserId");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
-
-                    b.HasAlternateKey("TenantId", "Id")
-                        .HasName("UQ_FamilyJoinRequest_TenantId_Id");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasAlternateKey("TenantId", "Id"));
-
-                    b.HasIndex("TenantId", "FamilyTeamId")
-                        .HasDatabaseName("IX_FamilyJoinRequest_Team");
-
-                    b.HasIndex("TenantId", "ParticipantId")
-                        .IsUnique()
-                        .HasDatabaseName("UX_FamilyJoinRequest_OneTeam");
-
-                    b.ToTable("FamilyJoinRequest", "app", t =>
-                        {
-                            t.HasCheckConstraint("CK_FamilyJoinRequest_Relation", "Relation IN ('Student','Mother','Father','Grandmother','Grandfather','Other')");
-                        });
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyLink", b =>
-                {
-                    b.Property<int>("FamilyId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AddedByAccountId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("AddedUtc")
-                        .HasColumnType("datetime2(3)");
-
-                    b.Property<string>("Relation")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<byte>("SortOrder")
-                        .HasColumnType("tinyint");
-
-                    b.HasKey("FamilyId", "AccountId")
-                        .HasName("PK_FamilyLink");
-
-                    b.HasIndex("AccountId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_FamilyLink_Account");
-
-                    b.HasIndex("AddedByAccountId");
-
-                    b.ToTable("FamilyLink", "app", t =>
-                        {
-                            t.HasCheckConstraint("CK_FamilyLink_Relation", "Relation IN ('Student','Mother','Father','Grandmother','Grandfather','Other')");
-                        });
+                    b.ToTable("DeptRoleUserAssoc", "dbo");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyMember", b =>
                 {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
@@ -1648,191 +1544,325 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<int>("FamilyTeamId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("InsertDT")
+                        .HasColumnType("datetime");
+
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
-                    b.Property<int>("ParticipantId")
-                        .HasColumnType("int");
+                    b.Property<byte>("RelationCode")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)9);
 
-                    b.Property<string>("Relation")
-                        .IsRequired()
+                    b.Property<string>("RelationLabel")
                         .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("nvarchar(20)");
 
-                    b.Property<byte>("SortOrder")
+                    b.Property<byte>("RoleCode")
                         .HasColumnType("tinyint");
 
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("SortNo");
+
+                    b.Property<DateTime>("UpdateDT")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("TenantId", "Id")
+                        .HasName("PK_DM2_FamilyMember");
+
+                    b.HasIndex("UserName")
+                        .IsUnique()
+                        .HasDatabaseName("UX_DM2_FamilyMember_UserName");
+
+                    b.HasIndex("TenantId", "FamilyTeamId", "IsActive")
+                        .HasDatabaseName("IX_DM2_FamilyMember_FamilyTeamId_IsActive");
+
+                    b.HasIndex("TenantId", "FamilyTeamId", "RelationCode")
+                        .IsUnique()
+                        .HasDatabaseName("UX_DM2_FamilyMember_Team_Self")
+                        .HasFilter("[IsActive]=(1) AND [RoleCode]=(0) AND [RelationCode]=(0)");
+
+                    b.HasIndex("TenantId", "FamilyTeamId", "UserName")
+                        .IsUnique()
+                        .HasDatabaseName("UX_DM2_FamilyMember_Team_User");
+
+                    b.HasIndex("TenantId", "UserName", "IsActive")
+                        .HasDatabaseName("IX_DM2_FamilyMember_UserName_IsActive");
+
+                    b.HasIndex("TenantId", "FamilyTeamId", "RoleCode", "IsActive")
+                        .HasDatabaseName("IX_DM2_FamilyMember_Team");
+
+                    b.ToTable("DM2_FamilyMember", "dbo");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyMilestoneConfig", b =>
+                {
                     b.Property<int>("TenantId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id")
-                        .HasName("PK_FamilyMember");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.HasAlternateKey("TenantId", "Id")
-                        .HasName("UQ_FamilyMember_TenantId_Id");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2(7)");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasAlternateKey("TenantId", "Id"));
+                    b.Property<string>("DisplayEmoji")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
-                    b.HasIndex("TenantId", "ParticipantId")
+                    b.Property<string>("DisplayTitle")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("MilestoneType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("PointThreshold")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "Id")
+                        .HasName("PK_DM2_FamilyMilestoneConfig");
+
+                    b.HasIndex("TenantId", "Year", "IsActive")
+                        .HasDatabaseName("IX_DM2_FamilyMilestoneConfig_Year_IsActive");
+
+                    b.HasIndex("TenantId", "Year", "PointThreshold")
                         .IsUnique()
-                        .HasDatabaseName("UX_FamilyMember_OneActiveTeam")
-                        .HasFilter("[IsActive] = 1");
+                        .HasDatabaseName("UQ_DM2FMC_YearPoint");
 
-                    b.HasIndex("TenantId", "FamilyTeamId", "ParticipantId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_FamilyMember_TeamParticipant");
-
-                    b.ToTable("FamilyMember", "app", t =>
+                    b.ToTable("DM2_FamilyMilestoneConfig", "dbo", t =>
                         {
-                            t.HasCheckConstraint("CK_FamilyMember_Relation", "Relation IN ('Student','Mother','Father','Grandmother','Grandfather','Other')");
+                            t.HasCheckConstraint("CK_DM2FMC_Type", "[MilestoneType]='APPLAUSE' OR [MilestoneType]='AWARD'");
                         });
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyMilestoneDismiss", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyMilestoneHidden", b =>
                 {
                     b.Property<int>("TenantId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
                     b.Property<int>("FamilyTeamId")
                         .HasColumnType("int");
 
-                    b.Property<short>("Year")
-                        .HasColumnType("smallint");
+                    b.Property<DateTime>("HiddenAt")
+                        .HasColumnType("datetime2(7)");
 
-                    b.Property<int>("Threshold")
+                    b.Property<int>("MilestoneConfigId")
                         .HasColumnType("int");
 
-                    b.Property<int>("DismissedByAccountId")
-                        .HasColumnType("int");
+                    b.HasKey("TenantId", "Id")
+                        .HasName("PK_DM2_FamilyMilestoneHidden");
 
-                    b.Property<DateTime>("DismissedUtc")
-                        .HasColumnType("datetime2(3)");
+                    b.HasIndex("TenantId", "MilestoneConfigId")
+                        .HasDatabaseName("IX_DM2FMH_ConfigId");
 
-                    b.HasKey("TenantId", "FamilyTeamId", "Year", "Threshold")
-                        .HasName("PK_FamilyMilestoneDismiss");
+                    b.HasIndex("TenantId", "MilestoneConfigId", "FamilyTeamId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_DM2FMH_ConfigTeam");
 
-                    b.HasIndex("DismissedByAccountId");
-
-                    b.ToTable("FamilyMilestoneDismiss", "app");
+                    b.ToTable("DM2_FamilyMilestoneHidden", "dbo");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyMilestoneReached", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyNotice", b =>
                 {
                     b.Property<int>("TenantId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime");
+
                     b.Property<int>("FamilyTeamId")
                         .HasColumnType("int");
 
-                    b.Property<short>("Year")
-                        .HasColumnType("smallint");
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)")
+                        .HasDefaultValue("JOINED");
 
-                    b.Property<int>("Threshold")
-                        .HasColumnType("int");
+                    b.Property<string>("TeamName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime>("ReachedUtc")
-                        .HasColumnType("datetime2(3)");
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                    b.HasKey("TenantId", "FamilyTeamId", "Year", "Threshold")
-                        .HasName("PK_FamilyMilestoneReached");
+                    b.HasKey("TenantId", "Id")
+                        .HasName("PK_DM2_FamilyNotice");
 
-                    b.ToTable("FamilyMilestoneReached", "app");
+                    b.HasIndex("TenantId", "UserName")
+                        .HasDatabaseName("IX_DM2_FamilyNotice_User");
+
+                    b.ToTable("DM2_FamilyNotice", "dbo");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyRequest", b =>
                 {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Body")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("FamilyTeamId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FromUserName")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                    b.Property<int?>("DecidedByAccountId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("DecidedUtc")
-                        .HasColumnType("datetime2(3)");
-
-                    b.Property<int?>("FamilyId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("RequestedUtc")
-                        .HasColumnType("datetime2(3)");
-
-                    b.Property<int>("RequesterAccountId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
+                    b.Property<string>("Kind")
                         .IsRequired()
-                        .HasMaxLength(20)
+                        .HasColumnType("char(1)");
+
+                    b.Property<string>("RelationKey")
+                        .IsRequired()
+                        .HasMaxLength(10)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("varchar(10)");
 
-                    b.HasKey("Id")
-                        .HasName("PK_FamilyRequest");
+                    b.Property<string>("TargetUserName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                    b.HasIndex("DecidedByAccountId");
+                    b.HasKey("TenantId", "Id")
+                        .HasName("PK_DM2_FamilyRequest");
 
-                    b.HasIndex("FamilyId");
+                    b.HasIndex("TenantId", "FromUserName", "Kind")
+                        .HasDatabaseName("IX_DM2_FamilyRequest_From");
 
-                    b.HasIndex("RequesterAccountId")
+                    b.HasIndex("TenantId", "TargetUserName", "Kind")
+                        .HasDatabaseName("IX_DM2_FamilyRequest_Target");
+
+                    b.HasIndex("TenantId", "FamilyTeamId", "Kind", "TargetUserName")
                         .IsUnique()
-                        .HasDatabaseName("UX_FamilyRequest_Open")
-                        .HasFilter("[Status] = 'Requested'");
+                        .HasDatabaseName("UX_DM2_FamilyRequest_Team_Kind_Target");
 
-                    b.HasIndex("Status", "RequestedUtc")
-                        .HasDatabaseName("IX_FamilyRequest_Status");
-
-                    b.ToTable("FamilyRequest", "app", t =>
+                    b.ToTable("DM2_FamilyRequest", "dbo", t =>
                         {
-                            t.HasCheckConstraint("CK_FamilyRequest_Status", "Status IN ('Requested','Approved','Rejected')");
+                            t.HasCheckConstraint("CK_DM2_FamilyRequest_Kind", "[Kind]='I' OR [Kind]='R'");
                         });
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyTeam", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("datetime2(3)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Memo")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<int>("TenantId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id")
-                        .HasName("PK_FamilyTeam");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("FamilyTeamId");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.HasAlternateKey("TenantId", "Id")
-                        .HasName("UQ_FamilyTeam_TenantId_Id");
+                    b.Property<string>("AwardKey")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasAlternateKey("TenantId", "Id"));
+                    b.Property<string>("CreatorUserName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                    b.ToTable("FamilyTeam", "app");
+                    b.Property<DateTime>("InsertDT")
+                        .HasColumnType("datetime");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Memo")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("TeamName");
+
+                    b.Property<string>("TeamType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)")
+                        .HasDefaultValue("FAMILY");
+
+                    b.Property<DateTime>("UpdateDT")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("TenantId", "Id")
+                        .HasName("PK_DM2_FamilyTeam");
+
+                    b.HasIndex("TenantId", "AwardKey")
+                        .IsUnique()
+                        .HasDatabaseName("UX_DM2_FamilyTeam_AwardKey")
+                        .HasFilter("[AwardKey] IS NOT NULL");
+
+                    b.HasIndex("TenantId", "IsActive")
+                        .HasDatabaseName("IX_DM2_FamilyTeam_IsActive");
+
+                    b.ToTable("DM2_FamilyTeam", "dbo", t =>
+                        {
+                            t.HasCheckConstraint("CK_DM2_FamilyTeam_TeamType", "[TeamType]='FRIEND' OR [TeamType]='FAMILY'");
+                        });
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GuardianLink", b =>
@@ -1843,17 +1873,23 @@ namespace ChallengeBible.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CreatedByAccountId")
-                        .HasColumnType("int");
+                    b.Property<string>("CreatedByUserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime>("CreatedUtc")
                         .HasColumnType("datetime2(3)");
 
-                    b.Property<int>("GuardianMembershipId")
-                        .HasColumnType("int");
+                    b.Property<string>("GuardianUserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
-                    b.Property<int>("ParticipantId")
-                        .HasColumnType("int");
+                    b.Property<string>("StudentUserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<int>("TenantId")
                         .HasColumnType("int");
@@ -1868,170 +1904,74 @@ namespace ChallengeBible.Infrastructure.Migrations
 
                     SqlServerKeyBuilderExtensions.IsClustered(b.HasAlternateKey("TenantId", "Id"));
 
-                    b.HasIndex("CreatedByAccountId");
+                    b.HasIndex("TenantId", "StudentUserName")
+                        .HasDatabaseName("IX_GuardianLink_Student");
 
-                    b.HasIndex("TenantId", "ParticipantId")
-                        .HasDatabaseName("IX_GuardianLink_Participant");
-
-                    b.HasIndex("TenantId", "GuardianMembershipId", "ParticipantId")
+                    b.HasIndex("TenantId", "GuardianUserName", "StudentUserName")
                         .IsUnique()
                         .HasDatabaseName("UQ_GuardianLink_Pair");
 
                     b.ToTable("GuardianLink", "app");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Membership", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MissionActivity", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("ActivityId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ActivityId"));
 
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
+                    b.Property<DateOnly>("MissionDate")
+                        .HasColumnType("date");
 
-                    b.Property<int?>("DecidedByAccountId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("DecidedUtc")
-                        .HasColumnType("datetime2(3)");
-
-                    b.Property<string>("GroupLabel")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime>("RequestedUtc")
-                        .HasColumnType("datetime2(3)");
-
-                    b.Property<string>("Status")
+                    b.Property<string>("MissionItem")
                         .IsRequired()
                         .HasMaxLength(20)
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
 
-                    b.Property<int>("TenantId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id")
-                        .HasName("PK_Membership");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
-
-                    b.HasAlternateKey("TenantId", "Id")
-                        .HasName("UQ_Membership_TenantId_Id");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasAlternateKey("TenantId", "Id"));
-
-                    b.HasIndex("AccountId")
-                        .HasDatabaseName("IX_Membership_Account");
-
-                    b.HasIndex("DecidedByAccountId");
-
-                    b.HasIndex("TenantId", "AccountId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_Membership_TenantAccount");
-
-                    b.ToTable("Membership", "app", t =>
-                        {
-                            t.HasCheckConstraint("CK_Membership_Status", "Status IN ('Requested','Approved','Suspended','Released','Rejected','PromotionPending')");
-                        });
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MembershipRole", b =>
-                {
-                    b.Property<int>("TenantId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MembershipId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Role")
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
-
-                    b.HasKey("TenantId", "MembershipId", "Role")
-                        .HasName("PK_MembershipRole");
-
-                    b.ToTable("MembershipRole", "app", t =>
-                        {
-                            t.HasCheckConstraint("CK_MembershipRole_Role", "Role IN ('Participant','Guardian','Teacher','TenantAdmin')");
-                        });
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MilestoneReached", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ParticipantId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("ReachedUtc")
+                    b.Property<DateTime>("PerformedAt")
                         .HasColumnType("datetime2(3)");
 
-                    b.Property<int>("TenantId")
+                    b.Property<int>("Points")
                         .HasColumnType("int");
 
-                    b.Property<int>("Threshold")
-                        .HasColumnType("int");
+                    b.Property<DateOnly?>("ReciteWeekStart")
+                        .HasColumnType("date");
 
-                    b.Property<short>("Year")
-                        .HasColumnType("smallint");
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
-                    b.HasKey("Id")
-                        .HasName("PK_MilestoneReached");
+                    b.HasKey("TenantId", "ActivityId")
+                        .HasName("PK_DM2_MissionActivity");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+                    b.HasIndex("TenantId", "MissionDate")
+                        .HasDatabaseName("IX_DM2_MissionActivity_Date");
 
-                    b.HasAlternateKey("TenantId", "Id")
-                        .HasName("UQ_MilestoneReached_TenantId_Id");
-
-                    b.HasIndex("TenantId", "ParticipantId", "Year", "Threshold")
+                    b.HasIndex("TenantId", "UserName", "ReciteWeekStart")
                         .IsUnique()
-                        .HasDatabaseName("UQ_MilestoneReached");
+                        .HasDatabaseName("UX_DM2_MissionActivity_Recite")
+                        .HasFilter("[MissionItem]='Recite'");
 
-                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("TenantId", "ParticipantId", "Year", "Threshold"));
-
-                    b.ToTable("MilestoneReached", "app");
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Participant", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("MembershipId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TenantId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id")
-                        .HasName("PK_Participant");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
-
-                    b.HasAlternateKey("TenantId", "Id")
-                        .HasName("UQ_Participant_TenantId_Id");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasAlternateKey("TenantId", "Id"));
-
-                    b.HasIndex("TenantId", "MembershipId")
+                    b.HasIndex("TenantId", "UserName", "MissionDate", "MissionItem")
                         .IsUnique()
-                        .HasDatabaseName("UQ_Participant_Membership");
+                        .HasDatabaseName("UX_DM2_MissionActivity_Daily")
+                        .HasFilter("[MissionItem]<>'Recite'");
 
-                    b.ToTable("Participant", "app");
+                    b.ToTable("DM2_MissionActivity", "dbo", t =>
+                        {
+                            t.HasCheckConstraint("CK_DM2_MissionActivity_Item", "[MissionItem]='Recite' OR [MissionItem]='Quiz.Correct' OR [MissionItem]='Prayer.Others' OR [MissionItem]='Prayer.Me' OR [MissionItem]='Word.Parent' OR [MissionItem]='Word.Me'");
+
+                            t.HasCheckConstraint("CK_DM2_MissionActivity_Points", "[Points]>=(0)");
+
+                            t.HasCheckConstraint("CK_DM2_MissionActivity_Week", "[MissionItem]='Recite' AND [ReciteWeekStart] IS NOT NULL OR [MissionItem]<>'Recite' AND [ReciteWeekStart] IS NULL");
+                        });
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.PlatformRuleSetVersion", b =>
@@ -2042,8 +1982,10 @@ namespace ChallengeBible.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ChangedByAccountId")
-                        .HasColumnType("int");
+                    b.Property<string>("ChangedByUserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime>("ChangedUtc")
                         .HasColumnType("datetime2(3)");
@@ -2062,8 +2004,6 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("PK_PlatformRuleSetVersion");
 
-                    b.HasIndex("ChangedByAccountId");
-
                     b.HasIndex("VersionNo")
                         .IsUnique()
                         .HasDatabaseName("UQ_PlatformRuleSetVersion_No");
@@ -2071,61 +2011,6 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("PlatformRuleSetVersion", "app", t =>
                         {
                             t.HasCheckConstraint("CK_PlatformRuleSetVersion_Values", "ISJSON([Values]) = 1");
-                        });
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.PointLedger", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("ActivityId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateOnly>("MissionDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("MissionItem")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<int>("ParticipantId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Points")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("RecordedUtc")
-                        .HasColumnType("datetime2(3)");
-
-                    b.Property<int>("TenantId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id")
-                        .HasName("PK_PointLedger");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
-
-                    b.HasAlternateKey("TenantId", "Id")
-                        .HasName("UQ_PointLedger_TenantId_Id");
-
-                    b.HasIndex("TenantId", "ActivityId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_PointLedger_Activity");
-
-                    b.HasIndex("TenantId", "ParticipantId", "MissionDate")
-                        .HasDatabaseName("CX_PointLedger");
-
-                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("TenantId", "ParticipantId", "MissionDate"));
-
-                    b.ToTable("PointLedger", "app", t =>
-                        {
-                            t.HasCheckConstraint("CK_PointLedger_Points", "Points > 0");
                         });
                 });
 
@@ -2137,17 +2022,17 @@ namespace ChallengeBible.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("DecidedByAccountId")
-                        .HasColumnType("int");
+                    b.Property<string>("DecidedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime?>("DecidedUtc")
                         .HasColumnType("datetime2(3)");
 
-                    b.Property<int>("RequestedByAccountId")
-                        .HasColumnType("int");
+                    b.Property<string>("RequestedByUserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime>("RequestedUtc")
                         .HasColumnType("datetime2(3)");
@@ -2164,23 +2049,24 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<int>("TargetTenantId")
                         .HasColumnType("int");
 
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
                     b.HasKey("Id")
                         .HasName("PK_PromotionRequest");
-
-                    b.HasIndex("DecidedByAccountId");
-
-                    b.HasIndex("RequestedByAccountId");
-
-                    b.HasIndex("AccountId", "SourceTenantId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_PromotionRequest_Pending")
-                        .HasFilter("[Status] = 'Pending'");
 
                     b.HasIndex("SourceTenantId", "Status")
                         .HasDatabaseName("IX_PromotionRequest_Source");
 
                     b.HasIndex("TargetTenantId", "Status")
                         .HasDatabaseName("IX_PromotionRequest_Target");
+
+                    b.HasIndex("UserName", "SourceTenantId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_PromotionRequest_Pending")
+                        .HasFilter("[Status] = 'Pending'");
 
                     b.ToTable("PromotionRequest", "app", t =>
                         {
@@ -2192,111 +2078,169 @@ namespace ChallengeBible.Infrastructure.Migrations
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.QuizAttempt", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("AnswerText")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<byte>("AttemptNo")
-                        .HasColumnType("tinyint");
-
-                    b.Property<DateTime>("AttemptedUtc")
-                        .HasColumnType("datetime2(3)");
-
-                    b.Property<int>("DailyQuizId")
+                    b.Property<int>("TenantId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsCorrect")
-                        .HasColumnType("bit");
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateOnly>("MissionDate")
                         .HasColumnType("date");
 
-                    b.Property<int>("ParticipantId")
+                    b.Property<int>("QuestionId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("SelectedChoiceId")
-                        .HasColumnType("int");
+                    b.Property<byte>("AttemptNo")
+                        .HasColumnType("tinyint");
 
-                    b.Property<int>("TenantId")
-                        .HasColumnType("int");
+                    b.Property<string>("AnswerText")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
 
-                    b.HasKey("Id")
-                        .HasName("PK_QuizAttempt");
+                    b.Property<DateTime>("AttemptedAt")
+                        .HasColumnType("datetime2(3)");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+                    b.Property<string>("CorrectAnswerText")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
 
-                    b.HasAlternateKey("TenantId", "Id")
-                        .HasName("UQ_QuizAttempt_TenantId_Id");
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("bit");
 
-                    b.HasAlternateKey("TenantId", "ParticipantId", "MissionDate", "AttemptNo")
-                        .HasName("UQ_QuizAttempt_No");
+                    b.HasKey("TenantId", "UserName", "MissionDate", "QuestionId", "AttemptNo")
+                        .HasName("PK_DM2_QuizAttempt");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasAlternateKey("TenantId", "ParticipantId", "MissionDate", "AttemptNo"));
-
-                    b.HasIndex("DailyQuizId");
-
-                    b.HasIndex("SelectedChoiceId");
-
-                    b.ToTable("QuizAttempt", "app", t =>
+                    b.ToTable("DM2_QuizAttempt", "dbo", t =>
                         {
-                            t.HasCheckConstraint("CK_QuizAttempt_Answer", "SelectedChoiceId IS NOT NULL OR AnswerText IS NOT NULL");
-
-                            t.HasCheckConstraint("CK_QuizAttempt_No", "AttemptNo >= 1");
+                            t.HasCheckConstraint("CK_DM2_QuizAttempt_No", "[AttemptNo]>=(1)");
                         });
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ReadingRound", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ReadingBookmark", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<byte>("BookId")
+                        .HasColumnType("tinyint");
 
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
+                    b.Property<short>("Chapter")
+                        .HasColumnType("smallint");
 
-                    b.Property<DateTime?>("ClosedUtc")
+                    b.Property<short>("Verse")
+                        .HasColumnType("smallint");
+
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2(3)");
 
-                    b.Property<DateTime?>("CompletedUtc")
-                        .HasColumnType("datetime2(3)");
+                    b.HasKey("UserName", "BookId", "Chapter", "Verse")
+                        .HasName("PK_DM2_ReadingBookmark");
+
+                    b.ToTable("DM2_ReadingBookmark", "dbo");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ReadingChapterProgress", b =>
+                {
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<int>("RoundNo")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("StartedUtc")
+                    b.Property<byte>("BookId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<short>("Chapter")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("LastViewedVerse")
+                        .HasColumnType("smallint");
+
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2(3)");
 
-                    b.HasKey("Id")
-                        .HasName("PK_ReadingRound");
+                    b.HasKey("UserName", "RoundNo", "BookId", "Chapter")
+                        .HasName("PK_DM2_ReadingChapterProgress");
 
-                    b.HasAlternateKey("AccountId", "RoundNo")
-                        .HasName("UQ_ReadingRound");
+                    b.HasIndex("UserName", "UpdatedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_DM2_ReadingChapterProgress_Recent");
 
-                    b.HasIndex("AccountId")
-                        .IsUnique()
-                        .HasDatabaseName("UX_ReadingRound_Open")
-                        .HasFilter("[CompletedUtc] IS NULL AND [ClosedUtc] IS NULL");
-
-                    b.ToTable("ReadingRound", "app", t =>
+                    b.ToTable("DM2_ReadingChapterProgress", "dbo", t =>
                         {
-                            t.HasCheckConstraint("CK_ReadingRound_End", "CompletedUtc IS NULL OR ClosedUtc IS NULL");
-
-                            t.HasCheckConstraint("CK_ReadingRound_No", "RoundNo >= 1");
+                            t.HasCheckConstraint("CK_DM2_ReadingChapterProgress_Verse", "[LastViewedVerse]>=(1)");
                         });
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.RoundVerseRead", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ReadingChapterRead", b =>
                 {
-                    b.Property<int>("AccountId")
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("RoundNo")
                         .HasColumnType("int");
+
+                    b.Property<byte>("BookId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<short>("Chapter")
+                        .HasColumnType("smallint");
+
+                    b.Property<DateTime>("ReadAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("UserName", "RoundNo", "BookId", "Chapter")
+                        .HasName("PK_DM2_ReadingChapterRead");
+
+                    b.HasIndex("UserName", "ReadAt")
+                        .HasDatabaseName("IX_DM2_ReadingChapterRead_ReadAt");
+
+                    b.ToTable("DM2_ReadingChapterRead", "dbo");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ReadingRound", b =>
+                {
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("RoundNo")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("UserName", "RoundNo")
+                        .HasName("PK_DM2_ReadingRound");
+
+                    b.HasIndex("UserName")
+                        .IsUnique()
+                        .HasDatabaseName("UX_DM2_ReadingRound_Open")
+                        .HasFilter("[CompletedAt] IS NULL AND [ClosedAt] IS NULL");
+
+                    b.ToTable("DM2_ReadingRound", "dbo", t =>
+                        {
+                            t.HasCheckConstraint("CK_DM2_ReadingRound_End", "[CompletedAt] IS NULL OR [ClosedAt] IS NULL");
+
+                            t.HasCheckConstraint("CK_DM2_ReadingRound_No", "[RoundNo]>=(1)");
+                        });
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ReadingVerse", b =>
+                {
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<int>("RoundNo")
                         .HasColumnType("int");
@@ -2310,18 +2254,16 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<short>("Verse")
                         .HasColumnType("smallint");
 
-                    b.Property<DateTime>("ReadUtc")
+                    b.Property<DateTime>("ReadAt")
                         .HasColumnType("datetime2(3)");
 
-                    b.HasKey("AccountId", "RoundNo", "BookId", "Chapter", "Verse")
-                        .HasName("PK_RoundVerseRead");
+                    b.HasKey("UserName", "RoundNo", "BookId", "Chapter", "Verse")
+                        .HasName("PK_DM2_ReadingVerse");
 
-                    b.HasIndex("BookId", "Chapter");
+                    b.HasIndex("ReadAt")
+                        .HasDatabaseName("IX_DM2_ReadingVerse_ReadAt");
 
-                    b.ToTable("RoundVerseRead", "app", t =>
-                        {
-                            t.HasCheckConstraint("CK_RoundVerseRead_Verse", "Verse >= 1");
-                        });
+                    b.ToTable("DM2_ReadingVerse", "dbo");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.SearchLog", b =>
@@ -2360,6 +2302,144 @@ namespace ChallengeBible.Infrastructure.Migrations
                     SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("TenantId", "SearchedUtc"), new[] { "Term" });
 
                     b.ToTable("SearchLog", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.SignupApplication", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BDay")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BMonth")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ClassBan")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ClassYear")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DecidedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("DecidedDT")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("InsertDT")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Kids")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("PersonId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PrevRole")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("RejectReason")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ReqType")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("RoleKind")
+                        .IsRequired()
+                        .HasColumnType("char(1)");
+
+                    b.Property<string>("School")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Sex")
+                        .HasMaxLength(1)
+                        .HasColumnType("nvarchar(1)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("TenantId", "Id")
+                        .HasName("PK_SignupApplication");
+
+                    b.ToTable("SignupApplication", "dbo");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TeamAward", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AwardId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AwardId"));
+
+                    b.Property<string>("AwardKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("AwardedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("Threshold")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "AwardId")
+                        .HasName("PK_DM2_TeamAward");
+
+                    b.HasIndex("TenantId", "AwardKey")
+                        .HasDatabaseName("IX_DM2_TeamAward_Key");
+
+                    b.HasIndex("TenantId", "Kind", "AwardKey", "Threshold")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_DM2_TeamAward");
+
+                    b.ToTable("DM2_TeamAward", "dbo", t =>
+                        {
+                            t.HasCheckConstraint("CK_DM2_TeamAward_Kind", "[Kind]=N'FRIEND' OR [Kind]=N'FAMILY'");
+                        });
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Tenant", b =>
@@ -2473,8 +2553,10 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<short>("Year")
                         .HasColumnType("smallint");
 
-                    b.Property<int>("ChangedByAccountId")
-                        .HasColumnType("int");
+                    b.Property<string>("ChangedByUserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime>("ChangedUtc")
                         .HasColumnType("datetime2(3)");
@@ -2485,37 +2567,47 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.HasKey("TenantId", "Year")
                         .HasName("PK_TenantSeason");
 
-                    b.HasIndex("ChangedByAccountId");
-
                     b.ToTable("TenantSeason", "app", t =>
                         {
                             t.HasCheckConstraint("CK_TenantSeason_StartInYear", "YEAR(StartDate) = [Year]");
                         });
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.VerseReadMark", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.UserSetting", b =>
                 {
-                    b.Property<int>("AccountId")
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("FamilyInvitesSnoozedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("LastTenantId")
                         .HasColumnType("int");
 
-                    b.Property<byte>("BookId")
-                        .HasColumnType("tinyint");
+                    b.Property<string>("MissionTheme")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
 
-                    b.Property<short>("Chapter")
-                        .HasColumnType("smallint");
+                    b.Property<bool>("MustChangePassword")
+                        .HasColumnType("bit");
 
-                    b.Property<short>("Verse")
-                        .HasColumnType("smallint");
+                    b.Property<string>("PhotoPath")
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
 
-                    b.Property<DateTime>("ReadUtc")
-                        .HasColumnType("datetime2(3)");
+                    b.Property<string>("ReadingTheme")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
 
-                    b.HasKey("AccountId", "BookId", "Chapter", "Verse")
-                        .HasName("PK_VerseReadMark");
+                    b.HasKey("UserName")
+                        .HasName("PK_UserSetting");
 
-                    b.HasIndex("BookId");
+                    b.HasIndex("LastTenantId");
 
-                    b.ToTable("VerseReadMark", "app");
+                    b.ToTable("UserSetting", "app");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.WeeklyVerse", b =>
@@ -2529,8 +2621,10 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<byte>("BookId")
                         .HasColumnType("tinyint");
 
-                    b.Property<int>("CreatedByAccountId")
-                        .HasColumnType("int");
+                    b.Property<string>("CreatedByUserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime>("CreatedUtc")
                         .HasColumnType("datetime2(3)");
@@ -2597,8 +2691,6 @@ namespace ChallengeBible.Infrastructure.Migrations
 
                     b.HasIndex("BookId");
 
-                    b.HasIndex("CreatedByAccountId");
-
                     b.HasIndex("ReplacesId");
 
                     b.HasIndex("WeekNo")
@@ -2645,64 +2737,61 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("DataProtectionKey", "app");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Account", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AppRoleClaim", b =>
                 {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                    b.HasOne("ChallengeBible.Infrastructure.Data.AppRole", null)
                         .WithMany()
-                        .HasForeignKey("FamilyTenantId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .HasConstraintName("FK_Account_FamilyTenant");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
-                        .WithMany()
-                        .HasForeignKey("LastTenantId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .HasConstraintName("FK_Account_LastTenant");
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_RoleClaims_Role_RoleId");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Activity", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AppUserClaim", b =>
                 {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.DailyPrayer", null)
+                    b.HasOne("ChallengeBible.Infrastructure.Data.AppUser", null)
                         .WithMany()
-                        .HasForeignKey("DailyPrayerId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .HasConstraintName("FK_Activity_Prayer");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.DailyQuiz", null)
-                        .WithMany()
-                        .HasForeignKey("DailyQuizId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .HasConstraintName("FK_Activity_Quiz");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.DailyWord", null)
-                        .WithMany()
-                        .HasForeignKey("DailyWordId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .HasConstraintName("FK_Activity_Word");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.WeeklyVerse", null)
-                        .WithMany()
-                        .HasForeignKey("WeeklyVerseId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .HasConstraintName("FK_Activity_Verse");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Participant", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId", "ParticipantId")
-                        .HasPrincipalKey("TenantId", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_Activity_Participant");
+                        .HasConstraintName("FK_UserClaims_User_UserId");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AuditLog", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AppUserLogin", b =>
                 {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                    b.HasOne("ChallengeBible.Infrastructure.Data.AppUser", null)
                         .WithMany()
-                        .HasForeignKey("ActorAccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_AuditLog_Actor");
+                        .HasConstraintName("FK_UserLogins_User_UserId");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AppUserRole", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.AppRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_UserRoles_Role_RoleId");
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_UserRoles_User_UserId");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AppUserToken", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_UserTokens_User_UserId");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BibleBookOverview", b =>
@@ -2742,23 +2831,6 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasConstraintName("FK_BibleVerse_Translation");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Bookmark", b =>
-                {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_Bookmark_Account");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.BibleBook", null)
-                        .WithMany()
-                        .HasForeignKey("BookId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_Bookmark_Book");
-                });
-
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterMedia", b =>
                 {
                     b.HasOne("ChallengeBible.Infrastructure.Data.BibleBook", null)
@@ -2769,40 +2841,14 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasConstraintName("FK_ChapterMedia_Book");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterProgress", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.CodeData", b =>
                 {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.ReadingRound", null)
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
                         .WithMany()
-                        .HasForeignKey("AccountId", "RoundNo")
-                        .HasPrincipalKey("AccountId", "RoundNo")
+                        .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("FK_ChapterProgress_Round");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.BibleChapter", null)
-                        .WithMany()
-                        .HasForeignKey("BookId", "Chapter")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_ChapterProgress_Chapter");
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterRead", b =>
-                {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.BibleBook", null)
-                        .WithMany()
-                        .HasForeignKey("BookId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_ChapterRead_Book");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.ReadingRound", null)
-                        .WithMany()
-                        .HasForeignKey("AccountId", "RoundNo")
-                        .HasPrincipalKey("AccountId", "RoundNo")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_ChapterRead_Round");
+                        .HasConstraintName("FK_CodeData_Tenant");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.DailyPrayer", b =>
@@ -2813,13 +2859,6 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_DailyPrayer_Book");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("CreatedByAccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_DailyPrayer_CreatedBy");
 
                     b.HasOne("ChallengeBible.Infrastructure.Data.DailyPrayer", null)
                         .WithMany()
@@ -2836,13 +2875,6 @@ namespace ChallengeBible.Infrastructure.Migrations
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.DailyQuiz", b =>
                 {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("CreatedByAccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_DailyQuiz_CreatedBy");
-
                     b.HasOne("ChallengeBible.Infrastructure.Data.DailyQuiz", null)
                         .WithMany()
                         .HasForeignKey("ReplacesId")
@@ -2885,13 +2917,6 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_DailyWord_Book");
 
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("CreatedByAccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_DailyWord_CreatedBy");
-
                     b.HasOne("ChallengeBible.Infrastructure.Data.DailyWord", null)
                         .WithMany()
                         .HasForeignKey("ReplacesId")
@@ -2905,84 +2930,14 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasConstraintName("FK_DailyWord_Tenant");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Family", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.DeptRoleUserAssoc", b =>
                 {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
                         .WithMany()
-                        .HasForeignKey("CreatedByAccountId")
+                        .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("FK_Family_CreatedBy");
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyInvite", b =>
-                {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.FamilyTeam", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId", "FamilyTeamId")
-                        .HasPrincipalKey("TenantId", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_FamilyInvite_Team");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Participant", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId", "InvitedByParticipantId")
-                        .HasPrincipalKey("TenantId", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_FamilyInvite_InvitedBy");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Participant", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId", "ParticipantId")
-                        .HasPrincipalKey("TenantId", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_FamilyInvite_Participant");
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyJoinRequest", b =>
-                {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.FamilyTeam", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId", "FamilyTeamId")
-                        .HasPrincipalKey("TenantId", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_FamilyJoinRequest_Team");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Participant", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId", "ParticipantId")
-                        .HasPrincipalKey("TenantId", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_FamilyJoinRequest_Participant");
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyLink", b =>
-                {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_FamilyLink_Account");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("AddedByAccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_FamilyLink_AddedBy");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Family", null)
-                        .WithMany("Links")
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_FamilyLink_Family");
+                        .HasConstraintName("FK_DeptRoleUserAssoc_Tenant");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyMember", b =>
@@ -2990,69 +2945,49 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.HasOne("ChallengeBible.Infrastructure.Data.FamilyTeam", null)
                         .WithMany("Members")
                         .HasForeignKey("TenantId", "FamilyTeamId")
-                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("FK_FamilyMember_Team");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Participant", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId", "ParticipantId")
-                        .HasPrincipalKey("TenantId", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_FamilyMember_Participant");
+                        .HasConstraintName("FK_DM2_FamilyMember_Team");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyMilestoneDismiss", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyMilestoneConfig", b =>
                 {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
                         .WithMany()
-                        .HasForeignKey("DismissedByAccountId")
+                        .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("FK_FamilyMilestoneDismiss_Account");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.FamilyTeam", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId", "FamilyTeamId")
-                        .HasPrincipalKey("TenantId", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_FamilyMilestoneDismiss_Team");
+                        .HasConstraintName("FK_DM2_FamilyMilestoneConfig_Tenant");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyMilestoneReached", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyMilestoneHidden", b =>
                 {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.FamilyTeam", null)
+                    b.HasOne("ChallengeBible.Infrastructure.Data.FamilyMilestoneConfig", null)
                         .WithMany()
-                        .HasForeignKey("TenantId", "FamilyTeamId")
-                        .HasPrincipalKey("TenantId", "Id")
+                        .HasForeignKey("TenantId", "MilestoneConfigId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("FK_FamilyMilestoneReached_Team");
+                        .HasConstraintName("FK_DM2FMH_Config");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyNotice", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_DM2_FamilyNotice_Tenant");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyRequest", b =>
                 {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                    b.HasOne("ChallengeBible.Infrastructure.Data.FamilyTeam", null)
                         .WithMany()
-                        .HasForeignKey("DecidedByAccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .HasConstraintName("FK_FamilyRequest_DecidedBy");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Family", null)
-                        .WithMany()
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .HasConstraintName("FK_FamilyRequest_Family");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("RequesterAccountId")
+                        .HasForeignKey("TenantId", "FamilyTeamId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("FK_FamilyRequest_Requester");
+                        .HasConstraintName("FK_DM2_FamilyRequest_Team");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyTeam", b =>
@@ -3062,142 +2997,31 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("FK_FamilyTeam_Tenant");
+                        .HasConstraintName("FK_DM2_FamilyTeam_Tenant");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GuardianLink", b =>
                 {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("CreatedByAccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_GuardianLink_CreatedBy");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Membership", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId", "GuardianMembershipId")
-                        .HasPrincipalKey("TenantId", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_GuardianLink_Guardian");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Participant", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId", "ParticipantId")
-                        .HasPrincipalKey("TenantId", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_GuardianLink_Participant");
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Membership", b =>
-                {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_Membership_Account");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("DecidedByAccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .HasConstraintName("FK_Membership_DecidedBy");
-
                     b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("FK_Membership_Tenant");
+                        .HasConstraintName("FK_GuardianLink_Tenant");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MembershipRole", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MissionActivity", b =>
                 {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Membership", null)
-                        .WithMany("Roles")
-                        .HasForeignKey("TenantId", "MembershipId")
-                        .HasPrincipalKey("TenantId", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_MembershipRole_Membership");
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MilestoneReached", b =>
-                {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Participant", null)
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
                         .WithMany()
-                        .HasForeignKey("TenantId", "ParticipantId")
-                        .HasPrincipalKey("TenantId", "Id")
+                        .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("FK_MilestoneReached_Participant");
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Participant", b =>
-                {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Membership", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId", "MembershipId")
-                        .HasPrincipalKey("TenantId", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_Participant_Membership");
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.PlatformRuleSetVersion", b =>
-                {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("ChangedByAccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_PlatformRuleSetVersion_Account");
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.PointLedger", b =>
-                {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Activity", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId", "ActivityId")
-                        .HasPrincipalKey("TenantId", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_PointLedger_Activity");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Participant", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId", "ParticipantId")
-                        .HasPrincipalKey("TenantId", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_PointLedger_Participant");
+                        .HasConstraintName("FK_DM2_MissionActivity_Tenant");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.PromotionRequest", b =>
                 {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_PromotionRequest_Account");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("DecidedByAccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .HasConstraintName("FK_PromotionRequest_DecidedBy");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("RequestedByAccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_PromotionRequest_RequestedBy");
-
                     b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
                         .WithMany()
                         .HasForeignKey("SourceTenantId")
@@ -3215,54 +3039,42 @@ namespace ChallengeBible.Infrastructure.Migrations
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.QuizAttempt", b =>
                 {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.DailyQuiz", null)
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
                         .WithMany()
-                        .HasForeignKey("DailyQuizId")
+                        .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("FK_QuizAttempt_Quiz");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.DailyQuizChoice", null)
-                        .WithMany()
-                        .HasForeignKey("SelectedChoiceId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .HasConstraintName("FK_QuizAttempt_Choice");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Participant", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId", "ParticipantId")
-                        .HasPrincipalKey("TenantId", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_QuizAttempt_Participant");
+                        .HasConstraintName("FK_DM2_QuizAttempt_Tenant");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ReadingRound", b =>
-                {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_ReadingRound_Account");
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.RoundVerseRead", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ReadingChapterProgress", b =>
                 {
                     b.HasOne("ChallengeBible.Infrastructure.Data.ReadingRound", null)
                         .WithMany()
-                        .HasForeignKey("AccountId", "RoundNo")
-                        .HasPrincipalKey("AccountId", "RoundNo")
+                        .HasForeignKey("UserName", "RoundNo")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("FK_RoundVerseRead_Round");
+                        .HasConstraintName("FK_DM2_ReadingChapterProgress_Round");
+                });
 
-                    b.HasOne("ChallengeBible.Infrastructure.Data.BibleChapter", null)
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ReadingChapterRead", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.ReadingRound", null)
                         .WithMany()
-                        .HasForeignKey("BookId", "Chapter")
+                        .HasForeignKey("UserName", "RoundNo")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("FK_RoundVerseRead_Chapter");
+                        .HasConstraintName("FK_DM2_ReadingChapterRead_Round");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ReadingVerse", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.ReadingRound", null)
+                        .WithMany()
+                        .HasForeignKey("UserName", "RoundNo")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_DM2_ReadingVerse_Round");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.SearchLog", b =>
@@ -3275,15 +3087,28 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasConstraintName("FK_SearchLog_Tenant");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantSeason", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.SignupApplication", b =>
                 {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
                         .WithMany()
-                        .HasForeignKey("ChangedByAccountId")
+                        .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("FK_TenantSeason_Account");
+                        .HasConstraintName("FK_SignupApplication_Tenant");
+                });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TeamAward", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_DM2_TeamAward_Tenant");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantSeason", b =>
+                {
                     b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
@@ -3292,21 +3117,13 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasConstraintName("FK_TenantSeason_Tenant");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.VerseReadMark", b =>
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.UserSetting", b =>
                 {
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
                         .WithMany()
-                        .HasForeignKey("AccountId")
+                        .HasForeignKey("LastTenantId")
                         .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_VerseReadMark_Account");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.BibleBook", null)
-                        .WithMany()
-                        .HasForeignKey("BookId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_VerseReadMark_Book");
+                        .HasConstraintName("FK_UserSetting_LastTenant");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.WeeklyVerse", b =>
@@ -3317,13 +3134,6 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_WeeklyVerse_Book");
-
-                    b.HasOne("ChallengeBible.Infrastructure.Data.Account", null)
-                        .WithMany()
-                        .HasForeignKey("CreatedByAccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_WeeklyVerse_CreatedBy");
 
                     b.HasOne("ChallengeBible.Infrastructure.Data.WeeklyVerse", null)
                         .WithMany()
@@ -3345,19 +3155,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Navigation("Choices");
                 });
 
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Family", b =>
-                {
-                    b.Navigation("Links");
-                });
-
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyTeam", b =>
                 {
                     b.Navigation("Members");
-                });
-
-            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Membership", b =>
-                {
-                    b.Navigation("Roles");
                 });
 #pragma warning restore 612, 618
         }

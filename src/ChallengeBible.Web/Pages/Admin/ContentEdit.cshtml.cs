@@ -43,7 +43,7 @@ public class ContentEditModel(TenantContentService contents, TenantContext tenan
     private async Task<IActionResult> SaveAsync(bool publish, CancellationToken ct)
     {
         var date = Date ?? contents.Today;
-        Errors = await contents.SaveAsync(User.AccountId()!.Value, Kind, date, Input, publish, ct);
+        Errors = await contents.SaveAsync(User.UserName()!, Kind, date, Input, publish, ct);
         if (Errors.Ok) return RedirectToPage(new { slug = tenant.Current.Slug, KindName, Date = date, Ok = publish ? "publish" : "draft" });
         Edit = await contents.LoadAsync(Kind, date, ct);
         return Page();

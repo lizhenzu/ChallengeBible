@@ -29,7 +29,7 @@
         if (Model.Children.Count > 1)
         {
             <nav class="chips" aria-label="자녀 고르기">
-                @foreach (var c in Model.Children) { <a href="/@slug/guardian?child=@c.ParticipantId" aria-current="@(c.ParticipantId == cur.ParticipantId ? "page" : "false")">@c.Name</a> }
+                @foreach (var c in Model.Children) { <a href="/@slug/guardian?child=@c.UserName" aria-current="@(c.UserName == cur.UserName ? "page" : "false")">@c.Name</a> }
             </nav>
         }
         <section class="hello">

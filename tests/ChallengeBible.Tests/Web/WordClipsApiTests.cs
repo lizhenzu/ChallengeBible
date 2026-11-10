@@ -22,10 +22,10 @@ public partial class WordClipsApiTests(WebApplicationFactory<Program> app) : ICl
     private static readonly DateOnly Jan5 = new(2027, 1, 5);
     private readonly string _db = InMemoryDb.NewName();
 
-    private WebApplicationFactory<Program> Host(string? key = Key, int? actor = null) => app.WithWebHostBuilder(b =>
+    private WebApplicationFactory<Program> Host(string? key = Key, string? actor = null) => app.WithWebHostBuilder(b =>
     {
         b.UseSetting("ContentApi:Key", key ?? "");
-        b.UseSetting("ContentApi:ActorAccountId", actor?.ToString() ?? "");
+        b.UseSetting("ContentApi:ActorUserName", actor?.ToString() ?? "");
         b.ConfigureServices(s =>
         {
             s.AddScoped<IAppDb>(sp => new InMemoryDb(_db, sp.GetRequiredService<RequestScope>()));
@@ -35,16 +35,16 @@ public partial class WordClipsApiTests(WebApplicationFactory<Program> app) : ICl
         });
     });
 
-    private HttpClient Client(string? key = Key, int? actor = null) =>
+    private HttpClient Client(string? key = Key, string? actor = null) =>
         Host(key, actor).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
-    private int Admin(bool platform = true)
+    private string Admin(bool platform = true)
     {
         var a = InMemoryDb.SeedAccount(_db, $"op{Guid.NewGuid():N}@example.com", "운영자");
         using var raw = InMemoryDb.Raw(_db);
-        raw.Accounts.Single(x => x.Id == a.Id).IsPlatformAdmin = platform;
+        if (platform) InMemoryDb.AddRole(_db, raw.Users.Single(x => x.UserName == a.UserName!).Id, IdentityRoles.SuperAdmin);
         raw.SaveChanges();
-        return a.Id;
+        return a.UserName!;
     }
 
     private static HttpRequestMessage Put(object body, string? key = Key, string url = Url)
@@ -189,9 +189,8 @@ public partial class WordClipsApiTests(WebApplicationFactory<Program> app) : ICl
             ["DisplayName"] = "김철수", ["Email"] = "cheolsu@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         using var raw = InMemoryDb.Raw(_db);
-        var id = raw.Accounts.Single(a => a.Email == "cheolsu@example.com").Id;
+        var id = raw.Users.Single(a => a.Email == "cheolsu@example.com").UserName!;
         var m = InMemoryDb.SeedMembership(_db, kids.Id, id, MembershipStatus.Approved, Roles.Participant);
-        raw.Participants.Add(new Participant { TenantId = kids.Id, MembershipId = m.Id });
         raw.ChapterMedia.Add(new ChapterMedia { BookId = 1, Chapter = 24, Kind = ChapterMediaKind.Listen, SortOrder = 1, YoutubeVideoId = "dLv2ndgXrbo", DurationSec = 492 });
         raw.ChapterMedia.Add(new ChapterMedia { BookId = 1, Chapter = 25, Kind = ChapterMediaKind.Listen, SortOrder = 1, YoutubeVideoId = "cMKPbDZhToo" });
         raw.SaveChanges();

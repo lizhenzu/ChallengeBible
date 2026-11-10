@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record BoardMember(int AccountId, string Name, string Badge, IReadOnlyList<string> Roles, int RoundNo, int Completed,
+public sealed record BoardMember(string UserName, string Name, string Badge, IReadOnlyList<string> Roles, int RoundNo, int Completed,
     int ReadChapters, double Percent, byte? LastBook, short? LastChapter, DateTime? LastUtc, int? DaysAgo, bool Me);
 
 public sealed record ReadingBoard(bool Public, bool CanSee, int Members, int Readers, int Finishers, double AvgPercent, int TotalCompleted,
@@ -27,36 +27,34 @@ public sealed class ReadingBoardService(IAppDb db, TenantContext tenant, Infrast
         var canSee = t.ReadingBoardPublic || IsStaff;
         await using var ctx = db.Create();
 
-        var members = await (from m in ctx.Memberships.Include(x => x.Roles)
-                             join a in ctx.Accounts on m.AccountId equals a.Id
-                             where m.Status == MembershipStatus.Approved
-                             select new { a.Id, a.DisplayName, m.GroupLabel, Roles = m.Roles.Select(r => r.Role).ToList() }).ToListAsync(ct);
+        var adminIds = await DeptMembership.AdminIdsAsync(ctx, ct);
+        var members = (await DeptMembership.PeopleAsync(ctx, ct)).Select(p => new { Id = p.UserName, DisplayName = p.Name, GroupLabel = (string?)null, Roles = UserRole.ScreenRoles(p.RoleCode, adminIds.Contains(p.UserId)).Where(r => r != Infrastructure.Data.Roles.Participant || UserRole.KindOf(p.RoleCode) == UserRoleKind.Student).ToList() }).ToList();
         if (!canSee) return new(t.ReadingBoardPublic, false, members.Count, 0, 0, 0, 0, 0, today, [], []);
 
         var ids = members.Select(m => m.Id).ToList();
         // 통독 표는 계정 범위라 앱 전역 필터가 "본인만"이다. 여기서만 끄고, 위에서 고른 이 부서 승인 소속원으로 직접 거른다.
-        var rounds = await ctx.ReadingRounds.IgnoreQueryFilters().AsNoTracking().Where(r => ids.Contains(r.AccountId))
-            .Select(r => new { r.AccountId, r.RoundNo, r.CompletedUtc, r.ClosedUtc }).ToListAsync(ct);
-        var open = rounds.Where(r => r.CompletedUtc == null && r.ClosedUtc == null).ToDictionary(r => r.AccountId, r => r.RoundNo);
-        var reads = await ctx.ChapterReads.IgnoreQueryFilters().AsNoTracking().Where(c => ids.Contains(c.AccountId))
-            .Select(c => new { c.AccountId, c.RoundNo, c.BookId, c.Chapter, c.ReadUtc }).ToListAsync(ct);
+        var rounds = await ctx.ReadingRounds.IgnoreQueryFilters().AsNoTracking().Where(r => ids.Contains(r.UserName))
+            .Select(r => new { r.UserName, r.RoundNo, r.CompletedAt, r.ClosedAt }).ToListAsync(ct);
+        var open = rounds.Where(r => r.CompletedAt == null && r.ClosedAt == null).ToDictionary(r => r.UserName, r => r.RoundNo);
+        var reads = await ctx.ReadingChapterReads.IgnoreQueryFilters().AsNoTracking().Where(c => ids.Contains(c.UserName))
+            .Select(c => new { c.UserName, c.RoundNo, c.BookId, c.Chapter, c.ReadAt }).ToListAsync(ct);
         var weekStart = today.AddDays(-(int)today.DayOfWeek);
         DateOnly Local(DateTime utc) => TenantClock.ToTenantDate(new DateTimeOffset(DateTime.SpecifyKind(utc, DateTimeKind.Utc)), t.TimeZoneId);
 
-        var me = scope.AccountId;
+        var me = scope.UserName;
         var rows = members.Select(m =>
         {
-            var roundNo = open.GetValueOrDefault(m.Id, rounds.Where(r => r.AccountId == m.Id).Select(r => r.RoundNo).DefaultIfEmpty(0).Max());
-            var mine = reads.Where(r => r.AccountId == m.Id && r.RoundNo == roundNo).ToList();
-            var last = reads.Where(r => r.AccountId == m.Id).OrderByDescending(r => r.ReadUtc).FirstOrDefault();
+            var roundNo = open.GetValueOrDefault(m.Id, rounds.Where(r => r.UserName == m.Id).Select(r => r.RoundNo).DefaultIfEmpty(0).Max());
+            var mine = reads.Where(r => r.UserName == m.Id && r.RoundNo == roundNo).ToList();
+            var last = reads.Where(r => r.UserName == m.Id).OrderByDescending(r => r.ReadAt).FirstOrDefault();
             return new BoardMember(m.Id, m.DisplayName, Badge(m.GroupLabel, m.Roles), m.Roles, roundNo,
-                rounds.Count(r => r.AccountId == m.Id && r.CompletedUtc != null), mine.Count,
+                rounds.Count(r => r.UserName == m.Id && r.CompletedAt != null), mine.Count,
                 ReadingSummary.Percent(mine.Count, ReadingService.TotalChapters),
-                last?.BookId, last?.Chapter, last?.ReadUtc, last is null ? null : today.DayNumber - Local(last.ReadUtc).DayNumber, m.Id == me);
+                last?.BookId, last?.Chapter, last?.ReadAt, last is null ? null : today.DayNumber - Local(last.ReadAt).DayNumber, m.Id == me);
         }).ToList();
 
         var readers = rows.Where(r => r.RoundNo > 0).ToList();
-        var thisWeek = reads.Where(r => Local(r.ReadUtc) >= weekStart).Select(r => r.AccountId).Distinct().Count();
+        var thisWeek = reads.Where(r => Local(r.ReadAt) >= weekStart).Select(r => r.UserName).Distinct().Count();
         var hall = rows.Where(r => r.Completed > 0).OrderByDescending(r => r.Completed).ThenBy(r => r.Name).ToList();
         return new(t.ReadingBoardPublic, true, members.Count, readers.Count, hall.Count,
             readers.Count == 0 ? 0 : Math.Round(readers.Average(r => r.Percent), 1), rows.Sum(r => r.Completed), thisWeek, today, rows, hall);

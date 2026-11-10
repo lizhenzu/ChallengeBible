@@ -12,7 +12,7 @@ public class IndexModel(PlatformHomeService home) : PageModel, ITitled
     public string Title => "플랫폼 홈";
     public PlatformHome Data { get; private set; } = null!;
 
-    public async Task OnGetAsync(CancellationToken ct) => Data = await home.GetAsync(User.AccountId()!.Value, ct);
+    public async Task OnGetAsync(CancellationToken ct) => Data = await home.GetAsync(User.UserName()!, ct);
 
     /// <summary>기록 시각: 오늘이면 시:분, 어제면 "어제", 그 전은 월/일(한국 시간).</summary>
     public string When(DateTime utc)

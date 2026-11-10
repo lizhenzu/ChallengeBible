@@ -98,7 +98,7 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : Pag
     public Task<IActionResult> OnPostRenameAsync(string? name, CancellationToken ct) => Act(join.RenameAsync(name, ct), "renamed", ct);
     public Task<IActionResult> OnPostRelationAsync(string? relation, CancellationToken ct) => Act(join.SetRelationAsync(relation ?? "", ct), "relation", ct);
 
-    public Task<IActionResult> OnPostInviteAsync(int participant, string? relation, CancellationToken ct)
+    public Task<IActionResult> OnPostInviteAsync(string participant, string? relation, CancellationToken ct)
     {
         Add = true;
         return Act(join.InviteAsync(participant, relation ?? "", ct), "invited", ct);

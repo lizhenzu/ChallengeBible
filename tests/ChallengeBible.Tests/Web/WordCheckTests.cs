@@ -92,19 +92,19 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
 
     private ContentAdminService Svc => new(new InMemorySystemDb(_db), FixedTime.SeoulMorning());
 
-    private int SeedOperator()
+    private string SeedOperator()
     {
         var op = InMemoryDb.SeedAccount(_db, "operator", "운영자");
         using var raw = InMemoryDb.Raw(_db);
-        raw.Accounts.Single(a => a.Id == op.Id).IsPlatformAdmin = true;
+        InMemoryDb.AddRole(_db, raw.Users.Single(a => a.UserName == op.UserName!).Id, IdentityRoles.SuperAdmin);
         raw.SaveChanges();
-        return op.Id;
+        return op.UserName!;
     }
 
     private void Seed(params DailyWord[] words)
     {
         using var raw = InMemoryDb.Raw(_db);
-        foreach (var w in words) { w.CreatedByAccountId = raw.Accounts.First().Id; raw.DailyWords.Add(w); }
+        foreach (var w in words) { w.CreatedByUserName = raw.Users.First().Id; raw.DailyWords.Add(w); }
         raw.SaveChanges();
     }
 
@@ -143,7 +143,7 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
     public async Task R216_플랫폼_관리자가_아니면_못_본다()
     {
         var who = InMemoryDb.SeedAccount(_db, "kid", "아이");
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => Svc.WordCheckMonthAsync(who.Id, new DateOnly(2027, 1, 1)));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => Svc.WordCheckMonthAsync(who.UserName!, new DateOnly(2027, 1, 1)));
     }
 
     [Theory]
@@ -166,7 +166,7 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
             ["__RequestVerificationToken"] = TokenRx().Match(html).Groups[1].Value,
             ["DisplayName"] = "운영자", ["Email"] = "operator@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
-        using (var raw = InMemoryDb.Raw(_db)) { raw.Accounts.Single(a => a.Email == "operator@example.com").IsPlatformAdmin = true; raw.SaveChanges(); }
+        using (var raw = InMemoryDb.Raw(_db)) { InMemoryDb.AddRole(_db, raw.Users.Single(a => a.Email == "operator@example.com").Id, IdentityRoles.SuperAdmin); raw.SaveChanges(); }
         var lh = await c.GetStringAsync("/account/login");
         await c.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -282,7 +282,7 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
     private void SeedQuiz(params DailyQuiz[] quizzes)
     {
         using var raw = InMemoryDb.Raw(_db);
-        foreach (var q in quizzes) { q.CreatedByAccountId = raw.Accounts.First().Id; raw.DailyQuizzes.Add(q); }
+        foreach (var q in quizzes) { q.CreatedByUserName = raw.Users.First().Id; raw.DailyQuizzes.Add(q); }
         raw.SaveChanges();
     }
 
@@ -303,7 +303,7 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
     public async Task R217_플랫폼_관리자가_아니면_못_본다()
     {
         var who = InMemoryDb.SeedAccount(_db, "kid", "아이");
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => Svc.QuizCheckMonthAsync(who.Id, new DateOnly(2027, 1, 1)));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => Svc.QuizCheckMonthAsync(who.UserName!, new DateOnly(2027, 1, 1)));
     }
 
     [Fact]

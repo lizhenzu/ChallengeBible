@@ -34,7 +34,7 @@
     var left = withContent.Where(c => !Done(c.M)).ToList();
     var firstLeft = canAct ? left.FirstOrDefault(c => !c.Over).Key : null;
     var dash = withContent.Count == 0 ? 0 : 94.2 * doneN / withContent.Count;
-    var streakText = Model.ParticipantId is null ? "" : Model.Streak > 0 ? $"{Model.Streak}일째 이어오는 중" : "오늘 시작해 봐요";
+    var streakText = Model.UserName is null ? "" : Model.Streak > 0 ? $"{Model.Streak}일째 이어오는 중" : "오늘 시작해 봐요";
     var monthScores = Model.MonthDays;
     var monthTotal = monthScores.Sum(s => s.Total);
     string Inv(double v) => v.ToString("0.#", CultureInfo.InvariantCulture);
@@ -105,11 +105,11 @@
     {
         <p class="hNote">@dayWord 미션이 아직 없어요 · 관리자가 콘텐츠를 올리면 여기에 나와요.</p>
     }
-    else if (left.Count > 0 && !canAct && Model.ParticipantId is not null && Model.Day <= d.Today)   // 미래는 위 안내("오늘 이후는 보기만 가능해요")로 충분
+    else if (left.Count > 0 && !canAct && Model.UserName is not null && Model.Day <= d.Today)   // 미래는 위 안내("오늘 이후는 보기만 가능해요")로 충분
     {
         <p class="hNote">@Model.BlockReason</p>
     }
-    @if (Model.ParticipantId is null) { <p class="hNote">@Model.BlockReason</p> }
+    @if (Model.UserName is null) { <p class="hNote">@Model.BlockReason</p> }
 
     <div class="hMs" aria-label="미션">
         @foreach (var c in cards)

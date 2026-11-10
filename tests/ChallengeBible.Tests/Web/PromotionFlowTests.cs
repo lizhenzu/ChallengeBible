@@ -31,7 +31,7 @@ public partial class PromotionFlowTests : IClassFixture<WebApplicationFactory<Pr
 
     private static async Task<string> Token(HttpClient c, string url) => TokenRx().Match(await c.GetStringAsync(url)).Groups[1].Value;
 
-    private async Task<(HttpClient Client, int AccountId)> SignedUp(string email, string name)
+    private async Task<(HttpClient Client, string UserName)> SignedUp(string email, string name)
     {
         var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
@@ -40,35 +40,11 @@ public partial class PromotionFlowTests : IClassFixture<WebApplicationFactory<Pr
             ["DisplayName"] = name, ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         using var raw = InMemoryDb.Raw(_db);
-        return (c, raw.Accounts.Single(a => a.Email == email + "@example.com").Id);
+        return (c, raw.Users.Single(a => a.Email == email + "@example.com").UserName!);
     }
 
     private static Task<HttpResponseMessage> Post(HttpClient c, string url, string token, params (string, string)[] form) =>
         c.PostAsync(url, new FormUrlEncodedContent(form.Append(("__RequestVerificationToken", token)).Select(x => new KeyValuePair<string, string>(x.Item1, x.Item2))));
-
-    [Fact]
-    public async Task 소속_탭에서_여러_명_골라_반을_바꾼다()
-    {
-        var (admin, adminId) = await SignedUp("eunhye", "이은혜");
-        var (_, aId) = await SignedUp("cheolsu", "김철수");
-        var (_, bId) = await SignedUp("seoyeon", "박서연");
-        InMemoryDb.SeedMembership(_db, _kids.Id, adminId, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
-        var a = InMemoryDb.SeedMembership(_db, _kids.Id, aId, MembershipStatus.Approved, Roles.Participant);
-        var b = InMemoryDb.SeedMembership(_db, _kids.Id, bId, MembershipStatus.Approved, Roles.Participant);
-
-        var html = await admin.GetStringAsync("/jamsil-kids/admin/members?Tab=Approved");
-        Assert.Contains("고른 아이 반 바꾸기", html);
-        var token = TokenRx().Match(html).Groups[1].Value;
-        var none = await Post(admin, "/jamsil-kids/admin/members?handler=Regroup&Tab=Approved", token, ("newGroup", "사랑반"));
-        Assert.Contains("반을 바꿀 아이를 위에서 골라 주세요", await none.Content.ReadAsStringAsync());
-
-        var r = await Post(admin, "/jamsil-kids/admin/members?handler=Regroup&Tab=Approved", token, ("pick", a.Id.ToString()), ("pick", b.Id.ToString()), ("newGroup", " 사랑반 "));
-        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
-        var after = await admin.GetStringAsync(r.Headers.Location!.OriginalString);
-        Assert.Contains("2명을 사랑반(으)로 옮겼어요", after);
-        using var raw = InMemoryDb.Raw(_db);
-        Assert.All(raw.Memberships.Where(m => m.Id == a.Id || m.Id == b.Id), m => Assert.Equal("사랑반", m.GroupLabel));
-    }
 
     [Fact]
     public async Task 보내고_받는_부서에서_승인하면_옮겨진다()
@@ -101,13 +77,13 @@ public partial class PromotionFlowTests : IClassFixture<WebApplicationFactory<Pr
         int reqId;
         using (var raw = InMemoryDb.Raw(_db)) reqId = raw.PromotionRequests.Single().Id;
         var ok = await Post(elemAdmin, "/jamsil-elem/admin/promotions?handler=Approve&Tab=in", TokenRx().Match(inbox).Groups[1].Value,
-            ("id", reqId.ToString()), ("roles", Roles.Participant), ("group", "사랑반"));
+            ("id", reqId.ToString()), ("roleCode", "T1001"));
         Assert.Equal(HttpStatusCode.Redirect, ok.StatusCode);
         Assert.Contains("김철수", await elemAdmin.GetStringAsync("/jamsil-elem/admin/members?Tab=Approved"));
 
         using var after = InMemoryDb.Raw(_db);
-        Assert.False(after.Memberships.Any(m => m.Id == kid.Id));
-        Assert.True(after.Memberships.Any(m => m.TenantId == _elem.Id && m.AccountId == kidId && m.GroupLabel == "사랑반"));
+        Assert.False(after.DeptRoles.Any(d => d.TenantId == _kids.Id && d.Id == kid.Id));
+        Assert.True(after.DeptRoles.Any(d => d.TenantId == _elem.Id && d.UserId == kid.UserId && d.RoleCode == "T1001"));
     }
 
     [Fact]
@@ -119,10 +95,10 @@ public partial class PromotionFlowTests : IClassFixture<WebApplicationFactory<Pr
         InMemoryDb.SeedMembership(_db, _kids.Id, kidId, MembershipStatus.Approved, Roles.Participant);
         var other = InMemoryDb.SeedTenant(_db, "other-kids", "OTHERK");
         var someone = InMemoryDb.SeedAccount(_db, "x@example.com", "오서준");
-        InMemoryDb.SeedMembership(_db, other.Id, someone.Id, MembershipStatus.Approved, Roles.Participant);
+        InMemoryDb.SeedMembership(_db, other.Id, someone.UserName!, MembershipStatus.Approved, Roles.Participant);
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.PromotionRequests.Add(new PromotionRequest { AccountId = someone.Id, SourceTenantId = other.Id, TargetTenantId = _elem.Id, RequestedByAccountId = someone.Id });
+            raw.PromotionRequests.Add(new PromotionRequest { UserName = someone.UserName!, SourceTenantId = other.Id, TargetTenantId = _elem.Id, RequestedByUserName = someone.UserName! });
             raw.SaveChanges();
         }
         int reqId;

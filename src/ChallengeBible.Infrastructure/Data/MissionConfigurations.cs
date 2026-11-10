@@ -32,7 +32,7 @@ internal static class ContentConfig
         e.Property(x => x.CreatedUtc).HasColumnType("datetime2(3)");
         e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).HasConstraintName($"FK_{table}_Tenant").OnDelete(DeleteBehavior.NoAction);
         e.HasOne<T>().WithMany().HasForeignKey(x => x.ReplacesId).HasConstraintName($"FK_{table}_Replaces").OnDelete(DeleteBehavior.NoAction);
-        e.HasOne<Account>().WithMany().HasForeignKey(x => x.CreatedByAccountId).HasConstraintName($"FK_{table}_CreatedBy").OnDelete(DeleteBehavior.NoAction);
+        e.Property(x => x.CreatedByUserName).HasMaxLength(256);
     }
 
     public static void Range<T>(EntityTypeBuilder<T> e, string table) where T : RangedContent =>
@@ -148,20 +148,6 @@ internal sealed class WeeklyVerseConfig : IEntityTypeConfiguration<WeeklyVerse>
     }
 }
 
-internal sealed class ParticipantConfig : IEntityTypeConfiguration<Participant>
-{
-    public void Configure(EntityTypeBuilder<Participant> e)
-    {
-        e.ToTable("Participant");
-        e.HasKey(x => x.Id).HasName("PK_Participant").IsClustered(false);
-        e.HasAlternateKey(x => new { x.TenantId, x.Id }).HasName("UQ_Participant_TenantId_Id").IsClustered();
-        e.HasIndex(x => new { x.TenantId, x.MembershipId }).IsUnique().HasDatabaseName("UQ_Participant_Membership");
-        e.HasOne<Membership>().WithMany()
-            .HasForeignKey(x => new { x.TenantId, x.MembershipId }).HasPrincipalKey(m => new { m.TenantId, m.Id })
-            .HasConstraintName("FK_Participant_Membership").OnDelete(DeleteBehavior.NoAction);
-    }
-}
-
 internal sealed class GuardianLinkConfig : IEntityTypeConfiguration<GuardianLink>
 {
     public void Configure(EntityTypeBuilder<GuardianLink> e)
@@ -169,100 +155,12 @@ internal sealed class GuardianLinkConfig : IEntityTypeConfiguration<GuardianLink
         e.ToTable("GuardianLink");
         e.HasKey(x => x.Id).HasName("PK_GuardianLink").IsClustered(false);
         e.HasAlternateKey(x => new { x.TenantId, x.Id }).HasName("UQ_GuardianLink_TenantId_Id").IsClustered();
-        e.HasIndex(x => new { x.TenantId, x.GuardianMembershipId, x.ParticipantId }).IsUnique().HasDatabaseName("UQ_GuardianLink_Pair");
-        e.HasIndex(x => new { x.TenantId, x.ParticipantId }).HasDatabaseName("IX_GuardianLink_Participant");
+        e.Property(x => x.GuardianUserName).HasMaxLength(256);
+        e.Property(x => x.StudentUserName).HasMaxLength(256);
+        e.Property(x => x.CreatedByUserName).HasMaxLength(256);
         e.Property(x => x.CreatedUtc).HasColumnType("datetime2(3)");
-        e.HasOne<Membership>().WithMany().HasForeignKey(x => new { x.TenantId, x.GuardianMembershipId }).HasPrincipalKey(m => new { m.TenantId, m.Id })
-            .HasConstraintName("FK_GuardianLink_Guardian").OnDelete(DeleteBehavior.NoAction);
-        e.HasOne<Participant>().WithMany().HasForeignKey(x => new { x.TenantId, x.ParticipantId }).HasPrincipalKey(p => new { p.TenantId, p.Id })
-            .HasConstraintName("FK_GuardianLink_Participant").OnDelete(DeleteBehavior.NoAction);
-        e.HasOne<Account>().WithMany().HasForeignKey(x => x.CreatedByAccountId).HasConstraintName("FK_GuardianLink_CreatedBy").OnDelete(DeleteBehavior.NoAction);
-    }
-}
-
-internal sealed class ActivityConfig : IEntityTypeConfiguration<Activity>
-{
-    public void Configure(EntityTypeBuilder<Activity> e)
-    {
-        var items = string.Join(",", Enum.GetValues<MissionItem>().Select(i => $"'{i.Code()}'"));
-        e.ToTable("Activity", t =>
-        {
-            t.HasCheckConstraint("CK_Activity_Item", $"MissionItem IN ({items})");
-            t.HasCheckConstraint("CK_Activity_Points", "Points >= 0");
-            t.HasCheckConstraint("CK_Activity_Content", """
-                (MissionItem IN ('Word.Me','Word.Parent') AND DailyWordId IS NOT NULL AND DailyPrayerId IS NULL AND DailyQuizId IS NULL AND WeeklyVerseId IS NULL AND ReciteStartDate IS NULL)
-                OR (MissionItem IN ('Prayer.Me','Prayer.Others') AND DailyWordId IS NULL AND DailyPrayerId IS NOT NULL AND DailyQuizId IS NULL AND WeeklyVerseId IS NULL AND ReciteStartDate IS NULL)
-                OR (MissionItem = 'Quiz.Correct' AND DailyWordId IS NULL AND DailyPrayerId IS NULL AND DailyQuizId IS NOT NULL AND WeeklyVerseId IS NULL AND ReciteStartDate IS NULL)
-                OR (MissionItem = 'Recite' AND DailyWordId IS NULL AND DailyPrayerId IS NULL AND DailyQuizId IS NULL AND WeeklyVerseId IS NOT NULL AND ReciteStartDate IS NOT NULL)
-                """.ReplaceLineEndings("\n"));   // 체크아웃 줄바꿈(CRLF)과 무관하게 모델이 같도록
-        });
-        e.HasKey(x => x.Id).HasName("PK_Activity").IsClustered(false);
-        e.HasAlternateKey(x => new { x.TenantId, x.Id }).HasName("UQ_Activity_TenantId_Id");
-        e.HasIndex(x => new { x.TenantId, x.ParticipantId, x.MissionDate }).HasDatabaseName("CX_Activity").IsClustered();
-        e.HasIndex(x => new { x.TenantId, x.ParticipantId, x.MissionDate, x.MissionItem }).IsUnique()
-            .HasFilter("[MissionItem] <> 'Recite'").HasDatabaseName("UX_Activity_Daily");   // R-61
-        e.HasIndex(x => new { x.TenantId, x.ParticipantId, x.ReciteStartDate }).IsUnique()
-            .HasFilter("[MissionItem] = 'Recite'").HasDatabaseName("UX_Activity_Recite");   // R-51
-        e.Property(x => x.MissionItem).HasMaxLength(20).IsUnicode(false);
-        e.Property(x => x.PerformedUtc).HasColumnType("datetime2(3)");
-        e.HasOne<Participant>().WithMany().HasForeignKey(x => new { x.TenantId, x.ParticipantId }).HasPrincipalKey(p => new { p.TenantId, p.Id })
-            .HasConstraintName("FK_Activity_Participant").OnDelete(DeleteBehavior.NoAction);
-        e.HasOne<DailyWord>().WithMany().HasForeignKey(x => x.DailyWordId).HasConstraintName("FK_Activity_Word").OnDelete(DeleteBehavior.NoAction);
-        e.HasOne<DailyPrayer>().WithMany().HasForeignKey(x => x.DailyPrayerId).HasConstraintName("FK_Activity_Prayer").OnDelete(DeleteBehavior.NoAction);
-        e.HasOne<DailyQuiz>().WithMany().HasForeignKey(x => x.DailyQuizId).HasConstraintName("FK_Activity_Quiz").OnDelete(DeleteBehavior.NoAction);
-        e.HasOne<WeeklyVerse>().WithMany().HasForeignKey(x => x.WeeklyVerseId).HasConstraintName("FK_Activity_Verse").OnDelete(DeleteBehavior.NoAction);
-    }
-}
-
-internal sealed class QuizAttemptConfig : IEntityTypeConfiguration<QuizAttempt>
-{
-    public void Configure(EntityTypeBuilder<QuizAttempt> e)
-    {
-        e.ToTable("QuizAttempt", t =>
-        {
-            t.HasCheckConstraint("CK_QuizAttempt_No", "AttemptNo >= 1");
-            t.HasCheckConstraint("CK_QuizAttempt_Answer", "SelectedChoiceId IS NOT NULL OR AnswerText IS NOT NULL");
-        });
-        e.HasKey(x => x.Id).HasName("PK_QuizAttempt").IsClustered(false);
-        e.HasAlternateKey(x => new { x.TenantId, x.ParticipantId, x.MissionDate, x.AttemptNo }).HasName("UQ_QuizAttempt_No").IsClustered();
-        e.HasAlternateKey(x => new { x.TenantId, x.Id }).HasName("UQ_QuizAttempt_TenantId_Id");
-        e.Property(x => x.AnswerText).HasMaxLength(200);
-        e.Property(x => x.AttemptedUtc).HasColumnType("datetime2(3)");
-        e.HasOne<Participant>().WithMany().HasForeignKey(x => new { x.TenantId, x.ParticipantId }).HasPrincipalKey(p => new { p.TenantId, p.Id })
-            .HasConstraintName("FK_QuizAttempt_Participant").OnDelete(DeleteBehavior.NoAction);
-        e.HasOne<DailyQuiz>().WithMany().HasForeignKey(x => x.DailyQuizId).HasConstraintName("FK_QuizAttempt_Quiz").OnDelete(DeleteBehavior.NoAction);
-        e.HasOne<DailyQuizChoice>().WithMany().HasForeignKey(x => x.SelectedChoiceId).HasConstraintName("FK_QuizAttempt_Choice").OnDelete(DeleteBehavior.NoAction);
-    }
-}
-
-internal sealed class PointLedgerConfig : IEntityTypeConfiguration<PointLedger>
-{
-    public void Configure(EntityTypeBuilder<PointLedger> e)
-    {
-        e.ToTable("PointLedger", t => t.HasCheckConstraint("CK_PointLedger_Points", "Points > 0"));
-        e.HasKey(x => x.Id).HasName("PK_PointLedger").IsClustered(false);
-        e.HasAlternateKey(x => new { x.TenantId, x.Id }).HasName("UQ_PointLedger_TenantId_Id");
-        e.HasIndex(x => new { x.TenantId, x.ActivityId }).IsUnique().HasDatabaseName("UQ_PointLedger_Activity");
-        e.HasIndex(x => new { x.TenantId, x.ParticipantId, x.MissionDate }).HasDatabaseName("CX_PointLedger").IsClustered();
-        e.Property(x => x.MissionItem).HasMaxLength(20).IsUnicode(false);
-        e.Property(x => x.RecordedUtc).HasColumnType("datetime2(3)");
-        e.HasOne<Participant>().WithMany().HasForeignKey(x => new { x.TenantId, x.ParticipantId }).HasPrincipalKey(p => new { p.TenantId, p.Id })
-            .HasConstraintName("FK_PointLedger_Participant").OnDelete(DeleteBehavior.NoAction);
-        e.HasOne<Activity>().WithMany().HasForeignKey(x => new { x.TenantId, x.ActivityId }).HasPrincipalKey(a => new { a.TenantId, a.Id })
-            .HasConstraintName("FK_PointLedger_Activity").OnDelete(DeleteBehavior.NoAction);
-    }
-}
-
-internal sealed class MilestoneReachedConfig : IEntityTypeConfiguration<MilestoneReached>
-{
-    public void Configure(EntityTypeBuilder<MilestoneReached> e)
-    {
-        e.ToTable("MilestoneReached");
-        e.HasKey(x => x.Id).HasName("PK_MilestoneReached").IsClustered(false);
-        e.HasAlternateKey(x => new { x.TenantId, x.Id }).HasName("UQ_MilestoneReached_TenantId_Id");
-        e.HasIndex(x => new { x.TenantId, x.ParticipantId, x.Year, x.Threshold }).IsUnique().IsClustered().HasDatabaseName("UQ_MilestoneReached");
-        e.Property(x => x.ReachedUtc).HasColumnType("datetime2(3)");
-        e.HasOne<Participant>().WithMany().HasForeignKey(x => new { x.TenantId, x.ParticipantId }).HasPrincipalKey(p => new { p.TenantId, p.Id })
-            .HasConstraintName("FK_MilestoneReached_Participant").OnDelete(DeleteBehavior.NoAction);
+        e.HasIndex(x => new { x.TenantId, x.GuardianUserName, x.StudentUserName }).IsUnique().HasDatabaseName("UQ_GuardianLink_Pair");
+        e.HasIndex(x => new { x.TenantId, x.StudentUserName }).HasDatabaseName("IX_GuardianLink_Student");
+        e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).HasConstraintName("FK_GuardianLink_Tenant").OnDelete(DeleteBehavior.NoAction);
     }
 }

@@ -28,8 +28,8 @@ public class LoginModel(AccountService accounts) : PageModel, ITitled
             Password = "";
             return Page();
         }
-        await CurrentUser.SignInAsync(HttpContext, r.Account);
-        if (r.Account.MustChangePassword) return RedirectToPage("/Account/ChangePassword");   // 0035
+        await CurrentUser.SignInAsync(HttpContext, await accounts.ToSignedInAsync(r.Account, ct));
+        if (r.MustChangePassword) return RedirectToPage("/Account/ChangePassword");   // 0035
         return LocalRedirect(Url.IsLocalUrl(ReturnUrl) ? ReturnUrl! : "/");
     }
 }

@@ -4,188 +4,211 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record MemberRow(int MembershipId, int AccountId, string DisplayName, string Email, string Status,
-    IReadOnlyList<string> Roles, string? GroupLabel, DateTime RequestedUtc);
+/// <summary>Id = 신청이면 SignupApplication.Id, 승인이면 DeptRoleUserAssoc.Id.</summary>
+public sealed record MemberRow(int Id, string UserName, string DisplayName, string Email, string Status,
+    string? RoleCode, string RoleLabel, bool IsAdmin, DateTime RequestedUtc);
 
-public sealed record MemberFilter(string Status, string? Query, string? Role, string? Group);
+public sealed record MemberFilter(string Status, string? Query, string? Role);
 
 public enum MemberError
 {
-    None, NotFound, NoRole, BadState, SelfAdminRemove, SelfSuspend,
+    None, NotFound, NoRole, BadState, SelfAdminRemove, TeamLocked,
 }
 
 /// <summary>
-/// 소속 관리(API 계약 4-4 · 5-4): 신청 승인 · 거절, 역할, 반(그룹 라벨), 정지 · 해제.
-/// 모든 조회 · 저장은 이 부서 안에서만 된다(전역 필터 + RLS). 부르는 화면이 관리자인지 먼저 검사한다.
+/// 소속 관리(ADR 0090): 신청 승인 · 거절, 역할 바꾸기, 관리자 지정. 승인하면 DeptRoleUserAssoc 에 한 줄이 생긴다(유년부와 같다).
+/// 역할이 바뀌어 맞지 않는 팀에서는 빠진다 — 단 시상 기록이 있는 팀이면 막는다.
+/// 부르는 화면이 관리자인지 먼저 검사한다.
 /// </summary>
-public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantContext tenant, TimeProvider time, LobbyService lobby)
+public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantContext tenant, TimeProvider time)
 {
     public async Task<List<MemberRow>> ListAsync(MemberFilter f, CancellationToken ct = default)
     {
         await using var ctx = db.Create();
-        var q = from m in ctx.Memberships.Include(x => x.Roles)
-                join a in ctx.Accounts on m.AccountId equals a.Id
-                where m.Status == f.Status
-                select new { m, a };
+        var ko = StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false);
+        var codes = await RoleNamesAsync(ctx, ct);
+        List<MemberRow> rows;
+        if (f.Status == MembershipStatus.Approved)
+        {
+            var adminIds = await AdminIdsAsync(ctx, ct);
+            rows = (await (from d in ctx.DeptRoles
+                           join u in ctx.Users on d.UserId equals u.Id
+                           select new { d.Id, u.UserName, u.LastName, u.FirstName, u.Email, d.RoleCode, d.UserId, d.InsertDT }).ToListAsync(ct))
+                .Select(x => new MemberRow(x.Id, x.UserName!, AppUser.FullName(x.LastName, x.FirstName), x.Email ?? "", MembershipStatus.Approved,
+                    x.RoleCode, Label(x.RoleCode, codes), adminIds.Contains(x.UserId!), x.InsertDT)).ToList();
+        }
+        else
+        {
+            var status = f.Status == MembershipStatus.Rejected ? SignupStatus.Rejected : SignupStatus.Pending;
+            rows = (await (from a in ctx.SignupApplications
+                           join u in ctx.Users on a.UserId equals u.Id
+                           where a.Status == status
+                           select new { a.Id, a.UserName, a.FullName, u.Email, a.RoleKind, a.InsertDT }).ToListAsync(ct))
+                .Select(x => new MemberRow(x.Id, x.UserName, x.FullName, x.Email ?? "", f.Status, UserRole.CodeForKind(x.RoleKind.Trim()),
+                    Label(UserRole.CodeForKind(x.RoleKind.Trim()), codes), false, x.InsertDT)).ToList();
+        }
         if (!string.IsNullOrWhiteSpace(f.Query))
         {
             var s = f.Query.Trim();
-            q = q.Where(x => x.a.DisplayName.Contains(s) || x.a.Email.Contains(s.ToLower()));
+            rows = rows.Where(r => r.DisplayName.Contains(s) || r.UserName.Contains(s, StringComparison.OrdinalIgnoreCase) || r.Email.Contains(s, StringComparison.OrdinalIgnoreCase)).ToList();
         }
-        if (!string.IsNullOrWhiteSpace(f.Role)) q = q.Where(x => x.m.Roles.Any(r => r.Role == f.Role));
-        if (f.Group == "-") q = q.Where(x => x.m.GroupLabel == null);
-        else if (!string.IsNullOrWhiteSpace(f.Group)) q = q.Where(x => x.m.GroupLabel == f.Group);
+        if (!string.IsNullOrWhiteSpace(f.Role)) rows = rows.Where(r => (r.RoleCode ?? "") == (f.Role == "-" ? "" : f.Role)).ToList();
+        return rows.OrderBy(r => r.DisplayName, ko).ToList();
+    }
 
-        var rows = await q.ToListAsync(ct);
-        return rows
-            .Select(x => new MemberRow(x.m.Id, x.a.Id, x.a.DisplayName, x.a.Email, x.m.Status,
-                Infrastructure.Data.Roles.All.Where(r => x.m.Roles.Any(mr => mr.Role == r)).ToList(), x.m.GroupLabel, x.m.RequestedUtc))
-            .OrderBy(r => r.DisplayName, StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false))
-            .ToList();
+    private static async Task<Dictionary<string, string>> RoleNamesAsync(AppDbContext ctx, CancellationToken ct) =>
+        await ctx.CodeData.AsNoTracking().Where(c => c.MajorCD == CodeData.RoleMajor && c.MinorCD != null)
+            .ToDictionaryAsync(c => c.MinorCD!, c => c.MinorNM ?? c.MinorCD!, ct);
+
+    private static string Label(string? code, Dictionary<string, string> names) =>
+        string.IsNullOrWhiteSpace(code) ? UserRole.LabelOf(UserRoleKind.Parent) : names.GetValueOrDefault(code.Trim(), UserRole.LabelOf(UserRole.KindOf(code)));
+
+    private static async Task<HashSet<string>> AdminIdsAsync(AppDbContext ctx, CancellationToken ct) =>
+        (await (from ur in ctx.UserRoles
+                join r in ctx.IdentityRoleRows on ur.RoleId equals r.Id
+                where r.Name == IdentityRoles.Admin
+                select ur.UserId).ToListAsync(ct)).ToHashSet();
+
+    /// <summary>이 부서의 역할 코드 목록(화면의 고르기).</summary>
+    public async Task<List<(string Code, string Name)>> RoleCodesAsync(CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        return (await ctx.CodeData.AsNoTracking().Where(c => c.MajorCD == CodeData.RoleMajor && c.MinorCD != null).OrderBy(c => c.DisplayOrder).ThenBy(c => c.Id)
+            .Select(c => new { c.MinorCD, c.MinorNM }).ToListAsync(ct)).Select(c => (c.MinorCD!, c.MinorNM ?? c.MinorCD!)).ToList();
     }
 
     public async Task<Dictionary<string, int>> CountsAsync(CancellationToken ct = default)
     {
         await using var ctx = db.Create();
-        return await ctx.Memberships.GroupBy(m => m.Status).Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N, ct);
-    }
-
-    public async Task<List<string>> GroupsAsync(CancellationToken ct = default)
-    {
-        await using var ctx = db.Create();
-        return await ctx.Memberships.Where(m => m.GroupLabel != null).Select(m => m.GroupLabel!).Distinct().OrderBy(g => g).ToListAsync(ct);
-    }
-
-    /// <summary>승인 + 역할 + 반. 신청 상태만 승인할 수 있다.</summary>
-    public Task<MemberError> ApproveAsync(int actorAccountId, int membershipId, IReadOnlyCollection<string> roles, string? group, CancellationToken ct = default) =>
-        SaveAsync(actorAccountId, membershipId, roles, group, approve: true, ct);
-
-    /// <summary>승인된 소속의 역할 · 반 바꾸기.</summary>
-    public Task<MemberError> UpdateAsync(int actorAccountId, int membershipId, IReadOnlyCollection<string> roles, string? group, CancellationToken ct = default) =>
-        SaveAsync(actorAccountId, membershipId, roles, group, approve: false, ct);
-
-    private async Task<MemberError> SaveAsync(int actor, int membershipId, IReadOnlyCollection<string> roles, string? group, bool approve, CancellationToken ct)
-    {
-        var want = roles.Where(r => Infrastructure.Data.Roles.All.Contains(r)).Distinct().ToList();
-        if (want.Count == 0) return MemberError.NoRole;
-
-        await using var ctx = db.Create();
-        var m = await ctx.Memberships.Include(x => x.Roles).SingleOrDefaultAsync(x => x.Id == membershipId, ct);
-        if (m is null) return MemberError.NotFound;
-        if (approve ? m.Status != MembershipStatus.Requested : m.Status != MembershipStatus.Approved) return MemberError.BadState;
-        if (m.AccountId == actor && m.Roles.Any(r => r.Role == Infrastructure.Data.Roles.TenantAdmin) && !want.Contains(Infrastructure.Data.Roles.TenantAdmin))
-            return MemberError.SelfAdminRemove;
-
-        ctx.MembershipRoles.RemoveRange(m.Roles.Where(r => !want.Contains(r.Role)));
-        foreach (var r in want.Where(r => m.Roles.All(x => x.Role != r)))
-            m.Roles.Add(new MembershipRole { TenantId = m.TenantId, MembershipId = m.Id, Role = r });
-        m.GroupLabel = string.IsNullOrWhiteSpace(group) ? null : group.Trim()[..Math.Min(group.Trim().Length, 50)];
-
-        // 참여자 역할 ↔ 참여자 행(점수 · 수행 기록의 주인). 역할을 빼면 멈추기만 하고 기록은 남긴다.
-        var participant = await ctx.Participants.SingleOrDefaultAsync(p => p.MembershipId == m.Id, ct);
-        if (want.Contains(Infrastructure.Data.Roles.Participant))
+        var counts = await ctx.SignupApplications.GroupBy(a => a.Status).Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N, ct);
+        return new Dictionary<string, int>
         {
-            if (participant is null) ctx.Participants.Add(new Participant { TenantId = m.TenantId, MembershipId = m.Id });
-            else participant.IsActive = true;
-        }
-        else if (participant is not null) participant.IsActive = false;
-        if (approve)
+            [MembershipStatus.Requested] = counts.GetValueOrDefault(SignupStatus.Pending),
+            [MembershipStatus.Rejected] = counts.GetValueOrDefault(SignupStatus.Rejected),
+            [MembershipStatus.Approved] = await ctx.DeptRoles.CountAsync(ct),
+        };
+    }
+
+    /// <summary>신청 승인: 역할 코드(비면 학부모)로 소속을 만든다. 임시 부서에 있던 사람이면 기록도 옮긴다(R-173 · R-174).</summary>
+    public async Task<MemberError> ApproveAsync(string actor, int applicationId, string? roleCode, CancellationToken ct = default)
+    {
+        await using (var ctx = db.Create())
         {
-            m.Status = MembershipStatus.Approved;
-            m.DecidedUtc = time.GetUtcNow().UtcDateTime;
-            m.DecidedByAccountId = actor;
+            var mine = await ctx.SignupApplications.AnyAsync(a => a.Id == applicationId && a.Status == SignupStatus.Pending, ct);
+            if (!mine) return await ctx.SignupApplications.AnyAsync(a => a.Id == applicationId, ct) ? MemberError.BadState : MemberError.NotFound;
         }
-        await ctx.SaveChangesAsync(ct);
-        // R-173 · R-174: 처음 승인된 진짜 부서면 임시 부서 기록을 옮기고 임시 소속을 멈춘다(0064). 임시 부서 자신의 승인은 아님
-        if (approve && !tenant.IsLobby) await lobby.LeaveAsync(actor, m.AccountId, m.TenantId, ct);
+        await using var sys = systemDb.Create(actor);
+        await using var tx = sys.Database.IsRelational() ? await sys.Database.BeginTransactionAsync(ct) : null;
+        var now = time.GetUtcNow().UtcDateTime;
+        var me = tenant.Current.Id;
+        var a = await sys.SignupApplications.SingleAsync(x => x.TenantId == me && x.Id == applicationId, ct);
+        var user = await sys.Users.SingleAsync(u => u.Id == a.UserId, ct);
+        var (error, moved) = await DeptMembership.PlaceAsync(sys, user, me, Clean(roleCode), now, ct);
+        if (error == MoveError.TeamLocked) return MemberError.TeamLocked;
+        a.Status = SignupStatus.Approved;
+        a.DecidedDT = now;
+        a.DecidedBy = actor;
+        if (moved.Activities + moved.QuizAttempts + moved.Skipped > 0)
+            sys.AuditLogs.Add(new AuditLog
+            {
+                OccurredUtc = now, ActorUserName = actor, Action = LobbyService.MovedAction, TenantId = me,
+                Detail = $"account={user.UserName} activities={moved.Activities} points={moved.Points} quiz={moved.QuizAttempts} skipped={moved.Skipped}",
+            });
+        await sys.SaveChangesAsync(ct);
+        if (tx is not null) await tx.CommitAsync(ct);
         return MemberError.None;
     }
 
-    /// <summary>
-    /// 여러 명 반 바꾸기(확정 시안: 관리-소속관리). 이 부서의 승인된 참여자만 바꾸고 나머지 번호는 건너뛴다.
-    /// 반은 표시 · 필터용이라(용어집 GroupLabel) 따로 기록을 남기지 않는다. 빈칸 = 반 없음. 바꾼 사람 수를 돌려준다.
-    /// </summary>
-    public async Task<int> RegroupAsync(IReadOnlyCollection<int> membershipIds, string? group, CancellationToken ct = default)
-    {
-        var ids = membershipIds.Distinct().ToList();
-        if (ids.Count == 0) return 0;
-        var label = string.IsNullOrWhiteSpace(group) ? null : group.Trim()[..Math.Min(group.Trim().Length, 50)];
-        await using var ctx = db.Create();
-        var targets = await ctx.Memberships.Where(m => ids.Contains(m.Id) && m.Status == MembershipStatus.Approved
-            && m.Roles.Any(r => r.Role == Infrastructure.Data.Roles.Participant)).ToListAsync(ct);
-        foreach (var m in targets) m.GroupLabel = label;
-        await ctx.SaveChangesAsync(ct);
-        return targets.Count;
-    }
-
-    public async Task<MemberError> RejectAsync(int actor, int membershipId, CancellationToken ct = default) =>
-        await ChangeStatusAsync(actor, membershipId, MembershipStatus.Requested, MembershipStatus.Rejected, ct);
-
-    public async Task<MemberError> SuspendAsync(int actor, int membershipId, CancellationToken ct = default) =>
-        await ChangeStatusAsync(actor, membershipId, MembershipStatus.Approved, MembershipStatus.Suspended, ct);
-
-    public async Task<MemberError> ResumeAsync(int actor, int membershipId, CancellationToken ct = default) =>
-        await ChangeStatusAsync(actor, membershipId, MembershipStatus.Suspended, MembershipStatus.Approved, ct);
-
-    private async Task<MemberError> ChangeStatusAsync(int actor, int membershipId, string from, string to, CancellationToken ct)
+    public async Task<MemberError> RejectAsync(string actor, int applicationId, CancellationToken ct = default)
     {
         await using var ctx = db.Create();
-        var m = await ctx.Memberships.SingleOrDefaultAsync(x => x.Id == membershipId, ct);
-        if (m is null) return MemberError.NotFound;
-        if (m.Status != from) return MemberError.BadState;
-        if (to == MembershipStatus.Suspended && m.AccountId == actor) return MemberError.SelfSuspend;
-        m.Status = to;
-        m.DecidedUtc = time.GetUtcNow().UtcDateTime;
-        m.DecidedByAccountId = actor;
+        var a = await ctx.SignupApplications.SingleOrDefaultAsync(x => x.Id == applicationId, ct);
+        if (a is null) return MemberError.NotFound;
+        if (a.Status != SignupStatus.Pending) return MemberError.BadState;
+        a.Status = SignupStatus.Rejected;
+        a.DecidedDT = time.GetUtcNow().UtcDateTime;
+        a.DecidedBy = actor;
         await ctx.SaveChangesAsync(ct);
         return MemberError.None;
     }
 
-    // ── 보호 관계(R-132): 1차는 소속 관리의 줄 편집 안에서 연결한다 ──
-
-    /// <summary>이 부서에서 보호자 역할이 있는 승인된 소속.</summary>
-    public async Task<List<(int MembershipId, string Name)>> GuardiansAsync(CancellationToken ct = default)
+    /// <summary>역할 바꾸기. 새 역할과 맞지 않는 팀에서는 빠지고, 시상 기록이 있는 팀이면 막는다(유년부 FitTeamToRole).</summary>
+    public async Task<MemberError> ChangeRoleAsync(int deptRoleId, string? roleCode, CancellationToken ct = default)
     {
         await using var ctx = db.Create();
-        return (await (from m in ctx.Memberships
-                       where m.Status == MembershipStatus.Approved && m.Roles.Any(r => r.Role == Infrastructure.Data.Roles.Guardian)
-                       join a in ctx.Accounts on m.AccountId equals a.Id
-                       orderby a.DisplayName
-                       select new { m.Id, a.DisplayName }).ToListAsync(ct))
-            .Select(x => (x.Id, x.DisplayName)).ToList();
-    }
-
-    /// <summary>참여자 소속 Id → 연결된 보호자 소속 Id 목록.</summary>
-    public async Task<Dictionary<int, List<int>>> LinksAsync(CancellationToken ct = default)
-    {
-        await using var ctx = db.Create();
-        var rows = await (from l in ctx.GuardianLinks
-                          join p in ctx.Participants on l.ParticipantId equals p.Id
-                          select new { p.MembershipId, l.GuardianMembershipId }).ToListAsync(ct);
-        return rows.GroupBy(r => r.MembershipId).ToDictionary(g => g.Key, g => g.Select(x => x.GuardianMembershipId).ToList());
-    }
-
-    public async Task<MemberError> LinkGuardianAsync(int actor, int guardianMembershipId, int participantMembershipId, CancellationToken ct = default)
-    {
-        await using var ctx = db.Create();
-        var participant = await ctx.Participants.SingleOrDefaultAsync(p => p.MembershipId == participantMembershipId && p.IsActive, ct);
-        var guardianOk = await ctx.Memberships.AnyAsync(m => m.Id == guardianMembershipId && m.Status == MembershipStatus.Approved
-            && m.Roles.Any(r => r.Role == Infrastructure.Data.Roles.Guardian), ct);
-        if (participant is null || !guardianOk) return MemberError.NotFound;
-        if (await ctx.GuardianLinks.AnyAsync(l => l.GuardianMembershipId == guardianMembershipId && l.ParticipantId == participant.Id, ct)) return MemberError.None;
-        ctx.GuardianLinks.Add(new GuardianLink { TenantId = tenant.Current.Id, GuardianMembershipId = guardianMembershipId, ParticipantId = participant.Id,
-            CreatedUtc = time.GetUtcNow().UtcDateTime, CreatedByAccountId = actor });
+        var d = await ctx.DeptRoles.SingleOrDefaultAsync(x => x.Id == deptRoleId, ct);
+        if (d is null) return MemberError.NotFound;
+        var userName = await ctx.Users.Where(u => u.Id == d.UserId).Select(u => u.UserName).SingleAsync(ct);
+        var code = Clean(roleCode);
+        if (!await FamilyTeamService.FitTeamToRoleAsync(ctx, tenant.Current.Id, userName!, UserRole.KindOf(code), ct)) return MemberError.TeamLocked;
+        d.RoleCode = code;
+        d.UpdateDT = time.GetUtcNow().UtcDateTime;
         await ctx.SaveChangesAsync(ct);
         return MemberError.None;
     }
 
-    public async Task<MemberError> UnlinkGuardianAsync(int guardianMembershipId, int participantMembershipId, CancellationToken ct = default)
+    /// <summary>이 부서의 관리자 지정 · 해제(Identity Admin 역할). 나 자신의 관리자 권한은 뺄 수 없다.</summary>
+    public async Task<MemberError> SetAdminAsync(string actor, int deptRoleId, bool admin, CancellationToken ct = default)
     {
         await using var ctx = db.Create();
-        var link = await (from l in ctx.GuardianLinks
-                          join p in ctx.Participants on l.ParticipantId equals p.Id
-                          where l.GuardianMembershipId == guardianMembershipId && p.MembershipId == participantMembershipId
-                          select l).SingleOrDefaultAsync(ct);
+        var d = await ctx.DeptRoles.AsNoTracking().SingleOrDefaultAsync(x => x.Id == deptRoleId, ct);
+        if (d is null) return MemberError.NotFound;
+        var user = await ctx.Users.AsNoTracking().SingleAsync(u => u.Id == d.UserId, ct);
+        if (user.UserName == actor && !admin) return MemberError.SelfAdminRemove;
+        await using var sys = systemDb.Create(actor);
+        var role = await sys.IdentityRoleRows.SingleAsync(r => r.Name == IdentityRoles.Admin, ct);
+        var row = await sys.UserRoles.SingleOrDefaultAsync(r => r.UserId == user.Id && r.RoleId == role.Id, ct);
+        if (admin && row is null) sys.UserRoles.Add(new AppUserRole { UserId = user.Id, RoleId = role.Id });
+        else if (!admin && row is not null) sys.UserRoles.Remove(row);
+        await sys.SaveChangesAsync(ct);
+        return MemberError.None;
+    }
+
+    private static string? Clean(string? code) => string.IsNullOrWhiteSpace(code) ? null : code.Trim();
+
+    // ── 보호 관계(R-132) ──
+
+    /// <summary>이 부서의 학부모(역할 코드 없음): 아이디 · 이름.</summary>
+    public async Task<List<(string UserName, string Name)>> GuardiansAsync(CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        return (await (from d in ctx.DeptRoles
+                       where d.RoleCode == null || d.RoleCode == ""
+                       join u in ctx.Users on d.UserId equals u.Id
+                       select new { u.UserName, u.LastName, u.FirstName }).ToListAsync(ct))
+            .Select(x => (x.UserName!, AppUser.FullName(x.LastName, x.FirstName))).OrderBy(x => x.Item2).ToList();
+    }
+
+    /// <summary>학생 아이디 → 연결된 보호자 아이디 목록.</summary>
+    public async Task<Dictionary<string, List<string>>> LinksAsync(CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var rows = await ctx.GuardianLinks.AsNoTracking().Select(l => new { l.StudentUserName, l.GuardianUserName }).ToListAsync(ct);
+        return rows.GroupBy(r => r.StudentUserName).ToDictionary(g => g.Key, g => g.Select(x => x.GuardianUserName).ToList());
+    }
+
+    public async Task<MemberError> LinkGuardianAsync(string actor, string guardian, string student, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        if (!await IsMemberAsync(ctx, guardian, ct) || !await IsMemberAsync(ctx, student, ct)) return MemberError.NotFound;
+        if (UserRole.KindOf(await RoleCodeOfAsync(ctx, guardian, ct)) != UserRoleKind.Parent) return MemberError.NotFound;
+        if (await ctx.GuardianLinks.AnyAsync(l => l.GuardianUserName == guardian && l.StudentUserName == student, ct)) return MemberError.None;
+        ctx.GuardianLinks.Add(new GuardianLink { TenantId = tenant.Current.Id, GuardianUserName = guardian, StudentUserName = student,
+            CreatedUtc = time.GetUtcNow().UtcDateTime, CreatedByUserName = actor });
+        await ctx.SaveChangesAsync(ct);
+        return MemberError.None;
+    }
+
+    private static Task<string?> RoleCodeOfAsync(AppDbContext ctx, string userName, CancellationToken ct) =>
+        (from d in ctx.DeptRoles join u in ctx.Users on d.UserId equals u.Id where u.UserName == userName select d.RoleCode).FirstOrDefaultAsync(ct);
+
+    private static Task<bool> IsMemberAsync(AppDbContext ctx, string userName, CancellationToken ct) =>
+        (from d in ctx.DeptRoles join u in ctx.Users on d.UserId equals u.Id where u.UserName == userName select d).AnyAsync(ct);
+
+    public async Task<MemberError> UnlinkGuardianAsync(string guardian, string student, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var link = await ctx.GuardianLinks.SingleOrDefaultAsync(l => l.GuardianUserName == guardian && l.StudentUserName == student, ct);
         if (link is null) return MemberError.NotFound;
         ctx.GuardianLinks.Remove(link);
         await ctx.SaveChangesAsync(ct);
@@ -195,10 +218,10 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
     public static string Message(MemberError e) => e switch
     {
         MemberError.NotFound => "이 부서에서 찾을 수 없어요.",
-        MemberError.NoRole => "역할을 하나는 골라 주세요.",
+        MemberError.NoRole => "역할을 골라 주세요.",
         MemberError.BadState => "이미 처리됐어요. 화면을 새로 고쳐 주세요.",
         MemberError.SelfAdminRemove => "내 관리자 역할은 여기서 뺄 수 없어요.",
-        MemberError.SelfSuspend => "나를 정지할 수는 없어요.",
+        MemberError.TeamLocked => "시상 기록이 있는 팀에 있어 바꿀 수 없어요.",
         _ => "",
     };
 }

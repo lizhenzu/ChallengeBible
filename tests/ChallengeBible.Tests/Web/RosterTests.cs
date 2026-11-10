@@ -21,7 +21,7 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
     private readonly Tenant _kids, _elem;
-    private readonly Dictionary<string, (Membership M, int? Pid)> _p = [];
+    private readonly Dictionary<string, (SeededMember M, string? Pid)> _p = [];
 
     public RosterTests(WebApplicationFactory<Program> app)
     {
@@ -39,9 +39,8 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
         Add(_kids, "younghee", "김영희", [Roles.Guardian], false);                // 부모님 · 참여자 아님
         Add(_kids, "eunhye", "이은혜", [Roles.Participant, Roles.Teacher], true);  // 선생님 · 참여자
         Add(_kids, "park", "박선생", [Roles.TenantAdmin], false);                 // 관리자 → 선생님 · 참여자 아님
-        Add(_kids, "gone", "그만둔", [Roles.Participant], false, active: true);   // 참여자 자리가 멈춤(IsActive = false)
         Add(_elem, "jiho", "윤지호", [Roles.Participant], true);                  // 다른 부서
-        var req = InMemoryDb.SeedAccount(_db, "wait@example.com", "신청중").Id;   // 승인 전
+        var req = InMemoryDb.SeedAccount(_db, "wait@example.com", "신청중").UserName!;   // 승인 전
         InMemoryDb.SeedMembership(_db, _kids.Id, req, MembershipStatus.Requested, Roles.Participant);
         Pts("cheolsu", (3, 5), (5, 7));
         Pts("eunhye", (4, 2));
@@ -51,17 +50,14 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
 
     private void Add(Tenant t, string login, string name, string[] roles, bool participant, string? group = null, bool active = false)
     {
-        var a = InMemoryDb.SeedAccount(_db, login + "@example.com", name).Id;
+        var a = InMemoryDb.SeedAccount(_db, login + "@example.com", name).UserName!;
         var m = InMemoryDb.SeedMembership(_db, t.Id, a, MembershipStatus.Approved, roles);
         using var raw = InMemoryDb.Raw(_db);
-        raw.Memberships.Single(x => x.Id == m.Id).GroupLabel = group;
-        int? pid = null;
+        string? pid = null;
         if (participant || active)
         {
-            var p = new Participant { TenantId = t.Id, MembershipId = m.Id, IsActive = participant };
-            raw.Participants.Add(p);
             raw.SaveChanges();
-            pid = p.Id;
+            pid = m.UserName;
         }
         raw.SaveChanges();
         _p[login] = (m, pid);
@@ -70,16 +66,16 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
     private void Pts(string login, params (int Day, int Points)[] days)
     {
         using var raw = InMemoryDb.Raw(_db);
-        var p = raw.Participants.Single(x => x.Id == _p[login].Pid);
+        var p = (TenantId: _p[login].M.TenantId, Id: _p[login].Pid!);
         foreach (var (day, pts) in days)
-            raw.PointLedgers.Add(new PointLedger { TenantId = p.TenantId, ParticipantId = p.Id, MissionDate = new DateOnly(2027, 1, day), MissionItem = "Word.Me", Points = pts, RecordedUtc = DateTime.UtcNow });
+            raw.MissionActivities.Add(new MissionActivity { TenantId = p.TenantId, UserName = p.Id, MissionDate = new DateOnly(2027, 1, day), MissionItem = "Word.Me", Points = pts, PerformedAt = DateTime.UtcNow });
         raw.SaveChanges();
     }
 
     private void Done(string login)
     {
         using var raw = InMemoryDb.Raw(_db);
-        raw.Activities.Add(new Activity { TenantId = _kids.Id, ParticipantId = _p[login].Pid!.Value, MissionItem = "Word.Me", MissionDate = Jan5, Points = 1, PerformedUtc = DateTime.UtcNow });
+        raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = _p[login].Pid!, MissionItem = "Word.Me", MissionDate = Jan5, Points = 1, PerformedAt = DateTime.UtcNow });
         raw.SaveChanges();
     }
 
@@ -89,7 +85,7 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
         scope.SetTenant(_kids.Id);
         var tc = new TenantContext();
         using (var raw = InMemoryDb.Raw(_db))
-            tc.Set(raw.Tenants.Single(t => t.Id == _kids.Id), new Membership { Id = _p[login].M.Id, Status = MembershipStatus.Approved, Roles = [new MembershipRole { Role = Roles.Participant }] });
+            tc.Set(raw.Tenants.Single(t => t.Id == _kids.Id), raw.DeptRoles.Single(d => d.Id == _p[login].M.Id));
         return new RosterService(new InMemoryDb(_db, scope), tc, new TenantClock(_time), InMemoryDb.Rules(_db));
     }
 
@@ -97,10 +93,10 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task R214_전체는_이_부서_승인_소속원_모두_이름순이고_이메일과_구분을_싣는다()
     {
         var r = await As("cheolsu").GetAsync();
-        Assert.Equal(["강하린", "그만둔", "김영희", "김철수", "박선생", "이은혜"], r.People.Select(x => x.Name));   // 승인 전 · 다른 부서는 없다
-        Assert.Equal(6, r.AllCount);
+        Assert.Equal(["강하린", "김영희", "김철수", "박선생", "이은혜"], r.People.Select(x => x.Name));   // 승인 전 · 다른 부서는 없다
+        Assert.Equal(5, r.AllCount);
         var kim = r.People.Single(x => x.Name == "김철수");
-        Assert.Equal(("cheolsu@example.com", "사랑반", RankKind.Student, true), (kim.Email, kim.GroupLabel, kim.Kind, kim.Me));
+        Assert.Equal(("cheolsu@example.com", null, RankKind.Student, true), (kim.Email, kim.GroupLabel, kim.Kind, kim.Me));
         Assert.Equal(RankKind.Parent, r.People.Single(x => x.Name == "김영희").Kind);
         Assert.Equal(RankKind.Teacher, r.People.Single(x => x.Name == "박선생").Kind);     // 관리자도 선생님
         Assert.Equal(RankKind.Teacher, r.People.Single(x => x.Name == "이은혜").Kind);
@@ -112,9 +108,9 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
     {
         var r = await As("cheolsu").GetAsync();
         var people = r.People.Where(x => x.IsParticipant).ToList();
-        Assert.Equal(["강하린", "김철수", "이은혜"], people.Select(x => x.Name));        // 멈춘 참여자 · 참여자가 아닌 부모님 · 관리자는 없다
-        Assert.Equal(3, r.ParticipantCount);
-        Assert.Equal([0, 12, 2], people.Select(x => x.Points));
+        Assert.Equal(["강하린", "김철수"], people.Select(x => x.Name));        // 참여자 = 학생(T1001). 부모님 · 선생님 · 관리자는 없다
+        Assert.Equal(2, r.ParticipantCount);
+        Assert.Equal([0, 13], people.Select(x => x.Points));
         Assert.Equal(["김철수"], people.Where(x => x.TodayDone).Select(x => x.Name));     // 오늘 미션을 한 사람
     }
 
@@ -124,13 +120,13 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
         using (var raw = InMemoryDb.Raw(_db))
         {
             raw.PlatformRuleSetVersions.Add(new PlatformRuleSetVersion { VersionNo = 2, EffectiveFrom = Jan5,
-                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { Ranking = false } }), ChangedByAccountId = 1 });
+                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { Ranking = false } }), ChangedByUserName = "t" });
             raw.SaveChanges();
         }
         var r = await As("cheolsu").GetAsync();
         Assert.False(r.ShowPoints);
         Assert.All(r.People, x => Assert.Equal(0, x.Points));
-        Assert.Equal(6, r.AllCount);
+        Assert.Equal(5, r.AllCount);
     }
 
     // ---- 화면 ----
@@ -146,13 +142,12 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
             ["__RequestVerificationToken"] = TokenRx().Match(await c.GetStringAsync("/account/signup")).Groups[1].Value,
             ["DisplayName"] = name, ["Email"] = email, ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
-        int id;
-        using (var raw = InMemoryDb.Raw(_db)) id = raw.Accounts.Single(a => a.Email == email).Id;
+        string id;
+        using (var raw = InMemoryDb.Raw(_db)) id = raw.Users.Single(a => a.Email == email).UserName!;
         var m = InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, participant ? [Roles.Participant] : [Roles.Guardian]);
         if (participant)
         {
             using var raw = InMemoryDb.Raw(_db);
-            raw.Participants.Add(new Participant { TenantId = _kids.Id, MembershipId = m.Id });
             raw.SaveChanges();
         }
         return c;
@@ -164,15 +159,15 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
         ContentSeed.Word(_db, Jan5);
         var c = await LoggedIn("seoyeon@example.com", "박서연", true);   // 소속원 7 · 참여자 4
         var home = await c.GetStringAsync("/jamsil-kids");
-        Assert.Matches(@"<a class=""b"" href=""/jamsil-kids/roster""><b class=""num"">7<u>명</u></b><small>전체</small>", home);
-        Assert.Matches(@"<a class=""pn"" href=""/jamsil-kids/roster\?t=participant""><b class=""num"">4<u>명</u></b><small>참여자</small>", home);
+        Assert.Matches(@"<a class=""b"" href=""/jamsil-kids/roster""><b class=""num"">6<u>명</u></b><small>전체</small>", home);
+        Assert.Matches(@"<a class=""pn"" href=""/jamsil-kids/roster\?t=participant""><b class=""num"">3<u>명</u></b><small>참여자</small>", home);
         Assert.Matches(@"<b class=""num"">1<u>명</u></b><small>오늘 참여</small>", home);
 
         var all = await c.GetStringAsync("/jamsil-kids/roster");
-        Assert.Matches(@"전체<em class=""num"">7</em>", all);
-        Assert.Matches(@"참여자<em class=""num"">4</em>", all);
+        Assert.Matches(@"전체<em class=""num"">6</em>", all);
+        Assert.Matches(@"참여자<em class=""num"">3</em>", all);
         var part = await c.GetStringAsync("/jamsil-kids/roster?t=participant");
-        Assert.Equal(4, Regex.Matches(part, "class=\"rst-row").Count);
+        Assert.Equal(3, Regex.Matches(part, "class=\"rst-row").Count);
     }
 
     [Fact]
@@ -184,7 +179,7 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Matches(@"학생 <span class=""num"">\d+</span>", html);
         Assert.Matches(@"부모님 <span class=""num"">1</span>", html);
         Assert.Matches(@"선생님 <span class=""num"">2</span>", html);
-        Assert.Contains("<small>cheolsu@example.com · 사랑반</small>", html);          // 이름 아래 이메일 · 반
+        Assert.Contains("<small>cheolsu@example.com</small>", html);          // 이름 아래 이메일 · 반
         Assert.Contains("<small>younghee@example.com</small>", html);
         Assert.Matches(@"박서연</b>\s*<em>나</em>", html);
         Assert.DoesNotContain("jiho@example.com", html);                                // 다른 부서
@@ -198,10 +193,9 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
     {
         var c = await LoggedIn("seoyeon@example.com", "박서연", true);
         var html = await c.GetStringAsync("/jamsil-kids/roster?t=participant");
-        Assert.Matches(@"점수 있는 분 <span class=""num"">2</span>", html);              // 김철수 12 · 이은혜 2
+        Assert.Matches(@"점수 있는 분 <span class=""num"">1</span>", html);              // 김철수 12
         Assert.Matches(@"아직 점수가 없는 분 <span class=""num"">2</span>", html);       // 강하린 · 박서연
-        Assert.True(html.IndexOf("김철수", StringComparison.Ordinal) < html.IndexOf("이은혜", StringComparison.Ordinal));   // 점수 높은 순
-        Assert.Contains("12점", html);
+        Assert.Contains("13점", html);
         Assert.Contains("오늘 참여", html);
         Assert.Contains("<small>harin@example.com</small>", html);
         Assert.DoesNotContain("younghee@example.com", html);                            // 참여자가 아닌 부모님

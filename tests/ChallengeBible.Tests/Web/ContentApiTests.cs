@@ -19,12 +19,12 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
     private const string Url = "/api/platform/quizzes/2027-01-05";
     private readonly string _db = InMemoryDb.NewName();
 
-    private HttpClient Client(string? key = Key, int? actor = null)
+    private HttpClient Client(string? key = Key, string? actor = null)
     {
         var f = app.WithWebHostBuilder(b =>
         {
             b.UseSetting("ContentApi:Key", key ?? "");
-            b.UseSetting("ContentApi:ActorAccountId", actor?.ToString() ?? "");
+            b.UseSetting("ContentApi:ActorUserName", actor?.ToString() ?? "");
             b.ConfigureServices(s =>
             {
                 s.AddScoped<IAppDb>(sp => new InMemoryDb(_db, sp.GetRequiredService<RequestScope>()));
@@ -34,13 +34,13 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
         return f.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
     }
 
-    private int Admin(bool platform = true)
+    private string Admin(bool platform = true)
     {
         var a = InMemoryDb.SeedAccount(_db, $"op{Guid.NewGuid():N}@example.com", "운영자");
         using var raw = InMemoryDb.Raw(_db);
-        raw.Accounts.Single(x => x.Id == a.Id).IsPlatformAdmin = platform;
+        if (platform) InMemoryDb.AddRole(_db, raw.Users.Single(x => x.UserName == a.UserName!).Id, IdentityRoles.SuperAdmin);
         raw.SaveChanges();
-        return a.Id;
+        return a.UserName!;
     }
 
     private static HttpRequestMessage Put(object body, string? key = Key, string url = Url)
@@ -83,7 +83,7 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
         {
             var q = raw.DailyQuizzes.IgnoreQueryFilters().Include(x => x.Choices).Single();
             Assert.Null(q.TenantId);
-            Assert.Equal(actor, q.CreatedByAccountId);
+            Assert.Equal(actor, q.CreatedByUserName);
             Assert.Equal(new DateOnly(2027, 1, 5), q.ExposeDate);
             Assert.Equal("창세기 이야기", q.Background);
             Assert.Equal(["아담", "노아", "모세"], q.Choices.OrderBy(x => x.SortOrder).Select(x => x.Text));
@@ -184,7 +184,7 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
         {
             var w = raw.DailyWords.IgnoreQueryFilters().Single();
             Assert.Null(w.TenantId);
-            Assert.Equal(actor, w.CreatedByAccountId);
+            Assert.Equal(actor, w.CreatedByUserName);
             Assert.Equal(new DateOnly(2027, 1, 5), w.ExposeDate);
             Assert.Equal("믿음의 시작", w.Title);
             Assert.Equal("아브람이 길을 떠나요.", w.Summary);
@@ -256,7 +256,7 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
 
     // ── 관리 화면 "퀴즈 넣기"(키 설정 없이) ──
 
-    private async Task<(HttpClient C, int Id)> SignUp(string login, bool platform)
+    private async Task<(HttpClient C, string Id)> SignUp(string login, bool platform)
     {
         var c = Client(key: null);
         await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
@@ -264,13 +264,13 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
             ["__RequestVerificationToken"] = Token(await c.GetStringAsync("/account/signup")),
             ["DisplayName"] = "운영자", ["Email"] = login + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
-        int id;
+        string id;
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var a = raw.Accounts.Single(x => x.Email == login + "@example.com");
-            a.IsPlatformAdmin = platform;
+            var a = raw.Users.Single(x => x.Email == login + "@example.com");
+            if (platform) InMemoryDb.AddRole(_db, a.Id, IdentityRoles.SuperAdmin);
             raw.SaveChanges();
-            id = a.Id;
+            id = a.UserName!;
         }
         var token = Token(await c.GetStringAsync("/account/login"));   // 관리자 표시는 로그인할 때 읽는다
         await c.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>
@@ -313,7 +313,7 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
         using (var raw = InMemoryDb.Raw(_db))
         {
             var q = raw.DailyQuizzes.IgnoreQueryFilters().Single();
-            Assert.Equal(id, q.CreatedByAccountId);   // 만든 사람 = 로그인한 관리자
+            Assert.Equal(id, q.CreatedByUserName);   // 만든 사람 = 로그인한 관리자
             Assert.Equal(new DateOnly(2027, 1, 5), q.ExposeDate);
         }
         res = await PostScreen(op, "2027-01-05", SampleJson);

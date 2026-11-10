@@ -16,7 +16,7 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
     private readonly WebApplicationFactory<Program> _app;
     private readonly string _db = InMemoryDb.NewName();
     private readonly Tenant _kids;
-    private readonly int _op, _op2, _jieun, _stopped;
+    private readonly string _op, _op2, _jieun, _stopped;
 
     public ImpersonationTests(WebApplicationFactory<Program> app)
     {
@@ -26,18 +26,18 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
             s.AddSingleton<ISystemDb>(new InMemorySystemDb(_db));
         }));
         _kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
-        _op = InMemoryDb.SeedAccount(_db, "operator@example.com", "운영자").Id;
-        _op2 = InMemoryDb.SeedAccount(_db, "operator2@example.com", "운영자2").Id;
-        _jieun = InMemoryDb.SeedAccount(_db, "jieun@example.com", "박지은").Id;
-        _stopped = InMemoryDb.SeedAccount(_db, "stop@example.com", "정지됨").Id;
+        _op = InMemoryDb.SeedAccount(_db, "operator@example.com", "운영자").UserName!;
+        _op2 = InMemoryDb.SeedAccount(_db, "operator2@example.com", "운영자2").UserName!;
+        _jieun = InMemoryDb.SeedAccount(_db, "jieun@example.com", "박지은").UserName!;
+        _stopped = InMemoryDb.SeedAccount(_db, "stop@example.com", "정지됨").UserName!;
         InMemoryDb.SeedMembership(_db, _kids.Id, _jieun, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
         using var raw = InMemoryDb.Raw(_db);
-        foreach (var a in raw.Accounts)
+        foreach (var a in raw.Users)
         {
-            a.PasswordHash = new PasswordHasher<Account>().HashPassword(a, "1234");
-            a.IsPlatformAdmin = a.Id == _op || a.Id == _op2;
-            if (a.Id == _stopped) a.Status = "Disabled";
-            if (a.Id == _jieun) a.MustChangePassword = true;   // 가장할 때는 남의 비밀번호 바꾸기로 보내지 않는다
+            a.PasswordHash = new PasswordHasher<AppUser>().HashPassword(a, "1234");
+            if (a.UserName == _op || a.UserName == _op2) InMemoryDb.AddRole(_db, a.Id, IdentityRoles.SuperAdmin);
+            if (a.UserName == _stopped) a.LockoutEnd = DateTimeOffset.MaxValue;
+            if (a.Id == _jieun) if (true) raw.UserSettings.Add(new UserSetting { UserName = a.UserName!, MustChangePassword = true });   // 가장할 때는 남의 비밀번호 바꾸기로 보내지 않는다
         }
         raw.SaveChanges();
     }
@@ -83,7 +83,7 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
         // 이름 · 비밀번호 바꾸기는 막힘
         var name = await Post(c, "/account?handler=Name", "/account", ("DisplayName", "바뀐 이름"));
         Assert.DoesNotContain("Ok=name", name.Headers.Location?.OriginalString ?? "");
-        Assert.Equal("박지은", InMemoryDb.Raw(_db).Accounts.Single(a => a.Id == _jieun).DisplayName);
+        Assert.Equal("박지은", InMemoryDb.Raw(_db).Users.Single(a => a.UserName == _jieun).DisplayName);
 
         // 복귀
         var back = await Post(c, "/account/impersonate/stop", "/jamsil-kids");
@@ -94,7 +94,7 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
         using var raw = InMemoryDb.Raw(_db);
         var logs = raw.AuditLogs.Where(l => l.Action.StartsWith("Impersonate")).OrderBy(l => l.Id).ToList();
         Assert.Equal([ImpersonationService.StartAction, ImpersonationService.StopAction], logs.Select(l => l.Action));
-        Assert.All(logs, l => Assert.Equal((_op, (int?)_op), (l.ActorAccountId, l.ImpersonatorAccountId)));
+        Assert.All(logs, l => Assert.Equal((_op, _op), (l.ActorUserName, l.ImpersonatorUserName)));
         Assert.All(logs, l => Assert.Equal($"account={_jieun}", l.Detail));
     }
 
@@ -120,18 +120,18 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
         {
             using (var ctx = InMemoryDb.Raw(_db))
             {
-                ctx.AuditLogs.Add(new AuditLog { OccurredUtc = DateTime.UtcNow, ActorAccountId = _jieun, Action = "SettingChange" });
+                ctx.AuditLogs.Add(new AuditLog { OccurredUtc = DateTime.UtcNow, ActorUserName = _jieun, Action = "SettingChange" });
                 await ctx.SaveChangesAsync();
             }
             AuditContext.Impersonator = null;
             using (var ctx = InMemoryDb.Raw(_db))
             {
-                ctx.AuditLogs.Add(new AuditLog { OccurredUtc = DateTime.UtcNow, ActorAccountId = _jieun, Action = "SettingChange" });
+                ctx.AuditLogs.Add(new AuditLog { OccurredUtc = DateTime.UtcNow, ActorUserName = _jieun, Action = "SettingChange" });
                 ctx.SaveChanges();
             }
         }
         finally { AuditContext.Impersonator = null; }
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Equal([(int?)_op, null], raw.AuditLogs.OrderBy(l => l.Id).Select(l => l.ImpersonatorAccountId).ToList());
+        Assert.Equal([_op, null], raw.AuditLogs.OrderBy(l => l.Id).Select(l => l.ImpersonatorUserName).ToList());
     }
 }

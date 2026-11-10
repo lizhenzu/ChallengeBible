@@ -21,7 +21,7 @@
     </div>
     @await Html.PartialAsync("_DayCard", p)   @* R-75 *@
     @* 참여자가 다른 날을 볼 때 "보기만" 안내는 주황 카드에 들어 있어 또 쓰지 않는다 *@
-    @if (!p.CanAct && !(p.ParticipantId is not null && !p.IsToday && p.Data!.Window is ChallengeBible.Domain.Missions.WindowResult.Future or ChallengeBible.Domain.Missions.WindowResult.TooOld))
+    @if (!p.CanAct && !(p.UserName is not null && !p.IsToday && p.Data!.Window is ChallengeBible.Domain.Missions.WindowResult.Future or ChallengeBible.Domain.Missions.WindowResult.TooOld))
     {
         <p class="note-block">@p.BlockReason</p>
     }

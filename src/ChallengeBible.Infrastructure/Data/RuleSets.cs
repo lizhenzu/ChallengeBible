@@ -15,7 +15,7 @@ public sealed class PlatformRuleSetVersion
     public required string Values { get; set; }
     public DateOnly EffectiveFrom { get; set; }
     public DateTime ChangedUtc { get; set; }
-    public int ChangedByAccountId { get; set; }
+    public required string ChangedByUserName { get; set; }
 }
 
 internal sealed class PlatformRuleSetVersionConfig : IEntityTypeConfiguration<PlatformRuleSetVersion>
@@ -28,6 +28,6 @@ internal sealed class PlatformRuleSetVersionConfig : IEntityTypeConfiguration<Pl
         e.Property(x => x.Values).HasColumnName("Values");
         e.Property(x => x.EffectiveFrom).HasColumnType("date");
         e.Property(x => x.ChangedUtc).HasColumnType("datetime2(3)");
-        e.HasOne<Account>().WithMany().HasForeignKey(x => x.ChangedByAccountId).HasConstraintName("FK_PlatformRuleSetVersion_Account").OnDelete(DeleteBehavior.NoAction);
+        e.Property(x => x.ChangedByUserName).HasMaxLength(256);
     }
 }

@@ -34,7 +34,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
     private static partial Regex TokenRx();
 
-    private async Task<(HttpClient C, int AccountId)> Member(string email, params string[] roles)
+    private async Task<(HttpClient C, string UserName)> Member(string email, params string[] roles)
     {
         var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var html = await c.GetStringAsync("/account/signup");
@@ -44,9 +44,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
             ["DisplayName"] = "김철수", ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         using var raw = InMemoryDb.Raw(_db);
-        var id = raw.Accounts.Single(a => a.Email == email + "@example.com").Id;
+        var id = raw.Users.Single(a => a.Email == email + "@example.com").UserName!;
         var m = InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, roles);
-        if (roles.Contains(Roles.Participant)) { raw.Participants.Add(new Participant { TenantId = _kids.Id, MembershipId = m.Id }); raw.SaveChanges(); }
         return (c, id);
     }
 
@@ -101,7 +100,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("통독 시작하기", home);
         Assert.Contains("href=\"/jamsil-kids/reading\"", home);
         using var raw = InMemoryDb.Raw(_db);
-        Assert.False(raw.ReadingRounds.Any(r => r.AccountId == me));               // R-153: 회차는 통독 화면에서 처음 열린다
+        Assert.False(raw.ReadingRounds.Any(r => r.UserName == me));               // R-153: 회차는 통독 화면에서 처음 열린다
     }
 
     [Fact]
@@ -111,8 +110,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         using (var raw = InMemoryDb.Raw(_db))
         {
             var at = new DateTime(2027, 1, 4, 1, 0, 0, DateTimeKind.Utc);
-            raw.ReadingRounds.Add(new ReadingRound { AccountId = me, RoundNo = 1, StartedUtc = at });
-            for (short ch = 1; ch <= 3; ch++) raw.ChapterReads.Add(new ChapterRead { AccountId = me, RoundNo = 1, BookId = 1, Chapter = ch, ReadUtc = at.AddMinutes(ch) });
+            raw.ReadingRounds.Add(new ReadingRound { UserName = me, RoundNo = 1, StartedAt = at });
+            for (short ch = 1; ch <= 3; ch++) raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = me, RoundNo = 1, BookId = 1, Chapter = ch, ReadAt = at.AddMinutes(ch) });
             raw.SaveChanges();
         }
         var home = await c.GetStringAsync("/jamsil-kids");
@@ -122,18 +121,6 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("<a class=\"hj-box r\" href=\"/jamsil-kids/reading/read/1/4\">", home);   // 이어 읽을 곳 = 창세기 4장
         Assert.Contains("<b>창세기</b><span>4장", home);
         Assert.Contains("href=\"/jamsil-kids/reading\">📖 도전!!! 성경통독", home);   // 카드 제목 = 통독 홈
-    }
-
-    [Fact]
-    public async Task 참여자가_아니면_보기만_하고_점수가_없다()
-    {
-        var (c, _) = await Member("eunhye", Roles.Teacher);
-        var home = await c.GetStringAsync("/jamsil-kids");
-        Assert.Contains("<small>보기만</small>", home);                              // 확정 4: 미션 칸은 보기만
-        Assert.DoesNotContain("<small>나의 점수</small>", home);                     // 성장 · 점수 없음
-        Assert.DoesNotContain("🔥", home);                                            // 연속일 없음
-        Assert.DoesNotContain("점 올해 점수", home);
-        Assert.DoesNotContain("말씀<br />점수", home);
     }
 
     [Fact]

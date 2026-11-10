@@ -13,14 +13,12 @@ public enum JoinError { None, NotFound, AlreadyMember, NoRole, BadRole }
 
 /// <summary>
 /// 목록에서 부서를 고르거나(0059) 참여 코드로 부서를 찾아 참여 신청을 한다(0045, 0048). 신청은 "신청" 상태 소속을 만들고,
-/// 부서 관리자가 승인하면 그때 쓸 수 있다(R-130). 신청할 수 있는 역할은 참여자 · 보호자뿐이다.
+/// 부서 관리자가 승인하면 그때 쓸 수 있다(R-130). 역할은 학생 · 교사 · 학부모 · 기타 중 하나만 묻는다(유년부와 같다).
 /// 임시 부서(0064)는 신청 대상이 아니다(목록 · 코드 · 번호 모두에서 뺌) — 가입하면 저절로 들어간다.
 /// </summary>
 public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time)
 {
-    public static readonly string[] AllowedRoles = [Roles.Participant, Roles.Guardian];
-
-    public static string NormalizeCode(string code) =>
+        public static string NormalizeCode(string code) =>
         new string((code ?? "").Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
 
     /// <summary>정지된 부서는 "없음"과 똑같이 답한다(0048 결정 5).</summary>
@@ -50,7 +48,7 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
     /// 목록에서 고른 부서로 신청(0059). 목록에 없는 부서는 그 부서의 코드를 함께 받아야 한다
     /// (부서 주소 · 코드로 찾은 경우) — Id 만 바꿔 숨긴 부서에 신청하지 못하게.
     /// </summary>
-    public async Task<(JoinError Error, int? MembershipId)> ApplyAsync(int accountId, int tenantId, string? code, IReadOnlyCollection<string> roles, CancellationToken ct = default)
+    public async Task<(JoinError Error, int? ApplicationId)> ApplyAsync(string userName, int tenantId, string? code, string roleKind, CancellationToken ct = default)
     {
         var c = NormalizeCode(code ?? "");
         JoinTarget? target;
@@ -59,47 +57,46 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
                 .Where(t => t.Id == tenantId && t.Status == TenantStatus.Active && !t.IsLobby && (t.JoinListed || t.JoinCode == c))
                 .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled))
                 .SingleOrDefaultAsync(ct);
-        return await ApplyToAsync(accountId, target, roles, ct);
+        return await ApplyToAsync(userName, target, roleKind, ct);
     }
 
-    public async Task<(JoinError Error, int? MembershipId)> ApplyAsync(int accountId, string code, IReadOnlyCollection<string> roles, CancellationToken ct = default) =>
-        await ApplyToAsync(accountId, await LookupAsync(code, ct), roles, ct);
+    public async Task<(JoinError Error, int? ApplicationId)> ApplyAsync(string userName, string code, string roleKind, CancellationToken ct = default) =>
+        await ApplyToAsync(userName, await LookupAsync(code, ct), roleKind, ct);
 
-    private async Task<(JoinError Error, int? MembershipId)> ApplyToAsync(int accountId, JoinTarget? target, IReadOnlyCollection<string> roles, CancellationToken ct)
+    private async Task<(JoinError Error, int? ApplicationId)> ApplyToAsync(string userName, JoinTarget? target, string roleKind, CancellationToken ct)
     {
-        if (roles.Count == 0) return (JoinError.NoRole, null);
-        if (roles.Any(r => !AllowedRoles.Contains(r))) return (JoinError.BadRole, null);
+        if (string.IsNullOrEmpty(roleKind)) return (JoinError.NoRole, null);
+        if (!SignupRoleKind.All.Contains(roleKind)) return (JoinError.BadRole, null);
         if (target is null) return (JoinError.NotFound, null);
 
         // 신청은 그 부서의 행을 만드는 일이라, 이 요청의 영역을 그 부서로 정한 뒤 새 연결로 쓴다(RLS BLOCK 조건).
         scope.SetTenant(target.TenantId);
         await using var ctx = db.Create();
-        if (await ctx.Memberships.AnyAsync(m => m.AccountId == accountId, ct))
+        var user = await ctx.Users.AsNoTracking().SingleAsync(u => u.UserName == userName, ct);
+        // 한 사람 한 부서(0090): 임시 부서가 아닌 소속이 있거나 어디든 기다리는 신청이 있으면 또 신청할 수 없다
+        var lobbies = ctx.Tenants.Where(t => t.IsLobby).Select(t => t.Id);
+        if (await ctx.DeptRoles.IgnoreQueryFilters().AnyAsync(d => d.UserId == user.Id && !lobbies.Contains(d.TenantId), ct)
+            || await ctx.SignupApplications.IgnoreQueryFilters().AnyAsync(a => a.UserName == userName && a.Status == SignupStatus.Pending, ct))
             return (JoinError.AlreadyMember, null);
 
-        var m = new Membership
+        var a = new SignupApplication
         {
-            TenantId = target.TenantId,
-            AccountId = accountId,
-            Status = MembershipStatus.Requested,
-            RequestedUtc = time.GetUtcNow().UtcDateTime,
-            Roles = roles.Distinct().Select(r => new MembershipRole { TenantId = target.TenantId, Role = r }).ToList(),
+            TenantId = target.TenantId, UserId = user.Id, UserName = userName, FullName = user.DisplayName,
+            RoleKind = roleKind, InsertDT = time.GetUtcNow().UtcDateTime,
         };
-        ctx.Memberships.Add(m);
+        ctx.SignupApplications.Add(a);
         await ctx.SaveChangesAsync(ct);
-        return (JoinError.None, m.Id);
+        return (JoinError.None, a.Id);
     }
 
     /// <summary>본인 신청 취소 — 아직 "신청" 상태일 때만.</summary>
-    public async Task<bool> CancelAsync(int accountId, int tenantId, CancellationToken ct = default)
+    public async Task<bool> CancelAsync(string userName, int tenantId, CancellationToken ct = default)
     {
         scope.SetTenant(tenantId);
         await using var ctx = db.Create();
-        var m = await ctx.Memberships.Include(x => x.Roles)
-            .SingleOrDefaultAsync(x => x.AccountId == accountId && x.Status == MembershipStatus.Requested, ct);
-        if (m is null) return false;
-        ctx.MembershipRoles.RemoveRange(m.Roles);
-        ctx.Memberships.Remove(m);
+        var a = await ctx.SignupApplications.SingleOrDefaultAsync(x => x.UserName == userName && x.Status == SignupStatus.Pending, ct);
+        if (a is null) return false;
+        ctx.SignupApplications.Remove(a);
         await ctx.SaveChangesAsync(ct);
         return true;
     }
@@ -109,7 +106,7 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
         JoinError.NotFound => "이 코드로 찾은 부서가 없어요. 선생님께 다시 물어봐 주세요.",
         JoinError.AlreadyMember => "이미 이 부서에 신청했거나 들어가 있어요.",
         JoinError.NoRole => "하나는 골라 주세요.",
-        JoinError.BadRole => "교사 · 관리자 역할은 신청할 수 없어요. 선생님이 정해 줘요.",
+        JoinError.BadRole => "역할을 다시 골라 주세요.",
         _ => "",
     };
 }

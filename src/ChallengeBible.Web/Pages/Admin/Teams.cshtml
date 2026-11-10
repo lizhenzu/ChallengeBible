@@ -6,7 +6,7 @@
 @{
     var slug = Model.Tenant.Current.Slug;
     string Short(string n) => n.Length > 2 ? n[1..] : n;
-    string Who(FamilySolo s) => s.IsGuardian ? "보호자 · 참여자" : (s.GroupLabel ?? "반 없음");
+    string Who(FamilySolo s) => s.IsGuardian ? "학부모" : "학생";
 }
 <partial name="_AdminTop" model="Model.Tenant" />
 <main class="admin gut"><div class="wrap wide">
@@ -54,7 +54,7 @@
                                 {
                                     <li>
                                         <span class="av">@Short(m.Name)</span>
-                                        <span class="nm"><b>@m.Name</b><small>@FamilyTeamService.RelationLabel(m.Relation) · @(m.GroupLabel ?? "반 없음")</small></span>
+                                        <span class="nm"><b>@m.Name</b><small>@FamilyTeamService.RelationLabel(m.Relation)</small></span>
                                         <span class="pt num">@(m.Points)점</span>
                                         <form method="post" asp-page-handler="Remove" asp-route-slug="@slug" asp-route-Q="@Model.Q">
                                             <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="member" value="@m.MemberId" />
@@ -64,29 +64,6 @@
                                 }
                             </ul>
                         </div>
-                        @foreach (var of in Model.LinkedFamiliesOf(t))
-                        {
-                            // 확정 시안 온가족 "부서 관리자": 총점은 참고만, 다른 부서 사람은 이름을 가림(R-178)
-                            var hidden = of.People.Where(p => p.Hidden).ToList();
-                            <div class="ofam">
-                                <h3>온가족 <span>· 참고만, 시상은 이 가족팀 점수로</span></h3>
-                                <section class="of-total soft" aria-label="온가족 총점">
-                                    <small>@of.Name · 처음부터</small>
-                                    <b class="num">@of.Total.ToString("N0")<i>점</i></b>
-                                    <span class="meta">우리 부서 @(of.People.Count - hidden.Count)명@(hidden.Count > 0 ? $" + 다른 부서 {hidden.Count}명" : "")</span>
-                                </section>
-                                <div class="of-mem">
-                                    @foreach (var p in of.People.Where(p => !p.Hidden))
-                                    {
-                                        <div class="of-m"><span class="av" aria-hidden="true">@ChallengeBible.Web.Pages.Account.FamilyModel.Initial(p.Name)</span><span class="tx"><b>@p.Name<em>@FamilyTeamService.RelationLabel(p.Relation)</em></b></span><span class="pt"><b class="num">@p.Points.ToString("N0")</b></span></div>
-                                    }
-                                    @if (hidden.Count > 0)
-                                    {
-                                        <div class="of-m hid"><span class="av" aria-hidden="true">?</span><span class="tx"><b>다른 부서 @(hidden.Count)명</b><small>이름은 그 부서에서만 보여요</small></span><span class="pt"><b class="num">@hidden.Sum(p => p.Points).ToString("N0")</b><small>합계</small></span></div>
-                                    }
-                                </div>
-                            </div>
-                        }
                     </div>
                 </details>
             </li>

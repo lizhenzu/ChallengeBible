@@ -16,10 +16,10 @@ public sealed class OpsService(ISystemDb systemDb, AppInfo app, TimeProvider tim
 {
     public const string PlatformTimeZone = PlatformHomeService.PlatformTimeZone;
 
-    private async Task<AppDbContext> OpenAsync(int actor, CancellationToken ct)
+    private async Task<AppDbContext> OpenAsync(string actor, CancellationToken ct)
     {
         var ctx = systemDb.Create(actor);
-        if (!await ctx.Accounts.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
+        if (!await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct))
         {
             await ctx.DisposeAsync();
             throw new UnauthorizedAccessException("플랫폼 관리자만 볼 수 있어요.");
@@ -27,7 +27,7 @@ public sealed class OpsService(ISystemDb systemDb, AppInfo app, TimeProvider tim
         return ctx;
     }
 
-    public async Task<IReadOnlyList<OpsCheck>> ChecksAsync(int actor, CancellationToken ct = default)
+    public async Task<IReadOnlyList<OpsCheck>> ChecksAsync(string actor, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var relational = ctx.Database.IsRelational();
@@ -73,8 +73,8 @@ public sealed class OpsService(ISystemDb systemDb, AppInfo app, TimeProvider tim
         var now = time.GetUtcNow().UtcDateTime;
         var seoul = TimeZoneInfo.ConvertTimeFromUtc(now, TimeZoneInfo.FindSystemTimeZoneById(PlatformTimeZone));
         list.Add(new("서버 시각", CheckState.Ok, $"한국 {seoul:yyyy-MM-dd HH:mm} · UTC {now:HH:mm}"));
-        var up = now - app.StartedUtc;
-        var started = TimeZoneInfo.ConvertTimeFromUtc(app.StartedUtc, TimeZoneInfo.FindSystemTimeZoneById(PlatformTimeZone));
+        var up = now - app.StartedAt;
+        var started = TimeZoneInfo.ConvertTimeFromUtc(app.StartedAt, TimeZoneInfo.FindSystemTimeZoneById(PlatformTimeZone));
         list.Add(new("가동", CheckState.Ok, $"{(up.TotalDays >= 1 ? $"{(int)up.TotalDays}일 " : "")}{up.Hours}시간 {up.Minutes}분 · {started:M월 d일 HH:mm} 시작"));
         var built = TimeZoneInfo.ConvertTimeFromUtc(app.BuiltUtc, TimeZoneInfo.FindSystemTimeZoneById(PlatformTimeZone));
         list.Add(new("버전", CheckState.Ok, $"{(app.Commit.Length == 0 ? "커밋 정보 없음" : app.Commit[..Math.Min(7, app.Commit.Length)])} · 빌드 {built:M월 d일 HH:mm}"));
@@ -113,14 +113,14 @@ public sealed class OpsService(ISystemDb systemDb, AppInfo app, TimeProvider tim
 
     /// <summary>감사 로그(최근부터). action · tenantId 로 거르고, days 가 0 이면 전체 기간. take 건만.</summary>
     public async Task<(IReadOnlyList<OpsAuditRow> Rows, bool More, IReadOnlyList<string> Actions, IReadOnlyList<(int Id, string Name)> Tenants)> AuditAsync(
-        int actor, string? action, int? tenantId, int days, int take, CancellationToken ct = default)
+        string actor, string? action, int? tenantId, int days, int take, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var q = from l in ctx.AuditLogs.AsNoTracking()
-                join a in ctx.Accounts on l.ActorAccountId equals a.Id
+                join a in ctx.Users on l.ActorUserName equals a.UserName
                 join t in ctx.Tenants on l.TenantId equals t.Id into tt
                 from t in tt.DefaultIfEmpty()
-                select new { l.Id, l.OccurredUtc, l.Action, l.Detail, l.TenantId, a.DisplayName, a.IsPlatformAdmin, TenantName = t == null ? null : t.Name };
+                select new { l.Id, l.OccurredUtc, l.Action, l.Detail, l.TenantId, DisplayName = AppUser.FullName(a.LastName, a.FirstName), IsPlatformAdmin = ctx.UserRoles.Any(ur => ur.UserId == a.Id && ctx.IdentityRoleRows.Any(r => r.Id == ur.RoleId && r.Name == IdentityRoles.SuperAdmin)), TenantName = t == null ? null : t.Name };
         if (!string.IsNullOrEmpty(action)) q = q.Where(x => x.Action == action);
         if (tenantId is int tid) q = q.Where(x => x.TenantId == tid);
         if (days > 0) { var from = time.GetUtcNow().UtcDateTime.AddDays(-days); q = q.Where(x => x.OccurredUtc >= from); }

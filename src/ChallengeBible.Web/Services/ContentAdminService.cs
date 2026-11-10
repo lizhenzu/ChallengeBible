@@ -61,10 +61,10 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All),
     };
 
-    private async Task<AppDbContext> OpenAsync(int actor, CancellationToken ct)
+    private async Task<AppDbContext> OpenAsync(string actor, CancellationToken ct)
     {
         var ctx = systemDb.Create(actor);
-        if (!await ctx.Accounts.AnyAsync(a => a.Id == actor && a.IsPlatformAdmin && a.Status == "Active", ct))
+        if (!await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct))
         {
             await ctx.DisposeAsync();
             throw new UnauthorizedAccessException("플랫폼 관리자만 할 수 있어요.");
@@ -73,7 +73,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
     }
 
     /// <summary>그날 말씀 영상 구간을 통째로 바꾼다(R-127, ADR 0081). 빈 목록 = 지움. 플랫폼 관리자가 아니면 UnauthorizedAccessException.</summary>
-    public async Task SaveWordClipsAsync(int actor, DateOnly date, IReadOnlyList<DailyWordClip> clips, CancellationToken ct = default)
+    public async Task SaveWordClipsAsync(string actor, DateOnly date, IReadOnlyList<DailyWordClip> clips, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         ctx.DailyWordClips.RemoveRange(await ctx.DailyWordClips.Where(c => c.WordDate == date).ToListAsync(ct));
@@ -95,7 +95,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
     public static byte MaxSlot(ContentKind kind) => kind == ContentKind.Prayer ? DailyPrayer.MaxDayNo : WeeklyVerse.MaxWeekNo;
 
     /// <summary>날짜 단위 콘텐츠(말씀 · 퀴즈)의 한 달. 기도 · 암송은 <see cref="SlotsAsync"/>.</summary>
-    public async Task<List<ContentDay>> MonthAsync(int actor, ContentKind kind, int year, int month, CancellationToken ct = default)
+    public async Task<List<ContentDay>> MonthAsync(string actor, ContentKind kind, int year, int month, CancellationToken ct = default)
     {
         if (BySlot(kind)) throw new ArgumentException("기도 · 암송은 번호로 해요(SlotsAsync).", nameof(kind));
         await using var ctx = await OpenAsync(actor, ct);
@@ -115,7 +115,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
     }
 
     /// <summary>공용 말씀 한 달의 입력 점검(R-216). 현재 개정만 읽고 말씀이 있는 날만 돌려준다. 플랫폼 관리자가 아니면 UnauthorizedAccessException.</summary>
-    public async Task<List<WordCheckDay>> WordCheckMonthAsync(int actor, DateOnly first, CancellationToken ct = default)
+    public async Task<List<WordCheckDay>> WordCheckMonthAsync(string actor, DateOnly first, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var to = first.AddMonths(1).AddDays(-1);
@@ -125,7 +125,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
     }
 
     /// <summary>공용 퀴즈 한 달의 입력 점검(R-217). 현재 개정만 읽고 퀴즈가 있는 날만 돌려준다. 플랫폼 관리자가 아니면 UnauthorizedAccessException.</summary>
-    public async Task<List<QuizCheckDay>> QuizCheckMonthAsync(int actor, DateOnly first, CancellationToken ct = default)
+    public async Task<List<QuizCheckDay>> QuizCheckMonthAsync(string actor, DateOnly first, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var to = first.AddMonths(1).AddDays(-1);
@@ -135,7 +135,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
     }
 
     /// <summary>공용 기도 1 ~ 31일(0053) 또는 공용 암송 1 ~ 55주(0052) 목록.</summary>
-    public async Task<List<ContentSlot>> SlotsAsync(int actor, ContentKind kind, CancellationToken ct = default)
+    public async Task<List<ContentSlot>> SlotsAsync(string actor, ContentKind kind, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var rows = kind == ContentKind.Prayer
@@ -150,7 +150,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
     private static IQueryable<T> Shared<T>(IQueryable<T> q) where T : ContentBase => q.Where(x => x.TenantId == null && x.IsCurrent);
 
     /// <summary>편집 칸에 넣을 지금 값(없으면 빈 칸).</summary>
-    public async Task<(ContentInput Input, string Status, int? Id)> LoadAsync(int actor, ContentKind kind, DateOnly date, CancellationToken ct = default)
+    public async Task<(ContentInput Input, string Status, int? Id)> LoadAsync(string actor, ContentKind kind, DateOnly date, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var i = new ContentInput { Date = date };
@@ -172,7 +172,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
     }
 
     /// <summary>공용 기도 no 일 · 공용 암송 no 주의 지금 값(없으면 빈 칸).</summary>
-    public async Task<(ContentInput Input, string Status, int? Id)> LoadSlotAsync(int actor, ContentKind kind, byte no, CancellationToken ct = default)
+    public async Task<(ContentInput Input, string Status, int? Id)> LoadSlotAsync(string actor, ContentKind kind, byte no, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
         var i = new ContentInput { SlotNo = no };
@@ -240,7 +240,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
         (s ?? "").Split('\n').Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
 
     /// <summary>저장. publish 면 공개, 아니면 초안. 공개된 것을 고치면 새 개정(R-124).</summary>
-    public async Task<FieldErrors> SaveAsync(int actor, ContentKind kind, ContentInput input, bool publish, CancellationToken ct = default)
+    public async Task<FieldErrors> SaveAsync(string actor, ContentKind kind, ContentInput input, bool publish, CancellationToken ct = default)
     {
         var errors = Validate(kind, input);
         if (!errors.Ok) return errors;
@@ -281,7 +281,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
             target.Revision = (current?.Revision ?? 0) + 1;
             target.ReplacesId = current?.Id;
             target.CreatedUtc = now;
-            target.CreatedByAccountId = actor;
+            target.CreatedByUserName = actor;
             ctx.Add(target);
         }
         else target = current;   // 초안은 그 자리에서
@@ -358,7 +358,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
     private static string? Trim(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
 
     /// <summary>고른 초안들을 한꺼번에 공개. 공개할 수 없는(칸이 빈) 초안은 건너뛰고 수를 돌려준다.</summary>
-    public async Task<(int Published, int Skipped)> PublishManyAsync(int actor, ContentKind kind, IReadOnlyCollection<DateOnly> dates, CancellationToken ct = default)
+    public async Task<(int Published, int Skipped)> PublishManyAsync(string actor, ContentKind kind, IReadOnlyCollection<DateOnly> dates, CancellationToken ct = default)
     {
         var (ok, skip) = (0, 0);
         foreach (var d in dates)
@@ -372,7 +372,7 @@ public sealed class ContentAdminService(ISystemDb systemDb, TimeProvider time)
     }
 
     /// <summary>고른 기도 · 암송 초안(번호)들을 한꺼번에 공개.</summary>
-    public async Task<(int Published, int Skipped)> PublishSlotsAsync(int actor, ContentKind kind, IReadOnlyCollection<byte> nos, CancellationToken ct = default)
+    public async Task<(int Published, int Skipped)> PublishSlotsAsync(string actor, ContentKind kind, IReadOnlyCollection<byte> nos, CancellationToken ct = default)
     {
         var (ok, skip) = (0, 0);
         foreach (var n in nos)

@@ -20,10 +20,10 @@ public class PromotionsModel(PromotionService promotions, PromotionApprover appr
 
     public List<PromotionRow> Received { get; private set; } = [];
     public List<PromotionRow> Sent { get; private set; } = [];
-    public List<string> Groups { get; private set; } = [];
+    public List<(string Code, string Name)> RoleCodes { get; private set; } = [];
     public string? Error { get; private set; }
     public int? ErrorFor { get; private set; }
-    private int Me => User.AccountId()!.Value;
+    private string Me => User.UserName()!;
 
     public IEnumerable<PromotionRow> Rows => Tab == "out" ? Sent : Received;
     public int ReceivedWaiting => Received.Count(r => r.Status == PromotionStatus.Pending);
@@ -42,8 +42,8 @@ public class PromotionsModel(PromotionService promotions, PromotionApprover appr
 
     public async Task OnGetAsync(CancellationToken ct) => await LoadAsync(ct);
 
-    public Task<IActionResult> OnPostApproveAsync(int id, List<string> roles, string? group, CancellationToken ct) =>
-        Act(id, "approve", approver.ApproveAsync(Me, id, roles, group, ct), ct);
+    public Task<IActionResult> OnPostApproveAsync(int id, string? roleCode, CancellationToken ct) =>
+        Act(id, "approve", approver.ApproveAsync(Me, id, roleCode, ct), ct);
 
     public Task<IActionResult> OnPostRejectAsync(int id, CancellationToken ct) => Act(id, "reject", promotions.RejectAsync(Me, id, ct), ct);
     public Task<IActionResult> OnPostCancelAsync(int id, CancellationToken ct) => Act(id, "cancel", promotions.CancelAsync(Me, id, ct), ct);
@@ -63,7 +63,7 @@ public class PromotionsModel(PromotionService promotions, PromotionApprover appr
         if (Tab != "out") Tab = "in";
         Received = await promotions.ReceivedAsync(ct);
         Sent = await promotions.SentAsync(ct);
-        Groups = await members.GroupsAsync(ct);
+        RoleCodes = await members.RoleCodesAsync(ct);
     }
 
     public static string StatusLabel(string s) => s switch

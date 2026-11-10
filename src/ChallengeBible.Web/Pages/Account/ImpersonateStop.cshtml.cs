@@ -8,20 +8,20 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace ChallengeBible.Web.Pages.Account;
 
 /// <summary>`POST /account/impersonate/stop` 가장 끝내기 [복귀](ADR 0067). 가장한 관리자가 지금도 플랫폼 관리자면 그 계정으로 돌아가고, 아니면 로그아웃.</summary>
-public class ImpersonateStopModel(ImpersonationService imp) : PageModel
+public class ImpersonateStopModel(ImpersonationService imp, AccountService accounts) : PageModel
 {
     public IActionResult OnGet() => Redirect("/");
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
-        if (User.ImpersonatorId() is not int admin || User.AccountId() is not int me) return Redirect("/");
+        if (User.ImpersonatorId() is not { } admin || User.UserName() is not { } me) return Redirect("/");
         var back = await imp.StopAsync(admin, me, ct);
         if (back is null)
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Redirect("/");
         }
-        await CurrentUser.SignInAsync(HttpContext, back);
+        await CurrentUser.SignInAsync(HttpContext, await accounts.ToSignedInAsync(back, HttpContext.RequestAborted));
         return Redirect($"/platform/accounts?id={me}");
     }
 }

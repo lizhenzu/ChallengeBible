@@ -7,9 +7,9 @@ public sealed class LookupLimiter(IMemoryCache cache)
 {
     public const int PerMinute = 10;
 
-    public bool TryTake(int accountId)
+    public bool TryTake(string userName)
     {
-        var key = $"join-lookup:{accountId}";
+        var key = $"join-lookup:{userName}";
         var count = cache.GetOrCreate(key, e => { e.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1); return new Counter(); })!;
         return Interlocked.Increment(ref count.Value) <= PerMinute;
     }

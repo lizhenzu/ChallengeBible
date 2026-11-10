@@ -19,9 +19,9 @@ public class TenantIsolationModelTests
         scope.SetTenant(7);
         using var db = new RequestDbContextFactory(Cs, scope).Create();
 
-        var sql = db.Memberships.Where(m => m.Status == MembershipStatus.Approved).ToQueryString();
+        var sql = db.DeptRoles.Where(m => m.RoleCode != null).ToQueryString();
 
-        Assert.Contains("[m].[TenantId] = @", sql);
+        Assert.Contains("[d].[TenantId] = @", sql);
         Assert.Equal(7, db.CurrentTenantId);
     }
 
@@ -29,7 +29,7 @@ public class TenantIsolationModelTests
     public void 영역이_없는_요청은_영역_데이터를_못_본다()
     {
         using var db = new RequestDbContextFactory(Cs, new RequestScope()).Create();
-        var sql = db.MembershipRoles.ToQueryString();
+        var sql = db.CodeData.ToQueryString();
         // TenantId = NULL 비교는 늘 거짓 → 아무 행도 안 나온다
         Assert.Contains("TenantId", sql);
         Assert.Null(db.CurrentTenantId);
@@ -38,8 +38,8 @@ public class TenantIsolationModelTests
     [Fact]
     public void 시스템_연결은_전역_필터를_끈다()
     {
-        using var db = new SystemDbContextFactory(Cs).Create(actorAccountId: 1);
-        var sql = db.Memberships.ToQueryString();
+        using var db = new SystemDbContextFactory(Cs).Create(actorUserName: "t");
+        var sql = db.DeptRoles.ToQueryString();
         Assert.DoesNotContain("[m].[TenantId] = @", sql);
     }
 

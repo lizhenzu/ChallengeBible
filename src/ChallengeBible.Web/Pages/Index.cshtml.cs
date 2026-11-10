@@ -19,7 +19,7 @@ public class IndexModel(AccountService accounts, TenantClock clock, LandingServi
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        if (User.AccountId() is not int id)
+        if (User.UserName() is not { } id)
         {
             Data = await landing.GetAsync(ct);
             return Page();

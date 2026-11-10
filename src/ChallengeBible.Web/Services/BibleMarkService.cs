@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace ChallengeBible.Web.Services;
 
 /// <summary>북마크 모음의 한 줄: 절 위치 · 담은 때 · 개역개정 본문(없으면 null).</summary>
-public sealed record BookmarkRow(byte BookId, short Chapter, short Verse, DateTime CreatedUtc, string? Text);
+public sealed record BookmarkRow(byte BookId, short Chapter, short Verse, DateTime CreatedAt, string? Text);
 
 /// <summary>한 범위 안에서 내가 읽은 절 · 책갈피한 절(장, 절).</summary>
 public sealed record VerseMarks(IReadOnlySet<(short Chapter, short Verse)> Read, IReadOnlySet<(short Chapter, short Verse)> Bookmarked);
@@ -17,14 +17,15 @@ public sealed record VerseMarks(IReadOnlySet<(short Chapter, short Verse)> Read,
 /// </summary>
 public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider time)
 {
-    private int Me => scope.AccountId ?? throw new InvalidOperationException("로그인한 요청에서만 써요.");
+    private string Me => scope.UserName ?? throw new InvalidOperationException("로그인한 요청에서만 써요.");
 
     public async Task<VerseMarks> MarksAsync(BibleRef r, CancellationToken ct = default)
     {
-        if (scope.AccountId is null || !r.IsValid) return new(new HashSet<(short, short)>(), new HashSet<(short, short)>());
+        if (scope.UserName is null || !r.IsValid) return new(new HashSet<(short, short)>(), new HashSet<(short, short)>());
         await using var ctx = db.Create();
-        var read = await InRange(ctx.VerseReadMarks.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct);
-        var marks = await InRange(ctx.Bookmarks.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct);
+        var open = await OpenRoundAsync(ctx, ct);
+        var read = await InRange(ctx.ReadingVerses.AsNoTracking().Where(x => x.RoundNo == open), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct);
+        var marks = await InRange(ctx.ReadingBookmarks.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct);
         return new(read.Select(x => (x.Chapter, x.Verse)).ToHashSet(), marks.Select(x => (x.Chapter, x.Verse)).ToHashSet());
     }
 
@@ -33,20 +34,36 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
     {
         await using var ctx = db.Create();
         if (!await Exists(ctx, book, chapter, verse, ct)) return false;
-        if (!await ctx.VerseReadMarks.AnyAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct))
+        var current = await RoundNoAsync(ctx, ct);
+        if (!await ctx.ReadingVerses.AnyAsync(x => x.RoundNo == current && x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct))
         {
-            ctx.VerseReadMarks.Add(new VerseReadMark { AccountId = Me, BookId = book, Chapter = chapter, Verse = verse, ReadUtc = time.GetUtcNow().UtcDateTime });
+            ctx.ReadingVerses.Add(new ReadingVerse { UserName = Me, RoundNo = current, BookId = book, Chapter = chapter, Verse = verse, ReadAt = time.GetUtcNow().UtcDateTime });
             await SaveIgnoringDuplicate(ctx, ct);
         }
         return true;
     }
 
+    private static Task<int?> OpenRoundAsync(AppDbContext ctx, CancellationToken ct) =>
+        ctx.ReadingRounds.Where(x => x.CompletedAt == null && x.ClosedAt == null).Select(x => (int?)x.RoundNo).FirstOrDefaultAsync(ct);
+
+    /// <summary>읽음은 진행 중 회차에 붙는다(0090, DM2_ReadingVerse). 회차가 없으면 1회차를 연다.</summary>
+    private async Task<int> RoundNoAsync(AppDbContext ctx, CancellationToken ct)
+    {
+        var open = await ctx.ReadingRounds.Where(x => x.CompletedAt == null && x.ClosedAt == null).Select(x => (int?)x.RoundNo).FirstOrDefaultAsync(ct);
+        if (open is int no) return no;
+        var next = (await ctx.ReadingRounds.Select(x => (int?)x.RoundNo).MaxAsync(ct) ?? 0) + 1;
+        ctx.ReadingRounds.Add(new ReadingRound { UserName = Me, RoundNo = next, StartedAt = time.GetUtcNow().UtcDateTime });
+        await ctx.SaveChangesAsync(ct);
+        return next;
+    }
+
     public async Task UnreadAsync(byte book, short chapter, short verse, CancellationToken ct = default)
     {
         await using var ctx = db.Create();
-        var row = await ctx.VerseReadMarks.SingleOrDefaultAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct);
+        var open = await OpenRoundAsync(ctx, ct);
+        var row = await ctx.ReadingVerses.SingleOrDefaultAsync(x => x.RoundNo == open && x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct);
         if (row is null) return;
-        ctx.VerseReadMarks.Remove(row);
+        ctx.ReadingVerses.Remove(row);
         await ctx.SaveChangesAsync(ct);
     }
 
@@ -57,10 +74,12 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
         await using var ctx = db.Create();
         var verses = await InRange(ctx.BibleVerses.AsNoTracking().Where(v => v.BookId == r.BookId), r)
             .Select(v => new { v.Chapter, v.Verse }).Distinct().ToListAsync(ct);
-        var already = (await InRange(ctx.VerseReadMarks.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct)).ToHashSet();
+        var open = await OpenRoundAsync(ctx, ct);
+        var already = (await InRange(ctx.ReadingVerses.AsNoTracking().Where(x => x.RoundNo == open), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct)).ToHashSet();
         var now = time.GetUtcNow().UtcDateTime;
         var add = verses.Where(v => !already.Contains(v)).ToList();
-        foreach (var v in add) ctx.VerseReadMarks.Add(new VerseReadMark { AccountId = Me, BookId = r.BookId, Chapter = v.Chapter, Verse = v.Verse, ReadUtc = now });
+        var round = add.Count > 0 ? await RoundNoAsync(ctx, ct) : 0;
+        foreach (var v in add) ctx.ReadingVerses.Add(new ReadingVerse { UserName = Me, RoundNo = round, BookId = r.BookId, Chapter = v.Chapter, Verse = v.Verse, ReadAt = now });
         if (add.Count > 0) await SaveIgnoringDuplicate(ctx, ct);
         return add.Count;
     }
@@ -69,8 +88,9 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
     {
         if (!r.IsValid) return 0;
         await using var ctx = db.Create();
-        var rows = await InRange(ctx.VerseReadMarks, r).ToListAsync(ct);
-        ctx.VerseReadMarks.RemoveRange(rows);
+        var open = await OpenRoundAsync(ctx, ct);
+        var rows = await InRange(ctx.ReadingVerses.Where(x => x.RoundNo == open), r).ToListAsync(ct);
+        ctx.ReadingVerses.RemoveRange(rows);
         await ctx.SaveChangesAsync(ct);
         return rows.Count;
     }
@@ -79,9 +99,9 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
     {
         await using var ctx = db.Create();
         if (!await Exists(ctx, book, chapter, verse, ct)) return false;
-        if (!await ctx.Bookmarks.AnyAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct))
+        if (!await ctx.ReadingBookmarks.AnyAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct))
         {
-            ctx.Bookmarks.Add(new Bookmark { AccountId = Me, BookId = book, Chapter = chapter, Verse = verse, CreatedUtc = time.GetUtcNow().UtcDateTime });
+            ctx.ReadingBookmarks.Add(new ReadingBookmark { UserName = Me, BookId = book, Chapter = chapter, Verse = verse, CreatedAt = time.GetUtcNow().UtcDateTime });
             await SaveIgnoringDuplicate(ctx, ct);
         }
         return true;
@@ -90,9 +110,9 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
     public async Task UnbookmarkAsync(byte book, short chapter, short verse, CancellationToken ct = default)
     {
         await using var ctx = db.Create();
-        var row = await ctx.Bookmarks.SingleOrDefaultAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct);
+        var row = await ctx.ReadingBookmarks.SingleOrDefaultAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct);
         if (row is null) return;
-        ctx.Bookmarks.Remove(row);
+        ctx.ReadingBookmarks.Remove(row);
         await ctx.SaveChangesAsync(ct);
     }
 
@@ -102,28 +122,28 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
     /// </summary>
     public async Task<IReadOnlyList<BookmarkRow>> BookmarksAsync(bool bibleOrder, CancellationToken ct = default)
     {
-        if (scope.AccountId is null) return [];
+        if (scope.UserName is null) return [];
         await using var ctx = db.Create();
-        var rows = await (from b in ctx.Bookmarks.AsNoTracking()
+        var rows = await (from b in ctx.ReadingBookmarks.AsNoTracking()
                           join v in ctx.BibleVerses.AsNoTracking().Where(v => v.TranslationId == 1)
                               on new { b.BookId, b.Chapter, b.Verse } equals new { v.BookId, v.Chapter, v.Verse } into g
                           from v in g.DefaultIfEmpty()
-                          select new BookmarkRow(b.BookId, b.Chapter, b.Verse, b.CreatedUtc, v == null ? null : v.Text)).ToListAsync(ct);
+                          select new BookmarkRow(b.BookId, b.Chapter, b.Verse, b.CreatedAt, v == null ? null : v.Text)).ToListAsync(ct);
         return bibleOrder
             ? rows.OrderBy(r => r.BookId).ThenBy(r => r.Chapter).ThenBy(r => r.Verse).ToList()
-            : rows.OrderByDescending(r => r.CreatedUtc).ToList();
+            : rows.OrderByDescending(r => r.CreatedAt).ToList();
     }
 
     private static Task<bool> Exists(AppDbContext ctx, byte book, short chapter, short verse, CancellationToken ct) =>
         ctx.BibleVerses.AnyAsync(v => v.BookId == book && v.Chapter == chapter && v.Verse == verse, ct);
 
-    private static IQueryable<VerseReadMark> InRange(IQueryable<VerseReadMark> q, BibleRef r)
+    private static IQueryable<ReadingVerse> InRange(IQueryable<ReadingVerse> q, BibleRef r)
     {
         var (sc, sv, ec, ev) = (r.StartChapter, r.StartVerse, r.EndChapter, r.EndVerse);
         return q.Where(x => x.BookId == r.BookId && (x.Chapter > sc || (x.Chapter == sc && x.Verse >= sv)) && (x.Chapter < ec || (x.Chapter == ec && x.Verse <= ev)));
     }
 
-    private static IQueryable<Bookmark> InRange(IQueryable<Bookmark> q, BibleRef r)
+    private static IQueryable<ReadingBookmark> InRange(IQueryable<ReadingBookmark> q, BibleRef r)
     {
         var (sc, sv, ec, ev) = (r.StartChapter, r.StartVerse, r.EndChapter, r.EndVerse);
         return q.Where(x => x.BookId == r.BookId && (x.Chapter > sc || (x.Chapter == sc && x.Verse >= sv)) && (x.Chapter < ec || (x.Chapter == ec && x.Verse <= ev)));

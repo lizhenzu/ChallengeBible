@@ -9,7 +9,7 @@ namespace ChallengeBible.Web.Pages;
 
 /// <summary>`/{slug}` 부서 홈 메인(확정 시안: 홈메인, 0044). 부서 결정 · 소속 검사는 TenantPageFilter 가 한다.</summary>
 public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, FamilyJoinService familyJoin, HomeService home, AccountService accounts,
-    OnFamilyService onFamily, PhotoService photos) : PageModel, ITitled
+    PhotoService photos) : PageModel, ITitled
 {
     /// <summary>내 사진 파일 이름(0078) — 없으면 이름 첫 글자.</summary>
     public string? MyPhoto { get; private set; }
@@ -20,7 +20,6 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     /// <summary>받은 가족팀 초대(확정 시안 home-invite, R-212) — 말씀 찾기 위 배너. 팀이 있거나 오늘 "다음에 할래요"를 눌렀으면 비어 있다.</summary>
     public IReadOnlyList<FamilyReceivedInvite> Invites { get; private set; } = [];
     /// <summary>온가족 한 줄(확정 시안 온가족 "부서 홈 칸", R-177) — 온가족이 없으면 null.</summary>
-    public (string Name, int Total)? OnFamily { get; private set; }
     public bool IsGuardian => tenant.Has(Roles.Guardian);
     public HomeView Data { get; private set; } = null!;
     /// <summary>승인된 소속이 둘 이상이면 머리말 "부서 ▼" → 부서 고르기(확정 6).</summary>
@@ -41,11 +40,10 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (TodayScreen && !tenant.IsLobby) return Redirect($"/{tenant.Current.Slug}");   // 일반 부서 홈은 한 화면 그대로
-        var me = User.AccountId()!.Value;
+        var me = User.UserName()!;
         MyPhoto = await photos.FileOfAsync(me, ct);
         if (tenant.Current.MissionEnabled) Family = await teams.MyFamilyAsync(ct);
         if (tenant.Current.MissionEnabled && Family is null) Invites = (await familyJoin.StateAsync(ct)).Invites.Where(i => !i.SnoozedToday).ToList();
-        OnFamily = await onFamily.LineAsync(me, ct);
         Data = await home.GetAsync(ct);
         ManyTenants = (await accounts.WhereToGoAsync(me, ct)).ApprovedCount > 1;
         if (tenant.IsLobby)

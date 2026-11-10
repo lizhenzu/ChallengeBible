@@ -37,7 +37,7 @@ public abstract class ContentBase : ISharedContent
     public string Status { get; set; } = ContentStatus.Draft;
     public int? ReplacesId { get; set; }
     public DateTime CreatedUtc { get; set; }
-    public int CreatedByAccountId { get; set; }
+    public string CreatedByUserName { get; set; } = "";
 }
 
 public abstract class RangedContent : ContentBase
@@ -124,77 +124,13 @@ public sealed class WeeklyVerse : RangedContent
     public string? LessonApply { get; set; }
 }
 
-/// <summary>참여자: 소속에 참여자 역할이 있으면 하나(영역 범위). 점수 · 수행 기록의 주인.</summary>
-public sealed class Participant : ITenantOwned
-{
-    public int Id { get; set; }
-    public int TenantId { get; set; }
-    public int MembershipId { get; set; }
-    public bool IsActive { get; set; } = true;
-}
-
-/// <summary>보호 관계: 보호자 소속 → 참여자(같은 영역). 보호자는 연결된 참여자의 기록만 본다(R-132).</summary>
+/// <summary>보호 관계: 보호자 아이디 → 학생 아이디(같은 영역). 보호자는 연결된 참여자의 기록만 본다(R-132).</summary>
 public sealed class GuardianLink : ITenantOwned
 {
     public int Id { get; set; }
     public int TenantId { get; set; }
-    public int GuardianMembershipId { get; set; }
-    public int ParticipantId { get; set; }
+    public required string GuardianUserName { get; set; }
+    public required string StudentUserName { get; set; }
     public DateTime CreatedUtc { get; set; }
-    public int CreatedByAccountId { get; set; }
-}
-
-/// <summary>수행 기록. 하루 · 항목당 1건(R-61), 암송은 그 주에 1건(R-51) — DB 고유 인덱스로 막는다.</summary>
-public sealed class Activity : ITenantOwned
-{
-    public long Id { get; set; }
-    public int TenantId { get; set; }
-    public int ParticipantId { get; set; }
-    public required string MissionItem { get; set; }
-    public DateOnly MissionDate { get; set; }
-    public int? DailyWordId { get; set; }
-    public int? DailyPrayerId { get; set; }
-    public int? DailyQuizId { get; set; }
-    public int? WeeklyVerseId { get; set; }
-    public DateOnly? ReciteStartDate { get; set; }
-    public int Points { get; set; }
-    public DateTime PerformedUtc { get; set; }
-}
-
-public sealed class QuizAttempt : ITenantOwned
-{
-    public long Id { get; set; }
-    public int TenantId { get; set; }
-    public int ParticipantId { get; set; }
-    public DateOnly MissionDate { get; set; }
-    public byte AttemptNo { get; set; }
-    public int DailyQuizId { get; set; }
-    public int? SelectedChoiceId { get; set; }
-    public string? AnswerText { get; set; }
-    public bool IsCorrect { get; set; }
-    public DateTime AttemptedUtc { get; set; }
-}
-
-/// <summary>점수 원장 — 추가만 한다(R-63, R-64). 당시 점수를 기록해서 규칙이 바뀌어도 그대로.</summary>
-public sealed class PointLedger : ITenantOwned
-{
-    public long Id { get; set; }
-    public int TenantId { get; set; }
-    public int ParticipantId { get; set; }
-    public DateOnly MissionDate { get; set; }
-    public required string MissionItem { get; set; }
-    public int Points { get; set; }
-    public long ActivityId { get; set; }
-    public DateTime RecordedUtc { get; set; }
-}
-
-/// <summary>개인 축하 단계 도달(R-101) — 시즌당 단계마다 한 번.</summary>
-public sealed class MilestoneReached : ITenantOwned
-{
-    public int Id { get; set; }
-    public int TenantId { get; set; }
-    public int ParticipantId { get; set; }
-    public short Year { get; set; }
-    public int Threshold { get; set; }
-    public DateTime ReachedUtc { get; set; }
+    public required string CreatedByUserName { get; set; }
 }

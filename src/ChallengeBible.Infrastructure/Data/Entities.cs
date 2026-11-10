@@ -40,54 +40,13 @@ public static class TenantStatus
     public const string Suspended = "Suspended";
 }
 
-public sealed class Account
-{
-    public int Id { get; set; }
-    public required string Email { get; set; }
-    public required string PasswordHash { get; set; }
-    public required string DisplayName { get; set; }
-    public string? PhotoPath { get; set; }
-    public bool IsPlatformAdmin { get; set; }
-    public bool MustChangePassword { get; set; }
-    public int? FamilyTenantId { get; set; }
-    public int? LastTenantId { get; set; }
-    /// <summary>통독 화면 색 테마(ADR 0073): null = 기본(파랑) · paper · forest · sand. 계정에 두어 어느 기기에서도 같다.</summary>
-    public string? ReadingTheme { get; set; }
-    /// <summary>성경말씀 미션 화면 색 테마(ADR 0074): 통독과 같은 키, 따로 남긴다. null = 기본(하늘).</summary>
-    public string? MissionTheme { get; set; }
-    public string Status { get; set; } = "Active";
-    public DateTime CreatedUtc { get; set; }
-}
-
-public sealed class Membership : ITenantOwned
-{
-    public int Id { get; set; }
-    public int TenantId { get; set; }
-    public int AccountId { get; set; }
-    public string Status { get; set; } = MembershipStatus.Requested;
-    public string? GroupLabel { get; set; }
-    public DateTime RequestedUtc { get; set; }
-    public DateTime? DecidedUtc { get; set; }
-    public int? DecidedByAccountId { get; set; }
-    public List<MembershipRole> Roles { get; set; } = [];
-}
-
+/// <summary>화면에 보이는 소속 상태: 신청 = SignupApplication PENDING, 승인 = DeptRoleUserAssoc 한 줄, 거절 = SignupApplication REJECTED.</summary>
 public static class MembershipStatus
 {
     public const string Requested = "Requested";
     public const string Approved = "Approved";
-    public const string Suspended = "Suspended";
-    public const string Released = "Released";
     public const string Rejected = "Rejected";
-    public const string PromotionPending = "PromotionPending";
-    public static readonly string[] All = [Requested, Approved, Suspended, Released, Rejected, PromotionPending];
-}
-
-public sealed class MembershipRole : ITenantOwned
-{
-    public int TenantId { get; set; }
-    public int MembershipId { get; set; }
-    public required string Role { get; set; }
+    public static readonly string[] All = [Requested, Approved, Rejected];
 }
 
 public static class Roles
@@ -106,5 +65,5 @@ public sealed class TenantSeason : ITenantOwned
     public short Year { get; set; }
     public DateOnly StartDate { get; set; }
     public DateTime ChangedUtc { get; set; }
-    public int ChangedByAccountId { get; set; }
+    public required string ChangedByUserName { get; set; }
 }

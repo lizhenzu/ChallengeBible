@@ -20,7 +20,7 @@ public partial class RankingTests : IClassFixture<WebApplicationFactory<Program>
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
     private readonly Tenant _kids, _elem;
-    private readonly Dictionary<string, (Membership M, int Pid)> _p = [];
+    private readonly Dictionary<string, (SeededMember M, string Pid)> _p = [];
 
     public RankingTests(WebApplicationFactory<Program> app)
     {
@@ -49,22 +49,19 @@ public partial class RankingTests : IClassFixture<WebApplicationFactory<Program>
 
     private void Add(Tenant t, string login, string name, string[] roles, string? group = null)
     {
-        var a = InMemoryDb.SeedAccount(_db, login + "@example.com", name).Id;
+        var a = InMemoryDb.SeedAccount(_db, login + "@example.com", name).UserName!;
         var m = InMemoryDb.SeedMembership(_db, t.Id, a, MembershipStatus.Approved, roles);
         using var raw = InMemoryDb.Raw(_db);
-        raw.Memberships.Single(x => x.Id == m.Id).GroupLabel = group;
-        var p = new Participant { TenantId = t.Id, MembershipId = m.Id };
-        raw.Participants.Add(p);
         raw.SaveChanges();
-        _p[login] = (m, p.Id);
+        _p[login] = (m, m.UserName);
     }
 
     private void Pts(string login, params (int Day, int Points)[] days)
     {
         using var raw = InMemoryDb.Raw(_db);
-        var p = raw.Participants.Single(x => x.Id == _p[login].Pid);
+        var p = (TenantId: _p[login].M.TenantId, Id: _p[login].Pid!);
         foreach (var (day, pts) in days)
-            raw.PointLedgers.Add(new PointLedger { TenantId = p.TenantId, ParticipantId = p.Id, MissionDate = new DateOnly(2027, 1, day), MissionItem = "Word.Me", Points = pts, RecordedUtc = DateTime.UtcNow });
+            raw.MissionActivities.Add(new MissionActivity { TenantId = p.TenantId, UserName = p.Id, MissionDate = new DateOnly(2027, 1, day), MissionItem = "Word.Me", Points = pts, PerformedAt = DateTime.UtcNow });
         raw.SaveChanges();
     }
 
@@ -76,7 +73,7 @@ public partial class RankingTests : IClassFixture<WebApplicationFactory<Program>
         using (var raw = InMemoryDb.Raw(_db))
         {
             var mid = _p[login].M.Id;
-            tc.Set(raw.Tenants.Single(t => t.Id == _kids.Id), new Membership { Id = mid, Status = MembershipStatus.Approved, Roles = [new MembershipRole { Role = Roles.Participant }] });
+            tc.Set(raw.Tenants.Single(t => t.Id == _kids.Id), raw.DeptRoles.Single(d => d.Id == mid));
         }
         return new RankingService(new InMemoryDb(_db, scope), tc, new TenantClock(_time), InMemoryDb.Rules(_db));
     }
@@ -97,7 +94,7 @@ public partial class RankingTests : IClassFixture<WebApplicationFactory<Program>
         var rows = (await As("cheolsu").GetAsync()).Rows;
         Assert.Equal(100, rows.Single(x => x.Name == "김영희").Percent);
         var me = rows.Single(x => x.Name == "김철수");
-        Assert.Equal((12, 0.15, Jan5, 3, true, "사랑반"), (me.Points, me.Percent, me.LastDate!.Value, me.Streak, me.Me, me.GroupLabel));
+        Assert.Equal((12, 0.15, Jan5, 3, true, null), (me.Points, me.Percent, me.LastDate!.Value, me.Streak, me.Me, me.GroupLabel));
         Assert.False(rows.Single(x => x.Name == "강하린").Me);
         Assert.Equal(1, rows.Single(x => x.Name == "강하린").Streak);
     }
@@ -118,7 +115,7 @@ public partial class RankingTests : IClassFixture<WebApplicationFactory<Program>
     {
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.TenantSeasons.Add(new TenantSeason { TenantId = _kids.Id, Year = 2027, StartDate = new DateOnly(2027, 1, 3), ChangedByAccountId = 1 });
+            raw.TenantSeasons.Add(new TenantSeason { TenantId = _kids.Id, Year = 2027, StartDate = new DateOnly(2027, 1, 3), ChangedByUserName = "t" });
             raw.SaveChanges();
         }
         var rows = (await As("cheolsu").GetAsync()).Rows;
@@ -132,7 +129,7 @@ public partial class RankingTests : IClassFixture<WebApplicationFactory<Program>
         using (var raw = InMemoryDb.Raw(_db))
         {
             raw.PlatformRuleSetVersions.Add(new PlatformRuleSetVersion { VersionNo = 2, EffectiveFrom = Jan5,
-                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { Ranking = false } }), ChangedByAccountId = 1 });
+                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { Ranking = false } }), ChangedByUserName = "t" });
             raw.SaveChanges();
         }
         Assert.False((await As("cheolsu").GetAsync()).Enabled);
@@ -152,15 +149,13 @@ public partial class RankingTests : IClassFixture<WebApplicationFactory<Program>
             ["__RequestVerificationToken"] = TokenRx().Match(await c.GetStringAsync("/account/signup")).Groups[1].Value,
             ["DisplayName"] = "박서연", ["Email"] = "seoyeon@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
-        int id;
-        using (var raw = InMemoryDb.Raw(_db)) id = raw.Accounts.Single(a => a.Email == "seoyeon@example.com").Id;
+        string id;
+        using (var raw = InMemoryDb.Raw(_db)) id = raw.Users.Single(a => a.Email == "seoyeon@example.com").UserName!;
         var m = InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, Roles.Participant);
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var p = new Participant { TenantId = _kids.Id, MembershipId = m.Id };
-            raw.Participants.Add(p);
             raw.SaveChanges();
-            raw.PointLedgers.Add(new PointLedger { TenantId = _kids.Id, ParticipantId = p.Id, MissionDate = Jan5, MissionItem = "Word.Me", Points = 1, RecordedUtc = DateTime.UtcNow });
+            raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = m.UserName, MissionDate = Jan5, MissionItem = "Word.Me", Points = 1, PerformedAt = DateTime.UtcNow });
             raw.SaveChanges();
         }
         ContentSeed.Word(_db, Jan5);

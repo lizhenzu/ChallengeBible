@@ -28,7 +28,7 @@
                     <span class="q" aria-hidden="true">“</span>
                     <p>@(b.Text ?? "본문이 아직 없어요.")</p>
                     <div class="m">
-                        <div><b class="num">@ReadingPageBase.BookName(b.BookId) @(b.Chapter):@(b.Verse)</b><small>@Model.When(b.CreatedUtc)</small></div>
+                        <div><b class="num">@ReadingPageBase.BookName(b.BookId) @(b.Chapter):@(b.Verse)</b><small>@Model.When(b.CreatedAt)</small></div>
                         <div class="act">
                             <button type="button" class="star on" data-unstar aria-label="@ReadingPageBase.BookName(b.BookId) @(b.Chapter):@(b.Verse) 북마크 빼기 · 다시 담기"><span class="a">삭제</span><span class="b">다시 담기</span></button>
                             <a class="go" href="@Model.ReadUrl(b.BookId, b.Chapter, b.Verse)">읽기 →</a>
