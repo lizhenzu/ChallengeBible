@@ -3,7 +3,7 @@
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Pages.Platform
 @* 확정 시안: 부서참여신청-v4-단독시안(2026-10-25) — 한 줄에 한 부서(색 네모 · 교회 · 부서 · 프로그램 · 오른쪽 동그라미),
-   아래에 늘 [돌아가기] [부서 참여하기](고르기 전엔 참여하기가 흐림). 찾기 칸 · 코드로 찾기 · 역할 고르기 · 안내 상자 없음 *@
+   아래에 늘 [돌아가기] [부서 참여하기](고르기 전엔 참여하기가 흐림). 찾기 칸 · 코드로 찾기 · 안내 상자 없음. 역할 고르기는 ADR 0090(유년부와 같은 네 가지) *@
 <partial name="_Top" />
 <main class="page gut jv4"><div class="wrap">
     @if (Model.Welcome == 1)
@@ -76,6 +76,21 @@
                 </div>
             }
             @if (Model.PickError is not null) { <p class="hint bad" role="alert">@Model.PickError</p> }
+
+            @if (Model.Depts.Count > 0)
+            {
+                <section class="jrole" role="radiogroup" aria-label="나의 역할">
+                    <h2>이 부서에서 나는</h2>
+                    <div class="grid">
+                        @foreach (var (kind, label) in JoinModel.RoleChoices)
+                        {
+                            <label><input type="radio" name="RoleKind" value="@kind" checked="@(Model.RoleKind == kind)" /><span>@label</span></label>
+                        }
+                    </div>
+                    <small>승인할 때 부서 관리자가 바꿀 수 있어요.</small>
+                    @if (Model.RoleError is not null) { <p class="hint bad" role="alert">@Model.RoleError</p> }
+                </section>
+            }
 
             <div class="jacts">
                 <a class="back" href="/">돌아가기</a>

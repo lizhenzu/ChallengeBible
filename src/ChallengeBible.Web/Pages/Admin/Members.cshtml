@@ -50,7 +50,7 @@
                     <summary class="line">
                         <span class="av">@(m.DisplayName.Length > 1 ? m.DisplayName[1..] : m.DisplayName)</span>
                         <span class="who"><b>@m.DisplayName @if (self) { <span class="tag">나</span> }</b>
-                            <small>@m.Email@(m.Status == MembershipStatus.Requested ? $" · {m.RequestedUtc:M월 d일} 신청" : "")</small></span>
+                            <small><span class="rl-m">@m.RoleLabel@(m.IsAdmin ? " · 관리자" : "")@(m.Status == MembershipStatus.Requested ? " 희망" : "") · </span>@m.Email@(m.Status == MembershipStatus.Requested ? $" · {m.RequestedUtc:M월 d일} 신청" : "")</small></span>
                         <span class="tags"><span class="tag">@m.RoleLabel@(m.Status == MembershipStatus.Requested ? " 희망" : "")</span>@if (m.IsAdmin) { <span class="tag r-TenantAdmin">관리자</span> }</span>
                         <span class="chev" aria-hidden="true">›</span>
                     </summary>

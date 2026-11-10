@@ -36,6 +36,9 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
     /// <summary>이미 소속 · 신청한 부서 → 표시 문구(신청할 수 없음, 0027).</summary>
     public Dictionary<int, string> Mine { get; private set; } = [];
 
+    public static readonly (string Kind, string Label)[] RoleChoices =
+        [(SignupRoleKind.Student, "학생"), (SignupRoleKind.Teacher, "교사"), (SignupRoleKind.Parent, "학부모"), (SignupRoleKind.Etc, "기타")];
+
     private string Me => User.UserName()!;
 
     public async Task OnGetAsync(CancellationToken ct)

@@ -102,7 +102,7 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
         var r = await c.PostAsync("/join?handler=Apply", new FormUrlEncodedContent(new[]
         {
             new KeyValuePair<string, string>("__RequestVerificationToken", TokenRx().Match(html).Groups[1].Value),
-            new("TenantId", _kids.Id.ToString()), new("SelectedRoles", Roles.Guardian),   // 보내도 쓰지 않음 — 참여자로 신청
+            new("TenantId", _kids.Id.ToString()), new("RoleKind", SignupRoleKind.Parent),
         }));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
         var after = await c.GetStringAsync("/join");
@@ -110,7 +110,7 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("승인 기다리는 중", after);
         using var raw = InMemoryDb.Raw(_db);
         var m = raw.SignupApplications.Single(x => x.TenantId == _kids.Id && x.Status == SignupStatus.Pending);
-        Assert.Equal(SignupRoleKind.Student, m.RoleKind);
+        Assert.Equal(SignupRoleKind.Parent, m.RoleKind);
         Assert.DoesNotContain("어느 부서에서", after);                                // 기다리는 동안엔 목록 대신 기다림 카드
     }
 }

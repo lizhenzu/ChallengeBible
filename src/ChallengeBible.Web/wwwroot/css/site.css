@@ -125,7 +125,8 @@ main.admin h1 { font-size: 22px; }
 .chev { flex: none; color: var(--dim); font-size: 18px; transition: transform .15s; }
 details[open] > summary .chev { transform: rotate(90deg); }
 .ed { padding: 4px 14px 16px 64px; display: flex; flex-direction: column; gap: 12px; }
-@media (max-width: 520px) { .ed { padding-left: 14px; } .line .tags { display: none; } }
+.line .who .rl-m { display: none; }
+@media (max-width: 520px) { .ed { padding-left: 14px; } .line .tags { display: none; } .line .who .rl-m { display: inline; font-weight: 700; } }
 .ed h3 { margin: 0 0 6px; font-size: 13px; color: var(--dim); font-weight: 700; }
 .ed h3 span { font-weight: 500; }
 .rl { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -1784,6 +1785,15 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .jv4 .jrow.off { opacity: .55; cursor: default; }
 .jv4 .jrow .st { flex: none; font-size: 12px; font-weight: 800; color: var(--accent); }
 .jv4 .none { padding: 24px 16px; border-radius: 16px; background: var(--soft); color: var(--dim); text-align: center; word-break: keep-all; }
+.jv4 .jrole { display: grid; gap: 8px; margin-top: 18px; }
+.jv4 .jrole h2 { margin: 0; font-size: 15px; font-weight: 800; }
+.jv4 .jrole .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.jv4 .jrole label { position: relative; display: block; cursor: pointer; }
+.jv4 .jrole input { position: absolute; opacity: 0; pointer-events: none; }
+.jv4 .jrole label span { display: block; padding: 12px 0; text-align: center; border-radius: 12px; border: 1.5px solid var(--rule); background: var(--bg); font-size: 14.5px; font-weight: 700; }
+.jv4 .jrole input:checked + span { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); font-weight: 800; }
+.jv4 .jrole input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.jv4 .jrole small { font-size: 12.5px; color: var(--dim); word-break: keep-all; }
 .jv4 .jacts { margin-top: 22px; display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
 .jv4 .jacts.one { grid-template-columns: 1fr; }
 .jv4 .jacts > * { min-height: 52px; border-radius: 14px; font-size: 16px; font-weight: 800; display: grid; place-items: center; text-decoration: none; }
