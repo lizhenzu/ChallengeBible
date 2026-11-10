@@ -56,7 +56,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             }));
             return c;
         }
-        int Acc(string id) { using var raw = InMemoryDb.Raw(db); return raw.Users.Single(a => a.Email == id + "@example.com").UserName!; }
+        string Acc(string id) { using var raw = InMemoryDb.Raw(db); return raw.Users.Single(a => a.Email == id + "@example.com").UserName!; }
 
         var anon = app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         await Save(anon, "/", "01-첫화면");
@@ -70,7 +70,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         var km = InMemoryDb.SeedMembership(db, kids.Id, Acc("cheolsu"), MembershipStatus.Approved, Roles.Participant);
         InMemoryDb.SeedMembership(db, kids.Id, Acc("haneul"), MembershipStatus.Requested, Roles.Participant);
         InMemoryDb.SeedMembership(db, kids.Id, Acc("seojun"), MembershipStatus.Requested, Roles.Participant, Roles.Guardian);
-        using (var raw = InMemoryDb.Raw(db)) { raw.Memberships.Single(m => m.Id == km.Id).GroupLabel = "사랑반"; raw.DeptRoles.Add(new Participant { TenantId = kids.Id, MembershipId = km.Id }); raw.SaveChanges(); }
+        using (var raw = InMemoryDb.Raw(db)) { raw.SaveChanges(); }
 
         var newbie = await SignUp("minji", "김민지");
         await Save(newbie, "/join?code=JSKIDS", "04-참여신청");
@@ -230,7 +230,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         var mm = InMemoryDb.SeedMembership(db, kids.Id, Acc("younghee"), MembershipStatus.Approved, Roles.Guardian);
         using (var raw = InMemoryDb.Raw(db))
         {
-            raw.GuardianLinks.Add(new GuardianLink { TenantId = kids.Id, GuardianMembershipId = mm.Id, UserName = raw.DeptRoles.Single(p => p.MembershipId == km.Id).Id, CreatedUtc = DateTime.UtcNow, CreatedByUserName = Acc("eunhye") });
+            raw.GuardianLinks.Add(new GuardianLink { TenantId = kids.Id, GuardianUserName = mm.UserName, StudentUserName = km.UserName, CreatedUtc = DateTime.UtcNow, CreatedByUserName = Acc("eunhye") });
             raw.SaveChanges();
         }
         await Save(admin, $"/jamsil-kids/admin/members?Tab={MembershipStatus.Approved}", "12b-소속관리-승인됨",
@@ -243,12 +243,11 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         var momAcc = Acc("younghee");
         using (var raw = InMemoryDb.Raw(db))
         {
-            raw.MembershipRoles.Add(new MembershipRole { TenantId = kids.Id, MembershipId = mm.Id, Role = Roles.Participant });
             raw.SaveChanges();
-            var team = new FamilyTeam { TenantId = kids.Id, CreatedUtc = DateTime.UtcNow, Members =
+            var team = new FamilyTeam { TenantId = kids.Id, Name = "철수네 가족팀", InsertDT = DateTime.UtcNow, UpdateDT = DateTime.UtcNow, Members =
             [
-                new FamilyMember { TenantId = kids.Id, UserName = raw.DeptRoles.Single(p => p.MembershipId == km.Id).Id, Relation = FamilyRelation.Student, SortOrder = 0 },
-                new FamilyMember { TenantId = kids.Id, UserName = momP.Id, Relation = FamilyRelation.Mother, SortOrder = 1 },
+                new FamilyMember { TenantId = kids.Id, UserName = km.UserName, Relation = FamilyRelation.Student, SortOrder = 0 },
+                new FamilyMember { TenantId = kids.Id, UserName = mm.UserName, Relation = FamilyRelation.Mother, SortOrder = 1 },
             ] };
             raw.FamilyTeams.Add(team);
             raw.SaveChanges();
@@ -272,14 +271,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             raw.Tenants.Single(t => t.Id == elem.Id).ThemeColor = "green";
             raw.SaveChanges();
         }
-        int NewKid(string email, string name)
-        {
-            using var raw = InMemoryDb.Raw(db);
-            var a = new Account { Email = email + "@example.com", DisplayName = name, PasswordHash = "-" };
-            raw.Users.Add(a);
-            raw.SaveChanges();
-            return a.Id;
-        }
+        string NewKid(string email, string name) => InMemoryDb.SeedAccount(db, email + "@example.com", name).UserName!;
         var jiwoo = NewKid("jiwoo", "한지우");
         InMemoryDb.SeedMembership(db, pre.Id, jiwoo, MembershipStatus.Approved, Roles.Participant);
         var daon = NewKid("daon", "오다온");
@@ -312,10 +304,9 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         using (var raw = InMemoryDb.Raw(db))
         {
             raw.SaveChanges();
-            raw.GuardianLinks.Add(new GuardianLink { TenantId = elem.Id, GuardianMembershipId = momElem.Id, UserName = pMinji.Id, CreatedByUserName = momAcc });
+            raw.GuardianLinks.Add(new GuardianLink { TenantId = elem.Id, GuardianUserName = momElem.UserName, StudentUserName = minjiM.UserName, CreatedByUserName = momAcc });
             raw.SaveChanges();
         }
-        await Save(mom, "/account/family", "32-온가족-없음");   // 확정 시안 온가족 "없음 · 신청"(0065 — 부모가 고르던 화면은 없어짐)
         await Save(mom, "/account", "34-내계정", h => h.Replace("<details class=\"ma-ed\">", "<details class=\"ma-ed\" open>"));   // 확정 시안 내계정 — 이름 · 비밀번호 칸을 펼친 모습
 
         // 참여 신청 v2(0059): 목록에 보이기를 켠 부서에서 고르기
@@ -344,7 +335,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
 
         // 운영자: 가입 → 플랫폼 관리자 → 다시 로그인
         var op = await SignUp("operator", "운영자");
-        using (var raw = InMemoryDb.Raw(db)) { InMemoryDb.AddRole(_db, raw.Users.Single(a => a.Email == "operator@example.com").Id, IdentityRoles.SuperAdmin); raw.SaveChanges(); }
+        using (var raw = InMemoryDb.Raw(db)) { InMemoryDb.AddRole(db, raw.Users.Single(a => a.Email == "operator@example.com").Id, IdentityRoles.SuperAdmin); raw.SaveChanges(); }
         var lh = await op.GetStringAsync("/account/login");
         await op.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -370,36 +361,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(op, "/platform/rules", "13c-플랫폼-기본규칙");
         await Save(op, "/platform/content/word?month=2027-01&date=2027-01-05", "14-공용콘텐츠-말씀");
         await Save(op, "/platform/content/quiz?month=2027-01&date=2027-01-05", "15-공용콘텐츠-퀴즈");
-        // 온가족(확정 시안 플랫폼-온가족): 영희 · 철수를 묶은 모습과 그 상세
-        int famId;
-        using (var raw = InMemoryDb.Raw(db))
-        {
-            var f = new Family { CreatedUtc = DateTime.UtcNow, CreatedByUserName = Acc("operator") };
-            f.Links.Add(new FamilyLink { UserName = Acc("younghee"), Relation = FamilyRelation.Mother, SortOrder = 0, AddedUtc = DateTime.UtcNow, AddedByUserName = Acc("operator") });
-            f.Links.Add(new FamilyLink { UserName = Acc("cheolsu"), Relation = FamilyRelation.Student, SortOrder = 1, AddedUtc = DateTime.UtcNow, AddedByUserName = Acc("operator") });
-            raw.Families.Add(f);
-            raw.FamilyRequests.Add(new FamilyRequest { RequesterAccountId = Acc("jiho"), Body = "박지호 — 잠실새내교회 유년부\n박지민 — 잠실새내교회 초등부", RequestedUtc = DateTime.UtcNow });
-            raw.SaveChanges();
-            famId = f.Id;
-        }
-        await Save(op, "/platform/families", "15d-플랫폼-온가족");
-        var reqId = InMemoryDb.Raw(db).FamilyRequests.Single().Id;
-        await Save(op, $"/platform/families/new?request={reqId}&pick={Acc("jiho")}&q=" + Uri.EscapeDataString("김"), "15f-플랫폼-온가족묶기");
-        await Save(op, $"/platform/families/{famId}?q=" + Uri.EscapeDataString("김"), "15e-플랫폼-온가족상세");
-        // 확정 시안 온가족(사용자 쪽): 엄마 · 아이 화면, 신청 기다림, 부서 홈 한 줄, 부서 관리자 보기
-        await Save(mom, "/account/family", "32a-온가족-엄마");
-        await Save(kid, "/account/family", "32b-온가족-아이");
-        await Save(fresh, "/account/family", "32c-온가족-신청기다림");
-        await Save(kid, "/jamsil-kids", "32d-부서홈-온가족");
-        await Save(admin, $"/jamsil-kids/admin/teams?Open={teamId}", "32e-관리-가족팀-온가족");
-        // 운영 점검(확정 시안 플랫폼-운영점검): 최근 오류 하나를 남긴 모습 — 위 화면들에서 진급 승인 · 가족 부서 등 감사 로그가 쌓여 있다
-        try { throw new InvalidOperationException("Sequence contains no elements"); }
-        catch (Exception ex)
-        {
-            var h = new Microsoft.AspNetCore.Http.DefaultHttpContext { TraceIdentifier = "00-1c2d9e0a-77ab12cd-00" };
-            h.Request.Method = "GET"; h.Request.Path = "/jamsil-elem/word-mission";
-            app.Services.GetRequiredService<ErrorLog>().Record(h, ex);
-        }
+
         await Save(op, "/platform/ops?d=0", "15c-플랫폼-운영점검", x => x.Replace("<li><details>", "<li><details open>"));
     }
 

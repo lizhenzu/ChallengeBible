@@ -191,12 +191,16 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
     {
         await using var ctx = db.Create();
         if (!await IsMemberAsync(ctx, guardian, ct) || !await IsMemberAsync(ctx, student, ct)) return MemberError.NotFound;
+        if (UserRole.KindOf(await RoleCodeOfAsync(ctx, guardian, ct)) != UserRoleKind.Parent) return MemberError.NotFound;
         if (await ctx.GuardianLinks.AnyAsync(l => l.GuardianUserName == guardian && l.StudentUserName == student, ct)) return MemberError.None;
         ctx.GuardianLinks.Add(new GuardianLink { TenantId = tenant.Current.Id, GuardianUserName = guardian, StudentUserName = student,
             CreatedUtc = time.GetUtcNow().UtcDateTime, CreatedByUserName = actor });
         await ctx.SaveChangesAsync(ct);
         return MemberError.None;
     }
+
+    private static Task<string?> RoleCodeOfAsync(AppDbContext ctx, string userName, CancellationToken ct) =>
+        (from d in ctx.DeptRoles join u in ctx.Users on d.UserId equals u.Id where u.UserName == userName select d.RoleCode).FirstOrDefaultAsync(ct);
 
     private static Task<bool> IsMemberAsync(AppDbContext ctx, string userName, CancellationToken ct) =>
         (from d in ctx.DeptRoles join u in ctx.Users on d.UserId equals u.Id where u.UserName == userName select d).AnyAsync(ct);

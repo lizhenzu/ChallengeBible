@@ -31,7 +31,6 @@ public class AccountAndJoinServiceTests
         var a = await SignUp(id: "CheolSu@Example.com");
         Assert.Equal("cheolsu@example.com", a.Email);   // 이메일은 소문자로
         Assert.NotEqual("1234", a.PasswordHash);   // 비밀번호는 해시로만
-        Assert.False(a.IsPlatformAdmin);
     }
 
     [Theory]
@@ -64,7 +63,7 @@ public class AccountAndJoinServiceTests
         Assert.NotNull((await Accounts().LoginAsync("CHEOLSU@EXAMPLE.COM", "1234")).Account);
         var wrong = await Accounts().LoginAsync("cheolsu@example.com", "0000");
         Assert.Null(wrong.Account);
-        Assert.Equal("이메일 또는 비밀번호가 맞지 않아요. 다시 확인해 주세요.", wrong.Error);
+        Assert.Equal("아이디(이메일) 또는 비밀번호가 맞지 않아요. 다시 확인해 주세요.", wrong.Error);
         // 없는 이메일도 같은 문구(이메일이 있는지 알려 주지 않음)
         Assert.Equal(wrong.Error, (await Accounts().LoginAsync("nobody@example.com", "1234")).Error);
     }
@@ -87,16 +86,16 @@ public class AccountAndJoinServiceTests
         var t = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         var (join, scope) = Join();
 
-        var (err, id) = await join.ApplyAsync(me.Id, "JSKIDS", [Roles.Participant, Roles.Guardian]);
+        var (err, id) = await join.ApplyAsync(me.UserName!, "JSKIDS", SignupRoleKind.Student);
 
         Assert.Equal(JoinError.None, err);
         Assert.Equal(t.Id, scope.TenantId);
         using var raw = InMemoryDb.Raw(_db);
-        var m = raw.Memberships.Include(x => x.Roles).Single(x => x.Id == id);
-        Assert.Equal(MembershipStatus.Requested, m.Status);
+        var m = raw.SignupApplications.Single(x => x.Id == id);
+        Assert.Equal(SignupStatus.Pending, m.Status);
         Assert.Equal(t.Id, m.TenantId);
-        Assert.Equal([Roles.Guardian, Roles.Participant], m.Roles.Select(r => r.Role).Order());
-        Assert.Equal(0, (await Accounts().WhereToGoAsync(me.Id)).ApprovedCount);   // 승인 전이라 0곳
+        Assert.Equal(SignupRoleKind.Student, m.RoleKind);
+        Assert.Equal(0, (await Accounts().WhereToGoAsync(me.UserName!)).ApprovedCount);   // 승인 전이라 0곳
     }
 
     [Fact]
@@ -105,8 +104,8 @@ public class AccountAndJoinServiceTests
         var me = await SignUp();
         InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         var (join, _) = Join();
-        Assert.Equal(JoinError.BadRole, (await join.ApplyAsync(me.Id, "JSKIDS", [Roles.TenantAdmin])).Error);
-        Assert.Equal(JoinError.NoRole, (await join.ApplyAsync(me.Id, "JSKIDS", [])).Error);
+        Assert.Equal(JoinError.BadRole, (await join.ApplyAsync(me.UserName!, "JSKIDS", "X")).Error);
+        Assert.Equal(JoinError.NoRole, (await join.ApplyAsync(me.UserName!, "JSKIDS", "")).Error);
     }
 
     [Fact]
@@ -114,8 +113,8 @@ public class AccountAndJoinServiceTests
     {
         var me = await SignUp();
         InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
-        Assert.Equal(JoinError.None, (await Join().Join.ApplyAsync(me.Id, "JSKIDS", [Roles.Participant])).Error);
-        Assert.Equal(JoinError.AlreadyMember, (await Join().Join.ApplyAsync(me.Id, "JSKIDS", [Roles.Participant])).Error);
+        Assert.Equal(JoinError.None, (await Join().Join.ApplyAsync(me.UserName!, "JSKIDS", SignupRoleKind.Student)).Error);
+        Assert.Equal(JoinError.AlreadyMember, (await Join().Join.ApplyAsync(me.UserName!, "JSKIDS", SignupRoleKind.Student)).Error);
     }
 
     [Fact]
@@ -123,11 +122,10 @@ public class AccountAndJoinServiceTests
     {
         var me = await SignUp();
         var t = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
-        await Join().Join.ApplyAsync(me.Id, "JSKIDS", [Roles.Participant]);
-        Assert.True(await Join().Join.CancelAsync(me.Id, t.Id));
+        await Join().Join.ApplyAsync(me.UserName!, "JSKIDS", SignupRoleKind.Student);
+        Assert.True(await Join().Join.CancelAsync(me.UserName!, t.Id));
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Empty(raw.Memberships);
-        Assert.Empty(raw.MembershipRoles);
+        Assert.Empty(raw.SignupApplications);
     }
 
     [Fact]
@@ -138,18 +136,18 @@ public class AccountAndJoinServiceTests
         var b = InMemoryDb.SeedTenant(_db, "jamsil-elem", "JSELEM");
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.Memberships.Add(new Membership { TenantId = a.Id, UserName = me.Id, Status = MembershipStatus.Approved });
+            InMemoryDb.SeedMembership(_db, a.Id, me.UserName!, MembershipStatus.Approved, Roles.Participant);
             raw.SaveChanges();
         }
-        var go = await Accounts().WhereToGoAsync(me.Id);
+        var go = await Accounts().WhereToGoAsync(me.UserName!);
         Assert.Equal((1, "jamsil-kids"), (go.ApprovedCount, go.OnlyTenantSlug));
 
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.Memberships.Add(new Membership { TenantId = b.Id, UserName = me.Id, Status = MembershipStatus.Approved });
+            InMemoryDb.SeedMembership(_db, b.Id, me.UserName!, MembershipStatus.Approved, Roles.Participant);
             raw.SaveChanges();
         }
-        go = await Accounts().WhereToGoAsync(me.Id);
+        go = await Accounts().WhereToGoAsync(me.UserName!);
         Assert.Equal((2, (string?)null), (go.ApprovedCount, go.OnlyTenantSlug));
     }
 
@@ -159,12 +157,12 @@ public class AccountAndJoinServiceTests
         var me = await SignUp();
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.Users.Single(x => x.Id == me.Id).MustChangePassword = true;
+            raw.UserSettings.Add(new UserSetting { UserName = me.UserName!, MustChangePassword = true });
             raw.SaveChanges();
         }
-        Assert.True(await Accounts().MustChangePasswordAsync(me.Id));
-        Assert.True((await Accounts().ChangePasswordAsync(me.Id, "5678", "5678")).Ok);
-        Assert.False(await Accounts().MustChangePasswordAsync(me.Id));
+        Assert.True(await Accounts().MustChangePasswordAsync(me.UserName!));
+        Assert.True((await Accounts().ChangePasswordAsync(me.UserName!, "5678", "5678")).Ok);
+        Assert.False(await Accounts().MustChangePasswordAsync(me.UserName!));
         Assert.NotNull((await Accounts().LoginAsync("cheolsu@example.com", "5678")).Account);
     }
 }

@@ -28,7 +28,7 @@ public sealed class ReadingBoardService(IAppDb db, TenantContext tenant, Infrast
         await using var ctx = db.Create();
 
         var adminIds = await DeptMembership.AdminIdsAsync(ctx, ct);
-        var members = (await DeptMembership.PeopleAsync(ctx, ct)).Select(p => new { Id = p.UserName, DisplayName = p.Name, GroupLabel = (string?)null, Roles = UserRole.ScreenRoles(p.RoleCode, adminIds.Contains(p.UserId)).ToList() }).ToList();
+        var members = (await DeptMembership.PeopleAsync(ctx, ct)).Select(p => new { Id = p.UserName, DisplayName = p.Name, GroupLabel = (string?)null, Roles = UserRole.ScreenRoles(p.RoleCode, adminIds.Contains(p.UserId)).Where(r => r != Infrastructure.Data.Roles.Participant || UserRole.KindOf(p.RoleCode) == UserRoleKind.Student).ToList() }).ToList();
         if (!canSee) return new(t.ReadingBoardPublic, false, members.Count, 0, 0, 0, 0, 0, today, [], []);
 
         var ids = members.Select(m => m.Id).ToList();

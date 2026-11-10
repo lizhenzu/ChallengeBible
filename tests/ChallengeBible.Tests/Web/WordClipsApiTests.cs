@@ -22,7 +22,7 @@ public partial class WordClipsApiTests(WebApplicationFactory<Program> app) : ICl
     private static readonly DateOnly Jan5 = new(2027, 1, 5);
     private readonly string _db = InMemoryDb.NewName();
 
-    private WebApplicationFactory<Program> Host(string? key = Key, int? actor = null) => app.WithWebHostBuilder(b =>
+    private WebApplicationFactory<Program> Host(string? key = Key, string? actor = null) => app.WithWebHostBuilder(b =>
     {
         b.UseSetting("ContentApi:Key", key ?? "");
         b.UseSetting("ContentApi:ActorUserName", actor?.ToString() ?? "");
@@ -35,10 +35,10 @@ public partial class WordClipsApiTests(WebApplicationFactory<Program> app) : ICl
         });
     });
 
-    private HttpClient Client(string? key = Key, int? actor = null) =>
+    private HttpClient Client(string? key = Key, string? actor = null) =>
         Host(key, actor).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
-    private int Admin(bool platform = true)
+    private string Admin(bool platform = true)
     {
         var a = InMemoryDb.SeedAccount(_db, $"op{Guid.NewGuid():N}@example.com", "운영자");
         using var raw = InMemoryDb.Raw(_db);

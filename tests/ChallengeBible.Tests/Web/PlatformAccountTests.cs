@@ -32,11 +32,10 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
         _jieun2 = InMemoryDb.SeedAccount(_db, "jieun2@example.com", "박지은").UserName!;
         _kid = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수").UserName!;
         InMemoryDb.SeedMembership(_db, _pre.Id, _jieun, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
-        InMemoryDb.SeedMembership(_db, _kids.Id, _jieun, MembershipStatus.Approved, Roles.Guardian);
         InMemoryDb.SeedMembership(_db, _kids.Id, _jieun2, MembershipStatus.Requested, Roles.Participant);
         InMemoryDb.SeedMembership(_db, _kids.Id, _kid, MembershipStatus.Approved, Roles.Participant);
         using var raw = InMemoryDb.Raw(_db);
-        InMemoryDb.AddRole(_db, raw.Users.Single(a => a.UserName == _op).UserName!, IdentityRoles.SuperAdmin);
+        InMemoryDb.AddRole(_db, raw.Users.Single(a => a.UserName == _op).Id, IdentityRoles.SuperAdmin);
         foreach (var (who, v) in new[] { (_jieun, 1), (_jieun, 2), (_kid, 1) })
             raw.ReadingVerses.Add(new ReadingVerse { UserName = who, BookId = 1, Chapter = 1, Verse = (short)v, ReadAt = DateTime.UtcNow });
         raw.ReadingBookmarks.Add(new ReadingBookmark { UserName = _jieun, BookId = 1, Chapter = 1, Verse = 1, CreatedAt = DateTime.UtcNow });
@@ -58,10 +57,10 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
     }
 
     [Fact]
-    public async Task 자세히는_모든_부서_소속()
+    public async Task 자세히는_소속_부서()
     {
         var d = (await Service().DetailAsync(_op, _jieun))!;
-        Assert.Equal(2, d.Memberships.Count);
+        Assert.Single(d.Memberships);
         Assert.Equal([_pre.Name], d.AdminOf);
     }
 
@@ -72,8 +71,8 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
         Assert.Matches("^[a-z]+-\\d{4}$", temp!);
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var a = raw.Users.Single(x => x.Id == _jieun);
-            Assert.True(a.MustChangePassword);
+            var a = raw.Users.Single(x => x.UserName == _jieun);
+            Assert.True(raw.UserSettings.Single(x => x.UserName == _jieun).MustChangePassword);
             Assert.NotEqual(PasswordVerificationResult.Failed, new PasswordHasher<AppUser>().VerifyHashedPassword(a, a.PasswordHash, temp!));
             Assert.DoesNotContain(temp!, raw.AuditLogs.Single().Detail);     // 원문은 어디에도 남기지 않는다
         }
@@ -156,7 +155,7 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
         Assert.Equal(HttpStatusCode.Redirect, changed.StatusCode);
         Assert.NotEqual("/account/change-password", (await kid.GetAsync("/jamsil-kids")).Headers.Location?.OriginalString);   // 이제 통과
         using var raw = InMemoryDb.Raw(_db);
-        Assert.False(raw.Users.Single(a => a.UserName == _kid).MustChangePassword);
+        Assert.False(raw.UserSettings.Where(a => a.UserName == _kid).Select(a => a.MustChangePassword).FirstOrDefault());
     }
 
     [Fact]

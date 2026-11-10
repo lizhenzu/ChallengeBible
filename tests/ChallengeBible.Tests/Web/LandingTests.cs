@@ -70,7 +70,7 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
     {
         var a = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         var b = InMemoryDb.SeedTenant(_db, "jamsil-elem", "JSELEM");
-        int Acc(string e) { using var raw = InMemoryDb.Raw(_db); var x = new Account { Email = e + "@example.com", DisplayName = e, PasswordHash = "-" }; raw.Users.Add(x); raw.SaveChanges(); return x.Id; }
+        string Acc(string e) => InMemoryDb.SeedAccount(_db, e + "@example.com", e).UserName!;
         var k1 = Acc("k1"); var k2 = Acc("k2"); var k3 = Acc("k3");
         var m1 = InMemoryDb.SeedMembership(_db, a.Id, k1, MembershipStatus.Approved, Roles.Participant);
         InMemoryDb.SeedMembership(_db, b.Id, k1, MembershipStatus.Approved, Roles.Participant);   // 두 부서 소속도 한 사람
@@ -79,7 +79,7 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         using (var raw = InMemoryDb.Raw(_db))
         {
             raw.SaveChanges();
-            raw.MissionActivities.Add(new MissionActivity { TenantId = a.Id, UserName = p.Id, MissionItem = "Word.Me", MissionDate = Jan5, Points = 1, PerformedAt = new DateTime(2027, 1, 4, 23, 0, 0, DateTimeKind.Utc) });
+            raw.MissionActivities.Add(new MissionActivity { TenantId = a.Id, UserName = k1, MissionItem = "Word.Me", MissionDate = Jan5, Points = 1, PerformedAt = new DateTime(2027, 1, 4, 23, 0, 0, DateTimeKind.Utc) });
             var at = new DateTime(2027, 1, 4, 23, 30, 0, DateTimeKind.Utc);   // 서울 1월 5일 아침
             raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = k1, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = at });   // 미션도 한 k1 — 오늘 한 명으로
             raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = k2, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = at });

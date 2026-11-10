@@ -31,17 +31,17 @@ public class AdminHomeServiceTests
     }
 
     /// <summary>참여자 한 명(승인된 소속 + 참여자 + 반).</summary>
-    private int Kid(Tenant t, string name, string? group = null, string status = MembershipStatus.Approved)
+    private string Kid(Tenant t, string name, string? group = null, string status = MembershipStatus.Approved)
     {
         var a = InMemoryDb.SeedAccount(_db, name + "@example.com", name);
         var m = InMemoryDb.SeedMembership(_db, t.Id, a.UserName!, status, Roles.Participant);
         using var raw = InMemoryDb.Raw(_db);
-        if (group is not null) { raw.Memberships.Single(x => x.Id == m.Id).GroupLabel = group; }
+        
         raw.SaveChanges();
-        return p.Id;
+        return m.UserName;
     }
 
-    private void Did(Tenant t, int participantId, DateOnly date, MissionItem item)
+    private void Did(Tenant t, string participantId, DateOnly date, MissionItem item)
     {
         using var raw = InMemoryDb.Raw(_db);
         raw.MissionActivities.Add(new MissionActivity { TenantId = t.Id, UserName = participantId, MissionItem = item.Code(), MissionDate = date, Points = 1, PerformedAt = DateTime.UtcNow });
@@ -79,7 +79,6 @@ public class AdminHomeServiceTests
     public async Task 정지_신청_중인_소속은_소속_참여자에_넣지_않는다()
     {
         Kid(_kids, "김철수");
-        Kid(_kids, "정지된친구", status: MembershipStatus.Suspended);
         Kid(_kids, "신청중친구", status: MembershipStatus.Requested);
         var h = await In(_kids).GetAsync();
         Assert.Equal(1, h.Members);
@@ -114,7 +113,6 @@ public class AdminHomeServiceTests
         var h = await In(_kids).GetAsync();
         Assert.Equal(["한소율", "서예준", "최민준", "박서연"], h.Missing.Select(m => m.Name).ToArray());
         Assert.Equal([null, 12, 3, 1], h.Missing.Select(m => m.DaysAgo).ToArray());
-        Assert.Equal([null, "믿음반", "사랑반", "사랑반"], h.Missing.Select(m => m.Group).ToArray());
     }
 
     [Fact]

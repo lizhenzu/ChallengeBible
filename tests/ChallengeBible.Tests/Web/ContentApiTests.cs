@@ -19,7 +19,7 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
     private const string Url = "/api/platform/quizzes/2027-01-05";
     private readonly string _db = InMemoryDb.NewName();
 
-    private HttpClient Client(string? key = Key, int? actor = null)
+    private HttpClient Client(string? key = Key, string? actor = null)
     {
         var f = app.WithWebHostBuilder(b =>
         {
@@ -34,7 +34,7 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
         return f.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
     }
 
-    private int Admin(bool platform = true)
+    private string Admin(bool platform = true)
     {
         var a = InMemoryDb.SeedAccount(_db, $"op{Guid.NewGuid():N}@example.com", "운영자");
         using var raw = InMemoryDb.Raw(_db);
@@ -256,7 +256,7 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
 
     // ── 관리 화면 "퀴즈 넣기"(키 설정 없이) ──
 
-    private async Task<(HttpClient C, int Id)> SignUp(string login, bool platform)
+    private async Task<(HttpClient C, string Id)> SignUp(string login, bool platform)
     {
         var c = Client(key: null);
         await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
@@ -264,11 +264,11 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
             ["__RequestVerificationToken"] = Token(await c.GetStringAsync("/account/signup")),
             ["DisplayName"] = "운영자", ["Email"] = login + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
-        int id;
+        string id;
         using (var raw = InMemoryDb.Raw(_db))
         {
             var a = raw.Users.Single(x => x.Email == login + "@example.com");
-            a.IsPlatformAdmin = platform;
+            if (platform) InMemoryDb.AddRole(_db, a.Id, IdentityRoles.SuperAdmin);
             raw.SaveChanges();
             id = a.UserName!;
         }

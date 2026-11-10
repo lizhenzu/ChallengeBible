@@ -19,7 +19,7 @@ public partial class SeasonTests : IClassFixture<WebApplicationFactory<Program>>
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
     private readonly Tenant _kids, _elem;
-    private readonly int _p1, _p2, _other;
+    private readonly string _p1, _p2, _other;
 
     public SeasonTests(WebApplicationFactory<Program> app)
     {
@@ -33,12 +33,9 @@ public partial class SeasonTests : IClassFixture<WebApplicationFactory<Program>>
         _kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         _elem = InMemoryDb.SeedTenant(_db, "jamsil-elem", "JSELEM");
         using var raw = InMemoryDb.Raw(_db);
-        Participant P(int tenantId) { var p = new Participant { TenantId = tenantId, MembershipId = 0 }; raw.DeptRoles.Add(p); return p; }
-        var p1 = P(_kids.Id); var p2 = P(_kids.Id); var other = P(_elem.Id);
-        raw.SaveChanges();
-        (_p1, _p2, _other) = (p1.Id, p2.Id, other.Id);
-        void Pt(int tenantId, string pid, int y, int m, int d, int points) => raw.MissionActivities.Add(new PointLedger
-            { TenantId = tenantId, UserName = pid, MissionDate = new DateOnly(y, m, d), MissionItem = "Word.Me", Points = points, RecordedUtc = DateTime.UtcNow });
+        (_p1, _p2, _other) = ("p1", "p2", "other");
+        raw.DeptRoles.AddRange(new DeptRoleUserAssoc { TenantId = _kids.Id, UserId = "u1", RoleCode = "T1001" }, new DeptRoleUserAssoc { TenantId = _kids.Id, UserId = "u2", RoleCode = "T1001" });
+        void Pt(int tenantId, string pid, int y, int m, int d, int points) => raw.MissionActivities.Add(new MissionActivity { TenantId = tenantId, UserName = pid, MissionDate = new DateOnly(y, m, d), MissionItem = "Word.Me", Points = points, PerformedAt = DateTime.UtcNow });
         Pt(_kids.Id, _p1, 2027, 1, 1, 3); Pt(_kids.Id, _p1, 2027, 1, 4, 2);
         Pt(_kids.Id, _p2, 2027, 1, 3, 4);
         Pt(_kids.Id, _p2, 2026, 12, 30, 7);                 // 지난 시즌
@@ -55,7 +52,7 @@ public partial class SeasonTests : IClassFixture<WebApplicationFactory<Program>>
         return new SeasonService(new InMemoryDb(_db, scope), tc, new TenantClock(_time), _time);
     }
 
-    private int Actor() => InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜").UserName!;
+    private string Actor() => InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜").UserName!;
 
     [Fact]
     public async Task R62_올해_시즌은_기본_1월_1일부터_이_부서_점수만_센다()
@@ -143,7 +140,7 @@ public partial class SeasonTests : IClassFixture<WebApplicationFactory<Program>>
             ["__RequestVerificationToken"] = TokenRx().Match(await c.GetStringAsync("/account/signup")).Groups[1].Value,
             ["DisplayName"] = "이은혜", ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
-        int id;
+        string id;
         using (var raw = InMemoryDb.Raw(_db)) id = raw.Users.Single(a => a.Email == email + "@example.com").UserName!;
         InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, roles);
         return c;
@@ -219,7 +216,6 @@ public partial class SeasonTests : IClassFixture<WebApplicationFactory<Program>>
         {
             Assert.Equal("100,200,300", raw.Tenants.Single(t => t.Id == _kids.Id).Milestones);
             Assert.Null(raw.Tenants.Single(t => t.Id == _elem.Id).Milestones);                       // 다른 부서는 그대로
-            Assert.Equal([100], raw.MilestonesReached.Where(m => m.UserName == _p1).Select(m => m.Threshold).ToList());   // R-104
             Assert.Contains(raw.AuditLogs, l => l.Action == MilestoneService.LogAction && l.Detail == "축하 단계 플랫폼 기본 → 100 · 200 · 300");
         }
         var saved = await admin.GetStringAsync("/jamsil-kids/admin/season");

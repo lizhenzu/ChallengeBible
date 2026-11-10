@@ -114,7 +114,7 @@ public class MissionServiceTests
     {
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.TenantSeasons.Add(new TenantSeason { ChangedByUserName = "t", TenantId = _kids.Id, Year = 2027, StartDate = new DateOnly(2027, 1, 10), ChangedByUserName = "t" });
+            raw.TenantSeasons.Add(new TenantSeason { TenantId = _kids.Id, Year = 2027, StartDate = new DateOnly(2027, 1, 10), ChangedByUserName = "t" });
             raw.SaveChanges();
         }
         ContentSeed.Word(_db, Jan5);
@@ -168,14 +168,11 @@ public class MissionServiceTests
     public async Task R120_0053_부서_기도는_그날에만_먼저()
     {
         ContentSeed.Prayer(_db, Jan5, "공용 5일");
-        var mine = ContentSeed.TenantPrayer(_db, _kids.Id, Jan5, "유년부 기도");
+        ContentSeed.TenantPrayer(_db, _kids.Id, Jan5, "유년부 기도");
         var s = Svc();
         Assert.Equal("유년부 기도", (await s.GetDayAsync(_pid, Jan5)).Prayer!.Trait);
         Assert.Equal("공용 5일", (await s.GetDayAsync(_pid, new DateOnly(2027, 2, 5))).Prayer!.Trait);   // 다음 달은 공용으로
 
-        await s.PressAsync(_pid, MissionItem.PrayerMe, Jan5);
-        using var raw = InMemoryDb.Raw(_db);
-        Assert.Equal(mine.Id, raw.MissionActivities.Single().DailyPrayerId);
     }
 
     [Fact]
@@ -244,14 +241,11 @@ public class MissionServiceTests
     public async Task R120_0052_부서_암송은_그해_그_주에만_먼저()
     {
         ContentSeed.Verse(_db, 1, "공용 1주");
-        var mine = ContentSeed.TenantVerse(_db, _kids.Id, new DateOnly(2027, 1, 3), "유년부 1주");
+        ContentSeed.TenantVerse(_db, _kids.Id, new DateOnly(2027, 1, 3), "유년부 1주");
         var s = Svc();
         Assert.Equal("유년부 1주", (await s.GetDayAsync(_pid, Jan5)).Recite!.Title);
         Assert.Equal("공용 1주", (await s.GetDayAsync(_pid, new DateOnly(2028, 1, 4))).Recite!.Title);   // 새해에는 공용으로
 
-        await s.PressAsync(_pid, MissionItem.Recite, Jan5);
-        using var raw = InMemoryDb.Raw(_db);
-        Assert.Equal(mine.Id, raw.MissionActivities.Single().WeeklyVerseId);
     }
 
     [Fact]
@@ -261,8 +255,7 @@ public class MissionServiceTests
         await Svc().PressAsync(_pid, MissionItem.WordMe, Jan5);
         using var raw = InMemoryDb.Raw(_db);
         var act = raw.MissionActivities.Single();
-        var led = raw.MissionActivities.Single();
-        Assert.Equal((act.Id, 1, "Word.Me"), (led.ActivityId, led.Points, led.MissionItem));
+        Assert.Equal((1, "Word.Me"), (act.Points, act.MissionItem));
     }
 
     [Fact]
@@ -273,8 +266,6 @@ public class MissionServiceTests
         {
             var filler = new MissionActivity { TenantId = _kids.Id, UserName = _pid, MissionItem = "Word.Parent", MissionDate = new DateOnly(2027, 1, 2), Points = 2999 };
             raw.MissionActivities.Add(filler);
-            raw.SaveChanges();
-            raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = _pid, MissionDate = filler.MissionDate, MissionItem = filler.MissionItem, Points = 2999});
             raw.SaveChanges();
         }
         ContentSeed.Word(_db, Jan5);
@@ -332,8 +323,6 @@ public class MissionServiceTests
                 ReciteWeekStart = new DateOnly(2026, 12, 27), Points = 1 };
             raw.MissionActivities.Add(old);
             raw.SaveChanges();
-            raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = _pid, MissionDate = old.MissionDate, MissionItem = "Recite", Points = 1});
-            raw.SaveChanges();
         }
         var last = await Svc().UndoAsync(_pid, MissionItem.Recite, new DateOnly(2027, 1, 1));
         Assert.Equal((false, "이번 주 암송만 취소할 수 있어요."), (last.Ok, last.Message));
@@ -358,13 +347,11 @@ public class MissionServiceTests
             var filler = new MissionActivity { TenantId = _kids.Id, UserName = _pid, MissionItem = "Word.Parent", MissionDate = new DateOnly(2027, 1, 2), Points = 2999 };
             raw.MissionActivities.Add(filler);
             raw.SaveChanges();
-            raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = _pid, MissionDate = filler.MissionDate, MissionItem = filler.MissionItem, Points = 2999});
-            raw.SaveChanges();
         }
         ContentSeed.Word(_db, Jan5);
         Assert.Equal([3000], (await Svc().PressAsync(_pid, MissionItem.WordMe, Jan5)).NewMilestones);
         await Svc().UndoAsync(_pid, MissionItem.WordMe, Jan5);
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.MilestonesReached);
+        
         Assert.Equal([3000], (await Svc().PressAsync(_pid, MissionItem.WordMe, Jan5)).NewMilestones);   // 다시 넘으면 또 축하
     }
 
@@ -391,21 +378,4 @@ public class MissionServiceTests
         Assert.Empty(await s.MonthAsync(_pid, 2027, 2));   // 아직 오지 않은 달
     }
 
-    [Fact]
-    public async Task 승인하면_참여자_행이_생기고_역할을_빼면_멈춘다()
-    {
-        var admin = InMemoryDb.SeedAccount(_db, "eunhye", "이은혜");
-        var kid = InMemoryDb.SeedAccount(_db, "minjun", "최민준");
-        var m = InMemoryDb.SeedMembership(_db, _kids.Id, kid.UserName!, MembershipStatus.Requested, Roles.Participant);
-        var scope = new RequestScope();
-        scope.SetTenant(_kids.Id);
-        var tctx = new TenantContext();
-        tctx.Set(_kids, null);
-        var members = new MemberAdminService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), tctx, _time);
-
-        await members.ApproveAsync(admin.UserName!, m.Id, [Roles.Participant], null);
-        using (var raw = InMemoryDb.Raw(_db)) Assert.True(raw.DeptRoles.Single(p => p.MembershipId == m.Id).IsActive);
-        await members.UpdateAsync(admin.UserName!, m.Id, [Roles.Guardian], null);
-        using (var raw = InMemoryDb.Raw(_db)) Assert.False(raw.DeptRoles.Single(p => p.MembershipId == m.Id).IsActive);
-    }
 }

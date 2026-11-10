@@ -40,7 +40,7 @@ public partial class PhotoTests : IClassFixture<WebApplicationFactory<Program>>,
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
     private static partial Regex TokenRx();
 
-    private async Task<(HttpClient C, int Id)> SignUp(string login, string name)
+    private async Task<(HttpClient C, string Id)> SignUp(string login, string name)
     {
         var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
@@ -62,7 +62,7 @@ public partial class PhotoTests : IClassFixture<WebApplicationFactory<Program>>,
         return await c.PostAsync(url, form);
     }
 
-    private string? PhotoOf(int id) { using var raw = InMemoryDb.Raw(_db); return raw.Users.Single(a => a.Id == id).PhotoPath; }
+    private string? PhotoOf(string id) { using var raw = InMemoryDb.Raw(_db); return raw.UserSettings.Where(a => a.UserName == id).Select(a => a.PhotoPath).FirstOrDefault(); }
 
     [Fact]
     public async Task R200_R201_본인이_올리면_홈_동그라미에_보이고_같은_부서_사람만_본다()

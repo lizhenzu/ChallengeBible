@@ -126,7 +126,7 @@ public partial class ContentCalendarTests : IClassFixture<WebApplicationFactory<
             ["__RequestVerificationToken"] = TokenRx().Match(await c.GetStringAsync("/account/signup")).Groups[1].Value,
             ["DisplayName"] = "이은혜", ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
-        int id;
+        string id;
         using (var raw = InMemoryDb.Raw(_db)) id = raw.Users.Single(a => a.Email == email + "@example.com").UserName!;
         InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, roles);
         return c;

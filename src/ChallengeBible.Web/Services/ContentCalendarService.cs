@@ -77,7 +77,7 @@ public sealed class ContentCalendarService(IAppDb db, TenantContext tenant, Tena
         var ids = words.SelectMany(g => g).Concat(quizzes.SelectMany(g => g)).Where(c => c.TenantId != null).Select(c => c.By)
             .Concat(prayers.Where(p => p.TenantId != null).Select(p => p.CreatedByUserName))
             .Concat(verses.Where(v => v.TenantId != null).Select(v => v.CreatedByUserName)).Distinct().ToList();
-        var names = await ctx.Users.AsNoTracking().Where(a => ids.Contains(a.Id)).ToDictionaryAsync(a => a.Id, a => a.DisplayName, ct);
+        var names = (await ctx.Users.AsNoTracking().Where(a => ids.Contains(a.UserName!)).Select(a => new { a.UserName, a.LastName, a.FirstName }).ToListAsync(ct)).ToDictionary(a => a.UserName!, a => AppUser.FullName(a.LastName, a.FirstName));
         string By(Cand c) => $"{names.GetValueOrDefault(c.By) ?? "부서"} · {c.ByUtc.ToString("M월 d일", Ko)}";
 
         CalendarDay Build(DateOnly d)

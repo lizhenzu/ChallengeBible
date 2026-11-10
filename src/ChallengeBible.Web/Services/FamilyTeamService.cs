@@ -48,7 +48,7 @@ public sealed record FamilyRanking(bool Enabled, int Year, DateOnly Today, int F
 
 public enum FamilyError
 {
-    None, AwardLocked, NotAllowed, NameTaken, Disabled, NotFound, NotParticipant, AlreadyInTeam, BadRelation, HasPending, InOtherDept, NotMember,
+    None, AwardLocked, NotAllowed, NameTaken, WrongRelation, Disabled, NotFound, NotParticipant, AlreadyInTeam, BadRelation, HasPending, InOtherDept, NotMember,
     TargetInTeam, TargetRequested, AlreadyInvited, TargetOtherDept,
 }
 
@@ -353,7 +353,8 @@ public sealed class FamilyTeamService(IAppDb db, RequestScope scope, TenantConte
         FamilyError.NotFound => "찾을 수 없어요. 화면을 새로 고쳐 주세요.",
         FamilyError.NotParticipant => "이 부서의 참여자만 할 수 있어요.",
         FamilyError.AlreadyInTeam => "이미 가족팀에 들어 있어요. 다른 팀에 가려면 먼저 나와 주세요.",
-        FamilyError.BadRelation => "내 역할에 맞는 관계를 골라 주세요.",
+        FamilyError.BadRelation => "나는 누구인지 골라 주세요.",
+        FamilyError.WrongRelation => "내 역할에 맞는 관계를 골라 주세요.",
         FamilyError.HasPending => "이미 신청한 팀이 있어요. 신청을 취소한 뒤 다시 해 주세요.",
         FamilyError.InOtherDept => "다른 부서의 가족팀에 들어 있어요. 한 사람은 한 부서의 가족팀에만 들어가요.",
         FamilyError.NotMember => "이 팀의 구성원만 할 수 있어요.",

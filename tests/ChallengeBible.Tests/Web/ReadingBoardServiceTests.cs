@@ -33,7 +33,6 @@ public class ReadingBoardServiceTests
 
         var now = _time.GetUtcNow().UtcDateTime;
         using var raw = InMemoryDb.Raw(_db);
-        raw.Memberships.Single(m => m.Id == _meM.Id).GroupLabel = "사랑반";
         // 김철수: 1회차 2장(오늘) · 김영희: 1회차 완독 + 2회차 3장(10일 전) · 박소영(다른 부서) · 최민준(신청 중)도 읽었다
         raw.ReadingRounds.AddRange(
             new ReadingRound { UserName = _me, RoundNo = 1, StartedAt = now.AddDays(-1) },
@@ -41,7 +40,7 @@ public class ReadingBoardServiceTests
             new ReadingRound { UserName = _hee, RoundNo = 2, StartedAt = now.AddDays(-20) },
             new ReadingRound { UserName = _outsider, RoundNo = 1, StartedAt = now.AddDays(-3) },
             new ReadingRound { UserName = _waiting, RoundNo = 1, StartedAt = now.AddDays(-3) });
-        void Read(int who, int round, byte book, short ch, DateTime at) =>
+        void Read(string who, int round, byte book, short ch, DateTime at) =>
             raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = who, RoundNo = round, BookId = book, Chapter = ch, ReadAt = at });
         Read(_me, 1, 1, 1, now.AddHours(-1));
         Read(_me, 1, 1, 2, now);
@@ -64,7 +63,7 @@ public class ReadingBoardServiceTests
         scope.SetTenant(_kids.Id);
         scope.SetUser(userName, "id-" + userName);
         var tc = new TenantContext();
-        using (var raw = InMemoryDb.Raw(_db)) tc.Set(raw.Tenants.Single(t => t.Id == _kids.Id), me);
+        using (var raw = InMemoryDb.Raw(_db)) tc.Set(raw.Tenants.Single(t => t.Id == _kids.Id), me is null ? null : raw.DeptRoles.Single(d => d.Id == me.Id));
         return new ReadingBoardService(new InMemoryDb(_db, scope), tc, scope, new TenantClock(_time));
     }
 
@@ -119,10 +118,10 @@ public class ReadingBoardServiceTests
     }
 
     [Fact]
-    public async Task 배지는_반_이름_없으면_역할()
+    public async Task 배지는_역할()
     {
         var b = await As(_teacher, _teacherM).GetAsync();
-        Assert.Equal("사랑반", b.Rows.Single(r => r.UserName == _me).Badge);
+        Assert.Equal("참여자", b.Rows.Single(r => r.UserName == _me).Badge);
         Assert.Equal("보호자", b.Rows.Single(r => r.UserName == _hee).Badge);
         Assert.Equal("교사 · 관리자", b.Rows.Single(r => r.UserName == _teacher).Badge);
     }

@@ -31,17 +31,14 @@ public class PlatformHomeTests
 
         var now = _time.GetUtcNow().UtcDateTime;
         using var raw = InMemoryDb.Raw(_db);
-        InMemoryDb.AddRole(_db, raw.Users.Single(a => a.UserName == _op).UserName!, IdentityRoles.SuperAdmin);
-        foreach (var a in raw.Users) a.CreatedUtc = now.AddDays(-30);
-        raw.Users.Single(a => a.Id == kid2).CreatedUtc = now.AddDays(-2);           // 이번 주 새 계정
-        raw.Memberships.Single(m => m.UserName == waiting).RequestedUtc = now.AddDays(-5);   // 오래 기다리는 신청
-        var p1 = new Participant { TenantId = _kids.Id, MembershipId = km.Id };
-        var p2 = new Participant { TenantId = _kids.Id, MembershipId = km2.Id };
-        raw.DeptRoles.AddRange(p1, p2);
+        InMemoryDb.AddRole(_db, raw.Users.Single(a => a.UserName == _op).Id, IdentityRoles.SuperAdmin);
+        foreach (var a in raw.Users) a.InsertDT = now.AddDays(-30);
+        raw.Users.Single(a => a.UserName == kid2).InsertDT = now.AddDays(-2);           // 이번 주 새 계정
+        raw.SignupApplications.Single(m => m.UserName == waiting).InsertDT = now.AddDays(-5);   // 오래 기다리는 신청
         raw.SaveChanges();
-        raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = p1.Id, MissionItem = "Word.Me", MissionDate = Jan5 });
-        raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = p1.Id, MissionItem = "Prayer.Me", MissionDate = Jan5 });
-        raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = p2.Id, MissionItem = "Word.Me", MissionDate = Jan5.AddDays(-1) });   // 어제
+        raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = km.UserName, MissionItem = "Word.Me", MissionDate = Jan5 });
+        raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = km.UserName, MissionItem = "Prayer.Me", MissionDate = Jan5 });
+        raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = km2.UserName, MissionItem = "Word.Me", MissionDate = Jan5.AddDays(-1) });   // 어제
         raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = kid, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = now });
         raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = kid, RoundNo = 1, BookId = 1, Chapter = 2, ReadAt = now });
         raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = kid2, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = now.AddDays(-1) });

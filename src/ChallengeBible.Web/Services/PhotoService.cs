@@ -77,6 +77,12 @@ public sealed class PhotoService(IAppDb db, IWebHostEnvironment env, IConfigurat
     public async Task DeleteAsync(string userName, string actor, int? tenantId = null, CancellationToken ct = default) =>
         await SetAsync(userName, null, actor, tenantId, "사진 지움", time.GetUtcNow().UtcDateTime, ct);
 
+    private static async Task<string> NameOfAsync(AppDbContext ctx, string userName, CancellationToken ct)
+    {
+        var u = await ctx.Users.AsNoTracking().Where(a => a.UserName == userName).Select(a => new { a.LastName, a.FirstName }).FirstOrDefaultAsync(ct);
+        return u is null ? userName : AppUser.FullName(u.LastName, u.FirstName);
+    }
+
     private async Task SetAsync(string userName, string? name, string actor, int? tenantId, string detail, DateTime now, CancellationToken ct)
     {
         await using var ctx = db.Create();
@@ -86,7 +92,7 @@ public sealed class PhotoService(IAppDb db, IWebHostEnvironment env, IConfigurat
         if (old is null && name is null) return;
         a.PhotoPath = name;
         if (tenantId is int t && actor != userName)
-            ctx.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorUserName = actor, Action = LogAction, TenantId = t, Detail = $"{detail}: {userName}" });
+            ctx.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorUserName = actor, Action = LogAction, TenantId = t, Detail = $"{detail}: {await NameOfAsync(ctx, userName, ct)}" });
         await ctx.SaveChangesAsync(ct);
         if (FullPath(old) is { } p) File.Delete(p);
     }

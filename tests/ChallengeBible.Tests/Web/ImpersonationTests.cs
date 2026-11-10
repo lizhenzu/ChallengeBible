@@ -35,9 +35,9 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
         foreach (var a in raw.Users)
         {
             a.PasswordHash = new PasswordHasher<AppUser>().HashPassword(a, "1234");
-            a.IsPlatformAdmin = a.Id == _op || a.Id == _op2;
-            if (a.Id == _stopped) a.Status = "Disabled";
-            if (a.Id == _jieun) a.MustChangePassword = true;   // 가장할 때는 남의 비밀번호 바꾸기로 보내지 않는다
+            if (a.UserName == _op || a.UserName == _op2) InMemoryDb.AddRole(_db, a.Id, IdentityRoles.SuperAdmin);
+            if (a.UserName == _stopped) a.LockoutEnd = DateTimeOffset.MaxValue;
+            if (a.Id == _jieun) if (true) raw.UserSettings.Add(new UserSetting { UserName = a.UserName!, MustChangePassword = true });   // 가장할 때는 남의 비밀번호 바꾸기로 보내지 않는다
         }
         raw.SaveChanges();
     }
@@ -83,7 +83,7 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
         // 이름 · 비밀번호 바꾸기는 막힘
         var name = await Post(c, "/account?handler=Name", "/account", ("DisplayName", "바뀐 이름"));
         Assert.DoesNotContain("Ok=name", name.Headers.Location?.OriginalString ?? "");
-        Assert.Equal("박지은", InMemoryDb.Raw(_db).Accounts.Single(a => a.UserName == _jieun).DisplayName);
+        Assert.Equal("박지은", InMemoryDb.Raw(_db).Users.Single(a => a.UserName == _jieun).DisplayName);
 
         // 복귀
         var back = await Post(c, "/account/impersonate/stop", "/jamsil-kids");
@@ -94,7 +94,7 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
         using var raw = InMemoryDb.Raw(_db);
         var logs = raw.AuditLogs.Where(l => l.Action.StartsWith("Impersonate")).OrderBy(l => l.Id).ToList();
         Assert.Equal([ImpersonationService.StartAction, ImpersonationService.StopAction], logs.Select(l => l.Action));
-        Assert.All(logs, l => Assert.Equal((_op, (int?)_op), (l.ActorUserName, l.ImpersonatorUserName)));
+        Assert.All(logs, l => Assert.Equal((_op, _op), (l.ActorUserName, l.ImpersonatorUserName)));
         Assert.All(logs, l => Assert.Equal($"account={_jieun}", l.Detail));
     }
 
@@ -132,6 +132,6 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
         }
         finally { AuditContext.Impersonator = null; }
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Equal([(int?)_op, null], raw.AuditLogs.OrderBy(l => l.Id).Select(l => l.ImpersonatorUserName).ToList());
+        Assert.Equal([_op, null], raw.AuditLogs.OrderBy(l => l.Id).Select(l => l.ImpersonatorUserName).ToList());
     }
 }

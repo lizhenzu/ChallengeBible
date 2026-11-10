@@ -44,19 +44,23 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
         var scope = new RequestScope();
         scope.SetTenant(_kids.Id);
         var ctx = new TenantContext();
-        SeededMember? loaded = null;
-        if (me is not null) { using var raw = InMemoryDb.Raw(_db); loaded = raw.Memberships.Where(m => m.Id == me.Id).Select(m => new Membership { Id = m.Id, TenantId = m.TenantId, UserName = m.UserName, Status = m.Status, Roles = m.Roles }).Single(); }
-        ctx.Set(_kids, loaded);
+        if (me is not null)
+        {
+            scope.SetUser(me.UserName, me.UserId);
+            using var raw = InMemoryDb.Raw(_db);
+            ctx.Set(_kids, raw.DeptRoles.Single(d => d.Id == me.Id));
+        }
+        else ctx.Set(_kids, null);
         return (ctx, scope);
     }
 
-    private (SeededMember Kid, int Pid) Kid(string login, string name)
+    private (SeededMember Kid, string Pid) Kid(string login, string name)
     {
         var a = InMemoryDb.SeedAccount(_db, login, name);
         var m = InMemoryDb.SeedMembership(_db, _kids.Id, a.UserName!, MembershipStatus.Approved, Roles.Participant);
         using var raw = InMemoryDb.Raw(_db);
         raw.SaveChanges();
-        return (m, p.Id);
+        return (m, m.UserName);
     }
 
     private SeededMember Parent(string login, string name)
@@ -77,7 +81,7 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
         var (cheolsu, pid) = Kid("cheolsu", "김철수");
         var (_, otherPid) = Kid("minjun", "최민준");
         var mom = Parent("younghee", "김영희");
-        Assert.Equal(MemberError.None, await Admin().LinkGuardianAsync(_admin.UserName!, mom.Id, cheolsu.Id));
+        Assert.Equal(MemberError.None, await Admin().LinkGuardianAsync(_admin.UserName!, mom.UserName, cheolsu.UserName));
 
         var (ctx, scope) = In(mom);
         var svc = new GuardianService(new InMemoryDb(_db, scope), scope, ctx, InMemoryDb.Rules(_db));
@@ -92,7 +96,7 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
     {
         var (cheolsu, pid) = Kid("cheolsu", "김철수");
         var mom = Parent("younghee", "김영희");
-        await Admin().LinkGuardianAsync(_admin.UserName!, mom.Id, cheolsu.Id);
+        await Admin().LinkGuardianAsync(_admin.UserName!, mom.UserName, cheolsu.UserName);
 
         var (kctx, kscope) = In(cheolsu);
         var missions = new MissionService(new InMemoryDb(_db, kscope), kscope, kctx, new TenantClock(_time), _time, InMemoryDb.Rules(_db));
@@ -112,12 +116,12 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
     {
         var (cheolsu, _) = Kid("cheolsu", "김철수");
         var (notParent, _) = Kid("minjun", "최민준");
-        Assert.Equal(MemberError.NotFound, await Admin().LinkGuardianAsync(_admin.UserName!, notParent.Id, cheolsu.Id));
+        Assert.Equal(MemberError.NotFound, await Admin().LinkGuardianAsync(_admin.UserName!, notParent.UserName, cheolsu.UserName));
         var mom = Parent("younghee", "김영희");
-        await Admin().LinkGuardianAsync(_admin.UserName!, mom.Id, cheolsu.Id);
-        Assert.Equal([mom.Id], (await Admin().LinksAsync())[cheolsu.Id]);
-        Assert.Equal(MemberError.None, await Admin().UnlinkGuardianAsync(mom.Id, cheolsu.Id));
-        Assert.False((await Admin().LinksAsync()).ContainsKey(cheolsu.Id));
+        await Admin().LinkGuardianAsync(_admin.UserName!, mom.UserName, cheolsu.UserName);
+        Assert.Equal([mom.UserName], (await Admin().LinksAsync())[cheolsu.UserName]);
+        Assert.Equal(MemberError.None, await Admin().UnlinkGuardianAsync(mom.UserName, cheolsu.UserName));
+        Assert.False((await Admin().LinksAsync()).ContainsKey(cheolsu.UserName));
     }
 
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
@@ -151,7 +155,7 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
         var c = await LoggedIn("younghee");
         Assert.Contains("아직 연결된 자녀가 없어요", await c.GetStringAsync("/jamsil-kids/guardian"));
 
-        await Admin().LinkGuardianAsync(_admin.UserName!, mom.Id, cheolsu.Id);
+        await Admin().LinkGuardianAsync(_admin.UserName!, mom.UserName, cheolsu.UserName);
         var html = await c.GetStringAsync("/jamsil-kids/guardian");
         Assert.Contains("김철수", html);
         Assert.Contains("오늘은 아직 미션을 하지 않았어요", html);

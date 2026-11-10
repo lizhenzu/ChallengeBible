@@ -62,7 +62,7 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         if (!FamilyRelation.All.Contains(relation)) return FamilyError.BadRelation;
         if (me is null) return FamilyError.NotParticipant;
         if (!UserRole.CanJoinFamily(me.Kind)) return FamilyError.NotAllowed;
-        if (!UserRole.RelationAllowed(me.Kind, FamilyRelation.ToRole(relation))) return FamilyError.BadRelation;
+        if (!UserRole.RelationAllowed(me.Kind, FamilyRelation.ToRole(relation))) return FamilyError.WrongRelation;
         if (await ctx.FamilyMembers.AnyAsync(f => f.UserName == me.UserName && f.IsActive, ct)) return FamilyError.AlreadyInTeam;
         if (await ctx.FamilyRequests.AnyAsync(r => r.TargetUserName == me.UserName && r.Kind == FamilyRequest.Join, ct)) return FamilyError.HasPending;
         if (await InOtherDeptAsync(me.UserName, ct)) return FamilyError.InOtherDept;
@@ -101,7 +101,7 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         if (!await EnabledAsync(ct)) return new FamilyState(false, null, false, null, null, []);
         await using var ctx = db.Create();
         var me = await MeAsync(ctx, ct);
-        if (me is null) return new FamilyState(true, null, false, null, null, []);
+        if (me is null || !UserRole.CanJoinFamily(me.Kind)) return new FamilyState(true, null, false, null, null, []);   // 교사 · 임원은 가족팀 대상이 아니다
         var (r, today) = await teams.RulesAsync(ct);
         var (all, season, _, _) = await teams.LoadTeamsAsync(ctx, today, ct);
 
@@ -323,7 +323,7 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         if (!await IsMemberAsync(ctx, target, ct)) return FamilyError.NotFound;
         var kind = await UserRole.KindAsync(ctx, target, ct);
         if (!UserRole.CanJoinFamily(kind)) return FamilyError.NotAllowed;
-        if (!UserRole.RelationAllowed(kind, FamilyRelation.ToRole(relation))) return FamilyError.BadRelation;
+        if (!UserRole.RelationAllowed(kind, FamilyRelation.ToRole(relation))) return FamilyError.WrongRelation;
         if (await ctx.FamilyMembers.AnyAsync(f => f.UserName == target && f.IsActive, ct)) return FamilyError.TargetInTeam;
         if (await ctx.FamilyRequests.AnyAsync(r => r.FamilyTeamId == team.Id && r.TargetUserName == target && r.Kind == FamilyRequest.Join, ct)) return FamilyError.TargetRequested;
         if (await ctx.FamilyRequests.AnyAsync(i => i.FamilyTeamId == team.Id && i.TargetUserName == target && i.Kind == FamilyRequest.Invite, ct)) return FamilyError.AlreadyInvited;
@@ -357,7 +357,7 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         var invite = await ctx.FamilyRequests.SingleOrDefaultAsync(i => i.Id == inviteId && i.TargetUserName == me.UserName && i.Kind == FamilyRequest.Invite, ct);
         if (invite is null) return FamilyError.NotFound;
         if (!UserRole.CanJoinFamily(me.Kind)) return FamilyError.NotAllowed;
-        if (!UserRole.RelationAllowed(me.Kind, FamilyRelation.ToRole(relation))) return FamilyError.BadRelation;
+        if (!UserRole.RelationAllowed(me.Kind, FamilyRelation.ToRole(relation))) return FamilyError.WrongRelation;
         if (await ctx.FamilyMembers.AnyAsync(f => f.UserName == me.UserName && f.IsActive, ct)) return FamilyError.AlreadyInTeam;
         if (await InOtherDeptAsync(me.UserName, ct)) return FamilyError.InOtherDept;
         var team = await ctx.FamilyTeams.Include(t => t.Members).SingleOrDefaultAsync(t => t.Id == invite.FamilyTeamId && t.IsActive && t.Members.Any(m => m.IsActive), ct);
@@ -450,7 +450,7 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         var team = await MyTeamAsync(ctx, me, ct);
         if (team is null) return FamilyError.NotMember;
         if (await FamilyTeamService.HasAwardRecordAsync(ctx, tenant.Current.Id, team, ct)) return FamilyError.AwardLocked;
-        if (!UserRole.RelationAllowed(me.Kind, FamilyRelation.ToRole(relation))) return FamilyError.BadRelation;
+        if (!UserRole.RelationAllowed(me.Kind, FamilyRelation.ToRole(relation))) return FamilyError.WrongRelation;
         team.Members.Single(m => m.UserName == me.UserName).Relation = relation;
         await ctx.SaveChangesAsync(ct);
         return FamilyError.None;

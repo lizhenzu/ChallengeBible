@@ -23,7 +23,8 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
     {
         if (scope.UserName is null || !r.IsValid) return new(new HashSet<(short, short)>(), new HashSet<(short, short)>());
         await using var ctx = db.Create();
-        var read = await InRange(ctx.ReadingVerses.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct);
+        var open = await OpenRoundAsync(ctx, ct);
+        var read = await InRange(ctx.ReadingVerses.AsNoTracking().Where(x => x.RoundNo == open), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct);
         var marks = await InRange(ctx.ReadingBookmarks.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct);
         return new(read.Select(x => (x.Chapter, x.Verse)).ToHashSet(), marks.Select(x => (x.Chapter, x.Verse)).ToHashSet());
     }
@@ -33,13 +34,17 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
     {
         await using var ctx = db.Create();
         if (!await Exists(ctx, book, chapter, verse, ct)) return false;
-        if (!await ctx.ReadingVerses.AnyAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct))
+        var current = await RoundNoAsync(ctx, ct);
+        if (!await ctx.ReadingVerses.AnyAsync(x => x.RoundNo == current && x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct))
         {
-            ctx.ReadingVerses.Add(new ReadingVerse { UserName = Me, RoundNo = await RoundNoAsync(ctx, ct), BookId = book, Chapter = chapter, Verse = verse, ReadAt = time.GetUtcNow().UtcDateTime });
+            ctx.ReadingVerses.Add(new ReadingVerse { UserName = Me, RoundNo = current, BookId = book, Chapter = chapter, Verse = verse, ReadAt = time.GetUtcNow().UtcDateTime });
             await SaveIgnoringDuplicate(ctx, ct);
         }
         return true;
     }
+
+    private static Task<int?> OpenRoundAsync(AppDbContext ctx, CancellationToken ct) =>
+        ctx.ReadingRounds.Where(x => x.CompletedAt == null && x.ClosedAt == null).Select(x => (int?)x.RoundNo).FirstOrDefaultAsync(ct);
 
     /// <summary>읽음은 진행 중 회차에 붙는다(0090, DM2_ReadingVerse). 회차가 없으면 1회차를 연다.</summary>
     private async Task<int> RoundNoAsync(AppDbContext ctx, CancellationToken ct)
@@ -55,7 +60,8 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
     public async Task UnreadAsync(byte book, short chapter, short verse, CancellationToken ct = default)
     {
         await using var ctx = db.Create();
-        var row = await ctx.ReadingVerses.SingleOrDefaultAsync(x => x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct);
+        var open = await OpenRoundAsync(ctx, ct);
+        var row = await ctx.ReadingVerses.SingleOrDefaultAsync(x => x.RoundNo == open && x.BookId == book && x.Chapter == chapter && x.Verse == verse, ct);
         if (row is null) return;
         ctx.ReadingVerses.Remove(row);
         await ctx.SaveChangesAsync(ct);
@@ -68,7 +74,8 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
         await using var ctx = db.Create();
         var verses = await InRange(ctx.BibleVerses.AsNoTracking().Where(v => v.BookId == r.BookId), r)
             .Select(v => new { v.Chapter, v.Verse }).Distinct().ToListAsync(ct);
-        var already = (await InRange(ctx.ReadingVerses.AsNoTracking(), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct)).ToHashSet();
+        var open = await OpenRoundAsync(ctx, ct);
+        var already = (await InRange(ctx.ReadingVerses.AsNoTracking().Where(x => x.RoundNo == open), r).Select(x => new { x.Chapter, x.Verse }).ToListAsync(ct)).ToHashSet();
         var now = time.GetUtcNow().UtcDateTime;
         var add = verses.Where(v => !already.Contains(v)).ToList();
         var round = add.Count > 0 ? await RoundNoAsync(ctx, ct) : 0;
@@ -81,7 +88,8 @@ public sealed class BibleMarkService(IAppDb db, RequestScope scope, TimeProvider
     {
         if (!r.IsValid) return 0;
         await using var ctx = db.Create();
-        var rows = await InRange(ctx.ReadingVerses, r).ToListAsync(ct);
+        var open = await OpenRoundAsync(ctx, ct);
+        var rows = await InRange(ctx.ReadingVerses.Where(x => x.RoundNo == open), r).ToListAsync(ct);
         ctx.ReadingVerses.RemoveRange(rows);
         await ctx.SaveChangesAsync(ct);
         return rows.Count;

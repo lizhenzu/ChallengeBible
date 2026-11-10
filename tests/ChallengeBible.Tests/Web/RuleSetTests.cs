@@ -37,7 +37,7 @@ public partial class RuleSetTests : IClassFixture<WebApplicationFactory<Program>
         _admin = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜").UserName!;
         using var raw = InMemoryDb.Raw(_db);
         var op = raw.Users.Single(a => a.UserName == _op);
-        op.IsPlatformAdmin = true;
+        InMemoryDb.AddRole(_db, op.Id, IdentityRoles.SuperAdmin);
         op.PasswordHash = new PasswordHasher<AppUser>().HashPassword(op, "1234");
         raw.SaveChanges();
     }
@@ -89,7 +89,7 @@ public partial class RuleSetTests : IClassFixture<WebApplicationFactory<Program>
         var kid = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수").UserName!;
         var m = InMemoryDb.SeedMembership(_db, kids.Id, kid, MembershipStatus.Approved, Roles.Participant);
         string pid;
-        using (var raw = InMemoryDb.Raw(_db)) { var p = new Participant { TenantId = kids.Id, MembershipId = m.Id }; raw.DeptRoles.Add(p); raw.SaveChanges(); pid = m.UserName; }
+        pid = m.UserName;
         ContentSeed.Word(_db, Jan5.AddDays(-1));
         ContentSeed.Word(_db, Jan5);
         var scope = new RequestScope();
@@ -98,7 +98,7 @@ public partial class RuleSetTests : IClassFixture<WebApplicationFactory<Program>
         {
             var tc = new TenantContext();
             using var raw = InMemoryDb.Raw(_db);
-            tc.Set(raw.Tenants.Single(t => t.Id == kids.Id), m);
+            tc.Set(raw.Tenants.Single(t => t.Id == kids.Id), m is null ? null : raw.DeptRoles.Single(d => d.Id == m.Id));
             return new MissionService(new InMemoryDb(_db, scope), scope, tc, new TenantClock(_time), _time, InMemoryDb.Rules(_db));
         }
 

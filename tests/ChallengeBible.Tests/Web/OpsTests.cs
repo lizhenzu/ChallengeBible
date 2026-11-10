@@ -74,7 +74,7 @@ public partial class OpsTests : IClassFixture<WebApplicationFactory<Program>>
         {
             var row = raw.Users.Single(x => x.UserName == a.UserName!);
             row.PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<AppUser>().HashPassword(row, "1234");
-            row.IsPlatformAdmin = platformAdmin;
+            if (platformAdmin) InMemoryDb.AddRole(_db, row.Id, IdentityRoles.SuperAdmin);
             raw.SaveChanges();
         }
         var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });

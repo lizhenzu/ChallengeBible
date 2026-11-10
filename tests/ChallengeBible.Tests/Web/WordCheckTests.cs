@@ -92,11 +92,11 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
 
     private ContentAdminService Svc => new(new InMemorySystemDb(_db), FixedTime.SeoulMorning());
 
-    private int SeedOperator()
+    private string SeedOperator()
     {
         var op = InMemoryDb.SeedAccount(_db, "operator", "운영자");
         using var raw = InMemoryDb.Raw(_db);
-        InMemoryDb.AddRole(_db, raw.Users.Single(a => a.Id == op.UserName!).Id, IdentityRoles.SuperAdmin);
+        InMemoryDb.AddRole(_db, raw.Users.Single(a => a.UserName == op.UserName!).Id, IdentityRoles.SuperAdmin);
         raw.SaveChanges();
         return op.UserName!;
     }

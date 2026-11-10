@@ -51,7 +51,7 @@ public sealed class RosterService(IAppDb db, TenantContext tenant, TenantClock c
             var mine = UserRole.ScreenRoles(m.RoleCode, adminIds.Contains(m.UserId)).ToList();
             var kind = mine.Any(x => x is Roles.Teacher or Roles.TenantAdmin) ? RankKind.Teacher
                 : mine.Contains(Roles.Guardian) ? RankKind.Parent : RankKind.Student;
-            return new RosterPerson(m.Name, m.Email, null, kind, true,
+            return new RosterPerson(m.Name, m.Email, null, kind, m.RoleCode == UserRole.StudentCode,
                 Math.Max(0, points.GetValueOrDefault(m.UserName)), doneToday.Contains(m.UserName), m.DeptRoleId == tenant.MembershipId);
         }).OrderBy(x => x.Name, StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false)).ToList();
         return new Roster(today, showPoints, people);

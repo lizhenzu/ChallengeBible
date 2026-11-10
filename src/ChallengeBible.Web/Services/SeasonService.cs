@@ -51,7 +51,7 @@ public sealed class SeasonService(IAppDb db, TenantContext tenant, TenantClock c
         var (next, nextDefault) = await SeasonAsync(ctx, today.Year + 1, ct);
         var (from, to) = cur.ScoringRange(today);
         var points = await PointsByParticipantAsync(ctx, from, to, ct);
-        var participants = await ctx.DeptRoles.CountAsync(ct);
+        var participants = await ctx.DeptRoles.CountAsync(d => d.RoleCode == UserRole.StudentCode, ct);
 
         var past = new List<PastSeason>();
         var firstYear = await ctx.MissionActivities.Where(l => l.MissionDate < new DateOnly(today.Year, 1, 1))

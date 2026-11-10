@@ -29,13 +29,13 @@ public partial class MyAccountTests : IClassFixture<WebApplicationFactory<Progra
 
     private AccountService Accounts() => new(new InMemoryDb(_db, new RequestScope()), TimeProvider.System);
 
-    private int Account(string email, string name, string password = "1234", bool mustChange = false)
+    private string Account(string email, string name, string password = "1234", bool mustChange = false)
     {
         var a = InMemoryDb.SeedAccount(_db, email, name);
         using var raw = InMemoryDb.Raw(_db);
         var row = raw.Users.Single(x => x.UserName == a.UserName!);
         row.PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<AppUser>().HashPassword(row, password);
-        row.MustChangePassword = mustChange;
+        if (mustChange) raw.UserSettings.Add(new UserSetting { UserName = row.UserName!, MustChangePassword = true });
         raw.SaveChanges();
         return a.UserName!;
     }

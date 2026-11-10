@@ -67,12 +67,12 @@ public class ReadingServiceTests
     }
 
     [Fact]
-    public async Task R152_장을_끝내면_성경_읽음_표시에도_남고_해제는_연동하지_않는다()
+    public async Task R152_장을_끝내면_성경_읽음_표시에도_남고_완료를_풀면_함께_풀린다()
     {
         await As(_me).CompleteChapterAsync(1, 24);
         Assert.Equal(3, InMemoryDb.Raw(_db).ReadingVerses.Count(m => m.UserName == _me));
         await As(_me).UndoChapterAsync(1, 24);
-        Assert.Equal(3, InMemoryDb.Raw(_db).ReadingVerses.Count(m => m.UserName == _me));
+        Assert.Equal(0, InMemoryDb.Raw(_db).ReadingVerses.Count(m => m.UserName == _me));   // 0090: 읽음은 회차 표 하나다
     }
 
     [Fact]

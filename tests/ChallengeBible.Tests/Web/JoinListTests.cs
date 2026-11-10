@@ -52,13 +52,13 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
     {
         var a = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수");
         var b = InMemoryDb.SeedAccount(_db, "minjun@example.com", "최민준");
-        Assert.Equal(JoinError.NotFound, (await Service().ApplyAsync(a.UserName!, _hidden.Id, null, [Roles.Participant])).Error);
-        Assert.Equal(JoinError.NotFound, (await Service().ApplyAsync(a.UserName!, _hidden.Id, "JSKIDS", [Roles.Participant])).Error);   // 다른 부서 코드
-        Assert.Equal(JoinError.NotFound, (await Service().ApplyAsync(a.UserName!, _stopped.Id, "OLDDPT", [Roles.Participant])).Error);  // 정지된 부서
-        Assert.Equal(JoinError.None, (await Service().ApplyAsync(a.UserName!, _hidden.Id, "hbmid1", [Roles.Participant])).Error);
-        Assert.Equal(JoinError.None, (await Service().ApplyAsync(b.UserName!, _kids.Id, null, [Roles.Guardian])).Error);              // 목록 부서는 Id 로
-        Assert.Equal(JoinError.AlreadyMember, (await Service().ApplyAsync(b.UserName!, _kids.Id, null, [Roles.Participant])).Error);
-        Assert.Equal(JoinError.BadRole, (await Service().ApplyAsync(b.UserName!, _elem.Id, null, [Roles.TenantAdmin])).Error);
+        Assert.Equal(JoinError.NotFound, (await Service().ApplyAsync(a.UserName!, _hidden.Id, null, SignupRoleKind.Student)).Error);
+        Assert.Equal(JoinError.NotFound, (await Service().ApplyAsync(a.UserName!, _hidden.Id, "JSKIDS", SignupRoleKind.Student)).Error);   // 다른 부서 코드
+        Assert.Equal(JoinError.NotFound, (await Service().ApplyAsync(a.UserName!, _stopped.Id, "OLDDPT", SignupRoleKind.Student)).Error);  // 정지된 부서
+        Assert.Equal(JoinError.None, (await Service().ApplyAsync(a.UserName!, _hidden.Id, "hbmid1", SignupRoleKind.Student)).Error);
+        Assert.Equal(JoinError.None, (await Service().ApplyAsync(b.UserName!, _kids.Id, null, SignupRoleKind.Parent)).Error);              // 목록 부서는 Id 로
+        Assert.Equal(JoinError.AlreadyMember, (await Service().ApplyAsync(b.UserName!, _kids.Id, null, SignupRoleKind.Student)).Error);
+        Assert.Equal(JoinError.BadRole, (await Service().ApplyAsync(b.UserName!, _elem.Id, null, "X")).Error);
     }
 
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
@@ -109,8 +109,8 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("승인을 기다리고 있어요", after);
         Assert.Contains("승인 기다리는 중", after);
         using var raw = InMemoryDb.Raw(_db);
-        var m = raw.Memberships.Include(x => x.Roles).Single(x => x.TenantId == _kids.Id && x.Status == MembershipStatus.Requested);
-        Assert.Equal([Roles.Participant], m.Roles.Select(x => x.Role));
+        var m = raw.SignupApplications.Single(x => x.TenantId == _kids.Id && x.Status == SignupStatus.Pending);
+        Assert.Equal(SignupRoleKind.Student, m.RoleKind);
         Assert.DoesNotContain("어느 부서에서", after);                                // 기다리는 동안엔 목록 대신 기다림 카드
     }
 }

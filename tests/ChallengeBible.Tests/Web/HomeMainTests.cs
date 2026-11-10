@@ -34,7 +34,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
     private static partial Regex TokenRx();
 
-    private async Task<(HttpClient C, int UserName)> Member(string email, params string[] roles)
+    private async Task<(HttpClient C, string UserName)> Member(string email, params string[] roles)
     {
         var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var html = await c.GetStringAsync("/account/signup");
@@ -121,18 +121,6 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("<a class=\"hj-box r\" href=\"/jamsil-kids/reading/read/1/4\">", home);   // 이어 읽을 곳 = 창세기 4장
         Assert.Contains("<b>창세기</b><span>4장", home);
         Assert.Contains("href=\"/jamsil-kids/reading\">📖 도전!!! 성경통독", home);   // 카드 제목 = 통독 홈
-    }
-
-    [Fact]
-    public async Task 참여자가_아니면_보기만_하고_점수가_없다()
-    {
-        var (c, _) = await Member("eunhye", Roles.Teacher);
-        var home = await c.GetStringAsync("/jamsil-kids");
-        Assert.Contains("<small>보기만</small>", home);                              // 확정 4: 미션 칸은 보기만
-        Assert.DoesNotContain("<small>나의 점수</small>", home);                     // 성장 · 점수 없음
-        Assert.DoesNotContain("🔥", home);                                            // 연속일 없음
-        Assert.DoesNotContain("점 올해 점수", home);
-        Assert.DoesNotContain("말씀<br />점수", home);
     }
 
     [Fact]

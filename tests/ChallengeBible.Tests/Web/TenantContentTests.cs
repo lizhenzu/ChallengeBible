@@ -121,7 +121,7 @@ public partial class TenantContentTests : IClassFixture<WebApplicationFactory<Pr
             ["__RequestVerificationToken"] = TokenRx().Match(await c.GetStringAsync("/account/signup")).Groups[1].Value,
             ["DisplayName"] = "김민수", ["Email"] = login + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
-        int id;
+        string id;
         using (var raw = InMemoryDb.Raw(_db)) id = raw.Users.Single(a => a.Email == login + "@example.com").UserName!;
         InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, roles);
         return c;

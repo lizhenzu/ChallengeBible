@@ -21,7 +21,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
     private readonly Tenant _kids, _elem;
-    private readonly Dictionary<string, (int UserName, SeededMember M, int Pid)> _p = [];
+    private readonly Dictionary<string, (string UserName, SeededMember M, string Pid)> _p = [];
 
     public FamilyTeamTests(WebApplicationFactory<Program> app)
     {
@@ -51,13 +51,13 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         var m = InMemoryDb.SeedMembership(_db, t.Id, a, MembershipStatus.Approved, roles);
         using var raw = InMemoryDb.Raw(_db);
         raw.SaveChanges();
-        _p[login] = (a, m, p.Id);
+        _p[login] = (a, m, m.UserName);
     }
 
     private void Pts(string login, int points)
     {
         using var raw = InMemoryDb.Raw(_db);
-        var p = raw.DeptRoles.Single(x => x.Id == _p[login].Pid);
+        var p = (TenantId: _p[login].M.TenantId, Id: _p[login].Pid!);
         raw.MissionActivities.Add(new MissionActivity { TenantId = p.TenantId, UserName = p.Id, MissionDate = new DateOnly(2027, 1, 3), MissionItem = "Word.Me", Points = points, PerformedAt = DateTime.UtcNow });
         raw.SaveChanges();
     }
@@ -66,21 +66,21 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
     {
         var scope = new RequestScope();
         scope.SetTenant(t.Id);
-        scope.SetUser(1, "id-" + 1);
+        if (viewer is not null) scope.SetUser(_p[viewer].Pid, _p[viewer].M.UserId);
         var tc = new TenantContext();
         using (var raw = InMemoryDb.Raw(_db))
             tc.Set(raw.Tenants.Single(x => x.Id == t.Id),
-                viewer is null ? null : new Membership { Id = _p[viewer].M.Id, Status = MembershipStatus.Approved, Roles = [new MembershipRole { Role = Roles.Participant }] });
+                viewer is null ? null : raw.DeptRoles.Single(d => d.Id == _p[viewer].M.Id));
         return new FamilyTeamService(new InMemoryDb(_db, scope), scope, tc, new TenantClock(_time), InMemoryDb.Rules(_db));
     }
 
-    private int P(string login) => _p[login].Pid;
+    private string P(string login) => _p[login].Pid;
 
     /// <summary>팀 시드. 관계: 학생은 학생, 보호자는 엄마.</summary>
     private int Team(string? name, params string[] logins)
     {
         using var raw = InMemoryDb.Raw(_db);
-        var t = new FamilyTeam { TenantId = _kids.Id, Name = name, CreatedUtc = DateTime.UtcNow };
+        var t = new FamilyTeam { TenantId = _kids.Id, Name = name ?? "", InsertDT = DateTime.UtcNow, UpdateDT = DateTime.UtcNow };
         byte order = 0;
         foreach (var l in logins)
             t.Members.Add(new FamilyMember { TenantId = _kids.Id, UserName = P(l), SortOrder = order++,
@@ -131,7 +131,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Empty((await other.GetAsync()).Teams);
         Assert.Equal(FamilyError.NotFound, await other.RenameAsync(id, "가로채기"));
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Null(raw.FamilyTeams.Single().Name);
+        Assert.Equal("", raw.FamilyTeams.Single().Name);
     }
 
     [Fact]
@@ -159,8 +159,6 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
             var act = new MissionActivity { TenantId = _kids.Id, UserName = P("younghee"), MissionItem = "Word.Me", MissionDate = Jan5, Points = 1 };
             raw.MissionActivities.Add(act);
             raw.SaveChanges();
-            raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = P("younghee"), MissionDate = Jan5, MissionItem = "Word.Me", Points = 1});
-            raw.SaveChanges();
         }
         var home = await In(_kids, "cheolsu").MyFamilyAsync();
         Assert.NotNull(home);
@@ -173,49 +171,30 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
     }
 
     [Fact]
-    public async Task R96_R97_가족_단계는_팀마다_시즌에_한_번_기록하고_홈_카드는_숨긴_단계를_빼고_보인다()
+    public async Task R96_R97_이번_점수로_넘은_단계만_축하하고_홈_카드는_숨긴_단계를_빼고_보인다()
     {
         var id = Team(null, "cheolsu", "younghee", "daeho");   // 1,050점
-        var c = await In(_kids).RecordReachedAsync(P("cheolsu"));
+        var c = await In(_kids).CelebrationAsync(P("cheolsu"), 150);
         Assert.NotNull(c);
         Assert.Equal((1000, 1050, (int?)2000, "Award"), (c.Points, c.Total, c.Next, c.Kind));
         Assert.Equal(3, c.Members.Count);
         Assert.Equal("김철수", c.By);                                       // 시안 "○○님이 넘겼어요"
-        Assert.Null(await In(_kids).RecordReachedAsync(P("younghee")));   // 같은 단계는 한 번만
-        Assert.Null(await In(_kids).RecordReachedAsync(P("haneul")));     // 팀이 없는 사람
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal([1000], raw.FamilyMilestonesReached.Select(x => x.Threshold));
+        Assert.Null(await In(_kids).CelebrationAsync(P("younghee"), 10));   // 이번 점수로 넘지 않았으면 없다
+        Assert.Null(await In(_kids).CelebrationAsync(P("haneul"), 10));     // 팀이 없는 사람
 
         var home = await In(_kids, "cheolsu").MyFamilyAsync();
         Assert.Equal(1000, home!.Cheer!.Points);
         Assert.Equal([true, false, false, false, false], home.Stages.Select(s => s.On));
         using (var raw = InMemoryDb.Raw(_db))   // 예전에 관리자가 숨긴 카드는 숨긴 채로
         {
-            var admin = raw.Users.First().Id;
-            raw.FamilyMilestoneDismisses.Add(new FamilyMilestoneDismiss { TenantId = _kids.Id, FamilyTeamId = id, Year = 2027, Threshold = 1000, DismissedUtc = DateTime.UtcNow, DismissedByUserName = admin });
+            var cfg = new FamilyMilestoneConfig { TenantId = _kids.Id, Year = 2027, PointThreshold = 1000, MilestoneType = MilestoneTypes.Award, DisplayTitle = "첫 1,000점", CreatedAt = DateTime.UtcNow };
+            raw.FamilyMilestoneConfigs.Add(cfg);
+            raw.SaveChanges();
+            raw.FamilyMilestonesHidden.Add(new FamilyMilestoneHidden { TenantId = _kids.Id, MilestoneConfigId = cfg.Id, FamilyTeamId = id, HiddenAt = DateTime.UtcNow });
             raw.SaveChanges();
         }
         Assert.Null((await In(_kids, "cheolsu").MyFamilyAsync())!.Cheer);                     // R-97 숨긴 단계는 카드에서 빠짐
         Assert.Equal([1000], (await In(_kids).RankingAsync()).Teams[0].Badges.Select(b => b.Points));   // 순위 배지는 그대로
-    }
-
-    [Fact]
-    public async Task R24_완료_취소로_가족_합계가_단계_아래로_내려가면_가족_축하_기록을_지워_다시_축하()
-    {
-        Team(null, "cheolsu", "younghee", "daeho");   // 1,050점
-        Assert.NotNull(await In(_kids).RecordReachedAsync(P("cheolsu")));
-        await In(_kids).DropUnreachedAsync(P("cheolsu"));                                // 아직 1,050점 — 그대로
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Single(raw.FamilyMilestonesReached);
-
-        using (var raw = InMemoryDb.Raw(_db))                                              // 취소로 합계가 1,000 아래(50점)로
-        {
-            raw.MissionActivities.RemoveRange(raw.MissionActivities.Where(l => l.UserName == P("cheolsu") || l.UserName == P("younghee") || l.UserName == P("daeho")));
-            raw.SaveChanges();
-        }
-        Pts("cheolsu", 50);
-        await In(_kids).DropUnreachedAsync(P("cheolsu"));
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.FamilyMilestonesReached);
-        Pts("younghee", 950);
-        Assert.Equal(1000, (await In(_kids).RecordReachedAsync(P("younghee")))!.Points);   // 다시 넘으면 또 축하
     }
 
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]

@@ -102,7 +102,7 @@ public class ContentAdminServiceTests
         var kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         var a = InMemoryDb.SeedAccount(_db, "cheolsu", "김철수");
         var m = InMemoryDb.SeedMembership(_db, kids.Id, a.UserName!, MembershipStatus.Approved, Roles.Participant);
-        string pid, correct;
+        string pid; int correct;
         using (var raw = InMemoryDb.Raw(_db))
         {
             raw.SaveChanges();

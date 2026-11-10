@@ -156,7 +156,7 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
             chapters = await ctx.ReadingChapterReads.IgnoreQueryFilters().CountAsync(c => ids.Contains(c.UserName) && c.ReadAt >= from, ct);
         }
         // 참여자 수(명단 "참여자"와 같은 기준, ADR 0085): 승인된 소속의 활성 참여자
-        var participants = people.Count;
+        var participants = people.Count(p => p.RoleCode == UserRole.StudentCode);
         return new HomeDept(members, todayPeople, chapters, participants);
     }
 }

@@ -50,7 +50,7 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
             .Select(a => new { a.TenantId, a.MissionDate, a.UserName }).Distinct().ToListAsync(ct);
         var todayBy = acts.Where(a => todays.GetValueOrDefault(a.TenantId) == a.MissionDate)
             .GroupBy(a => a.TenantId).ToDictionary(g => g.Key, g => g.Select(a => a.UserName).Distinct().Count());
-        var participants = await ctx.DeptRoles.GroupBy(p => p.TenantId).Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N, ct);
+        var participants = await ctx.DeptRoles.Where(p => p.RoleCode == UserRole.StudentCode).GroupBy(p => p.TenantId).Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N, ct);
 
         // 통독: 한국 시간 오늘 읽은 장(계정 기록) → 부서별은 그 부서 승인 소속원 중 읽은 사람
         var dayStart = TimeZoneInfo.ConvertTimeToUtc(today.ToDateTime(TimeOnly.MinValue), tz);

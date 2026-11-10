@@ -15,8 +15,9 @@ public class PlatformTenantServiceTests
     public PlatformTenantServiceTests()
     {
         _op = InMemoryDb.SeedAccount(_db, "operator", "운영자");
-        using (var raw = InMemoryDb.Raw(_db)) { InMemoryDb.AddRole(_db, raw.Users.Single(a => a.Id == _op.UserName!).Id, IdentityRoles.SuperAdmin); raw.SaveChanges(); }
+        using (var raw = InMemoryDb.Raw(_db)) { InMemoryDb.AddRole(_db, raw.Users.Single(a => a.UserName == _op.UserName!).Id, IdentityRoles.SuperAdmin); raw.SaveChanges(); }
         _teacher = InMemoryDb.SeedAccount(_db, "eunhye", "이은혜");
+        InMemoryDb.AddRole(_db, "seed", IdentityRoles.Admin);
     }
 
     private static NewTenant Input(string slug = "jamsil-kids", string? admin = null, bool mission = true, bool reading = true) =>
@@ -88,9 +89,9 @@ public class PlatformTenantServiceTests
         var (t, e) = await Svc.CreateAsync(_op.UserName!, Input(admin: "EunHye"));
         Assert.True(e.Ok);
         using var raw = InMemoryDb.Raw(_db);
-        var m = raw.Memberships.Include(x => x.Roles).Single(x => x.TenantId == t!.Id && x.UserName == _teacher.UserName!);
-        Assert.Equal(MembershipStatus.Approved, m.Status);
-        Assert.Equal([Roles.Teacher, Roles.TenantAdmin], m.Roles.Select(r => r.Role).Order(StringComparer.Ordinal));
+        var m = raw.DeptRoles.Single(x => x.TenantId == t!.Id && x.UserId == _teacher.Id);
+        Assert.Equal("T1002", m.RoleCode);
+        Assert.True(raw.UserRoles.Any(r => r.UserId == _teacher.Id));
         Assert.Equal("이은혜", (await Svc.ListAsync(_op.UserName!)).Single().Admins.Single().Name);
     }
 
@@ -108,9 +109,8 @@ public class PlatformTenantServiceTests
         var (t, _) = await Svc.CreateAsync(_op.UserName!, Input(admin: "eunhye"));
         await Svc.RemoveAdminAsync(_op.UserName!, t!.Id, _teacher.UserName!);
         using var raw = InMemoryDb.Raw(_db);
-        var m = raw.Memberships.Include(x => x.Roles).Single(x => x.TenantId == t.Id);
-        Assert.Equal(MembershipStatus.Approved, m.Status);
-        Assert.Equal([Roles.Teacher], m.Roles.Select(r => r.Role));
+        Assert.True(raw.DeptRoles.Any(x => x.TenantId == t.Id && x.UserId == _teacher.Id));   // 소속은 그대로
+        Assert.DoesNotContain(raw.UserRoles.ToList(), r => r.UserId == _teacher.Id);
     }
 
     [Fact]

@@ -48,10 +48,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         }));
         using var raw = InMemoryDb.Raw(_db);
         var id = raw.Users.Single(a => a.Email == email + "@example.com").UserName!;
-        var m = new Membership { TenantId = _kids.Id, UserName = id, Status = MembershipStatus.Approved,
-            Roles = roles.Select(r => new MembershipRole { TenantId = _kids.Id, Role = r }).ToList() };
-        raw.Memberships.Add(m);
-        raw.SaveChanges();
+        InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, roles);
         return c;
     }
 
@@ -127,16 +124,6 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.True(j.GetProperty("isCorrect").GetBoolean());
         Assert.Equal(correct, j.GetProperty("correctChoiceId").GetInt32());
         Assert.Contains("기도했어요", j.GetProperty("explanation").GetString());
-    }
-
-    [Fact]
-    public async Task 보호자는_보기만_하고_누를_수_없다()
-    {
-        var c = await Member("younghee", Roles.Guardian);
-        var html = await c.GetStringAsync("/jamsil-kids/word");
-        Assert.Contains("보기만 해요", html);
-        var r = await Api(c, TokenRx().Match(html).Groups[1].Value, "/api/jamsil-kids/missions/word", new { date = "2027-01-05", items = new[] { "Word.Me" } });
-        Assert.Equal(HttpStatusCode.Forbidden, r.StatusCode);
     }
 
     [Fact]

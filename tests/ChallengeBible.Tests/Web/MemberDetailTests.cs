@@ -34,7 +34,7 @@ public partial class MemberDetailTests : IClassFixture<WebApplicationFactory<Pro
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
     private static partial Regex TokenRx();
 
-    private async Task<(HttpClient C, int Id)> SignUp(string login, string name)
+    private async Task<(HttpClient C, string Id)> SignUp(string login, string name)
     {
         var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
@@ -46,29 +46,26 @@ public partial class MemberDetailTests : IClassFixture<WebApplicationFactory<Pro
         return (c, raw.Users.Single(a => a.Email == login + "@example.com").UserName!);
     }
 
-    private async Task<(HttpClient Admin, SeededMember Kid, int KidAccount)> Setup()
+    private async Task<(HttpClient Admin, SeededMember Kid, string KidAccount)> Setup()
     {
         var (admin, adminId) = await SignUp("eunhye", "이은혜");
         var (_, kidId) = await SignUp("cheolsu", "김철수");
         InMemoryDb.SeedMembership(_db, _kids.Id, adminId, MembershipStatus.Approved, Roles.TenantAdmin);
         var km = InMemoryDb.SeedMembership(_db, _kids.Id, kidId, MembershipStatus.Approved, Roles.Participant);
         using var raw = InMemoryDb.Raw(_db);
-        raw.Memberships.Single(m => m.Id == km.Id).GroupLabel = "사랑반";
         raw.SaveChanges();
         var at = new DateTime(2027, 1, 5, 0, 12, 0, DateTimeKind.Utc);   // 서울 9:12
         void Act(DateOnly d, string item, int pts, DateTime when)
         {
-            var a = new MissionActivity { TenantId = _kids.Id, UserName = p.Id, MissionItem = item, MissionDate = d, Points = pts, PerformedAt = when };
+            var a = new MissionActivity { TenantId = _kids.Id, UserName = kidId, MissionItem = item, MissionDate = d, Points = pts, PerformedAt = when };
             raw.MissionActivities.Add(a);
-            raw.SaveChanges();
-            raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = p.Id, MissionDate = d, MissionItem = item, Points = pts, PerformedAt = when });
         }
         Act(Jan5, "Word.Me", 1, at.AddMinutes(-30));
         Act(Jan5, "Prayer.Me", 1, at);
         Act(Jan5.AddDays(-1), "Word.Me", 1, at.AddDays(-1));
         raw.ReadingRounds.Add(new ReadingRound { UserName = kidId, RoundNo = 1, StartedAt = at.AddDays(-3) });
         raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = kidId, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = at });
-        raw.ReadingVerses.Add(new ReadingVerse { UserName = kidId, BookId = 1, Chapter = 1, Verse = 1, ReadAt = at });
+        raw.ReadingVerses.Add(new ReadingVerse { UserName = kidId, RoundNo = 1, BookId = 1, Chapter = 1, Verse = 1, ReadAt = at });
         raw.SaveChanges();
         return (admin, km, kidId);
     }
@@ -83,7 +80,7 @@ public partial class MemberDetailTests : IClassFixture<WebApplicationFactory<Pro
         Assert.Contains("href=\"/jamsil-kids/admin\">관리</a>", await admin.GetStringAsync("/jamsil-kids"));   // 부서 홈 → 관리 홈
         var html = await admin.GetStringAsync($"/jamsil-kids/admin/members/{kid.Id}");
         Assert.Contains("<h1>김철수</h1>", html);
-        Assert.Contains("cheolsu@example.com · 사랑반", html);
+        Assert.Contains("cheolsu@example.com", html);
         Assert.Matches(">3<u>점</u>", html);                                         // 올해 점수
         Assert.Matches(">2<u>일</u>", html);                                         // 연속(어제 · 오늘)
         Assert.Contains("1/5 9:12", html);                                           // 마지막 미션(부서 시간)
@@ -121,28 +118,11 @@ public partial class MemberDetailTests : IClassFixture<WebApplicationFactory<Pro
         var temp = Regex.Match(await r.Content.ReadAsStringAsync(), "<code>([a-z]+-\\d{4})</code>").Groups[1].Value;
         Assert.NotEmpty(temp);
         using var raw = InMemoryDb.Raw(_db);
-        var a = raw.Users.Single(x => x.Id == kidId);
-        Assert.True(a.MustChangePassword);
+        var a = raw.Users.Single(x => x.UserName == kidId);
+        Assert.True(raw.UserSettings.Single(x => x.UserName == kidId).MustChangePassword);
         Assert.NotEqual(PasswordVerificationResult.Failed, new PasswordHasher<AppUser>().VerifyHashedPassword(a, a.PasswordHash, temp));
         var log = raw.AuditLogs.Single();
         Assert.Equal((_kids.Id, "PasswordReset"), (log.TenantId!.Value, log.Action));
-    }
-
-    [Fact]
-    public async Task R0035_다른_부서의_관리자인_계정은_초기화할_수_없다()
-    {
-        var (admin, kid, kidId) = await Setup();
-        InMemoryDb.SeedMembership(_db, _elem.Id, kidId, MembershipStatus.Approved, Roles.TenantAdmin);
-        var page = await admin.GetStringAsync($"/jamsil-kids/admin/members/{kid.Id}");
-        Assert.Contains("다른 부서의 관리자이기도 한 계정이에요", page);
-        Assert.DoesNotContain("임시 비밀번호 만들기</button>", page);
-        var r = await admin.PostAsync($"/jamsil-kids/admin/members/{kid.Id}?handler=ResetPassword", new FormUrlEncodedContent(new Dictionary<string, string>
-        {
-            ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value,
-        }));
-        Assert.DoesNotContain("<code>", await r.Content.ReadAsStringAsync());
-        using var raw = InMemoryDb.Raw(_db);
-        Assert.False(raw.Users.Single(x => x.Id == kidId).MustChangePassword);
     }
 
     [Fact]

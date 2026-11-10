@@ -53,7 +53,7 @@ public sealed class InMemoryDb(string name, RequestScope scope) : IAppDb
     }
 
     /// <summary>
-    /// 소속 한 줄. 옛 시험의 역할 이름을 역할 코드로 바꾼다: Participant = 학생, Teacher = 교사, TenantAdmin = 교사 + 관리자, Guardian 만 = 학부모(코드 없음).
+    /// 소속 한 줄. 옛 시험의 역할 이름을 역할 코드로 바꾼다: Participant = 학생, Teacher = 교사, TenantAdmin = 교사 + 관리자, Guardian = 학부모(코드 없음).
     /// Requested 는 신청(SignupApplication)을 만든다.
     /// </summary>
     public static SeededMember SeedMembership(string name, int tenantId, string userName, string status, params string[] roles)
@@ -61,7 +61,6 @@ public sealed class InMemoryDb(string name, RequestScope scope) : IAppDb
         using var db = Raw(name);
         var user = db.Users.Single(u => u.UserName == userName);
         var code = roles.Contains(Roles.Teacher) || roles.Contains(Roles.TenantAdmin) ? "T1002"
-            : roles.Contains(Roles.Participant) ? "T1001"
             : roles.Contains(Roles.Guardian) ? null : "T1001";
         SeedCodes(db, tenantId);
         if (status == MembershipStatus.Approved)

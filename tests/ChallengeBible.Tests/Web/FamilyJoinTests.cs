@@ -20,7 +20,7 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
     private readonly Tenant _kids, _elem;
-    private readonly Dictionary<string, (int UserName, SeededMember M, int Pid)> _p = [];
+    private readonly Dictionary<string, (string UserName, SeededMember M, string Pid)> _p = [];
 
     public FamilyJoinTests(WebApplicationFactory<Program> app)
     {
@@ -48,12 +48,12 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         AddMembership(t, login, a, roles);
     }
 
-    private void AddMembership(Tenant t, string key, int account, string[] roles)
+    private void AddMembership(Tenant t, string key, string account, string[] roles)
     {
-        var m = InMemoryDb.SeedMembership(_db, t.UserName!, account, MembershipStatus.Approved, roles);
+        var m = InMemoryDb.SeedMembership(_db, t.Id, account, MembershipStatus.Approved, roles);
         using var raw = InMemoryDb.Raw(_db);
         raw.SaveChanges();
-        _p[key] = (account, m, p.Id);
+        _p[key] = (account, m, m.UserName);
     }
 
     private void Pts(string login, int points)
@@ -68,10 +68,10 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         t ??= _kids;
         var (account, membership, _) = _p[login];
         var scope = new RequestScope();
-        scope.SetTenant(t.UserName!);
+        scope.SetTenant(t.Id);
         scope.SetUser(account, "id-" + account);
         var tc = new TenantContext();
-        using (var raw = InMemoryDb.Raw(_db)) tc.Set(raw.Tenants.Single(x => x.Id == t.UserName!), new Membership { Id = membership.Id, Status = MembershipStatus.Approved, Roles = [new MembershipRole { Role = Roles.Participant }] });
+        using (var raw = InMemoryDb.Raw(_db)) tc.Set(raw.Tenants.Single(x => x.Id == t.Id), raw.DeptRoles.Single(d => d.Id == membership.Id));
         var teams = new FamilyTeamService(new InMemoryDb(_db, scope), scope, tc, new TenantClock(_time), InMemoryDb.Rules(_db));
         return new FamilyJoinService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), scope, tc, teams, _time);
     }
@@ -105,12 +105,12 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
     }
 
     [Fact]
-    public async Task R204_R93_이름이_비면_대표_학생_가족_같은_이름도_된다()
+    public async Task R204_이름이_비면_내_이름으로_짓고_쓰인_이름은_다시_못_쓴다()
     {
         Assert.Equal(FamilyError.None, await As("cheolsu").CreateAsync("  ", FamilyRelation.Student));
-        Assert.Equal("김철수 가족", (await As("cheolsu").StateAsync()).Mine!.Name);
+        Assert.Equal("김철수네 가족팀", (await As("cheolsu").StateAsync()).Mine!.Name);
         Assert.Equal(FamilyError.None, await As("dad").CreateAsync("같은이름", FamilyRelation.Father));
-        Assert.Equal(FamilyError.None, await As("mom").CreateAsync("같은이름", FamilyRelation.Mother));
+        Assert.Equal(FamilyError.NameTaken, await As("mom").CreateAsync("같은이름", FamilyRelation.Mother));
     }
 
     [Fact]
@@ -199,16 +199,41 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
     }
 
     [Fact]
-    public async Task R208_이미_넘은_축하_기록은_나가도_취소하지_않는다()
+    public async Task 시상_기록이_있는_팀은_나가기_내보내기_역할_바꾸기가_막힌다()
     {
         var id = await DadAndKid();
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.FamilyMilestonesReached.Add(new FamilyMilestoneReached { TenantId = _kids.Id, FamilyTeamId = id, Year = 2027, Threshold = 800, ReachedUtc = DateTime.UtcNow });
+            var team = raw.FamilyTeams.Single(t => t.Id == id);
+            raw.TeamAwards.Add(new TeamAward { TenantId = _kids.Id, Kind = TeamTypes.Family, AwardKey = team.AwardKey!, Threshold = 1000, AwardedAt = DateTime.UtcNow });
             raw.SaveChanges();
         }
-        Assert.Equal(FamilyError.None, await As("cheolsu").LeaveAsync());
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Single(raw.FamilyMilestonesReached);
+        var kid = (await As("dad").StateAsync()).Mine!.Members.Single(m => !m.Me);
+        Assert.Equal(FamilyError.AwardLocked, await As("cheolsu").LeaveAsync());
+        Assert.Equal(FamilyError.AwardLocked, await As("dad").KickAsync(kid.MemberId));
+        Assert.Equal(FamilyError.AwardLocked, await As("dad").SetRelationAsync(FamilyRelation.Mother));
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(2, raw.FamilyMembers.Count());
+    }
+
+    [Fact]
+    public async Task 박수_숨김_기록이_있는_팀도_잠긴다()
+    {
+        var id = await DadAndKid();
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.FamilyMilestonesHidden.Add(new FamilyMilestoneHidden { TenantId = _kids.Id, MilestoneConfigId = 1, FamilyTeamId = id, HiddenAt = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        Assert.Equal(FamilyError.AwardLocked, await As("cheolsu").LeaveAsync());
+    }
+
+    [Fact]
+    public async Task 팀_규칙_학생은_학생만_학부모는_부모쪽만_교사는_불가()
+    {
+        Assert.Equal(FamilyError.WrongRelation, await As("cheolsu").CreateAsync("가", FamilyRelation.Father));
+        Assert.Equal(FamilyError.WrongRelation, await As("mom").CreateAsync("나", FamilyRelation.Student));
+        Assert.Equal(FamilyError.NotAllowed, await AsTeacher().CreateAsync("다", FamilyRelation.Student));
+        Assert.Equal(FamilyError.None, await As("cheolsu").CreateAsync("라", FamilyRelation.Student));
     }
 
     [Fact]
@@ -241,23 +266,17 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
     }
 
     [Fact]
-    public async Task R208_마지막_사람이_나가면_팀과_신청과_축하_기록이_사라진다()
+    public async Task R208_마지막_사람이_나가면_팀과_신청이_사라진다()
     {
         Assert.Equal(FamilyError.None, await As("dad").CreateAsync("웃음폭탄네", FamilyRelation.Father));
         var id = await TeamOf("dad");
         Assert.Equal(FamilyError.None, await As("cheolsu").RequestAsync(id, FamilyRelation.Student));
-        using (var raw = InMemoryDb.Raw(_db))
-        {
-            raw.FamilyMilestonesReached.Add(new FamilyMilestoneReached { TenantId = _kids.Id, FamilyTeamId = id, Year = 2027, Threshold = 500, ReachedUtc = DateTime.UtcNow });
-            raw.SaveChanges();
-        }
         Assert.Equal(FamilyError.None, await As("dad").LeaveAsync());
         using (var raw = InMemoryDb.Raw(_db))
         {
             Assert.Empty(raw.FamilyTeams);
             Assert.Empty(raw.FamilyMembers);
-            Assert.Empty(raw.FamilyJoinRequests);
-            Assert.Empty(raw.FamilyMilestonesReached);
+            Assert.Empty(raw.FamilyRequests);
         }
         Assert.Null((await As("cheolsu").StateAsync()).Pending);
         Assert.Equal(FamilyError.None, await As("cheolsu").CreateAsync("웃음폭탄네", FamilyRelation.Student));   // 이름을 다시 쓸 수 있다
@@ -270,15 +289,15 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Equal(FamilyError.None, await As("cheolsu").RenameAsync("말씀 수호대"));
         Assert.Equal("말씀 수호대", (await As("dad").StateAsync()).Mine!.Name);
         Assert.Equal(FamilyError.None, await As("cheolsu").RenameAsync(" "));
-        Assert.Equal("김철수 가족", (await As("dad").StateAsync()).Mine!.Name);
+        Assert.Equal("말씀 수호대", (await As("dad").StateAsync()).Mine!.Name);
         Assert.Equal(FamilyError.NotMember, await As("other").RenameAsync("가로채기"));
 
-        Assert.Equal(FamilyError.None, await As("cheolsu").SetRelationAsync(FamilyRelation.Other));
+        Assert.Equal(FamilyError.None, await As("dad").SetRelationAsync(FamilyRelation.Grandfather));
         var mine = (await As("dad").StateAsync()).Mine!;
-        Assert.Equal(FamilyRelation.Other, mine.Members.Single(m => m.Name == "김철수").Relation);
-        Assert.Equal(FamilyRelation.Father, mine.Members.Single(m => m.Name == "김민호").Relation);   // 남의 역할은 그대로
-        Assert.Equal(FamilyError.BadRelation, await As("cheolsu").SetRelationAsync("Uncle"));
-        Assert.Equal(FamilyError.None, await As("cheolsu").SetRelationAsync(FamilyRelation.Father));   // 같은 역할이 둘이어도 된다
+        Assert.Equal(FamilyRelation.Grandfather, mine.Members.Single(m => m.Name == "김민호").Relation);
+        Assert.Equal(FamilyRelation.Student, mine.Members.Single(m => m.Name == "김철수").Relation);   // 남의 역할은 그대로
+        Assert.Equal(FamilyError.BadRelation, await As("dad").SetRelationAsync("Uncle"));
+        Assert.Equal(FamilyError.WrongRelation, await As("cheolsu").SetRelationAsync(FamilyRelation.Father));   // 학생은 '학생'만
     }
 
     [Fact]
@@ -316,10 +335,10 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         var lobby = InMemoryDb.SeedTenant(_db, "lobby-kids", "LOBBYK");
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.Tenants.Single(t => t.UserName! == lobby.Id).IsLobby = true;
+            raw.Tenants.Single(t => t.Id == lobby.Id).IsLobby = true;
             raw.SaveChanges();
         }
-        using (var raw = InMemoryDb.Raw(_db)) lobby = raw.Tenants.Single(t => t.UserName! == lobby.Id);
+        using (var raw = InMemoryDb.Raw(_db)) lobby = raw.Tenants.Single(t => t.Id == lobby.Id);
         AddMembership(lobby, "lobby-kid", InMemoryDb.SeedAccount(_db, "lk@example.com", "임시").UserName!, [Roles.Participant]);
         Assert.False((await As("lobby-kid", lobby).StateAsync()).Enabled);
         Assert.Null(await As("lobby-kid", lobby).EntryAsync());
@@ -420,7 +439,7 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         mine = await dad.GetStringAsync("/jamsil-kids/family-team");
         Assert.Contains("학생으로 신청", mine);
         int request;
-        using (var raw = InMemoryDb.Raw(_db)) request = raw.FamilyJoinRequests.Single().Id;
+        using (var raw = InMemoryDb.Raw(_db)) request = raw.FamilyRequests.Single().Id;
         r = await Post(dad, mine, "Accept", ("request", request.ToString()));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
         var after = await kid.GetStringAsync("/jamsil-kids/family-team");
@@ -552,8 +571,8 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
 
         Assert.Equal(FamilyError.None, await As("other").AcceptInviteAsync(fromDad, FamilyRelation.Student));
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Empty(raw.FamilyInvites);
-        Assert.Empty(raw.FamilyJoinRequests);
+        Assert.Empty(raw.FamilyRequests);
+        Assert.Empty(raw.FamilyRequests);
     }
 
     [Fact]
@@ -562,13 +581,13 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Equal(FamilyError.None, await As("dad").CreateAsync("웃음폭탄네", FamilyRelation.Father));
         await DadInvites("other");
         Assert.Equal(FamilyError.None, await As("other").CreateAsync("내 팀", FamilyRelation.Student));
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.FamilyInvites);
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.FamilyRequests);
 
         await DadInvites("cheolsu");
         Assert.Equal(FamilyError.None, await As("cheolsu").RequestAsync(await TeamOf("other"), FamilyRelation.Student));
         var r = (await As("other").StateAsync()).Mine!.Requests.Single();
         Assert.Equal(FamilyError.None, await As("other").AcceptAsync(r.RequestId));
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.FamilyInvites);
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.FamilyRequests);
     }
 
     [Fact]
@@ -577,7 +596,7 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Equal(FamilyError.None, await As("dad").CreateAsync("웃음폭탄네", FamilyRelation.Father));
         var invite = await DadInvites("other");
         Assert.Equal(FamilyError.None, await As("dad").LeaveAsync());
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.FamilyInvites);
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.FamilyRequests);
         Assert.Empty((await As("other").StateAsync()).Invites);
         Assert.Equal(FamilyError.NotFound, await As("other").AcceptInviteAsync(invite, FamilyRelation.Student));
     }
@@ -647,8 +666,8 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Contains("김민호님이 학생으로 초대했어요", got);
         Assert.Contains("handler=InviteReject", got);
         int invite;
-        using (var raw = InMemoryDb.Raw(_db)) invite = raw.FamilyInvites.Single().Id;
-        r = await Post(other, got, "InviteAccept", ("invite", invite.ToString()), ("relation", FamilyRelation.Other));
+        using (var raw = InMemoryDb.Raw(_db)) invite = raw.FamilyRequests.Single().Id;
+        r = await Post(other, got, "InviteAccept", ("invite", invite.ToString()), ("relation", FamilyRelation.Student));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
         var after = await other.GetStringAsync(r.Headers.Location!.OriginalString);
         Assert.Contains("가족팀에 합류했어요", after);
@@ -678,7 +697,7 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         // 내일이 되면 다시 보인다
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.FamilyInvites.Single().SnoozedOn = new DateOnly(2027, 1, 4);
+            raw.UserSettings.Single(x => x.UserName == _p["other"].UserName).FamilyInvitesSnoozedAt = new DateTime(2027, 1, 3, 23, 0, 0, DateTimeKind.Utc);
             raw.SaveChanges();
         }
         Assert.Contains("초대가 왔어요", await c.GetStringAsync("/jamsil-kids"));
@@ -691,7 +710,18 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Equal(FamilyError.None, await As("mom").CreateAsync("말씀 수호대", FamilyRelation.Mother));
         await DadInvites("other");
         Assert.Equal(FamilyError.None, await As("other").SnoozeInvitesAsync());
+        using (var raw = InMemoryDb.Raw(_db))   // 시계가 멈춰 있어 "다음에 할래요"를 조금 앞으로 옮긴다
+        {
+            var setting = raw.UserSettings.Single(x => x.UserName == _p["other"].UserName);
+            setting.FamilyInvitesSnoozedAt = setting.FamilyInvitesSnoozedAt!.Value.AddMinutes(-1);
+            raw.SaveChanges();
+        }
         Assert.Equal(FamilyError.None, await As("mom").InviteAsync(_p["other"].Pid, FamilyRelation.Student));
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            foreach (var q in raw.FamilyRequests.Where(q => q.FromUserName == _p["dad"].UserName)) q.CreatedAt = q.CreatedAt.AddMinutes(-2);
+            raw.SaveChanges();
+        }
         var home = await (await LoggedIn("other@example.com")).GetStringAsync("/jamsil-kids");
         Assert.Contains("이수진님이 말씀 수호대로 초대했어요", home);
         Assert.DoesNotContain("웃음폭탄네", home);
@@ -702,17 +732,17 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
     {
         Assert.Equal(FamilyError.None, await As("dad").CreateAsync("웃음폭탄네", FamilyRelation.Father));
         await DadInvites("other");
-        await DadInvites("mom");
+        await DadInvites("mom", FamilyRelation.Mother);
         Assert.Equal(FamilyError.None, await As("other").SnoozeInvitesAsync());
         Assert.False((await As("mom").StateAsync()).Invites.Single().SnoozedToday);
-        Assert.Equal(FamilyError.NotParticipant, await AsTeacher().SnoozeInvitesAsync());
+        Assert.Equal(FamilyError.None, await AsTeacher().SnoozeInvitesAsync());
     }
 
     private FamilyJoinService AsTeacher()
     {
         var a = InMemoryDb.SeedAccount(_db, "t2@example.com", "최선생").UserName!;
         var m = InMemoryDb.SeedMembership(_db, _kids.Id, a, MembershipStatus.Approved, Roles.Teacher);
-        _p["t2"] = (a, m, 0);
+        _p["t2"] = (a, m, a);
         return As("t2");
     }
 

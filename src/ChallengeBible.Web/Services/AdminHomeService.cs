@@ -39,7 +39,7 @@ public sealed class AdminHomeService(IAppDb db, TenantContext tenant, TenantCloc
         await using var ctx = db.Create();
 
         // 소속 참여자: 승인된 소속의 활성 참여자(정지 · 비활성 제외)
-        var members = (await DeptMembership.PeopleAsync(ctx, ct)).Select(p => new { Id = p.UserName, DisplayName = p.Name, GroupLabel = (string?)null }).ToList();
+        var members = (await DeptMembership.PeopleAsync(ctx, ct)).Where(p => p.RoleCode == UserRole.StudentCode).Select(p => new { Id = p.UserName, DisplayName = p.Name, GroupLabel = (string?)null }).ToList();
         var memberIds = members.Select(m => m.Id).ToHashSet();
 
         // 기다리는 신청
@@ -82,7 +82,7 @@ public sealed class AdminHomeService(IAppDb db, TenantContext tenant, TenantCloc
         var me = tenant.Current.Id;
         var promotions = await (from r in ctx.PromotionRequests
                                 where r.TargetTenantId == me && r.Status == PromotionStatus.Pending
-                                join a in ctx.Users on r.UserName equals a.Id
+                                join a in ctx.Users on r.UserName equals a.UserName
                                 join t in ctx.Tenants on r.SourceTenantId equals t.Id
                                 orderby r.RequestedUtc
                                 select AppUser.FullName(a.LastName, a.FirstName) + "(" + t.Name + ")").ToListAsync(ct);
