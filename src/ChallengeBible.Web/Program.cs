@@ -69,6 +69,7 @@ builder.Services.AddScoped<PromotionApprover>();
 builder.Services.AddScoped<TenantResolver>();
 builder.Services.AddAntiforgery(o => o.HeaderName = "RequestVerificationToken");
 builder.Services.AddMemoryCache();
+builder.Services.AddScoped<ChallengeBible.Web.Auth.UserNameGate>();
 builder.Services.AddSingleton<LookupLimiter>();
 
 // 쿠키를 푸는 키를 DB 에 둔다(ADR 0055): 게시 · 앱 재시작 뒤에도 로그인이 유지된다.

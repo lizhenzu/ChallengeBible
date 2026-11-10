@@ -8,7 +8,7 @@ namespace ChallengeBible.Web.Pages.Platform;
 
 /// <summary>`/platform/accounts?q=&amp;id=` 계정 찾기(확정 시안: 플랫폼-계정찾기, 0035 · 0029). 플랫폼 관리자만.</summary>
 [Authorize(Policy = CurrentUser.PlatformAdminPolicy)]
-public class AccountsModel(PlatformAccountService accounts, ImpersonationService imp, AccountService signed) : PageModel, ITitled
+public class AccountsModel(PlatformAccountService accounts, ImpersonationService imp, AccountService signed, UserNameGate names) : PageModel, ITitled
 {
     public string Title => "계정 찾기";
     private string Me => User.UserName()!;
@@ -26,9 +26,12 @@ public class AccountsModel(PlatformAccountService accounts, ImpersonationService
 
     public bool AskImp { get; private set; }
 
-    public async Task OnGetAsync(bool askMarks, bool askImp, CancellationToken ct)
+    public bool AskRename { get; private set; }
+
+    public async Task OnGetAsync(bool askMarks, bool askImp, bool askRename, CancellationToken ct)
     {
         AskMarks = askMarks;
+        AskRename = askRename;
         AskImp = askImp;
         await LoadAsync(ct);
     }
@@ -69,6 +72,23 @@ public class AccountsModel(PlatformAccountService accounts, ImpersonationService
         return RedirectToPage(new { Q, Id, Ok = "marks" });
     }
 
+    /// <summary>아이디 바꾸기(ADR 0090): 옛 아이디의 로그인은 바로 끊긴다.</summary>
+    public async Task<IActionResult> OnPostRenameAsync(string? newName, string? confirm, CancellationToken ct)
+    {
+        var old = Id;
+        var error = old is null ? "계정을 찾을 수 없어요." : await accounts.RenameAsync(Me, old, newName, confirm, ct);
+        if (error is not null)
+        {
+            AskRename = true;
+            Error = error;
+            await LoadAsync(ct);
+            return Page();
+        }
+        names.Forget(old!);
+        var moved = newName!.Trim();
+        return RedirectToPage(new { Q = moved, Id = moved, Ok = "renamed" });
+    }
+
     private async Task LoadAsync(CancellationToken ct)
     {
         Hits = await accounts.SearchAsync(Me, Q, ct);
@@ -78,6 +98,8 @@ public class AccountsModel(PlatformAccountService accounts, ImpersonationService
     }
 
     public string ImpUrl(string id) => $"/platform/accounts?q={Uri.EscapeDataString(Q ?? "")}&id={Uri.EscapeDataString(id)}&askImp=true#imp";
+
+    public string RenameUrl(string id) => Url(id) + "&askRename=true#rename";
 
     public string Url(string id, bool askMarks = false) =>
         $"/platform/accounts?q={Uri.EscapeDataString(Q ?? "")}&id={Uri.EscapeDataString(id)}" + (askMarks ? "&askMarks=true#marks" : "");

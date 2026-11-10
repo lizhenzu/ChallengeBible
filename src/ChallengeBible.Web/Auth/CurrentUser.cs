@@ -92,7 +92,18 @@ public static class CurrentUser
     public static IApplicationBuilder UseRequestScope(this IApplicationBuilder app) =>
         app.Use(async (http, next) =>
         {
-            if (http.User.UserName() is { } name && http.User.UserId() is { } id) http.RequestServices.GetRequiredService<RequestScope>().SetUser(name, id);
+            if (http.User.UserName() is { } name && http.User.UserId() is { } id)
+            {
+                // 아이디가 바뀐 옛 쿠키(0090)는 다시 로그인시킨다. 옛 아이디로 기록이 쌓이면 안 된다
+                if (!await http.RequestServices.GetRequiredService<UserNameGate>().IsCurrentAsync(name, id, http.RequestAborted))
+                {
+                    await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    if (http.Request.Path.StartsWithSegments("/api")) http.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    else http.Response.Redirect("/account/login");
+                    return;
+                }
+                http.RequestServices.GetRequiredService<RequestScope>().SetUser(name, id);
+            }
             AuditContext.Impersonator = http.User.ImpersonatorId();   // 가장 중 감사 로그에 함께 적힌다(0067)
             await next();
         });
