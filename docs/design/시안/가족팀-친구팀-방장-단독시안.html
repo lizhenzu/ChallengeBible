@@ -1,0 +1,140 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>가족팀 · 친구팀 · 방장 시안</title>
+<link rel="stylesheet" href="../../../src/ChallengeBible.Web/wwwroot/css/site.css">
+<style>
+  /* 확정 결정: ADR 0093 "정한 것" 1 ~ 17. 실제 화면(/{slug}/family-team)의 스타일 파일 위에 새 부분만 더한다.
+     ① 찾기: 가족팀 / 친구팀 고르기, 친구팀은 자리 표시 ② 우리 가족팀(내가 방장) ③ 우리 친구팀(2명 참, 나는 방장 아님) ④ 들어감 알림 + 선물 받은 팀 잠금
+     상태 바꾸기 띠는 화면 맨 아래 */
+  body { padding-bottom: 80px; }
+  .fmt-kind { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0 0 12px; padding: 4px; border-radius: 14px; background: var(--soft); }
+  .fmt-kind a { display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-radius: 11px; font-size: 14px; font-weight: 800; color: var(--dim); text-decoration: none; line-height: 1.3; }
+  .fmt-kind a small { font-size: 11.5px; font-weight: 600; }
+  .fmt-kind a[aria-current="page"] { background: var(--bg); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .fmt-seat { margin-left: 6px; padding: 2px 8px; border-radius: 99px; background: #E7F6EC; color: #157F3B; font-size: 11.5px; font-weight: 800; }
+  .fmt-type { display: inline-block; margin-bottom: 4px; padding: 2px 9px; border-radius: 99px; background: var(--bg); font-size: 11.5px; font-weight: 800; color: var(--accent); }
+  .fmt-crown { margin-left: 4px; padding: 1px 7px; border-radius: 99px; background: #FFF1D6; color: #B45309; font-size: 11px; font-weight: 800; }
+  .fmt-lock { display: flex; gap: 8px; margin-top: 12px; padding: 11px 13px; border-radius: 13px; background: #FFF4DE; color: #9A5B00; font-size: 12.5px; font-weight: 700; word-break: keep-all; }
+  .fmt-joined { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; padding: 13px 14px; border-radius: 15px; background: #EAF7EF; color: #157F3B; font-weight: 800; word-break: keep-all; }
+  .fmt-joined span { font-size: 22px; }
+  .fmt-joined small { display: block; font-size: 12px; font-weight: 600; color: #3D6B4F; }
+  .fmt-full { margin-top: 10px; padding: 11px 13px; border-radius: 13px; background: var(--soft); font-size: 12.5px; color: var(--dim); text-align: center; }
+  .fmt-off { margin-top: 10px; font-size: 12.5px; color: var(--dim); text-align: right; }
+  .states { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: #1B1F24; padding: 8px; display: flex; gap: 6px; }
+  .states a { flex: 1; min-height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: #fff; font-size: 12.5px; font-weight: 800; opacity: .7; text-decoration: none; }
+  .states a[aria-current="page"] { background: #fff; color: #1B1F24; opacity: 1; }
+  [data-s] { display: none; }
+  [data-s].on { display: block; }
+</style>
+
+<main class="gut fmt"><div class="wrap">
+
+<!-- ① 찾기 -->
+<section data-s="find">
+  <div class="fmt-bar"><a href="#">‹ 미션 홈</a></div>
+  <h1>팀 찾기</h1>
+  <p class="fmt-sub">가족팀이나 친구팀 중 하나에만 들어갈 수 있어요.</p>
+  <nav class="fmt-kind" aria-label="팀 종류">
+    <a href="#find">👨‍👩‍👧 가족팀<small>가족과 함께</small></a>
+    <a href="#find" aria-current="page">🧒🧒 친구팀<small>학생 2명</small></a>
+  </nav>
+  <form class="fmt-search" role="search" onsubmit="return false"><input type="search" placeholder="친구 이름이나 팀 이름" aria-label="친구 이름이나 팀 이름으로 찾기"><button type="submit">찾기</button></form>
+  <div class="fmt-team">
+    <div><span class="n">하늘이네 친구팀</span><span class="c">1명</span><span class="fmt-seat">자리 1</span></div>
+    <div class="fmt-chips"><span>문하늘<b>👑 방장</b></span></div>
+    <a class="fmt-btn" href="#">합류 신청</a>
+  </div>
+  <div class="fmt-team">
+    <div><span class="n">말씀 단짝</span><span class="c">1명</span><span class="fmt-seat">자리 1</span></div>
+    <div class="fmt-chips"><span>박민지<b>👑 방장</b></span></div>
+    <a class="fmt-btn" href="#">합류 신청</a>
+  </div>
+  <p class="fmt-note c">2명이 다 찬 친구팀은 보이지 않아요.</p>
+  <div class="fmt-or">찾는 팀이 없나요?<a class="fmt-btn line" href="#">＋ 새 친구팀 만들기</a></div>
+  <p class="fmt-note c">친구팀은 학생만 만들고 들어갈 수 있어요. 관계는 고르지 않아요.</p>
+</section>
+
+<!-- ② 우리 가족팀 · 내가 방장 -->
+<section data-s="family">
+  <div class="fmt-bar"><a href="#">‹ 미션 홈</a></div>
+  <section class="fmt-hero" aria-label="우리 가족팀">
+    <span class="fmt-type">👨‍👩‍👧 가족팀</span>
+    <div class="n">철수네 가족팀</div>
+    <div class="s num">2,640<small>점</small></div>
+    <div class="fmt-prog" aria-hidden="true"><i style="width:64%"></i></div>
+    <div class="g"><span>이번 시즌 가족 점수</span><span>다음 선물까지 360점</span></div>
+  </section>
+  <details class="fmt-ask"><summary>이름 바꾸기</summary></details>
+  <h2>구성원 3명</h2>
+  <ul class="fmt-mem">
+    <li><u aria-hidden="true">🧒</u><div class="m">김철수<span class="me">나</span><span class="fmt-crown">👑 방장</span><small>학생</small>
+        <details class="fmt-ask"><summary>관계 설정</summary></details></div><div class="p num">1,520점</div></li>
+    <li><u aria-hidden="true">👩</u><div class="m">김영희<small>엄마</small></div><div class="p num">830점</div>
+        <details class="fmt-ask out"><summary>내보내기</summary></details></li>
+    <li><u aria-hidden="true">👨</u><div class="m">김대호<small>아빠</small></div><div class="p num">290점</div>
+        <details class="fmt-ask out"><summary>내보내기</summary></details></li>
+  </ul>
+  <a class="fmt-btn line" href="#">＋ 가족 초대하기</a>
+  <details class="fmt-ask" open style="margin-top:14px"><summary>👑 방장 넘기기</summary>
+    <form onsubmit="return false"><span>방장은 다른 구성원을 내보낼 수 있어요. 넘긴 뒤에는 나도 팀을 나갈 수 있어요.</span>
+      <div class="fmt-chips"><span>김영희<b>엄마</b></span><span>김대호<b>아빠</b></span></div>
+      <button type="submit" class="fmt-btn sm" style="margin-top:8px">김영희님에게 넘기기</button></form>
+  </details>
+  <p class="fmt-off">방장은 나갈 수 없어요. 방장을 넘긴 뒤 나갈 수 있어요.</p>
+</section>
+
+<!-- ③ 우리 친구팀 · 2명 참 · 나는 방장 아님 -->
+<section data-s="friend">
+  <div class="fmt-bar"><a href="#">‹ 미션 홈</a></div>
+  <section class="fmt-hero" aria-label="우리 친구팀">
+    <span class="fmt-type">🧒🧒 친구팀</span>
+    <div class="n">말씀 단짝</div>
+    <div class="s num">1,180<small>점</small></div>
+    <div class="fmt-prog" aria-hidden="true"><i style="width:18%"></i></div>
+    <div class="g"><span>두 사람 점수 합</span><span>다음 선물까지 820점</span></div>
+  </section>
+  <details class="fmt-ask"><summary>이름 바꾸기</summary></details>
+  <h2>친구 2명</h2>
+  <ul class="fmt-mem">
+    <li><u aria-hidden="true">🧒</u><div class="m">박민지<span class="fmt-crown">👑 방장</span><small>학생</small></div><div class="p num">640점</div></li>
+    <li><u aria-hidden="true">🧒</u><div class="m">문하늘<span class="me">나</span><small>학생</small></div><div class="p num">540점</div></li>
+  </ul>
+  <p class="fmt-full">친구팀은 2명까지예요. 자리가 다 찼어요.</p>
+  <details class="fmt-ask leave" style="margin-top:14px;text-align:right"><summary>팀 나가기</summary></details>
+</section>
+
+<!-- ④ 들어감 알림 + 선물 받은 팀 잠금 -->
+<section data-s="locked">
+  <div class="fmt-joined" role="status"><span aria-hidden="true">🎉</span><div>철수네 가족팀에 들어갔어요<small>김철수님이 신청을 받아 주었어요</small></div></div>
+  <div class="fmt-bar"><a href="#">‹ 미션 홈</a></div>
+  <section class="fmt-hero" aria-label="우리 가족팀">
+    <span class="fmt-type">👨‍👩‍👧 가족팀</span>
+    <div class="n">철수네 가족팀</div>
+    <div class="s num">3,240<small>점</small></div>
+    <div class="fmt-prog" aria-hidden="true"><i style="width:24%"></i></div>
+    <div class="g"><span>이번 시즌 가족 점수</span><span>다음 선물까지 760점</span></div>
+  </section>
+  <div class="fmt-lock" role="note">🔒 <span>선물을 받은 팀이에요. 누구도 팀을 나가거나 내보낼 수 없고, 새 구성원도 들어올 수 없어요.</span></div>
+  <h2>구성원 3명</h2>
+  <ul class="fmt-mem">
+    <li><u aria-hidden="true">🧒</u><div class="m">김철수<span class="fmt-crown">👑 방장</span><small>학생</small></div><div class="p num">1,820점</div></li>
+    <li><u aria-hidden="true">👩</u><div class="m">김영희<span class="me">나</span><small>엄마</small></div><div class="p num">1,130점</div></li>
+    <li><u aria-hidden="true">👨</u><div class="m">김대호<small>아빠</small></div><div class="p num">290점</div></li>
+  </ul>
+  <p class="fmt-off">팀 나가기 · 초대는 잠겨 있어요.</p>
+</section>
+
+</div></main>
+
+<nav class="states" aria-label="시안 상태 바꾸기">
+  <a href="#find">① 찾기</a><a href="#family">② 가족팀 방장</a><a href="#friend">③ 친구팀</a><a href="#locked">④ 알림 · 잠금</a>
+</nav>
+<script>
+  const show = () => {
+    const s = location.hash.slice(1) || 'find';
+    document.querySelectorAll('[data-s]').forEach((x) => x.classList.toggle('on', x.dataset.s === s));
+    document.querySelectorAll('.states a').forEach((a) => a.setAttribute('aria-current', a.hash === '#' + s ? 'page' : 'false'));
+  };
+  addEventListener('hashchange', show); show();
+</script>

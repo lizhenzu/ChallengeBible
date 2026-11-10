@@ -2,18 +2,50 @@
 @model ChallengeBible.Web.Pages.Admin.TeamsModel
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Services
-@* 가족팀 보기와 바로잡기(ADR 0083, R-210): 만들기 · 합류는 가족이 미션 홈에서 직접 한다. 관리자는 팀 이름 고치기와 구성원 빼기만 *@
+@* 가족팀 · 친구팀 관리(ADR 0093, R-210 · R-222 · R-223) — 확정 시안 관리-팀-만들기-방장: 숫자 3칸 → 찾기 · ＋ 새 팀 → 팀(종류 · 방장 👑 · 잠금) 펼치면 이름 · 구성원(방장으로 · 빼기) · 넣기 · 삭제 → 팀 없는 사람 *@
 @{
     var slug = Model.Tenant.Current.Slug;
+    var self = $"/{slug}/admin/teams";
     string Short(string n) => n.Length > 2 ? n[1..] : n;
-    string Who(FamilySolo s) => s.IsGuardian ? "학부모" : "학생";
+    string Who(FamilySolo s) => s.IsGuardian ? "학부모" : s.IsStudent ? "학생" : "기타";
 }
 <partial name="_AdminTop" model="Model.Tenant" />
 <main class="admin gut"><div class="wrap wide">
+@if (Model.New)
+{
+    <a class="stg-crumb" href="@self">‹ 가족팀</a>
+    @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+    var nf = Model.NewForm;
+    <form method="post" asp-page-handler="Create" asp-route-slug="@slug" class="ft-new">
+        <h2>새 팀 만들기</h2>
+        <fieldset class="fld"><legend>팀 종류</legend>
+            <div class="ft-kinds">
+                <label><input type="radio" name="type" value="@TeamTypes.Family" checked="@(nf.Type != TeamTypes.Friend)" />👨‍👩‍👧 가족팀<small>학생 · 학부모 · 기타</small></label>
+                <label><input type="radio" name="type" value="@TeamTypes.Friend" checked="@(nf.Type == TeamTypes.Friend)" />🧒🧒 친구팀<small>학생 @(FamilyTeamService.FriendCapacity)명까지</small></label>
+            </div></fieldset>
+        <div class="fld"><label for="nn">팀 이름</label><input class="in sm" id="nn" name="name" value="@nf.Name" maxlength="50" placeholder="비우면 방장 이름 + 네 가족팀" /></div>
+        <fieldset class="fld"><legend>방장(첫 구성원) <small>· 팀이 없는 사람만 보여요</small></legend>
+            @if (Model.Board.Solo.Count == 0) { <p class="ft-full">팀이 없는 사람이 없어요.</p> }
+            <div class="ft-picks">
+                @foreach (var s in Model.Board.Solo)
+                {
+                    <label><input type="radio" name="creator" value="@s.UserName" checked="@(nf.Creator == s.UserName || (nf.Creator is null && s == Model.Board.Solo[0]))" />@s.Name · @Who(s)</label>
+                }
+            </div></fieldset>
+        <div class="fld"><label for="rel">방장의 관계</label>
+            <select id="rel" name="relation">
+                @foreach (var r in FamilyRelation.All) { <option value="@r" selected="@(nf.Relation == r)">@FamilyTeamService.RelationLabel(r)</option> }
+            </select><small>학생은 "학생", 학부모 · 기타는 엄마 · 아빠 · 할머니 · 할아버지 중에서 골라요. 친구팀은 관계를 고르지 않아요.</small></div>
+        <button type="submit" class="btn p">팀 만들기</button>
+        <p class="note" style="margin:0">만든 뒤 팀을 펼쳐 구성원을 더 넣어요. 넣으면 바로 구성원이 되고, 그 사람은 다음에 들어올 때 "○○팀에 들어갔어요"를 봐요.</p>
+    </form>
+}
+else
+{
     <h1>가족팀</h1>
-    <p class="lead">가족이 미션 홈에서 직접 팀을 만들고 합류해요. 여기서는 팀을 보고, 문제가 있을 때 이름을 고치거나 구성원을 빼요. 팀 점수는 구성원 시즌 점수의 합이에요.</p>
+    <p class="lead">가족이 직접 팀을 만들고 합류해요. 관리자도 팀을 만들고 구성원을 넣을 수 있어요. 팀 점수는 구성원 시즌 점수의 합이에요.</p>
     <div class="stg-links">
-        <a class="stg-link" href="/@slug/admin/teams/stages"><span><b>시상 기준</b><small>몇 점을 넘으면 축하할지</small></span><span aria-hidden="true">›</span></a>
+        <a class="stg-link" href="/@slug/admin/teams/stages"><span><b>시상 기준</b><small>몇 점마다 얼마짜리 선물</small></span><span aria-hidden="true">›</span></a>
         <a class="stg-link" href="/@slug/admin/teams/awards"><span><b>시상 기록</b><small>선물 줄 차례 · 준 기록</small></span><span aria-hidden="true">›</span></a>
     </div>
 
@@ -21,60 +53,95 @@
     @if (Model.Error is not null && Model.ErrorFor is null) { <p class="err" role="alert">@Model.Error</p> }
 
     <div class="ft-stats">
-        <div><small>가족팀</small><b class="num">@Model.Board.ActiveTeams<u>팀</u></b></div>
-        <div><small>팀에 든 참여자</small><b class="num">@Model.Board.InTeams<u>명</u></b></div>
-        <div><small>팀 없는 참여자</small><b class="num">@Model.Board.Solo.Count<u>명</u></b></div>
+        <div><small>가족팀</small><b class="num">@Model.Board.FamilyTeams<u>팀</u></b></div>
+        <div><small>친구팀</small><b class="num">@Model.Board.FriendTeams<u>팀</u></b></div>
+        <div><small>팀 없는 사람</small><b class="num">@Model.Board.Solo.Count<u>명</u></b></div>
     </div>
 
     <form method="get" class="tools">
-        <input class="search" type="search" name="Q" value="@Model.Q" placeholder="가족 · 구성원 이름으로 찾기" aria-label="가족 · 구성원 이름으로 찾기" />
+        <input class="search" type="search" name="Q" value="@Model.Q" placeholder="팀 · 구성원 이름으로 찾기" aria-label="팀 · 구성원 이름으로 찾기" />
         <button class="btn s sm" type="submit">찾기</button>
+        <a class="btn p sm" href="@self?New=true">＋ 새 팀</a>
     </form>
 
     <ul class="ft-teams">
-        @if (!Model.Shown.Any()) { <li class="empty-box">@(Model.Board.Teams.Count == 0 ? "아직 가족팀이 없어요. 가족이 미션 홈에서 만들면 여기에 나와요." : "찾는 가족이 없어요.")</li> }
+        @if (!Model.Shown.Any()) { <li class="empty-box">@(Model.Board.Teams.Count == 0 ? "아직 팀이 없어요. 가족이 직접 만들거나 위 “＋ 새 팀”으로 만들어요." : "찾는 팀이 없어요.")</li> }
         @foreach (var t in Model.Shown)
         {
             var open = Model.Open == t.Id;
+            var solo = t.Friend ? Model.Board.Solo.Where(x => x.IsStudent).ToList() : Model.Board.Solo.ToList();
             <li>
                 <details class="ft-team @(t.IsActive ? "" : "off")" open="@open">
                     <summary>
-                        <span class="tn"><b>@t.DisplayName@if (!t.IsActive) { <em>멈춤</em> }</b>
-                            <span class="chips">@foreach (var m in t.Members) { <span class="@(m.Relation == FamilyRelation.Student ? "" : "k")">@FamilyTeamService.RelationLabel(m.Relation) @m.Name</span> }</span></span>
+                        <span class="tn"><b><span class="ft-ty @(t.Friend ? "fr" : "")">@(t.Friend ? "친구" : "가족")</span>@t.DisplayName@if (t.Locked) {<span class="ft-lk">🔒 선물 받음</span>}@if (!t.IsActive) { <em>멈춤</em> }</b>
+                            <span class="chips">@foreach (var m in t.Members) { <span class="@(m.Relation == FamilyRelation.Student ? "" : "k")">@(t.Friend ? "" : FamilyTeamService.RelationLabel(m.Relation) + " ")@m.Name@(m.IsCreator ? " 👑" : "")</span> }</span></span>
                         <span class="tp"><b class="num">@t.Points.ToString("N0")</b><small>올해 점수 · @(t.Members.Count)명</small></span>
                         <span class="chev" aria-hidden="true">›</span>
                     </summary>
                     <div class="ft-ed">
                         @if (Model.ErrorFor == t.Id && Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+                        @if (t.Locked) { <p class="ft-lockbox">🔒 선물을 받은 팀이에요@(t.LockedStage > 0 ? $"({t.LockedStage:N0}점)" : ""). 누구도 팀을 지우거나, 구성원을 빼거나 넣을 수 없어요. 이름과 방장은 바꿀 수 있어요.</p> }
                         <form method="post" asp-page-handler="Rename" asp-route-slug="@slug" asp-route-Q="@Model.Q" class="row">
                             <input type="hidden" name="id" value="@t.Id" />
-                            <div class="grow"><h3>팀 이름 <span>· 문제가 있을 때만 고쳐요. 비우면 "@FamilyTeamService.DisplayName(null, t.Members.Select(m => (m.Name, m.Relation)).ToList())"</span></h3><input class="in sm" name="name" value="@t.Name" maxlength="50" /></div>
+                            <div class="grow"><h3>팀 이름</h3><input class="in sm" name="name" value="@t.Name" maxlength="50" /></div>
                             <button type="submit" class="btn p sm">고치기</button>
                         </form>
                         <div>
-                            <h3>구성원 <span>· 관계는 가족이 직접 정해요</span></h3>
+                            <h3>구성원 <span>· @(t.Friend ? $"친구팀은 학생 {FamilyTeamService.FriendCapacity}명까지, 관계 없음" : "👑 방장만 다른 구성원을 내보낼 수 있어요")</span></h3>
                             <ul class="ft-mem">
                                 @foreach (var m in t.Members)
                                 {
                                     <li>
                                         <span class="av">@Short(m.Name)</span>
-                                        <span class="nm"><b>@m.Name</b><small>@FamilyTeamService.RelationLabel(m.Relation)</small></span>
+                                        <span class="nm"><b>@m.Name@if (m.IsCreator) {<span class="ft-crown">👑 방장</span>}</b><small>@FamilyTeamService.RelationLabel(m.Relation)@(m.IsCreator && !t.Locked && t.Members.Count > 1 ? " · 방장은 바꾼 뒤 뺄 수 있어요" : "")</small></span>
                                         <span class="pt num">@(m.Points)점</span>
-                                        <form method="post" asp-page-handler="Remove" asp-route-slug="@slug" asp-route-Q="@Model.Q">
-                                            <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="member" value="@m.MemberId" />
-                                            <button type="submit" class="btn t">빼기</button>
-                                        </form>
+                                        @if (!m.IsCreator)
+                                        {
+                                            <form method="post" asp-page-handler="Creator" asp-route-slug="@slug" asp-route-Q="@Model.Q">
+                                                <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="member" value="@m.MemberId" />
+                                                <button type="submit" class="btn t">방장으로</button>
+                                            </form>
+                                        }
+                                        @if (!t.Locked && (!m.IsCreator || t.Members.Count == 1))
+                                        {
+                                            <form method="post" asp-page-handler="Remove" asp-route-slug="@slug" asp-route-Q="@Model.Q">
+                                                <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="member" value="@m.MemberId" />
+                                                <button type="submit" class="btn t">빼기</button>
+                                            </form>
+                                        }
                                     </li>
                                 }
                             </ul>
                         </div>
+                        @if (!t.Locked)
+                        {
+                            @if (t.Full) { <p class="ft-full">@(FamilyTeamService.FriendCapacity)명이 다 찼어요. 더 넣을 수 없어요.</p> }
+                            else if (solo.Count == 0) { <p class="ft-full">넣을 수 있는 사람(팀이 없는 @(t.Friend ? "학생" : "사람"))이 없어요.</p> }
+                            else
+                            {
+                                <form method="post" asp-page-handler="Add" asp-route-slug="@slug" asp-route-Q="@Model.Q" class="ft-add">
+                                    <input type="hidden" name="id" value="@t.Id" />
+                                    <div class="grow"><h3>구성원 넣기 <span>· 팀이 없는 @(t.Friend ? "학생" : "사람")</span></h3>
+                                        <select name="person" aria-label="넣을 사람">@foreach (var s in solo) { <option value="@s.UserName">@s.Name · @Who(s)</option> }</select></div>
+                                    @if (!t.Friend)
+                                    {
+                                        <div style="flex:0 0 104px"><h3>관계</h3>
+                                            <select name="relation" aria-label="관계">@foreach (var r in FamilyRelation.All) { <option value="@r">@FamilyTeamService.RelationLabel(r)</option> }</select></div>
+                                    }
+                                    <button type="submit" class="btn p sm">넣기</button>
+                                </form>
+                            }
+                            <div class="ft-danger"><span>팀을 지우면 구성원은 모두 팀이 없는 사람이 돼요. 점수는 그대로예요.</span>
+                                <form method="post" asp-page-handler="Delete" asp-route-slug="@slug" asp-route-Q="@Model.Q"><input type="hidden" name="id" value="@t.Id" />
+                                    <button type="submit" class="btn d sm" data-confirm="@(t.DisplayName) 팀을 지울까요? 되돌릴 수 없어요.">팀 삭제</button></form></div>
+                        }
                     </div>
                 </details>
             </li>
         }
     </ul>
 
-    <h2 class="h2">가족팀 없는 참여자 <small class="num">@(Model.Board.Solo.Count)명</small></h2>
+    <h2 class="h2">팀 없는 사람 <small class="num">@(Model.Board.Solo.Count)명</small></h2>
     @if (Model.Board.Solo.Count > 0)
     {
         <ul class="ft-solo">
@@ -84,5 +151,9 @@
             }
         </ul>
     }
-    <p class="note">팀에서 빼도 그 사람의 점수 · 기록은 지워지지 않아요. 마지막 구성원을 빼면 팀이 사라져요. 가족 축하 단계는 위 “시상 기준”에서 정해요.</p>
+    <p class="note">팀에서 빼도 그 사람의 점수 · 기록은 지워지지 않아요. 마지막 구성원이 나가면 팀은 저절로 사라져요. 선물 기준은 위 “시상 기준”에서 정해요.</p>
+}
 </div></main>
+<script>
+    document.querySelectorAll('[data-confirm]').forEach((b) => b.addEventListener('click', (e) => { if (!confirm(b.dataset.confirm)) e.preventDefault(); }));
+</script>

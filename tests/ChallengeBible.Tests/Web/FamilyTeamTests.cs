@@ -184,7 +184,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
 
         var home = await In(_kids, "cheolsu").MyFamilyAsync();
         Assert.Equal(1000, home!.Cheer!.Points);
-        Assert.Equal([true, false, false, false, false], home.Stages.Select(s => s.On));
+        Assert.Equal([true, false, false, false, false, false, false, false, false, false], home.Stages.Select(s => s.On));   // 1,000점 단위 10단계(0093)
         using (var raw = InMemoryDb.Raw(_db))   // 예전에 관리자가 숨긴 카드는 숨긴 채로
         {
             var cfg = new FamilyMilestoneConfig { TenantId = _kids.Id, Year = 2027, PointThreshold = 1000, MilestoneType = MilestoneTypes.Award, DisplayTitle = "첫 1,000점", CreatedAt = DateTime.UtcNow };
@@ -218,16 +218,16 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
     }
 
     [Fact]
-    public async Task 화면_흐름_관리자는_이름을_고치고_구성원을_뺄_뿐_만들_수_없다()
+    public async Task 화면_흐름_관리자는_이름을_고치고_팀을_만들_수_있다()
     {
         var admin = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜");
         InMemoryDb.SeedMembership(_db, _kids.Id, admin.UserName!, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
         var c = await LoggedIn("eunhye@example.com");
 
         var html = await c.GetStringAsync("/jamsil-kids/admin/teams");
-        Assert.Contains("아직 가족팀이 없어요", html);
+        Assert.Contains("아직 팀이 없어요", html);
         Assert.Contains("href=\"/jamsil-kids/admin/teams\"", await c.GetStringAsync("/jamsil-kids/admin"));   // 관리 메뉴 "가족팀"
-        Assert.DoesNotContain("새 가족팀", html);
+        Assert.Contains("href=\"/jamsil-kids/admin/teams?New=true\"", html);                                   // R-223 관리자도 만든다
 
         var teamId = Team(null, "cheolsu", "younghee");
         var page = await c.GetStringAsync("/jamsil-kids/admin/teams");
@@ -241,12 +241,18 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Equal(HttpStatusCode.Redirect, saved.StatusCode);
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal("철수네", raw.FamilyTeams.Single().Name);
 
-        // 만들기 처리기는 없다
+        // R-223: 관리자가 팀 없는 사람을 방장으로 새 팀을 만든다
         var made = await c.PostAsync("/jamsil-kids/admin/teams?handler=Create", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["pick"] = P("haneul").ToString(),
+            ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["type"] = TeamTypes.Family, ["creator"] = P("haneul"), ["relation"] = FamilyRelation.Student,
         }));
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Single(raw.FamilyTeams);
+        Assert.Equal(HttpStatusCode.Redirect, made.StatusCode);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var t = raw.FamilyTeams.Single(x => x.CreatorUserName == P("haneul"));
+            Assert.Equal("문하늘네 가족팀", t.Name);
+            Assert.Single(raw.FamilyNotices, n => n.UserName == P("haneul"));   // R-224 들어감 알림
+        }
 
         // 참여자는 관리 화면을 못 보고, 홈 · 순위 가족팀 탭에서 본다
         var kid = await LoggedIn("cheolsu@example.com");

@@ -86,14 +86,14 @@ public partial class FamilyAwardTests : IClassFixture<WebApplicationFactory<Prog
         var b = Team("하늘이네", "haneul");
         Team("민지네", "minji");
         Pts("cheolsu", 2, 600); Pts("younghee", 4, 500);   // 1,100 — 1월 4일에 1,000 을 넘음
-        Pts("haneul", 3, 2100);                            // 2,100 — 1월 3일에 넘음, 2,000 은 박수라 빠짐
+        Pts("haneul", 3, 2100);                            // 2,100 — 1월 3일에 1,000 · 2,000 을 넘음(모두 선물 단계, 0093)
         Pts("minji", 3, 300);                              // 아직
 
         var board = await In().GetAsync();
         Assert.True(board.Enabled);
-        Assert.Equal([(b, 1000, new DateOnly(2027, 1, 3)), (a, 1000, new DateOnly(2027, 1, 4))], board.Due.Select(d => (d.TeamId, d.Stage, d.Crossed!.Value)));
-        var first = board.Due[1];
-        Assert.Equal(("철수네", 1100, "🎉"), (first.Team, first.Points, first.Emoji));
+        Assert.Equal([(b, 1000, new DateOnly(2027, 1, 3)), (b, 2000, new DateOnly(2027, 1, 3)), (a, 1000, new DateOnly(2027, 1, 4))], board.Due.Select(d => (d.TeamId, d.Stage, d.Crossed!.Value)));
+        var first = board.Due[2];
+        Assert.Equal(("철수네", 1100, "🎁", 5000, false), (first.Team, first.Points, first.Emoji, first.Amount, first.Friend));
         Assert.Equal(2, first.Members.Count);
         Assert.Empty(board.Given);
     }
@@ -122,11 +122,12 @@ public partial class FamilyAwardTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
-    public async Task R220_박수_단계_안_넘은_단계_없는_팀은_기록할_수_없다()
+    public async Task R220_끈_단계_안_넘은_단계_없는_팀은_기록할_수_없다()
     {
         var a = Team("철수네", "cheolsu");
         Pts("cheolsu", 2, 2500);
-        Assert.Equal(AwardError.NotAward, await In().GiveAsync(a, 2000, "eunhye"));     // 박수만
+        await Stages().SaveAsync(2027, Enumerable.Range(1, 10).Select(k => k != 2).ToList(), Enumerable.Repeat<string?>("5,000", 10).ToList());
+        Assert.Equal(AwardError.NotAward, await In().GiveAsync(a, 2000, "eunhye"));     // 부서가 끈 단계
         Assert.Equal(AwardError.NotReached, await In().GiveAsync(a, 3000, "eunhye"));   // 아직
         Assert.Equal(AwardError.NotAward, await In().GiveAsync(a, 1234, "eunhye"));     // 없는 단계
         Assert.Equal(AwardError.NotFound, await In().GiveAsync(99999, 1000, "eunhye"));
@@ -169,17 +170,37 @@ public partial class FamilyAwardTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
-    public async Task R220_부서_시상_기준의_축하_보상_단계를_따른다()
+    public async Task R220_부서_시상_기준의_켜진_단계와_금액을_따른다()
     {
         var a = Team("철수네", "cheolsu");
-        Pts("cheolsu", 2, 700);
-        Assert.Empty((await In().GetAsync()).Due);                                        // 기본값에서는 아직
-        await Stages().OwnAsync(2027);
-        await Stages().AddAsync(2027, 500, MilestoneTypes.Award, "오백! 선물", "🎁");
+        Pts("cheolsu", 2, 1200);
+        Assert.Single((await In().GetAsync()).Due);                                       // 처음 값: 1,000 켬
+        await Stages().SaveAsync(2027, Enumerable.Range(1, 10).Select(k => k != 1).ToList(), Enumerable.Repeat<string?>("7,000", 10).ToList());
+        Assert.Empty((await In().GetAsync()).Due);                                        // 1,000 을 끄면 줄 차례에서 빠진다
+        await Stages().SaveAsync(2027, Enumerable.Repeat(true, 10).ToList(), Enumerable.Repeat<string?>("7,000", 10).ToList());
         var d = Assert.Single((await In().GetAsync()).Due);
-        Assert.Equal((a, 500, "오백! 선물"), (d.TeamId, d.Stage, d.Message));
-        Assert.Equal(AwardError.None, await In().GiveAsync(a, 500, "eunhye"));
-        Assert.True((await Stages().GetAsync(2027)).Rows.Single(r => r.Points == 500).Locked);   // 시상 기준에서도 잠긴다(R-219)
+        Assert.Equal((a, 1000, 7000), (d.TeamId, d.Stage, d.Amount));
+        Assert.Equal(AwardError.None, await In().GiveAsync(a, 1000, "eunhye"));
+        Assert.Equal(1, (await Stages().GetAsync(2027)).Rows[0].Given);                   // 시상 기준에 받은 팀 수가 보인다
+    }
+
+    [Fact]
+    public async Task R220_친구팀도_같은_기준이고_기록은_친구로_남는다()
+    {
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var t = new FamilyTeam { TenantId = _kids.Id, Name = "말씀 단짝", AwardKey = "말씀 단짝", TeamType = TeamTypes.Friend, CreatorUserName = _p["cheolsu"], InsertDT = DateTime.UtcNow, UpdateDT = DateTime.UtcNow };
+            t.Members.Add(new FamilyMember { TenantId = _kids.Id, UserName = _p["cheolsu"], Relation = FamilyRelation.Student });
+            t.Members.Add(new FamilyMember { TenantId = _kids.Id, UserName = _p["haneul"], Relation = FamilyRelation.Student, SortOrder = 1 });
+            raw.FamilyTeams.Add(t);
+            raw.SaveChanges();
+        }
+        Pts("cheolsu", 2, 600); Pts("haneul", 3, 500);
+        var d = Assert.Single((await In().GetAsync()).Due);
+        Assert.Equal(("말씀 단짝", 1000, true), (d.Team, d.Stage, d.Friend));
+        Assert.Equal(AwardError.None, await In().GiveAsync(d.TeamId, 1000, "eunhye"));
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(TeamTypes.Friend, Assert.Single(raw.TeamAwards).Kind);
+        Assert.True(Assert.Single((await In().GetAsync()).Given).Friend);
     }
 
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]

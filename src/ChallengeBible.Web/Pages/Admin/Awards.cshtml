@@ -10,7 +10,7 @@
 <main class="admin gut"><div class="wrap stg awd">
     <a class="stg-crumb" href="/@slug/admin/teams">‹ 가족팀</a>
     <h1>시상 기록</h1>
-    <p class="lead">가족팀이 "축하 + 보상" 단계를 넘으면 여기에 나와요. 선물을 준 뒤 “선물 줬어요”를 눌러 기록해요.</p>
+    <p class="lead">가족팀 · 친구팀이 선물 단계를 넘으면 여기에 나와요. 선물을 준 뒤 “선물 줬어요”를 눌러 기록해요.</p>
 
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
     @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
@@ -22,15 +22,15 @@
 
     <h2 class="awd-h">선물 줄 차례 <small>먼저 넘은 순서</small></h2>
     <ul class="awd-due">
-        @if (b.Due.Count == 0) { <li class="empty-box">지금 선물 줄 팀이 없어요. 가족팀이 “축하 + 보상” 단계를 넘으면 여기에 나와요.</li> }
+        @if (b.Due.Count == 0) { <li class="empty-box">지금 선물 줄 팀이 없어요. 팀이 선물 단계를 넘으면 여기에 나와요.</li> }
         @foreach (var d in b.Due)
         {
             <li class="awd-card">
                 <div class="top"><span class="em" aria-hidden="true">@d.Emoji</span>
-                    <div class="nm"><b>@d.Team</b><small>@(d.Crossed is { } c ? $"{c.Month}월 {c.Day}일에 넘음" : "")</small></div>
+                    <div class="nm"><b><span class="ft-ty @(d.Friend ? "fr" : "")">@(d.Friend ? "친구" : "가족")</span>@d.Team</b><small>@(d.Crossed is { } c ? $"{c.Month}월 {c.Day}일에 넘음" : "")</small></div>
                     <div class="pts"><b class="num">@d.Points.ToString("N0")</b><small>팀 점수</small></div></div>
-                <div class="stage">@d.Stage.ToString("N0")점 · 축하 + 보상<span>@d.Message</span></div>
-                <div class="chips">@foreach (var m in d.Members) { <span>@FamilyTeamService.RelationLabel(m.Relation) @m.Name</span> }</div>
+                <div class="stage">@d.Stage.ToString("N0")점 선물 · @(d.Amount.ToString("N0"))원까지<span>@d.Message</span></div>
+                <div class="chips">@foreach (var m in d.Members) { <span>@(d.Friend ? "" : FamilyTeamService.RelationLabel(m.Relation) + " ")@m.Name</span> }</div>
                 <form method="post" asp-page-handler="Give" asp-route-slug="@slug">
                     <input type="hidden" name="team" value="@d.TeamId" /><input type="hidden" name="stage" value="@d.Stage" /><input type="hidden" name="name" value="@d.Team" />
                     <button type="submit" class="btn p sm awd-give" data-team="@d.Team" data-stage="@d.Stage.ToString("N0")">🎁 선물 줬어요</button>
@@ -44,13 +44,13 @@
         @if (b.Given.Count == 0) { <li><span class="w"><small>아직 준 선물이 없어요.</small></span></li> }
         @foreach (var g in b.Given)
         {
-            <li><time class="num">@g.Day.Month/@g.Day.Day</time><div class="w"><b>@g.Team</b><small>@g.Stage.ToString("N0")점 선물</small></div>
+            <li><time class="num">@g.Day.Month/@g.Day.Day</time><div class="w"><b>@g.Team</b><small>@(g.Friend ? "친구팀 · " : "")@g.Stage.ToString("N0")점 선물</small></div>
                 <form method="post" asp-page-handler="Undo" asp-route-slug="@slug"><input type="hidden" name="award" value="@g.AwardId" />
                     <button type="submit" class="btn t" data-confirm="@(g.Team)의 @(g.Stage.ToString("N0"))점 선물 기록을 지울까요? 잠금도 풀려요.">기록 취소</button></form></li>
         }
     </ul>
 
-    <p class="stg-note"><b>알아 두세요.</b> 기록한 팀은 구성원이 나가거나 내보내거나 관계를 바꿀 수 없어요(시상 잠금). 잘못 눌렀다면 “기록 취소”로 되돌려요. 박수만 하는 단계는 선물이 없어서 여기에 나오지 않아요. 같은 팀 · 같은 점수의 선물은 한 번만 기록돼요.</p>
+    <p class="stg-note"><b>알아 두세요.</b> 기록한 팀은 구성원이 나가거나 내보내거나 관계를 바꿀 수 없어요(시상 잠금). 잘못 눌렀다면 “기록 취소”로 되돌려요. 시상 기준에서 끈 단계는 여기에 나오지 않아요. 같은 팀 · 같은 점수의 선물은 한 번만 기록돼요.</p>
 </div></main>
 
 <dialog id="awdDlg" class="awd-dlg" aria-labelledby="awdT">

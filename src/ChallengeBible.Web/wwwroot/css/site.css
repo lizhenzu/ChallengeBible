@@ -2147,6 +2147,76 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .stg-note b { color: var(--fg); }
 .stg-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 @media (max-width: 380px) { .stg-links { grid-template-columns: 1fr; } }
+/* 가족팀 · 친구팀 · 방장(ADR 0093, 확정 시안 가족팀-친구팀-방장) */
+.fmt-kind { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0 0 12px; padding: 4px; border-radius: 14px; background: var(--soft); }
+.fmt-kind a { display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-radius: 11px; font-size: 14px; font-weight: 800; color: var(--dim); text-decoration: none; line-height: 1.3; }
+.fmt-kind a small { font-size: 11.5px; font-weight: 600; }
+.fmt-kind a[aria-current="page"] { background: var(--bg); color: var(--accent); box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
+.fmt-seat { margin-left: 6px; padding: 2px 8px; border-radius: 99px; background: var(--ok-bg); color: var(--ok); font-size: 11.5px; font-weight: 800; }
+.fmt-type { display: inline-block; margin-bottom: 4px; padding: 2px 9px; border-radius: 99px; background: var(--bg); font-size: 11.5px; font-weight: 800; color: var(--accent); }
+.fmt-crown { margin-left: 4px; padding: 1px 7px; border-radius: 99px; background: #FFF1D6; color: #B45309; font-size: 11px; font-weight: 800; }
+.fmt-lock { display: flex; gap: 8px; margin-top: 12px; padding: 11px 13px; border-radius: 13px; background: var(--warn-bg); color: var(--warn); font-size: 12.5px; font-weight: 700; word-break: keep-all; }
+.fmt-joined { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; padding: 13px 14px; border-radius: 15px; background: var(--ok-bg); color: var(--ok); font-weight: 800; word-break: keep-all; }
+.fmt-joined span { font-size: 22px; }
+.fmt-full { margin-top: 10px; padding: 11px 13px; border-radius: 13px; background: var(--soft); font-size: 12.5px; color: var(--dim); text-align: center; }
+.fmt-off { margin-top: 10px; font-size: 12.5px; color: var(--dim); text-align: right; }
+/* 관리자 팀 화면(확정 시안 관리-팀-만들기-방장) */
+.ft-ty { display: inline-block; margin-right: 6px; padding: 1px 8px; border-radius: 99px; font-size: 11.5px; font-weight: 800; vertical-align: 2px; background: var(--accent-bg); color: var(--accent); }
+.ft-ty.fr { background: var(--ok-bg); color: var(--ok); }
+.ft-lk { margin-left: 6px; font-size: 12px; font-weight: 800; color: var(--warn); }
+.ft-crown { margin-left: 4px; padding: 1px 7px; border-radius: 99px; background: #FFF1D6; color: #B45309; font-size: 11px; font-weight: 800; }
+.ft-ed .btn { white-space: nowrap; flex: none; }
+.ft-add { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin: 0; }
+.ft-add .grow { flex: 1 1 160px; min-width: 0; }
+.ft-add select, .ft-new select { width: 100%; min-height: 42px; padding: 0 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 14px; }
+.ft-lockbox { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--warn-bg); color: var(--warn); font-size: 13px; font-weight: 700; word-break: keep-all; }
+.ft-full { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--soft); color: var(--dim); font-size: 13px; text-align: center; }
+.ft-danger { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: 13px; color: var(--dim); }
+.ft-danger form { margin: 0; }
+.ft-new { border: 1px solid var(--rule); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; margin: 8px 0 0; }
+.ft-new h2 { margin: 0; font-size: 17px; font-weight: 900; }
+.ft-new .fld { display: flex; flex-direction: column; gap: 4px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.ft-new .fld > label, .ft-new .fld > legend { font-size: 13px; font-weight: 800; padding: 0; }
+.ft-new .fld small { font-size: 12.5px; color: var(--dim); }
+.ft-kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ft-kinds label, .ft-picks label { position: relative; cursor: pointer; }
+.ft-kinds label { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font-size: 14px; font-weight: 800; }
+.ft-kinds label small { font-weight: 500; font-size: 12px; color: var(--dim); }
+.ft-kinds input { position: absolute; opacity: 0; }
+.ft-kinds label:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); box-shadow: inset 0 0 0 1px var(--accent); }
+.ft-kinds label:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+.ft-picks { display: flex; flex-wrap: wrap; gap: 6px; }
+.ft-picks label { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 99px; font-size: 13.5px; font-weight: 700; }
+.ft-picks input { accent-color: var(--accent); }
+.ft-picks label:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); }
+/* 시상 기준 10단계(R-219, ADR 0093, 확정 시안 관리-시상기준-10단계) */
+.stg-form { display: flex; flex-direction: column; gap: 12px; margin: 0; }
+.c10 { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 16px; overflow: hidden; }
+.c10 li { display: grid; grid-template-columns: 70px 1fr 104px; align-items: center; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--rule); }
+.c10 li:first-child { border-top: 0; }
+.c10 li.off { background: var(--soft); }
+.c10 .pt { font-size: 17px; font-weight: 900; }
+.c10 .pt small { font-size: 12px; font-weight: 700; margin-left: 1px; }
+.c10 .mid { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.c10 .given { font-size: 11.5px; font-weight: 800; color: var(--warn); }
+.c10 .sw { position: relative; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13.5px; font-weight: 800; }
+.c10 .sw input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.c10 .sw i { position: relative; flex: none; width: 42px; height: 24px; border-radius: 99px; background: var(--line); transition: background .15s; }
+.c10 .sw i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .2); transition: left .15s; }
+.c10 .sw input:checked + i { background: var(--accent); }
+.c10 .sw input:checked + i::after { left: 21px; }
+.c10 .sw input:focus-visible + i { outline: 3px solid var(--accent); outline-offset: 2px; }
+.c10 .sw span { color: var(--dim); white-space: nowrap; }
+.c10 .sw input:checked ~ span { color: var(--fg); }
+.c10 .amt { display: flex; align-items: center; gap: 4px; }
+.c10 .amt input { width: 100%; min-width: 0; height: 40px; padding: 0 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 15px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.c10 li.off .amt input { background: transparent; border-style: dashed; color: var(--dim); }
+.c10 .amt input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-bg); }
+.c10 .amt span { font-size: 13px; color: var(--dim); }
+.c10 .e { grid-column: 1 / -1; margin: -4px 0 0; font-size: 12.5px; font-weight: 700; color: var(--bad); text-align: right; }
+.c10-sum { display: flex; justify-content: space-between; gap: 8px; padding: 12px 14px; border-radius: 12px; background: var(--soft); font-size: 13.5px; }
+.c10-bar { display: flex; gap: 8px; }
+.c10-bar .btn { flex: 1; }
 
 /* ── 가족팀 시상 기록(R-220, ADR 0092, 확정 시안 관리-시상기록) ── */
 .awd { --award: #B45309; --award-bg: #FFF1D6; }

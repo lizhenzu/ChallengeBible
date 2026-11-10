@@ -20,8 +20,13 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : Pag
     [BindProperty(SupportsGet = true)] public int? Join { get; set; }
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }
     [BindProperty(SupportsGet = true)] public bool Add { get; set; }
+    /// <summary>찾기 · 만들기에서 고른 팀 종류: "friend" 면 친구팀(0093).</summary>
+    [BindProperty(SupportsGet = true)] public string? Kind { get; set; }
+    public bool Friend => Kind == "friend";
 
     public FamilyState State { get; private set; } = null!;
+    /// <summary>들어감 알림(R-224): 이번에 한 번 보이고 지워진다.</summary>
+    public string? Notice { get; private set; }
     public IReadOnlyList<FamilySearchHit> Hits { get; private set; } = [];
     public IReadOnlyList<FamilyCandidate> Candidates { get; private set; } = [];
     public FamilySearchHit? JoinTeam { get; private set; }
@@ -35,19 +40,21 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : Pag
 
     public static string OkText(string? ok) => ok switch
     {
-        "leftgone" => "가족팀에서 나왔어요. 마지막 구성원이라 팀이 삭제됐어요",
+        "leftgone" => "팀에서 나왔어요. 마지막 구성원이라 팀이 삭제됐어요",
         "created" => "가족팀을 만들었어요. 가족에게 팀 이름을 알려 주세요",
+        "createdfriend" => "친구팀을 만들었어요. 친구에게 팀 이름을 알려 주세요",
+        "transferred" => "방장을 넘겼어요",
         "requested" => "합류를 신청했어요",
         "cancelled" => "신청을 취소했어요",
         "accepted" => "가족이 합류했어요",
         "rejected" => "신청을 거절했어요",
-        "left" => "가족팀에서 나왔어요. 내 점수는 그대로예요",
+        "left" => "팀에서 나왔어요. 내 점수는 그대로예요",
         "kicked" => "팀에서 내보냈어요. 그 사람의 점수는 그대로예요",
         "renamed" => "팀 이름을 바꿨어요",
         "relation" => "관계를 설정했어요",
         "invited" => "초대를 보냈어요. 상대가 수락하면 합류돼요",
         "invitecancelled" => "초대를 취소했어요",
-        "inviteaccepted" => "가족팀에 합류했어요",
+        "inviteaccepted" => "팀에 합류했어요",
         "inviterejected" => "초대를 거절했어요",
         _ => "",
     };
@@ -76,8 +83,10 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : Pag
     {
         New = true;
         NameInput = name;
-        return Act(join.CreateAsync(name, relation ?? "", ct), "created", ct);
+        return Act(join.CreateAsync(name, relation ?? "", Friend, ct), Friend ? "createdfriend" : "created", ct);
     }
+
+    public Task<IActionResult> OnPostTransferAsync(int member, CancellationToken ct) => Act(join.TransferAsync(member, ct), "transferred", ct);
 
     public Task<IActionResult> OnPostRequestAsync(int team, string? relation, CancellationToken ct)
     {
@@ -112,7 +121,7 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : Pag
     {
         var e = await work;
         if (e == FamilyError.Disabled) return NotFound();
-        if (e == FamilyError.None) return RedirectToPage(new { slug = Slug, Ok = ok });
+        if (e == FamilyError.None) return RedirectToPage(new { slug = Slug, Ok = ok, Kind = State is null && Friend ? Kind : null });
         Error = FamilyTeamService.Message(e);
         return await ShowAsync(ct);
     }
@@ -121,9 +130,11 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : Pag
     {
         State = await join.StateAsync(ct);
         if (!State.Enabled) return NotFound();
+        if (State.Mine is not null && HttpMethods.IsGet(Request.Method)) Notice = await join.TakeNoticeAsync(ct);
         if (State.Mine is null)
         {
-            Hits = await join.SearchAsync(Q, ct);
+            if (Friend && !State.IsStudent) Kind = null;   // 친구팀은 학생만
+            Hits = await join.SearchAsync(Q, Friend, ct);
             if (Join is int id) JoinTeam = await join.TeamAsync(id, ct);
         }
         else if (Add) Candidates = await join.CandidatesAsync(Q, ct);
