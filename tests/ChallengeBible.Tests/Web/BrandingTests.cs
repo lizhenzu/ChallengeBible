@@ -39,7 +39,7 @@ public partial class BrandingTests : IClassFixture<WebApplicationFactory<Program
         return new BrandingService(new InMemoryDb(_db, scope), tc, _time);
     }
 
-    private int Admin(string email = "eunhye@example.com") => InMemoryDb.SeedAccount(_db, email, "이은혜").Id;
+    private int Admin(string email = "eunhye@example.com") => InMemoryDb.SeedAccount(_db, email, "이은혜").UserName!;
 
     [Fact]
     public async Task 저장하면_바뀐_것만_기록에_남고_빈칸은_기본값()
@@ -99,7 +99,7 @@ public partial class BrandingTests : IClassFixture<WebApplicationFactory<Program
             ["DisplayName"] = "이은혜", ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         int id;
-        using (var raw = InMemoryDb.Raw(_db)) id = raw.Accounts.Single(a => a.Email == email + "@example.com").Id;
+        using (var raw = InMemoryDb.Raw(_db)) id = raw.Users.Single(a => a.Email == email + "@example.com").UserName!;
         InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, roles);
         return c;
     }

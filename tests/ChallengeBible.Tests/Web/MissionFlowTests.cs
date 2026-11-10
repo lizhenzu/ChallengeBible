@@ -47,12 +47,11 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
             ["DisplayName"] = "김철수", ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         using var raw = InMemoryDb.Raw(_db);
-        var id = raw.Accounts.Single(a => a.Email == email + "@example.com").Id;
+        var id = raw.Users.Single(a => a.Email == email + "@example.com").UserName!;
         var m = new Membership { TenantId = _kids.Id, UserName = id, Status = MembershipStatus.Approved,
             Roles = roles.Select(r => new MembershipRole { TenantId = _kids.Id, Role = r }).ToList() };
         raw.Memberships.Add(m);
         raw.SaveChanges();
-        if (roles.Contains(Roles.Participant)) { raw.Participants.Add(new Participant { TenantId = _kids.Id, MembershipId = m.Id }); raw.SaveChanges(); }
         return c;
     }
 
@@ -199,9 +198,9 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
 
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var acc = raw.Accounts.Single(a => a.Email == "cheolsu@example.com").Id;
+            var acc = raw.Users.Single(a => a.Email == "cheolsu@example.com").UserName!;
             raw.ReadingRounds.Add(new ReadingRound { UserName = acc, RoundNo = 1, StartedAt = DateTime.UtcNow });
-            raw.ChapterReads.Add(new ChapterRead { UserName = acc, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = DateTime.UtcNow });
+            raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = acc, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = DateTime.UtcNow });
             raw.SaveChanges();
         }
         var ask = await c.GetStringAsync("/jamsil-kids/reading/rounds?ask=true");

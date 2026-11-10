@@ -21,7 +21,7 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
     private readonly Tenant _kids, _elem;
-    private readonly Dictionary<string, (Membership M, int? Pid)> _p = [];
+    private readonly Dictionary<string, (SeededMember M, int? Pid)> _p = [];
 
     public RosterTests(WebApplicationFactory<Program> app)
     {
@@ -41,7 +41,7 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
         Add(_kids, "park", "박선생", [Roles.TenantAdmin], false);                 // 관리자 → 선생님 · 참여자 아님
         Add(_kids, "gone", "그만둔", [Roles.Participant], false, active: true);   // 참여자 자리가 멈춤(IsActive = false)
         Add(_elem, "jiho", "윤지호", [Roles.Participant], true);                  // 다른 부서
-        var req = InMemoryDb.SeedAccount(_db, "wait@example.com", "신청중").Id;   // 승인 전
+        var req = InMemoryDb.SeedAccount(_db, "wait@example.com", "신청중").UserName!;   // 승인 전
         InMemoryDb.SeedMembership(_db, _kids.Id, req, MembershipStatus.Requested, Roles.Participant);
         Pts("cheolsu", (3, 5), (5, 7));
         Pts("eunhye", (4, 2));
@@ -51,17 +51,14 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
 
     private void Add(Tenant t, string login, string name, string[] roles, bool participant, string? group = null, bool active = false)
     {
-        var a = InMemoryDb.SeedAccount(_db, login + "@example.com", name).Id;
+        var a = InMemoryDb.SeedAccount(_db, login + "@example.com", name).UserName!;
         var m = InMemoryDb.SeedMembership(_db, t.Id, a, MembershipStatus.Approved, roles);
         using var raw = InMemoryDb.Raw(_db);
-        raw.Memberships.Single(x => x.Id == m.Id).GroupLabel = group;
         int? pid = null;
         if (participant || active)
         {
-            var p = new Participant { TenantId = t.Id, MembershipId = m.Id, IsActive = participant };
-            raw.Participants.Add(p);
             raw.SaveChanges();
-            pid = p.Id;
+            pid = m.UserName;
         }
         raw.SaveChanges();
         _p[login] = (m, pid);
@@ -70,16 +67,16 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
     private void Pts(string login, params (int Day, int Points)[] days)
     {
         using var raw = InMemoryDb.Raw(_db);
-        var p = raw.Participants.Single(x => x.Id == _p[login].Pid);
+        var p = raw.DeptRoles.Single(x => x.Id == _p[login].Pid);
         foreach (var (day, pts) in days)
-            raw.PointLedgers.Add(new PointLedger { TenantId = p.TenantId, ParticipantId = p.Id, MissionDate = new DateOnly(2027, 1, day), MissionItem = "Word.Me", Points = pts, RecordedUtc = DateTime.UtcNow });
+            raw.MissionActivities.Add(new MissionActivity { TenantId = p.TenantId, UserName = p.Id, MissionDate = new DateOnly(2027, 1, day), MissionItem = "Word.Me", Points = pts, PerformedAt = DateTime.UtcNow });
         raw.SaveChanges();
     }
 
     private void Done(string login)
     {
         using var raw = InMemoryDb.Raw(_db);
-        raw.Activities.Add(new Activity { TenantId = _kids.Id, ParticipantId = _p[login].Pid!.Value, MissionItem = "Word.Me", MissionDate = Jan5, Points = 1, PerformedUtc = DateTime.UtcNow });
+        raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = _p[login].Pid!.Value, MissionItem = "Word.Me", MissionDate = Jan5, Points = 1, PerformedAt = DateTime.UtcNow });
         raw.SaveChanges();
     }
 
@@ -124,7 +121,7 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
         using (var raw = InMemoryDb.Raw(_db))
         {
             raw.PlatformRuleSetVersions.Add(new PlatformRuleSetVersion { VersionNo = 2, EffectiveFrom = Jan5,
-                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { Ranking = false } }), ChangedByUserName = 1 });
+                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { Ranking = false } }), ChangedByUserName = "t" });
             raw.SaveChanges();
         }
         var r = await As("cheolsu").GetAsync();
@@ -147,12 +144,11 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
             ["DisplayName"] = name, ["Email"] = email, ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         int id;
-        using (var raw = InMemoryDb.Raw(_db)) id = raw.Accounts.Single(a => a.Email == email).Id;
+        using (var raw = InMemoryDb.Raw(_db)) id = raw.Users.Single(a => a.Email == email).UserName!;
         var m = InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, participant ? [Roles.Participant] : [Roles.Guardian]);
         if (participant)
         {
             using var raw = InMemoryDb.Raw(_db);
-            raw.Participants.Add(new Participant { TenantId = _kids.Id, MembershipId = m.Id });
             raw.SaveChanges();
         }
         return c;

@@ -33,11 +33,11 @@ public partial class MyAccountTests : IClassFixture<WebApplicationFactory<Progra
     {
         var a = InMemoryDb.SeedAccount(_db, email, name);
         using var raw = InMemoryDb.Raw(_db);
-        var row = raw.Accounts.Single(x => x.Id == a.Id);
-        row.PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<Account>().HashPassword(row, password);
+        var row = raw.Users.Single(x => x.UserName == a.UserName!);
+        row.PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<AppUser>().HashPassword(row, password);
         row.MustChangePassword = mustChange;
         raw.SaveChanges();
-        return a.Id;
+        return a.UserName!;
     }
 
     [Fact]

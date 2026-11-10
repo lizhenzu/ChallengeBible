@@ -12,18 +12,18 @@ public class PlatformHomeTests
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
     private readonly Tenant _kids, _elem, _gone;
-    private readonly int _op, _admin;
+    private readonly string _op, _admin;
 
     public PlatformHomeTests()
     {
         _kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         _elem = InMemoryDb.SeedTenant(_db, "jamsil-elem", "JSELEM");
         _gone = InMemoryDb.SeedTenant(_db, "old-dept", "OLDDEP", TenantStatus.Suspended);
-        _op = InMemoryDb.SeedAccount(_db, "op@example.com", "운영자").Id;
-        _admin = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜").Id;
-        var kid = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수").Id;
-        var kid2 = InMemoryDb.SeedAccount(_db, "seoyeon@example.com", "박서연").Id;
-        var waiting = InMemoryDb.SeedAccount(_db, "minjun@example.com", "최민준").Id;
+        _op = InMemoryDb.SeedAccount(_db, "op@example.com", "운영자").UserName!;
+        _admin = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜").UserName!;
+        var kid = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수").UserName!;
+        var kid2 = InMemoryDb.SeedAccount(_db, "seoyeon@example.com", "박서연").UserName!;
+        var waiting = InMemoryDb.SeedAccount(_db, "minjun@example.com", "최민준").UserName!;
         InMemoryDb.SeedMembership(_db, _kids.Id, _admin, MembershipStatus.Approved, Roles.TenantAdmin);
         var km = InMemoryDb.SeedMembership(_db, _kids.Id, kid, MembershipStatus.Approved, Roles.Participant);
         var km2 = InMemoryDb.SeedMembership(_db, _kids.Id, kid2, MembershipStatus.Approved, Roles.Participant);
@@ -31,20 +31,20 @@ public class PlatformHomeTests
 
         var now = _time.GetUtcNow().UtcDateTime;
         using var raw = InMemoryDb.Raw(_db);
-        raw.Accounts.Single(a => a.Id == _op).IsPlatformAdmin = true;
-        foreach (var a in raw.Accounts) a.CreatedUtc = now.AddDays(-30);
-        raw.Accounts.Single(a => a.Id == kid2).CreatedUtc = now.AddDays(-2);           // 이번 주 새 계정
+        InMemoryDb.AddRole(_db, raw.Users.Single(a => a.UserName == _op).UserName!, IdentityRoles.SuperAdmin);
+        foreach (var a in raw.Users) a.CreatedUtc = now.AddDays(-30);
+        raw.Users.Single(a => a.Id == kid2).CreatedUtc = now.AddDays(-2);           // 이번 주 새 계정
         raw.Memberships.Single(m => m.UserName == waiting).RequestedUtc = now.AddDays(-5);   // 오래 기다리는 신청
         var p1 = new Participant { TenantId = _kids.Id, MembershipId = km.Id };
         var p2 = new Participant { TenantId = _kids.Id, MembershipId = km2.Id };
-        raw.Participants.AddRange(p1, p2);
+        raw.DeptRoles.AddRange(p1, p2);
         raw.SaveChanges();
-        raw.Activities.Add(new Activity { TenantId = _kids.Id, ParticipantId = p1.Id, MissionItem = "Word.Me", MissionDate = Jan5 });
-        raw.Activities.Add(new Activity { TenantId = _kids.Id, ParticipantId = p1.Id, MissionItem = "Prayer.Me", MissionDate = Jan5 });
-        raw.Activities.Add(new Activity { TenantId = _kids.Id, ParticipantId = p2.Id, MissionItem = "Word.Me", MissionDate = Jan5.AddDays(-1) });   // 어제
-        raw.ChapterReads.Add(new ChapterRead { UserName = kid, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = now });
-        raw.ChapterReads.Add(new ChapterRead { UserName = kid, RoundNo = 1, BookId = 1, Chapter = 2, ReadAt = now });
-        raw.ChapterReads.Add(new ChapterRead { UserName = kid2, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = now.AddDays(-1) });
+        raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = p1.Id, MissionItem = "Word.Me", MissionDate = Jan5 });
+        raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = p1.Id, MissionItem = "Prayer.Me", MissionDate = Jan5 });
+        raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = p2.Id, MissionItem = "Word.Me", MissionDate = Jan5.AddDays(-1) });   // 어제
+        raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = kid, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = now });
+        raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = kid, RoundNo = 1, BookId = 1, Chapter = 2, ReadAt = now });
+        raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = kid2, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = now.AddDays(-1) });
         raw.AuditLogs.Add(new AuditLog { OccurredUtc = now.AddHours(-1), ActorUserName = _admin, Action = SeasonService.LogAction, TenantId = _kids.Id, Detail = "2027 시즌 시작일 1월 1일 → 1월 3일" });
         raw.SaveChanges();
     }

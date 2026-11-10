@@ -38,9 +38,9 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
     {
         var a = InMemoryDb.SeedAccount(_db, $"op{Guid.NewGuid():N}@example.com", "운영자");
         using var raw = InMemoryDb.Raw(_db);
-        raw.Accounts.Single(x => x.Id == a.Id).IsPlatformAdmin = platform;
+        if (platform) InMemoryDb.AddRole(_db, raw.Users.Single(x => x.UserName == a.UserName!).Id, IdentityRoles.SuperAdmin);
         raw.SaveChanges();
-        return a.Id;
+        return a.UserName!;
     }
 
     private static HttpRequestMessage Put(object body, string? key = Key, string url = Url)
@@ -267,10 +267,10 @@ public class ContentApiTests(WebApplicationFactory<Program> app) : IClassFixture
         int id;
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var a = raw.Accounts.Single(x => x.Email == login + "@example.com");
+            var a = raw.Users.Single(x => x.Email == login + "@example.com");
             a.IsPlatformAdmin = platform;
             raw.SaveChanges();
-            id = a.Id;
+            id = a.UserName!;
         }
         var token = Token(await c.GetStringAsync("/account/login"));   // 관리자 표시는 로그인할 때 읽는다
         await c.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>

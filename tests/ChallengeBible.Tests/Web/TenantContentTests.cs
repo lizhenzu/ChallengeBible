@@ -20,7 +20,7 @@ public partial class TenantContentTests : IClassFixture<WebApplicationFactory<Pr
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
     private readonly Tenant _kids, _elem;
-    private readonly int _me;
+    private readonly string _me;
 
     public TenantContentTests(WebApplicationFactory<Program> app)
     {
@@ -33,7 +33,7 @@ public partial class TenantContentTests : IClassFixture<WebApplicationFactory<Pr
         }));
         _kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         _elem = InMemoryDb.SeedTenant(_db, "jamsil-elem", "JSELEM");
-        _me = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜").Id;
+        _me = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜").UserName!;
         ContentSeed.Prayer(_db, 6, "순종");
         ContentSeed.Verse(_db, 1, "공용 1주 암송");
     }
@@ -122,7 +122,7 @@ public partial class TenantContentTests : IClassFixture<WebApplicationFactory<Pr
             ["DisplayName"] = "김민수", ["Email"] = login + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         int id;
-        using (var raw = InMemoryDb.Raw(_db)) id = raw.Accounts.Single(a => a.Email == login + "@example.com").Id;
+        using (var raw = InMemoryDb.Raw(_db)) id = raw.Users.Single(a => a.Email == login + "@example.com").UserName!;
         InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, roles);
         return c;
     }

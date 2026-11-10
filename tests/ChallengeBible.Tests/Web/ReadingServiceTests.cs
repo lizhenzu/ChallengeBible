@@ -13,13 +13,13 @@ public class ReadingServiceTests
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
     private readonly Tenant _kids;
-    private readonly int _me, _other;
+    private readonly string _me, _other;
 
     public ReadingServiceTests()
     {
         _kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
-        _me = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수").Id;
-        _other = InMemoryDb.SeedAccount(_db, "younghee@example.com", "김영희").Id;
+        _me = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수").UserName!;
+        _other = InMemoryDb.SeedAccount(_db, "younghee@example.com", "김영희").UserName!;
         using var raw = InMemoryDb.Raw(_db);
         foreach (var b in BibleBooks.All())
             for (short c = 1; c <= b.ChapterCount; c++) raw.BibleChapters.Add(new BibleChapter { BookId = b.Id, Chapter = c, VerseCount = 3 });
@@ -31,7 +31,7 @@ public class ReadingServiceTests
     {
         var scope = new RequestScope();
         scope.SetTenant(_kids.Id);
-        scope.SetAccount(userName);
+        scope.SetUser(userName, "id-" + userName);
         var tc = new TenantContext();
         tc.Set(_kids, null);
         var db = new InMemoryDb(_db, scope);
@@ -56,23 +56,23 @@ public class ReadingServiceTests
         var a = await As(_me).CompleteChapterAsync(1, 24);
         var b = await As(_me).CompleteChapterAsync(1, 24);
         Assert.True(a.ChapterDone && b.ChapterDone);
-        Assert.Single(InMemoryDb.Raw(_db).ChapterReads);
+        Assert.Single(InMemoryDb.Raw(_db).ReadingChapterReads);
         var view = (await As(_me).ChapterAsync(1, 24))!;
         Assert.True(view.Done);
         Assert.Equal(3, view.VersesRead.Count);               // 장을 끝내면 그 장의 절도 모두 읽음(불변식)
         await As(_me).UndoChapterAsync(1, 24);
         await As(_me).UndoChapterAsync(1, 24);
-        Assert.Empty(InMemoryDb.Raw(_db).ChapterReads);
-        Assert.Empty(InMemoryDb.Raw(_db).RoundVerseReads);
+        Assert.Empty(InMemoryDb.Raw(_db).ReadingChapterReads);
+        Assert.Empty(InMemoryDb.Raw(_db).ReadingVerses);
     }
 
     [Fact]
     public async Task R152_장을_끝내면_성경_읽음_표시에도_남고_해제는_연동하지_않는다()
     {
         await As(_me).CompleteChapterAsync(1, 24);
-        Assert.Equal(3, InMemoryDb.Raw(_db).VerseReadMarks.Count(m => m.UserName == _me));
+        Assert.Equal(3, InMemoryDb.Raw(_db).ReadingVerses.Count(m => m.UserName == _me));
         await As(_me).UndoChapterAsync(1, 24);
-        Assert.Equal(3, InMemoryDb.Raw(_db).VerseReadMarks.Count(m => m.UserName == _me));
+        Assert.Equal(3, InMemoryDb.Raw(_db).ReadingVerses.Count(m => m.UserName == _me));
     }
 
     [Fact]
@@ -80,13 +80,13 @@ public class ReadingServiceTests
     {
         var r1 = await As(_me).SetVersesAsync(1, 24, 1, 2, on: true);   // 이 페이지 모두 읽음(1~2절)
         Assert.False(r1.ChapterDone);
-        Assert.Empty(InMemoryDb.Raw(_db).ChapterReads);
+        Assert.Empty(InMemoryDb.Raw(_db).ReadingChapterReads);
         var r2 = await As(_me).SetVersesAsync(1, 24, 3, 3, on: true);
         Assert.True(r2.ChapterDone);
-        Assert.Single(InMemoryDb.Raw(_db).ChapterReads);
+        Assert.Single(InMemoryDb.Raw(_db).ReadingChapterReads);
         Assert.Equal(0.1, r2.Progress, 1);                               // 1 / 1189 = 0.08% → 한 장이라도 읽었으면 최소 0.1(R-155)
         await As(_me).SetVersesAsync(1, 24, 2, 2, on: false);
-        Assert.Empty(InMemoryDb.Raw(_db).ChapterReads);
+        Assert.Empty(InMemoryDb.Raw(_db).ReadingChapterReads);
         Assert.False((await As(_me).ChapterAsync(1, 24))!.Done);
     }
 
@@ -96,7 +96,7 @@ public class ReadingServiceTests
         var r = await As(_me).SetVersesAsync(1, 24, 2, 9, on: true);
         Assert.False(r.Ok);
         Assert.False((await As(_me).CompleteChapterAsync(1, 99)).Ok);
-        Assert.Empty(InMemoryDb.Raw(_db).RoundVerseReads);
+        Assert.Empty(InMemoryDb.Raw(_db).ReadingVerses);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class ReadingServiceTests
         {
             foreach (var b in BibleBooks.All())
                 for (short c = 1; c <= b.ChapterCount; c++)
-                    if (!(b.Id == 66 && c == 22)) raw.ChapterReads.Add(new ChapterRead { UserName = _me, RoundNo = 1, BookId = b.Id, Chapter = c, ReadAt = DateTime.UtcNow });
+                    if (!(b.Id == 66 && c == 22)) raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = _me, RoundNo = 1, BookId = b.Id, Chapter = c, ReadAt = DateTime.UtcNow });
             raw.SaveChanges();
         }
         var r = await As(_me).CompleteChapterAsync(66, 22);   // 요한계시록 22장이 마지막
@@ -128,7 +128,7 @@ public class ReadingServiceTests
         var first = raw.ReadingRounds.Single(r => r.RoundNo == 1);
         Assert.NotNull(first.ClosedAt);
         Assert.Null(first.CompletedAt);
-        Assert.Single(raw.ChapterReads, c => c.RoundNo == 1);   // 기록은 남는다
+        Assert.Single(raw.ReadingChapterReads, c => c.RoundNo == 1);   // 기록은 남는다
         Assert.Equal(0, (await As(_me).SummaryAsync()).CompletedRounds);
     }
 
@@ -174,7 +174,7 @@ public class ReadingServiceTests
         Assert.True(await As(_me).SavePositionAsync(1, 24, 3));          // 보던 위치는 읽음과 무관
         var s2 = await As(_me).SummaryAsync();
         Assert.Equal(((byte)1, (short)24, (short)3), (s2.Resume.BookId, s2.Resume.Chapter, s2.Resume.Verse));
-        Assert.Empty(InMemoryDb.Raw(_db).RoundVerseReads.Where(v => v.Chapter == 24));
+        Assert.Empty(InMemoryDb.Raw(_db).ReadingVerses.Where(v => v.Chapter == 24));
         Assert.False(await As(_me).SavePositionAsync(1, 24, 9));         // 없는 절
     }
 
@@ -186,7 +186,7 @@ public class ReadingServiceTests
         Assert.Equal(0, mine.ReadChapters);
         Assert.False((await As(_me).ChapterAsync(1, 1))!.Done);
         await As(_me).UndoChapterAsync(1, 1);                            // 내 회차 기준이라 남의 것은 안 지워진다
-        Assert.Single(InMemoryDb.Raw(_db).ChapterReads);
+        Assert.Single(InMemoryDb.Raw(_db).ReadingChapterReads);
     }
 
     [Fact]

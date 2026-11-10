@@ -22,7 +22,7 @@ public sealed record AfterLogin(int ApprovedCount, string? OnlyTenantSlug);
 /// 가입 · 로그인. 받는 정보는 이름(또는 별명) · 이메일 · 비밀번호뿐이다(R-137, ADR 0050).
 /// 계정은 플랫폼 표라 영역과 상관없이 다룬다.
 /// </summary>
-public sealed partial class AccountService(IAppDb db, ISystemDb systemDb, TimeProvider time)
+public sealed partial class AccountService(IAppDb db, TimeProvider time)
 {
     private static readonly PasswordHasher<AppUser> Hasher = new();
 

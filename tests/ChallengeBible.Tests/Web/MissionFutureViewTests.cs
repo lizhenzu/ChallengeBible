@@ -97,7 +97,7 @@ public partial class MissionFlowTests
         Assert.False(res.GetProperty("ok").GetBoolean());
         Assert.Equal("오늘 이후는 보기만 가능해요.", res.GetProperty("message").GetString());
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Empty(raw.PointLedgers);
+        Assert.Empty(raw.MissionActivities);
     }
 
     [Fact]

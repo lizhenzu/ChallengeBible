@@ -49,7 +49,7 @@ public partial class PhotoTests : IClassFixture<WebApplicationFactory<Program>>,
             ["DisplayName"] = name, ["Email"] = login + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         using var raw = InMemoryDb.Raw(_db);
-        return (c, raw.Accounts.Single(a => a.Email == login + "@example.com").Id);
+        return (c, raw.Users.Single(a => a.Email == login + "@example.com").UserName!);
     }
 
     private static async Task<HttpResponseMessage> Upload(HttpClient c, string page, string url, byte[] bytes)
@@ -62,7 +62,7 @@ public partial class PhotoTests : IClassFixture<WebApplicationFactory<Program>>,
         return await c.PostAsync(url, form);
     }
 
-    private string? PhotoOf(int id) { using var raw = InMemoryDb.Raw(_db); return raw.Accounts.Single(a => a.Id == id).PhotoPath; }
+    private string? PhotoOf(int id) { using var raw = InMemoryDb.Raw(_db); return raw.Users.Single(a => a.Id == id).PhotoPath; }
 
     [Fact]
     public async Task R200_R201_본인이_올리면_홈_동그라미에_보이고_같은_부서_사람만_본다()

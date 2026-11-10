@@ -10,20 +10,20 @@ public class BibleMarkServiceTests
 {
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
-    private readonly int _me, _other;
+    private readonly string _me, _other;
     private static readonly BibleRef Gen24 = new(1, 24, 1, 24, 9);
 
     public BibleMarkServiceTests()
     {
         ContentSeed.Bible(_db);   // 창세기 24:1~9 등
-        _me = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수").Id;
-        _other = InMemoryDb.SeedAccount(_db, "younghee@example.com", "김영희").Id;
+        _me = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수").UserName!;
+        _other = InMemoryDb.SeedAccount(_db, "younghee@example.com", "김영희").UserName!;
     }
 
     private BibleMarkService As(string userName)
     {
         var scope = new RequestScope();
-        scope.SetAccount(userName);
+        scope.SetUser(userName, "id-" + userName);
         return new BibleMarkService(new InMemoryDb(_db, scope), scope, _time);
     }
 
@@ -31,10 +31,10 @@ public class BibleMarkServiceTests
     public async Task R112_읽음은_두_번_켜도_하나이고_처음_읽은_시각이_남는다()
     {
         Assert.True(await As(_me).ReadAsync(1, 24, 3));
-        var first = InMemoryDb.Raw(_db).VerseReadMarks.Single().ReadAt;
+        var first = InMemoryDb.Raw(_db).ReadingVerses.Single().ReadAt;
         _time.Now = _time.Now.AddHours(1);
         Assert.True(await As(_me).ReadAsync(1, 24, 3));   // 다시 켜도(재시도 · 두 번 누름) 그대로
-        var row = InMemoryDb.Raw(_db).VerseReadMarks.Single();
+        var row = InMemoryDb.Raw(_db).ReadingVerses.Single();
         Assert.Equal(first, row.ReadAt);
         Assert.Equal(_me, row.UserName);
     }
@@ -45,7 +45,7 @@ public class BibleMarkServiceTests
         await As(_me).ReadAsync(1, 24, 3);
         await As(_me).UnreadAsync(1, 24, 3);
         await As(_me).UnreadAsync(1, 24, 3);              // 토글이 아니라 다시 켜지지 않는다(X-17)
-        Assert.Empty(InMemoryDb.Raw(_db).VerseReadMarks);
+        Assert.Empty(InMemoryDb.Raw(_db).ReadingVerses);
     }
 
     [Fact]
@@ -64,8 +64,8 @@ public class BibleMarkServiceTests
     {
         Assert.False(await As(_me).ReadAsync(1, 24, 99));
         Assert.False(await As(_me).BookmarkAsync(1, 99, 1));
-        Assert.Empty(InMemoryDb.Raw(_db).VerseReadMarks);
-        Assert.Empty(InMemoryDb.Raw(_db).Bookmarks);
+        Assert.Empty(InMemoryDb.Raw(_db).ReadingVerses);
+        Assert.Empty(InMemoryDb.Raw(_db).ReadingBookmarks);
     }
 
     [Fact]
@@ -84,8 +84,8 @@ public class BibleMarkServiceTests
     {
         await As(_me).ReadRangeAsync(Gen24);
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Empty(raw.Activities);
-        Assert.Empty(raw.PointLedgers);
+        Assert.Empty(raw.MissionActivities);
+        Assert.Empty(raw.MissionActivities);
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class BibleMarkServiceTests
         await As(_me).UnreadRangeAsync(Gen24);
         await As(_me).UnbookmarkAsync(1, 24, 1);
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Single(raw.VerseReadMarks);                 // 영희 것은 그대로
-        Assert.Single(raw.Bookmarks);
+        Assert.Single(raw.ReadingVerses);                 // 영희 것은 그대로
+        Assert.Single(raw.ReadingBookmarks);
     }
 }

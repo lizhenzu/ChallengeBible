@@ -43,7 +43,7 @@ public partial class AdminFlowTests : IClassFixture<WebApplicationFactory<Progra
             ["DisplayName"] = name, ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         using var raw = InMemoryDb.Raw(_db);
-        return (c, raw.Accounts.Single(a => a.Email == email + "@example.com").Id);
+        return (c, raw.Users.Single(a => a.Email == email + "@example.com").UserName!);
     }
 
     [Fact]

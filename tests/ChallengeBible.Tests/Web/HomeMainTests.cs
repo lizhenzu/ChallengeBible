@@ -44,9 +44,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
             ["DisplayName"] = "김철수", ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         using var raw = InMemoryDb.Raw(_db);
-        var id = raw.Accounts.Single(a => a.Email == email + "@example.com").Id;
+        var id = raw.Users.Single(a => a.Email == email + "@example.com").UserName!;
         var m = InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, roles);
-        if (roles.Contains(Roles.Participant)) { raw.Participants.Add(new Participant { TenantId = _kids.Id, MembershipId = m.Id }); raw.SaveChanges(); }
         return (c, id);
     }
 
@@ -112,7 +111,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         {
             var at = new DateTime(2027, 1, 4, 1, 0, 0, DateTimeKind.Utc);
             raw.ReadingRounds.Add(new ReadingRound { UserName = me, RoundNo = 1, StartedAt = at });
-            for (short ch = 1; ch <= 3; ch++) raw.ChapterReads.Add(new ChapterRead { UserName = me, RoundNo = 1, BookId = 1, Chapter = ch, ReadAt = at.AddMinutes(ch) });
+            for (short ch = 1; ch <= 3; ch++) raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = me, RoundNo = 1, BookId = 1, Chapter = ch, ReadAt = at.AddMinutes(ch) });
             raw.SaveChanges();
         }
         var home = await c.GetStringAsync("/jamsil-kids");

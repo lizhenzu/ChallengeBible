@@ -18,7 +18,7 @@ public class AccountAndJoinServiceTests
         return (new JoinService(new InMemoryDb(_db, scope), scope, Time), scope);
     }
 
-    private async Task<Account> SignUp(string id = "cheolsu@example.com", string name = "김철수", string pw = "1234")
+    private async Task<AppUser> SignUp(string id = "cheolsu@example.com", string name = "김철수", string pw = "1234")
     {
         var (a, e) = await Accounts().SignUpAsync(new SignUpInput(name, id, pw, pw));
         Assert.True(e.Ok, string.Join(",", e.Values));
@@ -159,7 +159,7 @@ public class AccountAndJoinServiceTests
         var me = await SignUp();
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.Accounts.Single(x => x.Id == me.Id).MustChangePassword = true;
+            raw.Users.Single(x => x.Id == me.Id).MustChangePassword = true;
             raw.SaveChanges();
         }
         Assert.True(await Accounts().MustChangePasswordAsync(me.Id));

@@ -34,11 +34,9 @@ public class AdminHomeServiceTests
     private int Kid(Tenant t, string name, string? group = null, string status = MembershipStatus.Approved)
     {
         var a = InMemoryDb.SeedAccount(_db, name + "@example.com", name);
-        var m = InMemoryDb.SeedMembership(_db, t.Id, a.Id, status, Roles.Participant);
+        var m = InMemoryDb.SeedMembership(_db, t.Id, a.UserName!, status, Roles.Participant);
         using var raw = InMemoryDb.Raw(_db);
         if (group is not null) { raw.Memberships.Single(x => x.Id == m.Id).GroupLabel = group; }
-        var p = new Participant { TenantId = t.Id, MembershipId = m.Id };
-        raw.Participants.Add(p);
         raw.SaveChanges();
         return p.Id;
     }
@@ -46,7 +44,7 @@ public class AdminHomeServiceTests
     private void Did(Tenant t, int participantId, DateOnly date, MissionItem item)
     {
         using var raw = InMemoryDb.Raw(_db);
-        raw.Activities.Add(new Activity { TenantId = t.Id, ParticipantId = participantId, MissionItem = item.Code(), MissionDate = date, Points = 1, PerformedUtc = DateTime.UtcNow });
+        raw.MissionActivities.Add(new MissionActivity { TenantId = t.Id, UserName = participantId, MissionItem = item.Code(), MissionDate = date, Points = 1, PerformedAt = DateTime.UtcNow });
         raw.SaveChanges();
     }
 
@@ -124,9 +122,9 @@ public class AdminHomeServiceTests
     {
         var a = InMemoryDb.SeedAccount(_db, "a@example.com", "정하늘");
         var g = InMemoryDb.SeedAccount(_db, "g@example.com", "정미영");
-        InMemoryDb.SeedMembership(_db, _kids.Id, a.Id, MembershipStatus.Requested, Roles.Participant);
-        InMemoryDb.SeedMembership(_db, _kids.Id, g.Id, MembershipStatus.Requested, Roles.Guardian);
-        for (var i = 0; i < 3; i++) InMemoryDb.SeedMembership(_db, _kids.Id, InMemoryDb.SeedAccount(_db, $"x{i}@example.com", $"신청{i}").Id, MembershipStatus.Requested, Roles.Participant);
+        InMemoryDb.SeedMembership(_db, _kids.Id, a.UserName!, MembershipStatus.Requested, Roles.Participant);
+        InMemoryDb.SeedMembership(_db, _kids.Id, g.UserName!, MembershipStatus.Requested, Roles.Guardian);
+        for (var i = 0; i < 3; i++) InMemoryDb.SeedMembership(_db, _kids.Id, InMemoryDb.SeedAccount(_db, $"x{i}@example.com", $"신청{i}").UserName!, MembershipStatus.Requested, Roles.Participant);
         var h = await In(_kids).GetAsync();
         Assert.Equal(5, h.PendingCount);
         Assert.Equal(3, h.Pending.Count);                  // 이름은 앞 3명만

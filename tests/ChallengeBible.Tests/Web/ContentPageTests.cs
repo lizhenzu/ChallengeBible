@@ -34,7 +34,7 @@ public partial class ContentPageTests : IClassFixture<WebApplicationFactory<Prog
     private void Seed(params DailyWord[] words)
     {
         using var raw = InMemoryDb.Raw(_db);
-        foreach (var w in words) { w.CreatedByUserName = raw.Accounts.First().Id; raw.DailyWords.Add(w); }
+        foreach (var w in words) { w.CreatedByUserName = raw.Users.First().Id; raw.DailyWords.Add(w); }
         raw.SaveChanges();
     }
 
@@ -42,13 +42,13 @@ public partial class ContentPageTests : IClassFixture<WebApplicationFactory<Prog
     public async Task 목록에_성경_범위가_함께_나온다()
     {
         var op = InMemoryDb.SeedAccount(_db, "operator", "운영자");
-        using (var raw = InMemoryDb.Raw(_db)) { raw.Accounts.Single().IsPlatformAdmin = true; raw.SaveChanges(); }
+        using (var raw = InMemoryDb.Raw(_db)) { InMemoryDb.AddRole(_db, raw.Users.Single().Id, IdentityRoles.SuperAdmin); raw.SaveChanges(); }
         Seed(W(5));
         var svc = new ContentAdminService(new InMemorySystemDb(_db), FixedTime.SeoulMorning());
-        var month = await svc.MonthAsync(op.Id, ContentKind.Word, 2027, 1);
+        var month = await svc.MonthAsync(op.UserName!, ContentKind.Word, 2027, 1);
         Assert.Equal("요한복음 3장 1~16절", month[4].Sub);
         Assert.Null(month[3].Sub);
-        Assert.All(await svc.MonthAsync(op.Id, ContentKind.Quiz, 2027, 1), d => Assert.Null(d.Sub));
+        Assert.All(await svc.MonthAsync(op.UserName!, ContentKind.Quiz, 2027, 1), d => Assert.Null(d.Sub));
     }
 
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
@@ -63,7 +63,7 @@ public partial class ContentPageTests : IClassFixture<WebApplicationFactory<Prog
             ["__RequestVerificationToken"] = TokenRx().Match(html).Groups[1].Value,
             ["DisplayName"] = "운영자", ["Email"] = "operator@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
-        using (var raw = InMemoryDb.Raw(_db)) { raw.Accounts.Single(a => a.Email == "operator@example.com").IsPlatformAdmin = true; raw.SaveChanges(); }
+        using (var raw = InMemoryDb.Raw(_db)) { InMemoryDb.AddRole(_db, raw.Users.Single(a => a.Email == "operator@example.com").Id, IdentityRoles.SuperAdmin); raw.SaveChanges(); }
         var lh = await c.GetStringAsync("/account/login");
         await c.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>
         {

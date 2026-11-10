@@ -40,7 +40,7 @@ public partial class PromotionFlowTests : IClassFixture<WebApplicationFactory<Pr
             ["DisplayName"] = name, ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         using var raw = InMemoryDb.Raw(_db);
-        return (c, raw.Accounts.Single(a => a.Email == email + "@example.com").Id);
+        return (c, raw.Users.Single(a => a.Email == email + "@example.com").UserName!);
     }
 
     private static Task<HttpResponseMessage> Post(HttpClient c, string url, string token, params (string, string)[] form) =>
@@ -119,10 +119,10 @@ public partial class PromotionFlowTests : IClassFixture<WebApplicationFactory<Pr
         InMemoryDb.SeedMembership(_db, _kids.Id, kidId, MembershipStatus.Approved, Roles.Participant);
         var other = InMemoryDb.SeedTenant(_db, "other-kids", "OTHERK");
         var someone = InMemoryDb.SeedAccount(_db, "x@example.com", "오서준");
-        InMemoryDb.SeedMembership(_db, other.Id, someone.Id, MembershipStatus.Approved, Roles.Participant);
+        InMemoryDb.SeedMembership(_db, other.Id, someone.UserName!, MembershipStatus.Approved, Roles.Participant);
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.PromotionRequests.Add(new PromotionRequest { UserName = someone.Id, SourceTenantId = other.Id, TargetTenantId = _elem.Id, RequestedByUserName = someone.Id });
+            raw.PromotionRequests.Add(new PromotionRequest { UserName = someone.UserName!, SourceTenantId = other.Id, TargetTenantId = _elem.Id, RequestedByUserName = someone.UserName! });
             raw.SaveChanges();
         }
         int reqId;

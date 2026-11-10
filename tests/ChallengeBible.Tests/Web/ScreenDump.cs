@@ -56,7 +56,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             }));
             return c;
         }
-        int Acc(string id) { using var raw = InMemoryDb.Raw(db); return raw.Accounts.Single(a => a.Email == id + "@example.com").Id; }
+        int Acc(string id) { using var raw = InMemoryDb.Raw(db); return raw.Users.Single(a => a.Email == id + "@example.com").UserName!; }
 
         var anon = app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         await Save(anon, "/", "01-첫화면");
@@ -70,7 +70,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         var km = InMemoryDb.SeedMembership(db, kids.Id, Acc("cheolsu"), MembershipStatus.Approved, Roles.Participant);
         InMemoryDb.SeedMembership(db, kids.Id, Acc("haneul"), MembershipStatus.Requested, Roles.Participant);
         InMemoryDb.SeedMembership(db, kids.Id, Acc("seojun"), MembershipStatus.Requested, Roles.Participant, Roles.Guardian);
-        using (var raw = InMemoryDb.Raw(db)) { raw.Memberships.Single(m => m.Id == km.Id).GroupLabel = "사랑반"; raw.Participants.Add(new Participant { TenantId = kids.Id, MembershipId = km.Id }); raw.SaveChanges(); }
+        using (var raw = InMemoryDb.Raw(db)) { raw.Memberships.Single(m => m.Id == km.Id).GroupLabel = "사랑반"; raw.DeptRoles.Add(new Participant { TenantId = kids.Id, MembershipId = km.Id }); raw.SaveChanges(); }
 
         var newbie = await SignUp("minji", "김민지");
         await Save(newbie, "/join?code=JSKIDS", "04-참여신청");
@@ -118,12 +118,12 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             var start = new DateTime(2027, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             raw.ReadingRounds.Add(new ReadingRound { UserName = me, RoundNo = 1, StartedAt = start });
             for (short c = 1; c <= 23; c++)
-                raw.ChapterReads.Add(new ChapterRead { UserName = me, RoundNo = 1, BookId = 1, Chapter = c, ReadAt = start.AddDays(Math.Min(4, (c - 1) / 5)) });
-            raw.RoundVerseReads.Add(new RoundVerseRead { UserName = me, RoundNo = 1, BookId = 1, Chapter = 24, Verse = 1, ReadAt = start.AddDays(4) });
-            raw.RoundVerseReads.Add(new RoundVerseRead { UserName = me, RoundNo = 1, BookId = 1, Chapter = 24, Verse = 2, ReadAt = start.AddDays(4) });
-            raw.ChapterProgresses.Add(new ChapterProgress { UserName = me, RoundNo = 1, BookId = 1, Chapter = 24, LastViewedVerse = 3, UpdatedUtc = start.AddDays(4) });
-            raw.Bookmarks.Add(new Bookmark { UserName = me, BookId = 1, Chapter = 24, Verse = 2, CreatedUtc = start.AddDays(4) });
-            raw.Bookmarks.Add(new Bookmark { UserName = me, BookId = 43, Chapter = 3, Verse = 16, CreatedUtc = start.AddDays(1) });
+                raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = me, RoundNo = 1, BookId = 1, Chapter = c, ReadAt = start.AddDays(Math.Min(4, (c - 1) / 5)) });
+            raw.ReadingVerses.Add(new ReadingVerse { UserName = me, RoundNo = 1, BookId = 1, Chapter = 24, Verse = 1, ReadAt = start.AddDays(4) });
+            raw.ReadingVerses.Add(new ReadingVerse { UserName = me, RoundNo = 1, BookId = 1, Chapter = 24, Verse = 2, ReadAt = start.AddDays(4) });
+            raw.ReadingChapterProgresses.Add(new ReadingChapterProgress { UserName = me, RoundNo = 1, BookId = 1, Chapter = 24, LastViewedVerse = 3, UpdatedAt = start.AddDays(4) });
+            raw.ReadingBookmarks.Add(new ReadingBookmark { UserName = me, BookId = 1, Chapter = 24, Verse = 2, CreatedAt = start.AddDays(4) });
+            raw.ReadingBookmarks.Add(new ReadingBookmark { UserName = me, BookId = 43, Chapter = 3, Verse = 16, CreatedAt = start.AddDays(1) });
             raw.SaveChanges();
         }
         await Save(kid, "/jamsil-kids/reading", "18-통독-대시보드");
@@ -171,7 +171,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             first.ClosedAt = new DateTime(2027, 1, 4, 0, 0, 0, DateTimeKind.Utc);
             raw.ReadingRounds.Add(new ReadingRound { UserName = kidAcc, RoundNo = first.RoundNo + 1, StartedAt = new DateTime(2027, 1, 4, 0, 0, 0, DateTimeKind.Utc) });
             foreach (short ch in new short[] { 1, 2 })
-                raw.ChapterReads.Add(new ChapterRead { UserName = kidAcc, RoundNo = first.RoundNo + 1, BookId = 40, Chapter = ch, ReadAt = DateTime.UtcNow });
+                raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = kidAcc, RoundNo = first.RoundNo + 1, BookId = 40, Chapter = ch, ReadAt = DateTime.UtcNow });
             raw.SaveChanges();
         }
         await Save(kid, "/jamsil-kids/reading/rounds?ask=true", "21c-통독-회차기록");
@@ -190,7 +190,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             var t = Acc("eunhye");
             var at = new DateTime(2027, 1, 4, 1, 0, 0, DateTimeKind.Utc);
             raw.ReadingRounds.Add(new ReadingRound { UserName = t, RoundNo = 1, StartedAt = at });
-            for (short c = 1; c <= 5; c++) raw.ChapterReads.Add(new ChapterRead { UserName = t, RoundNo = 1, BookId = 40, Chapter = c, ReadAt = at });
+            for (short c = 1; c <= 5; c++) raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = t, RoundNo = 1, BookId = 40, Chapter = c, ReadAt = at });
             raw.SaveChanges();
         }
         await Save(kid, "/jamsil-kids/reading/participants", "24-통독-참여자현황");
@@ -230,7 +230,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         var mm = InMemoryDb.SeedMembership(db, kids.Id, Acc("younghee"), MembershipStatus.Approved, Roles.Guardian);
         using (var raw = InMemoryDb.Raw(db))
         {
-            raw.GuardianLinks.Add(new GuardianLink { TenantId = kids.Id, GuardianMembershipId = mm.Id, ParticipantId = raw.Participants.Single(p => p.MembershipId == km.Id).Id, CreatedUtc = DateTime.UtcNow, CreatedByUserName = Acc("eunhye") });
+            raw.GuardianLinks.Add(new GuardianLink { TenantId = kids.Id, GuardianMembershipId = mm.Id, UserName = raw.DeptRoles.Single(p => p.MembershipId == km.Id).Id, CreatedUtc = DateTime.UtcNow, CreatedByUserName = Acc("eunhye") });
             raw.SaveChanges();
         }
         await Save(admin, $"/jamsil-kids/admin/members?Tab={MembershipStatus.Approved}", "12b-소속관리-승인됨",
@@ -244,13 +244,11 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         using (var raw = InMemoryDb.Raw(db))
         {
             raw.MembershipRoles.Add(new MembershipRole { TenantId = kids.Id, MembershipId = mm.Id, Role = Roles.Participant });
-            var momP = new Participant { TenantId = kids.Id, MembershipId = mm.Id };
-            raw.Participants.Add(momP);
             raw.SaveChanges();
             var team = new FamilyTeam { TenantId = kids.Id, CreatedUtc = DateTime.UtcNow, Members =
             [
-                new FamilyMember { TenantId = kids.Id, ParticipantId = raw.Participants.Single(p => p.MembershipId == km.Id).Id, Relation = FamilyRelation.Student, SortOrder = 0 },
-                new FamilyMember { TenantId = kids.Id, ParticipantId = momP.Id, Relation = FamilyRelation.Mother, SortOrder = 1 },
+                new FamilyMember { TenantId = kids.Id, UserName = raw.DeptRoles.Single(p => p.MembershipId == km.Id).Id, Relation = FamilyRelation.Student, SortOrder = 0 },
+                new FamilyMember { TenantId = kids.Id, UserName = momP.Id, Relation = FamilyRelation.Mother, SortOrder = 1 },
             ] };
             raw.FamilyTeams.Add(team);
             raw.SaveChanges();
@@ -278,7 +276,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         {
             using var raw = InMemoryDb.Raw(db);
             var a = new Account { Email = email + "@example.com", DisplayName = name, PasswordHash = "-" };
-            raw.Accounts.Add(a);
+            raw.Users.Add(a);
             raw.SaveChanges();
             return a.Id;
         }
@@ -313,10 +311,8 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         var minjiM = InMemoryDb.SeedMembership(db, elem.Id, minji, MembershipStatus.Approved, Roles.Participant);
         using (var raw = InMemoryDb.Raw(db))
         {
-            var pMinji = new Participant { TenantId = elem.Id, MembershipId = minjiM.Id };
-            raw.Participants.Add(pMinji);
             raw.SaveChanges();
-            raw.GuardianLinks.Add(new GuardianLink { TenantId = elem.Id, GuardianMembershipId = momElem.Id, ParticipantId = pMinji.Id, CreatedByUserName = momAcc });
+            raw.GuardianLinks.Add(new GuardianLink { TenantId = elem.Id, GuardianMembershipId = momElem.Id, UserName = pMinji.Id, CreatedByUserName = momAcc });
             raw.SaveChanges();
         }
         await Save(mom, "/account/family", "32-온가족-없음");   // 확정 시안 온가족 "없음 · 신청"(0065 — 부모가 고르던 화면은 없어짐)
@@ -348,7 +344,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
 
         // 운영자: 가입 → 플랫폼 관리자 → 다시 로그인
         var op = await SignUp("operator", "운영자");
-        using (var raw = InMemoryDb.Raw(db)) { raw.Accounts.Single(a => a.Email == "operator@example.com").IsPlatformAdmin = true; raw.SaveChanges(); }
+        using (var raw = InMemoryDb.Raw(db)) { InMemoryDb.AddRole(_db, raw.Users.Single(a => a.Email == "operator@example.com").Id, IdentityRoles.SuperAdmin); raw.SaveChanges(); }
         var lh = await op.GetStringAsync("/account/login");
         await op.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>
         {

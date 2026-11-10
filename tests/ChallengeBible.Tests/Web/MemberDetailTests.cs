@@ -43,10 +43,10 @@ public partial class MemberDetailTests : IClassFixture<WebApplicationFactory<Pro
             ["DisplayName"] = name, ["Email"] = login + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         using var raw = InMemoryDb.Raw(_db);
-        return (c, raw.Accounts.Single(a => a.Email == login + "@example.com").Id);
+        return (c, raw.Users.Single(a => a.Email == login + "@example.com").UserName!);
     }
 
-    private async Task<(HttpClient Admin, Membership Kid, int KidAccount)> Setup()
+    private async Task<(HttpClient Admin, SeededMember Kid, int KidAccount)> Setup()
     {
         var (admin, adminId) = await SignUp("eunhye", "이은혜");
         var (_, kidId) = await SignUp("cheolsu", "김철수");
@@ -54,23 +54,21 @@ public partial class MemberDetailTests : IClassFixture<WebApplicationFactory<Pro
         var km = InMemoryDb.SeedMembership(_db, _kids.Id, kidId, MembershipStatus.Approved, Roles.Participant);
         using var raw = InMemoryDb.Raw(_db);
         raw.Memberships.Single(m => m.Id == km.Id).GroupLabel = "사랑반";
-        var p = new Participant { TenantId = _kids.Id, MembershipId = km.Id };
-        raw.Participants.Add(p);
         raw.SaveChanges();
         var at = new DateTime(2027, 1, 5, 0, 12, 0, DateTimeKind.Utc);   // 서울 9:12
         void Act(DateOnly d, string item, int pts, DateTime when)
         {
-            var a = new Activity { TenantId = _kids.Id, ParticipantId = p.Id, MissionItem = item, MissionDate = d, Points = pts, PerformedUtc = when };
-            raw.Activities.Add(a);
+            var a = new MissionActivity { TenantId = _kids.Id, UserName = p.Id, MissionItem = item, MissionDate = d, Points = pts, PerformedAt = when };
+            raw.MissionActivities.Add(a);
             raw.SaveChanges();
-            raw.PointLedgers.Add(new PointLedger { TenantId = _kids.Id, ParticipantId = p.Id, MissionDate = d, MissionItem = item, Points = pts, ActivityId = a.Id, RecordedUtc = when });
+            raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = p.Id, MissionDate = d, MissionItem = item, Points = pts, PerformedAt = when });
         }
         Act(Jan5, "Word.Me", 1, at.AddMinutes(-30));
         Act(Jan5, "Prayer.Me", 1, at);
         Act(Jan5.AddDays(-1), "Word.Me", 1, at.AddDays(-1));
         raw.ReadingRounds.Add(new ReadingRound { UserName = kidId, RoundNo = 1, StartedAt = at.AddDays(-3) });
-        raw.ChapterReads.Add(new ChapterRead { UserName = kidId, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = at });
-        raw.VerseReadMarks.Add(new VerseReadMark { UserName = kidId, BookId = 1, Chapter = 1, Verse = 1, ReadAt = at });
+        raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = kidId, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = at });
+        raw.ReadingVerses.Add(new ReadingVerse { UserName = kidId, BookId = 1, Chapter = 1, Verse = 1, ReadAt = at });
         raw.SaveChanges();
         return (admin, km, kidId);
     }
@@ -123,9 +121,9 @@ public partial class MemberDetailTests : IClassFixture<WebApplicationFactory<Pro
         var temp = Regex.Match(await r.Content.ReadAsStringAsync(), "<code>([a-z]+-\\d{4})</code>").Groups[1].Value;
         Assert.NotEmpty(temp);
         using var raw = InMemoryDb.Raw(_db);
-        var a = raw.Accounts.Single(x => x.Id == kidId);
+        var a = raw.Users.Single(x => x.Id == kidId);
         Assert.True(a.MustChangePassword);
-        Assert.NotEqual(PasswordVerificationResult.Failed, new PasswordHasher<Account>().VerifyHashedPassword(a, a.PasswordHash, temp));
+        Assert.NotEqual(PasswordVerificationResult.Failed, new PasswordHasher<AppUser>().VerifyHashedPassword(a, a.PasswordHash, temp));
         var log = raw.AuditLogs.Single();
         Assert.Equal((_kids.Id, "PasswordReset"), (log.TenantId!.Value, log.Action));
     }
@@ -144,7 +142,7 @@ public partial class MemberDetailTests : IClassFixture<WebApplicationFactory<Pro
         }));
         Assert.DoesNotContain("<code>", await r.Content.ReadAsStringAsync());
         using var raw = InMemoryDb.Raw(_db);
-        Assert.False(raw.Accounts.Single(x => x.Id == kidId).MustChangePassword);
+        Assert.False(raw.Users.Single(x => x.Id == kidId).MustChangePassword);
     }
 
     [Fact]
@@ -161,6 +159,6 @@ public partial class MemberDetailTests : IClassFixture<WebApplicationFactory<Pro
         var ok = await Post(" 김철수 ");
         Assert.Equal(HttpStatusCode.Redirect, ok.StatusCode);
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Empty(raw.VerseReadMarks.Where(m => m.UserName == kidId));
+        Assert.Empty(raw.ReadingVerses.Where(m => m.UserName == kidId));
     }
 }

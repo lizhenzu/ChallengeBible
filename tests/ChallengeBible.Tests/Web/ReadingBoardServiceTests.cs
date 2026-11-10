@@ -13,18 +13,18 @@ public class ReadingBoardServiceTests
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
     private readonly Tenant _kids, _elem;
-    private readonly int _me, _hee, _teacher, _outsider, _waiting;
-    private readonly Membership _meM, _heeM, _teacherM;
+    private readonly string _me, _hee, _teacher, _outsider, _waiting;
+    private readonly SeededMember _meM, _heeM, _teacherM;
 
     public ReadingBoardServiceTests()
     {
         _kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         _elem = InMemoryDb.SeedTenant(_db, "jamsil-elem", "JSELEM");
-        _me = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수").Id;
-        _hee = InMemoryDb.SeedAccount(_db, "younghee@example.com", "김영희").Id;
-        _teacher = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜").Id;
-        _outsider = InMemoryDb.SeedAccount(_db, "soyoung@example.com", "박소영").Id;
-        _waiting = InMemoryDb.SeedAccount(_db, "minjun@example.com", "최민준").Id;
+        _me = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수").UserName!;
+        _hee = InMemoryDb.SeedAccount(_db, "younghee@example.com", "김영희").UserName!;
+        _teacher = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜").UserName!;
+        _outsider = InMemoryDb.SeedAccount(_db, "soyoung@example.com", "박소영").UserName!;
+        _waiting = InMemoryDb.SeedAccount(_db, "minjun@example.com", "최민준").UserName!;
         _meM = InMemoryDb.SeedMembership(_db, _kids.Id, _me, MembershipStatus.Approved, Roles.Participant);
         _heeM = InMemoryDb.SeedMembership(_db, _kids.Id, _hee, MembershipStatus.Approved, Roles.Guardian);
         _teacherM = InMemoryDb.SeedMembership(_db, _kids.Id, _teacher, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
@@ -42,7 +42,7 @@ public class ReadingBoardServiceTests
             new ReadingRound { UserName = _outsider, RoundNo = 1, StartedAt = now.AddDays(-3) },
             new ReadingRound { UserName = _waiting, RoundNo = 1, StartedAt = now.AddDays(-3) });
         void Read(int who, int round, byte book, short ch, DateTime at) =>
-            raw.ChapterReads.Add(new ChapterRead { UserName = who, RoundNo = round, BookId = book, Chapter = ch, ReadAt = at });
+            raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = who, RoundNo = round, BookId = book, Chapter = ch, ReadAt = at });
         Read(_me, 1, 1, 1, now.AddHours(-1));
         Read(_me, 1, 1, 2, now);
         Read(_hee, 1, 66, 22, now.AddDays(-20));
@@ -52,7 +52,7 @@ public class ReadingBoardServiceTests
         raw.SaveChanges();
     }
 
-    private ReadingBoardService As(string userName, Membership? me, bool? boardPublic = null)
+    private ReadingBoardService As(string userName, SeededMember? me, bool? boardPublic = null)
     {
         if (boardPublic is bool p)
         {
@@ -62,7 +62,7 @@ public class ReadingBoardServiceTests
         }
         var scope = new RequestScope();
         scope.SetTenant(_kids.Id);
-        scope.SetAccount(userName);
+        scope.SetUser(userName, "id-" + userName);
         var tc = new TenantContext();
         using (var raw = InMemoryDb.Raw(_db)) tc.Set(raw.Tenants.Single(t => t.Id == _kids.Id), me);
         return new ReadingBoardService(new InMemoryDb(_db, scope), tc, scope, new TenantClock(_time));

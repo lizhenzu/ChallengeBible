@@ -26,7 +26,7 @@ public sealed class TenantContext
     public string AppName => Tenant?.AppName ?? Services.BrandingService.DefaultName;   // 0038 — 비어 있으면 기본 이름
     public string AppShortName => Tenant?.AppShortName ?? Services.BrandingService.DefaultShortName;
 
-    internal void Set(Tenant tenant, DeptRoleUserAssoc? me, bool isAdmin)
+    internal void Set(Tenant tenant, DeptRoleUserAssoc? me, bool isAdmin = false)
     {
         Tenant = tenant;
         MembershipId = me?.Id;

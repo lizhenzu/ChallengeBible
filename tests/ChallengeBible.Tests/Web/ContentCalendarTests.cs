@@ -52,7 +52,7 @@ public partial class ContentCalendarTests : IClassFixture<WebApplicationFactory<
     [Fact]
     public async Task R120_부서_것이_있으면_그것_없으면_공용_종류마다_따로()
     {
-        var me = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜").Id;
+        var me = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜").UserName!;
         var over = ContentSeed.Word(_db, Jan5.AddDays(1), _kids.Id, "새해 첫 주 — 우리 부서 말씀");
         using (var raw = InMemoryDb.Raw(_db))
         {
@@ -127,7 +127,7 @@ public partial class ContentCalendarTests : IClassFixture<WebApplicationFactory<
             ["DisplayName"] = "이은혜", ["Email"] = email + "@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
         int id;
-        using (var raw = InMemoryDb.Raw(_db)) id = raw.Accounts.Single(a => a.Email == email + "@example.com").Id;
+        using (var raw = InMemoryDb.Raw(_db)) id = raw.Users.Single(a => a.Email == email + "@example.com").UserName!;
         InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, roles);
         return c;
     }

@@ -72,8 +72,8 @@ public partial class OpsTests : IClassFixture<WebApplicationFactory<Program>>
         var a = InMemoryDb.SeedAccount(_db, email, email[..email.IndexOf('@')]);
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var row = raw.Accounts.Single(x => x.Id == a.Id);
-            row.PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<Account>().HashPassword(row, "1234");
+            var row = raw.Users.Single(x => x.UserName == a.UserName!);
+            row.PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<AppUser>().HashPassword(row, "1234");
             row.IsPlatformAdmin = platformAdmin;
             raw.SaveChanges();
         }
@@ -93,7 +93,7 @@ public partial class OpsTests : IClassFixture<WebApplicationFactory<Program>>
         var op = await LoggedIn("operator@example.com", platformAdmin: true);
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var opId = raw.Accounts.Single(a => a.Email == "operator@example.com").Id;
+            var opId = raw.Users.Single(a => a.Email == "operator@example.com").UserName!;
             raw.AuditLogs.AddRange(
                 new AuditLog { OccurredUtc = DateTime.UtcNow, ActorUserName = opId, Action = "PromotionApproved", TenantId = kids.Id, Detail = "x" },
                 new AuditLog { OccurredUtc = DateTime.UtcNow.AddMinutes(-1), ActorUserName = opId, Action = SeasonService.LogAction, TenantId = kids.Id, Detail = "2027 시즌 시작일 1월 3일" },

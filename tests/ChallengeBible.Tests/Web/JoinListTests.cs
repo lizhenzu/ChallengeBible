@@ -52,13 +52,13 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
     {
         var a = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수");
         var b = InMemoryDb.SeedAccount(_db, "minjun@example.com", "최민준");
-        Assert.Equal(JoinError.NotFound, (await Service().ApplyAsync(a.Id, _hidden.Id, null, [Roles.Participant])).Error);
-        Assert.Equal(JoinError.NotFound, (await Service().ApplyAsync(a.Id, _hidden.Id, "JSKIDS", [Roles.Participant])).Error);   // 다른 부서 코드
-        Assert.Equal(JoinError.NotFound, (await Service().ApplyAsync(a.Id, _stopped.Id, "OLDDPT", [Roles.Participant])).Error);  // 정지된 부서
-        Assert.Equal(JoinError.None, (await Service().ApplyAsync(a.Id, _hidden.Id, "hbmid1", [Roles.Participant])).Error);
-        Assert.Equal(JoinError.None, (await Service().ApplyAsync(b.Id, _kids.Id, null, [Roles.Guardian])).Error);              // 목록 부서는 Id 로
-        Assert.Equal(JoinError.AlreadyMember, (await Service().ApplyAsync(b.Id, _kids.Id, null, [Roles.Participant])).Error);
-        Assert.Equal(JoinError.BadRole, (await Service().ApplyAsync(b.Id, _elem.Id, null, [Roles.TenantAdmin])).Error);
+        Assert.Equal(JoinError.NotFound, (await Service().ApplyAsync(a.UserName!, _hidden.Id, null, [Roles.Participant])).Error);
+        Assert.Equal(JoinError.NotFound, (await Service().ApplyAsync(a.UserName!, _hidden.Id, "JSKIDS", [Roles.Participant])).Error);   // 다른 부서 코드
+        Assert.Equal(JoinError.NotFound, (await Service().ApplyAsync(a.UserName!, _stopped.Id, "OLDDPT", [Roles.Participant])).Error);  // 정지된 부서
+        Assert.Equal(JoinError.None, (await Service().ApplyAsync(a.UserName!, _hidden.Id, "hbmid1", [Roles.Participant])).Error);
+        Assert.Equal(JoinError.None, (await Service().ApplyAsync(b.UserName!, _kids.Id, null, [Roles.Guardian])).Error);              // 목록 부서는 Id 로
+        Assert.Equal(JoinError.AlreadyMember, (await Service().ApplyAsync(b.UserName!, _kids.Id, null, [Roles.Participant])).Error);
+        Assert.Equal(JoinError.BadRole, (await Service().ApplyAsync(b.UserName!, _elem.Id, null, [Roles.TenantAdmin])).Error);
     }
 
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]

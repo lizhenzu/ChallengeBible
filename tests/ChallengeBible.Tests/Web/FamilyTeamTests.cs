@@ -21,7 +21,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
     private readonly Tenant _kids, _elem;
-    private readonly Dictionary<string, (int UserName, Membership M, int Pid)> _p = [];
+    private readonly Dictionary<string, (int UserName, SeededMember M, int Pid)> _p = [];
 
     public FamilyTeamTests(WebApplicationFactory<Program> app)
     {
@@ -47,12 +47,9 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
 
     private void Add(Tenant t, string login, string name, string[] roles, string? group = null)
     {
-        var a = InMemoryDb.SeedAccount(_db, login + "@example.com", name).Id;
+        var a = InMemoryDb.SeedAccount(_db, login + "@example.com", name).UserName!;
         var m = InMemoryDb.SeedMembership(_db, t.Id, a, MembershipStatus.Approved, roles);
         using var raw = InMemoryDb.Raw(_db);
-        raw.Memberships.Single(x => x.Id == m.Id).GroupLabel = group;
-        var p = new Participant { TenantId = t.Id, MembershipId = m.Id };
-        raw.Participants.Add(p);
         raw.SaveChanges();
         _p[login] = (a, m, p.Id);
     }
@@ -60,8 +57,8 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
     private void Pts(string login, int points)
     {
         using var raw = InMemoryDb.Raw(_db);
-        var p = raw.Participants.Single(x => x.Id == _p[login].Pid);
-        raw.PointLedgers.Add(new PointLedger { TenantId = p.TenantId, ParticipantId = p.Id, MissionDate = new DateOnly(2027, 1, 3), MissionItem = "Word.Me", Points = points, RecordedUtc = DateTime.UtcNow });
+        var p = raw.DeptRoles.Single(x => x.Id == _p[login].Pid);
+        raw.MissionActivities.Add(new MissionActivity { TenantId = p.TenantId, UserName = p.Id, MissionDate = new DateOnly(2027, 1, 3), MissionItem = "Word.Me", Points = points, PerformedAt = DateTime.UtcNow });
         raw.SaveChanges();
     }
 
@@ -69,12 +66,12 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
     {
         var scope = new RequestScope();
         scope.SetTenant(t.Id);
-        scope.SetAccount(1);
+        scope.SetUser(1, "id-" + 1);
         var tc = new TenantContext();
         using (var raw = InMemoryDb.Raw(_db))
             tc.Set(raw.Tenants.Single(x => x.Id == t.Id),
                 viewer is null ? null : new Membership { Id = _p[viewer].M.Id, Status = MembershipStatus.Approved, Roles = [new MembershipRole { Role = Roles.Participant }] });
-        return new FamilyTeamService(new InMemoryDb(_db, scope), tc, new TenantClock(_time), InMemoryDb.Rules(_db), _time);
+        return new FamilyTeamService(new InMemoryDb(_db, scope), scope, tc, new TenantClock(_time), InMemoryDb.Rules(_db));
     }
 
     private int P(string login) => _p[login].Pid;
@@ -86,7 +83,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         var t = new FamilyTeam { TenantId = _kids.Id, Name = name, CreatedUtc = DateTime.UtcNow };
         byte order = 0;
         foreach (var l in logins)
-            t.Members.Add(new FamilyMember { TenantId = _kids.Id, ParticipantId = P(l), SortOrder = order++,
+            t.Members.Add(new FamilyMember { TenantId = _kids.Id, UserName = P(l), SortOrder = order++,
                 Relation = l is "younghee" or "daeho" ? FamilyRelation.Mother : FamilyRelation.Student });
         raw.FamilyTeams.Add(t);
         raw.SaveChanges();
@@ -159,10 +156,10 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         Team(null, "cheolsu", "younghee");
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var act = new Activity { TenantId = _kids.Id, ParticipantId = P("younghee"), MissionItem = "Word.Me", MissionDate = Jan5, Points = 1 };
-            raw.Activities.Add(act);
+            var act = new MissionActivity { TenantId = _kids.Id, UserName = P("younghee"), MissionItem = "Word.Me", MissionDate = Jan5, Points = 1 };
+            raw.MissionActivities.Add(act);
             raw.SaveChanges();
-            raw.PointLedgers.Add(new PointLedger { TenantId = _kids.Id, ParticipantId = P("younghee"), MissionDate = Jan5, MissionItem = "Word.Me", Points = 1, ActivityId = act.Id });
+            raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = P("younghee"), MissionDate = Jan5, MissionItem = "Word.Me", Points = 1});
             raw.SaveChanges();
         }
         var home = await In(_kids, "cheolsu").MyFamilyAsync();
@@ -193,7 +190,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Equal([true, false, false, false, false], home.Stages.Select(s => s.On));
         using (var raw = InMemoryDb.Raw(_db))   // 예전에 관리자가 숨긴 카드는 숨긴 채로
         {
-            var admin = raw.Accounts.First().Id;
+            var admin = raw.Users.First().Id;
             raw.FamilyMilestoneDismisses.Add(new FamilyMilestoneDismiss { TenantId = _kids.Id, FamilyTeamId = id, Year = 2027, Threshold = 1000, DismissedUtc = DateTime.UtcNow, DismissedByUserName = admin });
             raw.SaveChanges();
         }
@@ -211,7 +208,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
 
         using (var raw = InMemoryDb.Raw(_db))                                              // 취소로 합계가 1,000 아래(50점)로
         {
-            raw.PointLedgers.RemoveRange(raw.PointLedgers.Where(l => l.ParticipantId == P("cheolsu") || l.ParticipantId == P("younghee") || l.ParticipantId == P("daeho")));
+            raw.MissionActivities.RemoveRange(raw.MissionActivities.Where(l => l.UserName == P("cheolsu") || l.UserName == P("younghee") || l.UserName == P("daeho")));
             raw.SaveChanges();
         }
         Pts("cheolsu", 50);
@@ -228,8 +225,8 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
     {
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var a = raw.Accounts.Single(x => x.Email == email);
-            a.PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<Account>().HashPassword(a, "1234");
+            var a = raw.Users.Single(x => x.Email == email);
+            a.PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<AppUser>().HashPassword(a, "1234");
             raw.SaveChanges();
         }
         var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
@@ -245,7 +242,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
     public async Task 화면_흐름_관리자는_이름을_고치고_구성원을_뺄_뿐_만들_수_없다()
     {
         var admin = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜");
-        InMemoryDb.SeedMembership(_db, _kids.Id, admin.Id, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
+        InMemoryDb.SeedMembership(_db, _kids.Id, admin.UserName!, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
         var c = await LoggedIn("eunhye@example.com");
 
         var html = await c.GetStringAsync("/jamsil-kids/admin/teams");
@@ -290,7 +287,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         using (var raw = InMemoryDb.Raw(_db))
         {
             raw.PlatformRuleSetVersions.Add(new PlatformRuleSetVersion { VersionNo = 2, EffectiveFrom = Jan5,
-                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { FamilyTeam = false } }), ChangedByUserName = 1 });
+                Values = RuleService.ToJson(RuleSet.Default with { Features = RuleSet.Default.Features with { FamilyTeam = false } }), ChangedByUserName = "t" });
             raw.SaveChanges();
         }
         var svc = In(_kids);
@@ -299,7 +296,7 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
 
         // 화면도 막고(404) 메뉴에서도 숨긴다
         var admin = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜");
-        InMemoryDb.SeedMembership(_db, _kids.Id, admin.Id, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
+        InMemoryDb.SeedMembership(_db, _kids.Id, admin.UserName!, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
         var c = await LoggedIn("eunhye@example.com");
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/jamsil-kids/admin/teams")).StatusCode);
         Assert.DoesNotContain("/admin/teams", await c.GetStringAsync("/jamsil-kids/admin"));

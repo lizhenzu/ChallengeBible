@@ -70,7 +70,7 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
     {
         var a = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         var b = InMemoryDb.SeedTenant(_db, "jamsil-elem", "JSELEM");
-        int Acc(string e) { using var raw = InMemoryDb.Raw(_db); var x = new Account { Email = e + "@example.com", DisplayName = e, PasswordHash = "-" }; raw.Accounts.Add(x); raw.SaveChanges(); return x.Id; }
+        int Acc(string e) { using var raw = InMemoryDb.Raw(_db); var x = new Account { Email = e + "@example.com", DisplayName = e, PasswordHash = "-" }; raw.Users.Add(x); raw.SaveChanges(); return x.Id; }
         var k1 = Acc("k1"); var k2 = Acc("k2"); var k3 = Acc("k3");
         var m1 = InMemoryDb.SeedMembership(_db, a.Id, k1, MembershipStatus.Approved, Roles.Participant);
         InMemoryDb.SeedMembership(_db, b.Id, k1, MembershipStatus.Approved, Roles.Participant);   // 두 부서 소속도 한 사람
@@ -78,14 +78,12 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         InMemoryDb.SeedMembership(_db, b.Id, k3, MembershipStatus.Requested, Roles.Participant);  // 승인 전은 세지 않음
         using (var raw = InMemoryDb.Raw(_db))
         {
-            var p = new Participant { TenantId = a.Id, MembershipId = m1.Id };
-            raw.Participants.Add(p);
             raw.SaveChanges();
-            raw.Activities.Add(new Activity { TenantId = a.Id, ParticipantId = p.Id, MissionItem = "Word.Me", MissionDate = Jan5, Points = 1, PerformedUtc = new DateTime(2027, 1, 4, 23, 0, 0, DateTimeKind.Utc) });
+            raw.MissionActivities.Add(new MissionActivity { TenantId = a.Id, UserName = p.Id, MissionItem = "Word.Me", MissionDate = Jan5, Points = 1, PerformedAt = new DateTime(2027, 1, 4, 23, 0, 0, DateTimeKind.Utc) });
             var at = new DateTime(2027, 1, 4, 23, 30, 0, DateTimeKind.Utc);   // 서울 1월 5일 아침
-            raw.ChapterReads.Add(new ChapterRead { UserName = k1, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = at });   // 미션도 한 k1 — 오늘 한 명으로
-            raw.ChapterReads.Add(new ChapterRead { UserName = k2, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = at });
-            raw.ChapterReads.Add(new ChapterRead { UserName = k2, RoundNo = 1, BookId = 1, Chapter = 2, ReadAt = new DateTime(2026, 12, 30, 0, 0, 0, DateTimeKind.Utc) });   // 지난해
+            raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = k1, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = at });   // 미션도 한 k1 — 오늘 한 명으로
+            raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = k2, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = at });
+            raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = k2, RoundNo = 1, BookId = 1, Chapter = 2, ReadAt = new DateTime(2026, 12, 30, 0, 0, 0, DateTimeKind.Utc) });   // 지난해
             raw.SaveChanges();
         }
         var html = await Page();
