@@ -12,7 +12,10 @@
 <main class="admin gut"><div class="wrap wide">
     <h1>가족팀</h1>
     <p class="lead">가족이 미션 홈에서 직접 팀을 만들고 합류해요. 여기서는 팀을 보고, 문제가 있을 때 이름을 고치거나 구성원을 빼요. 팀 점수는 구성원 시즌 점수의 합이에요.</p>
-    <a class="stg-link" href="/@slug/admin/teams/stages"><span><b>시상 기준</b><small>몇 점을 넘으면 가족을 축하할지 정해요</small></span><span aria-hidden="true">›</span></a>
+    <div class="stg-links">
+        <a class="stg-link" href="/@slug/admin/teams/stages"><span><b>시상 기준</b><small>몇 점을 넘으면 축하할지</small></span><span aria-hidden="true">›</span></a>
+        <a class="stg-link" href="/@slug/admin/teams/awards"><span><b>시상 기록</b><small>선물 줄 차례 · 준 기록</small></span><span aria-hidden="true">›</span></a>
+    </div>
 
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
     @if (Model.Error is not null && Model.ErrorFor is null) { <p class="err" role="alert">@Model.Error</p> }
@@ -81,5 +84,5 @@
             }
         </ul>
     }
-    <p class="note">팀에서 빼도 그 사람의 점수 · 기록은 지워지지 않아요. 마지막 구성원을 빼면 팀이 사라져요. 가족 축하 단계는 플랫폼 기본 규칙에서 정해요.</p>
+    <p class="note">팀에서 빼도 그 사람의 점수 · 기록은 지워지지 않아요. 마지막 구성원을 빼면 팀이 사라져요. 가족 축하 단계는 위 “시상 기준”에서 정해요.</p>
 </div></main>

@@ -268,12 +268,19 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             raw.SaveChanges();
             locked = three.Id;
         }
+        await Save(admin, "/jamsil-kids/admin/teams/awards", "12m-관리-시상기록");
         await Save(admin, "/jamsil-kids/admin/teams/stages", "12k-관리-시상기준-우리");
         await Save(admin, $"/jamsil-kids/admin/teams/stages?Edit={locked}", "12l-관리-시상기준-잠김고치기");
         await Save(kid, "/jamsil-kids", "05b-부서홈-우리가족팀");
         await Save(kid, "/jamsil-kids/family-team", "33a-가족팀-우리");
         await Save(kid, "/jamsil-kids/word-mission", "33b-미션홈-가족팀입구");
         await Save(kid, "/jamsil-kids/ranking?t=team", "11d-순위-가족팀");
+        using (var raw = InMemoryDb.Raw(db))   // 확정 시안 관리-시상기록 ①: 1,500점 "축하 + 보상"을 넘은 팀
+        {
+            raw.MissionActivities.Add(new MissionActivity { TenantId = kids.Id, UserName = mm.UserName, MissionDate = new DateOnly(2027, 1, 4), MissionItem = "Word.Me", Points = 1600, PerformedAt = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        await Save(admin, "/jamsil-kids/admin/teams/awards", "12m2-관리-시상기록-줄차례");
 
         // 진급(시안 예시와 같은 지어낸 이름): 유치부 → 유년부(받은 요청), 유년부 → 초등부(보낸 요청)
         var pre = InMemoryDb.SeedTenant(db, "jamsil-pre", "JSPREE");

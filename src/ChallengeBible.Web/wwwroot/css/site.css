@@ -2145,3 +2145,49 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .stg .prev small { color: var(--dim); font-size: 12.5px; }
 .stg-note { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--soft); font-size: 13.5px; color: var(--dim); }
 .stg-note b { color: var(--fg); }
+.stg-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 380px) { .stg-links { grid-template-columns: 1fr; } }
+
+/* ── 가족팀 시상 기록(R-220, ADR 0092, 확정 시안 관리-시상기록) ── */
+.awd { --award: #B45309; --award-bg: #FFF1D6; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .awd { --award: #F2C063; --award-bg: #2E2614; } }
+.awd-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.awd-stats div { padding: 14px; border-radius: 16px; background: var(--soft); display: flex; flex-direction: column; }
+.awd-stats div.hot { background: var(--award-bg); }
+.awd-stats small { font-size: 12.5px; color: var(--dim); }
+.awd-stats b { font-size: 26px; font-weight: 900; }
+.awd-stats b u { text-decoration: none; font-size: 13px; font-weight: 700; color: var(--dim); margin-left: 2px; }
+.awd-h { margin: 6px 0 0; font-size: 17px; font-weight: 900; display: flex; align-items: baseline; gap: 8px; }
+.awd-h small { font-size: 13px; font-weight: 600; color: var(--dim); }
+.awd-due { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.awd-card { border: 1px solid color-mix(in srgb, var(--award) 45%, var(--rule)); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.awd-card .top { display: flex; gap: 12px; align-items: center; }
+.awd-card .em { flex: none; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 26px; background: var(--award-bg); }
+.awd-card .nm { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; }
+.awd-card .nm b { font-size: 16px; font-weight: 900; }
+.awd-card .nm small { font-size: 13px; color: var(--dim); }
+.awd-card .pts { margin-left: auto; text-align: right; display: flex; flex-direction: column; line-height: 1.3; }
+.awd-card .pts b { font-size: 18px; font-weight: 900; }
+.awd-card .pts small { font-size: 12px; color: var(--dim); }
+.awd-card .stage { display: flex; flex-direction: column; gap: 2px; padding: 9px 12px; border-radius: 10px; background: var(--award-bg); color: var(--award); font-size: 14px; font-weight: 800; }
+.awd-card .stage span { font-size: 13px; font-weight: 600; color: var(--fg); word-break: keep-all; }
+.awd-card .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.awd-card .chips span { font-size: 12.5px; padding: 3px 9px; border-radius: 99px; background: var(--soft); }
+.awd-card form { margin: 0; }
+.awd-card .btn { width: 100%; }
+.awd-log { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 16px; }
+.awd-log li { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-top: 1px solid var(--rule); }
+.awd-log li:first-child { border-top: 0; }
+.awd-log time { flex: none; width: 52px; font-size: 13px; color: var(--dim); }
+.awd-log .w { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+.awd-log .w b { font-size: 14.5px; }
+.awd-log .w small { font-size: 12.5px; color: var(--dim); }
+.awd-log form { margin: 0; }
+.awd-log .btn.t { min-height: 40px; padding: 0 6px; font-size: 13.5px; }
+.awd-dlg { border: 0; border-radius: 18px; padding: 20px; width: min(340px, calc(100vw - 32px)); box-sizing: border-box; background: var(--bg); color: var(--fg); }
+.awd-dlg::backdrop { background: rgba(0, 0, 0, .45); }
+.awd-dlg h3 { margin: 0 0 8px; font-size: 17px; font-weight: 900; }
+.awd-dlg p { margin: 0 0 8px; font-size: 14px; }
+.awd-dlg .lockbox { padding: 10px 12px; border-radius: 10px; background: var(--warn-bg); color: var(--warn); font-size: 13px; font-weight: 700; margin-bottom: 14px; }
+.awd-dlg .row { display: flex; gap: 8px; }
+.awd-dlg .row .btn { flex: 1; }
