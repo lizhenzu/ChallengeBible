@@ -254,6 +254,22 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             teamId = team.Id;
         }
         await Save(admin, $"/jamsil-kids/admin/teams?Open={teamId}", "12i-관리-가족팀");
+        await Save(admin, "/jamsil-kids/admin/teams/stages", "12j-관리-시상기준-기본값");
+        await Save(admin, "/jamsil-kids/admin/teams/stages?Y=2028", "12j2-관리-시상기준-내년");
+        int locked;
+        using (var raw = InMemoryDb.Raw(db))   // 확정 시안 ③ · ④: 우리 부서 기준, 3,000점은 1팀이 받음
+        {
+            var at = DateTime.UtcNow;
+            FamilyMilestoneConfig C(int p, string t, string x, string e, bool on, int o) => new() { TenantId = kids.Id, Year = 2027, PointThreshold = p, MilestoneType = t, DisplayTitle = x, DisplayEmoji = e, IsActive = on, SortOrder = o, CreatedAt = at };
+            var three = C(3000, MilestoneTypes.Award, "3,000점! 가족이 함께 해냈어요", "🎉", true, 2);
+            raw.FamilyMilestoneConfigs.AddRange(C(500, MilestoneTypes.Applause, "500점 돌파, 박수!", "👏", true, 0), C(1500, MilestoneTypes.Award, "1,500점! 가족이 함께 해냈어요", "🎉", true, 1),
+                three, C(5000, MilestoneTypes.Award, "5,000점! 최고의 가족", "🏆", false, 3));
+            raw.TeamAwards.Add(new TeamAward { TenantId = kids.Id, Kind = TeamTypes.Family, AwardKey = "철수네 가족팀", Threshold = 3000, AwardedAt = new DateTime(2027, 1, 4) });
+            raw.SaveChanges();
+            locked = three.Id;
+        }
+        await Save(admin, "/jamsil-kids/admin/teams/stages", "12k-관리-시상기준-우리");
+        await Save(admin, $"/jamsil-kids/admin/teams/stages?Edit={locked}", "12l-관리-시상기준-잠김고치기");
         await Save(kid, "/jamsil-kids", "05b-부서홈-우리가족팀");
         await Save(kid, "/jamsil-kids/family-team", "33a-가족팀-우리");
         await Save(kid, "/jamsil-kids/word-mission", "33b-미션홈-가족팀입구");
