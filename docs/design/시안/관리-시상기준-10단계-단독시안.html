@@ -1,0 +1,109 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>시상 기준 10단계 시안</title>
+<link rel="stylesheet" href="../../../src/ChallengeBible.Web/wwwroot/css/site.css">
+<style>
+  /* 확정 결정: ADR 0093 "정한 것" 5 · 6 · 6-1 · 6-2(1,000점 단위 10단계, 박수 없음, 부서가 단계마다 시상 여부 · 금액, 처음 값 모두 켬 · 5,000원).
+     0091 시안(아무 점수 · 종류 · 문구 · 그림)을 대신한다. 해 고르기(올해 · 내년)는 그대로.
+     ① 처음 값 ② 우리 부서가 고침(받은 단계 표시) ③ 저장할 때 오류 ④ 내년. 상태 바꾸기 띠는 화면 맨 아래 */
+  body { padding-bottom: 80px; }
+  .c10 { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 16px; overflow: hidden; }
+  .c10 li { display: grid; grid-template-columns: 70px 1fr 104px; align-items: center; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--rule); }
+  .c10 li:first-child { border-top: 0; }
+  .c10 li.off { background: var(--soft); }
+  .c10 .pt { font-size: 17px; font-weight: 900; }
+  .c10 .pt small { font-size: 12px; font-weight: 700; margin-left: 1px; }
+  .c10 .mid { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .c10 .given { font-size: 11.5px; font-weight: 800; color: #9A5B00; }
+  .sw { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13.5px; font-weight: 800; }
+  .sw input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .sw i { position: relative; flex: none; width: 42px; height: 24px; border-radius: 99px; background: var(--line); transition: background .15s; }
+  .sw i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: left .15s; }
+  .sw input:checked + i { background: var(--accent); }
+  .sw input:checked + i::after { left: 21px; }
+  .sw input:focus-visible + i { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .sw span { color: var(--dim); white-space: nowrap; }
+  .sw input:checked ~ span { color: var(--fg); }
+  .amt { display: flex; align-items: center; gap: 4px; }
+  .amt input { width: 100%; min-width: 0; height: 40px; padding: 0 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 15px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+  .amt input:disabled { background: transparent; border-style: dashed; color: var(--dim); }
+  .amt input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-bg); }
+  .amt span { font-size: 13px; color: var(--dim); }
+  .c10 .e { grid-column: 1 / -1; margin: -4px 0 0; font-size: 12.5px; font-weight: 700; color: var(--bad); text-align: right; }
+  .sum { display: flex; justify-content: space-between; gap: 8px; padding: 12px 14px; border-radius: 12px; background: var(--soft); font-size: 13.5px; }
+  .sum b { font-variant-numeric: tabular-nums; }
+  .bar { display: flex; gap: 8px; }
+  .bar .btn { flex: 1; }
+  .states { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: #1B1F24; padding: 8px; display: flex; gap: 6px; }
+  .states a { flex: 1; min-height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: #fff; font-size: 12.5px; font-weight: 800; opacity: .7; text-decoration: none; }
+  .states a[aria-current="page"] { background: #fff; color: #1B1F24; opacity: 1; }
+</style>
+
+<header class="admintop gut">
+  <div class="wrap wide hd"><div class="t"><small>잠실새내교회 유년부</small><b><em>도전!!!</em> 관리</b></div><div class="row-t"><a class="back" href="#">부서 홈으로</a></div></div>
+  <nav class="wrap wide tabs" aria-label="관리 메뉴"><a href="#">관리 홈</a><a href="#">소속 관리</a><a href="#" aria-current="page">가족팀</a><a href="#">진급</a><a href="#">콘텐츠</a></nav>
+</header>
+
+<main class="admin gut"><div class="wrap stg">
+  <a class="stg-crumb" href="#">‹ 가족팀</a>
+  <h1>시상 기준</h1>
+  <p class="lead">가족팀 · 친구팀 점수가 1,000점을 넘을 때마다 선물을 고를 수 있어요. 단계마다 선물을 줄지, 얼마짜리까지 고를 수 있는지 정해요.</p>
+
+  <nav class="stg-years" aria-label="해 고르기"><a href="#d" id="y1">올해 <small class="num">2027</small></a><a href="#next" id="y2">내년 <small class="num">2028</small></a></nav>
+
+  <p class="okmsg" id="ok" role="status" hidden></p>
+  <section class="stg-now" id="now"></section>
+
+  <form onsubmit="return false" style="display:flex;flex-direction:column;gap:12px">
+    <ul class="c10" id="rows" aria-label="1,000점 단계"></ul>
+    <div class="sum"><span>선물 주는 단계</span><b id="sumN"></b></div>
+    <p class="err" id="err" role="alert" hidden></p>
+    <div class="bar"><button type="button" class="btn s sm" id="reset">처음 값으로</button><button type="submit" class="btn p sm">저장</button></div>
+  </form>
+
+  <p class="stg-note"><b>알아 두세요.</b> 끈 단계는 점수를 넘어도 선물 고르기 창이 뜨지 않아요. 금액은 그 단계에서 고를 수 있는 선물 한도예요. 이미 선물을 받은 팀이 있는 단계도 켜고 끄거나 금액을 바꿀 수 있어요(앞으로 받는 팀부터 적용). 가족팀과 친구팀은 같은 기준을 써요.</p>
+</div></main>
+
+<nav class="states" aria-label="시안 상태 바꾸기"><a href="#d">① 처음 값</a><a href="#mine">② 우리 부서가 고침</a><a href="#err">③ 저장 오류</a><a href="#next">④ 내년</a></nav>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => Number(n).toLocaleString('ko-KR');
+  const base = () => Array.from({ length: 10 }, (_, i) => ({ p: (i + 1) * 1000, on: true, a: 5000, g: 0 }));
+  function paint(rows, err) {
+    $('rows').innerHTML = rows.map((r, i) => `<li class="${r.on ? '' : 'off'}">
+        <div class="pt num">${fmt(r.p)}<small>점</small></div>
+        <div class="mid"><label class="sw"><input type="checkbox" ${r.on ? 'checked' : ''} aria-label="${fmt(r.p)}점 선물 주기"><i></i><span>${r.on ? '선물 줌' : '선물 없음'}</span></label>${r.g ? `<span class="given">🎁 ${r.g}팀 받음</span>` : ''}</div>
+        <div class="amt"><input type="text" inputmode="numeric" value="${r.on ? (r.bad ?? fmt(r.a)) : '-'}" ${r.on ? '' : 'disabled'} aria-label="${fmt(r.p)}점 선물 금액" aria-invalid="${r.bad ? 'true' : 'false'}"><span>원</span></div>
+        ${r.bad ? '<p class="e">금액은 0 ~ 1,000,000원 숫자로 써 주세요.</p>' : ''}</li>`).join('');
+    const on = rows.filter((r) => r.on);
+    $('sumN').textContent = `${on.length}단계 · 모두 받으면 ${fmt(on.reduce((s, r) => s + (r.bad ? 0 : r.a), 0))}원`;
+    $('err').hidden = !err; $('err').textContent = err || '';
+  }
+  function show() {
+    const s = location.hash.slice(1) || 'd';
+    $('y1').setAttribute('aria-current', s === 'next' ? 'false' : 'page');
+    $('y2').setAttribute('aria-current', s === 'next' ? 'page' : 'false');
+    document.querySelectorAll('.states a').forEach((a) => a.setAttribute('aria-current', a.hash === '#' + s ? 'page' : 'false'));
+    $('ok').hidden = true;
+    if (s === 'd') {
+      $('now').className = 'stg-now';
+      $('now').innerHTML = '<span class="k">2027 · 처음 값을 쓰고 있어요</span><p>아직 우리 부서가 고치지 않았어요. 10단계 모두 선물을 주고, 단계마다 5,000원까지 골라요. 고치고 저장하면 우리 부서 기준이 돼요.</p>';
+      paint(base());
+    } else if (s === 'mine' || s === 'err') {
+      const rows = base();
+      [[1, false], [3, false]].forEach(([i, on]) => rows[i].on = on);
+      rows[0].a = 3000; rows[2].a = 10000; rows[4].a = 10000; rows[9].a = 30000; rows[2].g = 3; rows[0].g = 5;
+      $('now').className = 'stg-now mine';
+      $('now').innerHTML = '<span class="k">2027 · 우리 부서 기준</span><p>8단계에서 선물을 줘요. 2,000 · 4,000점은 선물이 없어요.</p>';
+      if (s === 'mine') { $('ok').textContent = '저장했어요'; $('ok').hidden = false; paint(rows); }
+      else { rows[4].bad = '만원'; paint(rows, '고칠 곳이 있어요. 빨간 칸을 확인해 주세요.'); }
+    } else {
+      $('now').className = 'stg-now';
+      $('now').innerHTML = '<span class="k">2028 · 아직 정하지 않았어요</span><p>정하지 않으면 새해에 처음 값(모두 켬 · 5,000원)을 써요. 미리 정해 두면 새해 첫날부터 우리 부서 기준이 적용돼요.</p>';
+      paint(base());
+    }
+  }
+  $('reset').onclick = () => confirm('처음 값(모두 켬 · 5,000원)으로 되돌릴까요?') && paint(base());
+  addEventListener('hashchange', show); show();
+</script>

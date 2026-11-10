@@ -20,6 +20,13 @@ public sealed record RuleSet
     /// 예전에 저장한 규칙에 없으면 이 기본값을 쓴다.</summary>
     public IReadOnlyList<GrowthStage> GrowthStages { get; init; } = DefaultGrowth;
 
+    /// <summary>가족 · 친구팀 선물 단계(ADR 0093): 이 점수 단위로(1,000점), 이 수만큼(10단계). 부서는 단계마다 켜고 끄기와 금액만 정한다.
+    /// 예전에 저장한 규칙에 없으면 이 기본값을 쓴다.</summary>
+    public int FamilyAwardStep { get; init; } = 1000;
+    public int FamilyAwardSteps { get; init; } = 10;
+    /// <summary>부서가 정하기 전 단계마다의 선물 금액 한도(원).</summary>
+    public int FamilyAwardDefaultAmount { get; init; } = 5000;
+
     public static readonly IReadOnlyList<GrowthStage> DefaultGrowth =
         [new("씨앗", "🌰", 400), new("새싹", "🌱", 900), new("나무", "🌿", 1300), new("숲", "🌲", 1700)];
 

@@ -293,6 +293,8 @@ public sealed class FamilyMilestoneConfig : ITenantOwned
     public bool IsActive { get; set; } = true;
     public int SortOrder { get; set; }
     public DateTime CreatedAt { get; set; }
+    /// <summary>이 단계에서 고를 수 있는 선물 금액 한도(원, ADR 0093). 비면 규칙의 기본 금액.</summary>
+    public int? GiftAmount { get; set; }
 }
 
 public sealed class FamilyMilestoneHidden : ITenantOwned

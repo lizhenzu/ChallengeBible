@@ -13,10 +13,11 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ChallengeBible.Tests.Web;
 
-/// <summary>부서 시상 기준(R-219, ADR 0091). 오늘 = 2027-01-05(서울) → 올해 2027, 내년 2028.</summary>
+/// <summary>부서 시상 기준(R-219, ADR 0093): 1,000점 단위 10단계마다 선물 켜기 · 금액. 오늘 = 2027-01-05(서울) → 올해 2027, 내년 2028.</summary>
 public partial class FamilyStageTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private static readonly DateOnly Jan5 = new(2027, 1, 5);
+    private static readonly int[] Ten = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000];
     private readonly WebApplicationFactory<Program> _app;
     private readonly string _db = InMemoryDb.NewName();
     private readonly FixedTime _time = FixedTime.SeoulMorning();
@@ -52,114 +53,87 @@ public partial class FamilyStageTests : IClassFixture<WebApplicationFactory<Prog
         return new FamilyStageService(new InMemoryDb(_db, scope), tc, new TenantClock(_time), InMemoryDb.Rules(_db));
     }
 
-    private int IdOf(int year, int points)
-    {
-        using var raw = InMemoryDb.Raw(_db);
-        return raw.FamilyMilestoneConfigs.Single(c => c.TenantId == _kids.Id && c.Year == year && c.PointThreshold == points).Id;
-    }
-
-    private void Award(int points, DateTime at)
-    {
-        using var raw = InMemoryDb.Raw(_db);
-        raw.TeamAwards.Add(new TeamAward { TenantId = _kids.Id, Kind = TeamTypes.Family, AwardKey = "철수네", Threshold = points, AwardedAt = at });
-        raw.SaveChanges();
-    }
+    private static bool[] On(params int[] off) => Ten.Select(p => !off.Contains(p)).ToArray();
+    private static string?[] Amounts(params (int Points, string Amount)[] set) => Ten.Select(p => set.FirstOrDefault(x => x.Points == p).Amount ?? "5,000").ToArray();
 
     [Fact]
-    public async Task R219_정하지_않으면_기본값이고_정하기는_복사_되돌리기는_지운다()
+    public async Task R219_정하지_않으면_10단계_모두_켬_5000원이다()
     {
-        var svc = In(_kids);
-        var b = await svc.GetAsync(null);
+        var b = await In(_kids).GetAsync(null);
         Assert.True(b.Enabled);
-        Assert.Equal((2027, 2027, false), (b.ThisYear, b.Year, b.Own));
-        Assert.Equal([1000, 2000, 3000, 4000, 5000], b.Rows.Select(r => r.Points));
-        Assert.All(b.Rows, r => Assert.Null(r.Id));                        // 기본값은 읽기만
+        Assert.Equal((2027, 2027, false, 5000), (b.ThisYear, b.Year, b.Own, b.DefaultAmount));
+        Assert.Equal(Ten, b.Rows.Select(r => r.Points));
+        Assert.All(b.Rows, r => Assert.Equal((true, 5000), (r.On, r.Amount)));
+        Assert.Equal((10, 50000), (b.OnCount, b.OnTotal));
+        Assert.Equal(1000, RuleSet.Default.FamilyAwardStep);   // 단위 · 단계 수 · 처음 금액은 규칙에서 읽는다
+    }
 
-        Assert.Equal(StageError.NotOwn, await svc.AddAsync(2027, 600, MilestoneTypes.Award, "육백", "🎉"));
-        Assert.Equal(StageError.None, await svc.OwnAsync(2027));
-        b = await svc.GetAsync(2027);
+    [Fact]
+    public async Task R219_저장하면_우리_부서_기준이_되고_끈_단계는_빠진다()
+    {
+        var svc = In(_kids);
+        Assert.Equal(StageError.None, (await svc.SaveAsync(2027, On(2000, 4000), Amounts((1000, "3,000"), (3000, "10000"), (10000, "30,000원")))).Error);
+        var b = await svc.GetAsync(2027);
         Assert.True(b.Own);
-        Assert.Equal(RuleSet.Default.FamilyMilestones.Select(m => (m.Points, m.Message)), b.Rows.Select(r => (r.Points, r.Title)));
-        Assert.Equal([MilestoneTypes.Award, MilestoneTypes.Applause], b.Rows.Take(2).Select(r => r.Type));
-        Assert.Equal(StageError.AlreadyOwn, await svc.OwnAsync(2027));
+        Assert.Equal(On(2000, 4000), b.Rows.Select(r => r.On));
+        Assert.Equal([3000, 5000, 10000, 5000, 5000, 5000, 5000, 5000, 5000, 30000], b.Rows.Select(r => r.Amount));
+        Assert.Equal(8, b.OnCount);
+        using (var raw = InMemoryDb.Raw(_db))
+            Assert.All(raw.FamilyMilestoneConfigs.Where(c => c.TenantId == _kids.Id), c => Assert.Equal(MilestoneTypes.Award, c.MilestoneType));   // 박수 단계는 없다
 
-        Assert.False((await svc.GetAsync(2028)).Own);                       // 내년은 따로
-        Assert.Equal(StageError.BadYear, await svc.OwnAsync(2026));         // 올해와 내년만
-        Assert.Equal(StageError.BadYear, await svc.OwnAsync(2029));
-        Assert.False((await In(_elem).GetAsync(2027)).Own);                 // 다른 부서는 그대로
+        // 다시 저장하면 줄을 고친다(늘어나지 않는다)
+        await svc.SaveAsync(2027, On(), Amounts());
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(10, raw.FamilyMilestoneConfigs.Count(c => c.TenantId == _kids.Id && c.Year == 2027));
+        Assert.Equal(10, (await svc.GetAsync(2027)).OnCount);
+    }
 
-        Assert.Equal(StageError.None, await svc.ResetAsync(2027));
+    [Fact]
+    public async Task R219_금액은_0에서_100만원_숫자만이고_틀리면_아무것도_저장하지_않는다()
+    {
+        var svc = In(_kids);
+        var (e, bad) = await svc.SaveAsync(2027, On(), Amounts((1000, "만원"), (3000, "1000001"), (5000, "-1")));
+        Assert.Equal(StageError.BadAmount, e);
+        Assert.Equal([0, 2, 4], bad);
         Assert.False((await svc.GetAsync(2027)).Own);
-        Assert.Equal(StageError.NotOwn, await svc.ResetAsync(2027));
+
+        // 끈 단계의 금액은 비거나 틀려도 된다(처음 금액을 남긴다)
+        Assert.Equal(StageError.None, (await svc.SaveAsync(2027, On(2000), Amounts((2000, "")))).Error);
+        Assert.Equal(5000, (await svc.GetAsync(2027)).Rows[1].Amount);
+        Assert.Equal(StageError.None, (await svc.SaveAsync(2027, On(), Amounts((1000, "0")))).Error);   // 0원도 된다
+        Assert.Equal(StageError.BadForm, (await svc.SaveAsync(2027, [true, true], ["1", "2"])).Error);
     }
 
     [Fact]
-    public async Task R219_더하기와_고치기는_점수_문구_그림을_검사하고_같은_점수를_막는다()
+    public async Task R219_올해와_내년만이고_부서마다_따로다()
     {
         var svc = In(_kids);
-        await svc.OwnAsync(2027);
-        Assert.Equal(StageError.Duplicate, await svc.AddAsync(2027, 1000, MilestoneTypes.Award, "또", "🎉"));
-        Assert.Equal(StageError.BadPoints, await svc.AddAsync(2027, 0, MilestoneTypes.Award, "영", "🎉"));
-        Assert.Equal(StageError.BadPoints, await svc.AddAsync(2027, 100_001, MilestoneTypes.Award, "많이", "🎉"));
-        Assert.Equal(StageError.BadType, await svc.AddAsync(2027, 600, "BIG", "육백", "🎉"));
-        Assert.Equal(StageError.BadTitle, await svc.AddAsync(2027, 600, MilestoneTypes.Award, "  ", "🎉"));
-        Assert.Equal(StageError.BadTitle, await svc.AddAsync(2027, 600, MilestoneTypes.Award, new string('가', 51), "🎉"));
-        Assert.Equal(StageError.BadEmoji, await svc.AddAsync(2027, 600, MilestoneTypes.Award, "육백", ""));
-        Assert.Equal(StageError.BadEmoji, await svc.AddAsync(2027, 600, MilestoneTypes.Award, "육백", "123456789"));
-        Assert.Equal(StageError.None, await svc.AddAsync(2027, 600, MilestoneTypes.Applause, " 육백 돌파 ", "👏"));
-        var six = (await svc.GetAsync(2027)).Rows.Single(r => r.Points == 600);
-        Assert.Equal(("육백 돌파", MilestoneTypes.Applause, true), (six.Title, six.Type, six.On));
-
-        var id = IdOf(2027, 600);
-        Assert.Equal(StageError.Duplicate, await svc.UpdateAsync(2027, id, 2000, MilestoneTypes.Award, "이천", "🎉"));
-        Assert.Equal(StageError.None, await svc.UpdateAsync(2027, id, 1500, MilestoneTypes.Award, "천오백", "🏆"));
-        Assert.Equal([1000, 1500, 2000, 3000, 4000, 5000], (await svc.GetAsync(2027)).Rows.Select(r => r.Points));
-        Assert.Equal(StageError.NotFound, await svc.UpdateAsync(2027, 99999, 700, MilestoneTypes.Award, "칠백", "🎉"));
+        Assert.Equal(StageError.BadYear, (await svc.SaveAsync(2026, On(), Amounts())).Error);
+        Assert.Equal(StageError.BadYear, (await svc.SaveAsync(2029, On(), Amounts())).Error);
+        Assert.Equal(StageError.None, (await svc.SaveAsync(2028, On(1000), Amounts())).Error);
+        Assert.False((await svc.GetAsync(2027)).Own);
+        Assert.True((await svc.GetAsync(2028)).Own);
+        Assert.Equal(2027, (await svc.GetAsync(1999)).Year);   // 고를 수 없는 해는 올해로
+        Assert.False((await In(_elem).GetAsync(2028)).Own);
     }
 
     [Fact]
-    public async Task R219_켜진_단계는_하나_이상이어야_한다()
+    public async Task R219_받은_팀_수를_보여_주고_받은_단계도_끄거나_금액을_바꿀_수_있다()
     {
-        var svc = In(_kids);
-        await svc.OwnAsync(2027);
-        foreach (var p in new[] { 1000, 2000, 3000, 4000 }) Assert.Equal(StageError.None, await svc.ToggleAsync(2027, IdOf(2027, p), false));
-        var last = IdOf(2027, 5000);
-        Assert.Equal(StageError.LastOn, await svc.ToggleAsync(2027, last, false));
-        Assert.Equal(StageError.LastOn, await svc.DeleteAsync(2027, last));
-        Assert.Equal(StageError.None, await svc.DeleteAsync(2027, IdOf(2027, 1000)));   // 꺼진 단계는 지울 수 있다
-        Assert.Equal(1, (await svc.GetAsync(2027)).OnCount);
-        Assert.Equal(StageError.None, await svc.ToggleAsync(2027, IdOf(2027, 2000), true));
-        Assert.Equal(StageError.None, await svc.ToggleAsync(2027, last, false));
-    }
-
-    [Fact]
-    public async Task R219_그해_받은_단계는_점수를_바꾸거나_지우거나_되돌릴_수_없다()
-    {
-        var svc = In(_kids);
-        await svc.OwnAsync(2027);
-        Award(3000, new DateTime(2026, 12, 20));   // 지난해 시상은 올해 기준을 잠그지 않는다
-        Assert.DoesNotContain((await svc.GetAsync(2027)).Rows, r => r.Locked);
-
-        Award(3000, new DateTime(2027, 1, 4));
-        var row = (await svc.GetAsync(2027)).Rows.Single(r => r.Points == 3000);
-        Assert.Equal((true, 1), (row.Locked, row.Given));
-        var id = row.Id!.Value;
-        Assert.Equal(StageError.Locked, await svc.UpdateAsync(2027, id, 3500, MilestoneTypes.Award, "삼천오백", "🎉"));
-        Assert.Equal(StageError.None, await svc.UpdateAsync(2027, id, 3000, MilestoneTypes.Applause, "삼천! 박수", "👏"));   // 문구 · 그림 · 종류는 된다
-        Assert.Equal(StageError.Locked, await svc.DeleteAsync(2027, id));
-        Assert.Equal(StageError.Locked, await svc.ResetAsync(2027));
-        Assert.Equal(StageError.None, await svc.ToggleAsync(2027, id, false));                                         // 끄기는 된다
-
-        using (var raw = InMemoryDb.Raw(_db))   // 숨김 기록이 있는 단계도 잠긴다
+        using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.FamilyMilestonesHidden.Add(new FamilyMilestoneHidden { TenantId = _kids.Id, MilestoneConfigId = IdOf(2027, 1000), FamilyTeamId = 1, HiddenAt = DateTime.UtcNow });
+            raw.TeamAwards.Add(new TeamAward { TenantId = _kids.Id, Kind = TeamTypes.Family, AwardKey = "철수네", Threshold = 3000, AwardedAt = new DateTime(2027, 1, 4) });
+            raw.TeamAwards.Add(new TeamAward { TenantId = _kids.Id, Kind = TeamTypes.Friend, AwardKey = "단짝", Threshold = 3000, AwardedAt = new DateTime(2027, 1, 4) });
+            raw.TeamAwards.Add(new TeamAward { TenantId = _kids.Id, Kind = TeamTypes.Family, AwardKey = "하늘네", Threshold = 3000, AwardedAt = new DateTime(2026, 5, 1) });   // 지난해
             raw.SaveChanges();
         }
-        Assert.Equal(StageError.Locked, await svc.DeleteAsync(2027, IdOf(2027, 1000)));
+        var svc = In(_kids);
+        Assert.Equal(2, (await svc.GetAsync(2027)).Rows[2].Given);
+        Assert.Equal(StageError.None, (await svc.SaveAsync(2027, On(3000), Amounts((3000, "1,000")))).Error);
+        Assert.False((await svc.GetAsync(2027)).Rows[2].On);
     }
 
     [Fact]
-    public async Task R219_우리_부서_기준이_가족팀_축하_단계로_쓰인다()
+    public async Task R219_부서_기준이_가족팀_축하_단계로_쓰인다()
     {
         var kid = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수");
         var m = InMemoryDb.SeedMembership(_db, _kids.Id, kid.UserName!, MembershipStatus.Approved, Roles.Participant);
@@ -168,20 +142,23 @@ public partial class FamilyStageTests : IClassFixture<WebApplicationFactory<Prog
             var t = new FamilyTeam { TenantId = _kids.Id, Name = "철수네", InsertDT = DateTime.UtcNow, UpdateDT = DateTime.UtcNow };
             t.Members.Add(new FamilyMember { TenantId = _kids.Id, UserName = m.UserName, Relation = FamilyRelation.Student });
             raw.FamilyTeams.Add(t);
-            raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = m.UserName, MissionDate = new DateOnly(2027, 1, 3), MissionItem = "Word.Me", Points = 700, PerformedAt = DateTime.UtcNow });
+            raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = m.UserName, MissionDate = new DateOnly(2027, 1, 3), MissionItem = "Word.Me", Points = 1500, PerformedAt = DateTime.UtcNow });
             raw.SaveChanges();
         }
-        var svc = In(_kids);
-        await svc.OwnAsync(2027);
-        await svc.AddAsync(2027, 500, MilestoneTypes.Applause, "오백 돌파", "👏");
-        await svc.ToggleAsync(2027, IdOf(2027, 2000), false);
+        FamilyTeamService Teams()
+        {
+            var (scope, tc) = Ctx(_kids, m);
+            return new FamilyTeamService(new InMemoryDb(_db, scope), scope, tc, new TenantClock(_time), InMemoryDb.Rules(_db));
+        }
+        var home = await Teams().MyFamilyAsync();
+        Assert.Equal(Ten, home!.Stages.Select(s => s.Points));
+        Assert.All(home.Stages, s => Assert.Equal(FamilyMilestoneKind.Award, s.Kind));
+        Assert.Equal(2000, home.NextStage);
 
-        var (scope, tc) = Ctx(_kids, m);
-        var home = await new FamilyTeamService(new InMemoryDb(_db, scope), scope, tc, new TenantClock(_time), InMemoryDb.Rules(_db)).MyFamilyAsync();
-        Assert.Equal([500, 1000, 3000, 4000, 5000], home!.Stages.Select(s => s.Points));   // 꺼진 2,000 은 빠진다
-        Assert.Equal([true, false, false, false, false], home.Stages.Select(s => s.On));
-        Assert.Equal("오백 돌파", home.Stages[0].Message);
-        Assert.Equal(1000, home.NextStage);
+        await In(_kids).SaveAsync(2027, On(2000, 3000), Amounts());
+        home = await Teams().MyFamilyAsync();
+        Assert.Equal([1000, 4000, 5000, 6000, 7000, 8000, 9000, 10000], home!.Stages.Select(s => s.Points));
+        Assert.Equal(4000, home.NextStage);   // 끈 단계는 건너뛴다
     }
 
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
@@ -204,43 +181,41 @@ public partial class FamilyStageTests : IClassFixture<WebApplicationFactory<Prog
         return c;
     }
 
-    private static Task<HttpResponseMessage> Post(HttpClient c, string page, string handler, Dictionary<string, string> form)
-    {
-        form["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value;
-        return c.PostAsync("/jamsil-kids/admin/teams/stages?handler=" + handler, new FormUrlEncodedContent(form));
-    }
-
     [Fact]
-    public async Task R219_화면_흐름_관리자가_정하고_더하고_참여자는_못_본다()
+    public async Task R219_화면_흐름_관리자가_저장하고_참여자는_못_본다()
     {
         var admin = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜");
         InMemoryDb.SeedMembership(_db, _kids.Id, admin.UserName!, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
         var c = await LoggedIn("eunhye@example.com");
 
-        Assert.Contains("href=\"/jamsil-kids/admin/teams/stages\"", await c.GetStringAsync("/jamsil-kids/admin/teams"));   // 가족팀 화면의 "시상 기준"
+        Assert.Contains("href=\"/jamsil-kids/admin/teams/stages\"", await c.GetStringAsync("/jamsil-kids/admin/teams"));
         var page = await c.GetStringAsync("/jamsil-kids/admin/teams/stages");
-        Assert.Contains("기본값을 쓰고 있어요", page);
-        Assert.Contains("aria-current=\"page\">가족팀", page);   // 관리 메뉴는 가족팀
+        Assert.Contains("처음 값을 쓰고 있어요", page);
+        Assert.Contains("aria-current=\"page\">가족팀", page);
+        Assert.Equal(10, Regex.Matches(page, "name=\"amount\"").Count);
 
-        var own = await Post(c, page, "Own", new() { ["year"] = "2027" });
-        Assert.Equal(HttpStatusCode.Redirect, own.StatusCode);
-        page = await c.GetStringAsync(own.Headers.Location!.OriginalString);
-        Assert.Contains("우리 부서 기준", page);
-        Assert.Contains("기본값을 복사했어요", page);
+        var form = new List<KeyValuePair<string, string>> { new("__RequestVerificationToken", TokenRx().Match(page).Groups[1].Value), new("year", "2027") };
+        for (var i = 0; i < 10; i++)
+        {
+            if (i != 1) form.Add(new("on", i.ToString()));
+            form.Add(new("amount", i == 4 ? "만원" : "5,000"));
+        }
+        var bad = await c.PostAsync("/jamsil-kids/admin/teams/stages", new FormUrlEncodedContent(form));
+        Assert.Equal(HttpStatusCode.OK, bad.StatusCode);
+        var badHtml = await bad.Content.ReadAsStringAsync();
+        Assert.Contains("빨간 칸을 확인해 주세요", badHtml);
+        Assert.Contains("value=\"만원\"", badHtml);
 
-        var dup = await Post(c, page, "Add", new() { ["year"] = "2027", ["APoints"] = "3000", ["AType"] = MilestoneTypes.Award, ["ATitle"] = "또 삼천", ["AEmoji"] = "🎉" });
-        Assert.Equal(HttpStatusCode.OK, dup.StatusCode);
-        var dupHtml = await dup.Content.ReadAsStringAsync();
-        Assert.Contains("같은 점수의 단계가 이미 있어요", dupHtml);
-        Assert.Contains("value=\"또 삼천\"", dupHtml);   // 쓴 값은 그대로
+        form[form.FindIndex(x => x.Key == "amount" && x.Value == "만원")] = new("amount", "10,000");
+        var ok = await c.PostAsync("/jamsil-kids/admin/teams/stages", new FormUrlEncodedContent(form));
+        Assert.Equal(HttpStatusCode.Redirect, ok.StatusCode);
+        page = await c.GetStringAsync(ok.Headers.Location!.OriginalString);
+        Assert.Contains("저장했어요", page);
+        Assert.Contains("9단계에서 선물을 줘요. 2,000점은 선물이 없어요.", page);
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(10000, raw.FamilyMilestoneConfigs.Single(x => x.PointThreshold == 5000).GiftAmount);
 
-        var add = await Post(c, page, "Add", new() { ["year"] = "2027", ["APoints"] = "6000", ["AType"] = MilestoneTypes.Award, ["ATitle"] = "6,000점! 대단해요", ["AEmoji"] = "🏅" });
-        Assert.Equal(HttpStatusCode.Redirect, add.StatusCode);
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(6, raw.FamilyMilestoneConfigs.Count(x => x.TenantId == _kids.Id && x.Year == 2027));
-
-        var next = await c.GetStringAsync("/jamsil-kids/admin/teams/stages?Y=2028");
-        Assert.Contains("2028 · 아직 정하지 않았어요", next);
-        Assert.Contains("2027 · 우리 부서 기준", await c.GetStringAsync("/jamsil-kids/admin/teams/stages?Y=1999"));   // 고를 수 없는 해는 올해로
+        Assert.Equal(10, Regex.Matches(await c.GetStringAsync("/jamsil-kids/admin/teams/stages?D=true"), "value=\"5,000\"").Count);   // 처음 값으로(저장 안 함)
+        Assert.Contains("2028 · 아직 정하지 않았어요", await c.GetStringAsync("/jamsil-kids/admin/teams/stages?Y=2028"));
 
         var kid = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수");
         InMemoryDb.SeedMembership(_db, _kids.Id, kid.UserName!, MembershipStatus.Approved, Roles.Participant);
@@ -258,8 +233,7 @@ public partial class FamilyStageTests : IClassFixture<WebApplicationFactory<Prog
             raw.SaveChanges();
         }
         Assert.False((await In(_kids).GetAsync(null)).Enabled);
-        Assert.Equal(StageError.Disabled, await In(_kids).OwnAsync(2027));
-
+        Assert.Equal(StageError.Disabled, (await In(_kids).SaveAsync(2027, On(), Amounts())).Error);
         var admin = InMemoryDb.SeedAccount(_db, "eunhye@example.com", "이은혜");
         InMemoryDb.SeedMembership(_db, _kids.Id, admin.UserName!, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
         var c = await LoggedIn("eunhye@example.com");

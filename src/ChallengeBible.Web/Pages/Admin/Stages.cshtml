@@ -1,21 +1,17 @@
 @page "/{slug}/admin/teams/stages"
 @model ChallengeBible.Web.Pages.Admin.StagesModel
-@using ChallengeBible.Infrastructure.Data
-@using ChallengeBible.Web.Services
-@* 부서 시상 기준(R-219, ADR 0091) — 확정 시안 관리-시상기준: 해 고르기 → 지금 쓰는 기준 띠 → 단계 목록 → 단계 더하기 → 안내 *@
+@* 부서 시상 기준(R-219, ADR 0093) — 확정 시안 관리-시상기준-10단계: 해 고르기 → 지금 쓰는 기준 띠 → 10단계(선물 켜기 · 금액) → 합계 · 저장 → 안내 *@
 @{
     var slug = Model.Tenant.Current.Slug;
     var b = Model.Board;
     var self = $"/{slug}/admin/teams/stages";
-    string Kind(string t) => t == MilestoneTypes.Award ? "축하 + 보상" : "박수만";
-    string Err(int key) => Model.Error is not null && Model.ErrorFor == key ? Model.Error : "";
-    var addType = Model.AType ?? MilestoneTypes.Award;
+    var yq = b.Year == b.ThisYear ? "" : $"?Y={b.Year}";
 }
 <partial name="_AdminTop" model="Model.Tenant" />
 <main class="admin gut"><div class="wrap stg">
     <a class="stg-crumb" href="/@slug/admin/teams">‹ 가족팀</a>
     <h1>시상 기준</h1>
-    <p class="lead">가족팀 점수가 이 점수를 넘으면 가족에게 축하 카드가 떠요. 점수가 얼마일 때 축하할지 해마다 정해요.</p>
+    <p class="lead">가족팀 · 친구팀 점수가 @b.Rows.FirstOrDefault()?.Points.ToString("N0")점을 넘을 때마다 선물을 고를 수 있어요. 단계마다 선물을 줄지, 얼마짜리까지 고를 수 있는지 정해요.</p>
 
     <nav class="stg-years" aria-label="해 고르기">
         <a href="@self" aria-current="@(b.Year == b.ThisYear ? "page" : "false")">올해 <small class="num">@b.ThisYear</small></a>
@@ -24,123 +20,66 @@
 
     @if (!string.IsNullOrEmpty(Model.OkMessage) && Model.Error is null) { <p class="okmsg" role="status">@Model.OkMessage</p> }
 
-    <section class="stg-now @(b.Own ? "mine" : "")" aria-live="polite">
+    <section class="stg-now @(b.Own ? "mine" : "")">
         @if (b.Own)
         {
+            var off = b.Rows.Where(r => !r.On).Select(r => r.Points.ToString("N0")).ToList();
             <span class="k">@b.Year · 우리 부서 기준</span>
-            <p>@(b.OnCount)단계가 켜져 있어요. 켜진 단계만 가족에게 보여요.</p>
-            <form method="post" asp-page-handler="Reset" asp-route-slug="@slug" class="acts">
-                <input type="hidden" name="year" value="@b.Year" />
-                <button type="submit" class="btn s sm" data-confirm="우리 부서 기준을 지우고 기본값으로 돌아갈까요?">기본값으로 되돌리기</button>
-            </form>
+            <p>@(b.OnCount)단계에서 선물을 줘요.@(off.Count > 0 ? $" {string.Join(" · ", off)}점은 선물이 없어요." : "")</p>
         }
         else if (b.Year != b.ThisYear)
         {
             <span class="k">@b.Year · 아직 정하지 않았어요</span>
-            <p>내년 기준을 정하지 않으면 새해가 되었을 때 <b>기본값</b>을 써요. 미리 정해 두면 새해 첫날부터 우리 부서 기준이 적용돼요.</p>
-            <form method="post" asp-page-handler="Own" asp-route-slug="@slug" class="acts"><input type="hidden" name="year" value="@b.Year" /><button type="submit" class="btn p sm">기본값에서 시작해 정하기</button></form>
+            <p>정하지 않으면 새해에 처음 값(모두 켬 · @(b.DefaultAmount.ToString("N0"))원)을 써요. 미리 정해 두면 새해 첫날부터 우리 부서 기준이 적용돼요.</p>
         }
         else
         {
-            <span class="k">@b.Year · 기본값을 쓰고 있어요</span>
-            <p>우리 부서만의 기준을 정하지 않아서 모든 부서가 같이 쓰는 기본 기준이에요. 아래 @(b.Rows.Count)단계가 그것이에요.</p>
-            <form method="post" asp-page-handler="Own" asp-route-slug="@slug" class="acts"><input type="hidden" name="year" value="@b.Year" /><button type="submit" class="btn p sm">우리 부서 기준으로 정하기</button></form>
+            <span class="k">@b.Year · 처음 값을 쓰고 있어요</span>
+            <p>아직 우리 부서가 고치지 않았어요. @(b.Rows.Count)단계 모두 선물을 주고, 단계마다 @(b.DefaultAmount.ToString("N0"))원까지 골라요. 고치고 저장하면 우리 부서 기준이 돼요.</p>
         }
-        @if (Err(0) is { Length: > 0 } e0) { <p class="err" role="alert">@e0</p> }
     </section>
 
-    @if (b.Own || b.Year == b.ThisYear)
-    {
-        <ul class="stg-list" aria-label="시상 단계">
-            @foreach (var r in b.Rows)
+    <form method="post" asp-route-slug="@slug" class="stg-form">
+        <input type="hidden" name="year" value="@b.Year" />
+        <ul class="c10" aria-label="선물 단계">
+            @for (var i = 0; i < b.Rows.Count; i++)
             {
-                var editing = b.Own && Model.Edit == r.Id;
-                <li class="stg-row @(r.On ? "" : "off")" data-type="@r.Type">
-                    <div class="top"><span class="em" aria-hidden="true">@r.Emoji</span><div class="pt num">@r.Points.ToString("N0")<small>점</small></div><span class="tp">@Kind(r.Type)</span></div>
-                    <p class="msg">@r.Title</p>
-                    @if (r.Locked)
-                    {
-                        <div class="lock" role="note">🔒 <span>@(r.Given > 0 ? $"{r.Given}팀이 이미 받았어요." : "이미 가족이 받은 단계예요.") 점수는 못 바꾸고 지울 수도 없어요. 문구 · 그림은 바꿀 수 있어요.</span></div>
-                    }
-                    @if (b.Own && r.Id is int id)
-                    {
-                        <div class="bar">
-                            <form method="post" asp-page-handler="Toggle" asp-route-slug="@slug">
-                                <input type="hidden" name="year" value="@b.Year" /><input type="hidden" name="id" value="@id" /><input type="hidden" name="on" value="@(r.On ? "false" : "true")" />
-                                <button type="submit" class="stg-sw" aria-pressed="@(r.On ? "true" : "false")"><span aria-hidden="true">@(r.On ? "☑" : "☐")</span> @(r.On ? "켜짐" : "꺼짐")</button>
-                            </form>
-                            <span class="sp"></span>
-                            <a class="btn s sm" href="@self?Y=@b.Year@(editing ? "" : $"&Edit={id}")#s@(id)" aria-expanded="@(editing ? "true" : "false")">@(editing ? "닫기" : "고치기")</a>
-                            @if (!r.Locked)
-                            {
-                                <form method="post" asp-page-handler="Delete" asp-route-slug="@slug"><input type="hidden" name="year" value="@b.Year" /><input type="hidden" name="id" value="@id" /><button type="submit" class="btn d sm" data-confirm="@(r.Points.ToString("N0"))점 단계를 지울까요?">지우기</button></form>
-                            }
-                        </div>
-                        @if (Err(id) is { Length: > 0 } ei) { <p class="err" role="alert">@ei</p> }
-                        @if (editing)
-                        {
-                            <form method="post" asp-page-handler="Save" asp-route-slug="@slug" class="edit" id="s@(id)">
-                                <input type="hidden" name="year" value="@b.Year" /><input type="hidden" name="id" value="@id" />
-                                <div class="fld"><label for="ePt@(id)">점수</label>
-                                    @if (r.Locked) { <input type="hidden" name="points" value="@r.Points" /><input class="in sm" id="ePt@(id)" type="number" value="@r.Points" disabled /><small>이미 받은 단계라 점수는 못 바꿔요</small> }
-                                    else { <input class="in sm" id="ePt@(id)" name="points" type="number" inputmode="numeric" min="1" max="@FamilyStageService.MaxPoints" value="@r.Points" required /> }
-                                </div>
-                                <fieldset class="fld"><legend>축하 종류</legend><div class="kinds">
-                                    <label><input type="radio" name="type" value="@MilestoneTypes.Award" checked="@(r.Type == MilestoneTypes.Award)" />축하 + 보상<small>선물을 받는 단계</small></label>
-                                    <label><input type="radio" name="type" value="@MilestoneTypes.Applause" checked="@(r.Type == MilestoneTypes.Applause)" />박수만<small>칭찬만 하는 단계</small></label>
-                                </div></fieldset>
-                                <div class="two">
-                                    <div class="fld"><label for="eTx@(id)">축하 문구</label><input class="in sm" id="eTx@(id)" name="title" maxlength="@FamilyStageService.MaxTitle" value="@r.Title" required /></div>
-                                    <div class="fld"><label for="eEm@(id)">그림</label><input class="in sm" id="eEm@(id)" name="emoji" maxlength="@FamilyStageService.MaxEmoji" value="@r.Emoji" required /></div>
-                                </div>
-                                <button type="submit" class="btn p sm">저장</button>
-                            </form>
-                        }
-                    }
+                var r = b.Rows[i];
+                var f = Model.Form[i];
+                var bad = Model.Bad.Contains(i);
+                <li class="@(f.On ? "" : "off")" data-c10>
+                    <div class="pt num">@r.Points.ToString("N0")<small>점</small></div>
+                    <div class="mid">
+                        <label class="sw"><input type="checkbox" name="on" value="@i" checked="@f.On" aria-label="@(r.Points.ToString("N0"))점 선물 주기" /><i></i><span data-on="선물 줌" data-off="선물 없음">@(f.On ? "선물 줌" : "선물 없음")</span></label>
+                        @if (r.Given > 0) { <span class="given">🎁 @(r.Given)팀 받음</span> }
+                    </div>
+                    <div class="amt"><input type="text" name="amount" inputmode="numeric" value="@f.Amount" maxlength="12" aria-label="@(r.Points.ToString("N0"))점 선물 금액" aria-invalid="@(bad ? "true" : "false")" /><span>원</span></div>
+                    @if (bad) { <p class="e">금액은 0 ~ @FamilyStageService.MaxAmount.ToString("N0")원 숫자로 써 주세요.</p> }
                 </li>
             }
         </ul>
-    }
+        <div class="c10-sum"><span>선물 주는 단계</span><b class="num" data-c10-sum>@Model.Form.Count(x => x.On)단계</b></div>
+        @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+        <div class="c10-bar"><a class="btn s sm" href="@self?D=true@(b.Year == b.ThisYear ? "" : $"&Y={b.Year}")">처음 값으로</a><button type="submit" class="btn p sm">저장</button></div>
+    </form>
 
-    @if (b.Own)
-    {
-        <form method="post" asp-page-handler="Add" asp-route-slug="@slug" class="stg-card" aria-labelledby="hAdd">
-            <input type="hidden" name="year" value="@b.Year" />
-            <h2 id="hAdd">단계 더하기 <small>점수는 겹치면 안 돼요</small></h2>
-            <div class="fld"><label for="aPt">넘으면 축하할 점수</label>
-                <input class="in sm" id="aPt" name="APoints" type="number" inputmode="numeric" min="1" max="@FamilyStageService.MaxPoints" value="@Model.APoints" placeholder="예: 6000" autocomplete="off" aria-invalid="@(Err(-1).Length > 0 ? "true" : "false")" required />
-                <small>1 ~ @FamilyStageService.MaxPoints.ToString("N0")점</small></div>
-            <fieldset class="fld"><legend>축하 종류</legend><div class="kinds">
-                <label><input type="radio" name="AType" value="@MilestoneTypes.Award" checked="@(addType == MilestoneTypes.Award)" />축하 + 보상<small>선물을 받는 단계</small></label>
-                <label><input type="radio" name="AType" value="@MilestoneTypes.Applause" checked="@(addType == MilestoneTypes.Applause)" />박수만<small>칭찬만 하는 단계</small></label>
-            </div></fieldset>
-            <div class="two">
-                <div class="fld"><label for="aTx">축하 문구</label><input class="in sm" id="aTx" name="ATitle" maxlength="@FamilyStageService.MaxTitle" value="@Model.ATitle" placeholder="예: 6,000점! 대단해요" autocomplete="off" required /><small>@(FamilyStageService.MaxTitle)자까지</small></div>
-                <div class="fld"><label for="aEm">그림</label><input class="in sm" id="aEm" name="AEmoji" maxlength="@FamilyStageService.MaxEmoji" value="@(Model.AEmoji ?? "🎉")" autocomplete="off" required /><small>이모지</small></div>
-            </div>
-            <div class="prev" aria-label="미리 보기"><span class="em" id="pEm">@(Model.AEmoji ?? "🎉")</span><div><b id="pTx">@(string.IsNullOrWhiteSpace(Model.ATitle) ? "문구를 쓰면 이렇게 보여요" : Model.ATitle)</b><small>가족팀 홈에 뜨는 축하 카드</small></div></div>
-            @if (Err(-1) is { Length: > 0 } ea) { <p class="err" role="alert">@ea</p> }
-            <button type="submit" class="btn p sm">단계 더하기</button>
-        </form>
-    }
-
-    <p class="stg-note">
-        @if (b.Own)
-        {
-            <b>알아 두세요.</b> @:켜진 단계가 하나는 있어야 해요. 이미 가족이 받은 단계는 점수를 바꾸거나 지울 수 없어요. 해가 바뀌면 그 해 기준이 새로 적용돼요.
-        }
-        else
-        {
-            <b>알아 두세요.</b> @:기본값은 플랫폼이 정한 기준이라 여기서 고칠 수 없어요. 우리 부서만 다르게 하고 싶을 때 “우리 부서 기준으로 정하기”를 눌러요.
-        }
-    </p>
+    <p class="stg-note"><b>알아 두세요.</b> 끈 단계는 점수를 넘어도 선물을 고를 수 없어요. 금액은 그 단계에서 고를 수 있는 선물 한도예요. 이미 선물을 받은 팀이 있는 단계도 켜고 끄거나 금액을 바꿀 수 있어요(앞으로 받는 팀부터 적용). 가족팀과 친구팀은 같은 기준을 써요. “처음 값으로”는 칸만 채우고, 저장을 눌러야 바뀌어요.</p>
 </div></main>
 <script>
-    // 지우기 · 되돌리기 확인, 더하기 미리 보기(스크립트가 없어도 폼은 그대로 동작)
-    document.querySelectorAll('[data-confirm]').forEach((b) => b.addEventListener('click', (e) => { if (!confirm(b.dataset.confirm)) e.preventDefault(); }));
-    const tx = document.getElementById('aTx'), em = document.getElementById('aEm');
-    if (tx && em) {
-        const show = () => { document.getElementById('pTx').textContent = tx.value.trim() || '문구를 쓰면 이렇게 보여요'; document.getElementById('pEm').textContent = em.value.trim() || '🎉'; };
-        tx.addEventListener('input', show); em.addEventListener('input', show);
-    }
+    // 스위치를 끄면 줄을 흐리게 하고 합계를 고친다(스크립트가 없어도 저장은 그대로 동작)
+    (() => {
+        const sum = document.querySelector('[data-c10-sum]');
+        const paint = () => {
+            let n = 0;
+            document.querySelectorAll('[data-c10]').forEach((li) => {
+                const box = li.querySelector('input[type=checkbox]');
+                const label = li.querySelector('[data-on]');
+                li.classList.toggle('off', !box.checked);
+                label.textContent = box.checked ? label.dataset.on : label.dataset.off;
+                if (box.checked) n++;
+            });
+            sum.textContent = n + '단계';
+        };
+        document.querySelectorAll('[data-c10] input[type=checkbox]').forEach((b) => b.addEventListener('change', paint));
+    })();
 </script>

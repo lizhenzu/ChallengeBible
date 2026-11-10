@@ -606,6 +606,9 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
     {
         await DadAndKid();
         var invite = await DadInvites("other");
+        Assert.Equal(FamilyError.CreatorStays, await As("dad").LeaveAsync());   // R-222: 방장은 넘긴 뒤 나간다
+        var kid = (await As("dad").StateAsync()).Mine!.Members.Single(m => !m.Me).MemberId;
+        Assert.Equal(FamilyError.None, await As("dad").TransferAsync(kid));
         Assert.Equal(FamilyError.None, await As("dad").LeaveAsync());
         Assert.Equal("김민호", (await As("other").StateAsync()).Invites.Single().InvitedBy);
         Assert.Equal(FamilyError.None, await As("other").AcceptInviteAsync(invite, FamilyRelation.Student));
@@ -670,7 +673,7 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         r = await Post(other, got, "InviteAccept", ("invite", invite.ToString()), ("relation", FamilyRelation.Student));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
         var after = await other.GetStringAsync(r.Headers.Location!.OriginalString);
-        Assert.Contains("가족팀에 합류했어요", after);
+        Assert.Contains("팀에 합류했어요", after);
         Assert.Contains("구성원 2명", after);
 
         // 보낸 초대가 사라지고 입구도 팀 점수로 바뀐다
