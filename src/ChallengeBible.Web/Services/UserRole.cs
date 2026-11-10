@@ -27,6 +27,13 @@ public static class UserRole
         ("T1017", "영상"), ("T1018", "반주"), ("T1019", "스텝"), ("T1020", "새친구"), ("T1040", "교장"), ("T1099", "기타"),
     ];
 
+    /// <summary>새 부서에 역할 코드 18개를 넣는다. 저장은 부르는 쪽에서.</summary>
+    public static void SeedCodes(AppDbContext ctx, int tenantId, DateTime now)
+    {
+        for (var i = 0; i < Codes.Count; i++)
+            ctx.CodeData.Add(new CodeData { TenantId = tenantId, MajorCD = CodeData.RoleMajor, MinorCD = Codes[i].Code, MinorNM = Codes[i].Name, InsertDT = now, UpdateDT = now, DisplayOrder = i + 1 });
+    }
+
     public static UserRoleKind KindOf(string? roleCode)
     {
         var rc = (roleCode ?? "").Trim();

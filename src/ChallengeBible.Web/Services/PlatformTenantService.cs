@@ -92,6 +92,8 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         };
         ctx.Tenants.Add(t);
         await ctx.SaveChangesAsync(ct);
+        UserRole.SeedCodes(ctx, t.Id, t.CreatedUtc);
+        await ctx.SaveChangesAsync(ct);
         if (admin is not null) await GrantAdminAsync(ctx, t.Id, admin, ct);
         return (t, errors);
     }
