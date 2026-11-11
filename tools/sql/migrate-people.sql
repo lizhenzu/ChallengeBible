@@ -39,7 +39,7 @@ IF NOT EXISTS (
     WHERE [MigrationId] = N'20261111024916_People'
 )
 BEGIN
-    CREATE INDEX [IX_Person_UserId] ON [app].[Person] ([UserId]);
+    EXEC(N'CREATE INDEX [IX_Person_UserId] ON [app].[Person] ([UserId]);');
 END;
 
 IF NOT EXISTS (
@@ -47,7 +47,7 @@ IF NOT EXISTS (
     WHERE [MigrationId] = N'20261111024916_People'
 )
 BEGIN
-    ALTER SECURITY POLICY sec.TenantIsolation ADD FILTER PREDICATE sec.fn_Tenant(TenantId) ON app.Person, ADD BLOCK PREDICATE sec.fn_Tenant(TenantId) ON app.Person AFTER INSERT, ADD BLOCK PREDICATE sec.fn_Tenant(TenantId) ON app.Person AFTER UPDATE;
+    EXEC(N'ALTER SECURITY POLICY sec.TenantIsolation ADD FILTER PREDICATE sec.fn_Tenant(TenantId) ON app.Person, ADD BLOCK PREDICATE sec.fn_Tenant(TenantId) ON app.Person AFTER INSERT, ADD BLOCK PREDICATE sec.fn_Tenant(TenantId) ON app.Person AFTER UPDATE;');
 END;
 
 IF NOT EXISTS (
