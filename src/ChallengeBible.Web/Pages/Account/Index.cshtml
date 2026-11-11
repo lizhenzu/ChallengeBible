@@ -36,6 +36,36 @@
         </details>
     </section>
 
+    @* 0093 시안 C: 생일(월 · 일) · 연락처 두 칸. 부서 관리자 · 선생님만 볼 수 있다 *@
+    <section class="ma-card" aria-labelledby="maBd">
+        <h2 id="maBd">생일 · 연락처</h2>
+        @if (Model.Profile is not { } pf) { <p class="hint">부서에 들어가면 넣을 수 있어요.</p> }
+        else
+        {
+            <dl class="ma-kv">
+                <dt>생일</dt><dd>@(pf.BirthMonth is null ? "비어 있음" : PeopleService.BirthdayText(pf.BirthMonth, pf.BirthDay))<small>연도는 받지 않아요.</small></dd>
+                <dt>연락처 1</dt><dd>@(pf.Phone1 ?? "비어 있음")</dd>
+                <dt>연락처 2</dt><dd>@(pf.Phone2 ?? "비어 있음")</dd>
+            </dl>
+            <details class="ma-ed" open="@(Model.Open == "bd")">
+                <summary class="btn s sm">고치기</summary>
+                <form method="post" asp-page-handler="Profile" class="stack" novalidate>
+                    @if (Model.Errors.GetValueOrDefault("Profile") is { } pe) { <p class="err" role="alert">@pe</p> }
+                    <div class="f"><label>생일</label>
+                        <div class="row">
+                            <select class="sel" name="month" aria-label="월"><option value="">월</option>@for (var i = 1; i <= 12; i++) { <option value="@i" selected="@(pf.BirthMonth == i)">@(i)월</option> }</select>
+                            <select class="sel" name="day" aria-label="일"><option value="">일</option>@for (var i = 1; i <= 31; i++) { <option value="@i" selected="@(pf.BirthDay == i)">@(i)일</option> }</select>
+                        </div>
+                    </div>
+                    <div class="f"><label for="ph1">연락처 1</label><input class="in" id="ph1" name="phone1" value="@pf.Phone1" maxlength="20" inputmode="tel" autocomplete="tel" /></div>
+                    <div class="f"><label for="ph2">연락처 2 (선택 · 부모님 번호 등)</label><input class="in" id="ph2" name="phone2" value="@pf.Phone2" maxlength="20" inputmode="tel" placeholder="비어 있음" />
+                        <p class="hint">부서 관리자 · 선생님만 볼 수 있어요. 다른 학생 · 학부모는 볼 수 없어요.</p></div>
+                    <div class="row"><button type="submit" class="btn p sm">저장</button><a class="btn s sm" href="/account">취소</a></div>
+                </form>
+            </details>
+        }
+    </section>
+
     <section class="ma-card" aria-labelledby="maDept">
         <h2 id="maDept">내 부서</h2>
         @if (Model.Depts.Count == 0) { <p class="hint">아직 들어간 부서가 없어요.</p> }
@@ -48,7 +78,6 @@
         </ul>
         <div class="ma-links">
             @if (Model.Depts.Count > 1) { <a href="/account/tenants">부서 고르기 →</a> }
-            <a href="/account/family">온가족 →</a>
             <a href="/join">다른 부서 참여 신청 →</a>
         </div>
     </section>

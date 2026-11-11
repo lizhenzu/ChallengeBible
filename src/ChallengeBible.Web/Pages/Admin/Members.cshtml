@@ -2,16 +2,35 @@
 @model ChallengeBible.Web.Pages.Admin.MembersModel
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Pages.Admin
-@* 소속 관리(ADR 0090): 줄을 펼쳐 역할 · 관리자 지정, 소속 탭에서 여러 명 골라 진급 보내기 *@
-@{ var picking = Model.Tab == MembershipStatus.Approved; }
+@using ChallengeBible.Web.Services
+@* 소속 관리(ADR 0090) · 명부(0093, 확정 시안 A-명부 · B-승인-명부연결): 참여 신청 승인 때 명부와 잇고, 명부 탭에서 사람 · 생일 · 연락처 · 역할을 다룬다.
+   교사는 명부 탭만, 올리기 · 고치기만 한다. 연락처는 이 화면(부서 관리자 · 교사)에서만 보인다. *@
+@{
+    var roster = Model.Tab == MembershipStatus.Approved;
+    var picking = roster && Model.IsAdmin;
+    var slug = Model.Tenant.Current.Slug;
+    string Short(string n) => n.Length > 1 ? n[1..] : n;
+}
+@functions {
+    // 생일 고르기: 월 · 일(연도 없음). 비우면 "생일 없음"
+    private Microsoft.AspNetCore.Html.IHtmlContent Days(byte? m, byte? d)
+    {
+        var sb = new System.Text.StringBuilder("<span class=\"two\"><select class=\"sel\" name=\"month\" aria-label=\"월\"><option value=\"\">월</option>");
+        for (var i = 1; i <= 12; i++) sb.Append($"<option value=\"{i}\"{(m == i ? " selected" : "")}>{i}월</option>");
+        sb.Append("</select><select class=\"sel\" name=\"day\" aria-label=\"일\"><option value=\"\">일</option>");
+        for (var i = 1; i <= 31; i++) sb.Append($"<option value=\"{i}\"{(d == i ? " selected" : "")}>{i}일</option>");
+        sb.Append("</select></span>");
+        return new Microsoft.AspNetCore.Html.HtmlString(sb.ToString());
+    }
+}
 <partial name="_AdminTop" model="Model.Tenant" />
 <main class="admin gut"><div class="wrap wide">
-    <h1>소속 관리</h1>
+    <h1>@(Model.IsAdmin ? "소속 관리" : "명부")</h1>
 
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
 
     <nav class="seg" aria-label="상태">
-        @foreach (var (key, label) in MembersModel.Tabs)
+        @foreach (var (key, label) in Model.MyTabs)
         {
             var n = Model.Counts.GetValueOrDefault(key);
             <a href="?Tab=@key" aria-current="@(key == Model.Tab ? "page" : "false")">@label <span class="num @(key == MembershipStatus.Requested && n > 0 ? "c" : "")">@n</span></a>
@@ -20,7 +39,8 @@
 
     <form method="get" class="tools">
         <input type="hidden" name="Tab" value="@Model.Tab" />
-        <input class="search" type="search" name="Q" value="@Model.Q" placeholder="이름 · 이메일로 찾기" aria-label="이름 · 이메일로 찾기" />
+        @{ var ph = roster ? "이름 · 연락처로 찾기" : "이름 · 이메일로 찾기"; }
+        <input class="search" type="search" name="Q" value="@Model.Q" placeholder="@ph" aria-label="@ph" />
         <select class="sel" name="Role" aria-label="역할" onchange="this.form.submit()">
             <option value="">모든 역할</option>
             @foreach (var (code, name) in Model.RoleCodes) { <option value="@code" selected="@(Model.Role == code)">@name</option> }
@@ -29,112 +49,207 @@
         <button class="btn s sm" type="submit">찾기</button>
     </form>
 
-    <ul class="list">
-        @if (Model.Rows.Count == 0)
-        {
-            <li class="empty">@(Model.Tab == MembershipStatus.Requested ? "기다리는 신청이 없어요." : "찾는 사람이 없어요.")</li>
-        }
-        @foreach (var m in Model.Rows)
-        {
-            var self = m.UserName == Model.Me;
-            var open = Model.ErrorFor == m.Id;
-            <li class="row @(picking ? "pickable" : "")">
-                @if (picking)
-                {
-                    if (m.Status == MembershipStatus.Approved) { <input type="checkbox" class="pick" name="pick" value="@m.Id" form="promo" checked="@Model.Picks.Contains(m.Id)" aria-label="@(m.DisplayName) 고르기" /> }
-                    else { <span class="pick-sp"></span> }
-                }
-                @* 펼치지 않아도 바로 상세로 가는 링크(신청 중이 아닌 소속원만) *@
-                @if (m.Status != MembershipStatus.Requested) { <a class="row-more" href="/@Model.Tenant.Current.Slug/admin/members/@m.Id" aria-label="@(m.DisplayName) 자세히 보기">자세히 →</a> }
-                <details open="@open">
-                    <summary class="line">
-                        <span class="av">@(m.DisplayName.Length > 1 ? m.DisplayName[1..] : m.DisplayName)</span>
-                        <span class="who"><b>@m.DisplayName @if (self) { <span class="tag">나</span> }</b>
-                            <small><span class="rl-m">@m.RoleLabel@(m.IsAdmin ? " · 관리자" : "")@(m.Status == MembershipStatus.Requested ? " 희망" : "") · </span>@m.Email@(m.Status == MembershipStatus.Requested ? $" · {m.RequestedUtc:M월 d일} 신청" : "")</small></span>
-                        <span class="tags"><span class="tag">@m.RoleLabel@(m.Status == MembershipStatus.Requested ? " 희망" : "")</span>@if (m.IsAdmin) { <span class="tag r-TenantAdmin">관리자</span> }</span>
-                        <span class="chev" aria-hidden="true">›</span>
-                    </summary>
-                    <div class="ed">
-                        @if (open && Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
-                        <form method="post" asp-page-handler="@(m.Status == MembershipStatus.Requested ? "Approve" : "Save")" asp-route-slug="@Model.Tenant.Current.Slug"
-                              asp-route-Tab="@Model.Tab" class="stack">
-                            <input type="hidden" name="id" value="@m.Id" />
-                            <div>
-                                <h3>@(m.Status == MembershipStatus.Requested ? "승인할 역할" : "역할")</h3>
-                                <select class="sel" name="roleCode" aria-label="역할">
-                                    @foreach (var (code, name) in Model.RoleCodes) { <option value="@code" selected="@(m.RoleCode == code)">@name</option> }
-                                    <option value="" selected="@(string.IsNullOrEmpty(m.RoleCode))">학부모</option>
-                                </select>
-                            </div>
-                            <div class="acts">
-                                <button type="submit" class="btn p sm">@(m.Status == MembershipStatus.Requested ? "승인" : "저장")</button>
-                            </div>
-                        </form>
-                        @if (m.Status == MembershipStatus.Approved && !self)
-                        {
-                            <form method="post" asp-page-handler="Admin" asp-route-slug="@Model.Tenant.Current.Slug" asp-route-Tab="@Model.Tab" class="acts">
-                                <input type="hidden" name="id" value="@m.Id" /><input type="hidden" name="admin" value="@(m.IsAdmin ? "false" : "true")" />
-                                <button type="submit" class="btn s sm">@(m.IsAdmin ? "관리자 해제" : "이 부서 관리자로 지정")</button>
+    @if (roster)
+    {
+        <details class="pp-add" open="@(Model.AddOpen is not null)"><summary class="btn p sm">+ 명부에 올리기</summary>
+            <form method="post" asp-page-handler="AddPerson" asp-route-slug="@slug" class="pp-form">
+                @if (Model.AddOpen is not null && Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+                <label>이름<input class="in" name="name" maxlength="50" required /></label>
+                <label>생일 (연도 없이)@Days(null, null)</label>
+                <label>연락처 1<input class="in" name="phone1" maxlength="20" inputmode="tel" /></label>
+                <label>연락처 2 (선택 · 부모님 번호 등)<input class="in" name="phone2" maxlength="20" inputmode="tel" /></label>
+                <label>역할<select class="sel" name="roleCode">
+                    @foreach (var (code, name) in Model.RoleCodes) { <option value="@code" selected="@(code == UserRole.StudentCode)">@name</option> }
+                    <option value="">학부모</option>
+                </select></label>
+                <p class="hint">가입하지 않은 사람 · 새친구도 올려요. 나중에 가입해서 참여 신청을 하면 승인할 때 이 줄과 연결해요.</p>
+                <div class="row"><button type="submit" class="btn p sm">올리기</button></div>
+            </form>
+        </details>
+
+        <ul class="list">
+            @if (Model.Roster.Count == 0) { <li class="empty">찾는 사람이 없어요.</li> }
+            @foreach (var r in Model.Roster)
+            {
+                var self = r.UserName == Model.Me;
+                var open = Model.PersonErrorFor == r.PersonId || (r.DeptRoleId is int did && Model.ErrorFor == did);
+                var sub = $"{(r.Linked ? $"가입 {r.UserName}" : "가입 안 함")} · {r.Birthday} · {r.Phone1 ?? "연락처 없음"}";
+                <li class="row @(picking ? "pickable" : "")">
+                    @if (picking)
+                    {
+                        if (r.DeptRoleId is int pickId) { <input type="checkbox" class="pick" name="pick" value="@pickId" form="promo" checked="@Model.Picks.Contains(pickId)" aria-label="@(r.Name) 고르기" /> }
+                        else { <span class="pick-sp"></span> }
+                    }
+                    @if (Model.IsAdmin && r.DeptRoleId is int moreId) { <a class="row-more" href="/@slug/admin/members/@moreId" aria-label="@(r.Name) 자세히 보기">자세히 →</a> }
+                    <details open="@open">
+                        <summary class="line">
+                            <span class="av">@Short(r.Name)</span>
+                            <span class="who"><b>@r.Name @if (self) { <span class="tag">나</span> }</b>
+                                <small><span class="rl-m">@r.RoleLabel@(r.IsAdmin ? " · 관리자" : "") · </span>@sub</small></span>
+                            <span class="tags"><span class="tag">@r.RoleLabel</span>@if (r.IsAdmin) { <span class="tag r-TenantAdmin">관리자</span> }@if (r.Linked) { <span class="tag reg">가입</span> } else { <span class="tag unreg">가입 안 함</span> }</span>
+                            <span class="chev" aria-hidden="true">›</span>
+                        </summary>
+                        <div class="ed">
+                            @if (open && Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+                            <form method="post" asp-page-handler="Person" asp-route-slug="@slug" asp-route-Q="@Model.Q" asp-route-Role="@Model.Role" class="pp-form">
+                                <input type="hidden" name="pid" value="@r.PersonId" />
+                                @if (!r.Linked) { <label>이름<input class="in" name="name" value="@r.Name" maxlength="50" required /></label> }
+                                <label>생일 (연도 없이)@Days(r.BirthMonth, r.BirthDay)</label>
+                                <label>연락처 1<input class="in" name="phone1" value="@r.Phone1" maxlength="20" inputmode="tel" /></label>
+                                <label>연락처 2 (선택 · 부모님 번호 등)<input class="in" name="phone2" value="@r.Phone2" maxlength="20" inputmode="tel" /></label>
+                                @if (!r.Linked)
+                                {
+                                    <label>역할<select class="sel" name="roleCode">
+                                        @foreach (var (code, name) in Model.RoleCodes) { <option value="@code" selected="@(r.RoleCode == code)">@name</option> }
+                                        <option value="" selected="@(string.IsNullOrEmpty(r.RoleCode))">학부모</option>
+                                    </select></label>
+                                    <p class="hint">아직 가입하지 않았어요. 가입해서 참여 신청을 하면, 승인할 때 이 줄과 연결해요.</p>
+                                }
+                                else { <p class="hint">가입한 사람이에요. 이름은 본인 계정에서, 역할은 아래에서 바꿔요.</p> }
+                                <div class="row"><button type="submit" class="btn p sm">저장</button></div>
                             </form>
-                        }
-                        @if (m.Status == MembershipStatus.Approved && m.RoleCode == ChallengeBible.Web.Services.UserRole.StudentCode)
-                        {
-                            var linked = Model.Links.GetValueOrDefault(m.UserName) ?? [];
-                            <div>
-                                <h3>보호자 연결 <span>· 연결된 보호자는 미션 · 점수를 보기만 해요</span></h3>
-                                @foreach (var g in Model.Guardians.Where(g => linked.Contains(g.UserName)))
-                                {
-                                    <form method="post" asp-page-handler="Unlink" asp-route-slug="@Model.Tenant.Current.Slug" asp-route-Tab="@Model.Tab" class="adminline">
-                                        <input type="hidden" name="id" value="@m.Id" /><input type="hidden" name="guardian" value="@g.UserName" /><input type="hidden" name="student" value="@m.UserName" />
-                                        <span>@g.Name</span><button type="submit" class="btn t">풀기</button>
-                                    </form>
-                                }
-                                @{ var free = Model.Guardians.Where(g => !linked.Contains(g.UserName) && g.UserName != m.UserName).ToList(); }
-                                @if (free.Count > 0)
-                                {
-                                    <form method="post" asp-page-handler="Link" asp-route-slug="@Model.Tenant.Current.Slug" asp-route-Tab="@Model.Tab" class="row">
-                                        <input type="hidden" name="id" value="@m.Id" /><input type="hidden" name="student" value="@m.UserName" />
-                                        <select class="sel" name="guardian" aria-label="연결할 보호자">@foreach (var g in free) { <option value="@g.UserName">@g.Name</option> }</select>
-                                        <button type="submit" class="btn s sm">연결</button>
-                                    </form>
-                                }
-                                else if (linked.Count == 0) { <p class="hint">이 부서에 보호자 역할을 가진 사람이 아직 없어요.</p> }
-                            </div>
-                        }
-                        <div class="acts">
-                            @if (m.Status != MembershipStatus.Requested) { <a class="btn t sm" href="/@Model.Tenant.Current.Slug/admin/members/@m.Id">자세히 보기 →</a> }
-                            @if (m.Status == MembershipStatus.Requested)
+                            @if (Model.IsAdmin && !r.Linked)
                             {
+                                <details class="ask"><summary class="btn d sm">명부에서 지우기</summary>
+                                    <form method="post" asp-page-handler="DeletePerson" asp-route-slug="@slug">
+                                        <input type="hidden" name="pid" value="@r.PersonId" />
+                                        <span>@(r.Name)님을 명부에서 지울까요?</span><button type="submit" class="btn dd sm">지우기</button>
+                                    </form>
+                                </details>
+                            }
+                            @if (Model.IsAdmin && r.DeptRoleId is int id)
+                            {
+                                <form method="post" asp-page-handler="Save" asp-route-slug="@slug" asp-route-Tab="@Model.Tab" class="stack">
+                                    <input type="hidden" name="id" value="@id" />
+                                    <div>
+                                        <h3>역할</h3>
+                                        <select class="sel" name="roleCode" aria-label="역할">
+                                            @foreach (var (code, name) in Model.RoleCodes) { <option value="@code" selected="@(r.RoleCode == code)">@name</option> }
+                                            <option value="" selected="@(string.IsNullOrEmpty(r.RoleCode))">학부모</option>
+                                        </select>
+                                    </div>
+                                    <div class="acts"><button type="submit" class="btn p sm">역할 저장</button></div>
+                                </form>
+                                @if (!self)
+                                {
+                                    <form method="post" asp-page-handler="Admin" asp-route-slug="@slug" asp-route-Tab="@Model.Tab" class="acts">
+                                        <input type="hidden" name="id" value="@id" /><input type="hidden" name="admin" value="@(r.IsAdmin ? "false" : "true")" />
+                                        <button type="submit" class="btn s sm">@(r.IsAdmin ? "관리자 해제" : "이 부서 관리자로 지정")</button>
+                                    </form>
+                                }
+                                @if (r.RoleCode == UserRole.StudentCode)
+                                {
+                                    var linked = Model.Links.GetValueOrDefault(r.UserName!) ?? [];
+                                    <div>
+                                        <h3>보호자 연결 <span>· 연결된 보호자는 미션 · 점수를 보기만 해요</span></h3>
+                                        @foreach (var g in Model.Guardians.Where(g => linked.Contains(g.UserName)))
+                                        {
+                                            <form method="post" asp-page-handler="Unlink" asp-route-slug="@slug" asp-route-Tab="@Model.Tab" class="adminline">
+                                                <input type="hidden" name="id" value="@id" /><input type="hidden" name="guardian" value="@g.UserName" /><input type="hidden" name="student" value="@r.UserName" />
+                                                <span>@g.Name</span><button type="submit" class="btn t">풀기</button>
+                                            </form>
+                                        }
+                                        @{ var free = Model.Guardians.Where(g => !linked.Contains(g.UserName) && g.UserName != r.UserName).ToList(); }
+                                        @if (free.Count > 0)
+                                        {
+                                            <form method="post" asp-page-handler="Link" asp-route-slug="@slug" asp-route-Tab="@Model.Tab" class="row">
+                                                <input type="hidden" name="id" value="@id" /><input type="hidden" name="student" value="@r.UserName" />
+                                                <select class="sel" name="guardian" aria-label="연결할 보호자">@foreach (var g in free) { <option value="@g.UserName">@g.Name</option> }</select>
+                                                <button type="submit" class="btn s sm">연결</button>
+                                            </form>
+                                        }
+                                        else if (linked.Count == 0) { <p class="hint">이 부서에 보호자 역할을 가진 사람이 아직 없어요.</p> }
+                                    </div>
+                                }
+                                <div class="acts">
+                                    <a class="btn t sm" href="/@slug/admin/members/@id">자세히 보기 →</a>
+                                    <details class="ask"><summary class="btn s sm">명부 연결 풀기</summary>
+                                        <form method="post" asp-page-handler="UnlinkPerson" asp-route-slug="@slug">
+                                            <input type="hidden" name="pid" value="@r.PersonId" />
+                                            <span>잘못 연결했을 때 써요. 이 줄은 "가입 안 함"으로 돌아가고, @(r.Name)님 계정은 새 명부 줄을 받아요.</span><button type="submit" class="btn dd sm">연결 풀기</button>
+                                        </form>
+                                    </details>
+                                </div>
+                                @if (self) { <p class="hint">내 관리자 역할은 여기서 뺄 수 없어요.</p> }
+                            }
+                        </div>
+                    </details>
+                </li>
+            }
+        </ul>
+        @if (picking && Model.Roster.Any(r => r.Linked))
+        {
+            <form method="post" id="promo" class="promo" asp-route-slug="@slug" asp-route-Tab="@Model.Tab">
+                <h2 id="promoT">진급 보내기</h2>
+                <p class="hint">보낼 아이를 위 목록에서 고르고, 받을 부서의 참여 코드를 넣어 주세요.@(Model.Picks.Count > 0 ? $" 지금 {Model.Picks.Count}명 골랐어요." : "")</p>
+                <div class="row">
+                    <input class="in sm" name="code" value="@Model.PromoCode" placeholder="받을 부서 코드" aria-label="받을 부서 코드" maxlength="8" autocomplete="off" />
+                    <button type="submit" class="btn s sm" asp-page-handler="PromoteCheck">부서 확인</button>
+                </div>
+                @if (Model.PromoError is not null) { <p class="found bad" role="alert">@Model.PromoError</p> }
+                @if (Model.PromoTarget is { } target)
+                {
+                    <p class="found" role="status">받는 부서: @target.Name</p>
+                    <div class="warnbox">받는 부서 관리자가 승인하면 <b>명부 · 점수 · 미션 기록이 그 부서로 옮겨지고</b> 이 부서에서는 빠져요(가족팀 자리 · 보호 관계는 지워져요). 승인 전까지는 여기서 계속 미션을 할 수 있어요. 성경 읽음 표시 · 책갈피 · 통독 진도는 그대로 남아요.</div>
+                    <div class="acts"><button type="submit" class="btn p sm" asp-page-handler="Promote">@(Model.Picks.Count)명 진급 요청 보내기</button></div>
+                }
+            </form>
+        }
+    }
+    else
+    {
+        <ul class="list">
+            @if (Model.Rows.Count == 0) { <li class="empty">기다리는 신청이 없어요.</li> }
+            @foreach (var m in Model.Rows)
+            {
+                var open = Model.ErrorFor == m.Id;
+                var cands = Model.Candidates.GetValueOrDefault(PeopleService.Key(m.DisplayName)) ?? [];
+                <li class="row">
+                    <details open="@open">
+                        <summary class="line">
+                            <span class="av">@Short(m.DisplayName)</span>
+                            <span class="who"><b>@m.DisplayName</b>
+                                <small><span class="rl-m">@m.RoleLabel 희망 · </span>@m.Email · @m.RequestedUtc.ToString("M월 d일") 신청</small></span>
+                            <span class="tags"><span class="tag">@m.RoleLabel 희망</span>@if (cands.Count > 0) { <span class="tag unreg">명부 후보 @cands.Count</span> }</span>
+                            <span class="chev" aria-hidden="true">›</span>
+                        </summary>
+                        <div class="ed">
+                            @if (open && Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+                            <form method="post" asp-page-handler="Approve" asp-route-slug="@slug" asp-route-Tab="@Model.Tab" class="stack">
+                                <input type="hidden" name="id" value="@m.Id" />
+                                <div>
+                                    <h3>승인할 역할</h3>
+                                    <select class="sel" name="roleCode" aria-label="역할">
+                                        @foreach (var (code, name) in Model.RoleCodes) { <option value="@code" selected="@(m.RoleCode == code)">@name</option> }
+                                        <option value="" selected="@(string.IsNullOrEmpty(m.RoleCode))">학부모</option>
+                                    </select>
+                                </div>
+                                @if (cands.Count > 0)
+                                {
+                                    <div class="lk"><h3>명부와 연결</h3>
+                                        @for (var i = 0; i < cands.Count; i++)
+                                        {
+                                            var c = cands[i];
+                                            <label><input type="radio" name="person" value="@c.PersonId" checked="@(i == 0)" /><span><b>@c.Name</b><small>@c.Birthday · @(c.Phone1 ?? "연락처 없음") · 가입 안 함 · @c.CreatedUtc.ToString("M월 d일") 명부에 올림</small></span></label>
+                                        }
+                                        <label><input type="radio" name="person" value="0" /><span><b>새 사람으로 올리기</b><small>명부에 없는 사람이면</small></span></label>
+                                        <p class="hint">명부의 출석 · 생일 · 연락처가 이 계정과 이어져요. 잘못 연결하면 명부에서 "연결 풀기"로 되돌려요.</p>
+                                    </div>
+                                }
+                                <div class="acts"><button type="submit" class="btn p sm">승인</button></div>
+                            </form>
+                            <div class="acts">
                                 <details class="ask"><summary class="btn d sm">거절</summary>
-                                    <form method="post" asp-page-handler="Reject" asp-route-slug="@Model.Tenant.Current.Slug" asp-route-Tab="@Model.Tab">
+                                    <form method="post" asp-page-handler="Reject" asp-route-slug="@slug" asp-route-Tab="@Model.Tab">
                                         <input type="hidden" name="id" value="@m.Id" />
                                         <span>@(m.DisplayName)님의 신청을 거절할까요?</span><button type="submit" class="btn dd sm">거절하기</button>
                                     </form>
                                 </details>
-                            }
+                            </div>
                         </div>
-                        @if (self) { <p class="hint">내 관리자 역할은 여기서 뺄 수 없어요.</p> }
-                    </div>
-                </details>
-            </li>
-        }
-    </ul>
-    @if (picking && Model.Rows.Count > 0)
-    {
-        <form method="post" id="promo" class="promo" asp-route-slug="@Model.Tenant.Current.Slug" asp-route-Tab="@Model.Tab">
-            <h2 id="promoT">진급 보내기</h2>
-            <p class="hint">보낼 아이를 위 목록에서 고르고, 받을 부서의 참여 코드를 넣어 주세요.@(Model.Picks.Count > 0 ? $" 지금 {Model.Picks.Count}명 골랐어요." : "")</p>
-            <div class="row">
-                <input class="in sm" name="code" value="@Model.PromoCode" placeholder="받을 부서 코드" aria-label="받을 부서 코드" maxlength="8" autocomplete="off" />
-                <button type="submit" class="btn s sm" asp-page-handler="PromoteCheck">부서 확인</button>
-            </div>
-            @if (Model.PromoError is not null) { <p class="found bad" role="alert">@Model.PromoError</p> }
-            @if (Model.PromoTarget is { } target)
-            {
-                <p class="found" role="status">받는 부서: @target.Name</p>
-                <div class="warnbox">받는 부서 관리자가 승인하면 <b>점수 · 미션 기록이 그 부서로 옮겨지고</b> 이 부서에서는 빠져요(가족팀 자리 · 보호 관계는 지워져요). 승인 전까지는 여기서 계속 미션을 할 수 있어요. 성경 읽음 표시 · 책갈피 · 통독 진도는 그대로 남아요.</div>
-                <div class="acts"><button type="submit" class="btn p sm" asp-page-handler="Promote">@(Model.Picks.Count)명 진급 요청 보내기</button></div>
+                    </details>
+                </li>
             }
-        </form>
+        </ul>
     }
 </div></main>

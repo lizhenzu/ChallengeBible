@@ -90,7 +90,11 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
     }
 
     /// <summary>신청 승인: 역할 코드(비면 학부모)로 소속을 만든다. 임시 부서에 있던 사람이면 기록도 옮긴다(R-173 · R-174).</summary>
-    public async Task<MemberError> ApproveAsync(string actor, int applicationId, string? roleCode, CancellationToken ct = default)
+    public Task<MemberError> ApproveAsync(string actor, int applicationId, string? roleCode, CancellationToken ct = default) =>
+        ApproveAsync(actor, applicationId, roleCode, null, ct);
+
+    /// <summary>승인 + 명부 연결(R-228): personId 가 있으면 그 명부 줄에 계정을 잇고, 없으면 새 줄을 만든다.</summary>
+    public async Task<MemberError> ApproveAsync(string actor, int applicationId, string? roleCode, int? personId, CancellationToken ct = default)
     {
         await using (var ctx = db.Create())
         {
@@ -103,7 +107,7 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         var me = tenant.Current.Id;
         var a = await sys.SignupApplications.SingleAsync(x => x.TenantId == me && x.Id == applicationId, ct);
         var user = await sys.Users.SingleAsync(u => u.Id == a.UserId, ct);
-        var (error, moved) = await DeptMembership.PlaceAsync(sys, user, me, Clean(roleCode), now, ct);
+        var (error, moved) = await DeptMembership.PlaceAsync(sys, user, me, Clean(roleCode), now, ct, personId, actor);
         if (error == MoveError.TeamLocked) return MemberError.TeamLocked;
         a.Status = SignupStatus.Approved;
         a.DecidedDT = now;

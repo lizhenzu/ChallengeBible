@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace ChallengeBible.Web.Pages.Admin;
 
 /// <summary>`/{slug}/admin/members` 소속 관리(확정 시안: 관리-소속관리). 영역 관리자만.</summary>
-[TenantRoles(Roles.TenantAdmin)]
-public class MembersModel(MemberAdminService members, PromotionService promotions, LookupLimiter limiter, TenantContext tenant) : PageModel, ITitled
+[TenantRoles(Roles.TenantAdmin, Roles.Teacher)]
+public class MembersModel(MemberAdminService members, PeopleService people, PromotionService promotions, LookupLimiter limiter, TenantContext tenant) : PageModel, ITitled
 {
     public string Title => "소속 관리";
     public TenantContext Tenant => tenant;
@@ -35,8 +35,17 @@ public class MembersModel(MemberAdminService members, PromotionService promotion
     public string? PromoError { get; private set; }
     public List<string> PromoSkipped { get; private set; } = [];
 
+    // 명부(0093): 부서 관리자 · 교사. 교사는 명부 탭만, 사람 올리기 · 생일 · 연락처 고치기만 한다(R-226 · R-227)
+    public List<RosterRow> Roster { get; private set; } = [];
+    public Dictionary<string, List<PersonCandidate>> Candidates { get; private set; } = [];
+    /// <summary>명부를 열 수 있는지: 부서 관리자, 또는 역할이 교사(임원은 아니다).</summary>
+    public bool CanRoster => tenant.IsAdmin || (tenant.IsApproved && UserRole.KindOf(tenant.RoleCode) == UserRoleKind.Teacher);
+    public bool IsAdmin => tenant.IsAdmin;
+    public string? AddOpen { get; private set; }
+
     public static readonly (string Key, string Label)[] Tabs =
-        [(MembershipStatus.Requested, "참여 신청"), (MembershipStatus.Approved, "소속")];
+        [(MembershipStatus.Requested, "참여 신청"), (MembershipStatus.Approved, "명부")];
+    public IEnumerable<(string Key, string Label)> MyTabs => IsAdmin ? Tabs : Tabs.Where(t => t.Key == MembershipStatus.Approved);
 
     public static string RoleLabel(string r) => r switch
     {
@@ -51,31 +60,80 @@ public class MembersModel(MemberAdminService members, PromotionService promotion
         "admin" => "관리자 지정을 바꿨어요",
         "link" => "보호자를 연결했어요 · 이제 자녀 기록을 볼 수 있어요",
         "unlink" => "보호자 연결을 풀었어요",
+        "padd" => "명부에 올렸어요",
+        "psave" => "저장했어요",
+        "pdel" => "명부에서 지웠어요",
+        "punlink" => "연결을 풀었어요 · 이 계정은 새 명부 줄을 받았어요",
         _ => "",
     };
 
-    public async Task OnGetAsync(CancellationToken ct) => await LoadAsync(ct);
+    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
+    {
+        if (!CanRoster) return Forbid();
+        if (!IsAdmin) Tab = MembershipStatus.Approved;
+        await LoadAsync(ct);
+        return Page();
+    }
 
-    public Task<IActionResult> OnPostApproveAsync(int id, string? roleCode, CancellationToken ct) =>
-        Act(id, "approve", members.ApproveAsync(Me, id, roleCode, ct), ct);
+    // 권한은 일을 시작하기 전에 본다: 관리자만 / 관리자 · 교사(명부)
+    private Task<IActionResult> Admin(Func<Task<IActionResult>> work) => IsAdmin ? work() : Task.FromResult<IActionResult>(Forbid());
+    private Task<IActionResult> Staff(Func<Task<IActionResult>> work) => CanRoster ? work() : Task.FromResult<IActionResult>(Forbid());
+
+    /// <summary>승인 + 명부 연결(R-228). person: 고른 명부 줄 번호, 0 이면 새 사람.</summary>
+    public Task<IActionResult> OnPostApproveAsync(int id, string? roleCode, int? person, CancellationToken ct) =>
+        Admin(() => Act(id, "approve", members.ApproveAsync(Me, id, roleCode, person is > 0 ? person : null, ct), ct));
+
+    public async Task<IActionResult> OnPostAddPersonAsync(string? name, string? roleCode, int? month, int? day, string? phone1, string? phone2, CancellationToken ct)
+    {
+        if (!CanRoster) return Forbid();
+        Tab = MembershipStatus.Approved;
+        var (e, _) = await people.AddAsync(Me, new PersonInput(name, roleCode, month, day, phone1, phone2), ct);
+        if (e == PeopleError.None) return RedirectToPage(new { slug = tenant.Current.Slug, Tab, Ok = "padd" });
+        Error = PeopleService.Message(e);
+        AddOpen = "1";
+        await LoadAsync(ct);
+        return Page();
+    }
+
+    public Task<IActionResult> OnPostPersonAsync(int pid, string? name, string? roleCode, int? month, int? day, string? phone1, string? phone2, CancellationToken ct) =>
+        Staff(() => PersonAct(pid, "psave", people.UpdateAsync(pid, new PersonInput(name, roleCode, month, day, phone1, phone2), ct), ct));
+
+    public Task<IActionResult> OnPostDeletePersonAsync(int pid, CancellationToken ct) => Admin(() => PersonAct(pid, "pdel", people.DeleteAsync(pid, ct), ct));
+
+    public Task<IActionResult> OnPostUnlinkPersonAsync(int pid, CancellationToken ct) => Admin(() => PersonAct(pid, "punlink", people.UnlinkAsync(Me, pid, ct), ct));
+
+    private async Task<IActionResult> PersonAct(int pid, string ok, Task<PeopleError> work, CancellationToken ct)
+    {
+        Tab = MembershipStatus.Approved;
+        var e = await work;
+        if (e == PeopleError.None) return RedirectToPage(new { slug = tenant.Current.Slug, Tab, Q, Role, Ok = ok });
+        Error = PeopleService.Message(e);
+        PersonErrorFor = pid;
+        await LoadAsync(ct);
+        return Page();
+    }
+
+    public int? PersonErrorFor { get; private set; }
 
     public Task<IActionResult> OnPostSaveAsync(int id, string? roleCode, CancellationToken ct) =>
-        Act(id, "save", members.ChangeRoleAsync(id, roleCode, ct), ct);
+        Admin(() => Act(id, "save", members.ChangeRoleAsync(id, roleCode, ct), ct));
 
     public Task<IActionResult> OnPostAdminAsync(int id, bool admin, CancellationToken ct) =>
-        Act(id, "admin", members.SetAdminAsync(Me, id, admin, ct), ct);
+        Admin(() => Act(id, "admin", members.SetAdminAsync(Me, id, admin, ct), ct));
 
     public Task<IActionResult> OnPostLinkAsync(int id, string guardian, string student, CancellationToken ct) =>
-        Act(id, "link", members.LinkGuardianAsync(Me, guardian, student, ct), ct);
+        Admin(() => Act(id, "link", members.LinkGuardianAsync(Me, guardian, student, ct), ct));
 
     public Task<IActionResult> OnPostUnlinkAsync(int id, string guardian, string student, CancellationToken ct) =>
-        Act(id, "unlink", members.UnlinkGuardianAsync(guardian, student, ct), ct);
+        Admin(() => Act(id, "unlink", members.UnlinkGuardianAsync(guardian, student, ct), ct));
 
-    public Task<IActionResult> OnPostRejectAsync(int id, CancellationToken ct) => Act(id, "reject", members.RejectAsync(Me, id, ct), ct);
+    public Task<IActionResult> OnPostRejectAsync(int id, CancellationToken ct) =>
+        Admin(() => Act(id, "reject", members.RejectAsync(Me, id, ct), ct));
 
     /// <summary>받을 부서 이름 확인(이름만, 0026). 참여 코드 찾기와 같은 횟수 제한(0048).</summary>
     public async Task<IActionResult> OnPostPromoteCheckAsync(List<int> pick, string? code, CancellationToken ct)
     {
+        if (!IsAdmin) return Forbid();
         Tab = MembershipStatus.Approved;
         Picks = [.. pick];
         PromoCode = JoinService.NormalizeCode(code ?? "");
@@ -93,6 +151,7 @@ public class MembersModel(MemberAdminService members, PromotionService promotion
 
     public async Task<IActionResult> OnPostPromoteAsync(List<int> pick, string? code, CancellationToken ct)
     {
+        if (!IsAdmin) return Forbid();
         Tab = MembershipStatus.Approved;
         var (e, sent, skipped) = await promotions.SendAsync(Me, pick, code ?? "", ct);
         if (e == PromotionError.None && skipped.Count == 0)
@@ -119,11 +178,15 @@ public class MembersModel(MemberAdminService members, PromotionService promotion
     private async Task LoadAsync(CancellationToken ct)
     {
         if (!Tabs.Any(t => t.Key == Tab)) Tab = MembershipStatus.Requested;
-        Rows = await members.ListAsync(new MemberFilter(Tab, Q, Role), ct);
+        if (!IsAdmin) Tab = MembershipStatus.Approved;
+        Rows = Tab == MembershipStatus.Approved ? [] : await members.ListAsync(new MemberFilter(Tab, Q, Role), ct);
+        if (Tab == MembershipStatus.Requested) Candidates = await people.CandidatesAsync(Rows.Select(r => r.DisplayName), ct);
         Counts = await members.CountsAsync(ct);
         RoleCodes = await members.RoleCodesAsync(ct);
+        Counts[MembershipStatus.Approved] = await people.CountAsync(ct);
         if (Tab == MembershipStatus.Approved)
         {
+            Roster = await people.RosterAsync(Q, Role, ct);
             Guardians = await members.GuardiansAsync(ct);
             Links = await members.LinksAsync(ct);
         }

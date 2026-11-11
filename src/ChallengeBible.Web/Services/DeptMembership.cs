@@ -26,7 +26,8 @@ public static class DeptMembership
     public static async Task<HashSet<string>> AdminIdsAsync(AppDbContext ctx, CancellationToken ct) =>
         (await (from ur in ctx.UserRoles join r in ctx.IdentityRoleRows on ur.RoleId equals r.Id where r.Name == IdentityRoles.Admin select ur.UserId).ToListAsync(ct)).ToHashSet();
 
-    public static async Task<(MoveError Error, LobbyMove Moved)> PlaceAsync(AppDbContext sys, AppUser user, int target, string? roleCode, DateTime now, CancellationToken ct)
+    public static async Task<(MoveError Error, LobbyMove Moved)> PlaceAsync(AppDbContext sys, AppUser user, int target, string? roleCode, DateTime now, CancellationToken ct,
+        int? linkPersonId = null, string? actor = null)
     {
         var moved = new LobbyMove(0, 0, 0, 0);
         var userName = user.UserName!;
@@ -40,6 +41,9 @@ public static class DeptMembership
             var links = await sys.GuardianLinks.Where(l => l.TenantId == source && (l.GuardianUserName == userName || l.StudentUserName == userName)).ToListAsync(ct);
             sys.GuardianLinks.RemoveRange(links);
         }
+
+        // 명부(0093): 받는 부서에 줄을 잇거나 만들고, 옮겨 오면 옛 부서 줄은 지운다
+        await PeopleService.PlaceAsync(sys, user, target, rows.FirstOrDefault(r => r.TenantId != target)?.RoleCode, linkPersonId, actor, now, ct);
 
         var keep = rows.FirstOrDefault(r => r.TenantId == target);
         sys.DeptRoles.RemoveRange(rows.Where(r => r != keep));

@@ -82,7 +82,7 @@ public partial class MyAccountTests : IClassFixture<WebApplicationFactory<Progra
         var page = await c.GetStringAsync("/account");
         Assert.Contains("younghee@example.com", page);
         Assert.Contains("참여자 · 보호자", page);
-        Assert.Contains("href=\"/account/family\"", page);
+        Assert.DoesNotContain("href=\"/account/family\"", page);   // 없는 화면 링크라 뺐다(0093 시안 C)
 
         var r = await Post(c, "/account?handler=Name", TokenRx().Match(page).Groups[1].Value, ("DisplayName", "김영희 엄마"));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
