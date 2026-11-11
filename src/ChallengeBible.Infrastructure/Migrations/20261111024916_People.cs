@@ -54,7 +54,8 @@ namespace ChallengeBible.Infrastructure.Migrations
                 table: "Person",
                 column: "UserId");
 
-            migrationBuilder.Sql("ALTER SECURITY POLICY sec.TenantIsolation ADD FILTER PREDICATE sec.fn_Tenant(TenantId) ON app.Person, ADD BLOCK PREDICATE sec.fn_Tenant(TenantId) ON app.Person AFTER INSERT, ADD BLOCK PREDICATE sec.fn_Tenant(TenantId) ON app.Person AFTER UPDATE;");
+            // EXEC 로 감싼다: 스크립트 한 묶음에서 표를 만들기 전에 검사되면 "app.Person 이 없다"로 실패한다(실DB 33268)
+            migrationBuilder.Sql("EXEC(N'ALTER SECURITY POLICY sec.TenantIsolation ADD FILTER PREDICATE sec.fn_Tenant(TenantId) ON app.Person, ADD BLOCK PREDICATE sec.fn_Tenant(TenantId) ON app.Person AFTER INSERT, ADD BLOCK PREDICATE sec.fn_Tenant(TenantId) ON app.Person AFTER UPDATE;');");
         }
 
         /// <inheritdoc />
