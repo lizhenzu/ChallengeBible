@@ -27,6 +27,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<SignupApplication> SignupApplications => Set<SignupApplication>();
     public DbSet<DeptRoleUserAssoc> DeptRoles => Set<DeptRoleUserAssoc>();
     public DbSet<CodeData> CodeData => Set<CodeData>();
+    public DbSet<Person> People => Set<Person>();
     public DbSet<TenantSeason> TenantSeasons => Set<TenantSeason>();
 
     public DbSet<BibleBook> BibleBooks => Set<BibleBook>();

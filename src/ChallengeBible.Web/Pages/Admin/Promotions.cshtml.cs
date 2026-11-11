@@ -32,6 +32,7 @@ public class PromotionsModel(PromotionService promotions, PromotionApprover appr
     public string OkMessage => Ok switch
     {
         "approve" => "받았어요 · 바로 미션을 할 수 있어요",
+        "all" => "모두 받았어요 · 명부 · 기록이 함께 옮겨 왔어요",
         "reject" => "진급 요청을 거절했어요",
         "cancel" => "진급 요청을 취소했어요",
         "sent" => "진급 요청을 보냈어요 · 받는 부서가 승인하면 옮겨져요",
@@ -44,6 +45,15 @@ public class PromotionsModel(PromotionService promotions, PromotionApprover appr
 
     public Task<IActionResult> OnPostApproveAsync(int id, string? roleCode, CancellationToken ct) =>
         Act(id, "approve", approver.ApproveAsync(Me, id, roleCode, ct), ct);
+
+    public async Task<IActionResult> OnPostApproveAllAsync(string? roleCode, CancellationToken ct)
+    {
+        var (ok, failed) = await approver.ApproveAllAsync(Me, roleCode, ct);
+        if (failed == 0) return RedirectToPage(new { slug = tenant.Current.Slug, Tab = "in", Ok = "all" });
+        Error = $"{ok}명을 받았어요. {failed}명은 받지 못했어요 — 아래에서 한 명씩 확인해 주세요.";
+        await LoadAsync(ct);
+        return Page();
+    }
 
     public Task<IActionResult> OnPostRejectAsync(int id, CancellationToken ct) => Act(id, "reject", promotions.RejectAsync(Me, id, ct), ct);
     public Task<IActionResult> OnPostCancelAsync(int id, CancellationToken ct) => Act(id, "cancel", promotions.CancelAsync(Me, id, ct), ct);

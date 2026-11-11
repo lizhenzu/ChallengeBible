@@ -17,11 +17,27 @@
     <p class="lead">학년이 올라간 아이를 다음 부서로 옮겨요. 받는 부서가 승인하면 점수 · 미션 기록도 함께 옮겨져요(보낸 부서에서는 빠져요).</p>
 
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
+    @if (Model.Error is not null && Model.ErrorFor is null) { <p class="err" role="alert">@Model.Error</p> }
 
     <nav class="seg" aria-label="받은 요청 · 보낸 요청">
         <a href="?Tab=in" aria-current="@(Model.Tab == "in" ? "page" : "false")">받은 요청 <span class="num @(Model.ReceivedWaiting > 0 ? "c" : "")">@Model.ReceivedWaiting</span></a>
         <a href="?Tab=out" aria-current="@(Model.Tab == "out" ? "page" : "false")">보낸 요청 <span class="num">@Model.SentWaiting</span></a>
     </nav>
+
+    @if (Model.Tab == "in" && waiting.Count > 1)
+    {
+        <form method="post" asp-page-handler="ApproveAll" asp-route-slug="@slug" asp-route-Tab="in" class="bulk" aria-label="모두 받기">
+            <b>기다리는 요청을 한 번에 받기</b>
+            <div class="row">
+                <select class="sel" name="roleCode" aria-label="역할">
+                    @foreach (var (code, name) in Model.RoleCodes) { <option value="@code" selected="@(code == ChallengeBible.Web.Services.UserRole.StudentCode)">@name</option> }
+                    <option value="">학부모</option>
+                </select>
+                <button type="submit" class="btn p sm">모두 받기</button>
+            </div>
+            <p>모두 같은 역할로 받아요. 명부 · 출석 · 미션 기록이 함께 옮겨 와요. 한 명씩 다르게 받으려면 아래에서 따로 승인하세요.</p>
+        </form>
+    }
 
     @if (waiting.Count == 0)
     {

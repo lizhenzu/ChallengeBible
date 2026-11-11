@@ -34,7 +34,20 @@ public class IndexModel(AccountService accounts, MyAccountService mine, PhotoSer
 
     public bool IsGuardian => Depts.Any(d => d.Roles.Contains(Roles.Guardian));
 
-    public string OkMessage => Ok switch { "name" => "이름을 바꿨어요", "pw" => "비밀번호를 바꿨어요", _ => "" };
+    public string OkMessage => Ok switch { "name" => "이름을 바꿨어요", "pw" => "비밀번호를 바꿨어요", "bd" => "생일 · 연락처를 저장했어요", _ => "" };
+
+    /// <summary>내 명부 줄(0093). 일반 부서에 들어가지 않았으면 null.</summary>
+    public Person? Profile { get; private set; }
+
+    public async Task<IActionResult> OnPostProfileAsync(int? month, int? day, string? phone1, string? phone2, [FromServices] TimeProvider time, CancellationToken ct)
+    {
+        var e = await mine.SaveProfileAsync(Me, month, day, phone1, phone2, time.GetUtcNow().UtcDateTime, ct);
+        if (e == PeopleError.None) return RedirectToPage(new { Ok = "bd" });
+        Errors = new FieldErrors { ["Profile"] = e == PeopleError.NotFound ? "부서에 들어가면 넣을 수 있어요." : PeopleService.Message(e) };
+        Open = "bd";
+        await LoadAsync(ct);
+        return Page();
+    }
 
     public async Task OnGetAsync(CancellationToken ct) => await LoadAsync(ct);
 
@@ -62,6 +75,7 @@ public class IndexModel(AccountService accounts, MyAccountService mine, PhotoSer
         Joined = TenantClock.ToTenantDate(new DateTimeOffset(DateTime.SpecifyKind(created, DateTimeKind.Utc)), "Asia/Seoul");
         Depts = await mine.DeptsAsync(Me, ct);
         Photo = await photos.FileOfAsync(Me, ct);
+        Profile = await mine.ProfileAsync(Me, ct);
     }
 
     public static string RoleLabel(string r) => r switch

@@ -11,6 +11,19 @@ namespace ChallengeBible.Web.Services;
 /// </summary>
 public sealed class PromotionApprover(IAppDb db, ISystemDb systemDb, TenantContext tenant, TimeProvider time)
 {
+    /// <summary>[모두 받기](R-230): 이 부서가 받을 기다리는 요청을 같은 역할로 한 건씩 승인한다. 안 된 건은 남긴다.</summary>
+    public async Task<(int Approved, int Failed)> ApproveAllAsync(string actor, string? roleCode, CancellationToken ct = default)
+    {
+        var me = tenant.Current.Id;
+        List<int> ids;
+        await using (var ctx = db.Create())
+            ids = await ctx.PromotionRequests.Where(r => r.TargetTenantId == me && r.Status == PromotionStatus.Pending).OrderBy(r => r.Id).Select(r => r.Id).ToListAsync(ct);
+        var ok = 0;
+        foreach (var id in ids)
+            if (await ApproveAsync(actor, id, roleCode, ct) == PromotionError.None) ok++;
+        return (ok, ids.Count - ok);
+    }
+
     public async Task<PromotionError> ApproveAsync(string actor, int id, string? roleCode, CancellationToken ct = default)
     {
         // 1) 권한: 이 부서가 받는 쪽인 요청이어야 한다(일반 연결 — 필터 · RLS 그대로)
