@@ -47,6 +47,7 @@
     @if (!c.IsNewcomer)
     {
         <section class="sec" aria-labelledby="sT"><h2 id="sT">학생 @d.Students.Count</h2>
+            @if (d.Students.Count > 0) { <a class="btn p sm" href="/@slug/admin/classes/move?S=2&amp;F=@c.Id">이 반 아이 옮기기 →</a> }   @* 반 이동 마법사 2단계(아이 고르기)로 *@
             <ul class="ppl">
                 @foreach (var p in d.Students)
                 {
