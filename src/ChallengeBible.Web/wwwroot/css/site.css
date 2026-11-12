@@ -2599,3 +2599,34 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .cd-people .rm-ask .row2 form { margin: 0; display: grid; }
 .cd-people .rm-ask .row2 .btn { display: flex; justify-content: center; }
 .cd-people li .x { margin-left: auto; cursor: pointer; }
+
+/* ── 유년부 출석부 모양 그대로(2026-11-13 사용자): DailyMission4 밝은 흰색 버전. 출석 보고서 · 통계 · 돌봄 · 더보기 화면은 .yb 안에서 ── */
+.yb { --yb-blue: #2F80ED; --yb-soft: #EAF2FD; --yb-ink: #111827; --yb-tx: #374151; --yb-dim: #9CA3AF; --yb-dim2: #6B7280; --yb-line: #EEF0F3; --yb-grey: #F4F6F9;
+      --yb-ok: #15803D; --yb-okbg: #EAF7EF; --yb-danger: #D9534F; --yb-dangerbg: #FDEEEE;
+      background: #FFFFFF; color: var(--yb-tx); min-height: 100vh; padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px)); }
+.yb a { color: inherit; text-decoration: none; -webkit-tap-highlight-color: transparent; }
+.yb .sh { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+.yb .hdTop { display: flex; justify-content: space-between; align-items: center; padding: 14px 0 12px; border-bottom: 1px solid var(--yb-line); font-size: 13px; }
+.yb .hdTop a { font-weight: 700; color: var(--yb-tx); }
+.yb .hdTop a:hover { color: var(--yb-blue); }
+.yb .hdK { margin-top: 20px; font-size: 12px; font-weight: 800; letter-spacing: .02em; color: var(--yb-blue); }
+.yb .hdT { margin: 6px 0 0; font-size: 24px; font-weight: 800; letter-spacing: -.02em; color: var(--yb-ink); }
+.yb .hdS { margin-top: 4px; font-size: 13px; color: var(--yb-dim2); }
+.yb .sec { margin-top: 12px; }
+.yb .mo { display: flex; align-items: center; gap: 12px; padding: 15px 2px; border-top: 1px solid var(--yb-line); }
+.yb .mo:last-child { border-bottom: 1px solid var(--yb-line); }
+.yb .moTx { flex: 1; min-width: 0; }
+.yb .moL { display: block; font-size: 16px; font-weight: 700; color: var(--yb-ink); }
+.yb .moD { display: block; margin-top: 2px; font-size: 12.5px; color: var(--yb-dim2); }
+.yb .moA { flex: none; font-size: 18px; color: #7FA3DB; transition: transform .15s; }
+.yb .mo:hover .moA { transform: translateX(3px); }
+.yb .ft { margin-top: 18px; padding: 12px 0 20px; font-size: 11.5px; color: var(--yb-dim); }
+
+/* 출석 아래 탭 — 유년부 _AttTabs 그대로 */
+.attTabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; background: #FFFFFF; border-top: 1px solid #EEF0F3; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.attTabs nav { max-width: 760px; margin: 0 auto; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; height: 58px; }
+.attTabs a { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: #9CA3AF; text-decoration: none; -webkit-tap-highlight-color: transparent; }
+.attTabs a i { font-style: normal; font-weight: 300; font-size: 19px; line-height: 1; }
+.attTabs a.on { color: #2F80ED; font-weight: 800; }
+.attTabs a.on::before { content: ""; position: absolute; top: -1px; left: 30%; right: 30%; height: 2.5px; border-radius: 2px; background: #2F80ED; }
+.attTabs sup { position: absolute; top: 8px; left: calc(50% + 7px); min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #D9534F; color: #fff; font-size: 10px; display: grid; place-items: center; }

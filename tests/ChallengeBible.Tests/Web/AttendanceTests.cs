@@ -294,5 +294,11 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
 
         var t = await Member("teacher", Roles.Teacher);
         Assert.Contains("아직 맡은 반이 없어요", await t.GetStringAsync("/jamsil-kids/attendance"));
+
+        // 더보기(유년부 "더보기"와 같은 모양): 관리자에게만 관리자 메뉴, 맡은 반 없는 교사는 못 들어온다
+        var more = await a.GetStringAsync("/jamsil-kids/attendance/more");
+        Assert.Contains("교사 · 반 배정", more);
+        Assert.Contains("href=\"/jamsil-kids/attendance/more\"", await a.GetStringAsync("/jamsil-kids/attendance"));
+        Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/more")).StatusCode);
     }
 }
