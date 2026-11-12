@@ -69,7 +69,7 @@ public class ClassMoveModel(ClassService classes, ClassMoveService mover, Tenant
         if (tenant.IsLobby || D is not MoveDest dest) return NotFound();
         var (e, n, skipped) = await mover.MoveAsync(Me, FromId, P, dest, T, X, ct);
         if (e == MoveClassError.None && skipped.Count == 0)
-            return RedirectToPage(new { slug = tenant.Current.Slug, Ok = $"{n}" });
+            return RedirectToPage("Classes", new { slug = tenant.Current.Slug, Ok = $"mv{n}" });   // 끝나면 반 목록으로(2026-11-12 사용자)
         Error = e != MoveClassError.None ? ClassMoveService.Message(e)
             : $"{n}명을 옮겼어요. 선물 받은 팀에 있어 옮기지 못한 아이(이 부서 미배정반에 남음): {string.Join(", ", skipped)}";
         S = 1;
