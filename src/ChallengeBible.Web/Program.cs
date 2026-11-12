@@ -75,6 +75,7 @@ builder.Services.AddAntiforgery(o => o.HeaderName = "RequestVerificationToken");
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ChallengeBible.Web.Auth.UserNameGate>();
 builder.Services.AddSingleton<LookupLimiter>();
+builder.Services.AddSingleton<AdminLoginLimiter>();
 
 // 쿠키를 푸는 키를 DB 에 둔다(ADR 0055): 게시 · 앱 재시작 뒤에도 로그인이 유지된다.
 // 개발(테스트 포함)은 기본값(사용자 프로필 폴더)을 쓴다.
@@ -108,6 +109,7 @@ builder.Services.AddRazorPages(o =>
     o.Conventions.AuthorizeFolder("/");
     o.Conventions.AllowAnonymousToPage("/Index");
     o.Conventions.AllowAnonymousToPage("/Account/Login");
+    o.Conventions.AllowAnonymousToPage("/Account/AdminLogin");
     o.Conventions.AllowAnonymousToPage("/Account/Signup");
     o.Conventions.AllowAnonymousToPage("/Error");
 });

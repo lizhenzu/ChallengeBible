@@ -2282,6 +2282,9 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .bulk .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .bulk p { margin: 0; font-size: 13px; color: var(--dim); }
 
+/* 첫 화면 관리자 로그인 링크(2026-11-12) */
+.adm-in { font-size: 13px; color: var(--dim); text-decoration: underline; }
+
 /* 반(0093 조직 · 반): 해 · 반 카드 · 새친구반 · 반 없는 사람 · 사람 목록 · 새해 복사 */
 .yr { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 4px 0 14px; }
 .yr .yn { font-size: 13px; color: var(--dim); }
