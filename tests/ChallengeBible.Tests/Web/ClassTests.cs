@@ -197,6 +197,20 @@ public partial class ClassFlowTests : IClassFixture<WebApplicationFactory<Progra
         Assert.Equal(HttpStatusCode.Redirect, post.StatusCode);
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(cls, raw.ClassMembers.Single(m => m.PersonId == kid).ClassId);
 
+        // 반 이동 마법사 → 완료 화면(반 목록 · 부서 홈 고르기)
+        var conf = await a.GetStringAsync($"/jamsil-kids/admin/classes/move?S=4&F={cls}&P={kid}&D=Unassigned");
+        var mv = await a.PostAsync("/jamsil-kids/admin/classes/move", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = TokenRx().Match(conf).Groups[1].Value, ["F"] = cls.ToString(), ["P"] = kid.ToString(), ["D"] = "Unassigned",
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, mv.StatusCode);
+        Assert.EndsWith("/admin/classes/move/done", mv.Headers.Location!.OriginalString);
+        var done = await a.GetStringAsync(mv.Headers.Location!.OriginalString);
+        Assert.Contains("1명을 옮겼어요", done);
+        Assert.Contains("href=\"/jamsil-kids/admin/classes\"", done);
+        Assert.Contains("href=\"/jamsil-kids\"", done);
+        using (var raw = InMemoryDb.Raw(_db)) Assert.DoesNotContain(raw.ClassMembers, m => m.PersonId == kid);
+
         var t = await Member("teacher", Roles.Teacher);
         foreach (var url in new[] { "/jamsil-kids/admin/classes", "/jamsil-kids/admin/classes/unassigned" })
         {

@@ -1,0 +1,19 @@
+@page "/{slug}/admin/classes/move/done"
+@model ChallengeBible.Web.Pages.Admin.ClassMoveDoneModel
+@* 반 이동 완료(2026-11-12 사용자): 결과를 크게 보이고 [반 목록으로] [부서 홈으로] 중 고른다 *@
+@{ var slug = Model.Tenant.Current.Slug; }
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut"><div class="wrap wide">
+    <div class="mv-done" role="status">
+        <span class="mk" aria-hidden="true">✓</span>
+        <h1>@(Model.Count)명을 옮겼어요</h1>
+        <p class="rt">@Model.Route</p>
+        @if (!string.IsNullOrEmpty(Model.Names)) { <p class="nm">@Model.Names</p> }
+        <p class="hint">이전 반 · 담임 정보는 꼬리표로 남았어요. 출석 기록은 그대로예요.</p>
+        @if (!string.IsNullOrEmpty(Model.Skipped)) { <p class="err">선물 받은 팀에 있어 옮기지 못한 아이(이 부서 미배정반에 남음): @Model.Skipped</p> }
+    </div>
+    <div class="wz-nav">
+        <a class="btn p" href="/@slug/admin/classes">반 목록으로</a>
+        <a class="btn s" href="/@slug">부서 홈으로</a>
+    </div>
+</div></main>
