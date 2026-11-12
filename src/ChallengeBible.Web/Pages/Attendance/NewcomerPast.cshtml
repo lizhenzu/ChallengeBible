@@ -9,22 +9,25 @@
     @if (Model.D is { } d)
     {
         var present = Model.People.Count(p => p.Present);
-        <div class="hd2"><a class="back" href="?M=@d.Month">← @(d.Month)월 주일</a><h1>@d.ToString("M월 d일") 주일</h1><p>이름 옆 버튼을 누르면 출석 ↔ 결석, 바로 저장돼요</p></div>
+        <div class="hd2"><a class="back" href="?M=@d.Month">← @(d.Month)월 주일</a><h1>@d.ToString("M월 d일") 주일</h1><p>이름을 누르면 출석 ↔ 결석, 바로 저장돼요</p></div>
         @Html.AntiForgeryToken()
         @if (Model.People.Count == 0) { <p class="none">이 주일까지 온 새친구가 없어요.</p> }
         else
         {
             <p class="sumline">새친구 @(Model.People.Count)명 중 <b id="presentN">@present</b>명 출석</p>
-            <ul class="tg" id="board" data-slug="@slug" data-sunday="@d.ToString("yyyy-MM-dd")">
-                @foreach (var p in Model.People)
-                {
-                    <li data-id="@p.PersonId" data-name="@p.Name" data-p="@(p.Present ? "1" : "0")"><b>@p.Name</b><small>@(p.Active ? "관리 중" : "완료")</small>
-                        <button type="button" class="pill @(p.Present ? "y" : "n")" aria-label="@p.Name 출석 바꾸기">@(p.Present ? "출석" : "결석")</button></li>
-                }
-            </ul>
+            @* 확정 시안 M-출석바꾸기-카드: 출석부와 같은 카드, 초록 ✓ 출석 · 회색 결석, 누르면 동그라미 *@
+            <div id="board" data-slug="@slug" data-sunday="@d.ToString("yyyy-MM-dd")">
+                <div class="kids">
+                    @foreach (var p in Model.People)
+                    {
+                        <button type="button" class="kid @(p.Present ? "on" : "")" data-id="@p.PersonId" data-name="@p.Name" data-p="@(p.Present ? "1" : "0")"
+                                aria-pressed="@(p.Present ? "true" : "false")"><b>@p.Name</b><span class="stt">@(p.Active ? "관리 중" : "완료")</span></button>
+                    }
+                </div>
+            </div>
         }
         <div class="nc-back wz-nav"><a class="btn s" href="?M=@d.Month">← 다른 주일 고르기</a><a class="btn p" href="/@slug/attendance/newcomers">새친구 화면으로</a></div>
-        <p class="sumline">누를 때마다 바로 저장돼요</p>
+        <p class="sumline">누를 때마다 바로 저장돼요 · 초록 ✓ 출석 · 회색 결석</p>
         <div class="toast hidden" id="toast" role="alert"></div>
     }
     else if (Model.M is int m)
