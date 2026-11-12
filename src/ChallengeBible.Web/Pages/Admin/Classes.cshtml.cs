@@ -19,7 +19,13 @@ public class ClassesModel(ClassService classes, TenantContext tenant) : PageMode
     public int Unassigned { get; private set; }
     public string? Error { get; private set; }
 
-    public string OkMessage => Ok switch { "add" => "반을 만들었어요", "del" => "반을 지웠어요 · 그 반 아이들은 미배정반으로 갔어요", _ => "" };
+    public string OkMessage => Ok switch
+    {
+        "add" => "반을 만들었어요",
+        "del" => "반을 지웠어요 · 그 반 아이들은 미배정반으로 갔어요",
+        { } s when s.StartsWith("mv") && int.TryParse(s[2..], out var n) => $"{n}명을 옮겼어요 · 이전 반 · 담임 정보는 꼬리표로 남았어요",
+        _ => "",
+    };
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
