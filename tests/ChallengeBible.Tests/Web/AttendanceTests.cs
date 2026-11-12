@@ -200,6 +200,27 @@ public class AttendanceTests
     }
 
     [Fact]
+    public async Task R242_돌봄은_기록_없는_학생_먼저_그다음_오래_빠진_순_기준일_안에_온_아이는_빠진다()
+    {
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = _kidA, Sunday = Sun });
+            raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = _kidB, Sunday = new DateOnly(2026, 12, 6) });   // 30일 전
+            raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = _teacherPid, Sunday = new DateOnly(2026, 6, 7) });
+            raw.SaveChanges();
+        }
+        var a = Att(_kids, admin: true);
+        var c = await a.CareAsync(21);
+        Assert.Equal(1, c.WeeksCount);                                           // 2027년 첫 주일 1월 3일 하나
+        Assert.Equal([_loose, _kidB], c.Rows.Select(r => r.PersonId));         // 교사 · 이번 주 온 아이는 없다
+        Assert.Null(c.Rows[0].LastAttend);
+        Assert.Equal((30, "1학년2반", 0), (c.Rows[1].DaysAbsent, c.Rows[1].ClassName, c.Rows[1].AttendCount));
+        Assert.Equal(ClassService.UnassignedName, c.Rows[0].ClassName);
+        Assert.Equal([_loose], (await a.CareAsync(42)).Rows.Select(r => r.PersonId));
+        Assert.Equal(2, await a.CareCountAsync());
+    }
+
+    [Fact]
     public async Task R230_진급하면_출석_기록도_새_부서로_옮겨진다()
     {
         var acc = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수");
@@ -300,5 +321,13 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("교사 · 반 배정", more);
         Assert.Contains("href=\"/jamsil-kids/attendance/more\"", await a.GetStringAsync("/jamsil-kids/attendance"));
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/more")).StatusCode);
+
+        // 돌봄(유년부 "돌봄"과 같은 모양): 관리자만, 탭에 돌봄, 기준 고르기
+        var care = await a.GetStringAsync("/jamsil-kids/attendance/care?absentDays=42");
+        Assert.Contains("연락할 아이", care);
+        Assert.Contains("6주 이상 결석", care);
+        Assert.Contains("href=\"/jamsil-kids/attendance/care\"", await a.GetStringAsync("/jamsil-kids/attendance"));
+        Assert.DoesNotContain("attendance/care", await t.GetStringAsync("/jamsil-kids/attendance"));
+        Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/care")).StatusCode);
     }
 }

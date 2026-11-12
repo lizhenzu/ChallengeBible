@@ -2622,6 +2622,32 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .yb .mo:hover .moA { transform: translateX(3px); }
 .yb .ft { margin-top: 18px; padding: 12px 0 20px; font-size: 11.5px; color: var(--yb-dim); }
 
+/* 돌봄(연락할 아이) — 유년부 LongAbsent 그대로(2/9) */
+.yb .prog2 { display: flex; align-items: baseline; gap: 10px; margin: 10px 0 18px; font-size: 13px; color: var(--yb-dim2); }
+.yb .prog2 b { font-weight: 200; font-size: 36px; line-height: 1; color: var(--yb-ink); font-variant-numeric: tabular-nums; }
+.yb .seg3 { display: flex; margin-top: 16px; border: 1px solid var(--yb-line); border-radius: 10px; overflow: hidden; }
+.yb .seg3 a { flex: 1; text-align: center; font-size: 13px; padding: 10px 2px; background: #fff; color: var(--yb-dim2); }
+.yb .seg3 a + a { border-left: 1px solid var(--yb-line); }
+.yb .seg3 a.on { background: var(--yb-blue); color: #fff; font-weight: 700; }
+.yb .secH { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; border-bottom: 1px solid var(--yb-line); }
+.yb .secK { font-size: 11px; font-weight: 800; letter-spacing: .04em; color: var(--yb-blue); }
+.yb .secT { margin-top: 2px; font-size: 16px; font-weight: 800; color: var(--yb-ink); }
+.yb .secN { font-size: 11.5px; color: var(--yb-dim); }
+.yb .ca { display: flex; align-items: center; gap: 14px; padding: 14px 2px; border-bottom: 1px solid var(--yb-line); }
+.yb .cwk { flex: none; width: 52px; text-align: center; }
+.yb .cwk b { display: block; font-weight: 200; font-size: 30px; line-height: 1; color: var(--yb-danger); font-variant-numeric: tabular-nums; }
+.yb .cwk small { font-size: 11px; color: var(--yb-dim); }
+.yb .cwk.never b { font-size: 13px; font-weight: 700; line-height: 1.3; }
+.yb .caTx { flex: 1; min-width: 0; }
+.yb .caN { font-size: 16px; font-weight: 700; color: var(--yb-ink); }
+.yb .caN small { font-weight: 400; font-size: 12.5px; color: var(--yb-dim); margin-left: 6px; }
+.yb .caM { margin-top: 3px; font-size: 12.5px; color: var(--yb-dim2); font-variant-numeric: tabular-nums; }
+.yb .call { flex: none; display: inline-flex; align-items: center; height: 40px; padding: 0 14px; border-radius: 10px; background: var(--yb-blue); color: #fff; font-size: 14px; font-weight: 700; }
+.yb .call.off { background: none; color: var(--yb-dim); border: 1px dashed #D5DAE1; font-size: 12px; font-weight: 400; }
+.yb .good { padding: 60px 0; text-align: center; }
+.yb .good b { display: block; font-size: 20px; font-weight: 700; color: var(--yb-ink); }
+.yb .good span { display: block; margin-top: 6px; font-size: 13.5px; color: var(--yb-dim); }
+
 /* 출석 아래 탭 — 유년부 _AttTabs 그대로 */
 .attTabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; background: #FFFFFF; border-top: 1px solid #EEF0F3; padding-bottom: env(safe-area-inset-bottom, 0px); }
 .attTabs nav { max-width: 760px; margin: 0 auto; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; height: 58px; }

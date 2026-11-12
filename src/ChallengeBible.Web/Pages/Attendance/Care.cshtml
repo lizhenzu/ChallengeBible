@@ -1,0 +1,52 @@
+@page "/{slug}/attendance/care"
+@model ChallengeBible.Web.Pages.Attendance.CareModel
+@using ChallengeBible.Web.Pages.Attendance
+@* 유년부 출석부 "돌봄"(Views/Attendance/LongAbsent)과 같은 모양 · 기준. 메모(BirthdayGiftPickMeMo)는 우리에게 없는 표라 뺐다 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var c = Model.Care;
+}
+<div class="yb">
+    <header class="sh">
+        <div class="hdTop"><a href="/@slug/attendance">출석부</a><a href="/@slug">부서 홈으로</a></div>
+        <div class="hdK">CARE</div>
+        <h1 class="hdT">연락할 아이</h1>
+        <div class="prog2"><b>@c.Rows.Count</b><span>명 · @CareModel.FilterName(c.AbsentDays) 결석</span></div>
+    </header>
+    <main class="sh">
+        <nav class="seg3" aria-label="결석 기준">
+            @foreach (var f in CareModel.Filters)
+            {
+                <a href="?absentDays=@f.Days" class="@(c.AbsentDays == f.Days ? "on" : "")" aria-current="@(c.AbsentDays == f.Days ? "page" : "false")">@f.Name</a>
+            }
+        </nav>
+        @if (c.Rows.Count == 0)
+        {
+            <div class="good"><b>연락할 아이가 없어요</b><span>@CareModel.FilterName(c.AbsentDays) 빠진 아이가 없습니다.</span></div>
+        }
+        else
+        {
+            <section class="sec" style="margin-top:20px">
+                <div class="secH"><div><div class="secK">LONGEST FIRST</div><div class="secT">오래 빠진 순</div></div><span class="secN">큰 숫자 = 결석 주</span></div>
+                @foreach (var s in c.Rows)
+                {
+                    var never = s.LastAttend is null;
+                    var weeks = never ? 0 : Math.Max(1, s.DaysAbsent / 7);
+                    var tel = CareModel.Tel(s.Phone);
+                    var rate = c.WeeksCount == 0 ? 0 : s.AttendCount * 100 / c.WeeksCount;
+                    <div class="ca">
+                        <div class="cwk @(never ? "never" : "")">@if (never) { <b>기록<br />없음</b> } else { <b>@weeks</b><small>주</small> }</div>
+                        <div class="caTx">
+                            <div class="caN">@s.Name<small>@s.ClassName</small></div>
+                            <div class="caM">마지막 출석 @(never ? "없음" : s.LastAttend!.Value.ToString("yyyy.M.d")) · 올해 @s.AttendCount/@c.WeeksCount 회 (@rate%)</div>
+                        </div>
+                        @if (tel.Length >= 9) { <a class="call" href="tel:@tel" aria-label="@s.Name 연락처로 전화">전화</a> }
+                        else { <span class="call off">번호 없음</span> }
+                    </div>
+                }
+            </section>
+        }
+        <div class="ft"><span>올해 @c.WeeksCount 주일 기준 · 전화는 명부의 연락처 1(없으면 2)로 걸려요</span></div>
+    </main>
+</div>
+<partial name="_AttTabs" model='(slug, "care", true)' />
