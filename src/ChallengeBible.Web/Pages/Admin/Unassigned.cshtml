@@ -1,0 +1,33 @@
+@page "/{slug}/admin/classes/unassigned"
+@model ChallengeBible.Web.Pages.Admin.UnassignedModel
+@* 확정 시안 B-미배정반(ADR 0093 반 관리 및 자동 생성 규칙 3 · 4): 정규 반이 없는 아이 모두 · 부서 관리자만 *@
+@{ var slug = Model.Tenant.Current.Slug; }
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut"><div class="wrap wide">
+    <h1>미배정반</h1>
+    <p class="lead"><a href="/@slug/admin/classes">← 반 목록</a> · 부서 관리자만 보여요</p>
+    @if (Model.Done is int n) { <p class="okmsg" role="status">@(n)명을 반에 배정했어요</p> }
+    @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+    <p class="hint">반이 정해지지 않은 아이는 모두 여기에 자동으로 들어와요. 진급해 온 아이 · 새친구도 반을 정하기 전까지 여기 있어요.</p>
+
+    <section class="sec" aria-labelledby="uT"><h2 id="uT">아이 @Model.Rows.Count</h2>
+        @if (Model.Rows.Count == 0) { <p class="hint">반이 정해지지 않은 아이가 없어요.</p> }
+        else if (Model.Targets.Count == 0) { <p class="hint">먼저 반 목록에서 "+ 반 만들기"로 반을 만들어 주세요.</p> }
+        else
+        {
+            <form method="post" asp-route-slug="@slug" class="stack">
+                <ul class="ppl asg">
+                    @foreach (var p in Model.Rows)
+                    {
+                        <li><span><b>@p.Name</b> <small>@p.RoleLabel · @p.Birthday · @(p.Linked ? "가입" : "가입 안 함")</small></span>
+                            <select class="sel" name="to[@p.PersonId]" aria-label="@p.Name 반 고르기">
+                                <option value="0">반 고르기</option>
+                                @foreach (var c in Model.Targets) { <option value="@c.Id">@c.Name</option> }
+                            </select></li>
+                    }
+                </ul>
+                <div class="row"><button type="submit" class="btn p sm">고른 반으로 배정</button></div>
+            </form>
+        }
+    </section>
+</div></main>
