@@ -1,0 +1,23 @@
+@page "/{slug}/attendance/more"
+@model ChallengeBible.Web.Pages.Attendance.MoreModel
+@* 유년부 출석부 "더보기"(Views/Attendance/More)와 같은 모양 · 색(DailyMission4 밝은 흰색 버전) *@
+@{ var slug = Model.Tenant.Current.Slug; }
+<div class="yb">
+    <header class="sh">
+        <div class="hdTop"><a href="/@slug/attendance">출석부</a><a href="/@slug">부서 홈으로</a></div>
+        <div class="hdK">MORE</div>
+        <h1 class="hdT">더보기</h1>
+        <div class="hdS">@(Model.Tenant.IsAdmin ? "관리자 메뉴가 함께 보여요." : "가끔 쓰는 메뉴를 모았어요.")</div>
+    </header>
+    <main class="sh">
+        <section class="sec">
+            @foreach (var m in Model.Items)
+            {
+                <a class="mo" href="@m.Url"><span class="moTx"><span class="moL">@m.Label</span><span class="moD">@m.Desc</span></span><span class="moA" aria-hidden="true">›</span></a>
+            }
+            <a class="mo" href="/@slug"><span class="moTx"><span class="moL">부서 홈으로</span><span class="moD">메인 화면</span></span><span class="moA" aria-hidden="true">›</span></a>
+        </section>
+        <div class="ft"><span>© @Model.Tenant.Current.Name · 출석부</span></div>
+    </main>
+</div>
+<partial name="_AttTabs" model='(slug, "more", Model.Newcomers)' />
