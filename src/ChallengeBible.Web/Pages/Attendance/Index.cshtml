@@ -1,0 +1,69 @@
+@page "/{slug}/attendance"
+@model ChallengeBible.Web.Pages.Attendance.IndexModel
+@* 확정 시안 A-출석부-오늘(ADR 0093 출석, 유년부 출석부 "오늘"과 같은 동작): 이름 누르면 저장 · 초성 검색 · 반 바로가기 · 지난 4주 점 · 3주 결석 테두리 *@
+@{ var slug = Model.Tenant.Current.Slug; }
+<main class="att gut"><div class="wrap">
+    @if (!Model.Scope.Any)
+    {
+        <div class="top"><div class="crumb"><span>@Model.Tenant.Current.Name › 출석</span><a href="/@slug">부서 홈으로</a></div><h1>출석</h1></div>
+        <p class="none">아직 맡은 반이 없어요. 부서 관리자가 반 선생님으로 넣으면 출석부가 보여요.</p>
+    }
+    else
+    {
+        var b = Model.Board;
+        var isThis = b.Sunday == b.ThisSunday;
+        var pct = b.Total == 0 ? 0 : b.Present * 100 / b.Total;
+        var done = b.Groups.Count(g => g.Kids.Any(k => k.Present));
+        <div class="top">
+            <div class="crumb"><span>@Model.Tenant.Current.Name › 출석</span><a href="/@slug">부서 홈으로</a></div>
+            <div class="dnav">
+                <a href="?D=@b.Sunday.AddDays(-7).ToString("yyyy-MM-dd")" aria-label="지난 주일">‹</a>
+                <h1>@b.Sunday.ToString("M월 d일") 주일<small class="@(isThis ? "" : "past")">@(isThis ? "이번 주일" : "지난 주일 · 고치는 중")</small></h1>
+                @if (isThis) { <span class="off" aria-hidden="true">›</span> } else { <a href="?D=@b.Sunday.AddDays(7).ToString("yyyy-MM-dd")" aria-label="다음 주일">›</a> }
+            </div>
+            <div class="prog"><b id="presentN">@b.Present</b> / @(b.Total)명 출석 · 남은 아이 <span id="leftN">@(b.Total - b.Present)</span></div>
+            <div class="bar"><i id="barFill" style="width:@(pct)%"></i></div>
+            <p class="help">아이 이름을 누르면 바로 출석으로 저장돼요. 잘못 눌렀으면 한 번 더 누르면 취소돼요.</p>
+        </div>
+        @Html.AntiForgeryToken()
+        <label class="srch"><span aria-hidden="true">⌕</span><input id="q" type="search" autocomplete="off" placeholder="이름 찾기 (초성도 돼요 · 예: ㅈㅎ)" aria-label="이름 찾기" /></label>
+        <div class="seg2" role="tablist" aria-label="보기"><button type="button" data-f="all" class="on">전체 <b id="cAll">@b.Total</b></button><button type="button" data-f="left">미출석 <b id="cLeft">@(b.Total - b.Present)</b></button></div>
+        @if (b.Groups.Count == 0) { <p class="none">반에 든 아이가 없어요. 부서 관리자가 반에 아이를 넣으면 보여요.</p> }
+        else
+        {
+            if (b.Groups.Count > 1)
+            {
+                <div class="jh"><span>체크 안 한 반 <b id="jTodo">@(b.Groups.Count - done)</b></span><span>체크한 반 <em id="jDone">@done</em></span></div>
+                <nav class="jump" aria-label="반으로 이동">
+                    @for (var i = 0; i < b.Groups.Count; i++)
+                    {
+                        var g = b.Groups[i];
+                        var d = g.Kids.Any(k => k.Present);
+                        <a href="#g-@g.ClassId" data-g="@g.ClassId" data-ord="@i" class="@(d ? "done" : "todo")" style="order:@(d ? 1000 + i : i)">@g.Name</a>
+                    }
+                </nav>
+            }
+            <div id="board" data-slug="@slug" data-sunday="@b.Sunday.ToString("yyyy-MM-dd")">
+                @foreach (var g in b.Groups)
+                {
+                    <section class="grp" id="g-@g.ClassId" data-g="@g.ClassId">
+                        <div class="gh"><b>@g.Name@if (g.Mine) { <span class="tag my">내 반</span> }</b><span>@(string.IsNullOrEmpty(g.Teacher) ? "" : g.Teacher + " · ")<em class="gc" style="font-style:normal">@g.Kids.Count(k => k.Present)/@g.Kids.Count</em></span></div>
+                        <div class="kids">
+                            @foreach (var k in g.Kids)
+                            {
+                                <button type="button" class="kid @(k.Present ? "on" : "") @(k.AbsentStreak >= ChallengeBible.Web.Services.AttendanceService.AbsentAlert ? "w" : "")"
+                                        data-id="@k.PersonId" data-name="@k.Name" data-p="@(k.Present ? "1" : "0")" aria-pressed="@(k.Present ? "true" : "false")"
+                                        title="@(k.AbsentStreak >= 3 ? $"{k.AbsentStreak}주 연속 결석" : "")">@k.Name@if (k.Newcomer) { <span class="nc">새친구</span> }<span class="kd" aria-hidden="true">@foreach (var r in k.Recent) { <i class="@(r ? "" : "o")"></i> }</span></button>
+                            }
+                        </div>
+                    </section>
+                }
+                <p class="none hidden" id="noHit">찾는 아이가 없어요.</p>
+            </div>
+            <p class="foot">이름 아래 점 = 지난 4주 출석 · 빨간 테두리 = 3주 이상 결석@(Model.Scope.Admin ? " · 부서 관리자는 모든 반이 보여요" : "")</p>
+        }
+        <div class="toast hidden" id="toast" role="alert"></div>
+    }
+</div></main>
+<partial name="_AttTabs" model='(slug, "a", Model.Scope.Newcomers)' />
+<script src="~/js/attendance.js" asp-append-version="true"></script>

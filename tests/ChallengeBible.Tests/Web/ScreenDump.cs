@@ -261,6 +261,24 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(admin, "/jamsil-kids/admin/classes", "12n-반목록");
         await Save(admin, $"/jamsil-kids/admin/classes/{clsId}", "12o-반안-사람넣기");
         await Save(admin, "/jamsil-kids/admin/classes/unassigned", "12p-미배정반");
+
+        // 출석(확정 시안 A-출석부-오늘 · B-새친구 · C-새친구-등록, 0093 출석): 한겨울은 새친구로 1학년 1반, 김철수는 이번 주일 출석
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            var sun = new DateOnly(2027, 1, 3);
+            var win = raw.People.Single(p => p.Name == "한겨울");
+            (win.RoleCode, win.NewcomerFirstVisit, win.NewcomerVoluntary, win.NewcomerEvangelist) = ("T1001", sun.AddDays(-14), false, "김철수");
+            raw.ClassMembers.Add(new ClassMember { TenantId = kids.Id, TermId = termId, ClassId = clsId, PersonId = win.Id, CreatedUtc = DateTime.UtcNow });
+            var kidPid = raw.People.Single(p => p.UserId == km.UserId).Id;
+            raw.AttendanceChecks.AddRange(
+                new AttendanceCheck { TenantId = kids.Id, PersonId = kidPid, Sunday = sun },
+                new AttendanceCheck { TenantId = kids.Id, PersonId = kidPid, Sunday = sun.AddDays(-7) },
+                new AttendanceCheck { TenantId = kids.Id, PersonId = win.Id, Sunday = sun.AddDays(-14) });
+            raw.SaveChanges();
+        }
+        await Save(admin, "/jamsil-kids/attendance", "12q-출석부-오늘");
+        await Save(admin, "/jamsil-kids/attendance/newcomers", "12r-새친구");
+        await Save(admin, "/jamsil-kids/attendance/newcomers/new", "12s-새친구-등록");
         await Save(mom, "/jamsil-kids/guardian", "16-보호자");
         await Save(mom, "/jamsil-kids/guardian?date=2027-01-04", "17-보호자-지난날");
 

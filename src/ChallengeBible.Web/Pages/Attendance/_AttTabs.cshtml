@@ -1,0 +1,9 @@
+@model (string Slug, string On, bool Newcomers)
+@* 출석 아래 탭: 오늘 · 새친구(새친구반 담당 · 부서 관리자) *@
+@if (Model.Newcomers)
+{
+    <nav class="tabsb" aria-label="출석 메뉴">
+        <a class="@(Model.On == "a" ? "on" : "")" href="/@Model.Slug/attendance" aria-current="@(Model.On == "a" ? "page" : "false")"><b aria-hidden="true">✓</b>오늘</a>
+        <a class="@(Model.On == "n" ? "on" : "")" href="/@Model.Slug/attendance/newcomers" aria-current="@(Model.On == "n" ? "page" : "false")"><b aria-hidden="true">＋</b>새친구</a>
+    </nav>
+}

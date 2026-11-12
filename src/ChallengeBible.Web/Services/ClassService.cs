@@ -44,6 +44,9 @@ public sealed class ClassService(IAppDb db, PeopleService people, TenantContext 
         return term.Id;
     }
 
+    /// <summary>이 부서 명부(이름 · 역할).</summary>
+    public Task<List<RosterRow>> RosterAsync(CancellationToken ct = default) => people.RosterAsync(null, null, ct);
+
     /// <summary>반 목록: 새친구반 먼저, 정규 반은 이름 순. 미배정반은 <see cref="UnassignedAsync"/> 로 따로.</summary>
     public async Task<List<ClassRow>> ClassesAsync(CancellationToken ct = default)
     {
