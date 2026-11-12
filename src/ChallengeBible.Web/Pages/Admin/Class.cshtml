@@ -1,83 +1,107 @@
 @page "/{slug}/admin/classes/{id:int}"
 @model ChallengeBible.Web.Pages.Admin.ClassModel
-@* 확정 시안 B-반안-사람넣기(ADR 0093 반 관리 및 자동 생성 규칙): 이름 · 선생님(일반 반 교사만, 새친구반 교사 · 임원 · 관리자) · 학생(한 반만) *@
+@using ChallengeBible.Web.Services
+@* 확정 시안 H-반화면-새 · H-반화면-이름고치기(2026-11-12): 요약 머리 · 담임 카드 · 학생 카드 · 아래에 지우기. 버튼은 가운데 · 넓게 *@
 @{
     var slug = Model.Tenant.Current.Slug;
     var d = Model.Detail!;
     var c = d.Class;
+    var nameOpen = Model.Error is not null && Model.Ok is null && Model.ErrorFor == "name";
 }
 <partial name="_AdminTop" model="Model.Tenant" />
 <main class="admin gut"><div class="wrap wide">
-    <h1>@c.Name</h1>
-    <p class="lead"><a href="/@slug/admin/classes">← 반 목록</a>@(c.IsNewcomer ? " · 기본 반" : "")</p>
+    <p class="lead"><a href="/@slug/admin/classes">← 반 목록</a></p>
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
     @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
 
-    <form method="post" asp-page-handler="Name" asp-route-slug="@slug" class="pp-form">
-        <label>반 이름<input class="in" name="name" value="@c.Name" maxlength="50" required /></label>
-        <div class="row">
-            <button type="submit" class="btn p sm">이름 저장</button>
-            @if (!c.IsNewcomer)
-            {
-            <details class="ask"><summary class="btn d sm">반 지우기</summary>
-                <span>@(c.Name)을 지울까요? 그 반 아이들은 미배정반으로 돌아가요.</span><button type="submit" class="btn dd sm" asp-page-handler="Delete" formnovalidate>지우기</button>
-            </details>
-            }
+    <div class="cd-head">
+        <h1>@c.Name</h1>
+        <div class="stat">
+            @if (d.Teachers.Count == 0) { <span class="warn">@(c.IsNewcomer ? "담당 없음" : "선생님 없음")</span> }
+            else { <span>@(c.IsNewcomer ? "담당" : "선생님") @string.Join(" · ", d.Teachers.Select(t => t.Name))</span> }
+            <span>@(c.IsNewcomer ? "관리 중인 새친구" : "학생") @(d.Students.Count)명</span>
         </div>
-    </form>
+        @if (!c.IsNewcomer)
+        {
+            <details class="cd-ren" open="@nameOpen"><summary class="ren">반 이름 고치기</summary>
+                <form method="post" asp-page-handler="Name" asp-route-slug="@slug" class="cd-add">
+                    <input class="in" name="name" value="@c.Name" maxlength="50" required aria-label="반 이름" />
+                    <button type="submit" class="btn p sm">저장</button>
+                </form>
+            </details>
+        }
+        else { <span class="hint">기본 반이라 이름 · 지우기는 없어요</span> }
+    </div>
 
-    <section class="sec" aria-labelledby="tT"><h2 id="tT">@(c.IsNewcomer ? "담당" : "선생님") @d.Teachers.Count</h2>
-        <ul class="ppl">
-            @foreach (var p in d.Teachers)
-            {
-                <li><span><b>@p.Name</b> <small>@p.RoleLabel</small></span>
-                    <form method="post" asp-page-handler="Remove" asp-route-slug="@slug" class="x"><input type="hidden" name="person" value="@p.PersonId" /><button class="btn t">빼기</button></form></li>
-            }
-        </ul>
+    <section class="cd-card" aria-labelledby="tT">
+        <h2 id="tT">@(c.IsNewcomer ? "새친구반 담당" : "담임 선생님") <small>@(c.IsNewcomer ? "교사 · 임원 · 관리자" : "교사만") · 한 반만</small></h2>
+        @if (d.Teachers.Count == 0) { <p class="cd-empty">아직 @(c.IsNewcomer ? "담당이" : "담임이") 없어요. 아래에서 정해 주세요.</p> }
+        else
+        {
+            <ul class="cd-people">
+                @foreach (var p in d.Teachers)
+                {
+                    <li><b>@p.Name</b><small>@p.RoleLabel@(string.IsNullOrEmpty(p.Note) ? "" : " · " + p.Note)</small>
+                        <form method="post" asp-page-handler="Remove" asp-route-slug="@slug" class="x-f"><input type="hidden" name="person" value="@p.PersonId" /><button type="submit" class="x" aria-label="@p.Name 빼기" title="빼기">×</button></form></li>
+                }
+            </ul>
+        }
         @if (d.TeacherCandidates.Count > 0)
         {
-            <form method="post" asp-page-handler="Teacher" asp-route-slug="@slug" class="row">
+            <form method="post" asp-page-handler="Teacher" asp-route-slug="@slug" class="cd-add">
                 <select class="sel" name="person" aria-label="넣을 @(c.IsNewcomer ? "담당" : "선생님")">@foreach (var p in d.TeacherCandidates) { <option value="@p.PersonId">@p.Name (@p.RoleLabel)</option> }</select>
-                <button type="submit" class="btn s sm">넣기</button>
+                <button type="submit" class="btn p sm">넣기</button>
             </form>
         }
-        <p class="hint">@(c.IsNewcomer ? "새친구반 담당은 교사 · 임원 · 부서 관리자가 될 수 있어요." : "일반 반 선생님은 교사만 돼요.") 선생님은 한 반만 맡아요.</p>
+        else if (d.Teachers.Count == 0) { <p class="hint">넣을 수 있는 @(c.IsNewcomer ? "사람이" : "교사가") 없어요. 다른 반을 맡고 있으면 그 반에서 먼저 빼요.</p> }
     </section>
 
     @if (!c.IsNewcomer)
     {
-        <section class="sec" aria-labelledby="sT"><h2 id="sT">학생 @d.Students.Count</h2>
-            @if (d.Students.Count > 0) { <a class="btn p sm" href="/@slug/admin/classes/move?S=2&amp;F=@c.Id">이 반 아이 옮기기 →</a> }   @* 반 이동 마법사 2단계(아이 고르기)로 *@
-            <ul class="ppl">
+        <section class="cd-card" aria-labelledby="sT">
+            <h2 id="sT">학생 <small>@(d.Students.Count)명</small></h2>
+            @if (d.Students.Count == 0) { <p class="hint" style="text-align:center">아직 학생이 없어요.</p> }
+            <ul class="cd-people">
                 @foreach (var p in d.Students)
                 {
-                    <li><span><b>@p.Name</b>@if (p.Newcomer) { <span class="tag nc">새친구</span> } <small>@p.Birthday · @(p.Linked ? "가입" : "가입 안 함")</small></span>
-                        <form method="post" asp-page-handler="Remove" asp-route-slug="@slug" class="x"><input type="hidden" name="person" value="@p.PersonId" /><button class="btn t">빼기</button></form></li>
+                    <li><b>@p.Name</b>@if (p.Newcomer) { <span class="tag nc">새친구</span> }<small>@(p.Linked ? "가입" : "가입 안 함")</small>
+                        <form method="post" asp-page-handler="Remove" asp-route-slug="@slug" class="x-f"><input type="hidden" name="person" value="@p.PersonId" /><button type="submit" class="x" aria-label="@p.Name 빼기" title="빼기(미배정반으로)">×</button></form></li>
                 }
             </ul>
+            <div class="cd-btns">
+                <details class="cd-pick" open="@(Model.ErrorFor == "students")">
+                    <summary class="btn p">+ 미배정반에서 넣기</summary>
+                    @if (d.StudentCandidates.Count == 0) { <p class="hint" style="text-align:center">미배정반에 아이가 없어요.</p> }
+                    else
+                    {
+                        <form method="post" asp-page-handler="Students" asp-route-slug="@slug" class="cd-picklist">
+                            <ul class="ppl">
+                                @foreach (var p in d.StudentCandidates) { <li><input type="checkbox" name="pick" value="@p.PersonId" aria-label="@p.Name 고르기" /><span><b>@p.Name</b> <small>@p.RoleLabel · @p.Birthday</small></span></li> }
+                            </ul>
+                            <button type="submit" class="btn p">고른 아이 넣기</button>
+                        </form>
+                    }
+                </details>
+                @if (d.Students.Count > 0) { <a class="btn s" href="/@slug/admin/classes/move?S=2&amp;F=@c.Id">이 반 아이 옮기기 →</a> }
+            </div>
         </section>
-        <section class="sec" aria-labelledby="nT"><h2 id="nT">미배정반에서 넣기</h2>
-            @if (d.StudentCandidates.Count == 0) { <p class="hint">미배정반에 아이가 없어요.</p> }
-            else
-            {
-                <form method="post" asp-page-handler="Students" asp-route-slug="@slug" class="stack">
-                    <ul class="ppl">
-                        @foreach (var p in d.StudentCandidates) { <li><input type="checkbox" name="pick" value="@p.PersonId" aria-label="@p.Name 고르기" /><span><b>@p.Name</b> <small>@p.RoleLabel · @p.Birthday</small></span></li> }
-                    </ul>
-                    <div class="row"><button type="submit" class="btn p sm">고른 사람 넣기</button></div>
+        <div class="cd-danger">
+            <details class="ask"><summary>이 반 지우기</summary>
+                <form method="post" asp-page-handler="Delete" asp-route-slug="@slug">
+                    <span>@(c.Name)을 지울까요? 학생은 미배정반으로 돌아가요.</span><button type="submit" class="btn dd sm">지우기</button>
                 </form>
-            }
-            <p class="hint">학생은 한 반에만 들어요. 다른 반에 있는 학생은 그 반에서 먼저 빼요.</p>
-        </section>
+            </details>
+        </div>
     }
     else
     {
-        <section class="sec" aria-labelledby="ncT"><h2 id="ncT">관리 중인 새친구 @d.Students.Count</h2>
-            @if (d.Students.Count == 0) { <p class="hint">관리 중인 새친구가 없어요.</p> }
-            <ul class="ppl">
-                @foreach (var p in d.Students) { <li><span><b>@p.Name</b> <small>@p.Note · @p.Birthday</small></span></li> }
+        <section class="cd-card" aria-labelledby="ncT">
+            <h2 id="ncT">관리 중인 새친구 <small>@(d.Students.Count)명</small></h2>
+            @if (d.Students.Count == 0) { <p class="hint" style="text-align:center">관리 중인 새친구가 없어요.</p> }
+            <ul class="cd-people">
+                @foreach (var p in d.Students) { <li><b>@p.Name</b><small>@p.Note · @p.Birthday</small></li> }
             </ul>
-            <p class="hint">새친구는 새친구반과 실제 반(또는 미배정반) 양쪽에 보여요. 등록 · 출석은 출석 → "새친구"에서 해요. 새친구반은 기본 반이라 지울 수 없어요.</p>
+            <p class="hint">새친구는 새친구반과 실제 반(또는 미배정반) 양쪽에 보여요. 등록 · 출석은 출석 → "새친구"에서 해요.</p>
         </section>
     }
 </div></main>
