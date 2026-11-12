@@ -359,5 +359,14 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("출석 명단", await a.GetStringAsync("/jamsil-kids/attendance/sunday?sunday=2020-01-05"));
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/report")).StatusCode);
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/sunday")).StatusCode);
+
+        // 최근 전체 출석현황(3주) · 주일 반별 출석
+        Assert.Contains("href=\"/jamsil-kids/attendance/trend\"", more);
+        var trend = await a.GetStringAsync("/jamsil-kids/attendance/trend");
+        Assert.Equal(3, Regex.Matches(trend, "class=\"twk ").Count);
+        Assert.Contains("/jamsil-kids/attendance/byclass?sunday=", trend);
+        Assert.Contains("반별 출석", await a.GetStringAsync("/jamsil-kids/attendance/byclass?sunday=2020-01-05"));
+        Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/trend")).StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/byclass")).StatusCode);
     }
 }

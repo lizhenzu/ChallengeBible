@@ -2772,6 +2772,80 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .ybs .links { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 24px; }
 .ybs .links a { flex: 1; min-width: 140px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 13.5px; border: 1px solid #D5DAE1; border-radius: 10px; }
 
+/* 최근 전체 출석현황(3주) — 유년부 AdminTrend3Weeks 그대로(4/9) */
+.ybt .sh, .ybc .sh { max-width: 900px; }
+.ybt .hdRow { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; padding-bottom: 6px; }
+.ybt .dn3 { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; color: var(--yb-dim2); }
+.ybt .dn3 a, .ybt .dn3 span.off { width: 32px; height: 32px; display: grid; place-items: center; font-weight: 200; font-size: 22px; color: var(--yb-blue); }
+.ybt .dn3 span.off { opacity: .25; }
+.ybt .big { display: flex; align-items: flex-end; gap: 16px; margin-top: 14px; }
+.ybt .big .pct { font-weight: 200; font-size: 60px; line-height: .9; color: var(--yb-ink); font-variant-numeric: tabular-nums; }
+.ybt .big .pct small { font-size: 26px; }
+.ybt .big .sub { font-size: 13px; color: var(--yb-dim2); line-height: 1.65; }
+.ybt .big .sub b { color: var(--yb-ink); }
+.ybt .chg { display: inline-block; margin-top: 3px; font-size: 12px; padding: 1px 7px; border: 1px solid var(--yb-line); border-radius: 6px; color: var(--yb-danger); }
+.ybt .chg.up { color: var(--yb-ok); }
+.ybt .chg.eq { color: var(--yb-dim); }
+.ybt .ch { display: flex; align-items: flex-end; gap: 12px; height: 170px; padding: 18px 0 0; margin-top: 20px; border: 1px solid #E3E7ED; border-radius: 14px; }
+.ybt .cb { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+.ybt .cb .v { font-size: 13.5px; font-weight: 600; margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+.ybt .cb .col { width: 60%; max-width: 72px; height: 100px; background: var(--yb-soft); position: relative; border-radius: 6px 6px 0 0; overflow: hidden; }
+.ybt .cb .col i { position: absolute; left: 0; right: 0; bottom: 0; background: #7FA3DB; }
+.ybt .cb.now .col i { background: var(--yb-blue); }
+.ybt .cb.lo .col i { background: var(--yb-danger); }
+.ybt .cb .dt { font-size: 12px; color: var(--yb-dim); padding: 8px 0 10px; }
+.ybt .cb.now .dt { color: var(--yb-ink); font-weight: 700; }
+.ybt .sec { margin-top: 24px; }
+.ybt .wks { display: grid; grid-template-columns: 1fr; }
+.ybt .twk { padding: 14px 2px; border-bottom: 1px solid var(--yb-line); }
+.ybt .wkK { font-size: 11px; font-weight: 700; letter-spacing: .12em; color: var(--yb-dim); }
+.ybt .wkT { display: flex; align-items: baseline; gap: 10px; margin-top: 2px; }
+.ybt .wkT b { font-weight: 800; font-size: 17px; color: var(--yb-ink); }
+.ybt .wkT .p { margin-left: auto; font-weight: 600; font-size: 18px; font-variant-numeric: tabular-nums; }
+.ybt .twk.lo .wkT .p, .ybt .twk.lo .pp { color: var(--yb-danger); }
+.ybt .pp { display: none; font-weight: 200; font-size: 46px; line-height: 1; margin-top: 12px; font-variant-numeric: tabular-nums; }
+.ybt .pp small { font-size: 20px; }
+.ybt .bar, .ybc .bar { height: 5px; background: var(--yb-line); margin-top: 9px; border-radius: 3px; overflow: hidden; }
+.ybt .bar i { display: block; height: 5px; background: var(--yb-blue); }
+.ybt .twk.lo .bar i, .ybc .bcl.lo .bar i { background: var(--yb-danger); }
+.ybt .wkM, .ybc .clM { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin-top: 7px; font-size: 12.5px; color: var(--yb-dim2); font-variant-numeric: tabular-nums; }
+.ybt .wkM .a, .ybc .clM .a { color: var(--yb-ok); } .ybt .wkM .x, .ybc .clM .x { color: var(--yb-danger); }
+.ybt .wkA { display: flex; gap: 6px; margin-top: 12px; }
+.ybt .wkA + .wkA { margin-top: 6px; }
+.ybt .wkA a { flex: 1; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 1px solid #D5DAE1; border-radius: 10px; color: var(--yb-ink); }
+.ybt .wkA a.pri { background: var(--yb-blue); border-color: var(--yb-blue); color: #fff; font-weight: 700; }
+@media (min-width: 760px) {
+    .ybt .wks { grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+    .ybt .twk { border: 1px solid #E3E7ED; border-radius: 14px; padding: 16px; }
+    .ybt .twk.now { border-color: var(--yb-blue); box-shadow: inset 0 3px 0 var(--yb-blue); }
+    .ybt .wkT .p { display: none; } .ybt .pp { display: block; }
+    .ybt .twk.o1 { order: 1; } .ybt .twk.o2 { order: 2; } .ybt .twk.o3 { order: 3; }
+}
+
+/* 주일 반별 출석 — 유년부 AdminTrendSundayDetail 그대로(4/9) */
+.ybc .st2 { display: flex; gap: 22px; margin: 14px 0 6px; flex-wrap: wrap; }
+.ybc .st2 div { font-size: 10.5px; font-weight: 700; letter-spacing: .14em; color: var(--yb-dim); }
+.ybc .st2 b { display: block; margin-top: 2px; font-weight: 200; font-size: 28px; letter-spacing: 0; color: var(--yb-ink); font-variant-numeric: tabular-nums; }
+.ybc .st2 .k b { color: var(--yb-blue); }
+.ybc .st2 .lo b { color: var(--yb-danger); }
+.ybc .tl { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-top: 18px; flex-wrap: wrap; }
+.ybc .tl > span { font-size: 12.5px; color: var(--yb-dim); }
+.ybc .seg5 { display: flex; border: 1px solid var(--yb-line); border-radius: 10px; overflow: hidden; }
+.ybc .seg5 button { font: inherit; font-size: 13px; padding: 8px 14px; background: #fff; border: 0; color: var(--yb-dim2); cursor: pointer; }
+.ybc .seg5 button + button { border-left: 1px solid var(--yb-line); }
+.ybc .seg5 button.on { background: var(--yb-blue); color: #fff; font-weight: 700; }
+.ybc .bcl { padding: 14px 2px; border-bottom: 1px solid var(--yb-line); }
+.ybc .clT { display: flex; align-items: baseline; gap: 8px; }
+.ybc .clT b { font-weight: 800; font-size: 17px; color: var(--yb-ink); }
+.ybc .clT small { font-size: 12px; color: var(--yb-dim); }
+.ybc .clT .p { margin-left: auto; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ybc .bcl.lo .clT .p { color: var(--yb-danger); }
+.ybc .bar { margin-top: 8px; }
+.ybc .bar i { display: block; height: 5px; background: var(--yb-ok); }
+.ybc .clM .go { margin-left: auto; display: flex; gap: 6px; }
+.ybc .clM .go a { font-size: 13px; padding: 7px 11px; border: 1px solid #D5DAE1; border-radius: 8px; color: var(--yb-ink); }
+.ybc .clM .go a.pri { background: var(--yb-blue); border-color: var(--yb-blue); color: #fff; }
+
 /* 출석 아래 탭 — 유년부 _AttTabs 그대로 */
 .attTabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; background: #FFFFFF; border-top: 1px solid #EEF0F3; padding-bottom: env(safe-area-inset-bottom, 0px); }
 .attTabs nav { max-width: 760px; margin: 0 auto; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; height: 58px; }

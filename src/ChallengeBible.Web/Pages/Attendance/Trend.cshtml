@@ -1,0 +1,88 @@
+@page "/{slug}/attendance/trend"
+@model ChallengeBible.Web.Pages.Attendance.TrendModel
+@using ChallengeBible.Web.Pages.Attendance
+@using System.Globalization
+@* 유년부 출석부 "최근 전체 출석현황(3주)"(Views/Attendance/AdminTrend3Weeks)과 같은 모양 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var asc = Model.Weeks;
+    var desc = asc.AsEnumerable().Reverse().ToList();
+    var now = desc[0];
+    var sunday = now.Sunday;
+    bool atLatest = sunday >= now.ThisSunday;
+    string Self(DateOnly d) => $"/{slug}/attendance/trend?date={d:yyyy-MM-dd}";
+    const double LowRate = 70;
+    var ko = new CultureInfo("ko-KR");
+    var (nt, np) = TrendModel.Count(now);
+    var nr = TrendModel.Rate(np, nt);
+    var (pt, pp) = TrendModel.Count(desc[1]);
+    var diff = nr - TrendModel.Rate(pp, pt);
+    string Label(int i) => i == 0 ? "이번 주" : i == 1 ? "지난주" : $"{i}주 전";
+}
+<div class="yb ybt">
+    <header class="sh">
+        <div class="hdTop"><a href="/@slug/attendance/more">더보기</a><a href="/@slug">부서 홈으로</a></div>
+        <div class="hdRow">
+            <div>
+                <div class="hdK">ATTENDANCE · 3 WEEKS</div>
+                <h1 class="hdT">최근 전체 출석현황(3주)</h1>
+                <div class="dn3">
+                    <a href="@Self(sunday.AddDays(-7))" aria-label="한 주 전">‹</a>
+                    <span>@sunday.ToString("M월 d일") 주일 기준</span>
+                    @if (atLatest) { <span class="off" aria-hidden="true">›</span> } else { <a href="@Self(sunday.AddDays(7))" aria-label="한 주 뒤">›</a> }
+                </div>
+            </div>
+            <div class="big">
+                <div class="pct">@TrendModel.Pct(nr)<small>%</small></div>
+                <div class="sub">
+                    이번 주 <b>@np</b> / @(nt)명 출석<br />
+                    결석 <b>@(nt - np)</b>명<br />
+                    <span class="chg @(diff > 0 ? "up" : diff == 0 ? "eq" : "")">@(diff > 0 ? "▲" : diff == 0 ? "―" : "▼") @(diff == 0 ? "지난주와 같아요" : $"{TrendModel.Pct(Math.Abs(diff))}%p 지난주보다")</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="sh">
+        <div class="ch" role="img" aria-label="최근 3주 출석률 막대그래프">
+            @for (int i = 0; i < asc.Count; i++)
+            {
+                var (t, p) = TrendModel.Count(asc[i]);
+                var r = TrendModel.Rate(p, t);
+                bool isNow = i == asc.Count - 1;
+                <div class="cb @(isNow ? "now" : "") @(r < LowRate ? "lo" : "")">
+                    <span class="v">@TrendModel.Pct(r)%</span>
+                    <div class="col"><i style="height:@(Math.Clamp(r, 0, 100).ToString(CultureInfo.InvariantCulture))%"></i></div>
+                    <span class="dt">@asc[i].Sunday.ToString("M.d")@(isNow ? " 이번 주" : "")</span>
+                </div>
+            }
+        </div>
+
+        <section class="sec">
+            <div class="secH"><div><div class="secK">BY WEEK</div><div class="secT">주별 자세히</div></div><span class="secN">@(LowRate)% 미만은 빨간 막대</span></div>
+            <div class="wks">
+                @for (int i = 0; i < desc.Count; i++)
+                {
+                    var w = desc[i];
+                    var (t, p) = TrendModel.Count(w);
+                    var r = TrendModel.Rate(p, t);
+                    var sp = w.Sunday.ToString("yyyy-MM-dd");
+                    <article class="twk o@(desc.Count - i) @(i == 0 ? "now" : "") @(r < LowRate ? "lo" : "")">
+                        <div class="wkK">@Label(i)</div>
+                        <div class="wkT"><b>@w.Sunday.ToString("M월 d일 (ddd)", ko)</b><span class="p">@TrendModel.Pct(r)%</span></div>
+                        <div class="pp">@TrendModel.Pct(r)<small>%</small></div>
+                        <div class="bar"><i style="width:@(Math.Clamp(r, 0, 100).ToString(CultureInfo.InvariantCulture))%"></i></div>
+                        <div class="wkM"><span>총 @t</span><span class="a">출석 @p</span><span class="x">결석 @(t - p)</span></div>
+                        <div class="wkA"><a href="/@slug/attendance/byclass?sunday=@sp">반별 출석</a></div>
+                        <div class="wkA">
+                            <a href="/@slug/attendance/report?sunday=@sp">명단 보기 (PC)</a>
+                            <a class="@(i == 0 ? "pri" : "")" href="/@slug/attendance/sunday?sunday=@sp">명단 보기 (휴대폰)</a>
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+        <div class="ft"><span>총원은 지금 반 편성 기준 · 출석률 = 출석 ÷ 총원</span></div>
+    </main>
+</div>
+<partial name="_AttTabs" model='(slug, "more", true)' />
