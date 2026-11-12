@@ -67,11 +67,21 @@ public class ClassMoveModel(ClassService classes, ClassMoveService mover, Tenant
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
         if (tenant.IsLobby || D is not MoveDest dest) return NotFound();
+        await LoadAsync(ct);
+        var from = FromName;
+        var to = DestText;
+        var names = string.Join(" · ", Picked.Select(p => p.Name));
         var (e, n, skipped) = await mover.MoveAsync(Me, FromId, P, dest, T, X, ct);
-        if (e == MoveClassError.None && skipped.Count == 0)
-            return RedirectToPage("Classes", new { slug = tenant.Current.Slug, Ok = $"mv{n}" });   // 끝나면 반 목록으로(2026-11-12 사용자)
-        Error = e != MoveClassError.None ? ClassMoveService.Message(e)
-            : $"{n}명을 옮겼어요. 선물 받은 팀에 있어 옮기지 못한 아이(이 부서 미배정반에 남음): {string.Join(", ", skipped)}";
+        if (e == MoveClassError.None)
+        {
+            // 끝나면 완료 화면(반 목록 · 부서 홈 고르기, 2026-11-12 사용자)
+            TempData["mvN"] = n;
+            TempData["mvRoute"] = $"{from} → {to}";
+            TempData["mvNames"] = names;
+            TempData["mvSkipped"] = string.Join(", ", skipped);
+            return RedirectToPage("ClassMoveDone", new { slug = tenant.Current.Slug });
+        }
+        Error = ClassMoveService.Message(e);
         S = 1;
         F = null;
         await LoadAsync(ct);

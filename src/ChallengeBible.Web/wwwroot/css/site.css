@@ -2429,6 +2429,14 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 @media (prefers-reduced-motion: reduce) { .att .kid.busy::after { animation-duration: 2s; } }
 .att.searching .kid small, .att .searching .kid small { display: block; }
 
+/* 반 이동 완료 화면 */
+.mv-done { display: grid; gap: 8px; justify-items: center; text-align: center; margin: 24px 0 8px; padding: 24px 16px; border-radius: 18px; background: var(--ok-bg); }
+.mv-done .mk { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--ok); color: var(--on-accent); font-size: 28px; font-weight: 900; }
+.mv-done h1 { margin: 4px 0 0; font-size: 22px; color: var(--ok); }
+.mv-done .rt { margin: 0; font-size: 16px; font-weight: 800; }
+.mv-done .nm { margin: 0; font-size: 14px; color: var(--dim); overflow-wrap: anywhere; }
+.mv-done .hint, .mv-done .err { margin: 0; }
+
 /* 반 이동 마법사(확정 시안, 2026-11-12) */
 .wz-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 6px 0 16px; }
 .wz-steps span { display: grid; gap: 4px; justify-items: center; font-size: 12px; font-weight: 700; color: var(--dim); }
