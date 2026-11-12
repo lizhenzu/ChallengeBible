@@ -50,7 +50,7 @@
             <ul class="ppl">
                 @foreach (var p in d.Students)
                 {
-                    <li><span><b>@p.Name</b> <small>@p.Birthday · @(p.Linked ? "가입" : "가입 안 함")</small></span>
+                    <li><span><b>@p.Name</b>@if (p.Newcomer) { <span class="tag nc">새친구</span> } <small>@p.Birthday · @(p.Linked ? "가입" : "가입 안 함")</small></span>
                         <form method="post" asp-page-handler="Remove" asp-route-slug="@slug" class="x"><input type="hidden" name="person" value="@p.PersonId" /><button class="btn t">빼기</button></form></li>
                 }
             </ul>
@@ -69,5 +69,14 @@
             <p class="hint">학생은 한 반에만 들어요. 다른 반에 있는 학생은 그 반에서 먼저 빼요.</p>
         </section>
     }
-    else { <p class="hint">새친구는 실제 반에 넣어요. 새친구 등록 · 출석은 다음 묶음(출석)에서 만들어요. 새친구반은 기본 반이라 지울 수 없어요.</p> }
+    else
+    {
+        <section class="sec" aria-labelledby="ncT"><h2 id="ncT">관리 중인 새친구 @d.Students.Count</h2>
+            @if (d.Students.Count == 0) { <p class="hint">관리 중인 새친구가 없어요.</p> }
+            <ul class="ppl">
+                @foreach (var p in d.Students) { <li><span><b>@p.Name</b> <small>@p.Note · @p.Birthday</small></span></li> }
+            </ul>
+            <p class="hint">새친구는 새친구반과 실제 반(또는 미배정반) 양쪽에 보여요. 등록 · 출석은 출석 → "새친구"에서 해요. 새친구반은 기본 반이라 지울 수 없어요.</p>
+        </section>
+    }
 </div></main>

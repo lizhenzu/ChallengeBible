@@ -28,6 +28,7 @@ builder.Services.AddScoped<MemberAdminService>();
 builder.Services.AddScoped<PeopleService>();
 builder.Services.AddScoped<ClassService>();
 builder.Services.AddScoped<AttendanceService>();
+builder.Services.AddScoped<ClassMoveService>();
 builder.Services.AddScoped<PlatformTenantService>();
 builder.Services.AddScoped<MissionService>();
 builder.Services.AddScoped<ContentAdminService>();

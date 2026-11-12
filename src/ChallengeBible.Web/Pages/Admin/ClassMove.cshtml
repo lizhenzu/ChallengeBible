@@ -1,0 +1,54 @@
+@page "/{slug}/admin/classes/move"
+@model ChallengeBible.Web.Pages.Admin.ClassMoveModel
+@* 확정 시안 A-반이동(ADR 0093 반별 학생 이동 1 ~ 5): 반 고르기 → 아이들 → [미배정반으로 이동] [타부서로 이동]. 반별로만 *@
+@{ var slug = Model.Tenant.Current.Slug; }
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut"><div class="wrap wide">
+    <h1>반 이동</h1>
+    <p class="lead"><a href="/@slug/admin/classes">← 반 목록</a> · 반을 하나 골라 그 반 아이들을 옮겨요(연말 반 편성 · 다른 부서로 보내기)</p>
+    @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
+    @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+
+    <nav class="mv-cls" aria-label="반 고르기">
+        @foreach (var r in Model.Rows)
+        {
+            <a class="@(r.Id == Model.C ? "on" : "")" href="?C=@r.Id" aria-current="@(r.Id == Model.C ? "page" : "false")">@r.Name<small>@(r.Students)명</small></a>
+        }
+    </nav>
+
+    @if (Model.Picked is { } d)
+    {
+        <section class="sec" aria-labelledby="mvT"><h2 id="mvT">@d.Class.Name@(d.Teachers.Count > 0 ? " · 담임 " + string.Join(" · ", d.Teachers.Select(t => t.Name)) : "") · @(d.Students.Count)명</h2>
+            @if (d.Students.Count == 0) { <p class="hint">이 반에 아이가 없어요.</p> }
+            <ul class="ppl">
+                @foreach (var p in d.Students)
+                {
+                    <li><span><b>@p.Name</b>@if (p.Newcomer) { <span class="tag nc">새친구</span> } <small>@(p.Linked ? "가입" : "가입 안 함") · @p.Birthday</small></span></li>
+                }
+            </ul>
+        </section>
+        @if (d.Students.Count > 0)
+        {
+            <div class="mv-acts">
+                <b>이 반 아이 @(d.Students.Count)명을 옮기기</b>
+                <form method="post" asp-page-handler="Unassigned" asp-route-slug="@slug" asp-route-C="@d.Class.Id" class="row">
+                    <details class="ask"><summary class="btn s sm">미배정반으로 이동</summary>
+                        <span>@(d.Class.Name) 아이 @(d.Students.Count)명을 미배정반으로 옮길까요?</span><button type="submit" class="btn dd sm">옮기기</button>
+                    </details>
+                </form>
+                <p>연말 반 편성용이에요. 반은 비고 아이들은 이 부서 미배정반으로 가요. 이전 반 · 담임 정보는 꼬리표로 남아요.</p>
+                @if (Model.Targets.Count > 0)
+                {
+                    <form method="post" asp-page-handler="Dept" asp-route-slug="@slug" asp-route-C="@d.Class.Id" class="row">
+                        <select class="sel" name="target" aria-label="받을 부서" required><option value="">받을 부서 고르기</option>@foreach (var t in Model.Targets) { <option value="@t.TenantId">@t.Name</option> }</select>
+                        <details class="ask"><summary class="btn p sm">타부서로 이동</summary>
+                            <span>@(d.Class.Name) 아이 @(d.Students.Count)명을 고른 부서로 바로 옮길까요? 되돌리려면 그 부서에서 다시 옮겨야 해요.</span><button type="submit" class="btn dd sm">옮기기</button>
+                        </details>
+                    </form>
+                }
+                <p>받는 부서의 미배정반으로 바로 가요(승인 없음). 가입 안 한 아이도 명부째로, 출석 기록 · 꼬리표도 함께 가요. 가족팀 자리 · 보호 관계는 정리돼요.</p>
+            </div>
+        }
+    }
+    else { <p class="hint">위에서 반을 골라 주세요.</p> }
+</div></main>

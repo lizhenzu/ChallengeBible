@@ -279,6 +279,16 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(admin, "/jamsil-kids/attendance", "12q-출석부-오늘");
         await Save(admin, "/jamsil-kids/attendance/newcomers", "12r-새친구");
         await Save(admin, "/jamsil-kids/attendance/newcomers/new", "12s-새친구-등록");
+
+        // 반 이동(확정 시안 A-반이동 · B-미배정반-꼬리표): 박하린은 지난 반 꼬리표가 붙은 미배정 아이
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            var p = raw.People.Single(x => x.Name == "박하린");
+            (p.PrevDeptName, p.PrevClassName, p.PrevTeacherName, p.PrevTeacherPhone) = ("잠실새내교회 유년부", "3학년5반", "정교사", "010-1234-5678");
+            raw.SaveChanges();
+        }
+        await Save(admin, $"/jamsil-kids/admin/classes/move?C={clsId}", "12t-반이동");
+        await Save(admin, "/jamsil-kids/admin/classes/unassigned", "12u-미배정반-꼬리표");
         await Save(mom, "/jamsil-kids/guardian", "16-보호자");
         await Save(mom, "/jamsil-kids/guardian?date=2027-01-04", "17-보호자-지난날");
 
