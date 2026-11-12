@@ -24,6 +24,20 @@ public class PlatformTenantServiceTests
         new("잠실새내교회 유년부", slug, "Asia/Seoul", "blue", mission, reading, admin);
 
     [Fact]
+    public async Task 부서_관리자로_추가하면_기다리던_참여_신청도_승인으로_닫힌다()
+    {
+        var t = InMemoryDb.SeedTenant(_db, "jamsil-elem", "JSELEM");
+        var u = InMemoryDb.SeedAccount(_db, "admin456@example.com", "초등부관리자");
+        var app = InMemoryDb.SeedMembership(_db, t.Id, u.UserName!, MembershipStatus.Requested, Roles.Teacher);
+
+        Assert.Null(await Svc.AddAdminAsync(_op.UserName!, t.Id, "admin456@example.com"));
+
+        using var raw = InMemoryDb.Raw(_db);
+        Assert.Equal(SignupStatus.Approved, raw.SignupApplications.Single(a => a.Id == app.Id).Status);
+        Assert.Single(raw.DeptRoles.Where(d => d.UserId == u.Id && d.TenantId == t.Id));
+    }
+
+    [Fact]
     public async Task 부서를_만들면_6자_참여_코드가_생긴다_0048()
     {
         var (t, e) = await Svc.CreateAsync(_op.UserName!, Input());

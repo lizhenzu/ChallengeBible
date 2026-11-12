@@ -180,6 +180,9 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         var role = await ctx.IdentityRoleRows.SingleAsync(r => r.Name == IdentityRoles.Admin, ct);
         if (!await ctx.UserRoles.AnyAsync(r => r.UserId == admin.Id && r.RoleId == role.Id, ct))
             ctx.UserRoles.Add(new AppUserRole { UserId = admin.Id, RoleId = role.Id });
+        // 그 부서에 넣어 둔 참여 신청은 승인으로 닫는다(안 그러면 "승인 기다림"으로 남는다)
+        foreach (var a in await ctx.SignupApplications.Where(x => x.TenantId == tenantId && x.UserId == admin.Id && x.Status == SignupStatus.Pending).ToListAsync(ct))
+            (a.Status, a.DecidedDT, a.DecidedBy) = (SignupStatus.Approved, now, "platform");
         await ctx.SaveChangesAsync(ct);
     }
 
