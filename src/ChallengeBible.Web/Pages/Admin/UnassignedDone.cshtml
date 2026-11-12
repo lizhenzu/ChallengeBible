@@ -1,0 +1,26 @@
+@page "/{slug}/admin/classes/unassigned/done"
+@model ChallengeBible.Web.Pages.Admin.UnassignedDoneModel
+@* 확정 시안 G-배정완료(2026-11-12): 반마다 누구를 넣었는지 + [그 반으로 →], 버튼은 가운데 · 넓게 *@
+@{ var slug = Model.Tenant.Current.Slug; }
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut"><div class="wrap wide">
+    <div class="mv-done" role="status">
+        <span class="mk" aria-hidden="true">✓</span>
+        <h1>@(Model.Count)명을 반에 배정했어요</h1>
+        <p class="hint">미배정반에서 반으로 옮겼어요. 이전 반 · 담임 꼬리표는 그대로 남아요.</p>
+    </div>
+    <div class="as-list">
+        @foreach (var g in Model.Groups)
+        {
+            <div class="as-row">
+                <b>@g.ClassName · @(g.Count)명</b>
+                <p>@g.Names</p>
+                <a class="btn p sm" href="/@slug/admin/classes/@g.ClassId">@(g.ClassName)으로 →</a>
+            </div>
+        }
+    </div>
+    <div class="wz-nav">
+        <a class="btn s" href="/@slug/admin/classes/unassigned">미배정반으로</a>
+        <a class="btn s" href="/@slug/admin/classes">반 목록으로</a>
+    </div>
+</div></main>
