@@ -29,8 +29,19 @@ public class UnassignedModel(ClassService classes, TenantContext tenant) : PageM
     public async Task<IActionResult> OnPostAsync(Dictionary<int, int> to, CancellationToken ct)
     {
         if (tenant.IsLobby) return NotFound();
+        await LoadAsync(ct);
+        var names = Rows.ToDictionary(r => r.PersonId, r => r.Name);
+        // 완료 화면용: 반마다 넣은 아이(반 번호 \t 반 이름 \t 이름들), 줄은 \n
+        var groups = string.Join("\n", to.Where(kv => kv.Value > 0 && names.ContainsKey(kv.Key)).GroupBy(kv => kv.Value)
+            .Select(g => $"{g.Key}\t{Targets.FirstOrDefault(t => t.Id == g.Key)?.Name ?? "?"}\t{string.Join(" · ", g.Select(kv => names[kv.Key]))}"));
         var (e, n) = await classes.AssignAsync(to, ct);
-        if (e == ClassError.None) return RedirectToPage(new { slug = tenant.Current.Slug, Done = n });
+        if (e == ClassError.None)
+        {
+            if (n == 0) return RedirectToPage(new { slug = tenant.Current.Slug });
+            TempData["asgN"] = n;
+            TempData["asgGroups"] = groups;
+            return RedirectToPage("UnassignedDone", new { slug = tenant.Current.Slug });
+        }
         Error = ClassService.Message(e);
         await LoadAsync(ct);
         return Page();

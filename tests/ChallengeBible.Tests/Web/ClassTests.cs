@@ -195,6 +195,11 @@ public partial class ClassFlowTests : IClassFixture<WebApplicationFactory<Progra
             ["__RequestVerificationToken"] = TokenRx().Match(un).Groups[1].Value, [$"to[{kid}]"] = cls.ToString(),
         }));
         Assert.Equal(HttpStatusCode.Redirect, post.StatusCode);
+        Assert.EndsWith("/admin/classes/unassigned/done", post.Headers.Location!.OriginalString);
+        var asg = await a.GetStringAsync(post.Headers.Location!.OriginalString);   // 배정 완료: 반마다 아이 · [그 반으로 →]
+        Assert.Contains("1명을 반에 배정했어요", asg);
+        Assert.Contains("김철수", asg);
+        Assert.Contains($"href=\"/jamsil-kids/admin/classes/{cls}\"", asg);
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(cls, raw.ClassMembers.Single(m => m.PersonId == kid).ClassId);
 
         // 반 이동 마법사 → 완료 화면(반 목록 · 부서 홈 고르기)

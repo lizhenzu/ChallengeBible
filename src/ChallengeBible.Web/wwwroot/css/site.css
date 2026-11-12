@@ -2437,6 +2437,14 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .mv-done .nm { margin: 0; font-size: 14px; color: var(--dim); overflow-wrap: anywhere; }
 .mv-done .hint, .mv-done .err { margin: 0; }
 
+/* 미배정반 배정 완료(확정 시안 G): 반 카드 · 버튼은 가운데 · 넓게 */
+.as-list { display: grid; gap: 10px; margin: 14px 0; }
+.as-row { display: grid; gap: 8px; padding: 14px 16px; border: 1.5px solid var(--rule); border-radius: 14px; text-align: center; }
+.as-row b { font-size: 16px; }
+.as-row p { margin: 0; font-size: 14px; color: var(--dim); overflow-wrap: anywhere; }
+.as-row .btn { justify-self: stretch; display: flex; justify-content: center; }
+.wz-nav .btn { flex: 1; display: flex; justify-content: center; }
+
 /* 반 이동 마법사(확정 시안, 2026-11-12) */
 .wz-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 6px 0 16px; }
 .wz-steps span { display: grid; gap: 4px; justify-items: center; font-size: 12px; font-weight: 700; color: var(--dim); }
