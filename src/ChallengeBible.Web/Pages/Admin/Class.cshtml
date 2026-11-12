@@ -42,7 +42,10 @@
                 @foreach (var p in d.Teachers)
                 {
                     <li><b>@p.Name</b><small>@p.RoleLabel@(string.IsNullOrEmpty(p.Note) ? "" : " · " + p.Note)</small>
-                        <form method="post" asp-page-handler="Remove" asp-route-slug="@slug" class="x-f"><input type="hidden" name="person" value="@p.PersonId" /><button type="submit" class="x" aria-label="@p.Name 빼기" title="빼기">×</button></form></li>
+                        <button type="button" class="x" data-ask aria-label="@p.Name 빼기" title="빼기">×</button>
+                        <div class="rm-ask hidden" role="alertdialog" aria-label="빼기 확인"><p>@(p.Name)을(를) @(c.IsNewcomer ? "담당에서" : "담임에서") 뺄까요?<small>다른 반을 맡을 수 있게 돼요.</small></p>
+                            <div class="row2"><button type="button" class="btn s sm" data-cancel>취소</button>
+                                <form method="post" asp-page-handler="Remove" asp-route-slug="@slug"><input type="hidden" name="person" value="@p.PersonId" /><button type="submit" class="btn dd sm">빼기</button></form></div></div></li>
                 }
             </ul>
         }
@@ -65,12 +68,15 @@
                 @foreach (var p in d.Students)
                 {
                     <li><b>@p.Name</b>@if (p.Newcomer) { <span class="tag nc">새친구</span> }<small>@(p.Linked ? "가입" : "가입 안 함")</small>
-                        <form method="post" asp-page-handler="Remove" asp-route-slug="@slug" class="x-f"><input type="hidden" name="person" value="@p.PersonId" /><button type="submit" class="x" aria-label="@p.Name 빼기" title="빼기(미배정반으로)">×</button></form></li>
+                        <button type="button" class="x" data-ask aria-label="@p.Name 빼기" title="빼기">×</button>
+                        <div class="rm-ask hidden" role="alertdialog" aria-label="빼기 확인"><p>@(p.Name)을(를) @(c.Name)에서 뺄까요?<small>미배정반으로 가요. 출석 기록은 그대로예요.</small></p>
+                            <div class="row2"><button type="button" class="btn s sm" data-cancel>취소</button>
+                                <form method="post" asp-page-handler="Remove" asp-route-slug="@slug"><input type="hidden" name="person" value="@p.PersonId" /><button type="submit" class="btn dd sm">빼기</button></form></div></div></li>
                 }
             </ul>
             <div class="cd-btns">
                 <details class="cd-pick" open="@(Model.ErrorFor == "students")">
-                    <summary class="btn p">+ 미배정반에서 넣기</summary>
+                    <summary class="btn p">+ 미배정반 펼쳐보기</summary>
                     @if (d.StudentCandidates.Count == 0) { <p class="hint" style="text-align:center">미배정반에 아이가 없어요.</p> }
                     else
                     {
@@ -78,7 +84,7 @@
                             <ul class="ppl">
                                 @foreach (var p in d.StudentCandidates) { <li><input type="checkbox" name="pick" value="@p.PersonId" aria-label="@p.Name 고르기" /><span><b>@p.Name</b> <small>@p.RoleLabel · @p.Birthday</small></span></li> }
                             </ul>
-                            <button type="submit" class="btn p">고른 아이 넣기</button>
+                            <button type="submit" class="btn p">선택한 아이 우리반으로 이동</button>
                         </form>
                     }
                 </details>
@@ -105,3 +111,16 @@
         </section>
     }
 </div></main>
+<script>
+    // × 를 누르면 그 줄 아래에 확인 상자(확정 시안 N): [빼기]를 눌러야 실제로 뺀다
+    document.querySelectorAll('.cd-people [data-ask]').forEach(function (b) {
+        b.addEventListener('click', function () {
+            var li = b.closest('li'), box = li.querySelector('.rm-ask');
+            document.querySelectorAll('.cd-people li.asking').forEach(function (o) { if (o !== li) { o.classList.remove('asking'); o.querySelector('.rm-ask').classList.add('hidden'); } });
+            li.classList.toggle('asking'); box.classList.toggle('hidden');
+        });
+    });
+    document.querySelectorAll('.cd-people [data-cancel]').forEach(function (b) {
+        b.addEventListener('click', function () { var li = b.closest('li'); li.classList.remove('asking'); li.querySelector('.rm-ask').classList.add('hidden'); });
+    });
+</script>
