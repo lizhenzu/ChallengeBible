@@ -2398,3 +2398,33 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .att .seg2 button { padding: 8px 14px; border-radius: 99px; background: var(--rule); font: inherit; font-size: 14px; font-weight: 700; color: var(--dim); border: 0; cursor: pointer; }
 .att .seg2 button.on { background: var(--accent); color: var(--on-accent); }
 .att .none { padding: 20px 0; text-align: center; color: var(--dim); }
+
+/* 출석 카드 — 유년부 출석부 "오늘"(Views/Attendance/Index.cshtml)과 같은 모양 · 색 · 움직임(2026-11-12 사용자 요청) */
+.att { --y-blue: #2F80ED; --y-ink: #111827; --y-dim: #9CA3AF; --y-grey: #F4F6F9; --y-ok: #15803D; --y-okbg: #EAF7EF; --y-danger: #D9534F; --y-dangerbg: #FDEEEE; }
+.att .kids { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+@media (min-width: 560px) { .att .kids { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 720px) { .att .kids { grid-template-columns: repeat(5, 1fr); } }
+.att .kid { position: relative; height: 66px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 0 4px;
+            font-family: inherit; font-size: inherit; color: var(--y-ink); background: var(--y-grey); border: 0; border-radius: 14px; cursor: pointer;
+            -webkit-tap-highlight-color: transparent; user-select: none; transition: background .12s, transform .08s; }
+.att .kid:active { transform: scale(.97); }
+.att .kid b { font-size: 16px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.att .kid small { display: none; font-size: 10.5px; color: var(--y-dim); margin-top: -3px; }
+.att .kd { display: flex; gap: 3px; }
+.att .kd i { width: 5px; height: 5px; border-radius: 50%; background: var(--y-blue); opacity: 1; border: 0; }
+.att .kd i.o { background: none; box-shadow: inset 0 0 0 1px #CBD2DD; }
+.att .kid.w { background: var(--y-dangerbg); box-shadow: inset 0 0 0 2px #F1B8B6; }
+.att .kid.on { background: var(--y-okbg); color: var(--y-ok); box-shadow: inset 0 0 0 2px #BDE5CB; }
+.att .kid.on .kd i { background: var(--y-ok); }
+.att .kid.on .kd i.o { background: none; box-shadow: inset 0 0 0 1px #9FD3B3; }
+.att .kid.on small { color: var(--y-ok); }
+.att .kid.on::after { content: "✓"; position: absolute; top: 5px; right: 8px; font-size: 12px; font-weight: 800; }
+/* 저장 대기 — 누른 칸 안에서 동그라미가 돈다 */
+.att .kid.busy { cursor: progress; opacity: 1; }
+.att .kid.busy > * { visibility: hidden; }
+.att .kid.busy::after { content: ""; position: absolute; top: 50%; left: 50%; right: auto; width: 22px; height: 22px; margin: -11px 0 0 -11px; font-size: 0;
+                        border: 2px solid #E1E6EE; border-top-color: var(--y-blue); border-radius: 50%; animation: kspin .8s linear infinite; }
+.att .kid.on.busy::after { border-color: #BDE5CB; border-top-color: var(--y-ok); }
+@keyframes kspin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .att .kid.busy::after { animation-duration: 2s; } }
+.att.searching .kid small, .att .searching .kid small { display: block; }

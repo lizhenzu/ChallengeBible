@@ -19,6 +19,7 @@
 
   function apply() {
     const t = (q?.value || '').replace(/\s+/g, '');
+    board.classList.toggle('searching', !!t);   // 찾는 중에는 이름 아래 반 이름을 보인다(유년부와 같다)
     let hits = 0;
     items.forEach((k) => {
       const p = k.dataset.p === '1';
@@ -61,6 +62,9 @@
     const prev = k.dataset.p === '1', next = !prev;
     set(k, next); counts();
     k.classList.add('busy');
+    k.setAttribute('aria-busy', 'true');
+    // 서버가 바로 답해도 동그라미가 보이도록 최소 0.5초(유년부와 같다)
+    const MIN_SPIN = 500, t0 = performance.now();
     try {
       const res = await fetch(`/${slug}/attendance?handler=Set`, {
         method: 'POST', credentials: 'same-origin',
@@ -73,7 +77,10 @@
       set(k, prev); counts();
       fail(k.dataset.name + ' 저장하지 못했어요 · ' + e.message);
     } finally {
+      const left = MIN_SPIN - (performance.now() - t0);
+      if (left > 0) await new Promise((r) => setTimeout(r, left));
       k.classList.remove('busy');
+      k.removeAttribute('aria-busy');
       if (q && q.value) { q.value = ''; apply(); q.focus(); } else if (filter !== 'all') setTimeout(apply, 350);
     }
   }
