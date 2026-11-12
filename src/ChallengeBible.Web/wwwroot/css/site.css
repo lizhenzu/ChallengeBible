@@ -2587,3 +2587,15 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .att .kid.on .stt { color: inherit; opacity: .8; }
 .wz-nav .btn { white-space: nowrap; }
 
+
+/* 반 화면 × 빼기 확인(확정 시안 N, 2026-11-13) */
+.cd-people li { flex-wrap: wrap; }
+.cd-people li.asking { background: var(--bad-bg); border-radius: 12px; padding: 11px 10px; border-bottom-color: transparent; }
+.cd-people .rm-ask { flex-basis: 100%; display: grid; gap: 10px; padding-top: 10px; text-align: center; }
+.cd-people .rm-ask.hidden { display: none; }
+.cd-people .rm-ask p { margin: 0; font-size: 14px; font-weight: 700; color: var(--bad); }
+.cd-people .rm-ask p small { display: block; margin-top: 2px; font-weight: 600; color: var(--dim); font-size: 12.5px; }
+.cd-people .rm-ask .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cd-people .rm-ask .row2 form { margin: 0; display: grid; }
+.cd-people .rm-ask .row2 .btn { display: flex; justify-content: center; }
+.cd-people li .x { margin-left: auto; cursor: pointer; }
