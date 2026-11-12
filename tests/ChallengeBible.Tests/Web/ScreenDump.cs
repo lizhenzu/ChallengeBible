@@ -235,6 +235,32 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         }
         await Save(admin, $"/jamsil-kids/admin/members?Tab={MembershipStatus.Approved}", "12b-소속관리-승인됨",
             h => Regex.Replace(h, "<details>(?=\\s*<summary class=\"line\">\\s*<span class=\"av\">철수)", "<details open>"));   // 김철수 줄 펼침
+        // 반(확정 시안 A-반목록 · B-반안-사람넣기 · C-새해반-복사, 0093 조직 · 반)
+        int clsId, termId;
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            var now = DateTime.UtcNow;
+            var term = new ClassTerm { TenantId = kids.Id, Year = 2027, StartDate = new DateOnly(2027, 1, 3), CreatedUtc = now };
+            raw.ClassTerms.Add(term);
+            raw.SaveChanges();
+            var nc = new SchoolClass { TenantId = kids.Id, TermId = term.Id, Name = "새친구반", IsNewcomer = true, CreatedUtc = now };
+            var c1 = new SchoolClass { TenantId = kids.Id, TermId = term.Id, Name = "1학년 1반", CreatedUtc = now };
+            raw.Classes.AddRange(nc, c1, new SchoolClass { TenantId = kids.Id, TermId = term.Id, Name = "1학년 2반", CreatedUtc = now });
+            raw.People.Add(new Person { TenantId = kids.Id, Name = "박하린", RoleCode = "T1001", BirthMonth = 3, BirthDay = 5, CreatedUtc = now });
+            raw.People.Add(new Person { TenantId = kids.Id, Name = "한겨울", RoleCode = "T1020", CreatedUtc = now });
+            raw.SaveChanges();
+            (clsId, termId) = (c1.Id, term.Id);
+        }
+        await Save(admin, "/jamsil-kids/admin/members?Tab=" + MembershipStatus.Approved, "12x-명부-반준비");   // 명부 줄을 만들어 둔다
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            var kidPid = raw.People.Single(p => p.UserId == km.UserId).Id;
+            raw.ClassMembers.Add(new ClassMember { TenantId = kids.Id, TermId = termId, ClassId = clsId, PersonId = kidPid, CreatedUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        await Save(admin, "/jamsil-kids/admin/classes", "12n-반목록");
+        await Save(admin, $"/jamsil-kids/admin/classes/{clsId}", "12o-반안-사람넣기");
+        await Save(admin, $"/jamsil-kids/admin/classes/new-year?From={termId}", "12p-새해반-복사");
         await Save(mom, "/jamsil-kids/guardian", "16-보호자");
         await Save(mom, "/jamsil-kids/guardian?date=2027-01-04", "17-보호자-지난날");
 
