@@ -1,70 +1,38 @@
 @page "/{slug}/admin/classes"
 @model ChallengeBible.Web.Pages.Admin.ClassesModel
-@* 확정 시안 A-반목록(ADR 0093 조직 · 반): 해 고르기 · 반 없는 사람 · 반 만들기 · 반 카드(새친구반 따로) *@
-@{
-    var slug = Model.Tenant.Current.Slug;
-    var t = Model.Shown;
-    var next = t is null ? null : Model.Terms.FirstOrDefault(x => x.Year == t.Year + 1);
-}
+@using ChallengeBible.Web.Services
+@* 확정 시안 A-반목록-단순(ADR 0093 반 관리 및 자동 생성 규칙): 해 없음 · 새친구반 · 미배정반(관리자만) · 정규 반 *@
+@{ var slug = Model.Tenant.Current.Slug; }
 <partial name="_AdminTop" model="Model.Tenant" />
 <main class="admin gut"><div class="wrap wide">
     <h1>반</h1>
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
-    @if (Model.Error is not null && !Model.AddOpen) { <p class="err" role="alert">@Model.Error</p> }
 
-    @if (Model.Terms.Count > 0)
-    {
-        <nav class="seg" aria-label="해">
-            @foreach (var x in Model.Terms)
-            {
-                <a href="?Term=@x.Id" aria-current="@(x.Id == t?.Id ? "page" : "false")">@(x.Year)년 <span class="num">@(x.IsCurrent ? "지금" : x.IsFuture ? "준비 중" : "지난해")</span></a>
-            }
-        </nav>
-        <div class="yr">
-            <span class="yn">@(t!.Year)년 반 · @t.StartDate.ToString("yyyy년 M월 d일")부터 @(t.IsFuture ? "사용" : "사용 중")</span>
-            @if (next is null) { <a class="btn s sm" href="/@slug/admin/classes/new-year?From=@t.Id">새해 반 만들기 →</a> }
-            @if (t.IsFuture)
-            {
-                <details class="ask"><summary class="btn t sm">날짜 바꾸기</summary>
-                    <form method="post" asp-page-handler="Start" asp-route-slug="@slug" asp-route-Term="@t.Id" class="row">
-                        <input class="in sm" type="date" name="start" value="@t.StartDate.ToString("yyyy-MM-dd")" aria-label="이날부터 사용" />
-                        <button type="submit" class="btn p sm">바꾸기</button>
-                    </form>
-                </details>
-            }
-        </div>
-    }
-
-    @if (Model.Unassigned.Count > 0)
-    {
-        <details class="nobox-d" id="none">
-            <summary class="nobox"><span><b>반 없는 사람 @(Model.Unassigned.Count)명</b> · 반에 넣어야 담임이 출석을 체크해요</span><span class="btn t sm">보기 →</span></summary>
-            <ul class="ppl">
-                @foreach (var p in Model.Unassigned) { <li><span><b>@p.Name</b> <small>@p.RoleLabel · @p.Birthday · @(p.Linked ? "가입" : "가입 안 함")</small></span></li> }
-            </ul>
-            <p class="hint">반을 열어 "반 없는 사람에서 넣기"로 넣어요.</p>
-        </details>
-    }
-
-    <details class="pp-add" open="@Model.AddOpen"><summary class="btn p sm">+ 반 만들기</summary>
-        <form method="post" asp-page-handler="Add" asp-route-slug="@slug" asp-route-Term="@t?.Id" class="pp-form">
-            @if (Model.AddOpen && Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+    <details class="pp-add" open="@(Model.Error is not null)"><summary class="btn p sm">+ 반 만들기</summary>
+        <form method="post" asp-page-handler="Add" asp-route-slug="@slug" class="pp-form">
+            @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
             <label>반 이름<input class="in" name="name" maxlength="50" placeholder="예: 1학년 1반, 납달리반" required /></label>
-            <label class="chk"><input type="checkbox" name="newcomer" value="true" /> 새친구반(한 해에 하나 · 담당 선생님이 새친구를 등록 · 출석)</label>
-            @if (t is null) { <p class="hint">올해 반을 처음 만들어요. 오늘부터 이 반들을 써요.</p> }
             <div class="row"><button type="submit" class="btn p sm">만들기</button></div>
         </form>
     </details>
 
     <div class="cls">
-        @if (Model.Rows.Count == 0) { <div class="empty-box">아직 반이 없어요. "+ 반 만들기"로 시작해요.</div> }
-        @foreach (var c in Model.Rows)
+        @foreach (var c in Model.Rows.Where(r => r.IsNewcomer))
         {
-            <a class="cl @(c.IsNewcomer ? "nc" : "")" href="/@slug/admin/classes/@c.Id">
-                <span class="h"><b>@c.Name</b>@if (c.IsNewcomer) { <span class="tag nc">새친구</span> }<span class="n">@(c.IsNewcomer ? c.Teachers.Count : c.Students)명</span></span>
-                <small>@if (c.IsNewcomer) { @($"담당 {(c.Teachers.Count == 0 ? "없음 · 담당을 정해 주세요" : string.Join(" · ", c.Teachers))} · 등록하면 실제 반에도 들어가요") }
-                       else if (c.Teachers.Count == 0) { @("선생님 없음 · 담임을 정해 주세요") }
-                       else { @($"선생님 {string.Join(" · ", c.Teachers)}") }</small>
+            <a class="cl nc" href="/@slug/admin/classes/@c.Id">
+                <span class="h"><b>@c.Name</b><span class="tag nc">기본</span><span class="n">@(c.Teachers.Count)명</span></span>
+                <small>담당 @(c.Teachers.Count == 0 ? "없음 · 담당을 정해 주세요" : string.Join(" · ", c.Teachers)) · 새친구는 실제 반(또는 미배정반)에도 함께 보여요</small>
+            </a>
+        }
+        <a class="cl un" href="/@slug/admin/classes/unassigned">
+            <span class="h"><b>@ClassService.UnassignedName</b><span class="tag un">기본</span><span class="tag only">관리자만 보여요</span><span class="n">@(Model.Unassigned)명</span></span>
+            <small>@(Model.Unassigned == 0 ? "반이 정해지지 않은 아이가 없어요" : "반이 정해지지 않은 아이 · 눌러서 반을 정해 주세요")</small>
+        </a>
+        @foreach (var c in Model.Rows.Where(r => !r.IsNewcomer))
+        {
+            <a class="cl" href="/@slug/admin/classes/@c.Id">
+                <span class="h"><b>@c.Name</b><span class="n">@(c.Students)명</span></span>
+                <small>@(c.Teachers.Count == 0 ? "선생님 없음 · 담임을 정해 주세요" : "선생님 " + string.Join(" · ", c.Teachers))</small>
             </a>
         }
     </div>

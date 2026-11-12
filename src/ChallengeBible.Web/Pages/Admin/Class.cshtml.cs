@@ -37,9 +37,8 @@ public class ClassModel(ClassService classes, TenantContext tenant) : PageModel,
 
     public async Task<IActionResult> OnPostDeleteAsync(CancellationToken ct)
     {
-        var term = (await classes.DetailAsync(Id, ct))?.Term.Id;
         var e = await classes.DeleteAsync(Id, ct);
-        if (e == ClassError.None) return RedirectToPage("Classes", new { slug = tenant.Current.Slug, Term = term, Ok = "del" });
+        if (e == ClassError.None) return RedirectToPage("Classes", new { slug = tenant.Current.Slug, Ok = "del" });
         return await Fail(e, ct);
     }
 

@@ -235,7 +235,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         }
         await Save(admin, $"/jamsil-kids/admin/members?Tab={MembershipStatus.Approved}", "12b-소속관리-승인됨",
             h => Regex.Replace(h, "<details>(?=\\s*<summary class=\"line\">\\s*<span class=\"av\">철수)", "<details open>"));   // 김철수 줄 펼침
-        // 반(확정 시안 A-반목록 · B-반안-사람넣기 · C-새해반-복사, 0093 조직 · 반)
+        // 반(확정 시안 A-반목록-단순 · B-미배정반 · 반안-사람넣기, 0093 반 관리 및 자동 생성 규칙)
         int clsId, termId;
         using (var raw = InMemoryDb.Raw(db))
         {
@@ -260,7 +260,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         }
         await Save(admin, "/jamsil-kids/admin/classes", "12n-반목록");
         await Save(admin, $"/jamsil-kids/admin/classes/{clsId}", "12o-반안-사람넣기");
-        await Save(admin, $"/jamsil-kids/admin/classes/new-year?From={termId}", "12p-새해반-복사");
+        await Save(admin, "/jamsil-kids/admin/classes/unassigned", "12p-미배정반");
         await Save(mom, "/jamsil-kids/guardian", "16-보호자");
         await Save(mom, "/jamsil-kids/guardian?date=2027-01-04", "17-보호자-지난날");
 
