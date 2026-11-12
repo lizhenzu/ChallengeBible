@@ -1103,6 +1103,74 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ClassMember", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClassId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<bool>("IsTeacher")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PersonId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TermId")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "ClassId");
+
+                    b.HasIndex("TenantId", "PersonId");
+
+                    b.HasIndex("TenantId", "TermId", "PersonId")
+                        .IsUnique();
+
+                    b.ToTable("ClassMember", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ClassTerm", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "Year")
+                        .IsUnique();
+
+                    b.ToTable("ClassTerm", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.CodeData", b =>
                 {
                     b.Property<int>("TenantId")
@@ -2328,6 +2396,39 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("DM2_ReadingVerse", "dbo");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.SchoolClass", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<bool>("IsNewcomer")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("TermId")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "TermId");
+
+                    b.ToTable("Class", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.SearchLog", b =>
                 {
                     b.Property<long>("Id")
@@ -2903,6 +3004,30 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasConstraintName("FK_ChapterMedia_Book");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ClassMember", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.SchoolClass", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "ClassId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Person", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "PersonId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ClassTerm", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.CodeData", b =>
                 {
                     b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
@@ -3146,6 +3271,15 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_DM2_ReadingVerse_Round");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.SchoolClass", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.ClassTerm", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "TermId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.SearchLog", b =>

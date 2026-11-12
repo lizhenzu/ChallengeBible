@@ -116,6 +116,7 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
         var p = await ctx.People.SingleOrDefaultAsync(x => x.Id == id, ct);
         if (p is null) return PeopleError.NotFound;
         if (p.UserId is not null) return PeopleError.Linked;
+        ctx.ClassMembers.RemoveRange(await ctx.ClassMembers.Where(m => m.PersonId == p.Id).ToListAsync(ct));   // 반에서도 빠진다
         ctx.People.Remove(p);
         await ctx.SaveChangesAsync(ct);
         return PeopleError.None;
@@ -191,6 +192,8 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
             if (here.BirthMonth is null) (here.BirthMonth, here.BirthDay) = (o.BirthMonth, o.BirthDay);
             here.Phone1 ??= o.Phone1;
             here.Phone2 ??= o.Phone2;
+            // 옛 부서의 반에서도 빠진다(R-232). 반은 부서마다 따로라 옮기지 않는다
+            sys.ClassMembers.RemoveRange(await sys.ClassMembers.Where(m => m.TenantId == o.TenantId && m.PersonId == o.Id).ToListAsync(ct));
             sys.People.Remove(o);
         }
     }

@@ -26,6 +26,7 @@ builder.Services.AddScoped<TenantContext>();
 builder.Services.AddScoped<TenantPageFilter>();
 builder.Services.AddScoped<MemberAdminService>();
 builder.Services.AddScoped<PeopleService>();
+builder.Services.AddScoped<ClassService>();
 builder.Services.AddScoped<PlatformTenantService>();
 builder.Services.AddScoped<MissionService>();
 builder.Services.AddScoped<ContentAdminService>();

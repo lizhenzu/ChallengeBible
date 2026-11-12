@@ -2281,3 +2281,33 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .bulk { display: grid; gap: 10px; margin: 12px 0 16px; padding: 14px 16px; border-radius: 14px; border: 2px solid var(--accent); background: var(--accent-bg); }
 .bulk .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .bulk p { margin: 0; font-size: 13px; color: var(--dim); }
+
+/* 반(0093 조직 · 반): 해 · 반 카드 · 새친구반 · 반 없는 사람 · 사람 목록 · 새해 복사 */
+.yr { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 4px 0 14px; }
+.yr .yn { font-size: 13px; color: var(--dim); }
+.cls { display: grid; gap: 10px; margin-top: 4px; }
+.cl { display: grid; gap: 6px; padding: 14px 16px; border: 1.5px solid var(--rule); border-radius: 14px; background: var(--card, var(--bg)); text-decoration: none; color: inherit; }
+.cl .h { display: flex; gap: 8px; align-items: center; }
+.cl .h b { font-size: 16px; }
+.cl .h .n { margin-left: auto; font-weight: 800; color: var(--accent); }
+.cl small { color: var(--dim); font-size: 13px; }
+.cl.nc { border-color: var(--warn); background: var(--warn-bg); }
+.tag.nc { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); }
+.nobox-d { margin: 0 0 12px; }
+.nobox-d > summary { list-style: none; cursor: pointer; }
+.nobox-d > summary::-webkit-details-marker { display: none; }
+.nobox-d .ppl { margin-top: 8px; }
+.nobox { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 12px; background: var(--accent-bg); font-size: 14px; }
+.sec { display: grid; gap: 8px; margin-top: 18px; }
+.sec h2 { margin: 0; font-size: 16px; }
+.sec .hint, .nobox-d .hint { margin: 0; font-size: 12.5px; color: var(--dim); }
+.ppl { display: grid; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.ppl li { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1.5px solid var(--rule); border-radius: 12px; font-size: 14px; }
+.ppl li small { color: var(--dim); font-size: 12.5px; }
+.ppl li .x { margin-left: auto; }
+.ppl li:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); }
+.pp-form label.chk { display: flex; gap: 8px; align-items: center; font-weight: 600; color: var(--fg); }
+.copy { display: grid; gap: 10px; padding: 14px 16px; border-radius: 14px; border: 2px solid var(--accent); background: var(--accent-bg); }
+.copy p { margin: 0; font-size: 13.5px; }
+.copy ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
+.copy label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; color: var(--dim); }
