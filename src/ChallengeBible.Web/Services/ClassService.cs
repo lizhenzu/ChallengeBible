@@ -94,7 +94,7 @@ public sealed class ClassService(IAppDb db, PeopleService people, TenantContext 
         var classNames = await ctx.Classes.AsNoTracking().Where(x => x.TermId == c.TermId).ToDictionaryAsync(x => x.Id, x => x.Name, ct);
         var nc = await NewcomersAsync(ctx, ct);
         List<ClassPerson> Of(bool teacher) => roster.Where(r => mine.Any(m => m.PersonId == r.PersonId && m.IsTeacher == teacher))
-            .Select(r => P(r) with { Newcomer = nc.ContainsKey(r.PersonId) }).ToList();
+            .Select(r => P(r) with { Newcomer = nc.ContainsKey(r.PersonId), Note = teacher ? r.Phone1 : null }).ToList();   // 선생님은 연락처 1
         // 새친구반: 학생 칸에 관리 중인 새친구(실제 반 이름을 함께)
         var students = c.IsNewcomer
             ? roster.Where(r => nc.ContainsKey(r.PersonId)).Select(r => P(r) with

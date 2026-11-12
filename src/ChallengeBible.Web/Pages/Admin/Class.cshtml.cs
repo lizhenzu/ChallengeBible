@@ -18,6 +18,8 @@ public class ClassModel(ClassService classes, TenantContext tenant) : PageModel,
 
     public ClassDetail? Detail { get; private set; }
     public string? Error { get; private set; }
+    /// <summary>오류가 난 칸(name · students)은 펼친 채로 다시 보인다.</summary>
+    public string? ErrorFor { get; private set; }
 
     public string OkMessage => Ok switch
     {
@@ -30,9 +32,9 @@ public class ClassModel(ClassService classes, TenantContext tenant) : PageModel,
         return Detail is null ? NotFound() : Page();
     }
 
-    public Task<IActionResult> OnPostNameAsync(string? name, CancellationToken ct) => Act("name", classes.RenameAsync(Id, name, ct), ct);
+    public Task<IActionResult> OnPostNameAsync(string? name, CancellationToken ct) => Act("name", classes.RenameAsync(Id, name, ct), ct, "name");
     public Task<IActionResult> OnPostTeacherAsync(int person, CancellationToken ct) => Act("add", classes.AddAsync(Id, [person], teacher: true, ct), ct);
-    public Task<IActionResult> OnPostStudentsAsync(List<int> pick, CancellationToken ct) => Act("add", classes.AddAsync(Id, pick, teacher: false, ct), ct);
+    public Task<IActionResult> OnPostStudentsAsync(List<int> pick, CancellationToken ct) => Act("add", classes.AddAsync(Id, pick, teacher: false, ct), ct, "students");
     public Task<IActionResult> OnPostRemoveAsync(int person, CancellationToken ct) => Act("remove", classes.RemoveAsync(Id, person, ct), ct);
 
     public async Task<IActionResult> OnPostDeleteAsync(CancellationToken ct)
@@ -42,10 +44,11 @@ public class ClassModel(ClassService classes, TenantContext tenant) : PageModel,
         return await Fail(e, ct);
     }
 
-    private async Task<IActionResult> Act(string ok, Task<ClassError> work, CancellationToken ct)
+    private async Task<IActionResult> Act(string ok, Task<ClassError> work, CancellationToken ct, string? field = null)
     {
         var e = await work;
         if (e == ClassError.None) return RedirectToPage(new { slug = tenant.Current.Slug, Id, Ok = ok });
+        ErrorFor = field;
         return await Fail(e, ct);
     }
 
