@@ -1,0 +1,24 @@
+@page "/account/admin-login"
+@model ChallengeBible.Web.Pages.Account.AdminLoginModel
+@* 플랫폼 관리자 로그인(2026-11-12 사용자 요청): 비밀번호만 넣는다. 아이디는 서버 설정에 두고 화면 · HTML 에 쓰지 않는다 *@
+<partial name="_Top" />
+<main class="page gut"><div class="wrap">
+    <div>
+        <h1>관리자 로그인</h1>
+        <p class="sub">플랫폼 관리자 비밀번호를 넣어 주세요.</p>
+    </div>
+
+    <form method="post" class="stack" novalidate>
+        <div class="f">
+            <label for="pw">비밀번호</label>
+            <input class="in" id="pw" asp-for="Password" type="password" autocomplete="current-password" placeholder="비밀번호" autofocus
+                   aria-invalid="@(Model.Error is null ? "false" : "true")" />
+        </div>
+        @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+        <button type="submit" class="btn p">로그인</button>
+    </form>
+
+    <div class="foot">
+        <div><a href="/account/login">일반 로그인으로</a></div>
+    </div>
+</div></main>
