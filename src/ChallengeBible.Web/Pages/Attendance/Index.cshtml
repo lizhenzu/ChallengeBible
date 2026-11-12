@@ -53,7 +53,7 @@
                             {
                                 <button type="button" class="kid @(k.Present ? "on" : "") @(k.AbsentStreak >= ChallengeBible.Web.Services.AttendanceService.AbsentAlert ? "w" : "")"
                                         data-id="@k.PersonId" data-name="@k.Name" data-p="@(k.Present ? "1" : "0")" aria-pressed="@(k.Present ? "true" : "false")"
-                                        title="@(k.AbsentStreak >= 3 ? $"{k.AbsentStreak}주 연속 결석" : "")">@k.Name@if (k.Newcomer) { <span class="nc">새친구</span> }<span class="kd" aria-hidden="true">@foreach (var r in k.Recent) { <i class="@(r ? "" : "o")"></i> }</span></button>
+                                        title="@(k.AbsentStreak >= 3 ? $"{k.AbsentStreak}주 연속 결석" : "")"><b>@k.Name</b><small>@g.Name@(k.Newcomer ? " · 새친구" : "")</small><span class="kd" aria-hidden="true">@foreach (var r in k.Recent) { <i class="@(r ? "" : "o")"></i> }</span></button>
                             }
                         </div>
                     </section>
