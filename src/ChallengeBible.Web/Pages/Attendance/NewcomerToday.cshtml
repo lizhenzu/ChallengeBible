@@ -1,0 +1,30 @@
+@page "/{slug}/attendance/newcomers/today"
+@model ChallengeBible.Web.Pages.Attendance.NewcomerTodayModel
+@* 확정 시안 K2 오늘 출석 체크(2026-11-12): 이번 주일만, 관리 중 새친구 카드(출석부와 같은 카드), 한 명씩 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var h = Model.Home;
+    var present = h.Active.Count(a => a.PresentThisSunday);
+}
+<main class="att gut"><div class="wrap">
+    <div class="hd2"><a class="back" href="/@slug/attendance/newcomers">← 새친구</a><h1>@h.ThisSunday.ToString("M월 d일") 주일</h1><p>이름을 누르면 바로 저장돼요 · 다시 누르면 취소</p></div>
+    @Html.AntiForgeryToken()
+    @if (h.Active.Count == 0) { <p class="none">관리 중인 새친구가 없어요.</p> }
+    else
+    {
+        <p class="sumline"><b id="presentN">@present</b> / @(h.Active.Count)명 출석</p>
+        <div id="board" data-slug="@slug" data-sunday="@h.ThisSunday.ToString("yyyy-MM-dd")">
+            <div class="kids">
+                @foreach (var a in h.Active)
+                {
+                    <button type="button" class="kid @(a.PresentThisSunday ? "on" : "")" data-id="@a.PersonId" data-name="@a.Name" data-p="@(a.PresentThisSunday ? "1" : "0")"
+                            aria-pressed="@(a.PresentThisSunday ? "true" : "false")"><b>@a.Name</b><small>@a.ClassName</small><span class="kd" aria-hidden="true">@foreach (var r in a.Recent) { <i class="@(r ? "" : "o")"></i> }</span></button>
+                }
+            </div>
+        </div>
+        <p class="sumline" style="margin-top:12px">반 출석부에도 함께 체크돼요(한 번만 세요)</p>
+    }
+    <div class="nc-back"><a class="btn p" href="/@slug/attendance/newcomers">다 했어요</a></div>
+    <div class="toast hidden" id="toast" role="alert"></div>
+</div></main>
+<script src="~/js/attendance.js" asp-append-version="true"></script>
