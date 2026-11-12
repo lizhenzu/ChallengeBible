@@ -175,6 +175,65 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
     /// <summary>아래 탭 "돌봄" 위 숫자: 3주(21일) 기준 연락할 아이 수.</summary>
     public async Task<int> CareCountAsync(CancellationToken ct = default) => (await CareAsync(21, ct)).Rows.Count;
 
+    // ── 주일 출결 보고서(PC) · 주일 출석 명단(휴대폰) — 유년부 SundayStudentsPC · Mobile 과 같은 내용 ──
+
+    public sealed record RepKid(int PersonId, string Name, bool Present, int YearCount, bool Newcomer, int Visits);
+    public sealed record RepClass(int Id, string Name, string Group, string Short, string Teachers, List<RepKid> Kids);
+    public sealed record SundayReport(DateOnly Sunday, DateOnly ThisSunday, int WeeksCount, List<RepClass> Classes);
+
+    /// <summary>반 이름 "1학년 2반" · "1학년2반" → 묶음 "1학년", 짧은 이름 "2반". 학년이 없으면 묶음 "반"(이름 그대로).</summary>
+    public static (string Group, string Short) SplitClassName(string name)
+    {
+        var m = System.Text.RegularExpressions.Regex.Match(name.Trim(), @"^(\d+\s*학년)\s*(.+)$");
+        return m.Success ? (m.Groups[1].Value.Replace(" ", ""), m.Groups[2].Value) : ("반", name);
+    }
+
+    /// <summary>
+    /// 그 주일의 반별 명단: 정규 반(새친구반 제외) 학생과 미배정반(있을 때만, 끝에). 출석 여부 · 올해(그 주일까지) 출석 수 ·
+    /// 그 주일에 관리 중인 새친구(R-237)면 첫 방문부터 그 주일까지 출석 수. 주일은 이번 주일보다 뒤로 못 간다.
+    /// </summary>
+    public async Task<SundayReport> SundayReportAsync(DateOnly? day, CancellationToken ct = default)
+    {
+        var thisSunday = SundayOf(Today);
+        var sunday = SundayOf(day ?? thisSunday);
+        if (sunday > thisSunday) sunday = thisSunday;
+        var jan1 = new DateOnly(sunday.Year, 1, 1);
+        var firstSunday = jan1.AddDays(((int)DayOfWeek.Sunday - (int)jan1.DayOfWeek + 7) % 7);
+        var weeks = Math.Max(1, (sunday.DayNumber - firstSunday.DayNumber) / 7 + 1);
+
+        var roster = (await classes.RosterAsync(ct)).Where(ClassService.IsStudent).ToDictionary(r => r.PersonId);
+        var list = (await classes.ClassesAsync(ct)).Where(c => !c.IsNewcomer).ToList();
+        await using var ctx = db.Create();
+        var ids = roster.Keys.ToList();
+        var members = await ctx.ClassMembers.AsNoTracking().Where(m => !m.IsTeacher && ids.Contains(m.PersonId)).Select(m => new { m.PersonId, m.ClassId }).ToListAsync(ct);
+        var checks = await ctx.AttendanceChecks.AsNoTracking().Where(a => ids.Contains(a.PersonId) && a.Sunday <= sunday).Select(a => new { a.PersonId, a.Sunday }).ToListAsync(ct);
+        var firsts = await ctx.People.AsNoTracking().Where(p => ids.Contains(p.Id) && p.NewcomerFirstVisit != null).ToDictionaryAsync(p => p.Id, p => p.NewcomerFirstVisit!.Value, ct);
+        var ko = StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false);
+
+        RepKid Kid(int pid)
+        {
+            var mine = checks.Where(c => c.PersonId == pid).Select(c => c.Sunday).ToList();
+            var nc = false; var visits = 0;
+            if (firsts.TryGetValue(pid, out var first) && SundayOf(first) <= sunday)
+            {
+                visits = mine.Count(s => s >= SundayOf(first));
+                nc = !IsCareOver(first, visits, sunday);
+            }
+            return new RepKid(pid, roster[pid].Name, mine.Contains(sunday), mine.Count(s => s >= firstSunday), nc, visits);
+        }
+
+        var result = list.Select(c =>
+        {
+            var (g, s) = SplitClassName(c.Name);
+            var kids = members.Where(m => m.ClassId == c.Id).Select(m => Kid(m.PersonId)).OrderBy(k => k.Name, ko).ToList();
+            return new RepClass(c.Id, c.Name, g, s, string.Join(", ", c.Teachers), kids);
+        }).ToList();
+        var placed = members.Select(m => m.PersonId).ToHashSet();
+        var loose = ids.Where(id => !placed.Contains(id)).Select(Kid).OrderBy(k => k.Name, ko).ToList();
+        if (loose.Count > 0) result.Add(new RepClass(0, ClassService.UnassignedName, "기타", ClassService.UnassignedName, "", loose));
+        return new SundayReport(sunday, thisSunday, weeks, result);
+    }
+
     // ── 새친구 화면(확정 시안 K1 · K2 · K5 · K6 · K7, 2026-11-12) ──
 
     public sealed record NcWeek(DateOnly Sunday, bool Present);
