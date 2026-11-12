@@ -4,12 +4,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public enum MoveClassError { None, NotFound, Fixed, BadTarget, Empty }
+public enum MoveClassError { None, NotFound, Fixed, BadTarget, Empty, NotEligible, SameClass }
+
+/// <summary>반 이동 마법사의 보낼 곳: 이 부서 미배정반 · 이 부서 다른 반 · 다른 부서(그 부서 미배정반).</summary>
+public enum MoveDest { Unassigned, Class, Dept }
 
 /// <summary>
-/// 반별 학생 이동(ADR 0093 반별 학생 이동, R-238 · R-239). 부서 관리자만 — 화면이 먼저 검사한다.
-/// 반 하나의 학생을 모두 미배정반으로, 또는 다른 부서(받는 부서 승인 없이 그 부서 미배정반)로 옮긴다.
-/// 옮길 때 아이마다 꼬리표(이전 부서 · 반 · 담임 · 담임 전화)를 남기고, 타부서로 가도 따라간다.
+/// 반 이동(ADR 0093 반별 학생 이동 + 2026-11-12 마법사, R-238 · R-239). 부서 관리자만 — 화면이 먼저 검사한다.
+/// 한 반(또는 미배정반)에서 고른 아이를 미배정반 · 다른 반 · 다른 부서(승인 없이 그 부서 미배정반)로 옮긴다.
+/// 반에서 나갈 때 아이마다 꼬리표(이전 부서 · 반 · 담임 · 담임 전화)를 남기고, 타부서로 가도 따라간다. 미배정반에서 옮기면 있던 꼬리표를 그대로 둔다.
 /// </summary>
 public sealed class ClassMoveService(IAppDb db, ISystemDb systemDb, ClassService classes, TenantContext tenant, TimeProvider time)
 {
@@ -22,46 +25,80 @@ public sealed class ClassMoveService(IAppDb db, ISystemDb systemDb, ClassService
             .OrderBy(t => t.Name).Select(t => new MoveTarget(t.Id, t.Name)).ToListAsync(ct);
     }
 
-    /// <summary>꼬리표를 붙이고 반에서 뺀다(같은 부서 미배정반으로). 옮긴 학생 번호를 돌려준다.</summary>
-    private async Task<(MoveClassError Error, List<int> People)> TagAndReleaseAsync(int classId, CancellationToken ct)
+    /// <summary>옮길 수 있는 아이: from 이 정규 반이면 그 반 학생, null 이면 미배정반 아이.</summary>
+    public async Task<List<ClassPerson>> KidsAsync(int? fromClassId, CancellationToken ct = default)
     {
-        await using var ctx = db.Create();
-        var c = await ctx.Classes.AsNoTracking().SingleOrDefaultAsync(x => x.Id == classId, ct);
-        if (c is null) return (MoveClassError.NotFound, []);
-        if (c.IsNewcomer) return (MoveClassError.Fixed, []);
-        var members = await ctx.ClassMembers.Where(m => m.ClassId == c.Id).ToListAsync(ct);
-        var kids = members.Where(m => !m.IsTeacher).ToList();
-        if (kids.Count == 0) return (MoveClassError.Empty, []);
-        var teacherIds = members.Where(m => m.IsTeacher).Select(m => m.PersonId).ToList();
-        var roster = (await classes.RosterAsync(ct)).ToDictionary(r => r.PersonId);
-        var teachers = teacherIds.Where(roster.ContainsKey).Select(id => roster[id]).ToList();
-        var tName = teachers.Count == 0 ? null : Cut(string.Join(", ", teachers.Select(t => t.Name)), 100);
-        var tPhone = teachers.Select(t => t.Phone1).FirstOrDefault(p => !string.IsNullOrEmpty(p));
-        var ids = kids.Select(k => k.PersonId).ToList();
-        foreach (var p in await ctx.People.Where(p => ids.Contains(p.Id)).ToListAsync(ct))
-            (p.PrevDeptName, p.PrevClassName, p.PrevTeacherName, p.PrevTeacherPhone) = (Cut(tenant.Current.Name, 100), c.Name, tName, tPhone);
-        ctx.ClassMembers.RemoveRange(kids);
-        await ctx.SaveChangesAsync(ct);
-        return (MoveClassError.None, ids);
-    }
-
-    /// <summary>[미배정반으로 이동](R-238): 그 반 학생 모두 이 부서 미배정반으로. 반과 담임은 그대로 남는다.</summary>
-    public async Task<(MoveClassError Error, int Count)> ToUnassignedAsync(int classId, CancellationToken ct = default)
-    {
-        var (e, ids) = await TagAndReleaseAsync(classId, ct);
-        return (e, ids.Count);
+        if (fromClassId is not int id) return await classes.UnassignedAsync(ct);
+        var d = await classes.DetailAsync(id, ct);
+        return d is null || d.Class.IsNewcomer ? [] : d.Students;
     }
 
     /// <summary>
-    /// [타부서로 이동](R-239): 그 반 학생 모두 받을 부서의 미배정반으로 바로(승인 없음). 가입한 아이는 소속째(미션 기록 · 팀 정리 포함),
-    /// 가입 안 한 아이는 명부 줄째로 옮긴다. 출석 · 꼬리표 · 생일 · 연락처가 따라간다. 시상 기록이 있는 팀에 든 아이는 남긴다(이름을 돌려준다).
+    /// 옮기기. 고른 아이는 모두 from 에 있어야 한다. dest = Class 면 같은 부서의 다른 정규 반(학생 자격 검사), Dept 면 다른 부서.
+    /// 돌려주는 값: 옮긴 수와, 선물 받은 팀에 있어 타부서로 못 간 아이 이름(이 부서 미배정반에 남는다).
     /// </summary>
-    public async Task<(MoveClassError Error, int Moved, List<string> Skipped)> ToDeptAsync(string actor, int classId, int targetTenantId, CancellationToken ct = default)
+    public async Task<(MoveClassError Error, int Moved, List<string> Skipped)> MoveAsync(string actor, int? fromClassId, IReadOnlyCollection<int> personIds,
+        MoveDest dest, int? toClassId, int? toTenantId, CancellationToken ct = default)
     {
-        if (!(await TargetsAsync(actor, ct)).Any(t => t.TenantId == targetTenantId)) return (MoveClassError.BadTarget, 0, []);
-        var (e, ids) = await TagAndReleaseAsync(classId, ct);
-        if (e != MoveClassError.None) return (e, 0, []);
+        var ids = personIds.Distinct().ToList();
+        if (ids.Count == 0) return (MoveClassError.Empty, 0, []);
+        if (fromClassId is int fc)
+        {
+            var from = await classes.DetailAsync(fc, ct);
+            if (from is null) return (MoveClassError.NotFound, 0, []);
+            if (from.Class.IsNewcomer) return (MoveClassError.Fixed, 0, []);
+        }
+        var kids = (await KidsAsync(fromClassId, ct)).Select(k => k.PersonId).ToHashSet();
+        if (ids.Any(i => !kids.Contains(i))) return (MoveClassError.NotFound, 0, []);
 
+        // 보낼 곳 먼저 확인(아무것도 바꾸기 전에)
+        if (dest == MoveDest.Class)
+        {
+            if (toClassId is not int tc) return (MoveClassError.BadTarget, 0, []);
+            if (tc == fromClassId) return (MoveClassError.SameClass, 0, []);
+            var to = await classes.DetailAsync(tc, ct);
+            if (to is null || to.Class.IsNewcomer) return (MoveClassError.BadTarget, 0, []);
+        }
+        if (dest == MoveDest.Dept && (toTenantId is not int tt || !(await TargetsAsync(actor, ct)).Any(t => t.TenantId == tt)))
+            return (MoveClassError.BadTarget, 0, []);
+
+        if (fromClassId is int c) await TagAndReleaseAsync(c, ids, ct);
+        switch (dest)
+        {
+            case MoveDest.Unassigned:
+                return (MoveClassError.None, ids.Count, []);
+            case MoveDest.Class:
+            {
+                var e = await classes.AddAsync(toClassId!.Value, ids, teacher: false, ct);
+                return e == ClassError.None ? (MoveClassError.None, ids.Count, []) : (MoveClassError.NotEligible, 0, []);
+            }
+            default:
+                return await ToDeptAsync(actor, ids, toTenantId!.Value, ct);
+        }
+    }
+
+    /// <summary>꼬리표를 붙이고 그 반에서 뺀다(같은 부서 미배정반으로).</summary>
+    private async Task TagAndReleaseAsync(int classId, List<int> ids, CancellationToken ct)
+    {
+        await using var ctx = db.Create();
+        var c = await ctx.Classes.AsNoTracking().SingleAsync(x => x.Id == classId, ct);
+        var members = await ctx.ClassMembers.Where(m => m.ClassId == c.Id).ToListAsync(ct);
+        var roster = (await classes.RosterAsync(ct)).ToDictionary(r => r.PersonId);
+        var teachers = members.Where(m => m.IsTeacher && roster.ContainsKey(m.PersonId)).Select(m => roster[m.PersonId]).ToList();
+        var tName = teachers.Count == 0 ? null : Cut(string.Join(", ", teachers.Select(t => t.Name)), 100);
+        var tPhone = teachers.Select(t => t.Phone1).FirstOrDefault(p => !string.IsNullOrEmpty(p));
+        foreach (var p in await ctx.People.Where(p => ids.Contains(p.Id)).ToListAsync(ct))
+            (p.PrevDeptName, p.PrevClassName, p.PrevTeacherName, p.PrevTeacherPhone) = (Cut(tenant.Current.Name, 100), c.Name, tName, tPhone);
+        ctx.ClassMembers.RemoveRange(members.Where(m => !m.IsTeacher && ids.Contains(m.PersonId)));
+        await ctx.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// 다른 부서 미배정반으로 바로(R-239): 가입한 아이는 소속째(미션 기록 · 팀 정리 포함), 가입 안 한 아이는 명부 줄째로.
+    /// 출석 · 꼬리표 · 생일 · 연락처 · 새친구 표시가 따라간다. 시상 기록이 있는 팀에 든 아이는 남긴다.
+    /// </summary>
+    private async Task<(MoveClassError, int, List<string>)> ToDeptAsync(string actor, List<int> ids, int targetTenantId, CancellationToken ct)
+    {
         var me = tenant.Current.Id;
         var now = time.GetUtcNow().UtcDateTime;
         var moved = 0;
@@ -92,7 +129,7 @@ public sealed class ClassMoveService(IAppDb db, ISystemDb systemDb, ClassService
             moved++;
         }
         sys.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorUserName = actor, Action = "ClassMoved", TenantId = me,
-            Detail = $"class={classId} target={targetTenantId} moved={moved} skipped={skipped.Count}" });
+            Detail = $"target={targetTenantId} moved={moved} skipped={skipped.Count}" });
         await sys.SaveChangesAsync(ct);
         if (tx is not null) await tx.CommitAsync(ct);
         return (MoveClassError.None, moved, skipped);
@@ -102,10 +139,12 @@ public sealed class ClassMoveService(IAppDb db, ISystemDb systemDb, ClassService
 
     public static string Message(MoveClassError e) => e switch
     {
-        MoveClassError.NotFound => "찾을 수 없어요. 화면을 새로 고쳐 주세요.",
+        MoveClassError.NotFound => "찾을 수 없어요. 처음부터 다시 해 주세요.",
         MoveClassError.Fixed => "새친구반은 옮기지 않아요. 새친구는 실제 반에서 옮겨요.",
-        MoveClassError.BadTarget => "받을 부서를 골라 주세요.",
-        MoveClassError.Empty => "이 반에 아이가 없어요.",
+        MoveClassError.BadTarget => "보낼 곳을 골라 주세요.",
+        MoveClassError.Empty => "옮길 아이를 골라 주세요.",
+        MoveClassError.NotEligible => "그 반에 넣을 수 없는 아이가 있어요(학생 · 새친구만). 미배정반으로 옮겨졌어요.",
+        MoveClassError.SameClass => "지금 있는 반과 다른 반을 골라 주세요.",
         _ => "",
     };
 }

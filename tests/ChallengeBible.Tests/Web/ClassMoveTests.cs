@@ -55,23 +55,23 @@ public class ClassMoveTests
     [Fact]
     public async Task R238_반_하나를_미배정반으로_옮기면_꼬리표가_남고_반과_담임은_그대로다()
     {
-        Assert.Equal((MoveClassError.None, 2), await Mover(_kids).ToUnassignedAsync(_c1));
+        Assert.Equal((MoveClassError.None, 2), Take(await Mover(_kids).MoveAsync("eunhye", _c1, [_kid, _plain], MoveDest.Unassigned, null, null)));
         var un = await Classes(_kids).UnassignedAsync();
         var note = un.Single(p => p.PersonId == _plain).Note;
         Assert.Equal("이전: jamsil-kids 1학년1반 · 담임 정교사 010-1234-5678".Replace("jamsil-kids", _kids.Name), note);
         Assert.Contains(un, p => p.PersonId == _kid);
         var c = (await Classes(_kids).ClassesAsync()).Single(x => x.Id == _c1);
         Assert.Equal((0, "정교사"), (c.Students, Assert.Single(c.Teachers)));
-        Assert.Equal(MoveClassError.Empty, (await Mover(_kids).ToUnassignedAsync(_c1)).Error);
+        Assert.Equal(MoveClassError.Empty, (await Mover(_kids).MoveAsync("eunhye", _c1, [], MoveDest.Unassigned, null, null)).Error);
         var nc = (await Classes(_kids).ClassesAsync()).Single(x => x.IsNewcomer).Id;
-        Assert.Equal(MoveClassError.Fixed, (await Mover(_kids).ToUnassignedAsync(nc)).Error);
+        Assert.Equal(MoveClassError.Fixed, (await Mover(_kids).MoveAsync("eunhye", nc, [_kid], MoveDest.Unassigned, null, null)).Error);
     }
 
     [Fact]
     public async Task R239_타부서로_옮기면_승인_없이_그_부서_미배정반에_들어가고_가입_안_한_아이와_출석_꼬리표가_따라간다()
     {
-        Assert.Equal(MoveClassError.BadTarget, (await Mover(_kids).ToDeptAsync("eunhye", _c1, _lobby.Id)).Error);   // 임시 부서로는 안 된다
-        var (e, n, skipped) = await Mover(_kids).ToDeptAsync("eunhye", _c1, _elem.Id);
+        Assert.Equal(MoveClassError.BadTarget, (await Mover(_kids).MoveAsync("eunhye", _c1, [_kid, _plain], MoveDest.Dept, null, _lobby.Id)).Error);   // 임시 부서로는 안 된다
+        var (e, n, skipped) = await Mover(_kids).MoveAsync("eunhye", _c1, [_kid, _plain], MoveDest.Dept, null, _elem.Id);
         Assert.Equal((MoveClassError.None, 2), (e, n));
         Assert.Empty(skipped);
 
@@ -86,6 +86,27 @@ public class ClassMoveTests
         }
         var un = await Classes(_elem).UnassignedAsync();
         Assert.Equal(2, un.Count(p => p.Note is not null && p.Note.Contains("1학년1반")));
+    }
+
+    private static (MoveClassError, int) Take((MoveClassError E, int N, List<string> S) r) => (r.E, r.N);
+
+    [Fact]
+    public async Task 마법사_고른_아이만_다른_반으로_옮기고_꼬리표가_남고_미배정반에서도_반으로_보낸다()
+    {
+        var c2 = (await Classes(_kids).CreateAsync("2학년1반")).Id;
+        Assert.Equal(MoveClassError.SameClass, (await Mover(_kids).MoveAsync("eunhye", _c1, [_plain], MoveDest.Class, _c1, null)).Error);
+        Assert.Equal(MoveClassError.NotFound, (await Mover(_kids).MoveAsync("eunhye", c2, [_plain], MoveDest.Class, _c1, null)).Error);   // 그 반에 없는 아이
+        Assert.Equal((MoveClassError.None, 1), Take(await Mover(_kids).MoveAsync("eunhye", _c1, [_plain], MoveDest.Class, c2, null)));
+        var d2 = await Classes(_kids).DetailAsync(c2);
+        Assert.Equal(_plain, Assert.Single(d2!.Students).PersonId);
+        Assert.Equal(_kid, Assert.Single((await Classes(_kids).DetailAsync(_c1))!.Students).PersonId);         // 고르지 않은 아이는 남는다
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal("1학년1반", raw.People.Single(p => p.Id == _plain).PrevClassName);
+
+        Assert.Equal((MoveClassError.None, 1), Take(await Mover(_kids).MoveAsync("eunhye", c2, [_plain], MoveDest.Unassigned, null, null)));
+        Assert.Equal(MoveClassError.Empty, (await Mover(_kids).MoveAsync("eunhye", null, [], MoveDest.Class, _c1, null)).Error);
+        Assert.Equal((MoveClassError.None, 1), Take(await Mover(_kids).MoveAsync("eunhye", null, [_plain], MoveDest.Class, _c1, null)));
+        Assert.Equal(2, (await Classes(_kids).DetailAsync(_c1))!.Students.Count);
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal("2학년1반", raw.People.Single(p => p.Id == _plain).PrevClassName);   // 미배정반에서 옮기면 꼬리표 그대로
     }
 
     [Fact]

@@ -287,7 +287,12 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             (p.PrevDeptName, p.PrevClassName, p.PrevTeacherName, p.PrevTeacherPhone) = ("잠실새내교회 유년부", "3학년5반", "정교사", "010-1234-5678");
             raw.SaveChanges();
         }
-        await Save(admin, $"/jamsil-kids/admin/classes/move?C={clsId}", "12t-반이동");
+        await Save(admin, "/jamsil-kids/admin/classes/move", "12t-반이동-1반");
+        await Save(admin, $"/jamsil-kids/admin/classes/move?S=2&F={clsId}", "12t-반이동-2아이");
+        int kidP;
+        using (var raw = InMemoryDb.Raw(db)) kidP = raw.People.Single(p => p.UserId == km.UserId).Id;
+        await Save(admin, $"/jamsil-kids/admin/classes/move?S=3&F={clsId}&P={kidP}", "12t-반이동-3보낼곳");
+        await Save(admin, $"/jamsil-kids/admin/classes/move?S=4&F={clsId}&P={kidP}&D=Unassigned", "12t-반이동-4확인");
         await Save(admin, "/jamsil-kids/admin/classes/unassigned", "12u-미배정반-꼬리표");
         await Save(mom, "/jamsil-kids/guardian", "16-보호자");
         await Save(mom, "/jamsil-kids/guardian?date=2027-01-04", "17-보호자-지난날");
