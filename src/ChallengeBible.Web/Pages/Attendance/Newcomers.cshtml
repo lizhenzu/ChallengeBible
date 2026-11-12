@@ -1,40 +1,57 @@
 @page "/{slug}/attendance/newcomers"
 @model ChallengeBible.Web.Pages.Attendance.NewcomersModel
-@* 확정 시안 B-새친구(ADR 0093 출석 7 · 8, 반 규칙 2): 관리 중인 새친구 · [출석]은 반 출석부와 한 번만 센다 *@
+@using ChallengeBible.Web.Services
+@* 확정 시안 K1 새친구 홈(2026-11-12): 메뉴 3개 · 4주 관리 중(주황) · 4주 관리 완료(초록). 주일 이동 없음 *@
 @{
     var slug = Model.Tenant.Current.Slug;
-    var isThis = Model.Sunday == Model.ThisSunday;
+    var h = Model.Home;
+    string Short(DateOnly d) => $"{d.Month}/{d.Day}";
 }
 <main class="att gut"><div class="wrap">
-    <div class="top">
-        <div class="crumb"><span>@Model.Tenant.Current.Name › 출석 › 새친구</span><a href="/@slug">부서 홈으로</a></div>
-        <div class="dnav">
-            <a href="?D=@Model.Sunday.AddDays(-7).ToString("yyyy-MM-dd")" aria-label="지난 주일">‹</a>
-            <h1>@Model.Sunday.ToString("M월 d일") 주일<small class="@(isThis ? "" : "past")">@(isThis ? "이번 주일" : "지난 주일 · 고치는 중")</small></h1>
-            @if (isThis) { <span class="off" aria-hidden="true">›</span> } else { <a href="?D=@Model.Sunday.AddDays(7).ToString("yyyy-MM-dd")" aria-label="다음 주일">›</a> }
-        </div>
-        @if (Model.Ok == "add") { <p class="okmsg" role="status">새친구를 등록했어요 · 첫 방문 출석도 체크했어요</p> }
-        <p class="help">관리 중인 새친구예요. [출석]을 누르면 반 출석부에도 함께 체크돼요(한 번만 세요). 첫 방문 뒤 28일이 지나고 출석 4번이 되면 이 목록에서 빠지고 담임만 체크해요.</p>
-    </div>
-    @Html.AntiForgeryToken()
-    <div class="pp-add"><a class="btn p sm" href="/@slug/attendance/newcomers/new">+ 새친구 등록</a></div>
-    @if (Model.Rows.Count == 0) { <p class="none">관리 중인 새친구가 없어요.</p> }
-    else
-    {
-        <ul class="ncl" id="board" data-slug="@slug" data-sunday="@Model.Sunday.ToString("yyyy-MM-dd")">
-            @foreach (var r in Model.Rows)
-            {
-                var how = r.Voluntary == false ? (string.IsNullOrEmpty(r.Evangelist) ? "누가 데려옴" : $"{r.Evangelist}이(가) 데려옴") : "스스로 옴";
-                <li class="@(r.PresentToday ? "on" : "")" data-id="@r.PersonId" data-name="@r.Name" data-p="@(r.PresentToday ? "1" : "0")">
-                    <span class="w2"><b>@r.Name</b><small>@r.ClassName · 첫 방문 @r.FirstVisit.ToString("M월 d일") · @how@(r.PastDays ? " · 28일 지남" : "")</small></span>
-                    <span class="st">출석 @(r.Visits)/@ChallengeBible.Web.Services.AttendanceService.CareVisits</span>
-                    <button type="button" class="ck" aria-label="@r.Name 출석">@(r.PresentToday ? "✓ 출석" : "출석")</button>
-                </li>
-            }
-        </ul>
-        <p class="foot">생일 · 연락처는 부서 관리자 · 교사가 명부에서 고쳐요</p>
-    }
-    <div class="toast hidden" id="toast" role="alert"></div>
+    <div class="hd2"><a class="back" href="/@slug/attendance">← 출석</a><h1>새친구</h1><p>무엇을 할까요?</p></div>
+    @if (Model.Ok == "add") { <p class="okmsg" role="status">새친구를 등록했어요 · 첫 방문 출석도 체크했어요</p> }
+    <nav class="menu" aria-label="새친구 메뉴">
+        <a class="main" href="/@slug/attendance/newcomers/today"><i aria-hidden="true">✓</i><span><b>오늘 출석 체크</b><small>이번 주일 @h.ThisSunday.ToString("M월 d일")</small></span><em aria-hidden="true">›</em></a>
+        <a href="/@slug/attendance/newcomers/past"><i aria-hidden="true">🗓</i><span><b>기존 출석 변경</b><small>지난 주일 출석 고치기</small></span><em aria-hidden="true">›</em></a>
+        <a href="/@slug/attendance/newcomers/new"><i aria-hidden="true">＋</i><span><b>새친구 등록</b><small>처음 온 친구 올리기</small></span><em aria-hidden="true">›</em></a>
+    </nav>
+
+    <section class="zone z-on" aria-labelledby="zOn">
+        <h2 id="zOn">4주 관리 중 <small>@(h.Active.Count)명 · 28일 + 출석 4번이면 끝</small></h2>
+        @if (h.Active.Count == 0) { <p class="none">관리 중인 새친구가 없어요.</p> }
+        @foreach (var a in h.Active)
+        {
+            var how = a.Voluntary == false ? (string.IsNullOrEmpty(a.Evangelist) ? "누가 데려옴" : $"{a.Evangelist}이(가) 데려옴") : "스스로 옴";
+            <div class="nc-card">
+                <div class="r1"><b>@a.Name</b>@if (a.PresentThisSunday) { <span class="ok">이번 주일 출석</span> } else { <span class="st">출석 @(a.Visits)/@AttendanceService.CareVisits@(a.PastDays ? " · 28일 지남" : "")</span> }</div>
+                <small>@a.ClassName · 첫 방문 @a.FirstVisit.ToString("M월 d일") · @how</small>
+                <div class="nc-bar" aria-label="출석 @(a.Visits) / 4">@for (var i = 0; i < AttendanceService.CareVisits; i++) { <i class="@(i < a.Visits ? "on" : "")"></i> }</div>
+            </div>
+        }
+    </section>
+
+    <section class="zone z-done" aria-labelledby="zDone">
+        <h2 id="zDone">4주 관리 완료 <small>@(h.Done.Count)명 · 기록은 그대로 남아요</small></h2>
+        @if (h.Done.Count == 0) { <p class="none">아직 관리를 마친 새친구가 없어요.</p> }
+        @for (var i = 0; i < h.Done.Count; i++)
+        {
+            var d = h.Done[i];
+            <div class="nc-card @(i >= NewcomersModel.DoneShown ? "more hidden" : "")">
+                <div class="r1"><b>@d.Name</b><span class="st done">완료 @d.DoneOn.ToString("M월 d일")</span></div>
+                <small>@d.ClassName · 첫 방문 @d.FirstVisit.ToString("M월 d일") · 출석 @(d.Visits)번</small>
+                <div class="ncwk">@foreach (var w in d.Weeks) { <span class="@(w.Present ? "on" : "")"><b>@(w.Present ? "●" : "○")</b>@Short(w.Sunday)</span> }</div>
+            </div>
+        }
+        @if (h.Done.Count > NewcomersModel.DoneShown)
+        {
+            <button type="button" class="nc-more" id="ncMore">@(h.Done.Count - NewcomersModel.DoneShown)명 더 보기 ▾</button>
+        }
+    </section>
 </div></main>
 <partial name="_AttTabs" model='(slug, "n", true)' />
-<script src="~/js/attendance.js" asp-append-version="true"></script>
+<script>
+    document.getElementById('ncMore')?.addEventListener('click', function () {
+        document.querySelectorAll('.nc-card.more').forEach(c => c.classList.remove('hidden'));
+        this.remove();
+    });
+</script>

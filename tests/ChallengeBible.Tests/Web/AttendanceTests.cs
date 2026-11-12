@@ -152,6 +152,54 @@ public class AttendanceTests
     }
 
     [Fact]
+    public async Task R240_새친구_홈은_관리_중을_먼저_완료를_뒤에_완료_학생도_기록이_남는다()
+    {
+        var a = Att(_kids, admin: true);
+        var (_, done) = await a.RegisterAsync("eunhye", new NewcomerInput("박서윤", new DateOnly(2026, 11, 1), null, null, null, null, null, true, null));
+        var (_, on) = await a.RegisterAsync("eunhye", new NewcomerInput("오다은", new DateOnly(2026, 12, 20), null, null, null, null, null, true, null));
+        var s = await a.ScopeAsync("eunhye");
+        foreach (var d in new[] { 8, 22 }) await a.SetAsync(s, "eunhye", done, new DateOnly(2026, 11, d), true);
+        await a.SetAsync(s, "eunhye", done, new DateOnly(2026, 12, 6), true);   // 11/1 · 11/8 · 11/22 · 12/6 = 4번, 28일 지남
+
+        var h = await a.NewcomerHomeAsync();
+        Assert.Equal(on, Assert.Single(h.Active).PersonId);
+        var d0 = Assert.Single(h.Done);
+        Assert.Equal((done, 4, new DateOnly(2026, 12, 6)), (d0.PersonId, d0.Visits, d0.DoneOn));
+        Assert.Equal(6, d0.Weeks.Count);                                   // 11/1 ~ 12/6 주일 6번
+        Assert.Equal([true, true, false, true, false, true], d0.Weeks.Select(w => w.Present));
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(4, raw.AttendanceChecks.Count(x => x.PersonId == done));   // 지우지 않는다
+        Assert.Equal(new DateOnly(2026, 12, 2), AttendanceService.CareOverOn(new DateOnly(2026, 11, 3), [new(2026, 11, 8), new(2026, 11, 15), new(2026, 11, 22), new(2026, 11, 29)]));
+    }
+
+    [Fact]
+    public async Task R241_기존_출석_변경은_달의_실제_주일_완료_새친구도_한_명씩_바꾼다()
+    {
+        var a = Att(_kids, admin: true);
+        var (_, done) = await a.RegisterAsync("eunhye", new NewcomerInput("박서윤", new DateOnly(2026, 11, 1), null, null, null, null, null, true, null));
+        var sundays = await a.NewcomerSundaysAsync(2026, 11);
+        Assert.Equal([1, 8, 15, 22, 29], sundays.Select(x => x.Sunday.Day));     // 5번 있는 달
+        Assert.Equal(4, (await a.NewcomerSundaysAsync(2026, 12)).Count);
+        Assert.Equal((1, 1), (sundays[0].Newcomers, sundays[0].Present));
+        Assert.All(sundays, x => Assert.False(x.Future));                         // 오늘(2027-01-05) 앞
+
+        // 새친구반 담당(임원): 관리가 끝난 새친구도 지난 주일을 고친다, 첫 방문 전 주일은 못 고친다
+        var off = InMemoryDb.SeedAccount(_db, "boo@example.com", "최부장");
+        InMemoryDb.SeedMembership(_db, _kids.Id, off.UserName!, MembershipStatus.Approved, Roles.Teacher);
+        using (var raw = InMemoryDb.Raw(_db)) { raw.DeptRoles.Single(d => d.UserId == off.Id).RoleCode = "T1005"; raw.SaveChanges(); }
+        var nc = (await Classes(_kids).ClassesAsync()).Single(c => c.IsNewcomer).Id;
+        await Classes(_kids).AddAsync(nc, [(await People(_kids).RosterAsync(null, null)).Single(r => r.UserName == "boo").PersonId], teacher: true);
+        var o = Att(_kids, admin: false);
+        var os = await o.ScopeAsync("boo");
+        foreach (var d in new[] { 8, 15, 22 }) Assert.Equal(AttendError.None, await o.SetAsync(os, "boo", done, new DateOnly(2026, 11, d), true));
+        Assert.Empty((await o.NewcomerHomeAsync()).Active);                       // 이제 완료
+        Assert.Equal(AttendError.None, await o.SetAsync(os, "boo", done, new DateOnly(2026, 11, 15), false));   // 완료 학생도 고친다
+        Assert.Equal(AttendError.Forbidden, await o.SetAsync(os, "boo", done, new DateOnly(2026, 10, 25), true));
+        var on15 = Assert.Single(await o.NewcomersOnAsync(new DateOnly(2026, 11, 15)));
+        Assert.False(on15.Present);
+        Assert.Empty(await o.NewcomersOnAsync(new DateOnly(2026, 10, 25)));        // 첫 방문 전 주일에는 안 나온다
+    }
+
+    [Fact]
     public async Task R230_진급하면_출석_기록도_새_부서로_옮겨진다()
     {
         var acc = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수");
@@ -220,8 +268,14 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
             ["__RequestVerificationToken"] = TokenRx().Match(form).Groups[1].Value, ["Name"] = "오다은", ["FirstVisit"] = DateTime.Today.ToString("yyyy-MM-dd"), ["Voluntary"] = "true",
         }));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
-        var list = await a.GetStringAsync("/jamsil-kids/attendance/newcomers");
+        var home = await a.GetStringAsync("/jamsil-kids/attendance/newcomers");   // K1 새친구 홈: 메뉴 · 관리 중 목록, 주일 이동 없음
+        Assert.Contains("오다은", home);
+        Assert.Contains("href=\"/jamsil-kids/attendance/newcomers/today\"", home);
+        Assert.Contains("href=\"/jamsil-kids/attendance/newcomers/past\"", home);
+        Assert.DoesNotContain("aria-label=\"지난 주일\"", home);
+        var list = await a.GetStringAsync("/jamsil-kids/attendance/newcomers/today");   // K2
         Assert.Contains("오다은", list);
+        Assert.Contains("기존 출석 변경", await a.GetStringAsync("/jamsil-kids/attendance/newcomers/past"));
         int pid;
         using (var raw = InMemoryDb.Raw(_db)) pid = raw.People.Single(p => p.Name == "오다은").Id;
         var sunday = Regex.Match(list, "data-sunday=\"([0-9-]+)\"").Groups[1].Value;

@@ -55,6 +55,8 @@
     k.classList.toggle('on', on);
     k.setAttribute('aria-pressed', on ? 'true' : 'false');
     const ck = k.querySelector('.ck'); if (ck) ck.textContent = on ? '✓ 출석' : '출석';
+    // 기존 출석 변경(K7): 이름 옆 [출석]/[결석]
+    const pill = k.querySelector('.pill'); if (pill) { pill.textContent = on ? '출석' : '결석'; pill.classList.toggle('y', on); pill.classList.toggle('n', !on); }
   }
 
   async function toggle(k) {
@@ -85,7 +87,7 @@
     }
   }
 
-  items.forEach((k) => (k.querySelector('.ck') || k).addEventListener('click', () => toggle(k)));
+  items.forEach((k) => (k.querySelector('.ck, .pill') || k).addEventListener('click', () => toggle(k)));
   q?.addEventListener('input', apply);
   document.querySelectorAll('.seg2 button').forEach((b) => b.addEventListener('click', () => {
     filter = b.dataset.f;

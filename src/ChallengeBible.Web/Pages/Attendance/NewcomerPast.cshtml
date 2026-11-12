@@ -1,0 +1,58 @@
+@page "/{slug}/attendance/newcomers/past"
+@model ChallengeBible.Web.Pages.Attendance.NewcomerPastModel
+@* 확정 시안 K5 달 고르기 · K6 주일 고르기 · K7 그 주일 출석 바꾸기(2026-11-12). 연도는 보이기만, 한 명씩 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var nowMonth = Model.NowMonth;
+}
+<main class="att gut"><div class="wrap">
+    @if (Model.D is { } d)
+    {
+        var present = Model.People.Count(p => p.Present);
+        <div class="hd2"><a class="back" href="?M=@d.Month">← @(d.Month)월 주일</a><h1>@d.ToString("M월 d일") 주일</h1><p>이름 옆 버튼을 누르면 출석 ↔ 결석, 바로 저장돼요</p></div>
+        @Html.AntiForgeryToken()
+        @if (Model.People.Count == 0) { <p class="none">이 주일까지 온 새친구가 없어요.</p> }
+        else
+        {
+            <p class="sumline">새친구 @(Model.People.Count)명 중 <b id="presentN">@present</b>명 출석</p>
+            <ul class="tg" id="board" data-slug="@slug" data-sunday="@d.ToString("yyyy-MM-dd")">
+                @foreach (var p in Model.People)
+                {
+                    <li data-id="@p.PersonId" data-name="@p.Name" data-p="@(p.Present ? "1" : "0")"><b>@p.Name</b><small>@(p.Active ? "관리 중" : "완료")</small>
+                        <button type="button" class="pill @(p.Present ? "y" : "n")" aria-label="@p.Name 출석 바꾸기">@(p.Present ? "출석" : "결석")</button></li>
+                }
+            </ul>
+        }
+        <div class="nc-back"><a class="btn p" href="/@slug/attendance/newcomers">다 했어요</a></div>
+        <div class="toast hidden" id="toast" role="alert"></div>
+    }
+    else if (Model.M is int m)
+    {
+        <div class="hd2"><a class="back" href="?">← 달 고르기</a><h1>@(m)월</h1><p>고칠 주일을 고르세요</p></div>
+        <div class="slist">
+            @foreach (var s in Model.Sundays)
+            {
+                if (s.Future)
+                {
+                    <a class="off" aria-disabled="true"><span class="d">@s.Sunday.Day</span><span><b>@s.Sunday.ToString("M월 d일") 주일</b><small>아직 오지 않았어요</small></span></a>
+                }
+                else
+                {
+                    <a href="?D=@s.Sunday.ToString("yyyy-MM-dd")"><span class="d">@s.Sunday.Day</span><span><b>@s.Sunday.ToString("M월 d일") 주일</b><small>새친구 @(s.Newcomers)명@(s.Sunday == Model.ThisSunday ? " · 이번 주일" : "")</small></span><em>@(s.Present)명 출석 ›</em></a>
+                }
+            }
+        </div>
+    }
+    else
+    {
+        <div class="hd2"><a class="back" href="/@slug/attendance/newcomers">← 새친구</a><h1>기존 출석 변경</h1><p>@(Model.Year)년 · 고칠 달을 고르세요</p></div>
+        <div class="mgrid">
+            @for (var i = 1; i <= 12; i++)
+            {
+                if (i > nowMonth) { <a class="off" aria-disabled="true"><b>@(i)월</b><small></small></a> }
+                else { <a class="@(i == nowMonth ? "now" : "")" href="?M=@i"><b>@(i)월</b><small>@(i == nowMonth ? "이번 달" : $"주일 {Model.SundaysIn(i)}번")</small></a> }
+            }
+        </div>
+    }
+</div></main>
+@if (Model.D is not null) { <script src="~/js/attendance.js" asp-append-version="true"></script> }

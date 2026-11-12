@@ -2506,3 +2506,73 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .cd-danger summary::-webkit-details-marker { display: none; }
 .cd-danger form { display: grid; gap: 8px; justify-items: center; margin-top: 10px; }
 
+
+/* 새친구 · 기존 출석 변경(확정 시안 K1 · K2 · K5 · K6 · K7, 2026-11-12) */
+.nc-card { display: grid; gap: 6px; padding: 12px 14px; border: 1.5px solid var(--rule); border-radius: 14px; }
+.nc-card .r1 { display: flex; align-items: center; gap: 8px; }
+.nc-card .r1 b { font-size: 16px; }
+.nc-card .r1 .st { margin-left: auto; font-size: 13px; font-weight: 800; color: var(--warn); }
+.nc-card .r1 .ok { margin-left: auto; font-size: 12.5px; font-weight: 800; color: var(--ok); background: var(--ok-bg); padding: 3px 9px; border-radius: 99px; }
+.nc-card small { color: var(--dim); font-size: 12.5px; }
+.nc-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.nc-bar i { height: 6px; border-radius: 99px; background: var(--rule); } .nc-bar i.on { background: var(--ok); }
+.nc-done .nc-card { background: var(--bg); }
+.ncwk { display: flex; flex-wrap: wrap; gap: 4px; }
+.ncwk span { display: grid; justify-items: center; gap: 2px; min-width: 38px; padding: 4px 2px; border-radius: 8px; background: var(--rule); font-size: 11px; color: var(--dim); }
+.ncwk span b { font-size: 13px; }
+.ncwk span.on { background: var(--ok-bg); color: var(--ok); }
+.nc-more { text-align: center; font-size: 13.5px; font-weight: 700; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.nc-back { display: flex; justify-content: center; margin: 16px 0; }
+.nc-back .btn { flex: 1; display: flex; justify-content: center; }
+.tg { display: grid; gap: 0; list-style: none; margin: 0; padding: 0; border: 1.5px solid var(--rule); border-radius: 14px; }
+.tg li { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--rule); }
+.tg li:last-child { border-bottom: 0; }
+.tg li b { font-size: 15.5px; } .tg li small { color: var(--dim); font-size: 12px; }
+.tg li .pill { margin-left: auto; min-width: 76px; padding: 8px 0; border-radius: 99px; text-align: center; font-weight: 800; font-size: 14px; border: 0; }
+.tg li .pill.y { background: var(--ok); color: #fff; } .tg li .pill.n { background: var(--rule); color: var(--dim); }
+.tg li .pill.busy { color: transparent; position: relative; }
+.sumline { margin: 0 0 8px; text-align: center; font-size: 14px; color: var(--dim); }
+.sumline b { color: var(--fg); }
+.hd2 { display: grid; gap: 4px; padding: 14px 0 12px; text-align: center; }
+.hd2 .back { justify-self: start; font-size: 14px; color: var(--accent); text-decoration: none; font-weight: 700; }
+.hd2 h1 { margin: 6px 0 0; font-size: 22px; }
+.hd2 p { margin: 0; font-size: 13.5px; color: var(--dim); }
+.menu { display: grid; gap: 10px; margin: 6px 0 18px; }
+.menu a { display: grid; grid-template-columns: 48px 1fr auto; align-items: center; gap: 12px; padding: 16px; border-radius: 16px; text-decoration: none; color: var(--fg); border: 1.5px solid var(--rule); }
+.menu a i { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; font-style: normal; font-size: 22px; background: var(--accent-bg); }
+.menu a b { display: block; font-size: 17px; } .menu a small { color: var(--dim); font-size: 13px; }
+.menu a em { font-style: normal; color: var(--dim); font-size: 20px; }
+.menu a.main { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.menu a.main i { background: rgba(255,255,255,.2); } .menu a.main small, .menu a.main em { color: var(--on-accent); opacity: .9; }
+.cnt { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cnt a { display: grid; justify-items: center; gap: 2px; padding: 14px 0; border-radius: 16px; background: var(--rule); text-decoration: none; color: var(--fg); }
+.cnt a b { font-size: 26px; } .cnt a small { font-size: 13px; color: var(--dim); font-weight: 700; }
+.zone { display: grid; gap: 8px; padding: 14px 12px; margin: 0 0 14px; border-radius: 18px; }
+.zone h2 { margin: 0 4px 2px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 17px; }
+.zone h2 small { font-size: 12.5px; font-weight: 600; text-align: right; }
+.zone .nc-card { background: var(--bg); }
+.z-on { background: var(--warn-bg); } .z-on h2 { color: var(--warn); } .z-on h2 small { color: var(--warn); opacity: .85; }
+.z-on .nc-card { border-color: #F3D9A6; }
+.z-done { background: var(--ok-bg); } .z-done h2 { color: var(--ok); } .z-done h2 small { color: var(--ok); opacity: .85; }
+.z-done .nc-card { border-color: #BDE5CB; }
+.mgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.mgrid a { display: grid; justify-items: center; gap: 2px; padding: 16px 0; border-radius: 16px; background: var(--rule); text-decoration: none; color: var(--fg); }
+.mgrid a b { font-size: 20px; } .mgrid a small { font-size: 12px; color: var(--dim); }
+.mgrid a.now { background: var(--accent-bg); box-shadow: inset 0 0 0 2px var(--accent); }
+.mgrid a.off { opacity: .35; }
+.slist { display: grid; gap: 10px; }
+.slist a { display: grid; grid-template-columns: 56px 1fr auto; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 16px; border: 1.5px solid var(--rule); text-decoration: none; color: var(--fg); }
+.slist a .d { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-bg); color: var(--accent); font-size: 22px; font-weight: 900; }
+.slist a b { font-size: 16px; } .slist a small { display: block; color: var(--dim); font-size: 13px; }
+.slist a em { font-style: normal; font-weight: 800; color: var(--ok); }
+.slist a.off { opacity: .35; }
+.slist a.off .d { background: var(--rule); color: var(--dim); }
+.nc-card .r1 .st.done { color: var(--ok); }
+.nc-more { border: 0; background: none; cursor: pointer; font-family: inherit; justify-self: center; }
+.tg li.busy .pill { opacity: .5; }
+.tg li .pill { cursor: pointer; font-family: inherit; }
+.menu a span { min-width: 0; }
+.slist a[aria-disabled="true"] { pointer-events: none; }
+.mgrid a[aria-disabled="true"] { pointer-events: none; }
+.att .zone .none { padding: 8px 0; }
+

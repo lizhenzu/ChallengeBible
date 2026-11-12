@@ -90,7 +90,9 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
         if (!await ctx.People.AnyAsync(p => p.Id == personId, ct)) return AttendError.NotFound;
         var cls = await (from m in ctx.ClassMembers join c in ctx.Classes on m.ClassId equals c.Id
                          where m.PersonId == personId && !m.IsTeacher && !c.IsNewcomer select (int?)c.Id).FirstOrDefaultAsync(ct);
-        var newcomer = (await ActiveNewcomersAsync(ctx, ct)).ContainsKey(personId);
+        // 새친구반 담당 · 관리자는 새친구를 첫 방문 주일부터 고칠 수 있다 — 4주 관리가 끝난 새친구도(기존 출석 변경, 2026-11-12)
+        var first = await ctx.People.Where(p => p.Id == personId).Select(p => p.NewcomerFirstVisit).SingleAsync(ct);
+        var newcomer = first is { } f && sunday >= SundayOf(f);
         var allowed = (cls is int id && (scope.Admin || scope.Classes.Contains(id))) || (newcomer && scope.Newcomers);
         if (!allowed) return AttendError.Forbidden;
         var row = await ctx.AttendanceChecks.SingleOrDefaultAsync(a => a.PersonId == personId && a.Sunday == sunday, ct);
@@ -120,6 +122,93 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
     }
 
     public static bool IsCareOver(DateOnly firstVisit, int visits, DateOnly today) => firstVisit.AddDays(CareDays) < today && visits >= CareVisits;
+
+    /// <summary>4주 관리가 끝난 날: 4번째 출석 주일과 첫 방문 뒤 29일째 중 늦은 날. 아직이면 null.</summary>
+    public static DateOnly? CareOverOn(DateOnly firstVisit, IReadOnlyList<DateOnly> visitSundays)
+    {
+        var v = visitSundays.Where(s => s >= SundayOf(firstVisit)).OrderBy(s => s).ToList();
+        if (v.Count < CareVisits) return null;
+        var d = v[CareVisits - 1] > firstVisit.AddDays(CareDays + 1) ? v[CareVisits - 1] : firstVisit.AddDays(CareDays + 1);
+        return d;
+    }
+
+    // ── 새친구 화면(확정 시안 K1 · K2 · K5 · K6 · K7, 2026-11-12) ──
+
+    public sealed record NcWeek(DateOnly Sunday, bool Present);
+    public sealed record NcActive(int PersonId, string Name, string ClassName, DateOnly FirstVisit, bool? Voluntary, string? Evangelist, int Visits, bool PresentThisSunday, bool PastDays, IReadOnlyList<bool> Recent);
+    public sealed record NcDone(int PersonId, string Name, string ClassName, DateOnly FirstVisit, DateOnly DoneOn, int Visits, IReadOnlyList<NcWeek> Weeks);
+    public sealed record NcHome(DateOnly ThisSunday, List<NcActive> Active, List<NcDone> Done);
+    public sealed record NcSunday(DateOnly Sunday, bool Future, int Newcomers, int Present);
+    public sealed record NcOn(int PersonId, string Name, bool Active, bool Present);
+
+    /// <summary>새친구 홈: 4주 관리 중(먼저) · 4주 관리 완료(뒤, 끝난 날 최근 순). 완료 학생은 첫 방문부터 끝난 주일까지 주일별 출석.</summary>
+    public async Task<NcHome> NewcomerHomeAsync(CancellationToken ct = default)
+    {
+        var today = Today;
+        var thisSunday = SundayOf(today);
+        var names = (await classes.ClassesAsync(ct)).ToDictionary(c => c.Id, c => c.Name);
+        await using var ctx = db.Create();
+        var people = await ctx.People.AsNoTracking().Where(p => p.NewcomerFirstVisit != null).ToListAsync(ct);
+        var ids = people.Select(p => p.Id).ToList();
+        var visits = (await ctx.AttendanceChecks.AsNoTracking().Where(a => ids.Contains(a.PersonId)).Select(a => new { a.PersonId, a.Sunday }).ToListAsync(ct))
+            .GroupBy(a => a.PersonId).ToDictionary(g => g.Key, g => g.Select(x => x.Sunday).ToHashSet());
+        var cls = await ctx.ClassMembers.AsNoTracking().Where(m => ids.Contains(m.PersonId) && !m.IsTeacher).ToDictionaryAsync(m => m.PersonId, m => m.ClassId, ct);
+        string ClassOf(int pid) => cls.TryGetValue(pid, out var c) && names.TryGetValue(c, out var n) ? n : ClassService.UnassignedName;
+        var active = new List<NcActive>();
+        var done = new List<NcDone>();
+        foreach (var p in people)
+        {
+            var first = p.NewcomerFirstVisit!.Value;
+            var mine = visits.GetValueOrDefault(p.Id) ?? [];
+            var count = mine.Count(s => s >= SundayOf(first));
+            if (!IsCareOver(first, count, today))
+            {
+                var recent = Enumerable.Range(1, RecentWeeks).Reverse().Select(i => mine.Contains(thisSunday.AddDays(-7 * i))).ToList();
+                active.Add(new NcActive(p.Id, p.Name, ClassOf(p.Id), first, p.NewcomerVoluntary, p.NewcomerEvangelist, count, mine.Contains(thisSunday), first.AddDays(CareDays) < today, recent));
+                continue;
+            }
+            var doneOn = CareOverOn(first, [.. mine]) ?? today;
+            var weeks = new List<NcWeek>();
+            for (var s = SundayOf(first); s <= SundayOf(doneOn) && s <= thisSunday; s = s.AddDays(7)) weeks.Add(new NcWeek(s, mine.Contains(s)));
+            done.Add(new NcDone(p.Id, p.Name, ClassOf(p.Id), first, doneOn, count, weeks));
+        }
+        return new NcHome(thisSunday,
+            active.OrderByDescending(a => a.FirstVisit).ThenBy(a => a.Name).ToList(),
+            done.OrderByDescending(d => d.DoneOn).ThenBy(d => d.Name).ToList());
+    }
+
+    /// <summary>기존 출석 변경 · 주일 고르기: 그 달의 주일마다 새친구 수(그 주일까지 첫 방문) · 출석 수. 오지 않은 주일은 Future.</summary>
+    public async Task<List<NcSunday>> NewcomerSundaysAsync(int year, int month, CancellationToken ct = default)
+    {
+        var thisSunday = SundayOf(Today);
+        var d = new DateOnly(year, month, 1);
+        var sundays = new List<DateOnly>();
+        for (var s = d.AddDays(((int)DayOfWeek.Sunday - (int)d.DayOfWeek + 7) % 7); s.Month == month; s = s.AddDays(7)) sundays.Add(s);
+        await using var ctx = db.Create();
+        var people = await ctx.People.AsNoTracking().Where(p => p.NewcomerFirstVisit != null).Select(p => new { p.Id, First = p.NewcomerFirstVisit!.Value }).ToListAsync(ct);
+        var ids = people.Select(p => p.Id).ToList();
+        var from = sundays.First(); var to = sundays.Last();
+        var checks = (await ctx.AttendanceChecks.AsNoTracking().Where(a => ids.Contains(a.PersonId) && a.Sunday >= from && a.Sunday <= to).Select(a => new { a.PersonId, a.Sunday }).ToListAsync(ct))
+            .Select(a => (a.PersonId, a.Sunday)).ToHashSet();
+        return sundays.Select(s =>
+        {
+            var on = people.Where(p => SundayOf(p.First) <= s).ToList();
+            return new NcSunday(s, s > thisSunday, on.Count, on.Count(p => checks.Contains((p.Id, s))));
+        }).ToList();
+    }
+
+    /// <summary>기존 출석 변경 · 그 주일: 그 주일까지 첫 방문한 새친구 모두(관리 중 · 완료), 이름 순.</summary>
+    public async Task<List<NcOn>> NewcomersOnAsync(DateOnly sunday, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var active = await ActiveNewcomersAsync(ctx, ct);
+        var people = (await ctx.People.AsNoTracking().Where(p => p.NewcomerFirstVisit != null).Select(p => new { p.Id, p.Name, First = p.NewcomerFirstVisit!.Value }).ToListAsync(ct))
+            .Where(p => SundayOf(p.First) <= sunday).ToList();
+        var ids = people.Select(p => p.Id).ToList();
+        var present = (await ctx.AttendanceChecks.AsNoTracking().Where(a => ids.Contains(a.PersonId) && a.Sunday == sunday).Select(a => a.PersonId).ToListAsync(ct)).ToHashSet();
+        var ko = StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false);
+        return people.OrderBy(p => p.Name, ko).Select(p => new NcOn(p.Id, p.Name, active.ContainsKey(p.Id), present.Contains(p.Id))).ToList();
+    }
 
     /// <summary>새친구 화면(R-237): 관리 중인 새친구, 반(없으면 미배정반) · 첫 방문 · 출석 수 · 그 주일 출석.</summary>
     public async Task<List<NewcomerRow>> NewcomersAsync(DateOnly sunday, CancellationToken ct = default)
