@@ -19,7 +19,7 @@
                 <ul class="ppl asg">
                     @foreach (var p in Model.Rows)
                     {
-                        <li><span><b>@p.Name</b> <small>@p.RoleLabel · @p.Birthday · @(p.Linked ? "가입" : "가입 안 함")</small></span>
+                        <li><span><b>@p.Name</b>@if (p.Newcomer) { <span class="tag nc">새친구</span> } <small>@p.RoleLabel · @p.Birthday · @(p.Linked ? "가입" : "가입 안 함")</small>@if (p.Note is not null) { <span class="tagline">@p.Note</span> }</span>
                             <select class="sel" name="to[@p.PersonId]" aria-label="@p.Name 반 고르기">
                                 <option value="0">반 고르기</option>
                                 @foreach (var c in Model.Targets) { <option value="@c.Id">@c.Name</option> }

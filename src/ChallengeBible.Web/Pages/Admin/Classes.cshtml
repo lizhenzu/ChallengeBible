@@ -8,6 +8,7 @@
     <h1>반</h1>
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
 
+    <div class="row"><a class="btn s sm" href="/@slug/admin/classes/move">반 이동 →</a></div>
     <details class="pp-add" open="@(Model.Error is not null)"><summary class="btn p sm">+ 반 만들기</summary>
         <form method="post" asp-page-handler="Add" asp-route-slug="@slug" class="pp-form">
             @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
@@ -20,8 +21,8 @@
         @foreach (var c in Model.Rows.Where(r => r.IsNewcomer))
         {
             <a class="cl nc" href="/@slug/admin/classes/@c.Id">
-                <span class="h"><b>@c.Name</b><span class="tag nc">기본</span><span class="n">@(c.Teachers.Count)명</span></span>
-                <small>담당 @(c.Teachers.Count == 0 ? "없음 · 담당을 정해 주세요" : string.Join(" · ", c.Teachers)) · 새친구는 실제 반(또는 미배정반)에도 함께 보여요</small>
+                <span class="h"><b>@c.Name</b><span class="tag nc">기본</span><span class="n">@(c.Students)명</span></span>
+                <small>담당 @(c.Teachers.Count == 0 ? "없음 · 담당을 정해 주세요" : string.Join(" · ", c.Teachers)) · 관리 중인 새친구 @(c.Students)명 · 실제 반(또는 미배정반)에도 함께 보여요</small>
             </a>
         }
         <a class="cl un" href="/@slug/admin/classes/unassigned">

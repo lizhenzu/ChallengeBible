@@ -102,9 +102,10 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
     }
 
     /// <summary>관리 중인 새친구(R-237): 첫 방문이 있고, 28일이 지나고 출석 4번 이상이 되기 전. 값 = 첫 방문 이후 출석 수.</summary>
-    private async Task<Dictionary<int, int>> ActiveNewcomersAsync(AppDbContext ctx, CancellationToken ct)
+    private Task<Dictionary<int, int>> ActiveNewcomersAsync(AppDbContext ctx, CancellationToken ct) => ActiveNewcomersAsync(ctx, Today, ct);
+
+    public static async Task<Dictionary<int, int>> ActiveNewcomersAsync(AppDbContext ctx, DateOnly today, CancellationToken ct)
     {
-        var today = Today;
         var ncs = await ctx.People.AsNoTracking().Where(p => p.NewcomerFirstVisit != null).Select(p => new { p.Id, First = p.NewcomerFirstVisit!.Value }).ToListAsync(ct);
         if (ncs.Count == 0) return [];
         var ids = ncs.Select(n => n.Id).ToList();

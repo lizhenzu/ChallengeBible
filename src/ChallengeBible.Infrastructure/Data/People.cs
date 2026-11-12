@@ -29,6 +29,11 @@ public sealed class Person : ITenantOwned
     public bool? NewcomerVoluntary { get; set; }
     /// <summary>전도한 사람 이름(선택).</summary>
     public string? NewcomerEvangelist { get; set; }
+    // 꼬리표(ADR 0093 반별 학생 이동 2): 반 이동 때 남기고 타부서로 가도 따라간다
+    public string? PrevDeptName { get; set; }
+    public string? PrevClassName { get; set; }
+    public string? PrevTeacherName { get; set; }
+    public string? PrevTeacherPhone { get; set; }
 }
 
 /// <summary>주일 출석 한 줄(ADR 0093 출석): 있으면 출석, 취소하면 지운다(유년부와 같다). 명부 사람 번호로 저장한다.</summary>
@@ -73,6 +78,10 @@ internal sealed class PersonConfig : IEntityTypeConfiguration<Person>
         e.Property(x => x.CreatedUtc).HasPrecision(3);
         e.Property(x => x.CreatedByUserName).HasMaxLength(256);
         e.Property(x => x.NewcomerEvangelist).HasMaxLength(50);
+        e.Property(x => x.PrevDeptName).HasMaxLength(100);
+        e.Property(x => x.PrevClassName).HasMaxLength(50);
+        e.Property(x => x.PrevTeacherName).HasMaxLength(100);
+        e.Property(x => x.PrevTeacherPhone).HasMaxLength(20).IsUnicode(false);
         e.HasIndex(x => new { x.TenantId, x.UserId }).IsUnique().HasFilter("[UserId] IS NOT NULL");
         e.HasIndex(x => x.UserId);
         e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.NoAction);

@@ -5,8 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
+/// <summary>Students = 정규 반이면 학생 수, 새친구반이면 관리 중인 새친구 수.</summary>
 public sealed record ClassRow(int Id, string Name, bool IsNewcomer, IReadOnlyList<string> Teachers, int Students);
-public sealed record ClassPerson(int PersonId, string Name, string RoleLabel, string Birthday, bool Linked);
+/// <summary>Note = 꼬리표(미배정반) 또는 새친구의 반 이름(새친구반).</summary>
+public sealed record ClassPerson(int PersonId, string Name, string RoleLabel, string Birthday, bool Linked, bool Newcomer = false, string? Note = null);
+public sealed record MoveTarget(int TenantId, string Name);
 public sealed record ClassDetail(SchoolClass Class, List<ClassPerson> Teachers, List<ClassPerson> Students,
     List<ClassPerson> TeacherCandidates, List<ClassPerson> StudentCandidates);
 
@@ -55,12 +58,18 @@ public sealed class ClassService(IAppDb db, PeopleService people, TenantContext 
         var classes = await ctx.Classes.AsNoTracking().Where(c => c.TermId == term).ToListAsync(ct);
         var members = await ctx.ClassMembers.AsNoTracking().Where(m => m.TermId == term).ToListAsync(ct);
         var names = (await people.RosterAsync(null, null, ct)).ToDictionary(r => r.PersonId, r => r.Name);
+        var newcomers = (await NewcomersAsync(ctx, ct)).Count;
         var ko = StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false);
         return classes.OrderByDescending(c => c.IsNewcomer).ThenBy(c => c.Name, ko)
             .Select(c => new ClassRow(c.Id, c.Name, c.IsNewcomer,
                 members.Where(m => m.ClassId == c.Id && m.IsTeacher).Select(m => names.GetValueOrDefault(m.PersonId, "?")).ToList(),
-                members.Count(m => m.ClassId == c.Id && !m.IsTeacher))).ToList();
+                c.IsNewcomer ? newcomers : members.Count(m => m.ClassId == c.Id && !m.IsTeacher))).ToList();
     }
+
+    private DateOnly Today => TenantClock.ToTenantDate(time.GetUtcNow(), tenant.Current.TimeZoneId);
+
+    /// <summary>관리 중인 새친구(사람 번호 → 출석 수). 새친구는 새친구반과 실제 반(또는 미배정반) 양쪽에 보인다(반별 학생 이동 6).</summary>
+    private Task<Dictionary<int, int>> NewcomersAsync(AppDbContext ctx, CancellationToken ct) => AttendanceService.ActiveNewcomersAsync(ctx, Today, ct);
 
     /// <summary>미배정반(R-232): 학생(또는 새친구 역할)인데 정규 반에 없는 사람 모두. 따로 저장하지 않아 진급 · 새 등록 · 반에서 빼기가 저절로 반영된다.</summary>
     public async Task<List<ClassPerson>> UnassignedAsync(CancellationToken ct = default)
@@ -69,7 +78,8 @@ public sealed class ClassService(IAppDb db, PeopleService people, TenantContext 
         await using var ctx = db.Create();
         var term = await TermAsync(ctx, ct);
         var placed = (await ctx.ClassMembers.AsNoTracking().Where(m => m.TermId == term).Select(m => m.PersonId).ToListAsync(ct)).ToHashSet();
-        return roster.Where(r => IsStudent(r) && !placed.Contains(r.PersonId)).Select(P).ToList();
+        var nc = await NewcomersAsync(ctx, ct);
+        return roster.Where(r => IsStudent(r) && !placed.Contains(r.PersonId)).Select(r => P(r) with { Newcomer = nc.ContainsKey(r.PersonId), Note = r.Prev }).ToList();
     }
 
     public async Task<ClassDetail?> DetailAsync(int classId, CancellationToken ct = default)
@@ -81,8 +91,19 @@ public sealed class ClassService(IAppDb db, PeopleService people, TenantContext 
         var roster = await people.RosterAsync(null, null, ct);
         var placed = members.Select(m => m.PersonId).ToHashSet();
         var mine = members.Where(m => m.ClassId == c.Id).ToList();
-        List<ClassPerson> Of(bool teacher) => roster.Where(r => mine.Any(m => m.PersonId == r.PersonId && m.IsTeacher == teacher)).Select(P).ToList();
-        return new ClassDetail(c, Of(true), Of(false),
+        var classNames = await ctx.Classes.AsNoTracking().Where(x => x.TermId == c.TermId).ToDictionaryAsync(x => x.Id, x => x.Name, ct);
+        var nc = await NewcomersAsync(ctx, ct);
+        List<ClassPerson> Of(bool teacher) => roster.Where(r => mine.Any(m => m.PersonId == r.PersonId && m.IsTeacher == teacher))
+            .Select(r => P(r) with { Newcomer = nc.ContainsKey(r.PersonId) }).ToList();
+        // 새친구반: 학생 칸에 관리 중인 새친구(실제 반 이름을 함께)
+        var students = c.IsNewcomer
+            ? roster.Where(r => nc.ContainsKey(r.PersonId)).Select(r => P(r) with
+              {
+                  Newcomer = true,
+                  Note = members.FirstOrDefault(m => m.PersonId == r.PersonId && !m.IsTeacher) is { } m2 ? classNames.GetValueOrDefault(m2.ClassId, UnassignedName) : UnassignedName,
+              }).ToList()
+            : Of(false);
+        return new ClassDetail(c, Of(true), students,
             roster.Where(r => !placed.Contains(r.PersonId) && CanTeach(r, c.IsNewcomer)).Select(P).ToList(),
             c.IsNewcomer ? [] : roster.Where(r => !placed.Contains(r.PersonId) && IsStudent(r)).Select(P).ToList());
     }

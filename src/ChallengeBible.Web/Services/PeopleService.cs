@@ -9,6 +9,8 @@ public sealed record RosterRow(int PersonId, string Name, string? RoleCode, stri
     string? Phone1, string? Phone2, int? DeptRoleId, string? UserName, string? Email, bool IsAdmin, DateTime CreatedUtc)
 {
     public bool Linked => UserName is not null;
+    /// <summary>꼬리표 한 줄(이전 부서 · 반 · 담임 · 전화). 반 이동 전이면 null.</summary>
+    public string? Prev { get; init; }
     public string Birthday => PeopleService.BirthdayText(BirthMonth, BirthDay);
 }
 
@@ -43,7 +45,7 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
             var code = m is null ? p.RoleCode : m.RoleCode;
             var name = m is null ? p.Name : AppUser.FullName(m.LastName, m.FirstName);
             return new RosterRow(p.Id, name, code, Label(code, codes), p.BirthMonth, p.BirthDay, p.Phone1, p.Phone2,
-                m?.Id, m?.UserName, m?.Email, m is not null && adminIds.Contains(m.UserId!), p.CreatedUtc);
+                m?.Id, m?.UserName, m?.Email, m is not null && adminIds.Contains(m.UserId!), p.CreatedUtc) { Prev = PrevText(p) };
         }).ToList();
         if (!string.IsNullOrWhiteSpace(query))
         {
@@ -190,24 +192,13 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
         }
         foreach (var o in old)
         {
-            if (here.BirthMonth is null) (here.BirthMonth, here.BirthDay) = (o.BirthMonth, o.BirthDay);
-            here.Phone1 ??= o.Phone1;
-            here.Phone2 ??= o.Phone2;
+            // 생일 · 연락처 · 새친구 · 꼬리표가 따라간다
+            CarryOver(o, here);
             // 옛 부서의 반에서도 빠진다(R-232). 반은 부서마다 따로라 옮기지 않는다
             sys.ClassMembers.RemoveRange(await sys.ClassMembers.Where(m => m.TenantId == o.TenantId && m.PersonId == o.Id).ToListAsync(ct));
             // 출석 기록은 새 부서 줄로 옮긴다(0093 사람 · 소속 9, R-230)
-            var checks = await sys.AttendanceChecks.Where(a => a.TenantId == o.TenantId && a.PersonId == o.Id).ToListAsync(ct);
-            if (checks.Count > 0)
-            {
-                if (here.Id == 0) await sys.SaveChangesAsync(ct);
-                var have = (await sys.AttendanceChecks.Where(a => a.TenantId == target && a.PersonId == here.Id).Select(a => a.Sunday).ToListAsync(ct)).ToHashSet();
-                foreach (var a in checks.Where(a => !have.Contains(a.Sunday)))
-                    sys.AttendanceChecks.Add(new AttendanceCheck { TenantId = target, PersonId = here.Id, Sunday = a.Sunday, CreatedUtc = a.CreatedUtc, CreatedByUserName = a.CreatedByUserName });
-                sys.AttendanceChecks.RemoveRange(checks);
-            }
-            here.NewcomerFirstVisit ??= o.NewcomerFirstVisit;
-            here.NewcomerVoluntary ??= o.NewcomerVoluntary;
-            here.NewcomerEvangelist ??= o.NewcomerEvangelist;
+            if (here.Id == 0) await sys.SaveChangesAsync(ct);
+            await MoveChecksAsync(sys, o, here, ct);
             sys.People.Remove(o);
         }
     }
@@ -246,6 +237,39 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
         if (s.Length > 20) return false;
         phone = s;
         return true;
+    }
+
+    /// <summary>"이전: 유년부 3학년5반 · 담임 정교사 010-1234-5678"(ADR 0093 반별 학생 이동 2).</summary>
+    public static string? PrevText(Person p)
+    {
+        if (p.PrevDeptName is null && p.PrevClassName is null) return null;
+        var t = $"이전: {string.Join(" ", new[] { p.PrevDeptName, p.PrevClassName }.Where(s => !string.IsNullOrEmpty(s)))}";
+        var who = string.Join(" ", new[] { p.PrevTeacherName, p.PrevTeacherPhone }.Where(s => !string.IsNullOrEmpty(s)));
+        return who.Length == 0 ? t : $"{t} · 담임 {who}";
+    }
+
+    /// <summary>타부서로 갈 때 명부 줄에 따라가는 값(생일 · 연락처 · 새친구 · 꼬리표).</summary>
+    public static void CarryOver(Person from, Person to)
+    {
+        if (to.BirthMonth is null) (to.BirthMonth, to.BirthDay) = (from.BirthMonth, from.BirthDay);
+        to.Phone1 ??= from.Phone1;
+        to.Phone2 ??= from.Phone2;
+        to.NewcomerFirstVisit ??= from.NewcomerFirstVisit;
+        to.NewcomerVoluntary ??= from.NewcomerVoluntary;
+        to.NewcomerEvangelist ??= from.NewcomerEvangelist;
+        if (from.PrevDeptName is not null || from.PrevClassName is not null)
+            (to.PrevDeptName, to.PrevClassName, to.PrevTeacherName, to.PrevTeacherPhone) = (from.PrevDeptName, from.PrevClassName, from.PrevTeacherName, from.PrevTeacherPhone);
+    }
+
+    /// <summary>한 사람의 출석 기록을 다른 부서 명부 줄로 옮긴다(겹치는 주일은 건너뛴다). 저장은 부르는 쪽에서 — to.Id 는 저장된 값이어야 한다.</summary>
+    public static async Task MoveChecksAsync(AppDbContext sys, Person from, Person to, CancellationToken ct)
+    {
+        var checks = await sys.AttendanceChecks.Where(a => a.TenantId == from.TenantId && a.PersonId == from.Id).ToListAsync(ct);
+        if (checks.Count == 0) return;
+        var have = (await sys.AttendanceChecks.Where(a => a.TenantId == to.TenantId && a.PersonId == to.Id).Select(a => a.Sunday).ToListAsync(ct)).ToHashSet();
+        foreach (var a in checks.Where(a => !have.Contains(a.Sunday)))
+            sys.AttendanceChecks.Add(new AttendanceCheck { TenantId = to.TenantId, PersonId = to.Id, Sunday = a.Sunday, CreatedUtc = a.CreatedUtc, CreatedByUserName = a.CreatedByUserName });
+        sys.AttendanceChecks.RemoveRange(checks);
     }
 
     public static string BirthdayText(byte? m, byte? d) => m is null || d is null ? "생일 없음" : $"{m}월 {d}일";
