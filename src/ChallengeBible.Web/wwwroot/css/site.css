@@ -2569,10 +2569,21 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .slist a.off .d { background: var(--rule); color: var(--dim); }
 .nc-card .r1 .st.done { color: var(--ok); }
 .nc-more { border: 0; background: none; cursor: pointer; font-family: inherit; justify-self: center; }
-.tg li.busy .pill { opacity: .5; }
+/* 저장 중: 버튼 글자를 감추고 그 자리에서 동그라미가 돈다(출석 카드와 같다, 최소 0.5초) */
+.tg li.busy .pill { position: relative; color: transparent !important; cursor: progress; }
+.tg li.busy .pill::after { content: ""; position: absolute; top: 50%; left: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px;
+  border: 2px solid rgba(255,255,255,.55); border-top-color: #fff; border-radius: 50%; animation: kspin .8s linear infinite; }
+.tg li.busy .pill.n::after { border-color: #CBD2DD; border-top-color: var(--accent); }
 .tg li .pill { cursor: pointer; font-family: inherit; }
 .menu a span { min-width: 0; }
 .slist a[aria-disabled="true"] { pointer-events: none; }
 .mgrid a[aria-disabled="true"] { pointer-events: none; }
 .att .zone .none { padding: 8px 0; }
+
+/* 출석 카드 간격 · 높이 여유(확정 시안 M, 2026-11-12): 반 출석부 · 새친구 오늘 출석 · 기존 출석 변경 모두 */
+.att .kids { gap: 14px 10px; }
+.att .kid { height: 72px; }
+.att .kid .stt { display: block; font-size: 11px; color: var(--y-dim); margin-top: -2px; }
+.att .kid.on .stt { color: inherit; opacity: .8; }
+.wz-nav .btn { white-space: nowrap; }
 
