@@ -1,0 +1,93 @@
+@page "/{slug}/attendance/byclass"
+@model ChallengeBible.Web.Pages.Attendance.ByClassModel
+@using ChallengeBible.Web.Pages.Attendance
+@using System.Globalization
+@* 유년부 출석부 "주일 반별 출석"(Views/Attendance/AdminTrendSundayDetail)과 같은 모양 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var r = Model.Rep;
+    var sunday = r.Sunday;
+    var dateStr = sunday.ToString("yyyy-MM-dd");
+    bool atLatest = sunday >= r.ThisSunday;
+    string Self(DateOnly d) => $"/{slug}/attendance/byclass?sunday={d:yyyy-MM-dd}";
+    var rows = r.Classes.Select(c => new { c, T = c.Kids.Count, P = c.Kids.Count(k => k.Present), R = TrendModel.Rate(c.Kids.Count(k => k.Present), c.Kids.Count) }).ToList();
+    int total = rows.Sum(x => x.T), present = rows.Sum(x => x.P);
+    var best = rows.Where(x => x.T > 0).OrderByDescending(x => x.R).FirstOrDefault();
+    var zero = rows.Count(x => x.T > 0 && x.P == 0);
+    const double LowRate = 50;
+}
+<div class="yb ybs ybc">
+    <header class="sh">
+        <div class="hdTop"><a href="/@slug/attendance/trend?date=@dateStr">전체 출석현황</a><a href="/@slug">부서 홈으로</a></div>
+        <div class="dn2">
+            <a href="@Self(sunday.AddDays(-7))" aria-label="지난 주일">‹</a>
+            <h1>@sunday.ToString("M월 d일") 주일<small>반별 출석</small></h1>
+            @if (atLatest) { <span class="off" aria-hidden="true">›</span> } else { <a href="@Self(sunday.AddDays(7))" aria-label="다음 주일">›</a> }
+        </div>
+        <div class="st2">
+            <div>출석률<b>@(ReportModel.Pct(present, total))%</b></div>
+            <div class="k">출석<b>@present</b></div>
+            <div>총원<b>@total</b></div>
+            <div>반<b>@rows.Count</b></div>
+            @if (zero > 0) { <div class="lo">미체크<b>@zero</b></div> }
+        </div>
+    </header>
+
+    <main class="sh">
+        @if (rows.Count == 0)
+        {
+            <div class="none">표시할 데이터가 없습니다.</div>
+        }
+        else
+        {
+            <div class="tl">
+                <span>@(best != null ? $"가장 높은 반 · {best.c.Name} {TrendModel.Pct(best.R)}%" : "")</span>
+                <div class="seg5" aria-label="정렬">
+                    <button type="button" data-s="class" class="on">반 순서</button>
+                    <button type="button" data-s="rate">출석률 순</button>
+                </div>
+            </div>
+            <section class="sec" style="margin-top:14px">
+                <div class="secH"><div><div class="secK">CLASSES</div><div class="secT">반별 출석</div></div><span class="secN">@(LowRate)% 미만은 빨간 막대</span></div>
+                <div id="list">
+                    @{ int ord = 0; }
+                    @foreach (var x in rows)
+                    {
+                        ord++;
+                        bool lo = x.T > 0 && x.R < LowRate;
+                        <div class="bcl @(lo ? "lo" : "")" data-ord="@ord" data-rate="@x.R.ToString(CultureInfo.InvariantCulture)">
+                            <div class="clT"><b>@x.c.Name</b><small>@(string.IsNullOrWhiteSpace(x.c.Teachers) ? "담임 미지정" : x.c.Teachers)</small><span class="p">@TrendModel.Pct(x.R)%</span></div>
+                            <div class="bar"><i style="width:@(Math.Clamp(x.R, 0, 100).ToString(CultureInfo.InvariantCulture))%"></i></div>
+                            <div class="clM">
+                                <span>총 @x.T</span><span class="a">출석 @x.P</span><span class="x">결석 @(x.T - x.P)</span>
+                                <span class="go">
+                                    <a href="/@slug/attendance/sunday?sunday=@dateStr#c-@x.c.Id">명단</a>
+                                    @if (x.c.Id > 0) { <a class="pri" href="/@slug/attendance?d=@dateStr#g-@x.c.Id">출석 고치기</a> }
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </section>
+            <div class="links">
+                <a href="/@slug/attendance/report?sunday=@dateStr">명단 보기 (PC)</a>
+                <a href="/@slug/attendance/sunday?sunday=@dateStr">명단 보기 (휴대폰)</a>
+            </div>
+        }
+        <div class="ft"><span>출석률 = 출석 ÷ 총원(지금 반 편성 기준)</span></div>
+    </main>
+</div>
+<partial name="_AttTabs" model='(slug, "more", true)' />
+<script>
+(function () {
+    const list = document.getElementById('list');
+    if (!list) return;
+    document.querySelectorAll('.seg5 button').forEach(b => b.addEventListener('click', () => {
+        document.querySelectorAll('.seg5 button').forEach(x => x.classList.toggle('on', x === b));
+        const by = b.dataset.s;
+        Array.from(list.children)
+            .sort((a, c) => by === 'rate' ? parseFloat(c.dataset.rate) - parseFloat(a.dataset.rate) : a.dataset.ord - c.dataset.ord)
+            .forEach(el => list.appendChild(el));
+    }));
+})();
+</script>
