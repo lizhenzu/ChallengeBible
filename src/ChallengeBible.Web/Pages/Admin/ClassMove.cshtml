@@ -1,54 +1,109 @@
 @page "/{slug}/admin/classes/move"
 @model ChallengeBible.Web.Pages.Admin.ClassMoveModel
-@* 확정 시안 A-반이동(ADR 0093 반별 학생 이동 1 ~ 5): 반 고르기 → 아이들 → [미배정반으로 이동] [타부서로 이동]. 반별로만 *@
-@{ var slug = Model.Tenant.Current.Slug; }
+@using ChallengeBible.Web.Services
+@* 확정 시안 반 이동 마법사(2026-11-12): 1 반 → 2 아이 → 3 보낼 곳(미배정반 · 다른 반 · 다른 부서) → 4 확인 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    string[] names = ["반", "아이", "보낼 곳", "확인"];
+    var picked = Model.Picked;
+    string Names(IEnumerable<ClassPerson> ps) => string.Join(" · ", ps.Select(p => p.Name));
+}
 <partial name="_AdminTop" model="Model.Tenant" />
 <main class="admin gut"><div class="wrap wide">
     <h1>반 이동</h1>
-    <p class="lead"><a href="/@slug/admin/classes">← 반 목록</a> · 반을 하나 골라 그 반 아이들을 옮겨요(연말 반 편성 · 다른 부서로 보내기)</p>
-    @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
+    <p class="lead"><a href="/@slug/admin/classes">← 반 목록</a></p>
+    @if (Model.Ok is not null) { <p class="okmsg" role="status">@(Model.Ok)명을 옮겼어요 · 이전 반 · 담임 정보는 꼬리표로 남았어요</p> }
     @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
 
-    <nav class="mv-cls" aria-label="반 고르기">
-        @foreach (var r in Model.Rows)
+    <div class="wz-steps" aria-label="단계">
+        @for (var i = 0; i < 4; i++)
         {
-            <a class="@(r.Id == Model.C ? "on" : "")" href="?C=@r.Id" aria-current="@(r.Id == Model.C ? "page" : "false")">@r.Name<small>@(r.Students)명</small></a>
+            var n = i + 1;
+            <span class="@(n < Model.S ? "done" : n == Model.S ? "on" : "")" aria-current="@(n == Model.S ? "step" : "false")"><i>@(n < Model.S ? "✓" : n)</i>@names[i]</span>
         }
-    </nav>
+    </div>
 
-    @if (Model.Picked is { } d)
+    @if (Model.S == 1)
     {
-        <section class="sec" aria-labelledby="mvT"><h2 id="mvT">@d.Class.Name@(d.Teachers.Count > 0 ? " · 담임 " + string.Join(" · ", d.Teachers.Select(t => t.Name)) : "") · @(d.Students.Count)명</h2>
-            @if (d.Students.Count == 0) { <p class="hint">이 반에 아이가 없어요.</p> }
-            <ul class="ppl">
-                @foreach (var p in d.Students)
+        <form method="get" asp-route-slug="@slug">
+            <input type="hidden" name="S" value="2" />
+            <p class="wz-q">어느 반 아이를 옮길까요?</p>
+            <ul class="wz-pick">
+                @foreach (var r in Model.Rows) { <li><label><input type="radio" name="F" value="@r.Id" required checked="@(Model.F == r.Id.ToString())" /> @r.Name<small>@(r.Students)명</small></label></li> }
+                <li><label><input type="radio" name="F" value="@ClassMoveModel.FromUnassigned" required checked="@(Model.F == ClassMoveModel.FromUnassigned)" /> @ClassService.UnassignedName<small>@(Model.UnassignedCount)명</small></label></li>
+            </ul>
+            <div class="wz-nav"><button type="submit" class="btn p">다음 →</button></div>
+        </form>
+    }
+    else if (Model.S == 2)
+    {
+        <p class="wz-sum">@Model.FromName@(Model.FromTeacher is null ? "" : " · 담임 " + Model.FromTeacher)</p>
+        <form method="get" asp-route-slug="@slug">
+            <input type="hidden" name="S" value="3" /><input type="hidden" name="F" value="@Model.F" />
+            <p class="wz-q">누구를 옮길까요?</p>
+            @if (Model.Kids.Count == 0) { <p class="hint">이 반에 아이가 없어요.</p> }
+            else
+            {
+                <div class="wz-all"><span id="wzN">@(Model.Kids.Count)명 중 @(picked.Count)명 골랐어요</span><label><input type="checkbox" id="wzAll" /> 모두 고르기</label></div>
+                <ul class="wz-pick">
+                    @foreach (var k in Model.Kids)
+                    {
+                        <li><label><input type="checkbox" name="P" value="@k.PersonId" checked="@Model.P.Contains(k.PersonId)" /> @k.Name@if (k.Newcomer) { <span class="tag nc">새친구</span> }<small>@(k.Linked ? "가입" : "가입 안 함")</small></label></li>
+                    }
+                </ul>
+            }
+            <div class="wz-nav"><a class="btn s" href="?S=1&F=@Model.F">← 이전</a><button type="submit" class="btn p">다음 →</button></div>
+        </form>
+    }
+    else if (Model.S == 3)
+    {
+        <p class="wz-sum">@Model.FromName → @(picked.Count)명(@Names(picked))</p>
+        <form method="get" asp-route-slug="@slug">
+            <input type="hidden" name="S" value="4" /><input type="hidden" name="F" value="@Model.F" />
+            @foreach (var p in Model.P) { <input type="hidden" name="P" value="@p" /> }
+            <p class="wz-q">어디로 보낼까요?</p>
+            <ul class="wz-pick">
+                @if (Model.FromId is not null)
                 {
-                    <li><span><b>@p.Name</b>@if (p.Newcomer) { <span class="tag nc">새친구</span> } <small>@(p.Linked ? "가입" : "가입 안 함") · @p.Birthday</small></span></li>
+                    <li><label><input type="radio" name="D" value="@MoveDest.Unassigned" required checked="@(Model.D == MoveDest.Unassigned)" /> 이 부서 미배정반<small>연말 반 편성용</small></label></li>
+                }
+                <li><label><input type="radio" name="D" value="@MoveDest.Class" required checked="@(Model.D == MoveDest.Class)" /> 이 부서 다른 반</label>
+                    <div class="sub"><select class="sel" name="T" aria-label="보낼 반">@foreach (var r in Model.Rows.Where(r => r.Id != Model.FromId)) { <option value="@r.Id" selected="@(Model.T == r.Id)">@r.Name</option> }</select></div></li>
+                @if (Model.Depts.Count > 0)
+                {
+                    <li><label><input type="radio" name="D" value="@MoveDest.Dept" required checked="@(Model.D == MoveDest.Dept)" /> 다른 부서<small>그 부서 미배정반으로 · 승인 없음</small></label>
+                        <div class="sub"><select class="sel" name="X" aria-label="보낼 부서">@foreach (var t in Model.Depts) { <option value="@t.TenantId" selected="@(Model.X == t.TenantId)">@t.Name</option> }</select></div></li>
                 }
             </ul>
-        </section>
-        @if (d.Students.Count > 0)
-        {
-            <div class="mv-acts">
-                <b>이 반 아이 @(d.Students.Count)명을 옮기기</b>
-                <form method="post" asp-page-handler="Unassigned" asp-route-slug="@slug" asp-route-C="@d.Class.Id" class="row">
-                    <details class="ask"><summary class="btn s sm">미배정반으로 이동</summary>
-                        <span>@(d.Class.Name) 아이 @(d.Students.Count)명을 미배정반으로 옮길까요?</span><button type="submit" class="btn dd sm">옮기기</button>
-                    </details>
-                </form>
-                <p>연말 반 편성용이에요. 반은 비고 아이들은 이 부서 미배정반으로 가요. 이전 반 · 담임 정보는 꼬리표로 남아요.</p>
-                @if (Model.Targets.Count > 0)
-                {
-                    <form method="post" asp-page-handler="Dept" asp-route-slug="@slug" asp-route-C="@d.Class.Id" class="row">
-                        <select class="sel" name="target" aria-label="받을 부서" required><option value="">받을 부서 고르기</option>@foreach (var t in Model.Targets) { <option value="@t.TenantId">@t.Name</option> }</select>
-                        <details class="ask"><summary class="btn p sm">타부서로 이동</summary>
-                            <span>@(d.Class.Name) 아이 @(d.Students.Count)명을 고른 부서로 바로 옮길까요? 되돌리려면 그 부서에서 다시 옮겨야 해요.</span><button type="submit" class="btn dd sm">옮기기</button>
-                        </details>
-                    </form>
-                }
-                <p>받는 부서의 미배정반으로 바로 가요(승인 없음). 가입 안 한 아이도 명부째로, 출석 기록 · 꼬리표도 함께 가요. 가족팀 자리 · 보호 관계는 정리돼요.</p>
-            </div>
-        }
+            <div class="wz-nav"><a class="btn s" href="?S=2&F=@Model.F@string.Concat(Model.P.Select(p => $"&P={p}"))">← 이전</a><button type="submit" class="btn p">다음 →</button></div>
+        </form>
     }
-    else { <p class="hint">위에서 반을 골라 주세요.</p> }
+    else
+    {
+        <p class="wz-q">이대로 옮길까요?</p>
+        <div class="wz-ok">
+            <b>@Model.FromName → @Model.DestText</b>
+            <span>@(picked.Count)명: @Names(picked)</span>
+            <span class="who">@(Model.FromId is null ? "미배정반에서 옮기면 있던 꼬리표가 그대로 따라가요." : $"이전 반 · 담임({Model.FromTeacher ?? "담임 없음"})은 꼬리표로 남아요.") 출석 기록은 그대로예요.@(Model.D == MoveDest.Dept ? " 승인 없이 바로 옮겨져요. 가입 안 한 아이도 명부째로 가요." : "")</span>
+        </div>
+        <form method="post" asp-route-slug="@slug">
+            <input type="hidden" name="F" value="@Model.F" /><input type="hidden" name="D" value="@Model.D" />
+            @if (Model.T is int t) { <input type="hidden" name="T" value="@t" /> }
+            @if (Model.X is int x) { <input type="hidden" name="X" value="@x" /> }
+            @foreach (var p in Model.P) { <input type="hidden" name="P" value="@p" /> }
+            <div class="wz-nav"><a class="btn s" href="?S=3&F=@Model.F@string.Concat(Model.P.Select(p => $"&P={p}"))&D=@Model.D&T=@Model.T&X=@Model.X">← 이전</a><button type="submit" class="btn p">옮기기</button></div>
+        </form>
+    }
 </div></main>
+<script>
+    // "모두 고르기"와 고른 수(2단계)
+    (function () {
+        const all = document.getElementById('wzAll'), n = document.getElementById('wzN');
+        if (!all) return;
+        const boxes = Array.from(document.querySelectorAll('input[name="P"][type="checkbox"]'));
+        const show = () => { const c = boxes.filter(b => b.checked).length; n.textContent = boxes.length + '명 중 ' + c + '명 골랐어요'; all.checked = c === boxes.length; };
+        all.addEventListener('change', () => { boxes.forEach(b => b.checked = all.checked); show(); });
+        boxes.forEach(b => b.addEventListener('change', show));
+        show();
+    })();
+</script>

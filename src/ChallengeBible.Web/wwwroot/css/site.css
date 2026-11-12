@@ -2428,3 +2428,24 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 @keyframes kspin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .att .kid.busy::after { animation-duration: 2s; } }
 .att.searching .kid small, .att .searching .kid small { display: block; }
+
+/* 반 이동 마법사(확정 시안, 2026-11-12) */
+.wz-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 6px 0 16px; }
+.wz-steps span { display: grid; gap: 4px; justify-items: center; font-size: 12px; font-weight: 700; color: var(--dim); }
+.wz-steps span i { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-style: normal; background: var(--rule); color: var(--dim); }
+.wz-steps span.done i { background: var(--ok-bg); color: var(--ok); }
+.wz-steps span.on { color: var(--accent); } .wz-steps span.on i { background: var(--accent); color: var(--on-accent); }
+.wz-q { margin: 0 0 10px; font-size: 18px; font-weight: 800; }
+.wz-sum { margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; background: var(--accent-bg); font-size: 13.5px; }
+.wz-pick { display: grid; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.wz-pick label { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border: 1.5px solid var(--rule); border-radius: 12px; font-size: 15px; font-weight: 700; }
+.wz-pick label small { margin-left: auto; color: var(--dim); font-weight: 600; font-size: 13px; }
+.wz-pick label:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); }
+.wz-pick .sub { padding: 0 0 0 30px; }
+.wz-all { display: flex; justify-content: space-between; align-items: center; margin: 0 0 8px; font-size: 13.5px; color: var(--dim); }
+.wz-nav { display: flex; gap: 8px; margin-top: 16px; }
+.wz-nav .btn { flex: 1; justify-content: center; }
+.wz-ok { display: grid; gap: 6px; padding: 14px; border-radius: 14px; border: 2px solid var(--accent); background: var(--accent-bg); font-size: 14px; }
+.wz-ok b { font-size: 16px; }
+.wz-ok .who { color: var(--dim); font-size: 13px; }
+.wz-nav a.btn, .wz-nav .btn { display: inline-flex; align-items: center; }
