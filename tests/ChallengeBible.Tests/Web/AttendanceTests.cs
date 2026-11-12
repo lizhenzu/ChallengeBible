@@ -244,6 +244,21 @@ public class AttendanceTests
     }
 
     [Fact]
+    public async Task R245_출석_등수는_올해_출석_수로_공동_등수를_매긴다()
+    {
+        var kidC = Person("가나다", "T1001");
+        await Classes(_kids).AddAsync(_c2, [kidC], teacher: false);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            foreach (var p in new[] { _kidA, kidC }) raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = p, Sunday = Sun });
+            raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = _kidB, Sunday = Sun.AddDays(-7) });   // 작년은 안 센다
+            raw.SaveChanges();
+        }
+        var rows = ChallengeBible.Web.Pages.Attendance.RankModel.Ranked(await Att(_kids, admin: true).SundayReportAsync(Sun));
+        Assert.Equal([("가나다", 1), ("김철수", 1), ("박하린", 2), ("정하늘", 2)], rows.Select(r => (r.Name, r.Rank)));
+    }
+
+    [Fact]
     public async Task R230_진급하면_출석_기록도_새_부서로_옮겨진다()
     {
         var acc = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수");
@@ -368,5 +383,10 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("반별 출석", await a.GetStringAsync("/jamsil-kids/attendance/byclass?sunday=2020-01-05"));
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/trend")).StatusCode);
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/byclass")).StatusCode);
+
+        // 아이별 출석 등수
+        Assert.Contains("href=\"/jamsil-kids/attendance/rank\"", more);
+        Assert.Contains("전체 등수", await a.GetStringAsync("/jamsil-kids/attendance/rank"));
+        Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/rank")).StatusCode);
     }
 }
