@@ -2846,6 +2846,71 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .ybc .clM .go a { font-size: 13px; padding: 7px 11px; border: 1px solid #D5DAE1; border-radius: 8px; color: var(--yb-ink); }
 .ybc .clM .go a.pri { background: var(--yb-blue); border-color: var(--yb-blue); color: #fff; }
 
+/* 아이별 출석 등수 — 유년부 AdminStudentRank3Weeks 그대로(5/9). 머리 · 숫자는 .ybt · .ybc 것을 같이 쓴다 */
+.ybk .sh { max-width: 980px; }
+.ybk .hidden { display: none !important; }
+.ybk .rkTools { position: sticky; top: 0; z-index: 30; background: #fff; border-bottom: 1px solid var(--yb-line); margin-top: 8px; }
+.ybk .rkTools .sh { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding-top: 10px; padding-bottom: 10px; }
+.ybk .rkChips { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+.ybk .rkChips button { flex: none; font: inherit; font-size: 13px; padding: 8px 12px; border: 1px solid var(--yb-line); border-radius: 8px; background: #fff; color: var(--yb-dim2); cursor: pointer; }
+.ybk .rkChips button.on { background: var(--yb-blue); border-color: var(--yb-blue); color: #fff; font-weight: 700; }
+.ybk .rkTg { display: flex; border: 1px solid var(--yb-line); border-radius: 10px; overflow: hidden; margin-left: auto; }
+.ybk .rkTg button { font: inherit; font-size: 13px; padding: 8px 14px; background: #fff; border: 0; color: var(--yb-dim2); cursor: pointer; }
+.ybk .rkTg button + button { border-left: 1px solid var(--yb-line); }
+.ybk .rkTg button.on { background: var(--yb-soft); color: var(--yb-blue); font-weight: 700; }
+@media (max-width: 520px) { .ybk .rkTg { margin-left: 0; width: 100%; } .ybk .rkTg button { flex: 1; } }
+@media (min-width: 900px) { .ybk .rkLay { display: grid; grid-template-columns: 290px 1fr; gap: 28px; align-items: start; } .ybk .rkLay aside { position: sticky; top: 76px; } .ybk .rkLay:has(> aside.hidden) { display: block; } }
+.ybk .rkPod { display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 6px; align-items: end; margin-top: 20px; }
+.ybk .rkPd { border: 1px solid #E3E7ED; border-radius: 12px; text-align: center; padding: 12px 6px 10px; min-width: 0; }
+.ybk .rkPd.p1 { order: 2; border-color: var(--yb-blue); box-shadow: inset 0 3px 0 var(--yb-blue); padding-top: 16px; }
+.ybk .rkPd.p2 { order: 1; } .ybk .rkPd.p3 { order: 3; }
+.ybk .rkPd i { font-style: normal; display: block; font-weight: 200; font-size: 30px; line-height: 1; color: var(--yb-blue); }
+.ybk .rkPd.p1 i { font-size: 40px; }
+.ybk .rkPd b { display: block; margin-top: 6px; font-weight: 800; font-size: 15px; color: var(--yb-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ybk .rkPd small { display: block; font-size: 11px; color: var(--yb-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ybk .rkPd em { display: block; margin-top: 5px; font-style: normal; font-size: 12px; font-variant-numeric: tabular-nums; }
+.ybk .rkPd .more { display: none; }
+.ybk .rkPd .tie { display: inline-block; margin-top: 4px; font-size: 10px; padding: 1px 5px; border: 1px solid var(--yb-blue); border-radius: 4px; color: var(--yb-blue); }
+.ybk .rkAsH, .ybk .rkWatch { display: none; }
+.ybk .rkAsH { font-size: 11px; font-weight: 700; letter-spacing: .14em; color: var(--yb-blue); margin: 22px 0 8px; }
+@media (min-width: 900px) {
+    .ybk .rkPod { grid-template-columns: 1fr; margin-top: 24px; }
+    .ybk .rkPd, .ybk .rkPd.p1 { order: 0; display: flex; align-items: center; gap: 12px; text-align: left; padding: 12px 14px; }
+    .ybk .rkPd i, .ybk .rkPd.p1 i { font-size: 32px; width: 34px; text-align: center; flex: none; }
+    .ybk .rkPd b, .ybk .rkPd em { margin: 0; } .ybk .rkPd .who { flex: 1; min-width: 0; }
+    .ybk .rkPd .tie { display: none; } .ybk .rkPd .more { display: inline; font-size: 12px; font-weight: 400; color: var(--yb-dim); }
+    .ybk .rkAsH, .ybk .rkWatch { display: block; }
+}
+.ybk .rkWr { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #E3E7ED; border-radius: 10px; margin-bottom: 6px; }
+.ybk .rkWr i { font-style: normal; flex: none; width: 44px; font-size: 16px; color: var(--yb-danger); }
+.ybk .rkWr span { flex: 1; min-width: 0; } .ybk .rkWr b { font-size: 14px; } .ybk .rkWr small { font-size: 11.5px; color: var(--yb-dim); margin-left: 4px; }
+.ybk .rkWr em { font-style: normal; font-size: 12px; color: var(--yb-dim); }
+.ybk .rkRow { display: flex; align-items: center; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--yb-line); }
+.ybk .rkGh { display: flex; align-items: baseline; gap: 8px; margin-top: 14px; padding: 8px 12px; background: var(--yb-soft); border-left: 3px solid var(--yb-blue); border-radius: 0 8px 8px 0; }
+.ybk .rkGh b { font-weight: 200; font-size: 24px; line-height: 1; color: var(--yb-blue); }
+.ybk .rkGh span { font-size: 15px; font-weight: 700; color: var(--yb-ink); }
+.ybk .rkGh i { font-style: normal; font-size: 12px; color: var(--yb-dim2); margin-left: 4px; }
+.ybk .rkGh em { margin-left: auto; font-style: normal; font-size: 12.5px; color: var(--yb-dim2); white-space: nowrap; }
+.ybk .rkSq { flex: none; width: 30px; text-align: right; font-size: 13px; color: var(--yb-dim); font-variant-numeric: tabular-nums; }
+.ybk .rkNm { flex: 1; min-width: 0; }
+.ybk .rkNm b { font-size: 15px; font-weight: 700; color: var(--yb-ink); }
+.ybk .rkNm small { font-size: 11.5px; color: var(--yb-dim); margin-left: 5px; }
+.ybk .rkBar { height: 4px; background: var(--yb-line); margin-top: 6px; max-width: 360px; border-radius: 2px; overflow: hidden; }
+.ybk .rkBar i { display: block; height: 4px; background: var(--yb-blue); }
+.ybk .rkBar.lo i { background: var(--yb-danger); }
+.ybk .rkNb { flex: none; text-align: right; min-width: 60px; font-variant-numeric: tabular-nums; }
+.ybk .rkNb b { display: block; font-weight: 600; font-size: 15px; color: var(--yb-ink); }
+.ybk .rkNb small { font-size: 11px; color: var(--yb-dim); }
+.ybk .rkNb.lo b { color: var(--yb-danger); }
+.ybk .rkAb { flex: none; width: 54px; text-align: right; font-size: 12.5px; color: var(--yb-dim); display: none; }
+@media (min-width: 900px) { .ybk .rkAb { display: block; } }
+.ybk .rkCh { display: flex; justify-content: space-between; align-items: baseline; margin-top: 22px; padding-bottom: 6px; border-bottom: 1px solid var(--yb-ink); }
+.ybk .rkCh b { font-weight: 800; font-size: 16px; color: var(--yb-ink); }
+.ybk .rkCh span { font-size: 12px; color: var(--yb-dim); }
+.ybk .rkSum { margin-top: 14px; padding: 12px 14px; border: 1px solid #E3E7ED; border-radius: 10px; font-size: 13.5px; color: var(--yb-dim2); }
+.ybk .rkSum b { color: var(--yb-danger); }
+.ybk .rkSum a { text-decoration: underline; color: var(--yb-blue); }
+
 /* 출석 아래 탭 — 유년부 _AttTabs 그대로 */
 .attTabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; background: #FFFFFF; border-top: 1px solid #EEF0F3; padding-bottom: env(safe-area-inset-bottom, 0px); }
 .attTabs nav { max-width: 760px; margin: 0 auto; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; height: 58px; }
