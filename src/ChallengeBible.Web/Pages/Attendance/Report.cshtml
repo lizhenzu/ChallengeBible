@@ -1,0 +1,126 @@
+@page "/{slug}/attendance/report"
+@model ChallengeBible.Web.Pages.Attendance.ReportModel
+@using ChallengeBible.Web.Pages.Attendance
+@* 유년부 출석부 "주일 출결 보고서 (PC)"(Views/Attendance/SundayStudentsPC)와 같은 모양. 인쇄하면 흰 종이만 A4 가로 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var r = Model.Rep;
+    var sunday = r.Sunday;
+    var dateStr = sunday.ToString("yyyy-MM-dd");
+    var all = r.Classes.SelectMany(c => c.Kids).ToList();
+    int total = all.Count, present = all.Count(k => k.Present), absent = total - present;
+    var byGroup = r.Classes.GroupBy(c => c.Group).Select(g => new { Name = g.Key, Classes = g.ToList(), Total = g.Sum(c => c.Kids.Count), Present = g.Sum(c => c.Kids.Count(k => k.Present)) }).ToList();
+    int Rate(AttendanceService.RepKid k) => Math.Clamp((int)Math.Round(k.YearCount * 100.0 / r.WeeksCount), 0, 100);
+    string RateText(AttendanceService.RepKid k) => k.Newcomer ? $"새 {k.Visits}회" : $"{Rate(k)}%";
+    string RateCss(AttendanceService.RepKid k) => k.Newcomer ? "nw" : Rate(k) >= 80 ? "g" : Rate(k) >= 50 ? "m" : "b";
+    var jan1 = new DateOnly(sunday.Year, 1, 1);
+    var first = jan1.AddDays(((int)DayOfWeek.Sunday - (int)jan1.DayOfWeek + 7) % 7);
+    var last = r.ThisSunday.Year == sunday.Year ? r.ThisSunday : new DateOnly(sunday.Year, 12, 31);
+    var sundays = new List<DateOnly>();
+    for (var d = last.AddDays(-(int)last.DayOfWeek); d >= first; d = d.AddDays(-7)) sundays.Add(d);
+    bool atLatest = sunday >= r.ThisSunday;
+    string Self(DateOnly d) => $"/{slug}/attendance/report?sunday={d:yyyy-MM-dd}";
+}
+<div class="yb ybr">
+    <header class="sh">
+        <div class="hdTop"><a href="/@slug/attendance/more">더보기</a><a href="/@slug">부서 홈으로</a></div>
+        <div class="row1">
+            <div>
+                <div class="hdK">REPORT · @Model.Tenant.Current.Name</div>
+                <h1 class="hdT">@sunday.ToString("M월 d일") 주일 출결 보고서</h1>
+            </div>
+            <form class="dn" method="get" action="/@slug/attendance/report">
+                <a href="@Self(sunday.AddDays(-7))" aria-label="지난 주일">‹</a>
+                <select name="sunday" onchange="this.form.submit()" aria-label="주일 고르기">
+                    @if (!sundays.Contains(sunday)) { <option value="@dateStr" selected>@dateStr</option> }
+                    @foreach (var d in sundays)
+                    {
+                        var v = d.ToString("yyyy-MM-dd");
+                        <option value="@v" selected="@(v == dateStr)">@v</option>
+                    }
+                </select>
+                @if (atLatest) { <span class="off" aria-hidden="true">›</span> } else { <a href="@Self(sunday.AddDays(7))" aria-label="다음 주일">›</a> }
+            </form>
+        </div>
+        <div class="st">
+            <div>출석률<b>@(ReportModel.Pct(present, total))%</b></div>
+            <div class="k">출석<b>@present</b></div>
+            <div class="lo">결석<b>@absent</b></div>
+            <div>재적<b>@total</b></div>
+            <div>반<b>@r.Classes.Count</b></div>
+        </div>
+        <div class="acts">
+            <button type="button" class="pri" onclick="window.print()">인쇄하기</button>
+            <a href="/@slug/attendance/sunday?sunday=@dateStr">명단 (휴대폰)</a>
+            <a href="/@slug/attendance?d=@dateStr">출석 고치기</a>
+        </div>
+    </header>
+
+    <main class="sh">
+        <div class="paper">
+            <div class="pH">
+                <div><div class="org">ATTENDANCE REPORT</div><h2>@Model.Tenant.Current.Name 출결 보고서</h2></div>
+                <div class="dt">@sunday.ToString("yyyy년 M월 d일") 주일<small>올해 누적 @(r.WeeksCount)주 기준 출석률</small></div>
+            </div>
+
+            @if (byGroup.Count == 0)
+            {
+                <div class="none">이 주일 명단이 없습니다.</div>
+            }
+            else
+            {
+                <div class="pK">SUMMARY</div>
+                <div class="pT">학년별 출석 요약</div>
+                <div class="sumW">
+                    <table class="sum">
+                        <thead><tr><th>구분</th>@foreach (var g in byGroup) { <th>@g.Name</th> }<th class="tot">합계</th></tr></thead>
+                        <tbody>
+                            <tr><td>재적</td>@foreach (var g in byGroup) { <td>@g.Total</td> }<td class="tot">@total</td></tr>
+                            <tr><td>출석</td>@foreach (var g in byGroup) { <td class="ok">@g.Present</td> }<td class="tot ok">@present</td></tr>
+                            <tr><td>결석</td>@foreach (var g in byGroup) { <td class="x">@(g.Total - g.Present)</td> }<td class="tot x">@absent</td></tr>
+                            <tr><td>출석률</td>@foreach (var g in byGroup) { var gp = ReportModel.Pct(g.Present, g.Total); <td>@(gp)%<span class="bar"><i style="width:@(gp)%"></i></span></td> }<td class="tot">@(ReportModel.Pct(present, total))%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pK">CLASSES</div>
+                <div class="pT">반별 출결 상황</div>
+                <div class="cols" style="--yc:@byGroup.Count">
+                    @foreach (var g in byGroup)
+                    {
+                        <div>
+                            <div class="gH"><b>@g.Name</b><span><em>@g.Present</em> / @(g.Total)명</span></div>
+                            @foreach (var c in g.Classes)
+                            {
+                                int cp = c.Kids.Count(k => k.Present);
+                                <div class="blk">
+                                    <div class="bH"><b>@c.Short</b><small>@(string.IsNullOrWhiteSpace(c.Teachers) ? "담임 미지정" : c.Teachers + " 선생님")</small></div>
+                                    @if (c.Kids.Count == 0) { <div class="noKid">배정된 아이가 없어요.</div> }
+                                    @for (int i = 0; i < c.Kids.Count; i++)
+                                    {
+                                        var k = c.Kids[i];
+                                        <div class="s1 @(k.Present ? "on" : "")">
+                                            <span class="no">@(i + 1)</span>
+                                            <span class="nm">@k.Name</span>
+                                            <span class="r @RateCss(k)">@RateText(k)</span>
+                                            <span class="mk" aria-label="@(k.Present ? "출석" : "결석")"></span>
+                                        </div>
+                                    }
+                                    <div class="bF">출석 <b>@cp</b><span class="x">결석 @(c.Kids.Count - cp)</span><span class="bar"><i style="width:@(ReportModel.Pct(cp, c.Kids.Count))%"></i></span></div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="lgd">
+                <span><span class="on"></span>출석 · 빈칸 = 결석</span>
+                <span>오른쪽 % = 올해 출석률 (<i class="g">80% 이상</i> · <i class="b">50% 미만</i>)</span>
+                <span><i class="nwS">새 2회</i> 관리 중인 새친구</span>
+            </div>
+            <div class="sign"><div><span>담당</span><i></i></div><div><span>부장</span><i></i></div><div><span>교역자</span><i></i></div></div>
+        </div>
+    </main>
+</div>
+<partial name="_AttTabs" model='(slug, "more", true)' />

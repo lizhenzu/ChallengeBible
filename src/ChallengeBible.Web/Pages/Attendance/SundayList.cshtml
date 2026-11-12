@@ -1,0 +1,80 @@
+@page "/{slug}/attendance/sunday"
+@model ChallengeBible.Web.Pages.Attendance.SundayListModel
+@* 유년부 출석부 "주일 출석 명단 (모바일)"(Views/Attendance/SundayStudentsMobile)과 같은 모양 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var r = Model.Rep;
+    var sunday = r.Sunday;
+    var dateStr = sunday.ToString("yyyy-MM-dd");
+    bool atLatest = sunday >= r.ThisSunday;
+    string Self(DateOnly d) => $"/{slug}/attendance/sunday?sunday={d:yyyy-MM-dd}";
+    var classes = r.Classes.Where(c => c.Kids.Count > 0).ToList();
+    int total = classes.Sum(c => c.Kids.Count);
+    int present = classes.Sum(c => c.Kids.Count(k => k.Present));
+    int pct = total == 0 ? 0 : (int)Math.Round(present * 100.0 / total);
+}
+<div class="yb ybs">
+    <header class="sh">
+        <div class="hdTop"><a href="/@slug/attendance/more">더보기</a><a href="/@slug">부서 홈으로</a></div>
+        <div class="dn2">
+            <a href="@Self(sunday.AddDays(-7))" aria-label="지난 주일">‹</a>
+            <h1>@sunday.ToString("M월 d일") 주일<small>출석 명단</small></h1>
+            @if (atLatest) { <span class="off" aria-hidden="true">›</span> } else { <a href="@Self(sunday.AddDays(7))" aria-label="다음 주일">›</a> }
+        </div>
+        <div class="prog2"><b>@present</b><span>/ @(total)명 출석 · @(pct)% · 결석 <i>@(total - present)</i></span></div>
+        <div class="pbar"><i style="width:@(pct)%"></i></div>
+    </header>
+
+    <div class="tools2">
+        <div class="sh">
+            <div class="seg4" role="tablist" aria-label="보기">
+                <button type="button" data-f="all" class="on">전체 <b>@total</b></button>
+                <button type="button" data-f="off">결석 <b>@(total - present)</b></button>
+                <button type="button" data-f="on">출석 <b>@present</b></button>
+            </div>
+            <nav class="jump2" aria-label="반으로 이동">
+                @foreach (var c in classes)
+                {
+                    int cp = c.Kids.Count(k => k.Present);
+                    <a href="#c-@c.Id" class="@(cp == c.Kids.Count ? "full" : cp == 0 ? "zero" : "")">@c.Name<b>@cp/@c.Kids.Count</b></a>
+                }
+            </nav>
+        </div>
+    </div>
+
+    <main class="sh">
+        @if (classes.Count == 0) { <div class="none">이 주일 명단이 없습니다.</div> }
+        @foreach (var c in classes)
+        {
+            int cp = c.Kids.Count(k => k.Present);
+            int cPct = (int)Math.Round(cp * 100.0 / c.Kids.Count);
+            <section class="cls" id="c-@c.Id">
+                <div class="cH"><b>@c.Name</b>@if (!string.IsNullOrWhiteSpace(c.Teachers)) { <small>@c.Teachers</small> }<span class="n"><b>@cp</b> / @c.Kids.Count</span></div>
+                <div class="cBar"><i style="width:@(cPct)%"></i></div>
+                <div class="skids">
+                    @foreach (var k in c.Kids.OrderByDescending(k => k.Present))
+                    {
+                        <div class="skid @(k.Present ? "on" : "off")" data-p="@(k.Present ? "1" : "0")" title="@(k.Present ? "출석" : "결석")"><span>@k.Name</span>@if (k.Newcomer) { <em class="nw">새</em> }</div>
+                    }
+                </div>
+                @if (c.Id > 0) { <div class="fix"><a href="/@slug/attendance?d=@dateStr#g-@c.Id">출석 고치기 →</a></div> }
+            </section>
+        }
+        <div class="links">
+            <a href="/@slug/attendance/report?sunday=@dateStr">보고서 보기 (PC)</a>
+        </div>
+        <div class="ft"><span>초록 = 출석 · 점선 = 결석 · 반 안에서 출석한 아이부터</span></div>
+    </main>
+</div>
+<partial name="_AttTabs" model='(slug, "more", true)' />
+<script>
+(function () {
+    const kids = document.querySelectorAll('.skid');
+    document.querySelectorAll('.seg4 button').forEach(b => b.addEventListener('click', () => {
+        const f = b.dataset.f;
+        document.querySelectorAll('.seg4 button').forEach(x => x.classList.toggle('on', x === b));
+        kids.forEach(k => k.classList.toggle('hidden', (f === 'on' && k.dataset.p !== '1') || (f === 'off' && k.dataset.p !== '0')));
+        document.querySelectorAll('.cls').forEach(s => s.classList.toggle('hidden', !s.querySelector('.skid:not(.hidden)')));
+    }));
+})();
+</script>

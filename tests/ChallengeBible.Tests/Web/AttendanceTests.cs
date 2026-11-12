@@ -221,6 +221,29 @@ public class AttendanceTests
     }
 
     [Fact]
+    public async Task R243_주일_보고서는_반별_출석_올해_출석수_미배정반은_끝에_다음_주일은_못_본다()
+    {
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = _kidA, Sunday = Sun });
+            raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = _kidA, Sunday = Sun.AddDays(-7) });   // 작년
+            raw.SaveChanges();
+        }
+        var a = Att(_kids, admin: true);
+        var r = await a.SundayReportAsync(Sun.AddDays(14));                       // 앞으로는 못 간다
+        Assert.Equal(Sun, r.Sunday);
+        Assert.Equal(1, r.WeeksCount);
+        Assert.Equal(["1학년1반", "1학년2반", ClassService.UnassignedName], r.Classes.Select(c => c.Name));
+        var kidA = Assert.Single(r.Classes[0].Kids);
+        Assert.Equal((true, 1), (kidA.Present, kidA.YearCount));
+        Assert.False(Assert.Single(r.Classes[1].Kids).Present);
+        Assert.Equal(_loose, Assert.Single(r.Classes[2].Kids).PersonId);
+        Assert.Equal(("1학년", "1반"), (r.Classes[0].Group, r.Classes[0].Short));
+        Assert.Equal(("반", "르우벤"), AttendanceService.SplitClassName("르우벤"));
+        Assert.True(Assert.Single((await a.SundayReportAsync(Sun.AddDays(-7))).Classes[0].Kids).Present);
+    }
+
+    [Fact]
     public async Task R230_진급하면_출석_기록도_새_부서로_옮겨진다()
     {
         var acc = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수");
@@ -329,5 +352,12 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("href=\"/jamsil-kids/attendance/care\"", await a.GetStringAsync("/jamsil-kids/attendance"));
         Assert.DoesNotContain("attendance/care", await t.GetStringAsync("/jamsil-kids/attendance"));
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/care")).StatusCode);
+
+        // 주일 출결 보고서(PC) · 주일 출석 명단(휴대폰): 관리자만, 더보기에 있다
+        Assert.Contains("href=\"/jamsil-kids/attendance/report\"", more);
+        Assert.Contains("주일 출결 보고서", await a.GetStringAsync("/jamsil-kids/attendance/report"));
+        Assert.Contains("출석 명단", await a.GetStringAsync("/jamsil-kids/attendance/sunday?sunday=2020-01-05"));
+        Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/report")).StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/sunday")).StatusCode);
     }
 }
