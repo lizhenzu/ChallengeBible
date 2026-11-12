@@ -117,6 +117,7 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
         if (p is null) return PeopleError.NotFound;
         if (p.UserId is not null) return PeopleError.Linked;
         ctx.ClassMembers.RemoveRange(await ctx.ClassMembers.Where(m => m.PersonId == p.Id).ToListAsync(ct));   // 반에서도 빠진다
+        ctx.AttendanceChecks.RemoveRange(await ctx.AttendanceChecks.Where(a => a.PersonId == p.Id).ToListAsync(ct));   // 출석 기록도 지운다
         ctx.People.Remove(p);
         await ctx.SaveChangesAsync(ct);
         return PeopleError.None;
@@ -194,6 +195,19 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
             here.Phone2 ??= o.Phone2;
             // 옛 부서의 반에서도 빠진다(R-232). 반은 부서마다 따로라 옮기지 않는다
             sys.ClassMembers.RemoveRange(await sys.ClassMembers.Where(m => m.TenantId == o.TenantId && m.PersonId == o.Id).ToListAsync(ct));
+            // 출석 기록은 새 부서 줄로 옮긴다(0093 사람 · 소속 9, R-230)
+            var checks = await sys.AttendanceChecks.Where(a => a.TenantId == o.TenantId && a.PersonId == o.Id).ToListAsync(ct);
+            if (checks.Count > 0)
+            {
+                if (here.Id == 0) await sys.SaveChangesAsync(ct);
+                var have = (await sys.AttendanceChecks.Where(a => a.TenantId == target && a.PersonId == here.Id).Select(a => a.Sunday).ToListAsync(ct)).ToHashSet();
+                foreach (var a in checks.Where(a => !have.Contains(a.Sunday)))
+                    sys.AttendanceChecks.Add(new AttendanceCheck { TenantId = target, PersonId = here.Id, Sunday = a.Sunday, CreatedUtc = a.CreatedUtc, CreatedByUserName = a.CreatedByUserName });
+                sys.AttendanceChecks.RemoveRange(checks);
+            }
+            here.NewcomerFirstVisit ??= o.NewcomerFirstVisit;
+            here.NewcomerVoluntary ??= o.NewcomerVoluntary;
+            here.NewcomerEvangelist ??= o.NewcomerEvangelist;
             sys.People.Remove(o);
         }
     }

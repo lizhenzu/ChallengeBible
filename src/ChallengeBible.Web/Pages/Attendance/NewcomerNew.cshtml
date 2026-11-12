@@ -1,0 +1,31 @@
+@page "/{slug}/attendance/newcomers/new"
+@model ChallengeBible.Web.Pages.Attendance.NewcomerNewModel
+@using ChallengeBible.Web.Services
+@* 확정 시안 C-새친구-등록(ADR 0093 출석 7 · 8): 학교 · 주소 · 부모님 이름 · 사진은 받지 않는다 *@
+@{ var slug = Model.Tenant.Current.Slug; }
+<main class="att gut"><div class="wrap">
+    <div class="top">
+        <div class="crumb"><span>@Model.Tenant.Current.Name › 출석 › 새친구</span><a href="/@slug/attendance/newcomers">← 새친구</a></div>
+        <h1 style="margin:0">새친구 등록</h1>
+    </div>
+    <form method="post" asp-route-slug="@slug" class="pp-form">
+        @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+        <label>이름<input class="in" name="Name" value="@Model.Name" maxlength="50" required /></label>
+        <label>첫 방문일<input class="in" type="date" name="FirstVisit" value="@Model.FirstVisit?.ToString("yyyy-MM-dd")" required /></label>
+        <label>생일 (연도 없이)<span class="two">
+            <select class="sel" name="Month" aria-label="월"><option value="">월</option>@for (var i = 1; i <= 12; i++) { <option value="@i" selected="@(Model.Month == i)">@(i)월</option> }</select>
+            <select class="sel" name="Day" aria-label="일"><option value="">일</option>@for (var i = 1; i <= 31; i++) { <option value="@i" selected="@(Model.Day == i)">@(i)일</option> }</select>
+        </span></label>
+        <label>연락처 1<input class="in" name="Phone1" value="@Model.Phone1" maxlength="20" inputmode="tel" placeholder="010-0000-0000" /></label>
+        <label>연락처 2 (선택 · 부모님 번호 등)<input class="in" name="Phone2" value="@Model.Phone2" maxlength="20" inputmode="tel" /></label>
+        <label>반<select class="sel" name="ClassId">
+            <option value="">@ClassService.UnassignedName (나중에 정하기)</option>
+            @foreach (var c in Model.Classes) { <option value="@c.Id" selected="@(Model.ClassId == c.Id)">@c.Name</option> }
+        </select></label>
+        <div class="f"><span style="font-size:13px;font-weight:700;color:var(--dim)">어떻게 왔나요</span>
+            <span class="rad"><label><input type="radio" name="Voluntary" value="true" checked="@Model.Voluntary" /> 스스로</label><label><input type="radio" name="Voluntary" value="false" checked="@(!Model.Voluntary)" /> 누가 데려옴</label></span></div>
+        <label>전도한 사람 (선택)<input class="in" name="Evangelist" value="@Model.Evangelist" maxlength="50" placeholder="예: 김철수" /></label>
+        <p class="hint">역할은 학생으로 올라가요. 첫 방문 주일에 출석이 함께 체크돼요. 학교 · 주소는 받지 않아요.</p>
+        <div class="row"><button type="submit" class="btn p sm">등록</button><a class="btn s sm" href="/@slug/attendance/newcomers">취소</a></div>
+    </form>
+</div></main>

@@ -31,6 +31,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<ClassTerm> ClassTerms => Set<ClassTerm>();
     public DbSet<SchoolClass> Classes => Set<SchoolClass>();
     public DbSet<ClassMember> ClassMembers => Set<ClassMember>();
+    public DbSet<AttendanceCheck> AttendanceChecks => Set<AttendanceCheck>();
     public DbSet<TenantSeason> TenantSeasons => Set<TenantSeason>();
 
     public DbSet<BibleBook> BibleBooks => Set<BibleBook>();

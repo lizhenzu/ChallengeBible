@@ -263,6 +263,41 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("UserTokens", "Identity");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AttendanceCheck", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CreatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("PersonId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Sunday")
+                        .HasColumnType("date");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "Sunday");
+
+                    b.HasIndex("TenantId", "PersonId", "Sunday")
+                        .IsUnique();
+
+                    b.ToTable("AttendanceCheck", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AuditLog", b =>
                 {
                     b.Property<long>("Id")
@@ -2075,6 +2110,16 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("NewcomerEvangelist")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateOnly?>("NewcomerFirstVisit")
+                        .HasColumnType("date");
+
+                    b.Property<bool?>("NewcomerVoluntary")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Phone1")
                         .HasMaxLength(20)
                         .IsUnicode(false)
@@ -2955,6 +3000,15 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_UserTokens_User_UserId");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AttendanceCheck", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Person", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "PersonId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BibleBookOverview", b =>

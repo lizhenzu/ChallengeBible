@@ -1,0 +1,89 @@
+// 출석(ADR 0093 출석, 유년부 출석부 "오늘"과 같은 동작): 누르면 바로 저장 · 실패하면 되돌리고 알림 · 초성 검색 · 미출석 거르기 · 반 바로가기
+(function () {
+  const board = document.getElementById('board');
+  if (!board) return;
+  const slug = board.dataset.slug, sunday = board.dataset.sunday;
+  const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+  const items = Array.from(document.querySelectorAll('[data-id]'));
+  const q = document.getElementById('q');
+  const toast = document.getElementById('toast');
+  let filter = 'all', tt;
+
+  const put = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  const fail = (msg) => { if (!toast) return; toast.textContent = msg; toast.classList.remove('hidden'); clearTimeout(tt); tt = setTimeout(() => toast.classList.add('hidden'), 2600); };
+
+  // 초성 검색
+  const CHO = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+  const cho = (s) => Array.from(s).map((ch) => { const c = ch.charCodeAt(0) - 0xac00; return c >= 0 && c <= 11171 ? CHO[Math.floor(c / 588)] : ch; }).join('');
+  items.forEach((k) => { k.dataset.cho = cho(k.dataset.name || ''); });
+
+  function apply() {
+    const t = (q?.value || '').replace(/\s+/g, '');
+    let hits = 0;
+    items.forEach((k) => {
+      const p = k.dataset.p === '1';
+      const show = t ? (/^[ㄱ-ㅎ]+$/.test(t) ? k.dataset.cho.includes(t) : k.dataset.name.includes(t)) : filter === 'all' || !p;
+      k.classList.toggle('hidden', !show);
+      if (show) hits++;
+    });
+    document.querySelectorAll('.grp').forEach((g) => g.classList.toggle('hidden', !g.querySelector('[data-id]:not(.hidden)')));
+    const nh = document.getElementById('noHit');
+    if (nh) { nh.classList.toggle('hidden', hits > 0); nh.textContent = !t && filter === 'left' ? '모두 왔어요 🙂' : '찾는 아이가 없어요.'; }
+  }
+
+  function counts() {
+    const total = items.length, came = items.filter((k) => k.dataset.p === '1').length;
+    put('presentN', came); put('leftN', total - came); put('cLeft', total - came);
+    const bar = document.getElementById('barFill');
+    if (bar) bar.style.width = (total ? Math.round((came * 100) / total) : 0) + '%';
+    let todo = 0, done = 0;
+    document.querySelectorAll('.grp').forEach((g) => {
+      const ks = g.querySelectorAll('[data-id]'), c = g.querySelectorAll('[data-id][data-p="1"]').length;
+      const gc = g.querySelector('.gc'); if (gc) gc.textContent = c + '/' + ks.length;
+      const j = document.querySelector('.jump a[data-g="' + g.dataset.g + '"]');
+      if (!j) return;
+      const d = c > 0; if (d) done++; else todo++;
+      j.classList.toggle('done', d); j.classList.toggle('todo', !d);
+      j.style.order = (d ? 1000 : 0) + Number(j.dataset.ord);
+    });
+    put('jTodo', todo); put('jDone', done);
+  }
+
+  function set(k, on) {
+    k.dataset.p = on ? '1' : '0';
+    k.classList.toggle('on', on);
+    k.setAttribute('aria-pressed', on ? 'true' : 'false');
+    const ck = k.querySelector('.ck'); if (ck) ck.textContent = on ? '✓ 출석' : '출석';
+  }
+
+  async function toggle(k) {
+    if (k.classList.contains('busy')) return;
+    const prev = k.dataset.p === '1', next = !prev;
+    set(k, next); counts();
+    k.classList.add('busy');
+    try {
+      const res = await fetch(`/${slug}/attendance?handler=Set`, {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', RequestVerificationToken: token },
+        body: JSON.stringify({ personId: Number(k.dataset.id), sunday, present: next }),
+      });
+      const j = await res.json().catch(() => null);
+      if (!res.ok || !j || !j.ok) throw new Error((j && j.message) || '잠시 뒤에 다시 해 주세요');
+    } catch (e) {
+      set(k, prev); counts();
+      fail(k.dataset.name + ' 저장하지 못했어요 · ' + e.message);
+    } finally {
+      k.classList.remove('busy');
+      if (q && q.value) { q.value = ''; apply(); q.focus(); } else if (filter !== 'all') setTimeout(apply, 350);
+    }
+  }
+
+  items.forEach((k) => (k.querySelector('.ck') || k).addEventListener('click', () => toggle(k)));
+  q?.addEventListener('input', apply);
+  document.querySelectorAll('.seg2 button').forEach((b) => b.addEventListener('click', () => {
+    filter = b.dataset.f;
+    document.querySelectorAll('.seg2 button').forEach((x) => x.classList.toggle('on', x === b));
+    apply();
+  }));
+  counts();
+})();
