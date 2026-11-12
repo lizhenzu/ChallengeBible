@@ -2282,6 +2282,18 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .bulk .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .bulk p { margin: 0; font-size: 13px; color: var(--dim); }
 
+/* 휴대폰 맞춤(확정 시안 F, 2026-11-12): 큰 글씨 · 좁은 폭에서 목록 카드가 줄어들지 못해 잘리던 것, 위 막대 글자 쪼개짐 */
+.list li.row > details { flex: 1; min-width: 0; }
+.line .who b, .line .who small { overflow-wrap: anywhere; }
+.admintop .t b, .admintop .pl, .admintop .back, .tools .btn { white-space: nowrap; }
+.tools .btn { flex: none; }
+@media (max-width: 420px) {
+  .admintop .hd { gap: 6px; }
+  .admintop .back.home { width: 40px; padding: 0; justify-content: center; font-size: 0; }
+  .admintop .back.home svg { width: 18px; height: 18px; }
+  .admintop .back { padding: 0 10px; }
+}
+
 /* 첫 화면 맨 아래 관리자 로그인 버튼(확정 시안 E, 2026-11-12) */
 .btn.adm { border: 2px solid var(--ink, var(--fg)); background: var(--ink, var(--fg)); color: var(--bg); gap: 8px; }
 .btn.adm svg { width: 18px; height: 18px; }
