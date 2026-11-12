@@ -132,6 +132,49 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
         return d;
     }
 
+    // ── 돌봄(연락할 아이) — 유년부 출석부 "돌봄"(LongAbsent)과 같은 기준 ──
+
+    public sealed record CareRow(int PersonId, string Name, string ClassName, DateOnly? LastAttend, int DaysAbsent, int AttendCount, string? Phone);
+    public sealed record CareList(int AbsentDays, int WeeksCount, List<CareRow> Rows);
+    public static readonly int[] CareFilters = [21, 42, 90, 180];
+
+    /// <summary>
+    /// 학생(학생 · 새친구 역할) 중 출석 기록이 없거나 마지막 출석이 오늘부터 absentDays 일보다 전인 아이.
+    /// 기록 없는 아이 먼저, 그다음 오래 빠진 순(유년부와 같다). 올해 출석 수 · 올해 주일 수, 연락처는 연락처 1 없으면 2.
+    /// </summary>
+    public async Task<CareList> CareAsync(int absentDays, CancellationToken ct = default)
+    {
+        if (absentDays < 1) absentDays = 21;
+        var today = Today;
+        var thisSunday = SundayOf(today);
+        var jan1 = new DateOnly(thisSunday.Year, 1, 1);
+        var firstSunday = jan1.AddDays(((int)DayOfWeek.Sunday - (int)jan1.DayOfWeek + 7) % 7);
+        var weeks = Math.Max(1, firstSunday > thisSunday ? 0 : (thisSunday.DayNumber - firstSunday.DayNumber) / 7 + 1);
+        var cutoff = today.AddDays(-absentDays);
+
+        var roster = (await classes.RosterAsync(ct)).Where(ClassService.IsStudent).ToList();
+        var names = (await classes.ClassesAsync(ct)).ToDictionary(c => c.Id, c => c.Name);
+        await using var ctx = db.Create();
+        var ids = roster.Select(r => r.PersonId).ToList();
+        var checks = await ctx.AttendanceChecks.AsNoTracking().Where(a => ids.Contains(a.PersonId)).Select(a => new { a.PersonId, a.Sunday }).ToListAsync(ct);
+        var cls = await ctx.ClassMembers.AsNoTracking().Where(m => ids.Contains(m.PersonId) && !m.IsTeacher).ToDictionaryAsync(m => m.PersonId, m => m.ClassId, ct);
+        var rows = new List<CareRow>();
+        foreach (var r in roster)
+        {
+            var mine = checks.Where(c => c.PersonId == r.PersonId).Select(c => c.Sunday).ToList();
+            DateOnly? last = mine.Count == 0 ? null : mine.Max();
+            if (last is { } l && l >= cutoff) continue;
+            var cn = cls.TryGetValue(r.PersonId, out var c) && names.TryGetValue(c, out var n) ? n : ClassService.UnassignedName;
+            rows.Add(new CareRow(r.PersonId, r.Name, cn, last, last is { } d ? today.DayNumber - d.DayNumber : 0,
+                mine.Count(s => s >= firstSunday && s <= thisSunday), string.IsNullOrWhiteSpace(r.Phone1) ? r.Phone2 : r.Phone1));
+        }
+        var ko = StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false);
+        return new CareList(absentDays, weeks, rows.OrderByDescending(x => x.LastAttend is null ? int.MaxValue : x.DaysAbsent).ThenBy(x => x.Name, ko).ToList());
+    }
+
+    /// <summary>아래 탭 "돌봄" 위 숫자: 3주(21일) 기준 연락할 아이 수.</summary>
+    public async Task<int> CareCountAsync(CancellationToken ct = default) => (await CareAsync(21, ct)).Rows.Count;
+
     // ── 새친구 화면(확정 시안 K1 · K2 · K5 · K6 · K7, 2026-11-12) ──
 
     public sealed record NcWeek(DateOnly Sunday, bool Present);

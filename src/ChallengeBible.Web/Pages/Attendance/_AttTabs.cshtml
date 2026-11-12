@@ -1,16 +1,17 @@
 @model (string Slug, string On, bool Newcomers)
 @inject ChallengeBible.Web.Tenancy.TenantContext Tenant
+@inject ChallengeBible.Web.Services.AttendanceService Attendance
 @* 출석 아래 탭 — 유년부 출석부(Views/Attendance/_AttTabs)와 같은 모양 · 색(2026-11-13 사용자 "그대로").
-   오늘 · 새친구(새친구반 담당 · 부서 관리자) · 돌봄(부서 관리자) · 더보기. On = a | n | care | more *@
+   오늘 · 새친구(새친구반 담당 · 부서 관리자) · 돌봄(부서 관리자, 숫자 = 3주 이상 빠진 아이) · 더보기. On = a | n | care | more *@
 @{
     var admin = Tenant.IsAdmin;
-    var care = ViewData["CareCount"] as int? ?? 0;
+    var care = admin ? await Attendance.CareCountAsync() : 0;
 }
 <div class="attTabs">
     <nav aria-label="출석 메뉴">
         <a href="/@Model.Slug/attendance" class="@(Model.On == "a" ? "on" : "")" aria-current="@(Model.On == "a" ? "page" : "false")"><i aria-hidden="true">✓</i>오늘</a>
         @if (Model.Newcomers || admin) { <a href="/@Model.Slug/attendance/newcomers" class="@(Model.On == "n" ? "on" : "")" aria-current="@(Model.On == "n" ? "page" : "false")"><i aria-hidden="true">＋</i>새친구</a> }
-        @if (admin && ViewData["CareReady"] is true) { <a href="/@Model.Slug/attendance/care" class="@(Model.On == "care" ? "on" : "")" aria-current="@(Model.On == "care" ? "page" : "false")"><i aria-hidden="true">☎</i>돌봄@if (care > 0) { <sup>@care</sup> }</a> }
+        @if (admin) { <a href="/@Model.Slug/attendance/care" class="@(Model.On == "care" ? "on" : "")" aria-current="@(Model.On == "care" ? "page" : "false")"><i aria-hidden="true">☎</i><span>돌봄</span>@if (care > 0) { <sup>@care</sup> }</a> }
         <a href="/@Model.Slug/attendance/more" class="@(Model.On == "more" ? "on" : "")" aria-current="@(Model.On == "more" ? "page" : "false")"><i aria-hidden="true">⋯</i>더보기</a>
     </nav>
 </div>

@@ -282,6 +282,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         // 새친구 홈 · 오늘 출석 체크 · 기존 출석 변경(확정 시안 K1 · K2 · K5 · K6 · K7)
         await Save(admin, "/jamsil-kids/attendance/newcomers/today", "12s2-오늘출석체크");
         await Save(admin, "/jamsil-kids/attendance/more", "12y1-출석-더보기");   // 유년부 "더보기" 그대로
+        await Save(admin, "/jamsil-kids/attendance/care", "12y2-돌봄");   // 유년부 "돌봄" 그대로
         await Save(admin, "/jamsil-kids/attendance/newcomers/past", "12s3-기존출석-달");
         await Save(admin, "/jamsil-kids/attendance/newcomers/past?M=1", "12s4-기존출석-주일");
         await Save(admin, "/jamsil-kids/attendance/newcomers/past?D=2027-01-03", "12s5-기존출석-바꾸기");
