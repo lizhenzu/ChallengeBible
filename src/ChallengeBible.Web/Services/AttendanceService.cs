@@ -253,6 +253,51 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
         return new Matrix(rep, sundays, rows.Select(a => (a.PersonId, a.Sunday)).ToHashSet());
     }
 
+    // ── 월별 출석 통계 · 상세(유년부 Statistics · StatisticsDetail, 8/9) ──
+
+    public sealed record MonthWeek(DateOnly Sunday, int Count, bool Future);
+    public sealed record MonthClass(int Id, string Name, int Total, double Ratio);
+    public sealed record MonthStats(int Year, int Month, DateOnly RefSunday, List<MonthWeek> Weeks, List<MonthClass> Classes)
+    {
+        public int Total => Weeks.Sum(w => w.Count);
+        public int SundayCount => Weeks.Count;
+        /// <summary>평균 출석(주별) = 총 출석 ÷ 주일 수, 소수 첫째 자리.</summary>
+        public double Average => SundayCount == 0 ? 0 : Math.Round(Total * 10.0 / SundayCount) / 10;
+        /// <summary>이번 달 출석 TOP 3 반(출석 0 인 반은 빼고).</summary>
+        public IEnumerable<MonthClass> Top3 => Classes.Where(c => c.Total > 0).Take(3);
+    }
+
+    /// <summary>
+    /// 그 달의 주일마다 전체 출석 수와 반별 출석 합계(R-248). 반 · 아이는 그 달 마지막 지난 주일(달이 아직 안 왔으면 이번 주일)의 R-243 명단.
+    /// 비율 = 반 합계 ÷ 그 달 전체 합계. 반은 합계가 큰 순(같으면 이름 순). 오지 않은 주일은 0.
+    /// </summary>
+    public async Task<MonthStats> MonthStatsAsync(int year, int month, CancellationToken ct = default)
+    {
+        year = Math.Clamp(year, 2000, 2100);
+        month = Math.Clamp(month, 1, 12);
+        var first = new DateOnly(year, month, 1);
+        var last = first.AddMonths(1).AddDays(-1);
+        var sundays = Enumerable.Range(0, last.Day).Select(i => first.AddDays(i)).Where(d => d.DayOfWeek == DayOfWeek.Sunday).ToList();
+        var thisSunday = SundayOf(Today);
+        var past = sundays.Where(s => s <= thisSunday).ToList();
+        var rep = await SundayReportAsync(past.Count > 0 ? past[^1] : thisSunday, ct);
+        var ids = rep.Classes.SelectMany(c => c.Kids).Select(k => k.PersonId).ToList();
+        await using var ctx = db.Create();
+        var checks = await ctx.AttendanceChecks.AsNoTracking().Where(a => ids.Contains(a.PersonId) && a.Sunday >= first && a.Sunday <= last)
+            .Select(a => new { a.PersonId, a.Sunday }).ToListAsync(ct);
+        var weeks = sundays.Select(s => new MonthWeek(s, checks.Count(c => c.Sunday == s), s > thisSunday)).ToList();
+        var all = checks.Count;
+        var ko = StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false);
+        var classes = rep.Classes.Select(c =>
+            {
+                var kids = c.Kids.Select(k => k.PersonId).ToHashSet();
+                var t = checks.Count(x => kids.Contains(x.PersonId));
+                return new MonthClass(c.Id, c.Name, t, all == 0 ? 0 : Math.Round(t * 1000.0 / all) / 10);
+            })
+            .OrderByDescending(c => c.Total).ThenBy(c => c.Name, ko).ToList();
+        return new MonthStats(year, month, rep.Sunday, weeks, classes);
+    }
+
     // ── 새친구 화면(확정 시안 K1 · K2 · K5 · K6 · K7, 2026-11-12) ──
 
     public sealed record NcWeek(DateOnly Sunday, bool Present);

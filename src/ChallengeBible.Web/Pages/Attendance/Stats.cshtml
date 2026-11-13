@@ -1,0 +1,72 @@
+@page "/{slug}/attendance/stats"
+@model ChallengeBible.Web.Pages.Attendance.StatsModel
+@using ChallengeBible.Web.Pages.Attendance
+@* 유년부 출석부 "월별 출석 통계"(Views/Attendance/Statistics)와 같은 짜임: 월 선택 카드 · 상세 보기 · 이번 달 TOP 3 · 이번 달 요약 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var s = Model.S;
+    var self = $"/{slug}/attendance/stats";
+    var detail = $"/{slug}/attendance/stats/detail?year={s.Year}&month={s.Month}";
+}
+<div class="yb ybd ybst">
+    <div class="dbTop">
+        <div class="sh">
+            <div class="hdTop"><a href="/@slug/attendance/more">더보기</a><a href="/@slug">부서 홈으로</a></div>
+            <div class="dbHead">
+                <div>
+                    <h1 class="dbT">월별 출석 통계</h1>
+                    <p class="dbSub">월 카드를 눌러 월별 통계를 바꿀 수 있어요.</p>
+                </div>
+                <div class="dbActs" style="margin-top:0"><a class="dbBtn pri" href="/@slug/attendance/trend">최근 출석 현황</a></div>
+            </div>
+        </div>
+    </div>
+
+    <main class="sh">
+        <h2 class="stH">월 선택 <small>기준 @s.Year-@s.Month.ToString("00")</small></h2>
+        <section class="dbCard">
+            <div class="stYear">
+                <a href="@self?year=@(s.Year - 1)&month=@s.Month" aria-label="지난해">‹</a>
+                <b class="num">@(s.Year)년</b>
+                <a href="@self?year=@(s.Year + 1)&month=@s.Month" aria-label="다음 해">›</a>
+            </div>
+            <nav class="stMonths" aria-label="월 고르기">
+                @for (var m = 1; m <= 12; m++)
+                {
+                    <a href="@self?year=@s.Year&month=@m" aria-current="@(m == s.Month ? "page" : "false")">@(m)월</a>
+                }
+            </nav>
+            <div class="stCta"><a class="dbBtn pri" href="@detail">상세 보기 →</a></div>
+        </section>
+
+        <h2 class="stH">이번 달 출석 TOP 3</h2>
+        @if (!s.Top3.Any())
+        {
+            <div class="dbCard stMuted">표시할 데이터가 없습니다.</div>
+        }
+        else
+        {
+            <section class="stTop">
+                @{ var rank = 0; }
+                @foreach (var t in s.Top3)
+                {
+                    rank++;
+                    <div class="stRank r@(rank)">
+                        <span class="b">@(rank)위</span>
+                        <div class="m"><b>@t.Name</b><small>@(t.Total)명 · @StatsDetailModel.Pct(t.Ratio)%</small></div>
+                        <a class="dbBtn" href="@detail">상세 보기</a>
+                    </div>
+                }
+            </section>
+        }
+
+        <h2 class="stH">이번 달 출석 요약</h2>
+        <section class="stSum">
+            <div class="dbCard"><div class="v num">@s.Total</div><div class="k">총 출석</div></div>
+            <div class="dbCard"><div class="v num">@s.SundayCount</div><div class="k">주일 수</div></div>
+            <div class="dbCard"><div class="v num">@StatsDetailModel.Pct(s.Average)</div><div class="k">평균 출석 (주별)</div></div>
+        </section>
+        <div class="dbCard stMuted">그래프(막대 · 선)는 <a href="@detail">상세 보기 →</a>에서 볼 수 있어요.</div>
+    </main>
+</div>
+<partial name="_AttTabs" model='(slug, "more", true)' />

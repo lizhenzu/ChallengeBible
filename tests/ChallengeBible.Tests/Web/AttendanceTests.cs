@@ -259,6 +259,29 @@ public class AttendanceTests
     }
 
     [Fact]
+    public async Task R248_월별_통계는_그_달_주일의_출석을_주별_반별로_센다()
+    {
+        var kidC = Person("가나다", "T1001");
+        await Classes(_kids).AddAsync(_c2, [kidC], teacher: false);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            foreach (var p in new[] { _kidA, _kidB, kidC }) raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = p, Sunday = Sun });
+            raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = _kidA, Sunday = Sun.AddDays(-7) });   // 지난달은 안 센다
+            raw.SaveChanges();
+        }
+        var s = await Att(_kids, admin: true).MonthStatsAsync(2027, 1);
+        Assert.Equal([3, 10, 17, 24, 31], s.Weeks.Select(w => w.Sunday.Day));     // 2027년 1월 주일 5번
+        Assert.Equal([3, 0, 0, 0, 0], s.Weeks.Select(w => w.Count));
+        Assert.Equal([false, true, true, true, true], s.Weeks.Select(w => w.Future));   // 오늘(1/5) 뒤 주일은 아직 안 옴
+        Assert.Equal(3, s.Total);
+        Assert.Equal(0.6, s.Average);
+        Assert.Equal(3, s.Classes.Sum(c => c.Total));
+        Assert.Equal(100, Math.Round(s.Classes.Sum(c => c.Ratio)));
+        Assert.True(s.Classes.SequenceEqual(s.Classes.OrderByDescending(c => c.Total)));   // 많은 반이 위
+        Assert.Equal(1, (await Att(_kids, admin: true).MonthStatsAsync(2026, 12)).Weeks.Single(w => w.Sunday == Sun.AddDays(-7)).Count);
+    }
+
+    [Fact]
     public async Task R246_주별_출석표는_기준_주일까지_주일_칸마다_출석을_표시한다()
     {
         using (var raw = InMemoryDb.Raw(_db))
@@ -416,5 +439,17 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("반을 선택해 주세요", await a.GetStringAsync("/jamsil-kids/attendance/dashboard"));
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/dashboard/all")).StatusCode);
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/dashboard")).StatusCode);
+
+        // 월별 출석 통계 · 상세(R-248): 월 카드 12개, 상세는 그 달 주일마다 점 하나
+        Assert.Contains("href=\"/jamsil-kids/attendance/stats\"", more);
+        var stats = await a.GetStringAsync("/jamsil-kids/attendance/stats?year=2020&month=1");
+        Assert.Equal(12, Regex.Matches(stats, "/jamsil-kids/attendance/stats\\?year=2020&(amp;)?month=\\d+\"").Count);
+        Assert.Contains("이번 달 출석 요약", stats);
+        Assert.Matches("/jamsil-kids/attendance/stats/detail\\?year=2020&(amp;)?month=1\"", stats);
+        var detail = await a.GetStringAsync("/jamsil-kids/attendance/stats/detail?year=2020&month=1");
+        Assert.Equal(4, Regex.Matches(detail, "<circle ").Count);                  // 2020년 1월 주일 4번
+        Assert.Contains("반별 출석 합계", detail);
+        Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/stats")).StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/stats/detail")).StatusCode);
     }
 }
