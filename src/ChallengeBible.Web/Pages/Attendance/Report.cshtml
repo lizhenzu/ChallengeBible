@@ -3,6 +3,8 @@
 @using ChallengeBible.Web.Pages.Attendance
 @* 유년부 출석부 "주일 출결 보고서 (PC)"(Views/Attendance/SundayStudentsPC)와 같은 모양. 인쇄하면 흰 종이만 A4 가로 *@
 @{
+    // 데스크탑 전용 화면(사용자 2026-11-13): 유년부처럼 휴대폰에서도 PC 모양 그대로 줄여 보인다
+    ViewData["Viewport"] = "width=1120";
     var slug = Model.Tenant.Current.Slug;
     var r = Model.Rep;
     var sunday = r.Sunday;
