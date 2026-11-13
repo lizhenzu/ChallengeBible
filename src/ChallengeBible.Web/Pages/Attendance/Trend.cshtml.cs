@@ -34,18 +34,19 @@ public class TrendModel(AttendanceService attendance, TenantContext tenant) : Pa
     public static string Pct(double r) => r.ToString(r == Math.Floor(r) ? "0" : "0.#", System.Globalization.CultureInfo.InvariantCulture);
 }
 
+/// <summary>
+/// `/{slug}/attendance/byclass?sunday=` — 주일 출석 명단과 합쳤다(사용자 2026-11-13, R-269). 예전 주소는 같은 주일의 명단으로 보낸다.
+/// </summary>
 [TenantRoles(Roles.TenantAdmin)]
-public class ByClassModel(AttendanceService attendance, TenantContext tenant) : PageModel, ITitled
+public class ByClassModel(TenantContext tenant) : PageModel, ITitled
 {
-    public string Title => "반별 출석";
-    public TenantContext Tenant => tenant;
+    public string Title => "주일 출석 명단";
     [BindProperty(SupportsGet = true)] public DateOnly? Sunday { get; set; }
-    public AttendanceService.SundayReport Rep { get; private set; } = null!;
 
-    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
+    public IActionResult OnGet()
     {
         if (tenant.IsLobby) return NotFound();
-        Rep = await attendance.SundayReportAsync(Sunday, ct);
-        return Page();
+        var q = Sunday is { } s ? $"?sunday={s:yyyy-MM-dd}" : "";
+        return Redirect($"/{tenant.Current.Slug}/attendance/sunday{q}");
     }
 }

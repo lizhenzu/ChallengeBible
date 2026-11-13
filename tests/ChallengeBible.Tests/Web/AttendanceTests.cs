@@ -538,11 +538,13 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("href=\"/jamsil-kids/attendance/trend?date=", more);
         var trend = await a.GetStringAsync("/jamsil-kids/attendance/trend");
         Assert.Equal(4, Regex.Matches(trend, "<article class=\"w o").Count);          // 주마다 카드 하나(확정 시안 2026-11-13)
-        Assert.Equal(4, Regex.Matches(trend, "class=\"main\" href=\"/jamsil-kids/attendance/byclass\\?sunday=").Count);   // 카드를 누르면 반별 출석
-        Assert.Equal(4, Regex.Matches(trend, ">명단 \\(휴대폰\\)</a>").Count);
+        Assert.Equal(4, Regex.Matches(trend, "class=\"main\" href=\"/jamsil-kids/attendance/sunday\\?sunday=").Count);   // R-269 카드를 누르면 그 주일 반별 명단
+        Assert.Equal(4, Regex.Matches(trend, ">주일 출결 보고서 \\(PC\\)</a>").Count);
         Assert.DoesNotContain("명단 보기", trend);                                      // 큰 버튼 3개는 없앴다
-        Assert.Contains("/jamsil-kids/attendance/byclass?sunday=", trend);
-        Assert.Contains("반별 출석", await a.GetStringAsync("/jamsil-kids/attendance/byclass?sunday=2020-01-05"));
+        Assert.DoesNotContain("attendance/byclass", trend);
+        var oldByClass = await a.GetAsync("/jamsil-kids/attendance/byclass?sunday=2020-01-05");   // 반별 출석은 명단과 합쳤다: 예전 주소는 명단으로
+        Assert.Equal(HttpStatusCode.Redirect, oldByClass.StatusCode);
+        Assert.Equal("/jamsil-kids/attendance/sunday?sunday=2020-01-05", oldByClass.Headers.Location!.OriginalString);
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/trend")).StatusCode);
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/byclass")).StatusCode);
 
@@ -593,7 +595,7 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/dashboard")).StatusCode);
 
         // 월별 출석 통계 · 상세(R-248): 월 카드 12개, 상세는 그 달 주일마다 점 하나
-        Assert.Contains("href=\"/jamsil-kids/attendance/stats\"", await a.GetStringAsync("/jamsil-kids/attendance/byclass?sunday=2020-01-05"));   // 유년부처럼 반별 출석 아래 "월별 통계 →"
+        Assert.Contains("href=\"/jamsil-kids/attendance/stats\"", await a.GetStringAsync("/jamsil-kids/attendance/sunday?sunday=2020-01-05"));   // 반별 출석을 합친 명단 아래 "월별 출석 통계"(R-269)
         var stats = await a.GetStringAsync("/jamsil-kids/attendance/stats?year=2020&month=1");
         Assert.Equal(12, Regex.Matches(stats, "/jamsil-kids/attendance/stats\\?year=2020&(amp;)?month=\\d+\"").Count);
         Assert.Contains("이번 달 출석 요약", stats);
@@ -629,7 +631,7 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("class=\"off\">‹ 이전 반<b>첫 반</b>", one);
         Assert.Contains("id=\"board\"", one);                                  // 저장 JS 가 이 요소를 쓴다
         Assert.DoesNotContain("id=\"q\"", one);                                // 검색창 · 다른 반 카드 없음
-        Assert.Contains($"/jamsil-kids/attendance/class/{cid}?d=", await a.GetStringAsync("/jamsil-kids/attendance/byclass"));
+        Assert.Contains($"/jamsil-kids/attendance/class/{cid}?d=", await a.GetStringAsync("/jamsil-kids/attendance/sunday"));
         Assert.Equal(HttpStatusCode.NotFound, (await a.GetAsync("/jamsil-kids/attendance/class/999999")).StatusCode);
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync($"/jamsil-kids/attendance/class/{cid}")).StatusCode);   // 맡은 반 없는 교사
     }
