@@ -507,7 +507,13 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/matrix")).StatusCode);
 
         // 출석 대시보드(반 하나 / 전체 반)
-        Assert.Contains("attendance/dashboard/all", await a.GetStringAsync("/jamsil-kids/attendance"));   // 유년부처럼 출석 체크 화면에서 들어간다
+        var today = await a.GetStringAsync("/jamsil-kids/attendance");
+        Assert.Contains("attendance/dashboard/all", today);   // 유년부처럼 출석 체크 화면에서 들어간다
+        Assert.Contains("class=\"rptGo\" href=\"/jamsil-kids/attendance/report?sunday=", today);   // 유년부처럼 보고서 띠(관리자만)
+        Assert.Contains("미출석/미체크 아이", today);
+        Assert.Contains("id=\"qClear\"", today);
+        Assert.Contains("class=\"hbox\"", today);
+        Assert.DoesNotContain("rptGo", await t.GetStringAsync("/jamsil-kids/attendance"));
         Assert.Contains("전체반 출석현황", await a.GetStringAsync("/jamsil-kids/attendance/dashboard/all"));
         Assert.Contains("반을 선택해 주세요", await a.GetStringAsync("/jamsil-kids/attendance/dashboard"));
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/dashboard/all")).StatusCode);
