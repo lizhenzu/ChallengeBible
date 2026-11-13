@@ -18,11 +18,17 @@
             <div class="hdTop"><a href="/@slug/attendance/more">더보기</a><a href="/@slug">부서 홈으로</a></div>
             <h1 class="daT">전체반 출석현황</h1>
             <p class="daSub">반마다 출석률 · 체크 안 한 반 먼저</p>
-            <form class="daCtl" method="get" action="/@slug/attendance/dashboard/all">
-                <a class="daNav" href="@Self(r.Sunday.AddDays(-7))" aria-label="지난 주일">‹</a>
-                <label class="daDate"><span>기준</span><input type="date" name="date" value="@dateStr" max="@r.ThisSunday.ToString("yyyy-MM-dd")" onchange="this.form.submit()" aria-label="주일 고르기" /></label>
-                @if (atLatest) { <span class="daNav off" aria-hidden="true">›</span> } else { <a class="daNav" href="@Self(r.Sunday.AddDays(7))" aria-label="다음 주일">›</a> }
-            </form>
+            @* 주일 이동은 출석 "오늘" 화면과 같은 3칸(R-259): 전주 · 보는 주 · 차주 *@
+            @{ var prevD = r.Sunday.AddDays(-7); var nextD = r.Sunday.AddDays(7); var nextOk = nextD <= r.ThisSunday; }
+            <div class="daWk">
+                <div class="h"><b>@r.Sunday.ToString("M월 d일") 주일</b><span class="@(atLatest ? "now" : "")">@(atLatest ? "이번 주일" : "지난 주일")</span></div>
+                <nav class="strip" aria-label="주일 이동">
+                    <a class="c" href="@Self(prevD)"><b>@($"{prevD.Month}/{prevD.Day}")</b><small>전주</small></a>
+                    <span class="c on" aria-current="date"><b>@($"{r.Sunday.Month}/{r.Sunday.Day}")</b><small>@(atLatest ? "이번 주일" : "보는 주")</small></span>
+                    @if (nextOk) { <a class="c" href="@Self(nextD)"><b>@($"{nextD.Month}/{nextD.Day}")</b><small>@(nextD == r.ThisSunday ? "차주 · 이번 주일" : "차주")</small></a> }
+                    else { <span class="c no" aria-disabled="true"><b>@($"{nextD.Month}/{nextD.Day}")</b><small>차주 · 아직</small></span> }
+                </nav>
+            </div>
             <div class="daSeg" role="tablist" aria-label="보기">
                 <button type="button" data-m="todo" class="on" aria-pressed="true">미체크 먼저</button>
                 <button type="button" data-m="rate" aria-pressed="false">출석률 순</button>
