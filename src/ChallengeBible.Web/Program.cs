@@ -134,6 +134,18 @@ app.Use((ctx, next) =>
     ctx.Response.StatusCode = StatusCodes.Status404NotFound;
     return Task.CompletedTask;
 });
+// 선물 이미지 등 나중에 서버에 넣는 그림(wwwroot/images, 설정 `Images:Dir`): MapStaticAssets 는 게시 때 함께 올라간 파일만
+// 내보내므로 FTP · 관리 화면으로 넣은 파일(/images/AwardItem/{상품번호}.jpg)은 이것으로 내보낸다(R-274). /images 아래만 연다.
+{
+    var imagesDir = app.Configuration["Images:Dir"] is { Length: > 0 } d ? d
+        : Path.Combine(app.Environment.WebRootPath ?? Path.Combine(app.Environment.ContentRootPath, "wwwroot"), "images");
+    Directory.CreateDirectory(imagesDir);
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(imagesDir),
+        RequestPath = "/images",
+    });
+}
 app.UseRouting();
 app.UseAuthentication();
 app.UseRequestScope();
