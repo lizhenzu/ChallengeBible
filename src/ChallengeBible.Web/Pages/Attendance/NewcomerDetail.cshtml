@@ -32,14 +32,7 @@
         <p class="wnote">스위치를 누르면 출석 ↔ 결석이 바로 바뀌어요</p>
     </section>
     <div class="toast hidden" id="toast" role="alert"></div>
-    <a class="btn s wide" href="/@slug/attendance/newcomers/edit?id=@d.PersonId" style="margin-bottom:10px">정보 고치기</a>
-    @if (Model.Tenant.IsAdmin)
-    {
-        <form method="post" asp-page-handler="Delete" onsubmit="return confirm('@d.Name 새친구를 지울까요? 반 · 출석 기록도 함께 지워지고 되돌릴 수 없어요.');">
-            <input type="hidden" name="id" value="@d.PersonId" />
-            <button class="btn d wide" type="submit">잘못 등록했어요 · 지우기</button>
-        </form>
-    }
+    <a class="btn s wide" href="/@slug/attendance/newcomers/edit?id=@d.PersonId" style="margin-bottom:10px">신상정보 수정</a>
     <div class="nc-back"><a class="btn p" href="/@slug/attendance/newcomers">새친구 화면으로</a></div>
 </div></main>
 <partial name="_AttTabs" model='(slug, "n", true)' />

@@ -288,7 +288,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(admin, "/jamsil-kids/attendance/report", "12y3-주일보고서");
         await Save(admin, "/jamsil-kids/attendance/sunday", "12y4-주일명단");
         await Save(admin, "/jamsil-kids/attendance/trend", "12y5-출석현황3주");
-        await Save(admin, "/jamsil-kids/attendance/byclass", "12y6-반별출석");
+        // 반별 출석은 주일 출석 명단과 합쳤다(R-269): 12y4 가 그 화면이다
         await Save(admin, "/jamsil-kids/attendance/rank", "12y7-출석등수");
         await Save(admin, "/jamsil-kids/attendance/matrix", "12y8-주별출석표");
         await Save(admin, "/jamsil-kids/attendance/dashboard/all", "12y9-전체반현황");

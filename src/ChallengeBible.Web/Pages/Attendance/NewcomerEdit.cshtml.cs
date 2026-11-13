@@ -47,5 +47,20 @@ public class NewcomerEditModel(AttendanceService attendance, TenantContext tenan
         return Page();
     }
 
+    /// <summary>삭제(R-249, 신상정보 수정 화면으로 옮김): 부서 관리자만, 잘못 등록한 새친구를 명부 · 반 · 출석 기록째 지운다.</summary>
+    public async Task<IActionResult> OnPostDeleteAsync(CancellationToken ct)
+    {
+        if (tenant.IsLobby) return NotFound();
+        if (!tenant.IsAdmin) return Forbid();
+        var err = await attendance.DeleteNewcomerAsync(Id, ct);
+        if (err == AttendError.None) return RedirectToPage("Newcomers", new { slug = tenant.Current.Slug, Ok = "del" });
+        if (err == AttendError.NotFound) return NotFound();
+        var e = await attendance.NewcomerEditAsync(Id, ct);
+        if (e is null) return NotFound();
+        (Name, Month, Day, Phone1, Phone2, Voluntary, Evangelist, Linked) = (e.Name, e.BirthMonth, e.BirthDay, e.Phone1, e.Phone2, e.Voluntary, e.Evangelist, e.Linked);
+        Error = AttendanceService.Message(err);
+        return Page();
+    }
+
     private async Task<bool> AllowedAsync(CancellationToken ct) => !tenant.IsLobby && (await attendance.ScopeAsync(User.UserName()!, ct)).Newcomers;
 }
