@@ -2,7 +2,7 @@
 @model ChallengeBible.Web.Pages.Attendance.NewcomerEditModel
 @* 새친구 정보 고치기: 등록 화면과 같은 항목(이름 · 생일 · 연락처 · 데려온 사람). 첫 방문일 · 반 · 출석 기록은 그대로 *@
 @{ var slug = Model.Tenant.Current.Slug; var back = $"/{slug}/attendance/newcomers/detail?id={Model.Id}"; }
-<main class="att gut"><div class="wrap">
+<main class="att gut attw"><div class="wrap">
     <div class="top">
         <div class="crumb"><span>@Model.Tenant.Current.Name › 출석 › 새친구</span><a href="@back">← 상세</a></div>
         <h1 style="margin:0">신상정보 수정</h1>
