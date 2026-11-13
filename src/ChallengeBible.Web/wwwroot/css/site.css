@@ -2684,6 +2684,18 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .ybr .sum .bar { display: inline-block; width: 60px; height: 4px; background: var(--yb-line); vertical-align: middle; margin-left: 8px; }
 .ybr .sum .bar i, .ybr .bF .bar i { display: block; height: 100%; background: var(--yb-ok); }
 .ybr .cols { display: grid; grid-template-columns: repeat(var(--yc), minmax(0, 1fr)); gap: 18px; align-items: start; }
+/* 종이 출석부처럼: 학년 = 가로 한 줄, 같은 줄 칸은 같은 높이(사용자 2026-11-13) */
+.ybr .rows .gH { margin-top: 18px; }
+.ybr .prow { display: grid; grid-template-columns: repeat(var(--yc), minmax(0, 1fr)); gap: 10px; align-items: stretch; }
+.ybr .prow .blk { display: flex; flex-direction: column; }
+.ybr .prow .bF { margin-top: auto; }
+.ybr .prow .s1 { min-height: 27px; }
+.ybr .prow .s1.blank { border-bottom: 1px dashed var(--yb-line); }
+.ybr .prow .blk.empty { border-style: dashed; background: #FBFCFD; }
+.ybr .prow.t0 .bH { background: #E3EEFB; }
+.ybr .prow.t1 .bH { background: #FCEBDD; }
+.ybr .prow.t2 .bH { background: #E2F3E8; }
+.ybr .prow.t0 .blk.empty .bH, .ybr .prow.t1 .blk.empty .bH, .ybr .prow.t2 .blk.empty .bH { background: transparent; border-bottom-style: dashed; }
 .ybr .gH { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 6px; border-bottom: 1px solid var(--yb-ink); }
 .ybr .gH b { font-weight: 800; font-size: 16px; color: var(--yb-ink); }
 .ybr .gH span { font-size: 12px; color: var(--yb-dim2); }
