@@ -31,6 +31,7 @@ public class MoreModel(AttendanceService attendance, TenantContext tenant) : Pag
         var slug = tenant.Current.Slug;
         List<Item> all =
         [
+            new("전체반 출석현황", "모든 반 카드 · 미체크 반 · 반 대시보드", $"/{slug}/attendance/dashboard/all", true),
             new("최근 전체 출석현황 (3주)", "주일 3번 출석률 · 반별 출석", $"/{slug}/attendance/trend", true),
             new("아이별 출석 등수", "올해 누적 · 공동 등수", $"/{slug}/attendance/rank", true),
             new("아이별 주별 출석표 (52주)", "아이 × 주일 · 올해", $"/{slug}/attendance/matrix", true),

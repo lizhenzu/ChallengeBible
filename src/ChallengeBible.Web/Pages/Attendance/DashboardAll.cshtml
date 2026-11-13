@@ -1,0 +1,96 @@
+@page "/{slug}/attendance/dashboard/all"
+@model ChallengeBible.Web.Pages.Attendance.DashboardAllModel
+@using ChallengeBible.Web.Pages.Attendance
+@* 유년부 출석부 "전체반 출석현황"(Views/Attendance/DashboardAll)과 같은 짜임: 요약 알약 · 정렬 · 미체크만 · 반 카드 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var r = Model.Rep;
+    var dateStr = r.Sunday.ToString("yyyy-MM-dd");
+    var cards = r.Classes.Where(c => c.Id > 0).Select(c => new { c, T = c.Kids.Count, P = c.Kids.Count(k => k.Present) }).ToList();
+    int total = cards.Sum(x => x.T), present = cards.Sum(x => x.P);
+}
+<div class="yb ybd">
+    <div class="dbTop">
+        <div class="sh">
+            <div class="hdTop"><a href="/@slug/attendance/more">더보기</a><a href="/@slug">부서 홈으로</a></div>
+            <div class="dbHead">
+                <div>
+                    <h1 class="dbT">전체반 출석현황</h1>
+                    <p class="dbSub">@dateStr · 모든 반 출석률 카드</p>
+                </div>
+                <div class="dbCtl">
+                    <form class="ctl" method="get" action="/@slug/attendance/dashboard/all"><span>기준</span><input type="date" name="date" value="@dateStr" onchange="this.form.submit()" aria-label="주일 고르기" /></form>
+                    <label class="ctl"><span>정렬</span>
+                        <select id="sortPick">
+                            <option value="notchecked_first">미체크 우선</option>
+                            <option value="rate_desc">출석률 높은 순</option>
+                            <option value="absent_desc">결석자 많은 순</option>
+                            <option value="total_desc">총원 많은 순</option>
+                            <option value="name_asc">반 이름(오름차순)</option>
+                        </select>
+                    </label>
+                    <label class="ctl tgl"><span>미체크만</span><input id="onlyNotChecked" type="checkbox" /><i class="sw" aria-hidden="true"></i></label>
+                </div>
+            </div>
+            <div class="dbSum">
+                <span class="pill">반 <b>@cards.Count</b>개</span>
+                <span class="pill">총원 <b>@total</b>명</span>
+                <span class="pill">출석 <b>@present</b>명</span>
+                <span class="pill">전체 출석률 <b>@DashboardModel.Rate(present, total) %</b></span>
+                <a class="dbBtn" href="/@slug/attendance/trend?date=@dateStr">최근 전체 출석현황(3주)</a>
+            </div>
+            <div class="dbLeg"><span><i class="dot good"></i>체크됨(출석 1명 이상)</span><span><i class="dot bad"></i>미체크(기록 0건)</span></div>
+        </div>
+    </div>
+
+    <main class="sh">
+        @if (cards.Count == 0)
+        {
+            <div class="none">표시할 반이 없습니다.</div>
+        }
+        else
+        {
+            <section class="dbCards" id="grid" aria-label="반 카드 목록">
+                @foreach (var x in cards)
+                {
+                    bool ok = x.P > 0;
+                    var rate = DashboardModel.Rate(x.P, x.T);
+                    <article class="dbCard cc @(ok ? "" : "nc")" data-name="@x.c.Name" data-rate="@rate" data-absent="@(x.T - x.P)" data-total="@x.T" data-checked="@(ok ? 1 : 0)">
+                        <div class="ttl"><b>@x.c.Name</b><span class="bdg @(ok ? "good" : "bad")">@(ok ? "체크됨" : "미체크")</span></div>
+                        <div class="meta"><span>담당 @(string.IsNullOrWhiteSpace(x.c.Teachers) ? "미지정" : x.c.Teachers)</span><span>총원 @x.T</span><span>출석 @x.P</span><span>결석 @(x.T - x.P)</span></div>
+                        <div class="rate">@rate %</div>
+                        <div class="dbActs">
+                            <a class="dbBtn pri" href="/@slug/attendance?d=@dateStr#g-@x.c.Id">출석체크</a>
+                            <a class="dbBtn" href="/@slug/attendance/dashboard?date=@dateStr&classId=@x.c.Id">반 대시보드</a>
+                        </div>
+                    </article>
+                }
+            </section>
+        }
+    </main>
+</div>
+<partial name="_AttTabs" model='(slug, "more", true)' />
+<script>
+(function () {
+    const grid = document.getElementById('grid'), sortPick = document.getElementById('sortPick'), only = document.getElementById('onlyNotChecked');
+    if (!grid) return;
+    const cards = () => Array.from(grid.querySelectorAll('.cc'));
+    const num = (el, k) => Number(el.dataset[k] || 0);
+    function apply() {
+        const mode = sortPick.value;
+        cards().sort((a, b) => {
+            const n = a.dataset.name.localeCompare(b.dataset.name, 'ko');
+            switch (mode) {
+                case 'notchecked_first': return (num(a, 'checked') - num(b, 'checked')) || n;
+                case 'rate_desc': return (num(b, 'rate') - num(a, 'rate')) || (num(b, 'total') - num(a, 'total')) || n;
+                case 'absent_desc': return (num(b, 'absent') - num(a, 'absent')) || (num(a, 'rate') - num(b, 'rate')) || n;
+                case 'total_desc': return (num(b, 'total') - num(a, 'total')) || (num(b, 'rate') - num(a, 'rate')) || n;
+                default: return n;
+            }
+        }).forEach(c => { c.hidden = only.checked && c.dataset.checked === '1'; grid.appendChild(c); });
+    }
+    sortPick.addEventListener('change', apply);
+    only.addEventListener('change', apply);
+    apply();
+})();
+</script>

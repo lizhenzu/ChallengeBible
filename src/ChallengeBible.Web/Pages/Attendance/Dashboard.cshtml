@@ -1,0 +1,83 @@
+@page "/{slug}/attendance/dashboard"
+@model ChallengeBible.Web.Pages.Attendance.DashboardModel
+@using ChallengeBible.Web.Pages.Attendance
+@* 유년부 출석부 "출석 대시보드"(Views/Attendance/Dashboard)와 같은 짜임: 날짜 · 반 고르기 → 총원 · 출석 · 출석률 → 결석자 · 주간 통계(여기는 최근 7주일) *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var m = Model.M;
+    var dateStr = m.Rep.Sunday.ToString("yyyy-MM-dd");
+    var c = Model.Class;
+    var regular = m.Rep.Classes.Where(x => x.Id > 0).ToList();
+    int total = c?.Kids.Count ?? 0, present = c?.Kids.Count(k => k.Present) ?? 0;
+}
+<div class="yb ybd">
+    <div class="dbTop">
+        <div class="sh">
+            <div class="hdTop"><a href="/@slug/attendance/dashboard/all?date=@dateStr">전체반 출석현황</a><a href="/@slug">부서 홈으로</a></div>
+            <div class="dbHead">
+                <div>
+                    <h1 class="dbT">출석 대시보드</h1>
+                    <p class="dbSub">@dateStr · @(c?.Name ?? "반을 선택해 주세요")</p>
+                </div>
+                <form class="dbCtl" method="get" action="/@slug/attendance/dashboard">
+                    <label class="ctl"><span>날짜</span><input type="date" name="date" value="@dateStr" onchange="this.form.submit()" /></label>
+                    <label class="ctl"><span>반</span>
+                        <select name="classId" onchange="this.form.submit()">
+                            <option value="">선택</option>
+                            @foreach (var x in regular) { <option value="@x.Id" selected="@(x.Id == c?.Id)">@x.Name</option> }
+                        </select>
+                    </label>
+                </form>
+            </div>
+            @if (c != null)
+            {
+                <div class="dbActs">
+                    <a class="dbBtn pri" href="/@slug/attendance?d=@dateStr#g-@c.Id">출석 체크로 이동</a>
+                    <a class="dbBtn" href="/@slug/attendance/dashboard?date=@dateStr&classId=@c.Id">새로고침</a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <main class="sh">
+        @if (c == null)
+        {
+            <div class="dbCard"><div class="v">반을 선택해 주세요</div><div class="hint">위에서 날짜 · 반을 고르면 대시보드가 나옵니다.</div></div>
+        }
+        else
+        {
+            <section class="dbGrid">
+                <div class="dbCard"><div class="k">이 주일 총원</div><div class="v">@total 명</div><div class="hint">지금 반 편성 기준</div></div>
+                <div class="dbCard"><div class="k">이 주일 출석</div><div class="v">@present 명</div><div class="hint">출석 체크한 아이</div></div>
+                <div class="dbCard"><div class="k">이 주일 출석률</div><div class="v">@DashboardModel.Rate(present, total) %</div><div class="hint">출석 ÷ 총원</div></div>
+            </section>
+            <section class="dbTwo">
+                <div class="dbCard">
+                    <div class="k">이 주일 결석자 목록</div>
+                    <div class="dbList">
+                        @if (present == total)
+                        {
+                            <div class="dbRow"><span class="name">결석자가 없습니다</span><span class="chip ok">전체 출석</span></div>
+                        }
+                        @foreach (var k in c.Kids.Where(k => !k.Present))
+                        {
+                            <div class="dbRow"><span class="name">@k.Name</span><span class="chip">미출석</span></div>
+                        }
+                    </div>
+                </div>
+                <div class="dbCard">
+                    <div class="k">주간 통계</div>
+                    <div class="hint">최근 7주일 · @m.Sundays[0].ToString("MM/dd") ~ @m.Rep.Sunday.ToString("MM/dd")</div>
+                    <div class="dbWeek">
+                        @foreach (var s in m.Sundays.AsEnumerable().Reverse())
+                        {
+                            var p = c.Kids.Count(k => m.Present.Contains((k.PersonId, s)));
+                            <div class="dbDay"><div class="d">@s.ToString("MM/dd (ddd)", new System.Globalization.CultureInfo("ko-KR"))</div><div class="r">@DashboardModel.Rate(p, total) %</div><div class="c">@p / @total</div></div>
+                        }
+                    </div>
+                </div>
+            </section>
+        }
+    </main>
+</div>
+<partial name="_AttTabs" model='(slug, "more", true)' />
