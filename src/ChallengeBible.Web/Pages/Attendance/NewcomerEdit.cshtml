@@ -1,0 +1,26 @@
+@page "/{slug}/attendance/newcomers/edit"
+@model ChallengeBible.Web.Pages.Attendance.NewcomerEditModel
+@* 새친구 정보 고치기: 등록 화면과 같은 항목(이름 · 생일 · 연락처 · 데려온 사람). 첫 방문일 · 반 · 출석 기록은 그대로 *@
+@{ var slug = Model.Tenant.Current.Slug; var back = $"/{slug}/attendance/newcomers/detail?id={Model.Id}"; }
+<main class="att gut"><div class="wrap">
+    <div class="top">
+        <div class="crumb"><span>@Model.Tenant.Current.Name › 출석 › 새친구</span><a href="@back">← 상세</a></div>
+        <h1 style="margin:0">정보 고치기</h1>
+    </div>
+    <form method="post" class="pp-form">
+        @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+        <label>이름<input class="in" name="Name" value="@Model.Name" maxlength="50" required readonly="@Model.Linked" /></label>
+        @if (Model.Linked) { <p class="hint">가입한 계정과 연결돼 있어 이름은 바꿀 수 없어요.</p> }
+        <label>생일 (연도 없이)<span class="two">
+            <select class="sel" name="Month" aria-label="월"><option value="">월</option>@for (var i = 1; i <= 12; i++) { <option value="@i" selected="@(Model.Month == i)">@(i)월</option> }</select>
+            <select class="sel" name="Day" aria-label="일"><option value="">일</option>@for (var i = 1; i <= 31; i++) { <option value="@i" selected="@(Model.Day == i)">@(i)일</option> }</select>
+        </span></label>
+        <label>연락처 1<input class="in" name="Phone1" value="@Model.Phone1" maxlength="20" inputmode="tel" placeholder="010-0000-0000" /></label>
+        <label>연락처 2 (선택 · 부모님 번호 등)<input class="in" name="Phone2" value="@Model.Phone2" maxlength="20" inputmode="tel" /></label>
+        <div class="f"><span style="font-size:13px;font-weight:700;color:var(--dim)">어떻게 왔나요</span>
+            <span class="rad"><label><input type="radio" name="Voluntary" value="true" checked="@Model.Voluntary" /> 스스로</label><label><input type="radio" name="Voluntary" value="false" checked="@(!Model.Voluntary)" /> 누가 데려옴</label></span></div>
+        <label>전도한 사람 (선택)<input class="in" name="Evangelist" value="@Model.Evangelist" maxlength="50" placeholder="예: 김철수" /></label>
+        <p class="hint">첫 방문일 · 반 · 출석 기록은 그대로 두고, 위 정보만 고쳐요.</p>
+        <div class="row"><button type="submit" class="btn p sm">저장</button><a class="btn s sm" href="@back">취소</a></div>
+    </form>
+</div></main>

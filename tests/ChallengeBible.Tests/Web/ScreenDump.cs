@@ -298,6 +298,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         int ncId;
         using (var raw = InMemoryDb.Raw(db)) ncId = raw.People.Where(p => p.TenantId == kids.Id && p.NewcomerFirstVisit != null).OrderBy(p => p.Id).Select(p => p.Id).FirstOrDefault();
         await Save(admin, $"/jamsil-kids/attendance/newcomers/detail?id={ncId}", "12s6-새친구상세");
+        await Save(admin, $"/jamsil-kids/attendance/newcomers/edit?id={ncId}", "12s7-새친구-정보고치기");
         await Save(admin, "/jamsil-kids/attendance/newcomers/past", "12s3-기존출석-달");
         await Save(admin, "/jamsil-kids/attendance/newcomers/past?M=1", "12s4-기존출석-주일");
         await Save(admin, "/jamsil-kids/attendance/newcomers/past?D=2027-01-03", "12s5-기존출석-바꾸기");
