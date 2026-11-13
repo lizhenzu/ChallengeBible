@@ -3314,3 +3314,45 @@ a.nc-card.hidden { display: none; }
 .ybda .trChart .trCl { padding: 0; border: 0; background: none; }
 .ybda .trChart .trCl small { text-align: center; line-height: 1.35; }
 .ybda .trChart .trCl small b { font-weight: 800; }
+
+/* ---- 아이별 출석 등수: 확정 시안 A(R-267), .rk2 범위 ---- */
+.rk2 .hidden { display: none !important; }
+.rk2 .rkSum2 { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 12px; padding: 14px 8px; border-radius: 18px; background: var(--yb-soft); text-align: center; }
+.rk2 .rkSum2 div { font-size: 11px; color: var(--yb-dim2); }
+.rk2 .rkSum2 b { display: block; font-size: 20px; font-weight: 900; color: var(--yb-ink); }
+.rk2 .rkSum2 .b b { color: var(--yb-blue); }
+.rk2 .rkSum2 .x b { color: var(--yb-danger); }
+.rk2 .rkChips2 { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.rk2 .rkChips2 button { padding: 7px 13px; border: 1.5px solid #E3E6EA; border-radius: 99px; background: #fff; font: inherit; font-size: 13px; font-weight: 700; color: var(--yb-dim2); cursor: pointer; }
+.rk2 .rkChips2 button.on { background: var(--yb-ink); border-color: var(--yb-ink); color: #fff; }
+.rk2 .rkPod2 { display: grid; grid-template-columns: 1fr 1.1fr 1fr; gap: 8px; align-items: end; margin-top: 16px; }
+.rk2 .rkPod2 .pd { min-width: 0; text-align: center; }
+.rk2 .rkPod2 .av { width: 46px; height: 46px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; font-size: 18px; font-weight: 900; color: #fff; }
+.rk2 .rkPod2 b { display: block; margin-top: 6px; font-size: 14.5px; font-weight: 800; color: var(--yb-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rk2 .rkPod2 small { display: block; font-size: 11px; color: var(--yb-dim2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rk2 .rkPod2 .tie { display: inline-block; margin-top: 3px; font-size: 10.5px; font-weight: 800; color: var(--yb-blue); }
+.rk2 .rkPod2 .st { margin-top: 6px; border-radius: 12px 12px 0 0; display: grid; place-items: center; font-size: 13px; font-weight: 800; color: var(--yb-ink); }
+.rk2 .rkPod2 .p1 .av { width: 54px; height: 54px; font-size: 21px; background: #E8A900; }
+.rk2 .rkPod2 .p1 .st { height: 74px; background: #FFF4D1; }
+.rk2 .rkPod2 .p2 .av { background: #9AA5B1; }
+.rk2 .rkPod2 .p2 .st { height: 56px; background: #EEF1F4; }
+.rk2 .rkPod2 .p3 .av { background: #C46F2E; }
+.rk2 .rkPod2 .p3 .st { height: 44px; background: #F8E9DD; }
+.rk2 .rkList { border: 1.5px solid #E3E6EA; border-radius: 16px; overflow: hidden; background: #fff; }
+.rk2 .rkLi { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-top: 1px solid var(--yb-line); }
+.rk2 .rkList .rkLi:first-child { border-top: 0; }
+.rk2 .rkLi .rk { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--yb-grey); font-size: 12.5px; font-weight: 800; color: var(--yb-dim2); }
+.rk2 .rkLi .rk.g { background: #E8A900; color: #fff; }
+.rk2 .rkLi .rk.s { background: #9AA5B1; color: #fff; }
+.rk2 .rkLi .rk.b { background: #C46F2E; color: #fff; }
+.rk2 .rkLi .nm { flex: 1; min-width: 0; }
+.rk2 .rkLi .nm b { display: block; font-size: 14.5px; font-weight: 800; color: var(--yb-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rk2 .rkLi .nm small { display: block; font-size: 11px; color: var(--yb-dim2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rk2 .rkLi .pc { flex: none; width: 92px; text-align: right; }
+.rk2 .rkLi .pc b { font-size: 13.5px; font-weight: 800; color: var(--yb-ink); }
+.rk2 .rkLi .pc small { font-size: 11px; color: var(--yb-dim2); }
+.rk2 .rkLi .pc .bar { display: block; height: 5px; margin-top: 4px; border-radius: 3px; background: var(--yb-grey); overflow: hidden; }
+.rk2 .rkLi .pc .bar i { display: block; height: 100%; background: var(--yb-blue); }
+.rk2 .rkLi .pc .bar.lo i { background: var(--yb-danger); }
+.rk2 .rkBlk { margin-bottom: 6px; }
+.rk2 .daHint b { color: var(--yb-danger); }
