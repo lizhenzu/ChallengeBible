@@ -27,7 +27,7 @@ public class ClassCheckModel(AttendanceService attendance, TenantContext tenant)
     public bool Newcomers { get; private set; }
 
     /// <summary>"확인 끝" · 돌아가기: 부서 관리자는 반별 출석, 담임은 출석부.</summary>
-    public string BackUrl(string slug, string date) => tenant.IsAdmin ? $"/{slug}/attendance/byclass?sunday={date}" : $"/{slug}/attendance?d={date}";
+    public string BackUrl(string slug, string date) => tenant.IsAdmin ? $"/{slug}/attendance/sunday?sunday={date}" : $"/{slug}/attendance?d={date}";
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {

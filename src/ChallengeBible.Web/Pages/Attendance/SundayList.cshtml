@@ -50,12 +50,23 @@
     </header>
 
     <main class="sh">
+        @if (classes.Count > 1)
+        {
+            @* 반별 출석과 합침(R-269): 반 순서 ↔ 출석률 순, 가장 높은 반 *@
+            var best = classes.OrderByDescending(c => c.Kids.Count(k => k.Present) * 1.0 / c.Kids.Count).ThenBy(c => classes.IndexOf(c)).First();
+            int bestPct = (int)Math.Round(best.Kids.Count(k => k.Present) * 100.0 / best.Kids.Count);
+            <div class="slSort">
+                <span>가장 높은 반 · <b>@best.Name @(bestPct)%</b></span>
+                <div class="tg" role="tablist" aria-label="반 정렬"><button type="button" data-s="ord" class="on">반 순서</button><button type="button" data-s="rate">출석률 순</button></div>
+            </div>
+        }
+        <div id="slList">
         @if (classes.Count == 0) { <div class="none">이 주일 명단이 없습니다.</div> }
         @foreach (var c in classes)
         {
             int cp = c.Kids.Count(k => k.Present);
             int cPct = (int)Math.Round(cp * 100.0 / c.Kids.Count);
-            <section class="slCls" id="c-@c.Id">
+            <section class="slCls" id="c-@c.Id" data-ord="@classes.IndexOf(c)" data-rate="@cPct" data-total="@c.Kids.Count">
                 <div class="h"><b>@c.Name</b><small>@(string.IsNullOrWhiteSpace(c.Teachers) ? "담임 미지정" : c.Teachers)</small><em class="@(cPct < 50 ? "lo" : "")">@cp<span> / @c.Kids.Count</span></em></div>
                 <div class="bar"><i style="width:@(cPct)%"></i></div>
                 <div class="kids">
@@ -67,16 +78,25 @@
                 @if (c.Id > 0) { <div class="fix"><a href="/@slug/attendance/class/@c.Id?d=@dateStr">출석 고치기 ›</a></div> }
             </section>
         }
+        </div>
         <div class="slLinks">
             <a href="/@slug/attendance/report?sunday=@dateStr">보고서 보기 (PC)</a>
-            <a href="/@slug/attendance/byclass?sunday=@dateStr">반별 출석</a>
+            <a href="/@slug/attendance/stats">월별 출석 통계</a>
         </div>
-        <div class="ft"><span>✓ 초록 = 출석 · 점선 = 결석 · 반 안에서 출석한 아이부터</span></div>
+        <div class="ft"><span>✓ 초록 = 출석 · 점선 = 결석 · 반 안에서 출석한 아이부터 · 출석률 = 출석 ÷ 총원(지금 반 편성 기준)</span></div>
     </main>
 </div>
 <partial name="_AttTabs" model='(slug, "more", true)' />
 <script>
 (function () {
+    const list = document.getElementById('slList');
+    document.querySelectorAll('.slSort button').forEach(b => b.addEventListener('click', () => {
+        document.querySelectorAll('.slSort button').forEach(x => x.classList.toggle('on', x === b));
+        const n = (el, k) => Number(el.dataset[k] || 0);
+        Array.from(list.querySelectorAll('.slCls')).sort((a, c) => b.dataset.s === 'rate'
+            ? (n(c, 'rate') - n(a, 'rate')) || (n(c, 'total') - n(a, 'total')) || (n(a, 'ord') - n(c, 'ord'))
+            : n(a, 'ord') - n(c, 'ord')).forEach(s => list.appendChild(s));
+    }));
     const kids = document.querySelectorAll('.slCls .k');
     document.querySelectorAll('.slSeg button').forEach(b => b.addEventListener('click', () => {
         const f = b.dataset.f;

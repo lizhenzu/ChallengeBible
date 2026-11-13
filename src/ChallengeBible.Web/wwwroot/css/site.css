@@ -3394,3 +3394,11 @@ a.nc-card.hidden { display: none; }
 .sl2 .slCls .fix a { font-size: 12.5px; font-weight: 700; color: var(--yb-blue); }
 .sl2 .slLinks { display: flex; gap: 8px; margin-top: 16px; }
 .sl2 .slLinks a { flex: 1; text-align: center; padding: 11px 0; border: 1.5px solid #E3E6EA; border-radius: 12px; font-size: 13px; font-weight: 700; color: var(--yb-ink); background: #fff; }
+
+/* 명단 + 반별 출석 합침(R-269): 정렬 줄 · 4주 카드 아래 한 줄 링크 */
+.sl2 .slSort { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 14px; font-size: 12.5px; color: var(--yb-dim2); }
+.sl2 .slSort b { color: var(--yb-ink); }
+.sl2 .slSort .tg { display: flex; padding: 3px; border-radius: 10px; background: var(--yb-grey); }
+.sl2 .slSort .tg button { padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 12px; font-weight: 700; color: var(--yb-dim2); cursor: pointer; }
+.sl2 .slSort .tg button.on { background: #fff; color: var(--yb-ink); box-shadow: 0 1px 4px rgba(17,24,39,.08); }
+.ybt .wk2 .sub.one { grid-template-columns: 1fr; }

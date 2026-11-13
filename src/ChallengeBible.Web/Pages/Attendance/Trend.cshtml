@@ -72,14 +72,14 @@
                     var (t, p) = TrendModel.Count(w);
                     var r = TrendModel.Rate(p, t);
                     var sp = w.Sunday.ToString("yyyy-MM-dd");
-                    @* 확정 시안(2026-11-13): 주마다 카드 하나(누르면 반별 출석) + 명단 링크는 아래 작은 한 줄 *@
+                    @* 확정 시안(2026-11-13): 주마다 카드 하나. 반별 출석과 명단을 합쳐(R-269) 누르면 그 주일 반별 명단, 아래는 PC 보고서 한 줄 *@
                     <article class="w o@(desc.Count - i) @(i == 0 ? "now" : "") @(r < LowRate ? "lo" : "")">
-                        <a class="main" href="/@slug/attendance/byclass?sunday=@sp">
+                        <a class="main" href="/@slug/attendance/sunday?sunday=@sp">
                             <div class="top"><span class="chip">@Label(i)</span><b class="d">@w.Sunday.ToString("M월 d일 (ddd)", ko)</b><span class="p">@TrendModel.Pct(r)<small>%</small></span></div>
                             <div class="bar"><i style="width:@(Math.Clamp(r, 0, 100).ToString(CultureInfo.InvariantCulture))%"></i></div>
-                            <div class="m"><span>총 @t</span><span class="a">출석 @p</span><span class="x">결석 @(t - p)</span><em>반별 출석 ›</em></div>
+                            <div class="m"><span>총 @t</span><span class="a">출석 @p</span><span class="x">결석 @(t - p)</span><em>반별 명단 ›</em></div>
                         </a>
-                        <div class="sub"><a href="/@slug/attendance/sunday?sunday=@sp">명단 (휴대폰)</a><a href="/@slug/attendance/report?sunday=@sp">명단 (PC)</a></div>
+                        <div class="sub one"><a href="/@slug/attendance/report?sunday=@sp">주일 출결 보고서 (PC)</a></div>
                     </article>
                 }
             </div>
