@@ -277,6 +277,8 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             raw.SaveChanges();
         }
         await Save(admin, "/jamsil-kids/attendance", "12q-출석부-오늘");
+        int cc1; using (var raw = InMemoryDb.Raw(db)) cc1 = raw.Classes.First(c => c.Name == "1학년 1반").Id;
+        await Save(admin, $"/jamsil-kids/attendance/class/{cc1}", "12z-반하나-출석체크");   // 확정 시안: 반 하나만 크게
         await Save(admin, "/jamsil-kids/attendance/newcomers", "12r-새친구");
         await Save(admin, "/jamsil-kids/attendance/newcomers/new", "12s-새친구-등록");
         // 새친구 홈 · 오늘 출석 체크 · 기존 출석 변경(확정 시안 K1 · K2 · K5 · K6 · K7)

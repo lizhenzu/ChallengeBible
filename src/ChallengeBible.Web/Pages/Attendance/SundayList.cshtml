@@ -57,7 +57,7 @@
                         <div class="skid @(k.Present ? "on" : "off")" data-p="@(k.Present ? "1" : "0")" title="@(k.Present ? "출석" : "결석")"><span>@k.Name</span>@if (k.Newcomer) { <em class="nw">새</em> }</div>
                     }
                 </div>
-                @if (c.Id > 0) { <div class="fix"><a href="/@slug/attendance?d=@dateStr#g-@c.Id">출석 고치기 →</a></div> }
+                @if (c.Id > 0) { <div class="fix"><a href="/@slug/attendance/class/@c.Id?d=@dateStr">출석 고치기 →</a></div> }
             </section>
         }
         <div class="links">

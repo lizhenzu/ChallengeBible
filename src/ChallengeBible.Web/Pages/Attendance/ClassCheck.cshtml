@@ -1,0 +1,58 @@
+@page "/{slug}/attendance/class/{id:int}"
+@model ChallengeBible.Web.Pages.Attendance.ClassCheckModel
+@* 확정 시안(2026-11-13): 반 하나만 크게 — 반 카드(진행) · 아이 카드 2열 · 이전 / 다음 반 · 확인 끝. 저장은 출석부와 같은 JS *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var b = Model.Board;
+    var g = Model.Group;
+    var d = b.Sunday.ToString("yyyy-MM-dd");
+    var isThis = b.Sunday == b.ThisSunday;
+    var total = g.Kids.Count;
+    var present = g.Kids.Count(k => k.Present);
+    var pct = total == 0 ? 0 : present * 100 / total;
+    var back = Model.BackUrl(slug, d);
+}
+<main class="att gut fcw"><div class="wrap">
+    <div class="fc-top">
+        <a href="@back">← @(Model.Tenant.IsAdmin ? "반별 출석" : "출석부")</a>
+        <a href="/@slug">부서 홈으로</a>
+    </div>
+    @Html.AntiForgeryToken()
+    <section class="fc-card">
+        <div class="k">CLASS</div>
+        <h1>@g.Name</h1>
+        <div class="t">@(string.IsNullOrEmpty(g.Teacher) ? "담임 미지정" : g.Teacher + " 선생님")</div>
+        <div class="d">
+            <a href="/@slug/attendance/class/@g.ClassId?d=@b.Sunday.AddDays(-7).ToString("yyyy-MM-dd")" aria-label="지난 주일">‹</a>
+            <span>@b.Sunday.ToString("M월 d일") 주일 · @(isThis ? "이번 주일" : "지난 주일")</span>
+            @if (isThis) { <span class="off" aria-hidden="true">›</span> } else { <a href="/@slug/attendance/class/@g.ClassId?d=@b.Sunday.AddDays(7).ToString("yyyy-MM-dd")" aria-label="다음 주일">›</a> }
+        </div>
+        <div class="fc-big"><b id="presentN">@present</b> / @(total)명 출석 · 남은 아이 <i id="leftN">@(total - present)</i></div>
+        <div class="fc-bar"><i id="barFill" style="width:@(pct)%"></i></div>
+    </section>
+    <p class="fc-hint">아이 이름을 누르면 바로 출석 체크돼요 · 한 번 더 누르면 취소</p>
+    @if (total == 0)
+    {
+        <p class="none">이 반에 든 아이가 없어요.</p>
+    }
+    else
+    {
+        <div id="board" class="fc-kids" data-slug="@slug" data-sunday="@d">
+            @foreach (var k in g.Kids)
+            {
+                <button type="button" class="kid @(k.Present ? "on" : "") @(k.AbsentStreak >= ChallengeBible.Web.Services.AttendanceService.AbsentAlert ? "w" : "")"
+                        data-id="@k.PersonId" data-name="@k.Name" data-p="@(k.Present ? "1" : "0")" aria-pressed="@(k.Present ? "true" : "false")"
+                        title="@(k.AbsentStreak >= 3 ? $"{k.AbsentStreak}주 연속 결석" : "")"><b>@k.Name</b><small>@g.Name@(k.Newcomer ? " · 새친구" : "")</small><span class="kd" aria-hidden="true">@foreach (var r in k.Recent) { <i class="@(r ? "" : "o")"></i> }</span></button>
+            }
+        </div>
+    }
+    <div class="fc-nav">
+        @if (Model.Prev is { } p) { <a href="/@slug/attendance/class/@p.ClassId?d=@d">‹ 이전 반<b>@p.Name</b></a> } else { <span class="off">‹ 이전 반<b>첫 반</b></span> }
+        @if (Model.Next is { } n) { <a href="/@slug/attendance/class/@n.ClassId?d=@d">다음 반 ›<b>@n.Name</b></a> } else { <span class="off">다음 반 ›<b>마지막 반</b></span> }
+    </div>
+    <div class="fc-back"><a href="@back">✓ 이 반 확인 끝 · @(Model.Tenant.IsAdmin ? "반별 출석으로" : "출석부로")</a></div>
+    <p class="fc-foot">이름 아래 점 = 지난 4주 출석 · 빨간 테두리 = 3주 이상 결석</p>
+    <div class="toast hidden" id="toast" role="alert"></div>
+</div></main>
+<partial name="_AttTabs" model='(slug, "a", Model.Newcomers)' />
+<script src="~/js/attendance.js" asp-append-version="true"></script>

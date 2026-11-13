@@ -536,5 +536,34 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("반별 출석 합계", detail);
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/stats")).StatusCode);
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/stats/detail")).StatusCode);
+
+        // 반 하나만 크게 보는 출석 체크(사용자 확정 2026-11-13): [출석 고치기]가 전체 출석부 대신 이 화면을 연다
+        int cid;
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var tid = raw.Tenants.Single().Id;
+            var term = raw.ClassTerms.First(x => x.TenantId == tid);
+            var c1 = new SchoolClass { TenantId = tid, TermId = term.Id, Name = "1학년 1반", CreatedUtc = DateTime.UtcNow };
+            var c2 = new SchoolClass { TenantId = tid, TermId = term.Id, Name = "1학년 2반", CreatedUtc = DateTime.UtcNow };
+            raw.Classes.AddRange(c1, c2);
+            var p = new Person { TenantId = tid, Name = "김집중", RoleCode = "T1001", CreatedUtc = DateTime.UtcNow };
+            var p2 = new Person { TenantId = tid, Name = "이다음", RoleCode = "T1001", CreatedUtc = DateTime.UtcNow };
+            raw.People.AddRange(p, p2);
+            raw.SaveChanges();
+            raw.ClassMembers.Add(new ClassMember { TenantId = tid, TermId = term.Id, ClassId = c1.Id, PersonId = p.Id, IsTeacher = false, CreatedUtc = DateTime.UtcNow });
+            raw.ClassMembers.Add(new ClassMember { TenantId = tid, TermId = term.Id, ClassId = c2.Id, PersonId = p2.Id, IsTeacher = false, CreatedUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+            cid = c1.Id;
+        }
+        var one = await a.GetStringAsync($"/jamsil-kids/attendance/class/{cid}");
+        Assert.Contains("김집중", one);
+        Assert.Contains("1학년 1반", one);
+        Assert.Contains("다음 반 ›<b>1학년 2반</b>", one);                      // 이전 · 다음 반으로 차례로 넘긴다
+        Assert.Contains("class=\"off\">‹ 이전 반<b>첫 반</b>", one);
+        Assert.Contains("id=\"board\"", one);                                  // 저장 JS 가 이 요소를 쓴다
+        Assert.DoesNotContain("id=\"q\"", one);                                // 검색창 · 다른 반 카드 없음
+        Assert.Contains($"/jamsil-kids/attendance/class/{cid}?d=", await a.GetStringAsync("/jamsil-kids/attendance/byclass"));
+        Assert.Equal(HttpStatusCode.NotFound, (await a.GetAsync("/jamsil-kids/attendance/class/999999")).StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync($"/jamsil-kids/attendance/class/{cid}")).StatusCode);   // 맡은 반 없는 교사
     }
 }

@@ -82,7 +82,7 @@
                         @foreach (var c in s.Classes)
                         {
                             rank++;
-                            <tr><td><span class="bd">@rank</span></td><td class="cn"><a href="@check#g-@c.Id">@c.Name</a></td><td class="r num">@c.Total</td><td class="r num">@StatsDetailModel.Pct(c.Ratio)%</td></tr>
+                            <tr><td><span class="bd">@rank</span></td><td class="cn"><a href="/@slug/attendance/class/@c.Id?d=@s.RefSunday.ToString("yyyy-MM-dd")">@c.Name</a></td><td class="r num">@c.Total</td><td class="r num">@StatsDetailModel.Pct(c.Ratio)%</td></tr>
                         }
                     </tbody>
                 </table>

@@ -32,7 +32,7 @@
             @if (c != null)
             {
                 <div class="dbActs">
-                    <a class="dbBtn pri" href="/@slug/attendance?d=@dateStr#g-@c.Id">출석 체크로 이동</a>
+                    @if (total > 0) { <a class="dbBtn pri" href="/@slug/attendance/class/@c.Id?d=@dateStr">출석 체크로 이동</a> }
                     <a class="dbBtn" href="/@slug/attendance/dashboard?date=@dateStr&classId=@c.Id">새로고침</a>
                 </div>
             }
