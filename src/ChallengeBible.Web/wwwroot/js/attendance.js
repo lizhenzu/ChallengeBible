@@ -48,6 +48,8 @@
       j.style.order = (d ? 1000 : 0) + Number(j.dataset.ord);
     });
     put('jTodo', todo); put('jDone', done);
+    const jh = document.getElementById('jumpH');   // 모든 반을 체크하면 "✓ 모든 반 체크 완료"(유년부와 같다)
+    if (jh) { const all = todo === 0 && done > 0; jh.querySelector('.a')?.classList.toggle('hidden', all); jh.querySelector('.z')?.classList.toggle('hidden', all); jh.querySelector('.all')?.classList.toggle('hidden', !all); }
   }
 
   function set(k, on) {
@@ -83,12 +85,15 @@
       if (left > 0) await new Promise((r) => setTimeout(r, left));
       k.classList.remove('busy');
       k.removeAttribute('aria-busy');
-      if (q && q.value) { q.value = ''; apply(); q.focus(); } else if (filter !== 'all') setTimeout(apply, 350);
+      if (q && q.value) { q.value = ''; clearBtn(); apply(); q.focus(); } else if (filter !== 'all') setTimeout(apply, 350);
     }
   }
 
   items.forEach((k) => (k.querySelector('.ck, .pill') || k).addEventListener('click', () => toggle(k)));
-  q?.addEventListener('input', apply);
+  const qClear = document.getElementById('qClear');   // 검색어가 있으면 ✕ 로 한 번에 지운다
+  const clearBtn = () => qClear?.classList.toggle('hidden', !q?.value);
+  q?.addEventListener('input', () => { clearBtn(); apply(); });
+  qClear?.addEventListener('click', () => { q.value = ''; clearBtn(); apply(); q.focus(); });
   document.querySelectorAll('.seg2 button').forEach((b) => b.addEventListener('click', () => {
     filter = b.dataset.f;
     document.querySelectorAll('.seg2 button').forEach((x) => x.classList.toggle('on', x === b));
