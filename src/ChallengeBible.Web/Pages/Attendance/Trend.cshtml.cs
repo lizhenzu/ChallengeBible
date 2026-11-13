@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace ChallengeBible.Web.Pages.Attendance;
 
 /// <summary>
-/// `/{slug}/attendance/trend?date=` 최근 전체 출석현황(3주) · `/{slug}/attendance/byclass?sunday=` 주일 반별 출석
+/// `/{slug}/attendance/trend?date=` 최근 전체 출석현황(4주) · `/{slug}/attendance/byclass?sunday=` 주일 반별 출석
 /// — 유년부 AdminTrend3Weeks · AdminTrendSundayDetail 과 같은 모양(4/9). 부서 관리자만. 총원은 지금 반 편성 기준(R-243 명단).
 /// </summary>
 [TenantRoles(Roles.TenantAdmin)]
@@ -16,14 +16,14 @@ public class TrendModel(AttendanceService attendance, TenantContext tenant) : Pa
     public string Title => "전체 출석현황";
     public TenantContext Tenant => tenant;
     [BindProperty(SupportsGet = true)] public DateOnly? Date { get; set; }
-    /// <summary>오래된 주 → 기준 주일(3개).</summary>
+    /// <summary>오래된 주 → 기준 주일(4개).</summary>
     public List<AttendanceService.SundayReport> Weeks { get; } = [];
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (tenant.IsLobby) return NotFound();
         var now = await attendance.SundayReportAsync(Date, ct);
-        foreach (var back in new[] { 14, 7 }) Weeks.Add(await attendance.SundayReportAsync(now.Sunday.AddDays(-back), ct));
+        foreach (var back in new[] { 21, 14, 7 }) Weeks.Add(await attendance.SundayReportAsync(now.Sunday.AddDays(-back), ct));   // 4주(사용자 2026-11-13, R-266)
         Weeks.Add(now);
         return Page();
     }

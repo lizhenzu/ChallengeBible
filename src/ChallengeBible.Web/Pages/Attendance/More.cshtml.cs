@@ -34,7 +34,7 @@ public class MoreModel(AttendanceService attendance, TenantContext tenant) : Pag
         List<Item> all =
         [
             new("주일 출석 보고서", "반별 · 학생별 출석 (PC 화면)", $"/{slug}/attendance/report?sunday={thisSunday:yyyy-MM-dd}", true),
-            new("최근 전체 출석현황(3주)", "최근 3주 반별 출석 추이", $"/{slug}/attendance/trend?date={thisSunday:yyyy-MM-dd}", true),
+            new("최근 전체 출석현황(4주)", "최근 4주 반별 출석 추이", $"/{slug}/attendance/trend?date={thisSunday:yyyy-MM-dd}", true),
             new("아이별 출석 등수", "올해 누적 아이별 출석 등수", $"/{slug}/attendance/rank", true),
             new("아이별 주별 출석표", "아이 × 주일 표 · 1월 ~ 이번 달", $"/{slug}/attendance/matrix", true),
             new("교사 · 반 배정", "누가 어느 반 담임인지 정하기", $"/{slug}/admin/classes", true),

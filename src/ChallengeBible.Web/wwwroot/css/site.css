@@ -3279,3 +3279,38 @@ a.nc-card.hidden { display: none; }
 .nch .ncwk span b { font-size: 11px; }
 .nch .ncwk span.on { background: var(--ok-bg); color: var(--ok); font-weight: 700; }
 .nch .zone h2 small { font-weight: 500; }
+
+/* ---- 최근 전체 출석현황(3주) 위쪽: 확정 시안 A(R-266) ---- */
+.ybda .trSum { margin-top: 14px; padding: 16px; border-radius: 18px; background: var(--yb-soft); }
+.ybda .trSum .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.ybda .trSum .trBig { font-size: 40px; font-weight: 900; letter-spacing: -.03em; line-height: 1; color: var(--yb-blue); }
+.ybda .trSum .trBig small { font-size: 18px; margin-left: 2px; }
+.ybda .trSum .trK { margin-top: 6px; font-size: 12px; color: var(--yb-dim2); }
+.ybda .trSum .delta { flex: none; padding: 5px 10px; border-radius: 99px; background: #fff; font-size: 12.5px; font-weight: 800; color: var(--yb-ok); white-space: nowrap; }
+.ybda .trSum .delta.dn { color: var(--yb-danger); }
+.ybda .trSum .delta.eq { color: var(--yb-dim2); }
+.ybda .trSum .bar { display: block; height: 8px; margin-top: 14px; border-radius: 4px; background: #fff; overflow: hidden; }
+.ybda .trSum .bar i { display: block; height: 100%; border-radius: 4px; background: var(--yb-blue); }
+.ybda .trSum .nums { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 12px; text-align: center; }
+.ybda .trSum .nums div { font-size: 11.5px; color: var(--yb-dim2); }
+.ybda .trSum .nums b { display: block; font-size: 18px; font-weight: 800; color: var(--yb-ink); }
+.ybda .trSum .nums .x b { color: var(--yb-danger); }
+.ybda .trChart { margin-top: 12px; padding: 14px 14px 10px; border: 1.5px solid #E3E6EA; border-radius: 18px; background: #fff; }
+.ybda .trChart h3 { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 10px; font-size: 14px; font-weight: 800; color: var(--yb-ink); }
+.ybda .trChart h3 span { font-size: 11.5px; font-weight: 600; color: var(--yb-dim2); }
+.ybda .trChart .trCols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.ybda .trChart .trCl { display: grid; justify-items: center; gap: 6px; }
+.ybda .trChart .trCl em { font-style: normal; font-size: 13px; font-weight: 800; color: var(--yb-ink); }
+.ybda .trChart .trBar { display: flex; align-items: flex-end; width: 100%; max-width: 56px; height: 96px; border-radius: 10px; background: var(--yb-grey); overflow: hidden; }
+.ybda .trChart .trBar i { display: block; width: 100%; border-radius: 6px 6px 0 0; background: #C9DCF8; }
+.ybda .trChart .trCl.lo .trBar i { background: #F3B5B3; }
+.ybda .trChart .trCl.now .trBar i { background: var(--yb-blue); }
+.ybda .trChart .trCl.now.lo .trBar i { background: var(--yb-danger); }
+.ybda .trChart .trCl small { font-size: 11.5px; color: var(--yb-dim2); }
+.ybda .trChart .trCl.now small { font-weight: 800; color: var(--yb-ink); }
+
+/* 4주(R-266): PC 에서도 오래된 주 → 이번 주 */
+@media (min-width: 760px) { .ybt .wk2 .o4 { order: 4; } }
+.ybda .trChart .trCl { padding: 0; border: 0; background: none; }
+.ybda .trChart .trCl small { text-align: center; line-height: 1.35; }
+.ybda .trChart .trCl small b { font-weight: 800; }
