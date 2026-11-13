@@ -62,7 +62,7 @@
                                 <span>총 @x.T</span><span class="a">출석 @x.P</span><span class="x">결석 @(x.T - x.P)</span>
                                 <span class="go">
                                     <a href="/@slug/attendance/sunday?sunday=@dateStr#c-@x.c.Id">명단</a>
-                                    @if (x.c.Id > 0) { <a class="pri" href="/@slug/attendance?d=@dateStr#g-@x.c.Id">출석 고치기</a> }
+                                    @if (x.c.Id > 0 && x.T > 0) { <a class="pri" href="/@slug/attendance/class/@x.c.Id?d=@dateStr">출석 고치기</a> }
                                 </span>
                             </div>
                         </div>

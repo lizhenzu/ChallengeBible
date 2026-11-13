@@ -60,7 +60,7 @@
                         <div class="meta"><span>담당 @(string.IsNullOrWhiteSpace(x.c.Teachers) ? "미지정" : x.c.Teachers)</span><span>총원 @x.T</span><span>출석 @x.P</span><span>결석 @(x.T - x.P)</span></div>
                         <div class="rate">@rate %</div>
                         <div class="dbActs">
-                            <a class="dbBtn pri" href="/@slug/attendance?d=@dateStr#g-@x.c.Id">출석체크</a>
+                            @if (x.T > 0) { <a class="dbBtn pri" href="/@slug/attendance/class/@x.c.Id?d=@dateStr">출석체크</a> }
                             <a class="dbBtn" href="/@slug/attendance/dashboard?date=@dateStr&classId=@x.c.Id">반 대시보드</a>
                         </div>
                     </article>
