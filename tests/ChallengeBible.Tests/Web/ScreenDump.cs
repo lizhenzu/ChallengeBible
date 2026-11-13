@@ -288,6 +288,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(admin, "/jamsil-kids/attendance/trend", "12y5-출석현황3주");
         await Save(admin, "/jamsil-kids/attendance/byclass", "12y6-반별출석");
         await Save(admin, "/jamsil-kids/attendance/rank", "12y7-출석등수");
+        await Save(admin, "/jamsil-kids/attendance/matrix?weeks=13", "12y8-주별출석표");
         await Save(admin, "/jamsil-kids/attendance/newcomers/past", "12s3-기존출석-달");
         await Save(admin, "/jamsil-kids/attendance/newcomers/past?M=1", "12s4-기존출석-주일");
         await Save(admin, "/jamsil-kids/attendance/newcomers/past?D=2027-01-03", "12s5-기존출석-바꾸기");

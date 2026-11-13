@@ -234,6 +234,25 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
         return new SundayReport(sunday, thisSunday, weeks, result);
     }
 
+    public sealed record Matrix(SundayReport Rep, List<DateOnly> Sundays, HashSet<(int PersonId, DateOnly Sunday)> Present);
+
+    /// <summary>
+    /// 아이별 주별 출석표(유년부 AdminStudentMatrixWeeks): 기준 주일까지 weeks 주일(1 ~ 52, 없으면 올해 주일 수 · 최소 4) ×
+    /// R-243 명단 아이. 칸 = 그 주일 출석 여부.
+    /// </summary>
+    public async Task<Matrix> MatrixAsync(DateOnly? end, int? weeks, CancellationToken ct = default)
+    {
+        var rep = await SundayReportAsync(end, ct);
+        var n = Math.Clamp(weeks ?? Math.Max(4, rep.WeeksCount), 1, 52);
+        var sundays = Enumerable.Range(0, n).Select(i => rep.Sunday.AddDays(-7 * (n - 1 - i))).ToList();
+        var ids = rep.Classes.SelectMany(c => c.Kids).Select(k => k.PersonId).ToList();
+        await using var ctx = db.Create();
+        var start = sundays[0];
+        var rows = await ctx.AttendanceChecks.AsNoTracking().Where(a => ids.Contains(a.PersonId) && a.Sunday >= start && a.Sunday <= rep.Sunday)
+            .Select(a => new { a.PersonId, a.Sunday }).ToListAsync(ct);
+        return new Matrix(rep, sundays, rows.Select(a => (a.PersonId, a.Sunday)).ToHashSet());
+    }
+
     // ── 새친구 화면(확정 시안 K1 · K2 · K5 · K6 · K7, 2026-11-12) ──
 
     public sealed record NcWeek(DateOnly Sunday, bool Present);
