@@ -10,6 +10,7 @@
 <main class="att gut"><div class="wrap">
     <div class="hd2"><a class="back" href="/@slug/attendance">← 출석</a><h1>새친구</h1><p>무엇을 할까요?</p></div>
     @if (Model.Ok == "add") { <p class="okmsg" role="status">새친구를 등록했어요 · 첫 방문 출석도 체크했어요</p> }
+    @if (Model.Ok == "del") { <p class="okmsg" role="status">새친구를 지웠어요</p> }
     <nav class="menu" aria-label="새친구 메뉴">
         <a class="main" href="/@slug/attendance/newcomers/today"><i aria-hidden="true">✓</i><span><b>오늘 출석 체크</b><small>이번 주일 @h.ThisSunday.ToString("M월 d일")</small></span><em aria-hidden="true">›</em></a>
         <a href="/@slug/attendance/newcomers/past"><i aria-hidden="true">🗓</i><span><b>기존 출석 변경</b><small>지난 주일 출석 고치기</small></span><em aria-hidden="true">›</em></a>
@@ -23,7 +24,7 @@
         {
             var how = a.Voluntary == false ? (string.IsNullOrEmpty(a.Evangelist) ? "누가 데려옴" : $"{a.Evangelist}이(가) 데려옴") : "스스로 옴";
             <div class="nc-card">
-                <div class="r1"><b>@a.Name</b>@if (a.PresentThisSunday) { <span class="ok">이번 주일 출석</span> } else { <span class="st">출석 @(a.Visits)/@AttendanceService.CareVisits@(a.PastDays ? " · 28일 지남" : "")</span> }</div>
+                <div class="r1"><b><a href="/@slug/attendance/newcomers/detail?id=@a.PersonId">@a.Name</a></b>@if (a.PresentThisSunday) { <span class="ok">이번 주일 출석</span> } else { <span class="st">출석 @(a.Visits)/@AttendanceService.CareVisits@(a.PastDays ? " · 28일 지남" : "")</span> }</div>
                 <small>@a.ClassName · 첫 방문 @a.FirstVisit.ToString("M월 d일") · @how</small>
                 <div class="nc-bar" aria-label="출석 @(a.Visits) / 4">@for (var i = 0; i < AttendanceService.CareVisits; i++) { <i class="@(i < a.Visits ? "on" : "")"></i> }</div>
             </div>
@@ -37,7 +38,7 @@
         {
             var d = h.Done[i];
             <div class="nc-card @(i >= NewcomersModel.DoneShown ? "more hidden" : "")">
-                <div class="r1"><b>@d.Name</b><span class="st done">완료 @d.DoneOn.ToString("M월 d일")</span></div>
+                <div class="r1"><b><a href="/@slug/attendance/newcomers/detail?id=@d.PersonId">@d.Name</a></b><span class="st done">완료 @d.DoneOn.ToString("M월 d일")</span></div>
                 <small>@d.ClassName · 첫 방문 @d.FirstVisit.ToString("M월 d일") · 출석 @(d.Visits)번</small>
                 <div class="ncwk">@foreach (var w in d.Weeks) { <span class="@(w.Present ? "on" : "")"><b>@(w.Present ? "●" : "○")</b>@Short(w.Sunday)</span> }</div>
             </div>

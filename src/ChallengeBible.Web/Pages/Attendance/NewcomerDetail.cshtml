@@ -1,0 +1,31 @@
+@page "/{slug}/attendance/newcomers/detail"
+@model ChallengeBible.Web.Pages.Attendance.NewcomerDetailModel
+@using ChallengeBible.Web.Services
+@* 유년부 새친구 상세와 같은 짜임: 이름 · 상태 · 첫 방문 · 데려온 사람 · 주일별 출석. 지우기는 부서 관리자만 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var d = Model.D;
+    var how = d.Voluntary == false ? (string.IsNullOrEmpty(d.Evangelist) ? "누가 데려옴" : $"{d.Evangelist}이(가) 데려옴") : "스스로 옴";
+}
+<main class="att gut"><div class="wrap">
+    <div class="hd2"><a class="back" href="/@slug/attendance/newcomers">← 새친구</a><h1>@d.Name</h1><p>@d.ClassName · 첫 방문 @d.FirstVisit.ToString("M월 d일")</p></div>
+    @if (Model.Error is { } err) { <p class="err" role="alert">@err</p> }
+    <div class="nc-card">
+        <div class="r1"><b>@(d.Done ? "4주 관리 완료" : "4주 관리 중")</b><span class="st @(d.Done ? "done" : "")">출석 @(d.Visits)번@(d.Done && d.DoneOn is { } on ? $" · 완료 {on:M월 d일}" : "")</span></div>
+        <small>@how@(string.IsNullOrEmpty(d.Phone) ? "" : " · " + d.Phone)</small>
+        <div class="nc-bar" aria-label="출석 @d.Visits / 4">@for (var i = 0; i < AttendanceService.CareVisits; i++) { <i class="@(i < d.Visits ? "on" : "")"></i> }</div>
+    </div>
+    <section class="zone z-on" aria-labelledby="zWk" style="margin:14px 0">
+        <h2 id="zWk">주일별 출석 <small>첫 방문부터 이번 주일까지</small></h2>
+        <div class="ncwk">@foreach (var w in d.Weeks) { <span class="@(w.Present ? "on" : "")"><b>@(w.Present ? "●" : "○")</b>@($"{w.Sunday.Month}/{w.Sunday.Day}")</span> }</div>
+    </section>
+    @if (Model.Tenant.IsAdmin)
+    {
+        <form method="post" asp-page-handler="Delete" onsubmit="return confirm('@d.Name 새친구를 지울까요? 반 · 출석 기록도 함께 지워지고 되돌릴 수 없어요.');">
+            <input type="hidden" name="id" value="@d.PersonId" />
+            <button class="btn d wide" type="submit">잘못 등록했어요 · 지우기</button>
+        </form>
+    }
+    <div class="nc-back"><a class="btn p" href="/@slug/attendance/newcomers">새친구 화면으로</a></div>
+</div></main>
+<partial name="_AttTabs" model='(slug, "n", true)' />
