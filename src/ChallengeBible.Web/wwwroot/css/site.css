@@ -3062,6 +3062,26 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .fcw .fc-back a { display: flex; align-items: center; justify-content: center; width: 100%; height: 50px; border-radius: 14px; background: #2F80ED; color: #fff; font-weight: 800; font-size: 15px; text-decoration: none; }
 .fcw .fc-foot { margin: 14px 0 90px; text-align: center; font-size: 11.5px; color: #9CA3AF; }
 
+/* 새친구 상세 "주일별 출석" 한 줄 + 스위치(확정 시안, 주변 흰 카드 테마 · 2026-11-13) */
+.wkc { gap: 0; padding: 4px 14px 12px; }
+.wkc .wh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 10px 0 8px; }
+.wkc .wh h2 { margin: 0; font-size: 17px; }
+.wkc .wh small { font-size: 12.5px; color: var(--dim); }
+.wkc .wrow { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 0; border: 0; border-top: 1px solid var(--rule); background: none; font: inherit; text-align: left; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.wkc .wrow .t { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.wkc .wrow .t b { font-size: 16px; font-weight: 800; }
+.wkc .wrow .t small { font-size: 12.5px; color: var(--dim); margin-top: 1px; }
+.wkc .wrow em { font-style: normal; font-size: 13.5px; font-weight: 800; color: var(--dim); }
+.wkc .wrow.on em { color: var(--ok); }
+.wkc .sw { position: relative; flex: none; width: 54px; height: 32px; border-radius: 99px; background: color-mix(in srgb, var(--dim) 40%, #fff); transition: background .15s; }
+.wkc .sw i { position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .15s; }
+.wkc .wrow.on .sw { background: var(--ok); }
+.wkc .wrow.on .sw i { transform: translateX(22px); }
+.wkc .wrow.busy { cursor: progress; }
+.wkc .wrow.busy .sw { visibility: hidden; }
+.wkc .wrow.busy::after { content: ""; position: absolute; right: 16px; top: 50%; width: 22px; height: 22px; margin-top: -11px; border: 2px solid #E1E6EE; border-top-color: var(--y-blue, #2F80ED); border-radius: 50%; animation: kspin .8s linear infinite; }
+.wkc .wnote { margin: 6px 0 0; padding-top: 10px; border-top: 1px solid var(--rule); text-align: center; font-size: 12.5px; color: var(--dim); }
+
 /* 출석 아래 탭 — 유년부 _AttTabs 그대로 */
 .attTabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; background: #FFFFFF; border-top: 1px solid #EEF0F3; padding-bottom: env(safe-area-inset-bottom, 0px); }
 .attTabs nav { max-width: 760px; margin: 0 auto; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; height: 58px; }

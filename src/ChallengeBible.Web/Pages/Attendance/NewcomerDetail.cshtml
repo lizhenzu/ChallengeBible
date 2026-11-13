@@ -12,14 +12,26 @@
     @if (Model.Error is { } err) { <p class="err" role="alert">@err</p> }
     @if (Model.Ok == "edit") { <p class="okmsg" role="status">정보를 고쳤어요</p> }
     <div class="nc-card">
-        <div class="r1"><b>@(d.Done ? "4주 관리 완료" : "4주 관리 중")</b><span class="st @(d.Done ? "done" : "")">출석 @(d.Visits)번@(d.Done && d.DoneOn is { } on ? $" · 완료 {on:M월 d일}" : "")</span></div>
+        <div class="r1"><b>@(d.Done ? "4주 관리 완료" : "4주 관리 중")</b><span class="st @(d.Done ? "done" : "")">출석 <span id="ncN">@d.Visits</span>번@(d.Done && d.DoneOn is { } on ? $" · 완료 {on:M월 d일}" : "")</span></div>
         <small>@how@(string.IsNullOrEmpty(d.Phone) ? "" : " · " + d.Phone)</small>
         <div class="nc-bar" aria-label="출석 @d.Visits / 4">@for (var i = 0; i < AttendanceService.CareVisits; i++) { <i class="@(i < d.Visits ? "on" : "")"></i> }</div>
     </div>
-    <section class="zone z-on" aria-labelledby="zWk" style="margin:14px 0">
-        <h2 id="zWk">주일별 출석 <small>첫 방문부터 이번 주일까지</small></h2>
-        <div class="ncwk">@foreach (var w in d.Weeks) { <span class="@(w.Present ? "on" : "")"><b>@(w.Present ? "●" : "○")</b>@($"{w.Sunday.Month}/{w.Sunday.Day}")</span> }</div>
+    @* 확정 시안(2026-11-13): 주일마다 한 줄 + 스위치. 누르면 출석 ↔ 결석이 바로 저장(출석부와 같은 JS · 같은 저장 주소) *@
+    @Html.AntiForgeryToken()
+    <section class="nc-card wkc" aria-labelledby="zWk" style="margin:14px 0">
+        <div class="wh"><h2 id="zWk">주일별 출석</h2><small>첫 방문부터 이번 주일까지</small></div>
+        <div id="board" data-slug="@slug" data-sunday="">
+            @for (var i = 0; i < d.Weeks.Count; i++)
+            {
+                var w = d.Weeks[i];
+                <button type="button" class="wrow @(w.Present ? "on" : "")" data-id="@d.PersonId" data-name="@d.Name" data-sunday="@w.Sunday.ToString("yyyy-MM-dd")" data-p="@(w.Present ? "1" : "0")" aria-pressed="@(w.Present ? "true" : "false")">
+                    <span class="t"><b>@(w.Sunday.Month)월 @(w.Sunday.Day)일</b><small>@(i == 0 ? "첫 방문 주일" : $"{i + 1}주째")</small></span><em>@(w.Present ? "출석" : "결석")</em><span class="sw" aria-hidden="true"><i></i></span>
+                </button>
+            }
+        </div>
+        <p class="wnote">스위치를 누르면 출석 ↔ 결석이 바로 바뀌어요</p>
     </section>
+    <div class="toast hidden" id="toast" role="alert"></div>
     <a class="btn s wide" href="/@slug/attendance/newcomers/edit?id=@d.PersonId" style="margin-bottom:10px">정보 고치기</a>
     @if (Model.Tenant.IsAdmin)
     {
@@ -31,3 +43,4 @@
     <div class="nc-back"><a class="btn p" href="/@slug/attendance/newcomers">새친구 화면으로</a></div>
 </div></main>
 <partial name="_AttTabs" model='(slug, "n", true)' />
+<script src="~/js/attendance.js" asp-append-version="true"></script>
