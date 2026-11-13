@@ -423,6 +423,24 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         var det = await a.GetStringAsync($"/jamsil-kids/attendance/newcomers/detail?id={pid}");
         Assert.Contains("4주 관리 중", det);
         Assert.Contains("잘못 등록했어요", det);
+        // R-256 주일별 출석을 눌러서 고친다: 주일마다 한 줄(스위치), 저장은 출석부와 같은 주소
+        Assert.Contains("class=\"wrow", det);
+        Assert.Contains("id=\"board\"", det);
+        var wkSunday = Regex.Match(det, "class=\"wrow[^\"]*\" data-id=\"\\d+\" data-name=\"[^\"]*\" data-sunday=\"([0-9-]+)\"").Groups[1].Value;
+        Assert.NotEmpty(wkSunday);
+        async Task SetWeek(bool on)
+        {
+            var rq = new HttpRequestMessage(HttpMethod.Post, "/jamsil-kids/attendance?handler=Set")
+            {
+                Content = new StringContent($"{{\"personId\":{pid},\"sunday\":\"{wkSunday}\",\"present\":{(on ? "true" : "false")}}}", System.Text.Encoding.UTF8, "application/json"),
+            };
+            rq.Headers.Add("RequestVerificationToken", TokenRx().Match(det).Groups[1].Value);
+            Assert.Equal(HttpStatusCode.OK, (await a.SendAsync(rq)).StatusCode);
+        }
+        await SetWeek(true);
+        Assert.Contains("<span id=\"ncN\">1</span>", await a.GetStringAsync($"/jamsil-kids/attendance/newcomers/detail?id={pid}"));
+        await SetWeek(false);
+        Assert.Contains("<span id=\"ncN\">0</span>", await a.GetStringAsync($"/jamsil-kids/attendance/newcomers/detail?id={pid}"));
         Assert.Contains($"href=\"/jamsil-kids/attendance/newcomers/edit?id={pid}\"", det);   // R-251 정보 고치기
         var editForm = await a.GetStringAsync($"/jamsil-kids/attendance/newcomers/edit?id={pid}");
         Assert.Contains("value=\"오다은\"", editForm);

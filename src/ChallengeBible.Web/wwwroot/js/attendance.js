@@ -37,6 +37,9 @@
     put('presentN', came); put('leftN', total - came); put('cLeft', total - came);
     const bar = document.getElementById('barFill');
     if (bar) bar.style.width = (total ? Math.round((came * 100) / total) : 0) + '%';
+    // 새친구 상세: 위 카드의 "출석 N번"과 4칸 막대도 같이(주일 칸을 누를 때)
+    const ncN = document.getElementById('ncN');
+    if (ncN) { ncN.textContent = came; document.querySelectorAll('.nc-bar i').forEach((i, ix) => i.classList.toggle('on', ix < came)); }
     let todo = 0, done = 0;
     document.querySelectorAll('.grp').forEach((g) => {
       const ks = g.querySelectorAll('[data-id]'), c = g.querySelectorAll('[data-id][data-p="1"]').length;
@@ -57,6 +60,7 @@
     k.classList.toggle('on', on);
     k.setAttribute('aria-pressed', on ? 'true' : 'false');
     const ck = k.querySelector('.ck'); if (ck) ck.textContent = on ? '✓ 출석' : '출석';
+    if (k.classList.contains('wrow')) { const em = k.querySelector('em'); if (em) em.textContent = on ? '출석' : '결석'; }   // 새친구 상세 주일 줄
     // 기존 출석 변경(K7): 이름 옆 [출석]/[결석]
     const pill = k.querySelector('.pill'); if (pill) { pill.textContent = on ? '출석' : '결석'; pill.classList.toggle('y', on); pill.classList.toggle('n', !on); }
   }
@@ -73,7 +77,7 @@
       const res = await fetch(`/${slug}/attendance?handler=Set`, {
         method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', RequestVerificationToken: token },
-        body: JSON.stringify({ personId: Number(k.dataset.id), sunday, present: next }),
+        body: JSON.stringify({ personId: Number(k.dataset.id), sunday: k.dataset.sunday || sunday, present: next }),
       });
       const j = await res.json().catch(() => null);
       if (!res.ok || !j || !j.ok) throw new Error((j && j.message) || '잠시 뒤에 다시 해 주세요');
