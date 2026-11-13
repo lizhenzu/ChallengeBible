@@ -5,7 +5,7 @@
 <main class="att gut attw"><div class="wrap">@* attw: 데스크톱에서 유년부처럼 760px(R-270) *@
     @if (!Model.Scope.Any)
     {
-        <div class="top"><div class="crumb"><span>@Model.Tenant.Current.Name › 출석</span><a href="/@slug">부서 홈으로</a></div><h1>출석</h1></div>
+        <div class="top"><div class="crumb"><span><a href="/@slug">교사전용</a> › 출석부</span><a href="/@slug">홈으로</a></div><h1>출석</h1></div>
         <p class="none">아직 맡은 반이 없어요. 부서 관리자가 반 선생님으로 넣으면 출석부가 보여요.</p>
     }
     else
@@ -15,7 +15,7 @@
         var pct = b.Total == 0 ? 0 : b.Present * 100 / b.Total;
         var done = b.Groups.Count(g => g.Kids.Any(k => k.Present));
         <div class="top">
-            <div class="crumb"><span>@Model.Tenant.Current.Name › 출석</span><a href="/@slug">부서 홈으로</a></div>
+            <div class="crumb"><span><a href="/@slug">교사전용</a> › 출석부</span><a href="/@slug">홈으로</a></div>
             @{ var prevD = b.Sunday.AddDays(-7); var nextD = b.Sunday.AddDays(7); var nextOk = nextD <= b.ThisSunday; }
             <div class="nvB">
                 <div class="h"><h1>@b.Sunday.ToString("M월 d일") 주일</h1><span class="@(isThis ? "now" : "")">@(isThis ? "이번 주일" : "지난 주일 · 고치는 중")</span></div>
