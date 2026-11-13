@@ -3356,3 +3356,41 @@ a.nc-card.hidden { display: none; }
 .rk2 .rkLi .pc .bar.lo i { background: var(--yb-danger); }
 .rk2 .rkBlk { margin-bottom: 6px; }
 .rk2 .daHint b { color: var(--yb-danger); }
+
+/* ---- 주일 출석 명단(휴대폰): 확정 시안 A(R-268), .sl2 범위 ---- */
+.sl2 .hidden { display: none !important; }
+.sl2 .slSum { margin-top: 12px; padding: 14px 16px; border-radius: 18px; background: var(--yb-soft); }
+.sl2 .slSum .top { display: flex; align-items: baseline; gap: 6px; }
+.sl2 .slSum .top b { font-size: 32px; font-weight: 900; letter-spacing: -.02em; color: var(--yb-blue); }
+.sl2 .slSum .top span { font-size: 13px; color: var(--yb-dim2); }
+.sl2 .slSum .top em { margin-left: auto; font-style: normal; font-size: 13px; font-weight: 800; color: var(--yb-blue); }
+.sl2 .slSum .bar { display: block; height: 8px; margin-top: 10px; border-radius: 4px; background: #fff; overflow: hidden; }
+.sl2 .slSum .bar i { display: block; height: 100%; border-radius: 4px; background: var(--yb-blue); }
+.sl2 .slSeg button em { font-style: normal; margin-left: 3px; color: inherit; }
+.sl2 .slSeg button em.x { color: var(--yb-danger); }
+.sl2 .slSeg button em.o { color: var(--yb-ok); }
+.sl2 .slJump { display: flex; gap: 6px; margin-top: 10px; overflow-x: auto; white-space: nowrap; padding-bottom: 2px; scrollbar-width: none; }
+.sl2 .slJump::-webkit-scrollbar { display: none; }
+.sl2 .slJump a { flex: none; display: inline-flex; align-items: center; gap: 5px; padding: 7px 11px; border: 1.5px solid #E3E6EA; border-radius: 99px; background: #fff; font-size: 12.5px; font-weight: 700; color: var(--yb-ink); }
+.sl2 .slJump a i { width: 7px; height: 7px; padding: 0; border-radius: 50%; background: var(--yb-ok); }
+.sl2 .slJump a i.x { background: var(--yb-danger); }
+.sl2 .slJump a small { font-weight: 600; color: var(--yb-dim2); }
+.sl2 .slCls { margin-top: 12px; padding: 14px; border: 1.5px solid #E3E6EA; border-radius: 18px; background: #fff; scroll-margin-top: 12px; }
+.sl2 .slCls .h { display: flex; align-items: baseline; gap: 8px; }
+.sl2 .slCls .h b { font-size: 16px; font-weight: 800; color: var(--yb-ink); }
+.sl2 .slCls .h small { font-size: 12px; color: var(--yb-dim2); }
+.sl2 .slCls .h em { margin-left: auto; font-style: normal; font-size: 14px; font-weight: 800; color: var(--yb-ok); }
+.sl2 .slCls .h em.lo { color: var(--yb-danger); }
+.sl2 .slCls .h em span { font-weight: 600; color: var(--yb-dim2); }
+.sl2 .slCls .bar { display: block; height: 5px; margin-top: 8px; border-radius: 3px; background: var(--yb-grey); overflow: hidden; }
+.sl2 .slCls .bar i { display: block; height: 100%; background: var(--yb-blue); }
+.sl2 .slCls .kids { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.sl2 .slCls .k { display: inline-flex; align-items: center; gap: 5px; padding: 8px 12px; border-radius: 12px; font-size: 14px; font-weight: 700; }
+.sl2 .slCls .k.y { background: var(--yb-okbg); color: var(--yb-ok); }
+.sl2 .slCls .k.y::before { content: "✓"; font-weight: 900; }
+.sl2 .slCls .k.n { background: #fff; border: 1.5px dashed #D5DAE1; color: var(--yb-dim2); }
+.sl2 .slCls .k .nw { font-style: normal; font-size: 10.5px; font-weight: 800; padding: 1px 5px; border-radius: 6px; background: var(--yb-soft); color: var(--yb-blue); }
+.sl2 .slCls .fix { display: flex; justify-content: flex-end; margin-top: 10px; }
+.sl2 .slCls .fix a { font-size: 12.5px; font-weight: 700; color: var(--yb-blue); }
+.sl2 .slLinks { display: flex; gap: 8px; margin-top: 16px; }
+.sl2 .slLinks a { flex: 1; text-align: center; padding: 11px 0; border: 1.5px solid #E3E6EA; border-radius: 12px; font-size: 13px; font-weight: 700; color: var(--yb-ink); background: #fff; }
