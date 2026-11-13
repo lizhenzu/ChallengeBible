@@ -1,129 +1,120 @@
 @page "/{slug}/attendance/matrix"
 @model ChallengeBible.Web.Pages.Attendance.MatrixModel
 @using System.Globalization
-@* 유년부 출석부 "아이별 주별 출석표(52주)"(Views/Attendance/AdminStudentMatrixWeeks)와 같은 모양. 이름은 왼쪽 고정 · 옆으로 밀어 지난 주일 *@
+@* 확정 시안(2026-11-13): 올해 1월 ~ 오늘이 든 달, 데스크탑 전용, 위에 막대 그래프. 아직 오지 않은 주일은 흐린 칸 *@
 @{
+    ViewData["Viewport"] = "width=1120";
     var slug = Model.Tenant.Current.Slug;
     var m = Model.M;
     var sundays = m.Sundays;
-    int weeks = sundays.Count;
-    var end = m.Rep.Sunday;
+    int n = sundays.Count;
+    var thisSun = m.Rep.ThisSunday;
+    var fut = sundays.Select(s => s > thisSun).ToList();
+    int past = fut.Count(f => !f);                                   // 지난 주일 수(이번 주일 포함) = 출석률의 분모
+    int now = sundays.FindIndex(s => s == m.Rep.Sunday);
     string Key(DateOnly d) => d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     var kidsAll = m.Rep.Classes.SelectMany((c, ci) => c.Kids.Select(k => (k, c, ci))).ToList();
-    var rows = kidsAll.Select(x => new { x.k, x.c, x.ci, P = sundays.Count(s => m.Present.Contains((x.k.PersonId, s))) }).ToList();
-    var weekTotals = sundays.Select(s => kidsAll.Count(x => m.Present.Contains((x.k.PersonId, s)))).ToList();
-    int maxWeek = Math.Max(1, weekTotals.DefaultIfEmpty(0).Max());
+    var rows = kidsAll.Select(x => new { x.k, x.c, x.ci, P = sundays.Where((s, i) => !fut[i]).Count(s => m.Present.Contains((x.k.PersonId, s))) }).ToList();
+    var weekTotals = sundays.Select((s, i) => fut[i] ? (int?)null : kidsAll.Count(x => m.Present.Contains((x.k.PersonId, s)))).ToList();
+    int maxWeek = Math.Max(1, weekTotals.Max() ?? 0);
     int kids = rows.Count;
-    int Pct(int p) => (int)Math.Round(p * 100.0 / weeks);
-    int avg = kids == 0 ? 0 : (int)Math.Round(rows.Average(x => x.P) * 100.0 / weeks);
-    int perfect = rows.Count(x => x.P >= weeks);
+    int Pct(int p) => past == 0 ? 0 : (int)Math.Round(p * 100.0 / past);
+    int avg = kids == 0 ? 0 : (int)Math.Round(rows.Average(x => x.P) * 100.0 / Math.Max(1, past));
+    int perfect = rows.Count(x => past > 0 && x.P >= past);
     var groups = m.Rep.Classes.Select(c => c.Group).Distinct().ToList();
     var months = new List<(int Col, int Span, string Label)>();
-    for (int i = 0; i < weeks; i++)
+    for (int i = 0; i < n; i++)
     {
         if (i == 0 || sundays[i].Month != sundays[i - 1].Month)
         {
             int span = 1;
-            while (i + span < weeks && sundays[i + span].Month == sundays[i].Month) span++;
-            months.Add((i + 1, span, $"{sundays[i].Month}월"));
+            while (i + span < n && sundays[i + span].Month == sundays[i].Month) span++;
+            months.Add((i, span, $"{sundays[i].Month}월"));
         }
     }
     bool MonthStart(int i) => i > 0 && sundays[i].Month != sundays[i - 1].Month;
-    string Url(int w) => $"/{slug}/attendance/matrix?date={Key(end)}&weeks={w}";
 }
-<div class="yb ybt ybc ybk ybm" style="--wk:@weeks">
+<div class="yb ybm dsk">
     <header class="sh">
         <div class="hdTop"><a href="/@slug/attendance/more">더보기</a><a href="/@slug">부서 홈으로</a></div>
-        <div class="hdK">RECORD · @end.Year</div>
-        <h1 class="hdT">아이별 주별 출석표(52주)</h1>
-        <div class="mxDn">
-            <span>@sundays[0].ToString("M.d") ~ @end.ToString("M.d") · @(weeks)주</span>
-            <span>·</span>
-            <a href="@Url(4)" class="@(weeks == 4 ? "on" : "")">최근 4주</a>
-            <a href="@Url(13)" class="@(weeks == 13 ? "on" : "")">13주</a>
-            <a href="@Url(26)" class="@(weeks == 26 ? "on" : "")">26주</a>
-            <a href="@Url(52)" class="@(weeks == 52 ? "on" : "")">52주</a>
-        </div>
-        <div class="st2">
+        <div class="hdK">RECORD · @thisSun.Year</div>
+        <h1 class="hdT">아이별 주별 출석표</h1>
+        <div class="dk-st">
             <div>아이<b>@kids</b></div>
             <div>평균 출석률<b>@(avg)%</b></div>
             <div class="k">개근<b>@perfect</b></div>
+            <div>기간<b class="sm">1월 ~ @(sundays[^1].Month)월 · @(past)주</b></div>
         </div>
     </header>
 
     <div class="sh">
-        <div class="wkChart">
-            <div class="t"><span>주일별 출석 수</span><span>가장 많은 주 @(maxWeek)명</span></div>
-            <div class="mxGrid bars">
-                @for (int i = 0; i < weeks; i++)
+        <div class="dk-chart">
+            <div class="t"><span>주일별 출석 수 · 1월 ~ @(sundays[^1].Month)월</span><span>가장 많은 주 @(maxWeek)명</span></div>
+            <div class="bars" style="grid-template-columns:repeat(@n,1fr)">
+                @for (int i = 0; i < n; i++)
                 {
-                    var h = (int)Math.Round(weekTotals[i] * 60.0 / maxWeek);
-                    <a href="/@slug/attendance/report?sunday=@Key(sundays[i])" class="js-roster @(i == weeks - 1 ? "now" : "")" data-mobile="/@slug/attendance/sunday?sunday=@Key(sundays[i])"
-                       style="height:@(h)px" title="@sundays[i].ToString("M/d", CultureInfo.InvariantCulture) · @(weekTotals[i])명 출석"></a>
+                    if (fut[i]) { <span class="fu" title="@sundays[i].ToString("M/d", CultureInfo.InvariantCulture) · 아직 안 온 주일"></span> }
+                    else { <a href="/@slug/attendance/report?sunday=@Key(sundays[i])" class="@(i == now ? "now" : "")" style="height:@((int)Math.Round(weekTotals[i]!.Value * 120.0 / maxWeek))px" title="@sundays[i].ToString("M/d", CultureInfo.InvariantCulture) · @(weekTotals[i])명 출석"><b>@weekTotals[i]</b></a> }
                 }
             </div>
-            <div class="mxGrid mxMo">
-                @foreach (var mo in months) { <span style="grid-column:@mo.Col / span @mo.Span">@mo.Label</span> }
+            <div class="mo" style="grid-template-columns:repeat(@n,1fr)">
+                @foreach (var mo in months) { <span style="grid-column:@(mo.Col + 1) / span @mo.Span">@mo.Label</span> }
             </div>
         </div>
     </div>
 
-    <div class="mxTools">
-        <div class="sh">
-            @if (groups.Count > 1)
-            {
-                <div class="tRow">
-                    <div class="rkChips" aria-label="학년">
-                        <button type="button" data-g="" class="on">전체</button>
-                        @foreach (var g in groups) { <button type="button" data-g="@g">@g</button> }
-                    </div>
-                </div>
-            }
-            <div class="tRow">
-                <input class="srch" id="q" type="search" placeholder="이름 찾기" aria-label="이름 찾기" />
-                <div class="mxSeg" aria-label="정렬">
-                    <button type="button" data-s="class" class="on">반</button>
-                    <button type="button" data-s="name">이름</button>
-                    <button type="button" data-s="rate">출석률</button>
-                </div>
+    <div class="dk-tools sh">
+        @if (groups.Count > 1)
+        {
+            <div class="chips rkChips" aria-label="학년">
+                <button type="button" data-g="" class="on">전체</button>
+                @foreach (var g in groups) { <button type="button" data-g="@g">@g</button> }
             </div>
+        }
+        <input id="q" type="search" placeholder="이름 찾기" aria-label="이름 찾기" />
+        <div class="seg" aria-label="정렬">
+            <button type="button" data-s="class" class="on">반</button>
+            <button type="button" data-s="name">이름</button>
+            <button type="button" data-s="rate">출석률</button>
         </div>
     </div>
 
-    <main class="shW">
-        <div class="hint">
-            <span>← 밀면 지난 주일 · 날짜 누르면 명단</span>
-            <span class="lg"><i class="p"></i>출석<i></i>결석<i class="x3"></i>연속 결석</span>
+    <main class="sh">
+        <div class="dk-hint">
+            <span>@(sundays[^1].Month)월까지 한 화면에 · 손가락으로 확대해서 보세요 · 날짜를 누르면 그 주일 보고서</span>
+            <span class="lg"><i class="p"></i>출석<i></i>결석<i class="x3"></i>연속 결석<i class="f"></i>아직 안 온 주일</span>
         </div>
-        <div class="mxW" id="mxW">
-            <table class="mxT">
+        <div class="dk-wrap">
+            <table class="dk">
                 <thead>
                     <tr class="r1">
                         <th class="nm" rowspan="3">이름 · 출석률</th>
-                        @foreach (var mo in months) { <th class="mh @(mo.Col > 1 ? "m1" : "")" colspan="@mo.Span">@mo.Label</th> }
+                        @foreach (var mo in months) { <th class="mh @(mo.Col > 0 ? "m1" : "")" colspan="@mo.Span">@mo.Label</th> }
                     </tr>
                     <tr class="r2">
-                        @for (int i = 0; i < weeks; i++)
+                        @for (int i = 0; i < n; i++)
                         {
-                            <th class="dh @(MonthStart(i) ? "m1" : "") @(i == weeks - 1 ? "now" : "")"><a href="/@slug/attendance/report?sunday=@Key(sundays[i])" class="js-roster" data-mobile="/@slug/attendance/sunday?sunday=@Key(sundays[i])" title="@sundays[i].ToString("M월 d일") 명단">@sundays[i].ToString("M/d", CultureInfo.InvariantCulture)</a></th>
+                            <th class="dh @(MonthStart(i) ? "m1" : "") @(i == now ? "now" : "") @(fut[i] ? "fu" : "")">
+                                @if (fut[i]) { @sundays[i].Day } else { <a href="/@slug/attendance/report?sunday=@Key(sundays[i])" title="@sundays[i].ToString("M월 d일") 보고서">@sundays[i].Day</a> }
+                            </th>
                         }
                     </tr>
                     <tr class="r3">
-                        @for (int i = 0; i < weeks; i++) { <th class="tn @(MonthStart(i) ? "m1" : "") @(i == weeks - 1 ? "now" : "")">@(weekTotals[i])명</th> }
+                        @for (int i = 0; i < n; i++) { <th class="tn @(MonthStart(i) ? "m1" : "") @(i == now ? "now" : "") @(fut[i] ? "fu" : "")">@(fut[i] ? "·" : weekTotals[i]!.Value.ToString())</th> }
                     </tr>
                 </thead>
                 <tbody id="list">
                     @foreach (var x in rows)
                     {
                         int pct = Pct(x.P);
-                        int tail = 0; for (int i = weeks - 1; i >= 0 && !m.Present.Contains((x.k.PersonId, sundays[i])); i--) tail++;
+                        int tail = 0; for (int i = Math.Max(now, 0); i >= 0 && !m.Present.Contains((x.k.PersonId, sundays[i])); i--) tail++;
                         <tr class="@(pct < 50 ? "lo" : "")" data-g="@x.c.Group" data-class="@x.ci" data-name="@x.k.Name" data-rate="@pct">
-                            <td class="nm" title="@x.k.Name · @x.c.Name · @x.P/@weeks"><b>@x.k.Name</b><small>@x.c.Name · <em>@(pct)%</em></small></td>
-                            @for (int i = 0; i < weeks; i++)
+                            <td class="nm" title="@x.k.Name · @x.c.Name · @x.P/@past"><b>@x.k.Name</b><small>@x.c.Name · <em>@(pct)%</em></small></td>
+                            @for (int i = 0; i < n; i++)
                             {
-                                bool ok = m.Present.Contains((x.k.PersonId, sundays[i]));
-                                bool x3 = !ok && tail >= 3 && i >= weeks - tail;
-                                <td class="c @(MonthStart(i) ? "m1" : "") @(i == weeks - 1 ? "now" : "")"><i class="@(ok ? "p" : "") @(x3 ? "x3" : "")" title="@sundays[i].ToString("M/d", CultureInfo.InvariantCulture) @(ok ? "출석" : "결석")"></i></td>
+                                bool ok = !fut[i] && m.Present.Contains((x.k.PersonId, sundays[i]));
+                                bool x3 = !fut[i] && !ok && tail >= 3 && i > now - tail;
+                                <td class="c @(MonthStart(i) ? "m1" : "") @(i == now ? "now" : "")"><i class="@(fut[i] ? "f" : ok ? "p" : "") @(x3 ? "x3" : "")" title="@sundays[i].ToString("M/d", CultureInfo.InvariantCulture) @(fut[i] ? "아직 안 온 주일" : ok ? "출석" : "결석")"></i></td>
                             }
                         </tr>
                     }
@@ -131,10 +122,9 @@
             </table>
         </div>
         <div class="none hidden" id="noHit">찾는 아이가 없어요.</div>
-        <div class="ft"><span>칸 하나 = 주일 하나 · 맨 오른쪽(색칠된 줄)이 가장 최근 주일</span></div>
+        <p class="dk-ft">칸 하나 = 주일 하나 · 색칠된 줄이 이번 주일 · 오른쪽 흐린 칸은 아직 오지 않은 주일</p>
     </main>
 </div>
-<partial name="_AttTabs" model='(slug, "more", true)' />
 <script>
 (function () {
     let grade = '', sort = 'class', dir = 1, q = '';
@@ -165,9 +155,6 @@
         apply();
     }));
     document.getElementById('q').addEventListener('input', e => { q = e.target.value.trim(); apply(); });
-    if (window.matchMedia('(max-width: 759px)').matches)
-        document.querySelectorAll('.js-roster').forEach(a => { a.href = a.dataset.mobile; });
     apply();
-    const w = document.getElementById('mxW'); w.scrollLeft = w.scrollWidth;
 })();
 </script>

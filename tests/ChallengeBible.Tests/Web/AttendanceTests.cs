@@ -341,6 +341,24 @@ public class AttendanceTests
     }
 
     [Fact]
+    public async Task R258_주별_출석표는_올해_1월부터_오늘이_든_달까지_앞으로_올_주일은_세지_않는다()
+    {
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = _kidA, Sunday = Sun });               // 이번 주일(2027-01-03)
+            raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = _kidA, Sunday = Sun.AddDays(7) });    // 아직 안 온 주일: 센 값이 아니다
+            raw.SaveChanges();
+        }
+        var a = Att(_kids, admin: true);
+        var m = await a.MatrixMonthAsync(null);                                    // 오늘 = 2027-01-05
+        Assert.Equal([3, 10, 17, 24, 31], m.Sundays.Select(s => s.Day));          // 올해 첫 주일 ~ 1월 마지막 주일
+        Assert.Equal(Sun, m.Rep.ThisSunday);
+        Assert.Equal([(_kidA, Sun)], m.Present.ToList());                          // 이번 주일 뒤는 담지 않는다
+        var later = await a.MatrixMonthAsync(new DateOnly(2028, 1, 1));            // 오늘보다 뒤 기준일은 오늘로
+        Assert.Equal(2027, later.Sundays[0].Year);
+    }
+
+    [Fact]
     public async Task R230_진급하면_출석_기록도_새_부서로_옮겨진다()
     {
         var acc = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수");
@@ -534,8 +552,12 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/rank")).StatusCode);
 
         // 아이별 주별 출석표
-        Assert.Contains("href=\"/jamsil-kids/attendance/matrix?weeks=", more);
-        Assert.Equal(13, Regex.Matches(await a.GetStringAsync("/jamsil-kids/attendance/matrix?weeks=13"), "class=\"dh ").Count);
+        Assert.Contains("href=\"/jamsil-kids/attendance/matrix\"", more);
+        var mx = await a.GetStringAsync("/jamsil-kids/attendance/matrix");
+        Assert.Contains("name=\"viewport\" content=\"width=1120\"", mx);                // 데스크탑 전용
+        Assert.Contains("class=\"dk-chart\"", mx);                                       // 위에 막대 그래프
+        Assert.InRange(Regex.Matches(mx, "<th class=\"dh ").Count, 4, 53);              // 올해 1월 ~ 이번 달 주일 칸이 한 화면에
+        Assert.DoesNotContain("최근 4주", mx);                                           // 4 · 13 · 26 · 52주 고르기는 없다
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/matrix")).StatusCode);
 
         // 출석 대시보드(반 하나 / 전체 반)
