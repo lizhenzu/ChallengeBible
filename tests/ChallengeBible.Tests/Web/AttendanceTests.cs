@@ -558,6 +558,7 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("class=\"dk-chart\"", mx);                                       // 위에 막대 그래프
         Assert.InRange(Regex.Matches(mx, "<th class=\"dh ").Count, 4, 53);              // 올해 1월 ~ 이번 달 주일 칸이 한 화면에
         Assert.DoesNotContain("최근 4주", mx);                                           // 4 · 13 · 26 · 52주 고르기는 없다
+        Assert.Contains("연속 결석(3주 이상)", mx);                                       // 연속 결석 기준이 눈에 보인다(진한 빨강 칸, 확정 시안 C)
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/matrix")).StatusCode);
 
         // 출석 대시보드(반 하나 / 전체 반)

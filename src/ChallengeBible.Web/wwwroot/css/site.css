@@ -2959,9 +2959,9 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .ybm .dk-tools .seg button.on { background: var(--yb-soft); border-color: var(--yb-line); color: var(--yb-blue); }
 .ybm .dk-hint { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; font-size: 11.5px; color: var(--yb-dim); }
 .ybm .dk-hint .lg { white-space: nowrap; }
-.ybm .dk-hint .lg i { display: inline-block; width: 12px; height: 9px; border: 1px solid #D5DAE1; vertical-align: -1px; margin: 0 3px 0 8px; }
+.ybm .dk-hint .lg i { display: inline-block; width: 12px; height: 9px; border: 1px solid #E3E7ED; vertical-align: -1px; margin: 0 3px 0 8px; }
 .ybm .dk-hint .lg i.p { background: var(--yb-blue); border-color: var(--yb-blue); }
-.ybm .dk-hint .lg i.x3 { border-color: var(--yb-danger); }
+.ybm .dk-hint .lg i.x3 { background: var(--yb-danger); border-color: var(--yb-danger); }
 .ybm .dk-hint .lg i.f { border-style: dashed; background: #F4F6F9; }
 .ybm .dk-wrap { margin-top: 6px; border: 1px solid #E3E7ED; border-radius: 10px; overflow: hidden; }
 .ybm table.dk { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
@@ -2980,9 +2980,9 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .ybm .dk .m1 { border-left: 1px solid #9CA3AF; }
 .ybm .dk .now { background: var(--yb-soft); }
 .ybm .dk td.c { text-align: center; border-bottom: 1px solid var(--yb-line); height: 30px; }
-.ybm .dk td.c i { display: inline-block; width: 13px; height: 14px; border: 1px solid #D5DAE1; border-radius: 3px; vertical-align: middle; }
+.ybm .dk td.c i { display: inline-block; width: 13px; height: 14px; border: 1px solid #E3E7ED; border-radius: 3px; vertical-align: middle; }
 .ybm .dk td.c i.p { background: var(--yb-blue); border-color: var(--yb-blue); }
-.ybm .dk td.c i.x3 { border-color: var(--yb-danger); }
+.ybm .dk td.c i.x3 { background: var(--yb-danger); border-color: var(--yb-danger); }
 .ybm .dk td.c i.f { border: 1px dashed #E3E7ED; background: #FAFBFC; }
 .ybm .dk-ft { margin: 12px 2px 0; font-size: 11.5px; color: var(--yb-dim); }
 
