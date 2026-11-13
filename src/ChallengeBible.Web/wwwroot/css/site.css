@@ -3030,3 +3030,45 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .attTabs a.on { color: #2F80ED; font-weight: 800; }
 .attTabs a.on::before { content: ""; position: absolute; top: -1px; left: 30%; right: 30%; height: 2.5px; border-radius: 2px; background: #2F80ED; }
 .attTabs sup { position: absolute; top: 8px; left: calc(50% + 7px); min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #D9534F; color: #fff; font-size: 10px; display: grid; place-items: center; }
+
+/* ---- 월별 출석 통계 · 상세 (R-248): .ybst 범위, st* 고유 이름 ---- */
+.ybst .stH { margin: 22px 0 0; font-size: 16px; font-weight: 800; color: var(--yb-ink); }
+.ybst .stH small { margin-left: 6px; font-size: 12px; font-weight: 600; color: var(--yb-dim2); }
+.ybst .stMuted { color: var(--yb-dim2); font-size: 13px; }
+.ybst .stHint { margin: 8px 0 0; font-size: 12px; color: var(--yb-dim2); }
+.ybst .stCt { display: block; margin-bottom: 10px; font-size: 14px; color: var(--yb-ink); }
+.ybst .stYear { display: flex; align-items: center; justify-content: center; gap: 18px; }
+.ybst .stYear a { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid #E3E7ED; border-radius: 50%; font-size: 18px; color: var(--yb-ink); }
+.ybst .stYear b { font-size: 16px; }
+.ybst .stMonths { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.ybst .stMonths a { padding: 12px 0; text-align: center; border: 1px solid #E3E7ED; border-radius: 14px; background: #fff; font-weight: 700; color: var(--yb-ink); }
+.ybst .stMonths a[aria-current="page"] { background: var(--yb-blue); border-color: var(--yb-blue); color: #fff; }
+.ybst .stCta { display: flex; justify-content: center; margin-top: 14px; }
+.ybst .stCta .dbBtn { width: 100%; max-width: 320px; }
+.ybst .stTop { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.ybst .stRank { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #fff; border: 1px solid #E3E7ED; border-radius: 18px; box-shadow: 0 10px 30px rgba(17,24,39,.06); }
+.ybst .stRank .b { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; font-weight: 900; font-size: 14px; color: #fff; background: #94A3B8; flex: none; }
+.ybst .stRank.r1 .b { background: #F2B705; } .ybst .stRank.r2 .b { background: #9AA5B1; } .ybst .stRank.r3 .b { background: #C97B3C; }
+.ybst .stRank .m { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ybst .stRank .m b { font-size: 15px; color: var(--yb-ink); }
+.ybst .stRank .m small { font-size: 13px; color: var(--yb-dim2); }
+.ybst .stSum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.ybst .stSum .dbCard { margin-top: 0; text-align: center; }
+.ybst .stBars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ybst .stBars li { display: grid; grid-template-columns: 84px 1fr 34px; align-items: center; gap: 8px; font-size: 13px; }
+.ybst .stBars .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--yb-ink); }
+.ybst .stBars .bar { height: 14px; border-radius: 7px; background: #EEF2F7; overflow: hidden; }
+.ybst .stBars .bar i { display: block; height: 100%; border-radius: 7px; background: var(--yb-blue); }
+.ybst .stBars b { text-align: right; color: var(--yb-ink); }
+.ybst .stLine { display: block; width: 100%; height: auto; }
+.ybst .stLine .ax { stroke: #D5DAE1; stroke-width: 1; }
+.ybst .stLine .ln { fill: none; stroke: var(--yb-blue); stroke-width: 2.5; stroke-linejoin: round; }
+.ybst .stLine .pt { fill: var(--yb-blue); } .ybst .stLine .pt.fu { fill: #C9D3E0; }
+.ybst .stLine text { font-size: 10px; fill: var(--yb-dim2); text-anchor: middle; }
+.ybst .stLine .yl { text-anchor: end; } .ybst .stLine .vl { font-weight: 700; fill: var(--yb-ink); }
+.ybst .stTable { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ybst .stTable th { padding: 8px 6px; text-align: left; font-size: 12px; color: var(--yb-dim2); border-bottom: 1px solid #E3E7ED; }
+.ybst .stTable td { padding: 10px 6px; border-bottom: 1px solid #F0F2F5; }
+.ybst .stTable .r { text-align: right; }
+.ybst .stTable .cn a { font-weight: 700; color: var(--yb-blue); }
+.ybst .stTable .bd { display: inline-grid; place-items: center; min-width: 24px; height: 24px; border-radius: 12px; background: #EEF2F7; font-size: 12px; font-weight: 800; color: var(--yb-ink); }

@@ -1,0 +1,93 @@
+@page "/{slug}/attendance/stats/detail"
+@model ChallengeBible.Web.Pages.Attendance.StatsDetailModel
+@using System.Globalization
+@using ChallengeBible.Web.Pages.Attendance
+@* 유년부 출석부 "월별 출석 상세"(Views/Attendance/StatisticsDetail)와 같은 짜임: 반별 가로 막대 · 주별 선 · 반별 표(누르면 출석 체크) *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var s = Model.S;
+    var inv = CultureInfo.InvariantCulture;
+    var maxClass = Math.Max(1, s.Classes.Select(c => c.Total).DefaultIfEmpty(0).Max());
+    var check = $"/{slug}/attendance?d={s.RefSunday:yyyy-MM-dd}";
+    // 선 그래프(SVG): 가로 = 주일, 세로 = 출석 수
+    const double W = 320, H = 150, L = 28, R = 12, T = 12, B = 28;
+    var maxWeek = Math.Max(1, s.Weeks.Select(w => w.Count).DefaultIfEmpty(0).Max());
+    double X(int i) => s.Weeks.Count <= 1 ? L + (W - L - R) / 2 : L + i * (W - L - R) / (s.Weeks.Count - 1);
+    double Y(int v) => T + (H - T - B) * (1 - v / (double)maxWeek);
+    var points = string.Join(" ", s.Weeks.Select((w, i) => $"{X(i).ToString("0.#", inv)},{Y(w.Count).ToString("0.#", inv)}"));
+}
+<div class="yb ybd ybst">
+    <div class="dbTop">
+        <div class="sh">
+            <div class="hdTop"><a href="/@slug/attendance/more">더보기</a><a href="/@slug">부서 홈으로</a></div>
+            <div class="dbHead">
+                <div>
+                    <h1 class="dbT">월별 출석 상세</h1>
+                    <p class="dbSub">@s.Year-@s.Month.ToString("00") · 가로 막대(반별) + 선(주별 전체) + 표(누르면 출석 체크)</p>
+                </div>
+                <div class="dbActs" style="margin-top:0">
+                    <a class="dbBtn" href="/@slug/attendance/stats?year=@s.Year&month=@s.Month">← 요약으로</a>
+                    <a class="dbBtn pri" href="@check">출석 체크로</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="sh">
+        <h2 class="stH">그래프</h2>
+        <section class="dbCard">
+            <b class="stCt">반별 출석 합계 (가로 막대)</b>
+            @if (s.Classes.Count == 0) { <p class="stMuted">표시할 반이 없습니다.</p> }
+            <ul class="stBars" aria-label="반별 출석 합계">
+                @foreach (var c in s.Classes)
+                {
+                    <li><span class="n">@c.Name</span><span class="bar"><i style="width:@((c.Total * 100.0 / maxClass).ToString("0.#", inv))%"></i></span><b class="num">@c.Total</b></li>
+                }
+            </ul>
+            <p class="stHint">* 반이 많아도 보기 편하도록 “가로 막대”로 표시합니다.</p>
+        </section>
+
+        <section class="dbCard" style="margin-top:14px">
+            <b class="stCt">주별 전체 출석 (선)</b>
+            <svg class="stLine" viewBox="0 0 @W @H" role="img" aria-label="주별 전체 출석">
+                <line x1="@L" y1="@(H - B)" x2="@(W - R)" y2="@(H - B)" class="ax" />
+                <line x1="@L" y1="@T" x2="@L" y2="@(H - B)" class="ax" />
+                <text x="@(L - 4)" y="@(T + 4)" class="yl">@maxWeek</text>
+                <text x="@(L - 4)" y="@(H - B)" class="yl">0</text>
+                @if (s.Weeks.Count > 1) { <polyline points="@points" class="ln" /> }
+                @for (var i = 0; i < s.Weeks.Count; i++)
+                {
+                    var w = s.Weeks[i];
+                    var x = X(i).ToString("0.#", inv);
+                    <circle cx="@x" cy="@(Y(w.Count).ToString("0.#", inv))" r="3.5" class="pt @(w.Future ? "fu" : "")" />
+                    @:<text x="@x" y="@(Math.Max(Y(w.Count) - 8, 10).ToString("0.#", inv))" class="vl">@w.Count</text>
+                    @:<text x="@x" y="@(H - B + 16)" class="xl">@w.Sunday.ToString("MM-dd")</text>
+                }
+            </svg>
+            <p class="stHint">* 그 달의 주일만 표시합니다. 아직 오지 않은 주일은 0으로 흐리게 보여요.</p>
+        </section>
+
+        <h2 class="stH">반별 출석 합계 <small>반을 누르면 그 반 출석 체크</small></h2>
+        <section class="dbCard">
+            @if (s.Classes.Count == 0)
+            {
+                <p class="stMuted">표시할 데이터가 없습니다.</p>
+            }
+            else
+            {
+                <table class="stTable" aria-label="반별 출석 합계 표">
+                    <thead><tr><th>순위</th><th>학년/반</th><th class="r">출석</th><th class="r">비율</th></tr></thead>
+                    <tbody>
+                        @{ var rank = 0; }
+                        @foreach (var c in s.Classes)
+                        {
+                            rank++;
+                            <tr><td><span class="bd">@rank</span></td><td class="cn"><a href="@check#g-@c.Id">@c.Name</a></td><td class="r num">@c.Total</td><td class="r num">@StatsDetailModel.Pct(c.Ratio)%</td></tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </section>
+    </main>
+</div>
+<partial name="_AttTabs" model='(slug, "more", true)' />

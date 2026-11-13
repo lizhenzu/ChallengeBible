@@ -293,6 +293,8 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         int dashClass;
         using (var raw = InMemoryDb.Raw(db)) dashClass = raw.ClassMembers.Where(c => c.TenantId == kids.Id && !c.IsTeacher).OrderBy(c => c.Id).Select(c => c.ClassId).FirstOrDefault();
         await Save(admin, $"/jamsil-kids/attendance/dashboard?classId={dashClass}", "12y10-반대시보드");
+        await Save(admin, "/jamsil-kids/attendance/stats", "12y11-월별통계");
+        await Save(admin, "/jamsil-kids/attendance/stats/detail", "12y12-월별상세");
         await Save(admin, "/jamsil-kids/attendance/newcomers/past", "12s3-기존출석-달");
         await Save(admin, "/jamsil-kids/attendance/newcomers/past?M=1", "12s4-기존출석-주일");
         await Save(admin, "/jamsil-kids/attendance/newcomers/past?D=2027-01-03", "12s5-기존출석-바꾸기");
