@@ -88,30 +88,38 @@
 
                 <div class="pK">CLASSES</div>
                 <div class="pT">반별 출결 상황</div>
-                <div class="cols" style="--yc:@byGroup.Count">
-                    @foreach (var g in byGroup)
+                @* 종이 출석부처럼(사용자 2026-11-13): 학년 하나 = 가로 한 줄, 같은 줄 반 칸은 같은 높이(빈 줄로 채움), 칸 수는 모든 줄이 같게 *@
+                var colN = Math.Max(1, byGroup.Max(g => g.Classes.Count));
+                <div class="rows">
+                    @for (int gi = 0; gi < byGroup.Count; gi++)
                     {
-                        <div>
-                            <div class="gH"><b>@g.Name</b><span><em>@g.Present</em> / @(g.Total)명</span></div>
+                        var g = byGroup[gi];
+                        var lines = Math.Max(1, g.Classes.Max(c => c.Kids.Count));
+                        <div class="gH"><b>@g.Name</b><span><em>@g.Present</em> / @(g.Total)명</span></div>
+                        <div class="prow t@(gi % 3)" style="--yc:@colN">
                             @foreach (var c in g.Classes)
                             {
                                 int cp = c.Kids.Count(k => k.Present);
                                 <div class="blk">
                                     <div class="bH"><b>@c.Short</b><small>@(string.IsNullOrWhiteSpace(c.Teachers) ? "담임 미지정" : c.Teachers + " 선생님")</small></div>
-                                    @if (c.Kids.Count == 0) { <div class="noKid">배정된 아이가 없어요.</div> }
-                                    @for (int i = 0; i < c.Kids.Count; i++)
+                                    @for (int i = 0; i < lines; i++)
                                     {
-                                        var k = c.Kids[i];
-                                        <div class="s1 @(k.Present ? "on" : "")">
-                                            <span class="no">@(i + 1)</span>
-                                            <span class="nm">@k.Name</span>
-                                            <span class="r @RateCss(k)">@RateText(k)</span>
-                                            <span class="mk" aria-label="@(k.Present ? "출석" : "결석")"></span>
-                                        </div>
+                                        if (i < c.Kids.Count)
+                                        {
+                                            var k = c.Kids[i];
+                                            <div class="s1 @(k.Present ? "on" : "")">
+                                                <span class="no">@(i + 1)</span>
+                                                <span class="nm">@k.Name</span>
+                                                <span class="r @RateCss(k)">@RateText(k)</span>
+                                                <span class="mk" aria-label="@(k.Present ? "출석" : "결석")"></span>
+                                            </div>
+                                        }
+                                        else { <div class="s1 blank" aria-hidden="true"></div> }
                                     }
-                                    <div class="bF">출석 <b>@cp</b><span class="x">결석 @(c.Kids.Count - cp)</span><span class="bar"><i style="width:@(ReportModel.Pct(cp, c.Kids.Count))%"></i></span></div>
+                                    <div class="bF">합계 <b>@cp</b><span class="x">결석 @(c.Kids.Count - cp)</span><span class="bar"><i style="width:@(ReportModel.Pct(cp, c.Kids.Count))%"></i></span></div>
                                 </div>
                             }
+                            @for (int e = g.Classes.Count; e < colN; e++) { <div class="blk empty" aria-hidden="true"><div class="bH">&nbsp;</div></div> }
                         </div>
                     }
                 </div>
