@@ -2911,6 +2911,59 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .ybk .rkSum b { color: var(--yb-danger); }
 .ybk .rkSum a { text-decoration: underline; color: var(--yb-blue); }
 
+/* 아이별 주별 출석표(52주) — 유년부 AdminStudentMatrixWeeks 그대로(6/9). 칩 · 숫자는 .ybk · .ybc 것을 같이 쓴다 */
+.ybm .mxDn { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; color: var(--yb-dim2); font-variant-numeric: tabular-nums; flex-wrap: wrap; }
+.ybm .mxDn a { color: var(--yb-dim2); border-bottom: 1px solid #D5DAE1; }
+.ybm .mxDn a.on { color: var(--yb-blue); border-color: var(--yb-blue); font-weight: 700; }
+.ybm .wkChart { margin-top: 18px; padding: 14px 12px 8px; border: 1px solid #E3E7ED; border-radius: 14px; }
+.ybm .wkChart .t { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--yb-dim); margin-bottom: 8px; }
+.ybm .mxGrid { display: grid; grid-template-columns: repeat(var(--wk), minmax(0, 1fr)); column-gap: 2px; }
+.ybm .bars { height: 60px; align-items: end; }
+.ybm .bars a { display: block; background: #7FA3DB; min-height: 2px; border-radius: 2px 2px 0 0; }
+.ybm .bars a.now { background: var(--yb-blue); }
+.ybm .mxMo { margin-top: 5px; font-size: 10.5px; color: var(--yb-dim); }
+.ybm .mxMo span { white-space: nowrap; border-left: 1px solid #D5DAE1; padding-left: 3px; }
+.ybm .mxMo span:first-child { border-left: 0; padding-left: 0; }
+.ybm .mxTools { border-bottom: 1px solid var(--yb-line); margin-top: 14px; }
+.ybm .mxTools .sh { padding-top: 10px; padding-bottom: 10px; }
+.ybm .tRow { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.ybm .tRow + .tRow { margin-top: 8px; }
+.ybm .mxSeg { display: flex; border: 1px solid var(--yb-line); border-radius: 10px; overflow: hidden; }
+.ybm .mxSeg button { font: inherit; font-size: 13px; padding: 8px 11px; border: 0; background: #fff; color: var(--yb-dim2); cursor: pointer; white-space: nowrap; }
+.ybm .mxSeg button + button { border-left: 1px solid var(--yb-line); }
+.ybm .mxSeg button.on { background: var(--yb-soft); color: var(--yb-blue); font-weight: 700; }
+.ybm .srch { flex: 1; min-width: 120px; height: 38px; padding: 0 10px; border: 1px solid #D5DAE1; border-radius: 10px; background: #fff; font: inherit; font-size: 15px; color: var(--yb-ink); outline: none; }
+.ybm .srch:focus { border-color: var(--yb-blue); }
+.ybm .shW { max-width: 1440px; margin: 0 auto; padding: 0 16px; }
+.ybm .hint { display: flex; justify-content: space-between; gap: 8px; white-space: nowrap; flex-wrap: wrap; margin-top: 12px; font-size: 11.5px; color: var(--yb-dim); }
+.ybm .lg i { display: inline-block; width: 12px; height: 9px; border: 1px solid #D5DAE1; vertical-align: -1px; margin: 0 3px 0 8px; }
+.ybm .lg i.p { background: var(--yb-blue); border-color: var(--yb-blue); }
+.ybm .lg i.x3 { border-color: var(--yb-danger); }
+.ybm .mxW { margin-top: 6px; overflow: auto; max-height: calc(100vh - 120px); max-height: calc(100dvh - 120px); border: 1px solid #E3E7ED; border-radius: 10px; background: #fff; overscroll-behavior-x: contain; }
+.ybm table.mxT { border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+.ybm .mxT th, .ybm .mxT td { padding: 0; }
+.ybm .mxT .nm { position: sticky; left: 0; z-index: 2; background: #fff; min-width: 112px; max-width: 112px; padding: 7px 8px 7px 12px; text-align: left; border-right: 1px solid #E3E7ED; border-bottom: 1px solid var(--yb-line); }
+.ybm .mxT .nm b { display: block; font-size: 13.5px; font-weight: 700; color: var(--yb-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ybm .mxT .nm small { display: block; font-size: 10.5px; color: var(--yb-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.ybm .mxT .nm small em { font-style: normal; font-size: 11.5px; font-weight: 600; color: var(--yb-ink); }
+.ybm .mxT tr.lo .nm small em { color: var(--yb-danger); }
+.ybm .mxT thead th { position: sticky; z-index: 3; background: #fff; }
+.ybm .mxT thead th.nm { top: 0; z-index: 4; vertical-align: bottom; font-size: 10.5px; font-weight: 700; color: var(--yb-dim); border-bottom: 1px solid var(--yb-ink); }
+.ybm .mxT .r1 th { top: 0; height: 18px; }
+.ybm .mxT .r2 th { top: 18px; height: 22px; }
+.ybm .mxT .r3 th { top: 40px; height: 18px; border-bottom: 1px solid var(--yb-ink); }
+.ybm .mxT .mh { font-size: 10.5px; font-weight: 700; text-align: left; padding-left: 4px; white-space: nowrap; }
+.ybm .mxT .dh { min-width: 34px; width: 34px; text-align: center; }
+.ybm .mxT .dh a { display: block; font-size: 11px; font-weight: 600; color: var(--yb-dim2); line-height: 22px; }
+.ybm .mxT .tn { font-size: 10px; font-weight: 700; color: var(--yb-blue); text-align: center; white-space: nowrap; }
+.ybm .mxT .m1 { border-left: 1px solid var(--yb-dim); }
+.ybm .mxT .now { background: var(--yb-soft); }
+.ybm .mxT td.c { text-align: center; border-bottom: 1px solid var(--yb-line); }
+.ybm .mxT td.c i { display: inline-block; width: 22px; height: 14px; border: 1px solid #D5DAE1; border-radius: 3px; vertical-align: middle; }
+.ybm .mxT td.c i.p { background: var(--yb-blue); border-color: var(--yb-blue); }
+.ybm .mxT td.c i.x3 { border-color: var(--yb-danger); }
+@media (min-width: 1200px) { .ybm .mxT .dh { min-width: 28px; width: 28px; } .ybm .mxT td.c i { width: 18px; } }
+
 /* 출석 아래 탭 — 유년부 _AttTabs 그대로 */
 .attTabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; background: #FFFFFF; border-top: 1px solid #EEF0F3; padding-bottom: env(safe-area-inset-bottom, 0px); }
 .attTabs nav { max-width: 760px; margin: 0 auto; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; height: 58px; }

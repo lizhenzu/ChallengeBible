@@ -259,6 +259,22 @@ public class AttendanceTests
     }
 
     [Fact]
+    public async Task R246_주별_출석표는_기준_주일까지_주일_칸마다_출석을_표시한다()
+    {
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = _kidA, Sunday = Sun.AddDays(-7) });
+            raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = _kidA, Sunday = Sun.AddDays(-70) });   // 4주 밖
+            raw.SaveChanges();
+        }
+        var a = Att(_kids, admin: true);
+        var m = await a.MatrixAsync(Sun, null);                                    // 올해 1주 → 최소 4주
+        Assert.Equal([Sun.AddDays(-21), Sun.AddDays(-14), Sun.AddDays(-7), Sun], m.Sundays);
+        Assert.Equal([(_kidA, Sun.AddDays(-7))], m.Present.ToList());
+        Assert.Equal(52, (await a.MatrixAsync(Sun, 99)).Sundays.Count);
+    }
+
+    [Fact]
     public async Task R230_진급하면_출석_기록도_새_부서로_옮겨진다()
     {
         var acc = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수");
@@ -388,5 +404,10 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("href=\"/jamsil-kids/attendance/rank\"", more);
         Assert.Contains("전체 등수", await a.GetStringAsync("/jamsil-kids/attendance/rank"));
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/rank")).StatusCode);
+
+        // 아이별 주별 출석표
+        Assert.Contains("href=\"/jamsil-kids/attendance/matrix\"", more);
+        Assert.Equal(13, Regex.Matches(await a.GetStringAsync("/jamsil-kids/attendance/matrix?weeks=13"), "class=\"dh ").Count);
+        Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/matrix")).StatusCode);
     }
 }
