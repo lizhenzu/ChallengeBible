@@ -2684,6 +2684,9 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .ybr .sum .bar { display: inline-block; width: 34px; height: 4px; background: var(--yb-line); vertical-align: middle; margin-left: 8px; }
 .ybr .sum .bar i, .ybr .bF .bar i { display: block; height: 100%; background: var(--yb-ok); }
 .ybr .cols { display: grid; grid-template-columns: repeat(var(--yc), minmax(0, 1fr)); gap: 18px; align-items: start; }
+/* 제목과 종이만 남긴 보고서(사용자 확정 2026-11-13): 아래 탭이 없으니 아래 여백 · 최소 높이를 줄인다 */
+.ybr.bare { padding-bottom: 24px; min-height: 0; }
+.ybr .rpT { margin: 22px 0 0; }
 /* 종이 출석부처럼: 학년 = 가로 한 줄, 같은 줄 칸은 같은 높이(사용자 2026-11-13) */
 .ybr .rows .gH { margin-top: 18px; }
 .ybr .prow { display: grid; grid-template-columns: repeat(var(--yc), minmax(0, 1fr)); gap: 10px; align-items: stretch; }

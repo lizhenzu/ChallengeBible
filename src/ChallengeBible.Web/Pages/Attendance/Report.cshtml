@@ -8,56 +8,15 @@
     var slug = Model.Tenant.Current.Slug;
     var r = Model.Rep;
     var sunday = r.Sunday;
-    var dateStr = sunday.ToString("yyyy-MM-dd");
     var all = r.Classes.SelectMany(c => c.Kids).ToList();
     int total = all.Count, present = all.Count(k => k.Present), absent = total - present;
     var byGroup = r.Classes.GroupBy(c => c.Group).Select(g => new { Name = g.Key, Classes = g.ToList(), Total = g.Sum(c => c.Kids.Count), Present = g.Sum(c => c.Kids.Count(k => k.Present)) }).ToList();
     int Rate(AttendanceService.RepKid k) => Math.Clamp((int)Math.Round(k.YearCount * 100.0 / r.WeeksCount), 0, 100);
     string RateText(AttendanceService.RepKid k) => k.Newcomer ? $"새 {k.Visits}회" : $"{Rate(k)}%";
     string RateCss(AttendanceService.RepKid k) => k.Newcomer ? "nw" : Rate(k) >= 80 ? "g" : Rate(k) >= 50 ? "m" : "b";
-    var jan1 = new DateOnly(sunday.Year, 1, 1);
-    var first = jan1.AddDays(((int)DayOfWeek.Sunday - (int)jan1.DayOfWeek + 7) % 7);
-    var last = r.ThisSunday.Year == sunday.Year ? r.ThisSunday : new DateOnly(sunday.Year, 12, 31);
-    var sundays = new List<DateOnly>();
-    for (var d = last.AddDays(-(int)last.DayOfWeek); d >= first; d = d.AddDays(-7)) sundays.Add(d);
-    bool atLatest = sunday >= r.ThisSunday;
-    string Self(DateOnly d) => $"/{slug}/attendance/report?sunday={d:yyyy-MM-dd}";
 }
-<div class="yb ybr">
-    <header class="sh">
-        <div class="hdTop"><span><a href="/@slug/attendance/trend?date=@dateStr">전체 출석현황</a><span style="margin:0 6px;color:var(--yb-dim)">›</span>주일 보고서</span><a href="/@slug">부서 홈으로</a></div>
-        <div class="row1">
-            <div>
-                <div class="hdK">REPORT · @Model.Tenant.Current.Name</div>
-                <h1 class="hdT">@sunday.ToString("M월 d일") 주일 출결 보고서</h1>
-            </div>
-            <form class="dn" method="get" action="/@slug/attendance/report">
-                <a href="@Self(sunday.AddDays(-7))" aria-label="지난 주일">‹</a>
-                <select name="sunday" onchange="this.form.submit()" aria-label="주일 고르기">
-                    @if (!sundays.Contains(sunday)) { <option value="@dateStr" selected>@dateStr</option> }
-                    @foreach (var d in sundays)
-                    {
-                        var v = d.ToString("yyyy-MM-dd");
-                        <option value="@v" selected="@(v == dateStr)">@v</option>
-                    }
-                </select>
-                @if (atLatest) { <span class="off" aria-hidden="true">›</span> } else { <a href="@Self(sunday.AddDays(7))" aria-label="다음 주일">›</a> }
-            </form>
-        </div>
-        <div class="st">
-            <div>출석률<b>@(ReportModel.Pct(present, total))%</b></div>
-            <div class="k">출석<b>@present</b></div>
-            <div class="lo">결석<b>@absent</b></div>
-            <div>재적<b>@total</b></div>
-            <div>반<b>@r.Classes.Count</b></div>
-        </div>
-        <div class="acts">
-            <button type="button" class="pri" onclick="window.print()">인쇄하기</button>
-            <a href="/@slug/attendance/sunday?sunday=@dateStr">명단 (모바일)</a>
-            <a href="/@slug/attendance/byclass?sunday=@dateStr">반별 출석</a>
-            <a href="/@slug/attendance?d=@dateStr">출석 고치기</a>
-        </div>
-    </header>
+<div class="yb ybr bare">
+    <header class="sh"><h1 class="hdT rpT">@sunday.ToString("M월 d일") 주일 출결 보고서</h1></header>
 
     <main class="sh">
         <div class="paper">
@@ -138,4 +97,3 @@
         </div>
     </main>
 </div>
-<partial name="_AttTabs" model='(slug, "more", true)' />

@@ -484,8 +484,13 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.DoesNotContain("attendance/stats", more);
         var rep = await a.GetStringAsync("/jamsil-kids/attendance/report");
         Assert.Contains("주일 출결 보고서", rep);
-        Assert.Contains("href=\"/jamsil-kids/attendance/trend?date=", rep);   // 유년부처럼 "전체 출석현황 › 주일 보고서"
-        Assert.Contains("명단 (모바일)", rep);
+        // 제목과 종이만 남긴다(사용자 확정 2026-11-13): 위 이동 줄 · 날짜 · 숫자 · 버튼 · 아래 탭이 없다
+        Assert.Contains("class=\"paper\"", rep);
+        Assert.DoesNotContain("attendance/trend?date=", rep);
+        Assert.DoesNotContain("명단 (모바일)", rep);
+        Assert.DoesNotContain("인쇄하기", rep);
+        Assert.DoesNotContain("class=\"attTabs\"", rep);
+        Assert.DoesNotContain("aria-label=\"주일 고르기\"", rep);
         Assert.Contains("새친구 1~4회째", rep);
         Assert.Contains("name=\"viewport\" content=\"width=1120\"", rep);   // 데스크탑 전용: 휴대폰에서도 PC 모양 그대로 줄여 보인다
         Assert.Contains("width=device-width", await a.GetStringAsync("/jamsil-kids/attendance/sunday"));
