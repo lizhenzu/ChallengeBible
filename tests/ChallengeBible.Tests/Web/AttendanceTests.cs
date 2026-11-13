@@ -583,6 +583,9 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         var dashAll = await a.GetStringAsync("/jamsil-kids/attendance/dashboard/all");
         Assert.Contains("전체반 출석현황", dashAll);
         Assert.Contains("class=\"dbTop flow\"", dashAll);                                  // 위 덩어리는 화면에 고정하지 않는다(사용자 2026-11-13)
+        Assert.Contains("class=\"daSum\"", dashAll);                                       // R-261 시안 B: 파란 요약 카드 · 정렬 3칸 · 반 한 줄 목록
+        Assert.Contains("미체크 먼저", dashAll);
+        Assert.Contains("href=\"/jamsil-kids/attendance/trend?date=", dashAll);
         Assert.Contains("반을 선택해 주세요", await a.GetStringAsync("/jamsil-kids/attendance/dashboard"));
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/dashboard/all")).StatusCode);
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/dashboard")).StatusCode);
