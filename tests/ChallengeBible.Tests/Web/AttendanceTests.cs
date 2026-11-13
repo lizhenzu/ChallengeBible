@@ -519,7 +519,10 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         // 최근 전체 출석현황(3주) · 주일 반별 출석
         Assert.Contains("href=\"/jamsil-kids/attendance/trend?date=", more);
         var trend = await a.GetStringAsync("/jamsil-kids/attendance/trend");
-        Assert.Equal(3, Regex.Matches(trend, "class=\"twk ").Count);
+        Assert.Equal(3, Regex.Matches(trend, "<article class=\"w o").Count);          // 주마다 카드 하나(확정 시안 2026-11-13)
+        Assert.Equal(3, Regex.Matches(trend, "class=\"main\" href=\"/jamsil-kids/attendance/byclass\\?sunday=").Count);   // 카드를 누르면 반별 출석
+        Assert.Equal(3, Regex.Matches(trend, ">명단 \\(휴대폰\\)</a>").Count);
+        Assert.DoesNotContain("명단 보기", trend);                                      // 큰 버튼 3개는 없앴다
         Assert.Contains("/jamsil-kids/attendance/byclass?sunday=", trend);
         Assert.Contains("반별 출석", await a.GetStringAsync("/jamsil-kids/attendance/byclass?sunday=2020-01-05"));
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/trend")).StatusCode);
