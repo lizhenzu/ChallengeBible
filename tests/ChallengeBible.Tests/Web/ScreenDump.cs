@@ -274,6 +274,11 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
                 new AttendanceCheck { TenantId = kids.Id, PersonId = kidPid, Sunday = sun },
                 new AttendanceCheck { TenantId = kids.Id, PersonId = kidPid, Sunday = sun.AddDays(-7) },
                 new AttendanceCheck { TenantId = kids.Id, PersonId = win.Id, Sunday = sun.AddDays(-14) });
+            // 관리를 마친 새친구(출석 4번 · 28일 지남): 새친구 홈 "4주 관리 완료" 카드 막대 · 날짜(R-273) 캡처용
+            var fin = new Person { TenantId = kids.Id, Name = "박서윤", RoleCode = "T1001", NewcomerFirstVisit = sun.AddDays(-35), NewcomerVoluntary = true, CreatedUtc = DateTime.UtcNow, CreatedByUserName = "dump" };
+            raw.People.Add(fin);
+            raw.SaveChanges();
+            foreach (var back in new[] { 35, 28, 21, 14 }) raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = kids.Id, PersonId = fin.Id, Sunday = sun.AddDays(-back) });
             raw.SaveChanges();
         }
         await Save(admin, "/jamsil-kids/attendance", "12q-출석부-오늘");

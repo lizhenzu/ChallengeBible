@@ -167,6 +167,7 @@ public class AttendanceTests
         Assert.Equal((done, 4, new DateOnly(2026, 12, 6)), (d0.PersonId, d0.Visits, d0.DoneOn));
         Assert.Equal(6, d0.Weeks.Count);                                   // 11/1 ~ 12/6 주일 6번
         Assert.Equal([true, true, false, true, false, true], d0.Weeks.Select(w => w.Present));
+        Assert.Equal([new DateOnly(2026, 11, 1), new DateOnly(2026, 11, 8), new DateOnly(2026, 11, 22), new DateOnly(2026, 12, 6)], d0.VisitDates);   // R-273 완료 카드 막대 아래 날짜
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(4, raw.AttendanceChecks.Count(x => x.PersonId == done));   // 지우지 않는다
         Assert.Equal(new DateOnly(2026, 12, 2), AttendanceService.CareOverOn(new DateOnly(2026, 11, 3), [new(2026, 11, 8), new(2026, 11, 15), new(2026, 11, 22), new(2026, 11, 29)]));
     }
