@@ -322,7 +322,11 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
     // ── 새친구 화면(확정 시안 K1 · K2 · K5 · K6 · K7, 2026-11-12) ──
 
     public sealed record NcWeek(DateOnly Sunday, bool Present);
-    public sealed record NcActive(int PersonId, string Name, string ClassName, DateOnly FirstVisit, bool? Voluntary, string? Evangelist, int Visits, bool PresentThisSunday, bool PastDays, IReadOnlyList<bool> Recent);
+    public sealed record NcActive(int PersonId, string Name, string ClassName, DateOnly FirstVisit, bool? Voluntary, string? Evangelist, int Visits, bool PresentThisSunday, bool PastDays, IReadOnlyList<bool> Recent, IReadOnlyList<DateOnly> VisitDates);
+
+    /// <summary>막대 아래 적는 출석 날짜(R-273): 첫 방문 주일부터 출석한 주일을 오래된 순으로 처음 4번(4주 관리 막대와 같은 칸 수).</summary>
+    public static List<DateOnly> VisitDates(DateOnly firstVisit, IEnumerable<DateOnly> attended) =>
+        attended.Where(s => s >= SundayOf(firstVisit)).Distinct().OrderBy(s => s).Take(CareVisits).ToList();
     public sealed record NcDone(int PersonId, string Name, string ClassName, DateOnly FirstVisit, DateOnly DoneOn, int Visits, IReadOnlyList<NcWeek> Weeks);
     public sealed record NcHome(DateOnly ThisSunday, List<NcActive> Active, List<NcDone> Done);
     public sealed record NcSunday(DateOnly Sunday, bool Future, int Newcomers, int Present);
@@ -351,7 +355,7 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
             if (!IsCareOver(first, count, today))
             {
                 var recent = Enumerable.Range(1, RecentWeeks).Reverse().Select(i => mine.Contains(thisSunday.AddDays(-7 * i))).ToList();
-                active.Add(new NcActive(p.Id, p.Name, ClassOf(p.Id), first, p.NewcomerVoluntary, p.NewcomerEvangelist, count, mine.Contains(thisSunday), first.AddDays(CareDays) < today, recent));
+                active.Add(new NcActive(p.Id, p.Name, ClassOf(p.Id), first, p.NewcomerVoluntary, p.NewcomerEvangelist, count, mine.Contains(thisSunday), first.AddDays(CareDays) < today, recent, VisitDates(first, mine)));
                 continue;
             }
             var doneOn = CareOverOn(first, [.. mine]) ?? today;
@@ -415,7 +419,7 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
                 p.NewcomerFirstVisit!.Value.AddDays(CareDays) < today)).ToList();
     }
 
-    public sealed record NcDetail(int PersonId, string Name, string ClassName, DateOnly FirstVisit, bool? Voluntary, string? Evangelist, string? Phone, int Visits, bool Done, DateOnly? DoneOn, bool Linked, IReadOnlyList<NcWeek> Weeks);
+    public sealed record NcDetail(int PersonId, string Name, string ClassName, DateOnly FirstVisit, bool? Voluntary, string? Evangelist, string? Phone, int Visits, bool Done, DateOnly? DoneOn, bool Linked, IReadOnlyList<NcWeek> Weeks, IReadOnlyList<DateOnly> VisitDates);
 
     /// <summary>새친구 상세(R-249): 첫 방문부터 이번 주일까지 주일마다 출석 · 관리 중/완료. 새친구가 아니면 null.</summary>
     public async Task<NcDetail?> NewcomerDetailAsync(int id, CancellationToken ct = default)
@@ -435,7 +439,7 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
         var weeks = new List<NcWeek>();
         for (var s = SundayOf(first); s <= thisSunday; s = s.AddDays(7)) weeks.Add(new NcWeek(s, mine.Contains(s)));
         return new NcDetail(p.Id, p.Name, cid is int c && names.TryGetValue(c, out var n) ? n : ClassService.UnassignedName, first,
-            p.NewcomerVoluntary, p.NewcomerEvangelist, p.Phone1, count, done, doneOn, p.UserId is not null, weeks);
+            p.NewcomerVoluntary, p.NewcomerEvangelist, p.Phone1, count, done, doneOn, p.UserId is not null, weeks, VisitDates(first, mine));
     }
 
     public sealed record NcEdit(int PersonId, string Name, int? BirthMonth, int? BirthDay, string? Phone1, string? Phone2, bool Voluntary, string? Evangelist, bool Linked);

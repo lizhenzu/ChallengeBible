@@ -1,0 +1,15 @@
+@* 새친구 4주 관리 막대(확정 시안 C, 사용자 2026-11-13, R-273): 막대 위 "N회" · 아래 출석한 주일 날짜, 첫 방문 주일에 "첫 방문" 꼬리표.
+   모델: (출석한 주일 날짜 최대 4개, 첫 방문 주일, 완료 여부). 새친구 상세 · 새친구 홈에서 쓴다. *@
+@model (IReadOnlyList<DateOnly> Dates, DateOnly FirstSunday, bool Done)
+@using ChallengeBible.Web.Services
+<div class="ncb @(Model.Done ? "done" : "")" data-first="@Model.FirstSunday.ToString("yyyy-MM-dd")" role="img" aria-label="출석 @(Model.Dates.Count) / @AttendanceService.CareVisits">
+    @for (var i = 0; i < AttendanceService.CareVisits; i++)
+    {
+        var has = i < Model.Dates.Count;
+        <div class="cell">
+            <em>@(i + 1)회</em>
+            <i class="@(has ? "on" : "")"></i>
+            <span class="@(has ? "" : "e")">@(has ? $"{Model.Dates[i].Month}/{Model.Dates[i].Day}" : "–")@if (has && Model.Dates[i] == Model.FirstSunday) { <b>첫 방문</b> }</span>
+        </div>
+    }
+</div>

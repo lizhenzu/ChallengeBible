@@ -27,7 +27,7 @@
             <a class="nc-card" href="/@slug/attendance/newcomers/detail?id=@a.PersonId">
                 <div class="r1"><b>@a.Name</b>@if (a.PresentThisSunday) { <span class="ok">이번 주일 출석</span> } else { <span class="st">출석 @(a.Visits)/@AttendanceService.CareVisits@(a.PastDays ? " · 28일 지남" : "")</span> }</div>
                 <small>@a.ClassName · 첫 방문 @a.FirstVisit.ToString("M월 d일") · @how</small>
-                <div class="nc-bar" aria-label="출석 @(a.Visits) / 4">@for (var i = 0; i < AttendanceService.CareVisits; i++) { <i class="@(i < a.Visits ? "on" : "")"></i> }</div>
+                <partial name="_NcBars" model="(a.VisitDates, AttendanceService.SundayOf(a.FirstVisit), false)" />
             </a>
         }
     </section>

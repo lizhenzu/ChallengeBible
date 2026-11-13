@@ -325,6 +325,30 @@ public class AttendanceTests
     }
 
     [Fact]
+    public void R273_막대_아래_날짜는_첫_방문_주일부터_출석한_주일을_오래된_순으로_처음_4번이다()
+    {
+        var first = new DateOnly(2027, 1, 5);                                   // 화요일 → 그 주일 1/3
+        var s = AttendanceService.SundayOf(first);
+        var attended = new[] { s.AddDays(21), s, s.AddDays(7), s.AddDays(-7), s.AddDays(35), s.AddDays(14), s };   // 첫 방문 전 주일 · 중복 · 4번 넘는 출석 섞음
+        var dates = AttendanceService.VisitDates(first, attended);
+        Assert.Equal([s, s.AddDays(7), s.AddDays(14), s.AddDays(21)], dates);   // 첫 방문 전은 빼고, 중복은 한 번, 최대 4개
+        Assert.Empty(AttendanceService.VisitDates(first, [s.AddDays(-14)]));
+        Assert.Equal([s.AddDays(7)], AttendanceService.VisitDates(first, [s.AddDays(7)]));   // 빠진 주일이 있으면 그대로 비워 둔다
+    }
+
+    [Fact]
+    public async Task R273_새친구_상세와_홈의_막대에_출석_날짜가_나온다()
+    {
+        var a = Att(_kids, admin: true);
+        var (_, pid) = await a.RegisterAsync("admin", new NewcomerInput("오다은", Sun, null, null, null, null, _c1, true, null));
+        using (var raw = InMemoryDb.Raw(_db)) { raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = pid, Sunday = Sun.AddDays(-7) }); raw.SaveChanges(); }   // 첫 방문 전 주일: 안 센다
+        var d = (await a.NewcomerDetailAsync(pid))!;
+        Assert.Equal([Sun], d.VisitDates);
+        var home = await a.NewcomerHomeAsync();
+        Assert.Equal([Sun], home.Active.Single(x => x.PersonId == pid).VisitDates);
+    }
+
+    [Fact]
     public async Task R246_주별_출석표는_기준_주일까지_주일_칸마다_출석을_표시한다()
     {
         using (var raw = InMemoryDb.Raw(_db))
@@ -440,6 +464,10 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains($"href=\"/jamsil-kids/attendance/newcomers/detail?id={pid}\"", home);   // R-249 새친구 상세 · 지우기
         var det = await a.GetStringAsync($"/jamsil-kids/attendance/newcomers/detail?id={pid}");
         Assert.Contains("4주 관리 중", det);
+        Assert.Equal(4, Regex.Matches(det, "<div class=\"cell\">").Count);       // R-273 막대 4칸 + 칸마다 "N회" · 날짜
+        Assert.Contains("<em>1회</em>", det);
+        Assert.Contains("<b>첫 방문</b>", det);                                  // 등록하면서 첫 방문 주일에 출석을 체크한다
+        Assert.Contains("<div class=\"cell\">", home);
         Assert.Contains("신상정보 수정", det);                                  // 정보 고치기 → 신상정보 수정
         Assert.DoesNotContain("잘못 등록했어요", det);                           // 삭제 버튼은 신상정보 수정 화면으로 옮겼다
         Assert.DoesNotContain("handler=Delete", det);

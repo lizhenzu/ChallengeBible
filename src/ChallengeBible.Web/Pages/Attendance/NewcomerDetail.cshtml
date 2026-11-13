@@ -14,7 +14,7 @@
     <div class="nc-card">
         <div class="r1"><b>@(d.Done ? "4주 관리 완료" : "4주 관리 중")</b><span class="st @(d.Done ? "done" : "")">출석 <span id="ncN">@d.Visits</span>번@(d.Done && d.DoneOn is { } on ? $" · 완료 {on:M월 d일}" : "")</span></div>
         <small>@how@(string.IsNullOrEmpty(d.Phone) ? "" : " · " + d.Phone)</small>
-        <div class="nc-bar" aria-label="출석 @d.Visits / 4">@for (var i = 0; i < AttendanceService.CareVisits; i++) { <i class="@(i < d.Visits ? "on" : "")"></i> }</div>
+        <partial name="_NcBars" model="(d.VisitDates, AttendanceService.SundayOf(d.FirstVisit), d.Done)" />
     </div>
     @* 확정 시안(2026-11-13): 주일마다 한 줄 + 스위치. 누르면 출석 ↔ 결석이 바로 저장(출석부와 같은 JS · 같은 저장 주소) *@
     @Html.AntiForgeryToken()

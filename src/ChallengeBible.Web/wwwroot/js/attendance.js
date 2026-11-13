@@ -39,7 +39,23 @@
     if (bar) bar.style.width = (total ? Math.round((came * 100) / total) : 0) + '%';
     // 새친구 상세: 위 카드의 "출석 N번"과 4칸 막대도 같이(주일 칸을 누를 때)
     const ncN = document.getElementById('ncN');
-    if (ncN) { ncN.textContent = came; document.querySelectorAll('.nc-bar i').forEach((i, ix) => i.classList.toggle('on', ix < came)); }
+    if (ncN) {
+      ncN.textContent = came;
+      // 막대 4칸(R-273): 출석한 주일 날짜를 오래된 순으로 처음 4번, 칸마다 날짜(첫 방문 주일에는 "첫 방문")
+      const ncb = document.querySelector('.ncb');
+      if (ncb) {
+        const dates = items.filter((k) => k.dataset.p === '1').map((k) => k.dataset.sunday).sort().slice(0, 4);
+        ncb.querySelectorAll('.cell').forEach((cell, ix) => {
+          const d = dates[ix], sp = cell.querySelector('span');
+          cell.querySelector('i').classList.toggle('on', !!d);
+          sp.classList.toggle('e', !d);
+          if (!d) { sp.textContent = '–'; return; }
+          const [, m, dd] = d.split('-').map(Number);
+          sp.textContent = m + '/' + dd;
+          if (d === ncb.dataset.first) { const b = document.createElement('b'); b.textContent = '첫 방문'; sp.appendChild(b); }
+        });
+      }
+    }
     let todo = 0, done = 0;
     document.querySelectorAll('.grp').forEach((g) => {
       const ks = g.querySelectorAll('[data-id]'), c = g.querySelectorAll('[data-id][data-p="1"]').length;
