@@ -1,13 +1,13 @@
 @page "/{slug}/attendance/rank"
 @model ChallengeBible.Web.Pages.Attendance.RankModel
-@* 유년부 출석부 "아이별 출석 등수"(Views/Attendance/AdminStudentRank3Weeks)와 같은 모양 *@
+@* 아이별 출석 등수 — 확정 시안 A(사용자 2026-11-13, R-267): 주일 3칸 · 연파랑 요약 · 학년 칩 · 등수순/반별 · 금은동 시상대 · 한 줄 목록 *@
 @{
     var slug = Model.Tenant.Current.Slug;
     var rep = Model.Rep;
     var sunday = rep.Sunday;
     bool atLatest = sunday >= rep.ThisSunday;
     string Self(DateOnly d) => $"/{slug}/attendance/rank?date={d:yyyy-MM-dd}";
-    int weeks = rep.WeeksCount;
+    int weeks = Math.Max(1, rep.WeeksCount);
     int Rate(int n) => (int)Math.Round(n * 100.0 / weeks);
     const int LowRate = 50;
     var rows = Model.Rows;
@@ -15,48 +15,42 @@
     int avg = kids == 0 ? 0 : (int)Math.Round(rows.Average(r => r.Count) * 100.0 / weeks);
     int perfect = rows.Count(r => r.Count >= weeks);
     int lowCount = rows.Count(r => Rate(r.Count) < LowRate);
-    var groups = rows.Select(r => r.Group).Distinct().ToList();
-    var podium = rows.Where(r => r.Rank <= 3).GroupBy(r => r.Rank).OrderBy(g => g.Key).ToList();
-    var watch = rows.Where(r => Rate(r.Count) < LowRate).OrderBy(r => r.Count).ThenBy(r => r.Name).Take(5).ToList();
+    int GradeKey(string g) => int.TryParse(new string(g.TakeWhile(char.IsDigit).ToArray()), out var n) ? n : 99;
+    var groups = rows.Select(r => r.Group).Distinct().OrderBy(GradeKey).ThenBy(g => g).ToList();
+    var podium = rows.Where(r => r.Rank <= 3).GroupBy(r => r.Rank).ToDictionary(g => g.Key, g => g.ToList());
     var byClass = rows.GroupBy(r => (r.ClassOrder, r.ClassName, r.Group)).OrderBy(g => g.Key.ClassOrder).ToList();
+    var prevD = sunday.AddDays(-7); var nextD = sunday.AddDays(7); var nextOk = nextD <= rep.ThisSunday;
+    string Medal(int rank) => rank switch { 1 => "g", 2 => "s", 3 => "b", _ => "" };
 }
-<div class="yb ybt ybc ybk">
+<div class="yb ybda rk2">
     <header class="sh">
         <div class="hdTop"><a href="/@slug/attendance/more">더보기</a><a href="/@slug">부서 홈으로</a></div>
-        <div class="hdRow">
-            <div>
-                <div class="hdK">RANKING · @sunday.Year</div>
-                <h1 class="hdT">아이별 출석 등수</h1>
-                <div class="dn3">
-                    <a href="@Self(sunday.AddDays(-7))" aria-label="한 주 전">‹</a>
-                    <span>1.1 ~ @sunday.ToString("M.d") · @(weeks)주일 누적</span>
-                    @if (atLatest) { <span class="off" aria-hidden="true">›</span> } else { <a href="@Self(sunday.AddDays(7))" aria-label="한 주 뒤">›</a> }
-                </div>
+        <h1 class="daT">아이별 출석 등수</h1>
+        <p class="daSub">올해 1월 1일부터 누적 · 같은 수는 공동 등수</p>
+        <div class="daWk">
+            <div class="h"><b>@sunday.ToString("M월 d일") 주일까지</b><span class="now">@(weeks)주일</span></div>
+            <nav class="strip" aria-label="주일 이동">
+                <a class="c" href="@Self(prevD)"><b>@($"{prevD.Month}/{prevD.Day}")</b><small>전주까지</small></a>
+                <span class="c on" aria-current="date"><b>@($"{sunday.Month}/{sunday.Day}")</b><small>@(atLatest ? "이번 주일" : "보는 주")</small></span>
+                @if (nextOk) { <a class="c" href="@Self(nextD)"><b>@($"{nextD.Month}/{nextD.Day}")</b><small>@(nextD == rep.ThisSunday ? "차주 · 이번 주일" : "차주")</small></a> }
+                else { <span class="c no" aria-disabled="true"><b>@($"{nextD.Month}/{nextD.Day}")</b><small>차주 · 아직</small></span> }
+            </nav>
+        </div>
+        <section class="rkSum2" aria-label="요약">
+            <div><b>@kids</b>아이</div><div class="b"><b>@(avg)%</b>평균 출석률</div><div><b>@perfect</b>개근</div><div class="x"><b>@lowCount</b>@(LowRate)% 미만</div>
+        </section>
+        @if (groups.Count > 1)
+        {
+            <div class="rkChips2" role="tablist" aria-label="학년">
+                <button type="button" data-g="" class="on">전체</button>
+                @foreach (var g in groups) { <button type="button" data-g="@g">@g</button> }
             </div>
-            <div class="st2">
-                <div>아이<b>@kids</b></div>
-                <div>평균 출석률<b>@(avg)%</b></div>
-                <div class="k">개근<b>@perfect</b></div>
-                <div class="lo">@(LowRate)% 미만<b>@lowCount</b></div>
-            </div>
+        }
+        <div class="daSeg rkTg2" role="tablist" aria-label="보기">
+            <button type="button" data-m="rank" class="on">등수순</button>
+            <button type="button" data-m="class">반별로 보기</button>
         </div>
     </header>
-
-    <div class="rkTools">
-        <div class="sh">
-            @if (groups.Count > 1)
-            {
-                <div class="rkChips" role="tablist" aria-label="학년">
-                    <button type="button" data-g="" class="on">전체</button>
-                    @foreach (var g in groups) { <button type="button" data-g="@g">@g</button> }
-                </div>
-            }
-            <div class="rkTg" role="tablist" aria-label="정렬">
-                <button type="button" data-m="rank" class="on">등수순</button>
-                <button type="button" data-m="class">반별로 보기</button>
-            </div>
-        </div>
-    </div>
 
     <main class="sh">
         @if (kids == 0)
@@ -65,98 +59,68 @@
         }
         else
         {
-            <div class="rkLay">
-                <aside id="side">
-                    <div class="rkAsH">TOP 3</div>
-                    <div class="rkPod">
-                        @foreach (var g in podium)
-                        {
-                            var first = g.First();
-                            int n = g.Count();
-                            <div class="rkPd p@(g.Key)">
-                                <i>@g.Key</i>
-                                <span class="who">
-                                    <b>@first.Name@if (n > 1) { <span class="more"> 외 @(n - 1)명</span> }</b>
-                                    <small>@string.Join(" · ", g.Take(3).Select(x => x.ClassName))</small>
-                                </span>
-                                <em>@first.Count/@weeks</em>
-                                @if (n > 1) { <span class="tie">공동 @(n)명</span> }
-                            </div>
-                        }
+            <section class="rkPod2" id="side" aria-label="TOP 3">
+                @foreach (var k in new[] { 2, 1, 3 })
+                {
+                    if (!podium.TryGetValue(k, out var list)) { <div></div> continue; }
+                    var first = list[0];
+                    <div class="pd p@(k)">
+                        <span class="av">@k</span>
+                        <b>@first.Name</b>
+                        <small>@first.ClassName</small>
+                        @if (list.Count > 1) { <span class="tie">공동 @(list.Count)명</span> }
+                        <div class="st">@first.Count/@weeks</div>
                     </div>
-                    @if (watch.Count > 0)
+                }
+            </section>
+
+            <section id="viewRank">
+                <div class="daH"><b>전체 등수</b><span id="rankTotal">@(kids)명 · 출석 / 주일 수</span></div>
+                <div class="rkList">
+                    @foreach (var r in rows)
                     {
-                        <div class="rkAsH">관심이 필요한 아이</div>
-                        <div class="rkWatch">
-                            @foreach (var w in watch)
-                            {
-                                <div class="rkWr"><i>@Rate(w.Count)%</i><span><b>@w.Name</b><small>@w.ClassName</small></span><em>@w.Count/@weeks</em></div>
-                            }
+                        int rate = Rate(r.Count);
+                        <div class="rkLi" data-g="@r.Group">
+                            <span class="rk @Medal(r.Rank)">@r.Rank</span>
+                            <span class="nm"><b>@r.Name</b><small>@r.ClassName</small></span>
+                            <span class="pc"><b>@r.Count</b><small>/@weeks · @(rate)%</small><span class="bar @(rate < LowRate ? "lo" : "")"><i style="width:@(rate)%"></i></span></span>
                         </div>
                     }
-                </aside>
+                </div>
+            </section>
 
-                <div>
-                    <section class="sec" id="viewRank">
-                        <div class="secH"><div><div class="secK">ALL</div><div class="secT">전체 등수</div></div><span class="secN" id="rankTotal">@(kids)명</span></div>
-                        @{ int seq = 0; }
-                        @foreach (var g in rows.GroupBy(r => r.Rank))
-                        {
-                            var first = g.First();
-                            int from = seq + 1, to = seq + g.Count();
-                            <div class="rkRg">
-                                <div class="rkGh"><b>@g.Key</b><span>등</span><i>@first.Count/@weeks · @(Rate(first.Count))%</i><em class="ghN">@g.Count()명 · @(from == to ? $"{from}번" : $"{from}~{to}번")</em></div>
-                                @foreach (var r in g)
+            <section id="viewClass" class="hidden">
+                @foreach (var c in byClass)
+                {
+                    var list = c.OrderByDescending(x => x.Count).ThenBy(x => x.Name).ToList();
+                    int cAvg = (int)Math.Round(list.Average(x => x.Count) * 100.0 / weeks);
+                    <div class="rkBlk" data-g="@c.Key.Group">
+                        <div class="daH"><b>@c.Key.ClassName</b><span>@(list.Count)명 · 평균 @(cAvg)%</span></div>
+                        <div class="rkList">
+                            @{ int cRank = 0; }
+                            @foreach (var cg in list.GroupBy(x => x.Count))
+                            {
+                                cRank++;
+                                bool tie = cg.Count() > 1;
+                                foreach (var r in cg)
                                 {
-                                    seq++;
                                     int rate = Rate(r.Count);
-                                    bool lo = rate < LowRate;
-                                    <div class="rkRow" data-g="@r.Group">
-                                        <span class="rkSq">@seq</span>
-                                        <div class="rkNm"><b>@r.Name</b><small>@r.ClassName</small><div class="rkBar @(lo ? "lo" : "")"><i style="width:@(rate)%"></i></div></div>
-                                        <span class="rkAb">결석 @Math.Max(0, weeks - r.Count)</span>
-                                        <div class="rkNb @(lo ? "lo" : "")"><b>@(rate)%</b><small>@r.Count/@weeks</small></div>
+                                    <div class="rkLi">
+                                        <span class="rk @Medal(cRank)">@cRank</span>
+                                        <span class="nm"><b>@r.Name</b><small>반 @(tie ? "공동 " : "")@(cRank)등 · 전체 @(r.Rank)등</small></span>
+                                        <span class="pc"><b>@r.Count</b><small>/@weeks · @(rate)%</small><span class="bar @(rate < LowRate ? "lo" : "")"><i style="width:@(rate)%"></i></span></span>
                                     </div>
                                 }
-                            </div>
-                        }
-                    </section>
+                            }
+                        </div>
+                    </div>
+                }
+            </section>
 
-                    <section class="sec hidden" id="viewClass">
-                        @foreach (var c in byClass)
-                        {
-                            var list = c.OrderByDescending(x => x.Count).ThenBy(x => x.Name).ToList();
-                            int cAvg = (int)Math.Round(list.Average(x => x.Count) * 100.0 / weeks);
-                            <div class="rkBlock" data-g="@c.Key.Group">
-                                <div class="rkCh"><b>@c.Key.ClassName</b><span>@list.Count 명 · 평균 @(cAvg)%</span></div>
-                                @{ int cRank = 0, cSeq = 0; }
-                                @foreach (var cg in list.GroupBy(x => x.Count))
-                                {
-                                    cRank++;
-                                    bool tie = cg.Count() > 1;
-                                    foreach (var r in cg)
-                                    {
-                                        cSeq++;
-                                        int rate = Rate(r.Count);
-                                        bool lo = rate < LowRate;
-                                        <div class="rkRow">
-                                            <span class="rkSq">@cSeq</span>
-                                            <div class="rkNm"><b>@r.Name</b><small>반 @(tie ? "공동 " : "")@(cRank)등 · 전체 @(r.Rank)등</small><div class="rkBar @(lo ? "lo" : "")"><i style="width:@(rate)%"></i></div></div>
-                                            <span class="rkAb">결석 @Math.Max(0, weeks - r.Count)</span>
-                                            <div class="rkNb @(lo ? "lo" : "")"><b>@(rate)%</b><small>@r.Count/@weeks</small></div>
-                                        </div>
-                                    }
-                                }
-                            </div>
-                        }
-                    </section>
-
-                    @if (lowCount > 0)
-                    {
-                        <div class="rkSum">출석률 @(LowRate)% 미만인 아이 <b>@(lowCount)명</b> · <a href="/@slug/attendance/care?absentDays=21">돌봄에서 연락하기</a></div>
-                    }
-                </div>
-            </div>
+            @if (lowCount > 0)
+            {
+                <p class="daHint">출석률 @(LowRate)% 미만인 아이 <b>@(lowCount)명</b> · <a href="/@slug/attendance/care?absentDays=21">돌봄에서 연락하기</a></p>
+            }
         }
         <div class="ft"><span>올해 @weeks 주일 기준 · 같은 출석 횟수는 공동 등수</span></div>
     </main>
@@ -165,32 +129,23 @@
 <script>
 (function () {
     let grade = '', mode = 'rank';
-    const side = document.getElementById('side');
     function apply() {
-        document.querySelectorAll('#viewRank .rkRow').forEach(r => r.classList.toggle('hidden', grade !== '' && r.dataset.g !== grade));
-        let seq = 0;
-        document.querySelectorAll('#viewRank .rkRg').forEach(g => {
-            const vis = Array.from(g.querySelectorAll('.rkRow:not(.hidden)'));
-            g.classList.toggle('hidden', vis.length === 0);
-            if (!vis.length) return;
-            const from = seq + 1;
-            vis.forEach(r => { r.querySelector('.rkSq').textContent = ++seq; });
-            g.querySelector('.ghN').textContent = vis.length + '명 · ' + (from === seq ? from + '번' : from + '~' + seq + '번');
-        });
-        const tot = document.getElementById('rankTotal'); if (tot) tot.textContent = seq + '명';
-        document.querySelectorAll('#viewClass .rkBlock').forEach(b => b.classList.toggle('hidden', grade !== '' && b.dataset.g !== grade));
+        let n = 0;
+        document.querySelectorAll('#viewRank .rkLi').forEach(r => { const h = grade !== '' && r.dataset.g !== grade; r.classList.toggle('hidden', h); if (!h) n++; });
+        const tot = document.getElementById('rankTotal'); if (tot) tot.textContent = n + '명 · 출석 / 주일 수';
+        document.querySelectorAll('#viewClass .rkBlk').forEach(b => b.classList.toggle('hidden', grade !== '' && b.dataset.g !== grade));
         document.getElementById('viewRank')?.classList.toggle('hidden', mode !== 'rank');
         document.getElementById('viewClass')?.classList.toggle('hidden', mode !== 'class');
-        if (side) side.classList.toggle('hidden', grade !== '');
+        document.getElementById('side')?.classList.toggle('hidden', grade !== '' || mode !== 'rank');
     }
-    document.querySelectorAll('.rkChips button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.rkChips2 button').forEach(b => b.addEventListener('click', () => {
         grade = b.dataset.g;
-        document.querySelectorAll('.rkChips button').forEach(x => x.classList.toggle('on', x === b));
+        document.querySelectorAll('.rkChips2 button').forEach(x => x.classList.toggle('on', x === b));
         apply();
     }));
-    document.querySelectorAll('.rkTg button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.rkTg2 button').forEach(b => b.addEventListener('click', () => {
         mode = b.dataset.m;
-        document.querySelectorAll('.rkTg button').forEach(x => x.classList.toggle('on', x === b));
+        document.querySelectorAll('.rkTg2 button').forEach(x => x.classList.toggle('on', x === b));
         apply();
     }));
 })();
