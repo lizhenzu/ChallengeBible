@@ -16,10 +16,15 @@
         var done = b.Groups.Count(g => g.Kids.Any(k => k.Present));
         <div class="top">
             <div class="crumb"><span>@Model.Tenant.Current.Name › 출석</span><a href="/@slug">부서 홈으로</a></div>
-            <div class="dnav">
-                <a href="?D=@b.Sunday.AddDays(-7).ToString("yyyy-MM-dd")" aria-label="지난 주일">‹</a>
-                <h1>@b.Sunday.ToString("M월 d일") 주일<small class="@(isThis ? "" : "past")">@(isThis ? "이번 주일" : "지난 주일 · 고치는 중")</small></h1>
-                @if (isThis) { <span class="off" aria-hidden="true">›</span> } else { <a href="?D=@b.Sunday.AddDays(7).ToString("yyyy-MM-dd")" aria-label="다음 주일">›</a> }
+            @{ var prevD = b.Sunday.AddDays(-7); var nextD = b.Sunday.AddDays(7); var nextOk = nextD <= b.ThisSunday; }
+            <div class="nvB">
+                <div class="h"><h1>@b.Sunday.ToString("M월 d일") 주일</h1><span class="@(isThis ? "now" : "")">@(isThis ? "이번 주일" : "지난 주일 · 고치는 중")</span></div>
+                <nav class="strip" aria-label="주일 이동">
+                    <a class="c" href="?D=@prevD.ToString("yyyy-MM-dd")"><b>@($"{prevD.Month}/{prevD.Day}")</b><small>전주</small></a>
+                    <span class="c on" aria-current="date"><b>@($"{b.Sunday.Month}/{b.Sunday.Day}")</b><small>@(isThis ? "이번 주일" : "보는 주")</small></span>
+                    @if (nextOk) { <a class="c" href="?D=@nextD.ToString("yyyy-MM-dd")"><b>@($"{nextD.Month}/{nextD.Day}")</b><small>@(nextD == b.ThisSunday ? "차주 · 이번 주일" : "차주")</small></a> }
+                    else { <span class="c no" aria-disabled="true"><b>@($"{nextD.Month}/{nextD.Day}")</b><small>차주 · 아직</small></span> }
+                </nav>
             </div>
             <div class="prog"><b id="presentN">@b.Present</b> / @(b.Total)명 출석 · 남은 아이 <span id="leftN">@(b.Total - b.Present)</span></div>
             <div class="bar"><i id="barFill" style="width:@(pct)%"></i></div>
