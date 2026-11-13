@@ -3219,3 +3219,18 @@ a.nc-card.hidden { display: none; }
 .ybda .daRow .ar { flex: none; font-size: 18px; color: #9DB7E4; }
 .ybda .daHint { margin: 8px 0 20px; font-size: 11.5px; color: var(--yb-dim); }
 .ybda .daHint a { color: var(--yb-blue); font-weight: 700; }
+
+/* 전체반 출석현황 주일 이동: 출석 "오늘" 화면과 같은 3칸(R-262) */
+.ybda .daWk { display: grid; gap: 12px; margin-top: 14px; }
+.ybda .daWk .h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.ybda .daWk .h b { font-size: 18px; font-weight: 800; color: var(--yb-ink); }
+.ybda .daWk .h span { font-size: 12.5px; font-weight: 800; color: #B26A00; }
+.ybda .daWk .h span.now { color: var(--yb-blue); }
+.ybda .daWk .strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ybda .daWk .c { display: grid; justify-items: center; gap: 3px; min-width: 0; padding: 11px 6px 10px; border-radius: 16px; border: 1.5px solid #E3E6EA; background: #fff; color: var(--yb-ink); text-decoration: none; -webkit-tap-highlight-color: transparent; }
+.ybda .daWk .c b { font-size: 19px; font-weight: 800; letter-spacing: -.01em; }
+.ybda .daWk .c small { font-size: 11.5px; font-weight: 700; color: var(--yb-dim2); white-space: nowrap; }
+.ybda .daWk .c.on { background: var(--yb-blue); border-color: var(--yb-blue); color: #fff; box-shadow: 0 4px 12px rgba(47,128,237,.28); }
+.ybda .daWk .c.on small { color: #fff; }
+.ybda .daWk .c.no { border-style: dashed; background: transparent; }
+.ybda .daWk .c.no b, .ybda .daWk .c.no small { color: #C3C8CF; }
