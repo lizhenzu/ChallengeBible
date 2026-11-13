@@ -3172,3 +3172,50 @@ a.nc-card.hidden { display: none; }
 
 /* 전체반 출석현황: 위 덩어리를 고정하지 않고 함께 올라가게(R-260) */
 .ybd .dbTop.flow { position: static; backdrop-filter: none; background: #fff; }
+
+/* ---- 전체반 출석현황 확정 시안 B (R-261): .ybda 범위, da* 고유 이름 ---- */
+.ybda .daT { margin: 16px 0 0; font-size: 22px; font-weight: 800; letter-spacing: -.02em; color: var(--yb-ink); }
+.ybda .daSub { margin: 4px 0 0; font-size: 13px; color: var(--yb-dim2); }
+.ybda .daCtl { display: flex; gap: 8px; align-items: center; margin: 14px 0 0; }
+.ybda .daNav { flex: none; width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid #E3E7ED; border-radius: 12px; font-size: 18px; color: var(--yb-ink); background: #fff; }
+.ybda .daNav.off { color: #D1D5DB; }
+.ybda .daDate { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 12px; border: 1px solid #E3E7ED; border-radius: 12px; background: #fff; }
+.ybda .daDate span { font-size: 12px; color: var(--yb-dim2); white-space: nowrap; }
+.ybda .daDate input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 14px; color: var(--yb-ink); }
+.ybda .daSeg { display: flex; margin-top: 10px; padding: 3px; background: var(--yb-grey); border-radius: 12px; }
+.ybda .daSeg button { flex: 1; padding: 9px 0; border: 0; border-radius: 9px; background: transparent; font: inherit; font-size: 13px; font-weight: 700; color: var(--yb-dim2); cursor: pointer; }
+.ybda .daSeg button.on { background: #fff; color: var(--yb-ink); box-shadow: 0 1px 4px rgba(17,24,39,.08); }
+.ybda .daSeg button em { font-style: normal; color: var(--yb-danger); margin-left: 3px; }
+.ybda .daSum { margin-top: 12px; padding: 14px 16px; border-radius: 16px; background: var(--yb-soft); }
+.ybda .daSum .big { display: flex; align-items: baseline; justify-content: space-between; }
+.ybda .daSum .big b { font-size: 34px; font-weight: 900; letter-spacing: -.02em; color: var(--yb-blue); }
+.ybda .daSum .big span { font-size: 12px; color: var(--yb-dim2); }
+.ybda .daSum .bar { display: block; height: 8px; margin-top: 8px; border-radius: 4px; background: #fff; overflow: hidden; }
+.ybda .daSum .bar i { display: block; height: 100%; border-radius: 4px; background: var(--yb-blue); }
+.ybda .daSum .nums { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 12px; text-align: center; }
+.ybda .daSum .nums div { font-size: 11.5px; color: var(--yb-dim2); }
+.ybda .daSum .nums b { display: block; font-size: 17px; font-weight: 800; color: var(--yb-ink); }
+.ybda .daSum .nums .x b { color: var(--yb-danger); }
+.ybda .daGo { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 12px 14px; border: 1px solid #E3E7ED; border-radius: 12px; font-size: 14px; font-weight: 700; color: var(--yb-ink); background: #fff; }
+.ybda .daGo em { font-style: normal; color: var(--yb-blue); }
+.ybda .daH { display: flex; justify-content: space-between; align-items: baseline; margin: 20px 0 8px; }
+.ybda .daH b { font-size: 15px; font-weight: 800; color: var(--yb-ink); }
+.ybda .daH span { font-size: 12px; color: var(--yb-dim2); }
+.ybda .daList { border: 1px solid #E3E7ED; border-radius: 16px; overflow: hidden; background: #fff; }
+.ybda .daRow { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-top: 1px solid var(--yb-line); color: inherit; }
+.ybda .daRow:first-child { border-top: 0; }
+.ybda .daRow[hidden] { display: none; }
+.ybda .daRow:active { background: var(--yb-grey); }
+.ybda .dot2 { flex: none; width: 9px; height: 9px; padding: 0; border-radius: 50%; background: var(--yb-ok); }
+.ybda .dot2.todo { background: var(--yb-danger); }
+.ybda .daRow .nm { flex: 1; min-width: 0; }
+.ybda .daRow .nm b { display: block; font-size: 15px; font-weight: 700; color: var(--yb-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ybda .daRow .nm small { display: block; font-size: 11.5px; color: var(--yb-dim2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ybda .daRow .pc { flex: none; width: 96px; }
+.ybda .daRow .pc b { display: block; text-align: right; font-size: 15px; font-weight: 800; color: var(--yb-ink); }
+.ybda .daRow .pc b.z { color: var(--yb-danger); }
+.ybda .daRow .pc .bar { display: block; height: 6px; margin-top: 4px; border-radius: 3px; background: var(--yb-grey); overflow: hidden; }
+.ybda .daRow .pc .bar i { display: block; height: 100%; background: var(--yb-blue); }
+.ybda .daRow .ar { flex: none; font-size: 18px; color: #9DB7E4; }
+.ybda .daHint { margin: 8px 0 20px; font-size: 11.5px; color: var(--yb-dim); }
+.ybda .daHint a { color: var(--yb-blue); font-weight: 700; }
