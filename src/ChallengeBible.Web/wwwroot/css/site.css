@@ -3402,3 +3402,12 @@ a.nc-card.hidden { display: none; }
 .sl2 .slSort .tg button { padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 12px; font-weight: 700; color: var(--yb-dim2); cursor: pointer; }
 .sl2 .slSort .tg button.on { background: #fff; color: var(--yb-ink); box-shadow: 0 1px 4px rgba(17,24,39,.08); }
 .ybt .wk2 .sub.one { grid-template-columns: 1fr; }
+
+/* ---- 출석 체크 화면 폭(R-270): 데스크톱은 유년부처럼 760px, 카드는 상자 폭을 넘지 않는다 ---- */
+.att.attw .wrap { max-width: 760px; }
+.att .kids { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (min-width: 560px) { .att .kids { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 720px) { .att .kids { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.att .kid { min-width: 0; }
+/* 좁은 440px 상자 화면(.attw 가 아닌 곳)은 데스크톱에서도 3칸 */
+@media (min-width: 560px) { .att:not(.attw) .kids { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

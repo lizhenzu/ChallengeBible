@@ -6,7 +6,7 @@
     var h = Model.Home;
     var present = h.Active.Count(a => a.PresentThisSunday);
 }
-<main class="att gut"><div class="wrap">
+<main class="att gut attw"><div class="wrap">
     <div class="hd2"><a class="back" href="/@slug/attendance/newcomers">← 새친구</a><h1>@h.ThisSunday.ToString("M월 d일") 주일</h1><p>이름을 누르면 바로 저장돼요 · 다시 누르면 취소</p></div>
     @Html.AntiForgeryToken()
     @if (h.Active.Count == 0) { <p class="none">관리 중인 새친구가 없어요.</p> }

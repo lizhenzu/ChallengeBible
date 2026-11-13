@@ -581,6 +581,7 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("href=\"?D=2019-12-29\"", pastDay);                              // 전주 칸
         Assert.Contains("id=\"qClear\"", today);
         Assert.Contains("class=\"tdTip\"", today);
+        Assert.Contains("class=\"att gut attw\"", today);                                  // R-270 데스크톱은 유년부처럼 넓게(760px)
         Assert.Contains("id=\"qGo\"", today);
         Assert.DoesNotContain("tdTiles", await t.GetStringAsync("/jamsil-kids/attendance"));
         var dashAll = await a.GetStringAsync("/jamsil-kids/attendance/dashboard/all");
