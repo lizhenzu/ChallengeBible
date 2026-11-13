@@ -23,11 +23,11 @@
         @foreach (var a in h.Active)
         {
             var how = a.Voluntary == false ? (string.IsNullOrEmpty(a.Evangelist) ? "누가 데려옴" : $"{a.Evangelist}이(가) 데려옴") : "스스로 옴";
-            <div class="nc-card">
-                <div class="r1"><b><a href="/@slug/attendance/newcomers/detail?id=@a.PersonId">@a.Name</a></b>@if (a.PresentThisSunday) { <span class="ok">이번 주일 출석</span> } else { <span class="st">출석 @(a.Visits)/@AttendanceService.CareVisits@(a.PastDays ? " · 28일 지남" : "")</span> }</div>
+            <a class="nc-card" href="/@slug/attendance/newcomers/detail?id=@a.PersonId">
+                <div class="r1"><b>@a.Name</b>@if (a.PresentThisSunday) { <span class="ok">이번 주일 출석</span> } else { <span class="st">출석 @(a.Visits)/@AttendanceService.CareVisits@(a.PastDays ? " · 28일 지남" : "")</span> }</div>
                 <small>@a.ClassName · 첫 방문 @a.FirstVisit.ToString("M월 d일") · @how</small>
                 <div class="nc-bar" aria-label="출석 @(a.Visits) / 4">@for (var i = 0; i < AttendanceService.CareVisits; i++) { <i class="@(i < a.Visits ? "on" : "")"></i> }</div>
-            </div>
+            </a>
         }
     </section>
 
@@ -37,11 +37,11 @@
         @for (var i = 0; i < h.Done.Count; i++)
         {
             var d = h.Done[i];
-            <div class="nc-card @(i >= NewcomersModel.DoneShown ? "more hidden" : "")">
-                <div class="r1"><b><a href="/@slug/attendance/newcomers/detail?id=@d.PersonId">@d.Name</a></b><span class="st done">완료 @d.DoneOn.ToString("M월 d일")</span></div>
+            <a class="nc-card @(i >= NewcomersModel.DoneShown ? "more hidden" : "")" href="/@slug/attendance/newcomers/detail?id=@d.PersonId">
+                <div class="r1"><b>@d.Name</b><span class="st done">완료 @d.DoneOn.ToString("M월 d일")</span></div>
                 <small>@d.ClassName · 첫 방문 @d.FirstVisit.ToString("M월 d일") · 출석 @(d.Visits)번</small>
                 <div class="ncwk">@foreach (var w in d.Weeks) { <span class="@(w.Present ? "on" : "")"><b>@(w.Present ? "●" : "○")</b>@Short(w.Sunday)</span> }</div>
-            </div>
+            </a>
         }
         @if (h.Done.Count > NewcomersModel.DoneShown)
         {
