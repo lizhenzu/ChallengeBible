@@ -24,6 +24,7 @@
             <div class="prog"><b id="presentN">@b.Present</b> / @(b.Total)명 출석 · 남은 아이 <span id="leftN">@(b.Total - b.Present)</span></div>
             <div class="bar"><i id="barFill" style="width:@(pct)%"></i></div>
             <p class="help">아이 이름을 누르면 바로 출석으로 저장돼요. 잘못 눌렀으면 한 번 더 누르면 취소돼요.</p>
+            @if (Model.Tenant.IsAdmin) { <p class="help"><a href="/@slug/attendance/dashboard/all?date=@b.Sunday.ToString("yyyy-MM-dd")" style="font-weight:800;text-decoration:underline;text-underline-offset:3px">전체반 출석 대시보드 →</a></p> }
         </div>
         @Html.AntiForgeryToken()
         <label class="srch"><span aria-hidden="true">⌕</span><input id="q" type="search" autocomplete="off" placeholder="이름 찾기 (초성도 돼요 · 예: ㅈㅎ)" aria-label="이름 찾기" /></label>
