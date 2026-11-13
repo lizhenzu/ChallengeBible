@@ -16,6 +16,7 @@
 <html lang="ko" data-color="@color">
 <head>
     <meta charset="utf-8" />
+    <meta name="color-scheme" content="light" />@* 휴대폰 다크 모드와 상관없이 항상 밝게(사용자 2026-11-13, R-265) *@
     @* 데스크탑 전용 화면(주일 출결 보고서 등)은 ViewData["Viewport"] 로 고정 폭을 준다 — 휴대폰에서도 종이 한 장을 줄여 보고 손가락으로 확대 *@
     <meta name="viewport" content="@(ViewData["Viewport"] as string ?? "width=device-width, initial-scale=1.0, viewport-fit=cover")" />
     <title>@(string.IsNullOrEmpty(title) ? appName : $"{title} · {appName}")</title>

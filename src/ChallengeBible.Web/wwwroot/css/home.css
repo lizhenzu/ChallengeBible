@@ -7,7 +7,7 @@
   --word-bg: #EEF3FC; --quiz-bg: #FCF4EC; --pray-bg: #F4F1FA; --rec-bg: #EEF6F1;
   --serif: "Noto Serif KR", "Nanum Myeongjo", "Batang", serif;
 }
-@media (prefers-color-scheme: dark) { .hm {
+@media not all { /* dark off R-265 */ .hm {
   --verse-bg: #0F1625; --verse-fg: #EEF1F7; --verse-dim: #9AA8C4; --vgold: #E9C27A;
   --rd: #7CC49C; --rd-soft: #1B2A22; --rd-bar: #274034;
   --word: #A9BDE8; --quiz: #E3B58A; --pray: #C3B3E6; --rec: #9AD0B2;
@@ -29,7 +29,7 @@
 
 /* 임시 부서 띠(0064, 확정 시안: 임시부서-내부서찾기 ㄱ안): 노란 띠 + 파란 "내 부서 찾기" */
 .hm { --fb-bg: #FFF4D6; --fb-rule: #F3DFA8; --fb-ink: #5A3B00; --fb-dim: #6B5320; }
-@media (prefers-color-scheme: dark) { .hm { --fb-bg: #2E2614; --fb-rule: #4A3F1E; --fb-ink: #F2D79A; --fb-dim: #D9C08A; } }
+@media not all { /* dark off R-265 */ .hm { --fb-bg: #2E2614; --fb-rule: #4A3F1E; --fb-ink: #F2D79A; --fb-dim: #D9C08A; } }
 .hm .fb .wrap { padding-block: 14px 0; }
 .hm .fbx { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 16px 18px; border-radius: 18px; background: var(--fb-bg); border: 1px solid var(--fb-rule); }
 .hm .fbx > div { flex: 1 1 240px; min-width: 0; display: grid; gap: 2px; }
@@ -161,7 +161,7 @@
 
 /* 임시 부서 홈 두 단계(0068, 확정 시안: 임시부서-홈-두단계). 하늘색 머리말 → 1 · 2단계 윗부분만 / 미션 화면(← 처음 화면 + 아랫부분). 일반 부서 홈도 같은 모양(.sky, 2026-10-31 사용자) */
 .hm.sky { --sky: #EAF4FF; --sky-rule: #CFE3FA; --okc: #2F7D55; --ok-soft: #E3F1E9; --wait: #A66A00; --wait-soft: #FFF4D6; --acc-soft: #E8EEFA; }
-@media (prefers-color-scheme: dark) { .hm.sky { --sky: #172235; --sky-rule: #263852; --okc: #7CC49C; --ok-soft: #1B2A22; --wait: #F2C063; --wait-soft: #2E2614; --acc-soft: #22304A; } }
+@media not all { /* dark off R-265 */ .hm.sky { --sky: #172235; --sky-rule: #263852; --okc: #7CC49C; --ok-soft: #1B2A22; --wait: #F2C063; --wait-soft: #2E2614; --acc-soft: #22304A; } }
 .hm .wl { background: var(--sky); word-break: keep-all; overflow-wrap: anywhere; }
 .hm .wl-top .wrap { max-width: 480px; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; padding-block: 8px; }
 .hm .wl-org { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
@@ -240,7 +240,7 @@
 
 /* 0076 department home (confirmed mockup hk): ribbon, greeting + growth, search, two program cards, family / dept */
 .hm .hj { --hj-org: #F08A24; --hj-org-l: #FFF1E3; --hj-blue: #3B7BEA; --hj-blue-l: #E9F1FE; --hj-green: #3BAA5C; --hj-green-l: #E3F3E7; --hj-mint: #22A57F; --hj-mint-l: #E3F6EF; --hj-sun: #FFB938; --hj-sun-l: #FFF5DD; --hj-purple: #7C5CE0; }
-@media (prefers-color-scheme: dark) { .hm .hj { --hj-org: #FFAE5E; --hj-org-l: #3A2A18; --hj-blue: #7FA9F5; --hj-blue-l: #1D2A44; --hj-green: #6FCB8A; --hj-green-l: #1C3324; --hj-mint: #5ED0AE; --hj-mint-l: #173229; --hj-sun: #F2C063; --hj-sun-l: #33291A; --hj-purple: #A794F0; } }
+@media not all { /* dark off R-265 */ .hm .hj { --hj-org: #FFAE5E; --hj-org-l: #3A2A18; --hj-blue: #7FA9F5; --hj-blue-l: #1D2A44; --hj-green: #6FCB8A; --hj-green-l: #1C3324; --hj-mint: #5ED0AE; --hj-mint-l: #173229; --hj-sun: #F2C063; --hj-sun-l: #33291A; --hj-purple: #A794F0; } }
 .hm main.hj .wrap { padding-block: 14px 24px; gap: 12px; }
 .hm .hj a { color: inherit; text-decoration: none; }
 .hm .hj-rib { margin: 0; padding: 10px 14px; border-radius: 14px; background: var(--bg); border: 1px solid var(--rule); font-size: 13.5px; font-weight: 700; line-height: 1.5; }
@@ -267,7 +267,7 @@
 .hm .hj-hi p span { color: var(--hj-blue); font-size: 13px; font-weight: 600; }
 /* 부서 이름: 조금 크게 · 주황 · 옅은 주황 밑줄(확정 시안 홈-부서이름색 ①, 2026-11-05) */
 .hm .hj-hi .hj-dname { --dept: #D9730D; --dept-mark: #FFE7CC; font-style: normal; font-size: 1.25em; font-weight: 900; color: var(--dept); padding: 0 2px; border-radius: 4px; background: linear-gradient(transparent 62%, var(--dept-mark) 62%); }
-@media (prefers-color-scheme: dark) { .hm .hj-hi .hj-dname { --dept: #F5A25A; --dept-mark: #4A3418; } }
+@media not all { /* dark off R-265 */ .hm .hj-hi .hj-dname { --dept: #F5A25A; --dept-mark: #4A3418; } }
 .hm .hj-av { position: relative; flex: none; width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; font-size: 34px; font-weight: 900; color: var(--hj-blue); background: linear-gradient(135deg, var(--hj-blue-l), var(--hj-org-l)); border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--rule); }
 /* 0078 사진: 동그라미 안을 꽉 채우고, 오른쪽 아래 📷 표시 */
 .hm .hj-av img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
@@ -314,7 +314,7 @@
 .hm .hj-sr .sx .ph em { flex: 1; min-width: 0; font-style: normal; font-size: 15px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hm .hj-sr .sx .bt { flex: none; display: flex; align-items: center; padding: 0 20px; border-radius: 0 12px 12px 0; background: var(--hj-sx-btn); color: #fff; font-size: 16px; font-weight: 800; }
 .hm .hj { --hj-sx-line: #D9DEE5; --hj-sx-bg: #fff; --hj-sx-btn: #3462E0; }
-@media (prefers-color-scheme: dark) { .hm .hj { --hj-sx-line: #3A4352; --hj-sx-bg: #1A2029; --hj-sx-btn: #4A78EC; } }
+@media not all { /* dark off R-265 */ .hm .hj { --hj-sx-line: #3A4352; --hj-sx-bg: #1A2029; --hj-sx-btn: #4A78EC; } }
 .hm .hj-sr .kw { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .hm .hj-sr .kw a { padding: 5px 11px; border-radius: 999px; background: var(--hj-blue-l); color: var(--hj-blue); font-size: 12.5px; font-weight: 700; }
 .hm .hj-pg h2 { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 17px; font-weight: 900; }
@@ -356,7 +356,7 @@
 .hm .hj-n3 div { border-radius: 12px; text-align: center; padding: 13px 6px 10px; background: var(--n3-l); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--n3) 24%, var(--bg)); }
 .hm .hj-n3 .r { --n3: var(--hj-blue); --n3-l: var(--hj-blue-l); } .hm .hj-n3 .l { --n3: var(--hj-n3-l); --n3-l: var(--hj-sun-l); } .hm .hj-n3 .t { --n3: var(--hj-n3-t); --n3-l: var(--soft); }
 .hm .hj { --hj-n3-l: #C27C0E; --hj-n3-t: #5B6474; }
-@media (prefers-color-scheme: dark) { .hm .hj { --hj-n3-l: #F2C063; --hj-n3-t: #A3ABB8; } }
+@media not all { /* dark off R-265 */ .hm .hj { --hj-n3-l: #F2C063; --hj-n3-t: #A3ABB8; } }
 .hm .hj-n3 b { display: block; font-size: 20px; font-weight: 900; color: var(--n3); }
 .hm .hj-n3 small { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; color: var(--dim); }
 .hm .hj-line { display: flex; align-items: center; gap: 12px; }
