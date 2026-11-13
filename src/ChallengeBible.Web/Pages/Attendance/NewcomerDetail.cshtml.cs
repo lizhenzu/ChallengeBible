@@ -31,15 +31,4 @@ public class NewcomerDetailModel(AttendanceService attendance, TenantContext ten
         return Page();
     }
 
-    public async Task<IActionResult> OnPostDeleteAsync(CancellationToken ct)
-    {
-        if (tenant.IsLobby) return NotFound();
-        if (!tenant.IsAdmin) return Forbid();
-        var e = await attendance.DeleteNewcomerAsync(Id, ct);
-        if (e == AttendError.None) return RedirectToPage("Newcomers", new { slug = tenant.Current.Slug, Ok = "del" });
-        if (e == AttendError.NotFound) return NotFound();
-        Error = AttendanceService.Message(e);
-        D = (await attendance.NewcomerDetailAsync(Id, ct))!;
-        return Page();
-    }
 }

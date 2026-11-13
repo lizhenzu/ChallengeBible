@@ -440,7 +440,9 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains($"href=\"/jamsil-kids/attendance/newcomers/detail?id={pid}\"", home);   // R-249 새친구 상세 · 지우기
         var det = await a.GetStringAsync($"/jamsil-kids/attendance/newcomers/detail?id={pid}");
         Assert.Contains("4주 관리 중", det);
-        Assert.Contains("잘못 등록했어요", det);
+        Assert.Contains("신상정보 수정", det);                                  // 정보 고치기 → 신상정보 수정
+        Assert.DoesNotContain("잘못 등록했어요", det);                           // 삭제 버튼은 신상정보 수정 화면으로 옮겼다
+        Assert.DoesNotContain("handler=Delete", det);
         // R-256 주일별 출석을 눌러서 고친다: 주일마다 한 줄(스위치), 저장은 출석부와 같은 주소
         Assert.Contains("class=\"wrow", det);
         Assert.Contains("id=\"board\"", det);
@@ -470,9 +472,11 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("오다인", await a.GetStringAsync($"/jamsil-kids/attendance/newcomers/detail?id={pid}&Ok=edit"));
         using (var raw = InMemoryDb.Raw(_db)) { var x = raw.People.Single(p => p.Id == pid); Assert.Equal("오다인", x.Name); x.Name = "오다은"; raw.SaveChanges(); }   // 아래 흐름은 옛 이름으로 이어 간다
         Assert.Equal(HttpStatusCode.NotFound, (await a.GetAsync("/jamsil-kids/attendance/newcomers/detail?id=999999")).StatusCode);
-        var del = await a.PostAsync($"/jamsil-kids/attendance/newcomers/detail?handler=Delete&id={pid}", new FormUrlEncodedContent(new Dictionary<string, string>
+        var editForm2 = await a.GetStringAsync($"/jamsil-kids/attendance/newcomers/edit?id={pid}");
+        Assert.Contains(">삭제</button>", editForm2);                              // 삭제는 신상정보 수정 화면 맨 아래(부서 관리자만)
+        var del = await a.PostAsync($"/jamsil-kids/attendance/newcomers/edit?handler=Delete&id={pid}", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["__RequestVerificationToken"] = TokenRx().Match(det).Groups[1].Value, ["id"] = pid.ToString(),
+            ["__RequestVerificationToken"] = TokenRx().Match(editForm2).Groups[1].Value,
         }));
         Assert.Equal(HttpStatusCode.Redirect, del.StatusCode);
         using (var raw = InMemoryDb.Raw(_db)) { Assert.False(raw.People.Any(p => p.Id == pid)); Assert.False(raw.AttendanceChecks.Any(c => c.PersonId == pid)); }

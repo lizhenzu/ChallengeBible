@@ -5,7 +5,7 @@
 <main class="att gut"><div class="wrap">
     <div class="top">
         <div class="crumb"><span>@Model.Tenant.Current.Name › 출석 › 새친구</span><a href="@back">← 상세</a></div>
-        <h1 style="margin:0">정보 고치기</h1>
+        <h1 style="margin:0">신상정보 수정</h1>
     </div>
     <form method="post" class="pp-form">
         @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
@@ -23,4 +23,12 @@
         <p class="hint">첫 방문일 · 반 · 출석 기록은 그대로 두고, 위 정보만 고쳐요.</p>
         <div class="row"><button type="submit" class="btn p sm">저장</button><a class="btn s sm" href="@back">취소</a></div>
     </form>
+    @if (Model.Tenant.IsAdmin)
+    {
+        @* 잘못 등록한 새친구 지우기(부서 관리자만): 신상정보 수정 화면 맨 아래 [삭제] *@
+        <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Id" style="margin-top:22px;padding-top:16px;border-top:1px solid var(--rule)" onsubmit="return confirm('@Model.Name 새친구를 삭제할까요? 반 · 출석 기록도 함께 지워지고 되돌릴 수 없어요.');">
+            <button class="btn d wide" type="submit">삭제</button>
+            <p class="hint" style="text-align:center">잘못 등록한 새친구를 지워요 · 되돌릴 수 없어요</p>
+        </form>
+    }
 </div></main>
