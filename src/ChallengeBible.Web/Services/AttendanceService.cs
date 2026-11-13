@@ -327,7 +327,7 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
     /// <summary>막대 아래 적는 출석 날짜(R-273): 첫 방문 주일부터 출석한 주일을 오래된 순으로 처음 4번(4주 관리 막대와 같은 칸 수).</summary>
     public static List<DateOnly> VisitDates(DateOnly firstVisit, IEnumerable<DateOnly> attended) =>
         attended.Where(s => s >= SundayOf(firstVisit)).Distinct().OrderBy(s => s).Take(CareVisits).ToList();
-    public sealed record NcDone(int PersonId, string Name, string ClassName, DateOnly FirstVisit, DateOnly DoneOn, int Visits, IReadOnlyList<NcWeek> Weeks);
+    public sealed record NcDone(int PersonId, string Name, string ClassName, DateOnly FirstVisit, DateOnly DoneOn, int Visits, IReadOnlyList<NcWeek> Weeks, IReadOnlyList<DateOnly> VisitDates);
     public sealed record NcHome(DateOnly ThisSunday, List<NcActive> Active, List<NcDone> Done);
     public sealed record NcSunday(DateOnly Sunday, bool Future, int Newcomers, int Present);
     public sealed record NcOn(int PersonId, string Name, bool Active, bool Present);
@@ -361,7 +361,7 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
             var doneOn = CareOverOn(first, [.. mine]) ?? today;
             var weeks = new List<NcWeek>();
             for (var s = SundayOf(first); s <= SundayOf(doneOn) && s <= thisSunday; s = s.AddDays(7)) weeks.Add(new NcWeek(s, mine.Contains(s)));
-            done.Add(new NcDone(p.Id, p.Name, ClassOf(p.Id), first, doneOn, count, weeks));
+            done.Add(new NcDone(p.Id, p.Name, ClassOf(p.Id), first, doneOn, count, weeks, VisitDates(first, mine)));
         }
         return new NcHome(thisSunday,
             active.OrderByDescending(a => a.FirstVisit).ThenBy(a => a.Name).ToList(),

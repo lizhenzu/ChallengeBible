@@ -5,7 +5,6 @@
 @{
     var slug = Model.Tenant.Current.Slug;
     var h = Model.Home;
-    string Short(DateOnly d) => $"{d.Month}/{d.Day}";
 }
 @* 확정 시안 A1(사용자 2026-11-13, R-264): 흰 바탕 · 파란 강조, 노랑 · 초록 구역 배경 없앰, 제목 앞 색 줄 *@
 <main class="att gut nch attw"><div class="wrap">
@@ -41,7 +40,7 @@
             <a class="nc-card @(i >= NewcomersModel.DoneShown ? "more hidden" : "")" href="/@slug/attendance/newcomers/detail?id=@d.PersonId">
                 <div class="r1"><b>@d.Name</b><span class="st done">완료 @d.DoneOn.ToString("M월 d일")</span></div>
                 <small>@d.ClassName · 첫 방문 @d.FirstVisit.ToString("M월 d일") · 출석 @(d.Visits)번</small>
-                <div class="ncwk">@foreach (var w in d.Weeks) { <span class="@(w.Present ? "on" : "")"><b>@(w.Present ? "●" : "○")</b>@Short(w.Sunday)</span> }</div>
+                <partial name="_NcBars" model="(d.VisitDates, AttendanceService.SundayOf(d.FirstVisit), true)" />
             </a>
         }
         @if (h.Done.Count > NewcomersModel.DoneShown)
