@@ -3234,3 +3234,20 @@ a.nc-card.hidden { display: none; }
 .ybda .daWk .c.on small { color: #fff; }
 .ybda .daWk .c.no { border-style: dashed; background: transparent; }
 .ybda .daWk .c.no b, .ybda .daWk .c.no small { color: #C3C8CF; }
+
+/* ---- 출석 오늘: 확정 시안 A(R-263) 바로가기 타일 · 흰 안내 카드 · 성경 검색 같은 검색칸 ---- */
+.att .tdTiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+.att .tdTile { display: grid; gap: 6px; min-width: 0; padding: 14px 14px 12px; border: 1.5px solid var(--rule); border-radius: 16px; background: var(--bg); color: var(--fg); text-decoration: none; -webkit-tap-highlight-color: transparent; }
+.att .tdTile:active { background: var(--accent-bg); }
+.att .tdTile i { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-bg); color: var(--accent); font-style: normal; font-size: 17px; font-weight: 800; }
+.att .tdTile b { font-size: 14.5px; font-weight: 800; }
+.att .tdTile small { font-size: 11.5px; color: var(--dim); }
+.att .tdTip { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; padding: 12px 14px; border: 1.5px solid color-mix(in srgb, var(--accent) 25%, var(--bg)); border-radius: 14px; background: var(--bg); }
+.att .tdTip i { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); font-style: normal; font-size: 13px; font-weight: 800; }
+.att .tdTip p { margin: 0; font-size: 13px; line-height: 1.55; color: var(--dim); }
+.att .tdTip b { color: var(--fg); }
+.att .tdSform { display: flex; align-items: stretch; margin-top: 14px; border: 2px solid var(--accent); border-radius: 12px; overflow: hidden; background: var(--bg); }
+.att .tdSform input { flex: 1; min-width: 0; height: 48px; padding: 0 14px; border: 0; background: none; font: inherit; font-size: 15px; color: var(--fg); outline: none; }
+.att .tdSform input::-webkit-search-cancel-button { display: none; }
+.att .tdSform #qClear { border: 0; background: none; padding: 0 8px; font: inherit; font-size: 15px; color: var(--dim); cursor: pointer; }
+.att .tdSform .go { flex: none; border: 0; padding: 0 16px; background: var(--accent); color: var(--on-accent); font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }

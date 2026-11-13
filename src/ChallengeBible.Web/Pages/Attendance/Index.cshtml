@@ -28,12 +28,18 @@
             </div>
             <div class="prog"><b id="presentN">@b.Present</b> / @(b.Total)명 출석 · 남은 아이 <span id="leftN">@(b.Total - b.Present)</span></div>
             <div class="bar"><i id="barFill" style="width:@(pct)%"></i></div>
-            @if (Model.Tenant.IsAdmin) { <a class="rptGo" href="/@slug/attendance/report?sunday=@b.Sunday.ToString("yyyy-MM-dd")"><span>주일 출결 보고서<small>[종이 출력지와 동일]</small></span><em aria-hidden="true">→</em></a> }
-            <div class="hbox"><i aria-hidden="true">?</i><p>아래 <b>아이 이름을 누르면</b> 바로 출석 체크돼요.<br />잘못 눌렀다면 한 번 더 누르면 취소돼요.</p></div>
-            @if (Model.Tenant.IsAdmin) { <p class="help"><a href="/@slug/attendance/dashboard/all?date=@b.Sunday.ToString("yyyy-MM-dd")" style="font-weight:800;text-decoration:underline;text-underline-offset:3px">전체반 출석 대시보드 →</a></p> }
+            @* 확정 시안 A(사용자 2026-11-13, R-263): 바로가기 2칸 타일(관리자) · 흰 안내 카드 · 성경 검색 같은 검색칸 *@
+            @if (Model.Tenant.IsAdmin)
+            {
+                <nav class="tdTiles" aria-label="바로가기">
+                    <a class="tdTile" href="/@slug/attendance/report?sunday=@b.Sunday.ToString("yyyy-MM-dd")"><i aria-hidden="true">▤</i><b>주일 출결 보고서</b><small>종이 출력지와 동일 →</small></a>
+                    <a class="tdTile" href="/@slug/attendance/dashboard/all?date=@b.Sunday.ToString("yyyy-MM-dd")"><i aria-hidden="true">▦</i><b>전체반 대시보드</b><small>반별 출석률 한눈에 →</small></a>
+                </nav>
+            }
+            <div class="tdTip"><i aria-hidden="true">✓</i><p>아래 <b>아이 이름을 누르면</b> 바로 출석 체크돼요.<br />잘못 눌렀다면 한 번 더 누르면 취소돼요.</p></div>
         </div>
         @Html.AntiForgeryToken()
-        <label class="srch"><span aria-hidden="true">⌕</span><input id="q" type="search" autocomplete="off" placeholder="이름 검색 (초성도 돼요 · 예: ㅈㅎ)" aria-label="이름 검색" /><button type="button" id="qClear" class="hidden" aria-label="검색어 지우기">✕</button></label>
+        <div class="tdSform" role="search"><input id="q" type="search" autocomplete="off" placeholder="이름 검색 · 초성도 돼요 (ㅈㅎ)" aria-label="이름 검색" /><button type="button" id="qClear" class="hidden" aria-label="검색어 지우기">✕</button><button type="button" id="qGo" class="go">검색 →</button></div>
         <div class="seg2" role="tablist" aria-label="보기"><button type="button" data-f="all" class="on">전체 <b id="cAll">@b.Total</b></button><button type="button" data-f="left">미출석/미체크 아이 <b id="cLeft">@(b.Total - b.Present)</b></button></div>
         @if (b.Groups.Count == 0) { <p class="none">반에 든 아이가 없어요. 부서 관리자가 반에 아이를 넣으면 보여요.</p> }
         else

@@ -98,6 +98,9 @@
   const clearBtn = () => qClear?.classList.toggle('hidden', !q?.value);
   q?.addEventListener('input', () => { clearBtn(); apply(); });
   qClear?.addEventListener('click', () => { q.value = ''; clearBtn(); apply(); q.focus(); });
+  // [검색 →]: 글자를 쓰는 대로 이미 거르므로, 누르면 거른 결과를 다시 맞추고 자판을 닫는다(성경 검색과 같은 모양)
+  document.getElementById('qGo')?.addEventListener('click', () => { apply(); q?.blur(); });
+  q?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); apply(); q.blur(); } });
   document.querySelectorAll('.seg2 button').forEach((b) => b.addEventListener('click', () => {
     filter = b.dataset.f;
     document.querySelectorAll('.seg2 button').forEach((x) => x.classList.toggle('on', x === b));
