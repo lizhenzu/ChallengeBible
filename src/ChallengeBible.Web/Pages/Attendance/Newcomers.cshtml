@@ -8,7 +8,7 @@
     string Short(DateOnly d) => $"{d.Month}/{d.Day}";
 }
 @* 확정 시안 A1(사용자 2026-11-13, R-264): 흰 바탕 · 파란 강조, 노랑 · 초록 구역 배경 없앰, 제목 앞 색 줄 *@
-<main class="att gut nch"><div class="wrap">
+<main class="att gut nch attw"><div class="wrap">
     <div class="hd2"><a class="back" href="/@slug/attendance">← 출석</a><h1>새친구</h1><p>처음 온 친구를 4주 동안 챙겨요</p></div>
     @if (Model.Ok == "add") { <p class="okmsg" role="status">새친구를 등록했어요 · 첫 방문 출석도 체크했어요</p> }
     @if (Model.Ok == "del") { <p class="okmsg" role="status">새친구를 지웠어요</p> }
