@@ -29,6 +29,12 @@
             <p class="hint@(Model.Errors.ContainsKey("AppShortName") ? " bad" : "")" id="AppShortNameH">@(Model.Errors.GetValueOrDefault("AppShortName") ?? "휴대폰 홈 화면 아이콘 아래에 보여요. 6자 안쪽이 잘 보여요.")</p>
         </div>
         <div class="br-f">
+            <label class="l" for="ReportOrg">출결 보고서 영문 머리글 <small class="num">@(Model.ReportOrg?.Length ?? 0) / 40</small></label>
+            <input class="in" id="ReportOrg" name="ReportOrg" value="@Model.ReportOrg" maxlength="40" placeholder="@(BrandingService.DefaultReportOrg) (기본)" autocapitalize="characters"
+                   aria-describedby="ReportOrgH" aria-invalid="@(Model.Errors.ContainsKey("ReportOrg") ? "true" : "false")" />
+            <p class="hint@(Model.Errors.ContainsKey("ReportOrg") ? " bad" : "")" id="ReportOrgH">@(Model.Errors.GetValueOrDefault("ReportOrg") ?? "주일 출결 보고서 종이 맨 위에 찍혀요. 예: JAMSIL SAENAE CHURCH")</p>
+        </div>
+        <div class="br-f">
             <span class="l">대표 색 <small>정해 둔 4가지 중 하나</small></span>
             <div class="br-colors" role="radiogroup" aria-label="대표 색">
                 @foreach (var c in BrandingService.Colors)

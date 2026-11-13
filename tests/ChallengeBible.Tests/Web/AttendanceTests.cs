@@ -482,7 +482,11 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.True(more.IndexOf("주일 출석 보고서") < more.IndexOf("최근 전체 출석현황(3주)") && more.IndexOf("아이별 주별 출석표(52주)") < more.IndexOf("교사 · 반 배정"));
         Assert.DoesNotContain("attendance/dashboard/all", more);
         Assert.DoesNotContain("attendance/stats", more);
-        Assert.Contains("주일 출결 보고서", await a.GetStringAsync("/jamsil-kids/attendance/report"));
+        var rep = await a.GetStringAsync("/jamsil-kids/attendance/report");
+        Assert.Contains("주일 출결 보고서", rep);
+        Assert.Contains("href=\"/jamsil-kids/attendance/trend?date=", rep);   // 유년부처럼 "전체 출석현황 › 주일 보고서"
+        Assert.Contains("명단 (모바일)", rep);
+        Assert.Contains("새친구 1~4회째", rep);
         Assert.Contains("출석 명단", await a.GetStringAsync("/jamsil-kids/attendance/sunday?sunday=2020-01-05"));
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/report")).StatusCode);
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/sunday")).StatusCode);

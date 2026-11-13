@@ -23,7 +23,7 @@
 }
 <div class="yb ybr">
     <header class="sh">
-        <div class="hdTop"><a href="/@slug/attendance/more">더보기</a><a href="/@slug">부서 홈으로</a></div>
+        <div class="hdTop"><span><a href="/@slug/attendance/trend?date=@dateStr">전체 출석현황</a><span style="margin:0 6px;color:var(--yb-dim)">›</span>주일 보고서</span><a href="/@slug">부서 홈으로</a></div>
         <div class="row1">
             <div>
                 <div class="hdK">REPORT · @Model.Tenant.Current.Name</div>
@@ -51,7 +51,7 @@
         </div>
         <div class="acts">
             <button type="button" class="pri" onclick="window.print()">인쇄하기</button>
-            <a href="/@slug/attendance/sunday?sunday=@dateStr">명단 (휴대폰)</a>
+            <a href="/@slug/attendance/sunday?sunday=@dateStr">명단 (모바일)</a>
             <a href="/@slug/attendance/byclass?sunday=@dateStr">반별 출석</a>
             <a href="/@slug/attendance?d=@dateStr">출석 고치기</a>
         </div>
@@ -60,7 +60,7 @@
     <main class="sh">
         <div class="paper">
             <div class="pH">
-                <div><div class="org">ATTENDANCE REPORT</div><h2>@Model.Tenant.Current.Name 출결 보고서</h2></div>
+                <div><div class="org">@(Model.Tenant.Current.ReportOrg ?? BrandingService.DefaultReportOrg)</div><h2>@Model.Tenant.Current.Name 출결 보고서</h2></div>
                 <div class="dt">@sunday.ToString("yyyy년 M월 d일") 주일<small>올해 누적 @(r.WeeksCount)주 기준 출석률</small></div>
             </div>
 
@@ -118,7 +118,7 @@
             <div class="lgd">
                 <span><span class="on"></span>출석 · 빈칸 = 결석</span>
                 <span>오른쪽 % = 올해 출석률 (<i class="g">80% 이상</i> · <i class="b">50% 미만</i>)</span>
-                <span><i class="nwS">새 2회</i> 관리 중인 새친구</span>
+                <span><i class="nwS">새 2회</i> 새친구 1~4회째</span>
             </div>
             <div class="sign"><div><span>담당</span><i></i></div><div><span>부장</span><i></i></div><div><span>교역자</span><i></i></div></div>
         </div>

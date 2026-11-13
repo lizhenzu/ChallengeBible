@@ -18,6 +18,8 @@ public sealed class Tenant
     public required string ThemeColor { get; set; }
     public string? AppName { get; set; }
     public string? AppShortName { get; set; }
+    /// <summary>주일 출결 보고서 종이 맨 위 영문 머리글(R-253). null = "ATTENDANCE REPORT". 예: JAMSIL SAENAE CHURCH</summary>
+    public string? ReportOrg { get; set; }
     public bool MissionEnabled { get; set; }
     public bool ReadingEnabled { get; set; }
     public bool ReadingBoardPublic { get; set; } = true;
