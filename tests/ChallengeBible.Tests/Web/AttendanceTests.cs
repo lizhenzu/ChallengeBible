@@ -473,7 +473,7 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         using (var raw = InMemoryDb.Raw(_db)) { var x = raw.People.Single(p => p.Id == pid); Assert.Equal("오다인", x.Name); x.Name = "오다은"; raw.SaveChanges(); }   // 아래 흐름은 옛 이름으로 이어 간다
         Assert.Equal(HttpStatusCode.NotFound, (await a.GetAsync("/jamsil-kids/attendance/newcomers/detail?id=999999")).StatusCode);
         var editForm2 = await a.GetStringAsync($"/jamsil-kids/attendance/newcomers/edit?id={pid}");
-        Assert.Contains(">삭제</button>", editForm2);                              // 삭제는 신상정보 수정 화면 맨 아래(부서 관리자만)
+        Assert.Matches(">저장</button>\\s*<button[^>]*formaction=[^>]*>삭제</button>\\s*<a[^>]*>취소</a>", editForm2);   // 버튼 순서: 저장 · 삭제 · 취소(삭제는 부서 관리자만)
         var del = await a.PostAsync($"/jamsil-kids/attendance/newcomers/edit?handler=Delete&id={pid}", new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["__RequestVerificationToken"] = TokenRx().Match(editForm2).Groups[1].Value,
