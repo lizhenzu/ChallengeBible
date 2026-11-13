@@ -1,6 +1,6 @@
 @page "/{slug}/attendance/sunday"
 @model ChallengeBible.Web.Pages.Attendance.SundayListModel
-@* 유년부 출석부 "주일 출석 명단 (모바일)"(Views/Attendance/SundayStudentsMobile)과 같은 모양 *@
+@* 주일 출석 명단(휴대폰) — 확정 시안 A(사용자 2026-11-13, R-268): 주일 3칸 · 연파랑 요약 · 보기 3칸 · 반 바로가기 · 반 카드 + 이름 칩 *@
 @{
     var slug = Model.Tenant.Current.Slug;
     var r = Model.Rep;
@@ -12,35 +12,42 @@
     int total = classes.Sum(c => c.Kids.Count);
     int present = classes.Sum(c => c.Kids.Count(k => k.Present));
     int pct = total == 0 ? 0 : (int)Math.Round(present * 100.0 / total);
+    var prevD = sunday.AddDays(-7); var nextD = sunday.AddDays(7); var nextOk = nextD <= r.ThisSunday;
 }
-<div class="yb ybs">
+<div class="yb ybda sl2">
     <header class="sh">
         <div class="hdTop"><a href="/@slug/attendance/more">더보기</a><a href="/@slug">부서 홈으로</a></div>
-        <div class="dn2">
-            <a href="@Self(sunday.AddDays(-7))" aria-label="지난 주일">‹</a>
-            <h1>@sunday.ToString("M월 d일") 주일<small>출석 명단</small></h1>
-            @if (atLatest) { <span class="off" aria-hidden="true">›</span> } else { <a href="@Self(sunday.AddDays(7))" aria-label="다음 주일">›</a> }
+        <h1 class="daT">주일 출석 명단</h1>
+        <p class="daSub">반마다 누가 왔는지 · 휴대폰용</p>
+        <div class="daWk">
+            <div class="h"><b>@sunday.ToString("M월 d일") 주일</b><span class="@(atLatest ? "now" : "")">@(atLatest ? "이번 주일" : "지난 주일")</span></div>
+            <nav class="strip" aria-label="주일 이동">
+                <a class="c" href="@Self(prevD)"><b>@($"{prevD.Month}/{prevD.Day}")</b><small>전주</small></a>
+                <span class="c on" aria-current="date"><b>@($"{sunday.Month}/{sunday.Day}")</b><small>@(atLatest ? "이번 주일" : "보는 주")</small></span>
+                @if (nextOk) { <a class="c" href="@Self(nextD)"><b>@($"{nextD.Month}/{nextD.Day}")</b><small>@(nextD == r.ThisSunday ? "차주 · 이번 주일" : "차주")</small></a> }
+                else { <span class="c no" aria-disabled="true"><b>@($"{nextD.Month}/{nextD.Day}")</b><small>차주 · 아직</small></span> }
+            </nav>
         </div>
-        <div class="prog2"><b>@present</b><span>/ @(total)명 출석 · @(pct)% · 결석 <i>@(total - present)</i></span></div>
-        <div class="pbar"><i style="width:@(pct)%"></i></div>
-    </header>
-
-    <div class="tools2">
-        <div class="sh">
-            <div class="seg4" role="tablist" aria-label="보기">
-                <button type="button" data-f="all" class="on">전체 <b>@total</b></button>
-                <button type="button" data-f="off">결석 <b>@(total - present)</b></button>
-                <button type="button" data-f="on">출석 <b>@present</b></button>
-            </div>
-            <nav class="jump2" aria-label="반으로 이동">
+        <section class="slSum" aria-label="출석 명단 요약">
+            <div class="top"><b>@present</b><span>/ @(total)명 출석 · 결석 @(total - present)</span><em>@(pct)%</em></div>
+            <div class="bar"><i style="width:@(pct)%"></i></div>
+        </section>
+        <div class="daSeg slSeg" role="tablist" aria-label="보기">
+            <button type="button" data-f="all" class="on">전체 <em>@total</em></button>
+            <button type="button" data-f="off">결석 <em class="x">@(total - present)</em></button>
+            <button type="button" data-f="on">출석 <em class="o">@present</em></button>
+        </div>
+        @if (classes.Count > 1)
+        {
+            <nav class="slJump" aria-label="반으로 이동">
                 @foreach (var c in classes)
                 {
                     int cp = c.Kids.Count(k => k.Present);
-                    <a href="#c-@c.Id" class="@(cp == c.Kids.Count ? "full" : cp == 0 ? "zero" : "")">@c.Name<b>@cp/@c.Kids.Count</b></a>
+                    <a href="#c-@c.Id"><i class="@(cp == 0 ? "x" : "")"></i>@c.Name <small>@cp/@c.Kids.Count</small></a>
                 }
             </nav>
-        </div>
-    </div>
+        }
+    </header>
 
     <main class="sh">
         @if (classes.Count == 0) { <div class="none">이 주일 명단이 없습니다.</div> }
@@ -48,34 +55,34 @@
         {
             int cp = c.Kids.Count(k => k.Present);
             int cPct = (int)Math.Round(cp * 100.0 / c.Kids.Count);
-            <section class="cls" id="c-@c.Id">
-                <div class="cH"><b>@c.Name</b>@if (!string.IsNullOrWhiteSpace(c.Teachers)) { <small>@c.Teachers</small> }<span class="n"><b>@cp</b> / @c.Kids.Count</span></div>
-                <div class="cBar"><i style="width:@(cPct)%"></i></div>
-                <div class="skids">
+            <section class="slCls" id="c-@c.Id">
+                <div class="h"><b>@c.Name</b><small>@(string.IsNullOrWhiteSpace(c.Teachers) ? "담임 미지정" : c.Teachers)</small><em class="@(cPct < 50 ? "lo" : "")">@cp<span> / @c.Kids.Count</span></em></div>
+                <div class="bar"><i style="width:@(cPct)%"></i></div>
+                <div class="kids">
                     @foreach (var k in c.Kids.OrderByDescending(k => k.Present))
                     {
-                        <div class="skid @(k.Present ? "on" : "off")" data-p="@(k.Present ? "1" : "0")" title="@(k.Present ? "출석" : "결석")"><span>@k.Name</span>@if (k.Newcomer) { <em class="nw">새</em> }</div>
+                        <span class="k @(k.Present ? "y" : "n")" data-p="@(k.Present ? "1" : "0")" title="@(k.Present ? "출석" : "결석")">@k.Name@if (k.Newcomer) { <em class="nw">새</em> }</span>
                     }
                 </div>
-                @if (c.Id > 0) { <div class="fix"><a href="/@slug/attendance/class/@c.Id?d=@dateStr">출석 고치기 →</a></div> }
+                @if (c.Id > 0) { <div class="fix"><a href="/@slug/attendance/class/@c.Id?d=@dateStr">출석 고치기 ›</a></div> }
             </section>
         }
-        <div class="links">
+        <div class="slLinks">
             <a href="/@slug/attendance/report?sunday=@dateStr">보고서 보기 (PC)</a>
             <a href="/@slug/attendance/byclass?sunday=@dateStr">반별 출석</a>
         </div>
-        <div class="ft"><span>초록 = 출석 · 점선 = 결석 · 반 안에서 출석한 아이부터</span></div>
+        <div class="ft"><span>✓ 초록 = 출석 · 점선 = 결석 · 반 안에서 출석한 아이부터</span></div>
     </main>
 </div>
 <partial name="_AttTabs" model='(slug, "more", true)' />
 <script>
 (function () {
-    const kids = document.querySelectorAll('.skid');
-    document.querySelectorAll('.seg4 button').forEach(b => b.addEventListener('click', () => {
+    const kids = document.querySelectorAll('.slCls .k');
+    document.querySelectorAll('.slSeg button').forEach(b => b.addEventListener('click', () => {
         const f = b.dataset.f;
-        document.querySelectorAll('.seg4 button').forEach(x => x.classList.toggle('on', x === b));
+        document.querySelectorAll('.slSeg button').forEach(x => x.classList.toggle('on', x === b));
         kids.forEach(k => k.classList.toggle('hidden', (f === 'on' && k.dataset.p !== '1') || (f === 'off' && k.dataset.p !== '0')));
-        document.querySelectorAll('.cls').forEach(s => s.classList.toggle('hidden', !s.querySelector('.skid:not(.hidden)')));
+        document.querySelectorAll('.slCls').forEach(s => s.classList.toggle('hidden', !s.querySelector('.k:not(.hidden)')));
     }));
 })();
 </script>
