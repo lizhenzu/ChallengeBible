@@ -7,18 +7,19 @@
     var h = Model.Home;
     string Short(DateOnly d) => $"{d.Month}/{d.Day}";
 }
-<main class="att gut"><div class="wrap">
-    <div class="hd2"><a class="back" href="/@slug/attendance">← 출석</a><h1>새친구</h1><p>무엇을 할까요?</p></div>
+@* 확정 시안 A1(사용자 2026-11-13, R-264): 흰 바탕 · 파란 강조, 노랑 · 초록 구역 배경 없앰, 제목 앞 색 줄 *@
+<main class="att gut nch"><div class="wrap">
+    <div class="hd2"><a class="back" href="/@slug/attendance">← 출석</a><h1>새친구</h1><p>처음 온 친구를 4주 동안 챙겨요</p></div>
     @if (Model.Ok == "add") { <p class="okmsg" role="status">새친구를 등록했어요 · 첫 방문 출석도 체크했어요</p> }
     @if (Model.Ok == "del") { <p class="okmsg" role="status">새친구를 지웠어요</p> }
     <nav class="menu" aria-label="새친구 메뉴">
         <a class="main" href="/@slug/attendance/newcomers/today"><i aria-hidden="true">✓</i><span><b>오늘 출석 체크</b><small>이번 주일 @h.ThisSunday.ToString("M월 d일")</small></span><em aria-hidden="true">›</em></a>
-        <a href="/@slug/attendance/newcomers/past"><i aria-hidden="true">🗓</i><span><b>기존 출석 변경</b><small>지난 주일 출석 고치기</small></span><em aria-hidden="true">›</em></a>
+        <a href="/@slug/attendance/newcomers/past"><i aria-hidden="true">↺</i><span><b>기존 출석 변경</b><small>지난 주일 출석 고치기</small></span><em aria-hidden="true">›</em></a>
         <a href="/@slug/attendance/newcomers/new"><i aria-hidden="true">＋</i><span><b>새친구 등록</b><small>처음 온 친구 올리기</small></span><em aria-hidden="true">›</em></a>
     </nav>
 
     <section class="zone z-on" aria-labelledby="zOn">
-        <h2 id="zOn">4주 관리 중 <small>@(h.Active.Count)명 · 28일 + 출석 4번이면 끝</small></h2>
+        <h2 id="zOn"><span>4주 관리 중<em>@h.Active.Count</em></span> <small>28일 + 출석 4번이면 끝</small></h2>
         @if (h.Active.Count == 0) { <p class="none">관리 중인 새친구가 없어요.</p> }
         @foreach (var a in h.Active)
         {
@@ -32,7 +33,7 @@
     </section>
 
     <section class="zone z-done" aria-labelledby="zDone">
-        <h2 id="zDone">4주 관리 완료 <small>@(h.Done.Count)명 · 기록은 그대로 남아요</small></h2>
+        <h2 id="zDone"><span>4주 관리 완료<em>@h.Done.Count</em></span> <small>기록은 그대로 남아요</small></h2>
         @if (h.Done.Count == 0) { <p class="none">아직 관리를 마친 새친구가 없어요.</p> }
         @for (var i = 0; i < h.Done.Count; i++)
         {
