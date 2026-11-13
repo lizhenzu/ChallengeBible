@@ -29,15 +29,17 @@ public class MoreModel(AttendanceService attendance, TenantContext tenant) : Pag
         if (!scope.Any) return Forbid();
         Newcomers = scope.Newcomers;
         var slug = tenant.Current.Slug;
+        // 유년부 더보기와 같은 항목 · 순서(2026-11-13). 전체반 현황 · 월별 통계 · 주일 명단은 유년부처럼 다른 화면에서 들어간다.
+        var thisSunday = AttendanceService.SundayOf(attendance.Today);
+        var jan1 = new DateOnly(thisSunday.Year, 1, 1);
+        var firstSunday = jan1.AddDays((7 - (int)jan1.DayOfWeek) % 7);
+        var weeksYtd = thisSunday < firstSunday ? 1 : (thisSunday.DayNumber - firstSunday.DayNumber) / 7 + 1;
         List<Item> all =
         [
-            new("전체반 출석현황", "모든 반 카드 · 미체크 반 · 반 대시보드", $"/{slug}/attendance/dashboard/all", true),
-            new("최근 전체 출석현황 (3주)", "주일 3번 출석률 · 반별 출석", $"/{slug}/attendance/trend", true),
-            new("아이별 출석 등수", "올해 누적 · 공동 등수", $"/{slug}/attendance/rank", true),
-            new("아이별 주별 출석표 (52주)", "아이 × 주일 · 올해", $"/{slug}/attendance/matrix", true),
-            new("월별 출석 통계", "월 카드 · TOP 3 반 · 막대 · 선 그래프", $"/{slug}/attendance/stats", true),
-            new("주일 출결 보고서 (PC)", "학년별 요약 · 반별 출결 · 인쇄", $"/{slug}/attendance/report", true),
-            new("주일 출석 명단 (휴대폰)", "반별로 누가 왔는지", $"/{slug}/attendance/sunday", true),
+            new("주일 출석 보고서", "반별 · 학생별 출석 (PC 화면)", $"/{slug}/attendance/report?sunday={thisSunday:yyyy-MM-dd}", true),
+            new("최근 전체 출석현황(3주)", "최근 3주 반별 출석 추이", $"/{slug}/attendance/trend?date={thisSunday:yyyy-MM-dd}", true),
+            new("아이별 출석 등수", "올해 누적 아이별 출석 등수", $"/{slug}/attendance/rank", true),
+            new("아이별 주별 출석표(52주)", $"아이 × 주일 표 · 올해 {weeksYtd}주", $"/{slug}/attendance/matrix?weeks={weeksYtd}", true),
             new("교사 · 반 배정", "누가 어느 반 담임인지 정하기", $"/{slug}/admin/classes", true),
         ];
         Items = all.Where(i => tenant.IsAdmin || !i.AdminOnly).ToList();
