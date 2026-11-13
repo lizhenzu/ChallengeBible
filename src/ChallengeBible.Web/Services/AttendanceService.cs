@@ -22,6 +22,7 @@ public sealed record AttendBoard(DateOnly Sunday, DateOnly ThisSunday, List<Atte
 
 public sealed record NewcomerRow(int PersonId, string Name, string ClassName, DateOnly FirstVisit, bool? Voluntary, string? Evangelist, int Visits, bool PresentToday, bool PastDays);
 
+public sealed record NewcomerEdit(string? Name, int? BirthMonth, int? BirthDay, string? Phone1, string? Phone2, bool Voluntary, string? Evangelist);
 public sealed record NewcomerInput(string? Name, DateOnly? FirstVisit, int? BirthMonth, int? BirthDay, string? Phone1, string? Phone2, int? ClassId, bool Voluntary, string? Evangelist);
 
 public enum AttendError { None, NotFound, Forbidden, BadDay, NoName, BadBirthday, BadPhone, BadDate, Linked }
@@ -415,6 +416,33 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
         for (var s = SundayOf(first); s <= thisSunday; s = s.AddDays(7)) weeks.Add(new NcWeek(s, mine.Contains(s)));
         return new NcDetail(p.Id, p.Name, cid is int c && names.TryGetValue(c, out var n) ? n : ClassService.UnassignedName, first,
             p.NewcomerVoluntary, p.NewcomerEvangelist, p.Phone1, count, done, doneOn, p.UserId is not null, weeks);
+    }
+
+    public sealed record NcEdit(int PersonId, string Name, int? BirthMonth, int? BirthDay, string? Phone1, string? Phone2, bool Voluntary, string? Evangelist, bool Linked);
+
+    /// <summary>새친구 정보 고치기 화면용(R-251). 새친구가 아니면 null.</summary>
+    public async Task<NcEdit?> NewcomerEditAsync(int id, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var p = await ctx.People.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && x.NewcomerFirstVisit != null, ct);
+        return p is null ? null : new NcEdit(p.Id, p.Name, p.BirthMonth, p.BirthDay, p.Phone1, p.Phone2, p.NewcomerVoluntary != false, p.NewcomerEvangelist, p.UserId is not null);
+    }
+
+    /// <summary>새친구 정보 고치기(R-251): 이름 · 생일 · 연락처 · 데려온 사람. 출석 기록 · 첫 방문일 · 반은 그대로. 가입 계정과 연결된 줄은 이름을 못 바꾼다.</summary>
+    public async Task<AttendError> UpdateNewcomerAsync(int id, NewcomerEdit input, CancellationToken ct = default)
+    {
+        var (e, name, bm, bd, p1, p2) = PeopleService.Check(new PersonInput(input.Name, null, input.BirthMonth, input.BirthDay, input.Phone1, input.Phone2), needName: true);
+        if (e != PeopleError.None) return e switch { PeopleError.NoName => AttendError.NoName, PeopleError.BadBirthday => AttendError.BadBirthday, _ => AttendError.BadPhone };
+        await using var ctx = db.Create();
+        var p = await ctx.People.SingleOrDefaultAsync(x => x.Id == id && x.NewcomerFirstVisit != null, ct);
+        if (p is null) return AttendError.NotFound;
+        var ev = (input.Evangelist ?? "").Trim();
+        if (p.UserId is null) p.Name = name!;
+        (p.BirthMonth, p.BirthDay, p.Phone1, p.Phone2) = (bm, bd, p1, p2);
+        p.NewcomerVoluntary = input.Voluntary;
+        p.NewcomerEvangelist = input.Voluntary || ev.Length == 0 ? null : (ev.Length > 50 ? ev[..50] : ev);
+        await ctx.SaveChangesAsync(ct);
+        return AttendError.None;
     }
 
     /// <summary>새친구 지우기(R-249, 부서 관리자만): 잘못 등록한 새친구를 명부 · 반 · 출석 기록째 지운다. 계정과 연결된 줄은 못 지운다.</summary>

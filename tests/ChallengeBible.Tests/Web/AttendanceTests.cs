@@ -307,6 +307,24 @@ public class AttendanceTests
     }
 
     [Fact]
+    public async Task R251_새친구_정보_고치기는_이름_생일_연락처_데려온_사람만_바꾸고_출석은_그대로다()
+    {
+        var a = Att(_kids, admin: true);
+        var (_, pid) = await a.RegisterAsync("admin", new NewcomerInput("오다은", Sun, null, null, null, null, _c1, true, null));
+        Assert.Equal(AttendError.None, await a.UpdateNewcomerAsync(pid, new NewcomerEdit(" 오다인 ", 3, 9, "010-1234-5678", null, false, "김철수")));
+        var e = (await a.NewcomerEditAsync(pid))!;
+        Assert.Equal(("오다인", 3, 9, "010-1234-5678", false, "김철수"), (e.Name, e.BirthMonth, e.BirthDay, e.Phone1, e.Voluntary, e.Evangelist));
+        Assert.Equal(AttendError.None, await a.UpdateNewcomerAsync(pid, new NewcomerEdit("오다인", null, null, null, null, true, "무시됨")));   // 스스로 오면 데려온 사람은 비운다
+        Assert.Null((await a.NewcomerEditAsync(pid))!.Evangelist);
+        Assert.Equal(AttendError.NoName, await a.UpdateNewcomerAsync(pid, new NewcomerEdit(" ", null, null, null, null, true, null)));
+        Assert.Equal(AttendError.BadBirthday, await a.UpdateNewcomerAsync(pid, new NewcomerEdit("오다인", 3, null, null, null, true, null)));
+        Assert.Equal(AttendError.BadPhone, await a.UpdateNewcomerAsync(pid, new NewcomerEdit("오다인", null, null, "abc", null, true, null)));
+        Assert.Equal(AttendError.NotFound, await a.UpdateNewcomerAsync(_kidA, new NewcomerEdit("바꿈", null, null, null, null, true, null)));   // 새친구가 아니면 못 고친다
+        var d = (await a.NewcomerDetailAsync(pid))!;
+        Assert.Equal(("오다인", "1학년1반", Sun, 1), (d.Name, d.ClassName, d.FirstVisit, d.Visits));   // 첫 방문일 · 반 · 출석은 그대로
+    }
+
+    [Fact]
     public async Task R246_주별_출석표는_기준_주일까지_주일_칸마다_출석을_표시한다()
     {
         using (var raw = InMemoryDb.Raw(_db))
@@ -405,6 +423,16 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         var det = await a.GetStringAsync($"/jamsil-kids/attendance/newcomers/detail?id={pid}");
         Assert.Contains("4주 관리 중", det);
         Assert.Contains("잘못 등록했어요", det);
+        Assert.Contains($"href=\"/jamsil-kids/attendance/newcomers/edit?id={pid}\"", det);   // R-251 정보 고치기
+        var editForm = await a.GetStringAsync($"/jamsil-kids/attendance/newcomers/edit?id={pid}");
+        Assert.Contains("value=\"오다은\"", editForm);
+        var saved = await a.PostAsync($"/jamsil-kids/attendance/newcomers/edit?id={pid}", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = TokenRx().Match(editForm).Groups[1].Value, ["Name"] = "오다인", ["Voluntary"] = "true",
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, saved.StatusCode);
+        Assert.Contains("오다인", await a.GetStringAsync($"/jamsil-kids/attendance/newcomers/detail?id={pid}&Ok=edit"));
+        using (var raw = InMemoryDb.Raw(_db)) { var x = raw.People.Single(p => p.Id == pid); Assert.Equal("오다인", x.Name); x.Name = "오다은"; raw.SaveChanges(); }   // 아래 흐름은 옛 이름으로 이어 간다
         Assert.Equal(HttpStatusCode.NotFound, (await a.GetAsync("/jamsil-kids/attendance/newcomers/detail?id=999999")).StatusCode);
         var del = await a.PostAsync($"/jamsil-kids/attendance/newcomers/detail?handler=Delete&id={pid}", new FormUrlEncodedContent(new Dictionary<string, string>
         {

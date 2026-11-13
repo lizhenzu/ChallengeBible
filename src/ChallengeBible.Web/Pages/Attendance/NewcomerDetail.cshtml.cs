@@ -17,6 +17,7 @@ public class NewcomerDetailModel(AttendanceService attendance, TenantContext ten
     public string Title => "새친구 상세";
     public TenantContext Tenant => tenant;
     [BindProperty(SupportsGet = true)] public int Id { get; set; }
+    [BindProperty(SupportsGet = true)] public string? Ok { get; set; }
     public AttendanceService.NcDetail D { get; private set; } = null!;
     public string? Error { get; private set; }
 
