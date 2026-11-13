@@ -282,6 +282,31 @@ public class AttendanceTests
     }
 
     [Fact]
+    public async Task R249_새친구_상세는_주일별_출석을_보이고_지우기는_새친구만_계정_연결은_못_지운다()
+    {
+        var a = Att(_kids, admin: true);
+        var (e, pid) = await a.RegisterAsync("admin", new NewcomerInput("오다은", Sun, null, null, null, null, _c1, false, "철수"));
+        Assert.Equal(AttendError.None, e);
+        var d = (await a.NewcomerDetailAsync(pid))!;
+        Assert.Equal(("오다은", "1학년1반", false, "철수", 1, false), (d.Name, d.ClassName, d.Voluntary, d.Evangelist, d.Visits, d.Done));
+        Assert.Equal([(Sun, true)], d.Weeks.Select(w => (w.Sunday, w.Present)));       // 첫 방문 주일부터 이번 주일까지
+        Assert.Null(await a.NewcomerDetailAsync(_kidA));                                // 새친구가 아닌 학생은 상세가 없다
+        Assert.Equal(AttendError.NotFound, await a.DeleteNewcomerAsync(_kidA));         // 새친구가 아니면 지우지 않는다
+        Assert.Equal(AttendError.None, await a.DeleteNewcomerAsync(pid));
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            Assert.False(raw.People.Any(p => p.Id == pid));
+            Assert.False(raw.AttendanceChecks.Any(c => c.PersonId == pid));
+            Assert.False(raw.ClassMembers.Any(m => m.PersonId == pid));
+        }
+        Assert.Equal(AttendError.NotFound, await a.DeleteNewcomerAsync(pid));
+        var (_, linked) = await a.RegisterAsync("admin", new NewcomerInput("연결됨", Sun, null, null, null, null, null, true, null));
+        var acc = InMemoryDb.SeedAccount(_db, "linked@example.com", "연결됨");
+        using (var raw = InMemoryDb.Raw(_db)) { raw.People.Single(p => p.Id == linked).UserId = acc.Id; raw.SaveChanges(); }
+        Assert.Equal(AttendError.Linked, await a.DeleteNewcomerAsync(linked));
+    }
+
+    [Fact]
     public async Task R246_주별_출석표는_기준_주일까지_주일_칸마다_출석을_표시한다()
     {
         using (var raw = InMemoryDb.Raw(_db))
@@ -375,6 +400,23 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("오다은", list);
         Assert.Contains("기존 출석 변경", await a.GetStringAsync("/jamsil-kids/attendance/newcomers/past"));
         int pid;
+        using (var raw = InMemoryDb.Raw(_db)) pid = raw.People.Single(p => p.Name == "오다은").Id;
+        Assert.Contains($"href=\"/jamsil-kids/attendance/newcomers/detail?id={pid}\"", home);   // R-249 새친구 상세 · 지우기
+        var det = await a.GetStringAsync($"/jamsil-kids/attendance/newcomers/detail?id={pid}");
+        Assert.Contains("4주 관리 중", det);
+        Assert.Contains("잘못 등록했어요", det);
+        Assert.Equal(HttpStatusCode.NotFound, (await a.GetAsync("/jamsil-kids/attendance/newcomers/detail?id=999999")).StatusCode);
+        var del = await a.PostAsync($"/jamsil-kids/attendance/newcomers/detail?handler=Delete&id={pid}", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = TokenRx().Match(det).Groups[1].Value, ["id"] = pid.ToString(),
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, del.StatusCode);
+        using (var raw = InMemoryDb.Raw(_db)) { Assert.False(raw.People.Any(p => p.Id == pid)); Assert.False(raw.AttendanceChecks.Any(c => c.PersonId == pid)); }
+        var again = await a.PostAsync("/jamsil-kids/attendance/newcomers/new", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = TokenRx().Match(form).Groups[1].Value, ["Name"] = "오다은", ["FirstVisit"] = DateTime.Today.ToString("yyyy-MM-dd"), ["Voluntary"] = "true",
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, again.StatusCode);
         using (var raw = InMemoryDb.Raw(_db)) pid = raw.People.Single(p => p.Name == "오다은").Id;
         var sunday = Regex.Match(list, "data-sunday=\"([0-9-]+)\"").Groups[1].Value;
         var req = new HttpRequestMessage(HttpMethod.Post, "/jamsil-kids/attendance?handler=Set")

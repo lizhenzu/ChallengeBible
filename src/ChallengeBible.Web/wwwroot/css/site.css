@@ -3072,3 +3072,5 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .ybst .stTable .r { text-align: right; }
 .ybst .stTable .cn a { font-weight: 700; color: var(--yb-blue); }
 .ybst .stTable .bd { display: inline-grid; place-items: center; min-width: 24px; height: 24px; border-radius: 12px; background: #EEF2F7; font-size: 12px; font-weight: 800; color: var(--yb-ink); }
+
+.nc-card .r1 b a { color: inherit; text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }

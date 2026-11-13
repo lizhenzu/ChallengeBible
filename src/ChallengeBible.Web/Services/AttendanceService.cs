@@ -24,7 +24,7 @@ public sealed record NewcomerRow(int PersonId, string Name, string ClassName, Da
 
 public sealed record NewcomerInput(string? Name, DateOnly? FirstVisit, int? BirthMonth, int? BirthDay, string? Phone1, string? Phone2, int? ClassId, bool Voluntary, string? Evangelist);
 
-public enum AttendError { None, NotFound, Forbidden, BadDay, NoName, BadBirthday, BadPhone, BadDate }
+public enum AttendError { None, NotFound, Forbidden, BadDay, NoName, BadBirthday, BadPhone, BadDate, Linked }
 
 /// <summary>
 /// 주일 출석(ADR 0093 출석 1 ~ 8, R-234 ~ R-237). 출석 = 그 주일 · 그 사람의 한 줄, 취소 = 지운다(유년부와 같다).
@@ -394,6 +394,43 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
                 p.NewcomerFirstVisit!.Value.AddDays(CareDays) < today)).ToList();
     }
 
+    public sealed record NcDetail(int PersonId, string Name, string ClassName, DateOnly FirstVisit, bool? Voluntary, string? Evangelist, string? Phone, int Visits, bool Done, DateOnly? DoneOn, bool Linked, IReadOnlyList<NcWeek> Weeks);
+
+    /// <summary>새친구 상세(R-249): 첫 방문부터 이번 주일까지 주일마다 출석 · 관리 중/완료. 새친구가 아니면 null.</summary>
+    public async Task<NcDetail?> NewcomerDetailAsync(int id, CancellationToken ct = default)
+    {
+        var today = Today;
+        var thisSunday = SundayOf(today);
+        await using var ctx = db.Create();
+        var p = await ctx.People.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && x.NewcomerFirstVisit != null, ct);
+        if (p is null) return null;
+        var first = p.NewcomerFirstVisit!.Value;
+        var mine = (await ctx.AttendanceChecks.AsNoTracking().Where(a => a.PersonId == id).Select(a => a.Sunday).ToListAsync(ct)).ToHashSet();
+        var cid = await ctx.ClassMembers.AsNoTracking().Where(m => m.PersonId == id && !m.IsTeacher).Select(m => (int?)m.ClassId).FirstOrDefaultAsync(ct);
+        var names = (await classes.ClassesAsync(ct)).ToDictionary(c => c.Id, c => c.Name);
+        var count = mine.Count(s => s >= SundayOf(first));
+        var done = IsCareOver(first, count, today);
+        DateOnly? doneOn = done ? CareOverOn(first, [.. mine]) ?? today : null;
+        var weeks = new List<NcWeek>();
+        for (var s = SundayOf(first); s <= thisSunday; s = s.AddDays(7)) weeks.Add(new NcWeek(s, mine.Contains(s)));
+        return new NcDetail(p.Id, p.Name, cid is int c && names.TryGetValue(c, out var n) ? n : ClassService.UnassignedName, first,
+            p.NewcomerVoluntary, p.NewcomerEvangelist, p.Phone1, count, done, doneOn, p.UserId is not null, weeks);
+    }
+
+    /// <summary>새친구 지우기(R-249, 부서 관리자만): 잘못 등록한 새친구를 명부 · 반 · 출석 기록째 지운다. 계정과 연결된 줄은 못 지운다.</summary>
+    public async Task<AttendError> DeleteNewcomerAsync(int id, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var p = await ctx.People.SingleOrDefaultAsync(x => x.Id == id && x.NewcomerFirstVisit != null, ct);
+        if (p is null) return AttendError.NotFound;
+        if (p.UserId is not null) return AttendError.Linked;
+        ctx.ClassMembers.RemoveRange(await ctx.ClassMembers.Where(m => m.PersonId == id).ToListAsync(ct));
+        ctx.AttendanceChecks.RemoveRange(await ctx.AttendanceChecks.Where(a => a.PersonId == id).ToListAsync(ct));
+        ctx.People.Remove(p);
+        await ctx.SaveChangesAsync(ct);
+        return AttendError.None;
+    }
+
     /// <summary>새친구 등록(R-236): 명부에 학생으로 올리고, 반을 고르면 그 반에(아니면 미배정반), 첫 방문 주일에 출석을 체크한다.</summary>
     public async Task<(AttendError Error, int PersonId)> RegisterAsync(string actor, NewcomerInput input, CancellationToken ct = default)
     {
@@ -430,6 +467,7 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
         AttendError.BadBirthday => "생일의 월 · 일을 둘 다 맞게 골라 주세요.",
         AttendError.BadPhone => "연락처는 숫자와 - 로 넣어 주세요(예: 010-1234-5678).",
         AttendError.BadDate => "첫 방문일을 오늘이나 그 전으로 넣어 주세요.",
+        AttendError.Linked => "가입한 계정과 연결된 아이는 지울 수 없어요. 먼저 명부에서 연결을 풀어 주세요.",
         _ => "",
     };
 }

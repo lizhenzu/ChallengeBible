@@ -295,6 +295,9 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(admin, $"/jamsil-kids/attendance/dashboard?classId={dashClass}", "12y10-반대시보드");
         await Save(admin, "/jamsil-kids/attendance/stats", "12y11-월별통계");
         await Save(admin, "/jamsil-kids/attendance/stats/detail", "12y12-월별상세");
+        int ncId;
+        using (var raw = InMemoryDb.Raw(db)) ncId = raw.People.Where(p => p.TenantId == kids.Id && p.NewcomerFirstVisit != null).OrderBy(p => p.Id).Select(p => p.Id).FirstOrDefault();
+        await Save(admin, $"/jamsil-kids/attendance/newcomers/detail?id={ncId}", "12s6-새친구상세");
         await Save(admin, "/jamsil-kids/attendance/newcomers/past", "12s3-기존출석-달");
         await Save(admin, "/jamsil-kids/attendance/newcomers/past?M=1", "12s4-기존출석-주일");
         await Save(admin, "/jamsil-kids/attendance/newcomers/past?D=2027-01-03", "12s5-기존출석-바꾸기");
