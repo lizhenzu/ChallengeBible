@@ -2347,12 +2347,20 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .att { padding-bottom: 90px; }
 .att .top { display: grid; gap: 8px; padding: 14px 0 6px; }
 .att .crumb { display: flex; justify-content: space-between; font-size: 13px; color: var(--dim); }
-.att .dnav { display: flex; align-items: center; gap: 10px; }
-.att .dnav a, .att .dnav span.off { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; border: 1.5px solid var(--rule); font-size: 20px; color: var(--fg); text-decoration: none; }
-.att .dnav span.off { color: var(--rule); }
-.att .dnav h1 { margin: 0; font-size: 22px; flex: 1; text-align: center; }
-.att .dnav h1 small { display: block; font-size: 12.5px; color: var(--accent); font-weight: 700; }
-.att .dnav h1 small.past { color: var(--warn); }
+/* 주일 이동: 전주 · 보는 주 · 차주 3칸(확정 시안, 2026-11-13) */
+.att .nvB { display: grid; gap: 12px; }
+.att .nvB .h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.att .nvB .h h1 { margin: 0; font-size: 22px; }
+.att .nvB .h span { font-size: 12.5px; font-weight: 800; color: var(--warn); text-align: right; }
+.att .nvB .h span.now { color: var(--accent); }
+.att .nvB .strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.att .nvB .c { display: grid; justify-items: center; gap: 3px; min-width: 0; padding: 11px 6px 10px; border-radius: 16px; border: 1.5px solid var(--rule); background: var(--bg); color: var(--fg); text-decoration: none; -webkit-tap-highlight-color: transparent; }
+.att .nvB .c b { font-size: 19px; font-weight: 800; letter-spacing: -.01em; }
+.att .nvB .c small { font-size: 11.5px; font-weight: 700; color: var(--dim); white-space: nowrap; }
+.att .nvB .c.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 28%, transparent); }
+.att .nvB .c.on small { color: var(--on-accent, #fff); }
+.att .nvB .c.no { border-style: dashed; background: transparent; }
+.att .nvB .c.no b, .att .nvB .c.no small { color: color-mix(in srgb, var(--dim) 55%, #fff); }
 .att .prog { font-size: 14px; color: var(--dim); }
 .att .prog b { font-size: 22px; color: var(--accent); }
 .att .bar { height: 8px; border-radius: 99px; background: var(--rule); overflow: hidden; }

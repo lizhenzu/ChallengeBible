@@ -566,6 +566,17 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("attendance/dashboard/all", today);   // 유년부처럼 출석 체크 화면에서 들어간다
         Assert.Contains("class=\"rptGo\" href=\"/jamsil-kids/attendance/report?sunday=", today);   // 유년부처럼 보고서 띠(관리자만)
         Assert.Contains("미출석/미체크 아이", today);
+        // 주일 이동은 전주 · 보는 주 · 차주 3칸(확정 시안 2026-11-13): 이번 주일에서는 차주를 누를 수 없고, 지난 주일에서는 차주가 링크
+        Assert.Contains("class=\"nvB\"", today);
+        Assert.Contains("<small>전주</small>", today);
+        Assert.Contains("<small>이번 주일</small>", today);
+        Assert.Contains("<small>차주 · 아직</small>", today);
+        Assert.DoesNotContain("aria-label=\"다음 주일\"", today);
+        var pastDay = await a.GetStringAsync("/jamsil-kids/attendance?d=2020-01-05");
+        Assert.Contains("<small>보는 주</small>", pastDay);
+        Assert.Contains("지난 주일 · 고치는 중", pastDay);
+        Assert.Contains("href=\"?D=2020-01-12\"", pastDay);                              // 차주 칸은 누르면 그 주일로
+        Assert.Contains("href=\"?D=2019-12-29\"", pastDay);                              // 전주 칸
         Assert.Contains("id=\"qClear\"", today);
         Assert.Contains("class=\"hbox\"", today);
         Assert.DoesNotContain("rptGo", await t.GetStringAsync("/jamsil-kids/attendance"));
