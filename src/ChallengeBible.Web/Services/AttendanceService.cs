@@ -238,6 +238,26 @@ public sealed class AttendanceService(IAppDb db, ClassService classes, TenantCon
     public sealed record Matrix(SundayReport Rep, List<DateOnly> Sundays, HashSet<(int PersonId, DateOnly Sunday)> Present);
 
     /// <summary>
+    /// 아이별 주별 출석표(확정 시안, 사용자 2026-11-13): 올해 첫 주일부터 기준일(없으면 오늘)이 든 달의 마지막 주일까지.
+    /// 이번 주일보다 뒤 주일은 아직 오지 않은 칸(출석 · 결석으로 세지 않는다). 기준일은 오늘보다 뒤로 못 간다.
+    /// </summary>
+    public async Task<Matrix> MatrixMonthAsync(DateOnly? anchor, CancellationToken ct = default)
+    {
+        var a = anchor is { } d && d < Today ? d : Today;
+        var rep = await SundayReportAsync(a, ct);
+        var jan1 = new DateOnly(a.Year, 1, 1);
+        var first = jan1.AddDays(((int)DayOfWeek.Sunday - (int)jan1.DayOfWeek + 7) % 7);
+        var last = SundayOf(new DateOnly(a.Year, a.Month, DateTime.DaysInMonth(a.Year, a.Month)));
+        var sundays = new List<DateOnly>();
+        for (var s = first; s <= last; s = s.AddDays(7)) sundays.Add(s);
+        var ids = rep.Classes.SelectMany(c => c.Kids).Select(k => k.PersonId).ToList();
+        await using var ctx = db.Create();
+        var rows = await ctx.AttendanceChecks.AsNoTracking().Where(x => ids.Contains(x.PersonId) && x.Sunday >= first && x.Sunday <= rep.ThisSunday)
+            .Select(x => new { x.PersonId, x.Sunday }).ToListAsync(ct);
+        return new Matrix(rep, sundays, rows.Select(x => (x.PersonId, x.Sunday)).ToHashSet());
+    }
+
+    /// <summary>
     /// 아이별 주별 출석표(유년부 AdminStudentMatrixWeeks): 기준 주일까지 weeks 주일(1 ~ 52, 없으면 올해 주일 수 · 최소 4) ×
     /// R-243 명단 아이. 칸 = 그 주일 출석 여부.
     /// </summary>

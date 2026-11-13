@@ -2928,58 +2928,63 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .ybk .rkSum b { color: var(--yb-danger); }
 .ybk .rkSum a { text-decoration: underline; color: var(--yb-blue); }
 
-/* 아이별 주별 출석표(52주) — 유년부 AdminStudentMatrixWeeks 그대로(6/9). 칩 · 숫자는 .ybk · .ybc 것을 같이 쓴다 */
-.ybm .mxDn { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; color: var(--yb-dim2); font-variant-numeric: tabular-nums; flex-wrap: wrap; }
-.ybm .mxDn a { color: var(--yb-dim2); border-bottom: 1px solid #D5DAE1; }
-.ybm .mxDn a.on { color: var(--yb-blue); border-color: var(--yb-blue); font-weight: 700; }
-.ybm .wkChart { margin-top: 18px; padding: 14px 12px 8px; border: 1px solid #E3E7ED; border-radius: 14px; }
-.ybm .wkChart .t { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--yb-dim); margin-bottom: 8px; }
-.ybm .mxGrid { display: grid; grid-template-columns: repeat(var(--wk), minmax(0, 1fr)); column-gap: 2px; }
-.ybm .bars { height: 60px; align-items: end; }
-.ybm .bars a { display: block; background: #7FA3DB; min-height: 2px; border-radius: 2px 2px 0 0; }
-.ybm .bars a.now { background: var(--yb-blue); }
-.ybm .mxMo { margin-top: 5px; font-size: 10.5px; color: var(--yb-dim); }
-.ybm .mxMo span { white-space: nowrap; border-left: 1px solid #D5DAE1; padding-left: 3px; }
-.ybm .mxMo span:first-child { border-left: 0; padding-left: 0; }
-.ybm .mxTools { border-bottom: 1px solid var(--yb-line); margin-top: 14px; }
-.ybm .mxTools .sh { padding-top: 10px; padding-bottom: 10px; }
-.ybm .tRow { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-.ybm .tRow + .tRow { margin-top: 8px; }
-.ybm .mxSeg { display: flex; border: 1px solid var(--yb-line); border-radius: 10px; overflow: hidden; }
-.ybm .mxSeg button { font: inherit; font-size: 13px; padding: 8px 11px; border: 0; background: #fff; color: var(--yb-dim2); cursor: pointer; white-space: nowrap; }
-.ybm .mxSeg button + button { border-left: 1px solid var(--yb-line); }
-.ybm .mxSeg button.on { background: var(--yb-soft); color: var(--yb-blue); font-weight: 700; }
-.ybm .srch { flex: 1; min-width: 120px; height: 38px; padding: 0 10px; border: 1px solid #D5DAE1; border-radius: 10px; background: #fff; font: inherit; font-size: 15px; color: var(--yb-ink); outline: none; }
-.ybm .srch:focus { border-color: var(--yb-blue); }
-.ybm .shW { max-width: 1440px; margin: 0 auto; padding: 0 16px; }
-.ybm .hint { display: flex; justify-content: space-between; gap: 8px; white-space: nowrap; flex-wrap: wrap; margin-top: 12px; font-size: 11.5px; color: var(--yb-dim); }
-.ybm .lg i { display: inline-block; width: 12px; height: 9px; border: 1px solid #D5DAE1; vertical-align: -1px; margin: 0 3px 0 8px; }
-.ybm .lg i.p { background: var(--yb-blue); border-color: var(--yb-blue); }
-.ybm .lg i.x3 { border-color: var(--yb-danger); }
-.ybm .mxW { margin-top: 6px; overflow: auto; max-height: calc(100vh - 120px); max-height: calc(100dvh - 120px); border: 1px solid #E3E7ED; border-radius: 10px; background: #fff; overscroll-behavior-x: contain; }
-.ybm table.mxT { border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
-.ybm .mxT th, .ybm .mxT td { padding: 0; }
-.ybm .mxT .nm { position: sticky; left: 0; z-index: 2; background: #fff; min-width: 112px; max-width: 112px; padding: 7px 8px 7px 12px; text-align: left; border-right: 1px solid #E3E7ED; border-bottom: 1px solid var(--yb-line); }
-.ybm .mxT .nm b { display: block; font-size: 13.5px; font-weight: 700; color: var(--yb-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ybm .mxT .nm small { display: block; font-size: 10.5px; color: var(--yb-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
-.ybm .mxT .nm small em { font-style: normal; font-size: 11.5px; font-weight: 600; color: var(--yb-ink); }
-.ybm .mxT tr.lo .nm small em { color: var(--yb-danger); }
-.ybm .mxT thead th { position: sticky; z-index: 3; background: #fff; }
-.ybm .mxT thead th.nm { top: 0; z-index: 4; vertical-align: bottom; font-size: 10.5px; font-weight: 700; color: var(--yb-dim); border-bottom: 1px solid var(--yb-ink); }
-.ybm .mxT .r1 th { top: 0; height: 18px; }
-.ybm .mxT .r2 th { top: 18px; height: 22px; }
-.ybm .mxT .r3 th { top: 40px; height: 18px; border-bottom: 1px solid var(--yb-ink); }
-.ybm .mxT .mh { font-size: 10.5px; font-weight: 700; text-align: left; padding-left: 4px; white-space: nowrap; }
-.ybm .mxT .dh { min-width: 34px; width: 34px; text-align: center; }
-.ybm .mxT .dh a { display: block; font-size: 11px; font-weight: 600; color: var(--yb-dim2); line-height: 22px; }
-.ybm .mxT .tn { font-size: 10px; font-weight: 700; color: var(--yb-blue); text-align: center; white-space: nowrap; }
-.ybm .mxT .m1 { border-left: 1px solid var(--yb-dim); }
-.ybm .mxT .now { background: var(--yb-soft); }
-.ybm .mxT td.c { text-align: center; border-bottom: 1px solid var(--yb-line); }
-.ybm .mxT td.c i { display: inline-block; width: 22px; height: 14px; border: 1px solid #D5DAE1; border-radius: 3px; vertical-align: middle; }
-.ybm .mxT td.c i.p { background: var(--yb-blue); border-color: var(--yb-blue); }
-.ybm .mxT td.c i.x3 { border-color: var(--yb-danger); }
-@media (min-width: 1200px) { .ybm .mxT .dh { min-width: 28px; width: 28px; } .ybm .mxT td.c i { width: 18px; } }
+/* 아이별 주별 출석표 — 올해 1월 ~ 오늘이 든 달, 데스크탑 전용 · 위에 막대 그래프(확정 시안 2026-11-13) */
+.ybm .sh { max-width: 1120px; }
+.ybm .hidden { display: none !important; }
+.ybm.dsk { padding-bottom: 30px; min-height: 0; }
+.ybm .dk-st { display: flex; gap: 30px; margin-top: 14px; align-items: flex-end; }
+.ybm .dk-st div { font-size: 10.5px; font-weight: 700; letter-spacing: .14em; color: var(--yb-dim); }
+.ybm .dk-st b { display: block; margin-top: 2px; font-weight: 200; font-size: 28px; letter-spacing: 0; color: var(--yb-ink); font-variant-numeric: tabular-nums; }
+.ybm .dk-st .k b { color: var(--yb-blue); }
+.ybm .dk-st b.sm { font-size: 16px; font-weight: 600; padding-top: 8px; }
+.ybm .dk-chart { margin-top: 16px; padding: 14px 14px 10px; border: 1px solid #E3E7ED; border-radius: 14px; }
+.ybm .dk-chart .t { display: flex; justify-content: space-between; font-size: 12px; color: var(--yb-dim); margin-bottom: 10px; }
+.ybm .dk-chart .bars { display: grid; column-gap: 4px; align-items: end; height: 128px; border-bottom: 1px solid #E3E7ED; }
+.ybm .dk-chart .bars a { position: relative; display: block; background: #7FA3DB; min-height: 2px; border-radius: 3px 3px 0 0; }
+.ybm .dk-chart .bars a.now { background: var(--yb-blue); }
+.ybm .dk-chart .bars .fu { display: block; height: 100%; background: repeating-linear-gradient(135deg, #F4F6F9 0 4px, #fff 4px 8px); border: 1px dashed #E3E7ED; border-bottom: 0; border-radius: 3px 3px 0 0; }
+.ybm .dk-chart .bars a b { position: absolute; left: 50%; top: -14px; transform: translateX(-50%); font-size: 10px; font-weight: 600; color: var(--yb-dim2); }
+.ybm .dk-chart .mo { display: grid; column-gap: 4px; margin-top: 6px; font-size: 11px; color: var(--yb-dim); }
+.ybm .dk-chart .mo span { border-left: 1px solid #D5DAE1; padding-left: 3px; white-space: nowrap; }
+.ybm .dk-tools { display: flex; gap: 8px; align-items: center; margin-top: 14px; }
+.ybm .dk-tools .chips { display: flex; gap: 4px; }
+.ybm .dk-tools button { font: inherit; font-size: 13px; padding: 8px 12px; border: 1px solid var(--yb-line); border-radius: 8px; background: #fff; color: var(--yb-dim2); cursor: pointer; }
+.ybm .dk-tools button.on { background: var(--yb-blue); border-color: var(--yb-blue); color: #fff; font-weight: 700; }
+.ybm .dk-tools input { flex: 1; min-width: 0; height: 38px; padding: 0 10px; border: 1px solid #D5DAE1; border-radius: 10px; background: #fff; font: inherit; font-size: 15px; color: var(--yb-ink); outline: none; }
+.ybm .dk-tools input:focus { border-color: var(--yb-blue); }
+.ybm .dk-tools .seg { display: flex; }
+.ybm .dk-tools .seg button { border-radius: 0; }
+.ybm .dk-tools .seg button:first-child { border-radius: 10px 0 0 10px; }
+.ybm .dk-tools .seg button:last-child { border-radius: 0 10px 10px 0; }
+.ybm .dk-tools .seg button.on { background: var(--yb-soft); border-color: var(--yb-line); color: var(--yb-blue); }
+.ybm .dk-hint { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; font-size: 11.5px; color: var(--yb-dim); }
+.ybm .dk-hint .lg { white-space: nowrap; }
+.ybm .dk-hint .lg i { display: inline-block; width: 12px; height: 9px; border: 1px solid #D5DAE1; vertical-align: -1px; margin: 0 3px 0 8px; }
+.ybm .dk-hint .lg i.p { background: var(--yb-blue); border-color: var(--yb-blue); }
+.ybm .dk-hint .lg i.x3 { border-color: var(--yb-danger); }
+.ybm .dk-hint .lg i.f { border-style: dashed; background: #F4F6F9; }
+.ybm .dk-wrap { margin-top: 6px; border: 1px solid #E3E7ED; border-radius: 10px; overflow: hidden; }
+.ybm table.dk { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+.ybm .dk th, .ybm .dk td { padding: 0; }
+.ybm .dk .nm { width: 128px; padding: 6px 8px 6px 12px; text-align: left; border-right: 1px solid #E3E7ED; border-bottom: 1px solid var(--yb-line); background: #fff; }
+.ybm .dk .nm b { display: block; font-size: 13px; font-weight: 700; color: var(--yb-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ybm .dk .nm small { display: block; font-size: 10.5px; color: var(--yb-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ybm .dk .nm em { font-style: normal; font-weight: 600; color: var(--yb-ink); }
+.ybm .dk tr.lo .nm em { color: var(--yb-danger); }
+.ybm .dk thead th.nm { vertical-align: bottom; font-size: 10.5px; font-weight: 700; color: var(--yb-dim); border-bottom: 1px solid var(--yb-ink); }
+.ybm .dk .mh { font-size: 10.5px; font-weight: 700; text-align: left; padding-left: 3px; height: 18px; white-space: nowrap; overflow: hidden; }
+.ybm .dk .dh { font-size: 10px; font-weight: 600; color: var(--yb-dim2); text-align: center; height: 16px; }
+.ybm .dk .dh a { color: inherit; }
+.ybm .dk .tn { font-size: 10px; font-weight: 700; color: var(--yb-blue); text-align: center; height: 16px; border-bottom: 1px solid var(--yb-ink); }
+.ybm .dk .fu { color: #C9CED6; }
+.ybm .dk .m1 { border-left: 1px solid #9CA3AF; }
+.ybm .dk .now { background: var(--yb-soft); }
+.ybm .dk td.c { text-align: center; border-bottom: 1px solid var(--yb-line); height: 30px; }
+.ybm .dk td.c i { display: inline-block; width: 13px; height: 14px; border: 1px solid #D5DAE1; border-radius: 3px; vertical-align: middle; }
+.ybm .dk td.c i.p { background: var(--yb-blue); border-color: var(--yb-blue); }
+.ybm .dk td.c i.x3 { border-color: var(--yb-danger); }
+.ybm .dk td.c i.f { border: 1px dashed #E3E7ED; background: #FAFBFC; }
+.ybm .dk-ft { margin: 12px 2px 0; font-size: 11.5px; color: var(--yb-dim); }
 
 /* 출석 대시보드 · 전체반 출석현황 — 유년부 Dashboard · DashboardAll 짜임(7/9) */
 .ybd .sh { max-width: 1040px; }

@@ -31,15 +31,12 @@ public class MoreModel(AttendanceService attendance, TenantContext tenant) : Pag
         var slug = tenant.Current.Slug;
         // 유년부 더보기와 같은 항목 · 순서(2026-11-13). 전체반 현황 · 월별 통계 · 주일 명단은 유년부처럼 다른 화면에서 들어간다.
         var thisSunday = AttendanceService.SundayOf(attendance.Today);
-        var jan1 = new DateOnly(thisSunday.Year, 1, 1);
-        var firstSunday = jan1.AddDays((7 - (int)jan1.DayOfWeek) % 7);
-        var weeksYtd = thisSunday < firstSunday ? 1 : (thisSunday.DayNumber - firstSunday.DayNumber) / 7 + 1;
         List<Item> all =
         [
             new("주일 출석 보고서", "반별 · 학생별 출석 (PC 화면)", $"/{slug}/attendance/report?sunday={thisSunday:yyyy-MM-dd}", true),
             new("최근 전체 출석현황(3주)", "최근 3주 반별 출석 추이", $"/{slug}/attendance/trend?date={thisSunday:yyyy-MM-dd}", true),
             new("아이별 출석 등수", "올해 누적 아이별 출석 등수", $"/{slug}/attendance/rank", true),
-            new("아이별 주별 출석표(52주)", $"아이 × 주일 표 · 올해 {weeksYtd}주", $"/{slug}/attendance/matrix?weeks={weeksYtd}", true),
+            new("아이별 주별 출석표", "아이 × 주일 표 · 1월 ~ 이번 달", $"/{slug}/attendance/matrix", true),
             new("교사 · 반 배정", "누가 어느 반 담임인지 정하기", $"/{slug}/admin/classes", true),
         ];
         Items = all.Where(i => tenant.IsAdmin || !i.AdminOnly).ToList();
