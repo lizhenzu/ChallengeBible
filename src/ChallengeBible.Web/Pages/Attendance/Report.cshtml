@@ -89,7 +89,8 @@
                 <div class="pK">CLASSES</div>
                 <div class="pT">반별 출결 상황</div>
                 @* 종이 출석부처럼(사용자 2026-11-13): 학년 하나 = 가로 한 줄, 같은 줄 반 칸은 같은 높이(빈 줄로 채움), 칸 수는 모든 줄이 같게 *@
-                var colN = Math.Max(1, byGroup.Max(g => g.Classes.Count));
+                // 가로는 최대 5칸(사용자 2026-11-13): 반이 5개를 넘으면(학년 구분 없는 부서 등) 다음 줄로
+                var colN = Math.Clamp(byGroup.Max(g => g.Classes.Count), 1, 5);
                 <div class="rows">
                     @for (int gi = 0; gi < byGroup.Count; gi++)
                     {
@@ -119,7 +120,7 @@
                                     <div class="bF">합계 <b>@cp</b><span class="x">결석 @(c.Kids.Count - cp)</span><span class="bar"><i style="width:@(ReportModel.Pct(cp, c.Kids.Count))%"></i></span></div>
                                 </div>
                             }
-                            @for (int e = g.Classes.Count; e < colN; e++) { <div class="blk empty" aria-hidden="true"><div class="bH">&nbsp;</div></div> }
+                            @for (int e = g.Classes.Count; e % colN != 0 || e == 0; e++) { <div class="blk empty" aria-hidden="true"><div class="bH">&nbsp;</div></div> }
                         </div>
                     }
                 </div>
