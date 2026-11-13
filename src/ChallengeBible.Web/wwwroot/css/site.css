@@ -2684,7 +2684,6 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .ybr .sum .bar { display: inline-block; width: 60px; height: 4px; background: var(--yb-line); vertical-align: middle; margin-left: 8px; }
 .ybr .sum .bar i, .ybr .bF .bar i { display: block; height: 100%; background: var(--yb-ok); }
 .ybr .cols { display: grid; grid-template-columns: repeat(var(--yc), minmax(0, 1fr)); gap: 18px; align-items: start; }
-@media (max-width: 720px) { .ybr .cols { grid-template-columns: 1fr; } .ybr .paper { padding: 20px 14px; } }
 .ybr .gH { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 6px; border-bottom: 1px solid var(--yb-ink); }
 .ybr .gH b { font-weight: 800; font-size: 16px; color: var(--yb-ink); }
 .ybr .gH span { font-size: 12px; color: var(--yb-dim2); }

@@ -487,6 +487,8 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("href=\"/jamsil-kids/attendance/trend?date=", rep);   // 유년부처럼 "전체 출석현황 › 주일 보고서"
         Assert.Contains("명단 (모바일)", rep);
         Assert.Contains("새친구 1~4회째", rep);
+        Assert.Contains("name=\"viewport\" content=\"width=1120\"", rep);   // 데스크탑 전용: 휴대폰에서도 PC 모양 그대로 줄여 보인다
+        Assert.Contains("width=device-width", await a.GetStringAsync("/jamsil-kids/attendance/sunday"));
         Assert.Contains("출석 명단", await a.GetStringAsync("/jamsil-kids/attendance/sunday?sunday=2020-01-05"));
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/report")).StatusCode);
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/sunday")).StatusCode);
