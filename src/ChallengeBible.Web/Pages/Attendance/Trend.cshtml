@@ -19,44 +19,49 @@
     var diff = nr - TrendModel.Rate(pp, pt);
     string Label(int i) => i == 0 ? "이번 주" : i == 1 ? "지난주" : $"{i}주 전";
 }
-<div class="yb ybt">
+@* 위쪽은 확정 시안 A(사용자 2026-11-13, R-266): 주일 3칸(오늘 화면과 같음) · 파란 요약 카드 · 3주 막대 *@
+@{ var prevD = sunday.AddDays(-7); var nextD = sunday.AddDays(7); var nextOk = nextD <= now.ThisSunday; var inv = CultureInfo.InvariantCulture; }
+<div class="yb ybt ybda">
     <header class="sh">
         <div class="hdTop"><a href="/@slug/attendance/more">더보기</a><a href="/@slug">부서 홈으로</a></div>
-        <div class="hdRow">
-            <div>
-                <div class="hdK">ATTENDANCE · 3 WEEKS</div>
-                <h1 class="hdT">최근 전체 출석현황(3주)</h1>
-                <div class="dn3">
-                    <a href="@Self(sunday.AddDays(-7))" aria-label="한 주 전">‹</a>
-                    <span>@sunday.ToString("M월 d일") 주일 기준</span>
-                    @if (atLatest) { <span class="off" aria-hidden="true">›</span> } else { <a href="@Self(sunday.AddDays(7))" aria-label="한 주 뒤">›</a> }
-                </div>
-            </div>
-            <div class="big">
-                <div class="pct">@TrendModel.Pct(nr)<small>%</small></div>
-                <div class="sub">
-                    이번 주 <b>@np</b> / @(nt)명 출석<br />
-                    결석 <b>@(nt - np)</b>명<br />
-                    <span class="chg @(diff > 0 ? "up" : diff == 0 ? "eq" : "")">@(diff > 0 ? "▲" : diff == 0 ? "―" : "▼") @(diff == 0 ? "지난주와 같아요" : $"{TrendModel.Pct(Math.Abs(diff))}%p 지난주보다")</span>
-                </div>
-            </div>
+        <h1 class="daT">최근 전체 출석현황</h1>
+        <p class="daSub">주일 4번 출석률 · 지난주와 비교</p>
+        <div class="daWk">
+            <div class="h"><b>@sunday.ToString("M월 d일") 주일</b><span class="@(atLatest ? "now" : "")">@(atLatest ? "이번 주일" : "지난 주일")</span></div>
+            <nav class="strip" aria-label="주일 이동">
+                <a class="c" href="@Self(prevD)"><b>@($"{prevD.Month}/{prevD.Day}")</b><small>전주</small></a>
+                <span class="c on" aria-current="date"><b>@($"{sunday.Month}/{sunday.Day}")</b><small>@(atLatest ? "이번 주일" : "보는 주")</small></span>
+                @if (nextOk) { <a class="c" href="@Self(nextD)"><b>@($"{nextD.Month}/{nextD.Day}")</b><small>@(nextD == now.ThisSunday ? "차주 · 이번 주일" : "차주")</small></a> }
+                else { <span class="c no" aria-disabled="true"><b>@($"{nextD.Month}/{nextD.Day}")</b><small>차주 · 아직</small></span> }
+            </nav>
         </div>
+        <section class="trSum" aria-label="이 주일 요약">
+            <div class="top">
+                <div><div class="trBig">@TrendModel.Pct(nr)<small>%</small></div><div class="trK">@(atLatest ? "이번 주" : "보는 주") 출석률</div></div>
+                <span class="delta @(diff < 0 ? "dn" : diff == 0 ? "eq" : "")">@(diff > 0 ? "▲" : diff == 0 ? "―" : "▼") @(diff == 0 ? "지난주와 같아요" : $"{TrendModel.Pct(Math.Abs(diff))}%p 지난주보다")</span>
+            </div>
+            <div class="bar"><i style="width:@(Math.Clamp(nr, 0, 100).ToString(inv))%"></i></div>
+            <div class="nums"><div><b>@nt</b>총원</div><div><b>@np</b>출석</div><div class="x"><b>@(nt - np)</b>결석</div></div>
+        </section>
     </header>
 
     <main class="sh">
-        <div class="ch" role="img" aria-label="최근 3주 출석률 막대그래프">
-            @for (int i = 0; i < asc.Count; i++)
-            {
-                var (t, p) = TrendModel.Count(asc[i]);
-                var r = TrendModel.Rate(p, t);
-                bool isNow = i == asc.Count - 1;
-                <div class="cb @(isNow ? "now" : "") @(r < LowRate ? "lo" : "")">
-                    <span class="v">@TrendModel.Pct(r)%</span>
-                    <div class="col"><i style="height:@(Math.Clamp(r, 0, 100).ToString(CultureInfo.InvariantCulture))%"></i></div>
-                    <span class="dt">@asc[i].Sunday.ToString("M.d")@(isNow ? " 이번 주" : "")</span>
-                </div>
-            }
-        </div>
+        <section class="trChart" role="img" aria-label="최근 4주 출석률 막대그래프">
+            <h3>4주 출석률 <span>@(LowRate)% 미만은 빨강</span></h3>
+            <div class="trCols">
+                @for (int i = 0; i < asc.Count; i++)
+                {
+                    var (t, p) = TrendModel.Count(asc[i]);
+                    var r = TrendModel.Rate(p, t);
+                    bool isNow = i == asc.Count - 1;
+                    <div class="trCl @(isNow ? "now" : "") @(r < LowRate ? "lo" : "")">
+                        <em>@TrendModel.Pct(r)%</em>
+                        <div class="trBar"><i style="height:@(Math.Clamp(r, 0, 100).ToString(inv))%"></i></div>
+                        <small>@($"{asc[i].Sunday.Month}/{asc[i].Sunday.Day}")@if (isNow) { <br /><b>@(atLatest ? "이번 주" : "보는 주")</b> }</small>
+                    </div>
+                }
+            </div>
+        </section>
 
         <section class="sec">
             <div class="secH"><div><div class="secK">BY WEEK</div><div class="secT">주별 자세히</div></div><span class="secN">@(LowRate)% 미만은 빨간 막대</span></div>

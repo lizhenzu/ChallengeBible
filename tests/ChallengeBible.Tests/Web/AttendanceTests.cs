@@ -515,7 +515,7 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
 
         // 주일 출결 보고서(PC) · 주일 출석 명단(휴대폰): 관리자만, 더보기에 있다
         Assert.Contains("href=\"/jamsil-kids/attendance/report?sunday=", more);   // 유년부 더보기와 같은 항목 · 순서
-        Assert.True(more.IndexOf("주일 출석 보고서") < more.IndexOf("최근 전체 출석현황(3주)") && more.IndexOf("아이별 주별 출석표(52주)") < more.IndexOf("교사 · 반 배정"));
+        Assert.True(more.IndexOf("주일 출석 보고서") < more.IndexOf("최근 전체 출석현황(4주)") && more.IndexOf("아이별 주별 출석표(52주)") < more.IndexOf("교사 · 반 배정"));
         Assert.DoesNotContain("attendance/dashboard/all", more);
         Assert.DoesNotContain("attendance/stats", more);
         var rep = await a.GetStringAsync("/jamsil-kids/attendance/report");
@@ -537,9 +537,9 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         // 최근 전체 출석현황(3주) · 주일 반별 출석
         Assert.Contains("href=\"/jamsil-kids/attendance/trend?date=", more);
         var trend = await a.GetStringAsync("/jamsil-kids/attendance/trend");
-        Assert.Equal(3, Regex.Matches(trend, "<article class=\"w o").Count);          // 주마다 카드 하나(확정 시안 2026-11-13)
-        Assert.Equal(3, Regex.Matches(trend, "class=\"main\" href=\"/jamsil-kids/attendance/byclass\\?sunday=").Count);   // 카드를 누르면 반별 출석
-        Assert.Equal(3, Regex.Matches(trend, ">명단 \\(휴대폰\\)</a>").Count);
+        Assert.Equal(4, Regex.Matches(trend, "<article class=\"w o").Count);          // 주마다 카드 하나(확정 시안 2026-11-13)
+        Assert.Equal(4, Regex.Matches(trend, "class=\"main\" href=\"/jamsil-kids/attendance/byclass\\?sunday=").Count);   // 카드를 누르면 반별 출석
+        Assert.Equal(4, Regex.Matches(trend, ">명단 \\(휴대폰\\)</a>").Count);
         Assert.DoesNotContain("명단 보기", trend);                                      // 큰 버튼 3개는 없앴다
         Assert.Contains("/jamsil-kids/attendance/byclass?sunday=", trend);
         Assert.Contains("반별 출석", await a.GetStringAsync("/jamsil-kids/attendance/byclass?sunday=2020-01-05"));
