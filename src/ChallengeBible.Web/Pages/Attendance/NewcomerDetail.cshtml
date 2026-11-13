@@ -7,7 +7,7 @@
     var d = Model.D;
     var how = d.Voluntary == false ? (string.IsNullOrEmpty(d.Evangelist) ? "누가 데려옴" : $"{d.Evangelist}이(가) 데려옴") : "스스로 옴";
 }
-<main class="att gut"><div class="wrap">
+<main class="att gut attw"><div class="wrap">
     <div class="hd2"><a class="back" href="/@slug/attendance/newcomers">← 새친구</a><h1>@d.Name</h1><p>@d.ClassName · 첫 방문 @d.FirstVisit.ToString("M월 d일")</p></div>
     @if (Model.Error is { } err) { <p class="err" role="alert">@err</p> }
     @if (Model.Ok == "edit") { <p class="okmsg" role="status">정보를 고쳤어요</p> }
