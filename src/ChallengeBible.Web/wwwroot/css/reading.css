@@ -5,7 +5,7 @@ body { font-size: calc(15px * var(--rs)); }
    본문 읽기는 말씀-성경읽기-v2 의 .brd 모양(site.css)에 장 번호 줄만 더한다(ADR 0057). */
 .rp { --r-acc: #2B59C3; --r-accSoft: #DCE5F7; --r-band: #F2F4F7; --r-ink: #1B1F24; --r-dim: #5B6470; --r-rule: #E3E6EA; --r-cell: #E9ECF1;
       --r-l1: #C9D7F2; --r-l2: #8FA9E3; --r-l3: #2B59C3; color: var(--r-ink); }
-@media (prefers-color-scheme: dark) { .rp { --r-acc: #7FA2F2; --r-accSoft: #22304D; --r-band: #1B1F25; --r-ink: #E8EAED; --r-dim: #A3AAB4; --r-rule: #2C323A; --r-cell: #22272E;
+@media not all { /* dark off R-265 */ .rp { --r-acc: #7FA2F2; --r-accSoft: #22304D; --r-band: #1B1F25; --r-ink: #E8EAED; --r-dim: #A3AAB4; --r-rule: #2C323A; --r-cell: #22272E;
       --r-l1: #2A3B5E; --r-l2: #4D6BAE; --r-l3: #7FA2F2; } }
 .rp-in { max-width: 640px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
 .rp-top { background: var(--r-band); }
@@ -182,7 +182,7 @@ body { font-size: calc(15px * var(--rs)); }
 .rp-res p.alt { font-size: calc(15px * var(--fs, 1) * var(--rs, 1)); color: var(--r-dim); }
 .rp-res p b { margin-right: 6px; font-size: max(11px, calc(11.5px * var(--rs, 1))); color: var(--r-acc); }
 .rp-res mark { background: #FFF1C9; color: inherit; padding: 0 1px; }
-@media (prefers-color-scheme: dark) { .rp-res mark { background: #4A3F17; } }
+@media not all { /* dark off R-265 */ .rp-res mark { background: #4A3F17; } }
 
 /* 참여자 현황(확정 시안: 통독-참여자현황, R-159). 점수 없이 진도율만 */
 .rp-stats4 { grid-template-columns: repeat(4, 1fr); }

@@ -7,7 +7,7 @@
     --word-bg: #EEF3FC; --quiz-bg: #FCF4EC; --pray-bg: #F4F1FA; --rec-bg: #EEF6F1;
     --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
     --serif: "Noto Serif KR", "Nanum Myeongjo", "Batang", serif; }
-@media (prefers-color-scheme: dark) {
+@media not all { /* dark off R-265 */
   .ld { --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A;
     --accent: #7FA2F2; --accent-soft: #22304A; --on-accent: #0E1013;
     --sky: #172235; --sky-rule: #263852; --sun: #2E2614; --sun-fg: #F2C063;

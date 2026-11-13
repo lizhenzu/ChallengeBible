@@ -8,7 +8,7 @@
      개인 내용은 담지 않는다. 외부 글꼴 · CSS 없이 이 파일만으로 보이게 스타일을 안에 둔다. -->
 <style>
   :root { --bg: #FFFFFF; --soft: #F5F6F8; --hero: #F2F5FB; --fg: #1B1F24; --dim: #5B6470; --accent: #2B59C3; --accent-bg: #EAF0FB; --on-accent: #FFFFFF; color-scheme: light; }
-  @media (prefers-color-scheme: dark) { :root { --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; color-scheme: dark; } }
+  @media not all { /* dark off R-265 */ :root { --bg: #14171B; --soft: #1B1F25; --hero: #18202E; --fg: #E8EAED; --dim: #A3AAB4; --accent: #7FA2F2; --accent-bg: #1C2740; --on-accent: #0E1013; color-scheme: dark; } }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); }
   body { color: var(--fg); font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; font-size: 15px; line-height: 1.6; }
