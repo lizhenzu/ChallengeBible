@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record BrandingView(string? AppName, string? AppShortName, string ThemeColor, IReadOnlyList<AuditLine> Log);
+public sealed record BrandingView(string? AppName, string? AppShortName, string ThemeColor, string? ReportOrg, IReadOnlyList<AuditLine> Log);
 
 /// <summary>
 /// 부서 "이름 · 색"(0033 · 0038, 확정 시안: 관리-이름색). 앱 이름 1~30자 · 짧은 이름 1~12자(비우면 기본값), 대표 색은 정해 둔 4가지.
@@ -14,6 +14,7 @@ public sealed class BrandingService(IAppDb db, TenantContext tenant, TimeProvide
 {
     public const string DefaultName = "도전!!!성경말씀";
     public const string DefaultShortName = "도전성경";
+    public const string DefaultReportOrg = "ATTENDANCE REPORT";
     public const string LogAction = "TenantBranding";
     public static readonly string[] Colors = PlatformTenantService.ThemeColors;
 
@@ -43,17 +44,20 @@ public sealed class BrandingService(IAppDb db, TenantContext tenant, TimeProvide
     {
         var t = tenant.Current;
         await using var ctx = db.Create();
-        return new(t.AppName, t.AppShortName, t.ThemeColor, await AuditLines.ForTenantAsync(ctx, t.Id, LogAction, ct));
+        return new(t.AppName, t.AppShortName, t.ThemeColor, t.ReportOrg, await AuditLines.ForTenantAsync(ctx, t.Id, LogAction, ct));
     }
 
     /// <summary>저장. 빈칸(공백뿐 포함)은 기본값(null). 바뀐 것이 없으면 아무것도 하지 않는다. 틀리면 칸별 오류.</summary>
-    public async Task<(bool Changed, Dictionary<string, string> Errors)> SaveAsync(string actor, string? appName, string? shortName, string themeColor, CancellationToken ct = default)
+    public async Task<(bool Changed, Dictionary<string, string> Errors)> SaveAsync(string actor, string? appName, string? shortName, string themeColor, string? reportOrg, CancellationToken ct = default)
     {
         var errors = new Dictionary<string, string>();
         var name = Clean(appName);
         var shortN = Clean(shortName);
+        var org = Clean(reportOrg)?.ToUpperInvariant();
         if (name is { Length: > 30 }) errors["AppName"] = "앱 이름은 30자까지예요.";
         if (shortN is { Length: > 12 }) errors["AppShortName"] = "짧은 이름은 12자까지예요.";
+        if (org is { Length: > 40 }) errors["ReportOrg"] = "보고서 영문 머리글은 40자까지예요.";
+        else if (org is not null && !org.All(c => c is >= 'A' and <= 'Z' or >= '0' and <= '9' or ' ' or '-' or '.' or '&' or '\'')) errors["ReportOrg"] = "영문 · 숫자만 써 주세요(예: JAMSIL SAENAE CHURCH).";
         if (!Colors.Contains(themeColor)) errors["ThemeColor"] = "정해 둔 색 중에서 골라 주세요.";
         if (errors.Count > 0) return (false, errors);
 
@@ -63,9 +67,10 @@ public sealed class BrandingService(IAppDb db, TenantContext tenant, TimeProvide
         if (t.AppName != name) parts.Add($"앱 이름 {t.AppName ?? "기본"} → {name ?? "기본"}");
         if (t.AppShortName != shortN) parts.Add($"짧은 이름 {t.AppShortName ?? "기본"} → {shortN ?? "기본"}");
         if (t.ThemeColor != themeColor) parts.Add($"대표 색 {ColorLabel(t.ThemeColor)} → {ColorLabel(themeColor)}");
+        if (t.ReportOrg != org) parts.Add($"보고서 머리글 {t.ReportOrg ?? "기본"} → {org ?? "기본"}");
         if (parts.Count == 0) return (false, errors);
 
-        (t.AppName, t.AppShortName, t.ThemeColor) = (name, shortN, themeColor);
+        (t.AppName, t.AppShortName, t.ThemeColor, t.ReportOrg) = (name, shortN, themeColor, org);
         ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = LogAction, TenantId = t.Id, Detail = string.Join(", ", parts) });
         await ctx.SaveChangesAsync(ct);
         return (true, errors);

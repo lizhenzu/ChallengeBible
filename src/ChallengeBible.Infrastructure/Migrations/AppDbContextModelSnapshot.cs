@@ -2718,6 +2718,10 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<bool>("ReadingEnabled")
                         .HasColumnType("bit");
 
+                    b.Property<string>("ReportOrg")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(40)

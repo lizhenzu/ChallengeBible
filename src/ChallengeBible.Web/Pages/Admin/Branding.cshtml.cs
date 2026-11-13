@@ -18,6 +18,7 @@ public class BrandingModel(BrandingService branding, TenantContext tenant, Tenan
     [BindProperty] public string? AppName { get; set; }
     [BindProperty] public string? AppShortName { get; set; }
     [BindProperty] public string ThemeColor { get; set; } = "blue";
+    [BindProperty] public string? ReportOrg { get; set; }
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }
 
     public IReadOnlyList<AuditLine> Log { get; private set; } = [];
@@ -27,12 +28,12 @@ public class BrandingModel(BrandingService branding, TenantContext tenant, Tenan
     public async Task OnGetAsync(CancellationToken ct)
     {
         var v = await LoadAsync(ct);
-        (AppName, AppShortName, ThemeColor) = (v.AppName, v.AppShortName, v.ThemeColor);
+        (AppName, AppShortName, ThemeColor, ReportOrg) = (v.AppName, v.AppShortName, v.ThemeColor, v.ReportOrg);
     }
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
-        var (changed, errors) = await branding.SaveAsync(User.UserName()!, AppName, AppShortName, ThemeColor, ct);
+        var (changed, errors) = await branding.SaveAsync(User.UserName()!, AppName, AppShortName, ThemeColor, ReportOrg, ct);
         if (errors.Count > 0)
         {
             Errors = errors;

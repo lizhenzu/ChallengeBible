@@ -45,7 +45,7 @@ public partial class BrandingTests : IClassFixture<WebApplicationFactory<Program
     public async Task 저장하면_바뀐_것만_기록에_남고_빈칸은_기본값()
     {
         var me = Admin();
-        var (changed, errors) = await In(_kids).SaveAsync(me, "  유년부 말씀 챌린지 ", "", "green");
+        var (changed, errors) = await In(_kids).SaveAsync(me, "  유년부 말씀 챌린지 ", "", "green", null);
         Assert.True(changed);
         Assert.Empty(errors);
         var v = await In(_kids).GetAsync();
@@ -54,7 +54,7 @@ public partial class BrandingTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal("이은혜", log.Actor);
         Assert.Equal("앱 이름 기본 → 유년부 말씀 챌린지, 대표 색 파랑 → 초록", log.Detail);
 
-        var (again, _) = await In(_kids).SaveAsync(me, "유년부 말씀 챌린지", null, "green");   // 같은 값 → 기록 없음
+        var (again, _) = await In(_kids).SaveAsync(me, "유년부 말씀 챌린지", null, "green", null);   // 같은 값 → 기록 없음
         Assert.False(again);
         Assert.Single((await In(_kids).GetAsync()).Log);
     }
@@ -62,7 +62,7 @@ public partial class BrandingTests : IClassFixture<WebApplicationFactory<Program
     [Fact]
     public async Task 글자_수와_정해_둔_색을_지킨다()
     {
-        var (_, errors) = await In(_kids).SaveAsync(Admin(), new string('가', 31), new string('나', 13), "pink");
+        var (_, errors) = await In(_kids).SaveAsync(Admin(), new string('가', 31), new string('나', 13), "pink", null);
         Assert.Equal(["AppName", "AppShortName", "ThemeColor"], errors.Keys.Order().ToArray());
         using var raw = InMemoryDb.Raw(_db);
         Assert.Null(raw.Tenants.Single(t => t.Id == _kids.Id).AppName);
@@ -72,7 +72,7 @@ public partial class BrandingTests : IClassFixture<WebApplicationFactory<Program
     public async Task 바꾼_기록은_다른_부서_것이_보이지_않는다()
     {
         var me = Admin();
-        await In(_elem).SaveAsync(me, "초등부 챌린지", null, "red");
+        await In(_elem).SaveAsync(me, "초등부 챌린지", null, "red", null);
         Assert.Empty((await In(_kids).GetAsync()).Log);
         Assert.Single((await In(_elem).GetAsync()).Log);
     }
@@ -102,6 +102,25 @@ public partial class BrandingTests : IClassFixture<WebApplicationFactory<Program
         using (var raw = InMemoryDb.Raw(_db)) id = raw.Users.Single(a => a.Email == email + "@example.com").UserName!;
         InMemoryDb.SeedMembership(_db, _kids.Id, id, MembershipStatus.Approved, roles);
         return c;
+    }
+
+    [Fact]
+    public async Task R253_출결_보고서_영문_머리글은_부서마다_정하고_비우면_기본이다()
+    {
+        var admin = await Member("eunhye", Roles.TenantAdmin);
+        Assert.Contains("<div class=\"org\">ATTENDANCE REPORT</div>", await admin.GetStringAsync("/jamsil-kids/attendance/report"));
+        var page = await admin.GetStringAsync("/jamsil-kids/admin/branding");
+        async Task<HttpResponseMessage> Save(string org) => await admin.PostAsync("/jamsil-kids/admin/branding", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["ThemeColor"] = "blue", ["ReportOrg"] = org,
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, (await Save("jamsil saenae church")).StatusCode);
+        Assert.Contains("<div class=\"org\">JAMSIL SAENAE CHURCH</div>", await admin.GetStringAsync("/jamsil-kids/attendance/report"));
+        Assert.Contains("보고서 머리글 기본 → JAMSIL SAENAE CHURCH", await admin.GetStringAsync("/jamsil-kids/admin/branding?Ok=save"));
+        Assert.Equal(HttpStatusCode.OK, (await Save("잠실새내교회")).StatusCode);                        // 영문 · 숫자만: 오류로 다시 보여 준다
+        Assert.Equal(HttpStatusCode.OK, (await Save(new string('A', 41))).StatusCode);                  // 40자까지
+        Assert.Equal(HttpStatusCode.Redirect, (await Save("")).StatusCode);                            // 비우면 기본
+        Assert.Contains("<div class=\"org\">ATTENDANCE REPORT</div>", await admin.GetStringAsync("/jamsil-kids/attendance/report"));
     }
 
     [Fact]
