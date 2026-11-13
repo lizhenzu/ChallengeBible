@@ -2673,15 +2673,15 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .ybr .pH .dt small { display: block; font-size: 11.5px; color: var(--yb-dim); margin-top: 2px; }
 .ybr .pK { font-size: 10.5px; letter-spacing: .2em; color: var(--yb-blue); font-weight: 700; margin-top: 22px; }
 .ybr .pT { font-size: 17px; font-weight: 800; color: var(--yb-ink); margin: 2px 0 10px; }
-.ybr .sumW { overflow-x: auto; }
+.ybr .sumW { overflow-x: auto; max-width: 520px; }
 .ybr table.sum { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-.ybr .sum th, .ybr .sum td { padding: 9px 10px; text-align: center; border-bottom: 1px solid var(--yb-line); font-size: 14px; white-space: nowrap; }
+.ybr .sum th, .ybr .sum td { padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--yb-line); font-size: 13.5px; white-space: nowrap; }
 .ybr .sum thead th { font-size: 12px; font-weight: 700; color: var(--yb-dim); border-bottom: 1px solid var(--yb-ink); }
-.ybr .sum td:first-child, .ybr .sum th:first-child { text-align: left; color: var(--yb-dim2); font-size: 13px; width: 90px; }
+.ybr .sum td:first-child, .ybr .sum th:first-child { text-align: left; color: var(--yb-dim2); font-size: 13px; width: 52px; }
 .ybr .sum .tot { background: var(--yb-grey); font-weight: 700; }
 .ybr .sum .ok { color: var(--yb-ok); font-weight: 700; }
 .ybr .sum .x { color: var(--yb-danger); }
-.ybr .sum .bar { display: inline-block; width: 60px; height: 4px; background: var(--yb-line); vertical-align: middle; margin-left: 8px; }
+.ybr .sum .bar { display: inline-block; width: 34px; height: 4px; background: var(--yb-line); vertical-align: middle; margin-left: 8px; }
 .ybr .sum .bar i, .ybr .bF .bar i { display: block; height: 100%; background: var(--yb-ok); }
 .ybr .cols { display: grid; grid-template-columns: repeat(var(--yc), minmax(0, 1fr)); gap: 18px; align-items: start; }
 /* 종이 출석부처럼: 학년 = 가로 한 줄, 같은 줄 칸은 같은 높이(사용자 2026-11-13) */
