@@ -95,7 +95,7 @@ DECLARE @RoleBasic nvarchar(450) = (SELECT Id FROM [Identity].[Role] WHERE Norma
 DECLARE @RoleAdmin nvarchar(450) = (SELECT Id FROM [Identity].[Role] WHERE NormalizedName = N'ADMIN');
 IF @RoleBasic IS NULL OR @RoleAdmin IS NULL THROW 50002, N'Identity.Role has no Basic or Admin. Stop and report.', 1;
 
--- numbers 0 .. 999 without system views (SQL Studio blocks server-level objects)
+-- numbers 0 .. 999
 CREATE TABLE #Num (I int PRIMARY KEY);
 INSERT #Num SELECT a.v + 10 * b.v + 100 * c.v FROM (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)) a(v)
 CROSS JOIN (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)) b(v) CROSS JOIN (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)) c(v);
@@ -308,11 +308,10 @@ CREATE TABLE #Item (Item varchar(20) COLLATE DATABASE_DEFAULT);
 DECLARE @Rule nvarchar(max) = (SELECT TOP 1 [Values] FROM app.PlatformRuleSetVersion WHERE EffectiveFrom <= @Today ORDER BY VersionNo DESC);
 IF @Rule IS NULL
     INSERT #Item VALUES ('Word.Me'), ('Word.Parent'), ('Prayer.Me'), ('Prayer.Others'), ('Quiz.Correct'), ('Recite');
-ELSE
-    INSERT #Item SELECT CASE j.Item WHEN 'WordMe' THEN 'Word.Me' WHEN 'WordParent' THEN 'Word.Parent' WHEN 'PrayerMe' THEN 'Prayer.Me'
-                                    WHEN 'PrayerOthers' THEN 'Prayer.Others' WHEN 'QuizCorrect' THEN 'Quiz.Correct' WHEN 'Recite' THEN 'Recite' END
-    FROM OPENJSON(@Rule, '$.Items') WITH (Item varchar(20) '$.Item', Enabled bit '$.Enabled') j WHERE j.Enabled = 1;
-DELETE FROM #Item WHERE Item IS NULL;
+ELSE   -- rule JSON has "Item":"WordMe","Enabled":true ; read by text match
+    INSERT #Item SELECT v.Item FROM (VALUES ('WordMe', 'Word.Me'), ('WordParent', 'Word.Parent'), ('PrayerMe', 'Prayer.Me'),
+                                            ('PrayerOthers', 'Prayer.Others'), ('QuizCorrect', 'Quiz.Correct'), ('Recite', 'Recite')) v(J, Item)
+    WHERE REPLACE(@Rule, ' ', '') NOT LIKE '%"Item":"' + v.J + '","Enabled":false%';
 
 CREATE TABLE #Day (D date PRIMARY KEY);
 INSERT #Day SELECT DATEADD(day, I, @Start) FROM #Num WHERE I < DATEDIFF(day, @Start, @Today);
@@ -337,12 +336,11 @@ CREATE TABLE #P (Code varchar(10) COLLATE DATABASE_DEFAULT PRIMARY KEY, Kind cha
     UserName nvarchar(256) COLLATE DATABASE_DEFAULT, Name nvarchar(50) COLLATE DATABASE_DEFAULT, UserId nvarchar(450) COLLATE DATABASE_DEFAULT, PersonId int);
 
 DECLARE @T int, @Slug nvarchar(200), @Ord int = 0, @Term int, @NcClass int;
-DECLARE tc CURSOR LOCAL FAST_FORWARD FOR SELECT Id, LOWER(Slug) FROM app.Tenant WHERE IsLobby = 0 ORDER BY Id;
-OPEN tc;
-FETCH NEXT FROM tc INTO @T, @Slug;
-WHILE @@FETCH_STATUS = 0
+SET @T = (SELECT MIN(Id) FROM app.Tenant WHERE IsLobby = 0);   -- loop by id
+WHILE @T IS NOT NULL
 BEGIN
-    TRUNCATE TABLE #P;
+    SET @Slug = (SELECT LOWER(Slug) FROM app.Tenant WHERE Id = @T);
+    DELETE FROM #P;
     INSERT #P SELECT t.Code, t.Kind, t.RoleCode, t.HasAcct, t.BM, t.BD, t.Target, t.ClassNo, t.AttRate, t.Absent3, t.NcFirst, t.NcVol, t.NcEvan, t.Phone,
                      CASE WHEN t.HasAcct = 1 THEN @Slug + N'-' + t.Code END, n.Name, CASE WHEN t.HasAcct = 1 THEN CONVERT(nvarchar(450), NEWID()) END, NULL
     FROM #Tpl t JOIN #Name n ON n.Idx = @Ord * 69 + t.Seq;
@@ -446,10 +444,8 @@ BEGIN
     FROM #Award a JOIN #Team t ON t.TeamNo = a.TeamNo;
 
     SET @Ord += 1;
-    FETCH NEXT FROM tc INTO @T, @Slug;
+    SET @T = (SELECT MIN(Id) FROM app.Tenant WHERE IsLobby = 0 AND Id > @T);
 END;
-CLOSE tc;
-DEALLOCATE tc;
 
 SET @Step = N'3 after insert';
 SELECT @Step AS [Step],
