@@ -55,26 +55,26 @@ public sealed class DeptGiftService(IAppDb db, TenantContext tenant, RuleService
     public async Task<GiftRules> RulesAsync(CancellationToken ct = default) =>
         (await rules.ForDateAsync(TenantClock.ToTenantDate(time.GetUtcNow(), tenant.Current.TimeZoneId), ct)).Gifts;
 
-    /// <summary>① 선물 목록: 판매 중인 공통 상품 + 우리 부서 상품, 숨김 표시. show = all · shown · hidden.</summary>
+    /// <summary>① 공통 상품 탭: 판매 중인 공통 상품만(부서 상품은 ② 부서 상품 탭), 숨김 표시. show = all · shown · hidden. (2026-11-14 사용자: 탭 이름 "선물 목록" → "공통 상품")</summary>
     public async Task<(IReadOnlyList<DeptGiftRow> Rows, bool More, DeptGiftCounts Counts)> ListAsync(string show, string? q, int? min, int? max, int take, CancellationToken ct = default)
     {
         await using var ctx = db.Create();
         var hidden = (await ctx.GiftItemsHidden.Select(h => h.GiftItemId).ToListAsync(ct)).ToHashSet();
-        var items = ctx.GiftItems.AsNoTracking().Where(i => i.Status == GiftItemStatus.Active);
+        var items = ctx.GiftItems.AsNoTracking().Where(i => i.Status == GiftItemStatus.Active && i.TenantId == null);
         var all = await items.Select(i => new { i.Id, i.TenantId }).ToListAsync(ct);
-        var counts = new DeptGiftCounts(all.Count, all.Count(i => i.TenantId != null || !hidden.Contains(i.Id)), all.Count(i => i.TenantId == null && hidden.Contains(i.Id)));
+        var counts = new DeptGiftCounts(all.Count, all.Count(i => !hidden.Contains(i.Id)), all.Count(i => hidden.Contains(i.Id)));
         var text = q?.Trim();
         if (!string.IsNullOrEmpty(text))
             items = int.TryParse(text, out var no) ? items.Where(i => i.Id == no || i.Name.Contains(text)) : items.Where(i => i.Name.Contains(text));
         if (min is int lo) items = items.Where(i => i.Price >= lo);
         if (max is int hi) items = items.Where(i => i.Price <= hi);
         var hiddenIds = hidden.ToList();
-        if (show == "hidden") items = items.Where(i => i.TenantId == null && hiddenIds.Contains(i.Id));
-        else if (show == "shown") items = items.Where(i => i.TenantId != null || !hiddenIds.Contains(i.Id));
+        if (show == "hidden") items = items.Where(i => hiddenIds.Contains(i.Id));
+        else if (show == "shown") items = items.Where(i => !hiddenIds.Contains(i.Id));
         var rows = await (from i in items
                           join s in ctx.Tenants on i.SharedByTenantId equals s.Id into ss
                           from s in ss.DefaultIfEmpty()
-                          orderby i.TenantId == null, i.Id
+                          orderby i.Id
                           select new { i.Id, i.Name, i.Price, i.HasImage, i.UpdatedUtc, i.TenantId, i.Status, Shared = s == null ? null : s.Name })
                          .Take(take + 1).ToListAsync(ct);
         return (rows.Take(take).Select(r => new DeptGiftRow(r.Id, r.Name, r.Price, r.HasImage, r.UpdatedUtc, r.TenantId == null, r.TenantId == null && hidden.Contains(r.Id), r.Shared, r.Status)).ToList(),
@@ -93,7 +93,7 @@ public sealed class DeptGiftService(IAppDb db, TenantContext tenant, RuleService
         return true;
     }
 
-    /// <summary>② 우리 부서 상품: 우리 부서 상품(모든 상태) + 우리가 공통에 올린 상품.</summary>
+    /// <summary>② 부서 상품 탭: 우리 부서 상품(모든 상태) + 우리가 공통에 올린 상품.</summary>
     public async Task<IReadOnlyList<DeptGiftRow>> OursAsync(CancellationToken ct = default)
     {
         await using var ctx = db.Create();

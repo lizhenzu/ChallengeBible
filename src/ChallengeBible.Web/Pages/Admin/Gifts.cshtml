@@ -4,7 +4,7 @@
 @using ChallengeBible.Web.Pages.Admin
 @using ChallengeBible.Web.Services
 @using ChallengeBible.Domain.Rules
-@* 확정 시안: 관리-선물-단독시안(2026-11-14) — 탭 ① 선물 목록(스위치 = 바로 저장) ② 우리 부서 상품(공통에 올리기) ③ 금액 · 점수(빈 칸 = 공통 기본값) *@
+@* 확정 시안: 관리-선물-단독시안(2026-11-14) — 탭 ① 공통 상품(스위치 = 바로 저장) ② 부서 상품(공통에 올리기) ③ 금액 · 점수(빈 칸 = 공통 기본값) *@
 @{
     var slug = Model.Tenant.Current.Slug;
     var self = $"/{slug}/admin/gifts";
@@ -17,8 +17,8 @@
     <h1>선물</h1>
     <p class="gd-lead">우리 부서 아이들이 고를 선물과 금액을 정해요.</p>
     <nav class="gd-tabs" aria-label="선물 설정">
-        <a href="@self?t=list" aria-current="@Tab("list")">선물 목록</a>
-        <a href="@self?t=ours" aria-current="@Tab("ours")">우리 부서 상품</a>
+        <a href="@self?t=list" aria-current="@Tab("list")">공통 상품</a>
+        <a href="@self?t=ours" aria-current="@Tab("ours")">부서 상품</a>
         <a href="@self?t=money" aria-current="@Tab("money")">금액 · 점수</a>
     </nav>
     @if (Model.Message is not null) { <p class="ok-box" role="status">@Model.Message</p> }
@@ -37,10 +37,10 @@
                 @foreach (var b in ChallengeBible.Web.Pages.Platform.GiftsModel.Bands) { <option value="@b.Key" selected="@(Model.Band == b.Key || (Model.Band is null && b.Key == ""))">@b.Label</option> }
             </select>
         </form>
-        <p class="gd-note">공통 상품은 모든 부서에 보여요. 우리 부서에 안 맞는 것만 <b>숨김</b>으로 바꾸면 우리 아이들에게 보이지 않아요(스위치를 누르면 바로 저장).</p>
+        <p class="gd-note">공통 상품은 모든 부서가 함께 쓰는 선물이에요. 우리 부서에 안 맞는 것만 <b>숨김</b>으로 바꾸면 우리 아이들에게 보이지 않아요(스위치를 누르면 바로 저장). 우리 부서만의 선물은 <b>부서 상품</b> 탭에서 등록해요.</p>
         @if (Model.Rows.Count == 0)
         {
-            <div class="empty-box">@(Model.Show == "hidden" ? "숨긴 상품이 없어요." : "상품이 없어요.")</div>
+            <div class="empty-box">@(Model.Show == "hidden" ? "숨긴 공통 상품이 없어요." : "공통 상품이 없어요.")</div>
         }
         else
         {
@@ -72,11 +72,11 @@
     }
     else if (Model.Tab == "ours")
     {
-        <div class="gd-head"><b>우리 부서 상품 <small class="num">@Model.Ours.Count</small></b><a class="btn p sm" href="@self/edit">+ 상품 등록</a></div>
-        <p class="gd-note">우리 부서 상품은 우리 아이들에게만 보여요. <b>[공통에 올리기]</b>를 누르면 승인 없이 바로 모든 부서에 보이고, 그 뒤에도 우리 부서와 플랫폼만 고칠 수 있어요. 등록 화면은 플랫폼 상품 등록과 같아요(사진 · 가격 · 쿠팡 링크 필수).</p>
+        <div class="gd-head"><b>부서 상품 <small class="num">@Model.Ours.Count</small></b><a class="btn p sm" href="@self/edit">+ 상품 등록</a></div>
+        <p class="gd-note">부서 상품은 우리 부서 아이들에게만 보여요. <b>[공통에 올리기]</b>를 누르면 승인 없이 바로 모든 부서에 보이고, 그 뒤에도 우리 부서와 플랫폼만 고칠 수 있어요. 등록 화면은 플랫폼 상품 등록과 같아요(사진 · 가격 · 쿠팡 링크 필수).</p>
         @if (Model.Ours.Count == 0)
         {
-            <div class="empty-box">아직 우리 부서 상품이 없어요.</div>
+            <div class="empty-box">아직 부서 상품이 없어요.</div>
         }
         else
         {

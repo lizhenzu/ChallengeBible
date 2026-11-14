@@ -75,6 +75,9 @@ public partial class DeptGiftTests : IClassFixture<WebApplicationFactory<Program
         Item("노트");
         var c = await Admin("kidsadmin", _kids);
         Assert.Contains("href=\"/kids/admin/gifts\"", await c.GetStringAsync("/kids/admin"));   // 관리 메뉴 "선물"
+        var tabs = await c.GetStringAsync("/kids/admin/gifts");
+        Assert.Contains(">공통 상품</a>", tabs);
+        Assert.Contains(">부서 상품</a>", tabs);
         var page = await c.GetStringAsync("/kids/admin/gifts");
         Assert.Contains("볼펜", page);
         Assert.Contains("aria-checked=\"true\"", page);
@@ -105,6 +108,7 @@ public partial class DeptGiftTests : IClassFixture<WebApplicationFactory<Program
         int id;
         using (var raw = InMemoryDb.Raw(_db)) { var i = raw.GiftItems.Single(); Assert.Equal((int?)_kids.Id, i.TenantId); id = i.Id; }
         Assert.Contains("찬양 DVD", await c.GetStringAsync("/kids/admin/gifts?t=ours"));
+        Assert.DoesNotContain("찬양 DVD", await c.GetStringAsync("/kids/admin/gifts?t=list"));   // "공통 상품" 탭에는 공통만(2026-11-14 사용자: 탭 이름 공통 상품 · 부서 상품)
         Assert.DoesNotContain("찬양 DVD", await e.GetStringAsync("/elem/admin/gifts?t=list"));   // 다른 부서에는 안 보인다
         Assert.Equal(HttpStatusCode.NotFound, (await e.GetAsync($"/elem/admin/gifts/edit/{id}")).StatusCode);
 

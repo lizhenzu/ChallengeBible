@@ -8,13 +8,13 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace ChallengeBible.Web.Pages.Admin;
 
 /// <summary>
-/// `/{slug}/admin/gifts/edit/{id?}` 우리 부서 상품 등록 · 고치기(확정 시안 관리-선물 ②, 폼은 플랫폼과 같음 _GiftItemForm).
+/// `/{slug}/admin/gifts/edit/{id?}` 부서 상품 등록 · 고치기(확정 시안 관리-선물 ②, 폼은 플랫폼과 같음 _GiftItemForm).
 /// 부서는 자기 부서 상품과 자기가 공통에 올린 상품만 고친다(R-277). 내리기 · 삭제는 자기 부서 상품만.
 /// </summary>
 [TenantRoles(Roles.TenantAdmin)]
 public class GiftEditModel(GiftCatalogService catalog, TenantContext tenant) : PageModel, ITitled
 {
-    public string Title => Id is null ? "우리 부서 상품 등록" : "상품 고치기";
+    public string Title => Id is null ? "부서 상품 등록" : "상품 고치기";
     public TenantContext Tenant => tenant;
 
     [FromRoute(Name = "id")] public int? Id { get; set; }

@@ -1,16 +1,16 @@
 @page "/{slug}/admin/gifts/edit/{id:int?}"
 @model ChallengeBible.Web.Pages.Admin.GiftEditModel
 @using ChallengeBible.Infrastructure.Data
-@* 확정 시안 관리-선물 ②: 우리 부서 상품 등록 · 고치기 — 폼은 플랫폼 상품과 같다(_GiftItemForm) *@
+@* 확정 시안 관리-선물 ②: 부서 상품 등록 · 고치기 — 폼은 플랫폼 상품과 같다(_GiftItemForm) *@
 @{
     var i = Model.Item;
     var own = i is null || i.TenantId == Model.Tenant.Current.Id;
 }
 <partial name="_AdminTop" model="Model.Tenant" />
 <main class="admin gut gf"><div class="wrap">
-    <a class="gf-back" href="@Model.Back">← 우리 부서 상품</a>
+    <a class="gf-back" href="@Model.Back">← 부서 상품</a>
     <h1 class="gf-h">@Model.Title
-        @if (i is not null) { <small class="num">@i.Id · @(own ? "우리 부서만" : "우리가 공통에 올림") · 고른 기록 @Model.Picked</small> }
+        @if (i is not null) { <small class="num">@i.Id · @(own ? "부서 상품" : "우리가 공통에 올림") · 고른 기록 @Model.Picked</small> }
     </h1>
     @if (Model.Message is not null) { <p class="ok-box" role="status">@Model.Message</p> }
     @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
