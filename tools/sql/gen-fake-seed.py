@@ -252,10 +252,15 @@ DECLARE @RoleBasic nvarchar(450) = (SELECT Id FROM [Identity].[Role] WHERE Norma
 DECLARE @RoleAdmin nvarchar(450) = (SELECT Id FROM [Identity].[Role] WHERE NormalizedName = N'ADMIN');
 IF @RoleBasic IS NULL OR @RoleAdmin IS NULL THROW 50002, N'Identity.Role 에 Basic · Admin 이 없습니다. 알려 주세요.', 1;
 
+-- numbers 0 .. 999 without system views (SQL Studio blocks server-level objects)
+CREATE TABLE #Num (I int PRIMARY KEY);
+INSERT #Num SELECT a.v + 10 * b.v + 100 * c.v FROM (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)) a(v)
+CROSS JOIN (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)) b(v) CROSS JOIN (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)) c(v);
+
 CREATE TABLE #Name (Idx int PRIMARY KEY, Name nvarchar(50) COLLATE DATABASE_DEFAULT);
 -- names: surname + 2 syllables, all different, mixed order
 DECLARE @Sur nvarchar(100) = N'{sur}', @Na nvarchar(100) = N'{na}', @Nb nvarchar(100) = N'{nb}';
-;WITH k AS (SELECT TOP (100) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS i FROM sys.all_columns),
+;WITH k AS (SELECT I AS i FROM #Num WHERE I BETWEEN 1 AND 100),
 n AS (SELECT DISTINCT SUBSTRING(@Sur, s.i, 1) + SUBSTRING(@Na, a.i, 1) + SUBSTRING(@Nb, b.i, 1) AS Name
       FROM k s JOIN k a ON a.i <= LEN(@Na) JOIN k b ON b.i <= LEN(@Nb)
       WHERE s.i <= LEN(@Sur) AND SUBSTRING(@Na, a.i, 1) <> SUBSTRING(@Nb, b.i, 1))
@@ -300,8 +305,7 @@ ELSE
 DELETE FROM #Item WHERE Item IS NULL;
 
 CREATE TABLE #Day (D date PRIMARY KEY);
-INSERT #Day SELECT TOP (DATEDIFF(day, @Start, @Today)) DATEADD(day, ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1, @Start)
-FROM sys.all_columns a CROSS JOIN sys.all_columns b;
+INSERT #Day SELECT DATEADD(day, I, @Start) FROM #Num WHERE I < DATEDIFF(day, @Start, @Today);
 CREATE TABLE #Slot (SlotNo int IDENTITY PRIMARY KEY, MissionDate date, Item varchar(20) COLLATE DATABASE_DEFAULT, WeekStart date NULL);
 INSERT #Slot (MissionDate, Item, WeekStart) SELECT d.D, i.Item, NULL FROM #Day d CROSS JOIN #Item i WHERE i.Item <> 'Recite';
 INSERT #Slot (MissionDate, Item, WeekStart) SELECT d.D, 'Recite', d.D FROM #Day d

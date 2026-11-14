@@ -95,10 +95,15 @@ DECLARE @RoleBasic nvarchar(450) = (SELECT Id FROM [Identity].[Role] WHERE Norma
 DECLARE @RoleAdmin nvarchar(450) = (SELECT Id FROM [Identity].[Role] WHERE NormalizedName = N'ADMIN');
 IF @RoleBasic IS NULL OR @RoleAdmin IS NULL THROW 50002, N'Identity.Role has no Basic or Admin. Stop and report.', 1;
 
+-- numbers 0 .. 999 without system views (SQL Studio blocks server-level objects)
+CREATE TABLE #Num (I int PRIMARY KEY);
+INSERT #Num SELECT a.v + 10 * b.v + 100 * c.v FROM (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)) a(v)
+CROSS JOIN (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)) b(v) CROSS JOIN (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)) c(v);
+
 CREATE TABLE #Name (Idx int PRIMARY KEY, Name nvarchar(50) COLLATE DATABASE_DEFAULT);
 -- names: surname + 2 syllables, all different, mixed order
 DECLARE @Sur nvarchar(100) = CAST(0x40AE74C715BC5CCD15C815AC70C824C7A5C784C75CD524C61CC1E0C28CAD69D648C5A1C158B94DD604C8E0AC38BB91C590C130BC31BCC8D520C7A8B0ECC278B158D5FDAC31C128CCFCC8B0C66CADFCBB AS nvarchar(100)), @Na nvarchar(100) = CAST(0xFCBB1CC1C0C958D5C4B308C6DCC220C7FCC818C240C744CC24C704D600C9B0C698B0E4B200AC8CC1DCD074ACB9C2ACC701C6D9B331C11CD615C8F8BB20C1BDACC4C9 AS nvarchar(100)), @Nb nvarchar(100) = CAST(0x00C924C7B0C644C5F0C5D0C6C4C938D6B0B928C748BE01D66CD728C6C4BC94C12CCCB0AC8CB7C4D61CC1FCBB01C604D618C240C75BBE98B084B91DC1C8D6 AS nvarchar(100));
-;WITH k AS (SELECT TOP (100) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS i FROM sys.all_columns),
+;WITH k AS (SELECT I AS i FROM #Num WHERE I BETWEEN 1 AND 100),
 n AS (SELECT DISTINCT SUBSTRING(@Sur, s.i, 1) + SUBSTRING(@Na, a.i, 1) + SUBSTRING(@Nb, b.i, 1) AS Name
       FROM k s JOIN k a ON a.i <= LEN(@Na) JOIN k b ON b.i <= LEN(@Nb)
       WHERE s.i <= LEN(@Sur) AND SUBSTRING(@Na, a.i, 1) <> SUBSTRING(@Nb, b.i, 1))
@@ -310,8 +315,7 @@ ELSE
 DELETE FROM #Item WHERE Item IS NULL;
 
 CREATE TABLE #Day (D date PRIMARY KEY);
-INSERT #Day SELECT TOP (DATEDIFF(day, @Start, @Today)) DATEADD(day, ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1, @Start)
-FROM sys.all_columns a CROSS JOIN sys.all_columns b;
+INSERT #Day SELECT DATEADD(day, I, @Start) FROM #Num WHERE I < DATEDIFF(day, @Start, @Today);
 CREATE TABLE #Slot (SlotNo int IDENTITY PRIMARY KEY, MissionDate date, Item varchar(20) COLLATE DATABASE_DEFAULT, WeekStart date NULL);
 INSERT #Slot (MissionDate, Item, WeekStart) SELECT d.D, i.Item, NULL FROM #Day d CROSS JOIN #Item i WHERE i.Item <> 'Recite';
 INSERT #Slot (MissionDate, Item, WeekStart) SELECT d.D, 'Recite', d.D FROM #Day d
