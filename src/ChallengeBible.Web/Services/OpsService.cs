@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using ChallengeBible.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +15,8 @@ public sealed record OpsAuditRow(DateTime OccurredUtc, string Action, string Lab
 public sealed class OpsService(ISystemDb systemDb, AppInfo app, TimeProvider time)
 {
     public const string PlatformTimeZone = PlatformHomeService.PlatformTimeZone;
+    public const string MigrateAction = "MigrationsApplied";
+    public const string MigrateConfirm = "APPLY";
 
     private async Task<AppDbContext> OpenAsync(string actor, CancellationToken ct)
     {
@@ -108,6 +110,7 @@ public sealed class OpsService(ISystemDb systemDb, AppInfo app, TimeProvider tim
         SeasonService.LogAction => "시즌",
         PlatformAccountService.ResetPasswordAction => "임시 비밀번호",
         PlatformAccountService.ResetMarksAction => "읽음 초기화",
+        MigrateAction => "마이그레이션 적용",
         _ => action,
     };
 
@@ -130,5 +133,37 @@ public sealed class OpsService(ISystemDb systemDb, AppInfo app, TimeProvider tim
         return (rows.Take(take).Select(x => new OpsAuditRow(x.OccurredUtc, x.Action, Label(x.Action),
                     x.IsPlatformAdmin ? $"{x.DisplayName}(운영자)" : x.DisplayName, x.TenantName, PlatformHomeService.LogText(x.Action, x.Detail))).ToList(),
             rows.Count > take, actions.OrderBy(Label).ToList(), tenants.Select(t => (t.Id, t.Name)).ToList());
+    }
+
+    /// <summary>적용 안 된 마이그레이션 이름(시험용 메모리 DB 는 빈 목록).</summary>
+    public async Task<IReadOnlyList<string>> PendingAsync(string actor, CancellationToken ct = default)
+    {
+        await using var ctx = await OpenAsync(actor, ct);
+        return ctx.Database.IsRelational() ? (await ctx.Database.GetPendingMigrationsAsync(ct)).ToList() : [];
+    }
+
+    /// <summary>
+    /// 적용 안 된 마이그레이션 적용(2026-11-14 사용자: 휴대폰만으로 실DB 에 표를 만든다 — SQL Studio 는 보안 정책 문장을 막는다).
+    /// 플랫폼 관리자만, 확인 글자 APPLY. 이 화면이 보여 준 목록과 지금 목록이 다르면 하지 않는다(그사이 바뀜). 감사 로그를 남긴다.
+    /// </summary>
+    public async Task<(bool Ok, string Message)> MigrateAsync(string actor, IReadOnlyList<string> expected, CancellationToken ct = default)
+    {
+        await using var ctx = await OpenAsync(actor, ct);
+        if (!ctx.Database.IsRelational()) return (false, "시험용 메모리 DB 에서는 하지 않아요.");
+        var pending = (await ctx.Database.GetPendingMigrationsAsync(ct)).ToList();
+        if (pending.Count == 0) return (false, "적용할 마이그레이션이 없어요.");
+        if (!pending.SequenceEqual(expected)) return (false, "그사이 목록이 바뀌었어요. 화면을 새로 고쳐 다시 확인해 주세요.");
+        ctx.Database.SetCommandTimeout(TimeSpan.FromMinutes(10));
+        try
+        {
+            await ctx.Database.MigrateAsync(ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return (false, $"적용하지 못했어요(마이그레이션마다 트랜잭션이라 실패한 것은 되돌아가요): {ex.GetType().Name} · {ex.Message}");
+        }
+        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = MigrateAction, Detail = string.Join(", ", pending.Select(Short)) });
+        await ctx.SaveChangesAsync(ct);
+        return (true, $"{pending.Count}개 적용했어요: {string.Join(", ", pending.Select(Short))}");
     }
 }

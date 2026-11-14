@@ -1,4 +1,4 @@
-namespace ChallengeBible.Domain.Rules;
+﻿namespace ChallengeBible.Domain.Rules;
 
 /// <summary>
 /// 점수 · 수행 규칙 값. 코드에 값을 쓰지 않고 이 객체에서 읽는다(CLAUDE.md 원칙).
@@ -26,6 +26,9 @@ public sealed record RuleSet
     public int FamilyAwardSteps { get; init; } = 10;
     /// <summary>부서가 정하기 전 단계마다의 선물 금액 한도(원).</summary>
     public int FamilyAwardDefaultAmount { get; init; } = 5000;
+
+    /// <summary>선물 기본값(ADR 0094). 부서 설정이 비어 있으면 이 값. 예전에 저장한 규칙에 없으면 이 기본값.</summary>
+    public GiftRules Gifts { get; init; } = GiftRules.Default;
 
     public static readonly IReadOnlyList<GrowthStage> DefaultGrowth =
         [new("씨앗", "🌰", 400), new("새싹", "🌱", 900), new("나무", "🌿", 1300), new("숲", "🌲", 1700)];
@@ -90,3 +93,40 @@ public enum FamilyMilestoneKind { Award, Applause }
 public sealed record GrowthStage(string Name, string Emoji, int Until);
 
 public sealed record FeatureSwitches(bool Ranking, bool FamilyTeam, bool TranslationCompare);
+
+/// <summary>금액 범위(원). Max 포함.</summary>
+public sealed record AmountRange(int Min, int Max);
+
+/// <summary>
+/// 선물 규칙 기본값(ADR 0094, docs/design/선물-데이터-설계.md 2절). 코드에 숫자를 쓰지 않고 여기서 읽는다.
+/// </summary>
+public sealed record GiftRules
+{
+    /// <summary>개인 크레딧(R-280): 그해 처음 StepPoints 점에 FirstCredits, 그 뒤 StepPoints 점마다 StepCredits.</summary>
+    public int FirstCredits { get; init; } = 5000;
+    public int StepPoints { get; init; } = 100;
+    public int StepCredits { get; init; } = 1000;
+    /// <summary>개인 크레딧 상한(R-280), 부서가 바꾼다.</summary>
+    public int PersonalCap { get; init; } = 30000;
+    public AmountRange Newcomer { get; init; } = new(1000, 15000);
+    public AmountRange Invite { get; init; } = new(1000, 15000);
+    public AmountRange Birthday { get; init; } = new(1000, 5000);
+    /// <summary>생일 선물은 생일 BirthdayOpenDays 일 전 ~ BirthdayCloseDays 일 전(R-288).</summary>
+    public int BirthdayOpenDays { get; init; } = 30;
+    public int BirthdayCloseDays { get; init; } = 7;
+    /// <summary>완독 · 가족팀 · 친구팀 선물을 고르는 기한(일)과 다시 열기(일).</summary>
+    public int PickDays { get; init; } = 30;
+    public int ReopenDays { get; init; } = 7;
+    /// <summary>완독 회차별 금액(R-289): 1독 · 2독 · 3독부터(표에 없는 회차는 마지막 값).</summary>
+    public IReadOnlyList<int> ReadingAmounts { get; init; } = [10000, 15000, 20000];
+    /// <summary>가족팀 단계별 금액(R-290): 1,000점 · 2,000점 · 3,000점부터(마지막 값이 이후 모든 단계).</summary>
+    public IReadOnlyList<int> FamilyAmounts { get; init; } = [10000, 20000, 30000];
+    /// <summary>친구팀은 같은 단계 금액을 이 수로 나눠 각자(R-290).</summary>
+    public int FriendShare { get; init; } = 2;
+
+    public static GiftRules Default { get; } = new();
+
+    /// <summary>표에서 n번째(1부터) 값, 표보다 크면 마지막 값.</summary>
+    public static int Pick(IReadOnlyList<int> table, int n) => table.Count == 0 ? 0 : table[Math.Clamp(n, 1, table.Count) - 1];
+}
+

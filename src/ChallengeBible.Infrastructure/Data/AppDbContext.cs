@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
@@ -71,6 +71,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<PromotionRequest> PromotionRequests => Set<PromotionRequest>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<PlatformRuleSetVersion> PlatformRuleSetVersions => Set<PlatformRuleSetVersion>();
+    // 선물(ADR 0094)
+    public DbSet<GiftItem> GiftItems => Set<GiftItem>();
+    public DbSet<GiftItemHidden> GiftItemsHidden => Set<GiftItemHidden>();
+    public DbSet<GiftSetting> GiftSettings => Set<GiftSetting>();
+    public DbSet<GiftCreditRate> GiftCreditRates => Set<GiftCreditRate>();
+    public DbSet<GiftReadingAmount> GiftReadingAmounts => Set<GiftReadingAmount>();
+    public DbSet<Gift> Gifts => Set<Gift>();
+    public DbSet<GiftLog> GiftLogs => Set<GiftLog>();
+    public DbSet<GiftPointUse> GiftPointUses => Set<GiftPointUse>();
+    public DbSet<TeamAwardArchive> TeamAwardArchives => Set<TeamAwardArchive>();
+    public DbSet<GiftYearClose> GiftYearCloses => Set<GiftYearClose>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {

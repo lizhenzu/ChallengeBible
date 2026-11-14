@@ -1971,6 +1971,415 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Gift", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int?>("CreditsUsed")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeliveredUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int?>("FamilyTeamId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("GiftItemId")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("ItemHasImage")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ItemName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("ItemPrice")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<string>("LinkToken")
+                        .HasMaxLength(32)
+                        .IsUnicode(false)
+                        .HasColumnType("char(32)")
+                        .IsFixedLength();
+
+                    b.Property<int>("MaxAmount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinAmount")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly?>("OpenFrom")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("OpenUntil")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("PersonId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("PickedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int?>("PointsBurned")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PointsUsed")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("PurchasedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("SourceKey")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<short>("Year")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("GiftItemId");
+
+                    b.HasIndex("LinkToken")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Gift_LinkToken")
+                        .HasFilter("[LinkToken] IS NOT NULL");
+
+                    b.HasIndex("TenantId", "UserName");
+
+                    b.HasIndex("TenantId", "Year", "State");
+
+                    b.HasIndex("TenantId", "Kind", "UserName", "PersonId", "FamilyTeamId", "SourceKey")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Gift_Source")
+                        .HasFilter("[UserName] IS NOT NULL AND [PersonId] IS NOT NULL AND [FamilyTeamId] IS NOT NULL");
+
+                    b.ToTable("Gift", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_Gift_Amount", "[MinAmount] >= 0 AND [MaxAmount] >= [MinAmount]");
+
+                            t.HasCheckConstraint("CK_Gift_Kind", "[Kind] IN ('Personal','Newcomer','Invite','Birthday','Reading','Family','Friend')");
+
+                            t.HasCheckConstraint("CK_Gift_State", "[State] IN ('Open','Picked','Purchased','Delivered','Cancelled','Skipped','Expired','YearClosed')");
+
+                            t.HasCheckConstraint("CK_Gift_Who", "[UserName] IS NOT NULL OR [PersonId] IS NOT NULL OR [FamilyTeamId] IS NOT NULL");
+                        });
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GiftCreditRate", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Credits")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "Credits");
+
+                    b.ToTable("GiftCreditRate", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_GiftCreditRate_Values", "[Credits] > 0 AND [Credits] % 1000 = 0 AND [Amount] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GiftItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1000L);
+
+                    b.Property<string>("CoupangUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("HasImage")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Price")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReviewReason")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("SharedByTenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<int?>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpdatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status", "Price");
+
+                    b.HasIndex("TenantId", "Status");
+
+                    b.ToTable("GiftItem", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_GiftItem_Price", "[Price] >= 0");
+
+                            t.HasCheckConstraint("CK_GiftItem_Status", "[Status] IN ('Active','Review','Retired')");
+                        });
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GiftItemHidden", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GiftItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("HiddenByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("HiddenUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("TenantId", "GiftItemId");
+
+                    b.HasIndex("GiftItemId");
+
+                    b.ToTable("GiftItemHidden", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GiftLog", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(12)");
+
+                    b.Property<string>("ActorUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("AtUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("Detail")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<long>("GiftId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ItemName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("ItemPrice")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "GiftId", "AtUtc");
+
+                    b.ToTable("GiftLog", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GiftPointUse", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<bool>("FirstBonus")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("GiftId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("PointsBurned")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PointsUsed")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<short>("Year")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "GiftId");
+
+                    b.HasIndex("TenantId", "UserName", "Year");
+
+                    b.ToTable("GiftPointUse", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_GiftPointUse_Points", "[PointsUsed] >= 0 AND [PointsBurned] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GiftReadingAmount", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoundNo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "RoundNo");
+
+                    b.ToTable("GiftReadingAmount", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_GiftReadingAmount_Values", "[RoundNo] >= 1 AND [Amount] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GiftSetting", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BirthdayMax")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BirthdayMin")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("InviteMax")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("InviteMin")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("NewcomerMax")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("NewcomerMin")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PersonalCap")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpdatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("TenantId");
+
+                    b.ToTable("GiftSetting", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GiftYearClose", b =>
+                {
+                    b.Property<short>("Year")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("ClosedByUserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("ClosedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("Year");
+
+                    b.ToTable("GiftYearClose", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GuardianLink", b =>
                 {
                     b.Property<int>("Id")
@@ -2667,6 +3076,46 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TeamAwardArchive", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AwardId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("AwardKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("AwardedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("Threshold")
+                        .HasColumnType("int");
+
+                    b.Property<short>("Year")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "Year");
+
+                    b.ToTable("TeamAwardArchive", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Tenant", b =>
                 {
                     b.Property<int>("Id")
@@ -3262,6 +3711,88 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasConstraintName("FK_DM2_FamilyTeam_Tenant");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Gift", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.GiftItem", null)
+                        .WithMany()
+                        .HasForeignKey("GiftItemId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GiftCreditRate", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GiftItem", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GiftItemHidden", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.GiftItem", null)
+                        .WithMany()
+                        .HasForeignKey("GiftItemId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GiftLog", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Gift", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "GiftId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GiftPointUse", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Gift", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "GiftId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GiftReadingAmount", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GiftSetting", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.GuardianLink", b =>
                 {
                     b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
@@ -3385,6 +3916,15 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_DM2_TeamAward_Tenant");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TeamAwardArchive", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantSeason", b =>

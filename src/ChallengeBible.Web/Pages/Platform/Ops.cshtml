@@ -1,4 +1,4 @@
-@page "/platform/ops"
+﻿@page "/platform/ops"
 @model ChallengeBible.Web.Pages.Platform.OpsModel
 @using ChallengeBible.Web.Pages.Platform
 @using ChallengeBible.Web.Services
@@ -16,6 +16,25 @@
             }
         </div>
     </section>
+
+    @if (Model.MigrateMessage is not null)
+    {
+        <p class="@(Model.MigrateOk ? "ok-box" : "err")" role="status">@Model.MigrateMessage</p>
+    }
+    @if (Model.Pending.Count > 0)
+    {
+        @* 휴대폰만으로 실DB 에 표를 만든다(2026-11-14 사용자, SQL Studio 는 보안 정책 문장을 막는다). 플랫폼 관리자 · 확인 글자 APPLY *@
+        <section aria-labelledby="opsM" class="ops-mig">
+            <h2 id="opsM" class="ops-h">적용 안 된 마이그레이션 <small>@(Model.Pending.Count)개 · 게시한 코드가 기다리는 DB 변경</small></h2>
+            <ul>@foreach (var m in Model.Pending) { <li><code>@m</code></li> }</ul>
+            <p class="hint">적용하면 실DB 에 표 · 칸 · 보안 조건이 생겨요. 마이그레이션마다 트랜잭션이라 실패하면 그 마이그레이션은 되돌아가요. 되돌리기 버튼은 없으니 확인 후 눌러 주세요.</p>
+            <form method="post" asp-page-handler="Migrate" class="tools">
+                <input type="hidden" name="expected" value="@string.Join(",", Model.Pending)" />
+                <input class="in" name="confirm" autocomplete="off" placeholder="@OpsService.MigrateConfirm" aria-label="확인 글자 @OpsService.MigrateConfirm" />
+                <button class="btn p" type="submit">마이그레이션 적용</button>
+            </form>
+        </section>
+    }
 
     <section aria-labelledby="opsE">
         <h2 id="opsE" class="ops-h">최근 오류 <small>앱이 켜진 뒤 · 최근 @(ErrorLog.Capacity)건까지 · 같은 오류는 한 줄로 묶음</small></h2>
