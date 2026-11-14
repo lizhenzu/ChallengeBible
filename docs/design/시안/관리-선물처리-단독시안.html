@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>선물 처리 시안</title>
+<style>
+/* 시안(2026-11-14): 선물 6단계 — 구매 · 전달 처리 + 이력 + 부서 카드(ADR 0094 G-1 · G-3 · G-6, H-1, R-284 · R-293 · R-295 · R-297 · R-298).
+   ① 관리 › 선물 › [선물 처리] 탭(살 것)  ② 줄 것  ③ 한 건 자세히(이력 · 되돌리기 · 취소)  ④ 미션 홈 부서 카드 "누가 선물 받는지"  ⑤ 데스크톱 760px.
+   관리자에게는 가격(원) · 쿠팡 링크가 보이고, 아이 화면(④)에는 가격이 없다. 이모지 없음. 이름 · 상품 · 숫자는 지어낸 것. */
+:root { --fg:#111827; --dim:#6B7280; --dim2:#9CA3AF; --rule:#E5E7EB; --soft:#F4F6F9; --accent:#2F80ED; --accent-bg:#EAF2FD; --green:#16A34A; --ok-bg:#EAF7EF; --warm:#B45309; --warm-bg:#FEF3E2; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 24px 16px 60px; background: #E5E7EB; font-family: "Gothic A1", "Malgun Gothic", system-ui, sans-serif; color: var(--fg); }
+.num { font-variant-numeric: tabular-nums; }
+.board { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.ph { width: 380px; max-width: 100%; background: #fff; border-radius: 22px; box-shadow: 0 6px 20px rgba(0,0,0,.08); overflow: hidden; position: relative; }
+.desk { width: 800px; max-width: 100%; background: #fff; border-radius: 16px; box-shadow: 0 6px 20px rgba(0,0,0,.08); overflow: hidden; }
+.cap { font-size: 13px; font-weight: 800; color: #374151; margin: 0; padding: 16px 16px 10px; }
+.cap small { display: block; font-weight: 400; color: var(--dim); margin-top: 2px; line-height: 1.5; }
+.top { background: #fff; border-bottom: 1px solid var(--rule); padding: 10px 16px 0; }
+.top .t small { display: block; font-size: 11.5px; color: var(--dim); }
+.top .t b { font-size: 16px; }
+.tabs { display: flex; gap: 14px; margin-top: 8px; font-size: 13.5px; overflow: hidden; }
+.tabs a { padding: 8px 0; color: var(--dim); text-decoration: none; white-space: nowrap; font-weight: 600; }
+.tabs a[aria-current] { color: var(--fg); font-weight: 800; box-shadow: inset 0 -2px 0 var(--fg); }
+.body { padding: 14px 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+h1 { margin: 0; font-size: 20px; }
+.gtabs { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 5px; }
+.gtabs a { min-height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 11px; border: 1px solid var(--rule); font-size: 12.5px; font-weight: 800; color: var(--fg); text-decoration: none; text-align: center; }
+.gtabs a[aria-current] { background: var(--fg); border-color: var(--fg); color: #fff; }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg a { padding: 7px 12px; border-radius: 99px; border: 1px solid var(--rule); font-size: 13px; font-weight: 800; color: #374151; text-decoration: none; }
+.seg a u { text-decoration: none; margin-left: 3px; font-weight: 500; opacity: .75; }
+.seg a[aria-current] { background: var(--fg); border-color: var(--fg); color: #fff; }
+.seg a.hot u { color: #DC2626; opacity: 1; font-weight: 800; }
+.seg a[aria-current].hot u { color: #FCA5A5; }
+.sum { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 14px; border-radius: 12px; background: var(--soft); font-size: 13.5px; color: #374151; }
+.sum b { font-size: 18px; color: var(--fg); }
+.rows { border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; }
+.r { display: grid; grid-template-columns: 56px minmax(0,1fr); gap: 12px; padding: 12px; border-bottom: 1px solid var(--rule); }
+.r:last-child { border-bottom: 0; }
+.pic { background: #F1F3F6; border-radius: 10px; }
+.r .pic { width: 56px; height: 56px; }
+.r b { display: block; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r small { display: block; font-size: 12.5px; color: var(--dim); margin-top: 2px; }
+.r .who { color: #374151; font-weight: 600; }
+.kind { display: inline-block; font-size: 11px; font-weight: 800; padding: 1px 7px; border-radius: 99px; margin-right: 4px; vertical-align: 1px; background: var(--accent-bg); color: var(--accent); }
+.kind.b { background: #FDF2F8; color: #BE185D; } .kind.f { background: #F3E8FF; color: #7C3AED; } .kind.n { background: var(--ok-bg); color: var(--green); }
+.acts { display: flex; gap: 6px; margin-top: 8px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 0 12px; border-radius: 10px; font-size: 13px; font-weight: 800; text-decoration: none; border: 1px solid var(--rule); color: #374151; background: #fff; white-space: nowrap; }
+.btn.p { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.g { background: var(--green); border-color: var(--green); color: #fff; }
+.btn.d { color: #B91C1C; border-color: #F3C4C4; }
+.btn.w { flex: 1; }
+.note { margin: 0; font-size: 12.5px; color: var(--dim); line-height: 1.6; }
+.det .hero { display: grid; grid-template-columns: 88px minmax(0,1fr); gap: 14px; align-items: center; }
+.det .hero .pic { width: 88px; height: 88px; }
+.det .hero b { font-size: 17px; display: block; }
+.det .st { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 99px; background: var(--warm-bg); color: var(--warm); }
+.kv { border-top: 1px solid var(--rule); }
+.kv div { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--rule); font-size: 13.5px; }
+.kv div span:first-child { color: var(--dim); }
+.kv a { color: var(--accent); font-weight: 700; text-decoration: none; }
+.log { list-style: none; margin: 0; padding: 0; }
+.log li { display: grid; grid-template-columns: 14px minmax(0,1fr) auto; gap: 10px; padding: 8px 0; font-size: 13px; color: #374151; }
+.log li i { width: 10px; height: 10px; margin-top: 4px; border-radius: 50%; background: #D1D5DB; }
+.log li.on i { background: var(--green); }
+.log li small { color: var(--dim); font-size: 12px; white-space: nowrap; }
+.lbl { font-size: 12px; font-weight: 800; color: var(--dim2); margin: 4px 0 -4px; }
+/* ④ 미션 홈 부서 카드 */
+.home { padding: 0 16px 18px; }
+.home .facts { display: grid; grid-template-columns: repeat(4, 1fr); padding: 12px 0; border-top: 1px solid #EEF0F3; color: var(--dim2); font-size: 10.5px; text-align: center; }
+.home .facts b { display: block; font-size: 19px; font-weight: 300; color: var(--fg); margin-top: 3px; }
+.ms { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+.ms span { height: 78px; border-radius: 14px; background: var(--soft); }
+.dc { margin-top: 16px; border: 1px solid var(--rule); border-radius: 16px; padding: 14px; }
+.dc h3 { margin: 0 0 10px; font-size: 15px; display: flex; justify-content: space-between; align-items: baseline; }
+.dc h3 small { font-size: 12px; color: var(--dim); font-weight: 500; }
+.dr { display: grid; grid-template-columns: 44px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--rule); }
+.dr:first-of-type { border-top: 0; }
+.dr .pic { width: 44px; height: 44px; }
+.dr b { display: block; font-size: 14px; }
+.dr small { display: block; font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chip { font-size: 11.5px; font-weight: 800; padding: 3px 8px; border-radius: 99px; white-space: nowrap; }
+.chip.a { background: var(--accent-bg); color: var(--accent); } .chip.b { background: var(--warm-bg); color: var(--warm); } .chip.c { background: var(--ok-bg); color: var(--green); }
+.more { display: flex; justify-content: center; margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--rule); font-size: 13px; font-weight: 800; color: #374151; text-decoration: none; }
+.desk .body { padding: 18px 20px 22px; }
+.desk .r { grid-template-columns: 56px minmax(0,1fr) auto; align-items: center; }
+.desk .r .acts { margin-top: 0; }
+.desk .gtabs { max-width: 560px; }
+</style>
+</head>
+<body>
+<div class="board">
+
+  <!-- ① 살 것 -->
+  <section class="ph">
+    <p class="cap">① 관리 › 선물 › [선물 처리] — 살 것<small>탭 하나를 맨 앞에 더함(부서 관리자만, G-1). 처음은 "살 것"(아이가 고르고 아직 안 산 것, 오래된 순)</small></p>
+    <div class="top"><div class="t"><small>잠실새내교회 유년부</small><b>도전!!! 관리</b></div>
+      <nav class="tabs"><a href="#">관리 홈</a><a href="#">소속 관리</a><a href="#">가족팀</a><a href="#" aria-current="page">선물</a><a href="#">콘텐츠</a></nav></div>
+    <div class="body">
+      <h1>선물</h1>
+      <nav class="gtabs"><a href="#" aria-current="page">선물 처리</a><a href="#">공통 상품</a><a href="#">부서 상품</a><a href="#">금액 · 점수</a></nav>
+      <nav class="seg"><a href="#" class="hot" aria-current="page">살 것<u>3</u></a><a href="#" class="hot">줄 것<u>2</u></a><a href="#">받음<u>14</u></a><a href="#">취소<u>1</u></a></nav>
+      <div class="sum"><span>살 것 3건 합계</span><b class="num">27,300원</b></div>
+      <div class="rows">
+        <div class="r"><span class="pic"></span><span><b>말랑이</b><small><span class="who">안예빛</span> · 3학년 믿음반 · <span class="kind">개인</span></small><small class="num">9,800원 · 11월 14일 골랐어요</small>
+          <span class="acts"><a class="btn" href="#">쿠팡</a><a class="btn p" href="#">샀어요</a></span></span></div>
+        <div class="r"><span class="pic"></span><span><b>24색 색연필 세트</b><small><span class="who">문서윤</span> · 2학년 사랑반 · <span class="kind b">생일</span></small><small class="num">5,000원 · 11월 13일 골랐어요</small>
+          <span class="acts"><a class="btn" href="#">쿠팡</a><a class="btn p" href="#">샀어요</a></span></span></div>
+        <div class="r"><span class="pic"></span><span><b>보드게임 할리갈리</b><small><span class="who">강다온 가족</span> · <span class="kind f">가족팀 2,000점</span></small><small class="num">12,500원 · 11월 12일 골랐어요</small>
+          <span class="acts"><a class="btn" href="#">쿠팡</a><a class="btn p" href="#">샀어요</a></span></span></div>
+      </div>
+      <p class="note">[샀어요]를 누르면 "줄 것"으로 옮겨지고, 아이 화면은 "선생님이 준비했어요"가 돼요(이때부터 아이는 취소 못 함, R-284). 줄을 누르면 자세히(③).</p>
+    </div>
+  </section>
+
+  <!-- ② 줄 것 -->
+  <section class="ph">
+    <p class="cap">② 줄 것<small>산 것 — 아이에게 건네면 [줬어요]. 가족팀 · 친구팀은 이때 시상 기록을 남기고 팀을 잠금(R-292)</small></p>
+    <div class="body">
+      <nav class="gtabs"><a href="#" aria-current="page">선물 처리</a><a href="#">공통 상품</a><a href="#">부서 상품</a><a href="#">금액 · 점수</a></nav>
+      <nav class="seg"><a href="#" class="hot">살 것<u>3</u></a><a href="#" class="hot" aria-current="page">줄 것<u>2</u></a><a href="#">받음<u>14</u></a><a href="#">취소<u>1</u></a></nav>
+      <div class="rows">
+        <div class="r"><span class="pic"></span><span><b>모나미 153 볼펜 12자루</b><small><span class="who">고은솔</span> · 2학년 사랑반 · <span class="kind">개인</span></small><small class="num">4,500원 · 11월 10일 샀어요</small>
+          <span class="acts"><a class="btn g w" href="#">줬어요</a></span></span></div>
+        <div class="r"><span class="pic"></span><span><b>스프링 노트 5권 세트</b><small><span class="who">김민준</span> · <span class="kind n">새친구</span> · 부모님 링크로 고름</small><small class="num">6,900원 · 11월 9일 샀어요</small>
+          <span class="acts"><a class="btn g w" href="#">줬어요</a></span></span></div>
+      </div>
+      <div class="lbl">받음(최근 순)</div>
+      <div class="rows">
+        <div class="r" style="opacity:.75"><span class="pic"></span><span><b>미니 축구공 3호</b><small><span class="who">권동석</span> · 5학년 믿음반 · <span class="kind">개인</span></small><small class="num">12,000원 · 11월 8일 받았어요</small></span></div>
+      </div>
+      <p class="note">잘못 눌렀으면 자세히(③)에서 [되돌리기] — 한 단계 앞으로(받음 → 줄 것 → 살 것).</p>
+    </div>
+  </section>
+
+  <!-- ③ 자세히 -->
+  <section class="ph det">
+    <p class="cap">③ 한 건 자세히<small>/{slug}/admin/gifts/{번호} · 고른 때의 상품 이름 · 사진 · 금액 그대로(R-295) · 이력은 모든 동작을 시간순으로</small></p>
+    <div class="body">
+      <a href="#" style="font-size:13.5px;color:#374151;text-decoration:none;font-weight:600">← 선물 처리</a>
+      <div class="hero"><span class="pic"></span><span><b>말랑이</b><span class="st">살 것</span></span></div>
+      <div class="kv">
+        <div><span>받는 사람</span><span><b>안예빛</b> · 3학년 믿음반</span></div>
+        <div><span>종류</span><span>개인 선물(도전!!! 성경말씀)</span></div>
+        <div><span>가격 · 쓴 점수</span><span class="num">9,800원 · 600점</span></div>
+        <div><span>상품 번호</span><span class="num">1203</span></div>
+        <div><span>구매 링크</span><a href="#">쿠팡에서 보기 ›</a></div>
+      </div>
+      <div class="lbl">이력</div>
+      <ul class="log">
+        <li class="on"><i></i><span>안예빛이 골랐어요 <small>· 말랑이 9,800원</small></span><small class="num">11.14 15:20</small></li>
+        <li><i></i><span>안예빛이 취소했어요</span><small class="num">11.14 15:05</small></li>
+        <li><i></i><span>안예빛이 골랐어요 <small>· 게임 14,000원</small></span><small class="num">11.14 14:58</small></li>
+      </ul>
+      <div class="acts"><a class="btn p w" href="#">샀어요</a></div>
+      <div class="acts"><a class="btn d w" href="#">선물 취소(점수 돌려주기)</a></div>
+      <p class="note">관리자 취소: 산 뒤에도 할 수 있고 아이의 점수가 돌아가요(R-284). 해가 바뀐 선물은 되돌리지 않아요(R-282). 줄 것 · 받음 상태에서는 [되돌리기]가 보여요.</p>
+    </div>
+  </section>
+
+  <!-- ④ 미션 홈 부서 카드 -->
+  <section class="ph">
+    <p class="cap">④ 미션 홈 "누가 선물 받는지"(R-297)<small>오늘 미션 카드 아래 · 이달 달력 위, 부서 모든 사람에게. 3명 + [더 보기]. 가격 없음</small></p>
+    <div class="home">
+      <div class="facts"><span>이어온 날<b>317</b></span><span>이달 수행<b>13</b></span><span>이달 점수<b>30</b></span><span>네 가지 다<b>0</b></span></div>
+      <div class="ms"><span></span><span></span><span></span><span></span></div>
+      <div class="dc">
+        <h3>누가 선물 받나요 <small>이번 달</small></h3>
+        <div class="dr"><span class="pic"></span><span><b>안예빛</b><small>말랑이 · 개인 선물</small></span><span class="chip a">골랐어요</span></div>
+        <div class="dr"><span class="pic"></span><span><b>고은솔</b><small>모나미 153 볼펜 12자루 · 개인 선물</small></span><span class="chip b">준비했어요</span></div>
+        <div class="dr"><span class="pic"></span><span><b>권동석</b><small>미니 축구공 3호 · 개인 선물</small></span><span class="chip c">받았어요</span></div>
+        <a class="more" href="#">더 보기(12명)</a>
+      </div>
+      <p class="note" style="margin-top:10px">보이는 것: 골랐어요 · 준비했어요 · 받았어요(받은 지 30일까지). 최근 순. 생일은 생일 주에만(R-297). [더 보기] = 이번 달 전체 목록 화면.</p>
+    </div>
+  </section>
+
+  <!-- ⑤ 데스크톱 -->
+  <section class="desk">
+    <p class="cap">⑤ 데스크톱(760px) — 줄 오른쪽에 버튼</p>
+    <div class="body">
+      <nav class="gtabs"><a href="#" aria-current="page">선물 처리</a><a href="#">공통 상품</a><a href="#">부서 상품</a><a href="#">금액 · 점수</a></nav>
+      <nav class="seg"><a href="#" class="hot" aria-current="page">살 것<u>3</u></a><a href="#" class="hot">줄 것<u>2</u></a><a href="#">받음<u>14</u></a><a href="#">취소<u>1</u></a></nav>
+      <div class="sum"><span>살 것 3건 합계</span><b class="num">27,300원</b></div>
+      <div class="rows">
+        <div class="r"><span class="pic"></span><span><b>말랑이</b><small><span class="who">안예빛</span> · 3학년 믿음반 · <span class="kind">개인</span> · <span class="num">9,800원 · 11월 14일 골랐어요</span></small></span><span class="acts"><a class="btn" href="#">쿠팡</a><a class="btn p" href="#">샀어요</a></span></div>
+        <div class="r"><span class="pic"></span><span><b>24색 색연필 세트</b><small><span class="who">문서윤</span> · 2학년 사랑반 · <span class="kind b">생일</span> · <span class="num">5,000원 · 11월 13일 골랐어요</span></small></span><span class="acts"><a class="btn" href="#">쿠팡</a><a class="btn p" href="#">샀어요</a></span></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
