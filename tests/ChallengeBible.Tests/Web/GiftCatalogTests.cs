@@ -190,6 +190,48 @@ public partial class GiftCatalogTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task 서버에_같은_번호_사진이_이미_있으면_덮어쓰지_않고_지울_때도_남의_사진은_남긴다()
+    {
+        var id = Seed("연필");   // 사진 없는 상품
+        var path = Path.Combine(_images, "AwardItem", $"{id}.jpg");
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        await File.WriteAllBytesAsync(path, [0xFF, 0xD8, 0xFF, 0x01]);   // FTP 로 먼저 올린 남의 사진(예: 유년부)
+        var c = await Login();
+        var r = await SaveWithPhoto(c, $"/platform/gifts/edit/{id}", [0xFF, 0xD8, 0xFF, 0xE0, 9, 9]);
+        Assert.EndsWith("?m=taken", r.Headers.Location!.OriginalString);
+        Assert.Equal([0xFF, 0xD8, 0xFF, 0x01], await File.ReadAllBytesAsync(path));
+        Assert.Equal(HttpStatusCode.Redirect, (await Post(c, $"/platform/gifts/edit/{id}", $"/platform/gifts/edit/{id}?handler=Delete", [])).StatusCode);
+        Assert.True(File.Exists(path));   // 이 상품이 올린 사진이 아니라 남긴다
+    }
+
+    [Fact]
+    public void 새_상품_번호는_5000번부터다()
+    {
+        var m = new GiftNumbers_ForTest();
+        var sql = string.Join("\n", m.Up().OfType<Microsoft.EntityFrameworkCore.Migrations.Operations.SqlOperation>().Select(o => o.Sql));
+        Assert.Contains("RESEED, 4999", sql);
+        Assert.Contains("RESEED, 5000", sql);
+        Assert.Contains("ProductID >= 5000", File.ReadAllText(Path.Combine(Root(), "tools", "sql", "gift-2-import.sql")));   // 유년부 번호가 5000 이상이면 옮기기를 멈춘다
+    }
+
+    private static string Root()
+    {
+        var d = new DirectoryInfo(AppContext.BaseDirectory);
+        while (d is not null && !File.Exists(Path.Combine(d.FullName, "ChallengeBible.sln"))) d = d.Parent;
+        return d!.FullName;
+    }
+
+    private sealed class GiftNumbers_ForTest : ChallengeBible.Infrastructure.Migrations.GiftNumbers5000
+    {
+        public IReadOnlyList<Microsoft.EntityFrameworkCore.Migrations.Operations.MigrationOperation> Up()
+        {
+            var b = new Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder("Microsoft.EntityFrameworkCore.SqlServer");
+            base.Up(b);
+            return b.Operations;
+        }
+    }
+
+    [Fact]
     public async Task 플랫폼_관리자가_아니면_상품_관리에_들어가지_못한다()
     {
         var c = await Login(platformAdmin: false);

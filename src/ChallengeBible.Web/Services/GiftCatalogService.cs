@@ -19,7 +19,7 @@ public sealed class GiftItemInput
 /// <summary>상품 폼 partial(_GiftItemForm)에 넘기는 값.</summary>
 public sealed record GiftItemFormView(GiftItem? Item, GiftItemInput Input, IReadOnlyDictionary<string, string> Errors, string Back);
 
-public enum GiftItemError { None, NotFound, HasPicks, BadImage, NotAllowed }
+public enum GiftItemError { None, NotFound, HasPicks, BadImage, NotAllowed, ImageTaken }
 
 /// <summary>누가 상품을 고치나: TenantId = null 이면 플랫폼 관리자, 값이면 그 부서 관리자(ADR 0094 A-2 · A-4).</summary>
 public sealed record GiftEditor(string Actor, int? TenantId)
@@ -192,6 +192,8 @@ public sealed class GiftCatalogService(ISystemDb systemDb, IConfiguration config
         var item = await ctx.GiftItems.SingleOrDefaultAsync(x => x.Id == id, ct);
         if (item is null || !editor.CanEdit(item)) return GiftItemError.NotFound;
         var path = ImagePath(id);
+        // 사진이 없던 상품인데 서버에 같은 번호 그림이 있으면 남의 사진(예: FTP 로 올린 유년부 사진)이라 덮어쓰지 않는다(2026-11-14)
+        if (!item.HasImage && File.Exists(path)) return GiftItemError.ImageTaken;
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         await File.WriteAllBytesAsync(path, bytes, ct);
         item.HasImage = true;
@@ -243,7 +245,7 @@ public sealed class GiftCatalogService(ISystemDb systemDb, IConfiguration config
         Log(ctx, actor, "삭제", item);
         await ctx.SaveChangesAsync(ct);
         var path = ImagePath(id);
-        if (File.Exists(path)) File.Delete(path);
+        if (item.HasImage && File.Exists(path)) File.Delete(path);   // 이 상품이 올린 사진만 지운다
         return GiftItemError.None;
     }
 

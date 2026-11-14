@@ -47,7 +47,7 @@ public class GiftEditModel(GiftCatalogService catalog, TenantContext tenant) : P
     {
         if (!await LoadAsync(ct)) return NotFound();
         Fill();
-        Message = m switch { "saved" => "저장했어요.", "nophoto" => "저장했어요. 사진은 올리지 못했어요(JPG 사진만 받아요).", "retired" => "목록에서 내렸어요. 아이에게 보이지 않아요.", "restored" => "다시 올렸어요.", _ => null };
+        Message = m switch { "saved" => "저장했어요.", "nophoto" => "저장했어요. 사진은 올리지 못했어요(JPG 사진만 받아요).", "taken" => "저장했어요. 서버에 같은 번호의 사진이 이미 있어 덮어쓰지 않았어요.", "retired" => "목록에서 내렸어요. 아이에게 보이지 않아요.", "restored" => "다시 올렸어요.", _ => null };
         return Page();
     }
 
@@ -59,7 +59,8 @@ public class GiftEditModel(GiftCatalogService catalog, TenantContext tenant) : P
         if (photo is { Length: > 0 })
         {
             await using var stream = photo.OpenReadStream();
-            if (await catalog.SaveImageAsync(Editor, id, stream, photo.Length, ct) != GiftItemError.None) return Redirect(Self(id) + "?m=nophoto");
+            var pr = await catalog.SaveImageAsync(Editor, id, stream, photo.Length, ct);
+            if (pr != GiftItemError.None) return Redirect(Self(id) + $"?m={(pr == GiftItemError.ImageTaken ? "taken" : "nophoto")}");
         }
         return Redirect(Self(id) + "?m=saved");
     }

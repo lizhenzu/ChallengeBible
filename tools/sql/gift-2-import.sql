@@ -18,6 +18,7 @@ BEGIN TRY
 BEGIN TRANSACTION;
 SELECT 'before' AS Step, (SELECT COUNT(*) FROM app.GiftItem) AS GiftItems, (SELECT COUNT(*) FROM #Src) AS Pasted;
 IF EXISTS (SELECT 1 FROM app.GiftItem g JOIN #Src s ON s.ProductID = g.Id) THROW 50001, 'Some numbers are already in app.GiftItem. Stop and report.', 1;
+IF EXISTS (SELECT 1 FROM #Src WHERE ProductID >= 5000) THROW 50002, 'A YuYunBu number is 5000 or more (new products use 5000+). Stop and report.', 1;
 
 SET IDENTITY_INSERT app.GiftItem ON;
 INSERT app.GiftItem (Id, TenantId, SharedByTenantId, Name, Description, Price, CoupangUrl, Status, ReviewReason, HasImage, CreatedUtc, UpdatedUtc, UpdatedByUserName)
@@ -33,9 +34,7 @@ CROSS APPLY (SELECT CASE
     END AS Reason) x;
 SET IDENTITY_INSERT app.GiftItem OFF;
 
--- new numbers continue after the last YuYunBu number (R-278)
-DECLARE @Last int = (SELECT MAX(Id) FROM app.GiftItem);
-IF @Last IS NOT NULL DBCC CHECKIDENT ('app.GiftItem', RESEED, @Last) WITH NO_INFOMSGS;
+-- new products start at 5000 (migration GiftNumbers5000, 2026-11-14); YuYunBu numbers keep their own numbers, so no reseed here
 
 SELECT 'after' AS Step, Status, ReviewReason, COUNT(*) AS Items, MIN(Id) AS FirstNo, MAX(Id) AS LastNo
 FROM app.GiftItem WHERE UpdatedByUserName = N'yuyunbu-import' GROUP BY Status, ReviewReason ORDER BY Status, ReviewReason;
