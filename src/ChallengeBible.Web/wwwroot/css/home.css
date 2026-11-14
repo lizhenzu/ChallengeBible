@@ -271,6 +271,7 @@
 /* 역할 칩(R-275, 확정 시안 C): 이름 아래, 역할마다 색 + 반 칩. 길면 다음 줄로 */
 .hm .hj-hi .hj-roles { display: flex; flex-wrap: wrap; gap: 6px; margin: -2px 0 10px; }
 .hm .hj-hi .hj-roles i { font-style: normal; padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 800; line-height: 1.3; max-width: 100%; overflow-wrap: anywhere; }
+.hm .hj-hi .hj-roles .ad { background: #1F2A44; color: #FFFFFF; }
 .hm .hj-hi .hj-roles .st, .hm .hj-hi .hj-roles .nc { background: #EAF0FB; color: #2B59C3; }
 .hm .hj-hi .hj-roles .te { background: #EAF7EF; color: #16A34A; }
 .hm .hj-hi .hj-roles .of { background: #F1EAFB; color: #7A3FC2; }

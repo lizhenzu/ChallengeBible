@@ -38,7 +38,7 @@ public partial class RoleChipTests : IClassFixture<WebApplicationFactory<Program
     private static partial Regex TokenRx();
 
     /// <summary>가입 → 소속(역할 코드) → 명부 줄 → 반(있으면). 부서 홈 HTML 을 돌려준다.</summary>
-    private async Task<string> Home(string email, string? roleCode, int? classId = null, bool teacher = false)
+    private async Task<string> Home(string email, string? roleCode, int? classId = null, bool teacher = false, bool admin = false)
     {
         var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
@@ -49,6 +49,7 @@ public partial class RoleChipTests : IClassFixture<WebApplicationFactory<Program
         string userName;
         using (var raw0 = InMemoryDb.Raw(_db)) userName = raw0.Users.Single(a => a.Email == email + "@example.com").UserName!;
         var m = InMemoryDb.SeedMembership(_db, _kids.Id, userName, MembershipStatus.Approved, Roles.Participant);
+        if (admin) InMemoryDb.AddRole(_db, m.UserId, IdentityRoles.Admin);
         using (var raw = InMemoryDb.Raw(_db))
         {
             raw.DeptRoles.Single(d => d.Id == m.Id && d.TenantId == _kids.Id).RoleCode = roleCode;
@@ -96,4 +97,19 @@ public partial class RoleChipTests : IClassFixture<WebApplicationFactory<Program
     [Fact]
     public async Task R275_새친구는_새친구_칩과_반()
         => Assert.Contains(Chips(("nc", "새친구"), ("cl", "3학년 믿음반")), await Home("nc", "T1020", _class3));
+
+    [Fact]
+    public async Task R275_부서_관리자는_직분_앞에_부서_관리자_칩()
+    {
+        Assert.Contains(Chips(("ad", "부서 관리자"), ("of", "부장"), ("cl", "새친구반 담당")), await Home("ad1", "T1005", _ncClass, teacher: true, admin: true));
+        Assert.Contains(Chips(("ad", "부서 관리자"), ("te", "교사"), ("cl", "3학년 믿음반 담임")), await Home("ad2", "T1002", _class3, teacher: true, admin: true));
+    }
+
+    [Fact]
+    public async Task R275_관리자가_아닌_부장은_부장_칩만()
+    {
+        var html = await Home("of3", "T1005");
+        Assert.Contains(Chips(("of", "부장")), html);
+        Assert.DoesNotContain("부서 관리자</i>", html);
+    }
 }

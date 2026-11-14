@@ -39,7 +39,7 @@ public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, 
     /// <summary>상황 목록(gen-fake-seed.py 의 틀과 같아야 한다). 생일은 월/일, 점수는 올해 미션 점수.</summary>
     public static readonly IReadOnlyList<FakeScenario> Scenarios =
     [
-        new("admin", "관리 · 선생님", "부서 관리자", "새친구반 담당 · 400점 · 구매 · 전달 처리"),
+        new("admin", "관리 · 선생님", "부서 관리자(부장)", "직분 부장 + 관리자 권한 · 새친구반 담당 · 400점"),
         new("t01", "관리 · 선생님", "선생님 1반", "통독 1독(12일 전) · 생일 11/18 · 점수 0"),
         new("t02", "관리 · 선생님", "선생님 2반", "50점 · 생일 12/2(어른이라 생일 선물 없음)"),
         new("t07", "관리 · 선생님", "선생님 7반", "1,200점 · 100점마다 박수(선물 없음)"),

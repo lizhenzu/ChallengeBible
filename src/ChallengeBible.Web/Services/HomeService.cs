@@ -11,7 +11,7 @@ namespace ChallengeBible.Web.Services;
 public sealed record HomeMission(string Key, string Label, bool Has, bool Done, string State);
 public sealed record HomeWeekDay(DateOnly Date, int MissionPoints, bool AllFour, int Chapters);
 /// <summary>홈 카드 숫자. Members = 승인된 모든 소속원(명단 "전체"), Participants = 활성 참여자(명단 "참여자").</summary>
-/// <summary>인사 카드의 역할 칩 하나(R-275, 확정 시안 C). Kind: st 학생 · nc 새친구 · te 교사 · of 임원 · pa 학부모 · et 기타 · cl 반.</summary>
+/// <summary>인사 카드의 역할 칩 하나(R-275, 확정 시안 C). Kind: ad 부서 관리자 · st 학생 · nc 새친구 · te 교사 · of 임원 · pa 학부모 · et 기타 · cl 반.</summary>
 public sealed record RoleChip(string Text, string Kind);
 
 public sealed record HomeDept(int Members, int TodayPeople, int? YearChapters, int Participants = 0);
@@ -166,7 +166,7 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
     /// <summary>
     /// 인사 카드 이름 아래 역할 칩(R-275, 확정 시안 C): 역할 칩 하나 + 반 칩(있으면).
     /// 학생 · 새친구 = 든 반 이름("3학년 믿음반" 이 곧 학년 · 반), 교사 · 임원 = 담임 반이면 "반 이름 담임", 새친구반이면 "새친구반 담당".
-    /// 임원은 부서의 역할 이름(부장 · 부감 · 서기 …), 학부모는 "학부모"만. 승인 안 됨 · 임시 부서는 없음.
+    /// 임원은 부서의 역할 이름(부장 · 부감 · 서기 …), 학부모는 "학부모"만. 부서 관리자면 맨 앞에 [부서 관리자]. 승인 안 됨 · 임시 부서는 없음.
     /// </summary>
     public async Task<IReadOnlyList<RoleChip>> RoleChipsAsync(string userId, CancellationToken ct = default)
     {
@@ -189,7 +189,10 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
             UserRoleKind.Etc => new("기타", "et"),
             _ => new("학부모", "pa"),
         };
-        var chips = new List<RoleChip> { role };
+        // 부서 관리자는 직분(역할 코드)과 따로인 권한이라 직분 칩 앞에 따로 붙인다(2026-11-14 사용자: 부장이면서 관리자일 수도, 아닐 수도 있다)
+        var chips = new List<RoleChip>();
+        if (tenant.IsAdmin) chips.Add(new("부서 관리자", "ad"));
+        chips.Add(role);
         if (kind == UserRoleKind.Parent) return chips;
 
         var personId = await ctx.People.AsNoTracking().Where(p => p.UserId == userId).Select(p => (int?)p.Id).FirstOrDefaultAsync(ct);
