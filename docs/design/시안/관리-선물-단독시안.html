@@ -1,0 +1,182 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>부서 선물 설정 시안</title>
+<link rel="stylesheet" href="../../../src/ChallengeBible.Web/wwwroot/css/site.css">
+<style>
+  /* /{slug}/admin/gifts(부서 관리자만, ADR 0094 A · B · C · D · E · F, R-276 · R-277 · R-280 · R-283 · R-286 · R-288 · R-289 · R-290) — 4단계 시안(2026-11-14).
+     관리 메뉴 "선물" → 탭 세 개: ① 선물 목록(공통 + 부서, 줄마다 보임/숨김) ② 우리 부서 상품(등록 · 공통에 올리기) ③ 금액 · 점수 설정(빈 칸 = 공통 기본값).
+     가족팀 · 친구팀 단계별 금액은 이미 있는 "시상 기준" 화면(R-219)으로 보낸다. 예시 상품 · 숫자는 지어낸 것 */
+  body { padding-bottom: 80px; }
+  .gd .wrap { max-width: 760px; display: flex; flex-direction: column; gap: 14px; }
+  .gd h1 { margin: 0; }
+  .gd .lead { margin: -6px 0 0; color: var(--dim); font-size: 14px; }
+  .gd-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .gd-tabs a { min-height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; border: 1px solid var(--line); font-size: 14px; font-weight: 800; color: var(--fg); text-decoration: none; text-align: center; padding: 0 6px; }
+  .gd-tabs a[aria-current] { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+  .gd-seg { display: flex; gap: 6px; flex-wrap: wrap; }
+  .gd-seg a { padding: 7px 14px; border-radius: 99px; border: 1px solid var(--line); font-size: 14px; font-weight: 800; color: var(--fg); text-decoration: none; }
+  .gd-seg a u { text-decoration: none; font-weight: 500; opacity: .75; margin-left: 4px; }
+  .gd-seg a[aria-current] { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+  .gd-tools { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+  .gd-tools .in { min-height: 44px; }
+  .gd-note { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--soft); font-size: 13.5px; color: var(--dim); }
+  .gd-rows { border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; }
+  .gd-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--rule); }
+  .gd-row:last-child { border-bottom: 0; }
+  .gd-row.off { background: var(--soft); }
+  .gd-row.off .gd-th, .gd-row.off .gd-mid { opacity: .5; }
+  .gd-th { width: 52px; height: 52px; border-radius: 10px; background: var(--soft); display: grid; place-items: center; font-size: 24px; }
+  .gd-mid { min-width: 0; }
+  .gd-mid b { display: block; font-size: 15px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .gd-mid small { font-size: 12.5px; color: var(--dim); }
+  .gd-tag { display: inline-block; font-size: 11.5px; font-weight: 800; padding: 1px 7px; border-radius: 6px; background: #F1EAFB; color: #7A3FC2; margin-right: 4px; vertical-align: 1px; }
+  .gd-tag.ours { background: #EAF7EF; color: #16A34A; }
+  .gd-sw { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 800; }
+  .gd-sw input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .gd-sw i { position: relative; flex: none; width: 42px; height: 24px; border-radius: 99px; background: var(--line); }
+  .gd-sw i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: left .15s; }
+  .gd-sw input:checked + i { background: var(--accent); }
+  .gd-sw input:checked + i::after { left: 21px; }
+  .gd-sw span { color: var(--dim); min-width: 28px; }
+  .gd-act { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .gd-card { border: 1px solid var(--rule); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .gd-card h2 { margin: 0; font-size: 16px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .gd-card h2 small { font-size: 12.5px; font-weight: 500; color: var(--dim); }
+  .gd-pair { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: center; }
+  .gd-amt { display: flex; align-items: center; gap: 4px; }
+  .gd-amt input { width: 100%; min-width: 0; height: 42px; padding: 0 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 15px; font-weight: 700; text-align: right; }
+  .gd-amt input::placeholder { color: var(--dim); font-weight: 500; }
+  .gd-amt span { font-size: 13px; color: var(--dim); white-space: nowrap; }
+  .gd-lbl { font-size: 13px; font-weight: 800; }
+  .gd-hint { font-size: 12.5px; color: var(--dim); margin: 0; }
+  .gd-tbl { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 36px; gap: 6px 8px; align-items: center; }
+  .gd-tbl .h { font-size: 12px; font-weight: 800; color: var(--dim); }
+  .gd-tbl .x { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); font-size: 16px; }
+  .gd-calc { font-size: 13px; color: var(--dim); background: var(--soft); border-radius: 10px; padding: 8px 10px; }
+  .gd-calc b { color: var(--fg); }
+  .gd-bar { display: flex; gap: 8px; justify-content: center; }
+  .gd-bar .btn { min-width: 140px; }
+  .gd-link { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 14px; border-radius: 12px; border: 1px dashed var(--line); color: var(--fg); text-decoration: none; font-size: 14px; }
+  .gd-link b { font-weight: 800; }
+  section[hidden] { display: none !important; }
+  .states { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: #1B1F24; padding: 8px; display: flex; gap: 6px; }
+  .states a { flex: 1; min-height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: #fff; font-size: 12.5px; font-weight: 800; opacity: .7; text-decoration: none; text-align: center; }
+  .states a[aria-current="page"] { background: #fff; color: #1B1F24; opacity: 1; }
+  @media (max-width: 560px) { .gd-tools { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<header class="admintop gut">
+  <div class="wrap wide hd"><div class="t"><small>잠실새내교회 유년부</small><b><em>도전!!!</em> 관리</b></div><div class="row-t"><a class="back" href="#">부서 홈으로</a></div></div>
+  <nav class="wrap wide tabs" aria-label="관리 메뉴"><a href="#">관리 홈</a><a href="#">소속 관리</a><a href="#">가족팀</a><a href="#" aria-current="page">선물</a><a href="#">콘텐츠</a></nav>
+</header>
+
+<main class="admin gut gd"><div class="wrap">
+  <h1>선물</h1>
+  <p class="lead">우리 부서 아이들이 고를 선물과 금액을 정해요.</p>
+  <nav class="gd-tabs" aria-label="선물 설정">
+    <a href="#list" data-tab="list" aria-current="page">선물 목록</a>
+    <a href="#ours" data-tab="ours">우리 부서 상품</a>
+    <a href="#money" data-tab="money">금액 · 점수</a>
+  </nav>
+
+  <!-- ① 선물 목록 -->
+  <section data-part="list">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <nav class="gd-seg" aria-label="보기"><a href="#" aria-current="page">모두<u>418</u></a><a href="#">보임<u>402</u></a><a href="#">숨김<u>16</u></a></nav>
+      <div class="gd-tools"><input class="in" placeholder="상품 이름 · 번호로 찾기" aria-label="찾기"><select class="in" aria-label="가격대"><option>모든 가격</option><option>~ 5,000원</option><option>5,001 ~ 10,000원</option><option>10,001 ~ 20,000원</option><option>20,001원 ~</option></select></div>
+      <p class="gd-note">공통 상품은 모든 부서에 보여요. 우리 부서에 안 맞는 것만 <b>숨김</b>으로 바꾸면 우리 아이들에게 보이지 않아요(스위치를 누르면 바로 저장).</p>
+      <div class="gd-rows">
+        <div class="gd-row"><span class="gd-th">✏️</span><span class="gd-mid"><b>모나미 153 볼펜 12자루</b><small class="num">1000 · 4,500원 · 공통</small></span>
+          <label class="gd-sw"><input type="checkbox" checked><i></i><span>보임</span></label></div>
+        <div class="gd-row"><span class="gd-th">📒</span><span class="gd-mid"><b>스프링 노트 5권 세트</b><small class="num">1001 · 6,900원 · 공통</small></span>
+          <label class="gd-sw"><input type="checkbox" checked><i></i><span>보임</span></label></div>
+        <div class="gd-row off"><span class="gd-th">🧸</span><span class="gd-mid"><b>곰돌이 인형 키링</b><small class="num">1002 · 9,800원 · 공통</small></span>
+          <label class="gd-sw"><input type="checkbox"><i></i><span>숨김</span></label></div>
+        <div class="gd-row"><span class="gd-th">⚽</span><span class="gd-mid"><b><span class="gd-tag">초등부</span>미니 축구공 3호</b><small class="num">1005 · 12,000원 · 초등부가 공통에 올림</small></span>
+          <label class="gd-sw"><input type="checkbox" checked><i></i><span>보임</span></label></div>
+        <div class="gd-row"><span class="gd-th">🎵</span><span class="gd-mid"><b><span class="gd-tag ours">우리 부서</span>찬양 율동 DVD</b><small class="num">2010 · 15,000원 · 우리 부서만</small></span>
+          <span class="gd-act"><small style="font-size:12px;color:var(--dim)">우리 상품</small></span></div>
+      </div>
+      <div style="text-align:center"><a class="btn s sm" href="#">30개 더 보기</a></div>
+    </div>
+  </section>
+
+  <!-- ② 우리 부서 상품 -->
+  <section data-part="ours" hidden>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:16px">우리 부서 상품 <small class="num" style="color:var(--dim);font-weight:500">3</small></b><a class="btn p sm" href="#">+ 상품 등록</a></div>
+      <p class="gd-note">우리 부서 상품은 우리 아이들에게만 보여요. <b>[공통에 올리기]</b>를 누르면 승인 없이 바로 모든 부서에 보이고, 그 뒤에도 우리 부서와 플랫폼만 고칠 수 있어요. 등록 화면은 플랫폼 상품 등록과 같아요(사진 · 가격 · 쿠팡 링크 필수).</p>
+      <div class="gd-rows">
+        <div class="gd-row"><span class="gd-th">🎵</span><span class="gd-mid"><b>찬양 율동 DVD</b><small class="num">2010 · 15,000원 · 우리 부서만</small></span>
+          <span class="gd-act"><a class="btn s sm" href="#">고치기</a><a class="btn s sm" href="#">공통에 올리기</a></span></div>
+        <div class="gd-row"><span class="gd-th">📿</span><span class="gd-mid"><b>성경 구절 팔찌</b><small class="num">2011 · 3,500원 · 우리 부서만</small></span>
+          <span class="gd-act"><a class="btn s sm" href="#">고치기</a><a class="btn s sm" href="#">공통에 올리기</a></span></div>
+        <div class="gd-row"><span class="gd-th">⚽</span><span class="gd-mid"><b><span class="gd-tag">공통</span>미니 축구공 3호</b><small class="num">1005 · 12,000원 · 우리가 공통에 올림</small></span>
+          <span class="gd-act"><a class="btn s sm" href="#">고치기</a><small style="font-size:12px;color:var(--dim)">고치면 모든 부서에 반영</small></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ③ 금액 · 점수 -->
+  <section data-part="money" hidden>
+    <form onsubmit="return false" style="display:flex;flex-direction:column;gap:12px">
+      <p class="gd-note">빈 칸은 <b>공통 기본값</b>(흐린 글씨)을 써요. 우리 부서만 다르게 하고 싶은 칸만 채워 주세요. 저장하면 <b>앞으로 생기는 선물부터</b> 적용돼요.</p>
+
+      <div class="gd-card">
+        <h2>도전 성경말씀 개인 선물 <small>학생만 · 해마다 0부터</small></h2>
+        <p class="gd-hint">점수 → 크레딧: 그해 처음 100점 = 5,000, 그 뒤 100점마다 1,000(공통 규칙). 아이에게는 크레딧 대신 필요한 점수가 보여요.</p>
+        <div><div class="gd-lbl">크레딧 상한</div><div class="gd-amt" style="max-width:220px"><input inputmode="numeric" placeholder="30,000"><span>크레딧</span></div></div>
+        <div>
+          <div class="gd-lbl">크레딧 → 금액 표 <small style="font-weight:500;color:var(--dim)">(1,000 크레딧 단위, 표에 없으면 1크레딧 = 1원)</small></div>
+          <div class="gd-tbl" style="margin-top:6px">
+            <span class="h">크레딧</span><span class="h">금액(원)</span><span></span>
+            <div class="gd-amt"><input value="5,000"><span>크레딧</span></div><div class="gd-amt"><input value="5,000"><span>원</span></div><button class="x" type="button" aria-label="줄 지우기">×</button>
+            <div class="gd-amt"><input value="10,000"><span>크레딧</span></div><div class="gd-amt"><input value="12,000"><span>원</span></div><button class="x" type="button" aria-label="줄 지우기">×</button>
+          </div>
+          <button class="btn s sm" type="button" style="margin-top:8px">+ 줄 더하기</button>
+        </div>
+        <div class="gd-calc">예: 1,000점 학생 = <b>14,000 크레딧</b> → 12,000원짜리 선물은 <b>10,000 크레딧(600점)</b>이면 골라요.</div>
+      </div>
+
+      <div class="gd-card">
+        <h2>새친구 · 초대 선물 <small>4주 관리가 끝나면</small></h2>
+        <div class="gd-lbl">새친구</div>
+        <div class="gd-pair"><div class="gd-amt"><input inputmode="numeric" placeholder="1,000"><span>원</span></div><span>~</span><div class="gd-amt"><input inputmode="numeric" placeholder="15,000"><span>원</span></div></div>
+        <div class="gd-lbl">초대(데려온 학생)</div>
+        <div class="gd-pair"><div class="gd-amt"><input inputmode="numeric" placeholder="1,000"><span>원</span></div><span>~</span><div class="gd-amt"><input inputmode="numeric" value="10,000"><span>원</span></div></div>
+      </div>
+
+      <div class="gd-card">
+        <h2>생일 선물 <small>학생만 · 생일 30일 전 ~ 7일 전</small></h2>
+        <div class="gd-pair"><div class="gd-amt"><input inputmode="numeric" placeholder="1,000"><span>원</span></div><span>~</span><div class="gd-amt"><input inputmode="numeric" placeholder="5,000"><span>원</span></div></div>
+      </div>
+
+      <div class="gd-card">
+        <h2>성경통독 완독 선물 <small>학생만 · 완독 후 30일</small></h2>
+        <div class="gd-tbl">
+          <span class="h">회차</span><span class="h">금액(원)</span><span></span>
+          <b>1독</b><div class="gd-amt"><input inputmode="numeric" placeholder="10,000"><span>원</span></div><span></span>
+          <b>2독</b><div class="gd-amt"><input inputmode="numeric" placeholder="15,000"><span>원</span></div><span></span>
+          <b>3독부터</b><div class="gd-amt"><input inputmode="numeric" placeholder="20,000"><span>원</span></div><span></span>
+        </div>
+      </div>
+
+      <a class="gd-link" href="#"><span><b>가족팀 · 친구팀 선물</b><br><small style="color:var(--dim)">단계마다 줄지 · 최대 금액(공통: 1,000점 1만 · 2,000점 2만 · 3,000점부터 3만, 친구팀은 반씩 각자)</small></span><span>시상 기준 ›</span></a>
+
+      <div class="gd-bar"><button class="btn s" type="button">처음 값으로</button><button class="btn p" type="submit">저장</button></div>
+    </form>
+  </section>
+</div></main>
+
+<nav class="states" aria-label="시안 상태 바꾸기"><a href="#list" aria-current="page">① 선물 목록</a><a href="#ours">② 우리 부서 상품</a><a href="#money">③ 금액 · 점수</a></nav>
+<script>
+  function show(k) {
+    document.querySelectorAll('[data-part]').forEach(s => s.hidden = s.dataset.part !== k);
+    document.querySelectorAll('.gd-tabs a, .states a').forEach(a => a.toggleAttribute('aria-current', a.getAttribute('href') === '#' + k));
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('.gd-tabs a, .states a').forEach(a => a.onclick = e => { e.preventDefault(); show(a.getAttribute('href').slice(1)); });
+  document.querySelectorAll('.gd-sw input').forEach(i => i.onchange = () => { const row = i.closest('.gd-row'); row.classList.toggle('off', !i.checked); i.parentElement.querySelector('span').textContent = i.checked ? '보임' : '숨김'; });
+  show((location.hash || '#list').slice(1));
+</script>
