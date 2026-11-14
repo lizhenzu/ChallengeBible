@@ -1,0 +1,12 @@
+@page "/{slug}/gift-board"
+@model GiftBoardModel
+@* 부서 카드 [더 보기](확정 시안 관리-선물처리 ④, R-297) *@
+<div class="gk-pg">
+    <div class="gk-bar"><a href="/@Model.Slug/word-mission">← 미션 홈</a></div>
+    <h1>누가 선물 받나요</h1>
+    <p class="gk-sub">고른 선물 · 준비한 선물 · 받은 지 30일까지의 선물이에요.</p>
+    <section class="gb-card" aria-label="누가 선물 받나요">
+        @if (Model.Rows.Count == 0) { <p class="gk-sub">아직 없어요.</p> }
+        @foreach (var r in Model.Rows) { <partial name="_GiftBoardRow" model="r" /> }
+    </section>
+</div>

@@ -1,0 +1,54 @@
+@page "/{slug}/admin/gifts/{id:long}"
+@model ChallengeBible.Web.Pages.Admin.GiftOrderModel
+@using ChallengeBible.Web.Services
+@* 확정 시안 관리-선물처리 ③(2026-11-14): 한 건 자세히 — 고른 때의 이름 · 사진 · 금액 그대로(R-295), 이력 최근 순 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var o = Model.Row!;
+    var tz = TimeZoneInfo.FindSystemTimeZoneById(Model.Tenant.Current.TimeZoneId);
+    string Local(DateTime utc, string f) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), tz).ToString(f);
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut gd"><div class="wrap go-det">
+    <a class="go-back" href="/@slug/admin/gifts?s=@(o.State switch { "Purchased" => "give", "Delivered" => "done", "Cancelled" => "cancel", _ => "buy" })">← 선물 처리</a>
+    @if (Model.Message is { } msg) { <p class="ok-box" role="status">@msg</p> }
+    <div class="go-hero">
+        <span class="go-pic">@if (o.HasImage && o.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" onerror="this.remove()" /> }</span>
+        <span><b>@o.ItemName</b><span class="go-st go-s-@o.State.ToLowerInvariant()">@GiftOrderModel.StateLabel(o.State)</span></span>
+    </div>
+    <div class="go-kv">
+        <div><span>받는 사람</span><span><b>@o.Who</b>@(o.ClassName is null ? "" : " · " + o.ClassName)</span></div>
+        <div><span>종류</span><span>@GiftOrderService.KindLabel(o.Kind) 선물</span></div>
+        <div><span>가격@(o.PointsUsed is null ? "" : " · 쓴 점수")</span><span class="num">@o.Price.ToString("N0")원@(o.PointsUsed is int pu ? $" · {pu:N0}점" : "")</span></div>
+        @if (o.ItemId is int no) { <div><span>상품 번호</span><span class="num">@no</span></div> }
+        @if (!string.IsNullOrEmpty(o.CoupangUrl)) { <div><span>구매 링크</span><a href="@o.CoupangUrl" target="_blank" rel="noopener noreferrer">쿠팡에서 보기 ›</a></div> }
+    </div>
+    <div class="go-lbl">이력</div>
+    <ul class="go-log">
+        @foreach (var l in Model.Logs)
+        {
+            var who = l.Actor is null ? "부모님 링크" : l.ActorName ?? l.Actor;
+            <li><i></i><span>@GiftOrderModel.LogText(l, who)@if (l.Action is "Pick" or "Change" && l.ItemName is not null) { <small> · @l.ItemName @(l.ItemPrice?.ToString("N0"))원</small> }</span><small class="num">@Local(l.AtUtc, "M.d HH:mm")</small></li>
+        }
+    </ul>
+    <div class="go-btns">
+        @if (o.State is "Picked" or "Purchased" or "Delivered")
+        {
+            <form method="post" asp-page-handler="Move" asp-route-slug="@slug" asp-route-id="@o.Id">
+                @if (o.State == "Picked") { <button type="submit" name="act" value="Purchase" class="btn p">샀어요</button> }
+                else if (o.State == "Purchased") { <button type="submit" name="act" value="Deliver" class="btn go-give">줬어요</button> }
+            </form>
+            @if (o.State is "Purchased" or "Delivered")
+            {
+                <form method="post" asp-page-handler="Move" asp-route-slug="@slug" asp-route-id="@o.Id"><button type="submit" name="act" value="Undo" class="btn s">되돌리기(@(o.State == "Purchased" ? "살 것으로" : "줄 것으로"))</button></form>
+            }
+        }
+        @if (o.State is "Picked" or "Purchased")
+        {
+            <form method="post" asp-page-handler="Cancel" asp-route-slug="@slug" asp-route-id="@o.Id" onsubmit="return confirm('이 선물을 취소하고 쓴 점수를 돌려줄까요?')">
+                <button type="submit" class="btn go-cancel">선물 취소(점수 돌려주기)</button>
+            </form>
+        }
+    </div>
+    <p class="gd-note">관리자 취소는 산 뒤에도 할 수 있고 아이의 점수가 돌아가요. 해가 바뀐 선물은 되돌리지 않아요.</p>
+</div></main>

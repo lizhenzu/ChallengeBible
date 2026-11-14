@@ -78,11 +78,12 @@ public partial class DeptGiftTests : IClassFixture<WebApplicationFactory<Program
         var tabs = await c.GetStringAsync("/kids/admin/gifts");
         Assert.Contains(">공통 상품</a>", tabs);
         Assert.Contains(">부서 상품</a>", tabs);
-        var page = await c.GetStringAsync("/kids/admin/gifts");
+        Assert.Contains(">선물 처리</a>", tabs);   // 처음 탭은 선물 처리(확정 시안 관리-선물처리)
+        var page = await c.GetStringAsync("/kids/admin/gifts?t=list");
         Assert.Contains("볼펜", page);
         Assert.Contains("aria-checked=\"true\"", page);
 
-        var r = await Post(c, "/kids/admin/gifts", "/kids/admin/gifts?handler=Hide", new() { ["id"] = pen.ToString(), ["hide"] = "true" });
+        var r = await Post(c, "/kids/admin/gifts?t=list", "/kids/admin/gifts?handler=Hide", new() { ["id"] = pen.ToString(), ["hide"] = "true" });
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal((_kids.Id, pen), raw.GiftItemsHidden.Select(h => ValueTuple.Create(h.TenantId, h.GiftItemId)).Single());
         var hidden = await c.GetStringAsync("/kids/admin/gifts?t=list&v=hidden");
@@ -93,7 +94,7 @@ public partial class DeptGiftTests : IClassFixture<WebApplicationFactory<Program
         var e = await Admin("elemadmin", _elem);
         Assert.Contains("볼펜", await e.GetStringAsync("/elem/admin/gifts?t=list&v=shown"));   // 다른 부서는 그대로 보인다
 
-        await Post(c, "/kids/admin/gifts", "/kids/admin/gifts?handler=Hide", new() { ["id"] = pen.ToString(), ["hide"] = "false" });
+        await Post(c, "/kids/admin/gifts?t=list", "/kids/admin/gifts?handler=Hide", new() { ["id"] = pen.ToString(), ["hide"] = "false" });
         using var raw2 = InMemoryDb.Raw(_db);
         Assert.Empty(raw2.GiftItemsHidden);
     }

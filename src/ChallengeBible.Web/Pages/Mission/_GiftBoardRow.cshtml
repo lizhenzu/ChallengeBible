@@ -1,0 +1,7 @@
+@model ChallengeBible.Web.Services.GiftBoardRow
+@using ChallengeBible.Web.Services
+<div class="gb-r">
+    <span class="gb-pic">@if (Model.HasImage && Model.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" loading="lazy" onerror="this.remove()" /> }</span>
+    <span><b>@Model.Who</b><small>@Model.ItemName · @GiftOrderService.KindLabel(Model.Kind) 선물</small></span>
+    <span class="gb-chip gb-@Model.State.ToLowerInvariant()">@(Model.State switch { "Purchased" => "준비했어요", "Delivered" => "받았어요", _ => "골랐어요" })</span>
+</div>

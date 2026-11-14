@@ -132,6 +132,8 @@
         }
     </div>
 
+    @if (Model.Board.Total > 0) { @await Html.PartialAsync("_GiftBoard", Model) }   @* 누가 선물 받나요(R-297, 오늘 미션 아래) *@
+
     <div class="hSh" id="cal"><span class="num">@Model.FirstOfMonth.ToString("yyyy년 M월")</span>
         <span class="hCalNav">
             @if (Model.HasPrevMonth) { <a href="@Model.HomeUrl(Model.Day, Model.FirstOfMonth.AddMonths(-1))#cal" aria-label="이전 달">←</a> } else { <span></span> }

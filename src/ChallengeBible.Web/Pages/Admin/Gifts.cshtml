@@ -17,11 +17,67 @@
     <h1>선물</h1>
     <p class="gd-lead">우리 부서 아이들이 고를 선물과 금액을 정해요.</p>
     <nav class="gd-tabs" aria-label="선물 설정">
+        <a href="@self" aria-current="@Tab("orders")">선물 처리</a>
         <a href="@self?t=list" aria-current="@Tab("list")">공통 상품</a>
         <a href="@self?t=ours" aria-current="@Tab("ours")">부서 상품</a>
         <a href="@self?t=money" aria-current="@Tab("money")">금액 · 점수</a>
     </nav>
     @if (Model.Message is not null) { <p class="ok-box" role="status">@Model.Message</p> }
+
+    @if (Model.Tab == "orders")
+    {
+        var oc = Model.OrderCounts;
+        string Cur(string k) => Model.Step == k ? "page" : null!;
+        <nav class="gd-seg" aria-label="선물 처리">
+            <a href="@self?s=buy" class="@(oc.Buy > 0 ? "go-hot" : "")" aria-current="@Cur("buy")">살 것<u class="num">@oc.Buy</u></a>
+            <a href="@self?s=give" class="@(oc.Give > 0 ? "go-hot" : "")" aria-current="@Cur("give")">줄 것<u class="num">@oc.Give</u></a>
+            <a href="@self?s=done" aria-current="@Cur("done")">받음<u class="num">@oc.Done</u></a>
+            <a href="@self?s=cancel" aria-current="@Cur("cancel")">취소<u class="num">@oc.Cancel</u></a>
+        </nav>
+        @if (Model.Step == "buy" && Model.Orders.Count > 0)
+        {
+            <div class="go-sum"><span>살 것 @(Model.Orders.Count)건 합계</span><b class="num">@GiftsModel.N(Model.Orders.Sum(o => o.Price))원</b></div>
+        }
+        @if (Model.Orders.Count == 0)
+        {
+            <div class="empty-box">@(Model.Step switch { "buy" => "살 선물이 없어요.", "give" => "줄 선물이 없어요.", "done" => "받은 선물이 아직 없어요.", _ => "취소한 선물이 없어요." })</div>
+        }
+        else
+        {
+            <div class="go-rows">
+                @foreach (var o in Model.Orders)
+                {
+                    var when = o.State switch
+                    {
+                        "Purchased" => $"{o.PurchasedUtc:M월 d일} 샀어요", "Delivered" => $"{o.DeliveredUtc:M월 d일} 받았어요",
+                        "Cancelled" => "취소", _ => $"{(o.PickedUtc ?? o.CreatedUtc):M월 d일} 골랐어요",
+                    };
+                    <div class="go-r@(o.State is "Delivered" or "Cancelled" ? " go-dim" : "")">
+                        <a class="go-pic" href="@self/@o.Id" aria-label="@o.ItemName 자세히">@if (o.HasImage && o.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" loading="lazy" onerror="this.remove()" /> }</a>
+                        <a class="go-mid" href="@self/@o.Id"><b>@o.ItemName</b>
+                            <small><span class="go-who">@o.Who</span>@(o.ClassName is null ? "" : " · " + o.ClassName) · <span class="go-kind go-k-@o.Kind.ToLowerInvariant()">@GiftOrderService.KindLabel(o.Kind)</span></small>
+                            <small class="num">@GiftsModel.N(o.Price)원 · @when</small></a>
+                        @if (o.State is "Picked" or "Purchased")
+                        {
+                            <form method="post" asp-page-handler="Move" asp-route-slug="@slug" class="go-acts">
+                                <input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="s" value="@Model.Step" />
+                                @if (o.State == "Picked")
+                                {
+                                    @if (!string.IsNullOrEmpty(o.CoupangUrl)) { <a class="btn s sm" href="@o.CoupangUrl" target="_blank" rel="noopener noreferrer">쿠팡</a> }
+                                    <button type="submit" name="act" value="Purchase" class="btn p sm">샀어요</button>
+                                }
+                                else
+                                {
+                                    <button type="submit" name="act" value="Deliver" class="btn sm go-give">줬어요</button>
+                                }
+                            </form>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        <p class="gd-note">[샀어요]를 누르면 "줄 것"으로 옮겨지고, 아이 화면은 "선생님이 준비했어요"가 돼요(이때부터 아이는 취소할 수 없어요). 줄을 누르면 자세히 — 이력 · 되돌리기 · 선물 취소.</p>
+    }
 
     @if (Model.Tab == "list")
     {
@@ -103,7 +159,7 @@
             </div>
         }
     }
-    else
+    else if (Model.Tab == "money")
     {
         var m = Model.Money;
         <form method="post" asp-page-handler="Money" asp-route-slug="@slug" class="gd-money" novalidate>
