@@ -1,0 +1,68 @@
+@page "/platform/gifts"
+@model ChallengeBible.Web.Pages.Platform.GiftsModel
+@using ChallengeBible.Infrastructure.Data
+@using ChallengeBible.Web.Pages.Platform
+@using ChallengeBible.Web.Services
+@* 확정 시안: 플랫폼-선물상품-단독시안 B(줄 목록, 2026-11-14) — 탭 · 찾기 · 가격대 → 줄 목록(작은 사진 · 이름 · 번호 · 가격) → 더 보기 *@
+@{
+    var c = Model.Counts;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+<partial name="_PlatformTop" />
+<main class="admin gut gf"><div class="wrap">
+    <h1 class="gf-h">선물 상품 <a class="btn p sm" href="/platform/gifts/edit">+ 상품 등록</a></h1>
+    <nav class="gf-seg" aria-label="상태">
+        <a href="@Model.Url(GiftItemStatus.Active, "")" aria-current="@(Model.Status == GiftItemStatus.Active ? "page" : null)">판매 중<u class="num">@c.Active</u></a>
+        <a class="rv" href="@Model.Url(GiftItemStatus.Review, "")" aria-current="@(Model.Status == GiftItemStatus.Review ? "page" : null)">삭제 대상<u class="num">@c.Review</u></a>
+        <a href="@Model.Url(GiftItemStatus.Retired, "")" aria-current="@(Model.Status == GiftItemStatus.Retired ? "page" : null)">목록에서 내림<u class="num">@c.Retired</u></a>
+    </nav>
+    @if (Model.Status == GiftItemStatus.Review && c.Reasons.Count > 0)
+    {
+        <nav class="gf-seg" aria-label="까닭">
+            <a href="@Model.Url(r: "")" aria-current="@(string.IsNullOrEmpty(Model.Reason) ? "page" : null)">모두<u class="num">@c.Review</u></a>
+            @foreach (var (reason, n) in c.Reasons)
+            {
+                <a href="@Model.Url(r: reason)" aria-current="@(Model.Reason == reason ? "page" : null)">@GiftCatalogService.ReasonText(reason)<u class="num">@n</u></a>
+            }
+        </nav>
+    }
+    <form method="get" class="gf-tools" role="search">
+        <input type="hidden" name="s" value="@Model.Status" /><input type="hidden" name="r" value="@Model.Reason" />
+        <input class="in" type="search" name="q" value="@Model.Q" placeholder="상품 이름 · 번호로 찾기" aria-label="찾기" />
+        <select class="in" name="p" aria-label="가격대" onchange="this.form.submit()">
+            @foreach (var b in GiftsModel.Bands) { <option value="@b.Key" selected="@(Model.Band == b.Key || (Model.Band is null && b.Key == ""))">@b.Label</option> }
+        </select>
+        <noscript><button class="btn s sm" type="submit">찾기</button></noscript>
+    </form>
+    @if (Model.Status == GiftItemStatus.Review)
+    {
+        <p class="gf-note">삭제 대상은 아이에게 보이지 않아요. 쿠팡 링크를 넣어 고쳐 저장하면 판매 중으로 살아나요.</p>
+    }
+    else if (Model.Status == GiftItemStatus.Active)
+    {
+        <p class="gf-note">공통 상품은 모든 부서에 보여요(부서가 숨길 수 있어요). <span class="gf-tag dp">부서</span> 표시는 부서가 공통에 올렸거나 부서 상품 — 그 부서와 플랫폼만 고쳐요.</p>
+    }
+
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="empty-box">@(string.IsNullOrWhiteSpace(Model.Q) && Model.Band is null or "" ? "상품이 없어요." : "찾는 상품이 없어요.")</div>
+    }
+    else
+    {
+        <div class="gf-rows">
+            @foreach (var r in Model.Rows)
+            {
+                var img = GiftsModel.Img(r);
+                <a class="gf-row" href="/platform/gifts/edit/@r.Id">
+                    <span class="gf-th">@if (img.Length > 0) { <img src="@img" alt="" loading="lazy" /> } else { <span aria-hidden="true">🎁</span> }</span>
+                    <span class="gf-mid">
+                        <b>@if (r.TenantName is { } tn) { <span class="gf-tag dp">@tn</span> } else if (r.SharedByName is { } sn) { <span class="gf-tag dp">@sn</span> }@r.Name</b>
+                        <small class="num">@r.Id · @(r.Status == GiftItemStatus.Review ? GiftCatalogService.ReasonText(r.ReviewReason) : GiftCatalogService.IsCoupang(r.CoupangUrl) ? "쿠팡" : "링크 확인")@(r.Picked > 0 ? $" · 고른 기록 {r.Picked}" : "")@(r.SharedByName is { } s2 && r.TenantName is null ? $" · {s2}가 올림" : "")</small>
+                    </span>
+                    <span class="gf-r"><span class="gf-pr num">@r.Price.ToString("N0", inv)원</span><small>고치기 ›</small></span>
+                </a>
+            }
+        </div>
+        @if (Model.More) { <div class="gf-more"><a class="btn s sm" href="@Model.Url(n: Model.Take + GiftCatalogService.PageSize)">@(GiftCatalogService.PageSize)개 더 보기</a></div> }
+    }
+</div></main>

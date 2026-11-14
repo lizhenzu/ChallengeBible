@@ -1,8 +1,9 @@
-// 얼굴 사진 올리기(ADR 0078, R-202, 확정 시안 crop.png): 사진을 고르면 자르기 화면이 열린다.
+﻿// 얼굴 사진 올리기(ADR 0078, R-202, 확정 시안 crop.png): 사진을 고르면 자르기 화면이 열린다.
 // 끌어서 옮기고 · 두 손가락(또는 막대 · 휠)으로 키우고 · 90°씩 돌린 뒤 "이대로 올리기" → 동그라미 안만 320px JPEG 로 올린다.
 // 사진을 읽지 못하면(오래된 브라우저) 고른 파일 그대로 올리고, 크기는 서버가 400KB 로 막는다.
+// data-photo="square" 면 네모 틀(선물 상품 사진, R-278), data-photo-size 로 올리는 크기(기본 320px).
 (function () {
-  var OUT = 320, MAXZ = 4;
+  var MAXZ = 4;
 
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html; return e; }
 
@@ -19,8 +20,9 @@
   }
 
   function open(form, input, img) {
-    var ov = el('div', 'crop', '<div class="crop-bar"><button type="button" class="crop-x">✕ 취소</button><b>사진 자르기</b><button type="button" class="crop-ok">완료</button></div>' +
-      '<div class="crop-stage"><canvas></canvas><div class="crop-mask"></div><div class="crop-ring"></div><p class="crop-tip">손가락으로 끌어 옮기고, 두 손가락이나 아래 막대로 키워요</p></div>' +
+    var OUT = parseInt(form.getAttribute('data-photo-size'), 10) || 320;
+    var ov = el('div', form.getAttribute('data-photo') === 'square' ? 'crop sq' : 'crop', '<div class="crop-bar"><button type="button" class="crop-x">✕ 취소</button><b>사진 자르기</b><button type="button" class="crop-ok">완료</button></div>' +
+      '<div class="crop-stage"><canvas></canvas><div class="crop-mask"></div><div class="crop-ring"></div><p class="crop-tip">끌어 옮기고, 두 손가락이나 아래 막대로 키워요</p></div>' +
       '<div class="crop-zoom"><span aria-hidden="true">－</span><input type="range" min="1" max="' + MAXZ + '" step="0.01" value="1" aria-label="크게 보기" /><span aria-hidden="true">＋</span></div>' +
       '<div class="crop-btns"><button type="button" class="crop-rot">↻ 돌리기</button><button type="button" class="crop-go">이대로 올리기</button></div>');
     ov.setAttribute('role', 'dialog');

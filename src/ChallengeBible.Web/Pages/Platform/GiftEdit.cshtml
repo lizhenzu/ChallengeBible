@@ -1,0 +1,82 @@
+@page "/platform/gifts/edit/{id:int?}"
+@model ChallengeBible.Web.Pages.Platform.GiftEditModel
+@using ChallengeBible.Infrastructure.Data
+@using ChallengeBible.Web.Services
+@* 확정 시안: 플랫폼-선물상품-단독시안 "등록 · 수정"(2026-11-14) — 사진(정사각형 자르기) | 이름 · 가격 · 필요한 점수 · 쿠팡 링크 · 설명 → 저장 → 내리기 · 삭제 *@
+@{
+    var i = Model.Item;
+    var back = $"/platform/gifts?s={i?.Status ?? GiftItemStatus.Active}";
+}
+<partial name="_PlatformTop" />
+<main class="admin gut gf"><div class="wrap">
+    <a class="gf-back" href="@back">← 상품 목록</a>
+    <h1 class="gf-h">@Model.Title
+        @if (i is not null) { <small class="num">@i.Id · @(i.TenantId is null ? "공통" : Model.TenantName) · 고른 기록 @Model.Picked@(Model.SharedByName is { } sn ? $" · {sn}가 올림" : "")</small> }
+    </h1>
+    @if (Model.Message is not null) { <p class="ok-box" role="status">@Model.Message</p> }
+    @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+    @if (i?.Status == GiftItemStatus.Review) { <p class="gf-warn">삭제 대상(@GiftCatalogService.ReasonText(i.ReviewReason)) — 아이에게 보이지 않아요. 쿠팡 링크를 넣어 저장하면 판매 중으로 살아나요.</p> }
+    @if (i?.Status == GiftItemStatus.Retired) { <p class="gf-warn">목록에서 내린 상품이에요 — 아이에게 보이지 않아요.</p> }
+
+    <div class="gf-form">
+        <div class="gf-photo">
+            <div class="box">@if (i?.HasImage == true) { <img src="/images/AwardItem/@(i.Id).jpg?v=@i.UpdatedUtc.Ticks" alt="@i.Name 사진" /> } else { <span aria-hidden="true">🎁</span> }</div>
+            @if (i is not null)
+            {
+                <form method="post" asp-page-handler="Photo" enctype="multipart/form-data" data-photo="square" data-photo-size="600" class="gf-up">
+                    <label class="btn s sm">사진 고르기<input type="file" name="photo" accept="image/*" hidden /></label>
+                    <noscript><button class="btn s sm" type="submit">올리기</button></noscript>
+                </form>
+                <small>사진을 고르면 끌어서 자리를 맞추고 <b>정사각형으로 잘라 JPG</b>로 올려요. 사진이 없으면 기본 그림.</small>
+            }
+            else
+            {
+                <small>저장한 뒤에 사진을 올릴 수 있어요.</small>
+            }
+        </div>
+
+        <form method="post" class="gf-fields" novalidate>
+            <div class="f"><label for="nm">상품 이름</label>
+                <input class="in" id="nm" asp-for="Input.Name" maxlength="100" aria-invalid="@(Model.Err("Name").Length > 0 ? "true" : "false")" />
+                @if (Model.Err("Name").Length > 0) { <span class="bad">@Model.Err("Name")</span> } else { <span class="hint">100자까지</span> }</div>
+            <div class="two">
+                <div class="f"><label for="pr">가격(원)</label>
+                    <input class="in num" id="pr" asp-for="Input.Price" inputmode="numeric" aria-invalid="@(Model.Err("Price").Length > 0 ? "true" : "false")" />
+                    @if (Model.Err("Price").Length > 0) { <span class="bad">@Model.Err("Price")</span> } else { <span class="hint">아이에게는 보이지 않아요(필요한 점수로 보여요)</span> }</div>
+                <div class="f"><label>필요한 점수(미리 보기)</label>
+                    <input class="in num" value="@(i is null ? "—" : $"{Model.PointsPreview:N0}점")" disabled />
+                    <span class="hint">부서 크레딧 표가 비어 있을 때</span></div>
+            </div>
+            <div class="f"><label for="cp">쿠팡 링크 <small class="gf-req">필수</small></label>
+                <input class="in" id="cp" asp-for="Input.CoupangUrl" inputmode="url" placeholder="https://www.coupang.com/vp/products/…" aria-invalid="@(Model.Err("CoupangUrl").Length > 0 ? "true" : "false")" />
+                @if (Model.Err("CoupangUrl").Length > 0) { <span class="bad">@Model.Err("CoupangUrl")</span> }
+                else if (GiftCatalogService.IsCoupang(Model.Input.CoupangUrl)) { <span class="okt">✓ 쿠팡 주소예요 · <a href="@Model.Input.CoupangUrl" target="_blank" rel="noopener noreferrer">열어 보기 ↗</a></span> }
+                else { <span class="hint">쿠팡 상품 주소만 받아요(필수)</span> }</div>
+            <div class="f"><label for="ds">설명(선택)</label>
+                <textarea class="in" id="ds" asp-for="Input.Description" maxlength="500"></textarea>
+                @if (Model.Err("Description").Length > 0) { <span class="bad">@Model.Err("Description")</span> }</div>
+            <div class="gf-acts"><a class="btn s" href="@back">취소</a><button class="btn p" type="submit">저장</button></div>
+        </form>
+    </div>
+
+    @if (i is not null)
+    {
+        <hr class="gf-hr" />
+        <div class="gf-acts">
+            @if (i.Status == GiftItemStatus.Retired)
+            {
+                <form method="post" asp-page-handler="Restore"><button class="btn s" type="submit">다시 올리기</button></form>
+            }
+            else
+            {
+                <form method="post" asp-page-handler="Retire" onsubmit="return confirm('목록에서 내릴까요? 아이에게 보이지 않아요.')"><button class="btn d" type="submit">목록에서 내리기</button></form>
+            }
+            @if (Model.Picked == 0)
+            {
+                <form method="post" asp-page-handler="Delete" onsubmit="return confirm('상품과 사진을 지울까요? 되돌릴 수 없어요.')"><button class="btn d" type="submit">삭제(상품 + 사진)</button></form>
+            }
+        </div>
+        <p class="gf-note">고른 기록이 있으면 <b>삭제 대신 "목록에서 내리기"</b>만 돼요(이름 · 사진 · 금액은 이력과 총비용에 남아요). 고른 기록이 없으면 삭제하면 상품과 서버 사진이 지워져요.</p>
+    }
+</div></main>
+<script src="~/js/photo.js" asp-append-version="true"></script>
