@@ -12,7 +12,7 @@
     <div class="gk-bar"><a href="/@slug/word-mission">← 미션 홈</a></div>
     @if (Model.Others.Count > 0)
     {
-        <nav class="gk-seg" aria-label="팀 선물">
+        <nav class="gk-seg gk-stages" aria-label="팀 선물">
             @foreach (var o in Model.Others.Append(Model.Gift!).OrderBy(x => x.Stage))
             {
                 <a href="/@Model.Slug/gifts/team/@o.Id" aria-current="@(o.Id == Model.Gift!.Id ? "true" : null)">@o.Stage.ToString("N0")점 · @(o.State == "Open" ? "고르기" : "골랐어요")</a>

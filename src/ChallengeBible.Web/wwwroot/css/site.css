@@ -3788,3 +3788,4 @@ a.nc-card.hidden { display: none; }
 .gk-mem span { padding: 4px 9px; border-radius: 99px; background: #F4F6F9; color: #374151; font-size: 12px; }
 .gk-btn.gk-pur { background: #7C3AED; color: #fff; }
 .gk-btn.gk-plain { background: #fff; color: #374151; border: 1px solid #E5E7EB; }
+.gk-seg.gk-stages { flex-wrap: wrap; } .gk-seg a { flex: none; white-space: nowrap; }   /* 팀 선물 단계 칩: 한 줄 글자, 많으면 다음 줄(사용자 2026-11-14) */
