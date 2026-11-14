@@ -3422,3 +3422,30 @@ a.nc-card.hidden { display: none; }
 .ncb span { display: block; margin-top: 5px; font-size: 11.5px; font-weight: 700; color: var(--fg); white-space: nowrap; }
 .ncb span.e { color: color-mix(in srgb, var(--dim) 55%, var(--bg)); font-weight: 600; }
 .ncb span b { display: inline-block; margin-left: 3px; padding: 0 4px; border-radius: 6px; background: var(--accent-bg); color: var(--accent); font-size: 9.5px; font-weight: 800; vertical-align: 1px; }
+
+/* 임시 시험 도구 /test-tools (ADR 0095) — 데스크톱 내용 폭 760px, 카드 칸은 minmax(0, 1fr) */
+.tt .wrap { max-width: 760px; display: flex; flex-direction: column; gap: 20px; }
+.tt h1 small.tt-tag { font-size: 13px; padding: 2px 8px; border-radius: 999px; background: var(--warn-bg); color: var(--warn); vertical-align: middle; }
+.tt-warn { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--warn-bg); color: var(--warn); font-size: 14px; font-weight: 700; }
+.tt-box { border: 1px solid var(--rule); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.tt-box h2 { margin: 0; font-size: 18px; }
+.tt-box h2 small, .tt-result h3 small { font-size: 13px; color: var(--dim); font-weight: 700; margin-left: 6px; }
+.tt-runs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tt-run { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: var(--soft); min-width: 0; }
+.tt-confirm { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--dim); }
+.tt-result { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.tt-result h3 { margin: 0; font-size: 16px; }
+.tt-result .ok { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--ok-bg); color: var(--ok); font-weight: 700; font-size: 14px; }
+.tt-result .ops-tbl table { min-width: 0; }
+.tt-depts { display: flex; flex-wrap: wrap; gap: 8px; }
+.tt-chip { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); font-size: 14px; font-weight: 700; color: var(--fg); text-decoration: none; }
+.tt-chip.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.tt-g { margin: 6px 0 0; font-size: 14px; color: var(--dim); }
+.tt-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.tt-grid form { min-width: 0; }
+.tt-btn { width: 100%; height: 100%; text-align: left; display: flex; flex-direction: column; gap: 3px; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; font: inherit; min-width: 0; }
+.tt-btn:hover { border-color: var(--accent); background: var(--accent-bg); }
+.tt-btn b { font-size: 15px; }
+.tt-btn span { font-size: 13px; color: var(--dim); overflow-wrap: anywhere; }
+.tt-btn small { font-size: 12px; color: var(--dim); overflow-wrap: anywhere; }
+@media (max-width: 560px) { .tt-runs, .tt-grid { grid-template-columns: minmax(0, 1fr); } }

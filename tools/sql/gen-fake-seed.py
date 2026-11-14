@@ -620,8 +620,38 @@ TITLES = {
 """,
 }
 
+POLICY_OFF = "-- tenant isolation policy off only inside this transaction (back on before the end; a rollback also restores it)\nALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = OFF);\n"
+POLICY_ON = "ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = ON);\n"
+
+
+def ssms(sql: str) -> str:
+    """PC 의 SSMS 용: 이 연결에만 PlatformScope 를 켠다(SQL Studio 는 이 프로시저를 막는다)."""
+    assert POLICY_OFF in sql and POLICY_ON in sql
+    sql = sql.replace(POLICY_OFF, "")
+    sql = sql.replace("BEGIN TRY\n", "EXEC sp_set_session_context N'PlatformScope', 1;   -- tenant isolation is crossed only on this connection\nBEGIN TRY\n", 1)
+    sql = sql.replace(POLICY_ON, "")
+    return sql + "EXEC sp_set_session_context N'PlatformScope', NULL;\n"
+
+
+def app(sql: str) -> str:
+    """앱 시험 도구(/test-tools)용: 시스템 연결이 PlatformScope 를 이미 켠다. 저장 여부 · 기준 날짜는 매개변수."""
+    sql = sql.replace(POLICY_OFF, "").replace(POLICY_ON, "")
+    for old, new in (("DECLARE @Commit bit = 0;", "DECLARE @Commit bit = @pCommit;"), (f"DECLARE @Today date = '{TODAY}';", "DECLARE @Today date = @pToday;")):
+        assert old in sql or "@Today" not in sql, old
+        sql = sql.replace(old, new)
+    if "@pToday" not in sql:
+        sql = sql.replace("DECLARE @Commit bit = @pCommit;", "DECLARE @Commit bit = @pCommit;   -- @pToday is not used here\nDECLARE @Unused date = @pToday;")
+    return sql
+
+
+SSMS_NOTE = "-- For SSMS on the PC (SQL Studio on sql.site4now.net blocks session settings).\n"
+APP_NOTE = "-- Embedded in the web app: run by /test-tools (TestToolsService). Parameters: @pCommit bit, @pToday date.\n"
+WEB = os.path.normpath(os.path.join(HERE, "..", "..", "src", "ChallengeBible.Web", "TestTools"))
+
 if __name__ == "__main__":
+    os.makedirs(WEB, exist_ok=True)
     for name, body in (("fake-create.sql", create_sql()), ("fake-delete.sql", delete_sql())):
-        with open(os.path.join(HERE, name), "w", encoding="ascii", newline="\r\n") as f:
-            f.write(asciify(body, TITLES[name]))
-        print("wrote", name)
+        for folder, flavor, note in ((HERE, ssms, SSMS_NOTE), (WEB, app, APP_NOTE)):
+            with open(os.path.join(folder, name), "w", encoding="ascii", newline="\r\n") as f:
+                f.write(asciify(flavor(body), TITLES[name] + note))
+            print("wrote", os.path.relpath(os.path.join(folder, name), os.path.join(HERE, "..", "..")))

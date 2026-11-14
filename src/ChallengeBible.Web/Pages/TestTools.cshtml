@@ -1,0 +1,88 @@
+@page "/test-tools"
+@model ChallengeBible.Web.Pages.TestToolsModel
+@using ChallengeBible.Web.Services
+@* 임시 시험 도구(ADR 0095, 2026-11-14 사용자 요청): 가짜 데이터 넣기 · 지우기 + 상황별 로그인. 시험이 끝나면 설정 TestTools:Enabled = false 로 숨긴다 *@
+<partial name="_Top" />
+<main class="page gut tt"><div class="wrap">
+    <div>
+        <h1>시험 도구 <small class="tt-tag">임시</small></h1>
+        <p class="sub">선물 시스템 시험용 가짜 데이터와 상황별 로그인이에요. 가짜 계정 비밀번호는 모두 @TestToolsService.Password 이에요.</p>
+    </div>
+    <p class="tt-warn" role="note">시험이 끝나면 이 화면은 숨겨요(설정 <code>TestTools:Enabled</code>). 실제 사용자가 생기기 전까지만 써 주세요.</p>
+
+    @if (Model.IsAdmin)
+    {
+        <section class="tt-box" aria-labelledby="ttData">
+            <h2 id="ttData">가짜 데이터 <small>지금 가짜 계정 @(Model.FakeAccounts)개</small></h2>
+            <p class="hint"><b>넣기</b>는 플랫폼 관리자 계정만 남기고 <b>모든 계정과 기록을 지운 뒤</b> 부서마다 69명(관리자 · 선생님 10 · 학생 40 · 학부모 10 · 새친구 8)을 넣어요.
+                <b>지우기</b>는 가짜 데이터만 지워요. <b>시험 실행</b>은 숫자만 보여 주고 모두 되돌려요.</p>
+            <div class="tt-runs">
+                @foreach (var (kind, label) in new[] { ("create", "넣기"), ("delete", "지우기") })
+                {
+                    <form method="post" asp-page-handler="Run" class="tt-run">
+                        <input type="hidden" name="kind" value="@kind" />
+                        <b>가짜 데이터 @label</b>
+                        <button class="btn s" type="submit" name="mode" value="test">시험 실행</button>
+                        <label class="tt-confirm"><span>확인 글자</span><input class="in" name="confirm" autocomplete="off" placeholder="@TestToolsService.ConfirmWord" aria-label="진짜 실행 확인 글자 @TestToolsService.ConfirmWord" /></label>
+                        <button class="btn @(kind == "create" ? "p" : "d")" type="submit" name="mode" value="real">진짜 @label</button>
+                    </form>
+                }
+            </div>
+            @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+            @if (Model.Result is { } r)
+            {
+                <div class="tt-result" role="status">
+                    <h3>@Model.ResultTitle <small>@(r.Ms / 1000.0)초</small></h3>
+                    @if (!r.Ok) { <p class="err">실패 — 아무것도 바뀌지 않았어요. @r.Error</p> }
+                    else if (r.Committed) { <p class="ok">저장했어요.</p> }
+                    else { <p class="ok">시험 실행이라 모두 되돌렸어요.</p> }
+                    @foreach (var t in r.Tables)
+                    {
+                        <div class="ops-tbl"><table>
+                            <thead><tr>@foreach (var c in t.Columns) { <th scope="col">@c</th> }</tr></thead>
+                            <tbody>@foreach (var row in t.Rows) { <tr>@foreach (var v in row) { <td>@v</td> }</tr> }</tbody>
+                        </table></div>
+                    }
+                </div>
+            }
+        </section>
+    }
+
+    <section class="tt-box" aria-labelledby="ttLogin">
+        <h2 id="ttLogin">상황별 로그인 <small>누르면 그 계정으로 바로 들어가요</small></h2>
+        @if (Model.Depts.Count == 0)
+        {
+            <div class="empty-box">가짜 계정이 없어요. @(Model.IsAdmin ? "위에서 가짜 데이터를 넣어 주세요." : "")</div>
+        }
+        else
+        {
+            <nav class="tt-depts" aria-label="부서">
+                @foreach (var d in Model.Depts)
+                {
+                    <a class="tt-chip @(d == Model.Dept ? "on" : "")" href="/test-tools?t=@d.TenantId" aria-current="@(d == Model.Dept ? "page" : null)">@d.Name</a>
+                }
+            </nav>
+            @foreach (var g in Model.Dept!.Logins.GroupBy(l => l.Scenario.Group))
+            {
+                <h3 class="tt-g">@g.Key</h3>
+                <div class="tt-grid">
+                    @foreach (var l in g)
+                    {
+                        <form method="post" asp-page-handler="Login">
+                            <input type="hidden" name="user" value="@l.UserName" />
+                            <button class="tt-btn" type="submit">
+                                <b>@l.Scenario.Label</b>
+                                <span>@l.Scenario.Detail</span>
+                                <small>@l.Name · @l.UserName</small>
+                            </button>
+                        </form>
+                    }
+                </div>
+            }
+        }
+    </section>
+
+    <div class="foot">
+        <div><a href="/account/admin-login">플랫폼 관리자로 다시 들어가기</a></div>
+    </div>
+</div></main>

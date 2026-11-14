@@ -3,6 +3,7 @@
 -- 2) Inserts 69 fake people per department (not the lobby). Password for all: 1234.
 -- Run with @Commit = 0 first (test run, rolled back). Check the result tables. Then set @Commit = 1 and run again.
 -- Undo later: tools/sql/fake-delete.sql
+-- For SSMS on the PC (SQL Studio on sql.site4now.net blocks session settings).
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 SET ANSI_NULLS ON; SET ANSI_PADDING ON; SET ANSI_WARNINGS ON; SET ARITHABORT ON; SET CONCAT_NULL_YIELDS_NULL ON; SET QUOTED_IDENTIFIER ON; SET NUMERIC_ROUNDABORT OFF;
@@ -17,10 +18,9 @@ DECLARE @Pw nvarchar(max) = N'AQAAAAIAAYagAAAAEH8dMEcerTkA8VeDjshr5x4xhksLaM7c22
 DECLARE @Step nvarchar(20);
 
 
+EXEC sp_set_session_context N'PlatformScope', 1;   -- tenant isolation is crossed only on this connection
 BEGIN TRY
 BEGIN TRANSACTION;
--- tenant isolation policy off only inside this transaction (back on before the end; a rollback also restores it)
-ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = OFF);
 
 SET @Step = N'0 before';
 SELECT @Step AS [Step],
@@ -470,7 +470,6 @@ SELECT N'4 login ids' AS [Step], t.Name AS [Dept],
        (SELECT COUNT(*) FROM app.Person x WHERE x.TenantId = t.Id AND x.CreatedByUserName = @Marker) AS [RosterCount]
 FROM app.Tenant t WHERE t.IsLobby = 0 ORDER BY t.Id;
 
-ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = ON);
 IF @Commit = 1
 BEGIN
     COMMIT;
@@ -486,3 +485,4 @@ BEGIN CATCH
     IF @@TRANCOUNT > 0 ROLLBACK;
     THROW;
 END CATCH;
+EXEC sp_set_session_context N'PlatformScope', NULL;
