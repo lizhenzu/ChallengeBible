@@ -8,16 +8,32 @@
 
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html; return e; }
 
+  // 올리는 동안 대기 카드(wait.js, ADR 0082)에 진행률을 보여 준다: "사진을 올리고 있어요 45%" → "저장하고 있어요"(2026-11-14 사용자)
   function send(form, blob) {
     var fd = new FormData(form);
     fd.delete('photo');
     fd.append('photo', blob, 'photo.jpg');
-    fetch(form.getAttribute('action') || location.href, { method: 'POST', body: fd, credentials: 'same-origin' })
-      .then(function (r) {
-        if (r.redirected) { location.href = r.url; return; }
-        return r.text().then(function (html) { document.open(); document.write(html); document.close(); });
-      })
-      .catch(function () { alert('사진을 올리지 못했어요. 잠시 뒤 다시 해 주세요.'); });
+    var w = window.cbWait;
+    if (w && w.show) w.show('사진을 올리고 있어요 0%');
+    var url = form.getAttribute('action') || location.href;
+    var x = new XMLHttpRequest();
+    x.open('POST', url);
+    x.upload.onprogress = function (e) {
+      if (!w || !e.lengthComputable) return;
+      var pct = Math.min(100, Math.round(e.loaded * 100 / e.total));
+      w.text(pct < 100 ? '사진을 올리고 있어요 ' + pct + '%' : '저장하고 있어요');
+    };
+    x.onload = function () {
+      var done = new URL(x.responseURL || url, location.href);
+      if (done.href !== new URL(url, location.href).href) { location.href = done.href; return; }   // 저장 → 다음 화면으로
+      document.open(); document.write(x.responseText); document.close();                        // 칸 오류 등은 그 화면 그대로
+    };
+    x.onerror = function () {
+      if (w) w.hide();
+      var b = form.querySelector('button[type=submit]'); if (b) { b.disabled = false; b.textContent = '저장'; }
+      alert('사진을 올리지 못했어요. 잠시 뒤 다시 해 주세요.');
+    };
+    x.send(fd);
   }
 
   function open(form, input, img) {

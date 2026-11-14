@@ -1,4 +1,4 @@
-// 페이지 이동 대기 카드(ADR 0082, 확정 시안 wait-card.png 1안).
+﻿// 페이지 이동 대기 카드(ADR 0082, 확정 시안 wait-card.png 1안).
 // 누르면 진행 줄과 카드를 바로 보여 준다. 링크는 카드가 보이도록 0.6초 뒤에 옮기고, 폼은 늦추지 않는다.
 // 그 자리에서 처리하는 동작(preventDefault) · 새 창 · 다운로드 · data-nowait 에는 나오지 않는다.
 // 다른 처리기가 모두 돈 뒤에 판단하도록 window 에서 듣는다.
@@ -84,19 +84,22 @@
         }
     };
 
-    const start = (message) => {
+    const start = (message, keep) => {
         reset();
         followTheme();
         sub.textContent = message;
         line.classList.add('on');
         wait.classList.add('on');
-        timers = [setTimeout(reset, GIVE_UP_MS)];
+        if (!keep) timers = [setTimeout(reset, GIVE_UP_MS)];
     };
 
     // 화면을 옮기지 않는 큰 동작(읽음 표시 등)에서도 쓴다. during: 카드를 띄우고 작업과 최소 시간을 기다린다. 닫는 것은 부르는 쪽에서(hide)
     const hold = () => new Promise((r) => setTimeout(r, LINK_HOLD_MS));
     window.cbWait = {
         hide: reset,
+        // 오래 걸리는 올리기(사진 등): 카드를 띄운 채로 두고(15초에 닫지 않음) 문구만 바꾼다. 닫는 것은 부르는 쪽에서(hide)
+        show: (message) => start(message, true),
+        text: (message) => { sub.textContent = message; },
         during: async (message, work) => {
             start(message);
             const [res] = await Promise.all([work.catch(() => ({ ok: false, json: {} })), hold()]);

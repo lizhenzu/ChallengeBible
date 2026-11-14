@@ -61,4 +61,14 @@ public class WaitCardTests(WebApplicationFactory<Program> app) : IClassFixture<W
         var js = await Client().GetStringAsync("/js/wait.js");
         Assert.Contains(message, js);
     }
+
+    [Fact]
+    public async Task 사진을_올리며_저장할_때도_대기_카드에_진행률을_보인다()
+    {
+        var c = Client();
+        var photo = await c.GetStringAsync("/js/photo.js");
+        Assert.Contains("사진을 올리고 있어요", photo);   // 2026-11-14 사용자: 사진 등록 때 진행 상태 · 대기 카드
+        Assert.Contains("upload.onprogress", photo);
+        Assert.Contains("show: (message) => start(message, true)", await c.GetStringAsync("/js/wait.js"));
+    }
 }
