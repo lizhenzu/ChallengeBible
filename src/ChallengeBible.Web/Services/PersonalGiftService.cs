@@ -56,9 +56,11 @@ public sealed class PersonalGiftService(IAppDb db, RequestScope scope, TenantCon
         var r = (await rules.ForDateAsync(today, ct)).Gifts;
         var year = (short)today.Year;
         var from = new DateOnly(today.Year, 1, 1);   // 정한 것 1: 시즌 시작일과 상관없이 1월 1일부터
-        var points = await ctx.MissionActivities.Where(a => a.UserName == user && a.MissionDate >= from && a.MissionDate <= today)
-            .SumAsync(a => (int?)a.Points, ct) ?? 0;
-        var uses = await ctx.GiftPointUses.AsNoTracking().Where(u => u.UserName == user && u.Year == year).ToListAsync(ct);
+        var reset = await YearResetService.LastResetAsync(ctx, today.Year, ct);   // 새해 초기화 버튼(정한 것 12): 누른 순간부터 0에서 다시
+        var acts = ctx.MissionActivities.Where(a => a.UserName == user && a.MissionDate >= from && a.MissionDate <= today);
+        if (reset is { } r0) acts = acts.Where(a => a.PerformedAt > r0);
+        var points = await acts.SumAsync(a => (int?)a.Points, ct) ?? 0;
+        var uses = await ctx.GiftPointUses.AsNoTracking().Where(u => u.UserName == user && u.Year == year && (reset == null || u.CreatedUtc > reset)).ToListAsync(ct);
         var spent = uses.Sum(u => u.PointsUsed + u.PointsBurned);
         var bonus = !uses.Any(u => u.FirstBonus);
         var cap = await ctx.GiftSettings.Select(s => s.PersonalCap).SingleOrDefaultAsync(ct) ?? r.PersonalCap;

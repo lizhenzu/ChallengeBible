@@ -1,0 +1,48 @@
+@page "/platform/year-reset"
+@model ChallengeBible.Web.Pages.Platform.YearResetModel
+@using ChallengeBible.Web.Services
+@* 새해 초기화(ADR 0094 정한 것 12, 2026-11-14 사용자: 저절로가 아니라 플랫폼 관리자 버튼, 시험 기간이라 아무 때나) *@
+@{
+    var s = Model.Status!;
+    var tz = TimeZoneInfo.FindSystemTimeZoneById(YearResetService.Zone);
+    string Local(DateTime utc) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), tz).ToString("yyyy.M.d HH:mm");
+}
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap yr">
+    <h1>새해 초기화</h1>
+    <p class="lead">모든 부서의 선물 · 시상 기록을 한 번에 새해로 넘겨요. 지금은 시험 기간이라 아무 때나 몇 번이든 누를 수 있어요.</p>
+    @if (Model.Result is { } r) { <p class="ok-box" role="status">초기화했어요 · 선물 @(r.Gifts)건을 닫고, 시상 기록 @(r.Awards)건을 지난 기록으로 옮겼어요.</p> }
+    @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }
+
+    <div class="yr-stats">
+        <div><small>끝나지 않은 선물</small><b class="num">@s.Unfinished<u>건</u></b></div>
+        <div><small>시상 기록</small><b class="num">@s.Awards<u>건</u></b></div>
+        <div><small>@(s.Year)년 마지막 초기화</small><b class="num yr-last">@(s.LastUtc is { } l ? Local(l) : "아직 없음")</b></div>
+    </div>
+
+    <section class="yr-box">
+        <h2>누르면 이렇게 돼요</h2>
+        <ul>
+            <li>끝나지 않은 선물(고르는 중 · 골랐어요 · 샀어요 · 기한 지남)은 모두 <b>"해 넘어 닫힘"</b>이 돼요. 남은 선물은 오프라인으로 챙겨 주세요.</li>
+            <li>가족팀 · 친구팀 <b>시상 기록은 "지난 기록"으로 옮기고 비워요.</b> 팀 잠금이 풀리고, 같은 단계를 넘으면 다시 선물을 받아요.</li>
+            <li>아이들의 <b>개인 선물 점수는 지금부터 0에서 다시</b> 세요.</li>
+            <li>미션 · 출석 · 통독 기록, 순위 · 가족팀 점수는 <b>그대로</b>예요. 되돌릴 수 없어요.</li>
+        </ul>
+        <form method="post" class="yr-form">
+            <label>확인 칸에 <b>@YearResetService.ConfirmWord</b> 를 써 주세요<input class="in" name="confirm" autocomplete="off" placeholder="@YearResetService.ConfirmWord" /></label>
+            <button type="submit" class="btn yr-go">새해 초기화</button>
+        </form>
+    </section>
+
+    @if (s.History.Count > 0)
+    {
+        <h2 class="yr-h">초기화 기록</h2>
+        <ul class="yr-log">
+            @foreach (var h in s.History)
+            {
+                var d = h.Detail ?? "";
+                <li><span class="num">@Local(h.AtUtc)</span><span>@h.Actor</span><span class="num">@d.Replace("gifts=", "선물 ").Replace(";awards=", "건 · 시상 ")건</span></li>
+            }
+        </ul>
+    }
+</div></main>

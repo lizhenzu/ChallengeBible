@@ -3789,3 +3789,21 @@ a.nc-card.hidden { display: none; }
 .gk-btn.gk-pur { background: #7C3AED; color: #fff; }
 .gk-btn.gk-plain { background: #fff; color: #374151; border: 1px solid #E5E7EB; }
 .gk-seg.gk-stages { flex-wrap: wrap; } .gk-seg a { flex: none; white-space: nowrap; }   /* 팀 선물 단계 칩: 한 줄 글자, 많으면 다음 줄(사용자 2026-11-14) */
+/* 새해 초기화(플랫폼, ADR 0094 정한 것 12) yr- */
+.yr { display: flex; flex-direction: column; gap: 14px; }
+.yr-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.yr-stats div { padding: 12px; border-radius: 14px; background: var(--soft); }
+.yr-stats small { display: block; font-size: 12px; color: var(--dim); }
+.yr-stats b { display: block; margin-top: 4px; font-size: 22px; font-weight: 800; }
+.yr-stats b u { text-decoration: none; margin-left: 2px; font-size: 13px; font-weight: 500; color: var(--dim); }
+.yr-stats b.yr-last { font-size: 14px; }
+.yr-box { padding: 16px; border-radius: 16px; border: 2px solid #F3C4C4; }
+.yr-box h2 { margin: 0 0 8px; font-size: 16px; }
+.yr-box ul { margin: 0 0 14px; padding-left: 18px; font-size: 13.5px; line-height: 1.7; }
+.yr-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+.yr-form label { display: grid; gap: 6px; font-size: 13px; }
+.yr-go { background: #DC2626; border-color: #DC2626; color: #fff; min-height: 44px; }
+.yr-h { margin: 6px 0 0; font-size: 15px; }
+.yr-log { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.yr-log li { display: grid; grid-template-columns: 130px minmax(0, 1fr) auto; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--rule); font-size: 13px; }
+@media (max-width: 560px) { .yr-stats { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .yr-form { grid-template-columns: minmax(0, 1fr); } }

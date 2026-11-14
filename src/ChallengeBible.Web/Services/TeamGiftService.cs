@@ -28,8 +28,9 @@ public sealed class TeamGiftService(IAppDb db, RequestScope scope, TenantContext
 {
     private int T => tenant.Current.Id;
     private DateOnly Today => clock.Today(tenant.Current.TimeZoneId);
-    public static string SourceKey(int year, int stage) => $"T{year}-{stage}";
-    public static int StageOf(string sourceKey) => int.TryParse(sourceKey[(sourceKey.IndexOf('-') + 1)..], out var n) ? n : 0;
+    /// <summary>T{해}-{단계}, 새해 초기화를 누른 뒤면 -r{초기화 시각} 을 붙여 같은 단계를 다시 받는다(정한 것 12).</summary>
+    public static string SourceKey(int year, int stage, DateTime? reset = null) => $"T{year}-{stage}" + (reset is { } r ? $"-r{r:yyMMddHHmmss}" : "");
+    public static int StageOf(string sourceKey) => sourceKey.Split('-') is { Length: >= 2 } p && int.TryParse(p[1], out var n) ? n : 0;
 
     /// <summary>선물 만들기 + 기한 지난 것 닫기. 미션 홈 · 가족팀 · 선물 처리 화면을 열 때 부른다(같은 열쇠는 한 번만, UX_Gift_Source).</summary>
     public async Task EnsureAsync(CancellationToken ct = default)
@@ -51,13 +52,14 @@ public sealed class TeamGiftService(IAppDb db, RequestScope scope, TenantContext
 
         var due = await awards.DueForGiftsAsync(ctx, ct);
         if (due.Count == 0) return;
+        var reset = await YearResetService.LastResetAsync(ctx, today.Year, ct);
         var have = (await ctx.Gifts.AsNoTracking().Where(g => (g.Kind == GiftKinds.Family || g.Kind == GiftKinds.Friend) && g.Year == year)
             .Select(g => new { g.FamilyTeamId, g.UserName, g.SourceKey }).ToListAsync(ct))
             .Select(g => (g.FamilyTeamId, g.UserName ?? "", g.SourceKey)).ToHashSet();
         var added = new List<Gift>();
         foreach (var d in due.Where(d => d.Amount > 0))
         {
-            var key = SourceKey(today.Year, d.Stage);
+            var key = SourceKey(today.Year, d.Stage, reset);
             var owners = d.Friend ? (d.Pids ?? []).Select(p => (string?)p).ToList() : [null];
             var amount = d.Friend ? d.Amount / Math.Max(1, r.FriendShare) : d.Amount;
             foreach (var who in owners)
