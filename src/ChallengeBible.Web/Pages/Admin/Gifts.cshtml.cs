@@ -29,6 +29,8 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
     [BindProperty(SupportsGet = true, Name = "s")] public string? Step { get; set; }
     /// <summary>방금 링크를 만든 생일 선물(위에 링크 상자를 보인다).</summary>
     [BindProperty(SupportsGet = true, Name = "link")] public long? LinkId { get; set; }
+    /// <summary>[새 링크]로 방금 바꾼 링크(팝업에 "예전 링크는 막혔어요").</summary>
+    [BindProperty(SupportsGet = true, Name = "new")] public bool LinkFresh { get; set; }
     public IReadOnlyList<GiftOrderRow> Orders { get; private set; } = [];
     public GiftOrderCounts OrderCounts { get; private set; } = new(0, 0, 0, 0);
 
@@ -133,7 +135,7 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
     {
         if (tenant.IsLobby) return NotFound();
         var token = await birthdays.LinkAsync(Me, id, fresh, ct);
-        return Redirect($"/{Slug}/admin/gifts?s={Step ?? GiftOrderService.Pick}" + (token is null ? "&ok=bad" : $"&link={id}") + $"#g{id}");
+        return Redirect($"/{Slug}/admin/gifts?s={Step ?? GiftOrderService.Pick}" + (token is null ? "&ok=bad" : $"&link={id}" + (fresh ? "&new=true" : "")) + $"#g{id}");
     }
 
     /// <summary>생일 선물 [건너뛰기] · 건너뛴 것 [되돌리기](R-288).</summary>

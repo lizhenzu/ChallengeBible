@@ -39,11 +39,18 @@
         @if (Model.LinkId is long lid && Model.Orders.FirstOrDefault(o => o.Id == lid) is { LinkToken: { } tok } lo)
         {
             var url = Model.LinkUrl(tok);
-            <div class="go-link" role="status">
-                <b>@lo.Who 생일 선물 링크</b>
-                <input class="in num" readonly value="@url" aria-label="선물 링크" onclick="this.select()" />
-                <button type="button" class="btn p sm" data-copy="@url">복사</button>
-                <small>카톡으로 부모님께 보내 주세요. 로그인 없이 열려요. [새 링크]를 누르면 이 링크는 막혀요.</small>
+            @* 링크 팝업(사용자 2026-11-14: 위에 갑자기 생기는 상자 대신 팝업으로 보여 주고 복사) — JS 없으면 [닫기]는 링크 *@
+            <div class="go-modal" role="dialog" aria-modal="true" aria-labelledby="goLinkT" data-go-modal>
+                <div class="go-sheet">
+                    <b id="goLinkT">@lo.Who 생일 선물 링크</b>
+                    @if (Model.LinkFresh) { <p class="go-fresh">새 링크를 만들었어요. 예전 링크는 이제 열리지 않아요.</p> }
+                    <input class="in num" readonly value="@url" aria-label="선물 링크" onclick="this.select()" />
+                    <small>카톡으로 부모님께 보내 주세요. 로그인 없이 열려요.</small>
+                    <div class="go-row2">
+                        <a class="btn s" href="@self?s=@Model.Step#g@(lid)" data-close>닫기</a>
+                        <button type="button" class="btn p" data-copy="@url">링크 복사</button>
+                    </div>
+                </div>
             </div>
         }
         @if (Model.Step == "buy" && Model.Orders.Count > 0)
@@ -115,11 +122,14 @@
             </div>
         }
         <script>
-            document.addEventListener('click', async (e) => {   // 생일 선물 링크 복사(클립보드가 안 되면 칸을 골라 둔다)
+            document.addEventListener('click', async (e) => {   // 생일 선물 링크 팝업: 복사(클립보드가 안 되면 칸을 골라 둔다) · 닫기
+                const close = e.target.closest('[data-go-modal] [data-close]');
+                if (close) { e.preventDefault(); close.closest('[data-go-modal]').remove(); history.replaceState(null, '', close.getAttribute('href')); return; }
                 const b = e.target.closest('[data-copy]'); if (!b) return;
-                try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = '복사했어요'; }
-                catch { b.parentElement.querySelector('input')?.select(); }
+                try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = '복사했어요'; b.classList.add('go-done'); }
+                catch { b.closest('[data-go-modal]')?.querySelector('input')?.select(); b.textContent = '길게 눌러 복사하세요'; }
             });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.querySelector('[data-go-modal] [data-close]')?.click(); });
         </script>
         <p class="gd-note">[샀어요]를 누르면 "줄 것"으로 옮겨지고, 아이 화면은 "선생님이 준비했어요"가 돼요(이때부터 아이는 취소할 수 없어요). 줄을 누르면 자세히 — 이력 · 되돌리기 · 선물 취소.</p>
     }
