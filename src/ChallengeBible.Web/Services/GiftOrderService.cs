@@ -7,11 +7,17 @@ namespace ChallengeBible.Web.Services;
 
 /// <summary>관리자 목록의 선물 한 건(가격 보임). Who = 받는 사람 이름(가족팀이면 팀 이름), ClassName = 반.</summary>
 public sealed record GiftOrderRow(long Id, string Kind, string State, string Who, string? ClassName, int? ItemId, string ItemName, int Price, bool HasImage,
-    int? PointsUsed, string? CoupangUrl, DateTime CreatedUtc, DateTime? PickedUtc, DateTime? PurchasedUtc, DateTime? DeliveredUtc, short Year);
+    int? PointsUsed, string? CoupangUrl, DateTime CreatedUtc, DateTime? PickedUtc, DateTime? PurchasedUtc, DateTime? DeliveredUtc, short Year,
+    int Stage = 0, int MaxAmount = 0, DateOnly? OpenUntil = null)
+{
+    public bool Team => Kind is GiftKinds.Family or GiftKinds.Friend;
+    /// <summary>종류 꼬리표: 팀 선물은 "가족팀 2,000점".</summary>
+    public string KindText => Team ? $"{GiftOrderService.KindLabel(Kind)} {Stage:N0}점" : GiftOrderService.KindLabel(Kind);
+}
 
 public sealed record GiftLogRow(string Action, string? Actor, string? ActorName, DateTime AtUtc, string? ItemName, int? ItemPrice);
 
-public sealed record GiftOrderCounts(int Buy, int Give, int Done, int Cancel);
+public sealed record GiftOrderCounts(int Buy, int Give, int Done, int Cancel, int Pick = 0);
 
 /// <summary>부서 카드 "누가 선물 받나요"의 한 줄(가격 없음, R-297).</summary>
 public sealed record GiftBoardRow(long Id, string Who, string Kind, string State, int? ItemId, string ItemName, bool HasImage, DateTime At);
@@ -24,7 +30,7 @@ public enum GiftOrderError { None, NotFound, BadState, LastYear }
 /// </summary>
 public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantClock clock, TimeProvider time)
 {
-    public const string Buy = "buy", Give = "give", Done = "done", Cancel = "cancel";
+    public const string Pick = "pick", Buy = "buy", Give = "give", Done = "done", Cancel = "cancel";
     /// <summary>부서 카드에 받은 선물을 보이는 날 수(사용자 2026-11-14 "확정" — 시안 질문 ① 30일).</summary>
     public const int BoardDeliveredDays = 30;
     public const int BoardTake = 3;
@@ -44,7 +50,7 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
         await using var ctx = db.Create();
         var g = await ctx.Gifts.GroupBy(x => x.State).Select(x => new { x.Key, N = x.Count() }).ToListAsync(ct);
         int N(string s) => g.FirstOrDefault(x => x.Key == s)?.N ?? 0;
-        return new(N(GiftStates.Picked), N(GiftStates.Purchased), N(GiftStates.Delivered), N(GiftStates.Cancelled));
+        return new(N(GiftStates.Picked), N(GiftStates.Purchased), N(GiftStates.Delivered), N(GiftStates.Cancelled), N(GiftStates.Open) + N(GiftStates.Expired));
     }
 
     /// <summary>탭 목록: 살 것 · 줄 것은 오래된 순(먼저 처리), 받음 · 취소는 최근 순.</summary>
@@ -52,8 +58,10 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
     {
         await using var ctx = db.Create();
         var state = StateOf(tab);
-        var q = ctx.Gifts.AsNoTracking().Where(g => g.State == state);
-        q = state switch
+        var q = tab == Pick   // 고르는 중: 생겼는데 아직 안 고른 것 + 기한 지난 것(팀 선물, 다시 열기)
+            ? ctx.Gifts.AsNoTracking().Where(g => g.State == GiftStates.Open || g.State == GiftStates.Expired)
+            : ctx.Gifts.AsNoTracking().Where(g => g.State == state);
+        q = tab == Pick ? q.OrderBy(g => g.State == GiftStates.Expired).ThenBy(g => g.OpenUntil).ThenBy(g => g.Id) : state switch
         {
             GiftStates.Picked => q.OrderBy(g => g.PickedUtc).ThenBy(g => g.Id),
             GiftStates.Purchased => q.OrderBy(g => g.PurchasedUtc).ThenBy(g => g.Id),
@@ -100,11 +108,12 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
         {
             var uid = userIds.FirstOrDefault(u => string.Equals(u.UserName, g.UserName, StringComparison.OrdinalIgnoreCase))?.Id;
             var person = g.PersonId is int pid ? people.FirstOrDefault(p => p.Id == pid) : uid is null ? null : people.FirstOrDefault(p => p.UserId == uid);
-            var who = g.FamilyTeamId is int tid && teamNames.TryGetValue(tid, out var tn) ? tn + " 가족"
+            var who = g.Kind == GiftKinds.Family && g.FamilyTeamId is int tid && teamNames.TryGetValue(tid, out var tn) ? (tn.EndsWith("가족") ? tn : tn + " 가족")
                 : g.UserName is { } un && names.TryGetValue(un, out var nm) ? nm : person?.Name ?? g.UserName ?? "";
             var cls = person is null ? null : classes.FirstOrDefault(c => c.PersonId == person.Id)?.Name;
             return new GiftOrderRow(g.Id, g.Kind, g.State, who, cls, g.GiftItemId, g.ItemName ?? "", g.ItemPrice ?? 0, g.ItemHasImage == true, g.PointsUsed,
-                g.GiftItemId is int iid ? urls.GetValueOrDefault(iid) : null, g.CreatedUtc, g.PickedUtc, g.PurchasedUtc, g.DeliveredUtc, g.Year);
+                g.GiftItemId is int iid ? urls.GetValueOrDefault(iid) : null, g.CreatedUtc, g.PickedUtc, g.PurchasedUtc, g.DeliveredUtc, g.Year,
+                g.Kind is GiftKinds.Family or GiftKinds.Friend ? TeamGiftService.StageOf(g.SourceKey) : 0, g.MaxAmount, g.OpenUntil);
         }).ToList();
     }
 
@@ -120,11 +129,15 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
             case GiftActions.Purchase when g.State == GiftStates.Picked:
                 g.State = GiftStates.Purchased; g.PurchasedUtc = now; break;
             case GiftActions.Deliver when g.State == GiftStates.Purchased:
-                g.State = GiftStates.Delivered; g.DeliveredUtc = now; break;   // 가족팀 · 친구팀 시상 기록 · 잠금(R-292)은 5단계-② 가족팀 선물을 만들 때
+                g.State = GiftStates.Delivered; g.DeliveredUtc = now;
+                await TeamGiftService.AwardAsync(ctx, g, give: true, actor, now, ct);   // 가족팀 · 친구팀: 시상 기록 + 팀 잠금(R-292)
+                break;
             case GiftActions.Undo when g.State == GiftStates.Purchased:
                 g.State = GiftStates.Picked; g.PurchasedUtc = null; break;
             case GiftActions.Undo when g.State == GiftStates.Delivered:
-                g.State = GiftStates.Purchased; g.DeliveredUtc = null; break;
+                g.State = GiftStates.Purchased; g.DeliveredUtc = null;
+                await TeamGiftService.AwardAsync(ctx, g, give: false, actor, now, ct);
+                break;
             default:
                 return GiftOrderError.BadState;
         }

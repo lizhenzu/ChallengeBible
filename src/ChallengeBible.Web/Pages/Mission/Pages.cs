@@ -15,8 +15,10 @@ public sealed record PickSection(MissionPageBase Page, string No, string Title, 
 /// <summary>_MissionNav 모델.</summary>
 public sealed record MissionNav(MissionPageBase Page, string Current);
 
-public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoinService family, PersonalGiftService gifts, GiftOrderService orders) : MissionPageBase(missions, tenant)
+public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoinService family, PersonalGiftService gifts, GiftOrderService orders, TeamGiftService teamGifts) : MissionPageBase(missions, tenant)
 {
+    /// <summary>가족팀 · 친구팀 선물 카드(확정 시안 가족팀-선물고르기 ①).</summary>
+    public IReadOnlyList<TeamGiftView> TeamGifts { get; private set; } = [];
     /// <summary>부서 카드 "누가 선물 받나요"(확정 시안 관리-선물처리 ④, R-297): 3명과 전체 수.</summary>
     public (IReadOnlyList<GiftBoardRow> Rows, int Total) Board { get; private set; } = ([], 0);
     /// <summary>"내 선물" 카드 · 100점 창(확정 시안 말씀-선물고르기 ① · ②, R-285). 참여자가 아니면 null.</summary>
@@ -39,6 +41,11 @@ public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoin
     {
         Family = await family.EntryAsync(ct);
         Gift = UserName is null ? null : await gifts.WalletAsync(ct);
+        if (UserName is not null)
+        {
+            await teamGifts.EnsureAsync(ct);   // 팀이 단계를 넘었으면 선물이 생긴다(ADR 0094 F)
+            TeamGifts = await teamGifts.MineAsync(ct);
+        }
         if (Tenant.IsApproved) Board = await orders.BoardAsync(GiftOrderService.BoardTake, ct);
         Week = UserName is { } p ? await Missions.RecentDaysAsync(p, Day, ct) : [];
         NextMilestone = MissionService.NextMilestone(Data!.Rules, Data.SeasonPoints);

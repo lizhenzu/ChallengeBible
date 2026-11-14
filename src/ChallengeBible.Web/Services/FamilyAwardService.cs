@@ -10,7 +10,7 @@ namespace ChallengeBible.Web.Services;
 
 /// <summary>선물 줄 차례 한 장: 팀 · 넘은 "축하 + 보상" 단계. Crossed = 팀 점수가 처음 그 단계를 넘은 날.</summary>
 public sealed record AwardDue(int TeamId, string Team, int Points, int Stage, string Emoji, string Message, DateOnly? Crossed, IReadOnlyList<(string Name, string Relation)> Members,
-    bool Friend = false, int Amount = 0);
+    bool Friend = false, int Amount = 0, IReadOnlyList<string>? Pids = null);
 /// <summary>준 기록 한 줄. Day = 부서 시간대의 기록 날짜.</summary>
 public sealed record AwardGiven(int AwardId, string Team, int Stage, DateOnly Day, bool Friend = false);
 public sealed record AwardBoard(bool Enabled, int Year, IReadOnlyList<AwardDue> Due, IReadOnlyList<AwardGiven> Given);
@@ -97,6 +97,13 @@ public sealed class FamilyAwardService(IAppDb db, TenantContext tenant, TenantCl
         return AwardError.None;
     }
 
+    /// <summary>팀 선물을 만들 때(TeamGiftService, ADR 0094 F): 올해 켜진 단계를 넘었고 시상 기록이 아직 없는 팀 · 단계(구성원 아이디 포함).</summary>
+    internal async Task<List<AwardDue>> DueForGiftsAsync(AppDbContext ctx, CancellationToken ct)
+    {
+        var (r, today) = await RulesAsync(ct);
+        return r.Features.FamilyTeam ? await DueAsync(ctx, r, today, ct) : [];
+    }
+
     // ── 안쪽 ──
 
     /// <summary>선물 줄 차례(넘은 날 순). includeGiven = 이미 기록한 것도 넣는다(GiveAsync 의 "넘었는가" 판단용).</summary>
@@ -130,7 +137,7 @@ public sealed class FamilyAwardService(IAppDb db, TenantContext tenant, TenantCl
             {
                 if (!includeGiven && done.Contains((kind, key, s.Points))) continue;
                 list.Add(new AwardDue(t.Team.Id, name, total, s.Points, s.Emoji, s.Message, CrossedOn(byDay, s.Points),
-                    t.Members.Select(m => (m.Name, m.M.Relation)).ToList(), friend, amounts.GetValueOrDefault(s.Points)));
+                    t.Members.Select(m => (m.Name, m.M.Relation)).ToList(), friend, amounts.GetValueOrDefault(s.Points), t.Members.Select(m => m.Pid).ToList()));
             }
         }
         return list.OrderBy(x => x.Crossed ?? DateOnly.MaxValue).ThenBy(x => x.Stage).ThenBy(x => x.TeamId).ToList();

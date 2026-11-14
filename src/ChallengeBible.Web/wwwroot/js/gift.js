@@ -26,9 +26,19 @@
         let sure = false;
         pick.addEventListener('submit', (e) => {
             const b = e.submitter;
-            if (sure || !b || !b.dataset.need) return;
+            if (sure || !b || !(b.dataset.need || b.dataset.team)) return;
             e.preventDefault();
             const d = b.dataset;
+            if (d.team) {   // 가족팀 · 친구팀 선물(확정 시안 가족팀-선물고르기 ③): 점수 · 금액 없이
+                open('gk-bottom', `<section class="gk-sheet" role="dialog" aria-modal="true" aria-labelledby="gkT">
+                    <div class="gk-top"><span class="gk-pic">${d.img ? `<img src="${esc(d.img)}" alt="" onerror="this.remove()">` : ''}</span>
+                      <div><h2 id="gkT">${esc(d.name)}</h2><div class="gk-need" style="color:#7C3AED">${d.team === 'friend' ? '친구팀 선물' : '가족 선물'}</div></div></div>
+                    ${d.desc ? `<p class="gk-desc">${esc(d.desc)}</p>` : ''}
+                    <p class="gk-sn" style="padding:10px 0;border-top:1px solid #E5E7EB;border-bottom:1px solid #E5E7EB">${d.team === 'friend' ? '내가 받을 선물이에요. 선생님이 사기 전까지는 바꿀 수 있어요.' : '우리 가족이 함께 받는 선물이에요. 선생님이 사기 전까지는 가족 누구나 다른 선물로 바꿀 수 있어요.'}</p>
+                    <div class="gk-row2"><button type="button" class="gk-btn gk-ghost" data-close>닫기</button><button type="button" class="gk-btn gk-pur" data-ok>이 선물로 할게요</button></div>
+                  </section>`, () => { sure = true; pick.requestSubmit(b); });
+                return;
+            }
             open('gk-bottom', `<section class="gk-sheet" role="dialog" aria-modal="true" aria-labelledby="gkT">
                 <div class="gk-top"><span class="gk-pic">${d.img ? `<img src="${esc(d.img)}" alt="" onerror="this.remove()">` : ''}</span>
                   <div><h2 id="gkT">${esc(d.name)}</h2><div class="gk-need">${n(d.need)}점</div></div></div>

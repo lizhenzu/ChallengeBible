@@ -94,6 +94,7 @@
     </div>
 
     @if (Model.Gift is not null) { @await Html.PartialAsync("_GiftCard", Model) }   @* 개인 선물(ADR 0094 B, 확정 시안 말씀-선물고르기 ①) *@
+    @if (Model.TeamGifts.Count > 0) { @await Html.PartialAsync("_TeamGiftCard", (Model.Slug, Model.TeamGifts)) }   @* 가족팀 · 친구팀 선물(ADR 0094 F) *@
 
     @if (withContent.Count > 0 && left.Count == 0 && Model.Day <= d.Today)   @* 오늘 이후는 할 수 없으니 "다 했어요" 칸을 보이지 않는다 *@
     {

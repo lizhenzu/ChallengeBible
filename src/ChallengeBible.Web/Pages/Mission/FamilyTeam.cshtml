@@ -16,6 +16,7 @@
     @if (Model.Notice is not null) { <div class="fmt-joined" role="status"><span aria-hidden="true">🎉</span><div>@(Model.Notice)에 들어갔어요</div></div> }
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
     @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+    @if (Model.TeamGifts.Count > 0) { @await Html.PartialAsync("_TeamGiftCard", (Model.Slug, Model.TeamGifts)) }   @* 팀 선물(ADR 0094 F) *@
 
     @if (s.UserName is null)
     {

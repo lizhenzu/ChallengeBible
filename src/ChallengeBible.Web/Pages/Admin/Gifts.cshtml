@@ -29,6 +29,7 @@
         var oc = Model.OrderCounts;
         string Cur(string k) => Model.Step == k ? "page" : null!;
         <nav class="gd-seg" aria-label="선물 처리">
+            <a href="@self?s=pick" class="@(oc.Pick > 0 ? "go-hot" : "")" aria-current="@Cur("pick")">고르는 중<u class="num">@oc.Pick</u></a>
             <a href="@self?s=buy" class="@(oc.Buy > 0 ? "go-hot" : "")" aria-current="@Cur("buy")">살 것<u class="num">@oc.Buy</u></a>
             <a href="@self?s=give" class="@(oc.Give > 0 ? "go-hot" : "")" aria-current="@Cur("give")">줄 것<u class="num">@oc.Give</u></a>
             <a href="@self?s=done" aria-current="@Cur("done")">받음<u class="num">@oc.Done</u></a>
@@ -40,7 +41,7 @@
         }
         @if (Model.Orders.Count == 0)
         {
-            <div class="empty-box">@(Model.Step switch { "buy" => "살 선물이 없어요.", "give" => "줄 선물이 없어요.", "done" => "받은 선물이 아직 없어요.", _ => "취소한 선물이 없어요." })</div>
+            <div class="empty-box">@(Model.Step switch { "pick" => "고르는 중인 선물이 없어요.", "buy" => "살 선물이 없어요.", "give" => "줄 선물이 없어요.", "done" => "받은 선물이 아직 없어요.", _ => "취소한 선물이 없어요." })</div>
         }
         else
         {
@@ -50,13 +51,20 @@
                     var when = o.State switch
                     {
                         "Purchased" => $"{o.PurchasedUtc:M월 d일} 샀어요", "Delivered" => $"{o.DeliveredUtc:M월 d일} 받았어요",
-                        "Cancelled" => "취소", _ => $"{(o.PickedUtc ?? o.CreatedUtc):M월 d일} 골랐어요",
+                        "Cancelled" => "취소", "Open" => $"한도 {GiftsModel.N(o.MaxAmount)}원 · {o.OpenUntil:M월 d일}까지", "Expired" => $"{o.OpenUntil:M월 d일}까지였어요",
+                        _ => $"{(o.PickedUtc ?? o.CreatedUtc):M월 d일} 골랐어요",
                     };
                     <div class="go-r@(o.State is "Delivered" or "Cancelled" ? " go-dim" : "")">
                         <a class="go-pic" href="@self/@o.Id" aria-label="@o.ItemName 자세히">@if (o.HasImage && o.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" loading="lazy" onerror="this.remove()" /> }</a>
-                        <a class="go-mid" href="@self/@o.Id"><b>@o.ItemName</b>
-                            <small><span class="go-who">@o.Who</span>@(o.ClassName is null ? "" : " · " + o.ClassName) · <span class="go-kind go-k-@o.Kind.ToLowerInvariant()">@GiftOrderService.KindLabel(o.Kind)</span></small>
-                            <small class="num">@GiftsModel.N(o.Price)원 · @when</small></a>
+                        <a class="go-mid" href="@self/@o.Id"><b class="@(o.State == "Expired" ? "go-late" : o.State == "Open" ? "go-none" : "")">@(o.State switch { "Open" => "아직 안 골랐어요", "Expired" => "기한 지남", _ => o.ItemName })</b>
+                            <small><span class="go-who">@o.Who</span>@(o.ClassName is null ? "" : " · " + o.ClassName) · <span class="go-kind go-k-@o.Kind.ToLowerInvariant()">@o.KindText</span></small>
+                            <small class="num">@(o.State is "Open" or "Expired" ? "" : GiftsModel.N(o.Price) + "원" + (o.Team ? " · 한도 " + GiftsModel.N(o.MaxAmount) + "원" : "") + " · ")@when</small></a>
+                        @if (o.State == "Expired")
+                        {
+                            <form method="post" asp-page-handler="Reopen" asp-route-slug="@slug" class="go-acts">
+                                <input type="hidden" name="id" value="@o.Id" /><button type="submit" class="btn s sm">다시 열기(7일)</button>
+                            </form>
+                        }
                         @if (o.State is "Picked" or "Purchased")
                         {
                             <form method="post" asp-page-handler="Move" asp-route-slug="@slug" class="go-acts">

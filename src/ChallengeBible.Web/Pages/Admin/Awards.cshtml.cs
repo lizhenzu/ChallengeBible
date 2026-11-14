@@ -33,12 +33,7 @@ public class AwardsModel(FamilyAwardService awards, TenantContext tenant) : Page
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct) => await LoadAsync(ct) ? Page() : NotFound();
 
-    public async Task<IActionResult> OnPostGiveAsync(int team, int stage, string? name, CancellationToken ct)
-    {
-        var e = await awards.GiveAsync(team, stage, User.UserName()!, ct);
-        if (e == AwardError.None) return RedirectToPage(new { slug = tenant.Current.Slug, Ok = "given", Who = name, Stage = stage });
-        return await Fail(e, ct);
-    }
+    // [선물 줬어요]는 선물 처리(관리 › 선물)의 [줬어요]로 하나로 합침(ADR 0094 F, 사용자 2026-11-14 질문 2 → 추천)
 
     public async Task<IActionResult> OnPostUndoAsync(int award, CancellationToken ct)
     {

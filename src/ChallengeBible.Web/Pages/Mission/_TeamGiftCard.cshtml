@@ -1,0 +1,29 @@
+@model (string Slug, IReadOnlyList<ChallengeBible.Web.Services.TeamGiftView> Gifts)
+@using ChallengeBible.Web.Services
+@* 가족팀 · 친구팀 선물 카드(확정 시안 가족팀-선물고르기 ①, R-291): 고를 수 있음 · 고른 뒤 · 기한 지남. 미션 홈 "내 선물" 아래와 가족팀 화면 위. 이모지 없음 *@
+@foreach (var g in Model.Gifts)
+{
+    var href = $"/{Model.Slug}/gifts/team/{g.Id}";
+    var team = g.Friend ? "친구팀" : "가족팀";
+    var who = g.Friend ? "내 친구팀 선물" : "가족 선물";
+    if (g.State == "Expired")
+    {
+        <div class="gk-card gk-fam-late"><span class="gk-m"><span class="gk-tag gk-w">기한 지남</span><b>@(who)을 고르지 못했어요</b><small>선생님께 말씀드리면 다시 열어 줘요</small></span></div>
+    }
+    else if (g.State == "Open")
+    {
+        <a class="gk-card gk-fam" href="@href">
+            <span class="gk-m"><span class="gk-tag gk-p">@team @g.Stage.ToString("N0")점 달성</span><b>@(who)을 골라요</b>
+                <small>@(g.OpenUntil is { } u ? $"{u:M월 d일}까지 · " : "")@(g.Friend ? "친구도 따로 하나 골라요" : "가족 누구나 고를 수 있어요")</small></span>
+            <span class="gk-go">고르기</span>
+        </a>
+    }
+    else
+    {
+        <a class="gk-card gk-got" href="@href">
+            <span class="gk-pic">@if (g.HasImage && g.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" onerror="this.remove()" /> }</span>
+            <span class="gk-m"><span class="gk-tag">@(g.State == "Purchased" ? "선생님이 준비했어요" : "준비 중")</span><b>@g.ItemName</b><small>@who@(g.PickedBy is { } pb ? $" · {pb}님이 골랐어요" : "")</small></span>
+            <span class="gk-ar" aria-hidden="true">›</span>
+        </a>
+    }
+}

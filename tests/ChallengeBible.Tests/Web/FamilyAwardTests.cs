@@ -235,24 +235,14 @@ public partial class FamilyAwardTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("href=\"/jamsil-kids/admin/teams/awards\"", await c.GetStringAsync("/jamsil-kids/admin/teams"));
         var page = await c.GetStringAsync("/jamsil-kids/admin/teams/awards");
         Assert.Contains("1월 4일에 넘음", page);
-        Assert.Contains("선물 줬어요", page);
+        Assert.DoesNotContain("선물 줬어요", page);   // 선물 처리로 하나로(ADR 0094 F)
+        Assert.Contains("href=\"/jamsil-kids/admin/gifts?s=pick\"", page);
         Assert.Contains("aria-current=\"page\">가족팀", page);
-
-        var give = await c.PostAsync("/jamsil-kids/admin/teams/awards?handler=Give", new FormUrlEncodedContent(new Dictionary<string, string>
-        {
-            ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["team"] = a.ToString(), ["stage"] = "1000", ["name"] = "철수네",
-        }));
-        Assert.Equal(HttpStatusCode.Redirect, give.StatusCode);
-        page = await c.GetStringAsync(give.Headers.Location!.OriginalString);
-        Assert.Contains("철수네에 1,000점 선물을 기록했어요", page);
-        Assert.Contains("지금 선물 줄 팀이 없어요", page);
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Single(raw.TeamAwards);
-
-        var again = await c.PostAsync("/jamsil-kids/admin/teams/awards?handler=Give", new FormUrlEncodedContent(new Dictionary<string, string>
+        await c.PostAsync("/jamsil-kids/admin/teams/awards?handler=Give", new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["team"] = a.ToString(), ["stage"] = "1000",
         }));
-        Assert.Contains("이미 기록한 선물이에요", await again.Content.ReadAsStringAsync());
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.TeamAwards);   // 이 화면에서는 더 기록하지 않는다
 
         var kid = await LoggedIn("cheolsu@example.com");
         Assert.StartsWith("/account/denied", (await kid.GetAsync("/jamsil-kids/admin/teams/awards")).Headers.Location!.PathAndQuery);

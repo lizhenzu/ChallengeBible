@@ -72,6 +72,20 @@ public enum FamilyError
 /// </summary>
 public sealed class FamilyTeamService(IAppDb db, RequestScope scope, TenantContext tenant, TenantClock clock, RuleService rules)
 {
+    /// <summary>팀 활성 구성원 이름(가족이면 "이름(엄마)", 친구팀이면 이름만) — 팀 선물 고르기 화면(ADR 0094 F).</summary>
+    public async Task<IReadOnlyList<string>> MemberNamesAsync(int teamId, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var team = await ctx.FamilyTeams.AsNoTracking().Include(t => t.Members).SingleOrDefaultAsync(t => t.Id == teamId, ct);
+        if (team is null) return [];
+        var members = team.Members.Where(m => m.IsActive).OrderBy(m => m.SortOrder).ToList();
+        var users = members.Select(m => m.UserName).ToList();
+        var names = (await ctx.Users.AsNoTracking().Where(u => users.Contains(u.UserName!)).Select(u => new { u.UserName, u.LastName, u.FirstName }).ToListAsync(ct))
+            .ToDictionary(u => u.UserName!, u => AppUser.FullName(u.LastName, u.FirstName), StringComparer.OrdinalIgnoreCase);
+        var friend = team.TeamType == TeamTypes.Friend;
+        return members.Select(m => (names.GetValueOrDefault(m.UserName) ?? m.UserName) + (friend ? "" : $"({RelationLabel(m.Relation)})")).ToList();
+    }
+
     public static string RelationLabel(string r) => r switch
     {
         FamilyRelation.Student => "학생", FamilyRelation.Mother => "엄마", FamilyRelation.Father => "아빠",

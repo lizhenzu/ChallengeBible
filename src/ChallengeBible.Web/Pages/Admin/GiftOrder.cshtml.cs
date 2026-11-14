@@ -12,7 +12,7 @@ namespace ChallengeBible.Web.Pages.Admin;
 /// [샀어요] · [줬어요] · [되돌리기] · [선물 취소(점수 돌려주기)](R-284 · R-293). 부서 관리자만.
 /// </summary>
 [TenantRoles(Roles.TenantAdmin)]
-public class GiftOrderModel(GiftOrderService orders, TenantContext tenant) : PageModel, ITitled
+public class GiftOrderModel(GiftOrderService orders, TeamGiftService teamGifts, TenantContext tenant) : PageModel, ITitled
 {
     public string Title => "선물 자세히";
     public TenantContext Tenant => tenant;
@@ -37,6 +37,12 @@ public class GiftOrderModel(GiftOrderService orders, TenantContext tenant) : Pag
         return e == GiftOrderError.NotFound ? NotFound() : Redirect($"{Self}?ok={(e == GiftOrderError.None ? act : "bad")}");
     }
 
+    public async Task<IActionResult> OnPostReopenAsync(CancellationToken ct)
+    {
+        if (tenant.IsLobby) return NotFound();
+        return Redirect($"{Self}?ok={(await teamGifts.ReopenAsync(Me, Id, ct) ? "reopen" : "bad")}");
+    }
+
     public async Task<IActionResult> OnPostCancelAsync(CancellationToken ct)
     {
         if (tenant.IsLobby) return NotFound();
@@ -47,7 +53,7 @@ public class GiftOrderModel(GiftOrderService orders, TenantContext tenant) : Pag
     public string? Message => Ok switch
     {
         "Purchase" => "샀어요로 바꿨어요.", "Deliver" => "줬어요로 바꿨어요.", "Undo" => "한 단계 되돌렸어요.", "cancel" => "선물을 취소하고 점수를 돌려줬어요.",
-        "bad" => "이미 바뀐 선물이에요.", "lastyear" => "지난해 선물은 되돌릴 수 없어요.", _ => null,
+        "reopen" => "다시 열었어요. 7일 동안 고를 수 있어요.", "bad" => "이미 바뀐 선물이에요.", "lastyear" => "지난해 선물은 되돌릴 수 없어요.", _ => null,
     };
 
     public static string StateLabel(string s) => s switch

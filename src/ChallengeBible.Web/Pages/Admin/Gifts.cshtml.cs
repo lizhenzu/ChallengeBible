@@ -13,7 +13,7 @@ namespace ChallengeBible.Web.Pages.Admin;
 /// ③ 금액 · 점수(R-280 · R-283 · R-286 · R-288 · R-289). 부서 관리자만, 임시 부서는 없음.
 /// </summary>
 [TenantRoles(Roles.TenantAdmin)]
-public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftOrderService orders, TenantContext tenant) : PageModel, ITitled
+public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftOrderService orders, TeamGiftService teamGifts, TenantContext tenant) : PageModel, ITitled
 {
     public string Title => "선물";
     public TenantContext Tenant => tenant;
@@ -49,6 +49,7 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
         {
             "money" => "저장했어요. 앞으로 생기는 선물부터 적용돼요.", "shared" => "공통에 올렸어요. 이제 모든 부서에 보여요.",
             "Purchase" => "샀어요로 바꿨어요. \"줄 것\"에 있어요.", "Deliver" => "줬어요로 바꿨어요.", "Undo" => "한 단계 되돌렸어요.", "cancel" => "선물을 취소하고 점수를 돌려줬어요.",
+            "reopen" => "다시 열었어요. 7일 동안 고를 수 있어요.",
             "bad" => "이미 바뀐 선물이에요. 목록을 다시 확인해 주세요.", "lastyear" => "지난해 선물은 되돌릴 수 없어요.", _ => null,
         };
         await LoadAsync(fillMoney: true, ct);
@@ -60,7 +61,8 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
         Rules = await gifts.RulesAsync(ct);
         if (Tab == "orders")
         {
-            Step = Step is GiftOrderService.Give or GiftOrderService.Done or GiftOrderService.Cancel ? Step : GiftOrderService.Buy;
+            await teamGifts.EnsureAsync(ct);   // 팀 선물 생김 · 기한 지남(ADR 0094 F)
+            Step = Step is GiftOrderService.Pick or GiftOrderService.Give or GiftOrderService.Done or GiftOrderService.Cancel ? Step : GiftOrderService.Buy;
             OrderCounts = await orders.CountsAsync(ct);
             Orders = await orders.ListAsync(Step, ct: ct);
         }
@@ -93,6 +95,14 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
         var e = act is GiftActions.Purchase or GiftActions.Deliver or GiftActions.Undo ? await orders.MoveAsync(Me, id, act, ct) : GiftOrderError.BadState;
         if (e == GiftOrderError.NotFound) return NotFound();
         return Redirect($"/{Slug}/admin/gifts?s={Step ?? GiftOrderService.Buy}&ok={(e == GiftOrderError.None ? act : "bad")}");
+    }
+
+    /// <summary>기한 지난 팀 선물 [다시 열기](R-291).</summary>
+    public async Task<IActionResult> OnPostReopenAsync(long id, CancellationToken ct)
+    {
+        if (tenant.IsLobby) return NotFound();
+        var ok = await teamGifts.ReopenAsync(Me, id, ct);
+        return Redirect($"/{Slug}/admin/gifts?s={GiftOrderService.Pick}&ok={(ok ? "reopen" : "bad")}");
     }
 
     /// <summary>① 공통 상품 숨기기 · 보이기(스위치를 누르면 바로).</summary>

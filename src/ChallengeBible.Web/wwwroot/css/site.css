@@ -3776,3 +3776,15 @@ a.nc-card.hidden { display: none; }
 .gb-more { display: flex; justify-content: center; margin-top: 8px; padding-top: 10px; border-top: 1px solid #E5E7EB; font-size: 13px; font-weight: 800; color: #374151; text-decoration: none; }
 .go-back { font-size: 13.5px; font-weight: 600; color: #374151; text-decoration: none; }
 .go-log li b { font-weight: 800; }
+.go-mid b.go-none { color: var(--dim); } .go-mid b.go-late { color: #B45309; }
+/* 가족팀 · 친구팀 선물 카드(확정 시안 가족팀-선물고르기 ①) — 보라 */
+.gk-card.gk-fam { border-color: #DDD0F7; background: #F3E8FF; }
+.gk-card.gk-fam b { color: #5B21B6; }
+.gk-card.gk-fam .gk-go { background: #7C3AED; }
+.gk-card .gk-tag.gk-p { background: #fff; color: #7C3AED; }
+.gk-card.gk-fam-late b { font-size: 15px; }
+.gk-pg .gk-fam-v { color: #7C3AED; font-size: 22px; font-weight: 300; }
+.gk-mem { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 14px; }
+.gk-mem span { padding: 4px 9px; border-radius: 99px; background: #F4F6F9; color: #374151; font-size: 12px; }
+.gk-btn.gk-pur { background: #7C3AED; color: #fff; }
+.gk-btn.gk-plain { background: #fff; color: #374151; border: 1px solid #E5E7EB; }

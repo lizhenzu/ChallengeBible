@@ -10,8 +10,10 @@ namespace ChallengeBible.Web.Pages.Mission;
 /// `/{slug}/family-team` 가족이 스스로 꾸리는 가족팀(확정 시안: family-team-self, ADR 0083, R-204 ~ R-210). 이 부서 승인 소속원.
 /// 팀이 있으면 "우리 가족팀" · 가족 초대(`?Add=true`, 시안 family-invite, ADR 0084), 없으면 받은 초대 · 찾기 · 새 팀(`?New=true`) · 합류 신청(`?Join=팀`). 기본 규칙 스위치가 꺼졌거나 임시 부서면 404. JS 없이 폼마다 서버가 다시 그린다.
 /// </summary>
-public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : PageModel, ITitled
+public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant, TeamGiftService teamGifts) : PageModel, ITitled
 {
+    /// <summary>팀 선물 카드(확정 시안 가족팀-선물고르기 ①, 가족팀 화면 위).</summary>
+    public IReadOnlyList<TeamGiftView> TeamGifts { get; private set; } = [];
     public string Title => "우리 가족팀";
     public string Slug => tenant.Current.Slug;
 
@@ -129,6 +131,8 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant) : Pag
     private async Task<IActionResult> ShowAsync(CancellationToken ct)
     {
         State = await join.StateAsync(ct);
+        await teamGifts.EnsureAsync(ct);
+        TeamGifts = await teamGifts.MineAsync(ct);
         if (!State.Enabled) return NotFound();
         if (State.Mine is not null && HttpMethods.IsGet(Request.Method)) Notice = await join.TakeNoticeAsync(ct);
         if (State.Mine is null)

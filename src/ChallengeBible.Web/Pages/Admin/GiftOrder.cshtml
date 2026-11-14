@@ -14,11 +14,12 @@
     @if (Model.Message is { } msg) { <p class="ok-box" role="status">@msg</p> }
     <div class="go-hero">
         <span class="go-pic">@if (o.HasImage && o.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" onerror="this.remove()" /> }</span>
-        <span><b>@o.ItemName</b><span class="go-st go-s-@o.State.ToLowerInvariant()">@GiftOrderModel.StateLabel(o.State)</span></span>
+        <span><b>@(string.IsNullOrEmpty(o.ItemName) ? "아직 안 골랐어요" : o.ItemName)</b><span class="go-st go-s-@o.State.ToLowerInvariant()">@GiftOrderModel.StateLabel(o.State)</span></span>
     </div>
     <div class="go-kv">
         <div><span>받는 사람</span><span><b>@o.Who</b>@(o.ClassName is null ? "" : " · " + o.ClassName)</span></div>
-        <div><span>종류</span><span>@GiftOrderService.KindLabel(o.Kind) 선물</span></div>
+        <div><span>종류</span><span>@o.KindText 선물</span></div>
+        @if (o.Team) { <div><span>한도</span><span class="num">@o.MaxAmount.ToString("N0")원@(o.OpenUntil is { } ou ? $" · {ou:M월 d일}까지 고르기" : "")</span></div> }
         <div><span>가격@(o.PointsUsed is null ? "" : " · 쓴 점수")</span><span class="num">@o.Price.ToString("N0")원@(o.PointsUsed is int pu ? $" · {pu:N0}점" : "")</span></div>
         @if (o.ItemId is int no) { <div><span>상품 번호</span><span class="num">@no</span></div> }
         @if (!string.IsNullOrEmpty(o.CoupangUrl)) { <div><span>구매 링크</span><a href="@o.CoupangUrl" target="_blank" rel="noopener noreferrer">쿠팡에서 보기 ›</a></div> }
@@ -42,6 +43,10 @@
             {
                 <form method="post" asp-page-handler="Move" asp-route-slug="@slug" asp-route-id="@o.Id"><button type="submit" name="act" value="Undo" class="btn s">되돌리기(@(o.State == "Purchased" ? "살 것으로" : "줄 것으로"))</button></form>
             }
+        }
+        @if (o.State == "Expired")
+        {
+            <form method="post" asp-page-handler="Reopen" asp-route-slug="@slug" asp-route-id="@o.Id"><button type="submit" class="btn s">다시 열기(7일)</button></form>
         }
         @if (o.State is "Picked" or "Purchased")
         {

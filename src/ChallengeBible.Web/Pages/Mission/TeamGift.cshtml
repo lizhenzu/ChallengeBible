@@ -1,0 +1,55 @@
+@page "/{slug}/gifts/team/{id:long}"
+@model TeamGiftModel
+@using System.Globalization
+@* 확정 시안 가족팀-선물고르기 ② 고르기 · ③ 확인 · ④ 고른 뒤(2026-11-14). 금액 · 가격 숨김(질문 1 → ③), 이모지 없음 *@
+@{
+    var g = Model.Gift!;
+    var slug = Model.Slug;
+    var who = g.Friend ? "친구팀 선물" : "가족 선물";
+    var picking = Model.Items.Count > 0 || g.State == "Open" || (Model.Change && g.State == "Picked");
+}
+<div class="gk-pg">
+    <div class="gk-bar"><a href="/@slug/word-mission">← 미션 홈</a></div>
+    @if (Model.MsgText is { } msg) { <p class="gk-msg" role="status">@msg</p> }
+
+    @if (g.State == "Expired")
+    {
+        <h1>@who</h1>
+        <p class="gk-note">고르는 기한이 지났어요. 선생님께 말씀드리면 다시 열어 줘요.</p>
+    }
+    else if (picking)
+    {
+        <h1>@(g.Friend ? "친구팀 선물 고르기" : "가족 선물 고르기")</h1>
+        <p class="gk-sub">@(g.Friend ? "친구팀" : "우리 가족") @g.Stage.ToString("N0")점 달성@(g.OpenUntil is { } u ? $" · {u:M월 d일}까지" : "")</p>
+        <div class="gk-mine"><span>@(g.Friend ? "내가 받을 선물을 골라요" : "가족이 함께 받을 선물을 골라요")</span></div>
+        @if (Model.Members.Count > 0) { <div class="gk-mem">@foreach (var m in Model.Members) { <span>@m</span> }</div> }
+        @if (Model.Items.Count == 0) { <p class="gk-note">지금 고를 수 있는 선물이 없어요. 선생님께 말씀해 주세요.</p> }
+        <form method="post" class="gk-grid" data-gk-pick>
+            @foreach (var i in Model.Items)
+            {
+                var pic = i.HasImage ? $"/images/AwardItem/{i.Id}.jpg?v={i.UpdatedUtc.Ticks}" : null;
+                <button type="submit" name="item" value="@i.Id" class="gk-it" data-team="@(g.Friend ? "friend" : "family")" data-name="@i.Name" data-desc="@i.Description" data-img="@pic">
+                    <span class="gk-pic">@if (pic is not null) { <img src="@pic" alt="" loading="lazy" onerror="this.remove()" /> }</span>
+                    <span class="gk-nm">@i.Name</span>
+                </button>
+            }
+        </form>
+        @if (Model.Change) { <a class="gk-btn gk-ghost" href="/@slug/gifts/team/@g.Id">바꾸지 않을게요</a> }
+    }
+    else
+    {
+        <div class="gk-done">
+            <div class="gk-pic big">@if (g.HasImage && g.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" onerror="this.remove()" /> }</div>
+            <h1>@g.ItemName</h1>
+            <div class="gk-st">@(g.State == "Purchased" ? "선생님이 준비했어요" : "준비 중이에요")</div>
+            <ul class="gk-steps">
+                <li class="gk-on"><i></i><span>@(g.PickedBy is { } pb ? $"{pb}님이 골랐어요" : "골랐어요")</span><span class="num">@g.PickedUtc?.ToString("M월 d일")</span></li>
+                <li class="@(g.PurchasedUtc is not null ? "gk-on" : "")"><i></i><span>선생님이 준비했어요</span><span class="num">@g.PurchasedUtc?.ToString("M월 d일")</span></li>
+                <li><i></i><span>선물을 받았어요</span><span></span></li>
+            </ul>
+            @if (g.State == "Picked") { <a class="gk-btn gk-plain" href="/@slug/gifts/team/@g.Id?change=true">다른 선물로 바꾸기</a> }
+            <p class="gk-hint">@(g.Friend ? "선생님이 사기 전까지는 다른 선물로 바꿀 수 있어요." : "선생님이 사기 전까지는 가족 누구나 다른 선물로 바꿀 수 있어요.") 받으면 팀이 잠겨서 구성원을 넣거나 뺄 수 없어요.</p>
+        </div>
+    }
+</div>
+<script src="~/js/gift.js" asp-append-version="true" defer></script>
