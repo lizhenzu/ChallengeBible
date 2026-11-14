@@ -14,11 +14,11 @@ secrets.json
 *.pubxml.user
 DataProtectionKeys/
 node_modules/
-wwwroot/uploads/
-App_Data/photos/
-wwwroot/profile/
+**/wwwroot/uploads/
+**/App_Data/photos/
+**/wwwroot/profile/
 # 선물 이미지는 서버에만 둔다(FTP · 관리 화면으로 올림, R-274)
-wwwroot/images/AwardItem/
+**/wwwroot/images/AwardItem/
 
 # dotnet new gitignore
 ## Ignore Visual Studio temporary files, build results, and
