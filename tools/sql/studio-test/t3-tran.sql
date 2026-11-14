@@ -1,0 +1,3 @@
+BEGIN TRANSACTION;
+SELECT 't3 ok' AS Result, COUNT(*) AS Depts FROM app.Tenant;
+ROLLBACK;
