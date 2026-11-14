@@ -3490,10 +3490,10 @@ a.nc-card.hidden { display: none; }
 .gf-more { text-align: center; }
 .gf-form { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 18px; align-items: start; }
 .gf-photo { display: flex; flex-direction: column; gap: 8px; }
-.gf-photo .box { aspect-ratio: 1 / 1; border-radius: 14px; background: var(--soft); border: 1px solid var(--rule); display: grid; place-items: center; font-size: 72px; overflow: hidden; }
-.gf-photo .box img { width: 100%; height: 100%; object-fit: cover; }
+.gf-photo .gf-box { aspect-ratio: 1 / 1; border-radius: 14px; background: var(--soft); border: 1px solid var(--rule); display: grid; place-items: center; font-size: 72px; overflow: hidden; }
+.gf-photo .gf-box img { width: 100%; height: 100%; object-fit: cover; }
 .gf-photo small { font-size: 12.5px; color: var(--dim); }
-.gf-up label { cursor: pointer; width: 100%; }
+.gf-pick { cursor: pointer; width: 100%; }
 .gf-fields { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .gf-fields .f { display: flex; flex-direction: column; gap: 6px; }
 .gf-fields label { font-size: 13.5px; font-weight: 800; }

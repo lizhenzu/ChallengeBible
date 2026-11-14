@@ -128,27 +128,65 @@ public partial class GiftCatalogTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("곰 인형", await c.GetStringAsync("/platform/gifts?s=Retired"));
     }
 
+    /// <summary>칸 + 사진을 한 폼으로 저장(2026-11-14 사용자: 상품 등록에서 사진도 함께).</summary>
+    private async Task<HttpResponseMessage> SaveWithPhoto(HttpClient c, string url, byte[]? photo, string name = "연필", string link = "https://www.coupang.com/vp/products/1")
+    {
+        var form = new MultipartFormDataContent
+        {
+            { new StringContent(TokenRx().Match(await c.GetStringAsync(url)).Groups[1].Value), "__RequestVerificationToken" },
+            { new StringContent(name), "Input.Name" }, { new StringContent("3,000"), "Input.Price" }, { new StringContent(link), "Input.CoupangUrl" },
+        };
+        if (photo is not null) form.Add(new ByteArrayContent(photo), "photo", "photo.jpg");
+        return await c.PostAsync(url, form);
+    }
+
     [Fact]
-    public async Task R278_R279_사진은_JPG_만_받고_삭제하면_상품과_서버_사진이_지워진다()
+    public async Task R278_상품을_등록하면서_사진도_함께_저장한다()
+    {
+        var c = await Login();
+        var r = await SaveWithPhoto(c, "/platform/gifts/edit", [0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3], "색연필");
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+        Assert.EndsWith("?m=saved", r.Headers.Location!.OriginalString);
+        using var raw = InMemoryDb.Raw(_db);
+        var i = raw.GiftItems.Single();
+        Assert.Equal(("색연필", true), (i.Name, i.HasImage));
+        Assert.True(File.Exists(Path.Combine(_images, "AwardItem", $"{i.Id}.jpg")));
+    }
+
+    [Fact]
+    public async Task R278_칸이_틀리면_사진도_올리지_않고_사진만_틀리면_상품은_저장하고_알린다()
+    {
+        var c = await Login();
+        var bad = await SaveWithPhoto(c, "/platform/gifts/edit", [0xFF, 0xD8, 0xFF, 0xE0], link: "https://www.11st.co.kr/1");
+        Assert.Equal(HttpStatusCode.OK, bad.StatusCode);
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.GiftItems);
+        Assert.False(Directory.Exists(Path.Combine(_images, "AwardItem")) && Directory.EnumerateFiles(Path.Combine(_images, "AwardItem")).Any());
+
+        var png = await SaveWithPhoto(c, "/platform/gifts/edit", [0x89, 0x50, 0x4E, 0x47, 1, 2, 3]);
+        Assert.EndsWith("?m=nophoto", png.Headers.Location!.OriginalString);   // PNG 는 안 받는다
+        using var raw2 = InMemoryDb.Raw(_db);
+        Assert.False(raw2.GiftItems.Single().HasImage);
+    }
+
+    [Fact]
+    public async Task R279_삭제하면_상품과_서버_사진이_지워진다()
     {
         var id = Seed("연필");
         var c = await Login();
-        async Task<HttpResponseMessage> Upload(byte[] bytes)
-        {
-            var form = new MultipartFormDataContent { { new StringContent(TokenRx().Match(await c.GetStringAsync($"/platform/gifts/edit/{id}")).Groups[1].Value), "__RequestVerificationToken" } };
-            form.Add(new ByteArrayContent(bytes), "photo", "photo.jpg");
-            return await c.PostAsync($"/platform/gifts/edit/{id}?handler=Photo", form);
-        }
-        Assert.Contains("JPG 사진만", await (await Upload([0x89, 0x50, 0x4E, 0x47, 1, 2, 3])).Content.ReadAsStringAsync());   // PNG 는 안 됨
-        Assert.Equal(HttpStatusCode.Redirect, (await Upload([0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3])).StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, (await SaveWithPhoto(c, $"/platform/gifts/edit/{id}", [0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3])).StatusCode);
         var path = Path.Combine(_images, "AwardItem", $"{id}.jpg");
         Assert.True(File.Exists(path));
-        using (var raw = InMemoryDb.Raw(_db)) Assert.True(raw.GiftItems.Single(x => x.Id == id).HasImage);
-
         Assert.Equal(HttpStatusCode.Redirect, (await Post(c, $"/platform/gifts/edit/{id}", $"/platform/gifts/edit/{id}?handler=Delete", [])).StatusCode);
         Assert.False(File.Exists(path));
         using var raw3 = InMemoryDb.Raw(_db);
         Assert.Empty(raw3.GiftItems);
+    }
+
+    [Fact]
+    public async Task 상품_화면에는_점수_칸이_없다()
+    {
+        var c = await Login();
+        Assert.DoesNotContain("필요한 점수", await c.GetStringAsync("/platform/gifts/edit"));   // 2026-11-14 사용자: 포인트는 상품과 별개
     }
 
     [Fact]

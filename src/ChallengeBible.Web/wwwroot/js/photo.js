@@ -2,6 +2,7 @@
 // 끌어서 옮기고 · 두 손가락(또는 막대 · 휠)으로 키우고 · 90°씩 돌린 뒤 "이대로 올리기" → 동그라미 안만 320px JPEG 로 올린다.
 // 사진을 읽지 못하면(오래된 브라우저) 고른 파일 그대로 올리고, 크기는 서버가 400KB 로 막는다.
 // data-photo="square" 면 네모 틀(선물 상품 사진, R-278), data-photo-size 로 올리는 크기(기본 320px).
+// data-photo-defer 면 자른 사진을 바로 올리지 않고 [data-photo-preview] 에 보여 두었다가, 폼을 낼 때 다른 칸과 함께 올린다(상품 등록 2026-11-14).
 (function () {
   var MAXZ = 4;
 
@@ -97,7 +98,15 @@
       paint(c, { w: OUT, h: OUT }, OUT / (2 * R));   // 동그라미(지름 2R) = 판 전체
       ov.querySelector('.crop-go').disabled = true;
       ov.querySelector('.crop-go').textContent = '올리는 중…';
-      out.toBlob(function (blob) { send(form, blob); }, 'image/jpeg', 0.88);
+      out.toBlob(function (blob) {
+        if (!form.hasAttribute('data-photo-defer')) { send(form, blob); return; }
+        form._photoBlob = blob;
+        var pv = form.querySelector('[data-photo-preview]');
+        if (pv) pv.innerHTML = '<img alt="고른 사진" src="' + URL.createObjectURL(blob) + '" />';
+        var note = form.querySelector('[data-photo-note]');
+        if (note) note.textContent = '고른 사진은 [저장]을 누르면 함께 올라가요.';
+        close();
+      }, 'image/jpeg', 0.88);
     }
     ov.querySelector('.crop-go').addEventListener('click', go);
     ov.querySelector('.crop-ok').addEventListener('click', go);
@@ -107,6 +116,13 @@
   document.querySelectorAll('form[data-photo]').forEach(function (form) {
     var input = form.querySelector('input[type=file]');
     if (!input) return;
+    if (form.hasAttribute('data-photo-defer'))
+      form.addEventListener('submit', function (e) {
+        if (!form._photoBlob) return;   // 사진을 안 골랐으면 보통 폼으로
+        e.preventDefault();
+        var b = form.querySelector('button[type=submit]'); if (b) { b.disabled = true; b.textContent = '저장하는 중…'; }
+        send(form, form._photoBlob);
+      });
     input.addEventListener('change', function () {
       var file = input.files && input.files[0];
       if (!file) return;

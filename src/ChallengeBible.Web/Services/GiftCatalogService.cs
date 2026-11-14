@@ -1,4 +1,3 @@
-using ChallengeBible.Domain.Rules;
 using ChallengeBible.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,7 +23,7 @@ public enum GiftItemError { None, NotFound, HasPicks, BadImage }
 /// 시스템 연결로 모든 상품을 보고(공통 · 부서), 시작마다 플랫폼 관리자인지 DB 로 다시 확인한다. 바꾼 것은 감사 로그에 남긴다.
 /// 사진은 `/images/AwardItem/{번호}.jpg`(R-274 폴더, 설정 Images:Dir) — 화면에서 정사각형으로 잘라 JPG 로 올린다.
 /// </summary>
-public sealed class GiftCatalogService(ISystemDb systemDb, IConfiguration config, IWebHostEnvironment env, TimeProvider time, RuleService rules)
+public sealed class GiftCatalogService(ISystemDb systemDb, IConfiguration config, IWebHostEnvironment env, TimeProvider time)
 {
     public const int PageSize = 30;
     public const int MaxImageBytes = 600 * 1024;
@@ -50,13 +49,6 @@ public sealed class GiftCatalogService(ISystemDb systemDb, IConfiguration config
             throw new UnauthorizedAccessException("플랫폼 관리자만 할 수 있어요.");
         }
         return ctx;
-    }
-
-    /// <summary>필요한 점수 미리 보기(R-285): 부서 크레딧 표가 비어 있을 때(1크레딧 = 1원).</summary>
-    public async Task<int> PointsPreviewAsync(int price, CancellationToken ct = default)
-    {
-        var r = (await rules.ForDateAsync(DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime), ct)).Gifts;
-        return GiftMath.PointsFor(GiftMath.CreditsForPrice(price, null), r);
     }
 
     public async Task<GiftItemCounts> CountsAsync(string actor, CancellationToken ct = default)
