@@ -15,7 +15,11 @@ public sealed record GiftOrderRow(long Id, string Kind, string State, string Who
     public DateOnly? Birthday { get; init; }
     /// <summary>종류 꼬리표: 팀 선물은 "가족팀 2,000점", 생일은 "생일 12.4".</summary>
     public string KindText => Team ? $"{GiftOrderService.KindLabel(Kind)} {Stage:N0}점"
-        : Birthday is { } b ? $"{GiftOrderService.KindLabel(Kind)} {b:M.d}" : GiftOrderService.KindLabel(Kind);
+        : Birthday is { } b ? $"{GiftOrderService.KindLabel(Kind)} {b:M.d}"
+        : Kind == GiftKinds.Reading && Round is int rn ? $"{GiftOrderService.KindLabel(Kind)} {rn}독" : GiftOrderService.KindLabel(Kind);
+    /// <summary>완독 선물: 회차 · 완독한 날(부서 날짜).</summary>
+    public int? Round { get; init; }
+    public DateOnly? DoneOn { get; init; }
     /// <summary>생일 선물: 계정 없이 명부로만 생긴 것(링크로만 고른다).</summary>
     public bool NoAccount { get; init; }
     /// <summary>전도 선물: 데려온 새친구 이름("고성윤을 데려옴"). 전도한 아이를 정하지 못하고 건너뛴 줄은 Unassigned.</summary>
@@ -131,6 +135,8 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
                 NoAccount = BirthdayGiftService.LinkKinds.Contains(g.Kind) && g.UserName is null && !NewcomerGiftService.Unassigned(g),
                 About = g.Kind == GiftKinds.Invite && NewcomerGiftService.NewcomerOf(g.SourceKey) is int nid ? people.FirstOrDefault(p => p.Id == nid)?.Name : null,
                 Unassigned = NewcomerGiftService.Unassigned(g),
+                Round = g.Kind == GiftKinds.Reading ? ReadingGiftService.RoundOf(g.SourceKey) : null,
+                DoneOn = g.Kind == GiftKinds.Reading ? g.OpenFrom : null,
                 LinkToken = g.LinkToken,
             };
         }).ToList();

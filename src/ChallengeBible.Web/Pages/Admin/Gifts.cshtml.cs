@@ -13,7 +13,7 @@ namespace ChallengeBible.Web.Pages.Admin;
 /// ③ 금액 · 점수(R-280 · R-283 · R-286 · R-288 · R-289) ④ 총비용 · 엑셀(확정 시안 선물-총비용, R-294). 부서 관리자만, 임시 부서는 없음.
 /// </summary>
 [TenantRoles(Roles.TenantAdmin)]
-public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftOrderService orders, TeamGiftService teamGifts, GiftCostService cost, BirthdayGiftService birthdays, NewcomerGiftService newcomers, TenantContext tenant) : PageModel, ITitled
+public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftOrderService orders, TeamGiftService teamGifts, GiftCostService cost, BirthdayGiftService birthdays, NewcomerGiftService newcomers, ReadingGiftService readings, TenantContext tenant) : PageModel, ITitled
 {
     public string Title => "선물";
     public TenantContext Tenant => tenant;
@@ -81,6 +81,7 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
             await teamGifts.EnsureAsync(ct);   // 팀 선물 생김 · 기한 지남(ADR 0094 F)
             await birthdays.EnsureAsync(ct);   // 생일 선물 생김 · 기한 지남(ADR 0094 D)
             await newcomers.EnsureAsync(ct);   // 새친구 · 전도 선물 생김(ADR 0094 C, 정한 것 15)
+            await readings.EnsureAsync(ct);   // 완독 선물 생김 · 기한 지남(ADR 0094 E, 정한 것 16)
             Step = Step is GiftOrderService.Pick or GiftOrderService.Give or GiftOrderService.Done or GiftOrderService.Cancel ? Step : GiftOrderService.Buy;
             OrderCounts = await orders.CountsAsync(ct);
             Orders = await orders.ListAsync(Step, ct: ct);
@@ -176,7 +177,7 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
         return Redirect($"/{Slug}/admin/gifts?s={GiftOrderService.Pick}&ok={(ok ? "skip" : "bad")}");
     }
 
-    public static string LinkTitle(string kind) => kind switch { GiftKinds.Newcomer => "새친구 선물", GiftKinds.Invite => "전도 선물", _ => "생일 선물" };
+    public static string LinkTitle(string kind) => kind switch { GiftKinds.Newcomer => "새친구 선물", GiftKinds.Invite => "전도 선물", GiftKinds.Reading => "완독 선물", _ => "생일 선물" };
     /// <summary>받침이 있으면 "을", 없으면 "를"(고성윤을 · 김하나를).</summary>
     public static string Obj(string name) => name.Length > 0 && name[^1] is >= '가' and <= '힣' && (name[^1] - '가') % 28 != 0 ? name + "을" : name + "를";
     public string LinkUrl(string token) => $"{Request.Scheme}://{Request.Host}/gift/{token}";

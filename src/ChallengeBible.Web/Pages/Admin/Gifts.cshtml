@@ -115,7 +115,7 @@
                     <div class="go-r@(o.State is "Delivered" or "Cancelled" or "Skipped" ? " go-dim" : "")" id="g@(o.Id)">
                         <a class="go-pic" href="@self/@o.Id" aria-label="@o.ItemName 자세히">@if (o.HasImage && o.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" loading="lazy" onerror="this.remove()" /> }</a>
                         <a class="go-mid" href="@self/@o.Id"><b class="@(o.State == "Expired" ? "go-late" : o.State == "Open" ? "go-none" : "")">@(o.State switch { "Open" => "아직 안 골랐어요", "Expired" => "기한 지남", _ => o.ItemName })</b>
-                            <small><span class="go-who">@(o.Unassigned ? $"{o.Who}(새친구)를 데려온 아이" : o.Who)</span>@(o.ClassName is null || o.Unassigned ? "" : " · " + o.ClassName) · <span class="go-kind go-k-@o.Kind.ToLowerInvariant()">@o.KindText</span>@(o.About is { } ab && !o.Unassigned ? $" · {GiftsModel.Obj(ab)} 데려옴" : "")@(o.NoAccount ? " · 계정 없음" : "")</small>
+                            <small><span class="go-who">@(o.Unassigned ? $"{o.Who}(새친구)를 데려온 아이" : o.Who)</span>@(o.ClassName is null || o.Unassigned ? "" : " · " + o.ClassName) · <span class="go-kind go-k-@o.Kind.ToLowerInvariant()">@o.KindText</span>@(o.About is { } ab && !o.Unassigned ? $" · {GiftsModel.Obj(ab)} 데려옴" : "")@(o.DoneOn is { } dn ? $" · {dn:M월 d일} 완독" : "")@(o.NoAccount ? " · 계정 없음" : "")</small>
                             <small class="num">@(o.State is "Open" or "Expired" ? "" : GiftsModel.N(o.Price) + "원" + (o.Team ? " · 한도 " + GiftsModel.N(o.MaxAmount) + "원" : "") + " · ")@when</small></a>
                         @if (o.State == "Expired" && !BirthdayGiftService.LinkKinds.Contains(o.Kind))
                         {

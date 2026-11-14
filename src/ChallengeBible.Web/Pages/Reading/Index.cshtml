@@ -21,6 +21,7 @@
 <div class="rp b2">
 @await Html.PartialAsync("_ReadingNav", new ReadingNav(Model, "home", "대시보드"))
 <div class="b2main"><div class="b2b">
+    @if (Model.ReadingGifts.Count > 0) { <div class="gk-rdwrap">@await Html.PartialAsync("/Pages/Mission/_BirthdayGiftCard.cshtml", (Model.Slug, Model.ReadingGifts))</div> }   @* 완독 선물(ADR 0094 E, 확정 시안 완독-선물 ①) *@
     <div class="g2">
         <section aria-label="나의 성경 통독">
             <div class="k">나의 성경 통독 · <a href="/@Model.Slug/reading/rounds" title="회차 기록">@(d.RoundNo)회차@(d.CompletedRounds > 0 ? $" · 완독 {d.CompletedRounds}번" : "")</a></div>

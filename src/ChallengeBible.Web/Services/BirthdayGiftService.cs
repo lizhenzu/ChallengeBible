@@ -15,7 +15,7 @@ public sealed record BirthdayGiftView(long Id, string Name, DateOnly Birthday, s
     int? ItemId, string? ItemName, bool HasImage, DateTime? PickedUtc, DateTime? PurchasedUtc, int TenantId, string TenantName,
     string Kind = GiftKinds.Birthday, string? About = null)
 {
-    public string KindLabel => Kind switch { GiftKinds.Newcomer => "새친구 선물", GiftKinds.Invite => "전도 선물", _ => "생일 선물" };
+    public string KindLabel => Kind switch { GiftKinds.Newcomer => "새친구 선물", GiftKinds.Invite => "전도 선물", GiftKinds.Reading => "완독 선물", _ => "생일 선물" };
 }
 
 /// <summary>_BirthdayPick 조각의 값: Link = 로그인 없는 링크 화면, Self = 이 화면 주소.</summary>
@@ -29,8 +29,8 @@ public sealed record BirthdayPickView(BirthdayGiftView Gift, IReadOnlyList<TeamP
 public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestScope scope, TenantContext tenant, TenantClock clock, RuleService rules, TimeProvider time)
 {
     public const int TokenLength = 32;
-    /// <summary>미션 홈 카드 · 로그인 없는 링크로 고르는 선물(생일 · 새친구 · 전도, ADR 0094 C · D).</summary>
-    public static readonly string[] LinkKinds = [GiftKinds.Birthday, GiftKinds.Newcomer, GiftKinds.Invite];
+    /// <summary>미션 홈 카드 · 로그인 없는 링크로 고르는 선물(생일 · 새친구 · 전도 · 완독, ADR 0094 C · D · E).</summary>
+    public static readonly string[] LinkKinds = [GiftKinds.Birthday, GiftKinds.Newcomer, GiftKinds.Invite, GiftKinds.Reading];
     private const string TokenChars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
     /// <summary>생일을 받는 역할: 학생 · 새친구(사용자 2026-11-14 질문 2 → 1).</summary>
     public static readonly string[] BirthdayRoles = [UserRole.StudentCode, ClassService.NewcomerCode];
@@ -124,7 +124,7 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         await using var ctx = db.Create();
         var uid = scope.UserId;
         var pids = uid is null ? [] : await ctx.People.Where(p => p.UserId == uid).Select(p => p.Id).ToListAsync(ct);
-        var list = await ctx.Gifts.AsNoTracking().Where(g => LinkKinds.Contains(g.Kind) && Live.Contains(g.State) && (g.UserName == user || (g.PersonId != null && pids.Contains(g.PersonId.Value))))
+        var list = await ctx.Gifts.AsNoTracking().Where(g => LinkKinds.Contains(g.Kind) && Live.Contains(g.State) && (g.UserName == user || (g.Kind != GiftKinds.Reading && g.PersonId != null && pids.Contains(g.PersonId.Value))))
             .OrderBy(g => g.Id).ToListAsync(ct);
         return await ViewsAsync(ctx, list, ct);
     }
@@ -137,7 +137,8 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         var depts = await ctx.Tenants.AsNoTracking().Where(t => tids.Contains(t.Id)).ToDictionaryAsync(t => t.Id, t => t.Name, ct);
         return list.Select(g => new BirthdayGiftView(g.Id, g.PersonId is int pid ? names.GetValueOrDefault(pid) ?? "" : "", BirthdayOf(g.SourceKey) ?? default, g.State, g.OpenUntil,
             g.MinAmount, g.MaxAmount, g.GiftItemId, g.ItemName, g.ItemHasImage == true, g.PickedUtc, g.PurchasedUtc, g.TenantId, depts.GetValueOrDefault(g.TenantId) ?? "",
-            g.Kind, g.Kind == GiftKinds.Invite && NewcomerGiftService.NewcomerOf(g.SourceKey) is int nid ? names.GetValueOrDefault(nid) : null)).ToList();
+            g.Kind, g.Kind == GiftKinds.Invite && NewcomerGiftService.NewcomerOf(g.SourceKey) is int nid ? names.GetValueOrDefault(nid)
+                : g.Kind == GiftKinds.Reading && ReadingGiftService.RoundOf(g.SourceKey) is int rn ? $"{rn}독" : null)).ToList();
     }
 
     /// <summary>금액 범위 안 상품(공통 − 그 부서가 숨긴 것 + 부서 상품, 판매 중), 싼 순. 링크 화면은 시스템 연결이라 부서를 직접 준다.</summary>

@@ -11,6 +11,14 @@
             <span class="gk-go">고르기</span>
         </a>
     }
+    else if (g.State == "Open" && g.Kind == "Reading")
+    {
+        <a class="gk-card gk-rd" href="@href">
+            <span class="gk-m"><span class="gk-tag gk-o">@g.About 완독</span><b>완독 선물을 골라요</b>
+                <small>@(g.OpenUntil is { } ru ? $"{ru:M월 d일}까지 · " : "")성경을 다 읽었어요, 축하해요!</small></span>
+            <span class="gk-go">고르기</span>
+        </a>
+    }
     else if (g.State == "Open")
     {
         <a class="gk-card gk-nc" href="@href">

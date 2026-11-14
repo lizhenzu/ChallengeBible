@@ -1,8 +1,8 @@
 @page "/{slug}/gifts/birthday/{id:long}"
 @model BirthdayGiftModel
 @* 확정 시안 생일-선물 ②(2026-11-14): 생일 선물 고르기 · 고른 뒤. 금액 · 가격 숨김, 이모지 없음 *@
-<div class="gk-pg @(Model.View.Gift.Kind == "Birthday" ? "gk-pg-b" : "gk-pg-g")">
-    <div class="gk-bar"><a href="/@Model.Slug/word-mission">← 미션 홈</a></div>
+<div class="gk-pg @(Model.View.Gift.Kind switch { "Birthday" => "gk-pg-b", "Reading" => "gk-pg-o", _ => "gk-pg-g" })">
+    <div class="gk-bar"><a href="@Model.Back.Href">@Model.Back.Label</a></div>
     <partial name="_BirthdayPick" model="Model.View" />
 </div>
 <script src="~/js/gift.js" asp-append-version="true" defer></script>

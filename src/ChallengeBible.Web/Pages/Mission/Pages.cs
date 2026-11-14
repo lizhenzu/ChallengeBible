@@ -15,7 +15,7 @@ public sealed record PickSection(MissionPageBase Page, string No, string Title, 
 /// <summary>_MissionNav 모델.</summary>
 public sealed record MissionNav(MissionPageBase Page, string Current);
 
-public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoinService family, PersonalGiftService gifts, GiftOrderService orders, TeamGiftService teamGifts, BirthdayGiftService birthdays, NewcomerGiftService newcomers) : MissionPageBase(missions, tenant)
+public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoinService family, PersonalGiftService gifts, GiftOrderService orders, TeamGiftService teamGifts, BirthdayGiftService birthdays, NewcomerGiftService newcomers, ReadingGiftService readings) : MissionPageBase(missions, tenant)
 {
     /// <summary>가족팀 · 친구팀 선물 카드(확정 시안 가족팀-선물고르기 ①).</summary>
     public IReadOnlyList<TeamGiftView> TeamGifts { get; private set; } = [];
@@ -49,6 +49,7 @@ public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoin
             TeamGifts = await teamGifts.MineAsync(ct);
             await birthdays.EnsureAsync(ct);   // 생일 30일 전이 되면 생일 선물이 생긴다(ADR 0094 D)
             await newcomers.EnsureAsync(ct);   // 새친구가 출석 4번을 채우면 새친구 · 전도 선물(ADR 0094 C)
+            await readings.EnsureAsync(ct);   // 성경을 다 읽으면 완독 선물(ADR 0094 E)
             Birthdays = await birthdays.MineAsync(ct);
         }
         if (Tenant.IsApproved) Board = await orders.BoardAsync(GiftOrderService.BoardTake, ct);

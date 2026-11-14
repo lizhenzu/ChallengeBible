@@ -3896,3 +3896,13 @@ a.nc-card.hidden { display: none; }
 .gk-pg-g .gk-mine span { color: #166534; }
 .gk-link.gk-pg-g .gk-hero { background: linear-gradient(180deg, #EAF7EF, transparent); }
 .gk-link.gk-pg-g .gk-hero span { color: #16A34A; }
+/* 완독 선물(확정 시안 완독-선물, ADR 0094 E) — 주황 */
+.gk-card.gk-rd { border-color: #F7D9A8; background: #FEF3E2; }
+.gk-card.gk-rd b { color: #92400E; }
+.gk-card.gk-rd .gk-go { background: #D97706; }
+.gk-card .gk-tag.gk-o { background: #fff; color: #B45309; }
+.gk-btn.gk-orange { background: #D97706; color: #fff; }
+.gk-pg-o .gk-mine span { color: #92400E; }
+.gk-link.gk-pg-o .gk-hero { background: linear-gradient(180deg, #FEF3E2, transparent); }
+.gk-link.gk-pg-o .gk-hero span { color: #D97706; }
+.gk-rdwrap { display: grid; gap: 10px; margin-bottom: 12px; }

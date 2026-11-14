@@ -4,9 +4,12 @@
     var g = Model.Gift;
     var picking = g.State == "Open" || (Model.Change && g.State == "Picked");
     var bday = g.Kind == "Birthday";
-    var sub = bday ? $"{g.Birthday:M월 d일} 생일" + (g.OpenUntil is { } u && g.State == "Open" ? $" · {u:M월 d일}까지 골라요" : "")
+    var until = g.OpenUntil is { } u && g.State == "Open" ? $" · {u:M월 d일}까지 골라요" : "";
+    var sub = bday ? $"{g.Birthday:M월 d일} 생일" + until
+        : g.Kind == "Reading" ? $"{g.About} 완독" + until
         : g.Kind == "Invite" ? $"{ChallengeBible.Web.Pages.Admin.GiftsModel.Obj(g.About ?? "친구")} 데려와 줘서 고마워요" : "와 줘서 고마워요";
-    var cheer = Model.Link ? "갖고 싶은 선물 하나를 골라 주세요" : bday ? "생일을 축하해요! 갖고 싶은 선물 하나를 골라요" : "고마워요! 갖고 싶은 선물 하나를 골라요";
+    var cheer = Model.Link ? "갖고 싶은 선물 하나를 골라 주세요" : bday ? "생일을 축하해요! 갖고 싶은 선물 하나를 골라요"
+        : g.Kind == "Reading" ? "성경을 다 읽었어요, 축하해요! 갖고 싶은 선물 하나를 골라요" : "고마워요! 갖고 싶은 선물 하나를 골라요";
 }
 @if (Model.Msg is { } msg) { <p class="gk-msg" role="status">@msg</p> }
 @if (g.State == "Expired")
@@ -17,7 +20,7 @@
 else if (picking)
 {
     @if (!Model.Link) { <h1>@g.KindLabel 고르기</h1> }
-    @if (bday || !Model.Link) { <p class="gk-sub">@sub</p> }   @* 링크 화면의 새친구 · 전도는 위 큰 글에 이미 있다 *@
+    @if (bday || g.Kind == "Reading" || !Model.Link) { <p class="gk-sub">@sub</p> }   @* 링크 화면의 새친구 · 전도는 위 큰 글에 이미 있다 *@
     <div class="gk-mine gk-mine-b"><span>@cheer</span></div>
     @if (Model.Items.Count == 0) { <p class="gk-note">지금 고를 수 있는 선물이 없어요. 선생님께 말씀해 주세요.</p> }
     <form method="post" class="gk-grid" data-gk-pick>
