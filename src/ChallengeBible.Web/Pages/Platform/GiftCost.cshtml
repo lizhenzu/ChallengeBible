@@ -1,0 +1,52 @@
+@page "/platform/gift-cost"
+@model ChallengeBible.Web.Pages.Platform.GiftCostModel
+@using ChallengeBible.Web.Services
+@* 확정 시안 선물-총비용 ②(2026-11-14): 모든 부서 · [줬어요]를 누른 날 기준(정한 것 13) · 부서별 건수 · 금액(한 명당 없음, 질문 4 → 1) · 엑셀(.xlsx) *@
+@{
+    var s = Model.Summary;
+    var p = s.Period;
+}
+<partial name="_PlatformTop" />
+<main class="admin gut gd"><div class="wrap">
+    <h1>공통 상품</h1>
+    <p class="gd-lead">모든 부서에 보이는 선물 상품과, 모든 부서의 선물 비용을 봐요.</p>
+    <nav class="gd-tabs gc-two" aria-label="공통 상품">
+        <a href="/platform/gifts">상품 목록</a>
+        <a href="/platform/gift-cost" aria-current="page">총비용</a>
+    </nav>
+    <partial name="_GiftCostPeriod" model="new GiftCostPeriodView(p, Model.Action, Model.Keep)" />
+    <form method="get" class="gc-tools">
+        <input type="hidden" name="per" value="@p.Key" /><input type="hidden" name="from" value="@p.From.ToString("yyyy-MM-dd")" /><input type="hidden" name="to" value="@p.To.ToString("yyyy-MM-dd")" />
+        <select name="d" aria-label="부서" onchange="this.form.submit()">
+            <option value="">부서: 모든 부서</option>
+            @foreach (var t in Model.Tenants) { <option value="@t.Id" selected="@(Model.Dept == t.Id)">부서: @t.Name</option> }
+        </select>
+        <select name="k" aria-label="종류" onchange="this.form.submit()">
+            <option value="">종류: 모두</option>
+            @foreach (var k in GiftCostService.KindRows) { <option value="@k.Key" selected="@(Model.Kind == k.Key)">종류: @k.Label</option> }
+        </select>
+        <noscript><button class="btn s sm" type="submit">보기</button></noscript>
+    </form>
+    <div class="gc-cols">
+        <div>
+            <partial name="_GiftCostSummary" model="new GiftCostSummaryView(s, Model.SumLabel)" />
+        </div>
+        <div>
+            <h2 class="gc-h">부서별</h2>
+            @if (s.Depts.Count == 0) { <p class="gc-empty">이 기간에 받은 선물이 없어요.</p> }
+            else
+            {
+                <table class="gc-dept">
+                    <tr><th>부서</th><th>건수</th><th>금액</th></tr>
+                    @foreach (var r in s.Depts)
+                    {
+                        <tr><td><a href="/platform/gift-cost?@Model.Query(p, r.TenantId)">@r.Name</a></td><td class="num">@r.Count.ToString("N0")</td><td class="num">@r.Amount.ToString("N0")원</td></tr>
+                    }
+                    <tr class="t"><td>합계</td><td class="num">@s.Count.ToString("N0")</td><td class="num">@s.Amount.ToString("N0")원</td></tr>
+                </table>
+            }
+            <a class="btn gc-xl" href="/platform/gift-cost?handler=Excel&@Model.Query(p, Model.Dept)">엑셀로 받기 (.xlsx)</a>
+            <p class="gd-note">[줬어요]를 누른 날 기준(서울 시간)이에요. 아이에게 준 선물만 들어가요. 부서를 누르면 그 부서만 보여요. 엑셀에는 시트 2개: ① 종류별 · 부서별 합계 ② 받은 선물 한 줄씩(부서 · 받은 날 · 받는 사람 · 종류 · 상품 · 금액).</p>
+        </div>
+    </div>
+</div></main>

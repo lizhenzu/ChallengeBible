@@ -87,7 +87,7 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
             .ToDictionary(u => u.UserName!, u => AppUser.FullName(u.LastName, u.FirstName) is { Length: > 0 } n ? n : u.UserName!, StringComparer.OrdinalIgnoreCase);
 
     /// <summary>받는 사람 이름 · 반 · 쿠팡 링크를 붙인다. 개인 · 생일 등은 계정 이름(없으면 명부 이름), 가족팀은 팀 이름.</summary>
-    private async Task<List<GiftOrderRow>> RowsAsync(AppDbContext ctx, List<Gift> gifts, CancellationToken ct)
+    internal static async Task<List<GiftOrderRow>> RowsAsync(AppDbContext ctx, List<Gift> gifts, CancellationToken ct)
     {
         var users = gifts.Select(g => g.UserName).OfType<string>().Distinct().ToList();
         var names = await NamesAsync(ctx, users, ct);

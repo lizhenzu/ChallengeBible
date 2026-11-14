@@ -11,6 +11,10 @@
 <partial name="_PlatformTop" />
 <main class="admin gut gf"><div class="wrap">
     <h1 class="gf-h">공통 상품 <a class="btn p sm" href="/platform/gifts/edit">+ 공통 상품 등록</a></h1>
+    <nav class="gd-tabs gc-two" aria-label="공통 상품">
+        <a href="/platform/gifts" aria-current="page">상품 목록</a>
+        <a href="/platform/gift-cost">총비용</a>
+    </nav>
     <nav class="gf-seg" aria-label="상태">
         <a href="@Model.Url(GiftItemStatus.Active, "")" aria-current="@(Model.Status == GiftItemStatus.Active ? "page" : null)">판매 중<u class="num">@c.Active</u></a>
         <a class="rv" href="@Model.Url(GiftItemStatus.Review, "")" aria-current="@(Model.Status == GiftItemStatus.Review ? "page" : null)">삭제 대상<u class="num">@c.Review</u></a>

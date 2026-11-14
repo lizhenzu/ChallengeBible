@@ -21,6 +21,7 @@
         <a href="@self?t=list" aria-current="@Tab("list")">공통 상품</a>
         <a href="@self?t=ours" aria-current="@Tab("ours")">부서 상품</a>
         <a href="@self?t=money" aria-current="@Tab("money")">금액 · 점수</a>
+        <a href="@self?t=cost" aria-current="@Tab("cost")">총비용</a>
     </nav>
     @if (Model.Message is not null) { <p class="ok-box" role="status">@Model.Message</p> }
 
@@ -234,5 +235,29 @@
 
             <div class="gd-bar"><a class="btn s" href="@self?t=money">되돌리기</a><button class="btn p" type="submit">저장</button></div>
         </form>
+    }
+    else if (Model.Tab == "cost" && Model.Cost is { } cs)
+    {
+        @* 확정 시안 선물-총비용 ①(2026-11-14): [줬어요]를 누른 날 기준 받은 선물(정한 것 13), 엑셀(.xlsx) *@
+        <partial name="_GiftCostPeriod" model="Model.CostPeriodView" />
+        <partial name="_GiftCostSummary" model="new GiftCostSummaryView(cs, Model.CostLabel)" />
+        <h2 class="gc-h">받은 선물 <small>최근 순</small></h2>
+        @if (Model.CostLines.Count == 0) { <p class="gc-empty">이 기간에 받은 선물이 없어요.</p> }
+        else
+        {
+            <ul class="gc-list">
+                @foreach (var l in Model.CostLines)
+                {
+                    <li>
+                        <span class="gc-pic">@if (l.HasImage && l.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" loading="lazy" onerror="this.remove()" /> }</span>
+                        <span class="gc-mid"><b>@l.ItemName</b><small>@l.Who@(l.ClassName is { } cn ? $" · {cn}" : "") <em>@l.Kind</em> · @Model.Local(l.DeliveredUtc) 받음</small></span>
+                        <span class="num gc-won">@GiftsModel.N(l.Price)원</span>
+                    </li>
+                }
+            </ul>
+            @if (Model.More) { <div class="gd-more"><a class="btn s sm" href="@Model.CostUrl(n: Model.Take + GiftCostService.PageSize)">@(GiftCostService.PageSize)개 더 보기</a></div> }
+        }
+        <a class="btn gc-xl" href="@self?handler=Excel&per=@cs.Period.Key&from=@cs.Period.From.ToString("yyyy-MM-dd")&to=@cs.Period.To.ToString("yyyy-MM-dd")">엑셀로 받기 (.xlsx)</a>
+        <p class="gd-note">[줬어요]를 누른 날 기준이에요. 아이에게 준 선물(받음)만 들어가고, 아직 줄 것 · 취소한 선물은 빠져요. 금액은 고를 때의 상품 가격이에요. 엑셀에는 종류별 합계와 받은 선물 한 줄씩(받은 날 · 받는 사람 · 반 · 종류 · 상품 · 금액)이 들어가요.</p>
     }
 </div></main>

@@ -1,0 +1,22 @@
+@model ChallengeBible.Web.Services.GiftCostSummaryView
+@* 총비용 합계 카드 + 종류별(확정 시안 선물-총비용). [줬어요]를 누른 날 기준, 받은 선물만(정한 것 13) *@
+@{
+    var s = Model.Summary;
+    var top = Math.Max(1L, s.Kinds.Max(k => k.Amount));
+}
+<div class="gc-sum">
+    <small>@Model.Label</small>
+    <b class="num">@s.Amount.ToString("N0")<u>원</u></b>
+    <span>받은 선물 <b class="num">@s.Count.ToString("N0")건</b> · @s.Period.From.ToString("yyyy.M.d") ~ @s.Period.To.ToString("yyyy.M.d")</span>
+</div>
+<h2 class="gc-h">종류별</h2>
+<table class="gc-kind">
+    @foreach (var k in s.Kinds)
+    {
+        <tr class="@(k.Count == 0 ? "z" : null)">
+            <td>@k.Label @if (k.Amount > 0) { <i style="width:@((int)Math.Max(3, k.Amount * 100 / top))%"></i> }</td>
+            <td class="num">@k.Count.ToString("N0")건</td>
+            <td class="num"><b>@k.Amount.ToString("N0")원</b></td>
+        </tr>
+    }
+</table>

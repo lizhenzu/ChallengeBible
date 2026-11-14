@@ -9,11 +9,11 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace ChallengeBible.Web.Pages.Admin;
 
 /// <summary>
-/// `/{slug}/admin/gifts?t=orders|list|ours|money` 선물 처리(구매 · 전달, 확정 시안 관리-선물처리) + 부서 선물 설정(확정 시안 관리-선물, ADR 0094): ① 선물 목록(공통 숨기기 R-276) ② 우리 부서 상품(공통에 올리기 R-277)
-/// ③ 금액 · 점수(R-280 · R-283 · R-286 · R-288 · R-289). 부서 관리자만, 임시 부서는 없음.
+/// `/{slug}/admin/gifts?t=orders|list|ours|money|cost` 선물 처리(구매 · 전달, 확정 시안 관리-선물처리) + 부서 선물 설정(확정 시안 관리-선물, ADR 0094): ① 선물 목록(공통 숨기기 R-276) ② 우리 부서 상품(공통에 올리기 R-277)
+/// ③ 금액 · 점수(R-280 · R-283 · R-286 · R-288 · R-289) ④ 총비용 · 엑셀(확정 시안 선물-총비용, R-294). 부서 관리자만, 임시 부서는 없음.
 /// </summary>
 [TenantRoles(Roles.TenantAdmin)]
-public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftOrderService orders, TeamGiftService teamGifts, TenantContext tenant) : PageModel, ITitled
+public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftOrderService orders, TeamGiftService teamGifts, GiftCostService cost, TenantContext tenant) : PageModel, ITitled
 {
     public string Title => "선물";
     public TenantContext Tenant => tenant;
@@ -30,6 +30,13 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
     public IReadOnlyList<GiftOrderRow> Orders { get; private set; } = [];
     public GiftOrderCounts OrderCounts { get; private set; } = new(0, 0, 0, 0);
 
+    /// <summary>총비용 탭: 기간 year · month · last · custom(from ~ to, yyyy-MM-dd).</summary>
+    [BindProperty(SupportsGet = true, Name = "per")] public string? Per { get; set; }
+    [BindProperty(SupportsGet = true, Name = "from")] public string? From { get; set; }
+    [BindProperty(SupportsGet = true, Name = "to")] public string? To { get; set; }
+    public GiftCostSummary? Cost { get; private set; }
+    public IReadOnlyList<GiftCostLine> CostLines { get; private set; } = [];
+
     public IReadOnlyList<DeptGiftRow> Rows { get; private set; } = [];
     public bool More { get; private set; }
     public DeptGiftCounts Counts { get; private set; } = new(0, 0, 0);
@@ -44,7 +51,7 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (tenant.IsLobby) return NotFound();
-        Tab = Tab is "list" or "ours" or "money" ? Tab : "orders";   // 처음은 선물 처리(확정 시안 관리-선물처리)
+        Tab = Tab is "list" or "ours" or "money" or "cost" ? Tab : "orders";   // 처음은 선물 처리(확정 시안 관리-선물처리)
         Message = Ok switch
         {
             "money" => "저장했어요. 앞으로 생기는 선물부터 적용돼요.", "shared" => "공통에 올렸어요. 이제 모든 부서에 보여요.",
@@ -74,6 +81,11 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
             (Rows, More, Counts) = await gifts.ListAsync(Show, Q, band.Min, band.Max, Take, ct);
         }
         else if (Tab == "ours") Ours = await gifts.OursAsync(ct);
+        else if (Tab == "cost")
+        {
+            Take = Request.Query.ContainsKey("n") ? Math.Clamp(Take, GiftCostService.PageSize, 2000) : GiftCostService.PageSize;
+            (Cost, CostLines, More) = await cost.DeptAsync(GiftCostService.Period(Per, From, To, cost.Today), Take, ct);
+        }
         else if (fillMoney)
         {
             var m = await gifts.MoneyAsync(ct);
@@ -86,6 +98,14 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
                 Reading = m.Reading.Select(F).ToList(),
             };
         }
+    }
+
+    /// <summary>총비용 [엑셀로 받기](.xlsx, 시트 합계 · 받은 선물).</summary>
+    public async Task<IActionResult> OnGetExcelAsync(CancellationToken ct)
+    {
+        if (tenant.IsLobby) return NotFound();
+        var p = GiftCostService.Period(Per, From, To, cost.Today);
+        return File(await cost.DeptExcelAsync(p, ct), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", GiftCostService.FileName(tenant.Current.Name, p));
     }
 
     /// <summary>선물 처리 목록의 [샀어요] · [줬어요] · [되돌리기](R-293). 처리한 뒤 같은 칩으로 돌아간다.</summary>
@@ -135,4 +155,8 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
     public string Url(string? v = null, int? n = null) => $"/{Slug}/admin/gifts?t=list&v={v ?? Show}&q={Uri.EscapeDataString(Q ?? "")}&p={Band}&n={n ?? GiftCatalogService.PageSize}";
     public static string Img(DeptGiftRow r) => r.HasImage ? $"/images/AwardItem/{r.Id}.jpg?v={r.UpdatedUtc.Ticks}" : "";
     public static string N(int n) => n.ToString("N0");
+    public GiftCostPeriodView CostPeriodView => new(Cost!.Period, $"/{Slug}/admin/gifts", new Dictionary<string, string?> { ["t"] = "cost" });
+    public string CostLabel => "받은 선물 금액 합계";
+    public string Local(DateTime utc) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), TimeZoneInfo.FindSystemTimeZoneById(tenant.Current.TimeZoneId)).ToString("M.d");
+    public string CostUrl(string? per = null, int? n = null) => $"/{Slug}/admin/gifts?t=cost&per={per ?? Cost?.Period.Key}&from={From}&to={To}" + (n is int k ? $"&n={k}" : "");
 }

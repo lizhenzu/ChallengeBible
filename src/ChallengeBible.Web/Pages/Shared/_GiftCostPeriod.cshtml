@@ -1,0 +1,21 @@
+@model ChallengeBible.Web.Services.GiftCostPeriodView
+@* 총비용 기간 고르기(확정 시안 선물-총비용): 올해 · 이번 달 · 지난달 · 직접(날짜 두 개, JS 없는 폼). Keep = 함께 넘길 값(탭 · 부서 · 종류) *@
+@{
+    var p = Model.Period;
+    string Href(string per) => Model.Action + "?" + string.Join("&", Model.Keep.Where(k => k.Value is not null).Select(k => $"{k.Key}={Uri.EscapeDataString(k.Value!)}").Append($"per={per}"));
+    string? Cur(string k) => p.Key == k ? "page" : null;
+}
+<nav class="gc-per" aria-label="기간">
+    <a href="@Href("year")" aria-current="@Cur("year")">올해</a>
+    <a href="@Href("month")" aria-current="@Cur("month")">이번 달</a>
+    <a href="@Href("last")" aria-current="@Cur("last")">지난달</a>
+    <a href="@Href("custom")&from=@p.From.ToString("yyyy-MM-dd")&to=@p.To.ToString("yyyy-MM-dd")" aria-current="@Cur("custom")">직접</a>
+</nav>
+<form method="get" action="@Model.Action" class="gc-range">
+    @foreach (var k in Model.Keep.Where(k => k.Value is not null)) { <input type="hidden" name="@k.Key" value="@k.Value" /> }
+    <input type="hidden" name="per" value="custom" />
+    <input class="in" type="date" name="from" value="@p.From.ToString("yyyy-MM-dd")" aria-label="시작 날짜" />
+    <span>~</span>
+    <input class="in" type="date" name="to" value="@p.To.ToString("yyyy-MM-dd")" aria-label="끝 날짜" />
+    <button class="btn s sm" type="submit">보기</button>
+</form>
