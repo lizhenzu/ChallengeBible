@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>사람 바꾸기 시안</title>
+<style>
+/* 시안(2026-11-14): 플랫폼 관리자 "사람 바꾸기"(ADR 0067 가장에 더함). 사용자: 관리자에서 특정인으로 들어간 뒤 로그아웃 없이 마음대로 바꾸기, 대상 = 모든 계정.
+   ① 가장 띠에 [사람 바꾸기] 추가  ② 바꾸기 창: 최근 본 사람 · 부서 · 역할 · 찾기  ③ 다른 부서 · 이름 찾기
+   이름 · 아이디는 지어낸 것. 보라 띠 색은 지금 가장 띠(#7A2E9C) 그대로. */
+:root { --fg:#111827; --dim:#6B7280; --dim2:#9CA3AF; --rule:#E5E7EB; --soft:#F4F6F9; --imp:#7A2E9C; --imp-bg:#F4EAFA; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 24px 16px 60px; background: #E5E7EB; font-family: "Gothic A1", "Malgun Gothic", system-ui, sans-serif; color: var(--fg); }
+.board { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.ph { width: 380px; max-width: 100%; min-height: 860px; background: #fff; border-radius: 22px; box-shadow: 0 6px 20px rgba(0,0,0,.08); position: relative; overflow: hidden; }
+.cap { font-size: 13px; font-weight: 800; color: #374151; margin: 0; padding: 16px 16px 10px; background: #fff; }
+.cap small { display: block; font-weight: 400; color: var(--dim); margin-top: 2px; }
+.bar { background: var(--imp); color: #fff; display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-size: 13px; }
+.bar span { flex: 1; min-width: 0; line-height: 1.35; }
+.bar b { font-weight: 900; }
+.bar button { border: 0; border-radius: 10px; min-height: 34px; padding: 0 11px; font: inherit; font-size: 13px; font-weight: 900; white-space: nowrap; }
+.bar .sw { background: rgba(255,255,255,.18); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.5); }
+.bar .bk { background: #fff; color: var(--imp); }
+.page { padding: 16px; color: var(--dim2); font-size: 13px; }
+.page .blk { height: 64px; border-radius: 14px; background: var(--soft); margin-bottom: 10px; }
+.dim { position: absolute; inset: 0; top: 0; background: rgba(15,23,42,.45); display: flex; align-items: flex-end; }
+.sheet { width: 100%; max-height: 100%; overflow: hidden; background: #fff; border-radius: 22px 22px 0 0; padding: 14px 14px 10px; display: flex; flex-direction: column; gap: 10px; }
+.sheet h3 { margin: 0; font-size: 17px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+.sheet h3 a { font-size: 13px; color: var(--dim); text-decoration: none; font-weight: 600; }
+.in { width: 100%; min-height: 42px; border-radius: 12px; border: 1px solid var(--rule); padding: 0 12px; font: inherit; font-size: 14px; color: var(--fg); background: #fff; }
+.in.on { border-color: var(--imp); box-shadow: 0 0 0 2px #E9D5F5; }
+.row { display: flex; gap: 6px; overflow-x: auto; }
+.chip { flex: none; padding: 6px 11px; border-radius: 99px; border: 1px solid var(--rule); font-size: 12.5px; font-weight: 800; color: #374151; white-space: nowrap; }
+.chip.on { background: var(--fg); border-color: var(--fg); color: #fff; }
+.chip u { text-decoration: none; font-weight: 500; opacity: .7; margin-left: 3px; }
+.lbl { font-size: 11.5px; font-weight: 800; color: var(--dim2); margin: 2px 0 -4px; }
+.list { flex: none; border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; }
+.p { display: grid; grid-template-columns: 36px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 9px 12px; border-bottom: 1px solid var(--rule); }
+.p:last-child { border-bottom: 0; }
+.p .av { width: 36px; height: 36px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; font-size: 13px; font-weight: 800; color: var(--dim); }
+.p b { display: block; font-size: 14.5px; }
+.p small { display: block; font-size: 12px; color: var(--dim); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.p .go { font-size: 12.5px; font-weight: 800; color: var(--imp); }
+.p.me { background: var(--imp-bg); }
+.p.me .go { color: var(--dim); font-weight: 600; }
+.p.off { opacity: .45; }
+.t { display: inline-block; font-size: 11px; font-weight: 800; padding: 1px 6px; border-radius: 99px; margin-right: 3px; vertical-align: 1px; }
+.t.st { background: #EAF2FD; color: #2F80ED; } .t.te { background: #EAF7EF; color: #16A34A; } .t.of { background: #F3E8FF; color: #7C3AED; } .t.pa { background: #FFF4E5; color: #C2410C; } .t.ad { background: #1E2A4A; color: #fff; }
+.hint { font-size: 12px; color: var(--dim); margin: 0; line-height: 1.55; }
+.desk { width: 760px; max-width: 100%; background: #fff; border-radius: 16px; box-shadow: 0 6px 20px rgba(0,0,0,.08); overflow: hidden; }
+.desk .bar { padding: 8px 20px; }
+</style>
+</head>
+<body>
+<div class="board">
+
+  <section class="ph">
+    <p class="cap">① 가장 띠에 [사람 바꾸기]<small>모든 화면 맨 위(지금 띠 그대로 + 버튼 하나). [복귀] = superadmin 으로</small></p>
+    <div class="bar"><span><b>가장 중</b> · 안예빛 (유년부 학생)</span><button class="sw">사람 바꾸기</button><button class="bk">복귀</button></div>
+    <div class="page">
+      <div class="blk"></div><div class="blk"></div><div class="blk"></div>
+      지금 보고 있는 화면은 그대로 · 띠만 위에 붙어 있음
+    </div>
+    <div class="cap" style="padding-top:4px">시험 도구(<code>/test-tools</code>)의 로그인 버튼도 이 가장으로 들어가게 바꿈 → 들어간 뒤에도 띠가 보이고 바로 바꿀 수 있음</div>
+  </section>
+
+  <section class="ph">
+    <p class="cap">② [사람 바꾸기]를 누르면<small>처음엔 지금 부서 · 전체 역할. 줄을 누르면 바로 그 사람으로(같은 화면 주소, 다른 부서면 그 부서 홈)</small></p>
+    <div class="bar"><span><b>가장 중</b> · 안예빛 (유년부 학생)</span><button class="sw">사람 바꾸기</button><button class="bk">복귀</button></div>
+    <div class="dim" style="top:118px">
+      <div class="sheet">
+        <h3>사람 바꾸기 <a href="#">닫기</a></h3>
+        <input class="in" placeholder="이름 · 아이디로 찾기(모든 부서)" />
+        <div class="row"><span class="chip on">유년부</span><span class="chip">초등부</span><span class="chip">중고등부</span><span class="chip">청년부</span><span class="chip">부서 없음</span></div>
+        <div class="row"><span class="chip on">전체<u>48</u></span><span class="chip">학생<u>31</u></span><span class="chip">교사<u>8</u></span><span class="chip">임원<u>3</u></span><span class="chip">학부모<u>4</u></span><span class="chip">관리자<u>2</u></span></div>
+        <div class="lbl">최근에 본 사람</div>
+        <div class="list">
+          <div class="p me"><span class="av">안</span><span><b>안예빛</b><small><span class="t st">학생</span>3학년 믿음반 · yuyunbu-s13</small></span><span class="go">지금</span></div>
+          <div class="p"><span class="av">김</span><span><b>김하람</b><small><span class="t te">교사</span>3학년 믿음반 담임 · yuyunbu-t03</small></span><span class="go">바꾸기 ›</span></div>
+        </div>
+        <div class="lbl">유년부 · 전체(이름 순)</div>
+        <div class="list">
+          <div class="p"><span class="av">강</span><span><b>강다온</b><small><span class="t ad">관리자</span><span class="t of">부장</span>yuyunbu-a01</small></span><span class="go">바꾸기 ›</span></div>
+          <div class="p"><span class="av">고</span><span><b>고은솔</b><small><span class="t st">학생</span>2학년 사랑반 · yuyunbu-s05</small></span><span class="go">바꾸기 ›</span></div>
+          <div class="p"><span class="av">문</span><span><b>문서윤</b><small><span class="t pa">학부모</span>yuyunbu-p02</small></span><span class="go">바꾸기 ›</span></div>
+          <div class="p off"><span class="av">박</span><span><b>박지안</b><small><span class="t st">학생</span>정지된 계정 · 바꿀 수 없음</small></span><span class="go"></span></div>
+        </div>
+        <p class="hint">30명씩 보이고 아래 [더 보기]. 플랫폼 관리자 · 정지된 계정은 흐리게(들어갈 수 없음).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="ph">
+    <p class="cap">③ 이름으로 찾기(모든 부서)<small>찾는 글자가 있으면 부서 칩은 무시하고 모든 계정에서 찾음 · 부서 이름을 함께 보임</small></p>
+    <div class="bar"><span><b>가장 중</b> · 안예빛 (유년부 학생)</span><button class="sw">사람 바꾸기</button><button class="bk">복귀</button></div>
+    <div class="dim" style="top:118px">
+      <div class="sheet">
+        <h3>사람 바꾸기 <a href="#">닫기</a></h3>
+        <input class="in on" value="김" />
+        <div class="row"><span class="chip on">전체<u>5</u></span><span class="chip">학생<u>2</u></span><span class="chip">교사<u>2</u></span><span class="chip">학부모<u>1</u></span></div>
+        <div class="list">
+          <div class="p"><span class="av">김</span><span><b>김하람</b><small><b style="display:inline;font-size:12px;color:#374151">유년부</b> · <span class="t te">교사</span>3학년 믿음반 담임</small></span><span class="go">바꾸기 ›</span></div>
+          <div class="p"><span class="av">김</span><span><b>김도윤</b><small><b style="display:inline;font-size:12px;color:#374151">초등부</b> · <span class="t st">학생</span>5학년 소망반</small></span><span class="go">바꾸기 ›</span></div>
+          <div class="p"><span class="av">김</span><span><b>김서아</b><small><b style="display:inline;font-size:12px;color:#374151">초등부</b> · <span class="t te">교사</span></small></span><span class="go">바꾸기 ›</span></div>
+          <div class="p"><span class="av">김</span><span><b>김민준</b><small><b style="display:inline;font-size:12px;color:#374151">중고등부</b> · <span class="t st">학생</span>중2 기쁨반</small></span><span class="go">바꾸기 ›</span></div>
+          <div class="p"><span class="av">김</span><span><b>김은정</b><small><b style="display:inline;font-size:12px;color:#374151">유년부</b> · <span class="t pa">학부모</span></small></span><span class="go">바꾸기 ›</span></div>
+        </div>
+        <p class="hint">바꿀 때마다 감사 로그에 "누가 · 누구에서 · 누구로"를 남김(지금 가장과 같음).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="desk">
+    <p class="cap">④ 데스크톱(760px): 띠는 한 줄, 바꾸기 창은 가운데 상자(폭 560px)</p>
+    <div class="bar"><span><b>가장 중</b> · 안예빛 (유년부 학생 · 3학년 믿음반)</span><button class="sw">사람 바꾸기</button><button class="bk">복귀</button></div>
+    <div class="page"><div class="blk"></div></div>
+  </section>
+
+</div>
+</body>
+</html>
