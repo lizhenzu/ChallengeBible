@@ -21,6 +21,7 @@
         [/^(points|ranking)$/, '점수를 모으고 있어요'],
         [/^family-team$/, '우리 가족을 찾고 있어요'],
         [/^roster$/, '명단을 펼치고 있어요'],
+        [/^gifts$/, '선물을 펼치고 있어요'],
     ];
 
     const clean = (pathname) => pathname.replace(/^\/+|\/+$/g, '').toLowerCase();

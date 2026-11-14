@@ -46,4 +46,24 @@ public class GiftMathTests
         Assert.Equal(10000, GiftMath.CreditsForPrice(11000, new Dictionary<int, int> { [10000] = 12000 }));
         Assert.Equal(600, GiftMath.PointsFor(GiftMath.CreditsForPrice(9800, null), R));   // 시안의 미리 보기: 9,800원 → 600점
     }
+
+    [Theory]
+    [InlineData(5000, true, 100)]
+    [InlineData(6000, true, 200)]
+    [InlineData(5000, false, 500)]   // 처음 보너스를 이미 썼으면 1,000 크레딧마다 100점(쌓는 규칙과 같게)
+    [InlineData(1500, false, 200)]
+    public void R285_필요한_점수는_처음_보너스를_썼는지에_따라(int credits, bool bonus, int need) => Assert.Equal(need, GiftMath.NeedPoints(credits, R, bonus));
+
+    [Fact]
+    public void R280_상한에_닿는_점수()
+    {
+        Assert.Equal(2600, GiftMath.CapPoints(30000, R, true));   // 100점 = 5,000 + 2,500점 = 25,000
+        Assert.Equal(3000, GiftMath.CapPoints(30000, R, false));
+    }
+
+    [Theory]
+    [InlineData(340, 200, 40)]   // 시안: 340점에서 200점 선물 → 100점 남고 40점 없어짐
+    [InlineData(300, 200, 0)]
+    [InlineData(200, 200, 0)]
+    public void R281_남은_점수의_100점_미만은_지운다(int available, int need, int burned) => Assert.Equal(burned, GiftMath.Burned(available, need, R));
 }

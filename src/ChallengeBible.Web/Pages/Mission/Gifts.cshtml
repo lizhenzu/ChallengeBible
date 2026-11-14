@@ -1,0 +1,92 @@
+@page "/{slug}/gifts"
+@model GiftsModel
+@using System.Globalization
+@* 확정 시안 2판(2026-11-14): 말씀-선물고르기-단독시안.html ③ 고르기 · ④ 확인 · ⑤ 고른 뒤. 이모지 없음, 아이에게는 점수만(가격 숨김, R-285).
+   한 번에 하나(정한 것 8): 받기 전 선물이 있으면 ⑤만 보인다. *@
+@{
+    var w = Model.Wallet;
+    var slug = Model.Slug;
+    string P(int v) => v.ToString("N0") + "점";
+}
+<div class="gk-pg">
+    <div class="gk-bar"><a href="/@slug/word-mission">← 미션 홈</a>@if (w is not null) { <span class="num">@w.Today.ToString("yyyy.MM.dd ddd", CultureInfo.InvariantCulture).ToUpperInvariant()</span> }</div>
+    @if (Model.MsgText is { } msg) { <p class="gk-msg" role="status">@msg</p> }
+
+    @if (w is null)
+    {
+        <h1>선물 고르기</h1>
+        <p class="gk-sub">미션에 참여하는 학생이 점수를 모아 선물을 골라요. 보호자 · 선생님은 볼 수 없어요.</p>
+    }
+    else if (!w.Student)
+    {
+        <h1>선물 고르기</h1>
+        <p class="gk-sub">선물은 학생만 골라요. 선생님 · 학부모는 100점마다 축하를 받아요.</p>
+    }
+    else if (w.Active is { } a)
+    {
+        var stepOn = (bool on) => on ? "gk-on" : "";
+        <div class="gk-done">
+            <div class="gk-pic gk-big">@if (a.HasImage) { <img src="@GiftsModel.Img(a.ItemId)" alt="" onerror="this.remove()" /> }</div>
+            <h1>@a.Name</h1>
+            <div class="gk-st">@(a.State == "Purchased" ? "선생님이 준비했어요" : "준비 중이에요")</div>
+            <ul class="gk-steps">
+                <li class="gk-on"><i></i><span>내가 골랐어요</span><span class="num">@a.PickedUtc.ToString("M월 d일")</span></li>
+                <li class="@stepOn(a.PurchasedUtc is not null)"><i></i><span>선생님이 준비했어요</span><span class="num">@a.PurchasedUtc?.ToString("M월 d일")</span></li>
+                <li><i></i><span>선물을 받았어요</span><span></span></li>
+            </ul>
+            <div class="gk-left"><span>남은 점수</span><b class="num">@P(w.Available)</b></div>
+            @if (a.State == "Picked")
+            {
+                <form method="post" asp-page-handler="Cancel" data-gk-cancel>
+                    <input type="hidden" name="id" value="@a.Id" />
+                    <button type="submit" class="gk-btn gk-line">선물 취소하기</button>
+                </form>
+                <p class="gk-hint">취소하면 쓴 @P(a.PointsUsed)@(a.PointsBurned > 0 ? $"과 없어진 {a.PointsBurned}점" : "")이 다시 돌아와요. 선생님이 준비한 뒤에는 취소할 수 없어요. 선물을 받으면 다음 선물을 고를 수 있어요.</p>
+            }
+            else
+            {
+                <p class="gk-hint">선물을 받으면 다음 선물을 고를 수 있어요.</p>
+            }
+        </div>
+    }
+    else
+    {
+        <h1>선물 고르기</h1>
+        <p class="gk-sub">한 번에 하나씩 골라요 · 12월 31일까지</p>
+        <div class="gk-mine"><span>쓸 수 있는 점수</span><b class="num">@w.Usable.ToString("N0")<u>점</u></b></div>
+        @if (w.AtCap) { <p class="gk-note">모을 수 있는 만큼 다 모았어요. 선물을 고르면 다시 모을 수 있어요.</p> }
+        else if (w.Usable < w.Step) { <p class="gk-note">@(w.Step)점이 되면 선물을 고를 수 있어요 · @(w.ToFirst)점 더 모으면 돼요</p> }
+        <nav class="gk-seg" aria-label="보기">
+            <a href="/@slug/gifts" aria-current="@(Model.All ? null : "true")">고를 수 있는 것 <span class="num">@Model.CanCount</span></a>
+            <a href="/@slug/gifts?all=true" aria-current="@(Model.All ? "true" : null)">전체 <span class="num">@Model.Items.Count</span></a>
+        </nav>
+        @if (!Model.Shown.Any())
+        {
+            <p class="gk-note">@(Model.Items.Count == 0 ? "아직 고를 수 있는 선물이 없어요." : "아직 고를 수 있는 선물이 없어요. \"전체\"에서 모을 선물을 구경해 봐요.")</p>
+        }
+        <form method="post" asp-page-handler="Pick" class="gk-grid" data-gk-pick>
+            @foreach (var i in Model.Shown)
+            {
+                var can = i.Need <= w.Usable;
+                var pic = i.HasImage ? GiftsModel.Img(i.Id, i.UpdatedUtc) : null;
+                if (can)
+                {
+                    var burn = Domain.Rules.GiftMath.Burned(w.Available, i.Need, w.Rules);
+                    <button type="submit" name="item" value="@i.Id" class="gk-it" data-name="@i.Name" data-desc="@i.Description" data-img="@pic"
+                            data-need="@i.Need" data-now="@w.Available" data-left="@(w.Available - i.Need - burn)" data-burn="@burn">
+                        <span class="gk-pic">@if (pic is not null) { <img src="@pic" alt="" loading="lazy" onerror="this.remove()" /> }</span>
+                        <span class="gk-nm">@i.Name</span><span class="gk-pt num">@P(i.Need)</span>
+                    </button>
+                }
+                else
+                {
+                    <div class="gk-it gk-lock">
+                        <span class="gk-pic">@if (pic is not null) { <img src="@pic" alt="" loading="lazy" onerror="this.remove()" /> }</span>
+                        <span class="gk-nm">@i.Name</span><span class="gk-pt"><b class="num">@P(i.Need - w.Usable)</b> 더 모으면</span>
+                    </div>
+                }
+            }
+        </form>
+    }
+</div>
+<script src="~/js/gift.js" asp-append-version="true" defer></script>

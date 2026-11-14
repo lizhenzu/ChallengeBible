@@ -93,6 +93,8 @@
         <div><div class="k">네 가지 다 한 날</div><div class="v num">@(monthScores.Count(s => s.Complete))<u>일</u></div></div>
     </div>
 
+    @if (Model.Gift is not null) { @await Html.PartialAsync("_GiftCard", Model) }   @* 개인 선물(ADR 0094 B, 확정 시안 말씀-선물고르기 ①) *@
+
     @if (withContent.Count > 0 && left.Count == 0 && Model.Day <= d.Today)   @* 오늘 이후는 할 수 없으니 "다 했어요" 칸을 보이지 않는다 *@
     {
         <div class="hParty" role="status">

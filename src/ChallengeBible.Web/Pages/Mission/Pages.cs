@@ -15,8 +15,10 @@ public sealed record PickSection(MissionPageBase Page, string No, string Title, 
 /// <summary>_MissionNav 모델.</summary>
 public sealed record MissionNav(MissionPageBase Page, string Current);
 
-public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoinService family) : MissionPageBase(missions, tenant)
+public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoinService family, PersonalGiftService gifts) : MissionPageBase(missions, tenant)
 {
+    /// <summary>"내 선물" 카드 · 100점 창(확정 시안 말씀-선물고르기 ① · ②, R-285). 참여자가 아니면 null.</summary>
+    public GiftWallet? Gift { get; private set; }
     public override string Title => "미션 홈";
     /// <summary>맨 아래 가족팀 입구(ADR 0083). 쓸 수 없거나 참여자가 아니면 null.</summary>
     public FamilyEntry? Family { get; private set; }
@@ -34,6 +36,7 @@ public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoin
     protected override async Task LoadMoreAsync(CancellationToken ct)
     {
         Family = await family.EntryAsync(ct);
+        Gift = UserName is null ? null : await gifts.WalletAsync(ct);
         Week = UserName is { } p ? await Missions.RecentDaysAsync(p, Day, ct) : [];
         NextMilestone = MissionService.NextMilestone(Data!.Rules, Data.SeasonPoints);
         SeasonStart = await Missions.SeasonStartAsync(Data.Today.Year, ct);
