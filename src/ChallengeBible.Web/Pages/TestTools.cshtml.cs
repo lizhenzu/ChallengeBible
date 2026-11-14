@@ -9,7 +9,7 @@ namespace ChallengeBible.Web.Pages;
 /// `/test-tools?t=부서번호` 임시 시험 도구(ADR 0095): 가짜 데이터 넣기 · 지우기(플랫폼 관리자만) + 상황별 로그인 버튼(비밀번호 1234).
 /// 설정 `TestTools:Enabled` 가 꺼져 있거나, 플랫폼 관리자 · 가짜 계정이 아니면 없는 화면처럼 404.
 /// </summary>
-public class TestToolsModel(TestToolsService tools, AccountService accounts) : PageModel, ITitled
+public class TestToolsModel(TestToolsService tools, AccountService accounts, UserSwitchService switcher) : PageModel, ITitled
 {
     public string Title => "시험 도구(임시)";
 
@@ -64,6 +64,16 @@ public class TestToolsModel(TestToolsService tools, AccountService accounts) : P
         if (!tools.Enabled || !await AllowedAsync(ct)) return NotFound();
         var account = await tools.FakeLoginAsync(accounts, user, ct);
         if (account is null) return NotFound();
+        // 플랫폼 관리자(또는 가장 중)면 가장으로 들어간다(ADR 0096): 띠의 [사람 바꾸기] · [복귀]가 보인다
+        var me = User.UserName()!;
+        var admin = User.ImpersonatorId() ?? (await tools.IsPlatformAdminAsync(me, ct) ? me : null);
+        if (admin is not null)
+        {
+            var (_, target, _) = await switcher.SwitchAsync(admin, me, user, ct);
+            if (target is null) return NotFound();
+            await CurrentUser.SignInAsync(HttpContext, await accounts.ToSignedInAsync(target, ct), admin);
+            return LocalRedirect("/");
+        }
         await CurrentUser.SignInAsync(HttpContext, await accounts.ToSignedInAsync(account, ct));
         return LocalRedirect("/");
     }

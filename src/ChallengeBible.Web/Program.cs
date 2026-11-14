@@ -62,6 +62,7 @@ builder.Services.AddScoped<FamilyStageService>();
 builder.Services.AddScoped<FamilyAwardService>();
 builder.Services.AddScoped<FamilyJoinService>();
 builder.Services.AddScoped<ImpersonationService>();
+builder.Services.AddScoped<UserSwitchService>();   // 사람 바꾸기(ADR 0096)
 builder.Services.AddScoped<MyAccountService>();
 builder.Services.AddSingleton<ErrorLog>();
 builder.Services.AddSingleton<AppInfo>();

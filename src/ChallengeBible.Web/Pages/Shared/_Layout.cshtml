@@ -39,6 +39,8 @@
         @* 가장 중(ADR 0067, 확정 시안 플랫폼-가장): 모든 화면 맨 위 보라 띠 + [복귀] *@
         <div class="imp-bar" role="status"><div class="wrap gut">
             <span><b>가장 중</b> · @(User.DisplayName())님으로 보고 있어요</span>
+            @* 사람 바꾸기(ADR 0096, 확정 시안 사람바꾸기): 로그아웃 없이 다른 계정으로 *@
+            <a class="sw-btn" href="/account/impersonate/switch?back=@Uri.EscapeDataString(path + Context.Request.QueryString)" data-imp-switch>사람 바꾸기</a>
             <form method="post" action="/account/impersonate/stop">@Html.AntiForgeryToken()<button type="submit">복귀</button></form>
         </div></div>
     }
@@ -46,5 +48,6 @@
     @await RenderSectionAsync("Scripts", required: false)
     <script src="~/js/pwa.js" asp-append-version="true" defer></script>
     <script src="~/js/wait.js" asp-append-version="true" defer></script>
+    @if (User.ImpersonatorId() is not null) { <script src="~/js/imp-switch.js" asp-append-version="true" defer></script> }
 </body>
 </html>

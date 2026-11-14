@@ -1,0 +1,67 @@
+@page "/account/impersonate/switch"
+@model ChallengeBible.Web.Pages.Account.ImpersonateSwitchModel
+@* 확정 시안 사람바꾸기(2026-11-14, ADR 0096) ② · ③. frag=true 면 창 안 내용만(imp-switch.js 가 띠의 [사람 바꾸기] 창에 넣는다). *@
+@{
+    if (Model.Frag) { Layout = null; }
+    var L = Model.List!;
+    var searching = !string.IsNullOrEmpty(L.Q);
+
+    void Row(SwitchRow r, bool showDept)
+    {
+        var me = r.UserName.Equals(Model.Me, StringComparison.OrdinalIgnoreCase);
+        <!form method="post" action="/account/impersonate/switch" class="sw-p@(me ? " me" : "")@(r.Blocked ? " off" : "")">@Html.AntiForgeryToken()
+            <span class="sw-av" aria-hidden="true">@Initial(r.Name)</span>
+            <span class="sw-who"><b>@r.Name</b><small>@if (showDept && r.TenantName is not null) { <em>@r.TenantName</em><text> · </text> }@if (r.Admin) { <i class="sw-t ad">관리자</i> }<i class="sw-t @r.Kind">@r.RoleLabel</i>@(r.ClassText is null ? "" : r.ClassText + " · ")@r.UserName</small></span>
+            @if (me) { <span class="sw-go now">지금</span> }
+            else if (r.Blocked) { <span class="sw-go now">들어갈 수 없음</span> }
+            else
+            {
+                <input type="hidden" name="to" value="@r.UserName" />
+                @if (!string.IsNullOrEmpty(Model.Back)) { <input type="hidden" name="back" value="@Model.Back" /> }
+                <button type="submit" class="sw-go" aria-label="@r.Name 으로 바꾸기">바꾸기 ›</button>
+            }
+        </!form>
+    }
+}
+@functions {
+    private static string Initial(string name) => name.Length == 0 ? "?" : name[..1];
+}
+@Html.Raw(Model.Frag ? "" : "<main class=\"sw-page\">")
+<section class="sw-sheet" aria-label="사람 바꾸기" data-sw-root>
+    <div class="sw-head"><h2>사람 바꾸기</h2><a href="@(string.IsNullOrEmpty(Model.Back) ? "/" : Model.Back)" data-sw-close>닫기</a></div>
+    @if (Model.Error is { } err) { <p class="sw-err" role="alert">@err</p> }
+    <form method="get" action="/account/impersonate/switch" class="sw-find" data-sw-find role="search">
+        <input type="search" name="q" value="@L.Q" placeholder="이름 · 아이디로 찾기(모든 부서)" aria-label="이름 · 아이디로 찾기" autocomplete="off" />
+        @if (!string.IsNullOrEmpty(Model.Back)) { <input type="hidden" name="back" value="@Model.Back" /> }
+    </form>
+    @if (!searching)
+    {
+        <nav class="sw-chips" aria-label="부서">
+            @foreach (var d in L.Depts)
+            {
+                <a href="@Model.Url(d.Id)" data-sw aria-current="@(d.Id == L.Dept ? "true" : null)">@d.Name</a>
+            }
+        </nav>
+    }
+    <nav class="sw-chips" aria-label="역할">
+        @foreach (var (key, label, count) in L.Roles)
+        {
+            <a href="@Model.Url(searching ? null : L.Dept, key, L.Q)" data-sw aria-current="@(key == L.Role ? "true" : null)">@label<u>@count</u></a>
+        }
+    </nav>
+    @if (!searching && L.Role == "all" && L.Recent.Count > 0)
+    {
+        <div class="sw-lbl">최근에 본 사람</div>
+        <div class="sw-list">@foreach (var r in L.Recent) { Row(r, true); }</div>
+    }
+    <div class="sw-lbl">@(searching ? $"\"{L.Q}\" 찾은 사람" : (L.Depts.FirstOrDefault(d => d.Id == L.Dept)?.Name ?? "") + " · 이름 순")</div>
+    @if (L.Rows.Count == 0) { <p class="sw-none">맞는 사람이 없어요.</p> }
+    else
+    {
+        <div class="sw-list">@foreach (var r in L.Rows) { Row(r, searching); }</div>
+    }
+    @if (L.More) { <a class="sw-more" href="@Model.Url(searching ? null : L.Dept, L.Role, L.Q, L.Take + 30)" data-sw>더 보기</a> }
+    <p class="sw-hint">플랫폼 관리자 · 정지된 계정은 들어갈 수 없어요. 바꿀 때마다 감사 로그에 남아요.</p>
+</section>
+@Html.Raw(Model.Frag ? "" : "</main>")
+

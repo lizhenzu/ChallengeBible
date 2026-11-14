@@ -3664,3 +3664,46 @@ a.nc-card.hidden { display: none; }
 .gk-sheet .gk-sn { margin: 0 0 14px; font-size: 12.5px; line-height: 1.6; color: #6B7280; }
 .gk-sheet .gk-row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 8px; }
 .gk-sheet .gk-row2 .gk-btn.gk-ghost { margin: 0; background: #F4F6F9; color: #374151; }
+
+/* 사람 바꾸기(확정 시안 사람바꾸기, ADR 0096). sw- 앞글자. 가장 띠 보라(#7A2E9C) 그대로. */
+.imp-bar .sw-btn { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 10px; color: #fff; font-weight: 900; text-decoration: none; white-space: nowrap; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55); background: rgba(255, 255, 255, .16); }
+.imp-bar .sw-btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.sw-dim { position: fixed; inset: 0; z-index: 120; display: flex; align-items: flex-end; justify-content: center; background: rgba(15, 23, 42, .45); }
+@media (min-width: 640px) { .sw-dim { align-items: center; padding: 24px; } }
+.sw-page { max-width: 560px; margin: 0 auto; padding: 16px; }
+.sw-sheet { width: min(560px, 100%); max-height: 88vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 14px 14px 12px; border-radius: 22px 22px 0 0; background: #fff; color: #111827; font-family: "Gothic A1", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif; }
+@media (min-width: 640px) { .sw-sheet { border-radius: 18px; } }
+.sw-page .sw-sheet { max-height: none; border-radius: 18px; border: 1px solid #E5E7EB; }
+.sw-head { flex: none; display: flex; justify-content: space-between; align-items: center; }
+.sw-head h2 { margin: 0; font-size: 17px; font-weight: 800; }
+.sw-head a { color: #6B7280; font-size: 13px; font-weight: 600; text-decoration: none; padding: 6px 2px; }
+.sw-err { margin: 0; padding: 10px 12px; border-radius: 10px; background: #FDEEF0; color: #B91C1C; font-size: 13.5px; }
+.sw-find { flex: none; margin: 0; }
+.sw-find input { width: 100%; min-height: 42px; padding: 0 12px; border: 1px solid #E5E7EB; border-radius: 12px; font: inherit; font-size: 14px; color: #111827; background: #fff; }
+.sw-find input:focus { outline: none; border-color: #7A2E9C; box-shadow: 0 0 0 2px #E9D5F5; }
+.sw-chips { flex: none; display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.sw-chips a { flex: none; padding: 6px 11px; border-radius: 99px; border: 1px solid #E5E7EB; color: #374151; font-size: 12.5px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.sw-chips a u { margin-left: 3px; text-decoration: none; font-weight: 500; opacity: .7; }
+.sw-chips a[aria-current] { background: #111827; border-color: #111827; color: #fff; }
+.sw-lbl { margin: 2px 0 -4px; font-size: 11.5px; font-weight: 800; color: #9CA3AF; }
+.sw-list { flex: none; border: 1px solid #E5E7EB; border-radius: 14px; overflow: hidden; }
+.sw-p { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 10px; align-items: center; margin: 0; padding: 9px 12px; border-bottom: 1px solid #E5E7EB; }
+.sw-p:last-child { border-bottom: 0; }
+.sw-p.me { background: #F4EAFA; }
+.sw-p.off { opacity: .45; }
+.sw-av { width: 36px; height: 36px; border-radius: 50%; background: #F4F6F9; display: grid; place-items: center; font-size: 13px; font-weight: 800; color: #6B7280; }
+.sw-who { min-width: 0; }
+.sw-who b { display: block; font-size: 14.5px; }
+.sw-who small { display: block; margin-top: 1px; font-size: 12px; color: #6B7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sw-who em { font-style: normal; font-weight: 800; color: #374151; }
+.sw-t { display: inline-block; margin-right: 4px; padding: 1px 6px; border-radius: 99px; font-size: 11px; font-weight: 800; font-style: normal; vertical-align: 1px; background: #F4F6F9; color: #6B7280; }
+.sw-t.st { background: #EAF2FD; color: #2F80ED; }
+.sw-t.te { background: #EAF7EF; color: #16A34A; }
+.sw-t.of, .sw-t.et { background: #F3E8FF; color: #7C3AED; }
+.sw-t.pa { background: #FFF4E5; color: #C2410C; }
+.sw-t.ad { background: #1E2A4A; color: #fff; }
+.sw-go { border: 0; background: none; padding: 8px 0 8px 6px; font: inherit; font-size: 12.5px; font-weight: 800; color: #7A2E9C; cursor: pointer; white-space: nowrap; }
+.sw-go.now { color: #6B7280; font-weight: 600; cursor: default; }
+.sw-none { margin: 0; padding: 14px; border-radius: 12px; background: #F4F6F9; color: #6B7280; font-size: 13.5px; text-align: center; }
+.sw-more { display: flex; justify-content: center; align-items: center; min-height: 42px; border-radius: 12px; border: 1px solid #E5E7EB; color: #374151; font-size: 13.5px; font-weight: 800; text-decoration: none; }
+.sw-hint { margin: 0; font-size: 12px; line-height: 1.55; color: #6B7280; }
