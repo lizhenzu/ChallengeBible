@@ -59,8 +59,4 @@ public static class GiftMath
         if (cap < r.FirstCredits) return 0;
         return r.StepPoints + (cap - r.FirstCredits) / r.StepCredits * r.StepPoints;
     }
-
-    /// <summary>신청 정산(R-281): 남은 점수 중 StepPoints 단위는 남기고 그 아래 자투리는 지운다. 지우는 점수를 돌려준다.</summary>
-    public static int Burned(int available, int need, GiftRules r) =>
-        r.StepPoints <= 0 || available <= need ? 0 : (available - need) % r.StepPoints;
 }

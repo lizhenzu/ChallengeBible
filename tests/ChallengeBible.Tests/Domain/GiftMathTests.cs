@@ -60,10 +60,4 @@ public class GiftMathTests
         Assert.Equal(2600, GiftMath.CapPoints(30000, R, true));   // 100점 = 5,000 + 2,500점 = 25,000
         Assert.Equal(3000, GiftMath.CapPoints(30000, R, false));
     }
-
-    [Theory]
-    [InlineData(340, 200, 40)]   // 시안: 340점에서 200점 선물 → 100점 남고 40점 없어짐
-    [InlineData(300, 200, 0)]
-    [InlineData(200, 200, 0)]
-    public void R281_남은_점수의_100점_미만은_지운다(int available, int need, int burned) => Assert.Equal(burned, GiftMath.Burned(available, need, R));
 }

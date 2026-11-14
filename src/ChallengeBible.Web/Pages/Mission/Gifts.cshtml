@@ -41,7 +41,7 @@
                     <input type="hidden" name="id" value="@a.Id" />
                     <button type="submit" class="gk-btn gk-line">선물 취소하기</button>
                 </form>
-                <p class="gk-hint">취소하면 쓴 @P(a.PointsUsed)@(a.PointsBurned > 0 ? $"과 없어진 {a.PointsBurned}점" : "")이 다시 돌아와요. 선생님이 준비한 뒤에는 취소할 수 없어요. 선물을 받으면 다음 선물을 고를 수 있어요.</p>
+                <p class="gk-hint">취소하면 쓴 @P(a.PointsUsed)이 다시 돌아와요. 선생님이 준비한 뒤에는 취소할 수 없어요. 선물을 받으면 다음 선물을 고를 수 있어요.</p>
             }
             else
             {
@@ -71,9 +71,8 @@
                 var pic = i.HasImage ? GiftsModel.Img(i.Id, i.UpdatedUtc) : null;
                 if (can)
                 {
-                    var burn = Domain.Rules.GiftMath.Burned(w.Available, i.Need, w.Rules);
                     <button type="submit" name="item" value="@i.Id" class="gk-it" data-name="@i.Name" data-desc="@i.Description" data-img="@pic"
-                            data-need="@i.Need" data-now="@w.Available" data-left="@(w.Available - i.Need - burn)" data-burn="@burn">
+                            data-need="@i.Need" data-now="@w.Available" data-left="@(w.Available - i.Need)">
                         <span class="gk-pic">@if (pic is not null) { <img src="@pic" alt="" loading="lazy" onerror="this.remove()" /> }</span>
                         <span class="gk-nm">@i.Name</span><span class="gk-pt num">@P(i.Need)</span>
                     </button>

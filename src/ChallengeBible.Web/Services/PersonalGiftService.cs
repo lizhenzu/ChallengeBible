@@ -100,7 +100,7 @@ public sealed class PersonalGiftService(IAppDb db, RequestScope scope, TenantCon
             .OrderBy(i => i.Need).ThenBy(i => i.Name).ToList();
     }
 
-    /// <summary>선물 고르기(R-281): 필요한 점수를 쓰고 100점 미만 자투리는 지운다. 받기 전 선물이 있으면 못 고른다(정한 것 8).</summary>
+    /// <summary>선물 고르기(R-281): 필요한 점수만 쓰고 남은 점수는 모두 남긴다(정한 것 9). 받기 전 선물이 있으면 못 고른다(정한 것 8).</summary>
     public async Task<(PickResult Result, long? GiftId)> PickAsync(int itemId, CancellationToken ct = default)
     {
         if (!IsStudent || UserName is not { } user) return (PickResult.NotStudent, null);
@@ -115,7 +115,7 @@ public sealed class PersonalGiftService(IAppDb db, RequestScope scope, TenantCon
         var now = time.GetUtcNow().UtcDateTime;
         var year = (short)w.Year;
         var n = await ctx.Gifts.CountAsync(g => g.Kind == GiftKinds.Personal && g.UserName == user && g.Year == year, ct) + 1;
-        var burned = GiftMath.Burned(w.Available, item.Need, w.Rules);
+        const int burned = 0;   // 남은 점수는 모두 남긴다(사용자 2026-11-14: 1,111점에서 1,000점 선물 → 111점 그대로, ADR 0094 정한 것 9)
         var gift = new Gift
         {
             TenantId = T, Kind = GiftKinds.Personal, Year = year, UserName = user, SourceKey = $"P{year}-{n}", State = GiftStates.Picked,
@@ -128,7 +128,7 @@ public sealed class PersonalGiftService(IAppDb db, RequestScope scope, TenantCon
             await ctx.SaveChangesAsync(ct);
             ctx.GiftPointUses.Add(new GiftPointUse { TenantId = T, UserName = user, Year = year, GiftId = gift.Id, PointsUsed = item.Need, PointsBurned = burned, FirstBonus = w.FirstBonus, CreatedUtc = now });
             ctx.GiftLogs.Add(new GiftLog { TenantId = T, GiftId = gift.Id, Action = GiftActions.Pick, ActorUserName = user, AtUtc = now, ItemName = item.Name, ItemPrice = item.Price,
-                Detail = $"points {item.Need}, burned {burned}, credits {item.Credits}" });
+                Detail = $"points {item.Need}, credits {item.Credits}" });
             await ctx.SaveChangesAsync(ct);
             if (tx is not null) await tx.CommitAsync(ct);
         }
@@ -139,7 +139,7 @@ public sealed class PersonalGiftService(IAppDb db, RequestScope scope, TenantCon
         return (PickResult.Ok, gift.Id);
     }
 
-    /// <summary>본인 취소(R-284): 선생님이 준비(구매 완료)하기 전, 그해 선물만. 쓴 점수 · 지운 자투리가 모두 돌아온다.</summary>
+    /// <summary>본인 취소(R-284): 선생님이 준비(구매 완료)하기 전, 그해 선물만. 쓴 점수가 모두 돌아온다.</summary>
     public async Task<bool> CancelAsync(long giftId, CancellationToken ct = default)
     {
         if (UserName is not { } user) return false;

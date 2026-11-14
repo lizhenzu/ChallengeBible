@@ -1,6 +1,6 @@
 // 개인 선물(확정 시안 2판 말씀-선물고르기, ADR 0094 B · 정한 것 8, R-285).
 // ① 미션 홈: 100점 단위를 새로 넘었을 때 창 한 번(이 기기에 마지막으로 본 단계를 적어 둔다).
-// ③ → ④ 고르기 화면: 선물을 누르면 확인 창(남는 점수 · 없어지는 자투리), [이 선물로 할게요]에서 보낸다. 스크립트가 없으면 바로 보낸다.
+// ③ → ④ 고르기 화면: 선물을 누르면 확인 창(남는 점수 — 모두 남는다, 정한 것 9), [이 선물로 할게요]에서 보낸다. 스크립트가 없으면 바로 보낸다.
 // ⑤ 선물 취소도 확인 창을 거친다.
 (() => {
     const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -29,7 +29,6 @@
             if (sure || !b || !b.dataset.need) return;
             e.preventDefault();
             const d = b.dataset;
-            const burn = Number(d.burn);
             open('gk-bottom', `<section class="gk-sheet" role="dialog" aria-modal="true" aria-labelledby="gkT">
                 <div class="gk-top"><span class="gk-pic">${d.img ? `<img src="${esc(d.img)}" alt="" onerror="this.remove()">` : ''}</span>
                   <div><h2 id="gkT">${esc(d.name)}</h2><div class="gk-need">${n(d.need)}점</div></div></div>
@@ -37,7 +36,7 @@
                 <div class="gk-calc"><div><span>지금 점수</span><span>${n(d.now)}점</span></div>
                   <div><span>이 선물</span><span>− ${n(d.need)}점</span></div>
                   <div class="gk-sum"><span>고른 뒤 남는 점수</span><span>${n(d.left)}점</span></div></div>
-                <p class="gk-sn">${burn > 0 ? `100점이 안 되는 ${burn}점은 없어져요. ` : ''}이 선물을 받으면 다음 선물을 고를 수 있어요.</p>
+                <p class="gk-sn">남은 점수는 그대로 모여요. 이 선물을 받으면 다음 선물을 고를 수 있어요.</p>
                 <div class="gk-row2"><button type="button" class="gk-btn gk-ghost" data-close>닫기</button><button type="button" class="gk-btn gk-pri" data-ok>이 선물로 할게요</button></div>
               </section>`, () => { sure = true; pick.requestSubmit(b); });
         });

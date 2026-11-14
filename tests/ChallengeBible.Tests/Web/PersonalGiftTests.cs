@@ -110,7 +110,7 @@ public partial class PersonalGiftTests : IClassFixture<WebApplicationFactory<Pro
     }
 
     [Fact]
-    public async Task R281_고르면_필요한_점수를_쓰고_100점_미만_자투리는_지우며_미션_기록은_그대로()
+    public async Task R281_고르면_필요한_점수만_쓰고_남은_점수는_모두_남기며_미션_기록은_그대로()
     {
         var pens = Item("24색 색연필 세트", 6000);
         var (c, user) = await Login("siwoo", 340);
@@ -119,16 +119,30 @@ public partial class PersonalGiftTests : IClassFixture<WebApplicationFactory<Pro
         using (var raw = InMemoryDb.Raw(_db))
         {
             var g = raw.Gifts.Single();
-            Assert.Equal((GiftKinds.Personal, GiftStates.Picked, "24색 색연필 세트", 6000, 200, 40), (g.Kind, g.State, g.ItemName, g.ItemPrice!.Value, g.PointsUsed!.Value, g.PointsBurned!.Value));
+            Assert.Equal((GiftKinds.Personal, GiftStates.Picked, "24색 색연필 세트", 6000, 200, 0), (g.Kind, g.State, g.ItemName, g.ItemPrice!.Value, g.PointsUsed!.Value, g.PointsBurned!.Value));
             var use = raw.GiftPointUses.Single();
-            Assert.Equal((200, 40, true), (use.PointsUsed, use.PointsBurned, use.FirstBonus));
+            Assert.Equal((200, 0, true), (use.PointsUsed, use.PointsBurned, use.FirstBonus));
             Assert.Equal(340, raw.MissionActivities.Where(a => a.UserName == user).Sum(a => a.Points));   // 미션 기록 · 순위는 그대로
             Assert.Equal(GiftActions.Pick, raw.GiftLogs.Single().Action);
         }
         var page = await c.GetStringAsync("/kids/gifts");
         Assert.Contains("준비 중이에요", page);
-        Assert.Contains("100점", page);   // 남은 점수
+        Assert.Contains("140점", page);   // 남은 점수: 340 − 200 = 140점 모두 남음(정한 것 9)
         Assert.Contains("gk-card gk-got", await c.GetStringAsync("/kids/word-mission"));
+    }
+
+    [Fact]
+    public async Task 정한것9_1111점에서_1000점_선물을_고르면_111점이_모두_남는다()
+    {
+        var big = Item("큰 선물", 14000);   // 14,000 크레딧 = 1,000점
+        var (c, _) = await Login("gaho", 1111);
+        await Post(c, "Pick", new() { ["item"] = big.ToString() });
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var g = raw.Gifts.Single();
+            Assert.Equal((1000, 0), (g.PointsUsed!.Value, g.PointsBurned!.Value));
+        }
+        Assert.Contains("<b class=\"num\">111점</b>", await c.GetStringAsync("/kids/gifts"));   // 남은 점수
     }
 
     [Fact]
