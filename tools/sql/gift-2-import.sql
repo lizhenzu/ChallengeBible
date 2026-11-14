@@ -7,6 +7,7 @@ SET XACT_ABORT ON;
 SET ANSI_NULLS ON; SET QUOTED_IDENTIFIER ON;
 DECLARE @Commit bit = 0;
 DECLARE @Now datetime2(3) = '2026-11-14T00:00:00';   -- written time (UTC); change if you like
+DROP TABLE IF EXISTS #Src;   -- same SSMS window run twice (test run, then real run)
 CREATE TABLE #Src (ProductID int PRIMARY KEY, ProductName nvarchar(100), ProductDescription nvarchar(500) NULL, UnitPrice int, IsHidden bit, ExternalUrl nvarchar(1000) NULL);
 
 -- ===== paste the "Line" rows from gift-1-export-yuyunbu.sql below this line =====
