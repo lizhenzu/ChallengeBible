@@ -25,6 +25,11 @@
             <div class="f"><label for="ds">설명(선택)</label>
                 <textarea class="in" id="ds" name="Input.Description" maxlength="500">@Model.Input.Description</textarea>
                 @if (Err("Description").Length > 0) { <span class="bad">@Err("Description")</span> }</div>
+            @if (Model.CommonOption)
+            {
+                @* 부서 관리자 새 상품: 체크하면 처음부터 공통 상품(2000번대)으로, 모든 부서에 보인다(2026-11-14 사용자) *@
+                <label class="gf-common"><input type="checkbox" name="common" value="true" @(Model.Common ? "checked" : "") /><span><b>전체 공통으로 등록</b><small>체크하면 모든 부서에 보이는 공통 상품(2000번대)이 돼요. 나중에 우리 부서와 플랫폼만 고칠 수 있어요.</small></span></label>
+            }
             <div class="gf-acts"><a class="btn s" href="@Model.Back">취소</a><button class="btn p" type="submit">저장</button></div>
         </div>
     </form>

@@ -51,10 +51,13 @@ public class GiftEditModel(GiftCatalogService catalog, TenantContext tenant) : P
         return Page();
     }
 
-    public async Task<IActionResult> OnPostAsync(IFormFile? photo, CancellationToken ct)
+    public bool Common { get; private set; }
+
+    public async Task<IActionResult> OnPostAsync(IFormFile? photo, bool common, CancellationToken ct)
     {
         if (!await LoadAsync(ct)) return NotFound();
-        var (errors, id) = await catalog.SaveAsync(Editor, Id, Input, ct);
+        Common = common;
+        var (errors, id) = await catalog.SaveAsync(Editor, Id, Input, ct, common: Id is null && common);
         if (errors.Count > 0) { Errors = errors; return Page(); }
         if (photo is { Length: > 0 })
         {

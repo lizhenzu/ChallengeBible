@@ -17,7 +17,7 @@ public sealed class GiftItemInput
 }
 
 /// <summary>상품 폼 partial(_GiftItemForm)에 넘기는 값.</summary>
-public sealed record GiftItemFormView(GiftItem? Item, GiftItemInput Input, IReadOnlyDictionary<string, string> Errors, string Back);
+public sealed record GiftItemFormView(GiftItem? Item, GiftItemInput Input, IReadOnlyDictionary<string, string> Errors, string Back, bool CommonOption = false, bool Common = false);
 
 public enum GiftItemError { None, NotFound, HasPicks, BadImage, NotAllowed, ImageTaken }
 
@@ -42,6 +42,9 @@ public sealed class GiftCatalogService(ISystemDb systemDb, IConfiguration config
     public const int PageSize = 30;
     public const int MaxImageBytes = 600 * 1024;
     public const string LogAction = "GiftItem";
+    /// <summary>번호 줄(2026-11-14 사용자): 유년부 상품은 원래 번호(2000 미만), 새 공통 상품 2000 ~ 4999, 부서 상품 5000부터(IDENTITY).</summary>
+    public const int CommonStart = 2000;
+    public const int DeptStart = 5000;
 
     /// <summary>선물 이미지 폴더(R-274). Program 의 /images 와 같은 곳.</summary>
     public static string ImagesDir(IConfiguration config, IWebHostEnvironment env) =>
@@ -133,8 +136,17 @@ public sealed class GiftCatalogService(ISystemDb systemDb, IConfiguration config
     public Task<(Dictionary<string, string> Errors, int Id)> SaveAsync(string actor, int? id, GiftItemInput input, CancellationToken ct = default) =>
         SaveAsync(GiftEditor.Platform(actor), id, input, ct);
 
+    /// <summary>새 공통 상품 번호: 2000 ~ 4999 에서 가장 큰 번호 + 1(없으면 2000). 다 차면 null.</summary>
+    private static async Task<int?> NextCommonIdAsync(AppDbContext ctx, CancellationToken ct)
+    {
+        var max = await ctx.GiftItems.Where(i => i.Id >= CommonStart && i.Id < DeptStart).MaxAsync(i => (int?)i.Id, ct);
+        var next = max is int m ? m + 1 : CommonStart;
+        return next < DeptStart ? next : null;
+    }
+
     /// <summary>등록 · 고치기. 부서가 새로 만드는 상품은 그 부서 상품(공통 아님). 고칠 권한이 없으면 NotFound 처럼 KeyNotFoundException.</summary>
-    public async Task<(Dictionary<string, string> Errors, int Id)> SaveAsync(GiftEditor editor, int? id, GiftItemInput input, CancellationToken ct = default)
+    /// <param name="common">부서 관리자가 "전체 공통으로 등록"을 체크했나(새 상품만). 플랫폼이 만드는 상품은 늘 공통.</param>
+    public async Task<(Dictionary<string, string> Errors, int Id)> SaveAsync(GiftEditor editor, int? id, GiftItemInput input, CancellationToken ct = default, bool common = false)
     {
         var actor = editor.Actor;
         var errors = new Dictionary<string, string>();
@@ -160,7 +172,14 @@ public sealed class GiftCatalogService(ISystemDb systemDb, IConfiguration config
         }
         else
         {
-            item = new GiftItem { Name = name, CreatedUtc = now, TenantId = editor.TenantId };
+            // 공통 상품(플랫폼이 만들거나 부서가 "전체 공통으로 등록")은 2000번대, 부서 상품은 IDENTITY(5000부터)
+            var isCommon = editor.TenantId is null || common;
+            item = new GiftItem { Name = name, CreatedUtc = now, TenantId = isCommon ? null : editor.TenantId, SharedByTenantId = isCommon ? editor.TenantId : null };
+            if (isCommon)
+            {
+                if (await NextCommonIdAsync(ctx, ct) is not int no) { errors["Name"] = "공통 상품 번호(2000 ~ 4999)가 다 찼어요. 플랫폼에 알려 주세요."; return (errors, 0); }
+                item.Id = no;
+            }
             ctx.GiftItems.Add(item);
         }
         item.Name = name;
@@ -170,8 +189,17 @@ public sealed class GiftCatalogService(ISystemDb systemDb, IConfiguration config
         if (item.Status == GiftItemStatus.Review) { item.Status = GiftItemStatus.Active; item.ReviewReason = null; }
         item.UpdatedUtc = now;
         item.UpdatedByUserName = actor;
-        await ctx.SaveChangesAsync(ct);
-        Log(ctx, actor, id is null ? "등록" : "고침", item);
+        if (id is null && item.Id != 0 && ctx.Database.IsRelational())
+        {
+            // 번호를 정해 넣는 공통 상품: 이 연결에서만 IDENTITY_INSERT
+            await using var tx = await ctx.Database.BeginTransactionAsync(ct);
+            await ctx.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT app.GiftItem ON", ct);
+            await ctx.SaveChangesAsync(ct);
+            await ctx.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT app.GiftItem OFF", ct);
+            await tx.CommitAsync(ct);
+        }
+        else await ctx.SaveChangesAsync(ct);
+        Log(ctx, actor, id is null ? (item.TenantId is null && editor.TenantId is not null ? "공통으로 등록" : "등록") : "고침", item);
         await ctx.SaveChangesAsync(ct);
         return (errors, item.Id);
     }

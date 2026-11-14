@@ -175,6 +175,33 @@ public partial class DeptGiftTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
+    public async Task 부서_관리자가_전체_공통으로_등록하면_2000번대_공통_상품이_되어_모든_부서에_보인다()
+    {
+        Item("유년부 연필");   // 옮겨 온 유년부 상품(번호는 2000 미만)
+        var c = await Admin("kidsadmin", _kids);
+        var e = await Admin("elemadmin", _elem);
+        Assert.Contains("전체 공통으로 등록", await c.GetStringAsync("/kids/admin/gifts/edit"));
+        var form = new Dictionary<string, string> { ["Input.Name"] = "성경 팔찌", ["Input.Price"] = "3,500", ["Input.CoupangUrl"] = "https://www.coupang.com/vp/products/7", ["common"] = "true" };
+        Assert.Equal(HttpStatusCode.Redirect, (await Post(c, "/kids/admin/gifts/edit", "/kids/admin/gifts/edit", form)).StatusCode);
+        form["Input.Name"] = "성경 책갈피";
+        Assert.Equal(HttpStatusCode.Redirect, (await Post(c, "/kids/admin/gifts/edit", "/kids/admin/gifts/edit", form)).StatusCode);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var made = raw.GiftItems.Where(x => x.Name.StartsWith("성경")).OrderBy(x => x.Id).ToList();
+            Assert.Equal([2000, 2001], made.Select(x => x.Id));
+            Assert.All(made, x => Assert.Equal(((int?)null, (int?)_kids.Id), (x.TenantId, x.SharedByTenantId)));
+        }
+        Assert.Contains("성경 팔찌", await e.GetStringAsync("/elem/admin/gifts?t=list"));   // 다른 부서에도 공통 상품으로
+        Assert.Contains("성경 팔찌", await c.GetStringAsync("/kids/admin/gifts?t=ours"));   // 올린 부서는 부서 상품 탭에서 고친다
+
+        // 체크하지 않으면 부서 상품
+        form.Remove("common"); form["Input.Name"] = "우리만 스티커";
+        await Post(c, "/kids/admin/gifts/edit", "/kids/admin/gifts/edit", form);
+        using var raw2 = InMemoryDb.Raw(_db);
+        Assert.Equal((int?)_kids.Id, raw2.GiftItems.Single(x => x.Name == "우리만 스티커").TenantId);
+    }
+
+    [Fact]
     public async Task 부서_관리자가_아니면_선물_설정에_들어가지_못한다()
     {
         var c = await Admin("teacher", _kids, admin: false);

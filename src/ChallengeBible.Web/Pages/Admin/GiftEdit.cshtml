@@ -17,7 +17,7 @@
     @if (i is not null && !own) { <p class="gf-warn">공통 상품이에요. 고치면 모든 부서에 반영돼요. 내리기 · 삭제는 플랫폼에서 해요.</p> }
     @if (i?.Status == GiftItemStatus.Retired) { <p class="gf-warn">목록에서 내린 상품이에요 — 아이에게 보이지 않아요.</p> }
 
-    <partial name="_GiftItemForm" model="new ChallengeBible.Web.Services.GiftItemFormView(i, Model.Input, Model.Errors, Model.Back)" />
+    <partial name="_GiftItemForm" model="new ChallengeBible.Web.Services.GiftItemFormView(i, Model.Input, Model.Errors, Model.Back, CommonOption: i is null, Common: Model.Common)" />
 
     @if (i is not null && own)
     {

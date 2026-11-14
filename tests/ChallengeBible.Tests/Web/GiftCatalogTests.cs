@@ -88,6 +88,7 @@ public partial class GiftCatalogTests : IClassFixture<WebApplicationFactory<Prog
         using var raw = InMemoryDb.Raw(_db);
         var i = raw.GiftItems.Single();
         Assert.Equal(("볼펜 12자루", 4500, GiftItemStatus.Active, (int?)null), (i.Name, i.Price, i.Status, i.TenantId));
+        Assert.Equal(2000, i.Id);   // 공통 상품은 2000번부터(2026-11-14 사용자)
         Assert.Contains("볼펜 12자루", await c.GetStringAsync("/platform/gifts"));
         Assert.Contains(raw.AuditLogs, l => l.Action == GiftCatalogService.LogAction);
     }
@@ -205,13 +206,13 @@ public partial class GiftCatalogTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
-    public void 새_상품_번호는_5000번부터다()
+    public void 부서_상품_번호는_5000번부터다()
     {
         var m = new GiftNumbers_ForTest();
         var sql = string.Join("\n", m.Up().OfType<Microsoft.EntityFrameworkCore.Migrations.Operations.SqlOperation>().Select(o => o.Sql));
         Assert.Contains("RESEED, 4999", sql);
         Assert.Contains("RESEED, 5000", sql);
-        Assert.Contains("ProductID >= 5000", File.ReadAllText(Path.Combine(Root(), "tools", "sql", "gift-2-import.sql")));   // 유년부 번호가 5000 이상이면 옮기기를 멈춘다
+        Assert.Contains("ProductID >= 2000", File.ReadAllText(Path.Combine(Root(), "tools", "sql", "gift-2-import.sql")));   // 유년부 번호가 2000 이상이면 옮기기를 멈춘다(공통 2000번대와 겹침)
     }
 
     private static string Root()
