@@ -1,0 +1,174 @@
+@page "/{slug}/admin/gifts"
+@model ChallengeBible.Web.Pages.Admin.GiftsModel
+@using ChallengeBible.Infrastructure.Data
+@using ChallengeBible.Web.Pages.Admin
+@using ChallengeBible.Web.Services
+@using ChallengeBible.Domain.Rules
+@* 확정 시안: 관리-선물-단독시안(2026-11-14) — 탭 ① 선물 목록(스위치 = 바로 저장) ② 우리 부서 상품(공통에 올리기) ③ 금액 · 점수(빈 칸 = 공통 기본값) *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var self = $"/{slug}/admin/gifts";
+    var r = Model.Rules;
+    var c = Model.Counts;
+    string Tab(string k) => Model.Tab == k ? "page" : null!;
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut gd"><div class="wrap">
+    <h1>선물</h1>
+    <p class="gd-lead">우리 부서 아이들이 고를 선물과 금액을 정해요.</p>
+    <nav class="gd-tabs" aria-label="선물 설정">
+        <a href="@self?t=list" aria-current="@Tab("list")">선물 목록</a>
+        <a href="@self?t=ours" aria-current="@Tab("ours")">우리 부서 상품</a>
+        <a href="@self?t=money" aria-current="@Tab("money")">금액 · 점수</a>
+    </nav>
+    @if (Model.Message is not null) { <p class="ok-box" role="status">@Model.Message</p> }
+
+    @if (Model.Tab == "list")
+    {
+        <nav class="gd-seg" aria-label="보기">
+            <a href="@Model.Url("all")" aria-current="@(Model.Show == "all" ? "page" : null)">모두<u class="num">@c.All</u></a>
+            <a href="@Model.Url("shown")" aria-current="@(Model.Show == "shown" ? "page" : null)">보임<u class="num">@c.Shown</u></a>
+            <a href="@Model.Url("hidden")" aria-current="@(Model.Show == "hidden" ? "page" : null)">숨김<u class="num">@c.Hidden</u></a>
+        </nav>
+        <form method="get" class="gd-tools" role="search">
+            <input type="hidden" name="t" value="list" /><input type="hidden" name="v" value="@Model.Show" />
+            <input class="in" type="search" name="q" value="@Model.Q" placeholder="상품 이름 · 번호로 찾기" aria-label="찾기" />
+            <select class="in" name="p" aria-label="가격대" onchange="this.form.submit()">
+                @foreach (var b in ChallengeBible.Web.Pages.Platform.GiftsModel.Bands) { <option value="@b.Key" selected="@(Model.Band == b.Key || (Model.Band is null && b.Key == ""))">@b.Label</option> }
+            </select>
+        </form>
+        <p class="gd-note">공통 상품은 모든 부서에 보여요. 우리 부서에 안 맞는 것만 <b>숨김</b>으로 바꾸면 우리 아이들에게 보이지 않아요(스위치를 누르면 바로 저장).</p>
+        @if (Model.Rows.Count == 0)
+        {
+            <div class="empty-box">@(Model.Show == "hidden" ? "숨긴 상품이 없어요." : "상품이 없어요.")</div>
+        }
+        else
+        {
+            <div class="gd-rows">
+                @foreach (var g in Model.Rows)
+                {
+                    var img = GiftsModel.Img(g);
+                    <div class="gd-row @(g.Hidden ? "off" : "")" id="g@(g.Id)">
+                        <span class="gd-th">@if (img.Length > 0) { <img src="@img" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🎁'}))" /> } else { <span aria-hidden="true">🎁</span> }</span>
+                        <span class="gd-mid"><b>@if (!g.Common) { <span class="gd-tag ours">우리 부서</span> } else if (g.SharedByName is { } sn) { <span class="gd-tag">@sn</span> }@g.Name</b>
+                            <small class="num">@g.Id · @GiftsModel.N(g.Price)원 · @(g.Common ? g.SharedByName is { } s2 ? $"{s2}가 공통에 올림" : "공통" : "우리 부서만")</small></span>
+                        @if (g.Common)
+                        {
+                            <form method="post" asp-page-handler="Hide" asp-route-slug="@slug" class="gd-hide">
+                                <input type="hidden" name="id" value="@g.Id" /><input type="hidden" name="hide" value="@(g.Hidden ? "false" : "true")" />
+                                <input type="hidden" name="v" value="@Model.Show" /><input type="hidden" name="q" value="@Model.Q" /><input type="hidden" name="p" value="@Model.Band" />
+                                <button type="submit" class="gd-sw" role="switch" aria-checked="@(g.Hidden ? "false" : "true")" aria-label="@g.Name 아이에게 보이기"><i></i><span>@(g.Hidden ? "숨김" : "보임")</span></button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a class="gd-own" href="@self/edit/@g.Id">우리 상품 ›</a>
+                        }
+                    </div>
+                }
+            </div>
+            @if (Model.More) { <div class="gd-more"><a class="btn s sm" href="@Model.Url(n: Model.Take + GiftCatalogService.PageSize)">@(GiftCatalogService.PageSize)개 더 보기</a></div> }
+        }
+    }
+    else if (Model.Tab == "ours")
+    {
+        <div class="gd-head"><b>우리 부서 상품 <small class="num">@Model.Ours.Count</small></b><a class="btn p sm" href="@self/edit">+ 상품 등록</a></div>
+        <p class="gd-note">우리 부서 상품은 우리 아이들에게만 보여요. <b>[공통에 올리기]</b>를 누르면 승인 없이 바로 모든 부서에 보이고, 그 뒤에도 우리 부서와 플랫폼만 고칠 수 있어요. 등록 화면은 플랫폼 상품 등록과 같아요(사진 · 가격 · 쿠팡 링크 필수).</p>
+        @if (Model.Ours.Count == 0)
+        {
+            <div class="empty-box">아직 우리 부서 상품이 없어요.</div>
+        }
+        else
+        {
+            <div class="gd-rows">
+                @foreach (var g in Model.Ours)
+                {
+                    var img = GiftsModel.Img(g);
+                    <div class="gd-row">
+                        <span class="gd-th">@if (img.Length > 0) { <img src="@img" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🎁'}))" /> } else { <span aria-hidden="true">🎁</span> }</span>
+                        <span class="gd-mid"><b>@if (g.Common) { <span class="gd-tag">공통</span> }@g.Name</b>
+                            <small class="num">@g.Id · @GiftsModel.N(g.Price)원 · @(g.Common ? "우리가 공통에 올림" : g.Status == GiftItemStatus.Active ? "우리 부서만" : g.Status == GiftItemStatus.Retired ? "목록에서 내림" : "삭제 대상")</small></span>
+                        <span class="gd-act">
+                            <a class="btn s sm" href="@self/edit/@g.Id">고치기</a>
+                            @if (!g.Common && g.Status == GiftItemStatus.Active)
+                            {
+                                <form method="post" asp-page-handler="Share" asp-route-slug="@slug" onsubmit="return confirm('공통에 올릴까요? 승인 없이 바로 모든 부서에 보여요. 되돌릴 수 없어요.')">
+                                    <input type="hidden" name="id" value="@g.Id" /><button class="btn s sm" type="submit">공통에 올리기</button>
+                                </form>
+                            }
+                            else if (g.Common) { <small>고치면 모든 부서에 반영</small> }
+                        </span>
+                    </div>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        var m = Model.Money;
+        <form method="post" asp-page-handler="Money" asp-route-slug="@slug" class="gd-money" novalidate>
+            <p class="gd-note">빈 칸은 <b>공통 기본값</b>(흐린 글씨)을 써요. 우리 부서만 다르게 하고 싶은 칸만 채워 주세요. 저장하면 <b>앞으로 생기는 선물부터</b> 적용돼요.</p>
+            @if (Model.Errors.Count > 0) { <p class="err" role="alert">빨간 칸을 확인해 주세요. 아무것도 저장하지 않았어요.</p> }
+
+            <section class="gd-card">
+                <h2>도전 성경말씀 개인 선물 <small>학생만 · 해마다 0부터</small></h2>
+                <p class="gd-hint">점수 → 크레딧: 그해 처음 @(r.StepPoints)점 = @(GiftsModel.N(r.FirstCredits)), 그 뒤 @(r.StepPoints)점마다 @(GiftsModel.N(r.StepCredits)) (공통 규칙). 아이에게는 크레딧 대신 필요한 점수가 보여요.</p>
+                <label class="gd-lbl" for="cap">크레딧 상한</label>
+                <div class="gd-amt gd-narrow"><input id="cap" name="Money.PersonalCap" value="@m.PersonalCap" inputmode="numeric" placeholder="@GiftsModel.N(r.PersonalCap)" aria-invalid="@(Model.Err("PersonalCap").Length > 0 ? "true" : "false")" /><span>크레딧</span></div>
+                @if (Model.Err("PersonalCap").Length > 0) { <p class="gd-e">@Model.Err("PersonalCap")</p> }
+                <div class="gd-lbl">크레딧 → 금액 표 <small>(1,000 크레딧 단위, 표에 없으면 1크레딧 = 1원)</small></div>
+                <div class="gd-tbl" id="rates">
+                    <span class="h">크레딧</span><span class="h">금액(원)</span><span></span>
+                    @for (var k = 0; k < Math.Max(m.RateCredits.Count, 1) + 1; k++)
+                    {
+                        var bad = Model.Err($"Rate{k}").Length > 0;
+                        <div class="gd-amt"><input name="Money.RateCredits" value="@(k < m.RateCredits.Count ? m.RateCredits[k] : "")" inputmode="numeric" placeholder="예: 10,000" aria-label="@(k + 1)번째 줄 크레딧" aria-invalid="@(bad ? "true" : "false")" /><span>크레딧</span></div>
+                        <div class="gd-amt"><input name="Money.RateAmounts" value="@(k < m.RateAmounts.Count ? m.RateAmounts[k] : "")" inputmode="numeric" placeholder="예: 12,000" aria-label="@(k + 1)번째 줄 금액" aria-invalid="@(bad ? "true" : "false")" /><span>원</span></div>
+                        <span></span>
+                        @if (bad) { <p class="gd-e gd-span">@Model.Err($"Rate{k}")</p> }
+                    }
+                </div>
+                <p class="gd-hint">줄을 지우려면 두 칸을 비우고 저장해요. 빈 줄은 저장하면 하나 더 생겨요.</p>
+            </section>
+
+            <section class="gd-card">
+                <h2>새친구 · 초대 선물 <small>4주 관리가 끝나면</small></h2>
+                @foreach (var (key, label, lo, hi, d) in new[] { ("Newcomer", "새친구", m.NewcomerMin, m.NewcomerMax, r.Newcomer), ("Invite", "초대(데려온 학생)", m.InviteMin, m.InviteMax, r.Invite) })
+                {
+                    <div class="gd-lbl">@label</div>
+                    <div class="gd-pair">
+                        <div class="gd-amt"><input name="Money.@(key)Min" value="@lo" inputmode="numeric" placeholder="@GiftsModel.N(d.Min)" aria-label="@label 최소 금액" aria-invalid="@(Model.Err(key + "Min").Length > 0 ? "true" : "false")" /><span>원</span></div><span>~</span>
+                        <div class="gd-amt"><input name="Money.@(key)Max" value="@hi" inputmode="numeric" placeholder="@GiftsModel.N(d.Max)" aria-label="@label 최대 금액" aria-invalid="@(Model.Err(key + "Max").Length > 0 ? "true" : "false")" /><span>원</span></div>
+                    </div>
+                    @if ((Model.Err(key + "Min") + Model.Err(key + "Max")).Length > 0) { <p class="gd-e">@(Model.Err(key + "Min").Length > 0 ? Model.Err(key + "Min") : Model.Err(key + "Max"))</p> }
+                }
+            </section>
+
+            <section class="gd-card">
+                <h2>생일 선물 <small>학생만 · 생일 @(r.BirthdayOpenDays)일 전 ~ @(r.BirthdayCloseDays)일 전</small></h2>
+                <div class="gd-pair">
+                    <div class="gd-amt"><input name="Money.BirthdayMin" value="@m.BirthdayMin" inputmode="numeric" placeholder="@GiftsModel.N(r.Birthday.Min)" aria-label="생일 최소 금액" aria-invalid="@(Model.Err("BirthdayMin").Length > 0 ? "true" : "false")" /><span>원</span></div><span>~</span>
+                    <div class="gd-amt"><input name="Money.BirthdayMax" value="@m.BirthdayMax" inputmode="numeric" placeholder="@GiftsModel.N(r.Birthday.Max)" aria-label="생일 최대 금액" aria-invalid="@(Model.Err("BirthdayMax").Length > 0 ? "true" : "false")" /><span>원</span></div>
+                </div>
+                @if ((Model.Err("BirthdayMin") + Model.Err("BirthdayMax")).Length > 0) { <p class="gd-e">@(Model.Err("BirthdayMin").Length > 0 ? Model.Err("BirthdayMin") : Model.Err("BirthdayMax"))</p> }
+            </section>
+
+            <section class="gd-card">
+                <h2>성경통독 완독 선물 <small>학생만 · 완독 후 @(r.PickDays)일</small></h2>
+                <div class="gd-tbl gd-tbl2">
+                    <span class="h">회차</span><span class="h">금액(원)</span>
+                    @for (var k = 0; k < 3; k++)
+                    {
+                        <b>@(k < 2 ? $"{k + 1}독" : "3독부터")</b>
+                        <div class="gd-amt"><input name="Money.Reading" value="@(k < m.Reading.Count ? m.Reading[k] : "")" inputmode="numeric" placeholder="@GiftsModel.N(GiftRules.Pick(r.ReadingAmounts, k + 1))" aria-label="@(k < 2 ? $"{k + 1}독" : "3독부터") 금액" aria-invalid="@(Model.Err($"Reading{k}").Length > 0 ? "true" : "false")" /><span>원</span></div>
+                        @if (Model.Err($"Reading{k}").Length > 0) { <p class="gd-e gd-span">@Model.Err($"Reading{k}")</p> }
+                    }
+                </div>
+            </section>
+
+            <a class="gd-link" href="/@slug/admin/teams/stages"><span><b>가족팀 · 친구팀 선물</b><br /><small>단계마다 줄지 · 최대 금액(공통: 1,000점 @GiftsModel.N(GiftRules.Pick(r.FamilyAmounts, 1)) · 2,000점 @GiftsModel.N(GiftRules.Pick(r.FamilyAmounts, 2)) · 3,000점부터 @GiftsModel.N(GiftRules.Pick(r.FamilyAmounts, 3))원, 친구팀은 반씩 각자)</small></span><span>시상 기준 ›</span></a>
+
+            <div class="gd-bar"><a class="btn s" href="@self?t=money">되돌리기</a><button class="btn p" type="submit">저장</button></div>
+        </form>
+    }
+</div></main>

@@ -1,4 +1,4 @@
-@page "/{slug}/admin/teams/stages"
+﻿@page "/{slug}/admin/teams/stages"
 @model ChallengeBible.Web.Pages.Admin.StagesModel
 @* 부서 시상 기준(R-219, ADR 0093) — 확정 시안 관리-시상기준-10단계: 해 고르기 → 지금 쓰는 기준 띠 → 10단계(선물 켜기 · 금액) → 합계 · 저장 → 안내 *@
 @{
@@ -30,12 +30,12 @@
         else if (b.Year != b.ThisYear)
         {
             <span class="k">@b.Year · 아직 정하지 않았어요</span>
-            <p>정하지 않으면 새해에 처음 값(모두 켬 · @(b.DefaultAmount.ToString("N0"))원)을 써요. 미리 정해 두면 새해 첫날부터 우리 부서 기준이 적용돼요.</p>
+            <p>정하지 않으면 새해에 처음 값(모두 켬 · @(b.DefaultsText))을 써요. 미리 정해 두면 새해 첫날부터 우리 부서 기준이 적용돼요.</p>
         }
         else
         {
             <span class="k">@b.Year · 처음 값을 쓰고 있어요</span>
-            <p>아직 우리 부서가 고치지 않았어요. @(b.Rows.Count)단계 모두 선물을 주고, 단계마다 @(b.DefaultAmount.ToString("N0"))원까지 골라요. 고치고 저장하면 우리 부서 기준이 돼요.</p>
+            <p>아직 우리 부서가 고치지 않았어요. @(b.Rows.Count)단계 모두 선물을 주고, @(b.DefaultsText)까지 골라요. 고치고 저장하면 우리 부서 기준이 돼요.</p>
         }
     </section>
 

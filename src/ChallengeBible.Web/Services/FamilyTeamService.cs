@@ -1,4 +1,4 @@
-using ChallengeBible.Domain.Rules;
+﻿using ChallengeBible.Domain.Rules;
 using ChallengeBible.Domain.Seasons;
 using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
@@ -338,6 +338,9 @@ public sealed class FamilyTeamService(IAppDb db, RequestScope scope, TenantConte
     /// 이 부서의 그해 선물 단계(ADR 0093, R-219): 규칙의 단위(1,000점) × 수(10단계)마다 켜짐 · 금액. 그해 줄이 없으면 처음 값(모두 켬 · 기본 금액).
     /// 그해 줄이 있으면 그 줄을 따르고, 줄이 빠진 단계는 처음 값으로 본다. 단위에 맞지 않는 예전 줄은 쓰지 않는다.
     /// </summary>
+    /// <summary>k 번째 단계(1부터)의 처음 금액(R-290, ADR 0094 F): 가족 1,000점 1만 · 2,000점 2만 · 3,000점부터 3만(규칙 Gifts.FamilyAmounts).</summary>
+    public static int DefaultStageAmount(RuleSet r, int k) => GiftRules.Pick(r.Gifts.FamilyAmounts, k);
+
     internal static async Task<(bool Own, List<StageSetting> Steps)> StageSettingsAsync(AppDbContext ctx, RuleSet r, int year, CancellationToken ct)
     {
         var rows = await ctx.FamilyMilestoneConfigs.AsNoTracking().Where(c => c.Year == year).ToListAsync(ct);
@@ -345,7 +348,8 @@ public sealed class FamilyTeamService(IAppDb db, RequestScope scope, TenantConte
         {
             var p = k * r.FamilyAwardStep;
             var c = rows.FirstOrDefault(x => x.PointThreshold == p);
-            return c is null ? new StageSetting(p, true, r.FamilyAwardDefaultAmount, null) : new StageSetting(p, c.IsActive, c.GiftAmount ?? r.FamilyAwardDefaultAmount, c.Id);
+            var d = DefaultStageAmount(r, k);
+            return c is null ? new StageSetting(p, true, d, null) : new StageSetting(p, c.IsActive, c.GiftAmount ?? d, c.Id);
         }).ToList();
         return (rows.Count > 0, steps);
     }

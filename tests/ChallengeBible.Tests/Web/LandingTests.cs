@@ -93,7 +93,7 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("2<i>장</i></b><small>올해 함께 읽은 성경", html);
         Assert.Contains("<span class=\"num\">2</span><i style=\"height:94px\"></i>오늘", html);
         Assert.DoesNotContain("잠실새내교회 유년부", html);   // 부서 이름은 내보내지 않음(머리말의 교회 이름과는 별개)
-        Assert.DoesNotContain("k1", html);
+        Assert.DoesNotMatch(@"\bk1\b", html);   // 계정 이름(낱말로) — CSS 주소 해시 속 글자와는 구별
     }
 
     [Fact]

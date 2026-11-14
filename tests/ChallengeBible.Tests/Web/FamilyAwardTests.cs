@@ -93,7 +93,7 @@ public partial class FamilyAwardTests : IClassFixture<WebApplicationFactory<Prog
         Assert.True(board.Enabled);
         Assert.Equal([(b, 1000, new DateOnly(2027, 1, 3)), (b, 2000, new DateOnly(2027, 1, 3)), (a, 1000, new DateOnly(2027, 1, 4))], board.Due.Select(d => (d.TeamId, d.Stage, d.Crossed!.Value)));
         var first = board.Due[2];
-        Assert.Equal(("철수네", 1100, "🎁", 5000, false), (first.Team, first.Points, first.Emoji, first.Amount, first.Friend));
+        Assert.Equal(("철수네", 1100, "🎁", 10000, false), (first.Team, first.Points, first.Emoji, first.Amount, first.Friend));   // 1,000점 처음 금액 1만(R-290)
         Assert.Equal(2, first.Members.Count);
         Assert.Empty(board.Given);
     }

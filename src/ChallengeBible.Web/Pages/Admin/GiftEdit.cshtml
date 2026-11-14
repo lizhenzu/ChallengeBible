@@ -1,0 +1,41 @@
+@page "/{slug}/admin/gifts/edit/{id:int?}"
+@model ChallengeBible.Web.Pages.Admin.GiftEditModel
+@using ChallengeBible.Infrastructure.Data
+@* 확정 시안 관리-선물 ②: 우리 부서 상품 등록 · 고치기 — 폼은 플랫폼 상품과 같다(_GiftItemForm) *@
+@{
+    var i = Model.Item;
+    var own = i is null || i.TenantId == Model.Tenant.Current.Id;
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut gf"><div class="wrap">
+    <a class="gf-back" href="@Model.Back">← 우리 부서 상품</a>
+    <h1 class="gf-h">@Model.Title
+        @if (i is not null) { <small class="num">@i.Id · @(own ? "우리 부서만" : "우리가 공통에 올림") · 고른 기록 @Model.Picked</small> }
+    </h1>
+    @if (Model.Message is not null) { <p class="ok-box" role="status">@Model.Message</p> }
+    @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+    @if (i is not null && !own) { <p class="gf-warn">공통 상품이에요. 고치면 모든 부서에 반영돼요. 내리기 · 삭제는 플랫폼에서 해요.</p> }
+    @if (i?.Status == GiftItemStatus.Retired) { <p class="gf-warn">목록에서 내린 상품이에요 — 아이에게 보이지 않아요.</p> }
+
+    <partial name="_GiftItemForm" model="new ChallengeBible.Web.Services.GiftItemFormView(i, Model.Input, Model.Errors, Model.Back)" />
+
+    @if (i is not null && own)
+    {
+        <hr class="gf-hr" />
+        <div class="gf-acts">
+            @if (i.Status == GiftItemStatus.Retired)
+            {
+                <form method="post" asp-page-handler="Restore" asp-route-slug="@Model.Tenant.Current.Slug"><button class="btn s" type="submit">다시 올리기</button></form>
+            }
+            else
+            {
+                <form method="post" asp-page-handler="Retire" asp-route-slug="@Model.Tenant.Current.Slug" onsubmit="return confirm('목록에서 내릴까요? 아이에게 보이지 않아요.')"><button class="btn d" type="submit">목록에서 내리기</button></form>
+            }
+            @if (Model.Picked == 0)
+            {
+                <form method="post" asp-page-handler="Delete" asp-route-slug="@Model.Tenant.Current.Slug" onsubmit="return confirm('상품과 사진을 지울까요? 되돌릴 수 없어요.')"><button class="btn d" type="submit">삭제(상품 + 사진)</button></form>
+            }
+        </div>
+    }
+</div></main>
+<script src="~/js/photo.js" asp-append-version="true"></script>

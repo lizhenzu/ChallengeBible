@@ -54,17 +54,20 @@ public partial class FamilyStageTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     private static bool[] On(params int[] off) => Ten.Select(p => !off.Contains(p)).ToArray();
+    private static readonly int[] Defaults = [10000, 20000, 30000, 30000, 30000, 30000, 30000, 30000, 30000, 30000];
     private static string?[] Amounts(params (int Points, string Amount)[] set) => Ten.Select(p => set.FirstOrDefault(x => x.Points == p).Amount ?? "5,000").ToArray();
 
     [Fact]
-    public async Task R219_정하지_않으면_10단계_모두_켬_5000원이다()
+    public async Task R219_R290_정하지_않으면_10단계_모두_켬_1만_2만_3만부터()
     {
         var b = await In(_kids).GetAsync(null);
         Assert.True(b.Enabled);
-        Assert.Equal((2027, 2027, false, 5000), (b.ThisYear, b.Year, b.Own, b.DefaultAmount));
+        Assert.Equal((2027, 2027, false), (b.ThisYear, b.Year, b.Own));
         Assert.Equal(Ten, b.Rows.Select(r => r.Points));
-        Assert.All(b.Rows, r => Assert.Equal((true, 5000), (r.On, r.Amount)));
-        Assert.Equal((10, 50000), (b.OnCount, b.OnTotal));
+        Assert.Equal(Defaults, b.Rows.Select(r => r.Amount));                       // R-290(ADR 0094 F): 1,000점 1만 · 2,000점 2만 · 3,000점부터 3만
+        Assert.All(b.Rows, r => Assert.True(r.On));
+        Assert.Equal((10, 270000), (b.OnCount, b.OnTotal));
+        Assert.Equal("1,000점 10,000원 · 2,000점 20,000원 · 3,000점부터 30,000원", b.DefaultsText);
         Assert.Equal(1000, RuleSet.Default.FamilyAwardStep);   // 단위 · 단계 수 · 처음 금액은 규칙에서 읽는다
     }
 
@@ -98,7 +101,7 @@ public partial class FamilyStageTests : IClassFixture<WebApplicationFactory<Prog
 
         // 끈 단계의 금액은 비거나 틀려도 된다(처음 금액을 남긴다)
         Assert.Equal(StageError.None, (await svc.SaveAsync(2027, On(2000), Amounts((2000, "")))).Error);
-        Assert.Equal(5000, (await svc.GetAsync(2027)).Rows[1].Amount);
+        Assert.Equal(20000, (await svc.GetAsync(2027)).Rows[1].Amount);   // 끈 단계는 처음 금액(2,000점 = 2만)
         Assert.Equal(StageError.None, (await svc.SaveAsync(2027, On(), Amounts((1000, "0")))).Error);   // 0원도 된다
         Assert.Equal(StageError.BadForm, (await svc.SaveAsync(2027, [true, true], ["1", "2"])).Error);
     }
@@ -214,7 +217,8 @@ public partial class FamilyStageTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("9단계에서 선물을 줘요. 2,000점은 선물이 없어요.", page);
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(10000, raw.FamilyMilestoneConfigs.Single(x => x.PointThreshold == 5000).GiftAmount);
 
-        Assert.Equal(10, Regex.Matches(await c.GetStringAsync("/jamsil-kids/admin/teams/stages?D=true"), "value=\"5,000\"").Count);   // 처음 값으로(저장 안 함)
+        var d = await c.GetStringAsync("/jamsil-kids/admin/teams/stages?D=true");   // 처음 값으로(저장 안 함, R-290)
+        Assert.Equal((1, 1, 8), (Regex.Matches(d, "value=\"10,000\"").Count, Regex.Matches(d, "value=\"20,000\"").Count, Regex.Matches(d, "value=\"30,000\"").Count));
         Assert.Contains("2028 · 아직 정하지 않았어요", await c.GetStringAsync("/jamsil-kids/admin/teams/stages?Y=2028"));
 
         var kid = InMemoryDb.SeedAccount(_db, "cheolsu@example.com", "김철수");

@@ -1,0 +1,30 @@
+@model ChallengeBible.Web.Services.GiftItemFormView
+@using ChallengeBible.Web.Services
+@* 선물 상품 등록 · 고치기 폼(플랫폼 · 부서 같이 씀, 확정 시안 플랫폼-선물상품 "등록 · 수정"): 사진 + 이름 · 가격 · 쿠팡 링크 · 설명을 한 번에 저장 *@
+@{ string Err(string k) => Model.Errors.GetValueOrDefault(k) ?? ""; }
+    @* 사진과 칸을 한 폼으로(2026-11-14 사용자 "상품 등록에서 사진도 함께"): 사진을 고르면 자르기 → 미리 보기, [저장] 때 함께 올린다 *@
+    <form method="post" enctype="multipart/form-data" class="gf-form" data-photo="square" data-photo-size="600" data-photo-defer novalidate>
+        <div class="gf-photo">
+            <div class="gf-box" data-photo-preview>@if (Model.Item?.HasImage == true) { <img src="/images/AwardItem/@(Model.Item.Id).jpg?v=@Model.Item.UpdatedUtc.Ticks" alt="@Model.Item.Name 사진" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🎁'}))" /> } else { <span aria-hidden="true">🎁</span> }</div>
+            <label class="btn s sm gf-pick">@(Model.Item?.HasImage == true ? "사진 바꾸기" : "사진 고르기")<input type="file" name="photo" accept="image/*" hidden /></label>
+            <small data-photo-note>사진을 고르면 끌어서 자리를 맞추고 <b>정사각형으로 잘라</b> [저장] 때 함께 올려요. 사진이 없으면 기본 그림.</small>
+        </div>
+
+        <div class="gf-fields">
+            <div class="f"><label for="nm">상품 이름</label>
+                <input class="in" id="nm" name="Input.Name" value="@Model.Input.Name" maxlength="100" aria-invalid="@(Err("Name").Length > 0 ? "true" : "false")" />
+                @if (Err("Name").Length > 0) { <span class="bad">@Err("Name")</span> } else { <span class="hint">100자까지</span> }</div>
+            <div class="f"><label for="pr">가격(원)</label>
+                <input class="in num" id="pr" name="Input.Price" value="@Model.Input.Price" inputmode="numeric" aria-invalid="@(Err("Price").Length > 0 ? "true" : "false")" />
+                @if (Err("Price").Length > 0) { <span class="bad">@Err("Price")</span> } else { <span class="hint">아이에게는 보이지 않아요. 점수는 부서 설정에서 따로 정해요.</span> }</div>
+            <div class="f"><label for="cp">쿠팡 링크 <small class="gf-req">필수</small></label>
+                <input class="in" id="cp" name="Input.CoupangUrl" value="@Model.Input.CoupangUrl" inputmode="url" placeholder="https://www.coupang.com/vp/products/…" aria-invalid="@(Err("CoupangUrl").Length > 0 ? "true" : "false")" />
+                @if (Err("CoupangUrl").Length > 0) { <span class="bad">@Err("CoupangUrl")</span> }
+                else if (GiftCatalogService.IsCoupang(Model.Input.CoupangUrl)) { <span class="okt">✓ 쿠팡 주소예요 · <a href="@Model.Input.CoupangUrl" target="_blank" rel="noopener noreferrer">열어 보기 ↗</a></span> }
+                else { <span class="hint">쿠팡 상품 주소만 받아요(필수)</span> }</div>
+            <div class="f"><label for="ds">설명(선택)</label>
+                <textarea class="in" id="ds" name="Input.Description" maxlength="500">@Model.Input.Description</textarea>
+                @if (Err("Description").Length > 0) { <span class="bad">@Err("Description")</span> }</div>
+            <div class="gf-acts"><a class="btn s" href="@Model.Back">취소</a><button class="btn p" type="submit">저장</button></div>
+        </div>
+    </form>

@@ -1,4 +1,4 @@
-using ChallengeBible.Domain.Rules;
+﻿using ChallengeBible.Domain.Rules;
 using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -11,10 +11,24 @@ namespace ChallengeBible.Web.Services;
 public sealed record StageRow(int Points, bool On, int Amount, int Given);
 
 /// <summary>Own = 그해 우리 부서가 저장한 기준이 있다. 없으면 처음 값(모두 켬 · 기본 금액).</summary>
-public sealed record StageBoard(bool Enabled, int ThisYear, int Year, bool Own, int DefaultAmount, IReadOnlyList<StageRow> Rows)
+public sealed record StageBoard(bool Enabled, int ThisYear, int Year, bool Own, IReadOnlyList<int> Defaults, IReadOnlyList<StageRow> Rows)
 {
     public int OnCount => Rows.Count(r => r.On);
     public int OnTotal => Rows.Where(r => r.On).Sum(r => r.Amount);
+    /// <summary>처음 금액을 사람이 읽는 글로: "1,000점 1만 · 2,000점 2만 · 3,000점부터 3만원"(R-290).</summary>
+    public string DefaultsText
+    {
+        get
+        {
+            if (Defaults.Count == 0) return "";
+            var parts = new List<string>();
+            var last = Defaults.Count - 1;
+            while (last > 0 && Defaults[last - 1] == Defaults[last]) last--;
+            for (var i = 0; i <= last; i++)
+                parts.Add($"{((i + 1) * 1000):N0}점{(i == last && last < Defaults.Count - 1 ? "부터" : "")} {Defaults[i]:N0}원");
+            return string.Join(" · ", parts);
+        }
+    }
 }
 
 public enum StageError { None, Disabled, BadYear, BadAmount, BadForm }
@@ -52,12 +66,12 @@ public sealed class FamilyStageService(IAppDb db, TenantContext tenant, TenantCl
     {
         var (r, thisYear) = await RulesAsync(ct);
         var y = year is { } v && (v == thisYear || v == thisYear + 1) ? v : thisYear;
-        if (!r.Features.FamilyTeam) return new StageBoard(false, thisYear, y, false, r.FamilyAwardDefaultAmount, []);
+        if (!r.Features.FamilyTeam) return new StageBoard(false, thisYear, y, false, [], []);
         await using var ctx = db.Create();
         var rr = await rules.ForDateAsync(new DateOnly(y, 1, 1), ct);
         var (own, steps) = await FamilyTeamService.StageSettingsAsync(ctx, rr, y, ct);
         var given = await GivenAsync(ctx, y, ct);
-        return new StageBoard(true, thisYear, y, own, rr.FamilyAwardDefaultAmount,
+        return new StageBoard(true, thisYear, y, own, Enumerable.Range(1, rr.FamilyAwardSteps).Select(k => FamilyTeamService.DefaultStageAmount(rr, k)).ToList(),
             steps.Select(s => new StageRow(s.Points, s.On, s.Amount, given.GetValueOrDefault(s.Points))).ToList());
     }
 
@@ -80,7 +94,7 @@ public sealed class FamilyStageService(IAppDb db, TenantContext tenant, TenantCl
             var n = ParseAmount(amount[i]);
             if (n is { } ok) values[i] = ok;
             else if (on[i]) bad.Add(i);
-            else values[i] = rr.FamilyAwardDefaultAmount;
+            else values[i] = FamilyTeamService.DefaultStageAmount(rr, i + 1);
         }
         if (bad.Count > 0) return (StageError.BadAmount, bad);
 

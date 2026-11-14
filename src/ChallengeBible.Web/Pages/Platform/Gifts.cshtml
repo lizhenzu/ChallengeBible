@@ -54,7 +54,7 @@
             {
                 var img = GiftsModel.Img(r);
                 <a class="gf-row" href="/platform/gifts/edit/@r.Id">
-                    <span class="gf-th">@if (img.Length > 0) { <img src="@img" alt="" loading="lazy" /> } else { <span aria-hidden="true">🎁</span> }</span>
+                    <span class="gf-th">@if (img.Length > 0) { <img src="@img" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🎁'}))" /> } else { <span aria-hidden="true">🎁</span> }</span>
                     <span class="gf-mid">
                         <b>@if (r.TenantName is { } tn) { <span class="gf-tag dp">@tn</span> } else if (r.SharedByName is { } sn) { <span class="gf-tag dp">@sn</span> }@r.Name</b>
                         <small class="num">@r.Id · @(r.Status == GiftItemStatus.Review ? GiftCatalogService.ReasonText(r.ReviewReason) : GiftCatalogService.IsCoupang(r.CoupangUrl) ? "쿠팡" : "링크 확인")@(r.Picked > 0 ? $" · 고른 기록 {r.Picked}" : "")@(r.SharedByName is { } s2 && r.TenantName is null ? $" · {s2}가 올림" : "")</small>

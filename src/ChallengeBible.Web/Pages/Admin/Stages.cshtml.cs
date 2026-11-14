@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
@@ -31,7 +31,7 @@ public class StagesModel(FamilyStageService stages, TenantContext tenant) : Page
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (!await LoadAsync(ct)) return NotFound();
-        Form = D ? Board.Rows.Select(_ => (true, Board.DefaultAmount.ToString("N0"))).ToList()
+        Form = D ? Board.Defaults.Select(a => (true, a.ToString("N0"))).ToList()
                  : Board.Rows.Select(r => (r.On, r.Amount.ToString("N0"))).ToList();
         return Page();
     }
