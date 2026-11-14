@@ -9,7 +9,7 @@
 }
 <partial name="_PlatformTop" />
 <main class="admin gut gf"><div class="wrap">
-    <a class="gf-back" href="@back">← 상품 목록</a>
+    <a class="gf-back" href="@back">← 공통 상품</a>
     <h1 class="gf-h">@Model.Title
         @if (i is not null) { <small class="num">@i.Id · @(i.TenantId is null ? "공통" : Model.TenantName) · 고른 기록 @Model.Picked@(Model.SharedByName is { } sn ? $" · {sn}가 올림" : "")</small> }
     </h1>

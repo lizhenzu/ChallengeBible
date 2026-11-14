@@ -10,7 +10,7 @@
 }
 <partial name="_PlatformTop" />
 <main class="admin gut gf"><div class="wrap">
-    <h1 class="gf-h">선물 상품 <a class="btn p sm" href="/platform/gifts/edit">+ 상품 등록</a></h1>
+    <h1 class="gf-h">공통 상품 <a class="btn p sm" href="/platform/gifts/edit">+ 공통 상품 등록</a></h1>
     <nav class="gf-seg" aria-label="상태">
         <a href="@Model.Url(GiftItemStatus.Active, "")" aria-current="@(Model.Status == GiftItemStatus.Active ? "page" : null)">판매 중<u class="num">@c.Active</u></a>
         <a class="rv" href="@Model.Url(GiftItemStatus.Review, "")" aria-current="@(Model.Status == GiftItemStatus.Review ? "page" : null)">삭제 대상<u class="num">@c.Review</u></a>

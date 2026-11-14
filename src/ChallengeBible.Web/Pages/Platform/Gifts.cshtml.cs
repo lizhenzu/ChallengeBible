@@ -14,7 +14,7 @@ namespace ChallengeBible.Web.Pages.Platform;
 [Authorize(Policy = CurrentUser.PlatformAdminPolicy)]
 public class GiftsModel(GiftCatalogService catalog) : PageModel, ITitled
 {
-    public string Title => "선물 상품";
+    public string Title => "공통 상품";
 
     [BindProperty(SupportsGet = true, Name = "s")] public string? Status { get; set; }
     [BindProperty(SupportsGet = true, Name = "q")] public string? Q { get; set; }

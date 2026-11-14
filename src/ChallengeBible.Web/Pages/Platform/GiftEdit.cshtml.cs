@@ -15,7 +15,7 @@ namespace ChallengeBible.Web.Pages.Platform;
 [Authorize(Policy = CurrentUser.PlatformAdminPolicy)]
 public class GiftEditModel(GiftCatalogService catalog) : PageModel, ITitled
 {
-    public string Title => Id is null ? "상품 등록" : "상품 고치기";
+    public string Title => Id is null ? "공통 상품 등록" : "상품 고치기";
 
     [FromRoute(Name = "id")] public int? Id { get; set; }
     [BindProperty] public GiftItemInput Input { get; set; } = new();
