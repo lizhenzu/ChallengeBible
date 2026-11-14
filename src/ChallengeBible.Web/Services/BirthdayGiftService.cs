@@ -7,9 +7,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-/// <summary>생일 선물 한 건(아이 화면 · 링크 화면). Birthday = 그 해의 생일(2월 29일생은 평년 2월 28일).</summary>
+/// <summary>
+/// 링크로 고르는 선물 한 건(생일 · 새친구 · 전도, 아이 화면 · 링크 화면). Birthday = 그 해의 생일(2월 29일생은 평년 2월 28일, 생일 선물만),
+/// About = 전도 선물이면 데려온 새친구 이름.
+/// </summary>
 public sealed record BirthdayGiftView(long Id, string Name, DateOnly Birthday, string State, DateOnly? OpenUntil, int MinAmount, int MaxAmount,
-    int? ItemId, string? ItemName, bool HasImage, DateTime? PickedUtc, DateTime? PurchasedUtc, int TenantId, string TenantName);
+    int? ItemId, string? ItemName, bool HasImage, DateTime? PickedUtc, DateTime? PurchasedUtc, int TenantId, string TenantName,
+    string Kind = GiftKinds.Birthday, string? About = null)
+{
+    public string KindLabel => Kind switch { GiftKinds.Newcomer => "새친구 선물", GiftKinds.Invite => "전도 선물", _ => "생일 선물" };
+}
 
 /// <summary>_BirthdayPick 조각의 값: Link = 로그인 없는 링크 화면, Self = 이 화면 주소.</summary>
 public sealed record BirthdayPickView(BirthdayGiftView Gift, IReadOnlyList<TeamPickItem> Items, bool Change, string Self, string? Msg, bool Link);
@@ -22,6 +29,8 @@ public sealed record BirthdayPickView(BirthdayGiftView Gift, IReadOnlyList<TeamP
 public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestScope scope, TenantContext tenant, TenantClock clock, RuleService rules, TimeProvider time)
 {
     public const int TokenLength = 32;
+    /// <summary>미션 홈 카드 · 로그인 없는 링크로 고르는 선물(생일 · 새친구 · 전도, ADR 0094 C · D).</summary>
+    public static readonly string[] LinkKinds = [GiftKinds.Birthday, GiftKinds.Newcomer, GiftKinds.Invite];
     private const string TokenChars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
     /// <summary>생일을 받는 역할: 학생 · 새친구(사용자 2026-11-14 질문 2 → 1).</summary>
     public static readonly string[] BirthdayRoles = [UserRole.StudentCode, ClassService.NewcomerCode];
@@ -115,19 +124,20 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         await using var ctx = db.Create();
         var uid = scope.UserId;
         var pids = uid is null ? [] : await ctx.People.Where(p => p.UserId == uid).Select(p => p.Id).ToListAsync(ct);
-        var list = await ctx.Gifts.AsNoTracking().Where(g => g.Kind == GiftKinds.Birthday && Live.Contains(g.State) && (g.UserName == user || (g.PersonId != null && pids.Contains(g.PersonId.Value))))
+        var list = await ctx.Gifts.AsNoTracking().Where(g => LinkKinds.Contains(g.Kind) && Live.Contains(g.State) && (g.UserName == user || (g.PersonId != null && pids.Contains(g.PersonId.Value))))
             .OrderBy(g => g.Id).ToListAsync(ct);
         return await ViewsAsync(ctx, list, ct);
     }
 
     private static async Task<List<BirthdayGiftView>> ViewsAsync(AppDbContext ctx, List<Gift> list, CancellationToken ct)
     {
-        var pids = list.Select(g => g.PersonId).OfType<int>().Distinct().ToList();
+        var pids = list.Select(g => g.PersonId).OfType<int>().Concat(list.Select(g => NewcomerGiftService.NewcomerOf(g.SourceKey)).OfType<int>()).Distinct().ToList();
         var names = await ctx.People.AsNoTracking().Where(p => pids.Contains(p.Id)).ToDictionaryAsync(p => p.Id, p => p.Name, ct);
         var tids = list.Select(g => g.TenantId).Distinct().ToList();
         var depts = await ctx.Tenants.AsNoTracking().Where(t => tids.Contains(t.Id)).ToDictionaryAsync(t => t.Id, t => t.Name, ct);
         return list.Select(g => new BirthdayGiftView(g.Id, g.PersonId is int pid ? names.GetValueOrDefault(pid) ?? "" : "", BirthdayOf(g.SourceKey) ?? default, g.State, g.OpenUntil,
-            g.MinAmount, g.MaxAmount, g.GiftItemId, g.ItemName, g.ItemHasImage == true, g.PickedUtc, g.PurchasedUtc, g.TenantId, depts.GetValueOrDefault(g.TenantId) ?? "")).ToList();
+            g.MinAmount, g.MaxAmount, g.GiftItemId, g.ItemName, g.ItemHasImage == true, g.PickedUtc, g.PurchasedUtc, g.TenantId, depts.GetValueOrDefault(g.TenantId) ?? "",
+            g.Kind, g.Kind == GiftKinds.Invite && NewcomerGiftService.NewcomerOf(g.SourceKey) is int nid ? names.GetValueOrDefault(nid) : null)).ToList();
     }
 
     /// <summary>금액 범위 안 상품(공통 − 그 부서가 숨긴 것 + 부서 상품, 판매 중), 싼 순. 링크 화면은 시스템 연결이라 부서를 직접 준다.</summary>
@@ -178,7 +188,7 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
     {
         if (!IsToken(token)) return null;
         await using var ctx = systemDb.Create(LinkActor);
-        var g = await ctx.Gifts.AsNoTracking().SingleOrDefaultAsync(x => x.LinkToken == token && x.Kind == GiftKinds.Birthday, ct);
+        var g = await ctx.Gifts.AsNoTracking().SingleOrDefaultAsync(x => x.LinkToken == token && LinkKinds.Contains(x.Kind), ct);
         return g is null || !Live.Contains(g.State) ? null : (await ViewsAsync(ctx, [g], ct))[0];
     }
 
@@ -192,19 +202,19 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
     {
         if (!IsToken(token)) return TeamPickError.NotFound;
         await using var ctx = systemDb.Create(LinkActor);
-        var g = await ctx.Gifts.SingleOrDefaultAsync(x => x.LinkToken == token && x.Kind == GiftKinds.Birthday, ct);
+        var g = await ctx.Gifts.SingleOrDefaultAsync(x => x.LinkToken == token && LinkKinds.Contains(x.Kind), ct);
         var zone = g is null ? "Asia/Seoul" : await ctx.Tenants.Where(t => t.Id == g.TenantId).Select(t => t.TimeZoneId).SingleAsync(ct);
         return await PickAsync(ctx, g, itemId, LinkActor, clock.Today(zone), time.GetUtcNow().UtcDateTime, ct);
     }
 
     // ── 관리자 ──
 
-    /// <summary>링크 열쇠: 없으면 만들고(fresh 면 늘 새로 — 옛 링크는 막힘). 받기 전 생일 선물만. 만든 열쇠를 돌려준다.</summary>
+    /// <summary>링크 열쇠: 없으면 만들고(fresh 면 늘 새로 — 옛 링크는 막힘). 받기 전 생일 · 새친구 · 전도 선물만. 만든 열쇠를 돌려준다.</summary>
     public async Task<string?> LinkAsync(string actor, long giftId, bool fresh, CancellationToken ct = default)
     {
         await using var ctx = db.Create();
-        var g = await ctx.Gifts.SingleOrDefaultAsync(x => x.Id == giftId && x.Kind == GiftKinds.Birthday, ct);
-        if (g is null || g.State is not (GiftStates.Open or GiftStates.Picked or GiftStates.Expired)) return null;
+        var g = await ctx.Gifts.SingleOrDefaultAsync(x => x.Id == giftId && LinkKinds.Contains(x.Kind), ct);
+        if (g is null || g.State is not (GiftStates.Open or GiftStates.Picked or GiftStates.Expired) || NewcomerGiftService.Unassigned(g)) return null;
         if (g.LinkToken is { } have && !fresh) return have;
         g.LinkToken = RandomNumberGenerator.GetString(TokenChars, TokenLength);
         ctx.GiftLogs.Add(new GiftLog { TenantId = T, GiftId = g.Id, Action = GiftActions.Link, ActorUserName = actor, AtUtc = time.GetUtcNow().UtcDateTime, Detail = fresh ? "new" : null });
@@ -212,13 +222,23 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         return g.LinkToken;
     }
 
-    /// <summary>[건너뛰기]: 아직 사지 않은 생일 선물(고를 수 있음 · 고름 · 기한 지남) → 건너뜀. [되돌리기]: 건너뜀 → 고를 수 있음(기한이 지났으면 기한 지남).</summary>
+    /// <summary>
+    /// [건너뛰기]: 아직 사지 않은 생일 · 새친구 · 전도 선물(고를 수 있음 · 고름 · 기한 지남) → 건너뜀. [되돌리기]: 건너뜀 → 고를 수 있음(기한이 지났으면 기한 지남).
+    /// 전도한 아이를 정하지 못한 채 건너뛴 것은 되돌리면 지워서 다시 "전도한 아이를 골라 주세요"로.
+    /// </summary>
     public async Task<bool> SkipAsync(string actor, long giftId, bool skip, CancellationToken ct = default)
     {
         await using var ctx = db.Create();
-        var g = await ctx.Gifts.SingleOrDefaultAsync(x => x.Id == giftId && x.Kind == GiftKinds.Birthday, ct);
+        var g = await ctx.Gifts.SingleOrDefaultAsync(x => x.Id == giftId && LinkKinds.Contains(x.Kind), ct);
         if (g is null) return false;
         if (skip ? g.State is not (GiftStates.Open or GiftStates.Picked or GiftStates.Expired) : g.State != GiftStates.Skipped) return false;
+        if (!skip && NewcomerGiftService.Unassigned(g))
+        {
+            ctx.GiftLogs.RemoveRange(await ctx.GiftLogs.Where(l => l.GiftId == g.Id).ToListAsync(ct));
+            ctx.Gifts.Remove(g);
+            await ctx.SaveChangesAsync(ct);
+            return true;
+        }
         g.State = skip ? GiftStates.Skipped : g.GiftItemId is not null ? GiftStates.Picked : g.OpenUntil < Today ? GiftStates.Expired : GiftStates.Open;
         ctx.GiftLogs.Add(new GiftLog { TenantId = T, GiftId = g.Id, Action = skip ? GiftActions.Skip : GiftActions.Undo, ActorUserName = actor, AtUtc = time.GetUtcNow().UtcDateTime, ItemName = g.ItemName, ItemPrice = g.ItemPrice });
         await ctx.SaveChangesAsync(ct);

@@ -111,6 +111,8 @@ public sealed record GiftRules
     public AmountRange Newcomer { get; init; } = new(1000, 15000);
     public AmountRange Invite { get; init; } = new(1000, 15000);
     public AmountRange Birthday { get; init; } = new(1000, 5000);
+    /// <summary>새친구 · 전도 선물(R-286 고침, 정한 것 15): 새친구가 첫 방문부터 출석을 모두 이만큼 채우면(언제든, 연속 아니어도).</summary>
+    public int NewcomerVisits { get; init; } = 4;
     /// <summary>생일 선물은 생일 BirthdayOpenDays 일 전 ~ BirthdayCloseDays 일 전(R-288).</summary>
     public int BirthdayOpenDays { get; init; } = 30;
     public int BirthdayCloseDays { get; init; } = 7;

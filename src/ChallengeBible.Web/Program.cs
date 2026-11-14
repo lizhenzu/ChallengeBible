@@ -75,6 +75,7 @@ builder.Services.AddScoped<GiftOrderService>();   // 선물 구매 · 전달 처
 builder.Services.AddScoped<YearResetService>();   // 새해 초기화 버튼(ADR 0094 정한 것 12)
 builder.Services.AddScoped<GiftCostService>();   // 선물 총비용 · 엑셀(ADR 0094 G-2 · 정한 것 13)
 builder.Services.AddScoped<BirthdayGiftService>();   // 생일 선물 · 로그인 없는 링크(ADR 0094 D · 정한 것 14)
+builder.Services.AddScoped<NewcomerGiftService>();   // 새친구 · 전도 선물(ADR 0094 C · 정한 것 15)
 // 로그인 없는 선물 링크(R-287): 같은 접속 주소가 1분에 많이 열면 잠시 막는다(열쇠를 마구 넣어 보는 것 막기)
 builder.Services.AddRateLimiter(o =>
 {

@@ -3880,3 +3880,19 @@ a.nc-card.hidden { display: none; }
 .go-row2 { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; margin-top: 4px; }
 .go-row2 .btn { min-height: 46px; justify-content: center; }
 .go-row2 .btn.go-done { background: #16A34A; border-color: #16A34A; }
+/* 전도 선물(확정 시안 전도-선물): 전도한 아이 고르기 */
+.go-warn { display: inline-block; margin-top: 4px; padding: 4px 8px; border-radius: 8px; background: #FEF3C7; color: #92400E; }
+.go-find { display: flex; gap: 6px; }
+.go-find .in { flex: 1; min-height: 40px; }
+.go-cands { display: grid; gap: 8px; max-height: 60vh; overflow: auto; }
+.go-cands label { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 12px; font-size: 14px; }
+.go-cands label:has(input:checked) { border: 2px solid #16A34A; }
+.btn.go-green { background: #16A34A; border-color: #16A34A; color: #fff; }
+.gk-card.gk-nc { border-color: #BFE6CC; background: #EAF7EF; }
+.gk-card.gk-nc b { color: #166534; }
+.gk-card.gk-nc .gk-go { background: #16A34A; }
+.gk-card .gk-tag.gk-g { background: #fff; color: #16A34A; }
+.gk-btn.gk-green { background: #16A34A; color: #fff; }
+.gk-pg-g .gk-mine span { color: #166534; }
+.gk-link.gk-pg-g .gk-hero { background: linear-gradient(180deg, #EAF7EF, transparent); }
+.gk-link.gk-pg-g .gk-hero span { color: #16A34A; }

@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace ChallengeBible.Web.Pages.Mission;
 
-/// <summary>`/{slug}/gifts/birthday/{id}` 생일 선물 고르기(확정 시안 생일-선물 ②, R-288). 내 생일 선물만, 금액 · 가격은 보이지 않는다.</summary>
-public class BirthdayGiftModel(BirthdayGiftService gifts, TenantContext tenant) : PageModel, ITitled
+/// <summary>`/{slug}/gifts/birthday/{id}` 생일 · 새친구 · 전도 선물 고르기(확정 시안 생일-선물 ② · 전도-선물, R-288 · R-286). 내 선물만, 금액 · 가격은 보이지 않는다.</summary>
+public class BirthdayGiftModel(BirthdayGiftService gifts, NewcomerGiftService newcomers, TenantContext tenant) : PageModel, ITitled
 {
-    public string Title => "생일 선물 고르기";
+    public string Title => View is null ? "선물 고르기" : $"{View.Gift.KindLabel} 고르기";
     public string Slug => tenant.Current.Slug;
     [BindProperty(SupportsGet = true)] public long Id { get; set; }
     [BindProperty(SupportsGet = true)] public bool Change { get; set; }
@@ -19,6 +19,7 @@ public class BirthdayGiftModel(BirthdayGiftService gifts, TenantContext tenant) 
     {
         if (!tenant.Current.MissionEnabled) return NotFound();
         await gifts.EnsureAsync(ct);
+        await newcomers.EnsureAsync(ct);
         var g = (await gifts.MineAsync(ct)).FirstOrDefault(x => x.Id == Id);
         if (g is null) return NotFound();
         var items = g.State == "Open" || (Change && g.State == "Picked") ? await gifts.ItemsAsync(g, ct) : [];

@@ -16,7 +16,7 @@ namespace ChallengeBible.Web.Pages;
 public class GiftLinkModel(BirthdayGiftService gifts) : PageModel, ITitled
 {
     public const string Limit = "gift-link";
-    public string Title => View is null ? "선물" : $"{View.Gift.Name} 어린이 생일 선물";
+    public string Title => View is null ? "선물" : $"{View.Gift.Name} 어린이 {View.Gift.KindLabel}";
     [BindProperty(SupportsGet = true)] public string Token { get; set; } = "";
     [BindProperty(SupportsGet = true)] public bool Change { get; set; }
     [TempData] public string? Msg { get; set; }

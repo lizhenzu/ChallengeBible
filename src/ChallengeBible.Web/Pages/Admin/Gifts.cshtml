@@ -42,7 +42,7 @@
             @* 링크 팝업(사용자 2026-11-14: 위에 갑자기 생기는 상자 대신 팝업으로 보여 주고 복사) — JS 없으면 [닫기]는 링크 *@
             <div class="go-modal" role="dialog" aria-modal="true" aria-labelledby="goLinkT" data-go-modal>
                 <div class="go-sheet">
-                    <b id="goLinkT">@lo.Who 생일 선물 링크</b>
+                    <b id="goLinkT">@lo.Who @GiftsModel.LinkTitle(lo.Kind) 링크</b>
                     @if (Model.LinkFresh) { <p class="go-fresh">새 링크를 만들었어요. 예전 링크는 이제 열리지 않아요.</p> }
                     <input class="in num" readonly value="@url" aria-label="선물 링크" onclick="this.select()" />
                     <small>카톡으로 부모님께 보내 주세요. 로그인 없이 열려요.</small>
@@ -53,11 +53,51 @@
                 </div>
             </div>
         }
+        @if (Model.Step == "pick")
+        {
+            @* 전도한 아이를 정하지 못한 새친구(확정 시안 전도-선물 ①): 이름이 명부의 학생 한 명과 맞지 않을 때 *@
+            foreach (var pd in Model.Pending)
+            {
+                <div class="go-r go-pend" id="n@(pd.NewcomerId)">
+                    <span class="go-pic"></span>
+                    <div class="go-mid"><b class="go-late">전도한 아이를 골라 주세요</b>
+                        <small>@(pd.NewcomerName)(새친구)를 데려온 아이 · <span class="go-kind go-k-invite">전도</span></small>
+                        <small class="go-warn">적힌 이름 "@pd.Written" — @(pd.Same == 0 ? "명부에 같은 이름의 학생이 없어요" : $"명부에 같은 이름이 {pd.Same}명이에요")</small></div>
+                    <div class="go-acts go-bday">
+                        <a class="btn p sm" href="@self?s=pick&pick=@pd.NewcomerId#n@(pd.NewcomerId)">전도한 아이 고르기</a>
+                        <form method="post" asp-page-handler="SkipPending" asp-route-slug="@slug" onsubmit="return confirm('전도 선물을 건너뛸까요? \'취소\'에서 되돌릴 수 있어요.')"><input type="hidden" name="newcomer" value="@pd.NewcomerId" /><button type="submit" class="btn s sm go-skip">건너뛰기</button></form>
+                    </div>
+                </div>
+            }
+            if (Model.PickFor is { } pf)
+            {
+                <div class="go-modal" role="dialog" aria-modal="true" aria-labelledby="goPickT" data-go-modal>
+                    <div class="go-sheet">
+                        <b id="goPickT">@GiftsModel.Obj(pf.NewcomerName) 데려온 아이</b>
+                        <small>적힌 이름: @pf.Written · 명부에서 골라 주세요</small>
+                        <form method="get" class="go-find"><input type="hidden" name="s" value="pick" /><input type="hidden" name="pick" value="@pf.NewcomerId" />
+                            <input class="in" name="q2" value="@Model.PickQ" placeholder="다른 학생 찾기(이름)" aria-label="학생 이름" /><button type="submit" class="btn s sm">찾기</button></form>
+                        <form method="post" asp-page-handler="Assign" asp-route-slug="@slug" class="go-cands">
+                            <input type="hidden" name="newcomer" value="@pf.NewcomerId" />
+                            @if (Model.Candidates.Count == 0) { <p class="gc-empty">찾는 학생이 없어요. 이름으로 찾아 주세요.</p> }
+                            @foreach (var c in Model.Candidates)
+                            {
+                                <label><input type="radio" name="person" value="@c.PersonId" required /><span>@c.Name@(c.ClassName is null ? "" : " · " + c.ClassName)@(c.Linked ? "" : " · 계정 없음")</span></label>
+                            }
+                            <div class="go-row2">
+                                <a class="btn s" href="@self?s=pick#n@(pf.NewcomerId)" data-close>닫기</a>
+                                <button type="submit" class="btn p go-green" disabled="@(Model.Candidates.Count == 0)">이 아이에게 선물</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+        }
         @if (Model.Step == "buy" && Model.Orders.Count > 0)
         {
             <div class="go-sum"><span>살 것 @(Model.Orders.Count)건 합계</span><b class="num">@GiftsModel.N(Model.Orders.Sum(o => o.Price))원</b></div>
         }
-        @if (Model.Orders.Count == 0)
+        @if (Model.Orders.Count == 0 && !(Model.Step == "pick" && Model.Pending.Count > 0))
         {
             <div class="empty-box">@(Model.Step switch { "pick" => "고르는 중인 선물이 없어요.", "buy" => "살 선물이 없어요.", "give" => "줄 선물이 없어요.", "done" => "받은 선물이 아직 없어요.", _ => "취소한 선물이 없어요." })</div>
         }
@@ -69,15 +109,15 @@
                     var when = o.State switch
                     {
                         "Purchased" => $"{o.PurchasedUtc:M월 d일} 샀어요", "Delivered" => $"{o.DeliveredUtc:M월 d일} 받았어요",
-                        "Cancelled" => "취소", "Skipped" => "건너뜀", "Open" => $"한도 {GiftsModel.N(o.MaxAmount)}원 · {o.OpenUntil:M월 d일}까지", "Expired" => $"{o.OpenUntil:M월 d일}까지였어요",
+                        "Cancelled" => "취소", "Skipped" => "건너뜀", "Open" => $"한도 {GiftsModel.N(o.MaxAmount)}원 · " + (o.OpenUntil is { } ou ? $"{ou:M월 d일}까지" : "기한 없음"), "Expired" => $"{o.OpenUntil:M월 d일}까지였어요",
                         _ => $"{(o.PickedUtc ?? o.CreatedUtc):M월 d일} 골랐어요",
                     };
                     <div class="go-r@(o.State is "Delivered" or "Cancelled" or "Skipped" ? " go-dim" : "")" id="g@(o.Id)">
                         <a class="go-pic" href="@self/@o.Id" aria-label="@o.ItemName 자세히">@if (o.HasImage && o.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" loading="lazy" onerror="this.remove()" /> }</a>
                         <a class="go-mid" href="@self/@o.Id"><b class="@(o.State == "Expired" ? "go-late" : o.State == "Open" ? "go-none" : "")">@(o.State switch { "Open" => "아직 안 골랐어요", "Expired" => "기한 지남", _ => o.ItemName })</b>
-                            <small><span class="go-who">@o.Who</span>@(o.ClassName is null ? "" : " · " + o.ClassName) · <span class="go-kind go-k-@o.Kind.ToLowerInvariant()">@o.KindText</span>@(o.NoAccount ? " · 계정 없음" : "")</small>
+                            <small><span class="go-who">@(o.Unassigned ? $"{o.Who}(새친구)를 데려온 아이" : o.Who)</span>@(o.ClassName is null || o.Unassigned ? "" : " · " + o.ClassName) · <span class="go-kind go-k-@o.Kind.ToLowerInvariant()">@o.KindText</span>@(o.About is { } ab && !o.Unassigned ? $" · {GiftsModel.Obj(ab)} 데려옴" : "")@(o.NoAccount ? " · 계정 없음" : "")</small>
                             <small class="num">@(o.State is "Open" or "Expired" ? "" : GiftsModel.N(o.Price) + "원" + (o.Team ? " · 한도 " + GiftsModel.N(o.MaxAmount) + "원" : "") + " · ")@when</small></a>
-                        @if (o.State == "Expired" && o.Kind != "Birthday")
+                        @if (o.State == "Expired" && !BirthdayGiftService.LinkKinds.Contains(o.Kind))
                         {
                             <form method="post" asp-page-handler="Reopen" asp-route-slug="@slug" class="go-acts">
                                 <input type="hidden" name="id" value="@o.Id" /><button type="submit" class="btn s sm">다시 열기(7일)</button>
@@ -98,7 +138,7 @@
                                 }
                             </form>
                         }
-                        @if (o.Kind == "Birthday" && o.State is "Open" or "Picked" or "Expired")
+                        @if (BirthdayGiftService.LinkKinds.Contains(o.Kind) && o.State is "Open" or "Picked" or "Expired")
                         {
                             <div class="go-acts go-bday">
                                 @if (o.State != "Expired")
@@ -110,7 +150,7 @@
                                 {
                                     <form method="post" asp-page-handler="Reopen" asp-route-slug="@slug"><input type="hidden" name="id" value="@o.Id" /><button type="submit" class="btn s sm">다시 열기(7일)</button></form>
                                 }
-                                <form method="post" asp-page-handler="Skip" asp-route-slug="@slug" onsubmit="return confirm('이 생일 선물을 건너뛸까요? \'취소\'에서 되돌릴 수 있어요.')"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="skip" value="true" /><button type="submit" class="btn s sm go-skip">건너뛰기</button></form>
+                                <form method="post" asp-page-handler="Skip" asp-route-slug="@slug" onsubmit="return confirm('이 선물을 건너뛸까요? \'취소\'에서 되돌릴 수 있어요.')"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="skip" value="true" /><button type="submit" class="btn s sm go-skip">건너뛰기</button></form>
                             </div>
                         }
                         @if (o.State == "Skipped")
@@ -122,7 +162,7 @@
             </div>
         }
         <script>
-            document.addEventListener('click', async (e) => {   // 생일 선물 링크 팝업: 복사(클립보드가 안 되면 칸을 골라 둔다) · 닫기
+            document.addEventListener('click', async (e) => {   // 선물 링크 · 전도한 아이 고르기 팝업: 복사(클립보드가 안 되면 칸을 골라 둔다) · 닫기
                 const close = e.target.closest('[data-go-modal] [data-close]');
                 if (close) { e.preventDefault(); close.closest('[data-go-modal]').remove(); history.replaceState(null, '', close.getAttribute('href')); return; }
                 const b = e.target.closest('[data-copy]'); if (!b) return;

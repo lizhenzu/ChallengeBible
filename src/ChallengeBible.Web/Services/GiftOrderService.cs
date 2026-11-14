@@ -18,6 +18,9 @@ public sealed record GiftOrderRow(long Id, string Kind, string State, string Who
         : Birthday is { } b ? $"{GiftOrderService.KindLabel(Kind)} {b:M.d}" : GiftOrderService.KindLabel(Kind);
     /// <summary>생일 선물: 계정 없이 명부로만 생긴 것(링크로만 고른다).</summary>
     public bool NoAccount { get; init; }
+    /// <summary>전도 선물: 데려온 새친구 이름("고성윤을 데려옴"). 전도한 아이를 정하지 못하고 건너뛴 줄은 Unassigned.</summary>
+    public string? About { get; init; }
+    public bool Unassigned { get; init; }
     /// <summary>로그인 없는 링크 열쇠(R-287). 관리자 화면에서만.</summary>
     public string? LinkToken { get; init; }
 }
@@ -46,7 +49,7 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
 
     public static string KindLabel(string kind) => kind switch
     {
-        GiftKinds.Personal => "개인", GiftKinds.Newcomer => "새친구", GiftKinds.Invite => "초대", GiftKinds.Birthday => "생일",
+        GiftKinds.Personal => "개인", GiftKinds.Newcomer => "새친구", GiftKinds.Invite => "전도", GiftKinds.Birthday => "생일",
         GiftKinds.Reading => "완독", GiftKinds.Family => "가족팀", GiftKinds.Friend => "친구팀", _ => kind,
     };
 
@@ -102,7 +105,7 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
         var names = await NamesAsync(ctx, users, ct);
         var userIds = users.Count == 0 ? [] : await ctx.Users.AsNoTracking().Where(u => users.Contains(u.UserName!)).Select(u => new { u.UserName, u.Id }).ToListAsync(ct);
         var ids = userIds.Select(u => u.Id).ToList();
-        var personIds = gifts.Select(g => g.PersonId).OfType<int>().Distinct().ToList();
+        var personIds = gifts.Select(g => g.PersonId).OfType<int>().Concat(gifts.Where(g => g.Kind == GiftKinds.Invite).Select(g => NewcomerGiftService.NewcomerOf(g.SourceKey)).OfType<int>()).Distinct().ToList();
         var people = await ctx.People.AsNoTracking().Where(p => (p.UserId != null && ids.Contains(p.UserId)) || personIds.Contains(p.Id)).Select(p => new { p.Id, p.UserId, p.Name }).ToListAsync(ct);
         var term = await ctx.ClassTerms.AsNoTracking().OrderByDescending(t => t.StartDate).Select(t => (int?)t.Id).FirstOrDefaultAsync(ct);
         var pids = people.Select(p => p.Id).ToList();
@@ -125,7 +128,9 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
                 g.Kind is GiftKinds.Family or GiftKinds.Friend ? TeamGiftService.StageOf(g.SourceKey) : 0, g.MaxAmount, g.OpenUntil)
             {
                 Birthday = g.Kind == GiftKinds.Birthday ? BirthdayGiftService.BirthdayOf(g.SourceKey) : null,
-                NoAccount = g.Kind == GiftKinds.Birthday && g.UserName is null,
+                NoAccount = BirthdayGiftService.LinkKinds.Contains(g.Kind) && g.UserName is null && !NewcomerGiftService.Unassigned(g),
+                About = g.Kind == GiftKinds.Invite && NewcomerGiftService.NewcomerOf(g.SourceKey) is int nid ? people.FirstOrDefault(p => p.Id == nid)?.Name : null,
+                Unassigned = NewcomerGiftService.Unassigned(g),
                 LinkToken = g.LinkToken,
             };
         }).ToList();
