@@ -3867,6 +3867,8 @@ a.nc-card.hidden { display: none; }
 .gk-link .gk-hero h1 { margin: 6px 0; }
 .gk-link .gk-hero p { margin: 0; font-size: 13px; color: var(--dim); }
 .go-bday { flex-wrap: wrap; }
+.go-acts .btn { white-space: nowrap; }
+@media (min-width: 640px) { .go-acts.go-bday { grid-column: 2 / -1; justify-content: flex-end; } }   /* 생일 링크 버튼은 [쿠팡] [샀어요] 아래 줄 */
 .go-bday form { margin: 0; }
 .go-skip { color: #B91C1C; }
 .go-modal { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(17, 24, 39, .45); }
