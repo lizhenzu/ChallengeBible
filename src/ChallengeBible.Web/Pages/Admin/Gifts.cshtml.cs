@@ -13,7 +13,7 @@ namespace ChallengeBible.Web.Pages.Admin;
 /// ③ 금액 · 점수(R-280 · R-283 · R-286 · R-288 · R-289) ④ 총비용 · 엑셀(확정 시안 선물-총비용, R-294). 부서 관리자만, 임시 부서는 없음.
 /// </summary>
 [TenantRoles(Roles.TenantAdmin)]
-public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftOrderService orders, TeamGiftService teamGifts, GiftCostService cost, TenantContext tenant) : PageModel, ITitled
+public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftOrderService orders, TeamGiftService teamGifts, GiftCostService cost, BirthdayGiftService birthdays, TenantContext tenant) : PageModel, ITitled
 {
     public string Title => "선물";
     public TenantContext Tenant => tenant;
@@ -27,6 +27,8 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
     [BindProperty] public DeptGiftMoneyInput Money { get; set; } = new();
     /// <summary>선물 처리 탭의 칩: buy 살 것 · give 줄 것 · done 받음 · cancel 취소.</summary>
     [BindProperty(SupportsGet = true, Name = "s")] public string? Step { get; set; }
+    /// <summary>방금 링크를 만든 생일 선물(위에 링크 상자를 보인다).</summary>
+    [BindProperty(SupportsGet = true, Name = "link")] public long? LinkId { get; set; }
     public IReadOnlyList<GiftOrderRow> Orders { get; private set; } = [];
     public GiftOrderCounts OrderCounts { get; private set; } = new(0, 0, 0, 0);
 
@@ -56,7 +58,7 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
         {
             "money" => "저장했어요. 앞으로 생기는 선물부터 적용돼요.", "shared" => "공통에 올렸어요. 이제 모든 부서에 보여요.",
             "Purchase" => "샀어요로 바꿨어요. \"줄 것\"에 있어요.", "Deliver" => "줬어요로 바꿨어요.", "Undo" => "한 단계 되돌렸어요.", "cancel" => "선물을 취소하고 점수를 돌려줬어요.",
-            "reopen" => "다시 열었어요. 7일 동안 고를 수 있어요.",
+            "reopen" => "다시 열었어요. 7일 동안 고를 수 있어요.", "skip" => "건너뛰었어요. \"취소\"에서 되돌릴 수 있어요.", "unskip" => "건너뛰기를 되돌렸어요.",
             "bad" => "이미 바뀐 선물이에요. 목록을 다시 확인해 주세요.", "lastyear" => "지난해 선물은 되돌릴 수 없어요.", _ => null,
         };
         await LoadAsync(fillMoney: true, ct);
@@ -69,6 +71,7 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
         if (Tab == "orders")
         {
             await teamGifts.EnsureAsync(ct);   // 팀 선물 생김 · 기한 지남(ADR 0094 F)
+            await birthdays.EnsureAsync(ct);   // 생일 선물 생김 · 기한 지남(ADR 0094 D)
             Step = Step is GiftOrderService.Pick or GiftOrderService.Give or GiftOrderService.Done or GiftOrderService.Cancel ? Step : GiftOrderService.Buy;
             OrderCounts = await orders.CountsAsync(ct);
             Orders = await orders.ListAsync(Step, ct: ct);
@@ -124,6 +127,24 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
         var ok = await teamGifts.ReopenAsync(Me, id, ct);
         return Redirect($"/{Slug}/admin/gifts?s={GiftOrderService.Pick}&ok={(ok ? "reopen" : "bad")}");
     }
+
+    /// <summary>생일 선물 [링크 복사](없으면 만듦) · [새 링크](옛 링크는 막힘, R-287).</summary>
+    public async Task<IActionResult> OnPostLinkAsync(long id, bool fresh, CancellationToken ct)
+    {
+        if (tenant.IsLobby) return NotFound();
+        var token = await birthdays.LinkAsync(Me, id, fresh, ct);
+        return Redirect($"/{Slug}/admin/gifts?s={Step ?? GiftOrderService.Pick}" + (token is null ? "&ok=bad" : $"&link={id}") + $"#g{id}");
+    }
+
+    /// <summary>생일 선물 [건너뛰기] · 건너뛴 것 [되돌리기](R-288).</summary>
+    public async Task<IActionResult> OnPostSkipAsync(long id, bool skip, CancellationToken ct)
+    {
+        if (tenant.IsLobby) return NotFound();
+        var ok = await birthdays.SkipAsync(Me, id, skip, ct);
+        return Redirect($"/{Slug}/admin/gifts?s={(skip ? GiftOrderService.Pick : GiftOrderService.Cancel)}&ok={(ok ? (skip ? "skip" : "unskip") : "bad")}");
+    }
+
+    public string LinkUrl(string token) => $"{Request.Scheme}://{Request.Host}/gift/{token}";
 
     /// <summary>① 공통 상품 숨기기 · 보이기(스위치를 누르면 바로).</summary>
     public async Task<IActionResult> OnPostHideAsync(int id, bool hide, CancellationToken ct)

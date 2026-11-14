@@ -36,6 +36,16 @@
             <a href="@self?s=done" aria-current="@Cur("done")">받음<u class="num">@oc.Done</u></a>
             <a href="@self?s=cancel" aria-current="@Cur("cancel")">취소<u class="num">@oc.Cancel</u></a>
         </nav>
+        @if (Model.LinkId is long lid && Model.Orders.FirstOrDefault(o => o.Id == lid) is { LinkToken: { } tok } lo)
+        {
+            var url = Model.LinkUrl(tok);
+            <div class="go-link" role="status">
+                <b>@lo.Who 생일 선물 링크</b>
+                <input class="in num" readonly value="@url" aria-label="선물 링크" onclick="this.select()" />
+                <button type="button" class="btn p sm" data-copy="@url">복사</button>
+                <small>카톡으로 부모님께 보내 주세요. 로그인 없이 열려요. [새 링크]를 누르면 이 링크는 막혀요.</small>
+            </div>
+        }
         @if (Model.Step == "buy" && Model.Orders.Count > 0)
         {
             <div class="go-sum"><span>살 것 @(Model.Orders.Count)건 합계</span><b class="num">@GiftsModel.N(Model.Orders.Sum(o => o.Price))원</b></div>
@@ -52,15 +62,34 @@
                     var when = o.State switch
                     {
                         "Purchased" => $"{o.PurchasedUtc:M월 d일} 샀어요", "Delivered" => $"{o.DeliveredUtc:M월 d일} 받았어요",
-                        "Cancelled" => "취소", "Open" => $"한도 {GiftsModel.N(o.MaxAmount)}원 · {o.OpenUntil:M월 d일}까지", "Expired" => $"{o.OpenUntil:M월 d일}까지였어요",
+                        "Cancelled" => "취소", "Skipped" => "건너뜀", "Open" => $"한도 {GiftsModel.N(o.MaxAmount)}원 · {o.OpenUntil:M월 d일}까지", "Expired" => $"{o.OpenUntil:M월 d일}까지였어요",
                         _ => $"{(o.PickedUtc ?? o.CreatedUtc):M월 d일} 골랐어요",
                     };
-                    <div class="go-r@(o.State is "Delivered" or "Cancelled" ? " go-dim" : "")">
+                    <div class="go-r@(o.State is "Delivered" or "Cancelled" or "Skipped" ? " go-dim" : "")" id="g@(o.Id)">
                         <a class="go-pic" href="@self/@o.Id" aria-label="@o.ItemName 자세히">@if (o.HasImage && o.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" loading="lazy" onerror="this.remove()" /> }</a>
                         <a class="go-mid" href="@self/@o.Id"><b class="@(o.State == "Expired" ? "go-late" : o.State == "Open" ? "go-none" : "")">@(o.State switch { "Open" => "아직 안 골랐어요", "Expired" => "기한 지남", _ => o.ItemName })</b>
-                            <small><span class="go-who">@o.Who</span>@(o.ClassName is null ? "" : " · " + o.ClassName) · <span class="go-kind go-k-@o.Kind.ToLowerInvariant()">@o.KindText</span></small>
+                            <small><span class="go-who">@o.Who</span>@(o.ClassName is null ? "" : " · " + o.ClassName) · <span class="go-kind go-k-@o.Kind.ToLowerInvariant()">@o.KindText</span>@(o.NoAccount ? " · 계정 없음" : "")</small>
                             <small class="num">@(o.State is "Open" or "Expired" ? "" : GiftsModel.N(o.Price) + "원" + (o.Team ? " · 한도 " + GiftsModel.N(o.MaxAmount) + "원" : "") + " · ")@when</small></a>
-                        @if (o.State == "Expired")
+                        @if (o.Kind == "Birthday" && o.State is "Open" or "Picked" or "Expired")
+                        {
+                            <div class="go-acts go-bday">
+                                @if (o.State != "Expired")
+                                {
+                                    <form method="post" asp-page-handler="Link" asp-route-slug="@slug"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="s" value="@Model.Step" /><button type="submit" class="btn p sm">링크 복사</button></form>
+                                    @if (o.LinkToken is not null) { <form method="post" asp-page-handler="Link" asp-route-slug="@slug"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="fresh" value="true" /><input type="hidden" name="s" value="@Model.Step" /><button type="submit" class="btn s sm">새 링크</button></form> }
+                                }
+                                else
+                                {
+                                    <form method="post" asp-page-handler="Reopen" asp-route-slug="@slug"><input type="hidden" name="id" value="@o.Id" /><button type="submit" class="btn s sm">다시 열기(7일)</button></form>
+                                }
+                                <form method="post" asp-page-handler="Skip" asp-route-slug="@slug" onsubmit="return confirm('이 생일 선물을 건너뛸까요? \'취소\'에서 되돌릴 수 있어요.')"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="skip" value="true" /><button type="submit" class="btn s sm go-skip">건너뛰기</button></form>
+                            </div>
+                        }
+                        @if (o.State == "Skipped")
+                        {
+                            <form method="post" asp-page-handler="Skip" asp-route-slug="@slug" class="go-acts"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="skip" value="false" /><button type="submit" class="btn s sm">되돌리기</button></form>
+                        }
+                        @if (o.State == "Expired" && o.Kind != "Birthday")
                         {
                             <form method="post" asp-page-handler="Reopen" asp-route-slug="@slug" class="go-acts">
                                 <input type="hidden" name="id" value="@o.Id" /><button type="submit" class="btn s sm">다시 열기(7일)</button>
@@ -85,6 +114,13 @@
                 }
             </div>
         }
+        <script>
+            document.addEventListener('click', async (e) => {   // 생일 선물 링크 복사(클립보드가 안 되면 칸을 골라 둔다)
+                const b = e.target.closest('[data-copy]'); if (!b) return;
+                try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = '복사했어요'; }
+                catch { b.parentElement.querySelector('input')?.select(); }
+            });
+        </script>
         <p class="gd-note">[샀어요]를 누르면 "줄 것"으로 옮겨지고, 아이 화면은 "선생님이 준비했어요"가 돼요(이때부터 아이는 취소할 수 없어요). 줄을 누르면 자세히 — 이력 · 되돌리기 · 선물 취소.</p>
     }
 

@@ -93,6 +93,7 @@
         <div><div class="k">네 가지 다 한 날</div><div class="v num">@(monthScores.Count(s => s.Complete))<u>일</u></div></div>
     </div>
 
+    @if (Model.Birthdays.Count > 0) { @await Html.PartialAsync("_BirthdayGiftCard", (Model.Slug, Model.Birthdays)) }   @* 생일 선물(ADR 0094 D, 확정 시안 생일-선물 ①) *@
     @if (Model.Gift is not null) { @await Html.PartialAsync("_GiftCard", Model) }   @* 개인 선물(ADR 0094 B, 확정 시안 말씀-선물고르기 ①) *@
     @if (Model.TeamGifts.Count > 0) { @await Html.PartialAsync("_TeamGiftCard", (Model.Slug, Model.TeamGifts)) }   @* 가족팀 · 친구팀 선물(ADR 0094 F) *@
 

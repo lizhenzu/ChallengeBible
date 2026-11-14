@@ -1,0 +1,15 @@
+@page "/gift/{token}"
+@model ChallengeBible.Web.Pages.GiftLinkModel
+@* 확정 시안 생일-선물 ③(2026-11-14): 로그인 없는 선물 링크 — 아이 이름 · 선물 종류만(R-287) *@
+<div class="gk-pg gk-pg-b gk-link">
+    @if (Model.View is { } v)
+    {
+        <div class="gk-hero"><span>생일 선물</span><h1>@v.Gift.Name 어린이 생일 선물</h1><p>@v.Gift.TenantName 선생님이 보낸 선물이에요. 하나를 골라 주세요.</p></div>
+        <partial name="_BirthdayPick" model="v" />
+    }
+    else
+    {
+        <div class="gk-hero"><h1>열 수 없는 링크예요</h1><p>링크가 바뀌었거나 이미 끝난 선물이에요. 선생님께 새 링크를 받아 주세요.</p></div>
+    }
+</div>
+<script src="~/js/gift.js" asp-append-version="true" defer></script>

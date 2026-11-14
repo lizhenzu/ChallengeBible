@@ -11,8 +11,15 @@ public sealed record GiftOrderRow(long Id, string Kind, string State, string Who
     int Stage = 0, int MaxAmount = 0, DateOnly? OpenUntil = null)
 {
     public bool Team => Kind is GiftKinds.Family or GiftKinds.Friend;
-    /// <summary>종류 꼬리표: 팀 선물은 "가족팀 2,000점".</summary>
-    public string KindText => Team ? $"{GiftOrderService.KindLabel(Kind)} {Stage:N0}점" : GiftOrderService.KindLabel(Kind);
+    /// <summary>생일 선물의 생일(열쇠 B{해}-{MMdd}).</summary>
+    public DateOnly? Birthday { get; init; }
+    /// <summary>종류 꼬리표: 팀 선물은 "가족팀 2,000점", 생일은 "생일 12.4".</summary>
+    public string KindText => Team ? $"{GiftOrderService.KindLabel(Kind)} {Stage:N0}점"
+        : Birthday is { } b ? $"{GiftOrderService.KindLabel(Kind)} {b:M.d}" : GiftOrderService.KindLabel(Kind);
+    /// <summary>생일 선물: 계정 없이 명부로만 생긴 것(링크로만 고른다).</summary>
+    public bool NoAccount { get; init; }
+    /// <summary>로그인 없는 링크 열쇠(R-287). 관리자 화면에서만.</summary>
+    public string? LinkToken { get; init; }
 }
 
 public sealed record GiftLogRow(string Action, string? Actor, string? ActorName, DateTime AtUtc, string? ItemName, int? ItemPrice);
@@ -50,7 +57,7 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
         await using var ctx = db.Create();
         var g = await ctx.Gifts.GroupBy(x => x.State).Select(x => new { x.Key, N = x.Count() }).ToListAsync(ct);
         int N(string s) => g.FirstOrDefault(x => x.Key == s)?.N ?? 0;
-        return new(N(GiftStates.Picked), N(GiftStates.Purchased), N(GiftStates.Delivered), N(GiftStates.Cancelled), N(GiftStates.Open) + N(GiftStates.Expired));
+        return new(N(GiftStates.Picked), N(GiftStates.Purchased), N(GiftStates.Delivered), N(GiftStates.Cancelled) + N(GiftStates.Skipped), N(GiftStates.Open) + N(GiftStates.Expired));
     }
 
     /// <summary>탭 목록: 살 것 · 줄 것은 오래된 순(먼저 처리), 받음 · 취소는 최근 순.</summary>
@@ -60,6 +67,8 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
         var state = StateOf(tab);
         var q = tab == Pick   // 고르는 중: 생겼는데 아직 안 고른 것 + 기한 지난 것(팀 선물, 다시 열기)
             ? ctx.Gifts.AsNoTracking().Where(g => g.State == GiftStates.Open || g.State == GiftStates.Expired)
+            : tab == Cancel   // 취소 + 건너뛴 생일 선물(되돌릴 수 있음)
+            ? ctx.Gifts.AsNoTracking().Where(g => g.State == GiftStates.Cancelled || g.State == GiftStates.Skipped)
             : ctx.Gifts.AsNoTracking().Where(g => g.State == state);
         q = tab == Pick ? q.OrderBy(g => g.State == GiftStates.Expired).ThenBy(g => g.OpenUntil).ThenBy(g => g.Id) : state switch
         {
@@ -113,7 +122,12 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
             var cls = person is null ? null : classes.FirstOrDefault(c => c.PersonId == person.Id)?.Name;
             return new GiftOrderRow(g.Id, g.Kind, g.State, who, cls, g.GiftItemId, g.ItemName ?? "", g.ItemPrice ?? 0, g.ItemHasImage == true, g.PointsUsed,
                 g.GiftItemId is int iid ? urls.GetValueOrDefault(iid) : null, g.CreatedUtc, g.PickedUtc, g.PurchasedUtc, g.DeliveredUtc, g.Year,
-                g.Kind is GiftKinds.Family or GiftKinds.Friend ? TeamGiftService.StageOf(g.SourceKey) : 0, g.MaxAmount, g.OpenUntil);
+                g.Kind is GiftKinds.Family or GiftKinds.Friend ? TeamGiftService.StageOf(g.SourceKey) : 0, g.MaxAmount, g.OpenUntil)
+            {
+                Birthday = g.Kind == GiftKinds.Birthday ? BirthdayGiftService.BirthdayOf(g.SourceKey) : null,
+                NoAccount = g.Kind == GiftKinds.Birthday && g.UserName is null,
+                LinkToken = g.LinkToken,
+            };
         }).ToList();
     }
 
@@ -164,13 +178,17 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
 
     /// <summary>
     /// 부서 카드 "누가 선물 받나요"(R-297): 골랐어요 · 준비했어요 + 받은 지 30일까지, 최근 순. take 명과 전체 수.
-    /// 생일 선물은 생일 주에만 — 생일 선물을 만들 때(5단계-③) 거른다.
+    /// 생일 선물은 **생일 주(일 ~ 토)에만** 보인다.
     /// </summary>
     public async Task<(IReadOnlyList<GiftBoardRow> Rows, int Total)> BoardAsync(int take, CancellationToken ct = default)
     {
         await using var ctx = db.Create();
         var since = time.GetUtcNow().UtcDateTime.AddDays(-BoardDeliveredDays);
-        var q = ctx.Gifts.AsNoTracking().Where(g => g.State == GiftStates.Picked || g.State == GiftStates.Purchased || (g.State == GiftStates.Delivered && g.DeliveredUtc >= since));
+        var today = clock.Today(tenant.Current.TimeZoneId);
+        var sunday = today.AddDays(-(int)today.DayOfWeek);
+        var week = Enumerable.Range(0, 7).Select(i => BirthdayGiftService.SourceKey(sunday.AddDays(i))).ToList();   // 이번 주 생일의 열쇠 앞 10자
+        var q = ctx.Gifts.AsNoTracking().Where(g => (g.State == GiftStates.Picked || g.State == GiftStates.Purchased || (g.State == GiftStates.Delivered && g.DeliveredUtc >= since))
+            && (g.Kind != GiftKinds.Birthday || week.Contains(g.SourceKey.Substring(0, 10))));
         var total = await q.CountAsync(ct);
         var list = await q.OrderByDescending(g => g.DeliveredUtc ?? g.PurchasedUtc ?? g.PickedUtc ?? g.CreatedUtc).ThenByDescending(g => g.Id).Take(take).ToListAsync(ct);
         var rows = await RowsAsync(ctx, list, ct);

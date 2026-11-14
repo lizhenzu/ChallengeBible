@@ -1,0 +1,46 @@
+@model ChallengeBible.Web.Services.BirthdayPickView
+@* 생일 선물 고르기 · 고른 뒤(확정 시안 생일-선물 ② · ③). 학생 화면과 로그인 없는 링크 화면이 함께 쓴다. 금액 · 가격 숨김, 이모지 없음 *@
+@{
+    var g = Model.Gift;
+    var picking = g.State == "Open" || (Model.Change && g.State == "Picked");
+}
+@if (Model.Msg is { } msg) { <p class="gk-msg" role="status">@msg</p> }
+@if (g.State == "Expired")
+{
+    <h1>생일 선물</h1>
+    <p class="gk-note">고르는 기한이 지났어요. 선생님께 말씀드리면 다시 열어 줘요.</p>
+}
+else if (picking)
+{
+    @if (!Model.Link) { <h1>생일 선물 고르기</h1> }
+    <p class="gk-sub">@g.Birthday.ToString("M월 d일") 생일@(g.OpenUntil is { } u && g.State == "Open" ? $" · {u:M월 d일}까지 골라요" : "")</p>
+    <div class="gk-mine gk-mine-b"><span>@(Model.Link ? "갖고 싶은 선물 하나를 골라 주세요" : "생일을 축하해요! 갖고 싶은 선물 하나를 골라요")</span></div>
+    @if (Model.Items.Count == 0) { <p class="gk-note">지금 고를 수 있는 선물이 없어요. 선생님께 말씀해 주세요.</p> }
+    <form method="post" class="gk-grid" data-gk-pick>
+        @foreach (var i in Model.Items)
+        {
+            var pic = i.HasImage ? $"/images/AwardItem/{i.Id}.jpg?v={i.UpdatedUtc.Ticks}" : null;
+            <button type="submit" name="item" value="@i.Id" class="gk-it" data-team="birthday" data-name="@i.Name" data-desc="@i.Description" data-img="@pic">
+                <span class="gk-pic">@if (pic is not null) { <img src="@pic" alt="" loading="lazy" onerror="this.remove()" /> }</span>
+                <span class="gk-nm">@i.Name</span>
+            </button>
+        }
+    </form>
+    @if (Model.Change) { <a class="gk-btn gk-ghost" href="@Model.Self">바꾸지 않을게요</a> }
+    <p class="gk-hint">@(Model.Link ? "로그인하지 않아도 돼요. 선생님이 사기 전까지 이 링크로 다시 들어와 바꿀 수 있어요." : "선생님이 사기 전까지 다른 선물로 바꿀 수 있어요.")</p>
+}
+else
+{
+    <div class="gk-done">
+        <div class="gk-pic big">@if (g.HasImage && g.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" onerror="this.remove()" /> }</div>
+        <h1>@g.ItemName</h1>
+        <div class="gk-st">@(g.State == "Purchased" ? "선생님이 준비했어요" : "준비 중이에요")</div>
+        <ul class="gk-steps">
+            <li class="gk-on"><i></i><span>골랐어요</span><span class="num">@g.PickedUtc?.ToString("M월 d일")</span></li>
+            <li class="@(g.PurchasedUtc is not null ? "gk-on" : "")"><i></i><span>선생님이 준비했어요</span><span class="num">@g.PurchasedUtc?.ToString("M월 d일")</span></li>
+            <li><i></i><span>선물을 받았어요</span><span></span></li>
+        </ul>
+        @if (g.State == "Picked") { <a class="gk-btn gk-plain" href="@Model.Self?change=true">다른 선물로 바꾸기</a> }
+        <p class="gk-hint">선생님이 사기 전까지는 다른 선물로 바꿀 수 있어요.</p>
+    </div>
+}

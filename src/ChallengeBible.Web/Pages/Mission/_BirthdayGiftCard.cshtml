@@ -1,0 +1,26 @@
+@model (string Slug, IReadOnlyList<ChallengeBible.Web.Services.BirthdayGiftView> Gifts)
+@* 생일 선물 카드(확정 시안 생일-선물 ①, R-288): 고를 수 있음(분홍) · 고른 뒤(가족팀과 같은 대기 카드) · 기한 지남. 개인 선물 카드 위. 이모지 없음. *@
+@foreach (var g in Model.Gifts)
+{
+    var href = $"/{Model.Slug}/gifts/birthday/{g.Id}";
+    if (g.State == "Open")
+    {
+        <a class="gk-card gk-bday" href="@href">
+            <span class="gk-m"><span class="gk-tag gk-b">@g.Birthday.ToString("M월 d일") 생일</span><b>생일 선물을 골라요</b>
+                <small>@(g.OpenUntil is { } u ? $"{u:M월 d일}까지 · " : "")생일 축하해요!</small></span>
+            <span class="gk-go">고르기</span>
+        </a>
+    }
+    else if (g.State is "Picked" or "Purchased")
+    {
+        <a class="gk-card gk-got" href="@href">
+            <span class="gk-pic">@if (g.HasImage && g.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" onerror="this.remove()" /> }</span>
+            <span class="gk-m"><span class="gk-tag">@(g.State == "Purchased" ? "선생님이 준비했어요" : "준비 중")</span><b>@g.ItemName</b><small>생일 선물</small></span>
+            <span class="gk-ar" aria-hidden="true">›</span>
+        </a>
+    }
+    else if (g.State == "Expired")
+    {
+        <div class="gk-card gk-fam-late"><span class="gk-m"><span class="gk-tag gk-w">기한 지남</span><b>생일 선물을 고르지 못했어요</b><small>선생님께 말씀드리면 다시 열어 줘요</small></span></div>
+    }
+}
