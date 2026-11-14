@@ -3,8 +3,8 @@
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 SET ANSI_NULLS ON; SET ANSI_PADDING ON; SET ANSI_WARNINGS ON; SET ARITHABORT ON; SET CONCAT_NULL_YIELDS_NULL ON; SET QUOTED_IDENTIFIER ON;
-EXEC sp_set_session_context N'PlatformScope', 1;
 BEGIN TRANSACTION;
+ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = OFF);
 
 -- A. current data (did the last run change anything?)
 SELECT 'A' AS Step,
@@ -44,6 +44,6 @@ CROSS JOIN (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)) c(v) CROSS JOIN (VAL
 CROSS JOIN (VALUES (0),(1),(2),(3),(4)) e(v);
 SELECT 'E' AS Step, (SELECT COUNT(*) FROM #Big) AS RowsMade, DATEDIFF(millisecond, @t0, SYSUTCDATETIME()) AS Ms;
 
+ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = ON);
 ROLLBACK;
-EXEC sp_set_session_context N'PlatformScope', NULL;
 SELECT 'DONE' AS Step, 'nothing changed' AS Result;

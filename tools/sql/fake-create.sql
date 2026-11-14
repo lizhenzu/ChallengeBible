@@ -16,10 +16,11 @@ DECLARE @MarkTime datetime2(3) = '2026-01-01T00:00:00.123';
 DECLARE @Pw nvarchar(max) = N'AQAAAAIAAYagAAAAEH8dMEcerTkA8VeDjshr5x4xhksLaM7c22lvoyE40KP/roXuIAD/0rujW3fEJrBCdg==';     -- 1234
 DECLARE @Step nvarchar(20);
 
-EXEC sp_set_session_context N'PlatformScope', 1;
 
 BEGIN TRY
 BEGIN TRANSACTION;
+-- tenant isolation policy off only inside this transaction (back on before the end; a rollback also restores it)
+ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = OFF);
 
 SET @Step = N'0 before';
 SELECT @Step AS [Step],
@@ -469,6 +470,7 @@ SELECT N'4 login ids' AS [Step], t.Name AS [Dept],
        (SELECT COUNT(*) FROM app.Person x WHERE x.TenantId = t.Id AND x.CreatedByUserName = @Marker) AS [RosterCount]
 FROM app.Tenant t WHERE t.IsLobby = 0 ORDER BY t.Id;
 
+ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = ON);
 IF @Commit = 1
 BEGIN
     COMMIT;
@@ -482,7 +484,5 @@ END;
 END TRY
 BEGIN CATCH
     IF @@TRANCOUNT > 0 ROLLBACK;
-    EXEC sp_set_session_context N'PlatformScope', NULL;
     THROW;
 END CATCH;
-EXEC sp_set_session_context N'PlatformScope', NULL;

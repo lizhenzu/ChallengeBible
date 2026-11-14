@@ -200,10 +200,11 @@ DECLARE @MarkTime datetime2(3) = '2026-01-01T00:00:00.123';   -- 가짜 반 · �
 DECLARE @Pw nvarchar(max) = N'{pw}';     -- 1234
 DECLARE @Step nvarchar(20);
 
-EXEC sp_set_session_context N'PlatformScope', 1;   -- 부서 격리(RLS)를 이 연결에서만 넘는다
 
 BEGIN TRY
 BEGIN TRANSACTION;
+-- tenant isolation policy off only inside this transaction (back on before the end; a rollback also restores it)
+ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = OFF);
 
 SET @Step = N'0 지우기 전';
 {COUNTS}
@@ -455,6 +456,7 @@ SELECT N'4 아이디' AS [단계], t.Name AS [부서],
        (SELECT COUNT(*) FROM app.Person x WHERE x.TenantId = t.Id AND x.CreatedByUserName = @Marker) AS [명부 수]
 FROM app.Tenant t WHERE t.IsLobby = 0 ORDER BY t.Id;
 
+ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = ON);
 IF @Commit = 1
 BEGIN
     COMMIT;
@@ -468,10 +470,8 @@ END;
 END TRY
 BEGIN CATCH
     IF @@TRANCOUNT > 0 ROLLBACK;
-    EXEC sp_set_session_context N'PlatformScope', NULL;
     THROW;
 END CATCH;
-EXEC sp_set_session_context N'PlatformScope', NULL;
 """
 
 
@@ -487,10 +487,11 @@ DECLARE @Marker nvarchar(50) = N'{MARKER}';
 DECLARE @MarkTime datetime2(3) = '2026-01-01T00:00:00.123';
 DECLARE @Step nvarchar(20);
 
-EXEC sp_set_session_context N'PlatformScope', 1;
 
 BEGIN TRY
 BEGIN TRANSACTION;
+-- tenant isolation policy off only inside this transaction (back on before the end; a rollback also restores it)
+ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = OFF);
 
 SET @Step = N'0 지우기 전';
 {COUNTS}
@@ -540,6 +541,7 @@ DELETE t FROM app.ClassTerm t WHERE t.CreatedUtc = @MarkTime
 
 SET @Step = N'1 지운 뒤';
 {COUNTS}
+ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = ON);
 IF @Commit = 1
 BEGIN
     COMMIT;
@@ -553,10 +555,8 @@ END;
 END TRY
 BEGIN CATCH
     IF @@TRANCOUNT > 0 ROLLBACK;
-    EXEC sp_set_session_context N'PlatformScope', NULL;
     THROW;
 END CATCH;
-EXEC sp_set_session_context N'PlatformScope', NULL;
 """
 
 

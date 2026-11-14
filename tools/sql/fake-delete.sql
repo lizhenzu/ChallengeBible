@@ -11,10 +11,11 @@ DECLARE @Marker nvarchar(50) = N'FAKE-SEED-20261114';
 DECLARE @MarkTime datetime2(3) = '2026-01-01T00:00:00.123';
 DECLARE @Step nvarchar(20);
 
-EXEC sp_set_session_context N'PlatformScope', 1;
 
 BEGIN TRY
 BEGIN TRANSACTION;
+-- tenant isolation policy off only inside this transaction (back on before the end; a rollback also restores it)
+ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = OFF);
 
 SET @Step = N'0 before';
 SELECT @Step AS [Step],
@@ -93,6 +94,7 @@ SELECT @Step AS [Step],
        (SELECT COUNT(*) FROM dbo.SignupApplication) AS [Signups],
        (SELECT COUNT(*) FROM app.AuditLog) AS [AuditLogs];
 
+ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = ON);
 IF @Commit = 1
 BEGIN
     COMMIT;
@@ -106,7 +108,5 @@ END;
 END TRY
 BEGIN CATCH
     IF @@TRANCOUNT > 0 ROLLBACK;
-    EXEC sp_set_session_context N'PlatformScope', NULL;
     THROW;
 END CATCH;
-EXEC sp_set_session_context N'PlatformScope', NULL;
