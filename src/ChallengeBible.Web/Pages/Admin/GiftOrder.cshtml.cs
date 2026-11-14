@@ -56,11 +56,15 @@ public class GiftOrderModel(GiftOrderService orders, TenantContext tenant) : Pag
         GiftStates.YearClosed => "해 넘어 닫힘", GiftStates.Open => "고를 수 있음", GiftStates.Expired => "기한 지남", GiftStates.Skipped => "건너뜀", _ => s,
     };
 
-    public static string LogText(GiftLogRow l, string who) => l.Action switch
+    /// <summary>이력 한 줄의 동작(이름은 앞에 따로 — "윤동호 · 샀어요", 사용자 2026-11-14).</summary>
+    public static string LogText(GiftLogRow l) => l.Action switch
     {
-        GiftActions.Pick => $"{who}이(가) 골랐어요", GiftActions.Change => $"{who}이(가) 바꿨어요", GiftActions.Cancel => $"{who}이(가) 취소했어요",
-        GiftActions.Purchase => $"{who}이(가) 샀어요", GiftActions.Deliver => $"{who}이(가) 줬어요", GiftActions.Undo => $"{who}이(가) 되돌렸어요",
-        GiftActions.Reopen => $"{who}이(가) 다시 열었어요", GiftActions.Skip => $"{who}이(가) 건너뛰었어요", GiftActions.Expire => "기한이 지났어요",
-        GiftActions.Open => "선물이 생겼어요", GiftActions.YearClose => "새해에 닫혔어요", GiftActions.Link => $"{who}이(가) 링크를 만들었어요", _ => l.Action,
+        GiftActions.Pick => "골랐어요", GiftActions.Change => "바꿨어요", GiftActions.Cancel => "취소했어요",
+        GiftActions.Purchase => "샀어요", GiftActions.Deliver => "줬어요", GiftActions.Undo => "되돌렸어요",
+        GiftActions.Reopen => "다시 열었어요", GiftActions.Skip => "건너뛰었어요", GiftActions.Expire => "기한이 지났어요",
+        GiftActions.Open => "선물이 생겼어요", GiftActions.YearClose => "새해에 닫혔어요", GiftActions.Link => "링크를 만들었어요", _ => l.Action,
     };
+
+    /// <summary>사람 없이 생기는 동작(선물이 생김 · 기한 지남 · 새해 닫힘)은 이름을 붙이지 않는다.</summary>
+    public static bool NoActor(GiftLogRow l) => l.Action is GiftActions.Open or GiftActions.Expire or GiftActions.YearClose;
 }

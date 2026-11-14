@@ -28,7 +28,7 @@
         @foreach (var l in Model.Logs)
         {
             var who = l.Actor is null ? "부모님 링크" : l.ActorName ?? l.Actor;
-            <li><i></i><span>@GiftOrderModel.LogText(l, who)@if (l.Action is "Pick" or "Change" && l.ItemName is not null) { <small> · @l.ItemName @(l.ItemPrice?.ToString("N0"))원</small> }</span><small class="num">@Local(l.AtUtc, "M.d HH:mm")</small></li>
+            <li><i></i><span>@if (!GiftOrderModel.NoActor(l)) { <b>@who</b><text> · </text> }@GiftOrderModel.LogText(l)@if (l.Action is "Pick" or "Change" && l.ItemName is not null) { <small> · @l.ItemName @(l.ItemPrice?.ToString("N0"))원</small> }</span><small class="num">@Local(l.AtUtc, "M.d HH:mm")</small></li>
         }
     </ul>
     <div class="go-btns">

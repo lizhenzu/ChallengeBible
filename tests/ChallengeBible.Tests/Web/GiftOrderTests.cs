@@ -148,7 +148,7 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
         var page = await admin.GetStringAsync($"/kids/admin/gifts/{id}");
         Assert.Contains("안예빛", page);
         Assert.Contains("6,000원 · 200점", page);
-        Assert.Contains("안예빛이(가) 골랐어요", page);
+        Assert.Contains("<b>안예빛</b> · 골랐어요", page);
         Assert.Contains("쿠팡에서 보기", page);
     }
 
