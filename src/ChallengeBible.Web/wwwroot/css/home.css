@@ -154,7 +154,7 @@
 .hm footer { border-top: 1px solid var(--rule); }
 .hm footer .wrap { padding-block: 22px calc(30px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; font-size: 14px; color: var(--dim); }
 .hm footer .acct { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 20px; }
-.hm footer .copy { display: block; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; font-size: 12.5px; color: var(--dim); }   /* 다른 화면의 .copy 상자(site.css)가 붙지 않게 — 배경 · 테두리 없음(사용자 2026-11-14) */
+.hm footer .copy { margin: 0; font-size: 12.5px; color: var(--dim); }
 .hm footer a { min-height: 32px; display: inline-flex; align-items: center; }
 .hm footer form { margin: 0; }
 .hm footer button { border: 0; background: none; padding: 0; min-height: 32px; font-size: 14px; color: var(--dim); }
