@@ -1,4 +1,4 @@
-using ChallengeBible.Domain.Missions;
+﻿using ChallengeBible.Domain.Missions;
 using ChallengeBible.Domain.Rules;
 using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
@@ -11,6 +11,9 @@ namespace ChallengeBible.Web.Services;
 public sealed record HomeMission(string Key, string Label, bool Has, bool Done, string State);
 public sealed record HomeWeekDay(DateOnly Date, int MissionPoints, bool AllFour, int Chapters);
 /// <summary>홈 카드 숫자. Members = 승인된 모든 소속원(명단 "전체"), Participants = 활성 참여자(명단 "참여자").</summary>
+/// <summary>인사 카드의 역할 칩 하나(R-275, 확정 시안 C). Kind: st 학생 · nc 새친구 · te 교사 · of 임원 · pa 학부모 · et 기타 · cl 반.</summary>
+public sealed record RoleChip(string Text, string Kind);
+
 public sealed record HomeDept(int Members, int TodayPeople, int? YearChapters, int Participants = 0);
 
 /// <summary>부서 홈 메인(확정 시안: 홈메인)에 필요한 것. 프로그램이 꺼졌거나 참여자가 아니면 그 부분은 null · 0.</summary>
@@ -158,5 +161,47 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
         // 참여자 수(명단 "참여자"와 같은 기준, ADR 0085): 승인된 소속의 활성 참여자
         var participants = people.Count(p => p.RoleCode == UserRole.StudentCode);
         return new HomeDept(members, todayPeople, chapters, participants);
+    }
+
+    /// <summary>
+    /// 인사 카드 이름 아래 역할 칩(R-275, 확정 시안 C): 역할 칩 하나 + 반 칩(있으면).
+    /// 학생 · 새친구 = 든 반 이름("3학년 믿음반" 이 곧 학년 · 반), 교사 · 임원 = 담임 반이면 "반 이름 담임", 새친구반이면 "새친구반 담당".
+    /// 임원은 부서의 역할 이름(부장 · 부감 · 서기 …), 학부모는 "학부모"만. 승인 안 됨 · 임시 부서는 없음.
+    /// </summary>
+    public async Task<IReadOnlyList<RoleChip>> RoleChipsAsync(string userId, CancellationToken ct = default)
+    {
+        if (!tenant.IsApproved || tenant.IsLobby) return [];
+        var code = tenant.RoleCode?.Trim();
+        var kind = UserRole.KindOf(code);
+        await using var ctx = db.Create();
+        RoleChip role;
+        if (code == ClassService.NewcomerCode) role = new("새친구", "nc");
+        else if (kind == UserRoleKind.Officer)
+        {
+            var name = await ctx.CodeData.AsNoTracking().Where(c => c.MajorCD == CodeData.RoleMajor && c.MinorCD == code).Select(c => c.MinorNM).FirstOrDefaultAsync(ct)
+                       ?? UserRole.Codes.FirstOrDefault(c => c.Code == code).Name;
+            role = new(string.IsNullOrWhiteSpace(name) ? "임원" : name.Trim(), "of");
+        }
+        else role = kind switch
+        {
+            UserRoleKind.Student => new("학생", "st"),
+            UserRoleKind.Teacher => new("교사", "te"),
+            UserRoleKind.Etc => new("기타", "et"),
+            _ => new("학부모", "pa"),
+        };
+        var chips = new List<RoleChip> { role };
+        if (kind == UserRoleKind.Parent) return chips;
+
+        var personId = await ctx.People.AsNoTracking().Where(p => p.UserId == userId).Select(p => (int?)p.Id).FirstOrDefaultAsync(ct);
+        var term = await ctx.ClassTerms.AsNoTracking().OrderBy(t => t.Id).Select(t => (int?)t.Id).FirstOrDefaultAsync(ct);   // 반 묶음은 부서마다 하나(ClassService)
+        if (personId is null || term is null) return chips;
+        var cls = await (from m in ctx.ClassMembers.AsNoTracking()
+                         join c in ctx.Classes.AsNoTracking() on m.ClassId equals c.Id
+                         where m.TermId == term && m.PersonId == personId
+                         select new { c.Name, c.IsNewcomer, m.IsTeacher }).FirstOrDefaultAsync(ct);
+        if (cls is null) return chips;
+        if (cls.IsNewcomer) chips.Add(new(cls.IsTeacher ? $"{ClassService.NewcomerName} 담당" : ClassService.NewcomerName, "cl"));
+        else chips.Add(new(cls.IsTeacher ? $"{cls.Name} 담임" : cls.Name, "cl"));
+        return chips;
     }
 }

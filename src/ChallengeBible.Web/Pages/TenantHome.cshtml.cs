@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
@@ -22,6 +22,8 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     /// <summary>온가족 한 줄(확정 시안 온가족 "부서 홈 칸", R-177) — 온가족이 없으면 null.</summary>
     public bool IsGuardian => tenant.Has(Roles.Guardian);
     public HomeView Data { get; private set; } = null!;
+    /// <summary>인사 카드 이름 아래 역할 칩(R-275, 확정 시안 C).</summary>
+    public IReadOnlyList<RoleChip> RoleChips { get; private set; } = [];
     /// <summary>승인된 소속이 둘 이상이면 머리말 "부서 ▼" → 부서 고르기(확정 6).</summary>
     public bool ManyTenants { get; private set; }
     /// <summary>임시 부서(0064, R-172)에서 승인을 기다리는 내 신청의 부서 이름. 비어 있으면 "내 부서 찾기" 띠.</summary>
@@ -45,6 +47,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         if (tenant.Current.MissionEnabled) Family = await teams.MyFamilyAsync(ct);
         if (tenant.Current.MissionEnabled && Family is null) Invites = (await familyJoin.StateAsync(ct)).Invites.Where(i => !i.SnoozedToday).ToList();
         Data = await home.GetAsync(ct);
+        RoleChips = await home.RoleChipsAsync(User.UserId()!, ct);
         ManyTenants = (await accounts.WhereToGoAsync(me, ct)).ApprovedCount > 1;
         if (tenant.IsLobby)
             Waiting = (await accounts.MyMembershipsAsync(me, ct))
