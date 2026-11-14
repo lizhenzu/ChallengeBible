@@ -3645,14 +3645,14 @@ a.nc-card.hidden { display: none; }
 .gk-btn.gk-ghost { background: transparent; color: #6B7280; margin-top: 4px; }
 .gk-btn.gk-line { background: #fff; color: #B91C1C; border: 1px solid #F3C4C4; }
 .gk-dim { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, .45); font-family: "Gothic A1", "Malgun Gothic", system-ui, sans-serif; color: #111827; }
-.gk-dim.gk-bottom { align-items: flex-end; padding: 0; }
+.gk-dim.gk-bottom { align-items: center; padding: 16px; }   /* 휴대폰 · PC 모두 화면 가운데(사용자 2026-11-14) */
 .gk-pop { width: min(380px, 100%); padding: 28px 22px 16px; border-radius: 22px; background: #fff; text-align: center; }
 .gk-pop .gk-k { font-size: 13px; color: #6B7280; }
 .gk-pop .gk-big { margin: 4px 0 8px; font-size: 44px; font-weight: 300; line-height: 1.15; color: #2F80ED; font-variant-numeric: tabular-nums; }
 .gk-pop .gk-big u { text-decoration: none; margin-left: 2px; font-size: 18px; color: #6B7280; }
 .gk-pop h2 { margin: 0 0 6px; font-size: 18px; font-weight: 800; }
 .gk-pop p { margin: 0 0 18px; font-size: 14px; line-height: 1.65; color: #4B5563; }
-.gk-sheet { width: min(560px, 100%); padding: 20px 16px 20px; border-radius: 22px 22px 0 0; background: #fff; }
+.gk-sheet { width: min(560px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; padding: 20px 16px 20px; border-radius: 22px; background: #fff; }
 .gk-sheet .gk-top { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 14px; align-items: center; margin-bottom: 12px; }
 .gk-sheet .gk-top .gk-pic { width: 88px; height: 88px; }
 .gk-sheet h2 { margin: 0; font-size: 17px; font-weight: 800; line-height: 1.35; }
@@ -3664,8 +3664,6 @@ a.nc-card.hidden { display: none; }
 .gk-sheet .gk-sn { margin: 0 0 14px; font-size: 12.5px; line-height: 1.6; color: #6B7280; }
 .gk-sheet .gk-row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 8px; }
 .gk-sheet .gk-row2 .gk-btn.gk-ghost { margin: 0; background: #F4F6F9; color: #374151; }
-/* 데스크톱 · 태블릿(640px 이상)은 확인 창을 화면 가운데에(사용자 2026-11-14). 휴대폰은 아래에서 올라오는 창 그대로 */
-@media (min-width: 640px) { .gk-dim.gk-bottom { align-items: center; padding: 24px; } .gk-sheet { border-radius: 22px; } }
 
 /* 사람 바꾸기(확정 시안 사람바꾸기, ADR 0096). sw- 앞글자. 가장 띠 보라(#7A2E9C) 그대로. */
 .imp-bar .sw-btn { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 10px; color: #fff; font-weight: 900; text-decoration: none; white-space: nowrap; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55); background: rgba(255, 255, 255, .16); }
