@@ -10,6 +10,15 @@
 }
 <div class="gk-pg">
     <div class="gk-bar"><a href="/@slug/word-mission">← 미션 홈</a></div>
+    @if (Model.Others.Count > 0)
+    {
+        <nav class="gk-seg" aria-label="팀 선물">
+            @foreach (var o in Model.Others.Append(Model.Gift!).OrderBy(x => x.Stage))
+            {
+                <a href="/@Model.Slug/gifts/team/@o.Id" aria-current="@(o.Id == Model.Gift!.Id ? "true" : null)">@o.Stage.ToString("N0")점 · @(o.State == "Open" ? "고르기" : "골랐어요")</a>
+            }
+        </nav>
+    }
     @if (Model.MsgText is { } msg) { <p class="gk-msg" role="status">@msg</p> }
 
     @if (g.State == "Expired")
@@ -20,7 +29,7 @@
     else if (picking)
     {
         <h1>@(g.Friend ? "친구팀 선물 고르기" : "가족 선물 고르기")</h1>
-        <p class="gk-sub">@(g.Friend ? "친구팀" : "우리 가족") @g.Stage.ToString("N0")점 달성@(g.OpenUntil is { } u ? $" · {u:M월 d일}까지" : "")</p>
+        <p class="gk-sub">@(g.Friend ? "친구팀" : "우리 가족") @g.Stage.ToString("N0")점 달성 선물@(g.OpenUntil is { } u ? $" · {u:M월 d일}까지" : "")@(Model.Others.Count(o => o.State == "Open") is > 0 and var n ? $" · 이것 말고 {n}개 더 골라요" : "")</p>
         <div class="gk-mine"><span>@(g.Friend ? "내가 받을 선물을 골라요" : "가족이 함께 받을 선물을 골라요")</span></div>
         @if (Model.Members.Count > 0) { <div class="gk-mem">@foreach (var m in Model.Members) { <span>@m</span> }</div> }
         @if (Model.Items.Count == 0) { <p class="gk-note">지금 고를 수 있는 선물이 없어요. 선생님께 말씀해 주세요.</p> }

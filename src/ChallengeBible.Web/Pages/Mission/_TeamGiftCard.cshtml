@@ -1,29 +1,47 @@
 @model (string Slug, IReadOnlyList<ChallengeBible.Web.Services.TeamGiftView> Gifts)
 @using ChallengeBible.Web.Services
-@* 가족팀 · 친구팀 선물 카드(확정 시안 가족팀-선물고르기 ①, R-291): 고를 수 있음 · 고른 뒤 · 기한 지남. 미션 홈 "내 선물" 아래와 가족팀 화면 위. 이모지 없음 *@
-@foreach (var g in Model.Gifts)
+@* 가족팀 · 친구팀 선물 카드(확정 시안 가족팀-선물고르기 ①, R-291): 고를 수 있음 · 고른 뒤 · 기한 지남. 미션 홈 "내 선물" 아래와 가족팀 화면 위. 이모지 없음.
+   이미 여러 단계를 넘은 팀은 단계마다 선물이 생기고(사용자 2026-11-14 "1"), 같은 상태끼리 카드 하나로 묶는다("가족 선물 7개를 골라요"). *@
+@{
+    var gifts = Model.Gifts;
+    var friend = gifts.FirstOrDefault()?.Friend == true;
+    var who = friend ? "내 친구팀 선물" : "가족 선물";
+    var team = friend ? "친구팀" : "가족팀";
+    var open = gifts.Where(g => g.State == "Open").OrderBy(g => g.Stage).ToList();
+    var got = gifts.Where(g => g.State is "Picked" or "Purchased").OrderBy(g => g.Stage).ToList();
+    var late = gifts.Where(g => g.State == "Expired").ToList();
+    string Href(TeamGiftView g) => $"/{Model.Slug}/gifts/team/{g.Id}";
+}
+@if (open.Count > 0)
 {
-    var href = $"/{Model.Slug}/gifts/team/{g.Id}";
-    var team = g.Friend ? "친구팀" : "가족팀";
-    var who = g.Friend ? "내 친구팀 선물" : "가족 선물";
-    if (g.State == "Expired")
-    {
-        <div class="gk-card gk-fam-late"><span class="gk-m"><span class="gk-tag gk-w">기한 지남</span><b>@(who)을 고르지 못했어요</b><small>선생님께 말씀드리면 다시 열어 줘요</small></span></div>
-    }
-    else if (g.State == "Open")
-    {
-        <a class="gk-card gk-fam" href="@href">
-            <span class="gk-m"><span class="gk-tag gk-p">@team @g.Stage.ToString("N0")점 달성</span><b>@(who)을 골라요</b>
-                <small>@(g.OpenUntil is { } u ? $"{u:M월 d일}까지 · " : "")@(g.Friend ? "친구도 따로 하나 골라요" : "가족 누구나 고를 수 있어요")</small></span>
-            <span class="gk-go">고르기</span>
-        </a>
-    }
-    else
-    {
-        <a class="gk-card gk-got" href="@href">
-            <span class="gk-pic">@if (g.HasImage && g.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" onerror="this.remove()" /> }</span>
-            <span class="gk-m"><span class="gk-tag">@(g.State == "Purchased" ? "선생님이 준비했어요" : "준비 중")</span><b>@g.ItemName</b><small>@who@(g.PickedBy is { } pb ? $" · {pb}님이 골랐어요" : "")</small></span>
-            <span class="gk-ar" aria-hidden="true">›</span>
-        </a>
-    }
+    var first = open[0];
+    var until = open.Where(g => g.OpenUntil is not null).Select(g => g.OpenUntil!.Value).DefaultIfEmpty().Min();
+    <a class="gk-card gk-fam" href="@Href(first)">
+        <span class="gk-m"><span class="gk-tag gk-p">@team @(open.Count == 1 ? $"{first.Stage:N0}점" : $"{open[^1].Stage:N0}점까지") 달성</span>
+            <b>@(open.Count == 1 ? $"{who}을 골라요" : $"{who} {open.Count}개를 골라요")</b>
+            <small>@(until == default ? "" : $"{until:M월 d일}까지 · ")@(friend ? "친구도 따로 골라요" : "가족 누구나 고를 수 있어요")</small></span>
+        <span class="gk-go">고르기</span>
+    </a>
+}
+@if (got.Count == 1)
+{
+    var g = got[0];
+    <a class="gk-card gk-got" href="@Href(g)">
+        <span class="gk-pic">@if (g.HasImage && g.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" onerror="this.remove()" /> }</span>
+        <span class="gk-m"><span class="gk-tag">@(g.State == "Purchased" ? "선생님이 준비했어요" : "준비 중")</span><b>@g.ItemName</b><small>@who@(g.PickedBy is { } pb ? $" · {pb}님이 골랐어요" : "")</small></span>
+        <span class="gk-ar" aria-hidden="true">›</span>
+    </a>
+}
+else if (got.Count > 1)
+{
+    var g = got[0];
+    <a class="gk-card gk-got" href="@Href(g)">
+        <span class="gk-pic">@if (g.HasImage && g.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" onerror="this.remove()" /> }</span>
+        <span class="gk-m"><span class="gk-tag">준비 중</span><b>@who @(got.Count)개</b><small>@string.Join(" · ", got.Select(x => x.ItemName))</small></span>
+        <span class="gk-ar" aria-hidden="true">›</span>
+    </a>
+}
+@if (late.Count > 0)
+{
+    <div class="gk-card gk-fam-late"><span class="gk-m"><span class="gk-tag gk-w">기한 지남</span><b>@(late.Count == 1 ? $"{who}을 고르지 못했어요" : $"{who} {late.Count}개를 고르지 못했어요")</b><small>선생님께 말씀드리면 다시 열어 줘요</small></span></div>
 }

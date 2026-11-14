@@ -211,4 +211,26 @@ public partial class TeamGiftTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal((GiftStates.Open, new DateOnly(2027, 1, 12)), (Single().State, Single().OpenUntil!.Value));
         Assert.Contains("가족 선물을 골라요", await c.GetStringAsync("/kids/word-mission"));
     }
+
+    [Fact]
+    public async Task 정한것11_여러_단계를_넘은_팀은_단계마다_선물이_생기고_카드는_하나로_묶는다()
+    {
+        Team("철수네", false, "cheolsu", "younghee");
+        Pts("cheolsu", 2100);
+        var a = Item("젠가 클래식", 8000);
+        var c = await Login("cheolsu@example.com");
+        var home = await c.GetStringAsync("/kids/word-mission");
+        Assert.Contains("가족 선물 2개를 골라요", home);
+        Assert.Contains("가족팀 2,000점까지 달성", home);
+        long first, second;
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var gs = raw.Gifts.OrderBy(g => g.MaxAmount).ToList();
+            Assert.Equal([10000, 20000], gs.Select(g => g.MaxAmount).ToArray());   // 1,000점 1만 · 2,000점 2만(R-290)
+            (first, second) = (gs[0].Id, gs[1].Id);
+        }
+        var r = await Post(c, $"/kids/gifts/team/{first}", $"/kids/gifts/team/{first}", new() { ["item"] = a.ToString() });
+        Assert.Equal($"/kids/gifts/team/{second}", r.Headers.Location!.OriginalString);   // 다음 안 고른 선물로
+        Assert.Contains("가족 선물을 골라요", await c.GetStringAsync("/kids/word-mission"));
+    }
 }
