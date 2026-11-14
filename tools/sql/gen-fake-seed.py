@@ -27,6 +27,12 @@ def password_hash(password: str) -> str:
     return base64.b64encode(blob).decode("ascii")
 
 
+def name_parts():
+    sur = "김이박최정강조윤장임한오서신권황안송류홍전고문양손배백허유남심노하곽성차주우구민나진지엄채원천방공현함변염여추도소석선설마길연위표명기반왕금옥육인맹제모탁국어은편용예경봉사부"
+    d = lambda t: "".join(dict.fromkeys(t))
+    return d(sur)[:40], d("민서지하도예시유주수은채윤현준우나다가소태건승재영동성혜정미선경진"), d("준윤우아연원진호린율빈혁희온별솔찬결람후서민영현수은빛나름석훈")
+
+
 def names(count: int):
     sur = "김이박최정강조윤장임한오서신권황안송류홍전고문양손배백허유남심노하곽성차주우구민나진지엄채원천방공현함변염여추도소석선설마길연위표명기반왕금옥육인맹제모탁국어은편용예경봉사부황보"
     sur = list(dict.fromkeys(sur))[:40]
@@ -169,7 +175,7 @@ COUNTS = """SELECT @Step AS [단계],
 
 
 def create_sql() -> str:
-    pool = names(3000)
+    sur, na, nb = name_parts()
     pw = password_hash("1234")
     team_rows = [(no, kind) for no, kind, *_ in teams]
     team_mem = [(no, c, rel, k + 1, 1 if k == 0 else 0) for no, _, _, mem, _ in teams for k, (c, rel) in enumerate(mem)]
@@ -247,12 +253,13 @@ DECLARE @RoleAdmin nvarchar(450) = (SELECT Id FROM [Identity].[Role] WHERE Norma
 IF @RoleBasic IS NULL OR @RoleAdmin IS NULL THROW 50002, N'Identity.Role 에 Basic · Admin 이 없습니다. 알려 주세요.', 1;
 
 CREATE TABLE #Name (Idx int PRIMARY KEY, Name nvarchar(50) COLLATE DATABASE_DEFAULT);
-INSERT #Name (Idx, Name) VALUES
-{values([(i, n) for i, n in enumerate(pool[:1000])])};
-INSERT #Name (Idx, Name) VALUES
-{values([(i + 1000, n) for i, n in enumerate(pool[1000:2000])])};
-INSERT #Name (Idx, Name) VALUES
-{values([(i + 2000, n) for i, n in enumerate(pool[2000:3000])])};
+-- names: surname + 2 syllables, all different, mixed order
+DECLARE @Sur nvarchar(100) = N'{sur}', @Na nvarchar(100) = N'{na}', @Nb nvarchar(100) = N'{nb}';
+;WITH k AS (SELECT TOP (100) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS i FROM sys.all_columns),
+n AS (SELECT DISTINCT SUBSTRING(@Sur, s.i, 1) + SUBSTRING(@Na, a.i, 1) + SUBSTRING(@Nb, b.i, 1) AS Name
+      FROM k s JOIN k a ON a.i <= LEN(@Na) JOIN k b ON b.i <= LEN(@Nb)
+      WHERE s.i <= LEN(@Sur) AND SUBSTRING(@Na, a.i, 1) <> SUBSTRING(@Nb, b.i, 1))
+INSERT #Name (Idx, Name) SELECT TOP (3000) ROW_NUMBER() OVER (ORDER BY HASHBYTES('MD5', Name), Name) - 1, Name FROM n ORDER BY HASHBYTES('MD5', Name), Name;
 
 CREATE TABLE #Tpl (Seq int PRIMARY KEY, Code varchar(10) COLLATE DATABASE_DEFAULT, Kind char(1) COLLATE DATABASE_DEFAULT, RoleCode nvarchar(50) COLLATE DATABASE_DEFAULT, HasAcct bit,
     BM tinyint, BD tinyint, Target int, ClassNo int, AttRate int, Absent3 bit, NcFirst int, NcVol bit, NcEvan varchar(10) COLLATE DATABASE_DEFAULT, Phone varchar(20) COLLATE DATABASE_DEFAULT);
@@ -553,8 +560,68 @@ EXEC sp_set_session_context N'PlatformScope', NULL;
 """
 
 
+# SQL Studio(site4now 웹 도구)는 한글 · BOM 이 든 파일을 읽지 못한다(2026-11-14 확인) — 예전 migrate-*.sql 처럼 ASCII 만 쓴다.
+# 한글 값은 CAST(0x<UTF-16LE> AS nvarchar(100)) 로, 안내 문구 · 열 이름은 영어로, 한글 주석은 지운다.
+ENGLISH = {
+    "N'0 지우기 전'": "N'0 before'", "N'2 지운 뒤'": "N'2 after delete'", "N'3 넣은 뒤'": "N'3 after insert'", "N'1 지운 뒤'": "N'1 after delete'",
+    "N'1 남는 계정'": "N'1 kept account'", "N'4 아이디'": "N'4 login ids'", "N'알림'": "N'note'",
+    "N'SuperAdmin 계정이 없습니다. 실행하지 말고 알려 주세요.'": "N'No SuperAdmin account. Stop and report.'",
+    "N'Identity.Role 에 Basic · Admin 이 없습니다. 알려 주세요.'": "N'Identity.Role has no Basic or Admin. Stop and report.'",
+    "N'app.BibleChapter 가 비어 있어 통독 기록은 넣지 않습니다.'": "N'app.BibleChapter is empty: no reading records inserted.'",
+    "N'이름이 모자랍니다(부서가 너무 많음). 알려 주세요.'": "N'Not enough names (too many departments). Stop and report.'",
+    "N'가짜 아이디가 이미 있는 계정과 겹칩니다. 알려 주세요.'": "N'A fake user name already exists. Stop and report.'",
+    "N'끝: 저장했습니다(진짜 실행).'": "N'DONE: saved (real run).'",
+    "N'끝: 지웠습니다(진짜 실행).'": "N'DONE: deleted (real run).'",
+    "N'끝: 시험 실행이라 모두 되돌렸습니다. 위 숫자가 맞으면 @Commit = 1 로 바꿔 다시 실행하세요.'":
+        "N'DONE: test run, everything rolled back. If the numbers look right, set @Commit = 1 and run again.'",
+}
+ALIASES = {"단계": "Step", "계정": "Accounts", "소속": "Memberships", "명부": "Roster", "반 배정": "ClassMembers", "출석": "Attendance",
+           "미션 기록": "MissionRows", "팀": "Teams", "팀 구성원": "TeamMembers", "시상 기록": "Awards", "보호 관계": "GuardianLinks",
+           "통독 회차": "ReadingRounds", "통독 장": "ReadingChapters", "참여 신청": "Signups", "감사 로그": "AuditLogs", "아이디": "UserName",
+           "부서": "Dept", "관리자": "Admin", "선생님": "Teachers", "학생": "Students", "학부모": "Parents", "명부 수": "RosterCount",
+           "결과": "Result", "내용": "Message"}
+
+
+def asciify(sql: str, title: str) -> str:
+    import re
+    for k, v in ENGLISH.items():
+        sql = sql.replace(k, v)
+    sql = re.sub(r"\[([^\]\x00-\x7f][^\]]*)\]", lambda m: "[" + ALIASES[m.group(1)] + "]", sql)
+    def lit(m):
+        s = m.group(1).replace("''", "'")
+        if all(ord(ch) < 128 for ch in s):
+            return m.group(0)
+        return "CAST(0x" + s.encode("utf-16-le").hex().upper() + " AS nvarchar(100))"
+    sql = re.sub(r"(?<![A-Za-z0-9_'])N'((?:[^']|'')*)'", lit, sql)
+    out = []
+    for line in sql.split("\n"):
+        i = line.find("--")
+        if i >= 0 and any(ord(ch) >= 128 for ch in line[i:]):
+            line = line[:i].rstrip()
+            if not line:
+                continue
+        out.append(line)
+    sql = "\n".join(out)
+    bad = [l for l in sql.split("\n") if any(ord(ch) >= 128 for ch in l)]
+    assert not bad, bad[:3]
+    return title + sql
+
+
+TITLES = {
+    "fake-create.sql": f"""-- fake-create.sql : FAKE TEST DATA (generated by tools/sql/gen-fake-seed.py, 2026-11-14)
+-- 1) Deletes every account except SuperAdmin accounts, and all their records.
+-- 2) Inserts {PEOPLE_PER_DEPT} fake people per department (not the lobby). Password for all: 1234.
+-- Run with @Commit = 0 first (test run, rolled back). Check the result tables. Then set @Commit = 1 and run again.
+-- Undo later: tools/sql/fake-delete.sql
+""",
+    "fake-delete.sql": f"""-- fake-delete.sql : DELETE FAKE TEST DATA (generated by tools/sql/gen-fake-seed.py, 2026-11-14)
+-- Deletes only what fake-create.sql inserted (email @{EMAIL_DOMAIN}, CreatedByUserName = {MARKER}).
+-- Run with @Commit = 0 first (test run, rolled back). Then set @Commit = 1.
+""",
+}
+
 if __name__ == "__main__":
     for name, body in (("fake-create.sql", create_sql()), ("fake-delete.sql", delete_sql())):
-        with open(os.path.join(HERE, name), "w", encoding="utf-8-sig", newline="\r\n") as f:
-            f.write(body)
+        with open(os.path.join(HERE, name), "w", encoding="ascii", newline="\r\n") as f:
+            f.write(asciify(body, TITLES[name]))
         print("wrote", name)
