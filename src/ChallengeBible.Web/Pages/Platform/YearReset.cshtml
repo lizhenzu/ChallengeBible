@@ -1,7 +1,7 @@
 @page "/platform/year-reset"
 @model ChallengeBible.Web.Pages.Platform.YearResetModel
 @using ChallengeBible.Web.Services
-@* 새해 초기화(ADR 0094 정한 것 17, 2026-11-15 사용자: 모든 부서 한 번에 · 완전히 지움 · 감사 로그 포함 · 새친구 출석 · 팀 구성 · 성경통독(완독 포함)은 그대로) *@
+@* 새해 초기화(ADR 0094 정한 것 17 → 2026-11-16 사용자 "완전히 ground zero": 관리자 계정 · 부서 · 반 · 상품 · 설정 · 콘텐츠만 남기고 모두 지움) *@
 @{
     var s = Model.Status!;
     var c = s.Counts;
@@ -9,20 +9,25 @@
     string Local(DateTime utc) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), tz).ToString("yyyy.M.d HH:mm");
     static string N(int n) => n.ToString("N0");
     static string Detail(string d) => string.Join(" · ", d.Split(';').Select(p => p.Split('=')).Where(p => p.Length == 2).Select(p => (p[0] switch
-        { "missions" => "미션", "attend" => "출석", "gifts" => "선물", "awards" => "시상", "audits" => "감사 로그", _ => p[0] }) + " " + (int.TryParse(p[1], out var n) ? N(n) : p[1]) + "건"));
+        { "missions" => "미션", "attend" => "출석", "gifts" => "선물", "awards" => "시상", "audits" => "감사 로그",
+          "accounts" => "계정", "people" => "명부", "teams" => "팀", "reading" => "통독", _ => p[0] }) + " " + (int.TryParse(p[1], out var n) ? N(n) : p[1]) + "건"));
 }
 <partial name="_PlatformTop" />
 <main class="admin gut"><div class="wrap yr">
     <h1>새해 초기화</h1>
-    <p class="lead">모든 부서의 미션 · 출석 · 선물 기록을 한 번에 지우고 새해를 0부터 시작해요. 지금은 시험 기간이라 아무 때나 몇 번이든 누를 수 있어요.</p>
+    <p class="lead">모든 부서를 처음 상태로 되돌려요. <b>관리자 계정 · 부서 · 반 · 상품 · 설정 · 콘텐츠만 남고 나머지는 모두 지워요.</b> 지금은 시험 기간이라 아무 때나 몇 번이든 누를 수 있어요.</p>
     @if (Model.Result is { } r) { <p class="ok-box" role="status">초기화했어요 · @Detail(r.Detail)을 지웠어요.</p> }
     @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }
 
     <div class="yr-stats">
         <div><small>미션 기록</small><b class="num">@N(c.Missions)<u>건</u></b></div>
-        <div><small>출석(새친구 제외)</small><b class="num">@N(c.Attendance)<u>건</u></b></div>
-        <div><small>선물(완독 제외)</small><b class="num">@N(c.Gifts)<u>건</u></b></div>
+        <div><small>출석</small><b class="num">@N(c.Attendance)<u>건</u></b></div>
+        <div><small>선물</small><b class="num">@N(c.Gifts)<u>건</u></b></div>
         <div><small>시상 기록</small><b class="num">@N(c.Awards)<u>건</u></b></div>
+        <div><small>가족팀 · 친구팀</small><b class="num">@N(c.Teams)<u>개</u></b></div>
+        <div><small>성경통독 회차</small><b class="num">@N(c.Reading)<u>건</u></b></div>
+        <div><small>계정(관리자 제외)</small><b class="num">@N(c.Accounts)<u>개</u></b></div>
+        <div><small>명부(관리자 제외)</small><b class="num">@N(c.People)<u>명</u></b></div>
         <div><small>감사 로그</small><b class="num">@N(c.Audits)<u>건</u></b></div>
         <div><small>@(s.Year)년 마지막 초기화</small><b class="num yr-last">@(s.LastUtc is { } l ? Local(l) : "아직 없음")</b></div>
     </div>
@@ -30,12 +35,11 @@
     <section class="yr-box">
         <h2>누르면 이렇게 돼요 — 되돌릴 수 없어요</h2>
         <ul>
-            <li><b>미션 기록을 모두 지워요.</b> 점수 · 순위 · 시즌 점수 · 가족팀 · 친구팀 점수 · 개인 선물 점수가 0부터 다시 시작해요.</li>
-            <li><b>출석 기록을 지워요.</b> 단, <b>새친구의 출석과 새친구 표시는 그대로</b>예요.</li>
-            <li><b>선물을 모두 지워요</b>(받은 것 · 취소 · 건너뜀 포함)와 그 이력 · 시상 기록. <b>완독 선물은 그대로</b>예요.</li>
-            <li><b>감사 로그를 모두 지워요.</b> 이번 초기화 한 줄만 새로 남아요.</li>
-            <li>그대로: 가족팀 · 친구팀 구성, 성경통독(진도 · 완독), 명부 · 계정 · 반, 상품 · 설정 · 콘텐츠.</li>
-            <li>새친구 · 전도 선물은 이제부터 4번째 출석을 채운 새친구만, 생일 선물은 이제부터 고르는 기간이 시작되는 아이만 다시 생겨요.</li>
+            <li><b>기록을 모두 지워요.</b> 미션 · 퀴즈(점수 · 순위), 출석(새친구 포함), 선물(완독 포함)과 그 이력 · 시상 기록, 가족팀 · 친구팀, 학부모 ↔ 학생 연결, 성경통독, 진급 신청, 감사 로그.</li>
+            <li><b>관리자를 뺀 모든 계정을 지워요</b>(학생 · 교사 · 학부모 · 가짜 계정). 명부와 반 배정도 지워요.</li>
+            <li><b>남는 것:</b> 플랫폼 관리자 · 부서 관리자 계정(과 그 명부 줄), 부서 · 반 이름, 상품 · 설정 · 콘텐츠.</li>
+            <li>초기화한 시각도 남기지 않아요. 처음 상태와 똑같이 계산해요.</li>
+            <li>초기화 뒤에는 명부를 엑셀로 다시 올려 주세요(플랫폼 ☰ › 부서 › 명단 올리기).</li>
         </ul>
         <form method="post" class="yr-form">
             <label><span>확인 칸에 <b>@YearResetService.ConfirmWord</b> 를 써 주세요</span><input class="in" name="confirm" autocomplete="off" placeholder="@YearResetService.ConfirmWord" /></label>

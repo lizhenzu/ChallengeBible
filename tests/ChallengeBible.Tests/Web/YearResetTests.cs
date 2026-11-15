@@ -105,33 +105,53 @@ public partial class YearResetTests : IClassFixture<WebApplicationFactory<Progra
     }
 
     [Fact]
-    public async Task 정한것17_RESET_을_쓰고_누르면_미션_출석_선물_시상_감사로그를_지우고_새친구_출석_완독_팀구성은_그대로()
+    public async Task 정한것17_RESET_을_쓰고_누르면_관리자_부서_반만_남기고_모두_지운다()
     {
         SeedEverything();
         FamilyTeam();
+        int classId, adminPersonId;
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var term = new ClassTerm { TenantId = _kids.Id, Year = 2027, StartDate = new DateOnly(2027, 1, 1), CreatedUtc = DateTime.UtcNow };
+            raw.ClassTerms.Add(term); raw.SaveChanges();
+            var cls = new SchoolClass { TenantId = _kids.Id, TermId = term.Id, Name = "1학년 1반", CreatedUtc = DateTime.UtcNow };
+            raw.Classes.Add(cls); raw.SaveChanges(); classId = cls.Id;
+            var adminUser = raw.Users.Single(u => u.Email == "admin@example.com");
+            var ap = new Person { TenantId = _kids.Id, Name = "윤동호", UserId = adminUser.Id, CreatedUtc = DateTime.UtcNow };
+            raw.People.Add(ap); raw.SaveChanges(); adminPersonId = ap.Id;
+            var kid = raw.People.Single(p => p.Name == "김철수");
+            raw.ClassMembers.Add(new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = cls.Id, PersonId = kid.Id, CreatedUtc = DateTime.UtcNow });
+            raw.ClassMembers.Add(new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = cls.Id, PersonId = ap.Id, IsTeacher = true, CreatedUtc = DateTime.UtcNow });
+            raw.GuardianLinks.Add(new GuardianLink { TenantId = _kids.Id, GuardianUserName = _p["younghee"], StudentUserName = _p["cheolsu"], CreatedUtc = DateTime.UtcNow, CreatedByUserName = "x" });
+            raw.GiftYearCloses.Add(new GiftYearClose { Year = 2027, ClosedUtc = DateTime.UtcNow.AddDays(-1), ClosedByUserName = "operator" });
+            raw.SaveChanges();
+        }
         var op = await Login("operator@example.com");
-        var page = await op.GetStringAsync("/platform/year-reset");
-        Assert.Contains("되돌릴 수 없어요", page);
+        Assert.Contains("되돌릴 수 없어요", await op.GetStringAsync("/platform/year-reset"));
 
         var body = await (await Reset(op, "RESET")).Content.ReadAsStringAsync();
         Assert.Contains("초기화했어요", body);
-        using var raw = InMemoryDb.Raw(_db);
-        Assert.Empty(raw.MissionActivities);
-        Assert.Empty(raw.TeamAwards);
-        Assert.Empty(raw.TeamAwardArchives);
-        Assert.Empty(raw.GiftPointUses);
-        Assert.Equal(GiftKinds.Reading, raw.Gifts.Single().Kind);   // 완독 선물만 남는다
-        Assert.Equal(raw.Gifts.Single().Id, raw.GiftLogs.Single().GiftId);   // 완독 선물 이력도 그대로
-        var nc = raw.People.Single(p => p.Name == "새친구");
-        Assert.Equal(4, raw.AttendanceChecks.Count(a => a.PersonId == nc.Id));   // 새친구 출석 그대로
-        Assert.Equal(4, raw.AttendanceChecks.Count());   // 새친구가 아닌 아이 출석은 지움
-        Assert.NotNull(nc.NewcomerFirstVisit);
-        Assert.Single(raw.ReadingRounds);   // 성경통독 그대로
-        Assert.Single(raw.FamilyTeams);   // 팀 구성 그대로
-        Assert.Equal(2, raw.FamilyMembers.Count());
-        var audit = raw.AuditLogs.Single();   // 감사 로그는 이번 초기화 한 줄만
-        Assert.Equal((YearResetService.Action, "missions=1;attend=1;gifts=6;awards=2;audits=1"), (audit.Action, audit.Detail));
-        Assert.Equal(_time.Now.UtcDateTime, raw.GiftYearCloses.Single(c => c.Year == 2027).ClosedUtc);
+        using var after = InMemoryDb.Raw(_db);
+        Assert.Empty(after.MissionActivities);
+        Assert.Empty(after.AttendanceChecks);   // 새친구 출석도
+        Assert.Empty(after.Gifts);   // 완독 선물도
+        Assert.Empty(after.GiftLogs);
+        Assert.Empty(after.GiftPointUses);
+        Assert.Empty(after.TeamAwards);
+        Assert.Empty(after.TeamAwardArchives);
+        Assert.Empty(after.FamilyTeams);
+        Assert.Empty(after.FamilyMembers);
+        Assert.Empty(after.GuardianLinks);
+        Assert.Empty(after.ReadingRounds);
+        Assert.Empty(after.GiftYearCloses);   // 초기화 시각도 남기지 않음
+        // 관리자(부서 관리자 · 플랫폼 관리자)만 남고, 그 명부 줄 · 반 배정 · 반은 그대로
+        Assert.Equal(new[] { "admin@example.com", "operator@example.com" }, after.Users.Select(u => u.Email!).OrderBy(e => e).ToArray());
+        Assert.Equal(adminPersonId, after.People.Single().Id);
+        Assert.Equal(adminPersonId, after.ClassMembers.Single().PersonId);
+        Assert.Equal(classId, after.Classes.Single().Id);
+        Assert.Single(after.DeptRoles);
+        var audit = after.AuditLogs.Single();   // 감사 로그는 이번 초기화 한 줄만
+        Assert.Equal((YearResetService.Action, "missions=1;attend=5;gifts=7;awards=2;audits=1;accounts=2;people=2;teams=1;reading=1"), (audit.Action, audit.Detail));
     }
 
     [Fact]
@@ -159,78 +179,18 @@ public partial class YearResetTests : IClassFixture<WebApplicationFactory<Progra
     }
 
     [Fact]
-    public async Task 정한것17_개인_선물_점수는_0부터_다시_센다()
+    public async Task 정한것17_초기화_뒤에는_처음_상태처럼_다시_넣은_기록을_모두_센다()
     {
         Pts("cheolsu", 340, _time.Now.UtcDateTime.AddHours(-1));
-        var kid = await Login("cheolsu@example.com");
+        await Reset(await Login("operator@example.com"), "RESET");
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.Users.Where(u => u.Email == "cheolsu@example.com"));   // 학생 계정도 지움
+
+        // 다시 가입한 아이: 초기화 전 시각으로 찍힌 기록도 그대로 센다(초기화 시각을 남기지 않음 — 가짜 데이터 넣기가 바로 점수로 잡힌다)
+        var again = InMemoryDb.SeedAccount(_db, "cheolsu2@example.com", "김철수");
+        _p["cheolsu"] = InMemoryDb.SeedMembership(_db, _kids.Id, again.UserName!, MembershipStatus.Approved, Roles.Participant).UserName;
+        using (var raw = InMemoryDb.Raw(_db)) { foreach (var u in raw.Users.Where(u => u.Email == "cheolsu2@example.com")) u.PasswordHash = new PasswordHasher<AppUser>().HashPassword(u, "1234"); raw.SaveChanges(); }
+        Pts("cheolsu", 340, _time.Now.UtcDateTime.AddDays(-30));
+        var kid = await Login("cheolsu2@example.com");
         Assert.Contains("340점", await kid.GetStringAsync("/kids/word-mission"));
-
-        await Reset(await Login("operator@example.com"), "RESET");
-        Assert.Contains("<span class=\"num\">100</span>점 더 모으면 돼요", await kid.GetStringAsync("/kids/word-mission"));   // 0점
-
-        _time.Now = _time.Now.AddHours(1);
-        Pts("cheolsu", 60, _time.Now.UtcDateTime);
-        Assert.Contains("<span class=\"num\">40</span>점 더 모으면 돼요", await kid.GetStringAsync("/kids/word-mission"));
-    }
-
-    [Fact]
-    public async Task 정한것17_가족팀_점수가_0이_되어_선물이_다시_생기지_않고_다시_넘으면_생긴다()
-    {
-        FamilyTeam();
-        Pts("cheolsu", 1100, _time.Now.UtcDateTime.AddHours(-1));
-        var kid = await Login("cheolsu@example.com");
-        Assert.Contains("가족 선물을 골라요", await kid.GetStringAsync("/kids/word-mission"));
-        await Reset(await Login("operator@example.com"), "RESET");
-        Assert.DoesNotContain("가족 선물을 골라요", await kid.GetStringAsync("/kids/word-mission"));
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.Gifts);
-
-        _time.Now = _time.Now.AddMinutes(1);
-        Pts("cheolsu", 1000, _time.Now.UtcDateTime);
-        Assert.Contains("가족 선물을 골라요", await kid.GetStringAsync("/kids/word-mission"));
-    }
-
-    [Fact]
-    public async Task 정한것17_새친구_전도_선물은_초기화_뒤에_4번째_출석을_채운_새친구만()
-    {
-        SeedEverything();
-        var admin = await Login("admin@example.com");
-        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(2, raw.Gifts.Count(g => g.Kind == GiftKinds.Newcomer || g.Kind == GiftKinds.Invite));   // 초기화 전: 새친구 · 전도
-
-        await Reset(await Login("operator@example.com"), "RESET");
-        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.Gifts.Where(g => g.Kind == GiftKinds.Newcomer || g.Kind == GiftKinds.Invite));   // 4번째 출석(12월 27일)이 초기화(1월 5일) 전 → 다시 안 생김
-
-        int nc;
-        using (var raw = InMemoryDb.Raw(_db))
-        {
-            var p = new Person { TenantId = _kids.Id, Name = "새친구2", RoleCode = "T1020", NewcomerFirstVisit = new DateOnly(2026, 12, 20), NewcomerVoluntary = true, CreatedUtc = DateTime.UtcNow };
-            raw.People.Add(p); raw.SaveChanges(); nc = p.Id;
-            foreach (var d in new[] { new DateOnly(2026, 12, 20), new DateOnly(2026, 12, 27), new DateOnly(2027, 1, 3), new DateOnly(2027, 1, 10) })
-                raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = nc, Sunday = d, CreatedUtc = DateTime.UtcNow });
-            raw.SaveChanges();
-        }
-        _time.Now = new DateTimeOffset(2027, 1, 10, 1, 0, 0, TimeSpan.Zero);
-        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(nc, raw.Gifts.Single(g => g.Kind == GiftKinds.Newcomer).PersonId);   // 4번째가 초기화 뒤(1월 10일) → 생김
-    }
-
-    [Fact]
-    public async Task 정한것17_생일_선물은_고르는_기간이_초기화_뒤에_시작된_아이만()
-    {
-        using (var raw = InMemoryDb.Raw(_db))
-        {
-            raw.People.Add(new Person { TenantId = _kids.Id, Name = "생일이", RoleCode = "T1001", BirthMonth = 2, BirthDay = 1, CreatedUtc = DateTime.UtcNow });   // 기간 1월 2일 ~
-            raw.People.Add(new Person { TenantId = _kids.Id, Name = "생일둘", RoleCode = "T1001", BirthMonth = 2, BirthDay = 10, CreatedUtc = DateTime.UtcNow });  // 기간 1월 11일 ~
-            raw.SaveChanges();
-        }
-        var admin = await Login("admin@example.com");
-        await Reset(await Login("operator@example.com"), "RESET");   // 1월 5일
-        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.Gifts);   // 생일이: 기간이 초기화 전에 시작 → 안 생김
-
-        _time.Now = new DateTimeOffset(2027, 1, 12, 0, 0, 0, TimeSpan.Zero);
-        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal("B2027-0210-r270105000000", raw.Gifts.Single().SourceKey);   // 생일둘만
     }
 }
