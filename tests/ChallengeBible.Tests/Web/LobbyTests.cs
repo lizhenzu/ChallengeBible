@@ -101,7 +101,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("먼저 내가 참여할 부서를 신청해요.", home);
         Assert.DoesNotContain("교회 · 부서를", home);                                    // 교회를 찾는 것이 아님
         Assert.DoesNotContain("내 부서 찾기", home);
-        Assert.Contains("<p class=\"copy\">© 2027 잠실새내 · 주일학교</p>", home);          // 맨 아래 © 줄(해는 오늘 날짜)
+        Assert.Contains("<p class=\"foot-copy\">© 2027 잠실새내 · 주일학교</p>", home);          // 맨 아래 © 줄(해는 오늘 날짜)
         Assert.DoesNotContain("미션 수행하러 가기", home);
         Assert.DoesNotContain("<section class=\"hj-card hj-pg m\"", home);                              // 아랫부분(미션 · 통독 카드)은 미션 화면으로
         Assert.DoesNotContain("aria-label=\"오늘의 말씀\"", home);
@@ -170,7 +170,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.DoesNotContain("시작까지 3단계", await c.GetStringAsync("/jamsil-kids"));
         var kidsHome = await c.GetStringAsync("/jamsil-kids");                            // 맨 아래: 계정 줄 가운데 + © 줄(모든 부서 홈, 2026-10-30)
         Assert.Contains("<div class=\"acct\">", kidsHome);
-        Assert.Contains("<p class=\"copy\">© 2027 잠실새내 · 주일학교</p>", kidsHome);
+        Assert.Contains("<p class=\"foot-copy\">© 2027 잠실새내 · 주일학교</p>", kidsHome);
         Assert.DoesNotContain("부서 바꾸기", kidsHome);                                    // 일반 부서 홈 맨 아래에 "부서 바꾸기"는 없다(2026-11-05)
         Assert.Contains("<a href=\"/account\">내 계정</a>", kidsHome);
     }
