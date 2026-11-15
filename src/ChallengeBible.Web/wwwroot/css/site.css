@@ -4082,3 +4082,11 @@ details.create.tn-new[open] > summary { margin-bottom: 12px; }
 .wc-v1.def { background: #fff; border: 1px dashed #D1D5DB; color: var(--dim); font-weight: 600; }
 .wc-v1.saved { box-shadow: 0 0 0 2px #16A34A; }
 .wc-to { color: var(--dim); text-align: center; }
+/* 휴대폰에서 [퀴즈 수정] [퀴즈 삭제] [미리 보기] 글자가 두 줄로 깨지지 않게(사용자 2026-11-15 캡처) */
+.qw-btns .btn { min-width: 0; padding-left: 4px; padding-right: 4px; white-space: nowrap; font-size: 14px; letter-spacing: -.02em; }
+@media (max-width: 380px) { .qw-btns .btn { font-size: 13px; } }
+/* 휴대폰 최적화(사용자 2026-11-15 "최적화"): 구절은 한 줄 전체, 복사 버튼 둘은 그 아래 같은 폭으로 나란히, 아래 버튼은 조금 낮게 */
+.qw-rg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.qw-rg span { grid-column: 1 / -1; }
+.qw-rg .qw-cp { width: 100%; min-height: 36px; }
+.qw-btns .btn { min-height: 46px; }
