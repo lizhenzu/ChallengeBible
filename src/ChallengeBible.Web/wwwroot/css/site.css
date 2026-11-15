@@ -3939,3 +3939,28 @@ a.nc-card.hidden { display: none; }
 .tn-t.l { background: #F3E8FF; color: #7C3AED; }
 .tn-t.a { background: #EAF7EF; color: #16A34A; }
 .tn-t.s { background: #FEF2F2; color: #B91C1C; }
+
+/* 플랫폼 햄버거 메뉴(확정 시안 플랫폼-메뉴-햄버거, 2026-11-15) */
+.ptop .hd { justify-content: flex-start; gap: 10px; }
+.ptop .pt-title { flex: 1; min-width: 0; }
+.ptop .pt-title small em { font-style: normal; font-weight: 900; color: var(--accent); }
+.ptop .pt-title b { font-size: 16px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pmenu-btn { flex: none; width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--fg); cursor: pointer; }
+.pdrawer { position: fixed; inset: 0; z-index: 60; }
+.pdrawer[hidden] { display: none; }
+.pd-dim { position: absolute; inset: 0; background: rgba(17, 24, 39, .45); }
+.pd-panel { position: absolute; left: 0; top: 0; bottom: 0; width: min(300px, 86vw); background: var(--bg); box-shadow: 8px 0 30px rgba(0, 0, 0, .15); overflow-y: auto; padding: calc(14px + env(safe-area-inset-top, 0px)) 12px 24px; }
+.pd-top { display: flex; align-items: center; justify-content: space-between; padding: 4px 6px 12px; border-bottom: 1px solid var(--rule); }
+.pd-top b { font-size: 17px; font-weight: 900; }
+.pd-top em { font-style: normal; color: var(--accent); }
+.pd-x { width: 40px; height: 40px; border: 0; border-radius: 10px; background: none; color: var(--fg); font-size: 20px; cursor: pointer; }
+.pd-g { margin: 14px 8px 4px; font-size: 12px; font-weight: 800; color: var(--dim); }
+.pd-g.danger { color: var(--bad); }
+.pd-panel nav { padding-top: 8px; }
+.pd-panel nav a { display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; font-size: 15px; color: var(--fg); }
+.pd-panel nav a:hover { background: var(--soft, rgba(0, 0, 0, .04)); }
+.pd-panel nav a[aria-current="page"] { background: color-mix(in srgb, var(--accent) 12%, var(--bg)); color: var(--accent); font-weight: 800; }
+.pd-foot { margin-top: 16px; border-top: 1px solid var(--rule); padding-top: 10px; }
+.pd-foot a, .pd-foot button { display: flex; align-items: center; width: 100%; min-height: 44px; padding: 0 12px; border: 0; background: none; font: inherit; font-size: 15px; color: var(--dim); text-align: left; cursor: pointer; }
+.pd-foot form { margin: 0; }
+body.pnav-open { overflow: hidden; }
