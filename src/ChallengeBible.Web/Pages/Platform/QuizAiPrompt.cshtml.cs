@@ -15,6 +15,9 @@ public class QuizAiPromptModel(QuizAiPromptService prompts) : PageModel, ITitled
     public QuizAiPromptInfo? Info { get; private set; }
     public IReadOnlyList<string> Missing { get; private set; } = [];
     [TempData] public string? Ok { get; set; }
+    /// <summary>돌아갈 퀴즈 출제 화면(그날 칸 ⚙ 에서 왔을 때). 이 사이트 안 주소만.</summary>
+    [BindProperty(SupportsGet = true)] public string? Back { get; set; }
+    public string BackUrl => Back is { Length: > 0 } b && b.StartsWith("/platform/content/quiz/check", StringComparison.Ordinal) ? b : "/platform/content/quiz/check";
 
     public async Task OnGetAsync(CancellationToken ct)
     {
@@ -27,13 +30,13 @@ public class QuizAiPromptModel(QuizAiPromptService prompts) : PageModel, ITitled
         Missing = await prompts.SaveAsync(User.UserName()!, Text, ct);
         if (Missing.Count > 0) { Info = await prompts.GetAsync(User.UserName()!, ct); return Page(); }
         Ok = string.IsNullOrWhiteSpace(Text) ? "reset" : "saved";
-        return Redirect("/platform/quiz-ai-prompt");
+        return Redirect("/platform/quiz-ai-prompt?back=" + Uri.EscapeDataString(BackUrl));
     }
 
     public async Task<IActionResult> OnPostResetAsync(CancellationToken ct)
     {
         await prompts.SaveAsync(User.UserName()!, "", ct);
         Ok = "reset";
-        return Redirect("/platform/quiz-ai-prompt");
+        return Redirect("/platform/quiz-ai-prompt?back=" + Uri.EscapeDataString(BackUrl));
     }
 }

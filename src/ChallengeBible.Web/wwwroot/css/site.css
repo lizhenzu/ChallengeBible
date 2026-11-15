@@ -4090,3 +4090,15 @@ details.create.tn-new[open] > summary { margin-bottom: 12px; }
 .qw-rg span { grid-column: 1 / -1; }
 .qw-rg .qw-cp { width: 100%; min-height: 36px; }
 .qw-btns .btn { min-height: 46px; }
+/* 2026-11-15 사용자: [AI 프롬프트] 옆 ⚙(문구 고치기), AI 프롬프트 화면 휴대폰 최적화 */
+.qw-rg { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 36px; }
+.qw-gear { display: grid; place-items: center; width: 36px; min-height: 36px; border-radius: 9px; border: 1px solid #BBD3F7; background: #fff; color: var(--accent); font-size: 17px; text-decoration: none; line-height: 1; }
+.qw-gear:focus-visible { outline: 3px solid #93B9F2; outline-offset: 2px; }
+.qa { gap: 10px; }
+.qa h1 { margin: 0; }
+.qa-lead { margin: 0; font-size: 13px; line-height: 1.6; color: var(--dim); }
+.qa-lead code { font-size: 12px; padding: 1px 4px; border-radius: 5px; background: var(--soft); color: var(--fg); }
+.qa-text { min-height: 0; height: calc(100vh - 330px); max-height: 640px; font-size: 12.5px; line-height: 1.55; padding: 10px 12px; resize: vertical; }
+@media (max-height: 640px) { .qa-text { height: 300px; } }
+.qa-btns { position: sticky; bottom: 10px; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+.qa-btns .btn { min-height: 46px; min-width: 0; white-space: nowrap; font-size: 15px; }

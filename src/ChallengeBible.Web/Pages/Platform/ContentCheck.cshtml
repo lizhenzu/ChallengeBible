@@ -16,10 +16,6 @@
             <a class="btn s" href="/platform/content/word/clips?month=@Model.MonthText(Model.First)">영상 구간 편집</a>
         </div>
     }
-    else
-    {
-        <div class="qw-top"><a class="btn s" href="/platform/quiz-input">퀴즈 넣기(붙여 넣기)</a><a class="btn s" href="/platform/quiz-ai-prompt">AI 프롬프트 고치기</a></div>
-    }
     <form id="qwTok" method="post" hidden>@Html.AntiForgeryToken()</form>
 
     <form class="wk-bar" method="get" action="/platform/content/@Model.Kind/check" id="wkMonth">

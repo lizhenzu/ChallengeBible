@@ -113,7 +113,8 @@
     var prompt = (d.prompt || '').split('{{BibleRange}}').join(ref).split('{{ExposeDate}}').join(dateKey(day));
     return '<div class="qw-scr"><i>오늘의 말씀</i><b>' + esc(w.title || '(제목 없음)') + '</b><div class="qw-rg"><span>' + esc(ref) + '</span>'
       + (ref ? '<button type="button" class="qw-cp" data-copy="' + esc(ref) + '">구절 복사</button>' : '')
-      + (ref && d.prompt ? '<button type="button" class="qw-cp" data-copy="' + esc(prompt) + '">AI 프롬프트</button>' : '') + '</div></div>';
+      + (ref && d.prompt ? '<button type="button" class="qw-cp" data-copy="' + esc(prompt) + '">AI 프롬프트</button>'
+        + '<a class="qw-gear" href="/platform/quiz-ai-prompt?back=' + encodeURIComponent(location.pathname + location.search) + '" aria-label="AI 프롬프트 문구 고치기" title="AI 프롬프트 문구 고치기">⚙</a>' : '') + '</div></div>';
   }
   function btn(cls, text, attrs) { return '<button type="button" class="btn ' + cls + '" ' + (attrs || '') + '>' + text + '</button>'; }
   function link(cls, text, href) { return '<a class="btn ' + cls + '" href="' + href + '">' + text + '</a>'; }
