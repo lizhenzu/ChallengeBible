@@ -159,6 +159,52 @@ public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, 
         return r.ReadToEnd();
     }
 
+    // ── 관리자 없는 부서에 시험 관리자(2026-11-15 사용자 "부서 관리자 없는 부서의 관리자 만들고 비번 1234, 버튼으로 로그인") ──
+
+    private static readonly Microsoft.AspNetCore.Identity.PasswordHasher<AppUser> Hasher = new();
+
+    /// <summary>
+    /// 부서 관리자(Identity Admin + 그 부서 소속)가 없는 부서마다 시험 관리자를 만든다: 아이디 = 부서주소-admin, 이메일 = 아이디@fake-seed.test, 비밀번호 1234,
+    /// 이름 = 부서 이름의 마지막 낱말 + " 관리자", 교사로 소속 + 명부. 가짜 계정 규칙과 같아 상황별 로그인 버튼에 저절로 나온다. 플랫폼 관리자만. 만든 (부서, 아이디)를 돌려준다.
+    /// </summary>
+    public async Task<IReadOnlyList<(string Dept, string UserName)>> CreateMissingAdminsAsync(string actor, CancellationToken ct = default)
+    {
+        await using var ctx = systemDb.Create(actor);
+        if (!await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct)) throw new UnauthorizedAccessException();
+        var adminRole = await ctx.IdentityRoleRows.SingleAsync(r => r.Name == IdentityRoles.Admin, ct);
+        var basic = await ctx.IdentityRoleRows.Where(r => r.Name == IdentityRoles.Basic).Select(r => r.Id).FirstOrDefaultAsync(ct);
+        var admins = ctx.UserRoles.Where(r => r.RoleId == adminRole.Id).Select(r => r.UserId);
+        var lacking = await ctx.Tenants.Where(t => !t.IsLobby && t.Status == TenantStatus.Active && !ctx.DeptRoles.Any(d => d.TenantId == t.Id && admins.Contains(d.UserId!)))
+            .OrderBy(t => t.Id).ToListAsync(ct);
+        var now = time.GetUtcNow().UtcDateTime;
+        var made = new List<(string, string)>();
+        foreach (var t in lacking)
+        {
+            var userName = $"{t.Slug.ToLowerInvariant()}-admin";
+            var user = await ctx.Users.SingleOrDefaultAsync(u => u.NormalizedUserName == AppUser.Normalize(userName), ct);
+            if (user is null)
+            {
+                var email = userName + EmailDomain;
+                user = new AppUser
+                {
+                    UserName = userName, NormalizedUserName = AppUser.Normalize(userName), Email = email, NormalizedEmail = AppUser.Normalize(email),
+                    FirstName = $"{t.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? t.Name} 관리자", LastName = "",
+                    SecurityStamp = Guid.NewGuid().ToString("N"), ConcurrencyStamp = Guid.NewGuid().ToString(), LockoutEnabled = true, InsertDT = now,
+                };
+                user.PasswordHash = Hasher.HashPassword(user, Password);
+                ctx.Users.Add(user);
+                if (basic is not null) ctx.UserRoles.Add(new AppUserRole { UserId = user.Id, RoleId = basic });
+                await ctx.SaveChangesAsync(ct);
+            }
+            await DeptMembership.PlaceAsync(ctx, user, t.Id, Web.Services.UserRole.TeacherCode, now, ct, actor: actor);
+            if (!await ctx.UserRoles.AnyAsync(r => r.UserId == user.Id && r.RoleId == adminRole.Id, ct)) ctx.UserRoles.Add(new AppUserRole { UserId = user.Id, RoleId = adminRole.Id });
+            ctx.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorUserName = actor, Action = "TestAdminCreate", TenantId = t.Id, Detail = userName });
+            await ctx.SaveChangesAsync(ct);
+            made.Add((t.Name, userName));
+        }
+        return made;
+    }
+
     // ── 상황별 로그인 ──
 
     /// <summary>이 사람이 시험 도구 화면을 볼 수 있는가: 플랫폼 관리자이거나 가짜 계정.</summary>

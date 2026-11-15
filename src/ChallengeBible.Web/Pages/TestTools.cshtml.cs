@@ -58,6 +58,20 @@ public class TestToolsModel(TestToolsService tools, AccountService accounts, Use
         return Page();
     }
 
+    /// <summary>관리자 없는 부서에 시험 관리자 만들기(비밀번호 1234). 플랫폼 관리자만.</summary>
+    public async Task<IActionResult> OnPostAdminsAsync(CancellationToken ct)
+    {
+        if (!tools.Enabled || !await AllowedAsync(ct)) return NotFound();
+        var me = User.UserName()!;
+        if (!await tools.IsPlatformAdminAsync(me, ct)) return Forbid();
+        var made = await tools.CreateMissingAdminsAsync(me, ct);
+        AdminsMessage = made.Count == 0 ? "관리자가 없는 부서가 없어요." : $"관리자 {made.Count}명을 만들었어요(비밀번호 1234) · " + string.Join(" · ", made.Select(m => $"{m.Dept} {m.UserName}"));
+        await LoadAsync(ct);
+        return Page();
+    }
+
+    public string? AdminsMessage { get; private set; }
+
     /// <summary>상황별 로그인: 가짜 계정으로 바로 들어간다(비밀번호 1234 확인). 들어가면 첫 화면으로.</summary>
     public async Task<IActionResult> OnPostLoginAsync(string user, CancellationToken ct)
     {

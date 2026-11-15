@@ -50,6 +50,14 @@
 
     <section class="tt-box" aria-labelledby="ttLogin">
         <h2 id="ttLogin">상황별 로그인 <small>누르면 그 계정으로 바로 들어가요</small></h2>
+        @if (Model.AdminsMessage is { } am) { <p class="ok-box" role="status">@am</p> }
+        @if (Model.IsAdmin)
+        {
+            <form method="post" asp-page-handler="Admins" class="tt-admins">
+                <button type="submit" class="btn s sm">관리자 없는 부서에 시험 관리자 만들기</button>
+                <small>아이디 = 부서주소-admin, 비밀번호 1234. 만들면 아래 부서 버튼에 "관리자" 로그인이 생겨요.</small>
+            </form>
+        }
         @if (Model.Depts.Count == 0)
         {
             <div class="empty-box">가짜 계정이 없어요. @(Model.IsAdmin ? "위에서 가짜 데이터를 넣어 주세요." : "")</div>

@@ -178,4 +178,37 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
         Assert.All(TestToolsService.Scenarios, s => Assert.Contains(s.Code, codes));
         Assert.Equal(TestToolsService.Scenarios.Count, TestToolsService.Scenarios.Select(s => s.Code + s.Label).Distinct().Count());
     }
+
+    [Fact]
+    public async Task 관리자_없는_부서에만_시험_관리자를_만들고_비밀번호_1234_로그인_버튼이_생긴다()
+    {
+        var kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
+        var infant = InMemoryDb.SeedTenant(_db, "jamsil-infant", "JSINFA");
+        Seed("superadmin", "boss@example.com", platformAdmin: true);
+        var kidsAdmin = Seed("jamsil-kids-admin", "jamsil-kids-admin@fake-seed.test", tenantId: kids.Id, roleCode: "T1005");
+        InMemoryDb.AddRole(_db, kidsAdmin.Id, IdentityRoles.Admin);
+        var app = App(enabled: true);
+        var c = Client(app);
+        await Login(c, "superadmin");
+        Assert.Contains("관리자 없는 부서에 시험 관리자 만들기", await c.GetStringAsync("/test-tools"));
+
+        var body = await (await Post(c, "/test-tools?handler=Admins", [])).Content.ReadAsStringAsync();
+        Assert.Contains("관리자 1명을 만들었어요(비밀번호 1234)", body);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var u = raw.Users.Single(x => x.UserName == "jamsil-infant-admin");
+            Assert.Equal("jamsil-infant-admin@fake-seed.test", u.Email);
+            var admin = raw.IdentityRoleRows.Single(r => r.Name == IdentityRoles.Admin).Id;
+            Assert.Contains(raw.UserRoles, r => r.UserId == u.Id && r.RoleId == admin);
+            Assert.Equal("T1002", raw.DeptRoles.Single(d => d.UserId == u.Id && d.TenantId == infant.Id).RoleCode);
+            Assert.Single(raw.People.Where(p => p.UserId == u.Id && p.TenantId == infant.Id));
+            Assert.DoesNotContain(raw.Users, x => x.UserName == "jamsil-kids-admin" && x.Id != kidsAdmin.Id);   // 이미 있는 부서는 그대로
+        }
+        Assert.Contains("관리자가 없는 부서가 없어요.", await (await Post(c, "/test-tools?handler=Admins", [])).Content.ReadAsStringAsync());
+        Assert.Contains("jamsil-infant-admin", await c.GetStringAsync($"/test-tools?t={infant.Id}"));   // 상황별 로그인 버튼
+
+        var c2 = Client(app);
+        await Login(c2, "jamsil-infant-admin");   // 비밀번호 1234
+        Assert.Equal(HttpStatusCode.OK, (await c2.GetAsync("/jamsil-infant/admin")).StatusCode);
+    }
 }

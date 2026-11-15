@@ -3920,3 +3920,4 @@ a.nc-card.hidden { display: none; }
 .pr-keep { border-color: var(--line); }
 .pr-keep ul { list-style: none; padding: 0; margin: 0; font-size: 13.5px; line-height: 1.9; }
 .pr-keep small { color: var(--dim); }
+.tt-admins { display: grid; gap: 6px; margin: 0 0 10px; } .tt-admins small { color: var(--dim); font-size: 12px; }
