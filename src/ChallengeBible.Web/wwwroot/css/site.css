@@ -20,7 +20,8 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
 button { cursor: pointer; }
 a:focus-visible, button:focus-visible, label:focus-within { outline: 3px solid var(--accent); outline-offset: 3px; }
 [hidden] { display: none !important; }
-.gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+:root { --gut: 20px; }   /* 화면 좌우 여백(휴대폰 12px, 아래 @media) — 끝까지 넓히는 띠(.cp-dock)도 이 값을 쓴다 */
+.gut { padding-left: max(var(--gut), env(safe-area-inset-left, 0px)); padding-right: max(var(--gut), env(safe-area-inset-right, 0px)); }
 .wrap { max-width: 440px; margin: 0 auto; }
 .num { font-variant-numeric: tabular-nums; }
 
@@ -2024,7 +2025,7 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .cp-rows .tag { flex: none; }
 .cp-cb { flex: none; display: flex; align-items: center; padding: 0 0 0 12px; margin: 0; }
 .cp-cb input { width: 22px; height: 22px; margin: 0; accent-color: var(--accent); }
-.cp-dock { position: sticky; bottom: 0; z-index: 2; display: flex; gap: 8px; margin: 12px -20px 0; padding: 10px 20px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--bg); border-top: 1px solid var(--rule); }
+.cp-dock { position: sticky; bottom: 0; z-index: 2; display: flex; gap: 8px; margin: 12px calc(-1 * var(--gut)) 0; padding: 10px var(--gut) calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--bg); border-top: 1px solid var(--rule); }
 .cp-dock[hidden] { display: none; }
 .cp-dock .btn { flex: 1; min-height: 48px; font-size: 15px; border-radius: 10px; }
 .cp-empty { margin: 0; padding: 48px 16px; text-align: center; color: var(--dim); }
@@ -3969,6 +3970,6 @@ details.create.tn-new[open] > summary { margin-bottom: 12px; }
 .ptop .home-txt { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 2px; font-size: 15px; font-weight: 700; color: var(--accent); white-space: nowrap; }
 /* 휴대폰: 화면 좌우 여백 · 카드 안쪽 여백을 줄여 카드를 넓게(2026-11-15 사용자 "전체적으로 카드 좌우 여백 줄여줘") */
 @media (max-width: 560px) {
-  .gut { padding-left: max(12px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px)); }
+  :root { --gut: 12px; }
   .card, .ph-card { padding: 14px; }
 }
