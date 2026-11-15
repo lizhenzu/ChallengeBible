@@ -97,14 +97,22 @@
             var open = Model.Open == t.Id;
             <li class="row">
                 <details open="@open">
-                    <summary class="line">
+                    <summary class="line tn">   @* 확정 시안 플랫폼-부서목록-카드(2026-11-15): 잘리지 않게 여러 줄 — 이름 · 주소 · 소속 · 관리자 · 참여 코드 · 꼬리표 *@
                         <i class="dot" style="background:@TenantsModel.ColorVar(t.ThemeColor)"></i>
-                        <span class="who"><b>@t.Name</b><small>/@t.Slug · 소속 @(t.MemberCount)명 · 관리자 @(t.Admins.Count == 0 ? "없음" : string.Join(", ", t.Admins.Select(a => a.Name)))</small></span>
-                        <span class="tags">
-                            @if (t.MissionEnabled) { <span class="tag r-Participant">성경말씀</span> }
-                            @if (t.ReadingEnabled) { <span class="tag r-Guardian">성경통독</span> }
-                            @if (t.JoinListed) { <span class="tag ok">목록</span> }
-                            <span class="tag @(t.Status == TenantStatus.Active ? "" : "st")">@(t.Status == TenantStatus.Active ? "운영" : "정지")</span>
+                        <span class="tn-body">
+                            <b class="tn-name">@t.Name</b>
+                            <small class="tn-slug">/@t.Slug</small>
+                            <span class="tn-facts">
+                                <span>소속</span><b class="num">@(t.MemberCount)명</b>
+                                <span>관리자</span><span>@(t.Admins.Count == 0 ? "없음" : string.Join(", ", t.Admins.Select(a => a.Name)))</span>
+                                <span>참여 코드</span><b class="num tn-code">@t.JoinCode</b>
+                            </span>
+                            <span class="tn-tags">
+                                @if (t.MissionEnabled) { <span class="tn-t m">성경말씀</span> }
+                                @if (t.ReadingEnabled) { <span class="tn-t r">성경통독</span> }
+                                @if (t.JoinListed) { <span class="tn-t l">신청 목록에 보임</span> }
+                                <span class="tn-t @(t.Status == TenantStatus.Active ? "a" : "s")">@(t.Status == TenantStatus.Active ? "운영 중" : "정지")</span>
+                            </span>
                         </span>
                         <span class="chev" aria-hidden="true">›</span>
                     </summary>

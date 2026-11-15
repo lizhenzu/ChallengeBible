@@ -3921,3 +3921,21 @@ a.nc-card.hidden { display: none; }
 .pr-keep ul { list-style: none; padding: 0; margin: 0; font-size: 13.5px; line-height: 1.9; }
 .pr-keep small { color: var(--dim); }
 .tt-admins { display: grid; gap: 6px; margin: 0 0 10px; } .tt-admins small { color: var(--dim); font-size: 12px; }
+/* 플랫폼 부서 목록 카드(확정 시안 플랫폼-부서목록-카드): 한 줄 대신 여러 줄로 잘리지 않게 */
+.line.tn { align-items: flex-start; padding: 14px; }
+.line.tn .dot { margin-top: 7px; flex: none; }
+.line.tn .chev { margin-top: 4px; }
+.tn-body { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.tn-name { font-size: 16px; }
+.tn-slug { font-size: 13px; color: var(--dim); overflow-wrap: anywhere; }
+.tn-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 3px 12px; font-size: 13.5px; }
+.tn-facts > span:nth-child(odd) { color: var(--dim); }
+.tn-facts > :nth-child(even) { overflow-wrap: anywhere; }
+.tn-code { letter-spacing: .06em; }
+.tn-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+.tn-t { font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.tn-t.m { background: #FFF1E6; color: #C2410C; }
+.tn-t.r { background: var(--accent-bg); color: var(--accent); }
+.tn-t.l { background: #F3E8FF; color: #7C3AED; }
+.tn-t.a { background: #EAF7EF; color: #16A34A; }
+.tn-t.s { background: #FEF2F2; color: #B91C1C; }
