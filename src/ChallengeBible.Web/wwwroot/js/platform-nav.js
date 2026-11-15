@@ -5,7 +5,7 @@
   if (!d || !btn) return;
   const open = () => {
     d.hidden = false; btn.setAttribute('aria-expanded', 'true'); document.body.classList.add('pnav-open');
-    (d.querySelector('a[aria-current="page"]') || d.querySelector('.pd-x')).focus();
+    d.querySelector('.pd-panel').focus({ preventScroll: true });   // 메뉴판 자체에 초점(항목에 진한 테두리가 생기지 않게, 2026-11-15 사용자)
   };
   const close = () => { d.hidden = true; btn.setAttribute('aria-expanded', 'false'); document.body.classList.remove('pnav-open'); btn.focus(); };
   btn.addEventListener('click', open);

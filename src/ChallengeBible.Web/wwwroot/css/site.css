@@ -3959,3 +3959,4 @@ body.pnav-open { overflow: hidden; }
 .tn-new { margin-top: 20px; }
 details.create.tn-new > summary { display: flex; width: max-content; margin: 0 auto; }
 details.create.tn-new[open] > summary { margin-bottom: 12px; }
+.pd-panel:focus { outline: none; }
