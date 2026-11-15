@@ -3805,7 +3805,8 @@ a.nc-card.hidden { display: none; }
 .yr-go { background: #DC2626; border-color: #DC2626; color: #fff; min-height: 44px; }
 .yr-h { margin: 6px 0 0; font-size: 15px; }
 .yr-log { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
-.yr-log li { display: grid; grid-template-columns: 130px minmax(0, 1fr) auto; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--rule); font-size: 13px; }
+.yr-log li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; padding: 8px 0; border-bottom: 1px solid var(--rule); font-size: 13px; }
+.yr-log li span:last-child { grid-column: 1 / -1; color: var(--dim); }   /* 지운 건수는 아랫줄(초기화 기록이 길어져 겹치지 않게) */
 @media (max-width: 560px) { .yr-stats { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .yr-form { grid-template-columns: minmax(0, 1fr); } }
 
 /* 선물 총비용(확정 시안 선물-총비용, ADR 0094 정한 것 13) gc- */

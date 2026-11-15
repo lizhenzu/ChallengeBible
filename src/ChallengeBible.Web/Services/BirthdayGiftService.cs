@@ -85,6 +85,7 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         var s = await ctx.GiftSettings.AsNoTracking().SingleOrDefaultAsync(ct);
         var (min, max) = (s?.BirthdayMin ?? r.Birthday.Min, s?.BirthdayMax ?? r.Birthday.Max);
         var reset = await YearResetService.LastResetAsync(ctx, today.Year, ct);
+        var resetOn = await YearResetService.LastResetDateAsync(ctx, tenant.Current.TimeZoneId, ct);   // 고르는 기간이 초기화 뒤에 시작된 아이만(정한 것 17)
         var have = (await ctx.Gifts.AsNoTracking().Where(g => g.Kind == GiftKinds.Birthday).Select(g => new { g.PersonId, g.SourceKey }).ToListAsync(ct))
             .Select(g => (g.PersonId, g.SourceKey)).ToHashSet();
 
@@ -95,6 +96,7 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
             var role = p.UserId is null ? p.RoleCode : acct?.RoleCode;
             if (!BirthdayRoles.Contains((role ?? "").Trim())) continue;
             var birthday = b!.Value;
+            if (resetOn is { } ro && birthday.AddDays(-r.BirthdayOpenDays) < ro) continue;
             var key = SourceKey(birthday, birthday.Year == today.Year ? reset : null);
             if (have.Contains((p.Id, key))) continue;
             var g = new Gift

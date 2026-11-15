@@ -28,17 +28,24 @@ public sealed class NewcomerGiftService(IAppDb db, TenantContext tenant, TenantC
 
     private sealed record Nc(int Id, string Name, string? UserId, bool Voluntary, string? Evangelist, int Visits);
 
-    /// <summary>출석을 다 채운 새친구(명부의 첫 방문일이 있는 사람).</summary>
-    private static async Task<List<Nc>> DoneAsync(AppDbContext ctx, int visits, CancellationToken ct)
+    /// <summary>
+    /// 출석을 다 채운 새친구(명부의 첫 방문일이 있는 사람). 새해 초기화를 눌렀으면 그날 뒤에 4번째 출석을 채운 새친구만(정한 것 17 — 지난해에 받은 아이가 또 받지 않게).
+    /// </summary>
+    private async Task<List<Nc>> DoneAsync(AppDbContext ctx, int visits, CancellationToken ct)
     {
+        var reset = await YearResetService.LastResetDateAsync(ctx, tenant.Current.TimeZoneId, ct);
         var ncs = await ctx.People.AsNoTracking().Where(p => p.NewcomerFirstVisit != null)
             .Select(p => new { p.Id, p.Name, p.UserId, p.NewcomerVoluntary, p.NewcomerEvangelist, First = p.NewcomerFirstVisit!.Value }).ToListAsync(ct);
         if (ncs.Count == 0) return [];
         var ids = ncs.Select(n => n.Id).ToList();
         var checks = await ctx.AttendanceChecks.AsNoTracking().Where(a => ids.Contains(a.PersonId)).Select(a => new { a.PersonId, a.Sunday }).ToListAsync(ct);
-        return ncs.Select(n => new Nc(n.Id, n.Name, n.UserId, n.NewcomerVoluntary != false, n.NewcomerEvangelist?.Trim(),
-                checks.Count(c => c.PersonId == n.Id && c.Sunday >= AttendanceService.SundayOf(n.First))))
-            .Where(n => n.Visits >= visits).ToList();
+        return ncs.Select(n =>
+            {
+                var mine = checks.Where(c => c.PersonId == n.Id && c.Sunday >= AttendanceService.SundayOf(n.First)).Select(c => c.Sunday).Distinct().OrderBy(d => d).ToList();
+                var nth = mine.Count >= visits ? mine[visits - 1] : (DateOnly?)null;
+                return (Nc: new Nc(n.Id, n.Name, n.UserId, n.NewcomerVoluntary != false, n.NewcomerEvangelist?.Trim(), mine.Count), Nth: nth);
+            })
+            .Where(x => x.Nth is { } d && (reset is null || d >= reset)).Select(x => x.Nc).ToList();
     }
 
     /// <summary>명부의 학생 · 새친구(연결된 계정은 소속의 역할, 아니면 명부의 역할). 계정 이름(UserName)도 함께.</summary>
