@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ChallengeBible.Tests.Web;
 
-/// <summary>말씀 입력 점검(R-216, 확정 시안 word-check): 판정 함수 · 한 달 조회 · 실제 화면(Edge headless).</summary>
+/// <summary>말씀 입력 점검(R-216, 확정 시안 word-check — 2026-11-15 이름 "말씀 입력" · "퀴즈 출제", ADR 0098): 판정 함수 · 한 달 조회 · 실제 화면(Edge headless).</summary>
 public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private static readonly DateOnly Day5 = new(2027, 1, 5);
@@ -339,7 +339,7 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
           var cell = function (d) { return q('.wk-cell[data-day="' + d + '"]'); };
           var chip = function (k) { return q('#wkChips button[data-k="' + k + '"]'); };
           var status = function () { return qa('.wk-st div').map(function (x) { return x.textContent; }).join('|'); };
-          eq('heading', q('.wk h1').textContent, '퀴즈 입력 점검');
+          eq('heading', q('.wk h1').textContent, '퀴즈 출제');
           qa('.wk-cell').forEach(function (c) { eq('dots ' + c.dataset.day, qa('.wk-dots i', c).length, 4); });
           eq('done', q('#wkDone').textContent, '31일 중 2일 완성');
           eq('full 1', cell(1).classList.contains('all'), true);
@@ -357,8 +357,8 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
           var ask = qa('.wk-f')[1];
           eq('tag as text', q('p', ask).textContent, '<b>태그</b> & "따옴표"');
           eq('no element', qa('b', q('p', ask)).length, 0);
-          eq('edit', q('.wk-go').getAttribute('href'), '/platform/content/quiz?month=2027-01&date=2027-01-04');
-          eq('edit text', q('.wk-go').textContent, '퀴즈 수정');
+          eq('edit', q('.qw-btns a').getAttribute('href'), '/platform/content/quiz?month=2027-01&date=2027-01-04');
+          eq('edit text', q('.qw-btns a').textContent, '퀴즈 수정');
           eq('right answer', qa('.wk-tag.ok').filter(function (t) { return t.textContent === '정답'; }).length, 1);
 
           cell(3).click();
@@ -371,7 +371,7 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
           eq('text none', status(), '✓ 배경|✓ 문제|✕ 주관식 답|✓ 힌트');
           cell(20).click();
           eq('empty', q('.wk-empty').textContent, '이 날은 아직 퀴즈가 없어요');
-          eq('empty link', q('.wk-go').textContent, '퀴즈 입력하기');
+          eq('empty link', q('.qw-btns a').textContent, '이 날 퀴즈 입력');
 
           chip('4지선다').click();
           eq('filter hit', cell(5).classList.contains('dim'), false);
@@ -418,7 +418,7 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
           var title = qa('.wk-f')[0];
           eq('tag as text', q('p', title).textContent, '<b>태그</b> & "따옴표"');
           eq('no tag element', qa('b', q('p', title)).length, 0);
-          eq('edit link', q('.wk-go').getAttribute('href'), '/platform/content/word?month=2027-01&date=2027-01-05');
+          eq('edit link', q('.qw-btns a').getAttribute('href'), '/platform/content/word?month=2027-01&date=2027-01-05');
 
           eq('zero chip disabled', chip('제목').disabled, true);
           eq('zero chip green', chip('제목').classList.contains('z'), true);
@@ -437,7 +437,7 @@ public partial class WordCheckTests : IClassFixture<WebApplicationFactory<Progra
 
           cell(20).click();
           eq('empty day', q('.wk-empty').textContent, '이 날은 아직 말씀이 없어요');
-          eq('empty link', q('.wk-go').textContent, '말씀 입력하기');
+          eq('empty link', q('.qw-btns a').textContent, '이 날 말씀 입력');
           eq('moved', cell(5).classList.contains('sel'), false);
           cell(1).click();
           eq('full status', qa('.wk-st .y').length, 4);
