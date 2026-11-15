@@ -3426,6 +3426,7 @@ a.nc-card.hidden { display: none; }
 
 /* 임시 시험 도구 /test-tools (ADR 0095) — 데스크톱 내용 폭 760px, 카드 칸은 minmax(0, 1fr) */
 .tt .wrap { max-width: 760px; display: flex; flex-direction: column; gap: 20px; }
+body:has(main.tt) .top .wrap { max-width: 760px; }   /* 시험 도구: 머리말 폭을 아래 카드와 같게(2026-11-15 사용자) */
 .tt h1 small.tt-tag { font-size: 13px; padding: 2px 8px; border-radius: 999px; background: var(--warn-bg); color: var(--warn); vertical-align: middle; }
 .tt-warn { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--warn-bg); color: var(--warn); font-size: 14px; font-weight: 700; }
 .tt-box { border: 1px solid var(--rule); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
@@ -4003,3 +4004,4 @@ details.create.tn-new[open] > summary { margin-bottom: 12px; }
 .ru-chk { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; font-weight: 700; }
 .ru-chk input { width: 20px; height: 20px; flex: none; }
 .ru-btns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.ph-log li span { min-width: 0; overflow-wrap: anywhere; }   /* 긴 기록(파일 이름 등)이 카드를 넘지 않게 */

@@ -169,11 +169,9 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("<section class=\"hj-card hj-pg m\"", await c.GetStringAsync("/jamsil-kids"));
         Assert.DoesNotContain("시작까지 3단계", await c.GetStringAsync("/jamsil-kids"));
         var kidsHome = await c.GetStringAsync("/jamsil-kids");                            // 맨 아래: 계정 줄 가운데 + © 줄(모든 부서 홈, 2026-10-30)
-        Assert.Contains("<div class=\"acct\">", kidsHome);
+        Assert.DoesNotContain("<div class=\"acct\">", kidsHome);                       // 맨 아래 계정 줄은 지웠다 — 왼쪽 위 ☰ 와 같아서(2026-11-15)
         Assert.Contains("<p class=\"foot-copy\">© 2027 잠실새내 · 주일학교</p>", kidsHome);
         Assert.DoesNotContain("부서 바꾸기", kidsHome);                                    // 일반 부서 홈 맨 아래에 "부서 바꾸기"는 없다(2026-11-05)
-        var acctRow = kidsHome[kidsHome.IndexOf("<div class=\"acct\">")..];             // 맨 아래 [내 계정]은 뺐다 — 홈 사진 · 왼쪽 위 ☰ 로 간다(2026-11-15)
-        Assert.DoesNotContain("내 계정", acctRow[..acctRow.IndexOf("</div>")]);
         Assert.Contains("data-pnav-open", kidsHome);
         Assert.Contains("<a href=\"/account\">내 계정</a>", kidsHome);                     // ☰ 메뉴판
     }

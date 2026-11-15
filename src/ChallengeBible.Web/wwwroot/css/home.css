@@ -203,7 +203,7 @@
 .hm .wl-back a { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--accent); }
 .hm .wl-back .pill { margin-left: 8px; display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; background: var(--wait-soft); color: var(--wait); font-size: 12.5px; font-weight: 800; }
 /* 미션 화면(/today): 아래 카드(말씀 · 미션 · 통독)가 넓게 펼쳐지므로 머리말 · "← 처음 화면"도 같은 폭에 맞춘다(데스크톱에서 좌우 가장자리가 어긋나던 것) */
-.hm .wl-wide .wl-top .wrap, .hm .wl-wide .wl-back .wrap { max-width: 720px; }   /* 0076 본문(main.hj) 폭과 같게 */
+.hm .wl-wide .wl-top .wrap, .hm .wl-wide .wl-back .wrap { max-width: 980px; }   /* 본문(main.hj) 폭과 같게 — 플랫폼 화면(980px)과 같은 폭(2026-11-15 사용자) */
 /* 부서 홈 머리말은 흰 바탕(2026-11-03 사용자) — 하늘색 띠가 화면 끝까지 펼쳐져 카드와 폭이 어긋나 보이던 것 */
 .hm .wl.wl-wide { background: var(--bg); }
 /* 일반 부서: "← 처음 화면" 자리에 부서 이름 · 관리 */
@@ -391,7 +391,7 @@
 .hm .hj-mini small { display: block; font-size: 12.5px; font-weight: 700; color: var(--dim); }
 .hm .hj-mini b { font-size: 24px; font-weight: 900; }
 .hm .hj-mini b u { text-decoration: none; font-size: 13px; color: var(--dim); }
-@media (min-width: 900px) { .hm main.hj .wrap { max-width: 720px; grid-template-columns: minmax(0, 1fr); } }
+@media (min-width: 900px) { .hm main.hj .wrap { max-width: 980px; grid-template-columns: minmax(0, 1fr); } }   /* 플랫폼 화면과 같은 폭(2026-11-15 사용자) */
 /* 부서 홈 왼쪽 위 ☰(2026-11-15 사용자) */
 .hm .wl-top .wrap > .hm-menu { order: -1; margin-right: -2px; }
 .hm .wl-top .wrap .wl-org { flex: 1; }

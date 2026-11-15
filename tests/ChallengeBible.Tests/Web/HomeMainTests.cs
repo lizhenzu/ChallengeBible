@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
 using ChallengeBible.Tests.Support;
@@ -127,7 +127,9 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     public async Task 관리자는_머리말에_관리_링크가_있다()
     {
         var (c, _) = await Member("eunhye", Roles.Teacher, Roles.TenantAdmin);
-        Assert.Contains("class=\"adm\" href=\"/jamsil-kids/admin\">관리</a>", await c.GetStringAsync("/jamsil-kids"));
+        var home = await c.GetStringAsync("/jamsil-kids");   // 왼쪽 위 ☰ 메뉴판에 관리(맨 아래 계정 줄은 지웠다, 2026-11-15)
+        Assert.Contains("<a href=\"/jamsil-kids/admin\">관리</a>", home);
+        Assert.DoesNotContain("class=\"adm\"", home);
     }
 
     [Fact]

@@ -292,14 +292,7 @@
 <script src="~/js/platform-nav.js" asp-append-version="true" defer></script>
 
 <footer class="gut"><div class="wrap">
-    <div class="acct">
-        @if (Model.Tenant.IsLobby) { <a href="/join">내 부서 참여</a> }   @* 일반 부서의 "부서 바꾸기"는 뺐다(2026-11-05 사용자). 부서가 둘 이상이면 내 계정 > "부서 고르기 →" *@
-        @if (!Model.Tenant.IsLobby && Model.Tenant.IsStaff) { <a class="adm" href="/@slug/attendance">출석</a> }   @* 0093 출석: 담임 · 새친구반 담당 · 부서 관리자 *@
-        @if (Model.Tenant.IsAdmin) { <a class="adm" href="/@slug/admin">관리</a> }
-        else if (!Model.Tenant.IsLobby && Model.Tenant.IsApproved && ChallengeBible.Web.Services.UserRole.KindOf(Model.Tenant.RoleCode) == ChallengeBible.Web.Services.UserRoleKind.Teacher) { <a class="adm" href="/@slug/admin/members">명부</a> }
-        @if (User.IsPlatformAdmin()) { <a href="/platform">플랫폼</a> }
-        <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit">로그아웃</button></form>
-    </div>
+    @* 맨 아래 계정 줄(출석 · 관리 · 플랫폼 · 로그아웃)은 지웠다 — 왼쪽 위 ☰ 메뉴와 같아서(2026-11-15 사용자) *@
     <p class="foot-copy">© @d.Today.Year 잠실새내 · 주일학교</p>
 </div></footer>
 </div>

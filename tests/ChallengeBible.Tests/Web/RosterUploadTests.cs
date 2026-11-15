@@ -110,6 +110,7 @@ public partial class RosterUploadTests : IClassFixture<WebApplicationFactory<Pro
         ["1반", "김철수", "3/15", "01012345678", "010-9876-5432"],
         ["2반", "이영희", "12월 1일", "", ""],
         ["새친구반", "박새롬", "", "", ""],
+        ["", "반없음", "", "", ""],
         ["9반", "틀린반", "", "", ""],
         ["1반", "틀린생일", "13/40", "", ""],
     ];
@@ -128,11 +129,11 @@ public partial class RosterUploadTests : IClassFixture<WebApplicationFactory<Pro
         var page = await Preview(op, "유년부.xlsx", Book(Kids, Staff));
         Assert.Contains("유년부.xlsx → 잠실새내교회 유년부", page);
         Assert.Contains("고칠 곳 2줄", page);
-        Assert.Contains("학생 7번째 줄 · 반 &quot;9반&quot;이 유년부에 없어요", page);
-        Assert.Contains("학생 8번째 줄 · 생일 &quot;13/40&quot;을 읽을 수 없어요", page);
+        Assert.Contains("학생 8번째 줄 · 반 &quot;9반&quot;이 유년부에 없어요", page);
+        Assert.Contains("학생 9번째 줄 · 생일 &quot;13/40&quot;을 읽을 수 없어요", page);
         Assert.Contains("지금 명단 <b>1명</b>, 반 배정 <b>1건</b>, 그 사람들의 출석 <b>1건</b>", page);
         Assert.Contains("계정 있는 1명(윤동호)", page);
-        Assert.Contains("넣기 (6명)", page);   // 학생 3 + 교사 3(예 줄 · 빈 줄 · 틀린 줄 빼고)
+        Assert.Contains("넣기 (7명)", page);   // 학생 4 + 교사 3(예 줄 · 빈 줄 · 틀린 줄 빼고)
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(3, raw.People.Count());   // 미리 보기는 넣지 않는다
 
         Assert.Contains("부서를 정할 수 없어요", await Preview(op, "명단.xlsx", Book(Kids, Staff)));
@@ -148,7 +149,7 @@ public partial class RosterUploadTests : IClassFixture<WebApplicationFactory<Pro
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(3, raw.People.Count());
 
         var done = await Apply(op, page, agree: true);
-        Assert.Contains("유년부에 넣었어요 · 학생 3명 · 교사 2명 · 계정 있는 사람 1명 고침", done);
+        Assert.Contains("유년부에 넣었어요 · 학생 4명 · 교사 2명 · 계정 있는 사람 1명 고침", done);
         using var db = InMemoryDb.Raw(_db);
         var kids = db.People.Where(p => p.TenantId == _kids.Id).ToList();
         Assert.DoesNotContain(kids, p => p.Id == _oldPid);                                       // 계정 없는 옛 명단은 지움
@@ -177,8 +178,11 @@ public partial class RosterUploadTests : IClassFixture<WebApplicationFactory<Pro
         Assert.Contains(members, m => m.PersonId == Pid("이부장") && m.ClassId == _c2 && m.IsTeacher);   // 임원도 담임(R-232)
         Assert.Contains(members, m => m.PersonId == _adminPid && m.ClassId == _c2 && m.IsTeacher);
         Assert.DoesNotContain(members, m => m.PersonId == nc.Id);
+        var none = kids.Single(p => p.Name == "반없음");                                          // 반을 비우면 학생 · 미배정반
+        Assert.Equal("T1001", none.RoleCode);
+        Assert.DoesNotContain(members, m => m.PersonId == none.Id);
         Assert.Contains(db.Users, u => u.UserName == _adminUser);                                 // 계정은 그대로
-        Assert.StartsWith("file=유년부 (1).xlsx;students=3;teachers=2;updated=1;dropped=1;attendance=1;skipped=2",
+        Assert.StartsWith("file=유년부 (1).xlsx;students=4;teachers=2;updated=1;dropped=1;attendance=1;skipped=2",
             db.AuditLogs.Single(a => a.Action == RosterUploadService.Action).Detail);
     }
 

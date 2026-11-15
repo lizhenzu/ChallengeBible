@@ -130,7 +130,7 @@ public sealed partial class RosterUploadService(ISystemDb systemDb, TimeProvider
         var shortName = ShortName(tenant.Name);
         var s = wb.AddWorksheet(StudentSheet);
         Sheet(s, ["반", "이름", "생일\n(월/일)", "전화번호", "보호자 전화번호\n(선택)"], [14, 12, 10, 16, 16], [5],
-            $"{tenant.Name} · 학생 명단 — 파일 이름이 부서예요({shortName}.xlsx). 올리면 이 부서의 기존 명단과 반 배정을 비우고 이 내용으로 채워요(관리자는 그대로). 회색 '예)' 줄은 읽지 않아요. 반은 목록에서 고르세요(새친구는 '새친구반'). 생일은 월/일(예: 3/15). 회색 머리 칸은 비워도 돼요.",
+            $"{tenant.Name} · 학생 명단 — 파일 이름이 부서예요({shortName}.xlsx). 올리면 이 부서의 기존 명단과 반 배정을 비우고 이 내용으로 채워요(관리자는 그대로). 회색 '예)' 줄은 읽지 않아요. 반은 목록에서 고르세요(새친구는 '새친구반', 비우면 미배정반). 생일은 월/일(예: 3/15). 회색 머리 칸은 비워도 돼요.",
             [["예) " + (regular.FirstOrDefault() ?? "1반"), "홍길동", "3/15", "010-1234-5678", "010-9876-5432"]]);
         var t = wb.AddWorksheet(TeacherSheet);
         Sheet(t, ["이름", "전화번호", "생일\n(월/일, 선택)", "맡은 반\n(담임, 선택)", "임원 역할"], [12, 16, 12, 14, 12], [3, 4],
@@ -264,8 +264,8 @@ public sealed partial class RosterUploadService(ISystemDb systemDb, TimeProvider
                     var why = new List<string>();
                     if (name.Length == 0) why.Add("이름이 비었어요");
                     else if (name.Length > 50) why.Add("이름이 너무 길어요(50자까지)");
-                    if (isStudent && cls.Length == 0) why.Add("반이 비었어요");
-                    else if (cls.Length > 0 && !classNames.Contains(cls)) why.Add($"반 \"{cls}\"이 {ShortName(tenantName)}에 없어요");
+                    // 학생 반이 비면 미배정반(2026-11-15 고등부 장결 · 기타 명단)
+                    if (cls.Length > 0 && !classNames.Contains(cls)) why.Add($"반 \"{cls}\"이 {ShortName(tenantName)}에 없어요");
                     else if (!isStudent && cls == ClassService.NewcomerName) why.Add("맡은 반에 새친구반은 고를 수 없어요(새친구반 담당은 반 화면에서)");
                     if (officer.Length > 0 && !officers.Contains(officer)) why.Add($"임원 역할 \"{officer}\"이 목록에 없어요");
                     var (bm, bd, bOk) = h.Cols.TryGetValue("생일", out var bc) ? ParseBirthday(ws.Cell(r, bc)) : (null, null, true);
