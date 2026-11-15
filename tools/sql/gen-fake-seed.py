@@ -233,6 +233,8 @@ INSERT #Slot (MissionDate, Item, WeekStart) SELECT d.D, i.Item, NULL FROM #Day d
 INSERT #Slot (MissionDate, Item, WeekStart) SELECT d.D, 'Recite', d.D FROM #Day d
 WHERE EXISTS (SELECT 1 FROM #Item WHERE Item = 'Recite') AND (DATEPART(weekday, d.D) + @@DATEFIRST - 1) % 7 = 0;
 DECLARE @NSlot int = (SELECT COUNT(*) FROM #Slot);
+-- 새해 초기화(선물 점수는 누른 뒤 기록만 센다)를 눌렀으면 미션 기록 시각을 그 뒤로 둔다(2026-11-16, 선물 팝업이 안 뜨던 문제)
+DECLARE @Reset datetime2(3) = (SELECT ClosedUtc FROM app.GiftYearClose WHERE Year = YEAR(@Today));
 
 -- 주일: 1월 첫 주일 ~ 오늘 이전 마지막 주일(@L)
 DECLARE @L date = DATEADD(day, -((DATEPART(weekday, @Today) + @@DATEFIRST - 1) % 7), @Today);
@@ -336,7 +338,8 @@ BEGIN
         FROM ppl p CROSS JOIN #Slot s)
     INSERT dbo.DM2_MissionActivity (TenantId, UserName, MissionDate, MissionItem, Points, ReciteWeekStart, PerformedAt)
     SELECT @T, UserName, MissionDate, Item, CASE WHEN rn <= Target / P THEN P ELSE Target % P END, WeekStart,
-           DATEADD(minute, 600 + ABS(CHECKSUM(UserName, MissionDate, Item)) % 180, CAST(MissionDate AS datetime2(3)))
+           CASE WHEN @Reset IS NOT NULL THEN DATEADD(second, 1 + ABS(CHECKSUM(UserName, MissionDate, Item)) % 3600, @Reset)
+                ELSE DATEADD(minute, 600 + ABS(CHECKSUM(UserName, MissionDate, Item)) % 180, CAST(MissionDate AS datetime2(3))) END
     FROM r WHERE rn <= Target / P OR (rn = Target / P + 1 AND Target % P > 0);
 
     -- 통독: 끝낸 회차는 모든 장, 읽는 중인 회차는 앞에서부터 정한 장 수

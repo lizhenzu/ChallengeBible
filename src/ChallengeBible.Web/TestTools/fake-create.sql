@@ -208,6 +208,7 @@ INSERT #Slot (MissionDate, Item, WeekStart) SELECT d.D, i.Item, NULL FROM #Day d
 INSERT #Slot (MissionDate, Item, WeekStart) SELECT d.D, 'Recite', d.D FROM #Day d
 WHERE EXISTS (SELECT 1 FROM #Item WHERE Item = 'Recite') AND (DATEPART(weekday, d.D) + @@DATEFIRST - 1) % 7 = 0;
 DECLARE @NSlot int = (SELECT COUNT(*) FROM #Slot);
+DECLARE @Reset datetime2(3) = (SELECT ClosedUtc FROM app.GiftYearClose WHERE Year = YEAR(@Today));
 
 DECLARE @L date = DATEADD(day, -((DATEPART(weekday, @Today) + @@DATEFIRST - 1) % 7), @Today);
 CREATE TABLE #Sun (D date PRIMARY KEY, WeeksAgo int);
@@ -298,7 +299,8 @@ BEGIN
         FROM ppl p CROSS JOIN #Slot s)
     INSERT dbo.DM2_MissionActivity (TenantId, UserName, MissionDate, MissionItem, Points, ReciteWeekStart, PerformedAt)
     SELECT @T, UserName, MissionDate, Item, CASE WHEN rn <= Target / P THEN P ELSE Target % P END, WeekStart,
-           DATEADD(minute, 600 + ABS(CHECKSUM(UserName, MissionDate, Item)) % 180, CAST(MissionDate AS datetime2(3)))
+           CASE WHEN @Reset IS NOT NULL THEN DATEADD(second, 1 + ABS(CHECKSUM(UserName, MissionDate, Item)) % 3600, @Reset)
+                ELSE DATEADD(minute, 600 + ABS(CHECKSUM(UserName, MissionDate, Item)) % 180, CAST(MissionDate AS datetime2(3))) END
     FROM r WHERE rn <= Target / P OR (rn = Target / P + 1 AND Target % P > 0);
 
     IF @NCh > 0
