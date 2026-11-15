@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -114,6 +114,30 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
         var run = await Post(c, "/test-tools?handler=Run", new() { ["kind"] = "create", ["mode"] = "test" });
         Assert.NotEqual(HttpStatusCode.OK, run.StatusCode);
         Assert.Equal(HttpStatusCode.Redirect, (await Post(c, "/test-tools?handler=Login", new() { ["user"] = "yb-s05" })).StatusCode);
+    }
+
+    [Fact]
+    public async Task 비밀번호를_바꾼_가짜_관리자도_플랫폼_관리자는_버튼으로_들어가고_가짜_계정은_못_들어간다()
+    {
+        var t = InMemoryDb.SeedTenant(_db, "yb", "YB0001");
+        Seed("superadmin", "boss@example.com", platformAdmin: true);
+        var adm = Seed("yb-admin", "yb-admin" + TestToolsService.EmailDomain, tenantId: t.Id, roleCode: "T1005");
+        Seed("yb-s01", "yb-s01" + TestToolsService.EmailDomain, tenantId: t.Id);
+        using (var raw = InMemoryDb.Raw(_db))   // 2026-11-15: 부서 관리자 비밀번호를 SQL 로 바꿈(1234 가 아님)
+        {
+            var row = raw.Users.Single(x => x.Id == adm.Id);
+            row.PasswordHash = new PasswordHasher<AppUser>().HashPassword(row, "다른비밀번호");
+            raw.SaveChanges();
+        }
+        var c = Client(App(enabled: true));
+        await Login(c, "superadmin");
+        var r = await Post(c, "/test-tools?handler=Login", new() { ["user"] = "yb-admin" });   // 플랫폼 관리자: 가장이라 비밀번호를 보지 않는다
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+        Assert.Contains("yb-admin이름", await c.GetStringAsync("/test-tools"));
+
+        var kid = Client(App(enabled: true));                                                  // 가짜 계정이 누르면 비밀번호 1234 로 확인 → 못 들어간다
+        await Login(kid, "yb-s01");
+        Assert.Equal(HttpStatusCode.NotFound, (await Post(kid, "/test-tools?handler=Login", new() { ["user"] = "yb-admin" })).StatusCode);
     }
 
     [Fact]

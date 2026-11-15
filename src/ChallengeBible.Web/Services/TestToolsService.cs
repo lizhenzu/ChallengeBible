@@ -242,6 +242,14 @@ public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, 
         return (depts, fakes.Count);
     }
 
+    /// <summary>가짜 계정(이메일 @fake-seed.test)인가. 플랫폼 관리자가 가장으로 들어갈 때는 비밀번호 대신 이것만 본다(관리자 비밀번호를 바꿔도 버튼이 된다, 2026-11-15).</summary>
+    public async Task<bool> IsFakeUserAsync(string userName, CancellationToken ct = default)
+    {
+        if (!Enabled || string.IsNullOrEmpty(userName)) return false;
+        await using var ctx = systemDb.Create(userName);
+        return IsFakeEmail(await ctx.Users.AsNoTracking().Where(u => u.UserName == userName).Select(u => u.Email).FirstOrDefaultAsync(ct));
+    }
+
     /// <summary>가짜 계정이면 그 계정을 돌려준다(비밀번호 1234 로 일반 로그인과 같은 확인). 아니면 null.</summary>
     public async Task<AppUser?> FakeLoginAsync(AccountService accounts, string userName, CancellationToken ct = default)
     {

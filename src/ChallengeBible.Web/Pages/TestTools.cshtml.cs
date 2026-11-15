@@ -1,4 +1,4 @@
-using ChallengeBible.Web.Auth;
+﻿using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -72,22 +72,27 @@ public class TestToolsModel(TestToolsService tools, AccountService accounts, Use
 
     public string? AdminsMessage { get; private set; }
 
-    /// <summary>상황별 로그인: 가짜 계정으로 바로 들어간다(비밀번호 1234 확인). 들어가면 첫 화면으로.</summary>
+    /// <summary>
+    /// 상황별 로그인: 가짜 계정으로 바로 들어간다. 들어가면 첫 화면으로.
+    /// 플랫폼 관리자(또는 가장 중)는 가장으로 들어가고 비밀번호를 보지 않는다 — 가짜 계정인지만 본다(부서 관리자 비밀번호를 바꿔도 된다, 2026-11-15).
+    /// 가짜 계정이 누를 때는 비밀번호 1234 로 일반 로그인과 같은 확인을 한다(비밀번호가 바뀐 계정으로는 못 들어간다).
+    /// </summary>
     public async Task<IActionResult> OnPostLoginAsync(string user, CancellationToken ct)
     {
         if (!tools.Enabled || !await AllowedAsync(ct)) return NotFound();
-        var account = await tools.FakeLoginAsync(accounts, user, ct);
-        if (account is null) return NotFound();
         // 플랫폼 관리자(또는 가장 중)면 가장으로 들어간다(ADR 0096): 띠의 [사람 바꾸기] · [복귀]가 보인다
         var me = User.UserName()!;
         var admin = User.ImpersonatorId() ?? (await tools.IsPlatformAdminAsync(me, ct) ? me : null);
         if (admin is not null)
         {
+            if (!await tools.IsFakeUserAsync(user, ct)) return NotFound();
             var (_, target, _) = await switcher.SwitchAsync(admin, me, user, ct);
             if (target is null) return NotFound();
             await CurrentUser.SignInAsync(HttpContext, await accounts.ToSignedInAsync(target, ct), admin);
             return LocalRedirect("/");
         }
+        var account = await tools.FakeLoginAsync(accounts, user, ct);
+        if (account is null) return NotFound();
         await CurrentUser.SignInAsync(HttpContext, await accounts.ToSignedInAsync(account, ct));
         return LocalRedirect("/");
     }
