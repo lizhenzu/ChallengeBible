@@ -1,0 +1,21 @@
+@page "/platform/quiz-ai-prompt"
+@model ChallengeBible.Web.Pages.Platform.QuizAiPromptModel
+@using ChallengeBible.Web.Services
+@* 퀴즈 출제 AI 프롬프트(유년부 /QuizAiPrompt 그대로, 챌린지 테마). 퀴즈 출제 그날 칸 [AI 프롬프트]가 이 문구에 그날 구절 · 날짜를 넣어 복사한다 *@
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap qa">
+    <a class="qa-back" href="/platform/content/quiz/check">‹ 퀴즈 출제</a>
+    <h1>AI 프롬프트</h1>
+    <p class="lead">퀴즈 출제 화면의 [AI 프롬프트]를 누르면 이 문구에서 <code>@QuizAiPromptService.BibleRangeToken</code> 는 그날 구절, <code>@QuizAiPromptService.ExposeDateToken</code> 은 그날 날짜로 바뀌어 복사돼요.</p>
+    @if (Model.Ok == "saved") { <p class="ok-box" role="status">저장했어요.</p> }
+    @if (Model.Ok == "reset") { <p class="ok-box" role="status">기본 문구(유년부 그대로)로 되돌렸어요.</p> }
+    @if (Model.Missing.Count > 0) { <p class="err" role="alert">문구에 @string.Join(" · ", Model.Missing) 자리가 있어야 해요.</p> }
+    <p class="qa-meta">@(Model.Info?.IsDefault == true ? "지금: 기본 문구(유년부 그대로)" : $"지금: 고친 문구 · {Model.Info?.UpdatedBy}")</p>
+    <form method="post" class="qa-form">
+        <textarea class="in qa-text" name="Text" rows="24" spellcheck="false">@Model.Text</textarea>
+        <div class="qa-btns">
+            <button type="submit" class="btn p">저장</button>
+            <button type="submit" class="btn s" formaction="?handler=Reset" onclick="return confirm('기본 문구(유년부 그대로)로 되돌릴까요?')">기본 문구로 되돌리기</button>
+        </div>
+    </form>
+</div></main>

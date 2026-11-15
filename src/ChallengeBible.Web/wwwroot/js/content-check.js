@@ -102,22 +102,91 @@
     }
     return html + field('힌트', x.hint);
   }
+  // ── 유년부 /Question · /JuManNa 에서 옮긴 것(확정 시안 퀴즈출제-말씀입력, 2026-11-15) ──
+  var WORDS = d.words || {};
+  function dateKey(day) { return d.month + '-' + pad(day); }
+  // 오늘의 말씀 카드: [구절 복사] · [AI 프롬프트](프롬프트 문구의 {{BibleRange}} · {{ExposeDate}} 를 채워 복사)
+  function wordCard(day) {
+    var w = WORDS[dateKey(day)];
+    if (!w) return '<p class="wk-note">이 날은 말씀이 없어요 · 말씀 입력에서 먼저 넣으면 구절을 복사할 수 있어요.</p>';
+    var ref = w.ref || '';
+    var prompt = (d.prompt || '').split('{{BibleRange}}').join(ref).split('{{ExposeDate}}').join(dateKey(day));
+    return '<div class="qw-scr"><i>오늘의 말씀</i><b>' + esc(w.title || '(제목 없음)') + '</b><div class="qw-rg"><span>' + esc(ref) + '</span>'
+      + (ref ? '<button type="button" class="qw-cp" data-copy="' + esc(ref) + '">구절 복사</button>' : '')
+      + (ref && d.prompt ? '<button type="button" class="qw-cp" data-copy="' + esc(prompt) + '">AI 프롬프트</button>' : '') + '</div></div>';
+  }
+  function btn(cls, text, attrs) { return '<button type="button" class="btn ' + cls + '" ' + (attrs || '') + '>' + text + '</button>'; }
+  function link(cls, text, href) { return '<a class="btn ' + cls + '" href="' + href + '">' + text + '</a>'; }
   function drawDay() {
     var x = rows[sel];
     var date = new Date(year, month - 1, sel);
-    var edit = '/platform/content/' + d.kind + '?month=' + d.month + '&date=' + d.month + '-' + pad(sel);
-    var html = '<h2>' + month + '월 ' + sel + '일 ' + WEEK.charAt(date.getDay()) + '요일</h2>';
+    var edit = '/platform/content/' + d.kind + '?month=' + d.month + '&date=' + dateKey(sel);
+    var quiz = d.kind === 'quiz';
+    var html = '<h2>' + month + '월 ' + sel + '일 ' + WEEK.charAt(date.getDay()) + '요일'
+      + (quiz && x ? ' · ' + (x.format === 'Text' ? '주관식' : '객관식') : '') + '</h2>';
+    if (quiz) html += wordCard(sel);
     if (!x) {
-      html += '<p class="wk-empty">이 날은 아직 ' + esc(d.noun) + (d.kind === 'quiz' ? '가' : '이') + ' 없어요</p><p class="wk-note">이대로 두면 아이들 화면에 "오늘은 없음"으로 보여요.</p>'
-        + '<a class="wk-go" href="' + edit + '">' + esc(d.noun) + ' 입력하기</a>';
+      html += '<p class="wk-empty">이 날은 아직 ' + esc(d.noun) + (quiz ? '가' : '이') + ' 없어요</p><p class="wk-note">이대로 두면 아이들 화면에 "오늘은 없음"으로 보여요.</p>'
+        + '<div class="qw-btns one">' + link('p', '이 날 ' + esc(d.noun) + ' 입력', edit) + '</div>';
     } else {
       var state = tag(isDraft(x) ? DRAFT : '공개', !isDraft(x));
       html += '<p class="wk-ref">' + (x.ref ? esc(x.ref) + ' ' : '') + state + '</p>'
-        + (d.kind === 'quiz' ? quizBody(x) : wordBody(x))
-        + '<a class="wk-go" href="' + edit + '">' + esc(d.noun) + ' 수정</a>';
+        + (quiz ? quizBody(x) : wordBody(x))
+        + (quiz
+          ? '<div class="qw-btns">' + link('s', '퀴즈 수정', edit) + btn('qw-del', '퀴즈 삭제', 'data-del="' + dateKey(sel) + '"') + btn('p', '미리 보기', 'data-view="1"') + '</div>'
+          : '<div class="qw-btns two">' + link('s', '수정', edit) + btn('p', '보기', 'data-view="1"') + '</div>');
     }
     $('wkDay').innerHTML = html;
   }
+  // 미리 보기 · 보기: 아이 화면 모양(읽기 전용) 창
+  function preview() {
+    var x = rows[sel];
+    if (!x) return;
+    var body;
+    if (d.kind === 'quiz') {
+      var choices = x.format === 'Text' ? '<p class="qw-pv-n">주관식 · 맞는 답: ' + x.answers.map(esc).join(', ') + '</p>'
+        : '<ol class="qw-pv-ch">' + x.choices.map(function (c, i) { return '<li class="' + (c.correct ? 'ok' : '') + '">' + (i + 1) + '. ' + esc(c.text) + '</li>'; }).join('') + '</ol>';
+      body = '<div class="qw-pv-k">오늘의 퀴즈</div>' + (x.background ? '<p class="qw-pv-bg">' + esc(x.background) + '</p>' : '')
+        + '<p class="qw-pv-q">' + esc(x.question || '') + '</p>' + choices + (x.hint ? '<details class="qw-pv-h"><summary>힌트 보기</summary>' + esc(x.hint) + '</details>' : '');
+    } else {
+      body = '<div class="qw-pv-k">오늘의 말씀</div><h3 class="qw-pv-t">' + esc(x.title || '') + '</h3><p class="qw-pv-n">' + esc(x.ref || '') + '</p>'
+        + '<p class="qw-pv-s">' + esc(x.summary || '') + '</p>' + (x.commentary ? '<p class="qw-pv-c">' + esc(x.commentary) + '</p>' : '');
+    }
+    var bg = document.createElement('div');
+    bg.className = 'qw-dim';
+    bg.innerHTML = '<section class="qw-pv" role="dialog" aria-modal="true" aria-label="미리 보기">' + body + '<button type="button" class="btn s qw-pv-x">닫기</button></section>';
+    document.body.appendChild(bg);
+    bg.addEventListener('click', function (e) { if (e.target === bg || e.target.closest('.qw-pv-x')) bg.remove(); });
+    bg.querySelector('.qw-pv-x').focus();
+  }
+  function copy(b) {
+    var text = b.getAttribute('data-copy');
+    var done = function () { var t = b.textContent; b.textContent = '복사했어요 ✓'; b.classList.add('ok'); setTimeout(function () { b.textContent = t; b.classList.remove('ok'); }, 1500); };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, function () { fallback(text); done(); });
+    else { fallback(text); done(); }
+  }
+  function fallback(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) { }
+    ta.remove();
+  }
+  $('wkDay').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    if (b.hasAttribute('data-copy')) copy(b);
+    else if (b.hasAttribute('data-view')) preview();
+    else if (b.hasAttribute('data-del')) {
+      if (!confirm(month + '월 ' + sel + '일 퀴즈를 삭제할까요? 아이들 화면에는 "오늘은 없음"으로 보여요.')) return;
+      var f = $('qwTok');
+      f.action = '/platform/content/quiz/check?handler=Delete&date=' + b.getAttribute('data-del');
+      f.submit();
+    }
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var m = document.querySelector('.qw-dim'); if (m) m.remove(); } });
+  if (d.msg) { var p = document.createElement('p'); p.className = 'ok-box'; p.setAttribute('role', 'status'); p.textContent = d.msg; $('wkDone').parentNode.insertBefore(p, $('wkDone')); }
+
   function apply() {
     Array.prototype.forEach.call($('wkGrid').querySelectorAll('.wk-cell'), function (c) {
       var day = +c.getAttribute('data-day');

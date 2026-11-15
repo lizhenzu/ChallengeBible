@@ -82,6 +82,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<GiftPointUse> GiftPointUses => Set<GiftPointUse>();
     public DbSet<TeamAwardArchive> TeamAwardArchives => Set<TeamAwardArchive>();
     public DbSet<GiftYearClose> GiftYearCloses => Set<GiftYearClose>();
+    public DbSet<QuizAiPrompt> QuizAiPrompts => Set<QuizAiPrompt>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {

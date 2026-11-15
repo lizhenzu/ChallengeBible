@@ -73,6 +73,8 @@ builder.Services.AddScoped<PersonalGiftService>();   // 개인 선물 고르기(
 builder.Services.AddScoped<TeamGiftService>();   // 가족팀 · 친구팀 선물(ADR 0094 F)
 builder.Services.AddScoped<GiftOrderService>();   // 선물 구매 · 전달 처리 · 부서 카드(ADR 0094 G)
 builder.Services.AddScoped<YearResetService>();
+builder.Services.AddScoped<QuizAiPromptService>();   // 퀴즈 출제 AI 프롬프트(유년부 그대로)
+builder.Services.AddScoped<WordToolsService>();   // 말씀 입력 · 퀴즈 출제 도구(유년부에서 옮김)
 builder.Services.AddScoped<PeopleResetService>();   // 관리자만 남기기(반 편성 전, 2026-11-15 사용자)   // 새해 초기화 버튼(ADR 0094 정한 것 12)
 builder.Services.AddScoped<GiftCostService>();   // 선물 총비용 · 엑셀(ADR 0094 G-2 · 정한 것 13)
 builder.Services.AddScoped<RosterUploadService>();   // 명단 올리기(ADR 0097)

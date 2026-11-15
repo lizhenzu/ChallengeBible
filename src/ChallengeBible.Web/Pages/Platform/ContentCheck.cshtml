@@ -7,8 +7,20 @@
 }
 <partial name="_PlatformTop" />
 <main class="admin gut"><div class="wrap wk">
-    <h1>@Model.Noun 입력 점검</h1>
-    <p class="wk-sub">공용 @(Model.Noun)에 빠진 곳이 있는 날을 찾아요</p>
+    <h1>@Model.Heading</h1>
+    <p class="wk-sub">공용 @(Model.Noun)에 빠진 곳이 있는 날을 찾아요@(Model.IsQuiz ? " · 날짜를 눌러 퀴즈를 확인하고 넣어요" : " · 날짜를 눌러 말씀을 확인하고 넣어요")</p>
+    @if (!Model.IsQuiz)
+    {
+        <div class="qw-top">
+            <a class="btn p" href="/platform/content/word/month?month=@Model.MonthText(Model.First)">한 달 입력</a>
+            <a class="btn s" href="/platform/content/word/clips?month=@Model.MonthText(Model.First)">영상 구간 편집</a>
+        </div>
+    }
+    else
+    {
+        <div class="qw-top"><a class="btn s" href="/platform/quiz-input">퀴즈 넣기(붙여 넣기)</a><a class="btn s" href="/platform/quiz-ai-prompt">AI 프롬프트 고치기</a></div>
+    }
+    <form id="qwTok" method="post" hidden>@Html.AntiForgeryToken()</form>
 
     <form class="wk-bar" method="get" action="/platform/content/@Model.Kind/check" id="wkMonth">
         <a href="@Model.Link(Model.First.AddMonths(-1))" aria-label="이전 달">‹</a>

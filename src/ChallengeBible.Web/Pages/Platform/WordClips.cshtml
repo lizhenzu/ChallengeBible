@@ -1,0 +1,53 @@
+@page "/platform/content/word/clips"
+@model ChallengeBible.Web.Pages.Platform.WordClipsModel
+@using ChallengeBible.Web.Pages.Platform
+@* 영상 구간 편집(유년부 SegmentEditor 그대로 · 챌린지 테마, 확정 시안 퀴즈출제-말씀입력 ④). 플랫폼으로 보내기는 없음(바로 저장) *@
+@{
+    var f = Model.First;
+    string[] week = ["일", "월", "화", "수", "목", "금", "토"];
+    var cross = Model.Days.Count(d => d.Chapters.Count > 1);
+}
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap wc">
+    <form id="wcTok" hidden>@Html.AntiForgeryToken()</form>
+    <a class="qa-back" href="/platform/content/word/check?month=@Model.MonthText(f)">‹ 말씀 입력</a>
+    <div class="wm-head"><h1>영상 구간 편집</h1>
+        <span><a href="?month=@Model.MonthText(f.AddMonths(-1))">‹ @(f.AddMonths(-1).Month)월</a> · <a href="?month=@Model.MonthText(f.AddMonths(1))">@(f.AddMonths(1).Month)월 ›</a></span></div>
+    <p class="lead">@(f.Year)년 @(f.Month)월 · @(Model.Days.Count)일@(cross > 0 ? $" · 장 걸침 {cross}일" : "") — ▶ 를 누르고 [시작은 지금] · [끝은 지금]을 누르면 바로 저장돼요. 점선은 기본값(영상 처음 · 끝)이에요.</p>
+
+    <div class="wc-player" id="wcPlayer" hidden>
+        <div class="wc-t" id="wcTitle"></div>
+        <div class="wc-v"><div id="wcYt"></div></div>
+        <div class="wc-ctl">
+            <button type="button" class="btn" data-set="s">시작은 지금 <span class="num" id="wcNow">0:00</span></button>
+            <button type="button" class="btn" data-set="e">끝은 지금</button>
+            <button type="button" class="btn wc-reset" data-set="reset">기본으로(처음 · 끝)</button>
+            <button type="button" class="btn wc-close" data-set="close">닫기</button>
+        </div>
+    </div>
+
+    @if (Model.Days.Count == 0) { <div class="empty-box">이 달에 말씀이 없어요. 한 달 입력에서 먼저 넣어 주세요.</div> }
+    @foreach (var d in Model.Days)
+    {
+        var sun = d.Date.DayOfWeek == DayOfWeek.Sunday;
+        <div class="wc-day">
+            <div class="wc-ref"><b class="@(sun ? "sun" : "")">@(d.Date.Month)월 @(d.Date.Day)일(@week[(int)d.Date.DayOfWeek])</b> · @d.Ref
+                @if (d.Chapters.Count > 1) { <small>장 걸침 · 영상 @(d.Chapters.Count)개</small> }</div>
+            @foreach (var c in d.Chapters)
+            {
+                var has = !string.IsNullOrWhiteSpace(c.VideoId);
+                <div class="wc-row" data-date="@d.Date.ToString("yyyy-MM-dd")" data-ch="@c.Chapter" data-yt="@c.VideoId" data-len="@c.LengthSec"
+                     data-s="@c.StartSec" data-e="@c.EndSec" data-title="@(d.Date.Month)월 @(d.Date.Day)일 · @(d.Ref) · @(c.Chapter)장">
+                    @if (has) { <button type="button" class="wc-play" aria-label="@(c.Chapter)장 영상 열기">▶</button> }
+                    else { <span class="wc-play off" title="이 장 듣기 영상이 없어요">–</span> }
+                    <span class="wc-tag">@(c.Chapter)장</span>
+                    <small class="wc-hint">@(has ? c.Hint : "영상 없음")</small>
+                    <span class="wc-v1 num @(c.StartSec is null ? "def" : "")" data-v="s">@(c.StartSec is null ? "0:00" : WordClipsModel.Mmss(c.StartSec))</span>
+                    <span class="wc-to">~</span>
+                    <span class="wc-v1 num @(c.EndSec is null ? "def" : "")" data-v="e">@(c.EndSec is null ? (c.LengthSec is null ? "끝" : WordClipsModel.Mmss(c.LengthSec)) : WordClipsModel.Mmss(c.EndSec))</span>
+                </div>
+            }
+        </div>
+    }
+</div></main>
+<script src="~/js/word-clips.js" asp-append-version="true" defer></script>

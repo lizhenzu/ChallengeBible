@@ -14,9 +14,12 @@ namespace ChallengeBible.Web.Pages.Platform;
 /// 서버는 한 달치 자료만 주고 달력 · 칩 · 그날 칸은 content-check.js 가 그린다.
 /// </summary>
 [Authorize(Policy = CurrentUser.PlatformAdminPolicy)]
-public class ContentCheckModel(ContentAdminService content, TimeProvider time) : PageModel, ITitled
+public class ContentCheckModel(ContentAdminService content, QuizAiPromptService prompts, WordToolsService tools, TimeProvider time) : PageModel, ITitled
 {
-    public string Title => $"{Noun} 입력 점검 · 플랫폼";
+    /// <summary>유년부처럼 "퀴즈 출제" · "말씀 입력"(2026-11-15 사용자, 확정 시안 퀴즈출제-말씀입력). 주소는 그대로.</summary>
+    public string Heading => IsQuiz ? "퀴즈 출제" : "말씀 입력";
+    public string Title => $"{Heading} · 플랫폼";
+    [TempData] public string? Ok { get; set; }
 
     [BindProperty(SupportsGet = true)] public string Kind { get; set; } = "word";
     [BindProperty(SupportsGet = true)] public string? Month { get; set; }
@@ -41,15 +44,28 @@ public class ContentCheckModel(ContentAdminService content, TimeProvider time) :
         var initial = Date is { } d && d >= First && d <= last ? d : today >= First && today <= last ? today : First;
         var me = User.UserName()!;
         object days = IsQuiz ? await content.QuizCheckMonthAsync(me, First, ct) : await content.WordCheckMonthAsync(me, First, ct);
+        // 퀴즈 출제 그날 칸의 "오늘의 말씀" 카드 · [AI 프롬프트](유년부 그대로)
+        var words = IsQuiz ? (await content.WordCheckMonthAsync(me, First, ct)).Where(w => w.Title is not null || w.Ref is not null)
+            .ToDictionary(w => w.Date, w => new { w.Title, w.Ref }) : null;
+        var prompt = IsQuiz ? (await prompts.GetAsync(me, ct)).Text : null;
         string[] items = IsQuiz
             ? [QuizCheck.BackgroundItem, QuizCheck.QuestionItem, QuizCheck.ChoiceItem, QuizCheck.HintItem]
             : [WordCheck.RangeItem, WordCheck.TitleItem, WordCheck.StoryItem, WordCheck.ClipItem];
         DataJson = JsonSerializer.Serialize(new
         {
             Kind, Noun, Items = items, Month = MonthText(First),
-            Initial = initial.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), Days = days,
+            Initial = initial.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), Days = days, Words = words, Prompt = prompt,
+            Msg = Ok switch { "deleted" => "퀴즈를 내렸어요. 아이들 화면에는 \"오늘은 없음\"으로 보여요.", _ => null },
         }, JsonSerializerOptions.Web);
         return Page();
+    }
+
+    /// <summary>[퀴즈 삭제](유년부 그대로): 그날 공용 퀴즈를 내린다(보관 — 아이 기록이 가리키므로 지우지 않는다).</summary>
+    public async Task<IActionResult> OnPostDeleteAsync(DateOnly date, CancellationToken ct)
+    {
+        if (Kind != "quiz") return NotFound();
+        if (await tools.ArchiveQuizAsync(User.UserName()!, date, ct)) Ok = "deleted";
+        return Redirect($"/platform/content/quiz/check?month={date:yyyy-MM}&date={date:yyyy-MM-dd}");
     }
 
     /// <summary>"2026-11" 만 받는다. 형식이 틀리거나 지나치게 먼 해는 null(이번 달).</summary>

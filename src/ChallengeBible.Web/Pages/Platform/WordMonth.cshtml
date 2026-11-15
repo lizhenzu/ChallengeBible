@@ -1,0 +1,60 @@
+@page "/platform/content/word/month"
+@model ChallengeBible.Web.Pages.Platform.WordMonthModel
+@using ChallengeBible.Infrastructure.Data
+@* 한 달 입력(유년부 MonthlyBulk 그대로 · 챌린지 테마, 확정 시안 퀴즈출제-말씀입력 ③) *@
+@{
+    var f = Model.First;
+    var books = BibleBooks.All().ToList();
+    string[] week = ["주일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+    var have = Model.Rows.Count(r => r.Id is not null);
+}
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap wm">
+    <a class="qa-back" href="/platform/content/word/check?month=@Model.MonthText(f)">‹ 말씀 입력</a>
+    <div class="wm-head"><h1>@(f.Year)년 @(f.Month)월 · 한 달 입력</h1>
+        <span><a href="?month=@Model.MonthText(f.AddMonths(-1))">‹ @(f.AddMonths(-1).Month)월</a> · <a href="?month=@Model.MonthText(f.AddMonths(1))">@(f.AddMonths(1).Month)월 ›</a></span></div>
+    <p class="lead">날짜마다 제목 · 성경 · 장절을 넣어요. 바꾼 날만 저장하고(노란 줄), 비어 있던 날은 <b>초안</b>으로 새로 넣어요. 오늘 이야기 · 해설 · 영상 구간은 바뀌지 않아요. 지금 @(Model.Rows.Count)일 중 @(have)일 있음.</p>
+    @if (Model.Saved is { } sv) { <p class="ok-box" role="status">@sv</p> }
+    <form method="post" class="wm-form" id="wmForm">
+        <input type="hidden" name="Month" value="@Model.MonthText(f)" />
+        <div class="wm-rows">
+            @for (var i = 0; i < Model.Rows.Count; i++)
+            {
+                var r = Model.Rows[i];
+                var sun = r.Date.DayOfWeek == DayOfWeek.Sunday;
+                var err = Model.Errors.GetValueOrDefault(r.Date);
+                <div class="wm-r@(err is null ? "" : " err")" data-row>
+                    <input type="hidden" name="Rows[@i].Date" value="@r.Date.ToString("yyyy-MM-dd")" />
+                    <div class="wm-d"><b class="@(sun ? "sun" : "")">@(r.Date.Month)월 @(r.Date.Day)일 @week[(int)r.Date.DayOfWeek]</b>
+                        <small class="wm-st">@(r.Id is null ? "새로" : r.Status == ContentStatus.Published ? "공개" : "초안")</small><small class="wm-chg">바뀜</small></div>
+                    <input class="in" name="Rows[@i].Title" value="@r.Title" placeholder="제목" aria-label="@(r.Date.Day)일 제목" autocomplete="off" />
+                    <div class="wm-rng">
+                        <select class="in" name="Rows[@i].Book" aria-label="@(r.Date.Day)일 성경">
+                            <option value="0">성경</option>
+                            @foreach (var b in books) { <option value="@b.Id" selected="@(b.Id == r.Book)">@b.Name</option> }
+                        </select>
+                        <input class="in" type="number" min="1" inputmode="numeric" name="Rows[@i].StartChapter" value="@r.StartChapter" placeholder="장" aria-label="@(r.Date.Day)일 시작 장" />
+                        <input class="in" type="number" min="1" inputmode="numeric" name="Rows[@i].StartVerse" value="@r.StartVerse" placeholder="절" aria-label="@(r.Date.Day)일 시작 절" />
+                        <span>~</span>
+                        <input class="in" type="number" min="1" inputmode="numeric" name="Rows[@i].EndChapter" value="@r.EndChapter" placeholder="장" aria-label="@(r.Date.Day)일 끝 장" />
+                        <input class="in" type="number" min="1" inputmode="numeric" name="Rows[@i].EndVerse" value="@r.EndVerse" placeholder="절" aria-label="@(r.Date.Day)일 끝 절" />
+                    </div>
+                    @if (err is not null) { <p class="wm-err" role="alert">@err</p> }
+                </div>
+            }
+        </div>
+        <button type="submit" class="btn p wm-save">@(have == 0 ? "한 달 추가하기" : "한 달 저장하기")</button>
+    </form>
+</div></main>
+<script>
+    // 값을 바꾼 줄에 "바뀜"(노란 줄) 표시 — 저장은 서버가 지금 값과 비교해 바뀐 날만 한다
+    (() => {
+        document.querySelectorAll('[data-row]').forEach((row) => {
+            const start = [...row.querySelectorAll('input:not([type=hidden]),select')].map((e) => e.value).join('|');
+            row.addEventListener('input', () => {
+                const now = [...row.querySelectorAll('input:not([type=hidden]),select')].map((e) => e.value).join('|');
+                row.classList.toggle('chg', now !== start);
+            });
+        });
+    })();
+</script>
