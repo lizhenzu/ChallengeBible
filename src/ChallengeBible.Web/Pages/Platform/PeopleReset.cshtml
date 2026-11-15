@@ -1,7 +1,7 @@
 @page "/platform/people-reset"
 @model ChallengeBible.Web.Pages.Platform.PeopleResetModel
 @using ChallengeBible.Web.Services
-@* 확정 시안 플랫폼-관리자만남기기(2026-11-15): 플랫폼 관리자 · 부서 관리자만 남기고 모든 부서의 다른 사람과 기록을 지운다. 반 · 학기는 그대로 *@
+@* 확정 시안 플랫폼-관리자만남기기(2026-11-15): 플랫폼 관리자 · 부서 관리자만 남기고 모든 부서의 다른 사람과 기록, 반(새친구반 제외)을 지운다. 학기는 그대로 *@
 @{
     var s = Model.Status!;
     static string N(int n) => n.ToString("N0");
@@ -9,13 +9,14 @@
 <partial name="_PlatformTop" />
 <main class="admin gut"><div class="wrap yr">
     <h1>관리자만 남기기</h1>
-    <p class="lead">플랫폼 관리자와 각 부서 관리자만 남기고, 나머지 사람을 모든 부서에서 지워요. 새로 반을 짜기 전에 한 번 쓰는 기능이에요.</p>
-    @if (Model.Result is { } r) { <p class="ok-box" role="status">지웠어요 · 계정 @N(r.Accounts)명 · 명부 @N(r.People)명@(r.Teams > 0 ? $" · 빈 가족팀 {N(r.Teams)}개" : "").</p> }
+    <p class="lead">플랫폼 관리자와 각 부서 관리자만 남기고, 나머지 사람과 반을 모든 부서에서 지워요. 새로 반을 짜기 전에 한 번 쓰는 기능이에요.</p>
+    @if (Model.Result is { } r) { <p class="ok-box" role="status">지웠어요 · 계정 @N(r.Accounts)명 · 명부 @N(r.People)명 · 반 @N(r.Classes)개@(r.Teams > 0 ? $" · 빈 가족팀 {N(r.Teams)}개" : "").</p> }
     @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }
 
     <div class="yr-stats">
         <div><small>지울 계정</small><b class="num">@N(s.Accounts)<u>명</u></b></div>
         <div><small>지울 명부(계정 없는 사람 포함)</small><b class="num">@N(s.People)<u>명</u></b></div>
+        <div><small>지울 반(새친구반 제외)</small><b class="num">@N(s.Classes)<u>개</u></b></div>
         <div><small>남는 관리자</small><b class="num">@N(s.Keep.Count)<u>명</u></b></div>
     </div>
 
@@ -34,7 +35,8 @@
         <ul>
             <li>위 관리자를 뺀 <b>모든 계정과 명부</b>를 지워요(학생 · 교사 · 학부모 · 새친구 · 계정 없는 명부 · 가짜 시험 데이터 모두).</li>
             <li>그 사람들의 소속 · 반 배정 · 출석 · 미션 · 통독 · 선물 · 가족팀 구성원 · 보호자 연결 · 진급 신청 · 참여 신청도 함께 지워요. 구성원이 다 빠진 가족팀은 팀도 지워요.</li>
-            <li>그대로: 부서 · 반 · 학기, 상품 · 설정 · 콘텐츠, 남는 관리자의 계정 · 소속 · 명부.</li>
+            <li><b>모든 부서의 반을 지워요</b>(반 배정 포함). <b>새친구반</b>은 출석 화면에 꼭 필요한 기본 반이라 비워서 남겨요.</li>
+            <li>그대로: 부서 · 학기 · 새친구반, 상품 · 설정 · 콘텐츠, 남는 관리자의 계정 · 소속 · 명부.</li>
         </ul>
         <form method="post" class="yr-form">
             <label><span>확인 칸에 <b>@PeopleResetService.ConfirmWord</b> 를 써 주세요</span><input class="in" name="confirm" autocomplete="off" placeholder="@PeopleResetService.ConfirmWord" /></label>

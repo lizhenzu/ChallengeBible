@@ -50,6 +50,7 @@ public partial class PeopleResetTests : IClassFixture<WebApplicationFactory<Prog
         raw.SaveChanges();
         var cls = new SchoolClass { TenantId = _kids.Id, TermId = term.Id, Name = "1반", CreatedUtc = DateTime.UtcNow };
         raw.Classes.Add(cls);
+        raw.Classes.Add(new SchoolClass { TenantId = _kids.Id, TermId = term.Id, Name = "새친구반", IsNewcomer = true, CreatedUtc = DateTime.UtcNow });
         raw.SaveChanges();
         raw.ClassMembers.Add(new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = cls.Id, PersonId = pKid.Id });
         raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = pKid.Id, Sunday = new DateOnly(2026, 11, 8), CreatedUtc = DateTime.UtcNow });
@@ -88,7 +89,7 @@ public partial class PeopleResetTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
-    public async Task 관리자만_남기고_모든_사람과_기록을_지운다_부서_반은_그대로()
+    public async Task 관리자만_남기고_모든_사람과_기록_반을_지운다_새친구반_학기는_그대로()
     {
         var op = await Login("operator@example.com");
         var page = await op.GetStringAsync("/platform/people-reset");
@@ -98,7 +99,7 @@ public partial class PeopleResetTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("<b class=\"num\">2<u>명</u></b>", page);   // 지울 계정 2(권동석 · 김선생)
 
         var body = await Reset(op, "DELETE");
-        Assert.Contains("지웠어요 · 계정 2명 · 명부 2명 · 빈 가족팀 1개", body);
+        Assert.Contains("지웠어요 · 계정 2명 · 명부 2명 · 반 1개 · 빈 가족팀 1개", body);
         using var raw = InMemoryDb.Raw(_db);
         Assert.Equal(new[] { _admin, _op }.Order().ToArray(), raw.Users.Select(u => u.UserName!).Order().ToArray());
         Assert.Equal("윤동호", raw.People.Single().Name);   // 관리자 명부만
@@ -112,9 +113,9 @@ public partial class PeopleResetTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Empty(raw.TeamAwards);
         Assert.Empty(raw.Gifts);
         Assert.Single(raw.Tenants);
-        Assert.Single(raw.Classes);   // 반 · 학기는 그대로
-        Assert.Single(raw.ClassTerms);
-        Assert.Equal("accounts=2;people=2;teams=1", raw.AuditLogs.Single(a => a.Action == PeopleResetService.Action).Detail);
+        Assert.True(raw.Classes.Single().IsNewcomer);   // 반은 지우고 새친구반만 남김
+        Assert.Single(raw.ClassTerms);   // 학기는 그대로
+        Assert.Equal("accounts=2;people=2;teams=1;classes=1", raw.AuditLogs.Single(a => a.Action == PeopleResetService.Action).Detail);
     }
 
     [Fact]
