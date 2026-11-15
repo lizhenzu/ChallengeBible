@@ -47,7 +47,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         if (tenant.Current.MissionEnabled) Family = await teams.MyFamilyAsync(ct);
         if (tenant.Current.MissionEnabled && Family is null) Invites = (await familyJoin.StateAsync(ct)).Invites.Where(i => !i.SnoozedToday).ToList();
         Data = await home.GetAsync(ct);
-        RoleChips = await home.RoleChipsAsync(User.UserId()!, ct);
+        RoleChips = await home.RoleChipsAsync(User.UserId()!, ct, User.IsPlatformAdmin());
         ManyTenants = (await accounts.WhereToGoAsync(me, ct)).ApprovedCount > 1;
         if (tenant.IsLobby)
             Waiting = (await accounts.MyMembershipsAsync(me, ct))

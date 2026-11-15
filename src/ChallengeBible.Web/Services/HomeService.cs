@@ -168,9 +168,10 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
     /// 학생 · 새친구 = 든 반 이름("3학년 믿음반" 이 곧 학년 · 반), 교사 · 임원 = 담임 반이면 "반 이름 담임", 새친구반이면 "새친구반 담당".
     /// 임원은 부서의 역할 이름(부장 · 부감 · 서기 …), 학부모는 "학부모"만. 부서 관리자면 맨 앞에 [부서 관리자]. 승인 안 됨 · 임시 부서는 없음.
     /// </summary>
-    public async Task<IReadOnlyList<RoleChip>> RoleChipsAsync(string userId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<RoleChip>> RoleChipsAsync(string userId, CancellationToken ct = default, bool platformAdmin = false)
     {
-        if (!tenant.IsApproved || tenant.IsLobby) return [];
+        RoleChip[] plat = platformAdmin ? [new("플랫폼 관리자", "pf")] : [];   // 2026-11-16 사용자: 플랫폼 관리자는 따로 보여 준다
+        if (!tenant.IsApproved || tenant.IsLobby) return plat;
         var code = tenant.RoleCode?.Trim();
         var kind = UserRole.KindOf(code);
         await using var ctx = db.Create();
@@ -190,7 +191,7 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
             _ => new("학부모", "pa"),
         };
         // 부서 관리자는 직분(역할 코드)과 따로인 권한이라 직분 칩 앞에 따로 붙인다(2026-11-14 사용자: 부장이면서 관리자일 수도, 아닐 수도 있다)
-        var chips = new List<RoleChip>();
+        var chips = new List<RoleChip>(plat);
         if (tenant.IsAdmin) chips.Add(new("부서 관리자", "ad"));
         chips.Add(role);
         if (kind == UserRoleKind.Parent) return chips;
