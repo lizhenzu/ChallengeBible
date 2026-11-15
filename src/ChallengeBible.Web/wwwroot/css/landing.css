@@ -217,6 +217,7 @@
   .ld .hero .wrap { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; padding-block: 48px 120px; }
   .ld .hero h1 { font-size: 54px; }
   .ld .cta { grid-auto-flow: column; justify-content: start; }
+  .ld .end .cta { grid-auto-flow: row; justify-content: stretch; }
   .ld .shots { height: 420px; }
   .ld .ph { width: 250px; }
   .ld .paper { padding: 40px 44px 32px; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); column-gap: 40px; align-items: end; }
