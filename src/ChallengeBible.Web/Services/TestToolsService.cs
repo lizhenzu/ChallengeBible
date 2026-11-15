@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using System.Data.Common;
 using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
@@ -230,7 +230,8 @@ public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, 
         var fakes = await ctx.Users.AsNoTracking().Where(u => u.Email != null && u.Email.EndsWith(EmailDomain))
             .Select(u => new { u.UserName, u.FirstName, u.LastName }).ToListAsync(ct);
         var byName = fakes.Where(f => f.UserName != null).ToDictionary(f => f.UserName!, f => AppUser.FullName(f.LastName, f.FirstName));
-        var tenants = await ctx.Tenants.AsNoTracking().Where(t => !t.IsLobby).OrderBy(t => t.Id).Select(t => new { t.Id, t.Name, t.Slug }).ToListAsync(ct);
+        var tenants = (await ctx.Tenants.AsNoTracking().Where(t => !t.IsLobby).OrderBy(t => t.Id).Select(t => new { t.Id, t.Name, t.Slug }).ToListAsync(ct))
+            .OrderBy(t => DeptOrder.Key(t.Name)).ToList();   // 나이순(DeptOrder)
         var depts = new List<FakeDept>();
         foreach (var t in tenants)
         {
