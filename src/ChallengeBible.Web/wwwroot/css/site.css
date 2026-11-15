@@ -3917,3 +3917,6 @@ a.nc-card.hidden { display: none; }
 .bk-del { border: 0; background: none; color: #B91C1C; font-size: 12px; cursor: pointer; padding: 2px 4px; }
 .bk-2 { display: grid; grid-template-columns: minmax(0, 1fr) 90px; gap: 6px; }
 .create.bk-create { margin-top: 8px; }
+.pr-keep { border-color: var(--line); }
+.pr-keep ul { list-style: none; padding: 0; margin: 0; font-size: 13.5px; line-height: 1.9; }
+.pr-keep small { color: var(--dim); }

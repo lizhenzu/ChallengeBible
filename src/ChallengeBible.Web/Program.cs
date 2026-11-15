@@ -72,7 +72,8 @@ builder.Services.AddScoped<DeptGiftService>();   // 부서 선물 설정(ADR 009
 builder.Services.AddScoped<PersonalGiftService>();   // 개인 선물 고르기(ADR 0094 B)
 builder.Services.AddScoped<TeamGiftService>();   // 가족팀 · 친구팀 선물(ADR 0094 F)
 builder.Services.AddScoped<GiftOrderService>();   // 선물 구매 · 전달 처리 · 부서 카드(ADR 0094 G)
-builder.Services.AddScoped<YearResetService>();   // 새해 초기화 버튼(ADR 0094 정한 것 12)
+builder.Services.AddScoped<YearResetService>();
+builder.Services.AddScoped<PeopleResetService>();   // 관리자만 남기기(반 편성 전, 2026-11-15 사용자)   // 새해 초기화 버튼(ADR 0094 정한 것 12)
 builder.Services.AddScoped<GiftCostService>();   // 선물 총비용 · 엑셀(ADR 0094 G-2 · 정한 것 13)
 builder.Services.AddScoped<BirthdayGiftService>();   // 생일 선물 · 로그인 없는 링크(ADR 0094 D · 정한 것 14)
 builder.Services.AddScoped<NewcomerGiftService>();   // 새친구 · 전도 선물(ADR 0094 C · 정한 것 15)

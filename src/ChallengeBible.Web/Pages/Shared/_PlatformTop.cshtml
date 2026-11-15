@@ -15,6 +15,7 @@
         ("/platform/families", "온가족"),
         ("/platform/ops", "운영 점검"),
         ("/platform/year-reset", "새해 초기화"),
+        ("/platform/people-reset", "관리자만 남기기"),
     ];
     // 임시 시험 도구(ADR 0095): 설정 TestTools:Enabled 일 때만 메뉴에 보인다
     if (Config.GetValue<bool>("TestTools:Enabled")) menu = [.. menu, ("/test-tools", "시험 도구(임시)")];
