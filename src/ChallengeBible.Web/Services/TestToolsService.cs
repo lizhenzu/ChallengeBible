@@ -91,8 +91,9 @@ public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, 
     // ── 가짜 데이터 넣기 · 지우기 ──
 
     /// <summary>
-    /// 가짜 데이터 넣기(create) · 지우기(delete). commit = false 면 시험 실행(끝에 되돌림). 플랫폼 관리자만.
-    /// 넣기는 플랫폼 관리자(SuperAdmin) 계정만 남기고 모든 계정 · 기록을 지운 뒤 넣는다.
+    /// 가짜 데이터 넣기(create) · 지우기(delete). commit = false 면 끝에 되돌린다(화면은 늘 저장, 2026-11-16). 플랫폼 관리자만.
+    /// 넣기는 아무것도 지우지 않고 올린 명부에 가짜 계정을 이어 상황별 데이터를 더한다. 지우기는 가짜 표시만 지우고 이은 명부를 되돌린다.
+    /// 반 · 명부 · 관리자(Admin · SuperAdmin) 계정은 둘 다 건드리지 않는다(CLAUDE.md).
     /// </summary>
     public async Task<FakeRunResult> RunAsync(string actor, bool create, bool commit, CancellationToken ct = default)
     {

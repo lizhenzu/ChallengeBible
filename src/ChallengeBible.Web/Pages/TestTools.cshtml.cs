@@ -41,19 +41,18 @@ public class TestToolsModel(TestToolsService tools, AccountService accounts, Use
         return Page();
     }
 
-    /// <summary>가짜 데이터 넣기(kind=create) · 지우기(kind=delete). mode=test 는 시험 실행, real 은 확인 글자 FAKE 가 있어야 한다.</summary>
-    public async Task<IActionResult> OnPostRunAsync(string kind, string mode, string? confirm, CancellationToken ct)
+    /// <summary>가짜 데이터 넣기(kind=create) · 지우기(kind=delete). 확인 글자 FAKE 가 있어야 한다(시험 실행은 없앴다, 2026-11-16 사용자).</summary>
+    public async Task<IActionResult> OnPostRunAsync(string kind, string? confirm, CancellationToken ct)
     {
         if (!tools.Enabled || !await AllowedAsync(ct)) return NotFound();
         var me = User.UserName()!;
         if (!await tools.IsPlatformAdminAsync(me, ct)) return Forbid();
         var create = kind == "create";
-        var commit = mode == "real";
-        ResultTitle = (create ? "가짜 데이터 넣기" : "가짜 데이터 지우기") + (commit ? " · 진짜 실행" : " · 시험 실행(되돌림)");
-        if (commit && !string.Equals(confirm?.Trim(), TestToolsService.ConfirmWord, StringComparison.Ordinal))
-            Error = $"진짜 실행은 확인 칸에 {TestToolsService.ConfirmWord} 를 써야 해요.";
+        ResultTitle = create ? "가짜 데이터 넣기" : "가짜 데이터 지우기";
+        if (!string.Equals(confirm?.Trim(), TestToolsService.ConfirmWord, StringComparison.Ordinal))
+            Error = $"실행하려면 확인 칸에 {TestToolsService.ConfirmWord} 를 써야 해요.";
         else
-            Result = await tools.RunAsync(me, create, commit, ct);
+            Result = await tools.RunAsync(me, create, commit: true, ct);
         await LoadAsync(ct);
         return Page();
     }

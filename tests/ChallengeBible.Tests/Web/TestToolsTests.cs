@@ -165,15 +165,16 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
     }
 
     [Fact]
-    public async Task 진짜_실행은_확인_글자가_있어야_하고_메모리_DB_에서는_SQL_을_돌리지_않는다()
+    public async Task 실행은_확인_글자가_있어야_하고_메모리_DB_에서는_SQL_을_돌리지_않는다()
     {
         Seed("superadmin", "boss@example.com", platformAdmin: true);
         var c = Client(App(enabled: true));
         await Login(c, "superadmin");
-        var noWord = await (await Post(c, "/test-tools?handler=Run", new() { ["kind"] = "create", ["mode"] = "real", ["confirm"] = "" })).Content.ReadAsStringAsync();
+        var noWord = await (await Post(c, "/test-tools?handler=Run", new() { ["kind"] = "create", ["confirm"] = "" })).Content.ReadAsStringAsync();
         Assert.Contains("FAKE 를 써야 해요", noWord);
-        var test = await (await Post(c, "/test-tools?handler=Run", new() { ["kind"] = "delete", ["mode"] = "test" })).Content.ReadAsStringAsync();
-        Assert.Contains("메모리 DB 에서는 SQL 을 실행하지 않아요", test);
+        var page = await (await Post(c, "/test-tools?handler=Run", new() { ["kind"] = "delete", ["confirm"] = "FAKE" })).Content.ReadAsStringAsync();
+        Assert.Contains("메모리 DB 에서는 SQL 을 실행하지 않아요", page);
+        Assert.DoesNotContain("시험 실행", page);   // 시험 실행 버튼은 없앴다(2026-11-16)
         using var raw = InMemoryDb.Raw(_db);
         Assert.Empty(raw.AuditLogs.Where(a => a.Action == TestToolsService.CreateAction || a.Action == TestToolsService.DeleteAction));
     }
@@ -190,7 +191,23 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
             Assert.DoesNotContain("SECURITY POLICY", sql);
             Assert.All(sql, ch => Assert.True(ch < 128, "ASCII 만"));
         }
-        Assert.Contains("DELETE FROM [Identity].[User] WHERE Id NOT IN (SELECT UserId FROM #Keep);", TestToolsService.Script("fake-create.sql"));
+    }
+
+    [Fact]
+    public void 넣기는_아무것도_지우지_않고_지우기는_반_명부_관리자를_지우지_않는다()
+    {
+        var create = TestToolsService.Script("fake-create.sql");
+        Assert.DoesNotContain("DELETE FROM [Identity]", create);
+        Assert.DoesNotContain("DELETE FROM app.Person", create);
+        Assert.DoesNotContain("DELETE FROM app.Class", create);
+        Assert.DoesNotContain("DELETE FROM app.AttendanceCheck", create);
+        Assert.Contains("N'ADMIN', N'SUPERADMIN'", create);   // 이미 넣었는지 볼 때 관리자 계정은 뺀다
+
+        var delete = TestToolsService.Script("fake-delete.sql");
+        Assert.Contains("NOT EXISTS (SELECT 1 FROM [Identity].[UserRoles] ur JOIN [Identity].[Role] r ON r.Id = ur.RoleId WHERE ur.UserId = u.Id AND r.NormalizedName IN (N'ADMIN', N'SUPERADMIN'))", delete);
+        Assert.Contains("UPDATE p SET UserId = NULL, RoleCode = d.RoleCode", delete);   // 이은 명부 줄은 되돌린다
+        Assert.DoesNotContain("DELETE FROM app.Person WHERE", delete);              // 명부는 가짜 표시 줄만(#DelPerson)
+        Assert.Contains("CreatedByUserName = @Marker AND (UserId IS NULL OR UserId IN (SELECT UserId FROM #Del))", delete);
     }
 
     [Fact]
