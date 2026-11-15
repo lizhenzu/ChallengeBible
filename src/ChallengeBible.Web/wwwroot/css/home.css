@@ -224,7 +224,7 @@
   .hm .wl .wl-hi h1 { font-size: 26px; }
   .hm .wl-org b { font-size: 18px; }
   .hm .wl-today b { font-size: 15px; }
-  .hm .wl-today .yr { display: none; }
+  .hm .wl-today .dt-yr { display: none; }
   .hm.sky .verse blockquote { font-size: 18px; }
 }
 

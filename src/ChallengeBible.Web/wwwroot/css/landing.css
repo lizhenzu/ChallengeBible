@@ -187,7 +187,7 @@
 .ld .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
 /* 좁은 휴대폰(≤ 420px): 머리말에서 연도는 빼고 월 · 일 · 요일만 */
 @media (max-width: 420px) {
-  .ld .today .yr { display: none; }
+  .ld .today .dt-yr { display: none; }
 }
 /* 아주 좁은 휴대폰(≤ 380px): 글자 · 그림을 줄여 겹치거나 넘치지 않게 */
 @media (max-width: 380px) {
