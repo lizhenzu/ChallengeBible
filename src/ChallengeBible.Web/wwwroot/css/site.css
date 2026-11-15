@@ -4102,3 +4102,16 @@ details.create.tn-new[open] > summary { margin-bottom: 12px; }
 @media (max-height: 640px) { .qa-text { height: 300px; } }
 .qa-btns { position: sticky; bottom: 10px; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
 .qa-btns .btn { min-height: 46px; min-width: 0; white-space: nowrap; font-size: 15px; }
+/* 영상 구간 편집 최적화(사용자 2026-11-15): 영상은 화면 가운데 팝업, 버튼 한 줄, 줄 간격 좁게 */
+.wc-lead { margin: 0; font-size: 13px; line-height: 1.6; color: var(--dim); }
+.wc-dim { position: fixed; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center; padding: 12px; background: rgba(15, 23, 42, .6); }
+.wc-dim[hidden] { display: none; }
+.wc-dim .wc-player { position: static; width: min(560px, 100%); max-height: calc(100vh - 24px); overflow-y: auto; gap: 10px; }
+.wc-cur { font-size: 13px; color: #D1D5DB; text-align: center; }
+.wc-cur b { color: #fff; }
+.wc-ctl .btn { min-width: 0; min-height: 44px; padding: 0 6px; white-space: nowrap; font-size: 14px; letter-spacing: -.02em; }
+.wc-day { padding: 9px 10px; gap: 6px; }
+.wc-row { grid-template-columns: 30px auto minmax(0, 1fr) auto 8px auto; gap: 5px; }
+.wc-play { width: 30px; height: 30px; }
+.wc-v1 { padding: 3px 7px; }
+.wc-ref small { white-space: nowrap; display: inline-block; }

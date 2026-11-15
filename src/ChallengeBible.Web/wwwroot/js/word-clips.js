@@ -21,6 +21,8 @@
         box.hidden = false;
         document.getElementById('wcTitle').textContent = r.dataset.title;
         const start = Number(r.dataset.s || 0);
+        showCur();
+        document.body.style.overflow = 'hidden';
         await loadApi();
         if (!player) {
             player = new YT.Player('wcYt', {
@@ -29,7 +31,6 @@
                 events: { onReady: () => { ready = true; } },
             });
         } else if (ready) player.loadVideoById({ videoId: r.dataset.yt, startSeconds: start });
-        box.scrollIntoView({ behavior: 'smooth', block: 'start' });
         clearInterval(tick);
         tick = setInterval(() => { if (ready && player.getCurrentTime) document.getElementById('wcNow').textContent = mmss(player.getCurrentTime()); }, 500);
     };
@@ -47,7 +48,18 @@
         v.classList.toggle('def', sec == null);
         v.textContent = sec != null ? mmss(sec) : which === 's' ? '0:00' : (row.dataset.len ? mmss(Number(row.dataset.len)) : '끝');
         v.classList.add('saved'); setTimeout(() => v.classList.remove('saved'), 900);
+        showCur();
     };
+
+    // 팝업 안에 지금 정한 시작 · 끝을 보인다
+    const showCur = () => {
+        if (!row) return;
+        document.getElementById('wcS').textContent = row.dataset.s ? mmss(Number(row.dataset.s)) : '0:00';
+        document.getElementById('wcE').textContent = row.dataset.e ? mmss(Number(row.dataset.e)) : (row.dataset.len ? mmss(Number(row.dataset.len)) : '끝');
+    };
+    const close = () => { if (player && ready) player.pauseVideo(); box.hidden = true; clearInterval(tick); document.body.style.overflow = ''; };
+    box.addEventListener('click', (e) => { if (e.target === box) close(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !box.hidden) close(); });
 
     document.addEventListener('click', async (e) => {
         const play = e.target.closest('.wc-play:not(.off)');
@@ -55,7 +67,7 @@
         const b = e.target.closest('[data-set]');
         if (!b || !row) return;
         const k = b.dataset.set;
-        if (k === 'close') { if (player && ready) player.pauseVideo(); box.hidden = true; clearInterval(tick); return; }
+        if (k === 'close') { close(); return; }
         if (k === 'reset') {
             if (await save('s', null) && await save('e', null)) { paint('s', null); paint('e', null); }
             return;

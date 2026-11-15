@@ -13,17 +13,21 @@
     <a class="qa-back" href="/platform/content/word/check?month=@Model.MonthText(f)">‹ 말씀 입력</a>
     <div class="wm-head"><h1>영상 구간 편집</h1>
         <span><a href="?month=@Model.MonthText(f.AddMonths(-1))">‹ @(f.AddMonths(-1).Month)월</a> · <a href="?month=@Model.MonthText(f.AddMonths(1))">@(f.AddMonths(1).Month)월 ›</a></span></div>
-    <p class="lead">@(f.Year)년 @(f.Month)월 · @(Model.Days.Count)일@(cross > 0 ? $" · 장 걸침 {cross}일" : "") — ▶ 를 누르고 [시작은 지금] · [끝은 지금]을 누르면 바로 저장돼요. 점선은 기본값(영상 처음 · 끝)이에요.</p>
+    <p class="wc-lead">@(f.Year)년 @(f.Month)월 · @(Model.Days.Count)일@(cross > 0 ? $" · 장 걸침 {cross}일" : "") · ▶ 를 누르고 [시작 지금] · [끝 지금]을 누르면 바로 저장돼요. 점선 = 기본(처음 · 끝).</p>
 
-    <div class="wc-player" id="wcPlayer" hidden>
-        <div class="wc-t" id="wcTitle"></div>
-        <div class="wc-v"><div id="wcYt"></div></div>
-        <div class="wc-ctl">
-            <button type="button" class="btn" data-set="s">시작은 지금 <span class="num" id="wcNow">0:00</span></button>
-            <button type="button" class="btn" data-set="e">끝은 지금</button>
-            <button type="button" class="btn wc-reset" data-set="reset">기본으로(처음 · 끝)</button>
-            <button type="button" class="btn wc-close" data-set="close">닫기</button>
-        </div>
+    @* 영상 창: 화면 한가운데 팝업(사용자 2026-11-15 "영상은 중앙 가운데", 버튼 한 줄) *@
+    <div class="wc-dim" id="wcPlayer" hidden>
+        <section class="wc-player" role="dialog" aria-modal="true" aria-labelledby="wcTitle">
+            <div class="wc-t" id="wcTitle"></div>
+            <div class="wc-v"><div id="wcYt"></div></div>
+            <div class="wc-cur">시작 <b class="num" id="wcS">0:00</b> ~ 끝 <b class="num" id="wcE">끝</b></div>
+            <div class="wc-ctl">
+                <button type="button" class="btn" data-set="s">시작 지금 <span class="num" id="wcNow">0:00</span></button>
+                <button type="button" class="btn" data-set="e">끝 지금</button>
+                <button type="button" class="btn wc-reset" data-set="reset">처음 · 끝으로</button>
+                <button type="button" class="btn wc-close" data-set="close">닫기</button>
+            </div>
+        </section>
     </div>
 
     @if (Model.Days.Count == 0) { <div class="empty-box">이 달에 말씀이 없어요. 한 달 입력에서 먼저 넣어 주세요.</div> }
