@@ -46,6 +46,45 @@
         </form>
     </details>
 
+    @* 확정 시안 플랫폼-부서-여러개만들기(2026-11-15): 줄마다 이름 · 주소 · 색, 프로그램 둘 다 · 서울. 한 줄이라도 틀리면 하나도 만들지 않는다 *@
+    <details class="create bk-create" open="@Model.ShowBulk">
+        <summary class="btn s sm">+ 여러 부서 한 번에 만들기</summary>
+        <form method="post" asp-page-handler="Bulk" class="stack card bk" novalidate data-bulk>
+            <p class="hint">줄마다 부서 하나. 프로그램은 둘 다(성경말씀 · 성경통독), 시간대 서울로 만들어요. 주소는 만든 뒤 바꿀 수 없어요.</p>
+            @if (Model.RowError is { } be && Model.ShowBulk) { <p class="hint bad">@be</p> }
+            <div class="bk-rows">
+                @foreach (var (l, i) in Model.BulkLines.Select((l, i) => (l, i)))
+                {
+                    <div class="bk-row@(l.Error is null ? "" : " bad")">
+                        <div class="bk-h"><b>@(i + 1)번째 부서</b><button type="button" class="bk-del" data-del>빼기</button></div>
+                        <input class="in sm" name="BulkName" value="@l.Name" maxlength="100" placeholder="예: 잠실새내교회 영아부" aria-label="부서 이름" />
+                        <div class="bk-2"><input class="in sm" name="BulkSlug" value="@l.Slug" maxlength="40" placeholder="jamsil-infant" autocapitalize="off" spellcheck="false" aria-label="주소" />
+                            <select class="sel sm" name="BulkColor" aria-label="대표 색">@foreach (var c in PlatformTenantService.ThemeColors) { <option value="@c" selected="@(l.Color == c)">@TenantsModel.ColorLabel(c)</option> }</select></div>
+                        @if (l.Error is { } e) { <p class="hint bad">@e</p> }
+                    </div>
+                }
+            </div>
+            <div><button type="button" class="btn s sm" data-add>+ 줄 더하기</button></div>
+            <button type="submit" class="btn pf sm" data-go>@(Model.BulkLines.Count)곳 한 번에 만들기</button>
+            <p class="hint">한 줄이라도 문제가 있으면(이름이 비었거나 주소가 겹치면) 하나도 만들지 않고 그 줄을 빨갛게 알려 줘요. 첫 부서 관리자는 만든 뒤 부서마다 정해요.</p>
+        </form>
+    </details>
+    <script>
+        (() => {   // 줄 더하기 · 빼기 · 버튼 글자의 곳 수(같은 이름의 칸을 줄 수만큼 보내므로 번호를 다시 매길 필요가 없다)
+            const f = document.querySelector('[data-bulk]'); if (!f) return;
+            const rows = f.querySelector('.bk-rows'), go = f.querySelector('[data-go]');
+            const sync = () => { const n = rows.children.length; [...rows.children].forEach((r, i) => r.querySelector('.bk-h b').textContent = `${i + 1}번째 부서`); go.textContent = `${n}곳 한 번에 만들기`; go.disabled = n === 0; };
+            f.addEventListener('click', e => {
+                if (e.target.closest('[data-del]')) { e.target.closest('.bk-row').remove(); sync(); }
+                if (e.target.closest('[data-add]')) {
+                    const r = rows.firstElementChild ? rows.firstElementChild.cloneNode(true) : null; if (!r) return;
+                    r.classList.remove('bad'); r.querySelectorAll('input').forEach(x => x.value = ''); r.querySelectorAll('.hint').forEach(x => x.remove());
+                    rows.appendChild(r); sync(); r.querySelector('input').focus();
+                }
+            });
+        })();
+    </script>
+
     <form method="get" class="tools">
         <input class="search" type="search" name="Q" value="@Model.Q" placeholder="부서 이름 · 주소로 찾기" aria-label="부서 이름 · 주소로 찾기" />
         <button class="btn s sm" type="submit">찾기</button>

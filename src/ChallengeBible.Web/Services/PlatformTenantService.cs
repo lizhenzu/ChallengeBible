@@ -62,7 +62,8 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
             .ToList();
     }
 
-    public async Task<(Tenant? Tenant, FieldErrors Errors)> CreateAsync(string actor, NewTenant input, CancellationToken ct = default)
+    /// <summary>DB 를 보지 않는 칸 검사(이름 · 주소 · 프로그램 · 색 · 시간대). 한 곳 만들기와 여러 곳 만들기가 함께 쓴다.</summary>
+    private static (string Name, string Slug, FieldErrors Errors) Check(NewTenant input)
     {
         var errors = new FieldErrors();
         var name = input.Name?.Trim() ?? "";
@@ -73,6 +74,53 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         if (!input.Mission && !input.Reading) errors["Programs"] = "프로그램을 하나는 골라 주세요(R-150).";
         if (!ThemeColors.Contains(input.ThemeColor)) errors["ThemeColor"] = "정해 둔 색 중에서 골라 주세요.";
         if (!TimeZones.Contains(input.TimeZoneId)) errors["TimeZoneId"] = "시간대를 골라 주세요.";
+        return (name, slug, errors);
+    }
+
+    /// <summary>
+    /// 여러 부서 한 번에 만들기(확정 시안 플랫폼-부서-여러개만들기, 2026-11-15 사용자): 줄마다 [+ 새 부서 만들기]와 같다(참여 코드 · 역할 코드).
+    /// 한 줄이라도 틀리면(칸 · 이미 쓰는 주소 · 줄끼리 같은 주소) 하나도 만들지 않고 줄 번호(0부터)별 오류를 돌려준다. 한 트랜잭션.
+    /// </summary>
+    public async Task<(IReadOnlyList<Tenant> Created, Dictionary<int, string> Errors)> CreateManyAsync(string actor, IReadOnlyList<NewTenant> rows, CancellationToken ct = default)
+    {
+        var errors = new Dictionary<int, string>();
+        if (rows.Count == 0) { errors[-1] = "만들 부서를 한 줄 이상 써 주세요."; return ([], errors); }
+        var checkedRows = rows.Select(Check).ToList();
+        for (var i = 0; i < checkedRows.Count; i++)
+            if (!checkedRows[i].Errors.Ok) errors[i] = string.Join(" ", checkedRows[i].Errors.Values);
+        foreach (var dup in checkedRows.Select((r, i) => (r.Slug, i)).GroupBy(x => x.Slug).Where(g => g.Count() > 1).SelectMany(g => g.Skip(1)))
+            errors.TryAdd(dup.i, "위 줄과 주소가 같아요.");
+
+        await using var ctx = await OpenAsync(actor, ct);
+        var slugs = checkedRows.Select(r => r.Slug).ToList();
+        var taken = await ctx.Tenants.Where(t => slugs.Contains(t.Slug)).Select(t => t.Slug).ToListAsync(ct);
+        for (var i = 0; i < checkedRows.Count; i++)
+            if (taken.Contains(checkedRows[i].Slug)) errors.TryAdd(i, "이미 쓰고 있는 주소예요.");
+        if (errors.Count > 0) return ([], errors);
+
+        await using var tx = ctx.Database.IsRelational() ? await ctx.Database.BeginTransactionAsync(ct) : null;
+        var now = time.GetUtcNow().UtcDateTime;
+        var created = new List<Tenant>();
+        for (var i = 0; i < rows.Count; i++)
+        {
+            var t = new Tenant
+            {
+                Name = checkedRows[i].Name, Slug = checkedRows[i].Slug, JoinCode = await UniqueCodeAsync(ctx, ct), TimeZoneId = rows[i].TimeZoneId, ThemeColor = rows[i].ThemeColor,
+                MissionEnabled = rows[i].Mission, ReadingEnabled = rows[i].Reading, CreatedUtc = now,
+            };
+            ctx.Tenants.Add(t);
+            await ctx.SaveChangesAsync(ct);   // 참여 코드가 줄끼리 겹치지 않게 한 곳씩 넣는다
+            UserRole.SeedCodes(ctx, t.Id, now);
+            created.Add(t);
+        }
+        await ctx.SaveChangesAsync(ct);
+        if (tx is not null) await tx.CommitAsync(ct);
+        return (created, errors);
+    }
+
+    public async Task<(Tenant? Tenant, FieldErrors Errors)> CreateAsync(string actor, NewTenant input, CancellationToken ct = default)
+    {
+        var (name, slug, errors) = Check(input);
         if (!errors.Ok) return (null, errors);
 
         await using var ctx = await OpenAsync(actor, ct);

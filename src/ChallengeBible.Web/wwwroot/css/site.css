@@ -3907,3 +3907,13 @@ a.nc-card.hidden { display: none; }
 .gk-link.gk-pg-o .gk-hero { background: linear-gradient(180deg, #FEF3E2, transparent); }
 .gk-link.gk-pg-o .gk-hero span { color: #D97706; }
 .gk-rdwrap { display: grid; gap: 10px; margin-bottom: 12px; }
+/* 여러 부서 한 번에 만들기(확정 시안 플랫폼-부서-여러개만들기) bk- */
+.create.bk-create summary.btn.s { background: var(--bg); color: var(--fg); border: 1px solid var(--line); }
+.bk { display: grid; gap: 10px; }
+.bk-rows { display: grid; gap: 8px; }
+.bk-row { display: grid; gap: 6px; padding: 10px; border: 1px solid var(--rule); border-radius: 12px; }
+.bk-row.bad { border-color: #DC2626; background: #FEF2F2; }
+.bk-h { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--dim); }
+.bk-del { border: 0; background: none; color: #B91C1C; font-size: 12px; cursor: pointer; padding: 2px 4px; }
+.bk-2 { display: grid; grid-template-columns: minmax(0, 1fr) 90px; gap: 6px; }
+.create.bk-create { margin-top: 8px; }
