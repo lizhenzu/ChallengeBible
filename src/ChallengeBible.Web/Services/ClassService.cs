@@ -1,4 +1,4 @@
-using ChallengeBible.Domain.Time;
+﻿using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Tenancy;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +18,7 @@ public enum ClassError { None, NotFound, NoName, DupName, NotEligible, InOtherCl
 /// <summary>
 /// 반(ADR 0093 "반 관리 및 자동 생성 규칙", R-231 ~ R-233). 해 구분 없이 부서 반은 한 번 만들고 계속 쓴다.
 /// 모든 부서에 새친구반(저장) · 미배정반(정규 반이 없는 학생, 계산)을 자동으로 둔다. 학생 · 선생님은 한 반에만 든다.
-/// 일반 반 선생님은 교사만, 새친구반 담당은 교사 · 임원 · 부서 관리자. 부서 관리자만 부른다 — 화면이 먼저 검사한다.
+/// 일반 반 선생님은 교사 · 임원, 새친구반 담당은 교사 · 임원 · 부서 관리자. 부서 관리자만 부른다 — 화면이 먼저 검사한다.
 /// 해 표(ClassTerm)는 부서마다 하나(가장 먼저 만든 것)만 쓴다.
 /// </summary>
 public sealed class ClassService(IAppDb db, PeopleService people, TenantContext tenant, TimeProvider time)
@@ -149,7 +149,7 @@ public sealed class ClassService(IAppDb db, PeopleService people, TenantContext 
         return ClassError.None;
     }
 
-    /// <summary>반에 넣기(R-232): 한 반만, 학생은 학생 · 새친구 역할만 정규 반에, 선생님은 일반 반 교사만 · 새친구반 교사 · 임원 · 관리자.</summary>
+    /// <summary>반에 넣기(R-232): 한 반만, 학생은 학생 · 새친구 역할만 정규 반에, 선생님은 일반 반 교사 · 임원 · 새친구반 교사 · 임원 · 관리자.</summary>
     public async Task<ClassError> AddAsync(int classId, IReadOnlyCollection<int> personIds, bool teacher, CancellationToken ct = default)
     {
         if (personIds.Count == 0) return ClassError.NotFound;
@@ -195,13 +195,13 @@ public sealed class ClassService(IAppDb db, PeopleService people, TenantContext 
         return ClassError.None;
     }
 
-    // 학생: 역할이 학생이거나 "새친구"(T1020). 선생님: 일반 반은 교사, 새친구반은 교사 · 임원 · 부서 관리자(0093 10 · 11)
+    // 학생: 역할이 학생이거나 "새친구"(T1020). 선생님: 일반 반은 교사 · 임원, 새친구반은 교사 · 임원 · 부서 관리자(0093 10 · 11, R-232)
     public static bool IsStudent(RosterRow r) => UserRole.KindOf(r.RoleCode) == UserRoleKind.Student || r.RoleCode?.Trim() == NewcomerCode;
     public static bool CanTeach(RosterRow r, bool newcomerClass)
     {
         if (IsStudent(r)) return false;
         var k = UserRole.KindOf(r.RoleCode);
-        return k == UserRoleKind.Teacher || (newcomerClass && (k == UserRoleKind.Officer || r.IsAdmin));
+        return k is UserRoleKind.Teacher or UserRoleKind.Officer || (newcomerClass && r.IsAdmin);   // 임원도 일반 반 담임 가능(R-232 고침, 2026-11-15 사용자 "가능은 하다, 필수는 아니다")
     }
 
     private static string Clean(string? name) { var n = (name ?? "").Trim(); return n.Length > 50 ? n[..50] : n; }
@@ -212,7 +212,7 @@ public sealed class ClassService(IAppDb db, PeopleService people, TenantContext 
         ClassError.NotFound => "찾을 수 없어요. 화면을 새로 고쳐 주세요.",
         ClassError.NoName => "반 이름을 넣어 주세요.",
         ClassError.DupName => "같은 이름의 반이 있어요(새친구반 · 미배정반은 기본 반 이름이에요).",
-        ClassError.NotEligible => "이 반에 넣을 수 없는 사람이에요. 일반 반 선생님은 교사만, 새친구반 담당은 교사 · 임원 · 관리자만 돼요.",
+        ClassError.NotEligible => "이 반에 넣을 수 없는 사람이에요. 일반 반 선생님은 교사 · 임원만, 새친구반 담당은 교사 · 임원 · 관리자만 돼요.",
         ClassError.InOtherClass => "이미 다른 반에 있어요. 그 반에서 먼저 빼 주세요.",
         ClassError.Fixed => "새친구반은 기본 반이라 지울 수 없어요.",
         _ => "",

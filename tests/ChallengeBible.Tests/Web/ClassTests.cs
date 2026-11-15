@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -55,7 +55,7 @@ public class ClassTests
     }
 
     [Fact]
-    public async Task R232_학생은_한_반에만_들고_선생님은_일반_반은_교사만()
+    public async Task R232_학생은_한_반에만_들고_선생님은_일반_반은_교사_임원()
     {
         var c1 = (await Classes(_kids).CreateAsync("1학년 1반")).Id;
         var c2 = (await Classes(_kids).CreateAsync("1학년 2반")).Id;
@@ -68,7 +68,8 @@ public class ClassTests
         Assert.Equal(ClassError.None, await Classes(_kids).AddAsync(c1, [kid, newbie], teacher: false));
         Assert.Equal(ClassError.InOtherClass, await Classes(_kids).AddAsync(c2, [kid], teacher: false));
         Assert.Equal(ClassError.NotEligible, await Classes(_kids).AddAsync(c2, [parent], teacher: false));
-        Assert.Equal(ClassError.NotEligible, await Classes(_kids).AddAsync(c1, [officer], teacher: true));
+        Assert.Equal(ClassError.None, await Classes(_kids).AddAsync(c2, [officer], teacher: true));   // 임원도 일반 반 담임(2026-11-15 고침)
+        Assert.Equal(ClassError.NotEligible, await Classes(_kids).AddAsync(c1, [parent], teacher: true));
         Assert.Equal(ClassError.None, await Classes(_kids).AddAsync(c1, [teacher], teacher: true));
         Assert.Equal(ClassError.InOtherClass, await Classes(_kids).AddAsync(c2, [teacher], teacher: true));
 

@@ -1,0 +1,75 @@
+@page "/platform/roster-upload"
+@model ChallengeBible.Web.Pages.Platform.RosterUploadModel
+@using ChallengeBible.Web.Services
+@* 명단 올리기(ADR 0097, 확정 시안 명단올리기 · 반편성-업로드-템플릿, 2026-11-15 사용자) *@
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap ru">
+    <h1>명단 올리기</h1>
+    @if (Model.Result is { } r)
+    {
+        <p class="okmsg" role="status">@(RosterUploadService.ShortName(Model.ResultDept!))에 넣었어요 · 학생 @(r.Students)명 · 교사 @(r.Teachers)명@(r.Updated > 0 ? $" · 계정 있는 사람 {r.Updated}명 고침" : "") (지운 명단 @(r.DroppedPeople)명 · 출석 @(r.DroppedAttendance)건)</p>
+    }
+    @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }
+
+    @if (Model.Plan is { } p)
+    {
+        var shortName = RosterUploadService.ShortName(p.TenantName);
+        var byClass = p.Students.Where(s => s.Class is not null).GroupBy(s => s.Class!).ToDictionary(g => g.Key, g => g.Count());
+        var homeroom = p.Teachers.Where(t => t.Class is not null).GroupBy(t => t.Class!).ToDictionary(g => g.Key, g => string.Join(" · ", g.Select(t => t.Name)));
+        var classNames = byClass.Keys.Concat(homeroom.Keys).Distinct().OrderByDescending(n => n == ClassService.NewcomerName).ThenBy(n => n, StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false)).ToList();
+        <section class="ru-box">
+            <h2>@p.FileName → @p.TenantName</h2>
+            <p>아래 내용으로 넣어요. 확인하고 [넣기]를 누르세요.</p>
+            <div class="ru-sum">
+                <div><small>학생</small><b class="num">@p.Students.Count</b>명</div>
+                <div><small>교사 · 담임</small><b class="num">@p.Teachers.Count(t => t.Class is not null)</b>명</div>
+                <div><small>교사 · 임원</small><b class="num">@p.Teachers.Count(t => t.Officer is not null)</b>명</div>
+            </div>
+            <table class="ru-tbl">
+                <thead><tr><th>반</th><th>담임</th><th>학생</th></tr></thead>
+                <tbody>
+                @foreach (var n in classNames)
+                {
+                    <tr><td>@n</td><td>@(homeroom.GetValueOrDefault(n) ?? "—")</td><td>@(byClass.GetValueOrDefault(n))명</td></tr>
+                }
+                </tbody>
+            </table>
+        </section>
+        @if (p.Issues.Count > 0)
+        {
+            <div class="ru-err" role="alert"><b>⚠ 고칠 곳 @(p.Issues.Count)줄 — 이 줄은 넣지 않아요</b>
+                <ul>@foreach (var i in p.Issues) { <li>@i.Sheet @(i.Row > 0 ? $"{i.Row}번째 줄" : "") · @i.Message</li> }</ul>
+            </div>
+        }
+        <div class="ru-warn"><b>되돌릴 수 없어요.</b> @(shortName)의 지금 명단 <b>@(p.DropPeople)명</b>, 반 배정 <b>@(p.DropMembers)건</b>, 그 사람들의 출석 <b>@(p.DropAttendance)건</b>을 지우고 넣어요.
+            <br><span>@(p.Kept.Count > 0 ? $"계정 있는 {p.Kept.Count}명({string.Join(" · ", p.Kept)})과 " : "")계정 · 미션 · 점수는 그대로예요.</span>
+        </div>
+        <form method="post" asp-page-handler="Apply" class="ru-go">
+            <input type="hidden" name="plan" value="@Model.PlanToken" />
+            <label class="ru-chk"><input type="checkbox" name="agree" value="true" /> @(shortName)의 지금 명단을 지우는 것을 알아요</label>
+            <div class="ru-btns"><a class="btn s sm" href="/platform/roster-upload">다시 고르기</a><button type="submit" class="btn dd sm">넣기 (@(p.Students.Count + p.Teachers.Count)명)</button></div>
+        </form>
+    }
+    else
+    {
+        <p class="lead">부서마다 엑셀 하나씩 올려요. <b>파일 이름이 부서</b>예요(예: 초등부.xlsx → 잠실새내교회 초등부). 올리면 그 부서의 <b>명단과 반 배정을 비우고</b> 엑셀대로 다시 넣어요. 관리자(계정 있는 사람)는 그대로예요.</p>
+        <section class="ru-box">
+            <h2>1. 템플릿 받기</h2>
+            <p>부서의 반 목록이 들어간 엑셀이에요. 학생 탭 · 교사 탭을 채워서 올려 주세요.</p>
+            <ul class="ru-dl">
+            @foreach (var d in Model.Depts)
+            {
+                <li><div><b>@d.Short</b><small>반 @(d.Classes)개 · 명부 @(d.People)명</small></div><a class="btn s sm" href="/platform/roster-upload?handler=Template&amp;t=@d.Id">템플릿 받기 (@(d.Short).xlsx)</a></li>
+            }
+            </ul>
+        </section>
+        <section class="ru-box">
+            <h2>2. 올리기</h2>
+            <p>파일 하나를 골라 [미리 보기]를 누르세요. 바로 넣지 않고 먼저 보여 줘요.</p>
+            <form method="post" asp-page-handler="Preview" enctype="multipart/form-data" class="ru-up">
+                <input class="ru-file" type="file" name="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required />
+                <button type="submit" class="btn p sm">미리 보기</button>
+            </form>
+        </section>
+    }
+</div></main>
