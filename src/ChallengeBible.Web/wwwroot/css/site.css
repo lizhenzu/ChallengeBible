@@ -3935,7 +3935,8 @@ a.nc-card.hidden { display: none; }
 .ptop .pt-title { flex: 1; min-width: 0; }
 .ptop .pt-title small em { font-style: normal; font-weight: 900; color: var(--accent); }
 .ptop .pt-title b { font-size: 16px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pmenu-btn { flex: none; width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--fg); cursor: pointer; }
+.pmenu-btn { flex: none; width: 44px; height: 44px; margin-left: -10px; display: grid; place-items: center; border: 0; border-radius: 10px; background: none; color: var(--fg); cursor: pointer; }   /* 테두리 없는 ☰(2026-11-15 사용자) */
+.pmenu-btn:active { background: var(--soft); }
 .pdrawer { position: fixed; inset: 0; z-index: 60; }
 .pdrawer[hidden] { display: none; }
 .pd-dim { position: absolute; inset: 0; background: rgba(17, 24, 39, .45); }
@@ -3965,3 +3966,9 @@ details.create.tn-new[open] > summary { margin-bottom: 12px; }
 .ma-me .ma-av .av { font-size: 24px; }
 .ma-av .cam { position: absolute; right: -4px; bottom: -4px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); display: grid; place-items: center; font-size: 12px; line-height: 1; text-decoration: none; }
 .pd-dept { font-size: 13px; font-weight: 700; color: var(--dim); }
+.ptop .home-txt { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 2px; font-size: 15px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+/* 휴대폰: 화면 좌우 여백 · 카드 안쪽 여백을 줄여 카드를 넓게(2026-11-15 사용자 "전체적으로 카드 좌우 여백 줄여줘") */
+@media (max-width: 560px) {
+  .gut { padding-left: max(12px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px)); }
+  .card, .ph-card { padding: 14px; }
+}
