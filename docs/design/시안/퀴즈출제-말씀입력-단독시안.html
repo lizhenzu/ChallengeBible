@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>퀴즈 출제 · 말씀 입력 시안</title>
+<link rel="stylesheet" href="../../../src/ChallengeBible.Web/wwwroot/css/site.css">
+<style>
+/* 시안(2026-11-15): 유년부 /Question(퀴즈 출제) · /JuManNa(말씀 정리)의 빠진 기능을 챌린지 "입력 점검" 화면에 더함(사용자 질문 1 → 플랫폼, 2 → 옛 화면 유지, 3 → 1, 4 → 1).
+   테마는 챌린지(site.css). ① 퀴즈 출제 그날 칸 ② 말씀 입력 그날 칸 + 한 달 버튼 ③ 한 달 입력 ④ 영상 구간 편집. 보내기(플랫폼 push) · 템플릿 · 문제 은행 없음.
+   이름 · 숫자는 지어낸 것. */
+body { background: #E5E7EB; padding: 20px 14px 50px; }
+.board { display: flex; flex-wrap: wrap; gap: 22px; align-items: flex-start; }
+.ph { width: 390px; max-width: 100%; background: var(--bg); border-radius: 20px; box-shadow: 0 6px 20px rgba(0,0,0,.08); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.cap { margin: 0; font-size: 13px; font-weight: 800; color: #374151; }
+.cap small { display: block; font-weight: 400; color: var(--dim); margin-top: 2px; line-height: 1.5; }
+.mn { display: flex; gap: 6px; flex-wrap: wrap; }
+.mn span { padding: 5px 10px; border-radius: 99px; background: var(--soft); font-size: 12px; font-weight: 800; color: #374151; }
+.mn span.on { background: var(--fg); color: var(--bg); }
+.day { border: 1px solid var(--rule); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.day h3 { margin: 0; font-size: 16px; }
+.scr { border-radius: 14px; background: var(--accent-bg); padding: 12px 14px; }
+.scr i { font-style: normal; font-size: 11.5px; font-weight: 800; color: var(--accent); }
+.scr b { display: block; font-size: 15px; margin-top: 2px; }
+.scr .rg { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 13px; color: #374151; }
+.scr .rg span { flex: 1; }
+.cpb { min-height: 32px; padding: 0 10px; border-radius: 9px; border: 1px solid #BBD3F7; background: #fff; color: var(--accent); font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
+.sec { border-radius: 12px; background: var(--soft); padding: 10px 12px; font-size: 13.5px; line-height: 1.6; }
+.sec .k { display: block; font-size: 11.5px; font-weight: 800; color: var(--dim); margin-bottom: 2px; }
+.sec ol { margin: 4px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.sec li { padding: 6px 9px; border-radius: 9px; background: #fff; font-size: 13px; }
+.sec li.ok { background: #EAF7EF; color: #15803D; font-weight: 700; }
+.row3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; }
+.row2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; }
+.b { min-height: 42px; border-radius: 12px; border: 1px solid var(--rule); background: #fff; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; color: var(--fg); }
+.b.p { background: var(--accent); border-color: var(--accent); color: #fff; }
+.b.d { color: #B91C1C; border-color: #F3C4C4; }
+.note { margin: 0; font-size: 12px; color: var(--dim); line-height: 1.55; }
+.mini { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.mini span { aspect-ratio: 1; border-radius: 8px; background: var(--soft); font-size: 11px; display: grid; place-items: center; color: #374151; }
+.mini span.f { background: #EAF7EF; }
+.mini span.h { background: #FFF4E5; }
+.bulk { border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; }
+.br { padding: 10px 12px; border-bottom: 1px solid var(--rule); display: grid; gap: 6px; }
+.br:last-child { border-bottom: 0; }
+.br.ch { background: #FFFBEB; }
+.br .d { display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; }
+.br .d small { font-weight: 600; color: #B45309; }
+.br .d .sun { color: #B4531F; }
+.in2 { height: 36px; border: 1px solid var(--line); border-radius: 9px; padding: 0 9px; font-size: 13px; background: #fff; width: 100%; }
+.rng { display: grid; grid-template-columns: minmax(0,1.6fr) repeat(2, minmax(0,1fr)) 10px repeat(2, minmax(0,1fr)); gap: 4px; align-items: center; font-size: 12px; color: var(--dim); }
+.seg { border: 1px solid var(--rule); border-radius: 14px; padding: 10px 12px; display: grid; gap: 8px; }
+.seg .rf { font-size: 13.5px; font-weight: 800; }
+.seg .rf small { margin-left: 6px; padding: 1px 7px; border-radius: 99px; background: #FFF4E5; color: #B45309; font-size: 11px; }
+.sr { display: grid; grid-template-columns: 30px auto 1fr auto auto; gap: 6px; align-items: center; font-size: 12.5px; }
+.pl { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 12px; }
+.tv { padding: 4px 9px; border-radius: 8px; background: var(--soft); font-weight: 800; font-variant-numeric: tabular-nums; }
+.tv.def { background: #fff; border: 1px dashed #D1D5DB; color: var(--dim); font-weight: 600; }
+.player { border-radius: 14px; background: #111827; color: #fff; padding: 12px; display: grid; gap: 8px; }
+.player .v { aspect-ratio: 16/9; border-radius: 10px; background: #374151; display: grid; place-items: center; font-size: 12px; color: #9CA3AF; }
+.player .ctl { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; }
+.player .ctl span { min-height: 38px; border-radius: 10px; background: #fff; color: #111827; font-size: 13px; font-weight: 800; display: grid; place-items: center; }
+</style>
+</head>
+<body>
+<div class="board">
+
+  <section class="ph">
+    <p class="cap">① 퀴즈 출제(메뉴 이름 바꿈 · 지금의 "퀴즈 입력 점검") — 그날 칸<small>달력 · 빠진 곳 칩은 그대로. 그날 칸에 유년부처럼 오늘의 말씀 카드 · 퀴즈 미리 보기 · 버튼 셋</small></p>
+    <div class="mn"><span class="on">퀴즈 출제</span><span>말씀 입력</span><span>공용 콘텐츠</span><span>퀴즈 넣기</span></div>
+    <div class="day">
+      <h3>11월 14일 토요일 · 객관식</h3>
+      <div class="scr"><i>오늘의 말씀</i><b>바울의 자랑</b>
+        <div class="rg"><span>고린도후서 11:16 ~ 33</span><span class="cpb">구절 복사</span><span class="cpb">AI 프롬프트</span></div></div>
+      <div class="sec"><span class="k">문제 배경</span>바울은 자기가 겪은 어려움을 하나씩 이야기했어요.</div>
+      <div class="sec"><span class="k">문제</span>바울이 자랑하겠다고 한 것은 무엇인가요?
+        <ol><li>1) 큰 교회</li><li class="ok">2) 약한 것 · 정답</li><li>3) 많은 재산</li><li>4) 유명한 친구</li></ol></div>
+      <div class="sec"><span class="k">힌트 · 해설</span>11장 30절을 읽어 보세요.</div>
+      <div class="row3"><span class="b">퀴즈 수정</span><span class="b d">퀴즈 삭제</span><span class="b p">미리 보기</span></div>
+      <p class="note">퀴즈가 없는 날: 말씀 카드 + [이 날 퀴즈 입력]. [AI 프롬프트]는 그날 구절 · 날짜를 넣은 출제 문구를 복사 → AI 가 만든 답을 "퀴즈 넣기"에 붙여 넣기(챌린지 형식). [미리 보기]는 아이 화면 모양 창.</p>
+    </div>
+  </section>
+
+  <section class="ph">
+    <p class="cap">② 말씀 입력(지금의 "말씀 입력 점검") — 위 버튼 + 그날 칸<small>달력 위에 [한 달 입력] [영상 구간 편집], 그날 칸에 [수정] [보기]</small></p>
+    <div class="mn"><span>퀴즈 출제</span><span class="on">말씀 입력</span><span>공용 콘텐츠</span><span>퀴즈 넣기</span></div>
+    <div class="row2"><span class="b p">한 달 입력</span><span class="b">영상 구간 편집</span></div>
+    <div class="mini"><span class="f">1</span><span class="f">2</span><span class="h">3</span><span class="f">4</span><span class="f">5</span><span>6</span><span>7</span></div>
+    <div class="day">
+      <h3>11월 14일 토요일</h3>
+      <div class="scr"><i>말씀</i><b>바울의 자랑</b><div class="rg"><span>고린도후서 11:16 ~ 33 · 영상 구간 1개</span></div></div>
+      <div class="sec"><span class="k">오늘 이야기</span>바울은 자기를 자랑하지 않고 약한 것을 자랑했어요. …</div>
+      <div class="row2"><span class="b">수정</span><span class="b p">보기</span></div>
+      <p class="note">[보기] = 아이들이 보는 말씀 화면 모양(읽기 전용). 빈 날은 [이 날 말씀 입력].</p>
+    </div>
+  </section>
+
+  <section class="ph">
+    <p class="cap">③ 한 달 입력<small>유년부 "월별 일괄 입력"과 같은 칸: 날짜마다 제목 · 성경 · 장절. 바꾼 날만 저장(노란 줄), 없는 날은 새로 넣음(초안). 이야기 · 해설 · 영상은 건드리지 않음</small></p>
+    <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:17px">2026년 11월 · 한 달 입력</b><span style="font-size:12px;color:var(--dim)">‹ 10월 · 12월 ›</span></div>
+    <div class="bulk">
+      <div class="br"><div class="d"><span class="sun">11월 1일 주일</span></div>
+        <input class="in2" value="빛과 소금" />
+        <div class="rng"><select class="in2"><option>마태복음</option></select><input class="in2" value="5"/><input class="in2" value="13"/><span>~</span><input class="in2" value="5"/><input class="in2" value="16"/></div></div>
+      <div class="br ch"><div class="d"><span>11월 2일 월요일</span><small>바뀜</small></div>
+        <input class="in2" value="주기도문" />
+        <div class="rng"><select class="in2"><option>마태복음</option></select><input class="in2" value="6"/><input class="in2" value="9"/><span>~</span><input class="in2" value="6"/><input class="in2" value="13"/></div></div>
+      <div class="br"><div class="d"><span>11월 3일 화요일</span><small style="color:#6B7280">새로</small></div>
+        <input class="in2" placeholder="제목" />
+        <div class="rng"><select class="in2"><option>성경</option></select><input class="in2" placeholder="장"/><input class="in2" placeholder="절"/><span>~</span><input class="in2" placeholder="장"/><input class="in2" placeholder="절"/></div></div>
+    </div>
+    <span class="b p">한 달 저장하기</span>
+  </section>
+
+  <section class="ph">
+    <p class="cap">④ 영상 구간 편집<small>날짜마다 장별 구간(장을 걸치면 구간 여러 개). ▶ 를 누르면 그 장 영상(장별 듣기 영상)이 뜨고, [시작은 지금] · [끝은 지금]을 누르면 바로 저장. 점선 = 기본(처음 · 끝)</small></p>
+    <div class="player"><div class="v">고린도후서 11장 듣기 영상</div><div class="ctl"><span>시작은 지금 1:42</span><span>끝은 지금</span></div></div>
+    <div class="seg"><div class="rf">11월 14일 · 고린도후서 11:16 ~ 33</div>
+      <div class="sr"><span class="pl">▶</span><span>11장</span><span></span><span class="tv">1:42</span><span class="tv def">7:58</span></div></div>
+    <div class="seg"><div class="rf">11월 15일 · 고린도후서 11:30 ~ 12:10<small>장 걸침 · 영상 2개</small></div>
+      <div class="sr"><span class="pl">▶</span><span>11장</span><span>30절부터</span><span class="tv">6:10</span><span class="tv def">7:58</span></div>
+      <div class="sr"><span class="pl">▶</span><span>12장</span><span>10절까지</span><span class="tv def">0:00</span><span class="tv">3:05</span></div></div>
+    <p class="note">저장 = 그날 영상 구간 목록을 통째로 바꿈(지금 API 와 같은 규칙, R-127). 영상 주소가 없는 장은 ▶ 대신 "영상 없음".</p>
+  </section>
+
+</div>
+</body>
+</html>
