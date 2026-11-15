@@ -1,9 +1,9 @@
-@page "/account"
+﻿@page "/account"
 @model ChallengeBible.Web.Pages.Account.IndexModel
 @using ChallengeBible.Web.Services
 @* 확정 시안: 내계정-단독시안 — 내 정보(이름 바꾸기 · 이메일 보기) → 내 부서 → 비밀번호(지금 비밀번호 확인) → 로그아웃 *@
 @{
-    string Short(string n) => n.Length > 2 ? n[1..] : n;
+    string Short(string n) => n.Trim() is { Length: > 0 } t ? t[..1] : "?";   // 이름 첫 글자 한 자(홈 사진과 같게, 2026-11-15 — 긴 이름이 동그라미 밖으로 넘치지 않게)
 }
 <header class="top gut"><div class="wrap">
     <a class="lnk" href="/">← 돌아가기</a>
@@ -16,8 +16,8 @@
     <section class="ma-card" aria-labelledby="maInfo">
         <h2 id="maInfo">내 정보</h2>
         @* 0078: 동그라미 · "내 사진 바꾸기" → 내 사진 화면 *@
-        <div class="ma-me"><a class="av" href="/account/photo" aria-label="내 사진">@if (Model.Photo is { } ph) { <img src="/account/photo?handler=img&amp;v=@ph" alt="" /> } else { @Short(Model.Name) }</a>
-            <div><b>@Model.Name</b><small>@Model.Email</small></div><a class="ph-go" href="/account/photo">내 사진 바꾸기 ›</a></div>
+        <div class="ma-me">@* 확정 시안 홈사진-내계정(2026-11-15): 사진 옆 📷 → 사진 바꾸기 *@<span class="ma-av"><a class="av" href="/account/photo" aria-label="내 사진">@if (Model.Photo is { } ph) { <img src="/account/photo?handler=img&amp;v=@ph" alt="" /> } else { @Short(Model.Name) }</a><a class="cam" href="/account/photo" aria-label="내 사진 바꾸기">📷</a></span>
+            <div><b>@Model.Name</b><small>@Model.Email</small></div></div>
         <dl class="ma-kv">
             <dt>이메일</dt><dd>@Model.Email<small>로그인할 때 쓰는 주소라 여기서는 바꿀 수 없어요.</small></dd>
             <dt>가입한 날</dt><dd>@Model.Joined.ToString("yyyy년 M월 d일")</dd>

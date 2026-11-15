@@ -32,6 +32,10 @@
    머리말 → (임시 부서) 1 · 2단계 윗부분만 또는 "← 처음 화면" / (일반 부서) 부서 이름 · 관리 줄 → 흰 말씀 카드 → 아랫부분 *@
     <div class="wl@(intro ? "" : " wl-wide")">
         <header class="wl-top gut"><div class="wrap">
+            @* 확정 2026-11-15 사용자: 왼쪽 위 ☰ → 내 계정 · 출석 · 관리 · 플랫폼 · 로그아웃(맨 아래 계정 줄과 같은 조건). 플랫폼 메뉴와 같은 메뉴판(platform-nav.js) *@
+            <button type="button" class="pmenu-btn hm-menu" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            </button>
             <div class="wl-org"><small>대한예수교장로회</small><a class="church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)">잠실새내교회<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a></div>
             <span class="wl-today"><span class="dt-yr">@d.Today.ToString("yyyy년", ko) </span><b>@d.Today.ToString("M월 d일", ko)</b> @d.Today.ToString("dddd", ko)</span>
         </div></header>
@@ -113,8 +117,8 @@
                     <span>오늘 말씀부터 읽어 볼까요?</span></p>
             </div>
             @* 0078: 누르면 내 사진 화면(올리기 · 바꾸기 · 지우기). 사진이 없으면 이름 첫 글자 *@
-            <a class="hj-av" href="/account/photo?back=/@slug" aria-label="내 사진 바꾸기">@if (Model.MyPhoto is { } ph)
-                { <img src="/account/photo?handler=img&amp;v=@ph" alt="" /> } else { <span aria-hidden="true">@(name.Length > 0 ? name[..1] : "?")</span> }<i class="cam" aria-hidden="true">📷</i></a>
+            <a class="hj-av" href="/account" aria-label="내 계정">@if (Model.MyPhoto is { } ph)
+                { <img src="/account/photo?handler=img&amp;v=@ph" alt="" /> } else { <span aria-hidden="true">@(name.Length > 0 ? name[..1] : "?")</span> }</a>
         </div>
         @if (d.Growth is { } g)
         {
@@ -265,9 +269,30 @@
 </div></main>
 }
 
+<div class="pdrawer" id="pnav" hidden>
+    <div class="pd-dim" data-pnav-close></div>
+    <aside class="pd-panel" tabindex="-1" role="dialog" aria-modal="true" aria-label="메뉴">
+        <div class="pd-top">
+            <span><b><em>도전!!!</em></b> <small class="pd-dept">@Model.Tenant.Tenant?.Name</small></span>
+            <button type="button" class="pd-x" aria-label="메뉴 닫기" data-pnav-close>✕</button>
+        </div>
+        <nav aria-label="메뉴">
+            <a href="/account">내 계정</a>
+            @if (Model.Tenant.IsLobby) { <a href="/join">내 부서 참여</a> }
+            @if (!Model.Tenant.IsLobby && Model.Tenant.IsStaff) { <a href="/@slug/attendance">출석</a> }
+            @if (Model.Tenant.IsAdmin) { <a href="/@slug/admin">관리</a> }
+            else if (!Model.Tenant.IsLobby && Model.Tenant.IsApproved && ChallengeBible.Web.Services.UserRole.KindOf(Model.Tenant.RoleCode) == ChallengeBible.Web.Services.UserRoleKind.Teacher) { <a href="/@slug/admin/members">명부</a> }
+            @if (User.IsPlatformAdmin()) { <a href="/platform">플랫폼</a> }
+        </nav>
+        <div class="pd-foot">
+            <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit">로그아웃</button></form>
+        </div>
+    </aside>
+</div>
+<script src="~/js/platform-nav.js" asp-append-version="true" defer></script>
+
 <footer class="gut"><div class="wrap">
     <div class="acct">
-        <a href="/account">내 계정</a>
         @if (Model.Tenant.IsLobby) { <a href="/join">내 부서 참여</a> }   @* 일반 부서의 "부서 바꾸기"는 뺐다(2026-11-05 사용자). 부서가 둘 이상이면 내 계정 > "부서 고르기 →" *@
         @if (!Model.Tenant.IsLobby && Model.Tenant.IsStaff) { <a class="adm" href="/@slug/attendance">출석</a> }   @* 0093 출석: 담임 · 새친구반 담당 · 부서 관리자 *@
         @if (Model.Tenant.IsAdmin) { <a class="adm" href="/@slug/admin">관리</a> }

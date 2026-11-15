@@ -3960,3 +3960,8 @@ body.pnav-open { overflow: hidden; }
 details.create.tn-new > summary { display: flex; width: max-content; margin: 0 auto; }
 details.create.tn-new[open] > summary { margin-bottom: 12px; }
 .pd-panel:focus { outline: none; }
+/* 내 계정 사진 옆 카메라(확정 시안 홈사진-내계정, 2026-11-15) */
+.ma-av { position: relative; flex: none; display: inline-block; }
+.ma-me .ma-av .av { font-size: 24px; }
+.ma-av .cam { position: absolute; right: -4px; bottom: -4px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); display: grid; place-items: center; font-size: 12px; line-height: 1; text-decoration: none; }
+.pd-dept { font-size: 13px; font-weight: 700; color: var(--dim); }

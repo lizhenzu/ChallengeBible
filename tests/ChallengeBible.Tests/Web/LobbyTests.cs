@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -172,7 +172,10 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("<div class=\"acct\">", kidsHome);
         Assert.Contains("<p class=\"foot-copy\">© 2027 잠실새내 · 주일학교</p>", kidsHome);
         Assert.DoesNotContain("부서 바꾸기", kidsHome);                                    // 일반 부서 홈 맨 아래에 "부서 바꾸기"는 없다(2026-11-05)
-        Assert.Contains("<a href=\"/account\">내 계정</a>", kidsHome);
+        var acctRow = kidsHome[kidsHome.IndexOf("<div class=\"acct\">")..];             // 맨 아래 [내 계정]은 뺐다 — 홈 사진 · 왼쪽 위 ☰ 로 간다(2026-11-15)
+        Assert.DoesNotContain("내 계정", acctRow[..acctRow.IndexOf("</div>")]);
+        Assert.Contains("data-pnav-open", kidsHome);
+        Assert.Contains("<a href=\"/account\">내 계정</a>", kidsHome);                     // ☰ 메뉴판
     }
 
     [Fact]

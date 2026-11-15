@@ -392,3 +392,6 @@
 .hm .hj-mini b { font-size: 24px; font-weight: 900; }
 .hm .hj-mini b u { text-decoration: none; font-size: 13px; color: var(--dim); }
 @media (min-width: 900px) { .hm main.hj .wrap { max-width: 720px; grid-template-columns: minmax(0, 1fr); } }
+/* 부서 홈 왼쪽 위 ☰(2026-11-15 사용자) */
+.hm .wl-top .wrap > .hm-menu { order: -1; margin-right: -2px; }
+.hm .wl-top .wrap .wl-org { flex: 1; }
