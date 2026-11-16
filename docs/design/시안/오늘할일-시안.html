@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오늘 할 일 시안</title>
+<style>
+:root { --bg:#fff; --soft:#F5F6F8; --fg:#1B1F24; --dim:#5B6470; --rule:#E3E6EA; --line:#C9CED5; --acc:#2B59C3; --acc-l:#EAF0FB; --ok:#16A34A; --ok-bg:#EAF7EF; --warn:#9A5B00; --warn-bg:#FFF4DE; --bad:#B42318; --bad-bg:#FDECEC; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #D9DCE1; font-family: "Noto Sans CJK KR","Noto Sans KR",sans-serif; color: var(--fg); }
+.board { display: flex; gap: 26px; padding: 26px; align-items: flex-start; }
+.col { display: flex; flex-direction: column; gap: 10px; width: 390px; }
+.cap { font-size: 18px; font-weight: 800; }
+.cap small { display: block; font-size: 13px; font-weight: 500; color: #555; margin-top: 2px; line-height: 1.45; }
+.phone { width: 390px; min-height: 844px; background: var(--bg); border-radius: 26px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,.18); }
+.top { display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 14px; border-bottom: 1px solid var(--rule); }
+.top .t { flex: 1; line-height: 1.25; }
+.top .t small { display: block; font-size: 12px; color: var(--dim); }
+.top .t small em { font-style: normal; font-weight: 900; color: var(--acc); }
+.top .t b { font-size: 16px; }
+.home { min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border-radius: 99px; background: var(--acc); color: #fff; font-size: 14px; font-weight: 800; }
+.pad { padding: 14px 12px 24px; display: flex; flex-direction: column; gap: 12px; }
+.hello h1 { margin: 0; font-size: 22px; }
+.hello p { margin: 4px 0 0; color: var(--dim); font-size: 13.5px; }
+.snooze { background: var(--soft); border-radius: 14px; padding: 10px 12px; }
+.snooze small { display: block; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { min-height: 34px; padding: 0 11px; border-radius: 99px; border: 1px solid var(--line); background: #fff; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; }
+.sec { display: flex; justify-content: space-between; align-items: baseline; margin: 6px 2px -4px; font-size: 13px; font-weight: 800; color: var(--dim); }
+.sec b { color: var(--fg); font-size: 15px; }
+.card { border: 1px solid var(--rule); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.card.urgent { border-color: #F3C4C4; background: #FFFBFB; }
+.row { display: grid; grid-template-columns: 30px minmax(0,1fr); gap: 8px; align-items: start; }
+.ic { font-size: 20px; line-height: 1.2; }
+.what b { font-size: 15px; display: block; }
+.what span { display: block; font-size: 12.5px; color: var(--dim); margin-top: 2px; line-height: 1.45; }
+.who { display: inline-block; font-size: 11.5px; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: var(--acc-l); color: var(--acc); margin-top: 4px; }
+.who.done { background: var(--ok-bg); color: var(--ok); }
+.who.late { background: var(--bad-bg); color: var(--bad); }
+.btns { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+.btn { min-height: 38px; padding: 0 12px; border-radius: 11px; border: 1px solid var(--line); background: #fff; font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; }
+.btn.p { background: var(--acc); border-color: var(--acc); color: #fff; }
+.btn.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
+.split { border-top: 1px dashed var(--rule); }
+.empty { text-align: center; padding: 30px 10px; color: var(--dim); font-size: 14px; }
+.dept { border: 1px solid var(--rule); border-radius: 14px; padding: 10px 12px; }
+.dept h3 { margin: 0 0 6px; font-size: 15px; display: flex; justify-content: space-between; }
+.dept h3 span { font-size: 12px; color: var(--bad); font-weight: 800; }
+.dept ul { margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.85; color: var(--fg); }
+.dept li span { color: var(--dim); }
+.note { font-size: 12px; color: var(--dim); line-height: 1.5; background: var(--soft); border-radius: 10px; padding: 8px 10px; }
+table.rule { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.rule th { font-size: 11.5px; color: var(--dim); font-weight: 700; padding: 6px 2px; border-bottom: 1px solid var(--rule); text-align: center; }
+table.rule th:first-child { text-align: left; }
+table.rule td { padding: 7px 2px; border-bottom: 1px solid var(--rule); text-align: center; }
+table.rule td:first-child { text-align: left; font-weight: 700; }
+.ck { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--line); font-size: 12px; color: #fff; }
+.ck.on { background: var(--acc); border-color: var(--acc); }
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.seg span { text-align: center; padding: 10px 0; font-size: 13px; font-weight: 800; color: var(--dim); }
+.seg span.on { background: var(--acc); color: #fff; }
+.tagrow { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid var(--rule); font-size: 14px; }
+.sw { width: 44px; height: 26px; border-radius: 99px; background: var(--acc); position: relative; }
+.sw::after { content: ""; position: absolute; right: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; }
+.sw.off { background: var(--line); }
+.sw.off::after { right: auto; left: 3px; }
+</style>
+</head>
+<body>
+<div class="board">
+
+<!-- ① 선물 그룹 · 부서 관리자 -->
+<div class="col">
+  <div class="cap">① 부서 관리자(선물 그룹) · 주일 아침<small>로그인하면 할 일이 있어 이 화면으로 자동 이동 · 급한 순서 · 그 자리에서 버튼 하나로 처리</small></div>
+  <div class="phone">
+    <div class="top"><div class="t"><small><em>도전!!!</em> 유치부</small><b>오늘 할 일</b></div><span class="home">⌂ 홈으로</span></div>
+    <div class="pad">
+      <div class="hello"><h1>관리치 님, 할 일 7개</h1><p>먼저 끝내야 할 것부터 놓았어요.</p></div>
+      <div class="snooze"><small>할 일 화면으로 자동 이동하지 않기 (할 일은 ☰ 에서 언제든)</small>
+        <div class="chips"><span class="chip">오늘 안 보기</span><span class="chip">3일</span><span class="chip">5일</span><span class="chip">한 달</span></div></div>
+
+      <div class="sec"><b>🎁 선물</b><span>선물 그룹 누구나 처리</span></div>
+      <div class="card urgent"><div class="row"><span class="ic">🎁</span><div class="what"><b>사 주세요 · 김율 · 레고 블록</b><span>완독 1독 · 11/14에 고름 · 15,000원</span><span class="who late">3일째 아무도 안 삼</span></div></div>
+        <div class="btns"><span class="btn">쿠팡에서 보기</span><span class="btn p">구매 완료 ✓</span></div></div>
+      <div class="card"><div class="row"><span class="ic">🎁</span><div class="what"><b>전해 주세요 · 이소이 · 필사 노트</b><span>생일 선물</span><span class="who done">박부장님이 11/15 구매</span></div></div>
+        <div class="btns"><span class="btn ok">전달 완료 ✓</span></div></div>
+      <div class="card"><div class="row"><span class="ic">🔔</span><div class="what"><b>정주안이 선물 대상이 됐어요</b><span>새친구 선물 · 계정 없음 · 12/16까지 고르기</span></div></div>
+        <div class="btns"><span class="btn">링크 복사</span></div></div>
+      <div class="card"><div class="row"><span class="ic">🆕</span><div class="what"><b>새친구 하예성을 데려온 사람 정하기</b><span>전도 선물을 주려면 먼저 정해요</span></div></div>
+        <div class="btns"><span class="btn p">정하기</span></div></div>
+
+      <div class="sec"><b>✋ 승인</b><span>부서 관리자만</span></div>
+      <div class="card"><div class="row"><span class="ic">✋</span><div class="what"><b>참여 신청 · 박새롬(학생)</b><span>어제 신청 · 지혜 2반 희망</span></div></div>
+        <div class="btns"><span class="btn">거절</span><span class="btn p">승인</span></div></div>
+      <div class="card"><div class="row"><span class="ic">🎓</span><div class="what"><b>진급 받기 · 김도현</b><span>유아부에서 올라옴</span></div></div>
+        <div class="btns"><span class="btn p">받기</span></div></div>
+
+      <div class="sec"><b>📋 출석</b><span>주일 당일</span></div>
+      <div class="card"><div class="row"><span class="ic">📋</span><div class="what"><b>이번 주일 출석 · 전체 8반</b><span>체크한 반 2 / 8</span></div></div>
+        <div class="btns"><span class="btn">출석부 열기 →</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ② 담임 -->
+<div class="col">
+  <div class="cap">② 담임(지혜 1반) · 주일 아침<small>자기 반 일만 · 출석은 주일 당일만 · 생일은 30일 안이면 링크 보내기 → 아이가 고르면 사라짐</small></div>
+  <div class="phone">
+    <div class="top"><div class="t"><small><em>도전!!!</em> 유치부</small><b>오늘 할 일</b></div><span class="home">⌂ 홈으로</span></div>
+    <div class="pad">
+      <div class="hello"><h1>오세윤 선생님, 할 일 2개</h1><p>지혜 1반 일이에요.</p></div>
+      <div class="snooze"><small>할 일 화면으로 자동 이동하지 않기</small>
+        <div class="chips"><span class="chip">오늘 안 보기</span><span class="chip">3일</span><span class="chip">5일</span><span class="chip">한 달</span></div></div>
+      <div class="card"><div class="row"><span class="ic">📋</span><div class="what"><b>우리 반 출석 체크</b><span>11월 16일 주일 · 지혜 1반 3명 · 아직 0명</span></div></div>
+        <div class="btns"><span class="btn p">출석부 열기 →</span></div></div>
+      <div class="card"><div class="row"><span class="ic">🎂</span><div class="what"><b>생일 선물 링크 보내기 · 2명</b><span>링크를 부모님께 보내면 로그인 없이 골라요</span></div></div>
+        <div class="split"></div>
+        <div class="row"><span></span><div class="what"><b style="font-size:14px">김율 · 12월 3일 (17일 남음)</b><span class="who">아직 안 고름</span></div></div>
+        <div class="btns"><span class="btn">링크 복사</span></div>
+        <div class="row"><span></span><div class="what"><b style="font-size:14px">이소이 · 12월 10일 (24일 남음)</b><span class="who">아직 안 고름</span></div></div>
+        <div class="btns"><span class="btn">링크 복사</span></div></div>
+      <div class="note">주중에는 할 일이 없으면 이 화면으로 오지 않고 바로 홈으로 가요.</div>
+    </div>
+  </div>
+  <div class="cap" style="margin-top:6px">할 일이 다 끝났을 때</div>
+  <div class="phone" style="min-height:300px">
+    <div class="top"><div class="t"><small><em>도전!!!</em> 유치부</small><b>오늘 할 일</b></div><span class="home">⌂ 홈으로</span></div>
+    <div class="empty">✓ 오늘 할 일을 다 했어요<br><small>완료한 일 보기 ›</small></div>
+  </div>
+</div>
+
+<!-- ③ 플랫폼 관리자 -->
+<div class="col">
+  <div class="cap">③ 플랫폼 관리자<small>내 일만 처리 · 부서 일은 부서별로 "어디서 밀렸나" 보기만(버튼 없음)</small></div>
+  <div class="phone">
+    <div class="top"><div class="t"><small><em>도전!!!</em> 플랫폼</small><b>오늘 할 일</b></div><span class="home">⌂ 홈으로</span></div>
+    <div class="pad">
+      <div class="hello"><h1>운영자 님, 내 할 일 2개</h1><p>부서 일은 아래에서 살펴만 봐요.</p></div>
+      <div class="snooze"><small>할 일 화면으로 자동 이동하지 않기</small>
+        <div class="chips"><span class="chip">오늘 안 보기</span><span class="chip">3일</span><span class="chip">5일</span><span class="chip">한 달</span></div></div>
+      <div class="sec"><b>내 할 일</b><span>플랫폼 관리자</span></div>
+      <div class="card urgent"><div class="row"><span class="ic">📖</span><div class="what"><b>곧 비는 공용 콘텐츠 · 12일</b><span>11/28부터 말씀 · 퀴즈가 없어요</span></div></div>
+        <div class="btns"><span class="btn p">말씀 입력 →</span></div></div>
+      <div class="card"><div class="row"><span class="ic">👤</span><div class="what"><b>관리자가 없는 부서 · 1곳</b><span>잠실새내교회 청년부</span></div></div>
+        <div class="btns"><span class="btn p">부서 열기 →</span></div></div>
+      <div class="sec"><b>부서 현황</b><span>보기만</span></div>
+      <div class="dept"><h3>유치부 <span>밀림 2</span></h3><ul><li>🎁 사 주세요 1 · <span>3일째</span></li><li>🎁 전해 주세요 1</li><li>✋ 승인 1 · 🎓 진급 1</li><li>📋 출석 2/8반</li></ul></div>
+      <div class="dept"><h3>초등부</h3><ul><li>🔔 선물 대상 2 · <span>고르는 중</span></li><li>📋 출석 15/15반 ✓</li></ul></div>
+      <div class="dept"><h3>중등부 <span>밀림 1</span></h3><ul><li>🎁 사 주세요 1 · <span>5일째</span></li></ul></div>
+      <div class="note">밀림 = 3일 넘게 아무도 처리하지 않은 일</div>
+    </div>
+  </div>
+</div>
+
+<!-- ④ 설정 -->
+<div class="col">
+  <div class="cap">④ 누가 무엇을 보나(설정)<small>플랫폼 › 기본 규칙 = 공통 / 부서 관리 › 할 일 = "공통 따름 · 우리 부서만 따로" · 사람 자세히에 "선물 담당" 꼬리표</small></div>
+  <div class="phone">
+    <div class="top"><div class="t"><small><em>도전!!!</em> 유치부 관리</small><b>할 일 · 누가 보나</b></div><span class="home">⌂ 홈으로</span></div>
+    <div class="pad">
+      <div class="seg"><span>공통 규칙 따름</span><span class="on">우리 부서만 따로</span></div>
+      <table class="rule">
+        <tr><th>할 일</th><th>관리자</th><th>부장 부감 서기</th><th>지도</th><th>선물 담당</th><th>담임</th></tr>
+        <tr><td>🎁 선물 사기 · 전하기</td><td><span class="ck on">✓</span></td><td><span class="ck on">✓</span></td><td><span class="ck on">✓</span></td><td><span class="ck on">✓</span></td><td><span class="ck"></span></td></tr>
+        <tr><td>🔔 선물 대상 알림 · 링크</td><td><span class="ck on">✓</span></td><td><span class="ck on">✓</span></td><td><span class="ck on">✓</span></td><td><span class="ck on">✓</span></td><td><span class="ck"></span></td></tr>
+        <tr><td>🎂 생일 링크 보내기</td><td><span class="ck"></span></td><td><span class="ck"></span></td><td><span class="ck"></span></td><td><span class="ck"></span></td><td><span class="ck on">✓</span></td></tr>
+        <tr><td>🆕 데려온 사람 정하기</td><td><span class="ck on">✓</span></td><td><span class="ck on">✓</span></td><td><span class="ck on">✓</span></td><td><span class="ck on">✓</span></td><td><span class="ck"></span></td></tr>
+        <tr><td>✋ 승인 · 🎓 진급</td><td><span class="ck on">✓</span></td><td><span class="ck"></span></td><td><span class="ck"></span></td><td><span class="ck"></span></td><td><span class="ck"></span></td></tr>
+        <tr><td>📋 출석(주일)</td><td><span class="ck on">✓</span></td><td><span class="ck"></span></td><td><span class="ck"></span></td><td><span class="ck"></span></td><td><span class="ck on">✓</span></td></tr>
+      </table>
+      <span class="btn p" style="justify-content:center">저장</span>
+      <div class="note">"공통 규칙 따름"이면 체크칸은 보기만 돼요(플랫폼 › 기본 규칙에서 바꿈).</div>
+      <div class="sec"><b>사람 자세히 · 업무 꼬리표</b><span>소속 관리 › 사람</span></div>
+      <div class="card"><div class="what"><b>박선생 · 교사</b><span>지혜 2반 담임</span></div>
+        <div class="tagrow"><span>🎁 선물 담당</span><span class="sw"></span></div>
+        <div class="tagrow"><span>(다음에 더할 꼬리표 자리)</span><span class="sw off"></span></div></div>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
