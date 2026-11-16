@@ -486,6 +486,20 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(op, "/platform/content/quiz?month=2027-01&date=2027-01-05", "15-공용콘텐츠-퀴즈");
 
         await Save(op, "/platform/ops?d=0", "15c-플랫폼-운영점검", x => x.Replace("<li><details>", "<li><details open>"));
+
+        // 선물 점수(확정 시안 선물점수-15크레딧, ADR 0104): 올해 734점 · 받은 선물 667점 → 67점, 상품 1,000원(67점) · 6,000원(400점) · 15,000원(1,000점)
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            raw.MissionActivities.Add(new MissionActivity { TenantId = kids.Id, UserName = km.UserName, MissionDate = new DateOnly(2027, 1, 2), MissionItem = "Word.Me", Points = 734 - raw.MissionActivities.Where(a => a.UserName == km.UserName).Sum(a => a.Points), PerformedAt = DateTime.UtcNow });
+            foreach (var (nm, pr) in new[] { ("스프링 노트", 1000), ("24색 색연필 세트", 6000), ("캐릭터 책가방", 15000) })
+                raw.GiftItems.Add(new GiftItem { Name = nm, Price = pr, CoupangUrl = "https://www.coupang.com/vp/products/1", Status = GiftItemStatus.Active });
+            var pg = new Gift { TenantId = kids.Id, Kind = GiftKinds.Personal, Year = 2027, UserName = km.UserName, SourceKey = "P2027-1", State = GiftStates.Delivered, MaxAmount = 9900, ItemName = "보드게임", ItemPrice = 9900, PointsUsed = 667, CreatedUtc = DateTime.UtcNow };
+            raw.Gifts.Add(pg); raw.SaveChanges();
+            raw.GiftPointUses.Add(new GiftPointUse { TenantId = kids.Id, UserName = km.UserName, Year = 2027, GiftId = pg.Id, PointsUsed = 667, CreatedUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        await Save(kid, "/jamsil-kids/word-mission", "30-선물점수-미션홈");
+        await Save(kid, "/jamsil-kids/gifts?all=true", "31-선물점수-고르기");
     }
 
     private static async Task Save(HttpClient c, string url, string name, Func<string, string>? tweak = null)
