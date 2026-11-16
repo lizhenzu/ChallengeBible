@@ -75,6 +75,7 @@ builder.Services.AddScoped<GiftOrderService>();   // 선물 구매 · 전달 처
 builder.Services.AddScoped<QuizAiPromptService>();   // 퀴즈 출제 AI 프롬프트(유년부 그대로)
 builder.Services.AddScoped<WordToolsService>();   // 말씀 입력 · 퀴즈 출제 도구(유년부에서 옮김)
 builder.Services.AddScoped<ResetService>();   // 완전 초기화(ADR 0102)
+builder.Services.AddScoped<Prayer365Service>();   // 자녀를 위한 365 기도(ADR 0106)
 builder.Services.AddScoped<GiftCostService>();   // 선물 총비용 · 엑셀(ADR 0094 G-2 · 정한 것 13)
 builder.Services.AddScoped<RosterUploadService>();   // 명단 올리기(ADR 0097)
 builder.Services.AddScoped<CopyService>();   // 도전!!!성경필사(ADR 0099)

@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
@@ -31,6 +31,7 @@ public sealed class ResetService(ISystemDb systemDb, TimeProvider time)
         ("teams", Records, "가족팀 · 친구팀"),
         ("reading", Records, "성경통독"),
         ("copy", Records, "성경필사"),
+        ("prayer", Records, "365 기도 기록"),   // ADR 0106
         ("requests", Records, "진급 · 참여 신청"),
         ("logs", Records, "검색 기록 · 감사 로그"),
         ("accounts", People, "계정(학생 · 교사 · 학부모 · 가짜)"),
@@ -69,6 +70,7 @@ public sealed class ResetService(ISystemDb systemDb, TimeProvider time)
             "teams" => await ctx.FamilyTeams.CountAsync(ct),
             "reading" => await ctx.ReadingRounds.CountAsync(ct),
             "copy" => await ctx.CopyVerses.CountAsync(ct),
+            "prayer" => await ctx.Prayer365Logs.CountAsync(ct),
             "requests" => await ctx.PromotionRequests.CountAsync(ct) + await ctx.SignupApplications.CountAsync(s => !keep.Contains(s.UserId), ct),
             "logs" => await ctx.SearchLogs.CountAsync(ct) + await ctx.AuditLogs.CountAsync(a => a.Action != Action, ct),
             "accounts" => await GoneUsers(ctx).CountAsync(ct),
@@ -141,6 +143,11 @@ public sealed class ResetService(ISystemDb systemDb, TimeProvider time)
             await DeleteAsync(ctx, ctx.ReadingRounds, ct);
         }
         if (on.Contains("copy")) await DeleteAsync(ctx, ctx.CopyVerses, ct);
+        if (on.Contains("prayer"))
+        {
+            await DeleteAsync(ctx, ctx.Prayer365Logs, ct);
+            await DeleteAsync(ctx, ctx.Prayer365Views, ct);   // 기도문(공용 콘텐츠)은 그대로
+        }
         if (on.Contains("requests"))
         {
             await DeleteAsync(ctx, ctx.PromotionRequests, ct);
@@ -196,7 +203,7 @@ public sealed class ResetService(ISystemDb systemDb, TimeProvider time)
     {
         var label = p[0] switch
         {
-            "missions" => "미션", "attend" => "출석", "gifts" => "선물", "awards" => "시상", "teams" => "팀", "reading" => "통독", "copy" => "필사",
+            "missions" => "미션", "attend" => "출석", "gifts" => "선물", "awards" => "시상", "teams" => "팀", "reading" => "통독", "copy" => "필사", "prayer" => "365 기도",
             "requests" => "신청", "logs" => "로그", "audits" => "감사 로그", "accounts" => "계정", "people" or "roster" => "명부", _ => p[0],
         };
         return label + " " + (int.TryParse(p[1], out var n) ? n.ToString("N0") : p[1]);

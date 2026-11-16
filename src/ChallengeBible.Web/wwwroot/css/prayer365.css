@@ -1,0 +1,68 @@
+/* 자녀를 위한 365 기도(ADR 0106, 확정 시안 365기도) — 유년부 Prayer365 밝은 버전과 같은 모양 */
+.p365 { --p-tx: #111827; --p-dim: #9CA3AF; --p-dim2: #6B7280; --p-rule: #EEF0F3; --p-mark: #F4F6F9; --p-acc: #2F80ED; --p-ok: #15803D; --p-okbg: #EAF7EF; --p-warn: #B4531F; --p-warnbg: #FBEFE7;
+  max-width: 760px; margin: 0 auto; padding: 0 18px 48px; color: #374151; }
+.p365-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 0 12px; font-size: 13px; color: var(--p-dim); }
+.p365-bar a { color: #374151; font-weight: 700; text-decoration: none; } .p365-bar i { font-style: normal; margin: 0 6px; color: #D1D5DB; }
+.p365-fz button { border: 0; background: var(--p-mark); border-radius: 8px; padding: 6px 10px; margin-left: 4px; font: inherit; font-weight: 800; color: var(--p-dim2); cursor: pointer; }
+.p365-prog { height: 3px; border-radius: 99px; background: var(--p-mark); overflow: hidden; } .p365-prog i { display: block; height: 100%; background: var(--p-acc); }
+.p365-msg { margin: 12px 0 0; padding: 10px 14px; border-radius: 12px; background: var(--p-okbg); color: var(--p-ok); font-size: 13.5px; font-weight: 700; }
+.p365-hd { display: flex; gap: 14px; align-items: center; margin-top: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--p-rule); }
+.p365-ring { flex: none; width: 72px; height: 72px; border-radius: 50%; background: conic-gradient(var(--p-acc) var(--p), var(--p-mark) 0); display: grid; place-items: center; }
+.p365-ring > div { width: 60px; height: 60px; border-radius: 50%; background: #fff; display: grid; place-content: center; text-align: center; line-height: 1.15; }
+.p365-ring b { font-size: 19px; font-weight: 800; color: var(--p-tx); } .p365-ring small { display: block; font-size: 10px; color: var(--p-dim2); }
+.p365-kk { font-size: 12px; font-weight: 800; color: var(--p-acc); }
+.p365-hd h1 { margin: 4px 0 0; font-size: 19px; font-weight: 800; line-height: 1.4; color: var(--p-tx); word-break: keep-all; }
+.p365-sub { margin-top: 3px; font-size: 12px; color: var(--p-dim); }
+.p365-vs { margin: 18px 0 0; padding-left: 12px; border-left: 3px solid #D6E4FA; font-size: 13.5px; line-height: 1.85; color: var(--p-dim2); word-break: keep-all; }
+.p365-vs cite { display: block; margin-top: 4px; font-style: normal; font-size: 12px; font-weight: 800; color: var(--p-acc); }
+.p365-body { margin-top: 18px; font-size: calc(16.5px + var(--fsd, 0px)); line-height: 1.95; color: #2A2F3A; word-break: keep-all; }
+.p365-body p { margin: 0 0 4px; }
+.p365-body p.call { margin-top: 14px; padding-left: 10px; border-left: 3px solid var(--p-acc); line-height: 1.5; font-weight: 800; color: var(--p-tx); }
+.p365-body p.call:first-child { margin-top: 0; }
+.p365-amen { margin-top: 10px; text-align: right; font-weight: 800; color: var(--p-tx); font-size: calc(16.5px + var(--fsd, 0px)); }
+.p365-pray { margin: 22px 0 0; text-align: center; }
+.p365-pray button { border: 0; border-radius: 999px; background: var(--p-acc); color: #fff; font: inherit; font-size: 15px; font-weight: 800; padding: 13px 30px; cursor: pointer; }
+.p365-pray button.done { background: var(--p-okbg); color: var(--p-ok); cursor: default; }
+.p365-tog { margin-top: 8px; font-size: 13px; color: var(--p-dim2); } .p365-tog b { color: var(--p-tx); }
+.p365-ps { margin-top: 22px; padding: 16px; border-radius: 16px; background: var(--p-mark); }
+.p365-ps .t { font-size: 13px; font-weight: 800; color: var(--p-tx); } .p365-ps .t.sm { margin-top: 14px; } .p365-ps .t small { font-weight: 500; color: var(--p-dim2); margin-left: 4px; }
+.p365-ps .big { margin-top: 6px; } .p365-ps .big b { font-size: 30px; font-weight: 300; color: var(--p-acc); } .p365-ps .big span { font-size: 13px; color: var(--p-dim2); margin-left: 4px; }
+.p365-ps .bar { height: 6px; border-radius: 99px; background: #fff; margin-top: 6px; overflow: hidden; } .p365-ps .bar i { display: block; height: 100%; background: var(--p-acc); }
+.p365-ps .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
+.p365-ps .tiles div { background: #fff; border-radius: 12px; padding: 10px 4px; text-align: center; }
+.p365-ps .tiles b { display: block; font-size: 17px; font-weight: 800; color: var(--p-tx); } .p365-ps .tiles span { font-size: 11.5px; color: var(--p-dim2); } .p365-ps .tiles .hl b { color: var(--p-acc); }
+.p365-ps .p3cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-top: 8px; font-size: 11.5px; text-align: center; }
+.p365-ps .p3cal .h { color: var(--p-dim); } .p365-ps .p3cal .d { padding: 6px 0; border-radius: 8px; background: #fff; color: var(--p-dim2); }
+.p365-ps .p3cal .on { background: var(--p-acc); color: #fff; font-weight: 800; } .p365-ps .p3cal .miss { background: var(--p-warnbg); color: var(--p-warn); } .p365-ps .p3cal .today { box-shadow: inset 0 0 0 2px var(--p-tx); }
+.p365-ps .p3mo { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px 10px; align-items: center; margin-top: 8px; font-size: 12.5px; color: var(--p-dim2); }
+.p365-ps .p3mo div { height: 6px; border-radius: 99px; background: #fff; overflow: hidden; } .p365-ps .p3mo div i { display: block; height: 100%; background: var(--p-acc); } .p365-ps .p3mo em { font-style: normal; }
+.p365-src { margin-top: 18px; font-size: 11.5px; color: var(--p-dim); text-align: center; line-height: 1.7; word-break: keep-all; }
+
+/* 부서 홈 카드(확정 시안 365기도 ②) */
+.hm .hj-pg.p3 h2 { color: #6D28D9; }
+.hm .p3-box { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-radius: 14px; padding: 12px 14px; background: #F3EEFD; box-shadow: inset 0 0 0 1.5px #E4D9FA; color: inherit; text-decoration: none; margin-top: 10px; }
+.hm .p3-box small { display: block; font-size: 11.5px; font-weight: 700; color: #6D28D9; } .hm .p3-box b { display: block; font-size: 16px; font-weight: 900; }
+.hm .p3-box span.v { font-size: 12.5px; color: var(--dim); } .hm .p3-go { flex: none; border-radius: 99px; background: #6D28D9; color: #fff; font-weight: 800; font-size: 13.5px; padding: 9px 16px; white-space: nowrap; }
+.hm .p3-st { margin-top: 8px; font-size: 12.5px; color: var(--dim); } .hm .p3-st b { color: var(--fg); }
+
+/* 관리 · 플랫폼(확정 시안 365기도 ③ ~ ⑤) */
+.p3k { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.p3k div { background: var(--soft); border-radius: 14px; padding: 12px 14px; min-width: 0; } .p3k small { font-size: 12px; color: var(--dim); }
+.p3k b { display: block; font-size: 24px; font-weight: 800; margin-top: 2px; } .p3k b u { text-decoration: none; font-size: 13px; font-weight: 500; margin-left: 2px; }
+@media (max-width: 560px) { .p3k { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.p3c { border: 1px solid var(--rule); border-radius: 16px; padding: 14px 16px; min-width: 0; }
+.p3c h2 { margin: 0 0 10px; font-size: 15px; display: flex; justify-content: space-between; gap: 8px; } .p3c h2 small { font-size: 12px; color: var(--dim); font-weight: 500; }
+.p3t { width: 100%; border-collapse: collapse; font-size: 13.5px; } .p3t th { text-align: left; font-size: 12px; color: var(--dim); font-weight: 700; padding: 6px 4px; border-bottom: 1px solid var(--rule); }
+.p3t td { padding: 8px 4px; border-bottom: 1px solid var(--rule); } .p3t .n { text-align: right; font-variant-numeric: tabular-nums; } .p3t .rest { color: #B4531F; font-weight: 800; }
+.p3seg { display: flex; gap: 6px; flex-wrap: wrap; } .p3seg a { padding: 6px 12px; border-radius: 99px; border: 1px solid var(--line); font-size: 13px; font-weight: 700; color: var(--fg); text-decoration: none; }
+.p3seg a[aria-current="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.p3bars { display: flex; align-items: flex-end; gap: 4px; height: 120px; } .p3bars i { flex: 1; min-width: 0; background: #BFD7FA; border-radius: 4px 4px 0 0; } .p3bars i.t { background: #2F80ED; }
+.p3g2 { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 14px; } @media (max-width: 760px) { .p3g2 { grid-template-columns: minmax(0, 1fr); } }
+.p3rank { list-style: none; margin: 0 0 12px; padding: 0; } .p3rank li { display: flex; justify-content: space-between; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--rule); font-size: 13.5px; }
+.p3rank li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .p3rank b { color: #2F80ED; flex: none; }
+.p3m { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; } @media (max-width: 760px) { .p3m { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.p3m b { font-size: 13px; } .p3m .ds { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; margin-top: 6px; }
+.p3m .ds a { height: 22px; border-radius: 4px; background: #E5E7EB; font-size: 10px; text-align: center; line-height: 22px; color: #4B5563; text-decoration: none; }
+.p3m .ds a.s { background: #FDE7C8; } .p3m .ds a.c { background: #DCEBFB; } .p3m .ds a.r { background: #BBE5C8; } .p3m .ds a.t { box-shadow: inset 0 0 0 2px #2F80ED; }
+.p3lg { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--dim); } .p3lg i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+.p3f { display: grid; gap: 10px; } .p3f label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; } .p3f textarea { min-height: 220px; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }

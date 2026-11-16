@@ -1,0 +1,45 @@
+﻿@page "/platform/prayer365"
+@model ChallengeBible.Web.Pages.Platform.Prayer365Model
+@using ChallengeBible.Web.Services
+@* 확정 시안 365기도 ⑤(2026-11-16, ADR 0106): 들어간 · 샘플 · 확인 필요 · 검수 완료 → [진짜 기도문 넣기] [샘플 채우기] → 12달 달력판(누르면 고치기) *@
+@{
+    var m = Model.Map;
+    var all = Prayer365Service.AllDays().ToList();
+    int samples = m.Values.Count(p => p.IsSample), reviewed = m.Values.Count(p => p.IsReviewed && !p.IsSample), check = m.Values.Count(p => !p.IsReviewed && !p.IsSample);
+    var today = Model.TodayMd;
+}
+<link rel="stylesheet" href="~/css/prayer365.css" asp-append-version="true" />
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap wide">
+    <h1>365 기도문 <small style="font-size:14px;color:var(--dim)">「@Prayer365Service.BookTitle」 · @Prayer365Service.Author</small></h1>
+    @if (Model.Msg is { } msg) { <p class="ok-box" role="status">@msg</p> }
+    @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }
+    <div class="p3k">
+        <div><small>들어간 기도문</small><b>@m.Count<u>/ 366편</u></b></div>
+        <div><small>샘플</small><b>@samples<u>편</u></b></div>
+        <div><small>확인 필요</small><b>@check<u>편</u></b></div>
+        <div><small>검수 완료</small><b>@reviewed<u>편</u></b></div>
+    </div>
+    <div class="p3c">
+        <h2>진짜 기도문 넣기 <small>유년부 DB `SELECT … FROM dbo.Prayer365 FOR JSON PATH` 결과 · 같은 날짜는 바꿔요</small></h2>
+        <form method="post" asp-page-handler="Import" enctype="multipart/form-data" class="p3f">
+            <label>JSON 파일 <input type="file" name="file" accept=".json,.rpt,.txt" /></label>
+            <label>또는 붙여 넣기 <textarea name="json" rows="3" style="min-height:80px" placeholder='[{"MonthDay":"0101","Title":"…","Body":"…"}]'></textarea></label>
+            <div><button type="submit" class="btn p">넣기</button></div>
+        </form>
+        <form method="post" asp-page-handler="Samples" style="margin-top:10px"><button type="submit" class="btn s">빈 날을 샘플로 채우기</button> <small style="color:var(--dim)">진짜를 넣기 전에 시험용</small></form>
+    </div>
+    <div class="p3lg"><span><i style="background:#E5E7EB"></i>빈 날(샘플이 보여요)</span><span><i style="background:#FDE7C8"></i>샘플</span><span><i style="background:#DCEBFB"></i>확인 필요</span><span><i style="background:#BBE5C8"></i>검수 완료</span></div>
+    <div class="p3m">
+        @foreach (var g in all.GroupBy(md => md[..2]))
+        {
+            <div><b>@(int.Parse(g.Key))월</b><div class="ds">
+                @foreach (var md in g)
+                {
+                    var cls = !m.TryGetValue(md, out var p) ? "" : p.IsSample ? "s" : p.IsReviewed ? "r" : "c";
+                    <a class="@cls@(md == today ? " t" : "")" href="/platform/prayer365/edit?md=@md" title="@Prayer365Service.Label(md)@(p is null ? "" : " · " + p.Title)">@(int.Parse(md[2..]))</a>
+                }
+            </div></div>
+        }
+    </div>
+</div></main>

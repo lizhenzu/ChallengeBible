@@ -268,6 +268,17 @@
         </section>
     }
 
+    @if (Model.PrayerCard is { } pc)
+    {
+        @* 확정 시안 365기도 ②(2026-11-16, ADR 0106): 학생 · 새친구에게는 없음 · 점수 없음 *@
+        <link rel="stylesheet" href="~/css/prayer365.css" asp-append-version="true" />
+        <section class="hj-card hj-pg p3" aria-labelledby="p3T">
+            <h2 id="p3T"><a href="/@slug/prayer365">🙏 자녀를 위한 365 기도</a><small>오늘 우리 부서 @(pc.Together)명</small></h2>
+            <a class="p3-box" href="/@slug/prayer365"><span><small>@pc.Me.Today.ToString("M월 d일") · 오늘의 기도</small><b>@pc.Item.Title</b>@if (!string.IsNullOrEmpty(pc.Item.VerseRef)) { <span class="v">@pc.Item.VerseRef</span> }</span><span class="p3-go">@(pc.Me.PrayedToday ? "✓ 기도했어요" : "기도하러 가기")</span></a>
+            @if (pc.Me.PrayedDays > 0) { <div class="p3-st">나 <b>@(pc.Me.Streak)일 연속</b> · 기도율 <b>@(pc.Me.RatePct >= 0 ? pc.Me.RatePct + "%" : "–")</b></div> }
+        </section>
+    }
+
     @if (t.MissionEnabled && Model.IsGuardian)
     {
         <a class="notice" href="/@slug/guardian"><b>자녀 미션 보기</b><span>연결된 자녀의 오늘 미션 · 점수 →</span></a>

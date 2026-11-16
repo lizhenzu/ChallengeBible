@@ -20,6 +20,7 @@
     if (Model.IsAdmin && !Model.IsLobby) menu = [.. menu, ($"/{slug}/admin/gifts", "선물", 0)];
     menu = [.. menu, ($"/{slug}/admin/promotions", "진급", promotionsWaiting)];
     if (Model.IsAdmin) menu = [.. menu, ($"/{slug}/admin/content", "콘텐츠", 0)];
+    if (Model.IsAdmin && !Model.IsLobby) menu = [.. menu, ($"/{slug}/admin/prayer365", "365 기도", 0)];   // 자녀를 위한 365 기도 참여자(ADR 0106)
     if (Model.Current.ReadingEnabled) menu = [.. menu, ($"/{slug}/admin/reading", "통독 현황", 0)];
     if (Model.IsAdmin) menu = [.. menu, ($"/{slug}/admin/season", "시즌", 0), ($"/{slug}/admin/branding", "이름 · 색", 0), ($"/{slug}/admin/todo", "할 일", 0)];   // 할 일 · 누가 보나(ADR 0100)
     // 교사(관리자 아님)는 명부만 쓴다(0093)
@@ -29,7 +30,7 @@
     // 확정 시안 관리-햄버거(2026-11-16 사용자): 가로 탭 대신 ☰ 메뉴판, 묶음별. 머리말 제목 = 지금 화면
     var now = menu.FirstOrDefault(m => Current(m.Href)).Label ?? "관리";
     string Group(string href) => href == home ? "" : href.EndsWith("/members") || href.EndsWith("/classes") || href.EndsWith("/teams") || href.EndsWith("/promotions") ? "사람"
-        : href.EndsWith("/gifts") || href.EndsWith("/content") || href.EndsWith("/reading") || href.EndsWith("/season") ? "선물 · 콘텐츠" : "설정";
+        : href.EndsWith("/gifts") || href.EndsWith("/content") || href.EndsWith("/prayer365") || href.EndsWith("/reading") || href.EndsWith("/season") ? "선물 · 콘텐츠" : "설정";
     string[] Groups = ["", "사람", "선물 · 콘텐츠", "설정"];
 }
 <header class="admintop ptop gut">

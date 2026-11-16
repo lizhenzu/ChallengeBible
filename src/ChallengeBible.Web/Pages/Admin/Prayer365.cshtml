@@ -1,0 +1,41 @@
+@page "/{slug}/admin/prayer365"
+@model ChallengeBible.Web.Pages.Admin.Prayer365Model
+@using ChallengeBible.Web.Services
+@* 확정 시안 365기도 ③(2026-11-16, ADR 0106): 참여자 · 오늘 · 쉬는 사람 · 평균 기도율, 최근 · 기도한 날 · 쉬는 사람 순 *@
+@{
+    var rows = Model.Rows;
+    var rates = rows.Where(r => r.RatePct >= 0).Select(r => r.RatePct).ToList();
+    var sort = Model.Sort ?? "recent";
+    var self = $"/{Model.Tenant.Current.Slug}/admin/prayer365";
+}
+<link rel="stylesheet" href="~/css/prayer365.css" asp-append-version="true" />
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut"><div class="wrap">
+    <h1>365 기도 참여자</h1>
+    <p class="lead">우리 부서에서 "자녀를 위한 365 기도"로 [오늘 기도 했어요]를 누른 사람이에요. 학생에게는 보이지 않는 기도예요.</p>
+    <div class="p3k">
+        <div><small>참여자</small><b>@rows.Count<u>명</u></b></div>
+        <div><small>오늘 기도</small><b>@rows.Count(r => r.DaysAgo == 0)<u>명</u></b></div>
+        <div><small>쉬는 사람</small><b>@rows.Count(r => r.DaysAgo > Prayer365Service.RestDays)<u>명</u></b></div>
+        <div><small>평균 기도율</small><b>@(rates.Count == 0 ? 0 : (int)Math.Round(rates.Average()))<u>%</u></b></div>
+    </div>
+    <nav class="p3seg" aria-label="정렬">
+        <a href="@self" aria-current="@(sort == "recent" ? "true" : "false")">최근 순</a>
+        <a href="@self?sort=days" aria-current="@(sort == "days" ? "true" : "false")">기도한 날 순</a>
+        <a href="@self?sort=rest" aria-current="@(sort == "rest" ? "true" : "false")">쉬는 사람</a>
+    </nav>
+    @if (rows.Count == 0) { <div class="empty-box">아직 기도한 사람이 없어요.</div> }
+    else
+    {
+        <div class="p3c"><table class="p3t">
+            <thead><tr><th>이름</th><th>역할</th><th class="n">기도한 날</th><th class="n">연속</th><th class="n">기도율</th><th class="n">마지막</th></tr></thead>
+            <tbody>
+            @foreach (var r in rows)
+            {
+                <tr><td>@r.Name</td><td>@r.Role</td><td class="n">@r.PrayedDays</td><td class="n">@r.Streak</td><td class="n">@(r.RatePct >= 0 ? r.RatePct + "%" : "–")</td>
+                    <td class="n @(r.DaysAgo > Prayer365Service.RestDays ? "rest" : "")">@(r.DaysAgo == 0 ? "오늘" : r.DaysAgo == 1 ? "어제" : $"{r.DaysAgo}일 전")</td></tr>
+            }
+            </tbody>
+        </table></div>
+    }
+</div></main>

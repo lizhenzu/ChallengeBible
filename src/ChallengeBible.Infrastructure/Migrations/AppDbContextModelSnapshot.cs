@@ -2716,6 +2716,116 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Prayer365", b =>
+                {
+                    b.Property<string>("MonthDay")
+                        .HasMaxLength(4)
+                        .IsUnicode(false)
+                        .HasColumnType("char(4)")
+                        .IsFixedLength();
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Fixes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsReviewed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSample")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("VerseRef")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("VerseText")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("MonthDay");
+
+                    b.ToTable("Prayer365", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Prayer365Log", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("MonthDay")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .IsUnicode(false)
+                        .HasColumnType("char(4)")
+                        .IsFixedLength();
+
+                    b.Property<DateOnly>("PrayDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("PrayedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "PrayDate");
+
+                    b.HasIndex("UserName", "PrayDate")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Prayer365Log_User_Day");
+
+                    b.ToTable("Prayer365Log", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Prayer365View", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("ViewDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("MonthDay")
+                        .HasMaxLength(4)
+                        .IsUnicode(false)
+                        .HasColumnType("char(4)")
+                        .IsFixedLength();
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "ViewDate", "MonthDay");
+
+                    b.ToTable("Prayer365View", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.PromotionRequest", b =>
                 {
                     b.Property<int>("Id")
@@ -3996,6 +4106,24 @@ namespace ChallengeBible.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Person", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Prayer365Log", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Prayer365View", b =>
                 {
                     b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
                         .WithMany()

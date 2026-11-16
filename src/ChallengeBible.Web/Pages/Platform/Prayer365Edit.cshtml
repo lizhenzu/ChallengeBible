@@ -1,0 +1,23 @@
+@page "/platform/prayer365/edit"
+@model ChallengeBible.Web.Pages.Platform.Prayer365EditModel
+@using ChallengeBible.Web.Services
+@{
+    var it = Model.Item; var md = Model.Md!;
+    string Step(int d) { var x = new DateOnly(2024, int.Parse(md[..2]), int.Parse(md[2..])).AddDays(d); return Prayer365Service.Md(x); }
+}
+<link rel="stylesheet" href="~/css/prayer365.css" asp-append-version="true" />
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap">
+    <a href="/platform/prayer365">← 365 기도문</a>
+    <h1>@Prayer365Service.Label(md) 기도문 <small style="font-size:13px;color:var(--dim)">@(Model.Missing ? "빈 날 — 샘플을 채워 두었어요" : it.IsSample ? "샘플" : it.IsReviewed ? "검수 완료" : "확인 필요")</small></h1>
+    @if (Model.Msg is { } msg) { <p class="ok-box" role="status">@msg</p> }
+    <form method="post" class="p3f">
+        <label>제목 <input class="in" name="title" value="@it.Title" maxlength="200" /></label>
+        <label>말씀 장절 <input class="in" name="verseRef" value="@it.VerseRef" maxlength="100" placeholder="시 18:1-2" /></label>
+        <label>말씀 본문 <input class="in" name="verseText" value="@it.VerseText" maxlength="1000" /></label>
+        <label>기도문 <small style="font-weight:500;color:var(--dim)">줄마다 문단 · 짧고 쉼표로 끝나는 줄은 호칭 · 마지막 "아멘."</small><textarea name="body">@it.Body</textarea></label>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="reviewed" value="true" checked="@it.IsReviewed" /> 검수 완료</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn s" href="/platform/prayer365/edit?md=@Step(-1)">← @Prayer365Service.Label(Step(-1))</a><button type="submit" class="btn p">저장</button><a class="btn s" href="/platform/prayer365/edit?md=@Step(1)">@Prayer365Service.Label(Step(1)) →</a></div>
+    </form>
+    @if (!string.IsNullOrEmpty(it.Fixes)) { <div class="p3c"><h2>교정 기록 <small>유년부에서 옮겨 온 그대로</small></h2><code style="font-size:12px;word-break:break-all">@it.Fixes</code></div> }
+</div></main>

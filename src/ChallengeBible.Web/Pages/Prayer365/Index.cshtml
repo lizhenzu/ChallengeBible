@@ -1,0 +1,80 @@
+@page "/{slug}/prayer365"
+@model ChallengeBible.Web.Pages.Prayer365.IndexModel
+@using ChallengeBible.Web.Services
+@* 확정 시안 365기도 ①(2026-11-16, ADR 0106): 유년부 Prayer365 일반 보기(?view=user)와 같은 구성 — 원 진행 · 제목 · 말씀 · 본문(호칭 줄 · 아멘) · [오늘 기도 했어요] · 함께 기도 · 나의 기도 기록 · 출처 *@
+@{
+    var it = Model.Item;
+    var idx = Prayer365Service.DayIndex(Model.MonthDay);
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var pct = (idx * 100.0 / 366).ToString("0.#", inv);
+    string[] wk = ["일", "월", "화", "수", "목", "금", "토"];
+    var body = it.Body.Replace("\r\n", "\n").Trim();
+    var amen = body.EndsWith("아멘.") || body.EndsWith("아멘");
+    if (amen) body = body[..body.LastIndexOf("아멘")].TrimEnd();
+    var paras = body.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).Select(l => (Call: l.EndsWith(',') && l.Length <= 30, Text: l)).ToList();
+    var s = Model.Stats;
+    var first = new DateOnly(s.Today.Year, s.Today.Month, 1);
+}
+<link rel="stylesheet" href="~/css/prayer365.css" asp-append-version="true" />
+<main class="p365" data-p365>
+    <div class="p365-bar"><span><a href="/@Model.Slug">← 부서 홈</a><i>·</i>자녀를 위한 365 기도</span>
+        <span class="p365-fz" role="group" aria-label="글자 크기"><button type="button" data-fs="-1" aria-label="글자 작게">가−</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button></span></div>
+    <div class="p365-prog"><i style="width:@pct%"></i></div>
+    @if (Model.Msg is { } m) { <p class="p365-msg" role="status">@m</p> }
+    <div class="p365-hd">
+        <div class="p365-ring" style="--p:@pct%"><div><b>@(Model.Today.Month).@(Model.Today.Day)</b><small>@(idx)일째</small></div></div>
+        <div><div class="p365-kk">PRAYER 365</div><h1>@it.Title</h1><div class="p365-sub">@Prayer365Service.Label(Model.MonthDay) · @(wk[(int)Model.Today.DayOfWeek])요일 · 자녀를 위한 축복 기도</div></div>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(it.VerseText) || !string.IsNullOrWhiteSpace(it.VerseRef))
+    {
+        <blockquote class="p365-vs">@if (!string.IsNullOrWhiteSpace(it.VerseText)) { <text>“@it.VerseText”</text> }@if (!string.IsNullOrWhiteSpace(it.VerseRef)) { <cite>@it.VerseRef</cite> }</blockquote>
+    }
+    <div class="p365-body" data-p365-body>
+        @foreach (var p in paras) { <p class="@(p.Call ? "call" : "")">@p.Text</p> }
+    </div>
+    @if (amen) { <div class="p365-amen">아멘.</div> }
+
+    <form method="post" asp-page-handler="Pray" asp-route-slug="@Model.Slug" class="p365-pray">
+        @if (s.PrayedToday) { <button type="button" class="done" disabled>✓ 오늘 기도했어요</button> }
+        else { <button type="submit">오늘 기도 했어요</button> }
+        <div class="p365-tog">@if (Model.Together > 0) { <text>우리 부서 <b>@Model.Together</b>명이 오늘 함께 기도했어요</text> } else { <text>오늘 우리 부서에서 처음으로 기도해 보세요</text> }</div>
+    </form>
+
+    <section class="p365-ps" aria-label="나의 기도 기록">
+        <div class="t">나의 기도 기록</div>
+        <div class="big"><b>@s.PrayedDays</b><span>일째 기도했어요 · @(Prayer365Stats.TotalDays)일 중</span></div>
+        <div class="bar"><i style="width:@(s.ProgressPct.ToString("0.#", inv))%"></i></div>
+        <div class="tiles">
+            <div class="hl"><b>@(s.Streak)일</b><span>연속 기도</span></div>
+            <div><b>@(s.Longest)일</b><span>최장 연속</span></div>
+            <div><b>@(s.RatePct >= 0 ? s.RatePct + "%" : "–")</b><span>기도율</span></div>
+        </div>
+        <div class="t sm">@(s.Today.Month)월 달력</div>
+        <div class="p3cal">
+            @foreach (var w in wk) { <div class="h">@w</div> }
+            @for (var i = 0; i < (int)first.DayOfWeek; i++) { <div></div> }
+            @for (var d = first; d.Month == first.Month; d = d.AddDays(1))
+            {
+                var cls = s.Dates.Contains(d) ? "on" : d > s.Today ? "" : s.FirstDate is { } f && d >= f ? "miss" : "";
+                <div class="d @cls @(d == s.Today ? "today" : "")">@d.Day</div>
+            }
+        </div>
+        @if (s.Months.Count > 0)
+        {
+            <div class="t sm">월별 기도율 <small>기도한 날 ÷ 지난 날</small></div>
+            <div class="p3mo">@foreach (var mr in s.Months) { var mp = mr.Elapsed <= 0 ? 0 : mr.Prayed * 100 / mr.Elapsed; <span>@(mr.Month)월</span><div><i style="width:@mp%"></i></div><em>@mr.Prayed / @(mr.Elapsed)일</em> }</div>
+        }
+    </section>
+
+    <div class="p365-src"><b>한 해의 @(idx)번째 날</b><br />출처 · @Prayer365Service.Author 지음 · 「@Prayer365Service.BookTitle」 · @Prayer365Service.Publisher</div>
+</main>
+<script>
+    // 글자 크기(유년부와 같게): 이 기기에 기억한다
+    (() => {
+        const b = document.querySelector('[data-p365-body]'); if (!b) return;
+        const key = 'p365-fs'; let n = +(localStorage.getItem(key) || 0);
+        const set = () => { document.querySelector('[data-p365]').style.setProperty('--fsd', (n * 1.5) + 'px'); };
+        set();
+        document.querySelectorAll('[data-fs]').forEach(x => x.addEventListener('click', () => { n = Math.max(-2, Math.min(4, n + +x.dataset.fs)); try { localStorage.setItem(key, n); } catch { } set(); }));
+    })();
+</script>

@@ -165,7 +165,7 @@ public partial class ResetTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Single(after.DeptRoles);
         var audit = after.AuditLogs.Single();   // 감사 로그는 이번 초기화 한 줄만
         Assert.Equal(ResetService.Action, audit.Action);
-        Assert.Equal("missions=1;attend=5;gifts=7;awards=2;teams=1;reading=1;copy=0;requests=0;logs=1;accounts=2;roster=2", audit.Detail);
+        Assert.Equal("missions=1;attend=5;gifts=7;awards=2;teams=1;reading=1;copy=0;prayer=0;requests=0;logs=1;accounts=2;roster=2", audit.Detail);
     }
 
     [Fact]
@@ -221,7 +221,7 @@ public partial class ResetTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Empty(raw.Gifts);
         Assert.Empty(raw.People);
         Assert.Equal(4, raw.Users.Count());   // 계정은 체크 안 함 → 남음
-        Assert.Equal(new[] { "missions", "attend", "gifts", "awards", "teams", "reading", "copy", "requests", "logs", "roster" }, ResetService.Effective(["roster"]).OrderBy(k => ResetService.AllKeys.ToList().IndexOf(k)));
+        Assert.Equal(new[] { "missions", "attend", "gifts", "awards", "teams", "reading", "copy", "prayer", "requests", "logs", "roster" }, ResetService.Effective(["roster"]).OrderBy(k => ResetService.AllKeys.ToList().IndexOf(k)));
     }
 
     [Fact]

@@ -60,6 +60,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<MemberTag> MemberTags => Set<MemberTag>();
     public DbSet<TodoRule> TodoRules => Set<TodoRule>();
     public DbSet<Duty> Duties => Set<Duty>();
+    public DbSet<Prayer365> Prayers365 => Set<Prayer365>();   // 자녀를 위한 365 기도(ADR 0106) — 공용
+    public DbSet<Prayer365Log> Prayer365Logs => Set<Prayer365Log>();
+    public DbSet<Prayer365View> Prayer365Views => Set<Prayer365View>();
     public DbSet<ReadingChapterRead> ReadingChapterReads => Set<ReadingChapterRead>();
     public DbSet<ReadingChapterProgress> ReadingChapterProgresses => Set<ReadingChapterProgress>();
     public DbSet<SearchLog> SearchLogs => Set<SearchLog>();

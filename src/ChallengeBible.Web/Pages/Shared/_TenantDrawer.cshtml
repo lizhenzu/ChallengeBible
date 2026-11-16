@@ -14,6 +14,7 @@
             @if (Model.Current.MissionEnabled && !Model.IsLobby) { <a href="/@Model.Current.Slug/word-mission"><em class="pd-pg">도전!!!</em> 성경말씀</a> }
             @if (Model.Current.ReadingEnabled && !Model.IsLobby) { <a href="/@Model.Current.Slug/reading"><em class="pd-pg">도전!!!</em> 성경통독</a> }
             @if (Model.Current.CopyEnabled && !Model.IsLobby) { <a href="/@Model.Current.Slug/copy"><em class="pd-pg">도전!!!</em> 성경필사</a> }   @* ADR 0099 *@
+            @if (!Model.IsLobby && Model.IsApproved && !ChallengeBible.Web.Services.Prayer365Service.IsStudentRole(Model.RoleCode)) { <a href="/@Model.Current.Slug/prayer365">자녀를 위한 365 기도</a> }   @* ADR 0106: 학생 · 새친구에게는 없음 *@
             <a href="/account">내 계정</a>
             @if (Model.IsLobby) { <a href="/join">내 부서 참여</a> }
             @if (!Model.IsLobby && Model.IsStaff) { <a href="/@Model.Current.Slug/attendance">출석</a> }
