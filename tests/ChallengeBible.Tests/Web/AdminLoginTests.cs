@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -66,6 +66,17 @@ public partial class AdminLoginTests : IClassFixture<WebApplicationFactory<Progr
         var ok = await Login(c, "1234");
         Assert.Equal(HttpStatusCode.Redirect, ok.StatusCode);
         Assert.Equal("/platform", ok.Headers.Location!.OriginalString);
+    }
+
+    [Fact]
+    public async Task R309_관리자_로그인도_내_할_일이_있으면_할_일_화면으로_한_번()
+    {
+        await SeedSuperAdmin(platformAdmin: true);
+        InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");   // 관리자가 없는 부서 = 플랫폼 관리자 할 일
+        var c = Client();
+        await Login(c, "1234");
+        Assert.Equal("/platform/todo", (await c.GetAsync("/platform")).Headers.Location!.OriginalString);
+        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/platform")).StatusCode);   // 두 번째부터는 플랫폼 홈
     }
 
     [Fact]
