@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
@@ -209,12 +209,15 @@ public sealed partial class PlatformAccountService(ISystemDb systemDb, TimeProvi
         ctx.ReadingChapterProgresses.AddRange(progress.Select(x => new ReadingChapterProgress { UserName = name, RoundNo = x.RoundNo, BookId = x.BookId, Chapter = x.Chapter, LastViewedVerse = x.LastViewedVerse, UpdatedAt = x.UpdatedAt }));
         var marks = await ctx.ReadingBookmarks.Where(x => x.UserName == id).ToListAsync(ct);
         ctx.ReadingBookmarks.AddRange(marks.Select(x => new ReadingBookmark { UserName = name, BookId = x.BookId, Chapter = x.Chapter, Verse = x.Verse, CreatedAt = x.CreatedAt }));
+        var copies = await ctx.CopyVerses.Where(x => x.UserName == id).ToListAsync(ct);   // 성경필사(ADR 0099)도 계정을 따라간다
+        ctx.CopyVerses.AddRange(copies.Select(x => new CopyVerse { UserName = name, BookId = x.BookId, Chapter = x.Chapter, Verse = x.Verse, Translation = x.Translation, WrittenAt = x.WrittenAt }));
         var quiz = await ctx.QuizAttempts.Where(x => x.UserName == id).ToListAsync(ct);
         ctx.QuizAttempts.AddRange(quiz.Select(x => new QuizAttempt { TenantId = x.TenantId, UserName = name, MissionDate = x.MissionDate, QuestionId = x.QuestionId, AttemptNo = x.AttemptNo, AnswerText = x.AnswerText, CorrectAnswerText = x.CorrectAnswerText, IsCorrect = x.IsCorrect, AttemptedAt = x.AttemptedAt }));
         var settings = await ctx.UserSettings.Where(x => x.UserName == id).ToListAsync(ct);
         ctx.UserSettings.AddRange(settings.Select(x => new UserSetting { UserName = name, MustChangePassword = x.MustChangePassword, PhotoPath = x.PhotoPath, LastTenantId = x.LastTenantId, ReadingTheme = x.ReadingTheme, MissionTheme = x.MissionTheme, FamilyInvitesSnoozedAt = x.FamilyInvitesSnoozedAt }));
 
         ctx.ReadingVerses.RemoveRange(verses);
+        ctx.CopyVerses.RemoveRange(copies);
         ctx.ReadingChapterReads.RemoveRange(reads);
         ctx.ReadingChapterProgresses.RemoveRange(progress);
         ctx.ReadingBookmarks.RemoveRange(marks);

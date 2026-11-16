@@ -1,4 +1,4 @@
-using ChallengeBible.Domain.Time;
+﻿using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Tenancy;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +16,8 @@ public sealed record GiftOrderRow(long Id, string Kind, string State, string Who
     /// <summary>종류 꼬리표: 팀 선물은 "가족팀 2,000점", 생일은 "생일 12.4".</summary>
     public string KindText => Team ? $"{GiftOrderService.KindLabel(Kind)} {Stage:N0}점"
         : Birthday is { } b ? $"{GiftOrderService.KindLabel(Kind)} {b:M.d}"
-        : Kind == GiftKinds.Reading && Round is int rn ? $"{GiftOrderService.KindLabel(Kind)} {rn}독" : GiftOrderService.KindLabel(Kind);
+        : Kind == GiftKinds.Reading && Round is int rn ? $"{GiftOrderService.KindLabel(Kind)} {rn}독"
+        : Kind == GiftKinds.Copy && About is { } ab ? $"{ab} {GiftOrderService.KindLabel(Kind)}" : GiftOrderService.KindLabel(Kind);
     /// <summary>완독 선물: 회차 · 완독한 날(부서 날짜).</summary>
     public int? Round { get; init; }
     public DateOnly? DoneOn { get; init; }
@@ -54,7 +55,7 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
     public static string KindLabel(string kind) => kind switch
     {
         GiftKinds.Personal => "개인", GiftKinds.Newcomer => "새친구", GiftKinds.Invite => "전도", GiftKinds.Birthday => "생일",
-        GiftKinds.Reading => "완독", GiftKinds.Family => "가족팀", GiftKinds.Friend => "친구팀", _ => kind,
+        GiftKinds.Reading => "완독", GiftKinds.Copy => "완필", GiftKinds.Family => "가족팀", GiftKinds.Friend => "친구팀", _ => kind,
     };
 
     public static string StateOf(string tab) => tab switch { Give => GiftStates.Purchased, Done => GiftStates.Delivered, Cancel => GiftStates.Cancelled, _ => GiftStates.Picked };
@@ -133,10 +134,11 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
             {
                 Birthday = g.Kind == GiftKinds.Birthday ? BirthdayGiftService.BirthdayOf(g.SourceKey) : null,
                 NoAccount = BirthdayGiftService.LinkKinds.Contains(g.Kind) && g.UserName is null && !NewcomerGiftService.Unassigned(g),
-                About = g.Kind == GiftKinds.Invite && NewcomerGiftService.NewcomerOf(g.SourceKey) is int nid ? people.FirstOrDefault(p => p.Id == nid)?.Name : null,
+                About = g.Kind == GiftKinds.Invite && NewcomerGiftService.NewcomerOf(g.SourceKey) is int nid ? people.FirstOrDefault(p => p.Id == nid)?.Name
+                    : g.Kind == GiftKinds.Copy ? CopyGiftService.AboutOf(g.SourceKey) : null,
                 Unassigned = NewcomerGiftService.Unassigned(g),
                 Round = g.Kind == GiftKinds.Reading ? ReadingGiftService.RoundOf(g.SourceKey) : null,
-                DoneOn = g.Kind == GiftKinds.Reading ? g.OpenFrom : null,
+                DoneOn = g.Kind is GiftKinds.Reading or GiftKinds.Copy ? g.OpenFrom : null,
                 LinkToken = g.LinkToken,
             };
         }).ToList();

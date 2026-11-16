@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ChallengeBible.Infrastructure.Data;
@@ -374,6 +374,20 @@ public sealed class ReadingVerse : IPersonOwned
     public short Chapter { get; set; }
     public short Verse { get; set; }
     public DateTime ReadAt { get; set; }
+}
+
+/// <summary>
+/// 성경필사 한 절(ADR 0099, R-305): 계정 범위(통독처럼 부서를 옮겨도 따라간다). 같은 절은 번역이 달라도 한 줄 — 마지막에 쓴 번역을 남긴다.
+/// </summary>
+public sealed class CopyVerse : IPersonOwned
+{
+    public required string UserName { get; set; }
+    public byte BookId { get; set; }
+    public short Chapter { get; set; }
+    public short Verse { get; set; }
+    /// <summary>쓴 번역(krv · klb · niv).</summary>
+    public required string Translation { get; set; }
+    public DateTime WrittenAt { get; set; }
 }
 
 public sealed class ReadingBookmark : IPersonOwned
@@ -768,6 +782,19 @@ internal sealed class ReadingRoundConfig : IEntityTypeConfiguration<ReadingRound
         e.Property(x => x.ClosedAt).HasColumnType("datetime2(3)");
         e.Ignore(x => x.IsOpen);
         e.HasIndex(x => x.UserName).IsUnique().HasFilter("[CompletedAt] IS NULL AND [ClosedAt] IS NULL").HasDatabaseName("UX_DM2_ReadingRound_Open");
+    }
+}
+
+internal sealed class CopyVerseConfig : IEntityTypeConfiguration<CopyVerse>
+{
+    public void Configure(EntityTypeBuilder<CopyVerse> e)
+    {
+        e.ToTable("CopyVerse", "app");
+        e.HasKey(x => new { x.UserName, x.BookId, x.Chapter, x.Verse }).HasName("PK_CopyVerse");
+        e.Property(x => x.UserName).HasMaxLength(256);
+        e.Property(x => x.Translation).HasMaxLength(8).IsUnicode(false);
+        e.Property(x => x.WrittenAt).HasColumnType("datetime2(3)");
+        e.HasIndex(x => new { x.UserName, x.WrittenAt }).HasDatabaseName("IX_CopyVerse_User_WrittenAt");
     }
 }
 

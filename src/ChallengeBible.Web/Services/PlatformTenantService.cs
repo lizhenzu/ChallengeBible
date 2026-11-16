@@ -9,6 +9,8 @@ public sealed record TenantRow(int Id, string Name, string Slug, string JoinCode
     string Status, int MemberCount, IReadOnlyList<(string UserName, string Name, string Email)> Admins, DateTime CreatedUtc, string TimeZoneId)
 {
     public bool JoinListed { get; init; }
+    /// <summary>도전!!!성경필사를 켰는가(ADR 0099).</summary>
+    public bool CopyEnabled { get; init; }
 }
 
 public sealed record NewTenant(string Name, string Slug, string TimeZoneId, string ThemeColor, bool Mission, bool Reading, string? AdminEmail);
@@ -58,7 +60,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
             .Select(a => new { a.TenantId, a.Id, DisplayName = AppUser.FullName(a.LastName, a.FirstName), a.Email }).ToList();
         return tenants.Select(t => new TenantRow(t.Id, t.Name, t.Slug, t.JoinCode.Trim(), t.ThemeColor, t.MissionEnabled, t.ReadingEnabled, t.Status,
                 counts.GetValueOrDefault(t.Id),
-                admins.Where(a => a.TenantId == t.Id).Select(a => (a.Id, a.DisplayName, a.Email)).ToList(), t.CreatedUtc, t.TimeZoneId) { JoinListed = t.JoinListed })
+                admins.Where(a => a.TenantId == t.Id).Select(a => (a.Id, a.DisplayName, a.Email)).ToList(), t.CreatedUtc, t.TimeZoneId) { JoinListed = t.JoinListed, CopyEnabled = t.CopyEnabled })
             .ToList();
     }
 
@@ -141,12 +143,13 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         return errors;
     }
 
-    public async Task<string?> SetProgramsAsync(string actor, int tenantId, bool mission, bool reading, CancellationToken ct = default)
+    public async Task<string?> SetProgramsAsync(string actor, int tenantId, bool mission, bool reading, CancellationToken ct = default, bool? copy = null)
     {
-        if (!mission && !reading) return "프로그램을 하나는 켜 주세요(R-150).";
         await using var ctx = await OpenAsync(actor, ct);
         var t = await ctx.Tenants.SingleAsync(x => x.Id == tenantId, ct);
-        (t.MissionEnabled, t.ReadingEnabled) = (mission, reading);
+        var c = copy ?? t.CopyEnabled;   // 성경필사(ADR 0099): 넘기지 않으면 그대로
+        if (!mission && !reading && !c) return "프로그램을 하나는 켜 주세요(R-150).";
+        (t.MissionEnabled, t.ReadingEnabled, t.CopyEnabled) = (mission, reading, c);
         await ctx.SaveChangesAsync(ct);
         return null;
     }

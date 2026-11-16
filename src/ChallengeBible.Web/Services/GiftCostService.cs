@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Tenancy;
@@ -31,7 +31,7 @@ public sealed class GiftCostService(IAppDb db, ISystemDb systemDb, TenantContext
     public static readonly IReadOnlyList<(string Key, string Label, string[] Kinds)> KindRows =
     [
         ("personal", "개인 선물", [GiftKinds.Personal]), ("family", "가족팀", [GiftKinds.Family]), ("friend", "친구팀", [GiftKinds.Friend]),
-        ("birthday", "생일", [GiftKinds.Birthday]), ("newcomer", "새친구 · 초대", [GiftKinds.Newcomer, GiftKinds.Invite]), ("reading", "완독", [GiftKinds.Reading]),
+        ("birthday", "생일", [GiftKinds.Birthday]), ("newcomer", "새친구 · 초대", [GiftKinds.Newcomer, GiftKinds.Invite]), ("reading", "완독", [GiftKinds.Reading]), ("copy", "완필", [GiftKinds.Copy]),
     ];
 
     public static GiftCostPeriod Period(string? key, string? from, string? to, DateOnly today)

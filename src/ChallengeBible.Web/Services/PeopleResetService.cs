@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
@@ -86,6 +86,7 @@ public sealed class PeopleResetService(ISystemDb systemDb, TimeProvider time)
         await DeleteAsync(ctx, ctx.ReadingChapterProgresses.Where(r => names.Contains(r.UserName)), ct);
         await DeleteAsync(ctx, ctx.ReadingBookmarks.Where(r => names.Contains(r.UserName)), ct);
         await DeleteAsync(ctx, ctx.ReadingRounds.Where(r => names.Contains(r.UserName)), ct);
+        await DeleteAsync(ctx, ctx.CopyVerses.Where(r => names.Contains(r.UserName)), ct);   // 성경필사(ADR 0099)
 
         await DeleteAsync(ctx, ctx.AttendanceChecks.Where(a => persons.Contains(a.PersonId)), ct);
         await DeleteAsync(ctx, ctx.ClassMembers, ct);   // 반을 새로 짜므로 반 배정은 모두(남는 관리자의 담임 자리 포함)

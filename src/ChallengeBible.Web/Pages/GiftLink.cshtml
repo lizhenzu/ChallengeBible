@@ -1,11 +1,11 @@
-@page "/gift/{token}"
+﻿@page "/gift/{token}"
 @model ChallengeBible.Web.Pages.GiftLinkModel
 @* 확정 시안 생일-선물 ③(2026-11-14): 로그인 없는 선물 링크 — 아이 이름 · 선물 종류만(R-287) *@
-<div class="gk-pg @(Model.View?.Gift.Kind switch { "Newcomer" or "Invite" => "gk-pg-g", "Reading" => "gk-pg-o", _ => "gk-pg-b" }) gk-link">
+<div class="gk-pg @(Model.View?.Gift.Kind switch { "Newcomer" or "Invite" => "gk-pg-g", "Reading" or "Copy" => "gk-pg-o", _ => "gk-pg-b" }) gk-link">
     @if (Model.View is { } v)
     {
         <div class="gk-hero"><span>@v.Gift.KindLabel</span><h1>@v.Gift.Name 어린이 @(v.Gift.Kind == "Birthday" ? "생일 선물" : "선물")</h1>
-            <p>@(v.Gift.Kind switch { "Newcomer" => $"{v.Gift.TenantName}에 와 줘서 고마워요. 하나를 골라 주세요.", "Invite" => $"{ChallengeBible.Web.Pages.Admin.GiftsModel.Obj(v.Gift.About ?? "친구")} 데려와 줘서 고마워요. 하나를 골라 주세요.", "Reading" => $"성경 {v.Gift.About} 완독을 축하해요. 하나를 골라 주세요.", _ => $"{v.Gift.TenantName} 선생님이 보낸 선물이에요. 하나를 골라 주세요." })</p></div>
+            <p>@(v.Gift.Kind switch { "Newcomer" => $"{v.Gift.TenantName}에 와 줘서 고마워요. 하나를 골라 주세요.", "Invite" => $"{ChallengeBible.Web.Pages.Admin.GiftsModel.Obj(v.Gift.About ?? "친구")} 데려와 줘서 고마워요. 하나를 골라 주세요.", "Reading" => $"성경 {v.Gift.About} 완독을 축하해요. 하나를 골라 주세요.", "Copy" => $"성경 {v.Gift.About} 필사 완필을 축하해요. 하나를 골라 주세요.", _ => $"{v.Gift.TenantName} 선생님이 보낸 선물이에요. 하나를 골라 주세요." })</p></div>
         <partial name="_BirthdayPick" model="v" />
     }
     else

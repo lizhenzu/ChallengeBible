@@ -69,9 +69,9 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
         return errors.Ok ? RedirectToPage(new { Open = id, Ok = "info" }) : await RowFail(id, string.Join(" ", errors.Values), ct);
     }
 
-    public async Task<IActionResult> OnPostProgramsAsync(int id, bool mission, bool reading, CancellationToken ct)
+    public async Task<IActionResult> OnPostProgramsAsync(int id, bool mission, bool reading, bool copy, CancellationToken ct)
     {
-        var err = await platform.SetProgramsAsync(Me, id, mission, reading, ct);
+        var err = await platform.SetProgramsAsync(Me, id, mission, reading, ct, copy);
         return err is null ? RedirectToPage(new { Open = id, Ok = "saved" }) : await RowFail(id, err, ct);
     }
 

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ChallengeBible.Infrastructure.Data;
@@ -81,9 +81,11 @@ public static class GiftKinds
     public const string Invite = "Invite";
     public const string Birthday = "Birthday";
     public const string Reading = "Reading";
+    /// <summary>성경필사 완필(ADR 0099): 신약 · 구약 전체를 다 쓰면, 열쇠 CNT · COT.</summary>
+    public const string Copy = "Copy";
     public const string Family = "Family";
     public const string Friend = "Friend";
-    public static readonly string[] All = [Personal, Newcomer, Invite, Birthday, Reading, Family, Friend];
+    public static readonly string[] All = [Personal, Newcomer, Invite, Birthday, Reading, Copy, Family, Friend];
 }
 
 /// <summary>선물 상태(R-298). YearClosed = 새해 강제 초기화로 닫힘(R-296).</summary>

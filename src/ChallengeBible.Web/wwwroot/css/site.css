@@ -4115,3 +4115,4 @@ details.create.tn-new[open] > summary { margin-bottom: 12px; }
 .wc-play { width: 30px; height: 30px; }
 .wc-v1 { padding: 3px 7px; }
 .wc-ref small { white-space: nowrap; display: inline-block; }
+.tn-t.c { background: #F3EBE3; color: #7A4E2D; }   /* 성경필사 꼬리표(ADR 0099) */

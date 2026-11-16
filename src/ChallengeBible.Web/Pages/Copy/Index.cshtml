@@ -1,0 +1,58 @@
+@page "/{slug}/copy"
+@model ChallengeBible.Web.Pages.Copy.IndexModel
+@using ChallengeBible.Infrastructure.Data
+@* 확정 시안 성경필사 ①(2026-11-16): 내 진도 → 이어 쓰기 → 완필 선물 → 필사 진도 → 최근 쓴 곳 → 장 고르기 · 참여자 현황 *@
+@{
+    var d = Model.Data;
+    var resume = d.Resume;
+    var resumeDone = d.Recent.FirstOrDefault(r => r.BookId == resume.BookId && r.Chapter == resume.Chapter);
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var dash = (276.5 * Math.Max(d.All, d.Done > 0 ? 1 : 0) / 100).ToString("0.#", inv);
+}
+<link rel="stylesheet" href="~/css/copy.css" asp-append-version="true" />
+<div class="bc">
+@{ var bcTop = ((ChallengeBible.Web.Pages.Copy.CopyPageBase)Model, Model.Title, (string?)null, (string?)null); }
+<partial name="_CopyTop" model="bcTop" />
+<main class="bc-main gut"><div class="wrap">
+    <p class="bc-k">나의 성경 필사</p>
+    <div class="bc-ring">
+        <svg width="104" height="104" viewBox="0 0 104 104" role="img" aria-label="전체 진도 @(CopyPageBaseHelpers.P(d.All))%"><circle cx="52" cy="52" r="44" stroke="var(--bc-track)" stroke-width="12" fill="none" /><circle cx="52" cy="52" r="44" stroke="var(--bc-acc)" stroke-width="12" fill="none" stroke-dasharray="@dash 276.5" transform="rotate(-90 52 52)" stroke-linecap="round" /><text x="52" y="58" text-anchor="middle" font-size="18" font-weight="800" fill="currentColor">@(CopyPageBaseHelpers.P(d.All))%</text></svg>
+        <div><div class="big num">@d.Done.ToString("N0") <small>/ @d.Total.ToString("N0")절</small></div>
+            <span class="sub">구약 @d.OldDone.ToString("N0") / @d.OldTotal.ToString("N0")절<br>신약 @d.NewDone.ToString("N0") / @d.NewTotal.ToString("N0")절</span></div>
+    </div>
+
+    <a class="bc-go" href="@Model.WriteUrl(resume.BookId, resume.Chapter, resume.Verse)">
+        <div><small>@(d.Done == 0 ? "필사 시작" : "이어 쓰기")</small><b>@resume.Name @(resume.Chapter)@(resume.BookId == 19 ? "편" : "장") @(resume.Verse)절</b>
+            <span>@(resumeDone is { } rd ? $"{rd.Verses}절 중 {rd.Done}절 씀" : "본문을 보고 한 절씩 따라 써요")</span></div>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </a>
+
+    @if (Model.MyGifts.Count > 0) { <div class="gk-rdwrap">@await Html.PartialAsync("/Pages/Mission/_BirthdayGiftCard.cshtml", (Model.Slug, Model.MyGifts))</div> }   @* 완필 선물(R-307) *@
+    <div class="bc-gift"><span class="ic" aria-hidden="true">🎁</span><div><b>신약이나 구약을 다 쓰면 선물을 받아요.</b><br>지금 신약 @(CopyPageBaseHelpers.P(d.New))% · 구약 @(CopyPageBaseHelpers.P(d.Old))%</div></div>
+
+    <section class="bc-card" aria-labelledby="bcP">
+        <p class="bc-k" id="bcP">필사 진도</p>
+        @foreach (var (label, done, total, pct) in new[] { ("전체", d.Done, d.Total, d.All), ("구약", d.OldDone, d.OldTotal, d.Old), ("신약", d.NewDone, d.NewTotal, d.New) })
+        {
+            <div class="bc-prow"><span>@label</span><b class="num">@done.ToString("N0") / @total.ToString("N0") · @(CopyPageBaseHelpers.P(pct))%</b></div>
+            <div class="bc-bar"><i style="width:@(pct.ToString("0.#", inv))%"></i></div>
+        }
+    </section>
+
+    @if (d.Recent.Count > 0)
+    {
+        <section class="bc-card bc-list" aria-label="최근 쓴 곳">
+            <p class="bc-k" style="margin-bottom:4px">최근 쓴 곳</p>
+            @foreach (var r in d.Recent)
+            {
+                <a href="@Model.WriteUrl(r.BookId, r.Chapter)">@r.Name @(r.Chapter)@(r.BookId == 19 ? "편" : "장") <small>@r.On.ToString("M/d") · @(r.Done >= r.Verses ? "다 씀" : $"{r.Done}절")</small></a>
+            }
+        </section>
+    }
+
+    <nav class="bc-card bc-list" aria-label="필사 메뉴">
+        <a href="/@Model.Slug/copy/books">장 고르기 <small>창세기 ~ 요한계시록 ›</small></a>
+        <a href="/@Model.Slug/copy/participants">참여자 현황 <small>우리 부서 누가 어디까지 ›</small></a>
+    </nav>
+</div></main>
+</div>

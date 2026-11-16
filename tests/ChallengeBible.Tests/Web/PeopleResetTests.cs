@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -58,6 +58,8 @@ public partial class PeopleResetTests : IClassFixture<WebApplicationFactory<Prog
         raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = _kid, MissionDate = new DateOnly(2026, 11, 8), MissionItem = "Word.Me", Points = 10, PerformedAt = DateTime.UtcNow });
         raw.ReadingRounds.Add(new ReadingRound { UserName = _kid, RoundNo = 1, StartedAt = DateTime.UtcNow });
         raw.ReadingRounds.Add(new ReadingRound { UserName = _admin, RoundNo = 1, StartedAt = DateTime.UtcNow });   // 관리자 것은 남는다
+        raw.CopyVerses.Add(new CopyVerse { UserName = _kid, BookId = 43, Chapter = 3, Verse = 16, Translation = "KRV", WrittenAt = DateTime.UtcNow });   // 성경필사(ADR 0099)
+        raw.CopyVerses.Add(new CopyVerse { UserName = _admin, BookId = 43, Chapter = 3, Verse = 16, Translation = "KRV", WrittenAt = DateTime.UtcNow });
         var team = new FamilyTeam { TenantId = _kids.Id, Name = "동석네", AwardKey = "동석네", TeamType = TeamTypes.Family, InsertDT = DateTime.UtcNow, UpdateDT = DateTime.UtcNow };
         team.Members.Add(new FamilyMember { TenantId = _kids.Id, UserName = _kid, SortOrder = 0, Relation = FamilyRelation.Student });
         raw.FamilyTeams.Add(team);
@@ -108,6 +110,7 @@ public partial class PeopleResetTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Empty(raw.ClassMembers);
         Assert.Empty(raw.MissionActivities);
         Assert.Equal(_admin, raw.ReadingRounds.Single().UserName);
+        Assert.Equal(_admin, raw.CopyVerses.Single().UserName);   // 필사도 지운 사람 것만
         Assert.Empty(raw.FamilyTeams);
         Assert.Empty(raw.FamilyMembers);
         Assert.Empty(raw.TeamAwards);

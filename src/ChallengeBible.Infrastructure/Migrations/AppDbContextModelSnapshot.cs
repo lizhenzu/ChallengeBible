@@ -1246,6 +1246,39 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("CodeData", "dbo");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.CopyVerse", b =>
+                {
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<byte>("BookId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<short>("Chapter")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("Verse")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("Translation")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<DateTime>("WrittenAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("UserName", "BookId", "Chapter", "Verse")
+                        .HasName("PK_CopyVerse");
+
+                    b.HasIndex("UserName", "WrittenAt")
+                        .HasDatabaseName("IX_CopyVerse_User_WrittenAt");
+
+                    b.ToTable("CopyVerse", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.DailyPrayer", b =>
                 {
                     b.Property<int>("Id")
@@ -3157,6 +3190,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasMaxLength(12)
                         .HasColumnType("nvarchar(12)");
 
+                    b.Property<bool>("CopyEnabled")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("CreatedUtc")
                         .HasColumnType("datetime2(3)");
 
@@ -3240,7 +3276,7 @@ namespace ChallengeBible.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("CK_Tenant_JoinCode", "JoinCode NOT LIKE '%[^A-Z0-9]%' COLLATE Latin1_General_BIN");
 
-                            t.HasCheckConstraint("CK_Tenant_Program", "MissionEnabled = 1 OR ReadingEnabled = 1");
+                            t.HasCheckConstraint("CK_Tenant_Program", "MissionEnabled = 1 OR ReadingEnabled = 1 OR CopyEnabled = 1");
 
                             t.HasCheckConstraint("CK_Tenant_Slug", "LEN(Slug) >= 2 AND Slug NOT LIKE '%[^a-z0-9-]%'");
 

@@ -1,4 +1,4 @@
-using ChallengeBible.Domain.Time;
+﻿using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -106,6 +106,7 @@ public sealed class YearResetService(ISystemDb systemDb, TimeProvider time)
         await DeleteAsync(ctx, ctx.DeptRoles.Where(d => d.UserId == null || !keep.Contains(d.UserId)), ct);
         await DeleteAsync(ctx, ctx.SignupApplications.Where(s => !keep.Contains(s.UserId)), ct);
         await DeleteAsync(ctx, ctx.UserSettings.Where(s => goneNames.Contains(s.UserName)), ct);
+        await DeleteAsync(ctx, ctx.CopyVerses.Where(c => goneNames.Contains(c.UserName)), ct);   // 성경필사(ADR 0099): 지우는 계정의 것만 — 남는 관리자 필사는 새해에도 그대로(사용자 질문 8 → 1)
         if (ctx.Database.IsRelational())
         {
             const string keepSql = "SELECT ur.UserId FROM [Identity].[UserRoles] ur JOIN [Identity].[Role] r ON r.Id = ur.RoleId WHERE r.NormalizedName IN (N'ADMIN', N'SUPERADMIN')";

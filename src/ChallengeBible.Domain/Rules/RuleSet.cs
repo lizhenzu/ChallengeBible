@@ -121,6 +121,9 @@ public sealed record GiftRules
     public int ReopenDays { get; init; } = 7;
     /// <summary>완독 회차별 금액(R-289): 1독 · 2독 · 3독부터(표에 없는 회차는 마지막 값).</summary>
     public IReadOnlyList<int> ReadingAmounts { get; init; } = [10000, 15000, 20000];
+    /// <summary>성경필사 완필 선물 금액(ADR 0099, R-307): 신약 전체 · 구약 전체.</summary>
+    public int CopyNewAmount { get; init; } = 10000;
+    public int CopyOldAmount { get; init; } = 20000;
     /// <summary>가족팀 단계별 금액(R-290): 1,000점 · 2,000점 · 3,000점부터(마지막 값이 이후 모든 단계).</summary>
     public IReadOnlyList<int> FamilyAmounts { get; init; } = [10000, 20000, 30000];
     /// <summary>친구팀은 같은 단계 금액을 이 수로 나눠 각자(R-290).</summary>

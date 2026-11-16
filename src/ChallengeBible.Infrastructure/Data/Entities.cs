@@ -1,4 +1,4 @@
-namespace ChallengeBible.Infrastructure.Data;
+﻿namespace ChallengeBible.Infrastructure.Data;
 
 // 표 하나에 클래스 하나. 열 이름 · 형식은 물리 설계 참조 DDL 과 맞춘다.
 
@@ -22,6 +22,8 @@ public sealed class Tenant
     public string? ReportOrg { get; set; }
     public bool MissionEnabled { get; set; }
     public bool ReadingEnabled { get; set; }
+    /// <summary>도전!!!성경필사(ADR 0099): 세 번째 프로그램, 기본 꺼짐.</summary>
+    public bool CopyEnabled { get; set; }
     public bool ReadingBoardPublic { get; set; } = true;
     /// <summary>참여 신청 화면의 부서 목록에 보이기(0059). 기본 꺼짐 — 꺼져도 부서 주소 · 코드로는 신청할 수 있다.</summary>
     public bool JoinListed { get; set; }

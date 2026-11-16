@@ -1,4 +1,4 @@
-@model (string Slug, IReadOnlyList<ChallengeBible.Web.Services.BirthdayGiftView> Gifts)
+﻿@model (string Slug, IReadOnlyList<ChallengeBible.Web.Services.BirthdayGiftView> Gifts)
 @* 생일 · 새친구 · 전도 선물 카드(확정 시안 생일-선물 ① · 전도-선물 ③): 고를 수 있음(생일 분홍 · 새친구 · 전도 초록) · 고른 뒤(가족팀과 같은 대기 카드) · 기한 지남. 개인 선물 카드 위. 이모지 없음. *@
 @foreach (var g in Model.Gifts)
 {
@@ -16,6 +16,14 @@
         <a class="gk-card gk-rd" href="@href">
             <span class="gk-m"><span class="gk-tag gk-o">@g.About 완독</span><b>완독 선물을 골라요</b>
                 <small>@(g.OpenUntil is { } ru ? $"{ru:M월 d일}까지 · " : "")성경을 다 읽었어요, 축하해요!</small></span>
+            <span class="gk-go">고르기</span>
+        </a>
+    }
+    else if (g.State == "Open" && g.Kind == "Copy")
+    {
+        <a class="gk-card gk-rd" href="@href">
+            <span class="gk-m"><span class="gk-tag gk-o">@g.About 완필</span><b>완필 선물을 골라요</b>
+                <small>@(g.OpenUntil is { } cu ? $"{cu:M월 d일}까지 · " : "")필사를 다 썼어요, 축하해요!</small></span>
             <span class="gk-go">고르기</span>
         </a>
     }

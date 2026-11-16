@@ -1,0 +1,30 @@
+@page "/{slug}/copy/participants"
+@model ChallengeBible.Web.Pages.Copy.ParticipantsModel
+@* 성경필사 참여자 현황(ADR 0099): 이 부서 소속원의 필사 진도(쓴 절 · 신약 · 구약 · 마지막으로 쓴 곳). 점수 · 순위 없음 *@
+@{ var t = Model.Totals; }
+<link rel="stylesheet" href="~/css/copy.css" asp-append-version="true" />
+<div class="bc">
+@{ var bcTop = ((ChallengeBible.Web.Pages.Copy.CopyPageBase)Model, Model.Title, $"/{Model.Slug}/copy", (string?)null); }
+<partial name="_CopyTop" model="bcTop" />
+<main class="bc-main gut"><div class="wrap">
+    <p class="bc-hint">쓴 절이 많은 순서예요. 신약은 @t.NewTotal.ToString("N0")절, 구약은 @t.OldTotal.ToString("N0")절이에요.</p>
+    <div class="bc-card">
+        @if (Model.Rows.Count == 0) { <p class="bc-hint">아직 우리 부서에 필사한 사람이 없어요.</p> }
+        else
+        {
+            <table class="bc-board">
+                <thead><tr><th>이름</th><th class="n">쓴 절</th><th class="n">신약</th><th class="n">구약</th></tr></thead>
+                <tbody>
+                @foreach (var r in Model.Rows)
+                {
+                    <tr class="@(r.Me ? "me" : "")"><td>@r.Name@(r.Me ? " (나)" : "")<small>@(r.LastPlace is { } lp ? $"{lp} · {r.LastOn:M/d}" : "아직 시작 전")</small></td>
+                        <td class="n num">@r.Done.ToString("N0")</td>
+                        <td class="n num">@(CopyPageBaseHelpers.P(CopySummary.Percent(r.NewDone, t.NewTotal)))%</td>
+                        <td class="n num">@(CopyPageBaseHelpers.P(CopySummary.Percent(r.OldDone, t.OldTotal)))%</td></tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+</div></main>
+</div>

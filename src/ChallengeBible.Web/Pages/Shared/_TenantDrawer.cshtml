@@ -1,0 +1,25 @@
+@model ChallengeBible.Web.Tenancy.TenantContext
+@using ChallengeBible.Web.Auth
+@* 부서 화면 왼쪽 위 ☰ 메뉴판(2026-11-15 사용자, 부서 홈 · 성경필사가 함께 쓴다). 여는 버튼은 data-pnav-open, 동작은 platform-nav.js *@
+<div class="pdrawer" id="pnav" hidden>
+    <div class="pd-dim" data-pnav-close></div>
+    <aside class="pd-panel" tabindex="-1" role="dialog" aria-modal="true" aria-label="메뉴">
+        <div class="pd-top">
+            <span><b><em>도전!!!</em></b> <small class="pd-dept">@Model.Current.Name</small></span>
+            <button type="button" class="pd-x" aria-label="메뉴 닫기" data-pnav-close>✕</button>
+        </div>
+        <nav aria-label="메뉴">
+            <a href="/account">내 계정</a>
+            @if (Model.IsLobby) { <a href="/join">내 부서 참여</a> }
+            @if (Model.Current.CopyEnabled && !Model.IsLobby) { <a href="/@Model.Current.Slug/copy">성경필사</a> }   @* ADR 0099 *@
+            @if (!Model.IsLobby && Model.IsStaff) { <a href="/@Model.Current.Slug/attendance">출석</a> }
+            @if (Model.IsAdmin) { <a href="/@Model.Current.Slug/admin">관리</a> }
+            else if (!Model.IsLobby && Model.IsApproved && ChallengeBible.Web.Services.UserRole.KindOf(Model.RoleCode) == ChallengeBible.Web.Services.UserRoleKind.Teacher) { <a href="/@Model.Current.Slug/admin/members">명부</a> }
+            @if (User.IsPlatformAdmin()) { <a href="/platform">플랫폼</a> }
+        </nav>
+        <div class="pd-foot">
+            <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit">로그아웃</button></form>
+        </div>
+    </aside>
+</div>
+<script src="~/js/platform-nav.js" asp-append-version="true" defer></script>

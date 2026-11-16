@@ -1,0 +1,40 @@
+@page "/{slug}/copy/books"
+@model ChallengeBible.Web.Pages.Copy.BooksModel
+@* 확정 시안 성경필사 ③(2026-11-16): 구약 · 신약 탭 → 책마다 진도 → 책을 누르면 장 칸(다 씀 · 쓰는 중 · 안 씀) *@
+@{
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var books = Model.Books.Where(b => b.New == Model.NewTab).ToList();
+}
+<link rel="stylesheet" href="~/css/copy.css" asp-append-version="true" />
+<div class="bc">
+@{ var bcTop = ((ChallengeBible.Web.Pages.Copy.CopyPageBase)Model, Model.Title, $"/{Model.Slug}/copy", (string?)null); }
+<partial name="_CopyTop" model="bcTop" />
+<nav class="bc-tabs gut" aria-label="구약 · 신약">
+    <a href="/@Model.Slug/copy/books?t=ot" aria-current="@(Model.NewTab ? "false" : "page")">구약 39권</a>
+    <a href="/@Model.Slug/copy/books?t=nt" aria-current="@(Model.NewTab ? "page" : "false")">신약 27권</a>
+</nav>
+<main class="bc-main gut"><div class="wrap" style="gap:0">
+    @foreach (var b in books)
+    {
+        var open = Model.B == b.BookId;
+        <a class="bc-bk" id="b@(b.BookId)" href="/@Model.Slug/copy/books?t=@(b.New ? "nt" : "ot")@(open ? "" : $"&b={b.BookId}")#b@(b.BookId)" aria-expanded="@(open ? "true" : "false")">
+            <span>@b.Name @(open ? "▾" : "")</span>
+            <span class="bc-bar" aria-hidden="true"><i style="width:@(b.Percent.ToString("0.#", inv))%"></i></span>
+            <small>@(b.DoneChapters)/@(b.Chapters)@(b.BookId == 19 ? "편" : "장")</small>
+        </a>
+        @if (open)
+        {
+            <div class="bc-grid">
+                @foreach (var c in Model.Counts.Keys.Where(k => k.Book == b.BookId).Select(k => k.Chapter).Order())
+                {
+                    var n = Model.Counts[(b.BookId, c)];
+                    var done = Model.ChapterDone.GetValueOrDefault((b.BookId, c));
+                    var cls = n > 0 && done >= n ? "d" : done > 0 ? "h" : "";
+                    <a class="@cls" href="@Model.WriteUrl(b.BookId, c)" aria-label="@(c)@(b.BookId == 19 ? "편" : "장") · @(done)/@(n)절">@c</a>
+                }
+            </div>
+            <div class="bc-legend" style="padding-bottom:10px"><span><i class="d"></i>다 씀</span><span><i class="h"></i>쓰는 중</span><span><i></i>안 씀</span></div>
+        }
+    }
+</div></main>
+</div>
