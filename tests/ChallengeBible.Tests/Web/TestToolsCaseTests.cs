@@ -2,18 +2,42 @@ using System.Net;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Tests.Support;
 using ChallengeBible.Web.Services;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ChallengeBible.Tests.Web;
 
-/// <summary>시험 도구 › 케이스별 시험 · 오늘 할 일(확정 시안 케이스시험, 2026-11-16): 초등부에 [케이스] 데이터를 만들고 그 사람으로 가장 로그인, 지우기는 [케이스] 데이터만.</summary>
+/// <summary>
+/// 시험 도구 › 케이스별 시험 · 오늘 할 일(2026-11-16): [가짜 데이터 넣기] 뒤 실제 명단 아이(가짜 계정)에게 할 일 상황을 더하고,
+/// 케이스 버튼은 그 일을 할 가짜 계정(어드민 · t01 · p01)으로 가장 로그인만 한다. 8번은 그 쿠키에서만 오늘을 주일로 본다.
+/// </summary>
 public partial class TestToolsTests
 {
-    private int SeedElem()
+    /// <summary>초등부 + 가짜 계정(s05 · s06 · s07 · s09 · t01 · p01 · admin) + t01 이 담임인 반(아이 s05 · s06).</summary>
+    private int SeedElem(bool fake = true)
     {
         var t = InMemoryDb.SeedTenant(_db, "jamsil-elem", "JSELEM");
-        using var raw = InMemoryDb.Raw(_db);
-        raw.Tenants.Single(x => x.Id == t.Id).Name = "잠실새내교회 초등부";
-        raw.SaveChanges();
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.Tenants.Single(x => x.Id == t.Id).Name = "잠실새내교회 초등부";
+            raw.SaveChanges();
+        }
+        if (!fake) return t.Id;
+        var ids = new Dictionary<string, string>();
+        foreach (var (code, role) in new[] { ("s05", "T1001"), ("s06", "T1001"), ("s07", "T1001"), ("s09", "T1001"), ("t01", "T1002"), ("p01", (string?)null), ("admin", UserRole.AdminCode) })
+            ids[code] = Seed($"jamsil-elem-{code}", $"jamsil-elem-{code}@fake-seed.test", tenantId: t.Id, roleCode: role).Id;
+        InMemoryDb.AddRole(_db, ids["admin"], IdentityRoles.Admin);
+        using var db = InMemoryDb.Raw(_db);
+        var people = ids.ToDictionary(k => k.Key, k => { var p = new Person { TenantId = t.Id, Name = k.Key, UserId = k.Value, CreatedUtc = DateTime.UtcNow }; db.People.Add(p); return p; });
+        var term = new ClassTerm { TenantId = t.Id, Year = 2026, StartDate = new DateOnly(2026, 1, 1) };
+        db.ClassTerms.Add(term);
+        db.SaveChanges();
+        var cls = new SchoolClass { TenantId = t.Id, TermId = term.Id, Name = "1반" };
+        db.Classes.Add(cls);
+        db.SaveChanges();
+        db.ClassMembers.Add(new ClassMember { TenantId = t.Id, TermId = term.Id, ClassId = cls.Id, PersonId = people["t01"].Id, IsTeacher = true });
+        foreach (var k in new[] { "s05", "s06" }) db.ClassMembers.Add(new ClassMember { TenantId = t.Id, TermId = term.Id, ClassId = cls.Id, PersonId = people[k].Id });
+        db.SaveChanges();
         return t.Id;
     }
 
@@ -29,107 +53,96 @@ public partial class TestToolsTests
         return (url, await r.Content.ReadAsStringAsync());
     }
 
+    private async Task Seeded(WebApplicationFactory<Program> app)
+    {
+        using var scope = app.Services.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<CaseTestService>().SeedTodoAsync("superadmin");
+    }
+
     [Fact]
-    public async Task 케이스_1은_고른_선물을_만들고_부장으로_들어가_할_일_화면에서_사_주세요가_보인다()
+    public async Task 가짜_데이터가_없으면_케이스는_먼저_넣으라고_한다()
+    {
+        SeedElem(fake: false);
+        Seed("superadmin", "boss@example.com", platformAdmin: true);
+        var c = Client(App(enabled: true));
+        await Login(c, "superadmin");
+        Assert.Contains("케이스별 시험 · 오늘 할 일", await c.GetStringAsync("/test-tools"));
+        Assert.Contains("먼저 위의 [가짜 데이터 넣기]", await (await Post(c, "/test-tools?handler=Case", new() { ["no"] = "1" })).Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task 할_일_상황은_실제_명단_아이에게_들어가고_케이스_1은_어드민으로_들어가_사_주세요가_보인다()
     {
         var t = SeedElem();
         Seed("superadmin", "boss@example.com", platformAdmin: true);
         var app = App(enabled: true);
+        await Seeded(app);
+        await Seeded(app);   // 다시 해도 같은 상태
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            Assert.Equal(4, raw.Gifts.Count(g => g.TenantId == t && g.SourceKey.StartsWith("FAKE-")));
+            Assert.Single(raw.Gifts.Where(g => g.TenantId == t && g.Kind == GiftKinds.Birthday && g.State == GiftStates.Open));   // t01 반 아이 생일
+            Assert.Single(raw.People.Where(p => p.TenantId == t && p.NewcomerFirstVisit != null && p.CreatedByUserName == CaseTestService.FakeMarker));
+            Assert.Single(raw.SignupApplications.Where(a => a.TenantId == t && a.Status == SignupStatus.Pending));
+        }
         var c = Client(app);
         await Login(c, "superadmin");
-        Assert.Contains("케이스별 시험 · 오늘 할 일", await c.GetStringAsync("/test-tools"));
-
         var (url, body) = await Follow(c, await Post(c, "/test-tools?handler=Case", new() { ["no"] = "1" }));
         Assert.Equal("/jamsil-elem/todo", url);
-        Assert.Contains("사 주세요 · [케이스] 아이1", body);
-        using var raw = InMemoryDb.Raw(_db);
-        var u = raw.Users.Single(x => x.UserName == "jamsil-elem-k-boo");
-        Assert.EndsWith(TestToolsService.EmailDomain, u.Email);
-        Assert.Equal("T1005", raw.DeptRoles.Single(d => d.UserId == u.Id).RoleCode);
-        Assert.Contains(raw.Gifts, g => g.TenantId == t && g.State == GiftStates.Picked);
+        Assert.Contains("사 주세요 · ", body);
+        Assert.Contains("색연필 48색 세트", body);
+        Assert.Contains("참여 신청 승인 · 1건", body);
     }
 
     [Fact]
-    public async Task 케이스_계정은_비밀번호로_들어갈_수_없고_가짜_계정은_케이스를_못_돌린다()
+    public async Task 케이스_8은_그_쿠키에서만_오늘을_주일로_보고_담임_t01_에게_우리_반_출석이_뜬다()
     {
         SeedElem();
         Seed("superadmin", "boss@example.com", platformAdmin: true);
         var app = App(enabled: true);
-        var c = Client(app);
-        await Login(c, "superadmin");
-        await Post(c, "/test-tools?handler=Case", new() { ["no"] = "9" });
-
-        var c2 = Client(app);
-        var tok = TokenRx().Match(await c2.GetStringAsync("/account/login")).Groups[1].Value;
-        var r = await c2.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string>
-        {
-            ["__RequestVerificationToken"] = tok, ["Email"] = "jamsil-elem-k-tch", ["Password"] = TestToolsService.Password,
-        }));
-        Assert.NotEqual(HttpStatusCode.Redirect, r.StatusCode);   // 1234 로는 못 들어간다(가장으로만)
-
-        var t2 = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
-        Seed("jamsil-kids-t01", "jamsil-kids-t01@fake-seed.test", tenantId: t2.Id, roleCode: "T1002");
-        var c3 = Client(app);
-        await Login(c3, "jamsil-kids-t01");
-        Assert.DoesNotContain("케이스별 시험", await c3.GetStringAsync("/test-tools"));
-        var denied = await Post(c3, "/test-tools?handler=Case", new() { ["no"] = "1" });
-        Assert.NotEqual(HttpStatusCode.OK, denied.StatusCode);
-        Assert.False(denied.Headers.Location?.OriginalString.Contains("/todo") ?? false);
-        using var raw = InMemoryDb.Raw(_db);
-        Assert.DoesNotContain(raw.People, p => p.Name == $"{CaseTestService.Mark} 아이1");   // 아무것도 만들지 않았다
-    }
-
-    [Fact]
-    public async Task 케이스_8은_그_쿠키에서만_오늘을_주일로_보고_우리_반_출석_할_일이_뜬다()
-    {
-        SeedElem();
-        Seed("superadmin", "boss@example.com", platformAdmin: true);
-        var app = App(enabled: true);
+        await Seeded(app);
         var c = Client(app);
         await Login(c, "superadmin");
         var (url, body) = await Follow(c, await Post(c, "/test-tools?handler=Case", new() { ["no"] = "8" }));
         Assert.Equal("/jamsil-elem/todo", url);
-        Assert.Contains("우리 반 출석 체크 · [케이스] 반", body);
+        Assert.Contains("우리 반 출석 체크 · 1반", body);
 
-        // 같은 담임이라도 케이스 5 로 들어가면(주일 표시 없음) 주일이 아닌 날엔 출석 할 일이 없다
-        if (DateTime.UtcNow.AddHours(9).DayOfWeek != DayOfWeek.Sunday)
+        if (DateTime.UtcNow.AddHours(9).DayOfWeek != DayOfWeek.Sunday)   // 같은 담임이라도 5번(주일 표시 없음)이면 평일엔 출석 할 일이 없다
         {
             var (_, b5) = await Follow(c, await Post(c, "/test-tools?handler=Case", new() { ["no"] = "5" }));
-            Assert.Contains("생일 선물 링크 · [케이스] 생일아이", b5);
+            Assert.Contains("생일 선물 링크", b5);
             Assert.DoesNotContain("우리 반 출석 체크", b5);
         }
     }
 
     [Fact]
-    public async Task 케이스_지우기는_확인_글자가_있어야_하고_케이스_데이터만_지우며_관리자_계정은_남긴다()
+    public async Task 가짜_계정은_케이스를_못_돌린다()
+    {
+        var t = SeedElem();
+        var c3 = Client(App(enabled: true));
+        await Login(c3, "jamsil-elem-t01");
+        Assert.DoesNotContain("케이스별 시험", await c3.GetStringAsync("/test-tools"));
+        Assert.NotEqual(HttpStatusCode.OK, (await Post(c3, "/test-tools?handler=Case", new() { ["no"] = "1" })).StatusCode);
+    }
+
+    [Fact]
+    public async Task 예전_케이스_데이터_지우기는_확인_글자가_있어야_하고_관리자_계정은_남긴다()
     {
         var t = SeedElem();
         Seed("superadmin", "boss@example.com", platformAdmin: true);
         using (var raw = InMemoryDb.Raw(_db))
         {
+            raw.People.Add(new Person { TenantId = t, Name = $"{CaseTestService.Mark} 아이1", CreatedUtc = DateTime.UtcNow });
             raw.People.Add(new Person { TenantId = t, Name = "진짜 아이", CreatedUtc = DateTime.UtcNow });
             raw.SaveChanges();
         }
-        var app = App(enabled: true);
-        var c = Client(app);
+        var c = Client(App(enabled: true));
         await Login(c, "superadmin");
-        foreach (var n in new[] { 2, 5, 7, 10 }) await Post(c, "/test-tools?handler=Case", new() { ["no"] = n.ToString() });
-        c = Client(app);
-        await Login(c, "superadmin");
-
         Assert.Contains("확인 칸에 CASE", await (await Post(c, "/test-tools?handler=CaseClear", new() { ["confirm"] = "" })).Content.ReadAsStringAsync());
-        var body = await (await Post(c, "/test-tools?handler=CaseClear", new() { ["confirm"] = "CASE" })).Content.ReadAsStringAsync();
-        Assert.Contains("케이스 데이터를 지웠어요", body);
+        Assert.Contains("예전 케이스 데이터를 지웠어요", await (await Post(c, "/test-tools?handler=CaseClear", new() { ["confirm"] = "CASE" })).Content.ReadAsStringAsync());
         using var after = InMemoryDb.Raw(_db);
-        Assert.DoesNotContain(after.People, p => p.UserId == null && p.Name.StartsWith(CaseTestService.Mark));
+        Assert.DoesNotContain(after.People, p => p.Name.StartsWith(CaseTestService.Mark));
         Assert.Contains(after.People, p => p.Name == "진짜 아이");
-        Assert.Empty(after.Gifts.Where(g => g.TenantId == t));
-        Assert.Empty(after.SignupApplications.Where(a => a.TenantId == t));
-        Assert.DoesNotContain(after.DailyWords, w => w.Title.StartsWith(CaseTestService.Mark));
-        Assert.DoesNotContain(after.Classes, x => x.Name.StartsWith(CaseTestService.Mark));
-        var adm = after.Users.Single(x => x.UserName == "jamsil-elem-k-adm");   // 케이스 관리자 계정은 남는다(CLAUDE.md)
-        var adminRole = after.IdentityRoleRows.Single(r => r.Name == IdentityRoles.Admin).Id;
-        Assert.Contains(after.UserRoles, r => r.UserId == adm.Id && r.RoleId == adminRole);
-        Assert.Contains(after.Users, x => x.UserName == "superadmin");
+        Assert.Contains(after.Users, x => x.UserName == "jamsil-elem-admin");
     }
 }

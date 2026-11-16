@@ -39,6 +39,13 @@ CREATE TABLE #DelTeam (TenantId int, TeamId int, AwardKey nvarchar(200) COLLATE 
 INSERT #DelTeam SELECT TenantId, FamilyTeamId, ISNULL(AwardKey, TeamName) FROM dbo.DM2_FamilyTeam WHERE CreatorUserName IN (SELECT UserName FROM #Del);
 CREATE TABLE #DelPerson (TenantId int, PersonId int);
 INSERT #DelPerson SELECT TenantId, Id FROM app.Person WHERE CreatedByUserName = @Marker AND (UserId IS NULL OR UserId IN (SELECT UserId FROM #Del));
+CREATE TABLE #DelGift (TenantId int, GiftId bigint);
+INSERT #DelGift SELECT g.TenantId, g.Id FROM app.Gift g
+WHERE g.UserName IN (SELECT UserName FROM #Del) OR g.SourceKey LIKE N'FAKE-%'
+   OR EXISTS (SELECT 1 FROM app.Person p WHERE p.TenantId = g.TenantId AND p.Id = g.PersonId AND (p.UserId IN (SELECT UserId FROM #Del) OR p.CreatedByUserName = @Marker));
+DELETE l FROM app.GiftLog l JOIN #DelGift d ON d.TenantId = l.TenantId AND d.GiftId = l.GiftId;
+DELETE g FROM app.Gift g JOIN #DelGift d ON d.TenantId = g.TenantId AND d.GiftId = g.Id;
+DELETE FROM app.GiftPointUse WHERE UserName IN (SELECT UserName FROM #Del);
 
 UPDATE p SET BirthMonth = NULL, BirthDay = NULL
 FROM app.Person p JOIN app.AuditLog a ON a.Action = N'FakeBirthday' AND a.ActorUserName = @Marker AND a.TenantId = p.TenantId AND a.Detail = CONVERT(nvarchar(20), p.Id);

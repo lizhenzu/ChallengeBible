@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -87,7 +87,7 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
 
         // 복귀
         var back = await Post(c, "/account/impersonate/stop", "/jamsil-kids");
-        Assert.Equal($"/platform/accounts?id={_jieun}", back.Headers.Location!.OriginalString);
+        Assert.Equal("/platform", back.Headers.Location!.OriginalString);   // 복귀하면 늘 플랫폼 홈
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/platform")).StatusCode);
         Assert.DoesNotContain("가장 중", await c.GetStringAsync("/platform"));
 

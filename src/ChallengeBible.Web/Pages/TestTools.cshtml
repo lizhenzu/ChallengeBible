@@ -14,9 +14,9 @@
     {
         @* 케이스별 시험 · 오늘 할 일(확정 시안 케이스시험, 2026-11-16): 기존 버튼과 섞이지 않게 보라색 상자 *@
         <section class="tc" aria-labelledby="tcH">
-            <div class="tc-head"><h2 id="tcH">케이스별 시험 · 오늘 할 일</h2><small>누르면 데이터를 만들고 그 사람으로 바로 들어가요</small></div>
+            <div class="tc-head"><h2 id="tcH">케이스별 시험 · 오늘 할 일</h2><small>누르면 그 일을 할 사람으로 바로 들어가요</small></div>
             <div class="tc-body">
-                <p class="tc-dept">부서: <b>@(Model.CaseDept ?? "초등부 없음")</b> · 만든 것에는 @CaseTestService.Mark 표시가 붙어요. 실제 명단 · 관리자는 건드리지 않아요.</p>
+                <p class="tc-dept">부서: <b>@(Model.CaseDept ?? "초등부 없음")</b> · 아래 "가짜 데이터"로 실제 명단 아이들에게 넣은 할 일 상황으로 바로 들어가요. 지울 때도 함께 지워져요.</p>
                 @if (Model.CaseError is { } ce) { <p class="err" role="alert">@ce</p> }
                 @if (Model.CaseMessage is { } cm) { <p class="ok-box" role="status">@cm</p> }
                 <div class="tc-grid">
@@ -24,14 +24,14 @@
                     {
                         <form method="post" asp-page-handler="Case" class="tc-case">
                             <input type="hidden" name="no" value="@c.No" />
-                            <button type="submit"><i aria-hidden="true">@c.No</i><b>@c.Title</b><span>만들기: @c.Makes</span><span>로그인: <em>@c.Who</em></span><small>기대: @c.Expect</small></button>
+                            <button type="submit"><i aria-hidden="true">@c.No</i><b>@c.Title</b><span>상황: @c.Makes</span><span>로그인: <em>@c.Who</em></span><small>기대: @c.Expect</small></button>
                         </form>
                     }
                 </div>
                 <form method="post" asp-page-handler="CaseClear" class="tc-clear">
-                    <small>케이스로 만든 가짜 아이 · 반 · 선물 · 출석 · 신청 · 초안만 지워요(실제 학생 · 교사와 관리자 계정은 안 지워요).</small>
+                    <small>예전 방식으로 만든 [케이스] 아이 · 반 · 선물과 10번의 공용 초안만 지워요(실제 학생 · 교사와 관리자 계정은 안 지워요).</small>
                     <input class="in" name="confirm" autocomplete="off" placeholder="@CaseTestService.ConfirmWord" aria-label="지우기 확인 글자 @CaseTestService.ConfirmWord" />
-                    <button type="submit" class="btn d">케이스 데이터 지우기</button>
+                    <button type="submit" class="btn d">예전 [케이스] 데이터 지우기</button>
                 </form>
             </div>
         </section>

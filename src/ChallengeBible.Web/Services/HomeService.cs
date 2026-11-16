@@ -190,7 +190,7 @@ public sealed class HomeService(IAppDb db, TenantContext tenant, MissionService 
             UserRoleKind.Etc => new("기타", "et"),
             _ => new("학부모", "pa"),
         };
-        // 부서 관리자는 직분(역할 코드)과 따로인 권한이라 직분 칩 앞에 따로 붙인다(2026-11-14 사용자: 부장이면서 관리자일 수도, 아닐 수도 있다)
+        // 부서 관리자는 역할(역할 코드)과 따로인 권한이라 역할 칩 앞에 따로 붙인다(2026-11-14 사용자: 부장이면서 관리자일 수도, 아닐 수도 있다)
         var chips = new List<RoleChip>(plat);
         if (tenant.IsAdmin) chips.Add(new("부서 관리자", "ad"));
         chips.Add(role);

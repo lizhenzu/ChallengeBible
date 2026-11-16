@@ -66,7 +66,10 @@ public class TestToolsModel(TestToolsService tools, AccountService accounts, Use
         if (!string.Equals(confirm?.Trim(), TestToolsService.ConfirmWord, StringComparison.Ordinal))
             Error = $"실행하려면 확인 칸에 {TestToolsService.ConfirmWord} 를 써야 해요.";
         else
+        {
             Result = await tools.RunAsync(me, create, commit: true, ct);
+            if (create && Result.Ok) CaseMessage = $"할 일 상황(선물 · 생일 · 새친구 · 신청)도 넣었어요 · {await cases.SeedTodoAsync(me, ct)}개 부서";   // 케이스별 시험용
+        }
         await LoadAsync(ct);
         return Page();
     }

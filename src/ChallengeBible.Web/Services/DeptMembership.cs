@@ -53,7 +53,7 @@ public static class DeptMembership
         var setting = await sys.UserSettings.SingleOrDefaultAsync(s => s.UserName == userName, ct);
         if (setting is not null && from is int f && setting.LastTenantId == f) setting.LastTenantId = target;
         await sys.SaveChangesAsync(ct);
-        await DeptAdminRuleService.SyncAsync(sys, [user.Id], ct);   // 부서 관리자 규칙: 직분 따라 관리자 주기 · 빼기
+        await DeptAdminRuleService.SyncAsync(sys, [user.Id], ct);   // 부서 관리자 규칙: 역할 · 업무 따라 관리자 주기 · 빼기
         return (MoveError.None, moved);
     }
 }

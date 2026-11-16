@@ -216,7 +216,7 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         MemberError.BadState => "이미 처리됐어요. 화면을 새로 고쳐 주세요.",
         MemberError.SelfAdminRemove => "내 관리자 역할은 여기서 뺄 수 없어요.",
         MemberError.RuleOnly => "부서 관리자는 사람마다 정하지 않아요. 지도 · 부장 · 부감 · 서기 · 어드민 역할이나 선물 담당 같은 관리자 업무를 맡으면 저절로 돼요.",
-        MemberError.RuleAdmin => "부서 관리자 규칙으로 관리자인 직분이에요. 직분을 바꾸거나 플랫폼의 부서 관리자 규칙을 바꿔 주세요.",
+        MemberError.RuleAdmin => "부서 관리자 규칙으로 관리자인 역할이에요. 역할을 바꾸거나 플랫폼의 부서 관리자 규칙을 바꿔 주세요.",
         MemberError.TeamLocked => "시상 기록이 있는 팀에 있어 바꿀 수 없어요.",
         _ => "",
     };

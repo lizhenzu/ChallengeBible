@@ -4,54 +4,45 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-/// <summary>케이스 하나(확정 시안 케이스시험, 2026-11-16): 번호 · 제목 · 만드는 것 · 로그인할 사람 · 기대 결과.</summary>
+/// <summary>케이스 하나: 번호 · 제목 · 가짜 데이터에 있는 상황 · 로그인할 사람 · 기대 결과.</summary>
 public sealed record TestCase(int No, string Title, string Makes, string Who, string Expect);
 
-/// <summary>케이스를 만든 결과: 들어갈 가짜 계정(없으면 지금 계정 그대로 = 플랫폼 할 일), 오늘을 주일로 볼지, 갈 곳.</summary>
+/// <summary>케이스를 누른 결과: 들어갈 가짜 계정(없으면 지금 계정 그대로 = 플랫폼 할 일), 오늘을 주일로 볼지, 갈 곳.</summary>
 public sealed record CaseRun(string? Error, string? LoginAs = null, bool PretendSunday = false, string Next = "/");
 
-/// <summary>케이스 8(2026-11-16 사용자): 그 케이스로 들어간 가짜 담임 쿠키에만 "오늘을 주일로 본다" 표시가 있다. 요청마다 쿠키에서 채운다.</summary>
+/// <summary>케이스 8: 그 케이스로 들어간 가짜 담임 쿠키에만 "오늘을 주일로 본다" 표시가 있다. 요청마다 쿠키에서 채운다.</summary>
 public sealed class CaseFlags
 {
     public bool PretendSunday { get; set; }
 }
 
 /// <summary>
-/// 시험 도구 › 케이스별 시험 · 오늘 할 일(확정 시안 케이스시험, 2026-11-16 사용자). 플랫폼 관리자만, 시험 도구가 켜져 있을 때만.
-/// 초등부(이름에 "초등"이 든 첫 부서)에 케이스 데이터를 만들고 그 일을 할 가짜 계정으로 들어간다.
-/// 만든 명부 · 반 · 초안에는 [케이스] 표시가 붙고, 계정은 아이디 부서주소-k-역할 · 이메일 @fake-seed.test.
-/// 계정 비밀번호는 아무도 모르는 값이라 비밀번호로는 못 들어가고, 플랫폼 관리자의 가장(사람 바꾸기)으로만 들어간다(실제 아이 명단이 있는 부서라서).
-/// 지우기는 [케이스] 데이터만 지우고 계정(관리자 포함)은 남긴다(CLAUDE.md: 관리자 계정은 지우지 않는다).
+/// 시험 도구 › 케이스별 시험 · 오늘 할 일(2026-11-16 사용자 "실제 명단에 가짜 생일 · 점수를 넣어 실제처럼").
+/// [가짜 데이터 넣기]가 끝나면 SeedTodoAsync 가 부서마다 실제 명단 아이(가짜 계정 s05 · s06 · s07 · s09)에게 할 일 상황을 더한다:
+/// 선물 고름 · 4일 밀림 · 구매됨 · 아직 안 고름, 담임 t01 반 아이 생일 선물, 새친구(데려온 사람 미정), 참여 신청 1건.
+/// 케이스 버튼은 초등부의 그 상황을 처리할 가짜 계정(어드민 · t01 · p01)으로 가장 로그인할 뿐이다(8번만 이번 주일 출석을 비운다).
+/// 지우기는 [가짜 데이터 지우기](fake-delete.sql)가 함께 한다 — 선물 열쇠 FAKE- · 가짜 표시 명부 · 가짜 계정. 관리자 계정은 지우지 않는다(CLAUDE.md).
 /// </summary>
 public sealed class CaseTestService(ISystemDb systemDb, TestToolsService tools, RuleService rules, TimeProvider time)
 {
     public const string Mark = "[케이스]";
     public const string ConfirmWord = "CASE";
+    /// <summary>gen-fake-seed.py 의 가짜 표시와 같다(지우기가 함께 지운다).</summary>
+    public const string FakeMarker = "FAKE-SEED-20261114";
 
     public static readonly IReadOnlyList<TestCase> Cases =
     [
-        new(1, "🎁 선물 사기", "아이가 선물을 고름", "부장", "[구매 완료] 버튼이 보여요"),
-        new(2, "🎁 선물 밀림", "4일 전에 골랐는데 아무도 안 삼", "관리자", "빨간 \"밀림\" 표시"),
-        new(3, "🎁 선물 전하기", "이미 구매됨", "지도", "[전달 완료] 버튼이 보여요"),
-        new(4, "🔔 선물 대상 알림", "선물 대상 · 아직 안 고름", "선물 담당", "[링크 복사] 버튼이 보여요"),
-        new(5, "🎂 생일 링크", "맡은 반 아이 생일 20일 뒤", "담임", "생일 링크 보내기"),
-        new(6, "🆕 데려온 사람 정하기", "새 친구가 옴", "서기", "데려온 사람 고르기"),
-        new(7, "✋ 승인", "참여 신청 기다리는 중", "관리자", "승인 · 거절 열기"),
-        new(8, "📋 출석(주일)", "우리 반 출석 안 함 · 오늘을 주일로 봄", "담임", "출석 체크 열기"),
-        new(9, "🙂 할 일 없음", "아무 일도 없음", "일반 교사", "할 일 화면 없이 부서 홈"),
-        new(10, "📌 플랫폼 관리자", "공용 말씀 초안 하나", "지금 계정 그대로(플랫폼 관리자)", "플랫폼 할 일 · 공개 전 초안"),
+        new(1, "선물 사기", "s05 아이가 선물을 고름", "어드민", "[선물 처리로 이동] → 살 것에서 [샀어요]"),
+        new(2, "선물 밀림", "s06 아이가 4일 전에 고름 · 아무도 안 삼", "어드민", "빨간 \"4일째\" 표시"),
+        new(3, "선물 전하기", "s07 아이 선물 · 이미 구매됨", "어드민", "줄 것에서 [줬어요]"),
+        new(4, "선물 대상", "s09 아이 · 아직 안 고름", "어드민", "고르는 중에서 보기"),
+        new(5, "생일 선물", "t01 반 아이 생일 20일 뒤", "담임 t01", "생일 할 일 카드"),
+        new(6, "데려온 사람 정하기", "새친구가 4번 와서 선물 대상", "어드민", "선물 처리에서 데려온 아이 고르기"),
+        new(7, "참여 신청", "새 계정이 참여 신청", "어드민", "[사람 관리로 이동] → 승인"),
+        new(8, "출석(주일)", "t01 반 이번 주일 출석 비움 · 오늘을 주일로", "담임 t01", "[출석으로 이동]"),
+        new(9, "할 일 없음", "학부모 p01", "학부모 p01", "할 일 화면 없이 부서 홈"),
+        new(10, "플랫폼 관리자", "공용 말씀 초안 하나", "지금 계정 그대로", "플랫폼 할 일 · 공개 전 초안"),
     ];
-
-    /// <summary>케이스 계정: 코드 · 이름 · 직분 코드 · 관리자 권한 · 선물 담당 · 케이스 반 담임.</summary>
-    private sealed record Acct(string Code, string Name, string Role, bool Admin = false, bool GiftTag = false, bool Homeroom = false);
-    private static readonly Acct Officer = new("boo", "부장", "T1005");
-    private static readonly Acct Admin = new("adm", "관리자", UserRole.AdminCode);   // 어드민 역할(늘 관리자)
-    private static readonly Acct Director = new("dir", "지도", TodoRoles.DirectorCode);
-    private static readonly Acct GiftMgr = new("gft", "선물담당", UserRole.TeacherCode, GiftTag: true);
-    private static readonly Acct Homeroom = new("hr", "담임", UserRole.TeacherCode, Homeroom: true);
-    private static readonly Acct Clerk = new("clk", "서기", "T1008");
-    private static readonly Acct Teacher = new("tch", "교사", UserRole.TeacherCode);
-    private static readonly Acct Applicant = new("app", "신청자", "");
 
     /// <summary>시험 대상 부서: 이름에 "초등"이 든 첫 운영 중 부서(2026-11-16 사용자 "초등부로 고정").</summary>
     public async Task<(int Id, string Name, string Slug)?> DeptAsync(string actor, CancellationToken ct = default)
@@ -73,101 +64,153 @@ public sealed class CaseTestService(ISystemDb systemDb, TestToolsService tools, 
         await using var ctx = systemDb.Create(actor);
         if (!await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct)) return new("플랫폼 관리자만 할 수 있어요.");
         if (no == 10) return await DraftAsync(ctx, actor, ct);
+        if (no is < 1 or > 9) return new("없는 케이스예요.");
         if (await DeptAsync(ctx, ct) is not { } dept) return new("초등부가 없어요.");
-        var t = dept.Id;
-        var now = time.GetUtcNow().UtcDateTime;
-        var tz = await ctx.Tenants.Where(x => x.Id == t).Select(x => x.TimeZoneId).SingleAsync(ct);
-        var today = TenantClock.ToTenantDate(time.GetUtcNow(), tz);
         var slug = dept.Slug.ToLowerInvariant();
-
-        switch (no)
+        async Task<bool> Has(string code) => await ctx.Users.AnyAsync(u => u.NormalizedUserName == AppUser.Normalize($"{slug}-{code}"), ct);
+        if (!await Has("s05")) return new("먼저 위의 [가짜 데이터 넣기]를 해 주세요.");
+        var who = no switch { 5 or 8 => "t01", 9 => "p01", _ => "admin" };
+        if (!await Has(who)) return new(who == "admin" ? "초등부에 시험 관리자가 없어요. [관리자 없는 부서에 시험 관리자 만들기]를 먼저 눌러 주세요." : $"초등부에 {who} 계정이 없어요(명부가 적어요).");
+        if (no == 8)
         {
-            case 1:
+            // 이번 주일 t01 반 아이들의 가짜 출석을 비운다(진짜 출석은 건드리지 않는다)
+            var tz = await ctx.Tenants.Where(x => x.Id == dept.Id).Select(x => x.TimeZoneId).SingleAsync(ct);
+            var sunday = AttendanceService.SundayOf(TenantClock.ToTenantDate(time.GetUtcNow(), tz));
+            var kids = await KidsOfAsync(ctx, dept.Id, $"{slug}-t01", ct);
+            ctx.AttendanceChecks.RemoveRange(await ctx.AttendanceChecks.Where(a => a.TenantId == dept.Id && a.Sunday == sunday && kids.Contains(a.PersonId) && a.CreatedByUserName == FakeMarker).ToListAsync(ct));
+            await ctx.SaveChangesAsync(ct);
+        }
+        return new(null, $"{slug}-{who}", PretendSunday: no == 8);
+    }
+
+    /// <summary>이 담임이 맡은 정규 반의 학생 명부 줄.</summary>
+    private static async Task<List<int>> KidsOfAsync(AppDbContext ctx, int t, string teacher, CancellationToken ct)
+    {
+        var uid = await ctx.Users.Where(u => u.NormalizedUserName == AppUser.Normalize(teacher)).Select(u => u.Id).FirstOrDefaultAsync(ct);
+        var me = await ctx.People.Where(p => p.TenantId == t && p.UserId == uid).Select(p => (int?)p.Id).FirstOrDefaultAsync(ct);
+        if (me is null) return [];
+        var classes = await (from m in ctx.ClassMembers join c in ctx.Classes on new { m.TenantId, Id = m.ClassId } equals new { c.TenantId, c.Id }
+                             where m.TenantId == t && m.PersonId == me && m.IsTeacher && !c.IsNewcomer select m.ClassId).ToListAsync(ct);
+        return await ctx.ClassMembers.Where(m => m.TenantId == t && classes.Contains(m.ClassId) && !m.IsTeacher).Select(m => m.PersonId).ToListAsync(ct);
+    }
+
+    /// <summary>
+    /// [가짜 데이터 넣기] 뒤에 부서마다 할 일 상황을 더한다(다시 해도 같은 상태로). 선물 열쇠 FAKE- · 새친구 명부는 가짜 표시 · 신청자는 가짜 계정이라
+    /// [가짜 데이터 지우기]가 함께 지운다. 만든 부서 수를 돌려준다.
+    /// </summary>
+    public async Task<int> SeedTodoAsync(string actor, CancellationToken ct = default)
+    {
+        await using var ctx = systemDb.Create(actor);
+        if (!tools.Enabled || !await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct)) throw new UnauthorizedAccessException();
+        var now = time.GetUtcNow().UtcDateTime;
+        var n = 0;
+        foreach (var t in await ctx.Tenants.Where(x => !x.IsLobby).Select(x => new { x.Id, x.Slug, x.TimeZoneId }).ToListAsync(ct))
+        {
+            var slug = t.Slug.ToLowerInvariant();
+            var today = TenantClock.ToTenantDate(time.GetUtcNow(), t.TimeZoneId);
+            var names = new[] { "s05", "s06", "s07", "s09", "t01", "admin" }.Select(c => AppUser.Normalize($"{slug}-{c}")).ToList();
+            var users = await ctx.Users.Where(u => names.Contains(u.NormalizedUserName!)).Select(u => new { u.Id, u.UserName }).ToListAsync(ct);
+            string? U(string c) => users.FirstOrDefault(u => u.UserName!.Equals($"{slug}-{c}", StringComparison.OrdinalIgnoreCase))?.UserName;
+            if (U("s05") is null) continue;
+            var people = await ctx.People.Where(p => p.TenantId == t.Id && p.UserId != null).Select(p => new { p.Id, p.UserId }).ToListAsync(ct);
+            int? P(string c) => users.FirstOrDefault(u => u.UserName == U(c)) is { } x ? people.FirstOrDefault(p => p.UserId == x.Id)?.Id : null;
+
+            // 다시 넣으면 처음 상태로: 지난번 할 일 선물 · 새친구 · 신청을 지운다
+            var old = await ctx.Gifts.Where(g => g.TenantId == t.Id && g.SourceKey.StartsWith("FAKE-")).ToListAsync(ct);
+            var oldIds = old.Select(g => g.Id).ToList();
+            ctx.GiftLogs.RemoveRange(await ctx.GiftLogs.Where(l => l.TenantId == t.Id && oldIds.Contains(l.GiftId)).ToListAsync(ct));
+            ctx.Gifts.RemoveRange(old);
+            await ctx.SaveChangesAsync(ct);
+
+            var buyer = U("admin");
+            async Task Gift(string kid, string kind, string key, string state, DateTime? picked, DateTime? bought, string? item, int price, DateOnly? until = null)
             {
-                var u = await AccountAsync(ctx, t, slug, Officer, actor, now, ct);
-                var kid = await KidAsync(ctx, t, "아이1", actor, now, ct);
-                await GiftAsync(ctx, t, kid, GiftStates.Picked, now.AddHours(-2), null, null, today, now, ct);
-                return new(null, u);
-            }
-            case 2:
-            {
-                var u = await AccountAsync(ctx, t, slug, Admin, actor, now, ct);
-                var kid = await KidAsync(ctx, t, "아이2", actor, now, ct);
-                await GiftAsync(ctx, t, kid, GiftStates.Picked, now.AddDays(-4), null, null, today, now, ct);
-                return new(null, u);
-            }
-            case 3:
-            {
-                var u = await AccountAsync(ctx, t, slug, Director, actor, now, ct);
-                var buyer = await AccountAsync(ctx, t, slug, Officer, actor, now, ct);
-                var kid = await KidAsync(ctx, t, "아이3", actor, now, ct);
-                await GiftAsync(ctx, t, kid, GiftStates.Purchased, now.AddDays(-2), now.AddDays(-1), buyer, today, now, ct);
-                return new(null, u);
-            }
-            case 4:
-            {
-                var u = await AccountAsync(ctx, t, slug, GiftMgr, actor, now, ct);
-                var kid = await KidAsync(ctx, t, "아이4", actor, now, ct);
-                await GiftAsync(ctx, t, kid, GiftStates.Open, null, null, null, today, now, ct);
-                return new(null, u);
-            }
-            case 5:
-            {
-                var u = await AccountAsync(ctx, t, slug, Homeroom, actor, now, ct);
-                var b = today.AddDays(20);
-                var kid = await KidAsync(ctx, t, "생일아이", actor, now, ct, inClass: true, birthday: b);
-                await ResetKidAsync(ctx, t, kid, ct);
+                if (U(kid) is not { } user) return;
                 var g = new Gift
                 {
-                    TenantId = t, Kind = GiftKinds.Birthday, Year = (short)b.Year, PersonId = kid, SourceKey = BirthdayGiftService.SourceKey(b), State = GiftStates.Open,
-                    OpenFrom = today, OpenUntil = b, MinAmount = 10000, MaxAmount = 10000, CreatedUtc = now,
+                    TenantId = t.Id, Kind = kind, Year = (short)today.Year, UserName = user, PersonId = P(kid), SourceKey = key, State = state,
+                    OpenFrom = today.AddDays(-5), OpenUntil = until ?? today.AddDays(14), MinAmount = price, MaxAmount = Math.Max(price, 10000),
+                    ItemName = item, ItemPrice = item is null ? null : price, PickedUtc = picked, PurchasedUtc = bought, CreatedUtc = (picked ?? now).AddDays(-1),
                 };
                 ctx.Gifts.Add(g);
                 await ctx.SaveChangesAsync(ct);
-                return new(null, u);
-            }
-            case 6:
-            {
-                var u = await AccountAsync(ctx, t, slug, Clerk, actor, now, ct);
-                var kid = await KidAsync(ctx, t, "새친구", actor, now, ct);
-                await ResetKidAsync(ctx, t, kid, ct);
-                var p = await ctx.People.SingleAsync(x => x.TenantId == t && x.Id == kid, ct);
-                // 새친구 출석 규칙 횟수를 이번 주일에 막 채웠다(마지막 출석이 이번 주일이라 새해 정리 뒤에도 센다)
-                var visits = Math.Max(1, (await rules.ForDateAsync(today, ct)).Gifts.NewcomerVisits);
-                var first = AttendanceService.SundayOf(today).AddDays(-7 * (visits - 1));
-                (p.RoleCode, p.NewcomerFirstVisit, p.NewcomerVoluntary, p.NewcomerEvangelist) = (ClassService.NewcomerCode, first, false, $"{Mark} 모르는 친구");
-                for (var s = first; s <= today; s = s.AddDays(7))
-                    ctx.AttendanceChecks.Add(new AttendanceCheck { TenantId = t, PersonId = kid, Sunday = s, CreatedUtc = now, CreatedByUserName = actor });
+                ctx.GiftLogs.Add(new GiftLog { TenantId = t.Id, GiftId = g.Id, Action = GiftActions.Open, AtUtc = g.CreatedUtc });
+                if (picked is { } pk) ctx.GiftLogs.Add(new GiftLog { TenantId = t.Id, GiftId = g.Id, Action = GiftActions.Pick, ActorUserName = user, AtUtc = pk, ItemName = item, ItemPrice = price });
+                if (bought is { } bt) ctx.GiftLogs.Add(new GiftLog { TenantId = t.Id, GiftId = g.Id, Action = GiftActions.Purchase, ActorUserName = buyer, AtUtc = bt, ItemName = item, ItemPrice = price });
                 await ctx.SaveChangesAsync(ct);
-                return new(null, u);
             }
-            case 7:
+            await Gift("s05", GiftKinds.Personal, "FAKE-1", GiftStates.Picked, now.AddHours(-2), null, "색연필 48색 세트", 9900);
+            await Gift("s06", GiftKinds.Personal, "FAKE-2", GiftStates.Picked, now.AddDays(-4), null, "보드게임 할리갈리", 15000);
+            await Gift("s07", GiftKinds.Personal, "FAKE-3", GiftStates.Purchased, now.AddDays(-3), now.AddDays(-1), "축구공 4호", 12000);
+            await Gift("s09", GiftKinds.Personal, "FAKE-4", GiftStates.Open, null, null, null, 10000);
+
+            // 담임 t01 반 아이 하나에게 생일 선물(생일 20일 뒤)
+            var kids = await KidsOfAsync(ctx, t.Id, $"{slug}-t01", ct);
+            var kidRow = await ctx.People.Where(p => p.TenantId == t.Id && kids.Contains(p.Id) && p.UserId != null).OrderBy(p => p.Id).FirstOrDefaultAsync(ct);
+            if (kidRow is not null)
             {
-                var u = await AccountAsync(ctx, t, slug, Admin, actor, now, ct);
-                var app = await AccountAsync(ctx, t, slug, Applicant, actor, now, ct);
-                var a = await ctx.Users.SingleAsync(x => x.UserName == app, ct);
-                ctx.SignupApplications.RemoveRange(await ctx.SignupApplications.Where(x => x.UserId == a.Id).ToListAsync(ct));
-                ctx.SignupApplications.Add(new SignupApplication
+                var kidUser = await ctx.Users.Where(u => u.Id == kidRow.UserId).Select(u => u.UserName).FirstOrDefaultAsync(ct);
+                var b = today.AddDays(20);
+                var key = BirthdayGiftService.SourceKey(b);   // 생일 열쇠 모양 그대로(할 일에 생일 날짜가 보이게). 가짜 계정 아이라 지우기가 함께 지운다
+                var same = await ctx.Gifts.Where(g => g.TenantId == t.Id && g.Kind == GiftKinds.Birthday && g.PersonId == kidRow.Id && g.SourceKey == key).ToListAsync(ct);
+                var sameIds = same.Select(g => g.Id).ToList();
+                ctx.GiftLogs.RemoveRange(await ctx.GiftLogs.Where(l => l.TenantId == t.Id && sameIds.Contains(l.GiftId)).ToListAsync(ct));
+                ctx.Gifts.RemoveRange(same);
+                await ctx.SaveChangesAsync(ct);
+                ctx.Gifts.Add(new Gift
                 {
-                    TenantId = t, UserId = a.Id, UserName = app, FullName = AppUser.FullName(a.LastName, a.FirstName), RoleKind = SignupRoleKind.Student, InsertDT = now,
+                    TenantId = t.Id, Kind = GiftKinds.Birthday, Year = (short)b.Year, UserName = kidUser, PersonId = kidRow.Id, SourceKey = key,
+                    State = GiftStates.Open, OpenFrom = today, OpenUntil = b, MinAmount = 10000, MaxAmount = 10000, CreatedUtc = now,
                 });
                 await ctx.SaveChangesAsync(ct);
-                return new(null, u);
             }
-            case 8:
+
+            // 새친구: 데려왔다고 적었는데 명부에 없는 이름 · 출석 규칙 횟수를 이번 주일에 막 채움
+            ctx.AttendanceChecks.RemoveRange(await ctx.AttendanceChecks.Where(a => a.TenantId == t.Id && a.CreatedByUserName == FakeMarker
+                && ctx.People.Any(p => p.TenantId == t.Id && p.Id == a.PersonId && p.CreatedByUserName == FakeMarker && p.NewcomerFirstVisit != null)).ToListAsync(ct));
+            ctx.People.RemoveRange(await ctx.People.Where(p => p.TenantId == t.Id && p.CreatedByUserName == FakeMarker && p.NewcomerFirstVisit != null).ToListAsync(ct));
+            await ctx.SaveChangesAsync(ct);
+            var visits = Math.Max(1, (await rules.ForDateAsync(today, ct)).Gifts.NewcomerVisits);
+            var first = AttendanceService.SundayOf(today).AddDays(-7 * (visits - 1));
+            var nc = new Person
             {
-                var u = await AccountAsync(ctx, t, slug, Homeroom, actor, now, ct);
-                var kid = await KidAsync(ctx, t, "반아이", actor, now, ct, inClass: true);
-                ctx.AttendanceChecks.RemoveRange(await ctx.AttendanceChecks.Where(x => x.TenantId == t && x.PersonId == kid).ToListAsync(ct));
+                TenantId = t.Id, Name = "한새봄", RoleCode = ClassService.NewcomerCode, NewcomerFirstVisit = first, NewcomerVoluntary = false,
+                NewcomerEvangelist = "모르는 친구", CreatedUtc = now, CreatedByUserName = FakeMarker,
+            };
+            ctx.People.Add(nc);
+            await ctx.SaveChangesAsync(ct);
+            for (var s = first; s <= today; s = s.AddDays(7))
+                ctx.AttendanceChecks.Add(new AttendanceCheck { TenantId = t.Id, PersonId = nc.Id, Sunday = s, CreatedUtc = now, CreatedByUserName = FakeMarker });
+
+            // 참여 신청: 가짜 계정 하나(부서주소-a01)가 이 부서에 신청
+            var appName = $"{slug}-a01";
+            var app = await ctx.Users.SingleOrDefaultAsync(u => u.NormalizedUserName == AppUser.Normalize(appName), ct);
+            if (app is null)
+            {
+                var email = appName + TestToolsService.EmailDomain;
+                app = new AppUser
+                {
+                    UserName = appName, NormalizedUserName = AppUser.Normalize(appName), Email = email, NormalizedEmail = AppUser.Normalize(email),
+                    FirstName = "윤다온", LastName = "", SecurityStamp = Guid.NewGuid().ToString("N"), ConcurrencyStamp = Guid.NewGuid().ToString(), LockoutEnabled = true, InsertDT = now,
+                };
+                app.PasswordHash = Hasher.HashPassword(app, Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(24)));
+                ctx.Users.Add(app);
+                var basic = await ctx.IdentityRoleRows.Where(r => r.Name == IdentityRoles.Basic).Select(r => r.Id).FirstOrDefaultAsync(ct);
+                if (basic is not null) ctx.UserRoles.Add(new AppUserRole { UserId = app.Id, RoleId = basic });
                 await ctx.SaveChangesAsync(ct);
-                return new(null, u, PretendSunday: true);
             }
-            case 9:
-                return new(null, await AccountAsync(ctx, t, slug, Teacher, actor, now, ct));
-            default:
-                return new("없는 케이스예요.");
+            ctx.SignupApplications.RemoveRange(await ctx.SignupApplications.Where(a => a.UserId == app.Id).ToListAsync(ct));
+            ctx.SignupApplications.Add(new SignupApplication
+            {
+                TenantId = t.Id, UserId = app.Id, UserName = appName, FullName = "윤다온", RoleKind = SignupRoleKind.Student, InsertDT = now.AddDays(-2),
+            });
+            await ctx.SaveChangesAsync(ct);
+            n++;
         }
+        return n;
     }
+
+    private static readonly Microsoft.AspNetCore.Identity.PasswordHasher<AppUser> Hasher = new();
 
     /// <summary>케이스 10: 공용 말씀 초안 하나(60일 뒤부터 빈 날). 지금 계정 그대로 플랫폼 할 일로.</summary>
     private async Task<CaseRun> DraftAsync(AppDbContext ctx, string actor, CancellationToken ct)
@@ -189,17 +232,16 @@ public sealed class CaseTestService(ISystemDb systemDb, TestToolsService tools, 
         return new(null, Next: "/platform/todo");
     }
 
-    /// <summary>[케이스 데이터 지우기]: [케이스] 명부(계정 없는 줄) · 반 · 선물 · 출석 · 참여 신청 · 공용 초안만. 계정 · 직분 · 관리자는 남긴다.</summary>
+    /// <summary>[예전 케이스 데이터 지우기]: 예전 방식으로 만든 [케이스] 명부(계정 없는 줄) · 반 · 선물 · 출석 · 공용 초안. 계정 · 역할 · 관리자는 남긴다.</summary>
     public async Task<string> ClearAsync(string actor, CancellationToken ct = default)
     {
         await using var ctx = systemDb.Create(actor);
         if (!tools.Enabled || !await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct)) throw new UnauthorizedAccessException();
         var drafts = await ctx.DailyWords.Where(w => w.TenantId == null && w.Title.StartsWith(Mark) && w.Status != ContentStatus.Published).ToListAsync(ct);
         ctx.DailyWords.RemoveRange(drafts);
-        int kids = 0, gifts = 0, signups = 0;
-        if (await DeptAsync(ctx, ct) is { } dept)
+        int kids = 0, gifts = 0;
+        foreach (var t in await ctx.Tenants.Where(x => !x.IsLobby).Select(x => x.Id).ToListAsync(ct))
         {
-            var t = dept.Id;
             var pids = await ctx.People.Where(p => p.TenantId == t && p.UserId == null && p.Name.StartsWith(Mark)).Select(p => p.Id).ToListAsync(ct);
             var gs = await ctx.Gifts.Where(g => g.TenantId == t && g.PersonId != null && pids.Contains(g.PersonId.Value)).ToListAsync(ct);
             var gids = gs.Select(g => g.Id).ToList();
@@ -208,148 +250,15 @@ public sealed class CaseTestService(ISystemDb systemDb, TestToolsService tools, 
             ctx.AttendanceChecks.RemoveRange(await ctx.AttendanceChecks.Where(a => a.TenantId == t && pids.Contains(a.PersonId)).ToListAsync(ct));
             var cls = await ctx.Classes.Where(c => c.TenantId == t && c.Name.StartsWith(Mark)).Select(c => c.Id).ToListAsync(ct);
             ctx.ClassMembers.RemoveRange(await ctx.ClassMembers.Where(m => m.TenantId == t && (pids.Contains(m.PersonId) || cls.Contains(m.ClassId))).ToListAsync(ct));
-            var prefix = $"{dept.Slug.ToLowerInvariant()}-k-";
-            var sa = await ctx.SignupApplications.Where(a => a.TenantId == t && a.UserName.StartsWith(prefix)).ToListAsync(ct);
-            ctx.SignupApplications.RemoveRange(sa);
+            ctx.SignupApplications.RemoveRange(await ctx.SignupApplications.Where(a => a.TenantId == t && a.UserName.Contains("-k-")).ToListAsync(ct));
             await ctx.SaveChangesAsync(ct);
             ctx.Classes.RemoveRange(await ctx.Classes.Where(c => c.TenantId == t && cls.Contains(c.Id)).ToListAsync(ct));
             ctx.People.RemoveRange(await ctx.People.Where(p => p.TenantId == t && pids.Contains(p.Id)).ToListAsync(ct));
-            ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = "CaseDataDelete", TenantId = t, Detail = "시험 도구 케이스" });
             await ctx.SaveChangesAsync(ct);
-            (kids, gifts, signups) = (pids.Count, gs.Count, sa.Count);
+            (kids, gifts) = (kids + pids.Count, gifts + gs.Count);
         }
-        else await ctx.SaveChangesAsync(ct);
-        return $"케이스 데이터를 지웠어요 · 아이 {kids} · 선물 {gifts} · 신청 {signups} · 초안 {drafts.Count}";
-    }
-
-    // ── 만들기 도우미 ──
-
-    private static readonly Microsoft.AspNetCore.Identity.PasswordHasher<AppUser> Hasher = new();
-
-    /// <summary>케이스 계정을 만들거나 고친다(직분 · 관리자 · 선물 담당 · 담임 반). 비밀번호는 아무도 모르는 값. 아이디를 돌려준다.</summary>
-    private static async Task<string> AccountAsync(AppDbContext ctx, int t, string slug, Acct a, string actor, DateTime now, CancellationToken ct)
-    {
-        var userName = $"{slug}-k-{a.Code}";
-        var user = await ctx.Users.SingleOrDefaultAsync(u => u.NormalizedUserName == AppUser.Normalize(userName), ct);
-        if (user is null)
-        {
-            var email = userName + TestToolsService.EmailDomain;
-            user = new AppUser
-            {
-                UserName = userName, NormalizedUserName = AppUser.Normalize(userName), Email = email, NormalizedEmail = AppUser.Normalize(email),
-                FirstName = $"{Mark} {a.Name}", LastName = "", SecurityStamp = Guid.NewGuid().ToString("N"), ConcurrencyStamp = Guid.NewGuid().ToString(),
-                LockoutEnabled = true, InsertDT = now,
-            };
-            user.PasswordHash = Hasher.HashPassword(user, Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(24)));
-            ctx.Users.Add(user);
-            var basic = await ctx.IdentityRoleRows.Where(r => r.Name == IdentityRoles.Basic).Select(r => r.Id).FirstOrDefaultAsync(ct);
-            if (basic is not null) ctx.UserRoles.Add(new AppUserRole { UserId = user.Id, RoleId = basic });
-            await ctx.SaveChangesAsync(ct);
-        }
-        if (a == Applicant) return userName;   // 신청자는 아직 부서에 들지 않았다
-        if (!await ctx.DeptRoles.AnyAsync(d => d.UserId == user.Id && d.TenantId == t && d.RoleCode == a.Role, ct))
-            await DeptMembership.PlaceAsync(ctx, user, t, a.Role, now, ct, actor: actor);
-        if (a.Admin)
-        {
-            var adminRole = await ctx.IdentityRoleRows.FirstOrDefaultAsync(r => r.Name == IdentityRoles.Admin, ct);
-            if (adminRole is null)
-            {
-                ctx.IdentityRoleRows.Add(adminRole = new AppRole { Name = IdentityRoles.Admin, NormalizedName = IdentityRoles.Admin.ToUpperInvariant() });
-                await ctx.SaveChangesAsync(ct);
-            }
-            if (!await ctx.UserRoles.AnyAsync(r => r.UserId == user.Id && r.RoleId == adminRole.Id, ct)) ctx.UserRoles.Add(new AppUserRole { UserId = user.Id, RoleId = adminRole.Id });
-        }
-        if (a.GiftTag && !await ctx.MemberTags.AnyAsync(m => m.TenantId == t && m.UserId == user.Id && m.Tag == TodoRoles.GiftTag, ct))
-            ctx.MemberTags.Add(new MemberTag { TenantId = t, UserId = user.Id, Tag = TodoRoles.GiftTag, CreatedUtc = now, CreatedByUserName = actor });
+        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = "CaseDataDelete", Detail = "시험 도구 예전 케이스" });
         await ctx.SaveChangesAsync(ct);
-        if (a.Homeroom)
-        {
-            var me = await ctx.People.Where(p => p.TenantId == t && p.UserId == user.Id).Select(p => p.Id).SingleAsync(ct);
-            var (term, cls) = await ClassAsync(ctx, t, now, ct);
-            if (!await ctx.ClassMembers.AnyAsync(m => m.TenantId == t && m.PersonId == me && m.ClassId == cls, ct))
-            {
-                ctx.ClassMembers.RemoveRange(await ctx.ClassMembers.Where(m => m.TenantId == t && m.PersonId == me && m.TermId == term).ToListAsync(ct));
-                ctx.ClassMembers.Add(new ClassMember { TenantId = t, TermId = term, ClassId = cls, PersonId = me, IsTeacher = true, CreatedUtc = now });
-                await ctx.SaveChangesAsync(ct);
-            }
-        }
-        return userName;
-    }
-
-    /// <summary>[케이스] 반(지금 반 묶음 안). 반 묶음이 없으면 올해 것을 만든다.</summary>
-    private static async Task<(int Term, int Class)> ClassAsync(AppDbContext ctx, int t, DateTime now, CancellationToken ct)
-    {
-        var term = await ctx.ClassTerms.Where(x => x.TenantId == t).OrderByDescending(x => x.StartDate).Select(x => (int?)x.Id).FirstOrDefaultAsync(ct);
-        if (term is null)
-        {
-            var nt = new ClassTerm { TenantId = t, Year = now.Year, StartDate = new DateOnly(now.Year, 1, 1), CreatedUtc = now };
-            ctx.ClassTerms.Add(nt);
-            await ctx.SaveChangesAsync(ct);
-            term = nt.Id;
-        }
-        var name = $"{Mark} 반";
-        var cls = await ctx.Classes.Where(c => c.TenantId == t && c.TermId == term && c.Name == name).Select(c => (int?)c.Id).FirstOrDefaultAsync(ct);
-        if (cls is null)
-        {
-            var c = new SchoolClass { TenantId = t, TermId = term.Value, Name = name, CreatedUtc = now };
-            ctx.Classes.Add(c);
-            await ctx.SaveChangesAsync(ct);
-            cls = c.Id;
-        }
-        return (term.Value, cls.Value);
-    }
-
-    /// <summary>[케이스] 아이(계정 없는 학생 명부 줄). inClass 면 [케이스] 반에 넣는다.</summary>
-    private static async Task<int> KidAsync(AppDbContext ctx, int t, string name, string actor, DateTime now, CancellationToken ct, bool inClass = false, DateOnly? birthday = null)
-    {
-        var full = $"{Mark} {name}";
-        var p = await ctx.People.SingleOrDefaultAsync(x => x.TenantId == t && x.UserId == null && x.Name == full, ct);
-        if (p is null)
-        {
-            p = new Person { TenantId = t, Name = full, RoleCode = UserRole.StudentCode, CreatedUtc = now, CreatedByUserName = actor };
-            ctx.People.Add(p);
-        }
-        (p.BirthMonth, p.BirthDay) = birthday is { } b ? ((byte?)b.Month, (byte?)b.Day) : (null, null);
-        await ctx.SaveChangesAsync(ct);
-        if (inClass)
-        {
-            var (term, cls) = await ClassAsync(ctx, t, now, ct);
-            if (!await ctx.ClassMembers.AnyAsync(m => m.TenantId == t && m.PersonId == p.Id && m.TermId == term, ct))
-            {
-                ctx.ClassMembers.Add(new ClassMember { TenantId = t, TermId = term, ClassId = cls, PersonId = p.Id, IsTeacher = false, CreatedUtc = now });
-                await ctx.SaveChangesAsync(ct);
-            }
-        }
-        return p.Id;
-    }
-
-    /// <summary>이 아이의 선물 · 출석을 비운다(케이스를 다시 눌러도 처음 상태로).</summary>
-    private static async Task ResetKidAsync(AppDbContext ctx, int t, int kid, CancellationToken ct)
-    {
-        var gs = await ctx.Gifts.Where(g => g.TenantId == t && g.PersonId == kid).ToListAsync(ct);
-        var ids = gs.Select(g => g.Id).ToList();
-        ctx.GiftLogs.RemoveRange(await ctx.GiftLogs.Where(l => l.TenantId == t && ids.Contains(l.GiftId)).ToListAsync(ct));
-        ctx.Gifts.RemoveRange(gs);
-        ctx.AttendanceChecks.RemoveRange(await ctx.AttendanceChecks.Where(a => a.TenantId == t && a.PersonId == kid).ToListAsync(ct));
-        await ctx.SaveChangesAsync(ct);
-    }
-
-    /// <summary>케이스 선물 한 건(생일 선물 장부, 기한 20일 뒤). 고름 · 구매 시각과 산 사람을 정한다.</summary>
-    private static async Task GiftAsync(AppDbContext ctx, int t, int kid, string state, DateTime? picked, DateTime? purchased, string? buyer, DateOnly today, DateTime now, CancellationToken ct)
-    {
-        await ResetKidAsync(ctx, t, kid, ct);
-        var key = today.AddDays(20);
-        var g = new Gift
-        {
-            TenantId = t, Kind = GiftKinds.Birthday, Year = (short)key.Year, PersonId = kid, SourceKey = BirthdayGiftService.SourceKey(key), State = state,
-            OpenFrom = today, OpenUntil = key, MinAmount = 10000, MaxAmount = 10000, CreatedUtc = (picked ?? now).AddDays(-1), PickedUtc = picked, PurchasedUtc = purchased,
-            ItemName = state == GiftStates.Open ? null : $"{Mark} 색연필 세트", ItemPrice = state == GiftStates.Open ? null : 9900,
-        };
-        ctx.Gifts.Add(g);
-        await ctx.SaveChangesAsync(ct);
-        ctx.GiftLogs.Add(new GiftLog { TenantId = t, GiftId = g.Id, Action = GiftActions.Open, AtUtc = (picked ?? now).AddDays(-1) });   // 생김 → 고름 → 구매 순서
-        if (picked is { } p) ctx.GiftLogs.Add(new GiftLog { TenantId = t, GiftId = g.Id, Action = GiftActions.Pick, AtUtc = p, ItemName = g.ItemName, ItemPrice = g.ItemPrice });
-        if (purchased is { } b) ctx.GiftLogs.Add(new GiftLog { TenantId = t, GiftId = g.Id, Action = GiftActions.Purchase, ActorUserName = buyer, AtUtc = b, ItemName = g.ItemName, ItemPrice = g.ItemPrice });
-        await ctx.SaveChangesAsync(ct);
+        return $"예전 케이스 데이터를 지웠어요 · 아이 {kids} · 선물 {gifts} · 초안 {drafts.Count}";
     }
 }

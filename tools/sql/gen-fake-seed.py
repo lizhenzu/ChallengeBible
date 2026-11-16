@@ -422,7 +422,7 @@ END CATCH;
 def delete_sql() -> str:
     return HEADER + f"""-- ============================================================================
 -- 가짜 시험 데이터 지우기 (생성기 tools/sql/gen-fake-seed.py, 2026-11-16 명부 기반)
--- 지우는 것: 이메일 @{EMAIL_DOMAIN} 계정(관리자 역할 계정은 빼고)과 그 기록, 가짜 표시({MARKER})가 붙은 학부모 명부 · 출석 · 보호 관계,
+-- 지우는 것: 이메일 @{EMAIL_DOMAIN} 계정(관리자 역할 계정은 빼고)과 그 기록 · 선물, 가짜 표시({MARKER})가 붙은 학부모 · 새친구 명부 · 출석 · 보호 관계,
 --            가짜 계정이 만든 가족팀 · 친구팀과 그 시상 기록
 -- 되돌리는 것: 가짜 계정을 이은 명부 줄(연결을 풀고 역할 코드를 돌려놓음), 비어 있던 생일(감사 로그 FakeBirthday)
 -- 남기는 것: 반 · 명부 · 관리자(Admin · SuperAdmin) 계정과 그 명부 줄, 진짜 출석 기록
@@ -447,6 +447,14 @@ INSERT #DelTeam SELECT TenantId, FamilyTeamId, ISNULL(AwardKey, TeamName) FROM d
 -- 지울 명부 줄: 가짜 표시가 붙은 줄 중 관리자 계정에 이어지지 않은 줄(학부모 등)
 CREATE TABLE #DelPerson (TenantId int, PersonId int);
 INSERT #DelPerson SELECT TenantId, Id FROM app.Person WHERE CreatedByUserName = @Marker AND (UserId IS NULL OR UserId IN (SELECT UserId FROM #Del));
+-- 선물(2026-11-16): 가짜 계정 · 가짜 명부 줄 · 가짜 이은 명부 줄의 선물과 할 일 상황 선물(열쇠 FAKE-) — 명부 연결을 풀기 전에 고른다
+CREATE TABLE #DelGift (TenantId int, GiftId bigint);
+INSERT #DelGift SELECT g.TenantId, g.Id FROM app.Gift g
+WHERE g.UserName IN (SELECT UserName FROM #Del) OR g.SourceKey LIKE N'FAKE-%'
+   OR EXISTS (SELECT 1 FROM app.Person p WHERE p.TenantId = g.TenantId AND p.Id = g.PersonId AND (p.UserId IN (SELECT UserId FROM #Del) OR p.CreatedByUserName = @Marker));
+DELETE l FROM app.GiftLog l JOIN #DelGift d ON d.TenantId = l.TenantId AND d.GiftId = l.GiftId;
+DELETE g FROM app.Gift g JOIN #DelGift d ON d.TenantId = g.TenantId AND d.GiftId = g.Id;
+DELETE FROM app.GiftPointUse WHERE UserName IN (SELECT UserName FROM #Del);
 
 -- 되돌리기: 비어 있던 생일, 이은 명부 줄(역할 코드는 소속에서)
 UPDATE p SET BirthMonth = NULL, BirthDay = NULL

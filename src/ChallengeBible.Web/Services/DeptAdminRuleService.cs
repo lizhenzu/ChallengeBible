@@ -103,7 +103,7 @@ public sealed class DeptAdminRuleService(ISystemDb systemDb, TimeProvider time)
     }
 
     /// <summary>
-    /// 따로 정한 부서 관리자(규칙 꼬리표 없음, 역할 · 업무가 규칙 밖)는 역할을 "어드민"으로 옮긴다 — 관리자 그대로, 앞으로 규칙이 바뀌어도 빠지지 않는다
+    /// 따로 정한 부서 관리자(규칙 꼬리표 없음 — 역할이 부장이어도)는 역할을 "어드민"으로 옮긴다 — 관리자 그대로, 앞으로 규칙이 바뀌어도 빠지지 않는다
     /// (2026-11-16 사용자: 시험용 관리자 · 관리영~관리고는 어드민 역할로, 건드리지 마). 플랫폼 관리자는 뺀다.
     /// </summary>
     private static async Task<int> ManualToAdminRoleAsync(AppDbContext ctx, CancellationToken ct)
@@ -119,8 +119,8 @@ public sealed class DeptAdminRuleService(ISystemDb systemDb, TimeProvider time)
         var n = 0;
         foreach (var d in rows.Where(d => !auto.Contains(d.UserId!) && !supers.Contains(d.UserId!)))
         {
-            if (codes.Contains((d.RoleCode ?? "").Trim()) || tags.Any(t => t.UserId == d.UserId && t.TenantId == d.TenantId)) continue;
-            d.RoleCode = UserRole.AdminCode;
+            if ((d.RoleCode ?? "").Trim() == UserRole.AdminCode) continue;
+            d.RoleCode = UserRole.AdminCode;   // 부장 역할이어도 부서 관리자 계정이면 어드민(2026-11-16 사용자)
             d.UpdateDT = DateTime.UtcNow;
             n++;
         }

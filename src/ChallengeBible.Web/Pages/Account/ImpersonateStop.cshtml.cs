@@ -1,4 +1,4 @@
-using ChallengeBible.Web.Auth;
+﻿using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace ChallengeBible.Web.Pages.Account;
 
-/// <summary>`POST /account/impersonate/stop` 가장 끝내기 [복귀](ADR 0067). 가장한 관리자가 지금도 플랫폼 관리자면 그 계정으로 돌아가고, 아니면 로그아웃.</summary>
+/// <summary>`POST /account/impersonate/stop` 가장 끝내기 [복귀](ADR 0067). 가장한 관리자가 지금도 플랫폼 관리자면 그 계정으로 돌아가 플랫폼 홈으로, 아니면 로그아웃.</summary>
 public class ImpersonateStopModel(ImpersonationService imp, AccountService accounts) : PageModel
 {
     public IActionResult OnGet() => Redirect("/");
@@ -22,6 +22,6 @@ public class ImpersonateStopModel(ImpersonationService imp, AccountService accou
             return Redirect("/");
         }
         await CurrentUser.SignInAsync(HttpContext, await accounts.ToSignedInAsync(back, HttpContext.RequestAborted));
-        return Redirect($"/platform/accounts?id={me}");
+        return Redirect("/platform");   // 복귀하면 늘 플랫폼 홈(2026-11-16 사용자)
     }
 }
