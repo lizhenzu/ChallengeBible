@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -74,11 +74,11 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
         return await c.PostAsync(url, new FormUrlEncodedContent(form));
     }
 
-    /// <summary>학생 안예빛(340점)이 색연필(6,000원 = 200점)을 고른 상태.</summary>
+    /// <summary>학생 안예빛(700점)이 색연필(6,000원 = 400점, ADR 0104)을 고른 상태.</summary>
     private async Task<(HttpClient Kid, HttpClient Admin, long Gift)> Picked()
     {
         var pens = Item("24색 색연필 세트", 6000);
-        var (kid, _) = await Login("yebit", "안예빛", 340);
+        var (kid, _) = await Login("yebit", "안예빛", 700);
         await Post(kid, "/kids/gifts?all=true", "/kids/gifts?handler=Pick", new() { ["item"] = pens.ToString() });
         var (admin, _) = await Login("kidsadmin", "박지은", admin: true);
         using var raw = InMemoryDb.Raw(_db);
@@ -108,7 +108,9 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
 
         await Post(admin, "/kids/admin/gifts?s=give", "/kids/admin/gifts?handler=Move", new() { ["id"] = id.ToString(), ["act"] = "Deliver", ["s"] = "give" });
         Assert.Equal(GiftStates.Delivered, GiftState(_db, id));
-        Assert.Contains("선물 고르기", await kid.GetStringAsync("/kids/word-mission"));   // 받았으니 다음 선물을 고른다(정한 것 8)
+        var home = await kid.GetStringAsync("/kids/word-mission");   // 받았으니 다음 선물을 고를 차례(정한 것 8)
+        Assert.DoesNotContain("gk-card gk-got", home);
+        Assert.Contains("100점 더 모으면 선물을 골라요", home);   // 700 − 400 = 300점, 가장 싼 선물 400점까지 100점(ADR 0104)
         using var raw = InMemoryDb.Raw(_db);
         Assert.Equal(["Pick", "Purchase", "Deliver"], raw.GiftLogs.OrderBy(l => l.Id).Select(l => l.Action).ToArray());
     }
@@ -138,7 +140,7 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
         Assert.Equal($"{page}?ok=cancel", r.Headers.Location!.OriginalString);
         Assert.Equal(GiftStates.Cancelled, GiftState(_db, id));
         using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.GiftPointUses);
-        Assert.Contains("340", await kid.GetStringAsync("/kids/gifts"));
+        Assert.Contains("700", await kid.GetStringAsync("/kids/gifts"));
     }
 
     [Fact]
@@ -147,7 +149,7 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
         var (_, admin, id) = await Picked();
         var page = await admin.GetStringAsync($"/kids/admin/gifts/{id}");
         Assert.Contains("안예빛", page);
-        Assert.Contains("6,000원 · 200점", page);
+        Assert.Contains("6,000원 · 400점", page);
         Assert.Contains("<b>안예빛</b> · 골랐어요", page);
         Assert.Contains("쿠팡에서 보기", page);
     }

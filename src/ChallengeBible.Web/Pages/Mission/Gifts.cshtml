@@ -1,4 +1,4 @@
-@page "/{slug}/gifts"
+﻿@page "/{slug}/gifts"
 @model GiftsModel
 @using System.Globalization
 @* 확정 시안 2판(2026-11-14): 말씀-선물고르기-단독시안.html ③ 고르기 · ④ 확인 · ⑤ 고른 뒤. 이모지 없음, 아이에게는 점수만(가격 숨김, R-285).
@@ -54,8 +54,10 @@
         <h1>선물 고르기</h1>
         <p class="gk-sub">한 번에 하나씩 골라요 · 12월 31일까지</p>
         <div class="gk-mine"><span>쓸 수 있는 점수</span><b class="num">@w.Usable.ToString("N0")<u>점</u></b></div>
-        @if (w.AtCap) { <p class="gk-note">모을 수 있는 만큼 다 모았어요. 선물을 고르면 다시 모을 수 있어요.</p> }
-        else if (w.Usable < w.Step) { <p class="gk-note">@(w.Step)점이 되면 선물을 고를 수 있어요 · @(w.ToFirst)점 더 모으면 돼요</p> }
+        @* 확정 시안 선물점수-15크레딧(ADR 0104): 올해 모은 · 쓴 · 사용 가능 *@
+        <div class="gk-sum3"><div><span>올해 모은</span><b class="num">@w.YearPoints.ToString("N0")</b></div><div><span>쓴</span><b class="num">@w.Spent.ToString("N0")</b></div><div class="on"><span>사용 가능</span><b class="num">@w.Usable.ToString("N0")</b></div></div>
+        @if (w.AtCap) { <p class="gk-note">올해는 @w.CapPoints.ToString("N0")점까지 선물에 써요.</p> }
+        else if (!w.CanPick && w.Cheapest is not null) { <p class="gk-note">@(w.ToNext.ToString("N0"))점 더 모으면 선물을 고를 수 있어요</p> }
         <nav class="gk-seg" aria-label="보기">
             <a href="/@slug/gifts" aria-current="@(Model.All ? null : "true")">고를 수 있는 것 <span class="num">@Model.CanCount</span></a>
             <a href="/@slug/gifts?all=true" aria-current="@(Model.All ? "true" : null)">전체 <span class="num">@Model.Items.Count</span></a>

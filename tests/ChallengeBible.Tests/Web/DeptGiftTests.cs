@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -149,13 +149,14 @@ public partial class DeptGiftTests : IClassFixture<WebApplicationFactory<Program
 
         var bad = await Post(c, "/kids/admin/gifts?t=money", "/kids/admin/gifts?t=money&handler=Money", new()
         {
-            ["Money.PersonalCap"] = "20,000", ["Money.BirthdayMin"] = "9,000",             // 최대(기본 5,000)보다 큼
+            ["Money.PersonalCap"] = "40,000", ["Money.BirthdayMin"] = "9,000",             // 상한은 30,000 까지(ADR 0104) · 최대(기본 5,000)보다 큼
             ["Money.RateCredits"] = "1500", ["Money.RateAmounts"] = "2000",                // 1,000 단위 아님
         });
         Assert.Equal(HttpStatusCode.OK, bad.StatusCode);
         var html = await bad.Content.ReadAsStringAsync();
         Assert.Contains("최대 금액이 최소 금액보다 작아요", html);
         Assert.Contains("크레딧은 1,000 단위로 써 주세요", html);
+        Assert.Contains("상한은 30,000 크레딧까지예요", html);
         using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.GiftSettings);
 
         var form = new FormUrlEncodedContent(

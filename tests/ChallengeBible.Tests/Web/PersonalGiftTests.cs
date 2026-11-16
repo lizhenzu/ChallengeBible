@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -76,65 +76,76 @@ public partial class PersonalGiftTests : IClassFixture<WebApplicationFactory<Pro
         return await c.PostAsync("/kids/gifts?handler=" + handler, new FormUrlEncodedContent(form));
     }
 
+    // 1점 = 15 크레딧(ADR 0104): 5,000원 → 334점 · 6,000원 → 400점 · 1,000원 → 67점 · 15,000원 → 1,000점
+
     [Fact]
     public async Task R285_미션_홈_카드와_고르기_화면에는_점수만_보이고_가격은_숨긴다()
     {
         Item("곰돌이 열쇠고리", 5000);
         Item("24색 색연필 세트", 6000);
         Item("캐릭터 책가방", 15000);
-        var (c, _) = await Login("siwoo", 340, lastYear: 500);   // 지난해 점수는 세지 않는다(정한 것 1)
+        var (c, _) = await Login("siwoo", 700, lastYear: 500);   // 지난해 점수는 세지 않는다(정한 것 1)
         var home = await c.GetStringAsync("/kids/word-mission");
         Assert.Contains("gk-card gk-can", home);
-        Assert.Contains("340점", home);
+        Assert.Contains("700점", home);
+        Assert.Contains("올해 모은 700 · 쓴 0", home);
         Assert.Contains(">선물 고르기<", home);
+        Assert.Contains("data-kind=\"pick\"", home);
+        Assert.Contains("data-count=\"2\"", home);   // 창: 선택 가능 선물 보러 가기(2개)
 
         var page = await c.GetStringAsync("/kids/gifts");
         Assert.Contains("곰돌이 열쇠고리", page);
-        Assert.Contains("100점", page);
-        Assert.Contains("200점", page);
+        Assert.Contains("334점", page);
+        Assert.Contains("400점", page);
+        Assert.Contains("gk-sum3", page);   // 올해 모은 · 쓴 · 사용 가능
         Assert.DoesNotContain("캐릭터 책가방", page);   // 기본은 고를 수 있는 것만
         Assert.DoesNotContain("5,000", page);
+        Assert.DoesNotContain("크레딧", page);
         Assert.DoesNotContain("원", Regex.Replace(page, "<[^>]+>", " ").Replace("원하", ""));   // 가격(원) 없음
         var all = await c.GetStringAsync("/kids/gifts?all=true");
         Assert.Contains("캐릭터 책가방", all);
-        Assert.Contains("<b class=\"num\">760점</b> 더 모으면", all);   // 15,000 → 1,100점, 340점이 있으니 760점 더
+        Assert.Contains("<b class=\"num\">300점</b> 더 모으면", all);   // 15,000 → 1,000점, 700점이 있으니 300점 더
     }
 
     [Fact]
-    public async Task R285_100점이_안_되면_몇_점_더_모으면_되는지()
+    public async Task R285_고를_수_있는_선물이_없으면_가장_싼_선물까지_몇_점_더인지()
     {
+        Item("스프링 노트", 1000);   // 67점
         var (c, _) = await Login("haneul", 60);
         var home = await c.GetStringAsync("/kids/word-mission");
-        Assert.Contains("100점이 되면 선물을 골라요", home);
-        Assert.Contains("<span class=\"num\">40</span>점 더 모으면 돼요", home);
+        Assert.Contains("7점 더 모으면 선물을 골라요", home);
+        Assert.Contains("data-kind=\"near\"", home);   // 창: 선물 구경하기
+        Assert.Contains("data-need=\"7\"", home);
     }
 
     [Fact]
     public async Task R281_고르면_필요한_점수만_쓰고_남은_점수는_모두_남기며_미션_기록은_그대로()
     {
         var pens = Item("24색 색연필 세트", 6000);
-        var (c, user) = await Login("siwoo", 340);
+        var (c, user) = await Login("siwoo", 700);
         var res = await Post(c, "Pick", new() { ["item"] = pens.ToString() });
         Assert.Equal(HttpStatusCode.Redirect, res.StatusCode);
         using (var raw = InMemoryDb.Raw(_db))
         {
             var g = raw.Gifts.Single();
-            Assert.Equal((GiftKinds.Personal, GiftStates.Picked, "24색 색연필 세트", 6000, 200, 0), (g.Kind, g.State, g.ItemName, g.ItemPrice!.Value, g.PointsUsed!.Value, g.PointsBurned!.Value));
+            Assert.Equal((GiftKinds.Personal, GiftStates.Picked, "24색 색연필 세트", 6000, 400, 0), (g.Kind, g.State, g.ItemName, g.ItemPrice!.Value, g.PointsUsed!.Value, g.PointsBurned!.Value));
             var use = raw.GiftPointUses.Single();
-            Assert.Equal((200, 0, true), (use.PointsUsed, use.PointsBurned, use.FirstBonus));
-            Assert.Equal(340, raw.MissionActivities.Where(a => a.UserName == user).Sum(a => a.Points));   // 미션 기록 · 순위는 그대로
+            Assert.Equal((400, 0, false), (use.PointsUsed, use.PointsBurned, use.FirstBonus));   // 처음 보너스는 없다(ADR 0104)
+            Assert.Equal(700, raw.MissionActivities.Where(a => a.UserName == user).Sum(a => a.Points));   // 미션 기록 · 순위는 그대로
             Assert.Equal(GiftActions.Pick, raw.GiftLogs.Single().Action);
         }
         var page = await c.GetStringAsync("/kids/gifts");
         Assert.Contains("준비 중이에요", page);
-        Assert.Contains("140점", page);   // 남은 점수: 340 − 200 = 140점 모두 남음(정한 것 9)
-        Assert.Contains("gk-card gk-got", await c.GetStringAsync("/kids/word-mission"));
+        Assert.Contains("300점", page);   // 남은 점수: 700 − 400 = 300점 모두 남음(정한 것 9)
+        var home = await c.GetStringAsync("/kids/word-mission");
+        Assert.Contains("gk-card gk-got", home);
+        Assert.Contains("data-kind=\"wait\"", home);   // 창: 내 선물 보기
     }
 
     [Fact]
     public async Task 정한것9_1111점에서_1000점_선물을_고르면_111점이_모두_남는다()
     {
-        var big = Item("큰 선물", 14000);   // 14,000 크레딧 = 1,000점
+        var big = Item("큰 선물", 15000);   // 15,000 크레딧 = 1,000점
         var (c, _) = await Login("gaho", 1111);
         await Post(c, "Pick", new() { ["item"] = big.ToString() });
         using (var raw = InMemoryDb.Raw(_db))
@@ -160,14 +171,33 @@ public partial class PersonalGiftTests : IClassFixture<WebApplicationFactory<Pro
 
         using (var raw = InMemoryDb.Raw(_db)) { raw.Gifts.Single().State = GiftStates.Delivered; raw.SaveChanges(); }
         var page = await c.GetStringAsync("/kids/gifts");
-        Assert.Contains("400", page);   // 500 − 100 = 400점 남음
+        Assert.Contains("166", page);   // 500 − 334 = 166점 남음
         await Post(c, "Pick", new() { ["item"] = b.ToString() });
         using (var raw = InMemoryDb.Raw(_db))
         {
             var second = raw.Gifts.OrderBy(g => g.Id).Last();
-            Assert.Equal((GiftStates.Picked, 100), (second.State, second.PointsUsed!.Value));   // 처음 보너스를 썼으니 1,000 크레딧 = 100점
-            Assert.False(raw.GiftPointUses.OrderBy(u => u.Id).Last().FirstBonus);
+            Assert.Equal((GiftStates.Picked, 67), (second.State, second.PointsUsed!.Value));   // 1,000 크레딧 = 67점(처음이든 나중이든 같다)
         }
+    }
+
+    [Fact]
+    public async Task R280_한_해_상한_2000점을_넘으면_넘은_점수는_선물에_쓰지_않는다()
+    {
+        Item("곰돌이 열쇠고리", 5000);
+        var (c, user) = await Login("dahye", 2350);
+        using (var raw = InMemoryDb.Raw(_db))   // 올해 이미 600점짜리 선물을 받았다
+        {
+            var g = new Gift { TenantId = _kids.Id, Kind = GiftKinds.Personal, Year = 2027, UserName = user, SourceKey = "P2027-1", State = GiftStates.Delivered, MaxAmount = 9000, PointsUsed = 600, CreatedUtc = DateTime.UtcNow };
+            raw.Gifts.Add(g); raw.SaveChanges();
+            raw.GiftPointUses.Add(new GiftPointUse { TenantId = _kids.Id, UserName = user, Year = 2027, GiftId = g.Id, PointsUsed = 600, CreatedUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        var page = await c.GetStringAsync("/kids/gifts");
+        Assert.Contains("<b class=\"num\">1,400<u>점</u></b>", page);   // min(2,350, 2,000) − 600
+        Assert.Contains("올해는 2,000점까지 선물에 써요", page);
+        var home = await c.GetStringAsync("/kids/word-mission");
+        Assert.Contains("올해 모은 2,350 · 쓴 600", home);
+        Assert.Contains("data-cap=\"2000\"", home);
     }
 
     [Fact]
@@ -184,7 +214,7 @@ public partial class PersonalGiftTests : IClassFixture<WebApplicationFactory<Pro
     public async Task R284_준비_전에는_취소하면_점수가_돌아오고_준비한_뒤에는_못_한다()
     {
         var pens = Item("24색 색연필 세트", 6000);
-        var (c, _) = await Login("siwoo", 340);
+        var (c, _) = await Login("siwoo", 700);
         await Post(c, "Pick", new() { ["item"] = pens.ToString() });
         long id;
         using (var raw = InMemoryDb.Raw(_db)) id = raw.Gifts.Single().Id;
@@ -198,7 +228,7 @@ public partial class PersonalGiftTests : IClassFixture<WebApplicationFactory<Pro
             Assert.Equal(GiftStates.Cancelled, raw.Gifts.Single().State);
             Assert.Empty(raw.GiftPointUses);
         }
-        Assert.Contains("340", await c.GetStringAsync("/kids/gifts"));
+        Assert.Contains("700", await c.GetStringAsync("/kids/gifts"));
 
         await Post(c, "Pick", new() { ["item"] = pens.ToString() });
         using (var raw = InMemoryDb.Raw(_db)) { raw.Gifts.Single(g => g.State == GiftStates.Picked).State = GiftStates.Purchased; raw.SaveChanges(); }
@@ -255,6 +285,6 @@ public partial class PersonalGiftTests : IClassFixture<WebApplicationFactory<Pro
         Item("축구공", 12000);
         using (var raw = InMemoryDb.Raw(_db)) { raw.GiftCreditRates.Add(new GiftCreditRate { TenantId = _kids.Id, Credits = 10000, Amount = 12000 }); raw.SaveChanges(); }
         var (c, _) = await Login("siwoo", 1000);
-        Assert.Contains("600점", await c.GetStringAsync("/kids/gifts"));   // 10,000 크레딧 = 600점(표가 없으면 12,000 → 800점)
+        Assert.Contains("667점", await c.GetStringAsync("/kids/gifts"));   // 10,000 크레딧 = 667점(표가 없으면 12,000 → 800점)
     }
 }

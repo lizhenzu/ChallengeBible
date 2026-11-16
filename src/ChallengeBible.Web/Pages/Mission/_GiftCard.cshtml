@@ -1,14 +1,16 @@
-@model HomeModel
+﻿@model HomeModel
 @* 미션 홈 "내 선물" 카드(확정 시안 2판 말씀-선물고르기 ①, R-285) + 100점 창(② — gift.js, 이 기기에서 처음 보는 단계일 때 한 번).
    학생만 카드, 선생님 · 학부모 · 기타는 창(축하)만(B-8). 이모지 없음. *@
 @{
     var w = Model.Gift!;
     var slug = Model.Slug;
     var href = $"/{slug}/gifts";
-    var kind = !w.Student ? "clap" : w.Active is not null ? "wait" : w.CanPick ? "pick" : "clap";
+    // 확정 시안 선물점수-15크레딧(ADR 0104): 창 A 고를 수 있음(pick) · B 모자람(near) · C 받기 전 선물(wait) · 학생 아님(clap)
+    var kind = !w.Student ? "clap" : w.Active is not null ? "wait" : w.CanPick ? "pick" : w.Cheapest is not null ? "near" : "clap";
     var step = w.Step <= 0 ? 0 : w.YearPoints / w.Step;
 }
-<span hidden data-gk-pop data-key="gk-step-@slug-@Model.UserName-@w.Year" data-step="@step" data-unit="@w.Step" data-kind="@kind" data-href="@href"></span>
+<span hidden data-gk-pop data-key="gk-step-@slug-@Model.UserName-@w.Year" data-step="@step" data-unit="@w.Step" data-kind="@kind" data-href="@href"
+      data-year="@w.YearPoints" data-spent="@w.Spent" data-usable="@w.Usable" data-count="@w.CanCount" data-need="@w.ToNext" data-cap="@(w.AtCap ? w.CapPoints : 0)"></span>
 @if (w.Student)
 {
     if (w.Active is { } a)
@@ -26,7 +28,8 @@
             <span class="gk-m">
                 @if (tag is not null) { <span class="gk-tag gk-w">@tag</span> } else { <span class="gk-k">내 선물 · 쓸 수 있는 점수</span> }
                 <b class="num">@w.Usable.ToString("N0")점</b>
-                @if (w.AtCap) { <small>선물을 고르면 다시 모을 수 있어요</small> }
+                <small class="num">올해 모은 @w.YearPoints.ToString("N0") · 쓴 @w.Spent.ToString("N0")</small>
+                @if (w.AtCap) { <small>올해는 @w.CapPoints.ToString("N0")점까지 선물에 써요</small> }
                 else if (w.December) { <small>새해가 되면 점수가 0부터 다시 시작해요</small> }
             </span>
             <span class="gk-go">선물 고르기</span>
@@ -34,9 +37,12 @@
     }
     else
     {
-        var pct = w.Step <= 0 ? 0 : Math.Min(100, w.Available * 100 / w.Step);
+        @* 고를 수 있는 선물이 아직 없음: 쓸 수 있는 점수 + 가장 싼 선물까지 남은 점수 *@
+        var goal = w.Cheapest ?? w.Step;
+        var pct = goal <= 0 ? 0 : Math.Min(100, w.Usable * 100 / goal);
         <a class="gk-card" href="@href">
-            <span class="gk-m"><span class="gk-k">내 선물</span><b>@(w.Step)점이 되면 선물을 골라요</b><small><span class="num">@w.ToFirst</span>점 더 모으면 돼요</small>
+            <span class="gk-m"><span class="gk-k">내 선물 · 쓸 수 있는 점수</span><b class="num">@w.Usable.ToString("N0")점</b>
+                <small>@(w.AtCap && w.ToNext > 0 ? $"올해는 {w.CapPoints:N0}점까지 선물에 써요" : w.Cheapest is null ? "고를 수 있는 선물이 아직 없어요" : $"{w.ToNext:N0}점 더 모으면 선물을 골라요")</small>
                 <span class="gk-pb" aria-hidden="true"><i style="width:@pct%"></i></span></span>
             <span class="gk-ar" aria-hidden="true">›</span>
         </a>

@@ -102,11 +102,11 @@ public sealed record AmountRange(int Min, int Max);
 /// </summary>
 public sealed record GiftRules
 {
-    /// <summary>개인 크레딧(R-280): 그해 처음 StepPoints 점에 FirstCredits, 그 뒤 StepPoints 점마다 StepCredits.</summary>
-    public int FirstCredits { get; init; } = 5000;
+    /// <summary>개인 크레딧(R-280, ADR 0104): 그해 점수 1점마다 CreditsPerPoint. 처음 보너스는 없다(2026-11-16 사용자).</summary>
+    public int CreditsPerPoint { get; init; } = 15;
+    /// <summary>점수 창이 뜨는 단위(R-285): 그해 모은 점수가 이 단위를 새로 넘을 때 한 번.</summary>
     public int StepPoints { get; init; } = 100;
-    public int StepCredits { get; init; } = 1000;
-    /// <summary>개인 크레딧 상한(R-280), 부서가 바꾼다.</summary>
+    /// <summary>개인 크레딧 한 해 총 상한(R-280, ADR 0104): 한 아이가 한 해에 선물에 쓰는 크레딧 합계의 최고. 부서는 이보다 낮게만 정한다.</summary>
     public int PersonalCap { get; init; } = 30000;
     public AmountRange Newcomer { get; init; } = new(1000, 15000);
     public AmountRange Invite { get; init; } = new(1000, 15000);

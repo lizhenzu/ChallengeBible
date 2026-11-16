@@ -15,7 +15,7 @@ public class GiftDataTests
     public void 선물_규칙_기본값은_정한_값이고_예전_규칙_JSON_에_없어도_기본값()
     {
         var g = RuleSet.Default.Gifts;
-        Assert.Equal((5000, 100, 1000, 30000), (g.FirstCredits, g.StepPoints, g.StepCredits, g.PersonalCap));      // R-280
+        Assert.Equal((15, 100, 30000), (g.CreditsPerPoint, g.StepPoints, g.PersonalCap));                          // R-280(ADR 0104)
         Assert.Equal(new AmountRange(1000, 15000), g.Newcomer);                                                    // R-286
         Assert.Equal(new AmountRange(1000, 15000), g.Invite);
         Assert.Equal(new AmountRange(1000, 5000), g.Birthday);                                                     // R-288
