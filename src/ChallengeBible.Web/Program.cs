@@ -97,6 +97,7 @@ builder.Services.AddRateLimiter(o =>
 builder.Services.AddScoped<TestToolsService>();   // 임시 시험 도구(ADR 0095), 설정 TestTools:Enabled
 builder.Services.AddScoped<CaseTestService>();   // 시험 도구 › 케이스별 시험(오늘 할 일)
 builder.Services.AddScoped<CaseFlags>();
+builder.Services.AddScoped<DeptAdminRuleService>();   // 부서 관리자 규칙(직분 → 부서 관리자)
 // 해설 표(dbo.eBibleSummary)는 읽기만 한다(ADR 0056): 읽기 전용 계정(BibleNote)이 있으면 그것으로 접속한다.
 var bibleNoteConnection = builder.Configuration.GetConnectionString("BibleNote") ?? connectionString;
 builder.Services.AddSingleton(sp => new BibleNoteService(bibleNoteConnection, sp.GetRequiredService<ILogger<BibleNoteService>>()));

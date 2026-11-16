@@ -4138,3 +4138,21 @@ details.create.tn-new[open] > summary { margin-bottom: 12px; }
 .wc-v1 { padding: 3px 7px; }
 .wc-ref small { white-space: nowrap; display: inline-block; }
 .tn-t.c { background: #F3EBE3; color: #7A4E2D; }   /* 성경필사 꼬리표(ADR 0099) */
+/* 부서 관리자 규칙(확정 시안 관리자규칙, 2026-11-16) */
+.ar-main { max-width: 760px; padding-block: 14px 40px; display: flex; flex-direction: column; gap: 12px; }
+.ar-main h1 { margin: 0; font-size: 22px; }
+.ar-msg { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--ok-bg); color: var(--ok); font-weight: 700; font-size: 14px; }
+.ar-lead { margin: 0; color: var(--dim); font-size: 13.5px; line-height: 1.6; }
+.ar-box { border: 1px solid var(--rule); border-radius: 16px; padding: 6px 14px; }
+.ar-row { display: flex; align-items: center; gap: 12px; min-height: 52px; border-bottom: 1px solid var(--rule); cursor: pointer; }
+.ar-row:last-child { border-bottom: 0; }
+.ar-row input { width: 22px; height: 22px; margin: 0; accent-color: var(--accent); }
+.ar-row .nm { flex: 1; font-size: 16px; font-weight: 800; }
+.ar-row .ct { font-size: 13px; color: var(--dim); font-weight: 700; }
+.ar-sum { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.ar-sum div { background: var(--soft); border-radius: 12px; padding: 10px 12px; }
+.ar-sum small { display: block; font-size: 12px; color: var(--dim); }
+.ar-sum b { font-size: 20px; }
+.ar-warn { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--warn-bg); color: var(--warn); font-size: 13px; font-weight: 700; line-height: 1.55; }
+.ar-note { font-size: 12.5px; color: var(--dim); line-height: 1.6; margin: 0; }
+.ar-main .btn.p { min-height: 52px; }

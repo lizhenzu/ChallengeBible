@@ -12,7 +12,7 @@ public sealed record MemberFilter(string Status, string? Query, string? Role);
 
 public enum MemberError
 {
-    None, NotFound, NoRole, BadState, SelfAdminRemove, TeamLocked,
+    None, NotFound, NoRole, BadState, SelfAdminRemove, TeamLocked, RuleAdmin,
 }
 
 /// <summary>
@@ -148,6 +148,7 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         d.RoleCode = code;
         d.UpdateDT = time.GetUtcNow().UtcDateTime;
         await ctx.SaveChangesAsync(ct);
+        await using (var sys = systemDb.Create(userName!)) await DeptAdminRuleService.SyncAsync(sys, [d.UserId!], ct);   // 부서 관리자 규칙
         return MemberError.None;
     }
 
@@ -160,10 +161,13 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         var user = await ctx.Users.AsNoTracking().SingleAsync(u => u.Id == d.UserId, ct);
         if (user.UserName == actor && !admin) return MemberError.SelfAdminRemove;
         await using var sys = systemDb.Create(actor);
+        // 부서 관리자 규칙(2026-11-16): 체크된 직분이면 규칙이 관리자로 만든다 — 여기서 빼지 못하고, 직분이나 규칙을 바꾼다
+        if (!admin && await DeptAdminRuleService.ByRuleAsync(sys, user.Id, ct)) return MemberError.RuleAdmin;
         var role = await sys.IdentityRoleRows.SingleAsync(r => r.Name == IdentityRoles.Admin, ct);
         var row = await sys.UserRoles.SingleOrDefaultAsync(r => r.UserId == user.Id && r.RoleId == role.Id, ct);
         if (admin && row is null) sys.UserRoles.Add(new AppUserRole { UserId = user.Id, RoleId = role.Id });
         else if (!admin && row is not null) sys.UserRoles.Remove(row);
+        if (admin) sys.MemberTags.RemoveRange(await sys.MemberTags.Where(t => t.UserId == user.Id && t.Tag == DeptAdminRuleService.AutoTag).ToListAsync(ct));   // 따로 정한 관리자가 된다
         await sys.SaveChangesAsync(ct);
         return MemberError.None;
     }
@@ -225,6 +229,7 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         MemberError.NoRole => "역할을 골라 주세요.",
         MemberError.BadState => "이미 처리됐어요. 화면을 새로 고쳐 주세요.",
         MemberError.SelfAdminRemove => "내 관리자 역할은 여기서 뺄 수 없어요.",
+        MemberError.RuleAdmin => "부서 관리자 규칙으로 관리자인 직분이에요. 직분을 바꾸거나 플랫폼의 부서 관리자 규칙을 바꿔 주세요.",
         MemberError.TeamLocked => "시상 기록이 있는 팀에 있어 바꿀 수 없어요.",
         _ => "",
     };
