@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-가짜 시험 데이터 SQL 생성기(2026-11-14 처음, 2026-11-16 명부 기반으로 바꿈 — 사용자 결정 "명부는 유지, 케이스별 가짜 데이터만 더하기").
+가짜 시험 데이터 SQL 생성기(2026-11-14 처음, 2026-11-16 ADR 0102 — 이미 있는 반에 가짜 아이 · 담임을 새로 만든다).
 
 만드는 파일(같은 폴더 + src/ChallengeBible.Web/TestTools):
-  fake-create.sql : 아무것도 지우지 않는다. 부서마다 이미 올린 명부(반에 든 학생 · 담임)에 가짜 계정을 이어 붙이고,
-                    상황(케이스)별 미션 점수 · 출석 · 생일 · 통독 · 가족팀 · 친구팀 · 학부모를 더한다.
-  fake-delete.sql : 가짜 표시가 붙은 것만 지우고, 명부에 이은 줄은 원래대로 되돌린다(계정 연결 · 역할 코드 · 비어 있던 생일).
-                    관리자(Admin · SuperAdmin 역할) 계정과 반 · 명부는 절대 지우지 않는다.
+  fake-create.sql : 아무것도 지우지 않는다. 부서마다 가장 최근 학기의 반(새친구반 제외)에
+                    학생 s01 ~ s40(반마다 고루) · 담임 t01 ~(반마다 1명, 최대 10) · 학부모 p01 ~ p10 의 계정 · 명부 · 반 배정을 새로 만들고,
+                    상황(케이스)별 미션 점수 · 출석 · 생일 · 통독 · 가족팀 · 친구팀 · 보호 관계를 더한다. 반이 없는 부서는 건너뛴다.
+  지우기는 따로 없다: 플랫폼 ☰ › 도구 › 완전 초기화(/platform/reset)가 지운다(관리자 · 부서 · 반은 남김).
 
-가짜 표시: 이메일 @fake-seed.test 계정, CreatedByUserName = FAKE-SEED-20261114(학부모 명부 · 출석 · 보호 관계),
-           감사 로그 Action = FakeBirthday(비어 있던 생일을 채운 명부 줄 — 지울 때 다시 비운다).
+가짜 표시: 이메일 @fake-seed.test 계정, CreatedByUserName = FAKE-SEED-20261114(명부 · 출석 · 보호 관계).
 
 다시 만들기:  python tools/sql/gen-fake-seed.py
 비밀번호 1234 의 해시는 ASP.NET Core Identity PasswordHasher V3(PBKDF2-HMACSHA512, 100,000번, 소금 16바이트)와 같은 모양이다.
@@ -38,8 +37,8 @@ def name_parts():
     return d(sur)[:40], d("민서지하도예시유주수은채윤현준우나다가소태건승재영동성혜정미선경진"), d("준윤우아연원진호린율빈혁희온별솔찬결람후서민영현수은빛나름석훈")
 
 
-# ── 상황 틀(모든 부서가 같은 틀). 학생 · 선생님은 그 부서 명부에서 차례로 골라 잇고, 명부가 적으면 있는 만큼만 ──
-# kind: S 학생(반에 든 학생 줄) · T 선생님(담임 줄) · P 학부모(가짜 명부 줄을 새로 만듦)
+# ── 상황 틀(모든 부서가 같은 틀). 모두 새 명부 줄 + 계정. 학생은 반마다 고루(s38 은 미배정), 선생님은 반 하나에 한 명(반 수만큼) ──
+# kind: S 학생 · T 선생님(담임) · P 학부모
 students_target = [3100, 2750, 2600, 2590,                                   # s01 ~ s04 상한(30,000 크레딧) 근처 · 넘음
                    2500, 2300, 2100, 1900, 1700, 1550, 1400, 1250, 1100, 1000,  # s05 ~ s14
                    990, 890, 800, 720, 650, 580, 500, 420, 350, 300, 250, 210,  # s15 ~ s26
@@ -66,7 +65,7 @@ for i in range(1, 41):
                 100 if i in (1, 8, 15) else rates[i % len(rates)], 1 if i in absent3 else 0))
 
 # 가족팀 · 친구팀: (번호, 종류, 팀 점수 목표, 구성원[(코드, 관계 0 학생 · 1 엄마 · 2 아빠)], 준 선물 단계)
-# 구성원이 그 부서에 다 있을 때만 만든다(명부가 적은 부서는 일부 팀이 빠진다)
+# 구성원이 그 부서에 다 있을 때만 만든다
 teams = [
     (1, "FAMILY", 600,   [("s37", 0), ("p01", 1)], []),
     (2, "FAMILY", 1050,  [("s30", 0), ("p02", 1)], []),
@@ -151,15 +150,15 @@ def create_sql() -> str:
     team_mem = [(no, c, rel, k + 1, 1 if k == 0 else 0) for no, _, _, mem, _ in teams for k, (c, rel) in enumerate(mem)]
     awards = [(no, th) for no, *_, given in teams for th in given]
     return HEADER + f"""-- ============================================================================
--- 가짜 시험 데이터 넣기 (생성기 tools/sql/gen-fake-seed.py, 2026-11-16 명부 기반)
--- 아무것도 지우지 않는다. 반 · 명부 · 관리자 계정은 그대로 둔다.
--- "처음 오신 분"(임시 부서)을 뺀 부서마다:
---   학생 s01 ~ s40 = 반에 든 학생 명부 줄(계정 없는 줄)에 차례로 가짜 계정을 잇는다(명부가 적으면 있는 만큼)
---   선생님 t01 ~ t10 = 담임 명부 줄에 잇는다
---   학부모 p01 ~ p10 = 가짜 명부 줄을 새로 만든다(가족팀 · 보호 관계용)
---   그리고 상황별 미션 점수 · 출석(빈 주일만) · 생일(비어 있을 때만) · 통독 · 가족팀 · 친구팀을 더한다
+-- 가짜 시험 데이터 넣기 (생성기 tools/sql/gen-fake-seed.py, 2026-11-16 ADR 0102)
+-- 아무것도 지우지 않는다. 반 · 관리자 계정 · 이미 있는 명부는 그대로 둔다.
+-- "처음 오신 분"(임시 부서)을 뺀 부서마다, 가장 최근 학기의 반(새친구반 제외)이 있으면:
+--   학생 s01 ~ s40 = 새 명부 줄 + 계정, 반마다 고루 배정(s38 은 미배정)
+--   선생님 t01 ~ = 반 하나에 담임 한 명(반 수만큼, 최대 10)
+--   학부모 p01 ~ p10 = 새 명부 줄 + 계정(가족팀 · 보호 관계용)
+--   그리고 상황별 미션 점수 · 출석 · 생일 · 통독 · 가족팀 · 친구팀을 더한다. 반이 없는 부서는 건너뛴다
 -- 아이디 = 부서 주소 + "-" + t01 · s01 · p01, 비밀번호 모두 1234
--- 지우기: fake-delete.sql (이은 명부 줄은 원래대로 되돌린다)
+-- 지우기: 플랫폼 > 완전 초기화(/platform/reset)
 -- ============================================================================
 DECLARE @Commit bit = 0;                 -- 0 = 끝에 되돌림, 1 = 저장
 DECLARE @Today date = '{TODAY}';         -- 기준 날짜(부서 날짜) — 생일 · 통독 날짜가 이 날 기준
@@ -178,7 +177,7 @@ SET @Step = N'0 넣기 전';
 {COUNTS}
 -- ── 1. 이미 넣었으면 멈춘다(먼저 지우기) ──
 IF EXISTS (SELECT 1 FROM [Identity].[User] u WHERE u.Email LIKE N'%@{EMAIL_DOMAIN}' AND NOT {IS_ADMIN})
-    THROW 50005, N'가짜 데이터가 이미 있습니다. 먼저 지우기를 실행하세요.', 1;
+    THROW 50005, N'가짜 데이터가 이미 있습니다. 먼저 완전 초기화를 실행하세요.', 1;
 
 DECLARE @RoleBasic nvarchar(450) = (SELECT Id FROM [Identity].[Role] WHERE NormalizedName = N'BASIC');
 IF @RoleBasic IS NULL THROW 50002, N'Identity.Role 에 Basic 이 없습니다. 알려 주세요.', 1;
@@ -188,7 +187,7 @@ CREATE TABLE #Num (I int PRIMARY KEY);
 INSERT #Num SELECT a.v + 10 * b.v + 100 * c.v FROM (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)) a(v)
 CROSS JOIN (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)) b(v) CROSS JOIN (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)) c(v);
 
--- 학부모 이름: 성 + 두 글자, 모두 다름
+-- 가짜 사람 이름: 성 + 두 글자, 모두 다름(부서마다 60개: 선생님 0 ~ 9, 학생 10 ~ 49, 학부모 50 ~ 59)
 CREATE TABLE #Name (Idx int PRIMARY KEY, Name nvarchar(50) COLLATE DATABASE_DEFAULT);
 DECLARE @Sur nvarchar(100) = N'{sur}', @Na nvarchar(100) = N'{na}', @Nb nvarchar(100) = N'{nb}';
 ;WITH k AS (SELECT I AS i FROM #Num WHERE I BETWEEN 1 AND 100),
@@ -248,10 +247,14 @@ INSERT #Ch SELECT ROW_NUMBER() OVER (ORDER BY BookId, Chapter), BookId, Chapter 
 DECLARE @NCh int = (SELECT COUNT(*) FROM #Ch);
 IF @NCh = 0 SELECT N'알림' AS [단계], N'app.BibleChapter 가 비어 있어 통독 기록은 넣지 않습니다.' AS [내용];
 
--- 부서 한 곳의 사람: IsNew = 1 이면 새로 만든 명부 줄(학부모), 0 이면 이은 명부 줄
+-- 부서 한 곳의 사람(모두 새 명부 줄). ClassRn = 배정할 반 차례(NULL = 미배정)
 CREATE TABLE #P (Code varchar(10) COLLATE DATABASE_DEFAULT PRIMARY KEY, Kind char(1) COLLATE DATABASE_DEFAULT, BM tinyint, BD tinyint, Target int, AttRate int, Absent3 bit,
-    MemberRole nvarchar(50) COLLATE DATABASE_DEFAULT, OrigBM tinyint, UserName nvarchar(256) COLLATE DATABASE_DEFAULT, Name nvarchar(50) COLLATE DATABASE_DEFAULT,
-    UserId nvarchar(450) COLLATE DATABASE_DEFAULT, PersonId int, IsNew bit);
+    MemberRole nvarchar(50) COLLATE DATABASE_DEFAULT, UserName nvarchar(256) COLLATE DATABASE_DEFAULT, Name nvarchar(50) COLLATE DATABASE_DEFAULT,
+    UserId nvarchar(450) COLLATE DATABASE_DEFAULT, PersonId int, ClassRn int);
+-- 부서 한 곳의 반: 가장 최근 학기(새친구반이 아닌 반이 있는 학기)의 새친구반이 아닌 반, Id 차례
+CREATE TABLE #Cls (Rn int PRIMARY KEY, ClassId int, TermId int);
+DECLARE @NCls int;
+CREATE TABLE #Skip (Dept nvarchar(200) COLLATE DATABASE_DEFAULT);
 
 -- ── 2. 부서마다 넣기 ──
 DECLARE @T int, @Slug nvarchar(200), @Ord int = 0;
@@ -260,39 +263,31 @@ WHILE @T IS NOT NULL
 BEGIN
     SET @Slug = (SELECT LOWER(Slug) FROM app.Tenant WHERE Id = @T);
     DELETE FROM #P;
+    DELETE FROM #Cls;
+    INSERT #Cls (Rn, ClassId, TermId)
+    SELECT ROW_NUMBER() OVER (ORDER BY c.Id), c.Id, c.TermId FROM app.Class c
+    WHERE c.TenantId = @T AND c.IsNewcomer = 0 AND c.TermId = (
+        SELECT TOP 1 t.Id FROM app.ClassTerm t
+        WHERE t.TenantId = @T AND EXISTS (SELECT 1 FROM app.Class x WHERE x.TenantId = @T AND x.TermId = t.Id AND x.IsNewcomer = 0)
+        ORDER BY t.Year DESC, t.Id DESC);
+    SET @NCls = (SELECT COUNT(*) FROM #Cls);
 
-    -- 학생: 반(새친구반 아님)에 든 학생 명부 줄 중 계정 없는 줄, 반 · 명부 차례로
-    ;WITH s AS (
-        SELECT p.Id, p.Name, p.RoleCode, p.BirthMonth, ROW_NUMBER() OVER (ORDER BY c.Id, p.Id) AS rn
-        FROM app.Person p
-        JOIN app.ClassMember m ON m.TenantId = p.TenantId AND m.PersonId = p.Id AND m.IsTeacher = 0
-        JOIN app.Class c ON c.TenantId = m.TenantId AND c.Id = m.ClassId AND c.IsNewcomer = 0
-        WHERE p.TenantId = @T AND p.UserId IS NULL AND p.NewcomerFirstVisit IS NULL AND ISNULL(p.RoleCode, N'') = N'T1001')
-    INSERT #P SELECT t.Code, t.Kind, t.BM, t.BD, t.Target, t.AttRate, t.Absent3, ISNULL(s.RoleCode, N'T1001'), s.BirthMonth,
-                     @Slug + N'-' + t.Code, s.Name, CONVERT(nvarchar(450), NEWID()), s.Id, 0
-    FROM #Tpl t JOIN s ON s.rn = t.No WHERE t.Kind = 'S';
-
-    -- 선생님: 담임 명부 줄 중 계정 없는 줄(한 사람 한 번)
-    ;WITH tt AS (
-        SELECT p.Id, p.Name, p.RoleCode, ROW_NUMBER() OVER (ORDER BY MIN(c.Id), p.Id) AS rn
-        FROM app.Person p
-        JOIN app.ClassMember m ON m.TenantId = p.TenantId AND m.PersonId = p.Id AND m.IsTeacher = 1
-        JOIN app.Class c ON c.TenantId = m.TenantId AND c.Id = m.ClassId AND c.IsNewcomer = 0
-        WHERE p.TenantId = @T AND p.UserId IS NULL
-        GROUP BY p.Id, p.Name, p.RoleCode)
-    INSERT #P SELECT t.Code, t.Kind, t.BM, t.BD, t.Target, t.AttRate, t.Absent3, ISNULL(tt.RoleCode, N'T1002'), NULL,
-                     @Slug + N'-' + t.Code, tt.Name, CONVERT(nvarchar(450), NEWID()), tt.Id, 0
-    FROM #Tpl t JOIN tt ON tt.rn = t.No WHERE t.Kind = 'T';
-
-    -- 학부모: 새 명부 줄(역할 없음 = 학부모)
-    INSERT #P SELECT t.Code, t.Kind, t.BM, t.BD, t.Target, t.AttRate, t.Absent3, NULL, NULL,
-                     @Slug + N'-' + t.Code, n.Name, CONVERT(nvarchar(450), NEWID()), NULL, 1
-    FROM #Tpl t JOIN #Name n ON n.Idx = @Ord * {PARENTS} + t.No - 1 WHERE t.Kind = 'P';
+    IF @NCls = 0
+        INSERT #Skip SELECT Name FROM app.Tenant WHERE Id = @T;   -- 반이 없는 부서는 건너뛴다
+    ELSE
+    BEGIN
+    -- 학생: 반마다 고루(s38 은 미배정), 선생님: 반 하나에 한 명, 학부모: 반 없음
+    INSERT #P SELECT t.Code, t.Kind, t.BM, t.BD, t.Target, t.AttRate, t.Absent3,
+                     CASE t.Kind WHEN 'S' THEN N'T1001' WHEN 'T' THEN N'T1002' END,
+                     @Slug + N'-' + t.Code, n.Name, CONVERT(nvarchar(450), NEWID()), NULL,
+                     CASE WHEN t.Kind = 'S' AND t.Code <> 's38' THEN (t.No - 1) % @NCls + 1 WHEN t.Kind = 'T' THEN t.No END
+    FROM #Tpl t JOIN #Name n ON n.Idx = @Ord * 60 + CASE t.Kind WHEN 'T' THEN t.No - 1 WHEN 'S' THEN 9 + t.No ELSE 49 + t.No END
+    WHERE t.Kind <> 'T' OR t.No <= @NCls;
 
     IF EXISTS (SELECT 1 FROM #P p JOIN [Identity].[User] u ON u.NormalizedUserName = UPPER(p.UserName) OR u.NormalizedEmail = UPPER(p.UserName + N'@{EMAIL_DOMAIN}'))
         THROW 50004, N'가짜 아이디가 이미 있는 계정과 겹칩니다. 알려 주세요.', 1;
 
-    -- 계정 · 소속(역할은 명부 줄의 역할 코드를 옮긴다)
+    -- 계정 · 소속
     INSERT [Identity].[User] (Id, UserName, NormalizedUserName, Email, NormalizedEmail, EmailConfirmed, PasswordHash, SecurityStamp, ConcurrencyStamp,
         PhoneNumber, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnd, LockoutEnabled, AccessFailedCount, FirstName, LastName, ProfilePicture, UsernameChangeLimit, insertDT)
     SELECT UserId, UserName, UPPER(UserName), UserName + N'@{EMAIL_DOMAIN}', UPPER(UserName + N'@{EMAIL_DOMAIN}'), 1, @Pw, REPLACE(CONVERT(nvarchar(36), NEWID()), N'-', N''), CONVERT(nvarchar(36), NEWID()),
@@ -302,24 +297,15 @@ BEGIN
     INSERT app.UserSetting (UserName, MustChangePassword, LastTenantId) SELECT UserName, 0, @T FROM #P;
     INSERT dbo.DeptRoleUserAssoc (TenantId, RoleCode, UserId, InsertDT, updateDT) SELECT @T, MemberRole, UserId, '2026-01-02T00:00:00', '2026-01-02T00:00:00' FROM #P;
 
-    -- 명부 줄에 잇기(역할 코드는 소속으로 옮겼으니 비운다 — 지울 때 소속에서 되돌린다)
-    UPDATE x SET UserId = p.UserId, RoleCode = NULL
-    FROM app.Person x JOIN #P p ON p.PersonId = x.Id AND p.IsNew = 0
-    WHERE x.TenantId = @T AND x.UserId IS NULL;
-    -- 생일: 비어 있던 줄만 채우고, 채운 줄을 감사 로그에 남긴다(지울 때 다시 비운다)
-    INSERT app.AuditLog (OccurredUtc, ActorUserName, Action, TenantId, Detail)
-    SELECT '2026-01-02T00:00:00', @Marker, N'FakeBirthday', @T, CONVERT(nvarchar(20), p.PersonId)
-    FROM #P p WHERE p.IsNew = 0 AND p.BM IS NOT NULL AND p.OrigBM IS NULL AND p.Kind = 'S';
-    UPDATE x SET BirthMonth = p.BM, BirthDay = p.BD
-    FROM app.Person x JOIN #P p ON p.PersonId = x.Id AND p.IsNew = 0
-    WHERE x.TenantId = @T AND p.Kind = 'S' AND p.BM IS NOT NULL AND x.BirthMonth IS NULL;
-
-    -- 학부모 명부 줄
+    -- 명부 줄(생일 포함) · 반 배정
     INSERT app.Person (TenantId, Name, RoleCode, BirthMonth, BirthDay, UserId, CreatedUtc, CreatedByUserName)
-    SELECT @T, p.Name, NULL, p.BM, p.BD, p.UserId, '2026-01-02T00:00:00', @Marker FROM #P p WHERE p.IsNew = 1;
-    UPDATE p SET PersonId = x.Id FROM #P p JOIN app.Person x ON x.TenantId = @T AND x.UserId = p.UserId WHERE p.IsNew = 1;
+    SELECT @T, p.Name, NULL, p.BM, p.BD, p.UserId, '2026-01-02T00:00:00', @Marker FROM #P p;
+    UPDATE p SET PersonId = x.Id FROM #P p JOIN app.Person x ON x.TenantId = @T AND x.UserId = p.UserId;
+    INSERT app.ClassMember (TenantId, TermId, ClassId, PersonId, IsTeacher, CreatedUtc)
+    SELECT @T, c.TermId, c.ClassId, p.PersonId, CASE WHEN p.Kind = 'T' THEN 1 ELSE 0 END, '2026-01-02T00:00:00'
+    FROM #P p JOIN #Cls c ON c.Rn = p.ClassRn;
 
-    -- 출석: 이은 학생만, 주일마다 랜덤(출석률), 3주 결석 아이는 최근 3주 결석. 이미 기록이 있는 주일은 그대로
+    -- 출석: 학생만, 주일마다 랜덤(출석률), 3주 결석 아이는 최근 3주 결석. 이미 기록이 있는 주일은 그대로
     INSERT app.AttendanceCheck (TenantId, PersonId, Sunday, CreatedUtc, CreatedByUserName)
     SELECT @T, p.PersonId, s.D, DATEADD(hour, 2, CAST(s.D AS datetime2(3))), @Marker
     FROM #P p CROSS JOIN #Sun s
@@ -387,6 +373,7 @@ BEGIN
     FROM #Award a JOIN #TeamT t ON t.TeamNo = a.TeamNo;
 
     SET @Ord += 1;
+    END;   -- 반이 있는 부서
     SET @T = (SELECT MIN(Id) FROM app.Tenant WHERE IsLobby = 0 AND Id > @T);
 END;
 
@@ -397,7 +384,8 @@ SELECT N'2 부서별' AS [단계], t.Name AS [부서],
        (SELECT COUNT(*) FROM [Identity].[User] u WHERE u.UserName LIKE LOWER(t.Slug) + N'-s%' AND u.Email LIKE N'%@{EMAIL_DOMAIN}') AS [학생],
        (SELECT COUNT(*) FROM [Identity].[User] u WHERE u.UserName LIKE LOWER(t.Slug) + N'-t%' AND u.Email LIKE N'%@{EMAIL_DOMAIN}') AS [선생님],
        (SELECT COUNT(*) FROM [Identity].[User] u WHERE u.UserName LIKE LOWER(t.Slug) + N'-p%' AND u.Email LIKE N'%@{EMAIL_DOMAIN}') AS [학부모],
-       (SELECT COUNT(*) FROM dbo.DM2_FamilyTeam f WHERE f.TenantId = t.Id AND f.CreatorUserName LIKE LOWER(t.Slug) + N'-%') AS [팀]
+       (SELECT COUNT(*) FROM dbo.DM2_FamilyTeam f WHERE f.TenantId = t.Id AND f.CreatorUserName LIKE LOWER(t.Slug) + N'-%') AS [팀],
+       CASE WHEN EXISTS (SELECT 1 FROM #Skip k WHERE k.Dept = t.Name) THEN N'반 없음 - 건너뜀' ELSE N'' END AS [메모]
 FROM app.Tenant t WHERE t.IsLobby = 0 ORDER BY t.Id;
 
 ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = ON);
@@ -419,128 +407,22 @@ END CATCH;
 """
 
 
-def delete_sql() -> str:
-    return HEADER + f"""-- ============================================================================
--- 가짜 시험 데이터 지우기 (생성기 tools/sql/gen-fake-seed.py, 2026-11-16 명부 기반)
--- 지우는 것: 이메일 @{EMAIL_DOMAIN} 계정(관리자 역할 계정은 빼고)과 그 기록 · 선물, 가짜 표시({MARKER})가 붙은 학부모 · 새친구 명부 · 출석 · 보호 관계,
---            가짜 계정이 만든 가족팀 · 친구팀과 그 시상 기록
--- 되돌리는 것: 가짜 계정을 이은 명부 줄(연결을 풀고 역할 코드를 돌려놓음), 비어 있던 생일(감사 로그 FakeBirthday)
--- 남기는 것: 반 · 명부 · 관리자(Admin · SuperAdmin) 계정과 그 명부 줄, 진짜 출석 기록
--- ============================================================================
-DECLARE @Commit bit = 0;                 -- 0 = 끝에 되돌림, 1 = 저장
-DECLARE @Marker nvarchar(50) = N'{MARKER}';
-DECLARE @MarkTime datetime2(3) = '2026-01-01T00:00:00.123';   -- 예전 가짜 반 표시
-DECLARE @Step nvarchar(20);
-
-
-BEGIN TRY
-BEGIN TRANSACTION;
--- tenant isolation policy off only inside this transaction (back on before the end; a rollback also restores it)
-ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = OFF);
-
-SET @Step = N'0 지우기 전';
-{COUNTS}
-CREATE TABLE #Del (UserId nvarchar(450) COLLATE DATABASE_DEFAULT PRIMARY KEY, UserName nvarchar(256) COLLATE DATABASE_DEFAULT);
-INSERT #Del SELECT u.Id, u.UserName FROM [Identity].[User] u WHERE u.Email LIKE N'%@{EMAIL_DOMAIN}' AND NOT {IS_ADMIN};
-CREATE TABLE #DelTeam (TenantId int, TeamId int, AwardKey nvarchar(200) COLLATE DATABASE_DEFAULT);
-INSERT #DelTeam SELECT TenantId, FamilyTeamId, ISNULL(AwardKey, TeamName) FROM dbo.DM2_FamilyTeam WHERE CreatorUserName IN (SELECT UserName FROM #Del);
--- 지울 명부 줄: 가짜 표시가 붙은 줄 중 관리자 계정에 이어지지 않은 줄(학부모 등)
-CREATE TABLE #DelPerson (TenantId int, PersonId int);
-INSERT #DelPerson SELECT TenantId, Id FROM app.Person WHERE CreatedByUserName = @Marker AND (UserId IS NULL OR UserId IN (SELECT UserId FROM #Del));
--- 선물(2026-11-16): 가짜 계정 · 가짜 명부 줄 · 가짜 이은 명부 줄의 선물과 할 일 상황 선물(열쇠 FAKE-) — 명부 연결을 풀기 전에 고른다
-CREATE TABLE #DelGift (TenantId int, GiftId bigint);
-INSERT #DelGift SELECT g.TenantId, g.Id FROM app.Gift g
-WHERE g.UserName IN (SELECT UserName FROM #Del) OR g.SourceKey LIKE N'FAKE-%'
-   OR EXISTS (SELECT 1 FROM app.Person p WHERE p.TenantId = g.TenantId AND p.Id = g.PersonId AND (p.UserId IN (SELECT UserId FROM #Del) OR p.CreatedByUserName = @Marker));
-DELETE l FROM app.GiftLog l JOIN #DelGift d ON d.TenantId = l.TenantId AND d.GiftId = l.GiftId;
-DELETE g FROM app.Gift g JOIN #DelGift d ON d.TenantId = g.TenantId AND d.GiftId = g.Id;
-DELETE FROM app.GiftPointUse WHERE UserName IN (SELECT UserName FROM #Del);
-
--- 되돌리기: 비어 있던 생일, 이은 명부 줄(역할 코드는 소속에서)
-UPDATE p SET BirthMonth = NULL, BirthDay = NULL
-FROM app.Person p JOIN app.AuditLog a ON a.Action = N'FakeBirthday' AND a.ActorUserName = @Marker AND a.TenantId = p.TenantId AND a.Detail = CONVERT(nvarchar(20), p.Id);
-UPDATE p SET UserId = NULL, RoleCode = d.RoleCode
-FROM app.Person p JOIN dbo.DeptRoleUserAssoc d ON d.TenantId = p.TenantId AND d.UserId = p.UserId
-WHERE p.UserId IN (SELECT UserId FROM #Del) AND NOT EXISTS (SELECT 1 FROM #DelPerson x WHERE x.TenantId = p.TenantId AND x.PersonId = p.Id);
-UPDATE p SET UserId = NULL
-FROM app.Person p
-WHERE p.UserId IN (SELECT UserId FROM #Del) AND NOT EXISTS (SELECT 1 FROM #DelPerson x WHERE x.TenantId = p.TenantId AND x.PersonId = p.Id);
-
-DELETE a FROM app.AttendanceCheck a JOIN #DelPerson d ON d.TenantId = a.TenantId AND d.PersonId = a.PersonId;
-DELETE FROM app.AttendanceCheck WHERE CreatedByUserName = @Marker;
-DELETE m FROM app.ClassMember m JOIN #DelPerson d ON d.TenantId = m.TenantId AND d.PersonId = m.PersonId;
-DELETE r FROM dbo.DM2_FamilyRequest r JOIN #DelTeam t ON t.TenantId = r.TenantId AND t.TeamId = r.FamilyTeamId;
-DELETE FROM dbo.DM2_FamilyRequest WHERE TargetUserName IN (SELECT UserName FROM #Del) OR FromUserName IN (SELECT UserName FROM #Del);
-DELETE FROM dbo.DM2_FamilyNotice WHERE UserName IN (SELECT UserName FROM #Del);
-DELETE h FROM dbo.DM2_FamilyMilestoneHidden h JOIN #DelTeam t ON t.TenantId = h.TenantId AND t.TeamId = h.FamilyTeamId;
-DELETE a FROM dbo.DM2_TeamAward a JOIN #DelTeam t ON t.TenantId = a.TenantId AND t.AwardKey = a.AwardKey;
-DELETE m FROM dbo.DM2_FamilyMember m JOIN #DelTeam t ON t.TenantId = m.TenantId AND t.TeamId = m.FamilyTeamId;
-DELETE FROM dbo.DM2_FamilyMember WHERE UserName IN (SELECT UserName FROM #Del);
-DELETE f FROM dbo.DM2_FamilyTeam f JOIN #DelTeam t ON t.TenantId = f.TenantId AND t.TeamId = f.FamilyTeamId;
-DELETE FROM app.GuardianLink WHERE CreatedByUserName = @Marker OR GuardianUserName IN (SELECT UserName FROM #Del) OR StudentUserName IN (SELECT UserName FROM #Del);
-DELETE FROM app.PromotionRequest WHERE UserName IN (SELECT UserName FROM #Del);
-DELETE FROM dbo.DM2_QuizAttempt WHERE UserName IN (SELECT UserName FROM #Del);
-DELETE FROM dbo.DM2_MissionActivity WHERE UserName IN (SELECT UserName FROM #Del);
-DELETE FROM dbo.DM2_ReadingVerse WHERE UserName IN (SELECT UserName FROM #Del);
-DELETE FROM dbo.DM2_ReadingChapterRead WHERE UserName IN (SELECT UserName FROM #Del);
-DELETE FROM dbo.DM2_ReadingChapterProgress WHERE UserName IN (SELECT UserName FROM #Del);
-DELETE FROM dbo.DM2_ReadingBookmark WHERE UserName IN (SELECT UserName FROM #Del);
-DELETE FROM dbo.DM2_ReadingRound WHERE UserName IN (SELECT UserName FROM #Del);
-DELETE p FROM app.Person p JOIN #DelPerson d ON d.TenantId = p.TenantId AND d.PersonId = p.Id;
-DELETE FROM dbo.SignupApplication WHERE UserId IN (SELECT UserId FROM #Del);
-DELETE FROM dbo.DeptRoleUserAssoc WHERE UserId IN (SELECT UserId FROM #Del);
-DELETE FROM app.UserSetting WHERE UserName IN (SELECT UserName FROM #Del);
-DELETE FROM app.AuditLog WHERE ActorUserName IN (SELECT UserName FROM #Del) OR ActorUserName = @Marker;
-DELETE FROM [Identity].[UserTokens] WHERE UserId IN (SELECT UserId FROM #Del);
-DELETE FROM [Identity].[UserLogins] WHERE UserId IN (SELECT UserId FROM #Del);
-DELETE FROM [Identity].[UserClaims] WHERE UserId IN (SELECT UserId FROM #Del);
-DELETE FROM [Identity].[UserRoles] WHERE UserId IN (SELECT UserId FROM #Del);
-DELETE FROM [Identity].[User] WHERE Id IN (SELECT UserId FROM #Del);
-
--- 예전 가짜 반(2026-11-14 방식): 남은 사람이 없을 때만 지운다
-DELETE c FROM app.Class c WHERE c.CreatedUtc = @MarkTime
-  AND NOT EXISTS (SELECT 1 FROM app.ClassMember m WHERE m.TenantId = c.TenantId AND m.ClassId = c.Id);
-DELETE t FROM app.ClassTerm t WHERE t.CreatedUtc = @MarkTime
-  AND NOT EXISTS (SELECT 1 FROM app.Class c WHERE c.TenantId = t.TenantId AND c.TermId = t.Id);
-
-SET @Step = N'1 지운 뒤';
-{COUNTS}
-ALTER SECURITY POLICY sec.TenantIsolation WITH (STATE = ON);
-IF @Commit = 1
-BEGIN
-    COMMIT;
-    SELECT N'끝: 지웠습니다.' AS [결과];
-END
-ELSE
-BEGIN
-    ROLLBACK;
-    SELECT N'끝: 되돌렸습니다(저장 안 함).' AS [결과];
-END;
-END TRY
-BEGIN CATCH
-    IF @@TRANCOUNT > 0 ROLLBACK;
-    THROW;
-END CATCH;
-"""
-
-
 # SQL Studio(site4now 웹 도구)는 한글 · BOM 이 든 파일을 읽지 못한다(2026-11-14 확인) — 예전 migrate-*.sql 처럼 ASCII 만 쓴다.
 # 한글 값은 CAST(0x<UTF-16LE> AS nvarchar(100)) 로, 안내 문구 · 열 이름은 영어로, 한글 주석은 지운다.
 ENGLISH = {
     "N'0 넣기 전'": "N'0 before'", "N'1 넣은 뒤'": "N'1 after insert'", "N'2 부서별'": "N'2 per dept'",
-    "N'0 지우기 전'": "N'0 before'", "N'1 지운 뒤'": "N'1 after delete'", "N'알림'": "N'note'",
-    "N'가짜 데이터가 이미 있습니다. 먼저 지우기를 실행하세요.'": "N'Fake data already exists. Run delete first.'",
+    "N'알림'": "N'note'", "N'반 없음 - 건너뜀'": "N'no class - skipped'",
+    "N'가짜 데이터가 이미 있습니다. 먼저 완전 초기화를 실행하세요.'": "N'Fake data already exists. Run the full reset first.'",
     "N'Identity.Role 에 Basic 이 없습니다. 알려 주세요.'": "N'Identity.Role has no Basic. Stop and report.'",
     "N'app.BibleChapter 가 비어 있어 통독 기록은 넣지 않습니다.'": "N'app.BibleChapter is empty: no reading records inserted.'",
     "N'가짜 아이디가 이미 있는 계정과 겹칩니다. 알려 주세요.'": "N'A fake user name already exists. Stop and report.'",
     "N'끝: 저장했습니다.'": "N'DONE: saved.'",
-    "N'끝: 지웠습니다.'": "N'DONE: deleted.'",
     "N'끝: 되돌렸습니다(저장 안 함).'": "N'DONE: rolled back (not saved).'",
 }
 ALIASES = {"단계": "Step", "계정": "Accounts", "소속": "Memberships", "명부": "Roster", "계정 이은 명부": "LinkedRoster", "반 배정": "ClassMembers",
            "출석": "Attendance", "미션 기록": "MissionRows", "팀": "Teams", "팀 구성원": "TeamMembers", "시상 기록": "Awards", "보호 관계": "GuardianLinks",
            "통독 회차": "ReadingRounds", "통독 장": "ReadingChapters", "부서": "Dept", "선생님": "Teachers", "학생": "Students", "학부모": "Parents",
-           "결과": "Result", "내용": "Message"}
+           "결과": "Result", "내용": "Message", "메모": "Note"}
 
 
 def asciify(sql: str, title: str) -> str:
@@ -569,15 +451,11 @@ def asciify(sql: str, title: str) -> str:
 
 
 TITLES = {
-    "fake-create.sql": """-- fake-create.sql : FAKE TEST DATA ON THE UPLOADED ROSTER (generated by tools/sql/gen-fake-seed.py, 2026-11-16)
--- Deletes nothing. Classes, roster and admin accounts are kept.
--- Links fake accounts (password 1234) to roster rows: students in classes (s01 ~ s40), class teachers (t01 ~ t10),
--- adds fake parents (p01 ~ p10) and per-case missions, attendance, birthdays (only empty ones), reading, teams.
--- Undo: fake-delete.sql
-""",
-    "fake-delete.sql": f"""-- fake-delete.sql : DELETE FAKE TEST DATA (generated by tools/sql/gen-fake-seed.py, 2026-11-16)
--- Deletes only fake data (email @{EMAIL_DOMAIN} except Admin/SuperAdmin accounts, CreatedByUserName = {MARKER}).
--- Restores linked roster rows (account link, role code, emptied birthdays). Never deletes classes, roster or admin accounts.
+    "fake-create.sql": """-- fake-create.sql : FAKE TEST DATA IN EXISTING CLASSES (generated by tools/sql/gen-fake-seed.py, 2026-11-16, ADR 0102)
+-- Deletes nothing. Classes, existing roster rows and admin accounts are kept.
+-- Per department with classes: new students (s01 ~ s40) spread over the latest term's classes, one teacher per class (t01 ~, max 10),
+-- fake parents (p01 ~ p10), all with accounts (password 1234), plus per-case missions, attendance, birthdays, reading, teams.
+-- Undo: platform full reset (/platform/reset).
 """,
 }
 
@@ -595,7 +473,7 @@ def ssms(sql: str) -> str:
 
 
 def app(sql: str) -> str:
-    """앱 시험 도구(/test-tools)용: 시스템 연결이 PlatformScope 를 이미 켠다. 저장 여부 · 기준 날짜는 매개변수."""
+    """앱 시험 도구(/test-tools/data)용: 시스템 연결이 PlatformScope 를 이미 켠다. 저장 여부 · 기준 날짜는 매개변수."""
     sql = sql.replace(POLICY_OFF, "").replace(POLICY_ON, "")
     for old, new in (("DECLARE @Commit bit = 0;", "DECLARE @Commit bit = @pCommit;"), (f"DECLARE @Today date = '{TODAY}';", "DECLARE @Today date = @pToday;")):
         assert old in sql or "@Today" not in sql, old
@@ -606,12 +484,12 @@ def app(sql: str) -> str:
 
 
 SSMS_NOTE = "-- For SSMS on the PC (SQL Studio on sql.site4now.net blocks session settings). Set @Commit = 1 to save.\n"
-APP_NOTE = "-- Embedded in the web app: run by /test-tools (TestToolsService). Parameters: @pCommit bit, @pToday date.\n"
+APP_NOTE = "-- Embedded in the web app: run by /test-tools/data (TestToolsService). Parameters: @pCommit bit, @pToday date.\n"
 WEB = os.path.normpath(os.path.join(HERE, "..", "..", "src", "ChallengeBible.Web", "TestTools"))
 
 if __name__ == "__main__":
     os.makedirs(WEB, exist_ok=True)
-    for name, body in (("fake-create.sql", create_sql()), ("fake-delete.sql", delete_sql())):
+    for name, body in (("fake-create.sql", create_sql()),):
         for folder, flavor, note in ((HERE, ssms, SSMS_NOTE), (WEB, app, APP_NOTE)):
             with open(os.path.join(folder, name), "w", encoding="ascii", newline="\r\n") as f:
                 f.write(asciify(flavor(body), TITLES[name] + note))

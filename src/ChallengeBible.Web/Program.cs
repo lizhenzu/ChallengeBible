@@ -72,10 +72,9 @@ builder.Services.AddScoped<DeptGiftService>();   // 부서 선물 설정(ADR 009
 builder.Services.AddScoped<PersonalGiftService>();   // 개인 선물 고르기(ADR 0094 B)
 builder.Services.AddScoped<TeamGiftService>();   // 가족팀 · 친구팀 선물(ADR 0094 F)
 builder.Services.AddScoped<GiftOrderService>();   // 선물 구매 · 전달 처리 · 부서 카드(ADR 0094 G)
-builder.Services.AddScoped<YearResetService>();
 builder.Services.AddScoped<QuizAiPromptService>();   // 퀴즈 출제 AI 프롬프트(유년부 그대로)
 builder.Services.AddScoped<WordToolsService>();   // 말씀 입력 · 퀴즈 출제 도구(유년부에서 옮김)
-builder.Services.AddScoped<PeopleResetService>();   // 관리자만 남기기(반 편성 전, 2026-11-15 사용자)   // 새해 초기화 버튼(ADR 0094 정한 것 12)
+builder.Services.AddScoped<ResetService>();   // 완전 초기화(ADR 0102)
 builder.Services.AddScoped<GiftCostService>();   // 선물 총비용 · 엑셀(ADR 0094 G-2 · 정한 것 13)
 builder.Services.AddScoped<RosterUploadService>();   // 명단 올리기(ADR 0097)
 builder.Services.AddScoped<CopyService>();   // 도전!!!성경필사(ADR 0099)
@@ -95,8 +94,6 @@ builder.Services.AddRateLimiter(o =>
         _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
 });
 builder.Services.AddScoped<TestToolsService>();   // 임시 시험 도구(ADR 0095), 설정 TestTools:Enabled
-builder.Services.AddScoped<CaseTestService>();   // 시험 도구 › 케이스별 시험(오늘 할 일)
-builder.Services.AddScoped<CaseFlags>();
 builder.Services.AddScoped<DeptAdminRuleService>();   // 부서 관리자 규칙(역할 · 업무 → 부서 관리자)
 // 해설 표(dbo.eBibleSummary)는 읽기만 한다(ADR 0056): 읽기 전용 계정(BibleNote)이 있으면 그것으로 접속한다.
 var bibleNoteConnection = builder.Configuration.GetConnectionString("BibleNote") ?? connectionString;

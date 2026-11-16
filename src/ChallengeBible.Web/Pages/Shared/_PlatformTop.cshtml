@@ -10,9 +10,10 @@
         ("선물", false, [("/platform/gifts", "공통 상품")]),
         ("계정", false, [("/platform/accounts", "계정 찾기")]),
     };
-    (string, string)[] tools = [("/platform/ops", "운영 점검"), ("/platform/year-reset", "새해 초기화"), ("/platform/people-reset", "관리자만 남기기")];
-    // 임시 시험 도구(ADR 0095): 설정 TestTools:Enabled 일 때만 메뉴에 보인다
-    if (Config.GetValue<bool>("TestTools:Enabled")) tools = [.. tools, ("/test-tools", "시험 도구(임시)")];
+    // 완전 초기화(ADR 0102) = 예전 새해 초기화 + 관리자만 남기기 + 가짜 데이터 지우기
+    (string, string)[] tools = [("/platform/ops", "운영 점검"), ("/platform/reset", "완전 초기화")];
+    // 임시 시험 도구(ADR 0095 · 0102): 설정 TestTools:Enabled 일 때만 메뉴에 보인다. 목적별 두 화면
+    if (Config.GetValue<bool>("TestTools:Enabled")) tools = [.. tools, ("/test-tools/data", "가짜 데이터 넣기(임시)"), ("/test-tools/login", "상황별 로그인(임시)")];
     groups.Add(("도구 — 되돌릴 수 없는 일이 있어요", true, tools));
     // 플랫폼 홈 주소는 다른 플랫폼 주소의 앞부분이라 정확히 같을 때만 현재 화면으로 본다
     // 말씀 입력 = /platform/content/word/check · month · clips, 퀴즈 출제 = /platform/content/quiz/check — 이때 "공용 콘텐츠"는 현재 화면이 아니다

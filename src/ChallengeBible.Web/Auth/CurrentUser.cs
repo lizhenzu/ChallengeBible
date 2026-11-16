@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Authentication;
@@ -34,11 +34,8 @@ public static class CurrentUser
 
     public static string? ImpersonatorId(this ClaimsPrincipal user) => user.FindFirstValue(ImpersonatorClaim);
 
-    /// <summary>시험 도구 케이스 8: 이 쿠키에서는 오늘을 주일로 본다(가짜 계정 가장 로그인에만 붙는다, 로그아웃하면 사라진다).</summary>
-    public const string TestSundayClaim = "tsun";
-
     /// <summary>impersonator 가 있으면 가장 로그인: 그 계정 그대로 + 가장한 관리자 Id. 임시 비밀번호 표시는 넣지 않는다(남의 비밀번호를 바꾸게 하지 않음).</summary>
-    public static Task SignInAsync(HttpContext http, SignedInUser account, string? impersonator = null, bool testSunday = false)
+    public static Task SignInAsync(HttpContext http, SignedInUser account, string? impersonator = null)
     {
         var claims = new List<Claim>
         {
@@ -48,8 +45,7 @@ public static class CurrentUser
         };
         if (account.IsPlatformAdmin) claims.Add(new(PlatformAdminClaim, "1"));
         if (impersonator is { } imp) claims.Add(new(ImpersonatorClaim, imp));
-        if (testSunday && impersonator is not null) claims.Add(new(TestSundayClaim, "1"));
-        else if (account.MustChangePassword) claims.Add(new(MustChangePasswordClaim, "1"));
+        if (account.MustChangePassword) claims.Add(new(MustChangePasswordClaim, "1"));
         return SignInAsync(http, claims);
     }
 
@@ -110,7 +106,6 @@ public static class CurrentUser
                     return;
                 }
                 http.RequestServices.GetRequiredService<RequestScope>().SetUser(name, id);
-                if (http.User.HasClaim(TestSundayClaim, "1")) http.RequestServices.GetRequiredService<Services.CaseFlags>().PretendSunday = true;
             }
             AuditContext.Impersonator = http.User.ImpersonatorId();   // 가장 중 감사 로그에 함께 적힌다(0067)
             await next();

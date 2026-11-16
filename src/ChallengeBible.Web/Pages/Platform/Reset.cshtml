@@ -1,0 +1,59 @@
+@page "/platform/reset"
+@model ChallengeBible.Web.Pages.Platform.ResetModel
+@using ChallengeBible.Web.Services
+@* 완전 초기화(ADR 0102, 확정 시안 완전초기화 2026-11-16): 지울 것 체크(기본 모두) · 절대 안 지움(잠금) · 확인 글자 RESET *@
+@{
+    var s = Model.Status!;
+    var tz = TimeZoneInfo.FindSystemTimeZoneById(ResetService.Zone);
+    string Local(DateTime utc) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), tz).ToString("yyyy.M.d HH:mm");
+    bool On(string key) => Model.Picked is null || Model.Picked.Contains(key);
+}
+<partial name="_PlatformTop" />
+<main class="admin gut"><form method="post" class="wrap rs" data-reset>
+    <h1>완전 초기화</h1>
+    <p class="lead">체크한 것을 모든 부서에서 지워요. 체크를 빼면 남겨요. <b>되돌릴 수 없어요.</b></p>
+    @if (Model.Result is { } r) { <p class="ok-box" role="status">초기화했어요 · @ResetService.Describe(r)건을 지웠어요.</p> }
+    @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }
+
+    @foreach (var g in s.Items.GroupBy(i => i.Group))
+    {
+        <section class="rs-grp" aria-labelledby="rs-@g.First().Key">
+            <h2 id="rs-@g.First().Key">@g.Key <label><input type="checkbox" data-rs-all="@g.Key" @(g.All(i => On(i.Key)) ? "checked" : null) /> 모두</label></h2>
+            @if (g.Key == ResetService.Records) { <p class="rs-note" data-rs-forced hidden>사람(계정 · 명부)을 지우면 그 사람의 기록이 남을 수 없어서 기록은 모두 함께 지워요.</p> }
+            <div class="rs-list">
+                @foreach (var i in g)
+                {
+                    <label class="rs-it"><input type="checkbox" name="pick" value="@i.Key" data-rs-group="@g.Key" @(On(i.Key) ? "checked" : null) /><span>@i.Label</span><b class="num">@i.Count.ToString("N0")</b></label>
+                }
+            </div>
+        </section>
+    }
+
+    <section class="rs-grp" aria-labelledby="rs-keep">
+        <h2 id="rs-keep">절대 안 지워요</h2>
+        <div class="rs-list">
+            @foreach (var k in new[] { "플랫폼 관리자 계정", "부서 관리자 계정 · 소속 · 명부 줄", "부서", "반(이름 · 학년 · 새친구반)", "상품 · 설정 · 콘텐츠" })
+            {
+                <div class="rs-it lock"><span>@k</span><i>잠금</i></div>
+            }
+        </div>
+    </section>
+
+    <div class="rs-go">
+        <p class="rs-sum" data-rs-sum>@s.Items.Count(i => On(i.Key))개 중 @s.Items.Count(i => On(i.Key))개를 지워요</p>
+        <label><span>확인 칸에 <b>@ResetService.ConfirmWord</b> 를 써 주세요</span><input class="in" name="confirm" autocomplete="off" placeholder="@ResetService.ConfirmWord" /></label>
+        <button type="submit" class="btn">초기화</button>
+    </div>
+
+    @if (s.History.Count > 0)
+    {
+        <h2 class="rs-h">초기화 기록</h2>
+        <ul class="rs-log">
+            @foreach (var h in s.History)
+            {
+                <li><span class="num">@Local(h.AtUtc)</span> · <span>@h.Actor</span> · <span class="num">@ResetService.Describe(h.Detail)</span></li>
+            }
+        </ul>
+    }
+</form></main>
+<script src="~/js/reset.js" asp-append-version="true"></script>

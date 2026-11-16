@@ -1,4 +1,4 @@
-using ChallengeBible.Domain.Time;
+﻿using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
 using ChallengeBible.Web.Tenancy;
@@ -68,7 +68,7 @@ public enum TodoError { None, NotFound, NotYours, BadState }
 /// </summary>
 public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext tenant, TenantClock clock, TimeProvider time,
     GiftOrderService orders, BirthdayGiftService birthdays, NewcomerGiftService newcomers, ReadingGiftService readings, CopyGiftService copies,
-    TeamGiftService teamGifts, AttendanceService attendance, CaseFlags flags)
+    TeamGiftService teamGifts, AttendanceService attendance)
 {
     public const int LateDays = 3;
     private string Me => scope.UserName ?? throw new InvalidOperationException("로그인한 요청에서만 써요.");
@@ -208,8 +208,8 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
             var promos = await ctx.PromotionRequests.AsNoTracking().CountAsync(r => r.TargetTenantId == tenant.Current.Id && r.Status == PromotionStatus.Pending, ct);
             if (promos > 0) items.Add(new(TodoKinds.Approve, "approve", "🎓", $"진급 받기 · {promos}건", null) { Href = $"/{Slug}/admin/promotions", HrefLabel = "진급으로 이동", Why = "다른 부서에서 진급해 올라온 사람을 우리 부서로 받아요." });
         }
-        // 출석은 주일 당일만(2026-11-16 사용자). 시험 도구 케이스 8 로 들어온 쿠키만 이번 주 주일로 본다
-        DateOnly? sunday = today.DayOfWeek == DayOfWeek.Sunday ? today : flags.PretendSunday ? AttendanceService.SundayOf(today) : null;
+        // 출석은 주일 당일만(2026-11-16 사용자)
+        DateOnly? sunday = today.DayOfWeek == DayOfWeek.Sunday ? today : null;
         if (sunday is { } day)
         {
             var classes = await ctx.Classes.AsNoTracking().Where(c => !c.IsNewcomer).Select(c => new { c.Id, c.Name }).ToListAsync(ct);

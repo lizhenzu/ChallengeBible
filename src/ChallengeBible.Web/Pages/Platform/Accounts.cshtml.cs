@@ -1,4 +1,4 @@
-using ChallengeBible.Web.Auth;
+﻿using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -47,6 +47,7 @@ public class AccountsModel(PlatformAccountService accounts, ImpersonationService
             return Page();
         }
         await CurrentUser.SignInAsync(HttpContext, await signed.ToSignedInAsync(target, ct), Me);
+        TempData[Account.LoginModel.TodoCheckKey] = "1";   // 가장도 로그인 직후처럼: 할 일이 있으면 할 일 화면으로(R-309, 2026-11-16 사용자)
         return Redirect("/");
     }
 

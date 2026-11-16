@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -90,6 +90,28 @@ public partial class TodoTests : IClassFixture<WebApplicationFactory<Program>>
 
         var kid = await Login("dongseok@example.com");
         Assert.Equal(HttpStatusCode.OK, (await kid.GetAsync("/kids")).StatusCode);   // 할 일이 없는 학생은 홈
+    }
+
+    [Fact]
+    public async Task R309_플랫폼_관리자가_가장으로_들어가도_로그인처럼_할_일이_있으면_한_번_할_일_화면으로()
+    {
+        var op = InMemoryDb.SeedAccount(_db, "operator@example.com", "운영자");
+        InMemoryDb.AddRole(_db, op.Id, IdentityRoles.SuperAdmin);
+        string booId;
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var row = raw.Users.Single(u => u.Id == op.Id);
+            row.PasswordHash = new PasswordHasher<AppUser>().HashPassword(row, "1234");
+            raw.SaveChanges();
+            booId = raw.Users.Single(u => u.Email == "boo@example.com").UserName!;   // 계정 찾기의 id = 아이디
+        }
+        var c = await Login("operator@example.com");
+        await c.GetAsync("/platform");   // 운영자 자신의 로그인 직후 한 번은 소모
+        var token = TokenRx().Match(await c.GetStringAsync($"/platform/accounts?id={booId}")).Groups[1].Value;
+        var go = await c.PostAsync($"/platform/accounts?handler=Impersonate&id={booId}", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = token }));
+        Assert.Equal(HttpStatusCode.Redirect, go.StatusCode);
+        Assert.Equal("/kids/todo", (await c.GetAsync("/kids")).Headers.Location!.OriginalString);   // 가장도 로그인 직후처럼
+        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/kids")).StatusCode);                      // 두 번째부터는 홈
     }
 
     [Fact]

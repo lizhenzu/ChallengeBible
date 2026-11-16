@@ -21,8 +21,9 @@ public sealed record FakeDept(int TenantId, string Name, string Slug, IReadOnlyL
 
 /// <summary>
 /// 임시 시험 도구(ADR 0095, 2026-11-14 사용자 요청 — 선물 시스템 시험용). 설정 `TestTools:Enabled` 가 true 일 때만 열린다(끄면 화면이 없는 것처럼 404).
-/// 가짜 데이터 넣기 · 지우기는 플랫폼 관리자만(시스템 연결, 시작마다 DB 로 다시 확인) — SQL 은 tools/sql/gen-fake-seed.py 가 만든 TestTools/*.sql.
-/// 상황별 로그인은 가짜 계정(이메일 @fake-seed.test)에만, 비밀번호 1234 로 일반 로그인과 같은 길(AccountService.LoginAsync)을 탄다.
+/// 가짜 데이터 넣기(/test-tools/data)는 플랫폼 관리자만(시스템 연결, 시작마다 DB 로 다시 확인) — SQL 은 tools/sql/gen-fake-seed.py 가 만든 TestTools/fake-create.sql.
+/// 지우기는 완전 초기화(ADR 0102)가 한다.
+/// 상황별 로그인(/test-tools/login)은 가짜 계정(이메일 @fake-seed.test)에만, 비밀번호 1234 로 일반 로그인과 같은 길(AccountService.LoginAsync)을 탄다.
 /// </summary>
 public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, TimeProvider time)
 {
@@ -30,7 +31,6 @@ public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, 
     public const string Password = "1234";
     public const string ConfirmWord = "FAKE";
     public const string CreateAction = "FakeDataCreate";
-    public const string DeleteAction = "FakeDataDelete";
 
     public bool Enabled => config.GetValue<bool>("TestTools:Enabled");
 
@@ -91,18 +91,18 @@ public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, 
     // ── 가짜 데이터 넣기 · 지우기 ──
 
     /// <summary>
-    /// 가짜 데이터 넣기(create) · 지우기(delete). commit = false 면 끝에 되돌린다(화면은 늘 저장, 2026-11-16). 플랫폼 관리자만.
-    /// 넣기는 아무것도 지우지 않고 올린 명부에 가짜 계정을 이어 상황별 데이터를 더한다. 지우기는 가짜 표시만 지우고 이은 명부를 되돌린다.
-    /// 반 · 명부 · 관리자(Admin · SuperAdmin) 계정은 둘 다 건드리지 않는다(CLAUDE.md).
+    /// 가짜 데이터 넣기. commit = false 면 끝에 되돌린다(화면은 늘 저장). 플랫폼 관리자만.
+    /// 아무것도 지우지 않고, 부서마다 이미 있는 반에 가짜 아이 · 담임 · 학부모(계정 · 명부 · 반 배정)를 만들어 상황별 데이터를 더한다(ADR 0102).
+    /// 지우기는 따로 없다 — 완전 초기화(/platform/reset)가 지운다. 반 · 관리자(Admin · SuperAdmin) 계정은 건드리지 않는다(CLAUDE.md).
     /// </summary>
-    public async Task<FakeRunResult> RunAsync(string actor, bool create, bool commit, CancellationToken ct = default)
+    public async Task<FakeRunResult> RunAsync(string actor, bool commit, CancellationToken ct = default)
     {
         if (!Enabled) throw new InvalidOperationException("시험 도구가 꺼져 있어요.");
         await using var ctx = systemDb.Create(actor);
         if (!await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct)) throw new UnauthorizedAccessException("플랫폼 관리자만 할 수 있어요.");
         if (!ctx.Database.IsRelational()) return new(false, false, "시험용 메모리 DB 에서는 SQL 을 실행하지 않아요.", [], 0);
 
-        var sql = Script(create ? "fake-create.sql" : "fake-delete.sql");
+        var sql = Script("fake-create.sql");
         var today = TenantClock.ToTenantDate(time.GetUtcNow(), PlatformHomeService.PlatformTimeZone);
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var tables = new List<ResultTable>();
@@ -135,7 +135,7 @@ public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, 
 
         if (commit)
         {
-            ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = create ? CreateAction : DeleteAction, Detail = "시험 도구(/test-tools)" });
+            ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = CreateAction, Detail = "시험 도구(/test-tools/data)" });
             await ctx.SaveChangesAsync(ct);
         }
         return new(true, commit, null, tables, sw.ElapsedMilliseconds);
@@ -158,52 +158,6 @@ public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, 
         using var s = asm.GetManifestResourceStream(name)!;
         using var r = new StreamReader(s);
         return r.ReadToEnd();
-    }
-
-    // ── 관리자 없는 부서에 시험 관리자(2026-11-15 사용자 "부서 관리자 없는 부서의 관리자 만들고 비번 1234, 버튼으로 로그인") ──
-
-    private static readonly Microsoft.AspNetCore.Identity.PasswordHasher<AppUser> Hasher = new();
-
-    /// <summary>
-    /// 부서 관리자(Identity Admin + 그 부서 소속)가 없는 부서마다 시험 관리자를 만든다: 아이디 = 부서주소-admin, 이메일 = 아이디@fake-seed.test, 비밀번호 1234,
-    /// 이름 = 부서 이름의 마지막 낱말 + " 관리자", 교사로 소속 + 명부. 가짜 계정 규칙과 같아 상황별 로그인 버튼에 저절로 나온다. 플랫폼 관리자만. 만든 (부서, 아이디)를 돌려준다.
-    /// </summary>
-    public async Task<IReadOnlyList<(string Dept, string UserName)>> CreateMissingAdminsAsync(string actor, CancellationToken ct = default)
-    {
-        await using var ctx = systemDb.Create(actor);
-        if (!await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct)) throw new UnauthorizedAccessException();
-        var adminRole = await ctx.IdentityRoleRows.SingleAsync(r => r.Name == IdentityRoles.Admin, ct);
-        var basic = await ctx.IdentityRoleRows.Where(r => r.Name == IdentityRoles.Basic).Select(r => r.Id).FirstOrDefaultAsync(ct);
-        var admins = ctx.UserRoles.Where(r => r.RoleId == adminRole.Id).Select(r => r.UserId);
-        var lacking = await ctx.Tenants.Where(t => !t.IsLobby && t.Status == TenantStatus.Active && !ctx.DeptRoles.Any(d => d.TenantId == t.Id && admins.Contains(d.UserId!)))
-            .OrderBy(t => t.Id).ToListAsync(ct);
-        var now = time.GetUtcNow().UtcDateTime;
-        var made = new List<(string, string)>();
-        foreach (var t in lacking)
-        {
-            var userName = $"{t.Slug.ToLowerInvariant()}-admin";
-            var user = await ctx.Users.SingleOrDefaultAsync(u => u.NormalizedUserName == AppUser.Normalize(userName), ct);
-            if (user is null)
-            {
-                var email = userName + EmailDomain;
-                user = new AppUser
-                {
-                    UserName = userName, NormalizedUserName = AppUser.Normalize(userName), Email = email, NormalizedEmail = AppUser.Normalize(email),
-                    FirstName = $"{t.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? t.Name} 관리자", LastName = "",
-                    SecurityStamp = Guid.NewGuid().ToString("N"), ConcurrencyStamp = Guid.NewGuid().ToString(), LockoutEnabled = true, InsertDT = now,
-                };
-                user.PasswordHash = Hasher.HashPassword(user, Password);
-                ctx.Users.Add(user);
-                if (basic is not null) ctx.UserRoles.Add(new AppUserRole { UserId = user.Id, RoleId = basic });
-                await ctx.SaveChangesAsync(ct);
-            }
-            await DeptMembership.PlaceAsync(ctx, user, t.Id, Web.Services.UserRole.AdminCode, now, ct, actor: actor);   // 어드민 역할(2026-11-16)
-            if (!await ctx.UserRoles.AnyAsync(r => r.UserId == user.Id && r.RoleId == adminRole.Id, ct)) ctx.UserRoles.Add(new AppUserRole { UserId = user.Id, RoleId = adminRole.Id });
-            ctx.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorUserName = actor, Action = "TestAdminCreate", TenantId = t.Id, Detail = userName });
-            await ctx.SaveChangesAsync(ct);
-            made.Add((t.Name, userName));
-        }
-        return made;
     }
 
     // ── 상황별 로그인 ──
