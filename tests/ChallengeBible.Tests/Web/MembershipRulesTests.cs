@@ -215,20 +215,18 @@ public class MembershipRulesTests
     }
 
     [Fact]
-    public async Task 관리자_지정과_해제_내_관리자_역할은_뺄_수_없다()
+    public async Task 사람마다_관리자를_지정_해제하지_않는다_역할_업무로만()
     {
         var teacher = Person("sunmi", "최선미");
         var m = InMemoryDb.SeedMembership(_db, _kids.Id, teacher.UserName!, MembershipStatus.Approved, Roles.Teacher);
         var svc = Members(_kids);
 
-        Assert.Equal(MemberError.None, await svc.SetAdminAsync(_admin.UserName!, m.Id, true));
-        Assert.True((await svc.ListAsync(new MemberFilter(MembershipStatus.Approved, "선미", null))).Single().IsAdmin);
-        Assert.Equal(MemberError.None, await svc.SetAdminAsync(_admin.UserName!, m.Id, false));
+        Assert.Equal(MemberError.RuleOnly, await svc.SetAdminAsync(_admin.UserName!, m.Id, true));   // 찬양 담당 같은 사람을 실수로 관리자로 못 만든다
         Assert.False((await svc.ListAsync(new MemberFilter(MembershipStatus.Approved, "선미", null))).Single().IsAdmin);
-
         int mine;
         using (var raw = InMemoryDb.Raw(_db)) mine = raw.DeptRoles.Single(d => d.UserId == _admin.Id).Id;
-        Assert.Equal(MemberError.SelfAdminRemove, await svc.SetAdminAsync(_admin.UserName!, mine, false));
+        Assert.Equal(MemberError.RuleOnly, await svc.SetAdminAsync(_admin.UserName!, mine, false));
+        Assert.Contains(_admin.UserName!, (await svc.ListAsync(new MemberFilter(MembershipStatus.Approved, null, null))).Where(r => r.IsAdmin).Select(r => r.UserName));   // 관리자는 그대로
     }
 
     // ── 임시 부서 ──

@@ -13,8 +13,8 @@ public static class TodoKinds
     public static readonly string[] All = [Gift, Notice, Birthday, Newcomer, Approve, Attendance];
     public static string Label(string k) => k switch
     {
-        Gift => "🎁 선물 사기 · 전하기", Notice => "🔔 선물 대상 알림 · 링크", Birthday => "🎂 생일 링크 보내기",
-        Newcomer => "🆕 데려온 사람 정하기", Approve => "✋ 승인 · 🎓 진급", Attendance => "📋 출석(주일)", _ => k,
+        Gift => "선물 사기 · 전하기", Notice => "선물 대상 알림 · 링크", Birthday => "생일 링크 보내기",
+        Newcomer => "데려온 사람 정하기", Approve => "승인 · 진급", Attendance => "출석(주일)", _ => k,
     };
 }
 
@@ -136,8 +136,9 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
             await copies.EnsureAsync(ct);
         }
         // 선물 일(확정 시안 할일타임라인, 2026-11-16): 카드에는 설명 · 정보 · 타임라인 · [선물 처리 화면으로]만. 완료는 선물 처리 화면에서
-        string Work(long id) => $"/{Slug}/todo/gift/{id}";
-        const string WorkLabel = "선물 처리 화면으로 →";
+        // [이동] = 실제 메뉴(관리 › 선물 처리)의 그 탭으로 가서 그 건을 펼쳐 강조(2026-11-16 사용자 "이동은 그 메뉴로 가는 것까지"). 관리 메뉴는 부서 관리자만
+        string? Work(string step, long id) => tenant.IsAdmin ? $"/{Slug}/admin/gifts?s={step}&hit={id}#g{id}" : null;
+        string? WorkLabel = tenant.IsAdmin ? "선물 처리로 이동" : null;
         if (See(TodoKinds.Gift))
         {
             var buy = await orders.ListAsync(GiftOrderService.Buy, 100, ct);
@@ -149,7 +150,7 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
                 var days = g.PickedUtc is { } p ? (int)(now - p).TotalDays : 0;
                 items.Add(new(TodoKinds.Gift, "gift", "🎁", $"사 주세요 · {g.Who} · {g.ItemName}", null)
                 {
-                    GiftId = g.Id, Tone = days >= LateDays ? "late" : "", Href = Work(g.Id), HrefLabel = WorkLabel,
+                    GiftId = g.Id, Tone = days >= LateDays ? "late" : "", Href = Work("buy", g.Id), HrefLabel = WorkLabel,
                     Why = $"{g.Who}{Subject(g.Who)} {g.KindText} 선물을 골랐어요. 사서 전해 줘야 아이가 선물을 받아요.",
                     Info = [("선물", g.ItemName), ("가격", $"{g.Price:N0}원"), ("고른 날", $"{Local(g.PickedUtc):M/d}")], Steps = Steps(g),
                 });
@@ -160,9 +161,9 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
                 var by = b is null ? "누군가" : b.ActorName ?? b.Actor ?? "누군가";
                 items.Add(new(TodoKinds.Gift, "gift", "🎁", $"전해 주세요 · {g.Who} · {g.ItemName}", null)
                 {
-                    GiftId = g.Id, Tone = "done", Note = $"{by}님이 {Local(g.PurchasedUtc):M/d} 구매", Href = Work(g.Id), HrefLabel = WorkLabel,
+                    GiftId = g.Id, Tone = "done", Note = $"{by}님이 {Local(g.PurchasedUtc):M/d} 구매", Href = Work("give", g.Id), HrefLabel = WorkLabel,
                     Why = "이미 샀어요. 아이에게 직접 건네고 선물 처리 화면에서 [전달 완료]를 눌러 주세요.",
-                    Info = [("선물", g.ItemName), ("종류", g.KindText)], Steps = Steps(g),
+                    Info = [("선물", g.ItemName), ("산 사람", $"{by} · {Local(g.PurchasedUtc):M/d}")], Steps = Steps(g),
                 });
             }
         }
@@ -176,8 +177,7 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
                 items.Add(new(TodoKinds.Notice, "gift", "🔔", $"{g.Who}{Subject(g.Who)} 선물 대상이 됐어요", null)
                 {
                     GiftId = g.Id, Tone = expired ? "late" : "",
-                    Href = expired ? (tenant.IsAdmin ? $"/{Slug}/admin/gifts?s=pick" : null) : Work(g.Id),
-                    HrefLabel = expired ? (tenant.IsAdmin ? "다시 열기 →" : null) : WorkLabel,
+                    Href = Work("pick", g.Id), HrefLabel = WorkLabel,
                     Note = expired && !tenant.IsAdmin ? "부서 관리자가 다시 열 수 있어요" : null,
                     Why = expired ? "고르는 기한이 지났어요. 부서 관리자가 다시 열면 또 고를 수 있어요."
                         : g.NoAccount ? "계정이 없는 아이예요. 선물 처리 화면에서 링크를 복사해 부모님께 보내면 로그인 없이 골라요."
@@ -190,7 +190,7 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
         if (See(TodoKinds.Newcomer))
             foreach (var p in await newcomers.PendingAsync(ct))
                 items.Add(new(TodoKinds.Newcomer, "gift", "🆕", $"새친구 {p.NewcomerName}{Object(p.NewcomerName)} 데려온 사람 정하기", null)
-                { Why = "새친구를 데려온 친구에게 전도 선물을 주려면, 누가 데려왔는지 먼저 정해요.", Info = [("적어 둔 이름", p.Written)], Href = tenant.IsAdmin ? $"/{Slug}/admin/gifts?pick={p.NewcomerId}" : null, HrefLabel = tenant.IsAdmin ? "정하기 →" : null,
+                { Why = "새친구를 데려온 친구에게 전도 선물을 주려면, 누가 데려왔는지 먼저 정해요.", Info = [("적어 둔 이름", p.Written)], Href = tenant.IsAdmin ? $"/{Slug}/admin/gifts?pick={p.NewcomerId}" : null, HrefLabel = tenant.IsAdmin ? "선물 처리로 이동" : null,
                   Note = tenant.IsAdmin ? null : $"적어 둔 이름: {p.Written}" });
         if (See(TodoKinds.Approve))
         {
@@ -201,12 +201,12 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
                 var ago = (int)(now - first.InsertDT).TotalDays;
                 items.Add(new(TodoKinds.Approve, "approve", "✋", $"참여 신청 승인 · {waiting.Count}건", null)
                 {
-                    Href = $"/{Slug}/admin/members", HrefLabel = "승인하러 가기 →", Why = "새로 가입한 사람이 부서에 들어오려고 기다려요. 명부와 이어서 승인해요.",
+                    Href = $"/{Slug}/admin/members", HrefLabel = "사람 관리로 이동", Why = "새로 가입한 사람이 부서에 들어오려고 기다려요. 명부와 이어서 승인해요.",
                     Info = [("가장 오래된 것", $"{(ago <= 0 ? "오늘" : $"{ago}일 전")} · {first.FullName}")],
                 });
             }
             var promos = await ctx.PromotionRequests.AsNoTracking().CountAsync(r => r.TargetTenantId == tenant.Current.Id && r.Status == PromotionStatus.Pending, ct);
-            if (promos > 0) items.Add(new(TodoKinds.Approve, "approve", "🎓", $"진급 받기 · {promos}건", null) { Href = $"/{Slug}/admin/promotions", HrefLabel = "받으러 가기 →", Why = "다른 부서에서 진급해 올라온 사람을 우리 부서로 받아요." });
+            if (promos > 0) items.Add(new(TodoKinds.Approve, "approve", "🎓", $"진급 받기 · {promos}건", null) { Href = $"/{Slug}/admin/promotions", HrefLabel = "진급으로 이동", Why = "다른 부서에서 진급해 올라온 사람을 우리 부서로 받아요." });
         }
         // 출석은 주일 당일만(2026-11-16 사용자). 시험 도구 케이스 8 로 들어온 쿠키만 이번 주 주일로 본다
         DateOnly? sunday = today.DayOfWeek == DayOfWeek.Sunday ? today : flags.PretendSunday ? AttendanceService.SundayOf(today) : null;
@@ -219,7 +219,7 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
             if (See(TodoKinds.Attendance) && roles.Contains(TodoRoles.Homeroom) && rules[TodoKinds.Attendance].Contains(TodoRoles.Homeroom))
                 foreach (var c in classes.Where(c => sc.Classes.Contains(c.Id) && Checked(c.Id) == 0 && kids.Any(k => k.ClassId == c.Id)))
                     items.Add(new(TodoKinds.Attendance, "attendance", "📋", $"우리 반 출석 체크 · {c.Name}", null)
-                    { Href = $"/{Slug}/attendance", HrefLabel = "출석부 열기 →", Why = "주일 출석을 체크해야 출석 기록과 새친구 선물이 바르게 쌓여요.",
+                    { Href = $"/{Slug}/attendance", HrefLabel = "출석으로 이동", Why = "주일 출석을 체크해야 출석 기록과 새친구 선물이 바르게 쌓여요.",
                       Info = [("주일", $"{day:M월 d일}"), ("우리 반", $"{kids.Count(k => k.ClassId == c.Id)}명 · 아직 0명")] });
             if (See(TodoKinds.Attendance) && tenant.IsAdmin && rules[TodoKinds.Attendance].Contains(TodoRoles.Admin))
             {
@@ -227,7 +227,7 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
                 var done = withKids.Count(c => Checked(c.Id) > 0);
                 if (withKids.Count > 0 && done < withKids.Count)
                     items.Add(new(TodoKinds.Attendance, "attendance", "📋", $"이번 주일 출석 · 전체 {withKids.Count}반", null)
-                    { Href = $"/{Slug}/attendance", HrefLabel = "출석부 열기 →", Why = "아직 출석을 체크하지 않은 반이 있어요. 담임에게 알리거나 대신 체크해요.",
+                    { Href = $"/{Slug}/attendance", HrefLabel = "출석으로 이동", Why = "아직 출석을 체크하지 않은 반이 있어요. 담임에게 알리거나 대신 체크해요.",
                       Info = [("체크한 반", $"{done} / {withKids.Count}")] });
             }
             if (sc.NewcomerStaff)
@@ -235,7 +235,7 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
                 var active = await AttendanceService.ActiveNewcomersAsync(ctx, day, ct);
                 var left = active.Keys.Count(id => !checkedIds.Contains(id));
                 if (active.Count > 0 && left > 0)
-                    items.Add(new(TodoKinds.Attendance, "attendance", "🙋", $"새친구 출석 체크 · {active.Count}명", null) { Href = $"/{Slug}/attendance/newcomers", HrefLabel = "새친구 열기 →",
+                    items.Add(new(TodoKinds.Attendance, "attendance", "🙋", $"새친구 출석 체크 · {active.Count}명", null) { Href = $"/{Slug}/attendance/newcomers", HrefLabel = "새친구 출석으로 이동",
                         Why = "새친구는 출석을 채워야 새친구 선물을 받아요.", Info = [("아직", $"{left}명")] });
             }
         }
@@ -252,7 +252,7 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
                 var left = bday is { } b ? b.DayNumber - today.DayNumber : (int?)null;
                 items.Add(new(TodoKinds.Birthday, "birthday", "🎂", $"생일 선물 링크 · {people.GetValueOrDefault(g.PersonId!.Value)}", null)
                 {
-                    GiftId = g.Id, Note = "아직 안 고름", Href = Work(g.Id), HrefLabel = WorkLabel,
+                    GiftId = g.Id, Note = "아직 안 고름", Href = Work("pick", g.Id), HrefLabel = WorkLabel,
                     Why = "우리 반 아이 생일이 다가와요. 선물 처리 화면에서 링크를 복사해 부모님께 보내면 로그인 없이 골라요.",
                     Info = [("생일", $"{bday:M월 d일}{(left is int l && l >= 0 ? $" · {l}일 남음" : "")}")],
                     Steps = GiftTimeline.Build(GiftKinds.Birthday, GiftStates.Open, true, now, null, blogs.GetValueOrDefault(g.Id) ?? [], now, LateDays),
@@ -292,29 +292,6 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
         }
         var token = await birthdays.LinkAsync(Me, giftId, fresh: false, ct);
         return token is null ? (TodoError.BadState, null) : (TodoError.None, $"/gift/{token}");
-    }
-
-    /// <summary>
-    /// 선물 처리 화면(확정 시안 할일타임라인 ②)에서 내가 할 수 있는 것: 선물 그룹이면 사기 · 전하기 · 링크, 선물 알림이면 링크,
-    /// 담임이면 우리 반 아이의 생일 링크. 하나도 없으면 들어올 수 없다(관리 › 선물의 취소 · 되돌리기는 관리자만 그대로).
-    /// </summary>
-    public async Task<(bool Open, bool Move, bool Link)> GiftAccessAsync(long giftId, CancellationToken ct = default)
-    {
-        if (tenant.IsLobby) return (false, false, false);
-        var kinds = await VisibleKindsAsync(ct);
-        var move = kinds.Contains(TodoKinds.Gift);
-        var link = kinds.Contains(TodoKinds.Notice) || move;
-        if (!link && kinds.Contains(TodoKinds.Birthday))
-        {
-            await using var ctx = db.Create();
-            var g = await ctx.Gifts.AsNoTracking().Where(x => x.Id == giftId).Select(x => new { x.Kind, x.PersonId }).SingleOrDefaultAsync(ct);
-            if (g is { Kind: GiftKinds.Birthday, PersonId: int pid })
-            {
-                var (_, sc) = await MineAsync(ctx, ct);
-                link = await ctx.ClassMembers.AnyAsync(m => m.PersonId == pid && !m.IsTeacher && sc.Classes.Contains(m.ClassId), ct);
-            }
-        }
-        return (move || link, move, link);
     }
 
     /// <summary>안 보기(R-309): days 일 동안 로그인해도 할 일 화면으로 보내지 않는다(1 = 오늘만, 다음 날 다시).</summary>

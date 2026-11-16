@@ -45,7 +45,7 @@ public sealed class CaseTestService(ISystemDb systemDb, TestToolsService tools, 
     /// <summary>케이스 계정: 코드 · 이름 · 직분 코드 · 관리자 권한 · 선물 담당 · 케이스 반 담임.</summary>
     private sealed record Acct(string Code, string Name, string Role, bool Admin = false, bool GiftTag = false, bool Homeroom = false);
     private static readonly Acct Officer = new("boo", "부장", "T1005");
-    private static readonly Acct Admin = new("adm", "관리자", UserRole.TeacherCode, Admin: true);
+    private static readonly Acct Admin = new("adm", "관리자", UserRole.AdminCode);   // 어드민 역할(늘 관리자)
     private static readonly Acct Director = new("dir", "지도", TodoRoles.DirectorCode);
     private static readonly Acct GiftMgr = new("gft", "선물담당", UserRole.TeacherCode, GiftTag: true);
     private static readonly Acct Homeroom = new("hr", "담임", UserRole.TeacherCode, Homeroom: true);

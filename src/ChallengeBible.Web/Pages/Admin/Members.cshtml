@@ -130,13 +130,7 @@
                                     </div>
                                     <div class="acts"><button type="submit" class="btn p sm">역할 저장</button></div>
                                 </form>
-                                @if (!self)
-                                {
-                                    <form method="post" asp-page-handler="Admin" asp-route-slug="@slug" asp-route-Tab="@Model.Tab" class="acts">
-                                        <input type="hidden" name="id" value="@id" /><input type="hidden" name="admin" value="@(r.IsAdmin ? "false" : "true")" />
-                                        <button type="submit" class="btn s sm">@(r.IsAdmin ? "관리자 해제" : "이 부서 관리자로 지정")</button>
-                                    </form>
-                                }
+                                <p class="hint">부서 관리자는 사람마다 정하지 않아요. 역할(지도 · 부장 · 부감 · 서기 · 어드민)이나 관리자 업무(선물 담당 등)로 저절로 정해져요.</p>
                                 @if (r.RoleCode == UserRole.StudentCode)
                                 {
                                     var linked = Model.Links.GetValueOrDefault(r.UserName!) ?? [];
@@ -170,7 +164,6 @@
                                         </form>
                                     </details>
                                 </div>
-                                @if (self) { <p class="hint">내 관리자 역할은 여기서 뺄 수 없어요.</p> }
                             }
                         </div>
                     </details>

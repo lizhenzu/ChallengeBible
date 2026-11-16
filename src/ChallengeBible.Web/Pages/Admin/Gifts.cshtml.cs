@@ -1,4 +1,4 @@
-﻿using ChallengeBible.Domain.Rules;
+using ChallengeBible.Domain.Rules;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
@@ -33,6 +33,8 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
     [BindProperty(SupportsGet = true, Name = "new")] public bool LinkFresh { get; set; }
     /// <summary>[전도한 아이 고르기] 팝업: 새친구 명부 번호 · 찾는 이름.</summary>
     [BindProperty(SupportsGet = true, Name = "pick")] public int? PickId { get; set; }
+    /// <summary>오늘 할 일에서 [선물 처리로 이동]으로 온 건(그 줄을 강조, 2026-11-16).</summary>
+    [BindProperty(SupportsGet = true, Name = "hit")] public long? Hit { get; set; }
     [BindProperty(SupportsGet = true, Name = "q2")] public string? PickQ { get; set; }
     public IReadOnlyList<InvitePending> Pending { get; private set; } = [];
     public InvitePending? PickFor { get; private set; }

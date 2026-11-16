@@ -58,3 +58,30 @@ internal sealed class TodoRuleConfig : IEntityTypeConfiguration<TodoRule>
         e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.NoAction);
     }
 }
+
+/// <summary>
+/// 업무 목록(2026-11-16 사용자 "역할 하나 + 업무 여러 개"): 플랫폼 관리자가 만들고 모든 부서가 같이 쓴다. Key 는 사람 꼬리표(MemberTag.Tag)에 그대로 쓴다.
+/// IsAdmin 이면 이 업무를 맡은 사람은 그 부서의 부서 관리자(부서 관리자 규칙). 처음에는 Gift(선물 담당) 하나.
+/// </summary>
+public sealed class Duty
+{
+    public required string Key { get; set; }
+    public required string Name { get; set; }
+    public bool IsAdmin { get; set; }
+    public int SortOrder { get; set; }
+    public DateTime CreatedUtc { get; set; }
+}
+
+internal sealed class DutyConfig : IEntityTypeConfiguration<Duty>
+{
+    public void Configure(EntityTypeBuilder<Duty> e)
+    {
+        e.ToTable("Duty");
+        e.HasKey(x => x.Key);
+        e.Property(x => x.Key).HasMaxLength(20).IsUnicode(false);
+        e.Property(x => x.Name).HasMaxLength(30);
+        e.Property(x => x.CreatedUtc).HasPrecision(3);
+        e.HasIndex(x => x.Name).IsUnique().HasDatabaseName("UX_Duty_Name");
+        e.HasData(new Duty { Key = "Gift", Name = "선물 담당", IsAdmin = true, SortOrder = 1, CreatedUtc = new DateTime(2026, 11, 16, 0, 0, 0, DateTimeKind.Utc) });
+    }
+}

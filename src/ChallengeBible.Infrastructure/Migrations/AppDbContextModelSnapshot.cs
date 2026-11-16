@@ -1666,6 +1666,47 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("DeptRoleUserAssoc", "dbo");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Duty", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Key");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Duty_Name");
+
+                    b.ToTable("Duty", "app");
+
+                    b.HasData(
+                        new
+                        {
+                            Key = "Gift",
+                            CreatedUtc = new DateTime(2026, 11, 16, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsAdmin = true,
+                            Name = "선물 담당",
+                            SortOrder = 1
+                        });
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyMember", b =>
                 {
                     b.Property<int>("TenantId")

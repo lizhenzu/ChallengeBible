@@ -15,19 +15,21 @@ public static class UserRole
     public const string StudentCode = "T1001";
     public const string TeacherCode = "T1002";
     public const string TeacherSCode = "T1003";
+    /// <summary>"어드민" 역할(2026-11-16 사용자): 부서 관리자 규칙에서 늘 관리자. 부서 관리자 계정 · 시험용 관리자.</summary>
+    public const string AdminCode = "T1030";
     public const string EtcCode = "T1099";
     /// <summary>가족팀 관계 번호(DM2_FamilyMember.RoleCode): 0 학생 · 1 엄마 · 2 아빠 · 3 할머니 · 4 할아버지.</summary>
     public const int RelStudent = 0;
 
-    /// <summary>역할 코드 18개(유년부 CodeData T001). 부서를 만들 때 함께 넣는다.</summary>
+    /// <summary>역할 코드 19개(유년부 CodeData T001 + 어드민). 부서를 만들 때 함께 넣는다.</summary>
     public static readonly IReadOnlyList<(string Code, string Name)> Codes =
     [
         ("T1001", "학생"), ("T1002", "교사"), ("T1003", "교사(S)"), ("T1004", "지도"), ("T1005", "부장"), ("T1006", "부감"),
         ("T1008", "서기"), ("T1009", "회계"), ("T1010", "보조"), ("T1013", "지원"), ("T1015", "율동"), ("T1016", "촬영"),
-        ("T1017", "영상"), ("T1018", "반주"), ("T1019", "스텝"), ("T1020", "새친구"), ("T1040", "교장"), ("T1099", "기타"),
+        ("T1017", "영상"), ("T1018", "반주"), ("T1019", "스텝"), ("T1020", "새친구"), ("T1030", "어드민"), ("T1040", "교장"), ("T1099", "기타"),
     ];
 
-    /// <summary>새 부서에 역할 코드 18개를 넣는다. 저장은 부르는 쪽에서.</summary>
+    /// <summary>새 부서에 역할 코드를 넣는다. 저장은 부르는 쪽에서.</summary>
     public static void SeedCodes(AppDbContext ctx, int tenantId, DateTime now)
     {
         for (var i = 0; i < Codes.Count; i++)

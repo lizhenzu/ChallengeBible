@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -78,7 +78,7 @@ public partial class TodoTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal("/kids/todo", (await boo.GetAsync("/kids")).Headers.Location!.OriginalString);   // 로그인 직후 한 번
         Assert.Equal(HttpStatusCode.OK, (await boo.GetAsync("/kids")).StatusCode);                      // 두 번째부터는 홈
         var page = await boo.GetStringAsync("/kids/todo");
-        Assert.Contains("⌂ 홈으로", page);
+        Assert.Contains("홈으로", page);
         Assert.Contains("오늘 안 보기", page);
         Assert.Contains("한 달", page);
 
@@ -93,49 +93,49 @@ public partial class TodoTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task R310_선물은_그룹_누구나_사고_구매자가_보이고_전달_완료면_사라진다_일반_교사는_안_보인다()
+    public async Task R310_선물은_카드에서_보기만_하고_관리_선물_처리로_이동해_사고_전하면_사라진다()
     {
         var boo = await Login("boo@example.com");
         var page = await boo.GetStringAsync("/kids/todo");
         Assert.Contains("사 주세요 · 권동석 · 레고 블록", page);
         Assert.Matches("[3-9]일째 아무도 안 삼", page);   // 12/30 고름 → 1/5, 3일 넘음(타임라인)
-        Assert.DoesNotContain("구매 완료", page);          // 카드에서는 완료하지 않는다(확정 시안 할일타임라인)
-        var work = $"/kids/todo/gift/{GiftId()}";
-        Assert.Contains(work, page);                        // [선물 처리 화면으로 →]
-        var detail = await boo.GetStringAsync(work);
-        Assert.Contains("https://www.coupang.com/vp/products/1", detail);
-        Assert.Contains("구매 완료", detail);
+        Assert.DoesNotContain("구매 완료", page);          // 카드에서는 완료하지 않는다
+        Assert.DoesNotContain("🎁", page);                 // 이모지 없음(2026-11-16 사용자)
         var teacher = await Login("teacher@example.com");
-        Assert.DoesNotContain("레고 블록", await teacher.GetStringAsync("/kids/todo"));   // 일반 교사(꼬리표 없음)
-        Assert.Equal(HttpStatusCode.NotFound, (await teacher.GetAsync(work)).StatusCode);   // 선물 처리 화면도 못 연다
+        Assert.DoesNotContain("레고 블록", await teacher.GetStringAsync("/kids/todo"));   // 일반 교사(업무 없음)
 
-        await WorkPost(boo, work, "Buy");
         var admin = await Login("admin@example.com");
+        var id = GiftId();
         var adminPage = await admin.GetStringAsync("/kids/todo");
-        Assert.Contains("전해 주세요 · 권동석 · 레고 블록", adminPage);
-        Assert.Contains("박부장님이 1/5 구매", adminPage);
-        Assert.Contains("전달 완료", await admin.GetStringAsync(work));
-        Assert.Equal("/kids/todo", (await WorkPost(admin, work, "Deliver")).Headers.Location!.OriginalString);   // 전달 완료 → 할 일로, 바로 사라짐
+        Assert.Contains($"/kids/admin/gifts?s=buy&amp;hit={id}#g{id}", adminPage);   // [선물 처리로 이동] = 실제 메뉴, 그 건 강조
+        Assert.Contains("할 일에서 왔어요", await admin.GetStringAsync($"/kids/admin/gifts?s=buy&hit={id}"));
+        await GiftMove(admin, id, "Purchase");
+        var after = await boo.GetStringAsync("/kids/todo");
+        Assert.Contains("전해 주세요 · 권동석 · 레고 블록", after);
+        Assert.Contains("윤동호 · 1/5", after);   // 산 사람 · 날짜
+        await GiftMove(admin, id, "Deliver");
         Assert.DoesNotContain("레고 블록", await boo.GetStringAsync("/kids/todo"));
         using var raw = InMemoryDb.Raw(_db);
         Assert.Equal(GiftStates.Delivered, raw.Gifts.Single().State);
-        Assert.Equal(new[] { ("Purchase", "boo"), ("Deliver", "admin") }, raw.GiftLogs.OrderBy(l => l.Id).AsEnumerable().Select(l => (l.Action, l.ActorUserName!)).ToArray());
     }
 
-    private static async Task<HttpResponseMessage> WorkPost(HttpClient c, string work, string handler)
+    private static async Task GiftMove(HttpClient c, long id, string act)
     {
-        var tok = TokenRx().Match(await c.GetStringAsync(work)).Groups[1].Value;
-        return await c.PostAsync($"{work}?handler={handler}", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = tok }));
+        var tok = TokenRx().Match(await c.GetStringAsync($"/kids/admin/gifts?s={(act == "Deliver" ? "give" : "buy")}")).Groups[1].Value;
+        var r = await c.PostAsync("/kids/admin/gifts?handler=Move", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = tok, ["id"] = id.ToString(), ["act"] = act }));
+        Assert.Contains($"ok={act}", r.Headers.Location?.OriginalString ?? r.StatusCode.ToString());
     }
 
     [Fact]
-    public async Task R311_선물_담당_꼬리표를_켜면_교사에게도_선물_일이_뜬다()
+    public async Task R311_교사에게_선물_담당_업무를_맡기면_선물_일이_뜨고_관리자가_된다()
     {
         var admin = await Login("admin@example.com");
         var token = TokenRx().Match(await admin.GetStringAsync($"/kids/admin/members/{_teacherMembership}")).Groups[1].Value;
-        await admin.PostAsync($"/kids/admin/members/{_teacherMembership}?handler=GiftTag", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = token, ["on"] = "true" }));
+        await admin.PostAsync($"/kids/admin/members/{_teacherMembership}?handler=Duty", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = token, ["key"] = TodoRoles.GiftTag, ["on"] = "true" }));
         using (var raw = InMemoryDb.Raw(_db)) Assert.Single(raw.MemberTags.Where(t => t.Tag == TodoRoles.GiftTag));
-        Assert.Contains("선물 담당 끄기", await admin.GetStringAsync($"/kids/admin/members/{_teacherMembership}"));
+        var detail = await admin.GetStringAsync($"/kids/admin/members/{_teacherMembership}");
+        Assert.Contains("✓ 선물 담당", detail);
+        Assert.Contains("부서 관리자 · 업무 \"선물 담당\" 때문", System.Net.WebUtility.HtmlDecode(detail));
         var teacher = await Login("teacher@example.com");
         Assert.Contains("사 주세요 · 권동석 · 레고 블록", await teacher.GetStringAsync("/kids/todo"));
     }

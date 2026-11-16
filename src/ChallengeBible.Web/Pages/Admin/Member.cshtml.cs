@@ -1,4 +1,4 @@
-﻿using ChallengeBible.Infrastructure.Data;
+using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
@@ -47,16 +47,21 @@ public class MemberModel(MemberDetailService details, TenantContext tenant, Phot
     public string? TemporaryPassword { get; private set; }
     public string? Error { get; private set; }
 
-    /// <summary>업무 꼬리표 "선물 담당"(ADR 0100, R-311): 켜면 오늘 할 일에 선물 일이 뜬다.</summary>
-    public bool GiftTag { get; private set; }
+    /// <summary>업무(여러 개, 2026-11-16): 선물 담당 등. 관리자 업무면 맡는 순간 부서 관리자.</summary>
+    public IReadOnlyList<(string Key, string Name, bool On, bool Admin)> Duties { get; private set; } = [];
+    /// <summary>부서 관리자인 까닭(역할 · 업무), 아니면 null.</summary>
+    public string? AdminReason { get; private set; }
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct) => await LoadAsync(ct) ? Page() : NotFound();
 
-    public async Task<IActionResult> OnPostGiftTagAsync(bool on, CancellationToken ct)
+    public async Task<IActionResult> OnPostDutyAsync(string key, bool on, CancellationToken ct)
     {
-        if (!await todoRules.SetGiftTagAsync(User.UserName()!, Id, on, ct)) return NotFound();
+        if (!await todoRules.SetDutyAsync(User.UserName()!, Id, key, on, ct)) return NotFound();
         return RedirectToPage(new { slug = tenant.Current.Slug, Id, Ok = on ? "tag1" : "tag0" });
     }
+
+    /// <summary>예전 주소(선물 담당 하나).</summary>
+    public Task<IActionResult> OnPostGiftTagAsync(bool on, CancellationToken ct) => OnPostDutyAsync(TodoRoles.GiftTag, on, ct);
 
     public async Task<IActionResult> OnPostResetPasswordAsync(CancellationToken ct)
     {
@@ -75,7 +80,7 @@ public class MemberModel(MemberDetailService details, TenantContext tenant, Phot
 
     private async Task<bool> LoadAsync(CancellationToken ct)
     {
-        GiftTag = await todoRules.HasGiftTagAsync(Id, ct);
+        (Duties, AdminReason) = await todoRules.DutiesAsync(Id, ct);
         Today = details.Today;
         ShownMonth = DateOnly.TryParseExact(Month + "-01", "yyyy-MM-dd", out var m) ? m : Date is { } d ? new DateOnly(d.Year, d.Month, 1) : new DateOnly(Today.Year, Today.Month, 1);
         if (ShownMonth > new DateOnly(Today.Year, Today.Month, 1)) ShownMonth = new DateOnly(Today.Year, Today.Month, 1);

@@ -197,7 +197,7 @@ public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, 
                 if (basic is not null) ctx.UserRoles.Add(new AppUserRole { UserId = user.Id, RoleId = basic });
                 await ctx.SaveChangesAsync(ct);
             }
-            await DeptMembership.PlaceAsync(ctx, user, t.Id, Web.Services.UserRole.TeacherCode, now, ct, actor: actor);
+            await DeptMembership.PlaceAsync(ctx, user, t.Id, Web.Services.UserRole.AdminCode, now, ct, actor: actor);   // 어드민 역할(2026-11-16)
             if (!await ctx.UserRoles.AnyAsync(r => r.UserId == user.Id && r.RoleId == adminRole.Id, ct)) ctx.UserRoles.Add(new AppUserRole { UserId = user.Id, RoleId = adminRole.Id });
             ctx.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorUserName = actor, Action = "TestAdminCreate", TenantId = t.Id, Detail = userName });
             await ctx.SaveChangesAsync(ct);

@@ -12,7 +12,7 @@ public sealed record MemberFilter(string Status, string? Query, string? Role);
 
 public enum MemberError
 {
-    None, NotFound, NoRole, BadState, SelfAdminRemove, TeamLocked, RuleAdmin,
+    None, NotFound, NoRole, BadState, SelfAdminRemove, TeamLocked, RuleAdmin, RuleOnly,
 }
 
 /// <summary>
@@ -152,25 +152,11 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         return MemberError.None;
     }
 
-    /// <summary>이 부서의 관리자 지정 · 해제(Identity Admin 역할). 나 자신의 관리자 권한은 뺄 수 없다.</summary>
-    public async Task<MemberError> SetAdminAsync(string actor, int deptRoleId, bool admin, CancellationToken ct = default)
-    {
-        await using var ctx = db.Create();
-        var d = await ctx.DeptRoles.AsNoTracking().SingleOrDefaultAsync(x => x.Id == deptRoleId, ct);
-        if (d is null) return MemberError.NotFound;
-        var user = await ctx.Users.AsNoTracking().SingleAsync(u => u.Id == d.UserId, ct);
-        if (user.UserName == actor && !admin) return MemberError.SelfAdminRemove;
-        await using var sys = systemDb.Create(actor);
-        // 부서 관리자 규칙(2026-11-16): 체크된 직분이면 규칙이 관리자로 만든다 — 여기서 빼지 못하고, 직분이나 규칙을 바꾼다
-        if (!admin && await DeptAdminRuleService.ByRuleAsync(sys, user.Id, ct)) return MemberError.RuleAdmin;
-        var role = await sys.IdentityRoleRows.SingleAsync(r => r.Name == IdentityRoles.Admin, ct);
-        var row = await sys.UserRoles.SingleOrDefaultAsync(r => r.UserId == user.Id && r.RoleId == role.Id, ct);
-        if (admin && row is null) sys.UserRoles.Add(new AppUserRole { UserId = user.Id, RoleId = role.Id });
-        else if (!admin && row is not null) sys.UserRoles.Remove(row);
-        if (admin) sys.MemberTags.RemoveRange(await sys.MemberTags.Where(t => t.UserId == user.Id && t.Tag == DeptAdminRuleService.AutoTag).ToListAsync(ct));   // 따로 정한 관리자가 된다
-        await sys.SaveChangesAsync(ct);
-        return MemberError.None;
-    }
+    /// <summary>
+    /// 사람마다 관리자 지정 · 해제는 없다(2026-11-16 사용자 "권한은 역할 · 업무에"): 부서 관리자는 부서 관리자 규칙의 역할 · 업무로만 정해진다.
+    /// 예전 화면 · 요청이 와도 아무것도 바꾸지 않고 알림만 돌려준다.
+    /// </summary>
+    public Task<MemberError> SetAdminAsync(string actor, int deptRoleId, bool admin, CancellationToken ct = default) => Task.FromResult(MemberError.RuleOnly);
 
     private static string? Clean(string? code) => string.IsNullOrWhiteSpace(code) ? null : code.Trim();
 
@@ -229,6 +215,7 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         MemberError.NoRole => "역할을 골라 주세요.",
         MemberError.BadState => "이미 처리됐어요. 화면을 새로 고쳐 주세요.",
         MemberError.SelfAdminRemove => "내 관리자 역할은 여기서 뺄 수 없어요.",
+        MemberError.RuleOnly => "부서 관리자는 사람마다 정하지 않아요. 지도 · 부장 · 부감 · 서기 · 어드민 역할이나 선물 담당 같은 관리자 업무를 맡으면 저절로 돼요.",
         MemberError.RuleAdmin => "부서 관리자 규칙으로 관리자인 직분이에요. 직분을 바꾸거나 플랫폼의 부서 관리자 규칙을 바꿔 주세요.",
         MemberError.TeamLocked => "시상 기록이 있는 팀에 있어 바꿀 수 없어요.",
         _ => "",

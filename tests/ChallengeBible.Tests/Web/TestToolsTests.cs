@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -243,7 +243,7 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
             Assert.Equal("jamsil-infant-admin@fake-seed.test", u.Email);
             var admin = raw.IdentityRoleRows.Single(r => r.Name == IdentityRoles.Admin).Id;
             Assert.Contains(raw.UserRoles, r => r.UserId == u.Id && r.RoleId == admin);
-            Assert.Equal("T1002", raw.DeptRoles.Single(d => d.UserId == u.Id && d.TenantId == infant.Id).RoleCode);
+            Assert.Equal(UserRole.AdminCode, raw.DeptRoles.Single(d => d.UserId == u.Id && d.TenantId == infant.Id).RoleCode);   // 어드민 역할(2026-11-16)
             Assert.Single(raw.People.Where(p => p.UserId == u.Id && p.TenantId == infant.Id));
             Assert.DoesNotContain(raw.Users, x => x.UserName == "jamsil-kids-admin" && x.Id != kidsAdmin.Id);   // 이미 있는 부서는 그대로
         }
