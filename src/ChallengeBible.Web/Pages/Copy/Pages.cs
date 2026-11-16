@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
@@ -23,6 +23,9 @@ public abstract class CopyPageBase(CopyService copy, TenantContext tenant) : Pag
     protected bool Off => !tenant.Current.CopyEnabled || tenant.IsLobby;
     public string WriteUrl(byte book, short chapter, short? verse = null) => $"/{Slug}/copy/write/{book}/{chapter}" + (verse is > 0 ? $"?v={verse}" : "");
     public static string Pct(double p) => p.ToString("0.0");
+    /// <summary>목차 "빠른 이동 · 이어 쓰기"(ADR 0105). 화면이 읽어 두면 보인다.</summary>
+    public CopySpot? Resume { get; protected set; }
+    protected async Task LoadResumeAsync(CancellationToken ct) => Resume = (await Copy.SummaryAsync(ct)).Resume;
 }
 
 /// <summary>`/{slug}/copy` 필사 홈(확정 시안 성경필사 ①): 내 진도 · 이어 쓰기 · 완필 선물 · 필사 진도 · 최근 쓴 곳.</summary>
@@ -38,6 +41,7 @@ public class IndexModel(CopyService copy, TenantContext tenant, CopyGiftService 
         if (Off) return NotFound();
         await gifts.EnsureAsync(ct);   // 신약 · 구약을 다 썼으면 완필 선물(R-307)
         Data = await Copy.SummaryAsync(ct);
+        Resume = Data.Resume;
         MyGifts = (await linkGifts.MineAsync(ct)).Where(g => g.Kind == GiftKinds.Copy).ToList();
         return Page();
     }
@@ -57,6 +61,7 @@ public class BooksModel(CopyService copy, TenantContext tenant) : CopyPageBase(c
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (Off) return NotFound();
+        await LoadResumeAsync(ct);   // 목차 "이어 쓰기"(ADR 0105)
         (Books, ChapterDone) = await Copy.BooksAsync(ct);
         Counts = await Copy.CountsAsync(ct);
         return Page();
@@ -81,6 +86,7 @@ public class WriteModel(CopyService copy, TenantContext tenant, BibleTextService
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (Off) return NotFound();
+        await LoadResumeAsync(ct);   // 목차 "이어 쓰기"(ADR 0105)
         Data = await Copy.ChapterAsync(bible, Book, Chapter, V, ct);
         if (Data is null) return NotFound();
         var order = (await Copy.CountsAsync(ct)).Keys.OrderBy(k => k.Book).ThenBy(k => k.Chapter).ToList();
@@ -123,6 +129,7 @@ public class ParticipantsModel(CopyService copy, TenantContext tenant) : CopyPag
         if (Off) return NotFound();
         Rows = await Copy.BoardAsync(ct);
         Totals = await Copy.SummaryAsync(ct);
+        Resume = Totals.Resume;   // 목차 "이어 쓰기"(ADR 0105)
         return Page();
     }
 }

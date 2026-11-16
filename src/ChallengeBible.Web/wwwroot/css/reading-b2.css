@@ -279,3 +279,9 @@ body:has(.rp[data-theme]) { background: var(--bg); }
 .srch .rp-note { font-size: max(11px, calc(11.5px * var(--rs, 1))); }
 /* 통독 본문: 절 번호와 말씀 글 사이 여백을 반으로(사용자 요청 2026-11-07). 말씀 미션은 그대로 */
 .brd .vr { gap: 6px; }
+
+/* 성경필사 테마(ADR 0105, 확정 시안 필사-통독틀): 통독 틀을 그대로 쓰고 색만 필사 갈색(copy.css --bc-acc 와 같은 값) */
+.rp[data-theme="copy"] { --bg: #FAF6F0; --r-band: #F3EBE3; --r-rule: #E6DACD; --r-cell: #EDE3D8; --r-ink: #3A2E25; --r-dim: #7A6A5C;
+  --r-acc: #7A4E2D; --r-accSoft: #EFE2D4; --r-l1: #E3D0BC; --r-l2: #B88B63; --r-l3: #7A4E2D; }
+.rp[data-theme="copy"] .bc { background: transparent; min-height: 0; }
+.b2top .b2r-right { margin-left: auto; font-size: 14px; font-weight: 800; color: var(--r-acc); }

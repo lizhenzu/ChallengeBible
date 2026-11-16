@@ -105,7 +105,15 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("창세기 1장 1절부터 따라 써요", home);
         var copy = await c.GetStringAsync("/kids/copy");
         Assert.Contains("필사 시작", copy);
-        Assert.Contains("0 <small>/ 5절</small>", copy);
+        Assert.Contains("0 / 5절", copy);
+        // 성경통독과 같은 틀(ADR 0105): 필사 목차(대시보드 · 구약 쓰기 · 신약 쓰기 · 참여자 현황) · 필사 테마 · ← 부서 홈으로
+        Assert.Contains("aria-label=\"성경 필사 메뉴\"", copy);
+        Assert.Contains("dataset.theme = 'copy'", copy);
+        Assert.Contains("<a href=\"/kids/copy\" class=\"b2it on\" aria-current=\"page\">대시보드</a>", copy);
+        Assert.Contains(">구약 쓰기</a>", copy);
+        Assert.Contains(">신약 쓰기</a>", copy);
+        Assert.Contains("← 부서 홈으로", copy);
+        Assert.Contains("최근 8주", copy);
         Assert.Contains("구약 0 / 2절", copy);
         Assert.Contains("신약 0 / 3절", copy);
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/kids/copy/books?t=nt&b=43")).StatusCode);
@@ -141,7 +149,7 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal("KLB", mine.Translation);
 
         var home = await c.GetStringAsync("/kids/copy");
-        Assert.Contains("1 <small>/ 5절</small>", home);
+        Assert.Contains("1 / 5절", home);
         Assert.Contains("요한복음 3장 2절", home);   // 이어 쓰기 = 같은 장의 안 쓴 첫 절
         Assert.Contains("신약 1 / 3절", home);
         var dept = await c.GetStringAsync("/kids");   // 부서 홈 카드(확정 시안 홈-필사카드): 원 · 이어 쓸 곳 · 신약 · 구약 · 쓴 절 · 오늘 N절
@@ -149,6 +157,13 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("<small>이어 쓸 곳</small><b>요한복음</b><span>3장 2절부터 ›</span>", dept);
         Assert.Contains("<small>쓴 절</small>", dept);
         Assert.Contains("오늘 1절", dept);
+        var write = await c.GetStringAsync("/kids/copy/write/43/3");   // 쓰는 화면도 같은 틀(ADR 0105)
+        Assert.Contains("aria-label=\"성경 필사 메뉴\"", write);
+        Assert.Contains("class=\"b2it on\" aria-current=\"page\">신약 쓰기</a>", write);
+        Assert.Contains("이어 쓰기<small>요한복음 3장</small>", write);   // 빠른 이동
+        var js = await c.GetStringAsync("/js/copy.js");   // 복사 · 붙여넣기 막기(2026-11-16 사용자)
+        Assert.Contains("input.addEventListener('paste', noPaste);", js);
+        Assert.Contains("insertFromPaste", js);
         var board = await c.GetStringAsync("/kids/copy/participants");
         Assert.Contains("권동석 (나)", board);
         Assert.Contains("요한복음 3장 · 1/5", board);

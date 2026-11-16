@@ -1,14 +1,17 @@
-@page "/{slug}/copy/write/{book:int}/{chapter:int}"
+﻿@page "/{slug}/copy/write/{book:int}/{chapter:int}"
 @model ChallengeBible.Web.Pages.Copy.WriteModel
 @* 확정 시안 성경필사 ②(2026-11-16): 번역 고르기 → 절 칸 → 본문(맞은 글자 초록 · 틀린 글자 빨강 · 남은 글자 회색) → 따라 치는 칸 → 앞 절 · 다음 절. 다 맞게 치면 저절로 저장 · 다음 절(R-305 · R-306) *@
 @{
     var d = Model.Data!;
     var unit = d.BookId == 19 ? "편" : "장";
 }
+<link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/reading-b2.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/copy.css" asp-append-version="true" />
-<div class="bc">
-@{ var bcTop = ((ChallengeBible.Web.Pages.Copy.CopyPageBase)Model, Model.Title, $"/{Model.Slug}/copy", $"{d.Done.Count} / {d.Lines.Count}절"); }
-<partial name="_CopyTop" model="bcTop" />
+<div class="rp b2 bc">
+@{ var nav = ((ChallengeBible.Web.Pages.Copy.CopyPageBase)Model, (d.BookId >= 40 ? "nt" : "ot"), Model.Title, $"{d.Done.Count} / {d.Lines.Count}절"); }
+<partial name="_CopyNav" model="nav" />
+<div class="b2main">
 <main class="bc-main gut"><div class="wrap" data-bc-write data-save="/@Model.Slug/copy/write/@d.BookId/@d.Chapter?handler=Save">
     @Html.AntiForgeryToken()
     <script type="application/json" data-bc-data>@Html.Raw(Model.Json)</script>
@@ -26,5 +29,6 @@
     </div>
     <a class="bc-btn" href="/@Model.Slug/copy/books?b=@d.BookId#b@(d.BookId)">장 고르기</a>
 </div></main>
+</div>
 </div>
 <script src="~/js/copy.js" asp-append-version="true" defer></script>

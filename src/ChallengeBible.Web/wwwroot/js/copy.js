@@ -1,4 +1,4 @@
-// 성경필사 따라 치기(ADR 0099, 확정 시안 성경필사 ②): 글자만 비교한다(띄어쓰기 · 문장 부호 · 대소문자 무시, R-306 — 서버 CopyService.Letters 와 같다).
+﻿// 성경필사 따라 치기(ADR 0099, 확정 시안 성경필사 ②): 글자만 비교한다(띄어쓰기 · 문장 부호 · 대소문자 무시, R-306 — 서버 CopyService.Letters 와 같다).
 // 맞은 글자 초록 · 틀린 글자 빨강 · 남은 글자 회색. 다 맞게 치면 저장(?handler=Save)하고 아직 안 쓴 다음 절로 넘어간다.
 (() => {
   const root = document.querySelector('[data-bc-write]');
@@ -8,7 +8,7 @@
   const verseEl = $('[data-bc-verse]'), input = $('[data-bc-input]'), err = $('[data-bc-err]');
   const prevBtn = $('[data-bc-prev]'), nextBtn = $('[data-bc-next]'), doneBox = $('[data-bc-done]');
   const dotsEl = $('[data-bc-dots]'), trEl = $('[data-bc-tr]');
-  const counter = document.querySelector('.bc-top .r');
+  const counter = document.querySelector('.b2top .b2r-right');   // 머리말 "n / m절"(ADR 0105: 통독과 같은 틀)
   const token = root.querySelector('input[name="__RequestVerificationToken"]').value;
   const done = new Set(data.done);
   const verses = data.verses;   // [{ v, t: { KRV, KLB, NIV } }]
@@ -103,6 +103,14 @@
 
   input.addEventListener('input', paint);
   input.addEventListener('compositionend', paint);
+  // 복사 · 붙여넣기 막기(2026-11-16 사용자, ADR 0105): 본문은 고를 · 복사할 수 없고, 쓰는 칸에는 붙여넣기 · 끌어 놓기를 받지 않는다(직접 따라 쓰기)
+  const noPaste = (e) => { e.preventDefault(); err.textContent = '붙여넣기는 할 수 없어요. 본문을 보고 직접 따라 써 주세요.'; err.hidden = false; };
+  input.addEventListener('paste', noPaste);
+  input.addEventListener('drop', noPaste);
+  input.addEventListener('beforeinput', (e) => { if (e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop' || e.inputType === 'insertFromPasteAsQuotation') noPaste(e); });
+  for (const ev of ['copy', 'cut', 'contextmenu', 'dragstart', 'selectstart']) verseEl.addEventListener(ev, (e) => e.preventDefault());
+  input.addEventListener('copy', (e) => e.preventDefault());
+  input.addEventListener('cut', (e) => e.preventDefault());
   prevBtn.addEventListener('click', () => go(idx - 1));
   nextBtn.addEventListener('click', () => go(idx + 1));
   dotsEl.addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) go(+b.dataset.i); });

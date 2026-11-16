@@ -107,3 +107,6 @@
 .hm .hj-pg.bc { min-height: 0; background: var(--bg); }
 .hm .bc-home h2 a { color: var(--bc-acc); }
 .hm .bc-home .bc-cta { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--bc-acc-l); color: var(--fg); border-radius: 12px; padding: 12px; margin-top: 10px; font-weight: 800; text-decoration: none; }
+/* 복사 · 붙여넣기 막기(ADR 0105): 본문은 고를 수 없게 */
+.bc-verse { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.bc-recent { color: inherit; text-decoration: none; }
