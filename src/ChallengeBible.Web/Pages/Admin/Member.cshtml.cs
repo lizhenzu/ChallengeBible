@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
@@ -9,7 +9,7 @@ namespace ChallengeBible.Web.Pages.Admin;
 
 /// <summary>`/{slug}/admin/members/{id}?month=&amp;date=` 참여자 상세(확정 시안: 관리-참여자상세, 0035 · 0029). 영역 관리자만.</summary>
 [TenantRoles(Roles.TenantAdmin)]
-public class MemberModel(MemberDetailService details, TenantContext tenant, PhotoService photos) : PageModel, ITitled
+public class MemberModel(MemberDetailService details, TenantContext tenant, PhotoService photos, TodoRuleService todoRules) : PageModel, ITitled
 {
     /// <summary>이 사람 사진 파일 이름(0078) — 관리자가 올리기 · 바꾸기 · 지우기(R-200, R-203).</summary>
     public string? Photo { get; private set; }
@@ -47,7 +47,16 @@ public class MemberModel(MemberDetailService details, TenantContext tenant, Phot
     public string? TemporaryPassword { get; private set; }
     public string? Error { get; private set; }
 
+    /// <summary>업무 꼬리표 "선물 담당"(ADR 0100, R-311): 켜면 오늘 할 일에 선물 일이 뜬다.</summary>
+    public bool GiftTag { get; private set; }
+
     public async Task<IActionResult> OnGetAsync(CancellationToken ct) => await LoadAsync(ct) ? Page() : NotFound();
+
+    public async Task<IActionResult> OnPostGiftTagAsync(bool on, CancellationToken ct)
+    {
+        if (!await todoRules.SetGiftTagAsync(User.UserName()!, Id, on, ct)) return NotFound();
+        return RedirectToPage(new { slug = tenant.Current.Slug, Id, Ok = on ? "tag1" : "tag0" });
+    }
 
     public async Task<IActionResult> OnPostResetPasswordAsync(CancellationToken ct)
     {
@@ -66,6 +75,7 @@ public class MemberModel(MemberDetailService details, TenantContext tenant, Phot
 
     private async Task<bool> LoadAsync(CancellationToken ct)
     {
+        GiftTag = await todoRules.HasGiftTagAsync(Id, ct);
         Today = details.Today;
         ShownMonth = DateOnly.TryParseExact(Month + "-01", "yyyy-MM-dd", out var m) ? m : Date is { } d ? new DateOnly(d.Year, d.Month, 1) : new DateOnly(Today.Year, Today.Month, 1);
         if (ShownMonth > new DateOnly(Today.Year, Today.Month, 1)) ShownMonth = new DateOnly(Today.Year, Today.Month, 1);

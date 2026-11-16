@@ -58,6 +58,7 @@ public partial class PlatformFlowTests : IClassFixture<WebApplicationFactory<Pro
         Assert.StartsWith("/account/denied", (await (await LoggedIn("cheolsu", platformAdmin: false)).GetAsync("/platform")).Headers.Location!.PathAndQuery);
         var kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");                 // 관리자 없는 부서
         var c = await LoggedIn("operator", platformAdmin: true);
+        Assert.Equal("/platform/todo", (await c.GetAsync("/platform")).Headers.Location!.OriginalString);   // 로그인 직후 내 할 일(관리자 없는 부서)이 있으면 할 일 화면으로(R-309), 한 번만
         var home = await c.GetStringAsync("/platform");
         Assert.Contains("aria-current=\"page\">플랫폼 홈", home);
         Assert.Contains("<a class=\"home-txt\" href=\"/\">홈으로</a>", home);   // 머리말 오른쪽 위 글자 "홈으로"(2026-11-15 사용자)

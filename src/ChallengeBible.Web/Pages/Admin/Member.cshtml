@@ -1,4 +1,4 @@
-@page "/{slug}/admin/members/{id:int}"
+﻿@page "/{slug}/admin/members/{id:int}"
 @model ChallengeBible.Web.Pages.Admin.MemberModel
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Pages.Admin
@@ -121,8 +121,11 @@
     <section class="md-card md-span" aria-labelledby="hMg">
         <h2 id="hMg">계정 관리</h2>
         @if (Model.Ok == "marks") { <p class="okmsg" role="status">성경 읽음 표시와 책갈피를 지웠어요</p> }
+        @if (Model.Ok is "tag1" or "tag0") { <p class="okmsg" role="status">@(Model.Ok == "tag1" ? "선물 담당을 켰어요. 오늘 할 일에 선물 일이 떠요." : "선물 담당을 껐어요.")</p> }
         @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
         <div class="mgmt">
+            <div class="mg"><div><b>🎁 선물 담당(업무 꼬리표)</b><span>켜면 오늘 할 일에 선물 사기 · 전하기 · 선물 대상 알림이 떠요(관리 › 할 일의 "누가 보나"에 따라). 역할과 상관없이 켤 수 있어요.</span></div>
+                <form method="post" asp-page-handler="GiftTag" asp-route-slug="@slug" asp-route-id="@d.MembershipId"><input type="hidden" name="on" value="@(Model.GiftTag ? "false" : "true")" /><button type="submit" class="btn @(Model.GiftTag ? "s" : "p") sm">@(Model.GiftTag ? "선물 담당 끄기" : "선물 담당 켜기")</button></form></div>
             @if (d.UserName is not null)
             {
                 <div class="mg"><div><b>보호자 연결</b><span>@(d.Guardians.Count > 0 ? string.Join(" · ", d.Guardians) + ". " : "아직 연결된 보호자가 없어요. ")연결된 보호자는 미션 · 점수를 보기만 해요.</span></div>

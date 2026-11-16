@@ -114,6 +114,8 @@ public sealed class UserSetting
     public string? MissionTheme { get; set; }
     /// <summary>받은 가족팀 초대를 "다음에 할래요"로 숨긴 때(R-212). 이후 새로 온 초대는 보인다.</summary>
     public DateTime? FamilyInvitesSnoozedAt { get; set; }
+    /// <summary>오늘 할 일 자동 이동 안 보기(ADR 0100): 이 날(부서 날짜) 전까지는 로그인해도 할 일 화면으로 보내지 않는다.</summary>
+    public DateOnly? TodoSnoozedUntil { get; set; }
 }
 
 // B. 가입 신청 · 역할 -----------------------------------------------------------

@@ -1,0 +1,36 @@
+@page "/{slug}/admin/todo"
+@model ChallengeBible.Web.Pages.Admin.TodoRulesModel
+@* 확정 시안 오늘할일 ④(2026-11-16): 공통 규칙 따름 / 우리 부서만 따로 · 할 일 × 관리자 · 부장 부감 서기 · 지도 · 선물 담당 · 담임 *@
+<link rel="stylesheet" href="~/css/todo.css" asp-append-version="true" />
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut"><div class="wrap td-main">
+    <h1>할 일 · 누가 보나</h1>
+    @if (Model.Msg is { } m) { <p class="td-msg" role="status">@m</p> }
+    <p class="td-note">오늘 할 일에 어떤 일이 누구에게 뜰지 정해요. 선물 담당은 소속 관리 › 사람 자세히에서 켜요.</p>
+    <form method="post" class="td-main" style="padding:0">
+        <div class="td-seg" role="radiogroup" aria-label="규칙">
+            <label><input type="radio" name="mode" value="common" checked="@(!Model.Custom)" data-td-mode />공통 규칙 따름</label>
+            <label><input type="radio" name="mode" value="custom" checked="@Model.Custom" data-td-mode />우리 부서만 따로</label>
+        </div>
+        <table class="td-rule">
+            <thead><tr><th>할 일</th>@foreach (var r in ChallengeBible.Web.Services.TodoRoles.All) { <th>@ChallengeBible.Web.Services.TodoRoles.Label(r)</th> }</tr></thead>
+            <tbody>
+            @foreach (var k in ChallengeBible.Web.Services.TodoKinds.All)
+            {
+                <tr><td>@ChallengeBible.Web.Services.TodoKinds.Label(k)</td>
+                    @foreach (var r in ChallengeBible.Web.Services.TodoRoles.All)
+                    {
+                        <td><input type="checkbox" name="r_@k" value="@r" checked="@Model.Rules[k].Contains(r)" aria-label="@ChallengeBible.Web.Services.TodoKinds.Label(k) · @ChallengeBible.Web.Services.TodoRoles.Label(r)" data-td-ck /></td>
+                    }
+                </tr>
+            }
+            </tbody>
+        </table>
+        <p class="td-note">"공통 규칙 따름"이면 체크칸은 보기만 돼요(플랫폼 관리자가 정한 값). 담임 칸은 출석 · 생일만 써요(담임 = 일반 반 선생님).</p>
+        <button type="submit" class="btn p">저장</button>
+    </form>
+</div></main>
+<script>
+    (() => { const sync = () => { const custom = document.querySelector('[data-td-mode][value="custom"]').checked; document.querySelectorAll('[data-td-ck]').forEach(c => c.disabled = !custom); };
+             document.querySelectorAll('[data-td-mode]').forEach(r => r.addEventListener('change', sync)); sync(); })();
+</script>

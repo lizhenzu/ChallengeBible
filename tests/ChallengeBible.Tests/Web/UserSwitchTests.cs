@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -84,6 +84,7 @@ public partial class UserSwitchTests : IClassFixture<WebApplicationFactory<Progr
     {
         var c = await Login("operator@example.com");
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/account/impersonate/switch")).StatusCode);
+        await c.GetAsync("/platform");   // 로그인 직후 한 번은 오늘 할 일로 갈 수 있다(R-309)
         Assert.DoesNotContain("data-imp-switch", await c.GetStringAsync("/platform"));
         var kid = await Login("sion@example.com");
         Assert.Equal(HttpStatusCode.NotFound, (await kid.GetAsync("/account/impersonate/switch")).StatusCode);

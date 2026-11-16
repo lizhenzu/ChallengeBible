@@ -1,0 +1,50 @@
+/* 오늘 할 일(ADR 0100, 확정 시안 오늘할일). 색은 사이트 토큰(--accent · --ok · --bad …)을 쓴다 */
+.tdo { min-height: 100vh; background: var(--bg); }   /* 이름 .td 는 관리 홈 칸이 이미 쓴다 */
+.td-top { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+.td-top .wrap { max-width: 760px; display: flex; align-items: center; gap: 10px; min-height: 60px; }
+.td-top .t { flex: 1; min-width: 0; line-height: 1.25; }
+.td-top .t small { display: block; font-size: 12px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.td-top .t small em { font-style: normal; font-weight: 900; color: var(--accent); }
+.td-top .t b { font-size: 16px; font-weight: 800; }
+.td-home { flex: none; min-height: 40px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 99px; background: var(--accent); color: var(--on-accent, #fff); font-size: 14px; font-weight: 800; text-decoration: none; }
+.td-main { max-width: 760px; padding-block: 14px 40px; display: flex; flex-direction: column; gap: 12px; }
+.td-msg { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--ok-bg); color: var(--ok); font-weight: 700; font-size: 14px; }
+.td-hello h1 { margin: 0; font-size: 22px; }
+.td-hello p { margin: 4px 0 0; color: var(--dim); font-size: 13.5px; }
+.td-snooze { margin: 0; background: var(--soft); border-radius: 14px; padding: 10px 12px; }
+.td-snooze small { display: block; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+.td-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.td-chips button { min-height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 13px; font-weight: 700; cursor: pointer; }
+.td-empty { text-align: center; padding: 30px 10px; color: var(--dim); font-size: 15px; }
+.td-sec { display: flex; justify-content: space-between; align-items: baseline; margin: 6px 2px -4px; font-size: 12.5px; font-weight: 800; color: var(--dim); }
+.td-sec b { color: var(--fg); font-size: 15px; }
+.td-card { border: 1px solid var(--rule); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.td-card.urgent { border-color: color-mix(in srgb, var(--bad) 35%, var(--rule)); background: color-mix(in srgb, var(--bad-bg) 40%, var(--bg)); }
+.td-row { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 8px; align-items: start; }
+.td-row .ic { font-size: 20px; line-height: 1.2; }
+.td-row .what b { font-size: 15px; display: block; overflow-wrap: anywhere; }
+.td-row .what span { display: block; font-size: 12.5px; color: var(--dim); margin-top: 2px; line-height: 1.45; }
+.td-row .what .who { display: inline-block; font-size: 11.5px; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: var(--accent-bg); color: var(--accent); margin-top: 4px; }
+.td-row .what .who.done { background: var(--ok-bg); color: var(--ok); }
+.td-row .what .who.late { background: var(--bad-bg); color: var(--bad); }
+.td-btns { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+.td-btns form { margin: 0; }
+.td-btns .btn { min-height: 40px; padding: 0 12px; border-radius: 11px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; text-decoration: none; cursor: pointer; }
+.td-btns .btn.p { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
+.td-btns .btn.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
+.td-dept { border: 1px solid var(--rule); border-radius: 14px; padding: 10px 12px; }
+.td-dept h3 { margin: 0 0 6px; font-size: 15px; display: flex; justify-content: space-between; }
+.td-dept h3 span { font-size: 12px; color: var(--bad); font-weight: 800; }
+.td-dept ul { margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.85; }
+.td-dept li span { color: var(--dim); }
+.td-note { font-size: 12px; color: var(--dim); line-height: 1.5; background: var(--soft); border-radius: 10px; padding: 8px 10px; margin: 0; }
+.td-rule { width: 100%; border-collapse: collapse; font-size: 13px; }
+.td-rule th { font-size: 11.5px; color: var(--dim); font-weight: 700; padding: 6px 2px; border-bottom: 1px solid var(--rule); text-align: center; }
+.td-rule th:first-child, .td-rule td:first-child { text-align: left; }
+.td-rule td { padding: 8px 2px; border-bottom: 1px solid var(--rule); text-align: center; }
+.td-rule td:first-child { font-weight: 700; }
+.td-rule input { width: 20px; height: 20px; }
+.td-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.td-seg label { text-align: center; padding: 10px 0; font-size: 13px; font-weight: 800; color: var(--dim); cursor: pointer; }
+.td-seg input { position: absolute; opacity: 0; }
+.td-seg label:has(input:checked) { background: var(--accent); color: var(--on-accent, #fff); }

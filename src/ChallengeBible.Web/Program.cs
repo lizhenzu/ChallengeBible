@@ -80,6 +80,9 @@ builder.Services.AddScoped<GiftCostService>();   // 선물 총비용 · 엑셀(A
 builder.Services.AddScoped<RosterUploadService>();   // 명단 올리기(ADR 0097)
 builder.Services.AddScoped<CopyService>();   // 도전!!!성경필사(ADR 0099)
 builder.Services.AddScoped<CopyGiftService>();   // 필사 완필 선물(ADR 0099, R-307)
+builder.Services.AddScoped<TodoService>();   // 오늘 할 일(ADR 0100)
+builder.Services.AddScoped<TodoRuleService>();
+builder.Services.AddScoped<PlatformTodoService>();
 builder.Services.AddScoped<BirthdayGiftService>();   // 생일 선물 · 로그인 없는 링크(ADR 0094 D · 정한 것 14)
 builder.Services.AddScoped<NewcomerGiftService>();   // 새친구 · 전도 선물(ADR 0094 C · 정한 것 15)
 builder.Services.AddScoped<ReadingGiftService>();   // 완독 선물(ADR 0094 E · 정한 것 16)

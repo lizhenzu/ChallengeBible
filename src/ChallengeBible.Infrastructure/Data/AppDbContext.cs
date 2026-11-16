@@ -57,6 +57,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<ReadingRound> ReadingRounds => Set<ReadingRound>();
     public DbSet<ReadingVerse> ReadingVerses => Set<ReadingVerse>();
     public DbSet<CopyVerse> CopyVerses => Set<CopyVerse>();
+    public DbSet<MemberTag> MemberTags => Set<MemberTag>();
+    public DbSet<TodoRule> TodoRules => Set<TodoRule>();
     public DbSet<ReadingChapterRead> ReadingChapterReads => Set<ReadingChapterRead>();
     public DbSet<ReadingChapterProgress> ReadingChapterProgresses => Set<ReadingChapterProgress>();
     public DbSet<SearchLog> SearchLogs => Set<SearchLog>();

@@ -2462,6 +2462,33 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("GuardianLink", "app");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MemberTag", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Tag")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("CreatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("TenantId", "UserId", "Tag");
+
+                    b.ToTable("MemberTag", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MissionActivity", b =>
                 {
                     b.Property<int>("TenantId")
@@ -3312,6 +3339,47 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TodoRule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Roles")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int?>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpdatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Kind")
+                        .IsUnique()
+                        .HasDatabaseName("UX_TodoRule_Tenant_Kind")
+                        .HasFilter("[TenantId] IS NOT NULL");
+
+                    b.ToTable("TodoRule", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.UserSetting", b =>
                 {
                     b.Property<string>("UserName")
@@ -3340,6 +3408,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
+
+                    b.Property<DateOnly?>("TodoSnoozedUntil")
+                        .HasColumnType("date");
 
                     b.HasKey("UserName")
                         .HasName("PK_UserSetting");
@@ -3864,6 +3935,15 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasConstraintName("FK_GuardianLink_Tenant");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MemberTag", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MissionActivity", b =>
                 {
                     b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
@@ -3996,6 +4076,14 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_TenantSeason_Tenant");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TodoRule", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.UserSetting", b =>

@@ -1,0 +1,53 @@
+﻿@page "/platform/todo"
+@model ChallengeBible.Web.Pages.Platform.TodoModel
+@using ChallengeBible.Web.Services
+@* 확정 시안 오늘할일 ③(2026-11-16): 내 할 일(처리) → 부서 현황(보기만, 밀림 = 3일 넘게 아무도 안 산 선물) → 공통 규칙(누가 보나) *@
+<link rel="stylesheet" href="~/css/todo.css" asp-append-version="true" />
+<partial name="_PlatformTop" />
+<main class="admin gut"><div class="wrap td-main">
+    @if (Model.Msg is { } m) { <p class="td-msg" role="status">@m</p> }
+    <div class="td-hello"><h1>내 할 일 @(Model.Mine.Count)개</h1><p>부서 일은 아래에서 살펴만 봐요.</p></div>
+    @if (Model.Mine.Count > 0)
+    {
+        <form method="post" asp-page-handler="Snooze" class="td-snooze"><small>할 일 화면으로 자동 이동하지 않기 (할 일은 ☰ 에서 언제든)</small>
+            <div class="td-chips"><button name="days" value="1">오늘 안 보기</button><button name="days" value="3">3일</button><button name="days" value="5">5일</button><button name="days" value="30">한 달</button></div></form>
+    }
+    @if (Model.Mine.Count == 0) { <div class="td-empty">✓ 플랫폼 관리자 할 일이 없어요</div> }
+    @foreach (var t in Model.Mine)
+    {
+        <div class="td-card"><div class="td-row"><span class="ic" aria-hidden="true">📌</span><div class="what"><b>@t.Title · @t.Count</b><span>@t.Text</span></div></div>
+            <div class="td-btns"><a class="btn p" href="@t.Href">열기 →</a></div></div>
+    }
+    <div class="td-sec"><b>부서 현황</b><span>보기만</span></div>
+    @foreach (var d in Model.Depts)
+    {
+        <div class="td-dept"><h3>@d.Name @if (d.Late > 0) { <span>밀림 @d.Late</span> }</h3>
+            @if (!d.Any) { <ul><li><span>밀린 일 없음 ✓</span></li></ul> }
+            else
+            {
+                <ul>
+                    @if (d.Buy > 0) { <li>🎁 사 주세요 @d.Buy@(d.Late > 0 ? $" · {d.Late}건은 {TodoService.LateDays}일 넘음" : "")</li> }
+                    @if (d.Give > 0) { <li>🎁 전해 주세요 @d.Give</li> }
+                    @if (d.Picking > 0) { <li>🔔 선물 대상 @d.Picking <span>· 고르는 중</span></li> }
+                    @if (d.Signups + d.Promotions > 0) { <li>✋ 승인 @d.Signups · 🎓 진급 @d.Promotions</li> }
+                    @if (d.Classes is int c) { <li>📋 출석 @d.ClassesDone/@(c)반@(d.ClassesDone == c ? " ✓" : "")</li> }
+                </ul>
+            }
+        </div>
+    }
+    <p class="td-note">밀림 = @(TodoService.LateDays)일 넘게 아무도 사지 않은 선물. 처리는 부서 사람이 해요.</p>
+
+    <div class="td-sec" id="rules"><b>공통 규칙 · 누가 보나</b><span>부서가 따로 정하지 않으면 이 값</span></div>
+    <form method="post" asp-page-handler="Rules" class="td-main" style="padding:0">
+        <table class="td-rule">
+            <thead><tr><th>할 일</th>@foreach (var r in TodoRoles.All) { <th>@TodoRoles.Label(r)</th> }</tr></thead>
+            <tbody>
+            @foreach (var k in TodoKinds.All)
+            {
+                <tr><td>@TodoKinds.Label(k)</td>@foreach (var r in TodoRoles.All) { <td><input type="checkbox" name="r_@k" value="@r" checked="@Model.Common[k].Contains(r)" aria-label="@TodoKinds.Label(k) · @TodoRoles.Label(r)" /></td> }</tr>
+            }
+            </tbody>
+        </table>
+        <button type="submit" class="btn p">공통 규칙 저장</button>
+    </form>
+</div></main>

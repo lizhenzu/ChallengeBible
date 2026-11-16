@@ -9,6 +9,7 @@
             <button type="button" class="pd-x" aria-label="메뉴 닫기" data-pnav-close>✕</button>
         </div>
         <nav aria-label="메뉴">
+            @if (!Model.IsLobby && (Model.IsStaff || Model.IsAdmin)) { <a href="/@Model.Current.Slug/todo">오늘 할 일</a> }   @* ADR 0100 *@
             <a href="/account">내 계정</a>
             @if (Model.IsLobby) { <a href="/join">내 부서 참여</a> }
             @if (Model.Current.CopyEnabled && !Model.IsLobby) { <a href="/@Model.Current.Slug/copy">성경필사</a> }   @* ADR 0099 *@

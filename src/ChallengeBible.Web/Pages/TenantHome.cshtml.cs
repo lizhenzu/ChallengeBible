@@ -9,7 +9,7 @@ namespace ChallengeBible.Web.Pages;
 
 /// <summary>`/{slug}` 부서 홈 메인(확정 시안: 홈메인, 0044). 부서 결정 · 소속 검사는 TenantPageFilter 가 한다.</summary>
 public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, FamilyJoinService familyJoin, HomeService home, AccountService accounts,
-    PhotoService photos, CopyService copy) : PageModel, ITitled
+    PhotoService photos, CopyService copy, TodoService todo) : PageModel, ITitled
 {
     /// <summary>내 사진 파일 이름(0078) — 없으면 이름 첫 글자.</summary>
     public string? MyPhoto { get; private set; }
@@ -44,6 +44,9 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (TodayScreen && !tenant.IsLobby) return Redirect($"/{tenant.Current.Slug}");   // 일반 부서 홈은 한 화면 그대로
+        // 오늘 할 일(ADR 0100, R-309): 로그인 직후 할 일이 있고 안 보기 기간이 아니면 할 일 화면으로
+        // 리디렉트 응답은 TempData 를 저절로 남기므로(IKeepTempDataResult) 직접 지운다 — 로그인 직후 한 번만
+        if (TempData.Remove(ChallengeBible.Web.Pages.Account.LoginModel.TodoCheckKey) && await todo.ShouldRedirectAsync(ct)) return Redirect($"/{tenant.Current.Slug}/todo");
         var me = User.UserName()!;
         MyPhoto = await photos.FileOfAsync(me, ct);
         if (tenant.Current.MissionEnabled) Family = await teams.MyFamilyAsync(ct);

@@ -75,6 +75,7 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
         var c = Client(app);
         await Login(c, "superadmin");
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/test-tools")).StatusCode);
+        await c.GetAsync("/platform");   // 로그인 직후 한 번은 오늘 할 일로 갈 수 있다(R-309)
         Assert.DoesNotContain("/test-tools", await c.GetStringAsync("/platform"));
     }
 
@@ -86,6 +87,7 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
         Seed("yb-s01", "yb-s01" + TestToolsService.EmailDomain, tenantId: t.Id);
         var c = Client(App(enabled: true));
         await Login(c, "superadmin");
+        await c.GetAsync("/platform");
         Assert.Contains("/test-tools", await c.GetStringAsync("/platform"));
         var page = await c.GetStringAsync("/test-tools");
         Assert.Contains("가짜 데이터 넣기", page);

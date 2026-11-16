@@ -1,0 +1,49 @@
+@page "/{slug}/todo"
+@model ChallengeBible.Web.Pages.Todo.IndexModel
+@* 확정 시안 오늘할일 ① · ②(2026-11-16): [홈으로] · 인사 · 안 보기 → 선물 → 승인 → 출석 → 생일. 급한 것(3일 넘게 아무도 안 삼)이 맨 위 *@
+@{
+    var b = Model.Board;
+    var sections = new (string Key, string Title, string Who)[] { ("gift", "🎁 선물", "선물 그룹 누구나 처리"), ("approve", "✋ 승인", "부서 관리자"), ("attendance", "📋 출석", "주일 당일"), ("birthday", "🎂 생일", "우리 반") };
+}
+<link rel="stylesheet" href="~/css/todo.css" asp-append-version="true" />
+<div class="tdo">
+<header class="td-top gut"><div class="wrap">
+    <div class="t"><small><em>도전!!!</em> @Model.Tenant.Current.Name</small><b>오늘 할 일</b></div>
+    <a class="td-home" href="/@Model.Slug">⌂ 홈으로</a>
+</div></header>
+<main class="gut"><div class="wrap td-main" data-td>
+    @Html.AntiForgeryToken()
+    @if (Model.Msg is { } m) { <p class="td-msg" role="status">@m</p> }
+    <div class="td-hello"><h1>@b.Name 님, 할 일 @(b.Items.Count)개</h1><p>@(b.Items.Count == 0 ? "오늘 할 일을 다 했어요." : "먼저 끝내야 할 것부터 놓았어요.")</p></div>
+    @if (b.Items.Count > 0)
+    {
+        <form method="post" asp-page-handler="Snooze" class="td-snooze">
+            <small>@(b.SnoozedUntil is { } su ? $"{su:M월 d일}까지 할 일 화면으로 자동 이동하지 않아요." : "할 일 화면으로 자동 이동하지 않기 (할 일은 ☰ 에서 언제든)")</small>
+            <div class="td-chips"><button name="days" value="1">오늘 안 보기</button><button name="days" value="3">3일</button><button name="days" value="5">5일</button><button name="days" value="30">한 달</button></div>
+        </form>
+    }
+    else { <div class="td-empty">✓ 오늘 할 일을 다 했어요</div> }
+
+    @foreach (var (key, title, who) in sections)
+    {
+        var list = b.Items.Where(i => i.Section == key).ToList();
+        if (list.Count == 0) { continue; }
+        <div class="td-sec"><b>@title</b><span>@who</span></div>
+        @foreach (var i in list)
+        {
+            <div class="td-card @(i.Tone == "late" ? "urgent" : "")">
+                <div class="td-row"><span class="ic" aria-hidden="true">@i.Icon</span><div class="what"><b>@i.Title</b>@if (i.Text is { } tx) { <span>@tx</span> }
+                    @if (i.Note is { } n) { <span class="who @(i.Tone)">@n</span> }</div></div>
+                <div class="td-btns">
+                    @if (i.Coupang is { } cu) { <a class="btn" href="@cu" target="_blank" rel="noopener">쿠팡에서 보기</a> }
+                    @if (i.CanLink) { <button type="button" class="btn" data-td-link="@i.GiftId">링크 복사</button> }
+                    @if (i.CanBuy) { <form method="post" asp-page-handler="Buy"><input type="hidden" name="id" value="@i.GiftId" /><button class="btn p">구매 완료 ✓</button></form> }
+                    @if (i.CanDeliver) { <form method="post" asp-page-handler="Deliver"><input type="hidden" name="id" value="@i.GiftId" /><button class="btn ok">전달 완료 ✓</button></form> }
+                    @if (i.Href is { } h) { <a class="btn p" href="@h">@i.HrefLabel</a> }
+                </div>
+            </div>
+        }
+    }
+</div></main>
+</div>
+<script src="~/js/todo.js" asp-append-version="true" defer></script>
