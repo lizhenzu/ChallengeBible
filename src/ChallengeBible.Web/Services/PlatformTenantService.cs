@@ -13,7 +13,7 @@ public sealed record TenantRow(int Id, string Name, string Slug, string JoinCode
     public bool CopyEnabled { get; init; }
 }
 
-public sealed record NewTenant(string Name, string Slug, string TimeZoneId, string ThemeColor, bool Mission, bool Reading, string? AdminEmail);
+public sealed record NewTenant(string Name, string Slug, string TimeZoneId, string ThemeColor, bool Mission, bool Reading, string? AdminEmail, bool Copy = true);
 
 /// <summary>
 /// 플랫폼 관리자의 부서 관리(API 계약 4-5 · 5-4b): 만들기, 프로그램, 참여 코드, 부서 관리자, 정지.
@@ -73,7 +73,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         if (name.Length is 0 or > 100) errors["Name"] = "부서 이름을 1 ~ 100자로 써 주세요.";
         if (slug.Length is < 2 or > 40 || !SlugRule().IsMatch(slug)) errors["Slug"] = "영어 소문자 · 숫자 · 하이픈으로 2 ~ 40자를 써 주세요.";
         else if (ReservedSlugs.Contains(slug)) errors["Slug"] = "다른 화면 주소와 겹쳐요. 다른 주소를 써 주세요.";
-        if (!input.Mission && !input.Reading) errors["Programs"] = "프로그램을 하나는 골라 주세요(R-150).";
+        if (!input.Mission && !input.Reading && !input.Copy) errors["Programs"] = "프로그램을 하나는 골라 주세요(R-150).";
         if (!ThemeColors.Contains(input.ThemeColor)) errors["ThemeColor"] = "정해 둔 색 중에서 골라 주세요.";
         if (!TimeZones.Contains(input.TimeZoneId)) errors["TimeZoneId"] = "시간대를 골라 주세요.";
         return (name, slug, errors);
@@ -97,7 +97,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         var t = new Tenant
         {
             Name = name, Slug = slug, JoinCode = await UniqueCodeAsync(ctx, ct), TimeZoneId = input.TimeZoneId, ThemeColor = input.ThemeColor,
-            MissionEnabled = input.Mission, ReadingEnabled = input.Reading, CreatedUtc = time.GetUtcNow().UtcDateTime,
+            MissionEnabled = input.Mission, ReadingEnabled = input.Reading, CopyEnabled = input.Copy, CreatedUtc = time.GetUtcNow().UtcDateTime,
         };
         ctx.Tenants.Add(t);
         await ctx.SaveChangesAsync(ct);

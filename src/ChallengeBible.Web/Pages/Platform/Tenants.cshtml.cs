@@ -22,6 +22,8 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
     [BindProperty] public string ThemeColor { get; set; } = "blue";
     [BindProperty] public bool Mission { get; set; } = true;
     [BindProperty] public bool Reading { get; set; } = true;
+    /// <summary>도전!!!성경필사(ADR 0099): 기본 켬.</summary>
+    [BindProperty] public bool Copy { get; set; } = true;
     [BindProperty] public string? AdminEmail { get; set; }
 
     public List<TenantRow> Rows { get; private set; } = [];
@@ -52,7 +54,7 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
 
     public async Task<IActionResult> OnPostCreateAsync(CancellationToken ct)
     {
-        var (t, errors) = await platform.CreateAsync(Me, new NewTenant(Name, Slug, TimeZoneId, ThemeColor, Mission, Reading, AdminEmail), ct);
+        var (t, errors) = await platform.CreateAsync(Me, new NewTenant(Name, Slug, TimeZoneId, ThemeColor, Mission, Reading, AdminEmail, Copy), ct);
         if (t is null)
         {
             CreateErrors = errors;

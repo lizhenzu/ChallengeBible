@@ -22,8 +22,8 @@ public sealed class Tenant
     public string? ReportOrg { get; set; }
     public bool MissionEnabled { get; set; }
     public bool ReadingEnabled { get; set; }
-    /// <summary>도전!!!성경필사(ADR 0099): 세 번째 프로그램, 기본 꺼짐.</summary>
-    public bool CopyEnabled { get; set; }
+    /// <summary>도전!!!성경필사(ADR 0099): 세 번째 프로그램. 기본 켬(2026-11-16 사용자 "무조건 on, 만일을 위해 off 는 둔다").</summary>
+    public bool CopyEnabled { get; set; } = true;
     public bool ReadingBoardPublic { get; set; } = true;
     /// <summary>참여 신청 화면의 부서 목록에 보이기(0059). 기본 꺼짐 — 꺼져도 부서 주소 · 코드로는 신청할 수 있다.</summary>
     public bool JoinListed { get; set; }

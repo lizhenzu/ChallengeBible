@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
 using ChallengeBible.Tests.Support;
 using ChallengeBible.Web.Services;
@@ -69,9 +69,10 @@ public class PlatformTenantServiceTests
     [Fact]
     public async Task R150_프로그램은_하나_이상()
     {
-        Assert.True((await Svc.CreateAsync(_op.UserName!, Input(mission: false, reading: false))).Errors.ContainsKey("Programs"));
-        var (t, _) = await Svc.CreateAsync(_op.UserName!, Input());
-        Assert.NotNull(await Svc.SetProgramsAsync(_op.UserName!, t!.Id, false, false));
+        Assert.True((await Svc.CreateAsync(_op.UserName!, Input(mission: false, reading: false) with { Copy = false })).Errors.ContainsKey("Programs"));
+        Assert.False((await Svc.CreateAsync(_op.UserName!, Input(mission: false, reading: false))).Errors.ContainsKey("Programs"));   // 필사만 켜도 된다(ADR 0099, 기본 켬)
+        var (t, _) = await Svc.CreateAsync(_op.UserName!, Input() with { Slug = "jamsil-two" });
+        Assert.NotNull(await Svc.SetProgramsAsync(_op.UserName!, t!.Id, false, false, default, copy: false));
         Assert.Null(await Svc.SetProgramsAsync(_op.UserName!, t.Id, false, true));
     }
 

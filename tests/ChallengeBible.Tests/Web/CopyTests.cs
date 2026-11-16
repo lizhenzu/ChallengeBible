@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
@@ -89,10 +89,12 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
     private List<CopyVerse> Verses(string user) { using var raw = InMemoryDb.Raw(_db); return raw.CopyVerses.Where(v => v.UserName == user).ToList(); }
 
     [Fact]
-    public async Task R308_필사는_부서가_켰을_때만_보이고_홈_카드와_메뉴에_생긴다()
+    public async Task R308_필사는_기본으로_켜져_있고_끄면_화면_카드_메뉴가_없다()
     {
+        using (var raw = InMemoryDb.Raw(_db)) Assert.True(raw.Tenants.Single(t => t.Id == _kids.Id).CopyEnabled);   // 기본 켬(2026-11-16 사용자)
+        TurnOn(false);                                                                                              // 만일을 위해 끌 수 있다
         var c = await Login("dongseok@example.com");
-        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/kids/copy")).StatusCode);   // 기본 꺼짐
+        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/kids/copy")).StatusCode);
         Assert.DoesNotContain("/kids/copy", await c.GetStringAsync("/kids"));
 
         TurnOn();
@@ -192,5 +194,8 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal((false, false, true), (raw.Tenants.Single(t => t.Id == _kids.Id).MissionEnabled, raw.Tenants.Single(t => t.Id == _kids.Id).ReadingEnabled, raw.Tenants.Single(t => t.Id == _kids.Id).CopyEnabled));
         Assert.Null(await platform.SetProgramsAsync("operator", _kids.Id, true, true, default));   // 필사를 넘기지 않으면 그대로
         using (var raw = InMemoryDb.Raw(_db)) Assert.True(raw.Tenants.Single(t => t.Id == _kids.Id).CopyEnabled);
+        var (made, errors) = await platform.CreateAsync("operator", new NewTenant("새 부서", "new-dept", "Asia/Seoul", "blue", true, true, null));   // 새 부서는 세 프로그램 모두 켬
+        Assert.True(errors.Ok);
+        Assert.True(made!.MissionEnabled && made.ReadingEnabled && made.CopyEnabled);
     }
 }
