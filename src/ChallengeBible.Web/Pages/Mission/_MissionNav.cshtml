@@ -1,4 +1,4 @@
-@model ChallengeBible.Web.Pages.Mission.MissionNav
+﻿@model ChallengeBible.Web.Pages.Mission.MissionNav
 @using ChallengeBible.Domain.Missions
 @{
     var p = Model.Page;
@@ -13,7 +13,7 @@
     var nextTab = tabs.FirstOrDefault(x => x.Key != Model.Current && x.Has && !Done(x.M)
         && !(x.Key == "quiz" && d.QuizState.State != QuizState.CanTry));
 }
-@* 확정 시안: 아래 미션 메뉴 — 이름 밑에 완료 · 진행중 · 아직 *@
+@* 확정 시안: 아래 미션 메뉴 — 이름 밑에 완료 · 진행중 · 아직. 확정 시안 미션탭(2026-11-16): 안 한 미션은 진하게 · 한 미션은 흐리게, 5번째 칸 미션 홈 *@
 <nav class="mnav" aria-label="미션">
     @foreach (var (key, label, m, has) in tabs)
     {
@@ -22,6 +22,8 @@
         var state = !has ? "없음" : done ? "✓ 완료" : key == "quiz" && d.Quiz is not null && d.QuizState.State != QuizState.CanTry ? "끝남" : here ? "진행중" : "아직";
         <a href="@p.Link(key)" class="@(done ? "dn" : "")" aria-current="@(here ? "page" : "false")" data-nav="@key"><span class="L">@label</span><span class="S @(done ? "done" : "")">@state</span></a>
     }
+    @* 확정 시안 미션탭(2026-11-16): 암송 옆에 미션 홈으로 *@
+    <a href="/@p.Slug/word-mission" class="hm" data-nav="home"><span class="L">미션 홈</span><span class="S">돌아가기</span></a>
 </nav>
 <p id="toast" class="toast" role="status" hidden></p>
 @* 축하 창(확정 시안: 말씀-축하팝업)이 쓰는 값: 축하 단계 목록, 내 점수 주소, 부서 · 이름 *@

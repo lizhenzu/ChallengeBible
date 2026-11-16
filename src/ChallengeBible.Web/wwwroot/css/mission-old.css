@@ -165,3 +165,11 @@ body:has(.mbody) .uhint[hidden] { display: none; }
 .okpop.undo .bt button { min-height: 48px; border-radius: 14px; border: 1px solid #E5E7EB; background: #F8FAFC; color: #374151; font: inherit; font-size: 15px; font-weight: 900; cursor: pointer; }
 .okpop.undo .bt button.no { background: #DC2626; border-color: #DC2626; color: #fff; }
 .okpop.undo .bt button:focus-visible { outline: 3px solid #93B9F2; outline-offset: 2px; }
+
+/* 미션 아래 탭(확정 시안 미션탭 2026-11-16): 안 한 미션 = 진하게, 한 미션 = 흐리게(예전과 반대), 5번째 칸 미션 홈 */
+body:has(.mbody) .mnav a { color: #111827; }
+body:has(.mbody) .mnav .S { color: #374151; }
+body:has(.mbody) .mnav a.dn .L, body:has(.mbody) .mnav a.dn .S.done { color: #C4C9D2; }
+body:has(.mbody) .mnav a[aria-current="page"] .S:not(.done) { color: #2F80ED; }
+body:has(.mbody) .mnav a.hm .L { color: #2F80ED; }
+body:has(.mbody) .mnav a.hm .S { color: #6B7280; }

@@ -4188,3 +4188,12 @@ body:has(.at-hd) .imp-bar .wrap { max-width: calc(760px + 2 * var(--gut)); }   /
 .gk-sum3 div.on b { color: #2F80ED; }
 .gk-capn { margin: -4px 0 10px; font-size: 12.5px; font-weight: 700; color: #B45309; }
 .gk-btn small { margin-left: 4px; font-weight: 500; opacity: .9; }
+
+/* 미션 아래 탭(확정 시안 미션탭 2026-11-16): 안 한 미션 = 진하게, 한 미션 = 흐리게(예전과 반대), 5번째 칸 미션 홈 */
+.mnav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.mnav a { color: var(--fg); }
+.mnav a .S { color: var(--fg); opacity: .8; }
+.mnav a.dn .L, .mnav a.dn .S.done { color: var(--dim); opacity: .55; }
+.mnav a[aria-current="page"] .S:not(.done) { color: var(--accent); opacity: 1; }
+.mnav a.hm .L { color: var(--accent); }
+.mnav a.hm .S { color: var(--dim); opacity: 1; }

@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -434,6 +434,21 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("<div class=\"ref\">창세기 24장</div>", html);   // 본문이 있으면 첫 구절 + 더 보기(2026-11-03)
         Assert.Contains("<i class=\"num\">1</i>", html);
         Assert.Contains("<a class=\"more\" href=\"/jamsil-kids/read?from=word\">더 보기 →</a>", html);
+    }
+
+    [Fact]
+    public async Task 네_미션_화면_아래_탭에는_미션_홈_칸이_있고_다_한_미션은_dn_으로_흐리게()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        foreach (var m in new[] { "word", "quiz", "prayer", "recite" })   // 확정 시안 미션탭(2026-11-16)
+        {
+            var html = await c.GetStringAsync($"/jamsil-kids/{m}");
+            Assert.Contains("<a href=\"/jamsil-kids/word-mission\" class=\"hm\" data-nav=\"home\"><span class=\"L\">미션 홈</span>", html);
+            Assert.Contains($"aria-current=\"page\" data-nav=\"{m}\"", html);
+        }
+        var css = await c.GetStringAsync("/css/site.css");
+        Assert.Contains(".mnav { grid-template-columns: repeat(5, minmax(0, 1fr)); }", css);
+        Assert.Contains(".mnav a.dn .L, .mnav a.dn .S.done { color: var(--dim); opacity: .55; }", css);
     }
 
     [Fact]
