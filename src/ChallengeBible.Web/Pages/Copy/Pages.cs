@@ -35,6 +35,9 @@ public class IndexModel(CopyService copy, TenantContext tenant, CopyGiftService 
     public CopySummary Data { get; private set; } = null!;
     /// <summary>고를 수 있는 내 완필 선물(완독 선물 카드와 같은 모양).</summary>
     public IReadOnlyList<BirthdayGiftView> MyGifts { get; private set; } = [];
+    /// <summary>책별 진도(확정 시안 필사-통독흐름 ①): 성경통독 대시보드처럼 구약 · 신약 탭과 책 타일.</summary>
+    public IReadOnlyList<CopyBook> Books { get; private set; } = [];
+    [BindProperty(SupportsGet = true)] public string? Tab { get; set; }
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
@@ -42,6 +45,7 @@ public class IndexModel(CopyService copy, TenantContext tenant, CopyGiftService 
         await gifts.EnsureAsync(ct);   // 신약 · 구약을 다 썼으면 완필 선물(R-307)
         Data = await Copy.SummaryAsync(ct);
         Resume = Data.Resume;
+        Books = (await Copy.BooksAsync(ct)).Books;
         MyGifts = (await linkGifts.MineAsync(ct)).Where(g => g.Kind == GiftKinds.Copy).ToList();
         return Page();
     }
@@ -57,6 +61,11 @@ public class BooksModel(CopyService copy, TenantContext tenant) : CopyPageBase(c
     public IReadOnlyDictionary<(byte, short), int> ChapterDone { get; private set; } = new Dictionary<(byte, short), int>();
     public IReadOnlyDictionary<(byte Book, short Chapter), short> Counts { get; private set; } = new Dictionary<(byte, short), short>();
     public bool NewTab => T is null ? B is not byte b || b >= 40 : T == "nt";
+    public string Tn => NewTab ? "nt" : "ot";
+    public string ListUrl(string t, byte? b = null) => $"/{Slug}/copy/books?t={t}" + (b is byte x ? $"&b={x}#b{x}" : "");
+    /// <summary>장 상태(확정 시안 필사-통독흐름 ②): 다 씀 · 쓰는 중(몇 절이라도) · 아직.</summary>
+    public string ChapterState(byte book, short ch) => ChapterDone.TryGetValue((book, ch), out var n) && n > 0
+        ? (Counts.TryGetValue((book, ch), out var all) && n >= all ? "done" : "here") : "";
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
@@ -79,6 +88,7 @@ public class WriteModel(CopyService copy, TenantContext tenant, BibleTextService
     [BindProperty(SupportsGet = true)] public short Chapter { get; set; }
     [BindProperty(SupportsGet = true)] public short? V { get; set; }
     public CopyChapter? Data { get; private set; }
+    public Dictionary<short, string> ChapterStates { get; } = [];
     public string Json { get; private set; } = "{}";
     public (byte Book, short Chapter)? Prev { get; private set; }
     public (byte Book, short Chapter)? Next { get; private set; }
@@ -89,6 +99,11 @@ public class WriteModel(CopyService copy, TenantContext tenant, BibleTextService
         await LoadResumeAsync(ct);   // 목차 "이어 쓰기"(ADR 0105)
         Data = await Copy.ChapterAsync(bible, Book, Chapter, V, ct);
         if (Data is null) return NotFound();
+        var (_, chDone) = await Copy.BooksAsync(ct);
+        var counts = await Copy.CountsAsync(ct);
+        // 장 칸(확정 시안 필사-통독흐름 ③): 다 씀 · 쓰는 중 · 아직
+        for (short c = 1; c <= Data.ChapterCount; c++)
+            if (chDone.TryGetValue((Book, c), out var wn) && wn > 0) ChapterStates[c] = counts.TryGetValue((Book, c), out var all) && wn >= all ? "done" : "here";
         var order = (await Copy.CountsAsync(ct)).Keys.OrderBy(k => k.Book).ThenBy(k => k.Chapter).ToList();
         var i = order.IndexOf((Book, Chapter));
         Prev = i > 0 ? order[i - 1] : null;

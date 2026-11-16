@@ -1,4 +1,4 @@
-@model (ChallengeBible.Web.Pages.Copy.CopyPageBase Page, string Key, string Title, string? Right)
+﻿@model (ChallengeBible.Web.Pages.Copy.CopyPageBase Page, string Key, string Title, string? Right)
 @* 성경필사 공통 틀(확정 시안 필사-통독틀, ADR 0105): 성경통독(_ReadingNav)과 같은 모양 — 넓은 화면 = 왼쪽 고정 목차 / 좁은 화면 = ☰ 서랍. 색은 필사 테마(data-theme="copy") *@
 @{
     var p = Model.Page;
@@ -32,7 +32,7 @@
     </div>
     <div class="b2ft"><a href="/@s">← 부서 홈으로</a></div>
 </nav>
-<header class="b2top"><button type="button" class="b2hb" data-b2open aria-label="메뉴 열기" aria-controls="b2dr">☰</button><b>@Model.Title</b>@if (Model.Right is { } rt) { <span class="b2r-right">@rt</span> }</header>
+@if (!string.IsNullOrEmpty(Model.Title)) { <header class="b2top"><button type="button" class="b2hb" data-b2open aria-label="메뉴 열기" aria-controls="b2dr">☰</button><b>@Model.Title</b>@if (Model.Right is { } rt) { <span class="b2r-right">@rt</span> }</header> }
 <script>
     // ☰ 서랍 열기 · 닫기(좁은 화면) — 성경통독과 같다
     (() => {

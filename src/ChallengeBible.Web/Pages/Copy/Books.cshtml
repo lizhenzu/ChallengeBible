@@ -1,44 +1,77 @@
 ﻿@page "/{slug}/copy/books"
 @model ChallengeBible.Web.Pages.Copy.BooksModel
-@* 확정 시안 성경필사 ③(2026-11-16): 구약 · 신약 탭 → 책마다 진도 → 책을 누르면 장 칸(다 씀 · 쓰는 중 · 안 씀) *@
+@* 확정 시안 필사-통독흐름 ②(2026-11-16, ADR 0105): 성경통독 "구약 읽기"와 같은 화면 — 구약 · 신약 탭 → 전체 % → 책 타일 → 책을 누르면 장 칸 판넬([닫기] · [이어 쓰기 N장 →]).
+   통독의 "다 읽음 표시"는 없다(필사는 직접 써야 쓴 절이 된다) *@
 @{
     var inv = System.Globalization.CultureInfo.InvariantCulture;
-    var books = Model.Books.Where(b => b.New == Model.NewTab).ToList();
+    var nt = Model.NewTab;
+    var books = Model.Books.Where(b => b.New == nt).ToList();
+    int done = books.Sum(b => b.Done), total = books.Sum(b => b.Verses);
+    var pct = ChallengeBible.Web.Services.CopySummary.Percent(done, total);
+    var r = Model.Resume;
 }
 <link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/reading-b2.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/copy.css" asp-append-version="true" />
 <div class="rp b2 bc">
-@{ var nav = ((ChallengeBible.Web.Pages.Copy.CopyPageBase)Model, (Model.NewTab ? "nt" : "ot"), (Model.NewTab ? "신약 쓰기" : "구약 쓰기"), (string?)null); }
+@{ var nav = ((ChallengeBible.Web.Pages.Copy.CopyPageBase)Model, Model.Tn, nt ? "신약 쓰기" : "구약 쓰기", (string?)null); }
 <partial name="_CopyNav" model="nav" />
-<div class="b2main">
-<nav class="bc-tabs gut" aria-label="구약 · 신약">
-    <a href="/@Model.Slug/copy/books?t=ot" aria-current="@(Model.NewTab ? "false" : "page")">구약 39권</a>
-    <a href="/@Model.Slug/copy/books?t=nt" aria-current="@(Model.NewTab ? "page" : "false")">신약 27권</a>
-</nav>
-<main class="bc-main gut"><div class="wrap" style="gap:0">
-    @foreach (var b in books)
-    {
-        var open = Model.B == b.BookId;
-        <a class="bc-bk" id="b@(b.BookId)" href="/@Model.Slug/copy/books?t=@(b.New ? "nt" : "ot")@(open ? "" : $"&b={b.BookId}")#b@(b.BookId)" aria-expanded="@(open ? "true" : "false")">
-            <span>@b.Name @(open ? "▾" : "")</span>
-            <span class="bc-bar" aria-hidden="true"><i style="width:@(b.Percent.ToString("0.#", inv))%"></i></span>
-            <small>@(b.DoneChapters)/@(b.Chapters)@(b.BookId == 19 ? "편" : "장")</small>
-        </a>
-        @if (open)
+<div class="b2main"><main class="b2b">
+    <nav class="seg" aria-label="구약 · 신약">
+        <a href="@Model.ListUrl("ot")" aria-current="@(!nt ? "true" : "false")">구약</a>
+        <a href="@Model.ListUrl("nt")" aria-current="@(nt ? "true" : "false")">신약</a>
+    </nav>
+    <div class="lsum">
+        <div><div class="k" style="margin:0">@(nt ? "신약" : "구약") 전체</div><div class="big num">@(pct.ToString("0.0"))<small>%</small></div></div>
+        <div class="r num">@(done.ToString("N0"))절 씀<br />@(total.ToString("N0"))절 중 · @(nt ? 27 : 39)권</div>
+    </div>
+    <div class="pg all"><i style="width:@(pct.ToString("0.#", inv))%"></i></div>
+
+    <div class="books lbooks">
+        @foreach (var b in books)
         {
-            <div class="bc-grid">
-                @foreach (var c in Model.Counts.Keys.Where(k => k.Book == b.BookId).Select(k => k.Chapter).Order())
-                {
-                    var n = Model.Counts[(b.BookId, c)];
-                    var done = Model.ChapterDone.GetValueOrDefault((b.BookId, c));
-                    var cls = n > 0 && done >= n ? "d" : done > 0 ? "h" : "";
-                    <a class="@cls" href="@Model.WriteUrl(b.BookId, c)" aria-label="@(c)@(b.BookId == 19 ? "편" : "장") · @(done)/@(n)절">@c</a>
-                }
-            </div>
-            <div class="bc-legend" style="padding-bottom:10px"><span><i class="d"></i>다 씀</span><span><i class="h"></i>쓰는 중</span><span><i></i>안 씀</span></div>
+            var open = Model.B == b.BookId;
+            var unit = b.BookId == 19 ? "편" : "장";
+            <a id="b@(b.BookId)" class="@(open ? "sel" : "")@(b.DoneChapters >= b.Chapters ? " dn" : "")" href="@(open ? Model.ListUrl(Model.Tn) : Model.ListUrl(Model.Tn, b.BookId))" aria-expanded="@(open ? "true" : "false")">
+                @b.Name<small class="num">@b.DoneChapters/@b.Chapters</small>@if (b.Done > 0) { <i style="width:@(Math.Max(1, b.Done * 100 / Math.Max(1, b.Verses)))%"></i> }
+            </a>
+            if (open)
+            {
+                var here = r is { } rr && rr.BookId == b.BookId ? rr.Chapter : (short)0;
+                var chs = Model.Counts.Keys.Where(k => k.Book == b.BookId).Select(k => k.Chapter).OrderBy(c => c).ToList();   // 본문이 있는 장
+                var go = here > 0 ? here : chs.Where(c => Model.ChapterState(b.BookId, c) != "done").DefaultIfEmpty(chs.FirstOrDefault((short)1)).First();
+                <div class="rp-panel" data-book="@b.BookId">
+                    <div class="ph"><strong>@b.Name</strong><span class="num">@b.DoneChapters / @(b.Chapters)@unit 다 씀 · @(CopyPageBaseHelpers.P(b.Percent))%</span></div>
+                    <p class="hint">@(unit)을 누르면 그 @(unit)을 따라 쓰러 가요.</p>
+                    <div class="chs">
+                        @foreach (var c in chs)
+                        {
+                            <a class="ch @Model.ChapterState(b.BookId, c)@(c == here ? " cur" : "")" href="@Model.WriteUrl(b.BookId, c)" aria-label="@(c)@unit 쓰기">@c</a>
+                        }
+                    </div>
+                    <div class="lg"><span><i class="done"></i>다 씀</span><span><i class="here"></i>쓰는 중</span><span><i></i>아직</span></div>
+                    <div class="acts">
+                        <a class="close" href="@Model.ListUrl(Model.Tn)">닫기</a>
+                        <a class="go" href="@Model.WriteUrl(b.BookId, go)">@(b.Done == 0 ? "쓰기 시작" : "이어 쓰기") @(go)@unit →</a>
+                    </div>
+                </div>
+            }
         }
-    }
-</div></main>
+    </div>
+</main></div>
 </div>
-</div>
+<script>
+    // 성경통독 목록과 같다: 장 칸 판넬은 누른 책이 있는 줄의 끝에서 펼쳐진다
+    (() => {
+        const grid = document.querySelector('.lbooks'), panel = grid?.querySelector('.rp-panel');
+        const sel = grid?.querySelector('a.sel');
+        if (!panel || !sel) return;
+        const cells = [...grid.querySelectorAll(':scope > a')];
+        let last = sel;
+        for (let i = cells.indexOf(sel) + 1; i < cells.length; i++) {
+            if (cells[i].offsetTop !== sel.offsetTop) break;
+            last = cells[i];
+        }
+        last.after(panel);
+    })();
+</script>

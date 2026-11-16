@@ -161,6 +161,16 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("aria-label=\"성경 필사 메뉴\"", write);
         Assert.Contains("class=\"b2it on\" aria-current=\"page\">신약 쓰기</a>", write);
         Assert.Contains("이어 쓰기<small>요한복음 3장</small>", write);   // 빠른 이동
+        Assert.Contains("class=\"b2rh\"", write);                     // 통독 본문 화면과 같은 색 띠 머리(확정 시안 필사-통독흐름 ③)
+        Assert.Contains("신약 · 성경 필사", write);
+        Assert.Contains("<nav class=\"b2chs\" aria-label=\"장 번호\">", write);
+        Assert.Contains("<div class=\"brd-lbl\">번역</div>", write);
+        var books = await c.GetStringAsync("/kids/copy/books?t=nt&b=43");   // 통독 "신약 읽기"와 같은 화면(②)
+        Assert.Contains("class=\"rp-panel\"", books);
+        Assert.Contains("이어 쓰기 3장 →", books);
+        Assert.Matches("<a class=\"ch here( cur)?\" href=\"/kids/copy/write/43/3\"", books);   // 쓰는 중인 장
+        Assert.DoesNotContain("다 읽음 표시", books);
+        Assert.Contains("책별 진도", await c.GetStringAsync("/kids/copy"));   // 대시보드 ①
         var js = await c.GetStringAsync("/js/copy.js");   // 복사 · 붙여넣기 막기(2026-11-16 사용자)
         Assert.Contains("input.addEventListener('paste', noPaste);", js);
         Assert.Contains("insertFromPaste", js);

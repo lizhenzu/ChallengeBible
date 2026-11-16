@@ -1,7 +1,7 @@
-@page "/{slug}/copy"
+﻿@page "/{slug}/copy"
 @model ChallengeBible.Web.Pages.Copy.IndexModel
 @using ChallengeBible.Infrastructure.Data
-@* 확정 시안 필사-통독틀(2026-11-16, ADR 0105): 성경통독 대시보드와 같은 틀 · 배치 — 왼쪽 내 진도 · 연속 · 최근 쓴 곳 · 완필 선물 · 필사 진도 / 오른쪽 이어 쓰기 · 최근 8주 *@
+@* 확정 시안 필사-통독틀(2026-11-16, ADR 0105): 성경통독 대시보드와 같은 틀 · 배치 — 왼쪽 내 진도 · 연속 · 최근 쓴 곳 · 완필 선물 · 필사 진도 / 오른쪽 이어 쓰기 · 최근 8주 / 아래 책별 진도(확정 시안 필사-통독흐름 ①) *@
 @{
     var d = Model.Data;
     var resume = d.Resume;
@@ -82,6 +82,21 @@
             </div>
             <div class="legend">적음<i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i>많음</div>
         </div>
+    </div>
+
+    @{ var ntTab = Model.Tab == "nt"; }
+    <div class="lbl">책별 진도<a href="/@Model.Slug/copy/books?t=@(ntTab ? "nt" : "ot")">@(ntTab ? "신약" : "구약") 쓰기 →</a></div>
+    <nav class="seg" style="margin:0 0 10px" aria-label="구약 · 신약">
+        <a href="?Tab=ot" aria-current="@(!ntTab ? "true" : "false")">구약 39권</a>
+        <a href="?Tab=nt" aria-current="@(ntTab ? "true" : "false")">신약 27권</a>
+    </nav>
+    <div class="books">
+        @foreach (var b in Model.Books.Where(x => x.New == ntTab))
+        {
+            <a href="/@Model.Slug/copy/books?t=@(b.New ? "nt" : "ot")&b=@(b.BookId)#b@(b.BookId)" class="@(b.DoneChapters >= b.Chapters ? "dn" : "")" title="@b.Name @b.DoneChapters/@b.Chapters">
+                @b.Name<small class="num">@b.DoneChapters/@b.Chapters</small>@if (b.Done > 0) { <i style="width:@(Math.Max(1, b.Done * 100 / Math.Max(1, b.Verses)))%"></i> }
+            </a>
+        }
     </div>
 </div></div>
 </div>

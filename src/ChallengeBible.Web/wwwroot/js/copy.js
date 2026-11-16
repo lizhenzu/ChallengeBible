@@ -24,11 +24,16 @@
   const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
   function drawChips() {
-    trEl.innerHTML = data.codes.map((c, i) => `<button type="button" class="bc-chip" data-tr="${c}" aria-pressed="${c === tr}">${data.names[i]}</button>`).join('');
+    // 번역 칸(ADR 0105): 성경통독 본문 화면의 번역 줄과 같은 모양(a · aria-current)
+    trEl.innerHTML = data.codes.map((c, i) => `<a href="#" role="button" data-tr="${c}" aria-current="${c === tr}">${data.names[i]}</a>`).join('');
   }
   function drawDots() {
     dotsEl.innerHTML = verses.map((x, i) => `<button type="button" class="${done.has(x.v) ? 'd' : ''}${i === idx ? ' c' : ''}" data-i="${i}" aria-label="${x.v}절${done.has(x.v) ? ' · 다 씀' : ''}"></button>`).join('');
     if (counter) counter.textContent = `${done.size} / ${verses.length}절`;
+    // 머리 띠 절 진도(성경통독과 같은 막대)
+    const pct = verses.length ? Math.floor(done.size * 100 / verses.length) : 0;
+    const cnt = document.querySelector('[data-bc-count]'), pc = document.querySelector('[data-bc-pct]'), bar = document.querySelector('[data-bc-bar]');
+    if (cnt) cnt.textContent = done.size; if (pc) pc.textContent = pct + '%'; if (bar) bar.style.width = pct + '%';
   }
   function paint() {
     const src = text();
@@ -116,6 +121,7 @@
   dotsEl.addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) go(+b.dataset.i); });
   trEl.addEventListener('click', e => {
     const b = e.target.closest('[data-tr]'); if (!b) return;
+    e.preventDefault();
     tr = b.dataset.tr;
     try { localStorage.setItem('bc-tr', tr); } catch { }
     drawChips(); paint();

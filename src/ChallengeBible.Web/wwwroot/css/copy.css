@@ -110,3 +110,5 @@
 /* 복사 · 붙여넣기 막기(ADR 0105): 본문은 고를 수 없게 */
 .bc-verse { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .bc-recent { color: inherit; text-decoration: none; }
+/* 쓰는 화면(확정 시안 필사-통독흐름 ③, ADR 0105): 통독 본문 화면 틀 안의 따라 쓰기 칸 */
+.bc-wr { display: grid; gap: 12px; margin: 14px 0 18px; }

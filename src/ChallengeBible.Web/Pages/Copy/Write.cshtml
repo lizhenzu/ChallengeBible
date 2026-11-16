@@ -1,34 +1,63 @@
-﻿@page "/{slug}/copy/write/{book:int}/{chapter:int}"
+@page "/{slug}/copy/write/{book:int}/{chapter:int}"
 @model ChallengeBible.Web.Pages.Copy.WriteModel
-@* 확정 시안 성경필사 ②(2026-11-16): 번역 고르기 → 절 칸 → 본문(맞은 글자 초록 · 틀린 글자 빨강 · 남은 글자 회색) → 따라 치는 칸 → 앞 절 · 다음 절. 다 맞게 치면 저절로 저장 · 다음 절(R-305 · R-306) *@
+@* 확정 시안 필사-통독흐름 ③(2026-11-16, ADR 0105): 성경통독 본문 화면과 같은 배치 — 색 띠 머리(☰ · 경로 | 구약 · 성경 필사 | 책 이름 + 큰 장 번호 | 절 진도)
+   → 장 번호 줄 → 번역 칸 → [따라 쓰기: 절 점 · 본문 · 쓰는 칸 · 앞 절 / 다음 절] → 이전 · 다음 장 → 대시보드 · 목록 · 부서 홈 *@
 @{
     var d = Model.Data!;
     var unit = d.BookId == 19 ? "편" : "장";
+    var t = d.BookId >= 40 ? "nt" : "ot";
+    var pct = d.Lines.Count == 0 ? 0 : d.Done.Count * 100 / d.Lines.Count;
 }
 <link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/reading-b2.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/copy.css" asp-append-version="true" />
 <div class="rp b2 bc">
-@{ var nav = ((ChallengeBible.Web.Pages.Copy.CopyPageBase)Model, (d.BookId >= 40 ? "nt" : "ot"), Model.Title, $"{d.Done.Count} / {d.Lines.Count}절"); }
+@{ var nav = ((ChallengeBible.Web.Pages.Copy.CopyPageBase)Model, t, "", (string?)null); }
 <partial name="_CopyNav" model="nav" />
-<div class="b2main">
-<main class="bc-main gut"><div class="wrap" data-bc-write data-save="/@Model.Slug/copy/write/@d.BookId/@d.Chapter?handler=Save">
-    @Html.AntiForgeryToken()
-    <script type="application/json" data-bc-data>@Html.Raw(Model.Json)</script>
-    <div class="bc-chips" role="group" aria-label="번역" data-bc-tr></div>
-    <div class="bc-dots" role="group" aria-label="절 고르기" data-bc-dots></div>
-    <div class="bc-card"><p class="bc-verse" data-bc-verse aria-live="polite"></p></div>
-    <textarea class="bc-ta" data-bc-input rows="4" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="본문을 따라 써요"></textarea>
-    <p class="bc-hint">띄어쓰기 · 문장 부호는 틀려도 괜찮아요. <b>빨간 글자</b>만 고치면 돼요. 다 맞게 치면 저절로 다음 절로 넘어가요.</p>
-    <p class="bc-err" data-bc-err hidden></p>
-    <div class="bc-btns"><button type="button" class="bc-btn" data-bc-prev>← 앞 절</button><button type="button" class="bc-btn" data-bc-next disabled>다음 절</button></div>
-    <div class="bc-done" data-bc-done hidden><b></b><p></p></div>
-    <div class="bc-btns" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)">
-        @if (Model.Prev is { } pv) { <a class="bc-btn" href="@Model.WriteUrl(pv.Book, pv.Chapter)">← @ChallengeBible.Infrastructure.Data.BibleBooks.NameOf(pv.Book) @(pv.Chapter)@(pv.Book == 19 ? "편" : "장")</a> } else { <span></span> }
-        @if (Model.Next is { } nx) { <a class="bc-btn" href="@Model.WriteUrl(nx.Book, nx.Chapter)" data-bc-nextch>@ChallengeBible.Infrastructure.Data.BibleBooks.NameOf(nx.Book) @(nx.Chapter)@(nx.Book == 19 ? "편" : "장") →</a> }
+<div class="b2main brd b2r">
+<header class="b2rh"><div class="b2ri">
+    <div class="cr">
+        <button type="button" class="b2hb" data-b2open aria-label="메뉴 열기" aria-controls="b2dr">☰</button>
+        <span class="path"><a href="/@Model.Slug/copy/books?t=@t">@(t == "ot" ? "구약" : "신약")</a> › <b>@d.Name @(d.Chapter)@unit</b></span>
     </div>
-    <a class="bc-btn" href="/@Model.Slug/copy/books?b=@d.BookId#b@(d.BookId)">장 고르기</a>
-</div></main>
+    <div class="hk">@(t == "ot" ? "구약" : "신약") · 성경 필사</div>
+    <h1 class="ht">@d.Name<b class="num">@d.Chapter</b><small>@unit</small></h1>
+    <div class="rdprog">
+        <p class="num"><span>@(d.Lines.Count)절 · <b data-bc-count>@d.Done.Count</b>절 씀</span><span data-bc-pct>@(pct)%</span></p>
+        <div class="bar" aria-hidden="true"><i data-bc-bar style="width:@(pct)%"></i></div>
+    </div>
+</div></header>
+<main class="b2ri">
+    <nav class="b2chs" aria-label="장 번호">
+        @for (short c = 1; c <= d.ChapterCount; c++)
+        {
+            <a class="@(c == d.Chapter ? "cur" : Model.ChapterStates.GetValueOrDefault(c) ?? "")" href="@Model.WriteUrl(d.BookId, c)" aria-current="@(c == d.Chapter ? "page" : "false")">@c</a>
+        }
+    </nav>
+    <section class="b2sheet" aria-label="번역">
+        <div class="brd-lbl">번역</div>
+        <div class="brd-pills" data-bc-tr></div>
+    </section>
+
+    <div class="bc-wr" data-bc-write data-save="/@Model.Slug/copy/write/@d.BookId/@d.Chapter?handler=Save">
+        @Html.AntiForgeryToken()
+        <script type="application/json" data-bc-data>@Html.Raw(Model.Json)</script>
+        <div class="bc-dots" role="group" aria-label="절 고르기" data-bc-dots></div>
+        <div class="bc-card"><p class="bc-verse" data-bc-verse aria-live="polite"></p></div>
+        <textarea class="bc-ta" data-bc-input rows="4" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="본문을 따라 써요"></textarea>
+        <p class="bc-hint">띄어쓰기 · 문장 부호는 틀려도 괜찮아요. <b>빨간 글자</b>만 고치면 돼요. 다 맞게 치면 저절로 다음 절로 넘어가요.</p>
+        <p class="bc-err" data-bc-err hidden></p>
+        <div class="bc-btns"><button type="button" class="bc-btn" data-bc-prev>← 앞 절</button><button type="button" class="bc-btn" data-bc-next disabled>다음 절</button></div>
+        <div class="bc-done" data-bc-done hidden><b></b><p></p></div>
+    </div>
+
+    <nav class="brd-chnav" aria-label="장 이동">
+        @if (Model.Prev is { } pv) { <a href="@Model.WriteUrl(pv.Book, pv.Chapter)">◀ @ChallengeBible.Infrastructure.Data.BibleBooks.NameOf(pv.Book) @(pv.Chapter)@(pv.Book == 19 ? "편" : "장")</a> } else { <span></span> }
+        @if (Model.Next is { } nx) { <a class="nx" href="@Model.WriteUrl(nx.Book, nx.Chapter)" data-bc-nextch>@ChallengeBible.Infrastructure.Data.BibleBooks.NameOf(nx.Book) @(nx.Chapter)@(nx.Book == 19 ? "편" : "장") ▶</a> }
+    </nav>
+    <p class="brd-note">필사에는 점수가 없어요. 한 절씩 다 맞게 쓰면 그 절이 쓴 절이 돼요. 붙여넣기는 할 수 없어요.</p>
+    <nav class="b2btm"><a href="/@Model.Slug/copy">대시보드</a><a href="/@Model.Slug/copy/books?t=@t&b=@d.BookId#b@(d.BookId)">@(t == "ot" ? "구약" : "신약") 쓰기</a><a href="/@Model.Slug">부서 홈</a></nav>
+</main>
 </div>
 </div>
 <script src="~/js/copy.js" asp-append-version="true" defer></script>
