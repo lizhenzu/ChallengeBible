@@ -39,8 +39,11 @@ def name_parts():
 
 # ── 상황 틀(모든 부서가 같은 틀). 모두 새 명부 줄 + 계정. 학생은 반마다 고루(s38 은 미배정), 선생님은 반 하나에 한 명(반 수만큼) ──
 # kind: S 학생 · T 선생님(담임) · P 학부모
-students_target = [3100, 2750, 2600, 2590,                                   # s01 ~ s04 상한(30,000 크레딧) 근처 · 넘음
-                   2500, 2300, 2100, 1900, 1700, 1550, 1400, 1250, 1100, 1000,  # s05 ~ s14
+# 선물 점수(ADR 0104: 1점 = 15 크레딧, 처음 보너스 없음, 한 해 상한 30,000 = 2,000점) 시험용:
+#   s01 2,350점 + 받은 선물 600점 → 쓸 수 있는 1,400(상한 넘음) · s03 2,000점(상한 딱) · s04 1,877점(1년 매일)
+#   s05 734점 + 받은 선물 667점 → 67점 남음 · s07 700점 + 고른 선물 400점(받기 전) · s09 300점 · s10 60점(가장 싼 선물 바로 아래) · s12 1,111점
+students_target = [2350, 2750, 2000, 1877,                                   # s01 ~ s04 상한 넘음 · 딱 · 1년 매일
+                   734, 2300, 700, 1900, 300, 60, 1400, 1111, 1100, 1000,     # s05 ~ s14
                    990, 890, 800, 720, 650, 580, 500, 420, 350, 300, 250, 210,  # s15 ~ s26
                    199, 190, 150, 105, 100,                                    # s27 ~ s31 100점 바로 위
                    99, 95, 80, 60, 35, 10,                                     # s32 ~ s37 100점 아래
@@ -93,6 +96,14 @@ for no, kind, total, mem, _ in teams:
 for i in range(1, PARENTS + 1):
     c = f"p{i:02d}"
     tpl.append((c, "P", i, *parent_birth[i - 1], parent_target[c], 0, 0))
+
+# 개인 선물(ADR 0104): (코드, 상태, 상품 이름, 가격, 쓴 점수, 고른 지 며칠, 산 지 며칠 또는 None, 받은 지 며칠 또는 None)
+#   쓴 점수 = 가격(1,000 크레딧 단위 올림) ÷ 15 올림 — 부서 크레딧 표가 비어 있을 때와 같다
+personal = [
+    ("s01", "Delivered", "가짜 선물 보드게임", 9000, 600, 40, 38, 35),
+    ("s05", "Delivered", "가짜 선물 색연필 세트", 9900, 667, 20, 18, 14),
+    ("s07", "Picked", "가짜 선물 축구공", 6000, 400, 2, None, None),
+]
 
 # 통독: (코드, 회차, 시작 며칠 전, 끝 며칠 전 또는 None=읽는 중, 읽은 장 수(읽는 중일 때))
 reading = [
@@ -211,6 +222,10 @@ INSERT #Award VALUES
 {values(awards)};
 CREATE TABLE #TeamT (TeamNo int PRIMARY KEY, TeamType varchar(10) COLLATE DATABASE_DEFAULT, TeamName nvarchar(50) COLLATE DATABASE_DEFAULT, TeamId int);
 
+CREATE TABLE #PG (Code varchar(10) COLLATE DATABASE_DEFAULT, State varchar(20) COLLATE DATABASE_DEFAULT, Item nvarchar(100) COLLATE DATABASE_DEFAULT, Price int, Pts int, PickAgo int, BuyAgo int NULL, GiveAgo int NULL);
+INSERT #PG VALUES
+{values(personal)};
+
 CREATE TABLE #Read (Code varchar(10) COLLATE DATABASE_DEFAULT, RoundNo int, StartAgo int, EndAgo int NULL, Chapters int NULL);
 INSERT #Read VALUES
 {values(reading)};
@@ -327,6 +342,24 @@ BEGIN
            CASE WHEN @Reset IS NOT NULL THEN DATEADD(second, 1 + ABS(CHECKSUM(UserName, MissionDate, Item)) % 3600, @Reset)
                 ELSE DATEADD(minute, 600 + ABS(CHECKSUM(UserName, MissionDate, Item)) % 180, CAST(MissionDate AS datetime2(3))) END
     FROM r WHERE rn <= Target / P OR (rn = Target / P + 1 AND Target % P > 0);
+
+    -- 개인 선물(ADR 0104): 받은 것 · 고른 것과 쓴 점수(GiftPointUse) · 이력. 열쇠는 FAKE-P-코드
+    INSERT app.Gift (TenantId, Kind, Year, UserName, SourceKey, State, MinAmount, MaxAmount, ItemName, ItemPrice, ItemHasImage, CreditsUsed, PointsUsed, PointsBurned,
+        PickedUtc, PurchasedUtc, DeliveredUtc, CreatedUtc)
+    SELECT @T, 'Personal', YEAR(@Today), p.UserName, N'FAKE-P-' + g.Code, g.State, 0, g.Price, g.Item, g.Price, 0, (g.Price + 999) / 1000 * 1000, g.Pts, 0,
+        DATEADD(hour, 9, CAST(DATEADD(day, -g.PickAgo, @Today) AS datetime2(3))),
+        CASE WHEN g.BuyAgo IS NOT NULL THEN DATEADD(hour, 9, CAST(DATEADD(day, -g.BuyAgo, @Today) AS datetime2(3))) END,
+        CASE WHEN g.GiveAgo IS NOT NULL THEN DATEADD(hour, 9, CAST(DATEADD(day, -g.GiveAgo, @Today) AS datetime2(3))) END,
+        DATEADD(hour, 9, CAST(DATEADD(day, -g.PickAgo, @Today) AS datetime2(3)))
+    FROM #PG g JOIN #P p ON p.Code = g.Code;
+    INSERT app.GiftPointUse (TenantId, UserName, Year, GiftId, PointsUsed, PointsBurned, FirstBonus, CreatedUtc)
+    SELECT @T, x.UserName, x.Year, x.Id, x.PointsUsed, 0, 0, x.PickedUtc
+    FROM app.Gift x WHERE x.TenantId = @T AND x.SourceKey LIKE N'FAKE-P-%';
+    INSERT app.GiftLog (TenantId, GiftId, Action, ActorUserName, AtUtc, ItemName, ItemPrice)
+    SELECT @T, x.Id, a.Action, CASE WHEN a.Action = 'Pick' THEN x.UserName ELSE @Marker END, a.At, x.ItemName, x.ItemPrice
+    FROM app.Gift x
+    CROSS APPLY (VALUES ('Pick', x.PickedUtc), ('Purchase', x.PurchasedUtc), ('Deliver', x.DeliveredUtc)) a(Action, At)
+    WHERE x.TenantId = @T AND x.SourceKey LIKE N'FAKE-P-%' AND a.At IS NOT NULL;
 
     -- 통독: 끝낸 회차는 모든 장, 읽는 중인 회차는 앞에서부터 정한 장 수
     IF @NCh > 0

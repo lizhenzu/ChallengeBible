@@ -67,18 +67,18 @@ INSERT #Tpl VALUES
 (N't08', N'T', 8, NULL, NULL, 0, 0, 0),
 (N't09', N'T', 9, NULL, NULL, 250, 0, 0),
 (N't10', N'T', 10, NULL, NULL, 1500, 0, 0),
-(N's01', N'S', 1, 11, 1, 3100, 100, 0),
+(N's01', N'S', 1, 11, 1, 2350, 100, 0),
 (N's02', N'S', 2, 11, 5, 2750, 90, 0),
-(N's03', N'S', 3, 11, 10, 2600, 80, 0),
-(N's04', N'S', 4, 11, 13, 2590, 65, 0),
-(N's05', N'S', 5, 11, 14, 2500, 50, 0),
+(N's03', N'S', 3, 11, 10, 2000, 80, 0),
+(N's04', N'S', 4, 11, 13, 1877, 65, 0),
+(N's05', N'S', 5, 11, 14, 734, 50, 0),
 (N's06', N'S', 6, 11, 15, 2300, 35, 0),
-(N's07', N'S', 7, 11, 20, 2100, 100, 0),
+(N's07', N'S', 7, 11, 20, 700, 100, 0),
 (N's08', N'S', 8, 11, 28, 1900, 100, 0),
-(N's09', N'S', 9, 12, 1, 1700, 90, 0),
-(N's10', N'S', 10, 12, 3, 1550, 80, 1),
+(N's09', N'S', 9, 12, 1, 300, 90, 0),
+(N's10', N'S', 10, 12, 3, 60, 80, 1),
 (N's11', N'S', 11, 12, 5, 1400, 65, 0),
-(N's12', N'S', 12, 12, 8, 1250, 50, 0),
+(N's12', N'S', 12, 12, 8, 1111, 50, 0),
 (N's13', N'S', 13, 12, 10, 1100, 35, 0),
 (N's14', N'S', 14, 12, 14, 1000, 100, 0),
 (N's15', N'S', 15, 11, 21, 990, 100, 0),
@@ -171,6 +171,12 @@ INSERT #Award VALUES
 (7, 1000),
 (12, 1000);
 CREATE TABLE #TeamT (TeamNo int PRIMARY KEY, TeamType varchar(10) COLLATE DATABASE_DEFAULT, TeamName nvarchar(50) COLLATE DATABASE_DEFAULT, TeamId int);
+
+CREATE TABLE #PG (Code varchar(10) COLLATE DATABASE_DEFAULT, State varchar(20) COLLATE DATABASE_DEFAULT, Item nvarchar(100) COLLATE DATABASE_DEFAULT, Price int, Pts int, PickAgo int, BuyAgo int NULL, GiveAgo int NULL);
+INSERT #PG VALUES
+(N's01', N'Delivered', CAST(0x00ACDCC9200020C13CBB2000F4BCDCB48CAC84C7 AS nvarchar(100)), 9000, 600, 40, 38, 35),
+(N's05', N'Delivered', CAST(0x00ACDCC9200020C13CBB2000C9C0F0C544D5200038C1B8D2 AS nvarchar(100)), 9900, 667, 20, 18, 14),
+(N's07', N'Picked', CAST(0x00ACDCC9200020C13CBB200095CD6CADF5AC AS nvarchar(100)), 6000, 400, 2, NULL, NULL);
 
 CREATE TABLE #Read (Code varchar(10) COLLATE DATABASE_DEFAULT, RoundNo int, StartAgo int, EndAgo int NULL, Chapters int NULL);
 INSERT #Read VALUES
@@ -292,6 +298,23 @@ BEGIN
            CASE WHEN @Reset IS NOT NULL THEN DATEADD(second, 1 + ABS(CHECKSUM(UserName, MissionDate, Item)) % 3600, @Reset)
                 ELSE DATEADD(minute, 600 + ABS(CHECKSUM(UserName, MissionDate, Item)) % 180, CAST(MissionDate AS datetime2(3))) END
     FROM r WHERE rn <= Target / P OR (rn = Target / P + 1 AND Target % P > 0);
+
+    INSERT app.Gift (TenantId, Kind, Year, UserName, SourceKey, State, MinAmount, MaxAmount, ItemName, ItemPrice, ItemHasImage, CreditsUsed, PointsUsed, PointsBurned,
+        PickedUtc, PurchasedUtc, DeliveredUtc, CreatedUtc)
+    SELECT @T, 'Personal', YEAR(@Today), p.UserName, N'FAKE-P-' + g.Code, g.State, 0, g.Price, g.Item, g.Price, 0, (g.Price + 999) / 1000 * 1000, g.Pts, 0,
+        DATEADD(hour, 9, CAST(DATEADD(day, -g.PickAgo, @Today) AS datetime2(3))),
+        CASE WHEN g.BuyAgo IS NOT NULL THEN DATEADD(hour, 9, CAST(DATEADD(day, -g.BuyAgo, @Today) AS datetime2(3))) END,
+        CASE WHEN g.GiveAgo IS NOT NULL THEN DATEADD(hour, 9, CAST(DATEADD(day, -g.GiveAgo, @Today) AS datetime2(3))) END,
+        DATEADD(hour, 9, CAST(DATEADD(day, -g.PickAgo, @Today) AS datetime2(3)))
+    FROM #PG g JOIN #P p ON p.Code = g.Code;
+    INSERT app.GiftPointUse (TenantId, UserName, Year, GiftId, PointsUsed, PointsBurned, FirstBonus, CreatedUtc)
+    SELECT @T, x.UserName, x.Year, x.Id, x.PointsUsed, 0, 0, x.PickedUtc
+    FROM app.Gift x WHERE x.TenantId = @T AND x.SourceKey LIKE N'FAKE-P-%';
+    INSERT app.GiftLog (TenantId, GiftId, Action, ActorUserName, AtUtc, ItemName, ItemPrice)
+    SELECT @T, x.Id, a.Action, CASE WHEN a.Action = 'Pick' THEN x.UserName ELSE @Marker END, a.At, x.ItemName, x.ItemPrice
+    FROM app.Gift x
+    CROSS APPLY (VALUES ('Pick', x.PickedUtc), ('Purchase', x.PurchasedUtc), ('Deliver', x.DeliveredUtc)) a(Action, At)
+    WHERE x.TenantId = @T AND x.SourceKey LIKE N'FAKE-P-%' AND a.At IS NOT NULL;
 
     IF @NCh > 0
     BEGIN

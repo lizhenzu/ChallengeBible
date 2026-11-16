@@ -104,7 +104,7 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
 
         var login = await c.GetStringAsync("/test-tools/login");
         Assert.Contains("value=\"yb-s01\"", login);
-        Assert.Contains("3,100점", login);   // s01 상황 이름
+        Assert.Contains("2,350점 · 받은 선물 600점", login);   // s01 상황 이름(ADR 0104)
         Assert.DoesNotContain("넣기</button>", login);
         Assert.DoesNotContain("시험 관리자 만들기", login);   // 관리자는 지울 수 없어 만들지 않는다(2026-11-16)
     }
@@ -227,6 +227,10 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
         Assert.Contains("c.IsNewcomer = 0", create);                  // 새친구반에는 넣지 않는다
         Assert.Contains("N'ADMIN', N'SUPERADMIN'", create);           // 이미 넣었는지 볼 때 관리자 계정은 뺀다
         Assert.Throws<InvalidOperationException>(() => TestToolsService.Script("fake-delete.sql"));   // 지우기는 완전 초기화(ADR 0102)
+        // 선물 점수 시험(ADR 0104): 받은 · 고른 개인 선물과 쓴 점수를 함께 넣는다
+        Assert.Contains("INSERT app.Gift (TenantId, Kind, Year, UserName, SourceKey", create);
+        Assert.Contains("INSERT app.GiftPointUse (TenantId, UserName, Year, GiftId, PointsUsed, PointsBurned, FirstBonus, CreatedUtc)", create);
+        Assert.Contains("N'FAKE-P-'", create);
     }
 
     [Fact]
