@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<link rel="stylesheet" href="../../../src/ChallengeBible.Web/wwwroot/css/site.css">
+<style>
+/* 시안: 관리 머리말 = ☰ + 제목(폭 760, 내용과 같음), 가로 탭 없음 · 선물 처리 카드 = 떨어진 카드, 넓으면 2칸 */
+.imp{background:#7E2FA3;color:#fff;font-size:13px;font-weight:800}
+.imp .wrap{max-width:760px;display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:44px}
+.imp span.b{display:flex;gap:6px}.imp a{color:#fff;border:1px solid rgba(255,255,255,.6);border-radius:8px;padding:5px 10px;text-decoration:none;font-size:12.5px}.imp a.w{background:#fff;color:#7E2FA3}
+.atop{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--rule)}
+.atop .wrap{max-width:760px;display:flex;align-items:center;gap:12px;min-height:60px}
+.atop .menu{flex:none;width:44px;height:44px;border:0;background:none;display:grid;place-items:center;color:var(--fg);margin-left:-10px}
+.atop .t{display:flex;flex-direction:column;line-height:1.3;flex:1;min-width:0}
+.atop .t small{font-size:12px;color:var(--dim)}.atop .t b{font-size:17px;font-weight:900}.atop .t b em{font-style:normal;color:var(--accent)}
+.atop .home{flex:none;font-size:14px;font-weight:800;color:var(--accent);text-decoration:none}
+main.admin.gd > .wrap{max-width:760px}
+/* 카드 */
+.oc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.oc-grid{grid-template-columns:minmax(0,1fr)}}
+.oc{position:relative;display:flex;flex-direction:column;gap:12px;padding:14px;border:1px solid var(--rule);border-radius:16px;background:var(--bg);box-shadow:0 1px 2px rgba(16,24,40,.04);min-width:0}
+.oc-top{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;align-items:start}
+.oc-pic{width:56px;height:56px;border-radius:12px;background:#F1F3F6}
+.oc-mid{min-width:0}
+.oc-mid b{display:block;font-size:15px;color:var(--dim)}
+.oc-who{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin-top:4px;font-size:13px;color:var(--dim)}
+.oc-who strong{color:var(--fg);font-size:14px}
+.oc-bd{font-size:11.5px;font-weight:800;color:#C2185B;background:#FDECF3;border-radius:99px;padding:2px 8px}
+.oc-meta{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--dim);padding-top:10px;border-top:1px dashed var(--rule)}
+.oc-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.oc-acts .btn{min-height:42px;font-size:14px}
+.oc-acts .skip{background:var(--bg);color:#C0392B;border:1px solid var(--line)}
+.oc.hit{border:2px solid var(--accent);background:var(--accent-bg);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 14%,transparent);padding:20px 13px 13px}
+.oc-from{position:absolute;top:-11px;left:14px;font-size:11.5px;font-weight:800;color:#fff;background:var(--accent);border-radius:99px;padding:3px 10px}
+/* 메뉴판 */
+.dr{position:fixed;inset:0;z-index:50;display:flex}.dr .dim{position:absolute;inset:0;background:rgba(15,20,30,.45)}
+.dr aside{position:relative;width:min(300px,84vw);height:100%;background:var(--bg);display:flex;flex-direction:column;box-shadow:4px 0 24px rgba(0,0,0,.18)}
+.dr .top{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--rule)}
+.dr .top b em{font-style:normal;color:var(--accent)}.dr .top small{display:block;font-size:12px;color:var(--dim)}
+.dr nav{flex:1;overflow:auto;padding:8px 10px}
+.dr h3{margin:14px 10px 4px;font-size:12px;color:var(--dim);font-weight:800}
+.dr nav a{display:flex;justify-content:space-between;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;color:var(--fg);text-decoration:none;font-size:15px;font-weight:700}
+.dr nav a[aria-current=page]{background:var(--accent-bg);color:var(--accent);font-weight:900}
+.dr nav a .c{min-width:20px;padding:0 6px;border-radius:99px;background:var(--bad);color:#fff;font-size:11.5px;text-align:center}
+.dr .foot{border-top:1px solid var(--rule);padding:10px}.dr .foot a{display:flex;align-items:center;min-height:44px;padding:0 12px;color:var(--fg);text-decoration:none;font-weight:700}
+</style></head><body>
+<div class="imp gut"><div class="wrap"><span>가장 중 · 관리영님으로 보고 있어요</span><span class="b"><a href="#">사람 바꾸기</a><a class="w" href="#">복귀</a></span></div></div>
+<header class="atop gut"><div class="wrap">
+<button class="menu" aria-label="관리 메뉴"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h12"/></svg></button>
+<div class="t"><small>잠실새내교회 영아부 · 관리</small><b><em>도전!!!</em> 선물</b></div>
+<a class="home" href="#">부서 홈으로</a></div></header>
+<main class="admin gut gd"><div class="wrap">
+<h1>선물</h1>
+<p class="gd-lead">우리 부서 아이들이 고를 선물과 금액을 정해요.</p>
+<nav class="gd-tabs"><a aria-current="page">선물 처리</a><a>공통 상품</a><a>부서 상품</a><a>금액 · 점수</a><a>총비용</a></nav>
+<nav class="gd-seg"><a aria-current="page" class="go-hot">고르는 중<u class="num">50</u></a><a>살 것<u class="num">0</u></a><a>줄 것<u class="num">0</u></a><a>받음<u class="num">0</u></a><a>취소<u class="num">0</u></a></nav>
+<div class="oc-grid">
+<article class="oc hit"><span class="oc-from">할 일에서 왔어요</span>
+<div class="oc-top"><span class="oc-pic"></span><div class="oc-mid"><b>아직 안 골랐어요</b><div class="oc-who"><strong>하소원</strong>· 전지은반 <span class="oc-bd">생일 11.28</span></div></div></div>
+<div class="oc-meta"><span>한도 5,000원</span><span>11월 21일까지</span></div>
+<div class="oc-acts"><button class="btn p">링크 복사</button><button class="btn skip">건너뛰기</button></div></article>
+<article class="oc">
+<div class="oc-top"><span class="oc-pic"></span><div class="oc-mid"><b>아직 안 골랐어요</b><div class="oc-who"><strong>장은연</strong>· 유효순반 <span class="oc-bd">생일 12.1</span></div></div></div>
+<div class="oc-meta"><span>한도 5,000원</span><span>11월 24일까지</span></div>
+<div class="oc-acts"><button class="btn p">링크 복사</button><button class="btn skip">건너뛰기</button></div></article>
+<article class="oc">
+<div class="oc-top"><span class="oc-pic"></span><div class="oc-mid"><b>아직 안 골랐어요</b><div class="oc-who"><strong>조선훈</strong>· 김하림반 <span class="oc-bd">생일 12.3</span></div></div></div>
+<div class="oc-meta"><span>한도 5,000원</span><span>11월 26일까지</span></div>
+<div class="oc-acts"><button class="btn p">링크 복사</button><button class="btn skip">건너뛰기</button></div></article>
+<article class="oc">
+<div class="oc-top"><span class="oc-pic"></span><div class="oc-mid"><b>아직 안 골랐어요</b><div class="oc-who"><strong>박서진</strong>· 전지은반 <span class="oc-bd">생일 12.5</span></div></div></div>
+<div class="oc-meta"><span>한도 5,000원</span><span>11월 28일까지</span></div>
+<div class="oc-acts"><button class="btn p">링크 복사</button><button class="btn skip">건너뛰기</button></div></article>
+<article class="oc">
+<div class="oc-top"><span class="oc-pic"></span><div class="oc-mid"><b>아직 안 골랐어요</b><div class="oc-who"><strong>이도윤</strong>· 유효순반 <span class="oc-bd">생일 12.8</span></div></div></div>
+<div class="oc-meta"><span>한도 5,000원</span><span>12월 1일까지</span></div>
+<div class="oc-acts"><button class="btn p">링크 복사</button><button class="btn skip">건너뛰기</button></div></article>
+<article class="oc">
+<div class="oc-top"><span class="oc-pic"></span><div class="oc-mid"><b>아직 안 골랐어요</b><div class="oc-who"><strong>최하늘</strong>· 김하림반 <span class="oc-bd">생일 12.10</span></div></div></div>
+<div class="oc-meta"><span>한도 5,000원</span><span>12월 3일까지</span></div>
+<div class="oc-acts"><button class="btn p">링크 복사</button><button class="btn skip">건너뛰기</button></div></article>
+
+</div>
+</div></main>
+
+</body></html>
