@@ -507,6 +507,8 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             raw.SaveChanges();
         }
         await Save(kid, "/jamsil-kids", "32-부서홈-필사카드");
+        await Save(kid, "/jamsil-kids/copy", "33-필사홈");
+        await Save(kid, "/jamsil-kids/copy/books?t=nt&b=43", "34-필사-장고르기");
     }
 
     private static async Task Save(HttpClient c, string url, string name, Func<string, string>? tweak = null)
