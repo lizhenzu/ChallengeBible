@@ -1,4 +1,4 @@
-@page "/test-tools"
+﻿@page "/test-tools"
 @model ChallengeBible.Web.Pages.TestToolsModel
 @using ChallengeBible.Web.Services
 @* 임시 시험 도구(ADR 0095, 2026-11-14 사용자 요청): 가짜 데이터 넣기 · 지우기 + 상황별 로그인. 시험이 끝나면 설정 TestTools:Enabled = false 로 숨긴다 *@
@@ -9,6 +9,33 @@
         <p class="sub">선물 시스템 시험용 가짜 데이터와 상황별 로그인이에요. 가짜 계정 비밀번호는 모두 @TestToolsService.Password 이에요.</p>
     </div>
     <p class="tt-warn" role="note">시험이 끝나면 이 화면은 숨겨요(설정 <code>TestTools:Enabled</code>). 실제 사용자가 생기기 전까지만 써 주세요.</p>
+
+    @if (Model.CaseActor is not null)
+    {
+        @* 케이스별 시험 · 오늘 할 일(확정 시안 케이스시험, 2026-11-16): 기존 버튼과 섞이지 않게 보라색 상자 *@
+        <section class="tc" aria-labelledby="tcH">
+            <div class="tc-head"><h2 id="tcH">케이스별 시험 · 오늘 할 일</h2><small>누르면 데이터를 만들고 그 사람으로 바로 들어가요</small></div>
+            <div class="tc-body">
+                <p class="tc-dept">부서: <b>@(Model.CaseDept ?? "초등부 없음")</b> · 만든 것에는 @CaseTestService.Mark 표시가 붙어요. 실제 명단 · 관리자는 건드리지 않아요.</p>
+                @if (Model.CaseError is { } ce) { <p class="err" role="alert">@ce</p> }
+                @if (Model.CaseMessage is { } cm) { <p class="ok-box" role="status">@cm</p> }
+                <div class="tc-grid">
+                    @foreach (var c in CaseTestService.Cases)
+                    {
+                        <form method="post" asp-page-handler="Case" class="tc-case">
+                            <input type="hidden" name="no" value="@c.No" />
+                            <button type="submit"><i aria-hidden="true">@c.No</i><b>@c.Title</b><span>만들기: @c.Makes</span><span>로그인: <em>@c.Who</em></span><small>기대: @c.Expect</small></button>
+                        </form>
+                    }
+                </div>
+                <form method="post" asp-page-handler="CaseClear" class="tc-clear">
+                    <small>케이스로 만든 가짜 아이 · 반 · 선물 · 출석 · 신청 · 초안만 지워요(실제 학생 · 교사와 관리자 계정은 안 지워요).</small>
+                    <input class="in" name="confirm" autocomplete="off" placeholder="@CaseTestService.ConfirmWord" aria-label="지우기 확인 글자 @CaseTestService.ConfirmWord" />
+                    <button type="submit" class="btn d">케이스 데이터 지우기</button>
+                </form>
+            </div>
+        </section>
+    }
 
     @if (Model.IsAdmin)
     {

@@ -66,7 +66,7 @@ public enum TodoError { None, NotFound, NotYours, BadState }
 /// </summary>
 public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext tenant, TenantClock clock, TimeProvider time,
     GiftOrderService orders, BirthdayGiftService birthdays, NewcomerGiftService newcomers, ReadingGiftService readings, CopyGiftService copies,
-    TeamGiftService teamGifts, AttendanceService attendance)
+    TeamGiftService teamGifts, AttendanceService attendance, CaseFlags flags)
 {
     public const int LateDays = 3;
     private string Me => scope.UserName ?? throw new InvalidOperationException("로그인한 요청에서만 써요.");
@@ -177,15 +177,17 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
             var promos = await ctx.PromotionRequests.AsNoTracking().CountAsync(r => r.TargetTenantId == tenant.Current.Id && r.Status == PromotionStatus.Pending, ct);
             if (promos > 0) items.Add(new(TodoKinds.Approve, "approve", "🎓", $"진급 받기 · {promos}건", "다른 부서에서 올라왔어요") { Href = $"/{Slug}/admin/promotions", HrefLabel = "받으러 가기 →" });
         }
-        if (today.DayOfWeek == DayOfWeek.Sunday)   // 출석은 주일 당일만(2026-11-16 사용자)
+        // 출석은 주일 당일만(2026-11-16 사용자). 시험 도구 케이스 8 로 들어온 쿠키만 이번 주 주일로 본다
+        DateOnly? sunday = today.DayOfWeek == DayOfWeek.Sunday ? today : flags.PretendSunday ? AttendanceService.SundayOf(today) : null;
+        if (sunday is { } day)
         {
             var classes = await ctx.Classes.AsNoTracking().Where(c => !c.IsNewcomer).Select(c => new { c.Id, c.Name }).ToListAsync(ct);
             var kids = await ctx.ClassMembers.AsNoTracking().Where(m => !m.IsTeacher).Select(m => new { m.ClassId, m.PersonId }).ToListAsync(ct);
-            var checkedIds = (await ctx.AttendanceChecks.AsNoTracking().Where(a => a.Sunday == today).Select(a => a.PersonId).ToListAsync(ct)).ToHashSet();
+            var checkedIds = (await ctx.AttendanceChecks.AsNoTracking().Where(a => a.Sunday == day).Select(a => a.PersonId).ToListAsync(ct)).ToHashSet();
             int Checked(int cid) => kids.Count(k => k.ClassId == cid && checkedIds.Contains(k.PersonId));
             if (See(TodoKinds.Attendance) && roles.Contains(TodoRoles.Homeroom) && rules[TodoKinds.Attendance].Contains(TodoRoles.Homeroom))
                 foreach (var c in classes.Where(c => sc.Classes.Contains(c.Id) && Checked(c.Id) == 0 && kids.Any(k => k.ClassId == c.Id)))
-                    items.Add(new(TodoKinds.Attendance, "attendance", "📋", $"우리 반 출석 체크 · {c.Name}", $"{today:M월 d일} 주일 · {kids.Count(k => k.ClassId == c.Id)}명 · 아직 0명")
+                    items.Add(new(TodoKinds.Attendance, "attendance", "📋", $"우리 반 출석 체크 · {c.Name}", $"{day:M월 d일} 주일 · {kids.Count(k => k.ClassId == c.Id)}명 · 아직 0명")
                     { Href = $"/{Slug}/attendance", HrefLabel = "출석부 열기 →" });
             if (See(TodoKinds.Attendance) && tenant.IsAdmin && rules[TodoKinds.Attendance].Contains(TodoRoles.Admin))
             {
@@ -197,7 +199,7 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
             }
             if (sc.NewcomerStaff)
             {
-                var active = await AttendanceService.ActiveNewcomersAsync(ctx, today, ct);
+                var active = await AttendanceService.ActiveNewcomersAsync(ctx, day, ct);
                 var left = active.Keys.Count(id => !checkedIds.Contains(id));
                 if (active.Count > 0 && left > 0)
                     items.Add(new(TodoKinds.Attendance, "attendance", "🙋", $"새친구 출석 체크 · {active.Count}명", $"아직 {left}명") { Href = $"/{Slug}/attendance/newcomers", HrefLabel = "새친구 열기 →" });
