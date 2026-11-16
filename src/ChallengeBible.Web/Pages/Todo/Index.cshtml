@@ -1,9 +1,9 @@
-@page "/{slug}/todo"
+﻿@page "/{slug}/todo"
 @model ChallengeBible.Web.Pages.Todo.IndexModel
 @* 확정 시안 오늘할일 ① · ②(2026-11-16): [홈으로] · 인사 · 안 보기 → 선물 → 승인 → 출석 → 생일. 급한 것(3일 넘게 아무도 안 삼)이 맨 위 *@
 @{
     var b = Model.Board;
-    var sections = new (string Key, string Title, string Who)[] { ("gift", "🎁 선물", "선물 그룹 누구나 처리"), ("approve", "✋ 승인", "부서 관리자"), ("attendance", "📋 출석", "주일 당일"), ("birthday", "🎂 생일", "우리 반") };
+    var sections = new (string Key, string Title, string Who)[] { ("gift", "🎁 선물", "선물 처리 화면에서 완료"), ("approve", "✋ 승인", "부서 관리자"), ("attendance", "📋 출석", "주일 당일"), ("birthday", "🎂 생일", "우리 반") };
 }
 <link rel="stylesheet" href="~/css/todo.css" asp-append-version="true" />
 <div class="tdo">
@@ -32,18 +32,13 @@
         @foreach (var i in list)
         {
             <div class="td-card @(i.Tone == "late" ? "urgent" : "")">
-                <div class="td-row"><span class="ic" aria-hidden="true">@i.Icon</span><div class="what"><b>@i.Title</b>@if (i.Text is { } tx) { <span>@tx</span> }
+                <div class="td-row"><span class="ic" aria-hidden="true">@i.Icon</span><div class="what"><b>@i.Title</b>@if (i.Why is { } why) { <span>@why</span> } else if (i.Text is { } tx) { <span>@tx</span> }
                     @if (i.Note is { } n) { <span class="who @(i.Tone)">@n</span> }</div></div>
-                <div class="td-btns">
-                    @if (i.Coupang is { } cu) { <a class="btn" href="@cu" target="_blank" rel="noopener">쿠팡에서 보기</a> }
-                    @if (i.CanLink) { <button type="button" class="btn" data-td-link="@i.GiftId">링크 복사</button> }
-                    @if (i.CanBuy) { <form method="post" asp-page-handler="Buy"><input type="hidden" name="id" value="@i.GiftId" /><button class="btn p">구매 완료 ✓</button></form> }
-                    @if (i.CanDeliver) { <form method="post" asp-page-handler="Deliver"><input type="hidden" name="id" value="@i.GiftId" /><button class="btn ok">전달 완료 ✓</button></form> }
-                    @if (i.Href is { } h) { <a class="btn p" href="@h">@i.HrefLabel</a> }
-                </div>
+                @if (i.Info.Count > 0) { <dl class="td-kv">@foreach (var (k, v) in i.Info) { <dt>@k</dt><dd>@v</dd> }</dl> }
+                @if (i.Steps.Count > 0) { <partial name="_Timeline" model="i.Steps" /> }
+                @if (i.Href is { } h) { <div class="td-btns"><a class="btn p" href="@h">@i.HrefLabel</a></div> }
             </div>
         }
     }
 </div></main>
 </div>
-<script src="~/js/todo.js" asp-append-version="true" defer></script>

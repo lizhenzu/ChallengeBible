@@ -342,12 +342,12 @@ public sealed class CaseTestService(ISystemDb systemDb, TestToolsService tools, 
         var g = new Gift
         {
             TenantId = t, Kind = GiftKinds.Birthday, Year = (short)key.Year, PersonId = kid, SourceKey = BirthdayGiftService.SourceKey(key), State = state,
-            OpenFrom = today, OpenUntil = key, MinAmount = 10000, MaxAmount = 10000, CreatedUtc = now, PickedUtc = picked, PurchasedUtc = purchased,
+            OpenFrom = today, OpenUntil = key, MinAmount = 10000, MaxAmount = 10000, CreatedUtc = (picked ?? now).AddDays(-1), PickedUtc = picked, PurchasedUtc = purchased,
             ItemName = state == GiftStates.Open ? null : $"{Mark} 색연필 세트", ItemPrice = state == GiftStates.Open ? null : 9900,
         };
         ctx.Gifts.Add(g);
         await ctx.SaveChangesAsync(ct);
-        ctx.GiftLogs.Add(new GiftLog { TenantId = t, GiftId = g.Id, Action = GiftActions.Open, AtUtc = now });
+        ctx.GiftLogs.Add(new GiftLog { TenantId = t, GiftId = g.Id, Action = GiftActions.Open, AtUtc = (picked ?? now).AddDays(-1) });   // 생김 → 고름 → 구매 순서
         if (picked is { } p) ctx.GiftLogs.Add(new GiftLog { TenantId = t, GiftId = g.Id, Action = GiftActions.Pick, AtUtc = p, ItemName = g.ItemName, ItemPrice = g.ItemPrice });
         if (purchased is { } b) ctx.GiftLogs.Add(new GiftLog { TenantId = t, GiftId = g.Id, Action = GiftActions.Purchase, ActorUserName = buyer, AtUtc = b, ItemName = g.ItemName, ItemPrice = g.ItemPrice });
         await ctx.SaveChangesAsync(ct);

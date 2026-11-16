@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -98,24 +98,34 @@ public partial class TodoTests : IClassFixture<WebApplicationFactory<Program>>
         var boo = await Login("boo@example.com");
         var page = await boo.GetStringAsync("/kids/todo");
         Assert.Contains("사 주세요 · 권동석 · 레고 블록", page);
-        Assert.Matches("[3-9]일째 아무도 안 삼", page);   // 12/30 고름 → 1/5, 3일 넘음
-        Assert.Contains("https://www.coupang.com/vp/products/1", page);
+        Assert.Matches("[3-9]일째 아무도 안 삼", page);   // 12/30 고름 → 1/5, 3일 넘음(타임라인)
+        Assert.DoesNotContain("구매 완료", page);          // 카드에서는 완료하지 않는다(확정 시안 할일타임라인)
+        var work = $"/kids/todo/gift/{GiftId()}";
+        Assert.Contains(work, page);                        // [선물 처리 화면으로 →]
+        var detail = await boo.GetStringAsync(work);
+        Assert.Contains("https://www.coupang.com/vp/products/1", detail);
+        Assert.Contains("구매 완료", detail);
         var teacher = await Login("teacher@example.com");
         Assert.DoesNotContain("레고 블록", await teacher.GetStringAsync("/kids/todo"));   // 일반 교사(꼬리표 없음)
+        Assert.Equal(HttpStatusCode.NotFound, (await teacher.GetAsync(work)).StatusCode);   // 선물 처리 화면도 못 연다
 
-        await Post(boo, "Buy", new() { ["id"] = GiftId().ToString() });
+        await WorkPost(boo, work, "Buy");
         var admin = await Login("admin@example.com");
         var adminPage = await admin.GetStringAsync("/kids/todo");
         Assert.Contains("전해 주세요 · 권동석 · 레고 블록", adminPage);
         Assert.Contains("박부장님이 1/5 구매", adminPage);
-        await Post(admin, "Deliver", new() { ["id"] = GiftId().ToString() });
+        Assert.Contains("전달 완료", await admin.GetStringAsync(work));
+        Assert.Equal("/kids/todo", (await WorkPost(admin, work, "Deliver")).Headers.Location!.OriginalString);   // 전달 완료 → 할 일로, 바로 사라짐
         Assert.DoesNotContain("레고 블록", await boo.GetStringAsync("/kids/todo"));
         using var raw = InMemoryDb.Raw(_db);
         Assert.Equal(GiftStates.Delivered, raw.Gifts.Single().State);
         Assert.Equal(new[] { ("Purchase", "boo"), ("Deliver", "admin") }, raw.GiftLogs.OrderBy(l => l.Id).AsEnumerable().Select(l => (l.Action, l.ActorUserName!)).ToArray());
+    }
 
-        var t2 = await Login("teacher@example.com");   // 꼬리표 없는 사람은 버튼을 눌러도 안 된다
-        Assert.Contains("처리할 수 없는", await (await Post(t2, "Buy", new() { ["id"] = GiftId().ToString() })).Content.ReadAsStringAsync() + (await t2.GetStringAsync("/kids/todo")));
+    private static async Task<HttpResponseMessage> WorkPost(HttpClient c, string work, string handler)
+    {
+        var tok = TokenRx().Match(await c.GetStringAsync(work)).Groups[1].Value;
+        return await c.PostAsync($"{work}?handler={handler}", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = tok }));
     }
 
     [Fact]

@@ -63,3 +63,30 @@
 .td-seg label { text-align: center; padding: 10px 0; font-size: 13px; font-weight: 800; color: var(--dim); cursor: pointer; }
 .td-seg input { position: absolute; opacity: 0; }
 .td-seg label:has(input:checked) { background: var(--accent); color: var(--on-accent, #fff); }
+/* 할 일 카드 타임라인 · 선물 처리 화면(확정 시안 할일타임라인, 2026-11-16) */
+.td-kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; margin: 0; font-size: 13px; background: var(--soft); border-radius: 10px; padding: 8px 10px; }
+.td-kv dt { color: var(--dim); }
+.td-kv dd { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+.td-tl { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.td-tl li { position: relative; padding: 0 0 10px 22px; font-size: 12.5px; line-height: 1.4; }
+.td-tl li::before { content: ""; position: absolute; left: 5px; top: 13px; bottom: -1px; width: 2px; background: var(--rule); }
+.td-tl li:last-child::before { display: none; }
+.td-tl li i { position: absolute; left: 0; top: 2px; width: 12px; height: 12px; border-radius: 99px; background: var(--bg); border: 2px solid var(--line); }
+.td-tl li.d i { background: var(--ok); border-color: var(--ok); }
+.td-tl li.now i { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+.td-tl li.late i { border-color: var(--bad); box-shadow: 0 0 0 3px var(--bad-bg); }
+.td-tl li b { font-weight: 800; }
+.td-tl li.now b { color: var(--accent); }
+.td-tl li.late b { color: var(--bad); }
+.td-tl li.todo { color: var(--dim); }
+.td-tl li.todo b { font-weight: 600; }
+.td-tl li small { color: var(--dim); }
+.td-tl.full li { font-size: 13.5px; padding-bottom: 14px; }
+.td-work h1 { margin: 0; font-size: 19px; overflow-wrap: anywhere; }
+.td-why { margin: 0; font-size: 13.5px; color: var(--dim); line-height: 1.55; background: var(--accent-bg); border-radius: 12px; padding: 10px 12px; }
+.td-lbl { font-size: 12.5px; font-weight: 800; color: var(--dim); margin: 4px 2px -4px; }
+.td-acts { display: grid; gap: 8px; }
+.td-acts form { margin: 0; }
+.td-acts .btn { width: 100%; min-height: 50px; border-radius: 12px; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; text-decoration: none; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+.td-acts .btn.p { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
+.td-acts .btn.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
