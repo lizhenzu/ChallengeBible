@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using ChallengeBible.Domain.Rules;
 using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
@@ -87,7 +87,7 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
             todos.Add(new("c", drafts.Count, "공개 전 공용 초안", string.Join(" · ", drafts.Take(3)) + (drafts.Count > 3 ? $" 외 {drafts.Count - 3}건" : ""), "/platform/content"));
         var adminIds = await DeptMembership.AdminIdsAsync(ctx, ct);
         var admins = await ctx.DeptRoles.Where(d => adminIds.Contains(d.UserId!)).Select(d => d.TenantId).Distinct().ToListAsync(ct);
-        var noAdmin = active.Where(t => !admins.Contains(t.Id)).ToList();
+        var noAdmin = active.Where(t => !t.IsLobby && !admins.Contains(t.Id)).ToList();   // 임시 부서(처음 오신 분)는 관리자가 없어도 된다(2026-11-16 사용자)
         if (noAdmin.Count > 0)
             todos.Add(new("b", noAdmin.Count, "관리자가 없는 부서", string.Join(" · ", noAdmin.Take(2).Select(t => t.Name)) + (noAdmin.Count > 2 ? $" 외 {noAdmin.Count - 2}곳" : ""), "/platform/tenants"));
         var oldBefore = nowUtc.UtcDateTime.AddDays(-OldRequestDays);
