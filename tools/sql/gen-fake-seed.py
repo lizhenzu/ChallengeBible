@@ -294,7 +294,7 @@ BEGIN
     -- 학생: 반마다 고루(s38 은 미배정), 선생님: 반 하나에 한 명, 학부모: 반 없음
     INSERT #P SELECT t.Code, t.Kind, t.BM, t.BD, t.Target, t.AttRate, t.Absent3,
                      CASE t.Kind WHEN 'S' THEN N'T1001' WHEN 'T' THEN N'T1002' END,
-                     @Slug + N'-' + t.Code, n.Name, CONVERT(nvarchar(450), NEWID()), NULL,
+                     @Slug + N'-' + t.Code, CASE WHEN t.Kind = 'T' THEN n.Name + N' 선생님' ELSE n.Name END, CONVERT(nvarchar(450), NEWID()), NULL,   -- 선생님은 이름 뒤에 "선생님"(아이 이름과 헷갈리지 않게, 2026-11-17 사용자)
                      CASE WHEN t.Kind = 'S' AND t.Code <> 's38' THEN (t.No - 1) % @NCls + 1 WHEN t.Kind = 'T' THEN t.No END
     FROM #Tpl t JOIN #Name n ON n.Idx = @Ord * 60 + CASE t.Kind WHEN 'T' THEN t.No - 1 WHEN 'S' THEN 9 + t.No ELSE 49 + t.No END
     WHERE t.Kind <> 'T' OR t.No <= @NCls;

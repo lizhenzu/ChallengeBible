@@ -255,7 +255,7 @@ BEGIN
     BEGIN
     INSERT #P SELECT t.Code, t.Kind, t.BM, t.BD, t.Target, t.AttRate, t.Absent3,
                      CASE t.Kind WHEN 'S' THEN N'T1001' WHEN 'T' THEN N'T1002' END,
-                     @Slug + N'-' + t.Code, n.Name, CONVERT(nvarchar(450), NEWID()), NULL,
+                     @Slug + N'-' + t.Code, CASE WHEN t.Kind = 'T' THEN n.Name + CAST(0x200020C1DDC0D8B2 AS nvarchar(100)) ELSE n.Name END, CONVERT(nvarchar(450), NEWID()), NULL,
                      CASE WHEN t.Kind = 'S' AND t.Code <> 's38' THEN (t.No - 1) % @NCls + 1 WHEN t.Kind = 'T' THEN t.No END
     FROM #Tpl t JOIN #Name n ON n.Idx = @Ord * 60 + CASE t.Kind WHEN 'T' THEN t.No - 1 WHEN 'S' THEN 9 + t.No ELSE 49 + t.No END
     WHERE t.Kind <> 'T' OR t.No <= @NCls;

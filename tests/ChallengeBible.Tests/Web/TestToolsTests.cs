@@ -231,6 +231,7 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
         Assert.Contains("INSERT app.Gift (TenantId, Kind, Year, UserName, SourceKey", create);
         Assert.Contains("INSERT app.GiftPointUse (TenantId, UserName, Year, GiftId, PointsUsed, PointsBurned, FirstBonus, CreatedUtc)", create);
         Assert.Contains("N'FAKE-P-'", create);
+        Assert.Contains("CASE WHEN t.Kind = 'T' THEN n.Name + CAST(0x", create);   // 가짜 선생님 이름 뒤에 " 선생님"(2026-11-17)
     }
 
     [Fact]
