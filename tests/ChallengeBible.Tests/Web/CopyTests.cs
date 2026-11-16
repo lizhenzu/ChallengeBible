@@ -176,6 +176,10 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
         var js = await c.GetStringAsync("/js/copy.js");   // 복사 · 붙여넣기 막기(2026-11-16 사용자)
         Assert.Contains("input.addEventListener('paste', noPaste);", js);
         Assert.Contains("insertFromPaste", js);
+        // 번역 칸 · 다음 장 링크는 따라 쓰기 영역(data-bc-write) 밖이라 문서 전체에서 찾는다 — 영역 안에서 찾으면 스크립트가 멈춰 화면이 빈다(2026-11-16 버그)
+        Assert.Contains("trEl = document.querySelector('[data-bc-tr]')", js);
+        Assert.DoesNotContain("root.querySelector('[data-bc-nextch]')", js);
+        Assert.True(write.IndexOf("data-bc-tr", StringComparison.Ordinal) < write.IndexOf("data-bc-write", StringComparison.Ordinal));
         var board = await c.GetStringAsync("/kids/copy/participants");
         Assert.Contains("권동석 (나)", board);
         Assert.Contains("요한복음 3장 · 1/5", board);

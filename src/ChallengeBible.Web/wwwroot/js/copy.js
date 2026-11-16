@@ -7,7 +7,7 @@
   const $ = s => root.querySelector(s);
   const verseEl = $('[data-bc-verse]'), input = $('[data-bc-input]'), err = $('[data-bc-err]');
   const prevBtn = $('[data-bc-prev]'), nextBtn = $('[data-bc-next]'), doneBox = $('[data-bc-done]');
-  const dotsEl = $('[data-bc-dots]'), trEl = $('[data-bc-tr]');
+  const dotsEl = $('[data-bc-dots]'), trEl = document.querySelector('[data-bc-tr]');   // 번역 칸은 따라 쓰기 영역 밖(ADR 0105 통독 틀의 번역 줄)
   const counter = document.querySelector('.b2top .b2r-right');   // 머리말 "n / m절"(ADR 0105: 통독과 같은 틀)
   const token = root.querySelector('input[name="__RequestVerificationToken"]').value;
   const done = new Set(data.done);
@@ -98,7 +98,7 @@
         input.value = '';
         drawDots(); paint();
         doneBox.querySelector('b').textContent = `✓ 이 장을 다 썼어요${data.nextName ? ` · 다음은 ${data.nextName}` : ''}`;
-        const nx = root.querySelector('[data-bc-nextch]');
+        const nx = document.querySelector('[data-bc-nextch]');   // 다음 장 링크는 영역 밖(장 이동 줄)
         if (nx) nx.classList.add('p');
       }
     } catch {
