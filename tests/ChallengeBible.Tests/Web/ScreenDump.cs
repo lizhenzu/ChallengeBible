@@ -500,6 +500,13 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         }
         await Save(kid, "/jamsil-kids/word-mission", "30-선물점수-미션홈");
         await Save(kid, "/jamsil-kids/gifts?all=true", "31-선물점수-고르기");
+        using (var raw = InMemoryDb.Raw(db))   // 확정 시안 홈-필사카드: 요한복음 3장 1 ~ 2절을 오늘 씀
+        {
+            foreach (short v in new short[] { 1, 2 })
+                raw.CopyVerses.Add(new CopyVerse { UserName = km.UserName, BookId = 43, Chapter = 3, Verse = v, Translation = "KRV", WrittenAt = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        await Save(kid, "/jamsil-kids", "32-부서홈-필사카드");
     }
 
     private static async Task Save(HttpClient c, string url, string name, Func<string, string>? tweak = null)

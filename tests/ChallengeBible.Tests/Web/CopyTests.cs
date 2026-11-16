@@ -101,7 +101,8 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
         var home = await c.GetStringAsync("/kids");
         Assert.Contains("도전!!! 성경필사", home);
         Assert.Contains("<a href=\"/kids/copy\">성경필사</a>", home);   // ☰ 메뉴판
-        Assert.Contains("창세기 1장 1절부터 필사 시작", home);
+        Assert.Contains("필사 시작하기 →", home);                      // 확정 시안 홈-필사카드: 시작 전
+        Assert.Contains("창세기 1장 1절부터 따라 써요", home);
         var copy = await c.GetStringAsync("/kids/copy");
         Assert.Contains("필사 시작", copy);
         Assert.Contains("0 <small>/ 5절</small>", copy);
@@ -143,6 +144,11 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("1 <small>/ 5절</small>", home);
         Assert.Contains("요한복음 3장 2절", home);   // 이어 쓰기 = 같은 장의 안 쓴 첫 절
         Assert.Contains("신약 1 / 3절", home);
+        var dept = await c.GetStringAsync("/kids");   // 부서 홈 카드(확정 시안 홈-필사카드): 원 · 이어 쓸 곳 · 신약 · 구약 · 쓴 절 · 오늘 N절
+        Assert.Contains("hj-card hj-pg c", dept);
+        Assert.Contains("<small>이어 쓸 곳</small><b>요한복음</b><span>3장 2절부터 ›</span>", dept);
+        Assert.Contains("<small>쓴 절</small>", dept);
+        Assert.Contains("오늘 1절", dept);
         var board = await c.GetStringAsync("/kids/copy/participants");
         Assert.Contains("권동석 (나)", board);
         Assert.Contains("요한복음 3장 · 1/5", board);

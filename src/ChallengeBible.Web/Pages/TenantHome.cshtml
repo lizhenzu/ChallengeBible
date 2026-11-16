@@ -27,7 +27,6 @@
     static string Ro(string w) { var c = w.Length == 0 ? 'a' : w[^1]; var j = c is >= '가' and <= '힣' ? (c - '가') % 28 : 0; return j == 0 || j == 8 ? "로" : "으로"; }   // 0068: 임시 부서 `/{slug}` = 1단계(부서 안 고름) · 2단계(승인 기다림), 윗부분만
 }
 <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
-@if (Model.CopyData is not null) { <link rel="stylesheet" href="~/css/copy.css" asp-append-version="true" /> }
 <div class="hm sky@(lobby ? " lobby" : "")">
 @* 하늘색 머리말(0064 · 0068, 확정 시안: 임시부서-홈-두단계). 일반 부서 홈도 임시 부서 미션 화면(/welcome/today)과 같은 모양(2026-10-31 사용자):
    머리말 → (임시 부서) 1 · 2단계 윗부분만 또는 "← 처음 화면" / (일반 부서) 부서 이름 · 관리 줄 → 흰 말씀 카드 → 아랫부분 *@
@@ -241,13 +240,31 @@
 
     @if (Model.CopyData is { } cp)
     {
-        @* 확정 시안 성경필사 ④(ADR 0099): 통독 카드 아래 · 신약 · 구약 진도 · 이어 쓰기. 색은 copy.css 테마 토큰 *@
+        @* 확정 시안 홈-필사카드(2026-11-16): 성경말씀 · 성경통독 카드와 같은 모양 — 원(전체 진도) · 이어 쓸 곳 · 신약 · 구약 · 쓴 절. 색은 필사 테마(갈색) *@
         var cinv = System.Globalization.CultureInfo.InvariantCulture;
-        <section class="hj-card hj-pg bc bc-home" aria-labelledby="pcT">
-            <h2 id="pcT"><a href="/@slug/copy">✍️ 도전!!! 성경필사</a><small>@(cp.All.ToString("0.0"))%</small></h2>
-            <div class="bc-prow" style="margin-top:4px"><span>신약</span><b class="num">@(cp.New.ToString("0.0"))%</b></div><div class="bc-bar"><i style="width:@(cp.New.ToString("0.#", cinv))%"></i></div>
-            <div class="bc-prow"><span>구약</span><b class="num">@(cp.Old.ToString("0.0"))%</b></div><div class="bc-bar"><i style="width:@(cp.Old.ToString("0.#", cinv))%"></i></div>
-            <a class="bc-cta" href="/@slug/copy/write/@cp.Resume.BookId/@cp.Resume.Chapter?v=@cp.Resume.Verse"><span>@cp.Resume.Name @(cp.Resume.Chapter)@(cp.Resume.BookId == 19 ? "편" : "장") @(cp.Resume.Verse)절부터 @(cp.Done == 0 ? "필사 시작" : "이어 쓰기")</span><span aria-hidden="true">→</span></a>
+        var spot = $"/{slug}/copy/write/{cp.Resume.BookId}/{cp.Resume.Chapter}?v={cp.Resume.Verse}";
+        var unit = cp.Resume.BookId == 19 ? "편" : "장";
+        <section class="hj-card hj-pg c" aria-labelledby="pcT">
+            <h2 id="pcT"><a href="/@slug/copy">✍️ 도전!!! 성경필사</a>@if (cp.TodayDone > 0) { <small>오늘 @(cp.TodayDone.ToString("N0"))절</small> }</h2>
+            @if (cp.Done == 0)
+            {
+                <a class="hj-box c wide" href="@spot"><small>아직 시작 전이에요</small><b>필사 시작하기 →</b><span>@cp.Resume.Name @(cp.Resume.Chapter)@unit @(cp.Resume.Verse)절부터 따라 써요 · 점수는 없어요</span></a>
+            }
+            else
+            {
+                <div class="hj-row">
+                    <span class="hj-ring c" role="img" aria-label="전체 진도 @(cp.All.ToString("0.0"))%">
+                        <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-copy-l)" stroke-width="8" /><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-copy)" stroke-width="8" stroke-linecap="round" stroke-dasharray="@((188.5 * Math.Max(cp.All, 1) / 100).ToString("0.#", cinv)) 188.5" transform="rotate(-90 38 38)" /></svg>
+                        <span><b class="num">@cp.All.ToString("0.0")</b>%</span>
+                    </span>
+                    <a class="hj-box c" href="@spot"><small>이어 쓸 곳</small><b>@cp.Resume.Name</b><span>@(cp.Resume.Chapter)@unit @(cp.Resume.Verse)절부터 ›</span></a>
+                </div>
+                <div class="hj-n3">
+                    <div class="c"><b class="num">@cp.New.ToString("0.0")%</b><small>신약</small></div>
+                    <div class="c2"><b class="num">@cp.Old.ToString("0.0")%</b><small>구약</small></div>
+                    <div class="t"><b class="num">@cp.Done.ToString("N0")</b><small>쓴 절</small></div>
+                </div>
+            }
         </section>
     }
 

@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -21,7 +21,7 @@ public sealed record CopyRecent(byte BookId, short Chapter, int Done, int Verses
 }
 
 /// <summary>필사 홈(확정 시안 성경필사 ①): 전체 · 구약 · 신약 절 수와 쓴 수, 이어 쓸 곳, 최근 쓴 장.</summary>
-public sealed record CopySummary(int Total, int OldTotal, int NewTotal, int Done, int OldDone, int NewDone, CopySpot Resume, IReadOnlyList<CopyRecent> Recent)
+public sealed record CopySummary(int Total, int OldTotal, int NewTotal, int Done, int OldDone, int NewDone, CopySpot Resume, IReadOnlyList<CopyRecent> Recent, int TodayDone = 0)
 {
     public static double Percent(int done, int total) => total <= 0 ? 0 : Math.Floor(done * 1000.0 / total) / 10;
     public double All => Percent(Done, Total);
@@ -112,7 +112,9 @@ public sealed class CopyService(IAppDb db, RequestScope scope, TenantContext ten
         int Sum(bool isNew) => counts.Where(k => IsNew(k.Key.Book) == isNew).Sum(k => k.Value);
         int oldTotal = Sum(false), newTotal = Sum(true);
         int newDone = valid.Count(v => IsNew(v.BookId));
-        return new(oldTotal + newTotal, oldTotal, newTotal, valid.Count, valid.Count - newDone, newDone, resume, recent);
+        var today = clock.Today(tenant.Current.TimeZoneId);
+        var todayDone = valid.Count(v => Local(v.At) == today);   // 부서 홈 카드 "오늘 N절"(확정 시안 홈-필사카드)
+        return new(oldTotal + newTotal, oldTotal, newTotal, valid.Count, valid.Count - newDone, newDone, resume, recent, todayDone);
     }
 
     /// <summary>장 고르기(확정 시안 ③): 책마다 진도와, 장마다 쓴 절 수.</summary>

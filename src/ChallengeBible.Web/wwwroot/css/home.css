@@ -396,3 +396,11 @@
 /* 부서 홈 왼쪽 위 ☰(2026-11-15 사용자) */
 .hm .wl-top .wrap > .hm-menu { order: -1; margin-right: -2px; }
 .hm .wl-top .wrap .wl-org { flex: 1; }
+
+/* 성경필사 카드(확정 시안 홈-필사카드 2026-11-16): 성경말씀 · 성경통독 카드와 같은 모양, 필사 테마 갈색(copy.css --bc-acc 와 같은 값) */
+.hm .hj { --hj-copy: #7A4E2D; --hj-copy-l: #F3EBE3; --hj-copy2: #A0703F; --hj-copy2-l: #F7F0E7; }
+.hm .hj-pg.c h2 { color: var(--hj-copy); }
+.hm .hj-box.c { background: var(--hj-copy-l); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--hj-copy) 24%, var(--bg)); }
+.hm .hj-box.c small { color: var(--hj-copy); }
+.hm .hj-n3 .c { --n3: var(--hj-copy); --n3-l: var(--hj-copy-l); }
+.hm .hj-n3 .c2 { --n3: var(--hj-copy2); --n3-l: var(--hj-copy2-l); }
