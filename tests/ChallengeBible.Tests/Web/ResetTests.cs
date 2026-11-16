@@ -169,6 +169,29 @@ public partial class ResetTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
+    public async Task R315_완전_초기화를_모두_해도_플랫폼_관리자와_부서_어드민_계정은_그대로_남는다()
+    {
+        SeedEverything();
+        SeedClass();
+        (string Id, string? Hash, string? Role)[] Admins()
+        {
+            using var raw = InMemoryDb.Raw(_db);
+            return [.. raw.Users.Where(u => u.Email == "admin@example.com" || u.Email == "operator@example.com").OrderBy(u => u.Email)
+                .Select(u => new { u.Id, u.PasswordHash }).ToList()
+                .Select(u => (u.Id, (string?)u.PasswordHash, raw.DeptRoles.Where(d => d.UserId == u.Id).Select(d => d.RoleCode).FirstOrDefault()))];
+        }
+        var before = Admins();
+        int roles;
+        using (var raw = InMemoryDb.Raw(_db)) roles = raw.UserRoles.Count(r => before.Select(b => b.Id).Contains(r.UserId));
+        await Reset(await Login("operator@example.com"), "RESET");
+        Assert.Equal(before, Admins());   // 계정 · 비밀번호 · 부서 역할 그대로
+        using var after = InMemoryDb.Raw(_db);
+        Assert.Equal(roles, after.UserRoles.Count(r => before.Select(b => b.Id).Contains(r.UserId)));   // 관리자 권한 그대로
+        Assert.Single(after.People);        // 부서 어드민 명부 줄
+        Assert.Single(after.ClassMembers);  // 부서 어드민 반 배정
+    }
+
+    [Fact]
     public async Task R314_체크를_뺀_기록은_남긴다()
     {
         SeedEverything();
