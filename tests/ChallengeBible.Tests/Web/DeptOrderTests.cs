@@ -1,4 +1,4 @@
-using ChallengeBible.Web.Services;
+﻿using ChallengeBible.Web.Services;
 
 namespace ChallengeBible.Tests.Web;
 
@@ -11,5 +11,13 @@ public class DeptOrderTests
         var made = new[] { "잠실새내교회 유년부", "잠실새내교회 초등부", "잠실새내교회 중등부", "잠실새내교회 고등부", "잠실새내교회 영아부", "잠실새내교회 유아부", "잠실새내교회 유치부", "어른 통독 모임" };
         Assert.Equal(new[] { "잠실새내교회 영아부", "잠실새내교회 유아부", "잠실새내교회 유치부", "잠실새내교회 유년부", "잠실새내교회 초등부", "잠실새내교회 중등부", "잠실새내교회 고등부", "어른 통독 모임" },
             made.OrderBy(DeptOrder.Key).ToArray());
+    }
+
+    [Fact]
+    public void 플랫폼_부서_카드는_연령별이고_고등부가_맨_나중이다()
+    {
+        var made = new[] { "잠실새내교회 고등부", "잠실새내교회 초등부", "어른 통독 모임", "잠실새내교회 유년부", "잠실새내교회 중등부", "잠실새내교회 영아부" };
+        Assert.Equal(new[] { "어른 통독 모임", "잠실새내교회 영아부", "잠실새내교회 유년부", "잠실새내교회 초등부", "잠실새내교회 중등부", "잠실새내교회 고등부" },
+            made.OrderBy(DeptOrder.AgeLastKey).ToArray());
     }
 }

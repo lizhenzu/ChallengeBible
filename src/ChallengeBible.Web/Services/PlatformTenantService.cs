@@ -49,7 +49,8 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
     public async Task<List<TenantRow>> ListAsync(string actor, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
-        var tenants = await ctx.Tenants.AsNoTracking().OrderBy(t => t.Name).ToListAsync(ct);
+        var tenants = (await ctx.Tenants.AsNoTracking().OrderBy(t => t.Name).ToListAsync(ct))
+            .OrderBy(t => DeptOrder.AgeLastKey(t.Name)).ThenBy(t => t.Name, StringComparer.Ordinal).ToList();   // 연령별, 고등부 맨 나중(2026-11-16 사용자)
         var counts = await ctx.DeptRoles
             .GroupBy(m => m.TenantId).Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N, ct);
         var adminIds = await DeptMembership.AdminIdsAsync(ctx, ct);
