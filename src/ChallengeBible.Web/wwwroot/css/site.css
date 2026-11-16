@@ -4197,3 +4197,4 @@ body:has(.at-hd) .imp-bar .wrap { max-width: calc(760px + 2 * var(--gut)); }   /
 .mnav a[aria-current="page"] .S:not(.done) { color: var(--accent); opacity: 1; }
 .mnav a.hm .L { color: var(--accent); }
 .mnav a.hm .S { color: var(--dim); opacity: 1; }
+.pd-panel nav a .pd-pg { font-style: normal; font-weight: 900; color: var(--accent); margin-right: 4px; }   /* ☰ 세 프로그램 */

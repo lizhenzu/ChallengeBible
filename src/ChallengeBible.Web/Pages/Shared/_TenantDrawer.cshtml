@@ -1,4 +1,4 @@
-@model ChallengeBible.Web.Tenancy.TenantContext
+﻿@model ChallengeBible.Web.Tenancy.TenantContext
 @using ChallengeBible.Web.Auth
 @* 부서 화면 왼쪽 위 ☰ 메뉴판(2026-11-15 사용자, 부서 홈 · 성경필사가 함께 쓴다). 여는 버튼은 data-pnav-open, 동작은 platform-nav.js *@
 <div class="pdrawer" id="pnav" hidden>
@@ -10,9 +10,12 @@
         </div>
         <nav aria-label="메뉴">
             @if (!Model.IsLobby && (Model.IsStaff || Model.IsAdmin)) { <a href="/@Model.Current.Slug/todo">오늘 할 일</a> }   @* ADR 0100 *@
+            @* 세 프로그램(2026-11-16 사용자): 켠 것만 · 성경말씀 → 성경통독 → 성경필사 *@
+            @if (Model.Current.MissionEnabled && !Model.IsLobby) { <a href="/@Model.Current.Slug/word-mission"><em class="pd-pg">도전!!!</em> 성경말씀</a> }
+            @if (Model.Current.ReadingEnabled && !Model.IsLobby) { <a href="/@Model.Current.Slug/reading"><em class="pd-pg">도전!!!</em> 성경통독</a> }
+            @if (Model.Current.CopyEnabled && !Model.IsLobby) { <a href="/@Model.Current.Slug/copy"><em class="pd-pg">도전!!!</em> 성경필사</a> }   @* ADR 0099 *@
             <a href="/account">내 계정</a>
             @if (Model.IsLobby) { <a href="/join">내 부서 참여</a> }
-            @if (Model.Current.CopyEnabled && !Model.IsLobby) { <a href="/@Model.Current.Slug/copy">성경필사</a> }   @* ADR 0099 *@
             @if (!Model.IsLobby && Model.IsStaff) { <a href="/@Model.Current.Slug/attendance">출석</a> }
             @if (Model.IsAdmin) { <a href="/@Model.Current.Slug/admin">관리</a> }
             else if (!Model.IsLobby && Model.IsApproved && ChallengeBible.Web.Services.UserRole.KindOf(Model.RoleCode) == ChallengeBible.Web.Services.UserRoleKind.Teacher) { <a href="/@Model.Current.Slug/admin/members">명부</a> }
