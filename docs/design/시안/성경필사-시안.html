@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>성경필사 시안</title>
+<style>
+:root { --bg:#F6F7F3; --card:#fff; --fg:#1B1F24; --dim:#5B6470; --rule:#E3E6EA; --line:#C9CED5; --acc:#7A4E2D; --acc-l:#F3EBE3; --ok:#16A34A; --ok-bg:#EAF7EF; --bad:#DC2626; --bad-bg:#FDECEC; --gray:#A3AAB4; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #D9DCE1; font-family: "Noto Sans CJK KR", "Noto Sans KR", sans-serif; color: var(--fg); }
+.board { display: flex; gap: 28px; padding: 28px; align-items: flex-start; }
+.col { display: flex; flex-direction: column; gap: 10px; }
+.cap { font-size: 18px; font-weight: 800; color: #222; }
+.cap small { display: block; font-size: 13px; font-weight: 500; color: #555; margin-top: 2px; }
+.phone { width: 390px; min-height: 844px; background: var(--bg); border-radius: 26px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,.18); position: relative; }
+.top { display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 12px; border-bottom: 1px solid var(--rule); background: var(--bg); }
+.hb { width: 44px; height: 44px; display: grid; place-items: center; }
+.top .t { flex: 1; min-width: 0; line-height: 1.25; }
+.top .t small { display: block; font-size: 12px; color: var(--dim); }
+.top .t small em { font-style: normal; font-weight: 900; color: var(--acc); }
+.top .t b { font-size: 16px; }
+.top .r { font-size: 14px; font-weight: 700; color: var(--acc); }
+.pad { padding: 16px 16px 24px; display: flex; flex-direction: column; gap: 14px; }
+.k { font-size: 12.5px; font-weight: 800; letter-spacing: .08em; color: var(--acc); }
+.card { background: var(--card); border: 1px solid var(--rule); border-radius: 16px; padding: 14px; }
+.ring { display: flex; gap: 16px; align-items: center; }
+.ring svg { flex: none; }
+.ring .big { font-size: 24px; font-weight: 800; }
+.ring small { display: block; color: var(--dim); font-size: 13px; line-height: 1.6; }
+.go { background: var(--acc); color: #fff; border-radius: 16px; padding: 16px; display: flex; align-items: center; justify-content: space-between; }
+.go small { display: block; font-size: 12px; letter-spacing: .08em; opacity: .85; font-weight: 700; }
+.go b { display: block; font-size: 20px; margin: 4px 0 2px; }
+.go span { font-size: 13px; opacity: .9; }
+.bar { height: 8px; border-radius: 99px; background: #ECEAE4; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--acc); border-radius: 99px; }
+.prow { display: flex; justify-content: space-between; font-size: 13.5px; margin: 10px 0 6px; }
+.prow b { font-size: 13.5px; }
+.gift { display: flex; gap: 10px; align-items: center; background: #FFF6E5; border: 1px solid #F3D9A6; border-radius: 14px; padding: 12px; font-size: 13.5px; line-height: 1.5; }
+.gift .ic { font-size: 22px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { padding: 7px 12px; border-radius: 99px; border: 1px solid var(--line); font-size: 13px; font-weight: 700; background: #fff; }
+.chip.on { background: var(--acc); border-color: var(--acc); color: #fff; }
+.list a { display: flex; justify-content: space-between; align-items: center; padding: 11px 2px; border-top: 1px solid var(--rule); font-size: 14.5px; color: var(--fg); text-decoration: none; }
+.list a:first-child { border-top: 0; }
+.list a small { color: var(--dim); font-size: 12.5px; }
+.verse { font-size: 19px; line-height: 1.75; letter-spacing: .01em; word-break: keep-all; }
+.verse .ok { color: var(--ok); }
+.verse .bad { color: var(--bad); background: var(--bad-bg); border-radius: 3px; }
+.verse .todo { color: var(--gray); }
+.verse .cur { border-left: 2px solid var(--acc); margin-left: -1px; }
+.vno { font-size: 13px; font-weight: 800; color: var(--acc); margin-right: 4px; vertical-align: 2px; }
+.ta { width: 100%; min-height: 120px; border: 2px solid var(--acc); border-radius: 14px; padding: 12px; font-size: 18px; line-height: 1.6; background: #fff; font-family: inherit; }
+.hint { font-size: 12.5px; color: var(--dim); line-height: 1.5; }
+.hint b { color: var(--bad); }
+.btns { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.6fr); gap: 8px; }
+.btn { min-height: 48px; border-radius: 14px; display: grid; place-items: center; font-size: 15px; font-weight: 800; border: 1px solid var(--line); background: #fff; }
+.btn.p { background: var(--acc); border-color: var(--acc); color: #fff; }
+.btn.off { background: #E7E4DE; border-color: #E7E4DE; color: #9A958C; }
+.dots { display: flex; flex-wrap: wrap; gap: 4px; }
+.dots i { width: 14px; height: 14px; border-radius: 4px; background: #ECEAE4; }
+.dots i.d { background: var(--acc); }
+.dots i.c { background: #fff; border: 2px solid var(--acc); }
+.tabs { display: flex; border-bottom: 1px solid var(--rule); }
+.tabs b { flex: 1; text-align: center; padding: 12px 0; font-size: 15px; color: var(--dim); }
+.tabs b.on { color: var(--fg); border-bottom: 3px solid var(--acc); }
+.bk { display: grid; grid-template-columns: minmax(0,1fr) 92px auto; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--rule); font-size: 14.5px; }
+.bk:first-child { border-top: 0; }
+.bk small { color: var(--dim); font-size: 12px; text-align: right; }
+.bk.open { font-weight: 800; }
+.grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 6px; padding: 4px 0 10px; }
+.grid b { aspect-ratio: 1; border-radius: 10px; display: grid; place-items: center; font-size: 13px; background: #fff; border: 1px solid var(--rule); font-weight: 600; }
+.grid b.d { background: var(--acc); color: #fff; border-color: var(--acc); }
+.grid b.h { background: linear-gradient(135deg, var(--acc-l) 50%, #fff 50%); border-color: var(--acc); }
+.legend { display: flex; gap: 12px; font-size: 12px; color: var(--dim); align-items: center; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 4px; }
+.home-card { background: #fff; border: 1px solid var(--rule); border-radius: 14px; padding: 14px; }
+.home-card h3 { margin: 0 0 8px; font-size: 16px; color: var(--acc); display: flex; justify-content: space-between; }
+.home-card .cta { display: flex; justify-content: space-between; align-items: center; background: var(--acc-l); border-radius: 12px; padding: 12px; margin-top: 10px; font-weight: 800; }
+.dimcard { background: #fff; border: 1px solid var(--rule); border-radius: 14px; padding: 14px; color: var(--gray); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="board">
+
+<!-- ① 필사 홈 -->
+<div class="col">
+  <div class="cap">① 필사 홈<small>부서 홈 카드 · ☰ 에서 들어옴 · 내 진도 · 이어 쓰기 · 선물 안내</small></div>
+  <div class="phone">
+    <div class="top"><span class="hb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h12"/></svg></span>
+      <div class="t"><small><em>도전!!!</em> 성경필사</small><b>나의 필사</b></div></div>
+    <div class="pad">
+      <div class="k">나의 성경 필사</div>
+      <div class="ring">
+        <svg width="104" height="104" viewBox="0 0 104 104"><circle cx="52" cy="52" r="44" stroke="#ECEAE4" stroke-width="12" fill="none"/><circle cx="52" cy="52" r="44" stroke="#7A4E2D" stroke-width="12" fill="none" stroke-dasharray="276" stroke-dashoffset="244" transform="rotate(-90 52 52)" stroke-linecap="round"/><text x="52" y="58" text-anchor="middle" font-size="18" font-weight="800" fill="#1B1F24">11.6%</text></svg>
+        <div><div class="big">3,612 <span style="font-size:15px;color:#5B6470">/ 31,102절</span></div><small>구약 1,204 / 23,145절<br>신약 2,408 / 7,957절</small></div>
+      </div>
+      <div class="go"><div><small>이어 쓰기</small><b>요한복음 3장 16절</b><span>3장 36절 중 15절 씀 · 개역개정</span></div><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      <div class="gift"><span class="ic">🎁</span><div><b>신약을 다 쓰면 선물을 받아요.</b><br>지금 신약 30.3% · 구약을 다 써도 선물 1번 더</div></div>
+      <div class="card">
+        <div class="k" style="margin-bottom:4px">필사 진도</div>
+        <div class="prow"><span>전체</span><b>3,612 / 31,102 · 11.6%</b></div><div class="bar"><i style="width:11.6%"></i></div>
+        <div class="prow"><span>구약</span><b>1,204 / 23,145 · 5.2%</b></div><div class="bar"><i style="width:5.2%"></i></div>
+        <div class="prow"><span>신약</span><b>2,408 / 7,957 · 30.3%</b></div><div class="bar"><i style="width:30.3%"></i></div>
+      </div>
+      <div class="card list">
+        <div class="k" style="margin-bottom:4px">최근 쓴 곳</div>
+        <a>요한복음 3장 <small>오늘 · 15절</small></a>
+        <a>잠언 1장 <small>11/14 · 33절 다 씀</small></a>
+        <a>마가복음 16장 <small>11/12 · 다 씀</small></a>
+      </div>
+      <div class="list card"><a>장 고르기 <small>창세기 ~ 요한계시록 ›</small></a><a>참여자 현황 <small>우리 부서 누가 어디까지 ›</small></a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ② 따라 치기 -->
+<div class="col">
+  <div class="cap">② 따라 치기<small>본문 한 절 · 아래 칸에 자판으로 · 맞은 글자 초록 · 틀린 글자 빨강</small></div>
+  <div class="phone">
+    <div class="top"><span class="hb"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="2.4" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></span>
+      <div class="t"><small><em>도전!!!</em> 성경필사</small><b>요한복음 3장</b></div><span class="r">16 / 36절</span></div>
+    <div class="pad">
+      <div class="chips"><span class="chip on">개역개정</span><span class="chip">현대인의성경</span><span class="chip">NIV</span></div>
+      <div class="dots"><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="c"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="card">
+        <div class="verse"><span class="vno">16</span><span class="ok">하나님이 세상을 이처럼 사랑하사 독생자를 주셨으니 이는 그를 </span><span class="bad">믿</span><span class="ok">는 자마다</span><span class="cur"></span><span class="todo"> 멸망하지 않고 영생을 얻게 하려 하심이라</span></div>
+      </div>
+      <textarea class="ta">하나님이 세상을 이처럼 사랑하사 독생자를 주셨으니 이는 그를 밋는 자마다</textarea>
+      <p class="hint" style="margin:-6px 0 0">띄어쓰기 · 문장 부호는 틀려도 괜찮아요. <b>빨간 글자</b>만 고치면 돼요. 다 맞게 치면 저절로 다음 절로 넘어가요.</p>
+      <div class="btns"><span class="btn">← 15절</span><span class="btn off">다음 절 (남은 글자 13)</span></div>
+      <div class="card" style="background:var(--ok-bg);border-color:#BFE6CC">
+        <div style="font-size:13px;color:#166534;font-weight:800">✓ 15절 다 썼어요</div>
+        <div class="hint" style="color:#166534">이는 저를 믿는 자마다 영생을 얻게 하려 하심이니라</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ③ 장 고르기 -->
+<div class="col">
+  <div class="cap">③ 장 고르기<small>구약 · 신약 · 책마다 진도 · 장 칸(다 씀 · 쓰는 중 · 안 씀)</small></div>
+  <div class="phone">
+    <div class="top"><span class="hb"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="2.4" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></span>
+      <div class="t"><small><em>도전!!!</em> 성경필사</small><b>장 고르기</b></div></div>
+    <div class="tabs"><b>구약 39권</b><b class="on">신약 27권</b></div>
+    <div class="pad" style="gap:4px">
+      <div class="bk"><span>마태복음</span><div class="bar"><i style="width:100%"></i></div><small>28/28장</small></div>
+      <div class="bk"><span>마가복음</span><div class="bar"><i style="width:100%"></i></div><small>16/16장</small></div>
+      <div class="bk"><span>누가복음</span><div class="bar"><i style="width:42%"></i></div><small>10/24장</small></div>
+      <div class="bk open"><span>요한복음 ▾</span><div class="bar"><i style="width:9%"></i></div><small>2/21장</small></div>
+      <div class="grid">
+        <b class="d">1</b><b class="d">2</b><b class="h">3</b><b>4</b><b>5</b><b>6</b><b>7</b>
+        <b>8</b><b>9</b><b>10</b><b>11</b><b>12</b><b>13</b><b>14</b>
+        <b>15</b><b>16</b><b>17</b><b>18</b><b>19</b><b>20</b><b>21</b>
+      </div>
+      <div class="legend"><span><i style="background:#7A4E2D"></i>다 씀</span><span><i style="background:linear-gradient(135deg,#F3EBE3 50%,#fff 50%);border:1px solid #7A4E2D"></i>쓰는 중</span><span><i style="background:#fff;border:1px solid #E3E6EA"></i>안 씀</span></div>
+      <div class="bk" style="margin-top:6px"><span>사도행전</span><div class="bar"><i style="width:0"></i></div><small>0/28장</small></div>
+      <div class="bk"><span>로마서</span><div class="bar"><i style="width:0"></i></div><small>0/16장</small></div>
+      <div class="bk"><span>고린도전서</span><div class="bar"><i style="width:0"></i></div><small>0/16장</small></div>
+      <div class="bk"><span>…</span><span></span><small></small></div>
+    </div>
+  </div>
+</div>
+
+<!-- ④ 부서 홈 카드 · ☰ -->
+<div class="col">
+  <div class="cap">④ 부서 홈에 생기는 것<small>필사를 켠 부서만 · 성경말씀 · 통독 카드 아래</small></div>
+  <div class="phone">
+    <div class="top"><span class="hb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B1F24" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h12"/></svg></span>
+      <div class="t"><small>대한예수교장로회</small><b style="color:#1F7A4D">잠실새내교회</b></div><span style="font-size:13px;color:#5B6470">11월 16일 월요일</span></div>
+    <div class="pad">
+      <div class="dimcard">… 인사 카드 · 말씀 찾기 …</div>
+      <div class="dimcard">🎯 도전!!! 성경말씀 카드</div>
+      <div class="dimcard">📖 도전!!! 성경통독 카드</div>
+      <div class="home-card">
+        <h3><span>✍️ 도전!!! 성경필사</span><span style="color:#1B1F24">11.6%</span></h3>
+        <div class="prow" style="margin-top:0"><span>신약</span><b>30.3%</b></div><div class="bar"><i style="width:30.3%"></i></div>
+        <div class="prow"><span>구약</span><b>5.2%</b></div><div class="bar"><i style="width:5.2%"></i></div>
+        <div class="cta"><span>요한복음 3장 16절부터 이어 쓰기</span><span>→</span></div>
+      </div>
+      <div class="card">
+        <div class="k" style="margin-bottom:6px">☰ 메뉴에도</div>
+        <div class="hint" style="font-size:14px;line-height:1.9;color:#1B1F24">내 계정<br>성경필사 <span style="color:#7A4E2D;font-weight:800">← 새로</span><br>출석 · 관리 · 플랫폼(권한대로)<br>로그아웃</div>
+      </div>
+      <div class="card">
+        <div class="k" style="margin-bottom:6px">플랫폼 › 부서</div>
+        <div class="hint" style="font-size:13.5px">프로그램 칸에 <b style="color:#1B1F24">☐ 도전!!!성경필사</b> 가 생겨요. 처음에는 꺼져 있어요.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
