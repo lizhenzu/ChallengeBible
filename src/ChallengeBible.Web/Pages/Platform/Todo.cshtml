@@ -44,7 +44,7 @@
             <tbody>
             @foreach (var k in TodoKinds.All)
             {
-                <tr><td>@TodoKinds.Label(k)</td>@foreach (var r in TodoRoles.All) { <td><input type="checkbox" name="r_@k" value="@r" checked="@Model.Common[k].Contains(r)" aria-label="@TodoKinds.Label(k) · @TodoRoles.Label(r)" /></td> }</tr>
+                <tr><td>@TodoKinds.Label(k)</td>@foreach (var r in TodoRoles.All) { <td><label><input type="checkbox" name="r_@k" value="@r" checked="@Model.Common[k].Contains(r)" aria-label="@TodoKinds.Label(k) · @TodoRoles.Label(r)" /><span aria-hidden="true">@TodoRoles.Label(r)</span></label></td> }</tr>
             }
             </tbody>
         </table>

@@ -1,4 +1,4 @@
-@page "/{slug}/admin/todo"
+﻿@page "/{slug}/admin/todo"
 @model ChallengeBible.Web.Pages.Admin.TodoRulesModel
 @* 확정 시안 오늘할일 ④(2026-11-16): 공통 규칙 따름 / 우리 부서만 따로 · 할 일 × 관리자 · 부장 부감 서기 · 지도 · 선물 담당 · 담임 *@
 <link rel="stylesheet" href="~/css/todo.css" asp-append-version="true" />
@@ -20,7 +20,7 @@
                 <tr><td>@ChallengeBible.Web.Services.TodoKinds.Label(k)</td>
                     @foreach (var r in ChallengeBible.Web.Services.TodoRoles.All)
                     {
-                        <td><input type="checkbox" name="r_@k" value="@r" checked="@Model.Rules[k].Contains(r)" aria-label="@ChallengeBible.Web.Services.TodoKinds.Label(k) · @ChallengeBible.Web.Services.TodoRoles.Label(r)" data-td-ck /></td>
+                        <td><label><input type="checkbox" name="r_@k" value="@r" checked="@Model.Rules[k].Contains(r)" aria-label="@ChallengeBible.Web.Services.TodoKinds.Label(k) · @ChallengeBible.Web.Services.TodoRoles.Label(r)" data-td-ck /><span aria-hidden="true">@ChallengeBible.Web.Services.TodoRoles.Label(r)</span></label></td>
                     }
                 </tr>
             }

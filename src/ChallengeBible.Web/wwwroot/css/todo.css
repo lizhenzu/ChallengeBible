@@ -16,7 +16,7 @@
 .td-chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .td-chips button { min-height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 13px; font-weight: 700; cursor: pointer; }
 .td-empty { text-align: center; padding: 30px 10px; color: var(--dim); font-size: 15px; }
-.td-sec { display: flex; justify-content: space-between; align-items: baseline; margin: 6px 2px -4px; font-size: 12.5px; font-weight: 800; color: var(--dim); }
+.td-sec { display: flex; flex-wrap: wrap; gap: 2px 10px; justify-content: space-between; align-items: baseline; margin: 6px 2px -4px; font-size: 12.5px; font-weight: 800; color: var(--dim); }
 .td-sec b { color: var(--fg); font-size: 15px; }
 .td-card { border: 1px solid var(--rule); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .td-card.urgent { border-color: color-mix(in srgb, var(--bad) 35%, var(--rule)); background: color-mix(in srgb, var(--bad-bg) 40%, var(--bg)); }
@@ -39,11 +39,26 @@
 .td-dept li span { color: var(--dim); }
 .td-note { font-size: 12px; color: var(--dim); line-height: 1.5; background: var(--soft); border-radius: 10px; padding: 8px 10px; margin: 0; }
 .td-rule { width: 100%; border-collapse: collapse; font-size: 13px; }
-.td-rule th { font-size: 11.5px; color: var(--dim); font-weight: 700; padding: 6px 2px; border-bottom: 1px solid var(--rule); text-align: center; }
+.td-rule th { white-space: nowrap; font-size: 11.5px; color: var(--dim); font-weight: 700; padding: 6px 2px; border-bottom: 1px solid var(--rule); text-align: center; }
 .td-rule th:first-child, .td-rule td:first-child { text-align: left; }
 .td-rule td { padding: 8px 2px; border-bottom: 1px solid var(--rule); text-align: center; }
 .td-rule td:first-child { font-weight: 700; }
-.td-rule input { width: 20px; height: 20px; }
+.td-rule label { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; cursor: pointer; }
+.td-rule label span { display: none; }
+.td-rule input { width: 22px; height: 22px; margin: 0; accent-color: var(--accent); }
+/* 휴대폰(확정 시안 할일규칙-휴대폰, 2026-11-16): 할 일마다 카드 하나, 역할은 이름 붙은 칩 */
+@media (max-width: 599px) {
+  .td-rule, .td-rule tbody { display: block; }
+  .td-rule thead { display: none; }
+  .td-rule tr { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--rule); border-radius: 14px; }
+  .td-rule td { padding: 0; border: 0; }
+  .td-rule td:first-child { flex-basis: 100%; font-size: 15px; margin-bottom: 4px; }
+  .td-rule label { min-height: 40px; min-width: 0; gap: 6px; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; font-weight: 700; color: var(--dim); background: var(--bg); }
+  .td-rule label span { display: inline; }
+  .td-rule input { width: 18px; height: 18px; }
+  .td-rule label:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+  .td-rule label:has(input:disabled) { opacity: .6; cursor: default; }
+}
 .td-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .td-seg label { text-align: center; padding: 10px 0; font-size: 13px; font-weight: 800; color: var(--dim); cursor: pointer; }
 .td-seg input { position: absolute; opacity: 0; }
