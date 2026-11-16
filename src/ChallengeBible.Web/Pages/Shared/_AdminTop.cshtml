@@ -26,19 +26,42 @@
     if (!Model.IsAdmin) menu = [($"/{slug}/admin/members", "명부", 0)];
     // 관리 홈 주소는 다른 관리 주소의 앞부분이라 정확히 같을 때만 현재 화면으로 본다
     bool Current(string href) => href == home ? path.TrimEnd('/').Equals(home, StringComparison.OrdinalIgnoreCase) : path.StartsWith(href, StringComparison.OrdinalIgnoreCase);
+    // 확정 시안 관리-햄버거(2026-11-16 사용자): 가로 탭 대신 ☰ 메뉴판, 묶음별. 머리말 제목 = 지금 화면
+    var now = menu.FirstOrDefault(m => Current(m.Href)).Label ?? "관리";
+    string Group(string href) => href == home ? "" : href.EndsWith("/members") || href.EndsWith("/classes") || href.EndsWith("/teams") || href.EndsWith("/promotions") ? "사람"
+        : href.EndsWith("/gifts") || href.EndsWith("/content") || href.EndsWith("/reading") || href.EndsWith("/season") ? "선물 · 콘텐츠" : "설정";
+    string[] Groups = ["", "사람", "선물 · 콘텐츠", "설정"];
 }
-<header class="admintop gut">
-    <div class="wrap wide hd">
-        <div class="t"><small>@Model.Current.Name</small><b><em>도전!!!</em> 관리</b></div>
-        <div class="row-t">
-            @if (User.IsPlatformAdmin()) { <a class="back" href="/platform">플랫폼</a> }
-            <a class="back" href="/@slug">부서 홈으로</a>
-        </div>
+<header class="admintop ptop gut">
+    <div class="wrap hd at-hd">
+        <button type="button" class="pmenu-btn" aria-label="관리 메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
+        </button>
+        <div class="t pt-title"><small>@Model.Current.Name · 관리</small><b><em>도전!!!</em> @now</b></div>
+        <a class="home-txt" href="/@slug">부서 홈으로</a>
     </div>
-    <nav class="wrap wide tabs" aria-label="관리 메뉴">
-        @foreach (var (href, label, count) in menu)
-        {
-            <a href="@href" aria-current="@(Current(href) ? "page" : "false")">@label@if (count > 0) { <span class="c num" aria-label="기다리는 요청 @(count)건">@count</span> }</a>
-        }
-    </nav>
 </header>
+<div class="pdrawer" id="pnav" hidden>
+    <div class="pd-dim" data-pnav-close></div>
+    <aside class="pd-panel" tabindex="-1" role="dialog" aria-modal="true" aria-label="관리 메뉴">
+        <div class="pd-top">
+            <span><b><em>도전!!!</em> 관리</b> <small class="pd-dept">@Model.Current.Name</small></span>
+            <button type="button" class="pd-x" aria-label="메뉴 닫기" data-pnav-close>✕</button>
+        </div>
+        <nav aria-label="관리 메뉴">
+            @{ var last = (string?)null; }
+            @foreach (var (href, label, count) in menu.OrderBy(m => Array.IndexOf(Groups, Group(m.Href))))   // 묶음 순서대로(같은 묶음 안은 원래 순서)
+            {
+                var g = Group(href);
+                if (g != last && g.Length > 0) { <div class="pd-g">@g</div> }
+                last = g;
+                <a href="@href" aria-current="@(Current(href) ? "page" : "false")">@label@if (count > 0) { <span class="c num" aria-label="기다리는 요청 @(count)건">@count</span> }</a>
+            }
+        </nav>
+        <div class="pd-foot">
+            <a href="/@slug">부서 홈으로</a>
+            @if (User.IsPlatformAdmin()) { <a href="/platform">플랫폼</a> }
+        </div>
+    </aside>
+</div>
+<script src="~/js/platform-nav.js" asp-append-version="true" defer></script>

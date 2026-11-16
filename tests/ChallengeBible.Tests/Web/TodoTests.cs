@@ -130,7 +130,14 @@ public partial class TodoTests : IClassFixture<WebApplicationFactory<Program>>
         var id = GiftId();
         var adminPage = await admin.GetStringAsync("/kids/todo");
         Assert.Contains($"/kids/admin/gifts?s=buy&amp;hit={id}#g{id}", adminPage);   // [선물 처리로 이동] = 실제 메뉴, 그 건 강조
-        Assert.Contains("할 일에서 왔어요", await admin.GetStringAsync($"/kids/admin/gifts?s=buy&hit={id}"));
+        var hit = await admin.GetStringAsync($"/kids/admin/gifts?s=buy&hit={id}");
+        Assert.Contains("할 일에서 왔어요", hit);
+        Assert.Contains($"class=\"go-r go-hit\" id=\"g{id}\"", hit);   // 떨어진 카드 하나만 강조(확정 시안 관리-선물카드)
+        // 관리 머리말(확정 시안 관리-햄버거): 가로 탭 대신 ☰ 메뉴판, 제목 = 지금 화면
+        Assert.Contains("data-pnav-open", hit);
+        Assert.DoesNotContain("class=\"wrap wide tabs\"", hit);
+        Assert.Contains("<b><em>도전!!!</em> 선물</b>", hit);
+        Assert.Contains("href=\"/kids/admin/gifts\" aria-current=\"page\"", hit);
         await GiftMove(admin, id, "Purchase");
         var after = await boo.GetStringAsync("/kids/todo");
         Assert.Contains("전해 주세요 · 권동석 · 레고 블록", after);

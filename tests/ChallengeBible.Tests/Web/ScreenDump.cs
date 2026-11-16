@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -343,6 +343,16 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             teamId = team.Id;
         }
         await Save(admin, $"/jamsil-kids/admin/teams?Open={teamId}", "12i-관리-가족팀");
+        long hitGift;
+        using (var raw = InMemoryDb.Raw(db))   // 확정 시안 관리-선물카드: 생일 선물 고르는 중 여러 건, 하나는 할 일에서 옴
+        {
+            foreach (var (n, d) in new[] { (1, 21), (2, 24), (3, 26), (4, 28) })
+                raw.Gifts.Add(new Gift { TenantId = kids.Id, Kind = GiftKinds.Birthday, Year = 2027, UserName = km.UserName, SourceKey = $"B{n}", MaxAmount = 5000,
+                    State = GiftStates.Open, OpenUntil = new DateOnly(2027, 1, d), CreatedUtc = new DateTime(2027, 1, 1) });
+            raw.SaveChanges();
+            hitGift = raw.Gifts.Where(g => g.SourceKey == "B1").Select(g => g.Id).Single();
+        }
+        await Save(admin, $"/jamsil-kids/admin/gifts?s=pick&hit={hitGift}", "12i2-관리-선물처리-카드");
         await Save(admin, "/jamsil-kids/admin/teams/stages", "12j-관리-시상기준-기본값");
         await Save(admin, "/jamsil-kids/admin/teams/stages?Y=2028", "12j2-관리-시상기준-내년");
         int locked;
@@ -453,6 +463,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         {
             ["__RequestVerificationToken"] = TokenRx().Match(lh).Groups[1].Value, ["Email"] = "operator@example.com", ["Password"] = "1234",
         }));
+        await op.GetAsync("/platform");   // 로그인 직후 한 번은 오늘 할 일로 갈 수 있다(R-309)
         await Save(op, "/platform", "13a-플랫폼홈");
         await Save(op, "/platform/tenants", "13-플랫폼부서");
         await Save(op, "/platform/accounts?q=" + Uri.EscapeDataString("김"), "13b-플랫폼-계정찾기");
