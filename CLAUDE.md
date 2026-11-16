@@ -20,6 +20,7 @@
 ## 참고 사이트(2026-11-16 사용자 "기억해줘")
 - 유년부 운영 사이트(예전 시스템, 비교 · 옮겨 올 때 참고): https://www.jamsilkids.com/
 - 유년부 365 기도 화면: https://www.jamsilkids.com/Prayer365?view=user
+- 유년부 소스(Git): https://github.com/lizhenzu/YuYunBu.git
 
 ## 기술
 - ASP.NET Core (.NET 9), EF Core, SQL Server 2019 이상, PWA
