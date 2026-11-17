@@ -4193,7 +4193,9 @@ body:has(.at-hd) .imp-bar .wrap { max-width: calc(760px + 2 * var(--gut)); }   /
 .mnav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .mnav a { color: var(--fg); }
 .mnav a .S { color: var(--fg); opacity: .8; }
-.mnav a.dn .L, .mnav a.dn .S.done { color: var(--dim); opacity: .55; }
+/* 확정 시안 미션탭-완료글자 2(2026-11-17): 한 미션 = 이름 초록 · "✓ 완료"는 같은 초록을 약간 흐리게 */
+.mnav a.dn .L { color: #16A34A; opacity: 1; }
+.mnav a.dn .S.done { color: #16A34A; font-weight: 700; opacity: .6; }
 .mnav a[aria-current="page"] .S:not(.done) { color: var(--accent); opacity: 1; }
 .mnav a.hm .L { color: var(--accent); }
 .mnav a.hm .S { color: var(--dim); opacity: 1; }
