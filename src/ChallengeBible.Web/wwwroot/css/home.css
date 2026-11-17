@@ -422,12 +422,12 @@
 .hm .lb-btn.s { background: #fff; border: 1px solid #CBD5E1; color: #1F2937; }
 
 /* ── 홈 색 재구성(2026-11-17 사용자 확정 시안 A + 모서리 5px · 간격 6px · 좌우 6px · 카드 안 버튼 연하게) — 틀(순서 · 크기 · 내용)은 그대로 ── */
-.hm.sky, .hm .wl.wl-wide, .hm main.hj { background: #F7F5F0; }   /* 부서 홈 바깥 틀만(_MissionNav 의 a.hm 과 겹치지 않게) */
+.hm.sky, .hm .wl.wl-wide, .hm main.hj { background: #fff; }   /* 부서 홈 바깥 틀만(_MissionNav 의 a.hm 과 겹치지 않게) */
 .hm .hj { --hj-org: #E07B39; --hj-org-l: #FEF8F2; --hj-blue: #3A6FD8; --hj-blue-l: #F4F7FD; --hj-green: #3C9D62; --hj-green-l: #EDF6F0; --hj-mint: #2E9A74; --hj-mint-l: #F0F8F4;
           --hj-purple: #7A62D0; --hj-copy: #8B5E3C; --hj-copy-l: #FAF6F1; --hj-copy2: #A57A52; --hj-copy2-l: #FAF6F1; --hj-sun-l: #FBF4E4; --hj-n3-l: #B7791F; --hj-sx-btn: #5E8DE8; }
-.hm main.hj.gut { padding-left: max(6px, env(safe-area-inset-left, 0px)); padding-right: max(6px, env(safe-area-inset-right, 0px)); }   /* 좌우 = 카드 사이 6px */
-.hm main.hj .wrap { gap: 6px; }
-.hm .hj-card:not(.hj-inv) { border: 0; border-radius: 5px; box-shadow: 0 1px 2px rgba(60, 50, 30, .05), 0 6px 20px rgba(60, 50, 30, .06); padding: 18px 16px; }
+.hm main.hj.gut { padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); }   /* 좌우 = 카드 사이 10px */
+.hm main.hj .wrap { gap: 10px; }
+.hm .hj-card:not(.hj-inv) { border-radius: 5px; padding: 18px 16px; }
 .hm .hcCard { border-radius: 5px; }
 .hm .hj-box.o, .hm .hj-box.r, .hm .hj-box.c { box-shadow: none; }
 .hm .hj-box.o { background: #FEF8F2; } .hm .hj-box.r { background: #F4F7FD; } .hm .hj-box.c { background: #FAF6F1; }
@@ -448,3 +448,37 @@
 .hm .hj-more { margin-top: 6px; }
 .hm .hj-more b { color: var(--hj-blue); }
 @media (min-width: 600px) { .hm .hj-gtx, .hm .hj-gside { flex: 1 1 0; } .hm .hj-gside { padding-left: 24px; } }
+
+/* 흰 바탕 · 카드 입체(테두리 색 · 아래 받침 선 · 안쪽 빛과 음영 · 세 겹 그림자) · 여백 10px(2026-11-17 사용자 "약간 약하게"로 확정) */
+.hm .hj-card:not(.hj-inv), .hm .hcCard {
+  border: 1px solid #D5DDE9; border-bottom: 2px solid #BFCADB; border-right-color: #CBD4E1;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 60%, #F6F8FC 100%);
+  box-shadow: inset 0 2px 0 #FFFFFF, inset 0 -5px 10px -8px rgba(40, 60, 100, .14), 0 1px 2px rgba(20, 35, 70, .10), 0 6px 12px rgba(20, 35, 70, .10), 0 14px 26px -14px rgba(20, 35, 70, .22); }
+.hm footer { border-top: 0; }   /* 맨 아래 가로줄 지움(2026-11-17) */
+.hm .wl-top .wrap > .wl-today { margin-right: -8px; }   /* 날짜 ↔ 편지 봉투 간격 좁게 */
+/* 휴대폰 홈 위쪽 줄이기(2026-11-17 사용자 "상단이 답답해 보임") */
+@media (max-width: 480px) {
+  .hm .wl-top .wrap { min-height: 52px; padding-block: 4px; gap: 8px; }
+  .hm .wl-top .wrap > .mailb { margin-right: -8px; }   /* 날짜 · 봉투를 오른쪽 끝으로 */
+  .hm .wl-org .church { font-size: 17px; min-height: 22px; }
+  .hm .wl-org small { font-size: 11px; }
+  .hm .hj-card.hj-hi { padding: 16px 14px 14px; }
+  .hm .hj-hi h1 { font-size: 23px; margin: 0 0 6px; }
+  .hm .hj-hi .hj-hi-top > div > small { font-size: 12px; }
+  .hm .hj-hi .hj-roles i { font-size: 12px; padding: 3px 8px; }
+  .hm .hj-hi p { font-size: 13.5px; }
+  .hm .hj-hi p span { font-size: 12.5px; }
+  .hm .hj-av { width: 56px; height: 56px; font-size: 22px; }
+  .hm .hj-grow { gap: 12px; margin-top: 12px; padding-top: 12px; }
+  .hm .hj-ring { width: 80px; height: 80px; }
+  .hm .hj-ring > span { font-size: 11px; }
+  .hm .hj-ring.g i .pea { width: 30px; height: 30px; }
+  .hm .hj-gtx { min-width: 0; }
+  .hm .hj-gtx b { font-size: 22px; }
+  .hm .hj-gtx em { margin-top: 4px; font-size: 12.5px; white-space: nowrap; }
+  .hm .hj-gside { min-width: 0; padding-left: 12px; }
+  .hm .hj-gside b { font-size: 19px; }
+  .hm .hj-sr .tg { flex-wrap: nowrap; min-width: 0; }
+  .hm .hj-sr .tg b { flex: none; white-space: nowrap; }
+  .hm .hj-sr .tg span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
