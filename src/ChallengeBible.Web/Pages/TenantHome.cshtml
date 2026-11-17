@@ -277,12 +277,27 @@
 
     @if (Model.PrayerCard is { } pc)
     {
-        @* 확정 시안 365기도 ②(2026-11-16, ADR 0106): 학생 · 새친구에게는 없음 · 점수 없음 *@
+        @* 365 기도 카드 — 유년부 홈 "오늘의 기도" 카드와 같은 모양(2026-11-17 사용자 A안): 날짜 칩 · 오늘 제목 · 며칠째 막대. 학생 · 새친구에게는 없음 · 점수 없음(ADR 0106) *@
+        var tpD = pc.Me.Today;
+        var tpNo = Prayer365Service.DayIndex(Prayer365Service.Md(tpD));
+        var tpPct = Math.Min(100, (int)Math.Round(tpNo * 100.0 / Prayer365Stats.TotalDays));
+        string[] tpDow = ["일", "월", "화", "수", "목", "금", "토"];
         <link rel="stylesheet" href="~/css/prayer365.css" asp-append-version="true" />
-        <section class="hj-card hj-pg p3" aria-labelledby="p3T">
-            <h2 id="p3T"><a href="/@slug/prayer365">🙏 자녀를 위한 365 기도</a><small>오늘 우리 부서 @(pc.Together)명</small></h2>
-            <a class="p3-box" href="/@slug/prayer365"><span><small>@pc.Me.Today.ToString("M월 d일") · 오늘의 기도</small><b>@pc.Item.Title</b>@if (!string.IsNullOrEmpty(pc.Item.VerseRef)) { <span class="v">@pc.Item.VerseRef</span> }</span><span class="p3-go">@(pc.Me.PrayedToday ? "✓ 기도했어요" : "기도하러 가기")</span></a>
-            @if (pc.Me.PrayedDays > 0) { <div class="p3-st">나 <b>@(pc.Me.Streak)일 연속</b> · 기도율 <b>@(pc.Me.RatePct >= 0 ? pc.Me.RatePct + "%" : "–")</b></div> }
+        <section class="hj-card tpCard" aria-label="오늘의 기도">
+            <div class="tpHd"><span class="tpK">오늘의 기도</span><a class="tpMore" href="/@slug/prayer365" aria-label="자녀를 위한 365 기도 — 기도 전체 보기">기도 전체 ›</a></div>
+            <div class="tpT">오늘도 함께 기도해요</div>
+            <div class="tpS">매일 사랑하는 자녀를 위해 기도해 주세요</div>
+            <div class="tpList">
+                <a class="tpRow" href="/@slug/prayer365" aria-label="자녀를 위한 365 기도 — 오늘 기도문">
+                    <span class="tpChip cal"><small>@tpD.ToString("yyyy.MM")</small><strong>@tpD.Day</strong><em class="@(tpD.DayOfWeek == DayOfWeek.Sunday ? "sun" : tpD.DayOfWeek == DayOfWeek.Saturday ? "sat" : "")">@(tpDow[(int)tpD.DayOfWeek])요일</em></span>
+                    <span class="tpTx">
+                        <b class="tpNm">자녀를 위한 365</b>
+                        <span class="hl">@pc.Item.Title</span>
+                        @if (tpNo > 0) { <span class="tpDay"><i aria-hidden="true"><s style="width:@(tpPct)%"></s></i><em><b>@tpNo</b>일째 · @(Prayer365Stats.TotalDays)일 중</em></span> }
+                    </span>
+                    <span class="tpG" aria-hidden="true">›</span>
+                </a>
+            </div>
         </section>
     }
 

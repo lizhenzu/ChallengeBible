@@ -1,4 +1,4 @@
-/* 자녀를 위한 365 기도(ADR 0106, 확정 시안 365기도) — 유년부 Prayer365 밝은 버전과 같은 모양 */
+﻿/* 자녀를 위한 365 기도(ADR 0106, 확정 시안 365기도) — 유년부 Prayer365 밝은 버전과 같은 모양 */
 .p365 { --p-tx: #111827; --p-dim: #9CA3AF; --p-dim2: #6B7280; --p-rule: #EEF0F3; --p-mark: #F4F6F9; --p-acc: #2F80ED; --p-ok: #15803D; --p-okbg: #EAF7EF; --p-warn: #B4531F; --p-warnbg: #FBEFE7;
   max-width: 760px; margin: 0 auto; padding: 0 18px 48px; color: #374151; }
 .p365-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 0 12px; font-size: 13px; color: var(--p-dim); }
@@ -38,12 +38,34 @@
 .p365-ps .p3mo div { height: 6px; border-radius: 99px; background: #fff; overflow: hidden; } .p365-ps .p3mo div i { display: block; height: 100%; background: var(--p-acc); } .p365-ps .p3mo em { font-style: normal; }
 .p365-src { margin-top: 18px; font-size: 11.5px; color: var(--p-dim); text-align: center; line-height: 1.7; word-break: keep-all; }
 
-/* 부서 홈 카드(확정 시안 365기도 ②) */
-.hm .hj-pg.p3 h2 { color: #6D28D9; }
-.hm .p3-box { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-radius: 14px; padding: 12px 14px; background: #F3EEFD; box-shadow: inset 0 0 0 1.5px #E4D9FA; color: inherit; text-decoration: none; margin-top: 10px; }
-.hm .p3-box small { display: block; font-size: 11.5px; font-weight: 700; color: #6D28D9; } .hm .p3-box b { display: block; font-size: 16px; font-weight: 900; }
-.hm .p3-box span.v { font-size: 12.5px; color: var(--dim); } .hm .p3-go { flex: none; border-radius: 99px; background: #6D28D9; color: #fff; font-weight: 800; font-size: 13.5px; padding: 9px 16px; white-space: nowrap; }
-.hm .p3-st { margin-top: 8px; font-size: 12.5px; color: var(--dim); } .hm .p3-st b { color: var(--fg); }
+/* 부서 홈 365 기도 카드 — 유년부 홈 "오늘의 기도"(_Banner_TodayPrayer) 와 같은 모양(2026-11-17 사용자 A안) */
+.hm .hj-card.tpCard { padding: 18px; font-family: "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif; color: #374151; text-align: left; }
+.tpHd { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.tpK { font-size: 12px; font-weight: 800; letter-spacing: .02em; color: #2F80ED; }
+.tpMore { flex: none; font-size: 12.5px; font-weight: 800; color: #2F80ED; background: #EAF2FD; border-radius: 999px; padding: 4px 12px; text-decoration: none; white-space: nowrap; }
+.tpMore:hover { background: #DCEAFB; color: #2F80ED; }
+.tpT { margin-top: 6px; font-size: 20px; font-weight: 800; letter-spacing: -.02em; line-height: 1.35; color: #111827; }
+.tpS { margin-top: 3px; font-size: 12.5px; color: #6B7280; }
+.tpList { margin-top: 12px; }
+.tpRow { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-top: 1px solid #EEF0F3; color: inherit; text-decoration: none; }
+.tpRow:last-child { padding-bottom: 0; }
+a.tpRow:hover .tpTx b { color: #2F80ED; }
+.tpTx { flex: 1; min-width: 0; }
+.tpTx b { display: block; font-size: 15px; font-weight: 800; color: #111827; transition: color .15s; }
+.tpTx span { display: block; margin-top: 2px; font-size: 12.5px; color: #6B7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tpTx span.hl { font-weight: 700; color: #2F80ED; }
+.tpG { flex: none; font-size: 18px; font-weight: 300; color: #7FA3DB; }
+.tpChip { flex: none; width: 52px; border-radius: 10px; overflow: hidden; background: #fff; text-align: center; box-shadow: 0 1px 2px rgba(17,24,39,.08), 0 0 0 1px #EEF0F3; }
+.tpChip small { display: block; padding: 3px 0; background: #2F80ED; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.tpChip strong { display: block; padding: 2px 0 0; font-size: 24px; font-weight: 300; line-height: 1.15; color: #111827; }
+.tpChip em { display: block; padding: 0 0 5px; font-style: normal; font-size: 10.5px; font-weight: 800; color: #111827; }
+.tpChip em.sat { color: #2F80ED; } .tpChip em.sun { color: #E03131; }
+.tpTx .tpDay { display: flex; align-items: center; gap: 8px; margin-top: 7px; overflow: visible; white-space: normal; }
+.tpDay i { display: block; flex: 1; max-width: 130px; height: 5px; border-radius: 99px; background: #E5EDF9; overflow: hidden; }
+.tpDay s { display: block; height: 100%; border-radius: 99px; background: #2F80ED; text-decoration: none; }
+.tpDay em { font-style: normal; font-size: 11.5px; font-weight: 700; color: #6B7280; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tpTx .tpDay em b { display: inline; font-size: 11.5px; font-weight: 800; color: #2F80ED; }
+@media (max-width: 480px) { .hm .hj-card.tpCard { padding: 16px 14px; } .tpT { font-size: 19px; } }
 
 /* 관리 · 플랫폼(확정 시안 365기도 ③ ~ ⑤) */
 .p3k { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }

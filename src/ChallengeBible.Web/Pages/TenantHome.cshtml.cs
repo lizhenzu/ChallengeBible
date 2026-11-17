@@ -30,7 +30,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     /// <summary>성경필사 카드(확정 시안 성경필사 ④): 필사를 켠 부서만, 아니면 null.</summary>
     public CopySummary? CopyData { get; private set; }
     /// <summary>자녀를 위한 365 기도 카드(ADR 0106, 확정 시안 365기도 ②): 학생 · 새친구가 아니면. (오늘 기도문, 우리 부서 오늘 기도한 사람, 내 기록)</summary>
-    public (ChallengeBible.Infrastructure.Data.Prayer365 Item, int Together, Prayer365Stats Me)? PrayerCard { get; private set; }
+    public (ChallengeBible.Infrastructure.Data.Prayer365 Item, Prayer365Stats Me)? PrayerCard { get; private set; }
     /// <summary>인사 카드 이름 아래 역할 칩(R-275, 확정 시안 C).</summary>
     public IReadOnlyList<RoleChip> RoleChips { get; private set; } = [];
     /// <summary>승인된 소속이 둘 이상이면 머리말 "부서 ▼" → 부서 고르기(확정 6).</summary>
@@ -65,7 +65,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         Data = await home.GetAsync(ct);
         if (tenant.Current.CopyEnabled) CopyData = await copy.SummaryAsync(ct);   // 임시 부서(승인 전)에도(ADR 0110)
         if (prayer365.CanSee(User.IsPlatformAdmin()))
-            PrayerCard = (await prayer365.GetAsync(Prayer365Service.Md(prayer365.Today), ct), await prayer365.TogetherTodayAsync(ct), await prayer365.MyStatsAsync(ct));
+            PrayerCard = (await prayer365.GetAsync(Prayer365Service.Md(prayer365.Today), ct), await prayer365.MyStatsAsync(ct));
         RoleChips = await home.RoleChipsAsync(User.UserId()!, ct, User.IsPlatformAdmin());
         ManyTenants = (await accounts.WhereToGoAsync(me, ct)).ApprovedCount > 1;
         if (tenant.IsLobby)
