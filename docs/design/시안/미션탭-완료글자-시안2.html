@@ -1,0 +1,32 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#E9ECF1;font-family:"Noto Sans KR",sans-serif;color:#111827}
+.row{display:flex;gap:24px;justify-content:center;padding:16px;flex-wrap:wrap}.col{width:390px}
+.h{font:900 17px "Noto Sans KR";margin:6px 0 4px}.d{font-size:12.5px;color:#4B5563;margin:0 0 10px;line-height:1.5;min-height:38px}
+.ph{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.1)}
+nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid #E5E7EB}
+nav a{position:relative;display:flex;flex-direction:column;align-items:center;padding:11px 2px 13px;color:#111827}
+nav a.here::before{content:"";position:absolute;top:-1px;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:#2F80ED}
+.L{font-size:15px;font-weight:800}.S{font-size:12px;font-weight:600;margin-top:2px;opacity:.8}
+a.hm .L{color:#2F80ED}a.hm .S{color:#9CA3AF;opacity:1}
+/* 나2: 이름 초록 · 완료는 초록을 약간 흐리게 */
+.n2 a.dn .L{color:#16A34A}.n2 a.dn .S{color:#16A34A;font-weight:700;opacity:.6}
+/* 지금 */
+.now a.dn .L,.now a.dn .S{color:#9CA3AF;opacity:.55}
+/* 가: 이름은 흐리게 그대로, 완료 글자만 초록 · 굵게 · 또렷하게 */
+.ga a.dn .L{color:#9CA3AF;opacity:.8}.ga a.dn .S{color:#16A34A;font-weight:800;opacity:1}
+/* 나: 이름 · 완료 모두 초록(흐리지 않게) */
+.na a.dn .L{color:#16A34A}.na a.dn .S{color:#16A34A;font-weight:800;opacity:1}
+.cap{font-size:12px;font-weight:800;color:#6B7280;margin:10px 0 4px}
+</style></head><body><div class="row">
+<div class="col now"><div class="h">지금</div><p class="d">한 미션은 이름 · "✓ 완료" 모두 연한 회색 — 완료 글자가 잘 안 보임</p>
+<p class="cap">말씀 · 기도 완료, 지금 기도 화면</p>
+<div class="ph"><nav><a class="dn"><span class="L">말씀</span><span class="S">✓ 완료</span></a><a><span class="L">퀴즈</span><span class="S">아직</span></a><a class="dn here"><span class="L">기도</span><span class="S">✓ 완료</span></a><a><span class="L">암송</span><span class="S">아직</span></a><a class="hm"><span class="L">미션 홈</span><span class="S">돌아가기</span></a></nav></div></div>
+<div class="col na"><div class="h">나</div><p class="d">한 미션은 이름 · "✓ 완료" 모두 초록(흐리게 하지 않음)</p>
+<p class="cap">말씀 · 기도 완료, 지금 기도 화면</p>
+<div class="ph"><nav><a class="dn"><span class="L">말씀</span><span class="S">✓ 완료</span></a><a><span class="L">퀴즈</span><span class="S">아직</span></a><a class="dn here"><span class="L">기도</span><span class="S">✓ 완료</span></a><a><span class="L">암송</span><span class="S">아직</span></a><a class="hm"><span class="L">미션 홈</span><span class="S">돌아가기</span></a></nav></div></div>
+<div class="col n2"><div class="h">나 + 완료 약간 흐리게</div><p class="d">이름은 초록 그대로, "✓ 완료"는 같은 초록을 약간 흐리게</p>
+<p class="cap">말씀 · 기도 완료, 지금 기도 화면</p>
+<div class="ph"><nav><a class="dn"><span class="L">말씀</span><span class="S">✓ 완료</span></a><a><span class="L">퀴즈</span><span class="S">아직</span></a><a class="dn here"><span class="L">기도</span><span class="S">✓ 완료</span></a><a><span class="L">암송</span><span class="S">아직</span></a><a class="hm"><span class="L">미션 홈</span><span class="S">돌아가기</span></a></nav></div></div>
+</div></body></html>
