@@ -147,7 +147,7 @@
             <a class="hj-grow" href="/@slug/points" aria-label="나의 점수 성장일지">
                 <span class="hj-ring g" aria-hidden="true">
                     <svg width="76" height="76" viewBox="0 0 76 76"><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-green-l)" stroke-width="8" /><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-green)" stroke-width="8" stroke-linecap="round" stroke-dasharray="@((G * g.Percent / 100).ToString("0.#", inv)) @G.ToString("0.#", inv)" transform="rotate(-90 38 38)" /></svg>
-                    <span><i>@Ico(cur.Emoji)</i>@cur.Name @(g.Percent)%</span>
+                    <span><i>@Ico(cur.Emoji)</i><em class="nm">@cur.Name </em>@(g.Percent)%</span>
                 </span>
                 <span class="hj-gtx"><small>나의 점수</small><b class="num">@d.SeasonPoints.ToString("N0")<u>점</u></b>
                     <em>@(g.Done ? $"{cur.Name}까지 모두 자랐어요" : $"{cur.Name}{Ro(cur.Name)} 자라는 중")</em></span>
