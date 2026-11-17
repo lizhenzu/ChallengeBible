@@ -11,7 +11,7 @@
         ("계정", false, [("/platform/accounts", "계정 찾기")]),
     };
     // 완전 초기화(ADR 0102) = 예전 새해 초기화 + 관리자만 남기기 + 가짜 데이터 지우기
-    (string, string)[] tools = [("/platform/ops", "운영 점검"), ("/platform/reset", "완전 초기화")];
+    (string, string)[] tools = [("/platform/ops", "운영 점검"), ("/platform/reset", "완전 초기화"), ("/platform/sql", "SQL 실행")];
     // 임시 시험 도구(ADR 0095 · 0102): 설정 TestTools:Enabled 일 때만 메뉴에 보인다. 목적별 두 화면
     if (Config.GetValue<bool>("TestTools:Enabled")) tools = [.. tools, ("/test-tools/data", "가짜 데이터 넣기(임시)"), ("/test-tools/login", "상황별 로그인(임시)")];
     groups.Add(("도구 — 되돌릴 수 없는 일이 있어요", true, tools));
