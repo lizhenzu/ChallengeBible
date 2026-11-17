@@ -20,7 +20,8 @@ public abstract class CopyPageBase(CopyService copy, TenantContext tenant) : Pag
     public TenantContext Tenant => tenant;
     public CopyService Copy => copy;
     public string Slug => tenant.Current.Slug;
-    protected bool Off => !tenant.Current.CopyEnabled || tenant.IsLobby;
+    /// <summary>필사를 끈 부서만 막는다. 임시 부서(가입 · 승인 전)에서도 쓴다(2026-11-17 사용자, ADR 0110) — 기록은 계정에 붙어 승인 뒤 그대로 이어진다.</summary>
+    protected bool Off => !tenant.Current.CopyEnabled;
     public string WriteUrl(byte book, short chapter, short? verse = null) => $"/{Slug}/copy/write/{book}/{chapter}" + (verse is > 0 ? $"?v={verse}" : "");
     public static string Pct(double p) => p.ToString("0.0");
     /// <summary>목차 "빠른 이동 · 이어 쓰기"(ADR 0105). 화면이 읽어 두면 보인다.</summary>
@@ -42,11 +43,11 @@ public class IndexModel(CopyService copy, TenantContext tenant, CopyGiftService 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (Off) return NotFound();
-        await gifts.EnsureAsync(ct);   // 신약 · 구약을 다 썼으면 완필 선물(R-307)
+        if (!Tenant.IsLobby) await gifts.EnsureAsync(ct);   // 신약 · 구약을 다 썼으면 완필 선물(R-307). 임시 부서에서는 안 만든다(승인된 부서에서 생김)
         Data = await Copy.SummaryAsync(ct);
         Resume = Data.Resume;
         Books = (await Copy.BooksAsync(ct)).Books;
-        MyGifts = (await linkGifts.MineAsync(ct)).Where(g => g.Kind == GiftKinds.Copy).ToList();
+        if (!Tenant.IsLobby) MyGifts = (await linkGifts.MineAsync(ct)).Where(g => g.Kind == GiftKinds.Copy).ToList();
         return Page();
     }
 }
@@ -123,7 +124,7 @@ public class WriteModel(CopyService copy, TenantContext tenant, BibleTextService
     {
         if (Off) return NotFound();
         var r = await Copy.SaveAsync(bible, book, chapter, verse, translation ?? "", typed, ct);
-        if (r.NewlyDone) await gifts.EnsureAsync(ct);
+        if (r.NewlyDone && !Tenant.IsLobby) await gifts.EnsureAsync(ct);
         return new JsonResult(new
         {
             ok = r.Error == CopySaveError.None, chapterDone = r.ChapterDone, chapterVerses = r.ChapterVerses, newlyDone = r.NewlyDone,
@@ -141,7 +142,7 @@ public class ParticipantsModel(CopyService copy, TenantContext tenant) : CopyPag
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        if (Off) return NotFound();
+        if (Off || Tenant.IsLobby) return NotFound();   // 임시 부서: 모르는 사람끼리 이름 · 진도가 보이지 않게(0064, 통독과 같음)
         Rows = await Copy.BoardAsync(ct);
         Totals = await Copy.SummaryAsync(ct);
         Resume = Totals.Resume;   // 목차 "이어 쓰기"(ADR 0105)

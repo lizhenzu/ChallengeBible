@@ -54,7 +54,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         if (tenant.Current.MissionEnabled) Family = await teams.MyFamilyAsync(ct);
         if (tenant.Current.MissionEnabled && Family is null) Invites = (await familyJoin.StateAsync(ct)).Invites.Where(i => !i.SnoozedToday).ToList();
         Data = await home.GetAsync(ct);
-        if (tenant.Current.CopyEnabled && !tenant.IsLobby) CopyData = await copy.SummaryAsync(ct);
+        if (tenant.Current.CopyEnabled) CopyData = await copy.SummaryAsync(ct);   // 임시 부서(승인 전)에도(ADR 0110)
         if (prayer365.CanSee(User.IsPlatformAdmin()))
             PrayerCard = (await prayer365.GetAsync(Prayer365Service.Md(prayer365.Today), ct), await prayer365.TogetherTodayAsync(ct), await prayer365.MyStatsAsync(ct));
         RoleChips = await home.RoleChipsAsync(User.UserId()!, ct, User.IsPlatformAdmin());

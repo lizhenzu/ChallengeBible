@@ -87,6 +87,19 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/welcome/reading/read/1/1")).StatusCode);
     }
 
+    /// <summary>R-323: 가입 · 승인 전(임시 부서)에도 성경필사를 한다(ADR 0110). 참여자 현황은 통독처럼 숨긴다.</summary>
+    [Fact]
+    public async Task R323_임시_부서에서도_필사를_하고_참여자_현황은_숨긴다()
+    {
+        var (c, _) = await SignUp();
+        Assert.Contains("도전!!! 성경필사", await c.GetStringAsync("/welcome/today"));   // 미션 화면(홈 아랫부분)에 필사 카드
+        var copyHome = await c.GetStringAsync("/welcome/copy");
+        Assert.DoesNotContain("/welcome/copy/participants", copyHome);
+        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/welcome/copy/books?t=nt")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/welcome/copy/write/43/3")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/welcome/copy/participants")).StatusCode);
+    }
+
     [Fact]
     public async Task R172_임시_부서_1단계는_윗부분만_있고_남의_기록은_숨긴다()
     {

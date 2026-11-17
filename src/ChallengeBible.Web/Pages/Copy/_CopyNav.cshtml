@@ -11,6 +11,7 @@
         ($"/{s}/copy/books?t=nt", "신약 쓰기", "nt"),
         ($"/{s}/copy/participants", "참여자 현황", "participants"),
     ];
+    if (p.Tenant.IsLobby) menu = menu.Where(m => m.Key != "participants").ToArray();   // 임시 부서는 참여자 현황 없음(0064)
     var resume = p.Resume;
 }
 <script>document.currentScript.closest('.rp').dataset.theme = 'copy';</script>
