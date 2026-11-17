@@ -520,6 +520,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(admin, "/jamsil-kids/admin/prayer365", "37-365기도-참여자");
         await Save(op, "/platform/prayer365", "38-플랫폼-365기도문");
         await Save(op, "/platform/prayer365-stats", "39-플랫폼-365기도통계");
+        await Save(op, "/platform/prayer365/edit?md=1218", "39b-플랫폼-365기도문-고치기");
         await Save(op, "/platform/sql", "40-플랫폼-SQL실행");
     }
 

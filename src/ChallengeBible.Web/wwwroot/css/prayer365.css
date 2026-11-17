@@ -88,3 +88,7 @@ a.tpRow:hover .tpTx b { color: #2F80ED; }
 .p3m .ds a.s { background: #FDE7C8; } .p3m .ds a.c { background: #DCEBFB; } .p3m .ds a.r { background: #BBE5C8; } .p3m .ds a.t { box-shadow: inset 0 0 0 2px #2F80ED; }
 .p3lg { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--dim); } .p3lg i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
 .p3f { display: grid; gap: 10px; } .p3f label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; } .p3f textarea { min-height: 220px; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+
+/* 기도문 고치기 /platform/prayer365/edit — 머리말 · 본문을 760px 로 맞춤(2026-11-17 사용자 "헤더 폭과 밑에가 안 맞는다") */
+body:has(main.p3e) .admintop .wrap.hd { max-width: 760px; }
+main.p3e > .wrap { max-width: 760px; }
