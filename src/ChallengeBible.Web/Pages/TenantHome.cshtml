@@ -329,23 +329,12 @@
             <a class="m" href="@rk"><b class="num">@dp.TodayPeople<u>명</u></b><small>오늘 참여</small></a>
         </div>
     }
-    @* 확정 시안 쪽지 ①(ADR 0112): 맨 아래 개선 · 불편 접수대 — superadmin 에게 쪽지(게시판 아님). 익명이면 부서만 *@
-    <section class="hj-card fb" aria-labelledby="fbT">
-        <h2 id="fbT">💬 개선 · 불편 접수대</h2>
-        <p>불편한 점이나 바라는 점을 플랫폼 관리자에게 쪽지로 보내요. 게시판처럼 다른 사람에게 보이지 않아요.</p>
-        @if (TempData["fb"] is string fbm) { <p class="fb-ok" role="status">@fbm</p> }
-        <form method="post" action="/messages?handler=Feedback" asp-antiforgery="true">
-            <input type="hidden" name="tid" value="@Model.Tenant.Current.Id" /><input type="hidden" name="back" value="/@slug@(Model.TodayScreen ? "/today" : "")" />
-            <textarea name="body" maxlength="@ChallengeBible.Web.Services.MessageService.MaxLength" placeholder="예) 필사 화면 글자가 너무 작아요." aria-label="개선 · 불편 내용" required></textarea>
-            <p class="fb-n">@ChallengeBible.Web.Services.MessageService.MaxLength.ToString("N0")자까지</p>
-            <fieldset class="fb-who"><legend class="sr-only">보내는 방법</legend>
-                <label><input type="radio" name="anon" value="false" checked /><span>실명으로</span><small>답장을 받아요</small></label>
-                <label><input type="radio" name="anon" value="true" /><span>익명으로</span><small>부서만 알려져요</small></label>
-            </fieldset>
-            <p class="fb-tip">플랫폼 관리자의 답변이 필요하면 <b>실명과 연락처를 함께</b> 보내 주세요.</p>
-            <button type="submit">플랫폼 관리자에게 보내기</button>
-        </form>
-    </section>
+    @* 개선 · 불편 접수(2026-11-17 사용자): 유년부 홈 맨 아래처럼 상자 하나 — 누르면 /{slug}/feedback 에서 입력(superadmin 에게 쪽지, ADR 0112) *@
+    <a class="hcCard" href="/@slug/feedback" aria-label="개선사항 및 불편사항 접수">
+        <span class="hcIc" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H8l-4 4z" /><path d="M8 9h8M8 12h5" /></svg></span>
+        <span class="hcTx"><b>개선사항 · 불편사항 접수</b><small>불편했던 점이나 아이디어를 남겨 주세요</small></span>
+        <span class="hcG" aria-hidden="true">›</span>
+    </a>
 </div></main>
 }
 

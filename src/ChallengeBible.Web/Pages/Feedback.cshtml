@@ -1,0 +1,27 @@
+@page "/{slug}/feedback"
+@model ChallengeBible.Web.Pages.FeedbackModel
+@using ChallengeBible.Web.Services
+@* 개선 · 불편 접수(2026-11-17 사용자 확정 시안: 홈 상자 → 이 화면): superadmin 에게 쪽지(게시판 아님, ADR 0112 · R-326). 익명이면 부서만 *@
+@{ var slug = Model.Tenant.Current.Slug; }
+<partial name="_Top" />
+<link rel="stylesheet" href="~/css/messages.css" asp-append-version="true" />
+<main class="gut msg fbp"><div class="wrap">
+    <a class="ms-back" href="/@slug">‹ 부서 홈</a>
+    <h1 id="fbT">개선사항 · 불편사항 접수</h1>
+    <p class="fb-sub">불편한 점이나 바라는 점을 플랫폼 관리자에게 쪽지로 보내요. 게시판처럼 다른 사람에게 보이지 않아요.</p>
+    @if (TempData["fb"] is string fbm) { <p class="ok-box" role="status">✓ @fbm</p> }
+    <section class="fb" aria-labelledby="fbT">
+        <form method="post" action="/messages?handler=Feedback" asp-antiforgery="true">
+            <input type="hidden" name="tid" value="@Model.Tenant.Current.Id" /><input type="hidden" name="back" value="/@slug/feedback" />
+            <textarea name="body" maxlength="@MessageService.MaxLength" placeholder="예) 필사 화면 글자가 너무 작아요." aria-label="개선 · 불편 내용" required></textarea>
+            <p class="fb-n">@MessageService.MaxLength.ToString("N0")자까지</p>
+            <fieldset class="fb-who"><legend class="sr-only">보내는 방법</legend>
+                <label><input type="radio" name="anon" value="false" checked /><span>실명으로</span><small>답장을 받아요</small></label>
+                <label><input type="radio" name="anon" value="true" /><span>익명으로</span><small>부서만 알려져요</small></label>
+            </fieldset>
+            <p class="fb-tip">플랫폼 관리자의 답변이 필요하면 <b>실명과 연락처를 함께</b> 보내 주세요.</p>
+            <button type="submit">플랫폼 관리자에게 보내기</button>
+        </form>
+    </section>
+    <p class="fb-mine">보낸 쪽지 · 답장은 <a href="/messages">쪽지함</a>에서 봐요</p>
+</div></main>

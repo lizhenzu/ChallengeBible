@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -139,11 +139,17 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
         var cs = await Login("cheolsu@example.com");
         await cs.GetAsync("/kids");
         var home = await cs.GetStringAsync("/kids");
-        Assert.Contains("개선 · 불편 접수대", home);
-        Assert.Contains("실명과 연락처를 함께", home);
-        await Post(cs, "/kids", "/messages?handler=Feedback", new() { ["tid"] = _kids.Id.ToString(), ["body"] = "퀴즈가 너무 어려워요", ["anon"] = "true", ["back"] = "/kids" });
-        await Post(cs, "/kids", "/messages?handler=Feedback", new() { ["tid"] = _elem.Id.ToString(), ["body"] = "남의 부서 이름", ["anon"] = "true", ["back"] = "/kids" });   // 내 부서가 아니면 부서도 안 남김
-        await Post(cs, "/kids", "/messages?handler=Feedback", new() { ["tid"] = _kids.Id.ToString(), ["body"] = "글자가 작아요 010-1234", ["anon"] = "false", ["back"] = "/kids" });
+        Assert.Contains("<a class=\"hcCard\" href=\"/kids/feedback\"", home);   // 홈은 상자 하나(2026-11-17 사용자) — 입력은 따로
+        Assert.DoesNotContain("name=\"anon\"", home);
+        var fb = await cs.GetStringAsync("/kids/feedback");
+        Assert.Contains("개선사항 · 불편사항 접수", fb);
+        Assert.Contains("실명과 연락처를 함께", fb);
+        Assert.Contains("name=\"back\" value=\"/kids/feedback\"", fb);
+        var sent = await Post(cs, "/kids/feedback", "/messages?handler=Feedback", new() { ["tid"] = _kids.Id.ToString(), ["body"] = "퀴즈가 너무 어려워요", ["anon"] = "true", ["back"] = "/kids/feedback" });
+        Assert.Equal("/kids/feedback#fbT", sent.Headers.Location?.OriginalString);   // 보낸 뒤 같은 화면 위에 알림
+        Assert.Contains("익명으로 보냈어요", await cs.GetStringAsync("/kids/feedback"));
+        await Post(cs, "/kids/feedback", "/messages?handler=Feedback", new() { ["tid"] = _elem.Id.ToString(), ["body"] = "남의 부서 이름", ["anon"] = "true", ["back"] = "/kids" });   // 내 부서가 아니면 부서도 안 남김
+        await Post(cs, "/kids/feedback", "/messages?handler=Feedback", new() { ["tid"] = _kids.Id.ToString(), ["body"] = "글자가 작아요 010-1234", ["anon"] = "false", ["back"] = "/kids" });
         using (var raw = InMemoryDb.Raw(_db))
         {
             var anon = raw.Messages.Single(m => m.Body == "퀴즈가 너무 어려워요");

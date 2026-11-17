@@ -102,6 +102,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Post("quiz/attempts", new { date = jan[4], choiceId = Wrong(jan[4]) });
 
         await Save(kid, "/jamsil-kids", "05-부서홈");
+        await Save(kid, "/jamsil-kids/feedback", "05k-개선불편-접수");
         await Save(kid, "/jamsil-kids/word-mission", "06-미션홈");
         await Save(kid, "/jamsil-kids/word-mission?date=2027-01-08", "06b-미션홈-미래날짜");   // 오늘 이후는 보기만 가능해요(2026-11-04)
         await Save(kid, "/jamsil-kids/word-mission?date=2027-01-04", "06c-미션홈-지난날-할수있음");   // 주황 카드 ②(확정 시안 미션홈-다른날카드)
