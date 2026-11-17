@@ -73,7 +73,17 @@ public sealed class MessageService(ISystemDb systemDb, TimeProvider time)
             && (!ctx.MessageTargets.Any(t => t.MessageId == m.Id) || ctx.MessageTargets.Any(t => t.MessageId == m.Id && myTenants.Contains(t.TenantId))));
     }
 
+    /// <summary>
+    /// 안 읽은 쪽지 수(머리말 ✉ · 홈 띠 · 팝업). 모든 화면 머리말에서 부르므로, 쪽지 표가 아직 DB 에 없거나(배포 뒤 마이그레이션 전) 읽기에 실패하면
+    /// 화면 전체가 멈추지 않게 0 으로 본다(2026-11-17 운영: SQL 실행 화면까지 열리지 않던 일).
+    /// </summary>
     public async Task<int> UnreadAsync(string userName, CancellationToken ct = default)
+    {
+        try { return await CountUnreadAsync(userName, ct); }
+        catch (Exception e) when (e is System.Data.Common.DbException or InvalidOperationException && e is not OperationCanceledException) { return 0; }
+    }
+
+    private async Task<int> CountUnreadAsync(string userName, CancellationToken ct)
     {
         await using var ctx = systemDb.Create(userName);
         var direct = await ctx.Messages.CountAsync(m => m.RecipientUserName == userName && !m.RecipientDeleted && m.ReadUtc == null && m.CanceledUtc == null, ct);
