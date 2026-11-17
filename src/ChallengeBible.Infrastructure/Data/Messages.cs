@@ -12,6 +12,8 @@ public static class MessageKinds
     public const string Feedback = "feedback";
     /// <summary>플랫폼 관리자 전체 쪽지 — 한 줄만, 받는 사람은 대상(전체 · 부서)으로 참조.</summary>
     public const string Broadcast = "broadcast";
+    /// <summary>자동 알림 → superadmin(회원 가입 · 부서 참여 신청, 2026-11-17 사용자). 보낸 사람 "도전!!! 알림", 답장 없음.</summary>
+    public const string System = "system";
 }
 
 /// <summary>

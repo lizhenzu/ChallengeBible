@@ -5,14 +5,14 @@
     var r = Model.Row;
     var tz = TimeZoneInfo.FindSystemTimeZoneById("Asia/Seoul");
     var at = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(r.SentUtc, DateTimeKind.Utc), tz);
-    var av = r.Anonymous ? "익명" : r.Who == MessageService.PlatformName || (Model.Mine && r.Broadcast) ? "관리" : r.Who.Length > 1 ? r.Who[1..Math.Min(3, r.Who.Length)] : r.Who;
+    var av = r.System ? "알림" : r.Anonymous ? "익명" : r.Who == MessageService.PlatformName || (Model.Mine && r.Broadcast) ? "관리" : r.Who.Length > 1 ? r.Who[1..Math.Min(3, r.Who.Length)] : r.Who;
 }
 <partial name="_Top" />
 <link rel="stylesheet" href="~/css/messages.css" asp-append-version="true" />
 <main class="gut msg"><div class="wrap">
     <a class="ms-back" href="/messages@(Model.Mine ? "?box=sent" : "")">← @(Model.Mine ? "보낸 쪽지" : "받은 쪽지")</a>
     <article class="ms-view">
-        <div class="hd"><span class="av @(r.Anonymous || av == "관리" ? "sys" : null)">@av</span>
+        <div class="hd"><span class="av @(r.System || r.Anonymous || av == "관리" ? "sys" : null)">@av</span>
             <b>@(Model.Mine ? (r.Broadcast ? $"받는 사람: {r.Target}" : $"받는 사람: {r.Who}") : r.Who)@if (r.Broadcast) { <span class="bc">전체</span> }</b>
             <small>@(r.Broadcast && !Model.Mine ? $"{r.Target}에 보냄" : r.Where ?? (r.Anonymous ? "" : "")) @(r.Feedback ? (r.Anonymous ? "· 개선 · 익명" : "· 개선") : "") · @at.ToString("M월 d일 HH:mm")</small></div>
         <div class="body">@r.Body</div>

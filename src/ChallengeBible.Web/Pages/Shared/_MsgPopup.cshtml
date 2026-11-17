@@ -15,8 +15,8 @@
             <div class="mpop-li">
                 @foreach (var r in list)
                 {
-                    var av = r.Anonymous ? "익명" : r.Who == ChallengeBible.Web.Services.MessageService.PlatformName ? "관리" : r.Who.Length > 1 ? r.Who[1..Math.Min(3, r.Who.Length)] : r.Who;
-                    <a class="mpop-m" href="/messages/@r.Id"><span class="av @(av is "관리" or "익명" ? "sys" : null)">@av</span><b>@r.Who@if (r.Broadcast) { <span class="bc">전체</span> }@if (r.Where is { } w) { <em>@w</em> }</b><span class="pv">@r.Body</span></a>
+                    var av = r.System ? "알림" : r.Anonymous ? "익명" : r.Who == ChallengeBible.Web.Services.MessageService.PlatformName ? "관리" : r.Who.Length > 1 ? r.Who[1..Math.Min(3, r.Who.Length)] : r.Who;
+                    <a class="mpop-m" href="/messages/@r.Id"><span class="av @(av is "관리" or "익명" or "알림" ? "sys" : null)">@av</span><b>@r.Who@if (r.Broadcast) { <span class="bc">전체</span> }@if (r.Where is { } w) { <em>@w</em> }</b><span class="pv">@r.Body</span></a>
                 }
             </div>
             @if (n > list.Count) { <a class="mpop-more" href="/messages">외 @(n - list.Count)개 더</a> }

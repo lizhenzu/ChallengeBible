@@ -8,7 +8,7 @@
     DateTime Loc(DateTime u) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(u, DateTimeKind.Utc), tz);
     var today = Loc(Clock.GetUtcNow().UtcDateTime).Date;
     string When(DateTime u) { var l = Loc(u); return l.Date == today ? l.ToString("HH:mm") : l.Date == today.AddDays(-1) ? "어제" : l.ToString("M/d"); }
-    string Av(MsgRow r) => r.Broadcast && Model.Box == "sent" ? "전체" : r.Anonymous ? "익명" : r.Who == MessageService.PlatformName ? "관리" : r.Who.Length > 1 ? r.Who[1..Math.Min(3, r.Who.Length)] : r.Who;
+    string Av(MsgRow r) => r.Broadcast && Model.Box == "sent" ? "전체" : r.System ? "알림" : r.Anonymous ? "익명" : r.Who == MessageService.PlatformName ? "관리" : r.Who.Length > 1 ? r.Who[1..Math.Min(3, r.Who.Length)] : r.Who;
     var sent = Model.Box == "sent";
 }
 <partial name="_Top" />
@@ -27,7 +27,7 @@
         {
             <li class="ms-row @(r.Unread ? "new" : null) @(r.Canceled ? "gone" : null)">
                 <a href="/messages/@r.Id" class="ms-a">
-                    <span class="av @(r.Anonymous || r.Who == MessageService.PlatformName || (sent && r.Broadcast) ? "sys" : null)">@Av(r)</span>
+                    <span class="av @(r.System || r.Anonymous || r.Who == MessageService.PlatformName || (sent && r.Broadcast) ? "sys" : null)">@Av(r)</span>
                     <b class="nm">@r.Who@if (r.Broadcast) { <span class="bc">전체</span> }@if (r.Where is { } w) { <em>@w@(r.Feedback ? " · 개선" : "")</em> } else if (r.Feedback) { <em>개선@(r.Anonymous ? " · 익명" : "")</em> }@if (r.Unread) { <span class="nw">새</span> }</b>
                     @if (sent && !r.Broadcast) { <span class="rd @(r.Read ? "y" : "n")">@(r.Read ? "읽음" : "안 읽음")</span> }
                     else { <small class="tm">@When(r.SentUtc)</small> }

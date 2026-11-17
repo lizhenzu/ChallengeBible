@@ -13,6 +13,8 @@ public sealed record MsgRow(long Id, string Kind, string Who, string? Where, str
     public bool Anonymous { get; init; }
     public bool Broadcast => Kind == MessageKinds.Broadcast;
     public bool Feedback => Kind == MessageKinds.Feedback;
+    /// <summary>자동 알림(회원 가입 · 부서 참여 신청).</summary>
+    public bool System => Kind == MessageKinds.System;
     /// <summary>전체 쪽지 대상("모든 사용자" · "유년부 · 초등부").</summary>
     public string? Target { get; init; }
     /// <summary>보낸 쪽지: 상대가 읽었나(1:1) · 읽은 사람 수 / 받는 사람 수(전체).</summary>
@@ -35,6 +37,7 @@ public sealed class MessageService(ISystemDb systemDb, TimeProvider time)
 {
     public const int MaxLength = 1000;
     public const string PlatformName = "플랫폼 관리자";
+    public const string SystemName = "도전!!! 알림";
     /// <summary>개선 · 불편 쪽지를 받는 계정(사용자 2026-11-17 "superadmin 계정 하나"). 없으면 가장 먼저 만든 플랫폼 관리자.</summary>
     public const string FeedbackAccount = "superadmin";
 
@@ -134,6 +137,7 @@ public sealed class MessageService(ISystemDb systemDb, TimeProvider time)
 
     private static MsgRow Row(Message m, string? from, Dictionary<string, (string Name, string? Where, int? TenantId, string? Dept)> who)
     {
+        if (m.Kind == MessageKinds.System) return new MsgRow(m.Id, m.Kind, SystemName, m.SenderLabel, m.Body, m.SentUtc);
         if (from is null)   // 익명 개선 쪽지: 부서만
             return new MsgRow(m.Id, m.Kind, "익명", m.SenderLabel, m.Body, m.SentUtc) { Anonymous = true };
         var (name, where, _, _) = who.TryGetValue(from, out var w) ? w : ("(지운 계정)", m.SenderLabel, null, null);
@@ -214,6 +218,27 @@ public sealed class MessageService(ISystemDb systemDb, TimeProvider time)
         return MsgError.None;
     }
 
+    private static async Task<string?> FeedbackTargetAsync(AppDbContext ctx, CancellationToken ct) =>
+        await PlatformAdminNames(ctx).Where(n => n == FeedbackAccount).FirstOrDefaultAsync(ct)
+        ?? await (from ur in ctx.UserRoles join r in ctx.IdentityRoleRows on ur.RoleId equals r.Id join u in ctx.Users on ur.UserId equals u.Id
+                  where r.Name == IdentityRoles.SuperAdmin orderby u.InsertDT select u.UserName).FirstOrDefaultAsync(ct);
+
+    /// <summary>
+    /// 자동 알림(R-329, 2026-11-17 사용자): 회원 가입 · 부서 참여 신청이 생기면 superadmin 에게 쪽지 한 통. 보낸 사람 "도전!!! 알림", 답장 없음.
+    /// 알림이 실패해도 가입 · 신청은 그대로 되게 오류는 삼킨다.
+    /// </summary>
+    public async Task NotifyAsync(string actor, string label, string body, CancellationToken ct = default)
+    {
+        try
+        {
+            await using var ctx = systemDb.Create(actor);
+            if (await FeedbackTargetAsync(ctx, ct) is not { } to) return;
+            ctx.Messages.Add(new Message { Kind = MessageKinds.System, SenderLabel = label, RecipientUserName = to, Body = body.Length > MaxLength ? body[..MaxLength] : body, SentUtc = Now });
+            await ctx.SaveChangesAsync(ct);
+        }
+        catch (Exception e) when (e is System.Data.Common.DbException or InvalidOperationException or DbUpdateException) { }
+    }
+
     /// <summary>
     /// 개선 · 불편 접수(R-326): superadmin 에게. 익명이면 보낸 계정 · 이름 · 역할을 남기지 않고 지금 부서 이름만 남긴다(답장 불가).
     /// </summary>
@@ -221,9 +246,7 @@ public sealed class MessageService(ISystemDb systemDb, TimeProvider time)
     {
         if (Check(body) is var e and not MsgError.None) return e;
         await using var ctx = systemDb.Create(userName);
-        var to = await PlatformAdminNames(ctx).Where(n => n == FeedbackAccount).FirstOrDefaultAsync(ct)
-            ?? await (from ur in ctx.UserRoles join r in ctx.IdentityRoleRows on ur.RoleId equals r.Id join u in ctx.Users on ur.UserId equals u.Id
-                      where r.Name == IdentityRoles.SuperAdmin orderby u.InsertDT select u.UserName).FirstOrDefaultAsync(ct);
+        var to = await FeedbackTargetAsync(ctx, ct);
         if (to is null) return MsgError.NoRecipient;
         // 보내는 부서는 내 소속 부서만(남의 부서 이름으로 익명 쪽지를 보내지 못하게)
         var member = await (from d in ctx.DeptRoles.IgnoreQueryFilters() join u in ctx.Users on d.UserId equals u.Id where u.UserName == userName && d.TenantId == tenantId select d.Id).AnyAsync(ct);

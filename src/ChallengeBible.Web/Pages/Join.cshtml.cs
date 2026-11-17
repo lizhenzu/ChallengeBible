@@ -11,7 +11,7 @@ namespace ChallengeBible.Web.Pages;
 /// 찾기 칸 · 코드 칸 · 역할 고르기는 없다(2026-10-25 사용자): 신청은 참여자로 받고, 역할은 관리자가 승인 때 정한다.
 /// 목록에 안 보이는 부서는 관리자가 준 초대 주소(`/join?code=…`)로 들어오면 그 부서 칸이 보인다.
 /// </summary>
-public class JoinModel(JoinService join, AccountService accounts, LookupLimiter limiter) : PageModel, ITitled
+public class JoinModel(JoinService join, AccountService accounts, LookupLimiter limiter, MessageService msgs) : PageModel, ITitled
 {
     public string Title => "부서 참여 신청";
 
@@ -69,7 +69,16 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
             var (error, _) = TenantId != 0
                 ? await join.ApplyAsync(Me, TenantId, Code, RoleKind, ct, BMonth, BDay)
                 : await join.ApplyAsync(Me, Code, RoleKind, ct, BMonth, BDay);
-            if (error == JoinError.None) return RedirectToPage(new { Code = (string?)null, Q = (string?)null });
+            if (error == JoinError.None)
+            {
+                // 자동 알림(R-329, 2026-11-17 사용자): 부서 참여 신청을 superadmin 에게 쪽지로
+                var dept = TenantId != 0 ? (await join.ListedAsync(ct)).FirstOrDefault(d => d.TenantId == TenantId)?.Name ?? (await join.LookupAsync(Code ?? "", ct))?.Name : (await join.LookupAsync(Code ?? "", ct))?.Name;
+                var role = RoleChoices.FirstOrDefault(r => r.Kind == RoleKind).Label ?? RoleKind;
+                var who = User.DisplayName();
+                var d = MessageService.ShortDept(dept ?? "", false);
+                await msgs.NotifyAsync(Me, "부서 참여 신청", $"부서 참여 신청 · {who} → {(d.Length > 0 ? d : "부서")} · {role} 희망\n승인은 그 부서 관리자가 해요(관리 › 소속 관리 › 참여 신청).", ct);
+                return RedirectToPage(new { Code = (string?)null, Q = (string?)null });
+            }
             if (error is JoinError.NoRole or JoinError.BadRole) RoleError = JoinService.Message(error);
             else PickError = error == JoinError.AlreadyMember ? JoinService.Message(error) : "고른 부서에 신청할 수 없어요. 다시 골라 주세요.";
         }

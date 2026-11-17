@@ -207,4 +207,29 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
         Assert.DoesNotContain("<b>김철수</b><small>", page);   // 나는 빠진다
         if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(page, "52-쪽지쓰기-찾기");
     }
+
+    [Fact]
+    public async Task R329_회원_가입과_부서_참여_신청은_superadmin_에게_자동_알림_쪽지()
+    {
+        using (var raw = InMemoryDb.Raw(_db)) { foreach (var t in raw.Tenants) t.JoinListed = true; raw.SaveChanges(); }
+        var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var tok = TokenRx().Match(await c.GetStringAsync("/account/signup")).Groups[1].Value;
+        var r = await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
+        { ["__RequestVerificationToken"] = tok, ["DisplayName"] = "새친구", ["Email"] = "newbie@example.com", ["Password"] = "abcd1234!", ["PasswordConfirm"] = "abcd1234!" }));
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+        await Post(c, "/join", "/join?handler=Apply", new() { ["TenantId"] = _kids.Id.ToString(), ["RoleKind"] = SignupRoleKind.Student });
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var sys = raw.Messages.Where(m => m.Kind == MessageKinds.System).OrderBy(m => m.Id).ToList();
+            Assert.Equal(2, sys.Count);
+            Assert.All(sys, m => Assert.Equal(("superadmin", (string?)null), (m.RecipientUserName, m.SenderUserName)));
+            Assert.Contains("새 회원 가입 · 새친구", sys[0].Body);
+            Assert.Contains("부서 참여 신청 · 새친구 → 유년부 · 학생 희망", sys[1].Body);
+        }
+        var sa = await Login("superadmin@example.com");
+        var inbox = await sa.GetStringAsync("/messages");
+        Assert.Contains("도전!!! 알림", inbox);
+        var id = InMemoryDb.Raw(_db).Messages.First(m => m.Kind == MessageKinds.System).Id;
+        Assert.DoesNotContain(">답장<", await sa.GetStringAsync($"/messages/{id}"));   // 자동 알림은 답장 없음
+    }
 }
