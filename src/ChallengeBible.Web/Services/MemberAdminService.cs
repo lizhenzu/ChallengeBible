@@ -6,7 +6,12 @@ namespace ChallengeBible.Web.Services;
 
 /// <summary>Id = 신청이면 SignupApplication.Id, 승인이면 DeptRoleUserAssoc.Id.</summary>
 public sealed record MemberRow(int Id, string UserName, string DisplayName, string Email, string Status,
-    string? RoleCode, string RoleLabel, bool IsAdmin, DateTime RequestedUtc);
+    string? RoleCode, string RoleLabel, bool IsAdmin, DateTime RequestedUtc)
+{
+    /// <summary>신청에 쓴 생일(선택, 0 = 안 씀) — 승인 때 명부 후보 순서(확정 시안 명부계정연결 ③).</summary>
+    public int BMonth { get; init; }
+    public int BDay { get; init; }
+}
 
 public sealed record MemberFilter(string Status, string? Query, string? Role);
 
@@ -43,9 +48,9 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
             rows = (await (from a in ctx.SignupApplications
                            join u in ctx.Users on a.UserId equals u.Id
                            where a.Status == status
-                           select new { a.Id, a.UserName, a.FullName, u.Email, a.RoleKind, a.InsertDT }).ToListAsync(ct))
+                           select new { a.Id, a.UserName, a.FullName, u.Email, a.RoleKind, a.InsertDT, a.BMonth, a.BDay }).ToListAsync(ct))
                 .Select(x => new MemberRow(x.Id, x.UserName, x.FullName, x.Email ?? "", f.Status, UserRole.CodeForKind(x.RoleKind.Trim()),
-                    Label(UserRole.CodeForKind(x.RoleKind.Trim()), codes), false, x.InsertDT)).ToList();
+                    Label(UserRole.CodeForKind(x.RoleKind.Trim()), codes), false, x.InsertDT) { BMonth = x.BMonth, BDay = x.BDay }).ToList();
         }
         if (!string.IsNullOrWhiteSpace(f.Query))
         {

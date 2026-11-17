@@ -90,13 +90,13 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
         }));
 
         var html = await c.GetStringAsync("/join");
-        Assert.Contains($"value=\"{_kids.Id}\"", html);
-        Assert.DoesNotContain($"value=\"{_hidden.Id}\"", html);     // 숨긴 부서는 목록에 없다
+        Assert.Contains($"name=\"TenantId\" value=\"{_kids.Id}\"", html);
+        Assert.DoesNotContain($"name=\"TenantId\" value=\"{_hidden.Id}\"", html);     // 숨긴 부서는 목록에 없다
         Assert.DoesNotContain("OLDDPT", html);
         Assert.Contains("잠실새내교회", html);
 
         // 이름으로 거르기
-        Assert.DoesNotContain($"value=\"{_kids.Id}\"", await c.GetStringAsync("/join?Q=elem"));
+        Assert.DoesNotContain($"name=\"TenantId\" value=\"{_kids.Id}\"", await c.GetStringAsync("/join?Q=elem"));
 
         // 부서 주소(코드)로 들어오면 숨긴 부서도 골라진 채로 보인다
         var byCode = await c.GetStringAsync("/join?code=HBMID1");

@@ -4250,3 +4250,28 @@ body:has(.at-hd) .imp-bar .wrap { max-width: calc(760px + 2 * var(--gut)); }   /
 .gk-fin .gk-ck { width: 60px; height: 60px; margin: 0 auto; border-radius: 50%; background: #16A34A; color: #fff; font-size: 32px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
 .gk-fin h2 { margin: 0; font-size: 22px; }
 .gk-fin p { margin: 0; padding: 12px; border-radius: 12px; background: #EAF7EF; color: #15803D; font-size: 14.5px; font-weight: 800; line-height: 1.6; }
+
+/* 명부 줄에 계정 잇기(확정 시안 명부계정연결 ① ②, 2026-11-17) */
+.tag.lkh { background: #FFF7ED; color: #C2410C; }
+details.ask.lkacc[open] form { display: block; margin: 0; padding: 0; background: none; }
+.lka { display: grid; gap: 8px; margin-top: 8px; padding: 12px; border-radius: 12px; background: var(--accent-bg, #EFF6FF); }
+.lka > small { color: var(--dim); font-size: 12.5px; }
+.lka-f { display: grid !important; gap: 8px; }
+.lka-o { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border: 1px solid var(--rule); border-radius: 12px; background: var(--bg); cursor: pointer; }
+.lka-o:has(input:checked) { border: 2px solid var(--accent); }
+.lka-o span { display: grid; gap: 2px; }
+.lka-o small { color: var(--dim); font-size: 12px; font-weight: 500; }
+.lka-q { display: flex !important; gap: 6px; }
+.lka-q .in { flex: 1; min-width: 0; }
+/* 참여 신청 생일(선택, 확정 시안 명부계정연결 ③) */
+.jv4 .jbirth { display: grid; gap: 8px; margin-top: 16px; }
+.jv4 .jbirth h2 { margin: 0; font-size: 15px; font-weight: 800; }
+.jv4 .jbirth h2 small { font-size: 12.5px; font-weight: 500; color: var(--dim); }
+.jv4 .jb-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.cand-same { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 99px; background: #16A34A; color: #fff; font-size: 11px; font-weight: 800; vertical-align: 1px; }
+details.ask.lkacc form span { flex: none; color: inherit; font-weight: inherit; font-size: inherit; }
+.lka-o span b { color: var(--fg); font-weight: 800; }
+.who small .lkh-s { color: #C2410C; font-weight: 800; }
+.lka-o span { min-width: 0; }
+.lka-o small { white-space: normal; overflow-wrap: anywhere; }
+details.ask.lkacc form .lka-o > span { flex: 1 1 auto; min-width: 0; }

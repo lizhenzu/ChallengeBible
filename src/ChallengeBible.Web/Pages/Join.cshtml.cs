@@ -21,6 +21,9 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
     /// <summary>신청할 역할: S 학생 · T 교사 · P 학부모 · E 기타(유년부와 같다). 관리자가 승인할 때 바꿀 수 있다.</summary>
     [BindProperty] public string RoleKind { get; set; } = SignupRoleKind.Student;
     [BindProperty(SupportsGet = true)] public int Welcome { get; set; }
+    /// <summary>생일(선택, 확정 시안 명부계정연결 ③): 승인 때 명부 후보에서 같은 생일을 맨 위로. 0 = 안 씀.</summary>
+    [BindProperty] public int BMonth { get; set; }
+    [BindProperty] public int BDay { get; set; }
 
     /// <summary>목록(이름 거르기 적용) + 코드로 찾은 부서가 목록에 없으면 맨 앞에 더한다.</summary>
     public List<JoinTarget> Depts { get; private set; } = [];
@@ -64,8 +67,8 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
         {
             // 목록에서 고른 부서, 또는 고르지 않고 코드만 넣은 경우(예전 방식) 그 코드의 부서
             var (error, _) = TenantId != 0
-                ? await join.ApplyAsync(Me, TenantId, Code, RoleKind, ct)
-                : await join.ApplyAsync(Me, Code, RoleKind, ct);
+                ? await join.ApplyAsync(Me, TenantId, Code, RoleKind, ct, BMonth, BDay)
+                : await join.ApplyAsync(Me, Code, RoleKind, ct, BMonth, BDay);
             if (error == JoinError.None) return RedirectToPage(new { Code = (string?)null, Q = (string?)null });
             if (error is JoinError.NoRole or JoinError.BadRole) RoleError = JoinService.Message(error);
             else PickError = error == JoinError.AlreadyMember ? JoinService.Message(error) : "고른 부서에 신청할 수 없어요. 다시 골라 주세요.";

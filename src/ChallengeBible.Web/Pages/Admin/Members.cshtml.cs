@@ -18,6 +18,12 @@ public class MembersModel(MemberAdminService members, PeopleService people, Prom
     [BindProperty(SupportsGet = true)] public string? Q { get; set; }
     [BindProperty(SupportsGet = true)] public string? Role { get; set; }
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }
+    /// <summary>[계정과 연결] 이름 찾기(확정 시안 명부계정연결 ②): 이 명부 줄(lp)에 이름(lq)으로 찾은 계정.</summary>
+    [BindProperty(SupportsGet = true)] public int? Lp { get; set; }
+    [BindProperty(SupportsGet = true)] public string? Lq { get; set; }
+    /// <summary>이을 수 있는 계정(이 부서 승인 · 명부가 빈 줄). 이름 키 → 계정들.</summary>
+    public Dictionary<string, List<AccountCandidate>> Linkable { get; private set; } = [];
+    public List<AccountCandidate> LinkFound { get; private set; } = [];
 
     public List<MemberRow> Rows { get; private set; } = [];
     public Dictionary<string, int> Counts { get; private set; } = [];
@@ -64,6 +70,7 @@ public class MembersModel(MemberAdminService members, PeopleService people, Prom
         "psave" => "저장했어요",
         "pdel" => "명부에서 지웠어요",
         "punlink" => "연결을 풀었어요 · 이 계정은 새 명부 줄을 받았어요",
+        "plink" => "계정과 연결했어요 · 출석 · 생일 · 반 · 선물이 이 계정과 이어져요",
         _ => "",
     };
 
@@ -101,6 +108,10 @@ public class MembersModel(MemberAdminService members, PeopleService people, Prom
     public Task<IActionResult> OnPostDeletePersonAsync(int pid, CancellationToken ct) => Admin(() => PersonAct(pid, "pdel", people.DeleteAsync(pid, ct), ct));
 
     public Task<IActionResult> OnPostUnlinkPersonAsync(int pid, CancellationToken ct) => Admin(() => PersonAct(pid, "punlink", people.UnlinkAsync(Me, pid, ct), ct));
+
+    /// <summary>명부 줄(가입 안 함)에 계정 잇기(확정 시안 명부계정연결 ②, R-324). 부서 관리자만.</summary>
+    public Task<IActionResult> OnPostLinkAccountAsync(int pid, string? uid, CancellationToken ct) =>
+        Admin(() => PersonAct(pid, "plink", string.IsNullOrEmpty(uid) ? Task.FromResult(PeopleError.NotFound) : people.LinkAccountAsync(Me, pid, uid, ct), ct));
 
     private async Task<IActionResult> PersonAct(int pid, string ok, Task<PeopleError> work, CancellationToken ct)
     {
@@ -187,6 +198,11 @@ public class MembersModel(MemberAdminService members, PeopleService people, Prom
         if (Tab == MembershipStatus.Approved)
         {
             Roster = await people.RosterAsync(Q, Role, ct);
+            if (IsAdmin)
+            {
+                Linkable = (await people.LinkableAccountsAsync(null, ct)).GroupBy(a => PeopleService.Key(a.Name)).ToDictionary(g => g.Key, g => g.ToList());
+                if (Lp is not null && !string.IsNullOrWhiteSpace(Lq)) LinkFound = await people.LinkableAccountsAsync(Lq, ct);
+            }
             Guardians = await members.GuardiansAsync(ct);
             Links = await members.LinksAsync(ct);
         }
