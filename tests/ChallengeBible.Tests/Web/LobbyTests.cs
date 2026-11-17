@@ -123,7 +123,9 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("<a href=\"/join\">내 부서 참여</a>", home);                    // 계정 줄(로그아웃도 여기 있음)
         var today = await c.GetStringAsync("/welcome/today");                         // 미션 화면 = 지금 홈 아랫부분
         Assert.Contains("<section class=\"hj-card hj-pg m\"", today);
-        Assert.Contains("<a href=\"/welcome\">← 처음 화면</a>", today);
+        Assert.Contains("<a class=\"lb-btn p\" href=\"/join\">내 부서 참여 신청하기 →</a>", today);   // 확정 시안 임시부서-상단버튼 A: 신청 전
+        Assert.DoesNotContain("← 처음 화면", today);
+        if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(today, "44-임시부서-미션화면-신청전");
         Assert.Contains("class=\"wl wl-wide\"", today);                               // 미션 화면 머리말은 아래 카드와 같은 폭(데스크톱 정렬)
         Assert.DoesNotContain("wl-wide", home);                                       // 1 · 2단계는 좁은 카드 폭 그대로
         Assert.DoesNotContain("승인 기다리는 중", today);                                // 신청 전이라 표시 없음
@@ -149,7 +151,11 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.DoesNotContain("먼저 미션 해 보기", home);                                  // 1단계 전용 링크
         Assert.DoesNotContain("<section class=\"hj-card hj-pg m\"", home);
         var today = await c.GetStringAsync("/welcome/today");
-        Assert.Contains("승인 기다리는 중</span>", today);                                  // 미션 화면 맨 위 표시
+        Assert.Contains("<span class=\"lb-pill\">승인 기다리는 중</span>유년부</b>", today);   // 확정 시안 임시부서-상단버튼 A: 신청 후
+        Assert.Contains("선생님이 승인하면 바로 유년부로 바뀌어요.", today);
+        Assert.Contains("<a class=\"lb-btn s\" href=\"/join\">신청 확인 · 바꾸기 →</a>", today);
+        Assert.DoesNotContain("내 부서 참여 신청하기", today);
+        if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(today, "45-임시부서-미션화면-신청후");
         Assert.Contains("<section class=\"hj-card hj-pg m\"", today);
     }
 

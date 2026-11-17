@@ -409,3 +409,14 @@
 .hm main.hj { background: #EEF1F5; }
 .hm main.hj .wrap { gap: 16px; }
 .hm .hj-card:not(.hj-inv) { border: 1px solid #DCE1E8; border-radius: 16px; box-shadow: 0 2px 8px rgba(15, 23, 42, .07); }
+
+/* 임시 부서 미션 화면 위 안내 카드(확정 시안 임시부서-상단버튼 A, 2026-11-17) */
+.hm .lb-ban { display: grid; gap: 10px; padding: 14px; border-radius: 16px; }
+.hm .lb-ban.lb-go { background: #EFF6FF; border: 1px solid #BFDBFE; }
+.hm .lb-ban.lb-wait { background: #FFFBEB; border: 1px solid #FDE68A; }
+.hm .lb-ban p { margin: 0; font-size: 13.5px; font-weight: 500; line-height: 1.55; color: #374151; }
+.hm .lb-ban p b { display: block; margin-bottom: 2px; font-size: 15.5px; font-weight: 900; color: #111827; }
+.hm .lb-pill { display: inline-block; margin-right: 6px; padding: 2px 8px; border-radius: 99px; background: #F59E0B; color: #fff; font-size: 12px; font-weight: 800; vertical-align: 2px; }
+.hm .lb-btn { display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 12px; font-size: 15px; font-weight: 900; text-decoration: none; }
+.hm .lb-btn.p { background: #2563EB; color: #fff; }
+.hm .lb-btn.s { background: #fff; border: 1px solid #CBD5E1; color: #1F2937; }

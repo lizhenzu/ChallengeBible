@@ -80,12 +80,6 @@
                 </div>
             </div></section>
         }
-        else if (lobby)
-        {
-            <nav class="wl-back gut" aria-label="돌아가기"><div class="wrap">
-                <a href="/@slug">← 처음 화면</a>@if (Model.Waiting.Count > 0) { <span class="pill">승인 기다리는 중</span> }
-            </div></nav>
-        }
         @* 일반 부서: 부서 이름 줄은 지웠다(2026-11-03 사용자). 부서가 둘 이상이면 내 계정 > "부서 고르기 →" *@
     </div>
 
@@ -94,6 +88,25 @@
 @* 0076 확정 시안(hk.png): 말씀 한 줄 띠 → 인사 카드(나의 점수 성장) → 말씀 찾기 → 성경말씀 카드 → 성경통독 카드 → 가족팀 · 우리 부서 *@
 <main class="gut hj"><div class="wrap">
     @* 맨 위 말씀 한 줄 띠는 지웠다(2026-11-03 사용자) *@
+    @if (lobby)
+    {
+        @* 확정 시안 임시부서-상단버튼 A(2026-11-17): "← 처음 화면" 대신 할 일을 알려 주는 카드 — 신청 전 = 부서 참여 신청, 신청 후 = 승인 기다리는 중 *@
+        if (Model.Waiting.Count == 0)
+        {
+            <section class="lb-ban lb-go" aria-labelledby="lbT">
+                <p><b id="lbT">아직 내 부서가 없어요</b>내 부서에 참여 신청하면 선생님이 승인해요. 지금 한 미션 · 점수는 그 부서로 옮겨져요.</p>
+                <a class="lb-btn p" href="/join">내 부서 참여 신청하기 →</a>
+            </section>
+        }
+        else
+        {
+            var depts = string.Join(" · ", Model.Waiting.Select(w => w.StartsWith("잠실새내교회 ") ? w["잠실새내교회 ".Length..] : w));
+            <section class="lb-ban lb-wait" aria-labelledby="lbT">
+                <p><b id="lbT"><span class="lb-pill">승인 기다리는 중</span>@depts</b>선생님이 승인하면 바로 @depts@(Ro(depts)) 바뀌어요. 그동안 여기서 미션을 계속해요.</p>
+                <a class="lb-btn s" href="/join">신청 확인 · 바꾸기 →</a>
+            </section>
+        }
+    }
 
     @{ var name = User.DisplayName(); }
     <section class="hj-card hj-hi" aria-labelledby="hiT">
