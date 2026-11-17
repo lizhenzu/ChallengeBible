@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#E9ECF1;font-family:"Noto Sans KR",sans-serif;color:#111827}
+.row{display:flex;gap:24px;justify-content:center;padding:16px;flex-wrap:wrap;align-items:flex-start}.col{width:360px}
+.h{font:900 16px "Noto Sans KR";margin:6px 0 4px}.d{font-size:12.5px;color:#4B5563;margin:0 0 8px;line-height:1.5;min-height:56px}
+.ph{position:relative;height:700px;background:#EEF1F5;border-radius:22px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.top{background:#fff;display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #E5E7EB}.top .t{flex:1}.top small{display:block;font-size:11.5px;color:#6B7280}.top b{font-size:16px;font-weight:900;color:#2563EB}
+.mail{position:relative;width:38px;height:38px;border-radius:12px;background:#F3F4F6;display:flex;align-items:center;justify-content:center;font-size:18px}.mail i{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:99px;background:#DC2626;color:#fff;font-size:11px;font-style:normal;font-weight:900;display:flex;align-items:center;justify-content:center}
+.w{padding:12px;display:grid;gap:10px}.card{background:#fff;border:1px solid #DCE1E8;border-radius:16px;height:120px}
+.dim{position:absolute;inset:0;background:rgba(15,23,42,.5);display:flex;align-items:center;justify-content:center;padding:20px}
+.pop{width:100%;background:#fff;border-radius:20px;padding:20px 18px 16px;display:grid;gap:12px;box-shadow:0 20px 40px rgba(0,0,0,.25)}
+.pop .ic{width:56px;height:56px;margin:0 auto;border-radius:18px;background:#EFF6FF;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative}.pop .ic i{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;border-radius:99px;background:#DC2626;color:#fff;font-size:12px;font-style:normal;font-weight:900;display:flex;align-items:center;justify-content:center}
+.pop h2{margin:0;text-align:center;font-size:19px}.pop p{margin:0;text-align:center;font-size:13px;color:#4B5563}
+.li{display:grid;gap:6px}.m{display:grid;grid-template-columns:34px minmax(0,1fr);gap:1px 10px;align-items:center;padding:9px 10px;border-radius:12px;background:#F8FAFC;border:1px solid #E5E7EB}
+.m .av{grid-row:span 2;width:34px;height:34px;border-radius:50%;background:#EEF2FF;color:#4338CA;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center}.m .av.sys{background:#FEF3C7;color:#92400E}
+.m b{font-size:14px}.m b em{font-style:normal;font-size:11.5px;color:#6B7280;font-weight:700;margin-left:4px}.m span{font-size:12.5px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.more{text-align:center;font-size:12.5px;color:#6B7280}
+.acts{display:grid;grid-template-columns:1fr 2fr;gap:8px}.btn{display:flex;align-items:center;justify-content:center;height:48px;border-radius:12px;font-weight:900;font-size:15px}.p{background:#2563EB;color:#fff}.s{background:#fff;border:1px solid #CBD5E1}
+.chk{display:flex;gap:6px;align-items:center;justify-content:center;font-size:12.5px;color:#6B7280}.chk span{width:16px;height:16px;border:2px solid #9CA3AF;border-radius:4px}
+.bc{display:inline-block;margin-left:4px;padding:0 6px;border-radius:99px;background:#7C3AED;color:#fff;font-size:10.5px;font-weight:900;vertical-align:1px}
+.later{display:grid;gap:6px;padding-top:4px;border-top:1px solid #E5E7EB}.later small{text-align:center;font-size:12.5px;color:#6B7280;font-weight:700}
+.later div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.later span{height:38px;border:1px solid #D1D5DB;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#374151;background:#fff}
+.tst{background:#111827;color:#fff;border-radius:12px;padding:10px 12px;font-size:12.5px;font-weight:700;text-align:center}
+</style></head><body><div class="row">
+<div class="col"><div class="h">① 팝업 아래 "다음에 볼래요"</div><p class="d">[내일 · 1주일 후 · 3주일 후] 를 누르면 그때까지 팝업이 뜨지 않아요(새 쪽지가 와도). 쪽지는 그대로 쪽지함에 있고 ✉ 숫자는 계속 보여요.</p>
+<div class="ph"><div class="top"><span>☰</span><div class="t"><small>대한예수교장로회</small><b>잠실새내교회</b></div><span class="mail">✉<i>3</i></span></div>
+<div class="w"><div class="card"></div><div class="card"></div><div class="card"></div></div>
+<div class="dim"><div class="pop">
+<div class="ic">✉<i>3</i></div>
+<h2>새 쪽지 3개가 왔어요</h2>
+<div class="li">
+<div class="m"><span class="av">은혜</span><b>이은혜<em>유년부 · 교사</em></b><span>이번 주일 성경 암송 준비물 챙겨 와요!</span></div>
+<div class="m"><span class="av sys">관리</span><b>플랫폼 관리자<span class="bc">전체</span></b><span>이번 주일 성탄 행사 안내 …</span></div>
+<div class="m"><span class="av">철수</span><b>김철수<em>초등부 · 학생</em></b><span>선생님 감사합니다~</span></div>
+</div>
+<div class="acts"><span class="btn s">닫기</span><span class="btn p">쪽지함 보기</span></div>
+<div class="later"><small>다음에 볼래요 — 이 기간에는 팝업을 띄우지 않아요</small><div><span>내일</span><span>1주일 후</span><span>3주일 후</span></div></div>
+</div></div></div></div>
+
+<div class="col"><div class="h">② 누른 뒤</div><p class="d">팝업이 닫히고 "3주일 후(12월 8일)까지 팝업을 띄우지 않아요" 알림이 잠깐. 다시 보고 싶으면 ✉ 를 누르면 돼요.</p>
+<div class="ph"><div class="top"><span>☰</span><div class="t"><small>대한예수교장로회</small><b>잠실새내교회</b></div><span class="mail">✉<i>7</i></span></div>
+<div class="w"><div class="card"></div><div class="card"></div><div class="card"></div></div>
+<div style="position:absolute;left:16px;right:16px;bottom:24px"><div class="tst">3주일 후(12월 8일)까지 쪽지 팝업을 띄우지 않아요 · 쪽지는 ✉ 에서 볼 수 있어요</div></div></div></div>
+</div></body></html>
