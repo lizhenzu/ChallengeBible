@@ -36,7 +36,7 @@
 <body>
     @if (User.ImpersonatorId() is not null)
     {
-        @* 가장 중(ADR 0067, 확정 시안 플랫폼-가장): 모든 화면 맨 위 보라 띠 + [복귀] *@
+        @* 가장 중(ADR 0067, 확정 시안 플랫폼-가장): 모든 화면 보라 띠 + [복귀] — 2026-11-17 사용자: 맨 아래에 고정(site.css) *@
         <div class="imp-bar" role="status"><div class="wrap gut">
             <span><b>가장 중</b> · @Ui.Nim(User.DisplayName())으로 보고 있어요</span>
             @* 사람 바꾸기(ADR 0096, 확정 시안 사람바꾸기): 로그아웃 없이 다른 계정으로 *@

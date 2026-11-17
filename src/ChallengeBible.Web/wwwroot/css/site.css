@@ -4453,3 +4453,12 @@ details.ask.lkacc form .lka-o > span { flex: 1 1 auto; min-width: 0; }
 .fbp .fb textarea { min-height: 200px; font-size: 15px; line-height: 1.7; }
 .fbp .fb-mine { margin: 0; text-align: center; font-size: 13px; color: #6B7280; }
 .fbp .fb-mine a { font-weight: 800; color: var(--accent); }
+
+/* 가장 중 띠를 화면 맨 아래에 고정(2026-11-17 사용자) — 모든 화면. 띠 높이(--imp-h)만큼 본문 아래를 비우고, 아래에 붙는 탭 · 저장 버튼 · 알림은 띠 위로 올린다 */
+body:has(> .imp-bar) { --imp-h: 56px; padding-bottom: calc(var(--imp-h) + env(safe-area-inset-bottom, 0px)); }
+.imp-bar { position: fixed; top: auto; left: 0; right: 0; bottom: 0; padding-bottom: env(safe-area-inset-bottom, 0px); box-shadow: 0 -4px 14px rgba(40, 10, 60, .18); }
+.imp-bar .wrap { height: var(--imp-h, 56px); min-height: 0; }
+.imp-bar .wrap span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; line-height: 1.35; }
+body:has(> .imp-bar) :is(.mnav, .pr-save, .tabsb, .attTabs) { bottom: calc(var(--imp-h) + env(safe-area-inset-bottom, 0px)); }
+body:has(> .imp-bar) .cp-dock { bottom: calc(var(--imp-h) + env(safe-area-inset-bottom, 0px)); }
+body:has(> .imp-bar) :is(.toast, .mpop-toast) { margin-bottom: var(--imp-h); }
