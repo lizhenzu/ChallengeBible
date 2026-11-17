@@ -4374,3 +4374,16 @@ details.ask.lkacc form .lka-o > span { flex: 1 1 auto; min-width: 0; }
 .hm .fb .fb-ok { margin: 0 0 10px; padding: 9px 12px; border-radius: 10px; background: #EAF7EF; color: #15803D; font-size: 13px; font-weight: 800; }
 .hm .fb button { width: 100%; min-height: 48px; border: 0; border-radius: 12px; background: #2563EB; color: #fff; font: inherit; font-size: 15px; font-weight: 900; cursor: pointer; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* 모바일 점검 1(2026-11-17): 아이별 주별 출석표 — 휴대폰에서 버튼 줄 · 설명이 세로로 찌그러지던 것 */
+.ybm .dk-tools button { white-space: nowrap; }
+@media (max-width: 640px) {
+  .ybm .dk-st { flex-wrap: wrap; gap: 10px 22px; }
+  .ybm .dk-tools { flex-wrap: wrap; }
+  .ybm .dk-tools .chips { flex-basis: 100%; overflow-x: auto; }
+  .ybm .dk-tools input { flex: 1 1 100%; height: 44px; }
+  .ybm .dk-tools .seg { flex: 1 1 100%; }
+  .ybm .dk-tools .seg button { flex: 1; min-height: 40px; }
+  .ybm .dk-hint { flex-direction: column; gap: 4px; font-size: 12.5px; }
+  .ybm .dk-hint .lg { white-space: normal; line-height: 1.8; }
+}
