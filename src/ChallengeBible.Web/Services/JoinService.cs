@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,6 +6,8 @@ namespace ChallengeBible.Web.Services;
 
 public sealed record JoinTarget(int TenantId, string Name, bool MissionEnabled, bool ReadingEnabled)
 {
+    /// <summary>성경필사(ADR 0099) — 신청 카드에 세 프로그램 모두 보인다(2026-11-17).</summary>
+    public bool CopyEnabled { get; init; }
     public string ThemeColor { get; init; } = "blue";
 }
 
@@ -29,7 +31,7 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
         await using var ctx = db.Create();
         return await ctx.Tenants
             .Where(t => t.JoinCode == c && t.Status == TenantStatus.Active && !t.IsLobby)
-            .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor })
+            .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor, CopyEnabled = t.CopyEnabled })
             .SingleOrDefaultAsync(ct);
     }
 
@@ -37,11 +39,11 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
     public async Task<List<JoinTarget>> ListedAsync(CancellationToken ct = default)
     {
         await using var ctx = db.Create();
-        return await ctx.Tenants
+        return (await ctx.Tenants
             .Where(t => t.JoinListed && t.Status == TenantStatus.Active && !t.IsLobby)
-            .OrderBy(t => t.Name)
-            .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor })
-            .ToListAsync(ct);
+            .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor, CopyEnabled = t.CopyEnabled })
+            .ToListAsync(ct))
+            .OrderBy(t => DeptOrder.Key(t.Name)).ThenBy(t => t.Name, StringComparer.Ordinal).ToList();   // 나이순 영아부 → … → 고등부(2026-11-17 사용자)
     }
 
     /// <summary>
@@ -55,7 +57,7 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
         await using (var ctx = db.Create())
             target = await ctx.Tenants
                 .Where(t => t.Id == tenantId && t.Status == TenantStatus.Active && !t.IsLobby && (t.JoinListed || t.JoinCode == c))
-                .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled))
+                .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { CopyEnabled = t.CopyEnabled })
                 .SingleOrDefaultAsync(ct);
         return await ApplyToAsync(userName, target, roleKind, ct);
     }

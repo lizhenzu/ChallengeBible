@@ -98,7 +98,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         var t = new Tenant
         {
             Name = name, Slug = slug, JoinCode = await UniqueCodeAsync(ctx, ct), TimeZoneId = input.TimeZoneId, ThemeColor = input.ThemeColor,
-            MissionEnabled = input.Mission, ReadingEnabled = input.Reading, CopyEnabled = input.Copy, CreatedUtc = time.GetUtcNow().UtcDateTime,
+            MissionEnabled = input.Mission, ReadingEnabled = input.Reading, CopyEnabled = input.Copy, JoinListed = true, CreatedUtc = time.GetUtcNow().UtcDateTime,
         };
         ctx.Tenants.Add(t);
         await ctx.SaveChangesAsync(ct);

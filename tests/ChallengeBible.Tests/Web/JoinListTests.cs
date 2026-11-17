@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -45,6 +45,21 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
     {
         var listed = await Service().ListedAsync();
         Assert.Equal(new[] { _elem.Id, _kids.Id }.Order(), listed.Select(t => t.TenantId).Order());
+    }
+
+    /// <summary>2026-11-17 사용자: 나이순(영아부 → … → 고등부) · 세 프로그램(필사 포함)이 카드에 보인다.</summary>
+    [Fact]
+    public async Task 목록은_나이순이고_필사도_보인다()
+    {
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.Tenants.Single(t => t.Id == _kids.Id).Name = "잠실새내교회 고등부";
+            raw.Tenants.Single(t => t.Id == _elem.Id).Name = "잠실새내교회 영아부";
+            raw.SaveChanges();
+        }
+        var listed = await Service().ListedAsync();
+        Assert.Equal(new[] { _elem.Id, _kids.Id }, listed.Select(t => t.TenantId));   // 영아부가 고등부보다 먼저
+        Assert.All(listed, t => Assert.True(t.CopyEnabled));
     }
 
     [Fact]

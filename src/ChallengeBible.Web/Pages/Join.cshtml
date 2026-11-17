@@ -1,4 +1,4 @@
-@page "/join"
+﻿@page "/join"
 @model JoinModel
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Pages.Platform
@@ -67,7 +67,7 @@
                             <span class="tx">
                                 @if (church.Length > 0) { <small>@church</small> }
                                 <b>@name</b>
-                                @if (mine is null) { <span class="pg">@if (d.MissionEnabled) { <span>도전!!!성경말씀</span> }@if (d.ReadingEnabled) { <span>도전!!!성경통독</span> }</span> }
+                                @if (mine is null) { <span class="pg">@if (d.MissionEnabled) { <span>도전!!!성경말씀</span> }@if (d.ReadingEnabled) { <span>도전!!!성경통독</span> }@if (d.CopyEnabled) { <span>도전!!!성경필사</span> }</span> }
                             </span>
                             @if (mine is not null) { <span class="st">@mine</span> }
                             else { <span class="rd" aria-hidden="true"></span> }
