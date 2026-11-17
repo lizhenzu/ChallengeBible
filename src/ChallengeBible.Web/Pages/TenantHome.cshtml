@@ -210,51 +210,40 @@
 
     @if (t.ReadingEnabled)
     {
+        @* 확정 시안 홈-통독필사-0펼침(2026-11-17): 시작 전에도 펼친 모양 · 숫자 0(창세기 1장 1절부터). 홈을 열어도 회차는 만들지 않는다 *@
+        var readCh = rd?.ReadChapters ?? 0;
+        var pct = ReadingSummary.Percent(readCh, ReadingSummary.Total);
+        var (rBook, rCh, rV) = rd is null ? ((byte)1, (short)1, (short)1) : (rd.Resume.BookId, rd.Resume.Chapter, rd.Resume.Verse);
         <section class="hj-card hj-pg r" aria-labelledby="prT">
-            <h2 id="prT"><a href="/@slug/reading">📖 도전!!! 성경통독</a>@if (rd is not null) { <small>@(rd.RoundNo)독째@(rd.TodayChapters > 0 ? $" · 오늘 {rd.TodayChapters}장" : "")</small> }</h2>
-            @if (rd is null)
-            {
-                <a class="hj-box r wide" href="/@slug/reading"><small>아직 시작 전이에요</small><b>통독 시작하기 →</b><span>창세기 1장부터 내 속도로 읽어요 · 점수는 없어요</span></a>
-            }
-            else
-            {
-                var pct = ReadingSummary.Percent(rd.ReadChapters, ReadingSummary.Total);
-                var book = rd.Books.First(b => b.BookId == rd.Resume.BookId);
-                <div class="hj-row">
-                    <span class="hj-ring b" role="img" aria-label="전체 진도 @(pct.ToString("0.0"))%">
-                        <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-blue-l)" stroke-width="8" /><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-blue)" stroke-width="8" stroke-linecap="round" stroke-dasharray="@((188.5 * Math.Max(pct, rd.ReadChapters > 0 ? 1 : 0) / 100).ToString("0.#", inv)) 188.5" transform="rotate(-90 38 38)" /></svg>
-                        <span><b class="num">@pct.ToString("0.0")</b>%</span>
-                    </span>
-                    <a class="hj-box r" href="/@slug/reading/read/@rd.Resume.BookId/@rd.Resume.Chapter">
-                        <small>이어 읽을 곳</small><b>@book.Name</b><span>@(rd.Resume.Chapter)@(book.BookId == 19 ? "편" : "장") @(rd.Resume.Verse)절 ›</span>
-                    </a>
-                </div>
-                <div class="hj-n3">
-                    <div class="r"><b class="num">@rd.ReadChapters.ToString("N0")</b><small>읽은 장</small></div>
-                    <div class="l"><b class="num">@((ReadingSummary.Total - rd.ReadChapters).ToString("N0"))</b><small>남은 장</small></div>
-                    <div class="t"><b class="num">@ReadingSummary.Total.ToString("N0")</b><small>전체</small></div>
-                </div>
-            }
+            <h2 id="prT"><a href="/@slug/reading">📖 도전!!! 성경통독</a><small>@(rd?.RoundNo ?? 1)독째@(rd is { TodayChapters: > 0 } ? $" · 오늘 {rd.TodayChapters}장" : "")</small></h2>
+            <div class="hj-row">
+                <span class="hj-ring b" role="img" aria-label="전체 진도 @(pct.ToString("0.0"))%">
+                        <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-blue-l)" stroke-width="8" />@if (readCh > 0) {<circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-blue)" stroke-width="8" stroke-linecap="round" stroke-dasharray="@((188.5 * Math.Max(pct, 1) / 100).ToString("0.#", inv)) 188.5" transform="rotate(-90 38 38)" />}</svg>
+                    <span><b class="num">@pct.ToString("0.0")</b>%</span>
+                </span>
+                <a class="hj-box r" href="/@slug/reading/read/@rBook/@rCh">
+                    <small>이어 읽을 곳</small><b>@BibleBooks.NameOf(rBook)</b><span>@(rCh)@(rBook == 19 ? "편" : "장") @(rV)절 ›</span>
+                </a>
+            </div>
+            <div class="hj-n3">
+                <div class="r"><b class="num">@readCh.ToString("N0")</b><small>읽은 장</small></div>
+                <div class="l"><b class="num">@((ReadingSummary.Total - readCh).ToString("N0"))</b><small>남은 장</small></div>
+                <div class="t"><b class="num">@ReadingSummary.Total.ToString("N0")</b><small>전체</small></div>
+            </div>
         </section>
     }
 
     @if (Model.CopyData is { } cp)
     {
-        @* 확정 시안 홈-필사카드(2026-11-16): 성경말씀 · 성경통독 카드와 같은 모양 — 원(전체 진도) · 이어 쓸 곳 · 신약 · 구약 · 쓴 절. 색은 필사 테마(갈색) *@
+        @* 확정 시안 홈-필사카드(2026-11-16) · 홈-통독필사-0펼침(2026-11-17, 쓴 절 0 이어도 펼침): 성경말씀 · 성경통독 카드와 같은 모양 — 원(전체 진도) · 이어 쓸 곳 · 신약 · 구약 · 쓴 절. 색은 필사 테마(갈색) *@
         var cinv = System.Globalization.CultureInfo.InvariantCulture;
         var spot = $"/{slug}/copy/write/{cp.Resume.BookId}/{cp.Resume.Chapter}?v={cp.Resume.Verse}";
         var unit = cp.Resume.BookId == 19 ? "편" : "장";
         <section class="hj-card hj-pg c" aria-labelledby="pcT">
             <h2 id="pcT"><a href="/@slug/copy">✍️ 도전!!! 성경필사</a>@if (cp.TodayDone > 0) { <small>오늘 @(cp.TodayDone.ToString("N0"))절</small> }</h2>
-            @if (cp.Done == 0)
-            {
-                <a class="hj-box c wide" href="@spot"><small>아직 시작 전이에요</small><b>필사 시작하기 →</b><span>@cp.Resume.Name @(cp.Resume.Chapter)@unit @(cp.Resume.Verse)절부터 따라 써요 · 점수는 없어요</span></a>
-            }
-            else
-            {
                 <div class="hj-row">
                     <span class="hj-ring c" role="img" aria-label="전체 진도 @(cp.All.ToString("0.0"))%">
-                        <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-copy-l)" stroke-width="8" /><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-copy)" stroke-width="8" stroke-linecap="round" stroke-dasharray="@((188.5 * Math.Max(cp.All, 1) / 100).ToString("0.#", cinv)) 188.5" transform="rotate(-90 38 38)" /></svg>
+                        <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-copy-l)" stroke-width="8" />@if (cp.Done > 0) {<circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-copy)" stroke-width="8" stroke-linecap="round" stroke-dasharray="@((188.5 * Math.Max(cp.All, 1) / 100).ToString("0.#", cinv)) 188.5" transform="rotate(-90 38 38)" />}</svg>
                         <span><b class="num">@cp.All.ToString("0.0")</b>%</span>
                     </span>
                     <a class="hj-box c" href="@spot"><small>이어 쓸 곳</small><b>@cp.Resume.Name</b><span>@(cp.Resume.Chapter)@unit @(cp.Resume.Verse)절부터 ›</span></a>
@@ -264,7 +253,6 @@
                     <div class="c2"><b class="num">@cp.Old.ToString("0.0")%</b><small>구약</small></div>
                     <div class="t"><b class="num">@cp.Done.ToString("N0")</b><small>쓴 절</small></div>
                 </div>
-            }
         </section>
     }
 

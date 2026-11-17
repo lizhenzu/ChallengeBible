@@ -97,7 +97,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     {
         var (c, me) = await Member("cheolsu", Roles.Participant);
         var home = await c.GetStringAsync("/jamsil-kids");
-        Assert.Contains("통독 시작하기", home);
+        Assert.Contains("<small>이어 읽을 곳</small><b>창세기</b><span>1장 1절 ›</span>", home);   // 확정 시안 홈-통독필사-0펼침: 시작 전에도 0 으로 펼침
+        Assert.Contains("<b class=\"num\">0</b><small>읽은 장</small>", home);
         Assert.Contains("href=\"/jamsil-kids/reading\"", home);
         using var raw = InMemoryDb.Raw(_db);
         Assert.False(raw.ReadingRounds.Any(r => r.UserName == me));               // R-153: 회차는 통독 화면에서 처음 열린다
