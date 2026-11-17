@@ -88,7 +88,8 @@ public partial class ContentPageTests : IClassFixture<WebApplicationFactory<Prog
         var shown = function (el) { return !!el && el.getClientRects().length > 0; };
         // 휴대폰 폭(360px)에서 내용이 오른쪽으로 넘치지 않는지 본다
         document.documentElement.style.width = '360px';
-        var overflow = function () { return qa('.cp *').filter(function (e) { return shown(e) && e.getBoundingClientRect().right > 361; }).length; };
+        // 날짜 띠(.cp-strip)는 옆으로 밀어 보는 칸이라 그 안의 날짜는 빼고, 띠 상자 자체는 센다(2026-11-17 시안 A)
+        var overflow = function () { return qa('.cp *').filter(function (e) { return shown(e) && e.getBoundingClientRect().right > 361 && !(e.parentElement && e.parentElement.closest('.cp-strip')); }).length; };
 
         """;
 
