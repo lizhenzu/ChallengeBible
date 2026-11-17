@@ -7,9 +7,11 @@
    교사는 명부 탭만, 올리기 · 고치기만 한다. 연락처는 이 화면(부서 관리자 · 교사)에서만 보인다. *@
 @{
     var roster = Model.Tab == MembershipStatus.Approved;
-    var picking = roster && Model.IsAdmin;
+    var canPromo = roster && Model.IsAdmin;
+    var picking = canPromo && (Model.Promo || Model.Picks.Count > 0 || Model.PromoError is not null || Model.PromoTarget is not null);   // 확정 시안 명부-반응형: [진급 보내기]를 눌렀을 때만
     var slug = Model.Tenant.Current.Slug;
-    string Short(string n) => n.Length > 1 ? n[1..] : n;
+    // 동그라미 글자: 성을 뺀 이름 두 글자까지, 끝의 " 선생님"은 뺀다(확정 시안 명부-반응형)
+    string Short(string n) { var b = n.EndsWith(" 선생님") ? n[..^4] : n; b = b.Length > 1 ? b[1..] : b; return b.Length > 2 ? b[..2] : b; }
 }
 @functions {
     // 생일 고르기: 월 · 일(연도 없음). 비우면 "생일 없음"
@@ -51,6 +53,7 @@
 
     @if (roster)
     {
+        <div class="rost-acts">
         <details class="pp-add" open="@(Model.AddOpen is not null)"><summary class="btn p sm">+ 명부에 올리기</summary>
             <form method="post" asp-page-handler="AddPerson" asp-route-slug="@slug" class="pp-form">
                 @if (Model.AddOpen is not null && Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
@@ -67,7 +70,15 @@
             </form>
         </details>
 
-        <ul class="list">
+        @if (canPromo && Model.Roster.Any(r => r.Linked))
+        {
+            if (picking) { <a class="btn s sm" href="?Tab=@Model.Tab&Q=@Model.Q&Role=@Model.Role">진급 그만</a> }
+            else { <a class="btn s sm" href="?Tab=@Model.Tab&Q=@Model.Q&Role=@Model.Role&Promo=true#promoT">진급 보내기</a> }
+        }
+        </div>
+        <p class="rost-n">@(string.IsNullOrWhiteSpace(Model.Q) && string.IsNullOrEmpty(Model.Role) ? $"모두 {Model.Roster.Count}명" : $"찾은 사람 {Model.Roster.Count}명")</p>
+        <ul class="list rost">
+            <li class="rost-hd" aria-hidden="true"><span>이름</span><span>역할 · 가입</span><span>생일 · 연락처 · 계정</span></li>
             @if (Model.Roster.Count == 0) { <li class="empty">찾는 사람이 없어요.</li> }
             @foreach (var r in Model.Roster)
             {
@@ -86,9 +97,11 @@
                     <details open="@open">
                         <summary class="line">
                             <span class="av">@Short(r.Name)</span>
-                            <span class="who"><b>@r.Name @if (self) { <span class="tag">나</span> }</b>
-                                <small><span class="rl-m">@r.RoleLabel@(r.IsAdmin ? " · 관리자" : "") · </span>@if (sameAcc.Count > 0) { <span class="lkh-s">같은 이름 계정 있음 · </span> }@sub</small></span>
-                            <span class="tags"><span class="tag">@r.RoleLabel</span>@if (r.IsAdmin) { <span class="tag r-TenantAdmin">관리자</span> }@if (r.Linked) { <span class="tag reg">가입</span> } else { <span class="tag unreg">가입 안 함</span>@if (sameAcc.Count > 0) { <span class="tag lkh">같은 이름 계정 있음</span> } }</span>
+                            <span class="who">
+                                <b class="nm">@r.Name@if (r.ClassText is { } cTxt) { <em>@cTxt</em> }@if (self) { <span class="tag">나</span> }</b>
+                                <span class="chips"><span class="c @(UserRole.KindOf(r.RoleCode) switch { UserRoleKind.Student => "st", UserRoleKind.Parent => "pa", _ => "t" })">@r.RoleLabel</span>@if (r.IsAdmin) { <span class="c adm">관리자</span> }@if (r.Linked) { <span class="c ok">가입</span> } else { <span class="c no">가입 안 함</span> }@if (sameAcc.Count > 0) { <span class="c lk">같은 이름 계정 있음</span> }</span>
+                                <small class="sub">생일 @(r.BirthMonth is null ? "없음" : r.Birthday) · @(r.Phone1 ?? "연락처 없음")@if (r.Linked) { <text> · 계정 </text><span class="id">@r.UserName</span> }</small>
+                            </span>
                             <span class="chev" aria-hidden="true">›</span>
                         </summary>
                         <div class="ed">

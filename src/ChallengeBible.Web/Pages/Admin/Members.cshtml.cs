@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
@@ -19,6 +19,8 @@ public class MembersModel(MemberAdminService members, PeopleService people, Prom
     [BindProperty(SupportsGet = true)] public string? Role { get; set; }
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }
     /// <summary>[계정과 연결] 이름 찾기(확정 시안 명부계정연결 ②): 이 명부 줄(lp)에 이름(lq)으로 찾은 계정.</summary>
+    /// <summary>[진급 보내기]를 눌렀을 때만 체크칸(확정 시안 명부-반응형).</summary>
+    [BindProperty(SupportsGet = true)] public bool Promo { get; set; }
     [BindProperty(SupportsGet = true)] public int? Lp { get; set; }
     [BindProperty(SupportsGet = true)] public string? Lq { get; set; }
     /// <summary>이을 수 있는 계정(이 부서 승인 · 명부가 빈 줄). 이름 키 → 계정들.</summary>

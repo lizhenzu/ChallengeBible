@@ -4275,3 +4275,38 @@ details.ask.lkacc form span { flex: none; color: inherit; font-weight: inherit; 
 .lka-o span { min-width: 0; }
 .lka-o small { white-space: normal; overflow-wrap: anywhere; }
 details.ask.lkacc form .lka-o > span { flex: 1 1 auto; min-width: 0; }
+
+/* 소속 관리 › 명부 반응형(확정 시안 명부-반응형, 2026-11-17): 휴대폰 = 카드(이름 · 반 / 칩 / 생일 · 연락처 · 계정 줄바꿈), 넓은 화면 = 표처럼 세 칸 */
+.rost-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+.rost-acts > details[open] { flex-basis: 100%; }
+.rost-n { margin: 0; font-size: 13px; color: #4B5563; }
+.list.rost { border: 0; border-radius: 0; overflow: visible; display: grid; gap: 8px; }
+.list.rost > li + li { border-top: 0; }
+.list.rost > li.row { position: relative; border: 1px solid #DCE1E8; border-radius: 16px; background: var(--bg); }
+.list.rost > li.empty { border: 1px solid #DCE1E8; border-radius: 16px; }
+.rost-hd { display: none; }
+.rost .line { align-items: center; min-height: 0; padding: 12px 14px; }
+.rost .av { width: 44px; height: 44px; font-size: 14px; background: #E8F3EE; color: #1E7A55; line-height: 1; }
+.rost .who { gap: 4px; }
+.rost .who .nm { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; padding-right: 64px; font-size: 16.5px; font-weight: 900; line-height: 1.3; overflow-wrap: anywhere; }
+.rost .who .nm em { font-style: normal; font-size: 12.5px; font-weight: 700; color: #4B5563; }
+.rost .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.rost .chips .c { font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: #F3F4F6; color: #374151; }
+.rost .chips .c.t { background: #EEF2FF; color: #4338CA; }
+.rost .chips .c.st { background: #ECFDF5; color: #047857; }
+.rost .chips .c.pa { background: #F0F9FF; color: #0369A1; }
+.rost .chips .c.adm { background: #FCE7F3; color: #9D174D; }
+.rost .chips .c.ok { background: #EAF7EF; color: #15803D; }
+.rost .chips .c.no { background: #FEF3C7; color: #92400E; }
+.rost .chips .c.lk { background: #FFF7ED; color: #C2410C; }
+.rost .who small.sub { font-size: 12.5px; color: #4B5563; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; line-height: 1.5; }
+.rost .who small.sub .id { color: #374151; font-weight: 700; }
+.list.rost li.row > .row-more { top: 12px; right: 36px; font-size: 13.5px; }
+.list.rost li.row.pickable > .pick { margin-top: 24px; }
+@media (min-width: 900px) {
+  .rost-hd { display: grid; grid-template-columns: minmax(180px, 1.2fr) minmax(160px, 1fr) minmax(0, 2fr); gap: 12px; padding: 0 110px 0 72px; font-size: 12.5px; font-weight: 800; color: #6B7280; }
+  .rost .who { display: grid; grid-template-columns: minmax(180px, 1.2fr) minmax(160px, 1fr) minmax(0, 2fr); align-items: center; gap: 12px; padding-right: 80px; }
+  .rost .who .nm { padding-right: 0; }
+  .list.rost li.row > .row-more { top: 18px; }
+  .list.rost li.row.pickable > .pick { margin-top: 0; align-self: center; }
+}

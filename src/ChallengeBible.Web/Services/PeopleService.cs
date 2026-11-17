@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Tenancy;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +12,8 @@ public sealed record RosterRow(int PersonId, string Name, string? RoleCode, stri
     /// <summary>꼬리표 한 줄(이전 부서 · 반 · 담임 · 전화). 반 이동 전이면 null.</summary>
     public string? Prev { get; init; }
     public string Birthday => PeopleService.BirthdayText(BirthMonth, BirthDay);
+    /// <summary>지금 반(가장 최근 반 묶음) · 담임이면 "1반 담임"(확정 시안 명부-반응형).</summary>
+    public string? ClassText { get; init; }
 }
 
 /// <summary>명부에 넣고 고치는 값. 연결된 줄은 생일 · 연락처만 쓴다.</summary>
@@ -48,13 +50,20 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
         var linked = (await (from d in ctx.DeptRoles join u in ctx.Users on d.UserId equals u.Id
                              select new { d.Id, d.UserId, d.RoleCode, u.UserName, u.LastName, u.FirstName, u.Email }).ToListAsync(ct))
             .ToDictionary(x => x.UserId!);
+        var classes = (await (from m in ctx.ClassMembers join c in ctx.Classes on m.ClassId equals c.Id
+                              select new { m.PersonId, c.Name, m.IsTeacher, m.TermId }).ToListAsync(ct))
+            .GroupBy(x => x.PersonId).ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.TermId).First());
         var rows = people.Select(p =>
         {
             var m = p.UserId is null ? null : linked.GetValueOrDefault(p.UserId);
             var code = m is null ? p.RoleCode : m.RoleCode;
             var name = m is null ? p.Name : AppUser.FullName(m.LastName, m.FirstName);
             return new RosterRow(p.Id, name, code, Label(code, codes), p.BirthMonth, p.BirthDay, p.Phone1, p.Phone2,
-                m?.Id, m?.UserName, m?.Email, m is not null && adminIds.Contains(m.UserId!), p.CreatedUtc) { Prev = PrevText(p) };
+                m?.Id, m?.UserName, m?.Email, m is not null && adminIds.Contains(m.UserId!), p.CreatedUtc)
+            {
+                Prev = PrevText(p),
+                ClassText = classes.TryGetValue(p.Id, out var cl) ? cl.Name + (cl.IsTeacher ? " 담임" : "") : null,
+            };
         }).ToList();
         if (!string.IsNullOrWhiteSpace(query))
         {
