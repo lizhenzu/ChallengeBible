@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -236,7 +236,7 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
         var approved = await (from d in ctx.DeptRoles.IgnoreQueryFilters()
                               where d.UserId == userId
                               join t in ctx.Tenants on d.TenantId equals t.Id
-                              select new MyMembership(d.Id, t.Id, t.Slug, t.Name, MembershipStatus.Approved, t.Status == TenantStatus.Active, t.MissionEnabled, t.ReadingEnabled, d.InsertDT, t.IsLobby)).ToListAsync(ct);
+                              select new MyMembership(d.Id, t.Id, t.Slug, t.Name, MembershipStatus.Approved, t.Status == TenantStatus.Active, t.MissionEnabled, t.ReadingEnabled, d.InsertDT, t.IsLobby) { RoleCode = d.RoleCode }).ToListAsync(ct);
         var pending = await (from a in ctx.SignupApplications.IgnoreQueryFilters()
                              where a.UserName == userName && a.Status != SignupStatus.Approved
                              join t in ctx.Tenants on a.TenantId equals t.Id
@@ -253,4 +253,8 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
 }
 
 public sealed record MyMembership(int MembershipId, int TenantId, string Slug, string TenantName, string Status,
-    bool TenantActive, bool MissionEnabled, bool ReadingEnabled, DateTime RequestedUtc, bool IsLobby = false);
+    bool TenantActive, bool MissionEnabled, bool ReadingEnabled, DateTime RequestedUtc, bool IsLobby = false)
+{
+    /// <summary>소속(승인)일 때 그 부서의 역할 코드(T1001 학생 …). 신청 줄은 null.</summary>
+    public string? RoleCode { get; init; }
+}

@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +38,8 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
     public bool InLobby { get; private set; }
     /// <summary>이미 소속 · 신청한 부서 → 표시 문구(신청할 수 없음, 0027).</summary>
     public Dictionary<int, string> Mine { get; private set; } = [];
+    /// <summary>임시 부서가 아닌 소속(한 사람 한 부서, ADR 0090) — 있으면 신청 목록 대신 "이미 함께하고 있어요"(2026-11-18 사용자).</summary>
+    public MyMembership? Member { get; private set; }
 
     public static readonly (string Kind, string Label)[] RoleChoices =
         [(SignupRoleKind.Student, "학생"), (SignupRoleKind.Teacher, "교사"), (SignupRoleKind.Parent, "학부모"), (SignupRoleKind.Etc, "기타")];
@@ -80,7 +82,15 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
                 return RedirectToPage(new { Code = (string?)null, Q = (string?)null });
             }
             if (error is JoinError.NoRole or JoinError.BadRole) RoleError = JoinService.Message(error);
-            else PickError = error == JoinError.AlreadyMember ? JoinService.Message(error) : "고른 부서에 신청할 수 없어요. 다시 골라 주세요.";
+            else if (error == JoinError.AlreadyMember)
+            {
+                // 고른 부서가 아니라 다른 부서 소속 · 신청 때문일 수 있다 — 실제 부서 이름으로 알린다(2026-11-18)
+                var mine = await accounts.MyMembershipsAsync(Me, ct);
+                var other = mine.FirstOrDefault(m => !m.IsLobby && m.Status == MembershipStatus.Approved) ?? mine.FirstOrDefault(m => m.Status == MembershipStatus.Requested);
+                PickError = other is null ? JoinService.Message(error)
+                    : $"이미 {Split(other.TenantName).Dept}{(other.Status == MembershipStatus.Requested ? "에 신청해 승인을 기다리고" : "에 소속돼")} 있어요. 한 사람은 한 부서에만 참여할 수 있어요.";
+            }
+            else PickError = "고른 부서에 신청할 수 없어요. 다시 골라 주세요.";
         }
         else PickError = "부서를 먼저 골라 주세요.";
         await LoadMineAsync(ct);
@@ -119,6 +129,7 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
         var mine = await accounts.MyMembershipsAsync(Me, ct);
         Waiting = mine.Where(m => m.Status == MembershipStatus.Requested).ToList();
         InLobby = mine.Any(m => m.IsLobby && m.Status == MembershipStatus.Approved);
+        Member = mine.Where(m => !m.IsLobby && m.Status == MembershipStatus.Approved).OrderByDescending(m => m.TenantActive).FirstOrDefault();
         Mine = mine.ToDictionary(m => m.TenantId, m => m.Status switch
         {
             MembershipStatus.Approved => "이미 소속",

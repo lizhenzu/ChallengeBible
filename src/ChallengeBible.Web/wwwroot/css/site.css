@@ -4462,3 +4462,10 @@ body:has(> .imp-bar) { --imp-h: 56px; padding-bottom: calc(var(--imp-h) + env(sa
 body:has(> .imp-bar) :is(.mnav, .pr-save, .tabsb, .attTabs) { bottom: calc(var(--imp-h) + env(safe-area-inset-bottom, 0px)); }
 body:has(> .imp-bar) .cp-dock { bottom: calc(var(--imp-h) + env(safe-area-inset-bottom, 0px)); }
 body:has(> .imp-bar) :is(.toast, .mpop-toast) { margin-bottom: var(--imp-h); }
+
+/* 참여 신청: 이미 다른 부서 소속일 때(2026-11-18 사용자 확정 시안) — 초록 상자 · [○○로 가기]는 늘 진하게 */
+.jv4 .jmem { border-color: #16A34A; background: #F0FAF4; }
+.jv4 .jmem .tag { background: #16A34A; color: #fff; }
+.jv4 .jmem .mk { background: var(--accent); }
+.jv4 .jmem .st { color: #15803D; }
+.jv4 .jacts a.go { background: var(--accent); color: var(--on-accent); opacity: 1 !important; pointer-events: auto !important; }
