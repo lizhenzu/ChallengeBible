@@ -113,6 +113,14 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
         Assert.DoesNotContain("민지야 안녕!", await mj.GetStringAsync("/messages"));
         Assert.Contains("민지야 안녕!", await cs.GetStringAsync("/messages?box=sent"));      // 상대 쪽지함에는 남는다
         Assert.Contains("철수 안녕~", await cs.GetStringAsync("/messages"));
+
+        // 로그인 다시 안 해도 새 쪽지가 오면 홈을 새로 열 때(F5) 팝업 한 번 — 같은 쪽지로는 다시 안 뜬다(2026-11-17 사용자)
+        Assert.DoesNotContain("data-mpop", await mj.GetStringAsync("/elem"));
+        await Post(cs, "/messages/write", "/messages/write", new() { ["To"] = _u["minji"], ["Body"] = "또 왔어요" });
+        var f5 = await mj.GetStringAsync("/elem");
+        Assert.Contains("data-mpop", f5);
+        Assert.Contains("또 왔어요", f5);
+        Assert.DoesNotContain("data-mpop", await mj.GetStringAsync("/elem"));
     }
 
     [Fact]

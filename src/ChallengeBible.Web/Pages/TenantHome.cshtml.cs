@@ -55,11 +55,10 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         // 리디렉트 응답은 TempData 를 저절로 남기므로(IKeepTempDataResult) 직접 지운다 — 로그인 직후 한 번만
         if (TempData.Remove(ChallengeBible.Web.Pages.Account.LoginModel.TodoCheckKey) && await todo.ShouldRedirectAsync(ct)) return Redirect($"/{tenant.Current.Slug}/todo");
         var me = User.UserName()!;
-        if (TempData.Remove(MsgBandKey))   // 확정 시안 쪽지 ① · 쪽지-팝업: 로그인할 때 한 번 — 띠 + 팝업(최근 3개)
-        {
-            NewMessages = await msgs.UnreadAsync(me, ct);
-            if (NewMessages > 0) NewList = (await msgs.InboxAsync(me, ct)).Where(r => r.Unread).Take(3).ToList();
-        }
+        // 확정 시안 쪽지 ① · 쪽지-팝업: 로그인 직후 한 번 띠 + 팝업, 그 뒤로는 새 쪽지가 오면 홈을 새로 열 때(F5) 팝업 한 번(2026-11-17 사용자)
+        var afterLogin = TempData.Remove(MsgBandKey);
+        (var popN, NewList) = await MsgPopup.DecideAsync(HttpContext, msgs, me, afterLogin, ct);
+        if (afterLogin || popN > 0) NewMessages = popN > 0 ? popN : await msgs.UnreadAsync(me, ct);
         MyPhoto = await photos.FileOfAsync(me, ct);
         if (tenant.Current.MissionEnabled) Family = await teams.MyFamilyAsync(ct);
         if (tenant.Current.MissionEnabled && Family is null) Invites = (await familyJoin.StateAsync(ct)).Invites.Where(i => !i.SnoozedToday).ToList();

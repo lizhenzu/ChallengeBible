@@ -23,11 +23,9 @@ public class IndexModel(PlatformHomeService home, PlatformTodoService todo, Mess
         // 리디렉트 응답은 TempData 를 저절로 남기므로 직접 지운다 — 로그인 직후 한 번만
         if (TempData.Remove(ChallengeBible.Web.Pages.Account.LoginModel.TodoCheckKey) && Data.Todos.Count > 0 && !await todo.SnoozedAsync(User.UserName()!, ct))
             return Redirect("/platform/todo");
-        if (TempData.Remove(ChallengeBible.Web.Pages.TenantHomeModel.MsgBandKey))
-        {
-            NewMessages = await msgs.UnreadAsync(User.UserName()!, ct);
-            if (NewMessages > 0) NewList = (await msgs.InboxAsync(User.UserName()!, ct)).Where(r => r.Unread).Take(3).ToList();
-        }
+        var afterLogin = TempData.Remove(ChallengeBible.Web.Pages.TenantHomeModel.MsgBandKey);   // 로그인 직후 한 번 + 새 쪽지가 오면 F5 에도(2026-11-17)
+        (var popN, NewList) = await MsgPopup.DecideAsync(HttpContext, msgs, User.UserName()!, afterLogin, ct);
+        if (afterLogin || popN > 0) NewMessages = popN > 0 ? popN : await msgs.UnreadAsync(User.UserName()!, ct);
         return Page();
     }
 
