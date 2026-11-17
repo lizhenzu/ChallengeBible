@@ -2069,9 +2069,40 @@ body:has(main.w760) .top .wrap, body:has(main.w760) .admintop .wrap.hd, body:has
 .f .cp-opt label { flex: none; margin: 0; display: flex; align-items: center; justify-content: center; width: 32px; height: 44px; }
 .cp-opt input[type=radio] { width: 24px; height: 24px; margin: 0; accent-color: var(--ok); }
 .cp-opt:has(input[type=radio]:checked) .in { border-color: var(--ok); background: var(--ok-bg); }
+/* 시안 A(2026-11-17 사용자 "한 화면에 다 있어 좁다"): 날짜 띠 + 전체 폭 편집. 휴대폰 · 넓은 화면 같은 흐름 */
+.cp-strip { display: flex; gap: 2px; padding: 6px; border: 1px solid var(--rule); border-radius: 14px; background: var(--bg); overflow-x: auto; scrollbar-width: thin; }
+.cp-strip a { flex: 1 0 34px; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 9px; font-size: 14px; font-weight: 800; color: var(--fg); text-decoration: none; font-variant-numeric: tabular-nums; }
+.cp-strip a small { font-size: 10.5px; font-weight: 500; color: var(--dim); }
+.cp-strip a i { width: 6px; height: 6px; margin-top: 3px; border-radius: 50%; background: var(--bad); }
+.cp-strip a[data-status="Published"] i { background: var(--ok); }
+.cp-strip a[data-status="Draft"] i { background: var(--warn); }
+.cp-strip a.sun { color: var(--bad); }
+.cp-strip a:hover { background: var(--soft); }
+.cp-strip a.today { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.cp-strip a.on { background: var(--accent); color: var(--on-accent); }
+.cp-strip a.on small { color: inherit; opacity: .85; }
+.cp-strip a.on i { background: var(--on-accent); }
+.cp.has-sel:not(.filtering) .cp-list { display: none; }   /* 날짜를 골랐으면 목록은 상태 칩을 누를 때만 */
+.cp-edit { border: 1px solid var(--rule); border-radius: 14px; padding: 10px 14px 0; background: var(--bg); }
+.cp:not(.has-sel) .cp-edit { display: none; }
+.cp-ehead .tt { flex-direction: row; align-items: center; gap: 8px; text-align: left; }
+.cp-ehead .tt b { font-size: 17px; }
+.cp-ehead .ar { flex: none; width: auto; min-width: 44px; padding: 0 10px; gap: 2px; font-weight: 700; }
+.cp-ehead .ar span { display: none; font-size: 13.5px; }
+.cp-rrow { display: grid; gap: 8px; }
+.cp-fields .in.ta.big { min-height: 160px; line-height: 1.7; resize: vertical; }
+.cp-two { display: grid; gap: 14px; }
+.cp-count { margin: 4px 0 0; text-align: right; font-size: 12px; color: var(--dim); }
+.cp-count:empty { display: none; }
+.cp-count.out { color: var(--warn); font-weight: 700; }
+.cp-dock { margin: 14px -14px 0; padding: 10px 14px; border-radius: 0 0 14px 14px; }
 @media (max-width: 899px) {
-  .cp.has-sel .cp-head, .cp.has-sel .cp-list { display: none; }
-  .cp:not(.has-sel) .cp-edit { display: none; }
+  .cp-list .cp-dock { margin: 8px 0 0; padding: 8px 0 0; }
+  /* 휴대폰: 편집 칸이 빨리 보이게 — 상태 칩 옆에 입력 점검 링크를 작게 */
+  .cp-head { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .cp-tabs, .cp-mon, .cp-slot { flex: 1 1 100%; }
+  .cp-chips { flex: 1 1 auto; }
+  .cp-check { min-height: 36px; padding: 0 10px; font-size: 13px; margin-left: auto; }
 }
 @media (min-width: 900px) {
   .cp-head { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
@@ -2080,16 +2111,16 @@ body:has(main.w760) .top .wrap, body:has(main.w760) .admintop .wrap.hd, body:has
   .cp-check { flex: none; }
   .cp-slot { flex: 1 1 300px; }
   .cp-chips { flex-wrap: nowrap; margin-left: auto; }
-  .cp-split { grid-template-columns: 340px minmax(0, 1fr); align-items: start; }
-  .cp-list { position: sticky; top: 12px; }
-  .cp-rows { max-height: calc(100vh - 110px); overflow-y: auto; }
+  .cp-strip a { flex-basis: 26px; }
+  .cp-rows { max-height: 360px; overflow-y: auto; }
   .cp-rows i { display: none; }
-  .cp-edit { border: 1px solid var(--rule); border-radius: 14px; padding: 12px 18px 0; }
-  .cp-ehead .back { display: none; }
-  .cp-ehead .tt { flex-direction: row; align-items: center; gap: 8px; text-align: left; }
-  .cp-ehead .tt b { font-size: 17px; }
-  .cp-rg { margin-top: 8px; max-width: 460px; }
-  .cp-dock { justify-content: flex-end; margin: 14px -18px 0; padding: 12px 18px; border-radius: 0 0 14px 14px; }
+  .cp-edit { padding: 12px 18px 0; }
+  .cp-ehead .ar span { display: inline; }
+  .cp-rrow { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); align-items: end; }
+  .cp-rrow .cp-rg { margin-top: 0; }
+  .cp-two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .cp-fields .in.ta.big { min-height: 200px; }
+  .cp-dock { justify-content: flex-end; margin: 14px -18px 0; padding: 12px 18px; }
   .cp-dock .btn { flex: 0 0 160px; }
   .cp-list .cp-dock { margin: 8px 0 0; padding: 8px 0 0; border-radius: 0; }
   .cp-list .cp-dock .btn { flex: 1; }

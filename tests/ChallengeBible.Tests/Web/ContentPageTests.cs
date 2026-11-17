@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -104,6 +104,9 @@ public partial class ContentPageTests : IClassFixture<WebApplicationFactory<Prog
             eq('edit hidden', shown(q('.cp-edit')), false);
             eq('list shown', shown(q('.cp-rows')), true);
             eq('rows', qa('.cp-rows li').length, 31);
+            eq('strip', qa('.cp-strip a').length, 31);
+            eq('strip draft dot', q('.cp-strip a[data-status="Draft"]').textContent.indexOf('2') === 0, true);
+            eq('strip today', q('.cp-strip a.today').textContent.indexOf('5') === 0, true);
             eq('overflow', overflow(), 0);
             eq('list not capped', getComputedStyle(q('.cp-rows')).maxHeight, 'none');
             eq('checkboxes only on drafts', qa('.cp-cb input').length, 2);
@@ -135,19 +138,21 @@ public partial class ContentPageTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
-    public async Task 휴대폰_말씀_편집은_목록_없이_나오고_저장_버튼과_앞뒤_날짜가_있다()
+    public async Task 휴대폰_말씀_편집은_날짜_띠와_함께_나오고_목록은_칩을_누를_때만_펼친다()
     {
         if (!EdgePage.Available) return;
         var op = await Operator();
         Seed(W(5));
         await Run(op, "/platform/content/word?month=2027-01&date=2027-01-31", """
             eq('list hidden', shown(q('.cp-rows')), false);
-            eq('head hidden', shown(q('.cp-tabs')), false);
+            eq('head shown', shown(q('.cp-tabs')), true);
+            eq('strip shown', shown(q('.cp-strip')), true);
+            eq('strip picked', q('.cp-strip a.on').getAttribute('href'), '/platform/content/word?month=2027-01&date=2027-01-31');
             eq('edit shown', shown(q('.cp-edit')), true);
             eq('overflow', overflow(), 0);
             eq('dock sticky', getComputedStyle(q('.cp-form .cp-dock')).position, 'sticky');
             eq('none buttons', qa('.cp-form .cp-dock button').length, 2);
-            eq('back', q('.cp-ehead .back').getAttribute('href'), '/platform/content/word?month=2027-01#d-2027-01-31');
+            eq('no back link', !!q('.cp-ehead .back'), false);
             var arrows = qa('.cp-ehead a.ar');
             eq('prev', arrows[0].getAttribute('href'), '/platform/content/word?month=2027-01&date=2027-01-30');
             eq('next crosses month', arrows[1].getAttribute('href'), '/platform/content/word?month=2027-02&date=2027-02-01');
@@ -155,6 +160,13 @@ public partial class ContentPageTests : IClassFixture<WebApplicationFactory<Prog
             q('#bk').value = '43';
             q('[data-cp-r="ev"]').dispatchEvent(new Event('input'));
             eq('preview', q('[data-cp-prev]').textContent, '요한복음 3장 1~16절');
+            q('#s').value = '하나. 둘. 셋.'; q('#s').dispatchEvent(new Event('input'));
+            eq('count', q('[data-cp-count-out]').textContent, '3문장 · 7자');
+            q('.cp-chips button[data-f="Published"]').click();
+            eq('list opens on chip', shown(q('.cp-rows')), true);
+            eq('published rows', qa('.cp-rows li').filter(shown).length, 1);
+            q('.cp-chips button[data-f=""]').click();
+            eq('list closes on all', shown(q('.cp-rows')), false);
             """);
     }
 
@@ -203,7 +215,8 @@ public partial class ContentPageTests : IClassFixture<WebApplicationFactory<Prog
             eq('overflow', overflow(), 0);
             eq('first has no prev', !!q('.cp-ehead .ar.off'), true);
             eq('next', q('.cp-ehead a.ar').getAttribute('href'), '/platform/content/prayer?no=2');
-            eq('back', q('.cp-ehead .back').getAttribute('href'), '/platform/content/prayer#n-1');
+            eq('strip', qa('.cp-strip a').length, 31);
+            eq('strip first picked', q('.cp-strip a.on').getAttribute('href'), '/platform/content/prayer?no=1');
             """);
     }
 }

@@ -1,4 +1,4 @@
-// 공용 콘텐츠(확정 시안 platform-content): 상태 거르기, 고른 초안 수, 답 형식에 맞는 칸, 성경 범위 글, 넓은 화면의 목록 위치.
+// 공용 콘텐츠(확정 시안 platform-content → 2026-11-17 시안 A): 상태 거르기(누르면 목록이 펼쳐짐), 고른 초안 수, 답 형식에 맞는 칸, 성경 범위 글, 날짜 띠 위치, 오늘 이야기 문장 수.
 (function () {
   var root = document.querySelector('.cp');
   if (!root) return;
@@ -13,6 +13,7 @@
   function filter(value) {
     chips.forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-f') === value ? 'true' : 'false'); });
     rows.forEach(function (li) { li.hidden = !!value && li.getAttribute('data-status') !== value; });
+    root.classList.toggle('filtering', !!value);   // 날짜를 고른 화면에서는 칩을 누를 때만 목록이 펼쳐진다
   }
   chips.forEach(function (b) {
     b.addEventListener('click', function () {
@@ -21,7 +22,8 @@
       filter(v);
     });
   });
-  var kept = load();
+  // 날짜를 고른 화면은 편집이 먼저 — 남겨 둔 거르기로 목록을 펼치지 않는다
+  var kept = root.classList.contains('has-sel') ? '' : load();
   if (chips.some(function (b) { return b.getAttribute('data-f') === kept && !b.disabled; })) filter(kept);
 
   // 초안을 고르면 아래에 공개 버튼이 나타난다.
@@ -65,7 +67,27 @@
     all('[data-cp-r]').forEach(function (x) { x.addEventListener('input', draw); });
   }
 
-  // 넓은 화면: 목록만 따로 스크롤되므로 고른 줄이 보이게 한다.
+  // 날짜 띠: 고른 날이 보이게 옆으로 맞춘다.
+  var strip = root.querySelector('.cp-strip');
+  var picked = strip && strip.querySelector('a.on');
+  if (picked && strip.scrollWidth > strip.clientWidth) strip.scrollLeft = Math.max(0, picked.offsetLeft - strip.clientWidth / 2 + picked.offsetWidth / 2);
+
+  // 오늘 이야기: 문장 수 · 글자 수(3 ~ 5문장 안내).
+  var story = root.querySelector('[data-cp-count]');
+  var out = root.querySelector('[data-cp-count-out]');
+  if (story && out) {
+    var count = function () {
+      var text = story.value.trim();
+      if (!text) { out.textContent = ''; return; }
+      var n = text.split(/[.!?。]+(?:\s+|$)/).filter(function (x) { return x.trim(); }).length;
+      out.textContent = n + '문장 · ' + text.replace(/\s/g, '').length + '자';
+      out.classList.toggle('out', n < 3 || n > 5);
+    };
+    story.addEventListener('input', count);
+    count();
+  }
+
+  // 목록(상태 칩으로 펼친 것): 고른 줄이 보이게 한다.
   var list = root.querySelector('.cp-rows');
   var on = list && list.querySelector('li.on');
   if (on && list.scrollHeight > list.clientHeight) list.scrollTop = Math.max(0, on.offsetTop - list.clientHeight / 2);

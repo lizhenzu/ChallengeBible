@@ -1,9 +1,10 @@
-@page "/platform/content/{kind}"
+﻿@page "/platform/content/{kind}"
 @model ChallengeBible.Web.Pages.Platform.ContentModel
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Pages.Platform
 @using ChallengeBible.Web.Services
-@* 확정 시안: platform-content — 휴대폰은 목록 → 날짜를 누르면 편집 화면, 넓은 화면은 나란히. 저장 버튼은 아래에 고정 *@
+@* 확정 시안: platform-content → 2026-11-17 시안 A(사용자 "화면이 좁다"): 위에 날짜 띠(점 색 = 상태), 아래 편집 칸은 전체 폭. 휴대폰 · 넓은 화면 같은 모양.
+   상태 칩(공개 · 초안 · 없음)을 누르면 그 날짜 목록이 펼쳐지고, 초안은 골라서 한 번에 공개. 날짜를 고르지 않았으면 목록을 보여 준다. 저장 버튼은 아래에 고정 *@
 @{
     var ko = new System.Globalization.CultureInfo("ko-KR");
     var i = Model.Input;
@@ -13,11 +14,11 @@
     var isDate = !Model.BySlot;
 
     // 날짜 목록과 번호 목록을 한 모양의 줄로 맞춘다
-    var rows = new List<(string Id, string Href, string Big, string Small, bool Sun, string? Title, string? Sub, string Status, bool On, bool Today, string Name, string Value, string Aria)>();
+    var rows = new List<(string Id, string Href, string Num, string Big, string Small, bool Sun, string? Title, string? Sub, string Status, bool On, bool Today, string Name, string Value, string Aria)>();
     if (isDate)
     {
         foreach (var d in Model.Days)
-            rows.Add(($"d-{d.Date:yyyy-MM-dd}", Model.Link(d.Date), d.Date.Day.ToString(), d.Date.ToString("ddd", ko), d.Date.DayOfWeek == DayOfWeek.Sunday,
+            rows.Add(($"d-{d.Date:yyyy-MM-dd}", Model.Link(d.Date), d.Date.Day.ToString(), d.Date.Day.ToString(), d.Date.ToString("ddd", ko), d.Date.DayOfWeek == DayOfWeek.Sunday,
                 d.Title, d.Sub, d.Status, d.Date == Model.Date, d.Date == Model.Today, "dates", d.Date.ToString("yyyy-MM-dd"), d.Date.ToString("M월 d일") + " 고르기"));
     }
     else
@@ -25,7 +26,7 @@
         foreach (var w in Model.Slots)
         {
             var small = Model.IsRecite ? (Model.ThisYearWeek(w.No) is { } x ? $"{x.Start:M'/'d}~" : "여유") : (w.No > 28 ? "없는 달" : "매달");
-            rows.Add(($"n-{w.No}", Model.SlotLink(w.No), $"{w.No}{Model.SlotUnit}", small, false,
+            rows.Add(($"n-{w.No}", Model.SlotLink(w.No), w.No.ToString(), $"{w.No}{Model.SlotUnit}", small, false,
                 w.Title, w.Sub, w.Status, w.No == Model.No, w.No == Model.TodayNo, "nos", w.No.ToString(), $"{w.No}{Model.SlotUnit} 고르기"));
         }
     }
@@ -34,7 +35,7 @@
 }
 @section Scripts { <script src="~/js/content-list.js" asp-append-version="true"></script> }
 <partial name="_PlatformTop" />
-<main class="admin gut"><div class="wrap wide cp@(Model.HasSelection ? " has-sel" : "")" data-kind="@Model.Kind">
+<main class="admin gut"><div class="wrap wide cp@(Model.HasSelection ? " has-sel" : "")" data-kind="@Model.Kind" data-unit="@(isDate ? "일" : Model.SlotUnit)">
     <h1 class="cp-title">공용 콘텐츠</h1>
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
     @if (Model.Notice is not null) { <p class="note-block">@Model.Notice</p> }
@@ -71,6 +72,14 @@
         }
     </div>
 
+    @* 날짜 띠(시안 A): 점 색 = 상태(초록 공개 · 주황 초안 · 빨강 없음), 파랑 칠 = 고른 날, 파랑 테두리 = 오늘. 휴대폰은 옆으로 밀어서 *@
+    <nav class="cp-strip" aria-label="@(isDate ? "날짜" : Model.IsRecite ? "주" : "번호") 고르기">
+        @foreach (var r in rows)
+        {
+            <a href="@r.Href" data-status="@r.Status" class="@(r.On ? "on" : "")@(r.Today ? " today" : "")@(r.Sun ? " sun" : "")" aria-label="@r.Aria.Replace(" 고르기", "") · @ContentModel.StatusLabel(r.Status)@(r.Today ? " · 오늘" : "")" aria-current="@(r.On ? "true" : null)">@r.Num@if (isDate) { <small>@r.Small</small> }<i aria-hidden="true"></i></a>
+        }
+    </nav>
+
     <div class="cp-split">
         <form method="post" asp-page-handler="Bulk" asp-route-month="@(isDate ? Model.First.ToString("yyyy-MM") : null)" asp-route-no="@Model.No" class="cp-list">
             <ul class="cp-rows">
@@ -102,7 +111,7 @@
         <section class="cp-edit" aria-label="편집">
             @if (!Model.HasSelection)
             {
-                <p class="cp-empty">왼쪽에서 @(Model.IsRecite ? "주" : "날짜")를 고르세요.</p>
+                <p class="cp-empty">위 띠에서 @(Model.IsRecite ? "주" : "날짜")를 고르세요.</p>
             }
             else
             {
@@ -110,10 +119,9 @@
                     ? $"{Model.No}주" + (Model.ThisYearWeek(Model.No!.Value) is { } tw ? $" ({tw.Start:M'/'d} ~ {tw.End:M'/'d})" : " (올해는 없는 주)")
                     : Model.BySlot ? $"매달 {Model.No}일" : Model.Date!.Value.ToString("M월 d일 dddd", ko);
                 <div class="cp-ehead">
-                    <a class="back" href="@Model.ListLink">‹ 목록</a>
                     <div class="tt"><b>@slot</b><span class="tag @ContentModel.StatusClass(Model.Status)">@ContentModel.StatusLabel(Model.Status)</span></div>
-                    @if (Model.PrevLink is { } prev) { <a class="ar" href="@prev" aria-label="앞 @(Model.BySlot ? "번호" : "날짜")">‹</a> } else { <span class="ar off" aria-hidden="true">‹</span> }
-                    @if (Model.NextLink is { } next) { <a class="ar" href="@next" aria-label="다음 @(Model.BySlot ? "번호" : "날짜")">›</a> } else { <span class="ar off" aria-hidden="true">›</span> }
+                    @if (Model.PrevLink is { } prev) { <a class="ar" href="@prev" aria-label="앞 @(Model.BySlot ? "번호" : "날짜")">‹<span> @Model.NeighborLabel(-1)</span></a> } else { <span class="ar off" aria-hidden="true">‹</span> }
+                    @if (Model.NextLink is { } next) { <a class="ar" href="@next" aria-label="다음 @(Model.BySlot ? "번호" : "날짜")"><span>@Model.NeighborLabel(1) </span>›</a> } else { <span class="ar off" aria-hidden="true">›</span> }
                 </div>
                 <form method="post" asp-page-handler="Save" asp-route-month="@(Model.BySlot ? null : Model.First.ToString("yyyy-MM"))" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")" asp-route-no="@Model.No" class="cp-form" novalidate>
                     <div class="cp-fields">
@@ -122,8 +130,8 @@
                         @if (E("Date") is { } dt) { <p class="err">@dt</p> }
                         @if (Model.Kind != "quiz")
                         {
-                            <div class="f"><label for="bk">성경 범위</label>
-                                <select class="sel cp-book" id="bk" name="Input.Book" data-cp-book>
+                            <div class="f cp-range"><label for="bk">성경 범위</label>
+                                <div class="cp-rrow"><select class="sel cp-book" id="bk" name="Input.Book" data-cp-book>
                                     @foreach (var b in BibleBooks.All()) { <option value="@b.Id" selected="@(b.Id == i.Book)">@b.Name</option> }
                                 </select>
                                 <div class="cp-rg">
@@ -136,7 +144,7 @@
                                         <label>끝 장<input class="in" type="number" inputmode="numeric" name="Input.EndChapter" value="@i.EndChapter" min="1" data-cp-r="ec" /></label>
                                         <label>절<input class="in" type="number" inputmode="numeric" name="Input.EndVerse" value="@i.EndVerse" min="1" data-cp-r="ev" /></label>
                                     </div>
-                                </div>
+                                </div></div>
                                 @if (E("Range") is { } rangeError) { <p class="hint bad">@rangeError</p> }
                                 else { <p class="hint" data-cp-prev>@(Model.Status == "None" ? "예: 창세기 24:1 ~ 24:9" : BibleBooks.Range(i.Book, i.StartChapter, i.StartVerse, i.EndChapter, i.EndVerse))</p> }
                             </div>
@@ -145,8 +153,10 @@
                         {
                             case "word":
                                 <div class="f"><label for="t">제목</label><input class="in" id="t" name="Input.Title" value="@i.Title" maxlength="100" /><p class="hint bad">@E("Title")</p></div>
-                                <div class="f"><label for="s">오늘 이야기 <small>아이들 눈높이로 3 ~ 5문장</small></label><textarea class="in ta" id="s" name="Input.Summary">@i.Summary</textarea><p class="hint bad">@E("Summary")</p></div>
-                                <div class="f"><label for="c">해설 <small>있으면</small></label><textarea class="in ta sm2" id="c" name="Input.Commentary">@i.Commentary</textarea></div>
+                                <div class="cp-two">
+                                    <div class="f"><label for="s">오늘 이야기 <small>아이들 눈높이로 3 ~ 5문장</small></label><textarea class="in ta big" id="s" name="Input.Summary" data-cp-count>@i.Summary</textarea><p class="cp-count" data-cp-count-out aria-live="polite"></p><p class="hint bad">@E("Summary")</p></div>
+                                    <div class="f"><label for="c">해설 <small>있으면</small></label><textarea class="in ta big" id="c" name="Input.Commentary">@i.Commentary</textarea></div>
+                                </div>
                                 break;
                             case "prayer":
                                 <div class="grid2">

@@ -484,6 +484,8 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(op, "/platform/rules", "13c-플랫폼-기본규칙");
         await Save(op, "/platform/content/word?month=2027-01&date=2027-01-05", "14-공용콘텐츠-말씀");
         await Save(op, "/platform/content/quiz?month=2027-01&date=2027-01-05", "15-공용콘텐츠-퀴즈");
+        await Save(op, "/platform/content/word?month=2027-01", "15b-공용콘텐츠-말씀-날짜안고름");
+        await Save(op, "/platform/content/recite?no=3", "15c-공용콘텐츠-암송");
 
         await Save(op, "/platform/ops?d=0", "15c-플랫폼-운영점검", x => x.Replace("<li><details>", "<li><details open>"));
 
