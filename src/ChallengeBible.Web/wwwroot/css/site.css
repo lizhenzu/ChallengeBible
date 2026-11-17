@@ -1799,6 +1799,8 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .jv4 .jacts.one { grid-template-columns: 1fr; }
 .jv4 .jacts > * { min-height: 52px; border-radius: 14px; font-size: 16px; font-weight: 800; display: grid; place-items: center; text-decoration: none; }
 .jv4 .jacts .back { border: 1.5px solid var(--rule); background: var(--bg); color: var(--fg); }
+/* 참여 신청 화면 폭: 머리말 · 본문을 기본 760px 로(2026-11-17 사용자 "/join 만 좌우 폭이 다르다") */
+body:has(main.jv4) .top .wrap, main.jv4 > .wrap { max-width: 760px; }
 .jv4 .jacts .go { border: 0; background: var(--accent); color: var(--on-accent); cursor: pointer; }
 .jv4:not(:has(input[name="TenantId"]:checked)) .jacts .go { opacity: .4; pointer-events: none; }
 
