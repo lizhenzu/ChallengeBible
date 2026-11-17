@@ -437,7 +437,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
-    public async Task 네_미션_화면_아래_탭에는_미션_홈_칸이_있고_다_한_미션은_dn_으로_흐리게()
+    public async Task 네_미션_화면_아래_탭에는_미션_홈_칸이_있고_다_한_미션은_dn_으로_초록()
     {
         var c = await Member("cheolsu", Roles.Participant);
         foreach (var m in new[] { "word", "quiz", "prayer", "recite" })   // 확정 시안 미션탭(2026-11-16)
@@ -448,7 +448,8 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         }
         var css = await c.GetStringAsync("/css/site.css");
         Assert.Contains(".mnav { grid-template-columns: repeat(5, minmax(0, 1fr)); }", css);
-        Assert.Contains(".mnav a.dn .L, .mnav a.dn .S.done { color: var(--dim); opacity: .55; }", css);
+        Assert.Contains(".mnav a.dn .L { color: #16A34A; opacity: 1; }", css);   // 확정 시안 미션탭-완료글자 2: 한 미션 = 이름 초록
+        Assert.Contains(".mnav a.dn .S.done { color: #16A34A; font-weight: 700; opacity: .6; }", css);   // ✓ 완료 = 초록 약간 흐리게
     }
 
     [Fact]
