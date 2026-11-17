@@ -8,7 +8,7 @@
 @if (list.Count > 0)
 {
     @* 확정 시안 쪽지-팝업(2026-11-17, 사용자 "2" — 띠와 함께): 로그인 후 한 번, 최근 3개 · [닫기] · [쪽지함 보기] *@
-    <div class="mpop" data-mpop role="dialog" aria-modal="true" aria-labelledby="mpopT">
+    <div class="mpop" data-mpop data-user="@User.UserName()" role="dialog" aria-modal="true" aria-labelledby="mpopT">
         <div class="mpop-box">
             <div class="mpop-ic" aria-hidden="true">✉<i class="num">@n</i></div>
             <h2 id="mpopT">새 쪽지 @(n)개가 왔어요</h2>
@@ -20,16 +20,35 @@
                 }
             </div>
             @if (n > list.Count) { <a class="mpop-more" href="/messages">외 @(n - list.Count)개 더</a> }
-            <div class="mpop-acts"><a class="btn s" href="@back" data-mpop-close>닫기</a><a class="btn p" href="/messages">쪽지함 보기</a></div>
+            <a class="btn p mpop-go" href="/messages">쪽지함 보기</a>
+            @* 확정 시안 쪽지-팝업-나중에 3(2026-11-17): 닫기를 합침 — [다음에] = 다음 새 쪽지 때 다시, [3일 후 · 1주일 후] = 그때까지 팝업 · 띠 안 띄움 *@
+            <div class="mpop-later"><small>다음에 볼래요</small>
+                <div><a class="btn s" href="@back" data-mpop-close>다음에</a><button type="button" class="btn s" data-mpop-snooze="3">3일 후</button><button type="button" class="btn s" data-mpop-snooze="7">1주일 후</button></div>
+            </div>
         </div>
     </div>
+    <p class="mpop-toast" data-mpop-toast role="status" hidden></p>
     <script>
         (() => {
             const p = document.querySelector('[data-mpop]'); if (!p) return;
             const close = (e) => { e?.preventDefault(); p.remove(); };
-            p.addEventListener('click', e => { if (e.target === p || e.target.closest('[data-mpop-close]')) close(e); });
+            p.addEventListener('click', e => {
+                const z = e.target.closest('[data-mpop-snooze]');
+                if (z) {   // 그 날까지 이 계정 쪽지 팝업 · 띠를 띄우지 않는다(이 브라우저 쿠키, 서버가 읽음)
+                    const days = Number(z.dataset.mpopSnooze), d = new Date(); d.setDate(d.getDate() + days);
+                    const ymd = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                    document.cookie = '@ChallengeBible.Web.Services.MsgPopup.SnoozeCookie=' + encodeURIComponent(p.dataset.user) + ':' + ymd + '; path=/; max-age=' + (days + 1) * 86400 + '; samesite=lax';
+                    close(e);
+                    const t = document.querySelector('[data-mpop-toast]');
+                    t.textContent = `${d.getMonth() + 1}월 ${d.getDate()}일까지 쪽지 팝업을 띄우지 않아요 · 쪽지는 ✉ 에서 볼 수 있어요`;
+                    t.hidden = false; setTimeout(() => t.hidden = true, 3500);
+                    document.querySelector('.ms-band')?.remove();
+                    return;
+                }
+                if (e.target === p || e.target.closest('[data-mpop-close]')) close(e);
+            });
             document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); }, { once: true });
-            p.querySelector('[data-mpop-close]')?.focus();
+            p.querySelector('.mpop-go')?.focus();
         })();
     </script>
 }

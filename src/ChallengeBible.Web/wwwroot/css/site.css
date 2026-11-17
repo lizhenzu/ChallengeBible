@@ -4391,3 +4391,11 @@ details.ask.lkacc form .lka-o > span { flex: 1 1 auto; min-width: 0; }
 .mpop-more { text-align: center; font-size: 13px; color: #4B5563; }
 .mpop-acts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 8px; }
 .mpop-acts .btn { min-height: 48px; justify-content: center; border-radius: 12px; font-size: 15px; font-weight: 900; }
+/* 쪽지 팝업 다음에 볼래요(확정 시안 쪽지-팝업-나중에 3) */
+.mpop-go { min-height: 48px; justify-content: center; border-radius: 12px; font-size: 15px; font-weight: 900; }
+.mpop-later { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid #E5E7EB; }
+.mpop-later small { text-align: center; font-size: 12.5px; font-weight: 700; color: #6B7280; }
+.mpop-later div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.mpop-later .btn { min-height: 40px; justify-content: center; border-radius: 10px; font-size: 13.5px; font-weight: 800; }
+.mpop-toast { position: fixed; left: 16px; right: 16px; bottom: 24px; z-index: 61; max-width: 480px; margin: 0 auto; padding: 11px 14px; border-radius: 12px; background: #111827; color: #fff; font-size: 13px; font-weight: 700; text-align: center; }
+.mpop-toast[hidden] { display: none; }

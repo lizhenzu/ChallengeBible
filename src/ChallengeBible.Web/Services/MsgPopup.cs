@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ChallengeBible.Web.Services;
 
@@ -10,9 +11,12 @@ namespace ChallengeBible.Web.Services;
 public static class MsgPopup
 {
     public const string Cookie = "cb-msgpop";
+    /// <summary>[3일 후 · 1주일 후](확정 시안 쪽지-팝업-나중에 3): "계정:yyyy-MM-dd" — 그 날까지 팝업 · 띠를 띄우지 않는다. 팝업 스크립트가 남긴다.</summary>
+    public const string SnoozeCookie = "cb-msgsnooze";
 
     public static async Task<(int Count, IReadOnlyList<MsgRow> List)> DecideAsync(HttpContext http, MessageService msgs, string user, bool afterLogin, CancellationToken ct)
     {
+        if (Snoozed(http, user)) return (0, []);
         var n = await msgs.UnreadAsync(user, ct);
         if (n == 0) return (0, []);
         var unread = (await msgs.InboxAsync(user, ct)).Where(r => r.Unread).ToList();
@@ -25,6 +29,15 @@ public static class MsgPopup
             HttpOnly = true, Secure = http.Request.IsHttps, SameSite = SameSiteMode.Lax, MaxAge = TimeSpan.FromDays(60), IsEssential = true,
         });
         return (n, unread.Take(3).ToList());
+    }
+
+    private static bool Snoozed(HttpContext http, string user)
+    {
+        if (http.Request.Cookies[SnoozeCookie] is not { } v) return false;
+        var i = v.LastIndexOf(':');
+        if (i <= 0 || Uri.UnescapeDataString(v[..i]) != user || !DateOnly.TryParseExact(v[(i + 1)..], "yyyy-MM-dd", out var until)) return false;
+        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(http.RequestServices.GetRequiredService<TimeProvider>().GetUtcNow().UtcDateTime, TimeZoneInfo.FindSystemTimeZoneById("Asia/Seoul")));
+        return today < until;
     }
 
     private static long Seen(HttpContext http, string user)

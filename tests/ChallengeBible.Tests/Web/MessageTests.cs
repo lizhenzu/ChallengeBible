@@ -121,6 +121,16 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
         Assert.Contains("data-mpop", f5);
         Assert.Contains("또 왔어요", f5);
         Assert.DoesNotContain("data-mpop", await mj.GetStringAsync("/elem"));
+        Assert.Contains("data-mpop-snooze=\"3\"", f5);   // [다음에 · 3일 후 · 1주일 후]
+        Assert.DoesNotContain(">닫기<", f5);
+
+        // [3일 후]: 그 날까지 새 쪽지가 와도 팝업 · 띠가 안 뜬다(오늘 = 2027-01-05)
+        var req = new HttpRequestMessage(HttpMethod.Get, "/elem");
+        await Post(cs, "/messages/write", "/messages/write", new() { ["To"] = _u["minji"], ["Body"] = "세 번째" });
+        req.Headers.Add("Cookie", $"{MsgPopup.SnoozeCookie}={Uri.EscapeDataString(_u["minji"])}:2027-01-08");
+        var snoozed = await (await mj.SendAsync(req)).Content.ReadAsStringAsync();
+        Assert.DoesNotContain("data-mpop", snoozed);
+        Assert.DoesNotContain("class=\"ms-band\"", snoozed);
     }
 
     [Fact]
