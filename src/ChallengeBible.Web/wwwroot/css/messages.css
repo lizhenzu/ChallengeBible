@@ -3,7 +3,8 @@
 .msg h1 { margin: 0; font-size: 22px; }
 .msg .seg { justify-self: start; }
 .msg .seg em { font-style: normal; color: #DC2626; margin-left: 4px; }
-.ms-write { justify-content: center; min-height: 48px; border-radius: 12px; font-weight: 900; }
+.ms-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ms-write { flex: none; justify-content: center; min-height: 40px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 900; white-space: nowrap; }
 .ms-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .ms-list .empty { padding: 32px 16px; text-align: center; color: var(--dim); border: 1px solid #DCE1E8; border-radius: 16px; }
 .ms-row { border: 1px solid #DCE1E8; border-radius: 14px; background: var(--bg); }

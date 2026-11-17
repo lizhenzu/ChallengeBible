@@ -16,11 +16,13 @@
 <main class="gut msg"><div class="wrap">
     <h1>쪽지</h1>
     @if (Model.Msg is { } m) { <p class="okmsg" role="status">@m</p> }
-    <nav class="seg" aria-label="쪽지함">
-        <a href="/messages" aria-current="@(!sent ? "page" : "false")">받은 쪽지 @if (Model.Unread > 0) { <em class="num">@Model.Unread</em> }</a>
-        <a href="/messages?box=sent" aria-current="@(sent ? "page" : "false")">보낸 쪽지</a>
-    </nav>
-    <a class="btn p ms-write" href="/messages/write">✏️ 쪽지 쓰기</a>
+    <div class="ms-bar">   @* 확정 시안 쪽지쓰기-버튼(2026-11-17): 탭과 같은 줄 오른쪽, 글자 폭 *@
+        <nav class="seg" aria-label="쪽지함">
+            <a href="/messages" aria-current="@(!sent ? "page" : "false")">받은 쪽지 @if (Model.Unread > 0) { <em class="num">@Model.Unread</em> }</a>
+            <a href="/messages?box=sent" aria-current="@(sent ? "page" : "false")">보낸 쪽지</a>
+        </nav>
+        <a class="btn p ms-write" href="/messages/write">✏️ 쪽지 쓰기</a>
+    </div>
     <ul class="ms-list">
         @if (Model.Rows.Count == 0) { <li class="empty">@(sent ? "보낸 쪽지가 없어요." : "받은 쪽지가 없어요.")</li> }
         @foreach (var r in Model.Rows)
