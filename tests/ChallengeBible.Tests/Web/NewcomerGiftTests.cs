@@ -135,7 +135,7 @@ public partial class NewcomerGiftTests : IClassFixture<WebApplicationFactory<Pro
         var token = LinkRx().Match(box).Groups[1].Value;
         var parent = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var link = await parent.GetStringAsync($"/gift/{token}");
-        Assert.Contains("고성윤 어린이 선물", link);
+        Assert.Contains("고성윤 어린이<br />새친구 환영 선물이에요", link);   // 확정 시안 생일링크-부모안내 ③
         Assert.Contains("새친구 선물", link);
         await Post(parent, $"/gift/{token}", $"/gift/{token}", new() { ["item"] = ItemId().ToString() });
         Assert.Equal((GiftStates.Picked, "보드게임"), (Gifts().Single(g => g.Id == id).State, Gifts().Single(g => g.Id == id).ItemName));

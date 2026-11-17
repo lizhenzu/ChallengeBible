@@ -91,3 +91,12 @@
 .td-acts .btn.p { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
 .td-acts .btn.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
 .td-row.td-noic { grid-template-columns: minmax(0, 1fr); }
+
+/* 선물 안내글 보내기(확정 시안 생일링크-부모안내 ①) */
+.td-share { display: grid; gap: 8px; margin-top: 10px; }
+.td-share .btn { width: 100%; min-height: 46px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; font-size: 14.5px; font-weight: 900; cursor: pointer; }
+.td-share .btn.p { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
+.td-toast { margin: 0; padding: 10px 12px; border-radius: 12px; background: #111827; color: #fff; font-size: 13px; font-weight: 700; }
+.td-toast[hidden] { display: none; }
+.td-prev summary { cursor: pointer; font-size: 12.5px; color: #6B7280; }
+.td-prev pre { margin: 6px 0 0; padding: 10px; border: 1px dashed #CBD5E1; border-radius: 12px; background: #F9FAFB; font: 12.5px/1.6 inherit; font-family: inherit; white-space: pre-wrap; word-break: break-all; }

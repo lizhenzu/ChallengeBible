@@ -51,7 +51,7 @@
         <div class="hKs">"거룩한 습관 만들기" 프로그램에 오심을 환영해요.</div>
     </div>
     <div class="hI">
-        <h1>@(User.DisplayName())님, 안녕하세요</h1>
+        <h1>@Ui.Nim(User.DisplayName()), 안녕하세요</h1>
         <div class="hD">@Model.Day.ToString("M월 d일 (ddd)", ko)@if (streakText != "") { <text> · <b>@streakText</b></text> }</div>
         @if (d.Today < Model.SeasonStart)
         {

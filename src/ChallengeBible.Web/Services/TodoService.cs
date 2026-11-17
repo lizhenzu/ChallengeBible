@@ -49,6 +49,8 @@ public sealed record TodoItem(string Kind, string Section, string Icon, string T
     public long? GiftId { get; init; }
     public string? Href { get; init; }
     public string? HrefLabel { get; init; }
+    /// <summary>[부모님께 보내기] · [안내글 복사]를 붙일 선물(확정 시안 생일링크-부모안내 ①).</summary>
+    public long? ShareId { get; init; }
     /// <summary>무슨 일 · 왜 해야 하나(확정 시안 할일타임라인).</summary>
     public string? Why { get; init; }
     /// <summary>필요한 정보(이름 · 값).</summary>
@@ -161,7 +163,7 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
                 var by = b is null ? "누군가" : b.ActorName ?? b.Actor ?? "누군가";
                 items.Add(new(TodoKinds.Gift, "gift", "🎁", $"전해 주세요 · {g.Who} · {g.ItemName}", null)
                 {
-                    GiftId = g.Id, Tone = "done", Note = $"{by}님이 {Local(g.PurchasedUtc):M/d} 구매", Href = Work("give", g.Id), HrefLabel = WorkLabel,
+                    GiftId = g.Id, Tone = "done", Note = $"{ChallengeBible.Web.Pages.Ui.Nim(by)}이 {Local(g.PurchasedUtc):M/d} 구매", Href = Work("give", g.Id), HrefLabel = WorkLabel,
                     Why = "이미 샀어요. 아이에게 직접 건네고 선물 처리 화면에서 [전달 완료]를 눌러 주세요.",
                     Info = [("선물", g.ItemName), ("산 사람", $"{by} · {Local(g.PurchasedUtc):M/d}")], Steps = Steps(g),
                 });
@@ -178,10 +180,11 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
                 {
                     GiftId = g.Id, Tone = expired ? "late" : "",
                     Href = Work("pick", g.Id), HrefLabel = WorkLabel,
+                    ShareId = !expired && BirthdayGiftService.LinkKinds.Contains(g.Kind) ? g.Id : null,
                     Note = expired && !tenant.IsAdmin ? "부서 관리자가 다시 열 수 있어요" : null,
                     Why = expired ? "고르는 기한이 지났어요. 부서 관리자가 다시 열면 또 고를 수 있어요."
-                        : g.NoAccount ? "계정이 없는 아이예요. 선물 처리 화면에서 링크를 복사해 부모님께 보내면 로그인 없이 골라요."
-                        : "아이가 직접 고를 차례예요. 고르면 \"사 주세요\"로 바뀌어요.",
+                        : g.NoAccount ? "계정이 없는 아이예요. 부모님께 안내글을 보내 주세요. 부모님이 링크를 눌러 아이와 함께 골라요(로그인 없이)."
+                        : "아이 계정에서 직접 고를 수 있어요(계정 연결됨). 혼자 고르기 어려우면 부모님께 안내글을 보내 주세요. 고르면 \"사 주세요\"로 바뀌어요.",
                     Info = [("종류", g.KindText), ("기한", expired ? "지났어요" : g.OpenUntil is { } u ? $"{u:M월 d일}까지" : "없음"), ("계정", g.NoAccount ? "없음(링크로 고름)" : "있음")],
                     Steps = GiftTimeline.Build(g.Kind, g.State, g.NoAccount, g.CreatedUtc, g.PickedUtc, logs.GetValueOrDefault(g.Id) ?? [], now, LateDays),
                 });
@@ -243,8 +246,9 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
         {
             var mineKids = await ctx.ClassMembers.AsNoTracking().Where(m => !m.IsTeacher && sc.Classes.Contains(m.ClassId)).Select(m => m.PersonId).ToListAsync(ct);
             var gifts = await ctx.Gifts.AsNoTracking().Where(g => g.Kind == GiftKinds.Birthday && g.State == GiftStates.Open && g.PersonId != null && mineKids.Contains(g.PersonId.Value))
-                .Select(g => new { g.Id, g.PersonId, g.SourceKey }).ToListAsync(ct);
+                .Select(g => new { g.Id, g.PersonId, g.SourceKey, g.UserName }).ToListAsync(ct);
             var people = await ctx.People.AsNoTracking().Where(p => gifts.Select(g => g.PersonId!.Value).Contains(p.Id)).ToDictionaryAsync(p => p.Id, p => p.Name, ct);
+            var withAccount = (await ctx.People.AsNoTracking().Where(p => gifts.Select(g => g.PersonId!.Value).Contains(p.Id) && p.UserId != null).Select(p => p.Id).ToListAsync(ct)).ToHashSet();
             var blogs = await GiftTimeline.LogsAsync(ctx, gifts.Select(g => g.Id).ToList(), ct);
             foreach (var g in gifts.OrderBy(g => BirthdayGiftService.BirthdayOf(g.SourceKey)))
             {
@@ -252,10 +256,12 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
                 var left = bday is { } b ? b.DayNumber - today.DayNumber : (int?)null;
                 items.Add(new(TodoKinds.Birthday, "birthday", "🎂", $"생일 선물 링크 · {people.GetValueOrDefault(g.PersonId!.Value)}", null)
                 {
-                    GiftId = g.Id, Note = "아직 안 고름", Href = Work("pick", g.Id), HrefLabel = WorkLabel,
-                    Why = "우리 반 아이 생일이 다가와요. 선물 처리 화면에서 링크를 복사해 부모님께 보내면 로그인 없이 골라요.",
+                    GiftId = g.Id, Note = "아직 안 고름", Href = Work("pick", g.Id), HrefLabel = WorkLabel, ShareId = g.Id,
+                    Why = g.UserName is not null || withAccount.Contains(g.PersonId!.Value)
+                        ? "우리 반 아이 생일이 다가와요. 아이 계정에서 직접 고를 수 있어요(계정 연결됨). 혼자 고르기 어려우면 부모님께 안내글을 보내 주세요."
+                        : "우리 반 아이 생일이 다가와요. 부모님께 안내글을 보내 주세요. 부모님이 링크를 눌러 아이와 함께 선물을 골라요(로그인 없이).",
                     Info = [("생일", $"{bday:M월 d일}{(left is int l && l >= 0 ? $" · {l}일 남음" : "")}")],
-                    Steps = GiftTimeline.Build(GiftKinds.Birthday, GiftStates.Open, true, now, null, blogs.GetValueOrDefault(g.Id) ?? [], now, LateDays),
+                    Steps = GiftTimeline.Build(GiftKinds.Birthday, GiftStates.Open, !(g.UserName is not null || withAccount.Contains(g.PersonId!.Value)), now, null, blogs.GetValueOrDefault(g.Id) ?? [], now, LateDays),
                 });
             }
         }
@@ -266,6 +272,14 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
     private DateOnly Local(DateTime? utc) => utc is { } u ? TenantClock.ToTenantDate(new DateTimeOffset(DateTime.SpecifyKind(u, DateTimeKind.Utc)), tenant.Current.TimeZoneId) : Today;
     private static string Subject(string name) => name.Length > 0 && name[^1] is >= '가' and <= '힣' && (name[^1] - '가') % 28 != 0 ? "이" : "가";
     private static string Object(string name) => name.Length > 0 && name[^1] is >= '가' and <= '힣' && (name[^1] - '가') % 28 != 0 ? "을" : "를";
+
+    /// <summary>[부모님께 보내기] · [안내글 복사](확정 시안 생일링크-부모안내 ①): 내 할 일 카드에 있는 선물만. 링크가 없으면 만든다.</summary>
+    public async Task<(BirthdayGiftView View, string Token, bool Linked)?> ShareAsync(long giftId, CancellationToken ct = default)
+    {
+        var board = await BoardAsync(ct);
+        if (!board.Items.Any(i => i.ShareId == giftId)) return null;
+        return await birthdays.ShareAsync(Me, giftId, ct);
+    }
 
     /// <summary>[구매 완료] · [전달 완료]: 선물 일을 볼 수 있는 사람 누구나(R-310).</summary>
     public async Task<TodoError> MoveGiftAsync(long giftId, string action, CancellationToken ct = default)

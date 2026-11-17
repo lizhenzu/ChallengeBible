@@ -14,6 +14,16 @@
         : g.Kind == "Copy" ? $"{g.About} 필사를 다 썼어요, 축하해요! 갖고 싶은 선물 하나를 골라요" : "고마워요! 갖고 싶은 선물 하나를 골라요";
 }
 @if (Model.Msg is { } msg) { <p class="gk-msg" role="status">@msg</p> }
+@if (Model.Link && g.State != "Expired")
+{
+    @* 확정 시안 생일링크-부모안내 ③: 부모님 할 일 3단계 — 고르기 전 1 · 고른 뒤 모두 *@
+    var doneAll = !picking;
+    <ol class="gk-3" aria-label="부모님이 하실 일">
+        <li class="on"><i>1</i>선물 보기</li>
+        <li class="@(doneAll ? "on" : null)"><i>2</i>하나 누르기</li>
+        <li class="@(doneAll ? "on" : null)"><i>3</i>끝!<small>선생님이 준비</small></li>
+    </ol>
+}
 @if (g.State == "Expired")
 {
     <h1>@g.KindLabel</h1>
@@ -22,8 +32,10 @@
 else if (picking)
 {
     @if (!Model.Link) { <h1>@g.KindLabel 고르기</h1> }
-    @if (bday || g.Kind is "Reading" or "Copy" || !Model.Link) { <p class="gk-sub">@sub</p> }   @* 링크 화면의 새친구 · 전도는 위 큰 글에 이미 있다 *@
-    <div class="gk-mine gk-mine-b"><span>@cheer</span></div>
+    @if (!Model.Link) { <p class="gk-sub">@sub</p> }
+    @if (Model.Link && g.OpenUntil is { } due && g.State == "Open") { <div class="gk-due"><span>고르는 기한</span><b>@due.ToString("M월 d일")까지</b></div> }
+    @if (Model.Link) { <p class="gk-ask">아이와 함께 보고 마음에 드는 선물 <b>하나</b>를 눌러 주세요.</p> }
+    else { <div class="gk-mine gk-mine-b"><span>@cheer</span></div> }
     @if (Model.Items.Count == 0) { <p class="gk-note">지금 고를 수 있는 선물이 없어요. 선생님께 말씀해 주세요.</p> }
     <form method="post" class="gk-grid" data-gk-pick>
         @foreach (var i in Model.Items)
@@ -41,15 +53,20 @@ else if (picking)
 else
 {
     <div class="gk-done">
+        @if (Model.Link)
+        {
+            <div class="gk-fin"><span class="gk-ck" aria-hidden="true">✓</span><h2>다 됐어요</h2>
+                <p>@(g.State == "Purchased" ? "선생님이 선물을 준비했어요. 주일에 전해 드려요." : "부모님이 더 하실 일은 없어요.")<br />@(g.State == "Purchased" ? "부모님이 더 하실 일은 없어요." : "선생님이 준비해서 주일에 전해 드려요.")</p></div>
+        }
         <div class="gk-pic big">@if (g.HasImage && g.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" onerror="this.remove()" /> }</div>
         <h1>@g.ItemName</h1>
         <div class="gk-st">@(g.State == "Purchased" ? "선생님이 준비했어요" : "준비 중이에요")</div>
         <ul class="gk-steps">
             <li class="gk-on"><i></i><span>골랐어요</span><span class="num">@g.PickedUtc?.ToString("M월 d일")</span></li>
             <li class="@(g.PurchasedUtc is not null ? "gk-on" : "")"><i></i><span>선생님이 준비했어요</span><span class="num">@g.PurchasedUtc?.ToString("M월 d일")</span></li>
-            <li><i></i><span>선물을 받았어요</span><span></span></li>
+            <li><i></i><span>@(Model.Link ? "아이가 받았어요" : "선물을 받았어요")</span><span></span></li>
         </ul>
         @if (g.State == "Picked") { <a class="gk-btn gk-plain" href="@Model.Self?change=true">다른 선물로 바꾸기</a> }
-        <p class="gk-hint">선생님이 사기 전까지는 다른 선물로 바꿀 수 있어요.</p>
+        <p class="gk-hint">@(Model.Link ? "바꾸고 싶으면 선생님이 사기 전까지 이 링크로 다시 들어와 바꿀 수 있어요." : "선생님이 사기 전까지는 다른 선물로 바꿀 수 있어요.")</p>
     </div>
 }

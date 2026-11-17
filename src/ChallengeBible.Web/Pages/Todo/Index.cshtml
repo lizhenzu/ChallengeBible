@@ -35,9 +35,21 @@
                 <div class="td-row td-noic"><div class="what"><b>@i.Title</b>@if (i.Why is null && i.Text is { } tx) { <span>@tx</span> }</div></div>
                 @if (i.Info.Count > 0) { <dl class="td-kv">@foreach (var (k, v) in i.Info) { <dt>@k</dt><dd>@v</dd> }</dl> }
                 @if (i.Steps.Count > 0) { <partial name="_Timeline" model="i.Steps" /> }
-                @if (i.Href is { } h) { <div class="td-btns"><a class="btn p" href="@h">@i.HrefLabel</a></div> }
+                @if (i.ShareId is long sid)
+                {
+                    @if (i.Why is { } w) { <p class="td-why">@w</p> }
+                    @* 확정 시안 생일링크-부모안내 ①: 휴대폰은 카톡 · 문자 고르는 창, 안 되면 복사 *@
+                    <div class="td-share" data-td-share="@sid">
+                        <button type="button" class="btn p" data-share="send">부모님께 보내기</button>
+                        <button type="button" class="btn s" data-share="copy">안내글 복사</button>
+                        <p class="td-toast" role="status" hidden></p>
+                        <details class="td-prev" data-share-prev><summary>보낼 글 미리 보기</summary><pre></pre></details>
+                    </div>
+                }
+                @if (i.Href is { } h) { <div class="td-btns"><a class="btn @(i.ShareId is null ? "p" : "s")" href="@h">@i.HrefLabel</a></div> }
             </div>
         }
     }
 </div></main>
 </div>
+<script src="~/js/todo-share.js" asp-append-version="true" defer></script>

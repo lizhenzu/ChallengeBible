@@ -21,6 +21,15 @@ public class IndexModel(TodoService todo, TenantContext tenant) : PageModel, ITi
         return Page();
     }
 
+    /// <summary>부모님께 보낼 안내글(JSON): 링크가 없으면 만든다. 내 할 일 카드에 없는 선물이면 404.</summary>
+    public async Task<IActionResult> OnPostShareAsync(long id, CancellationToken ct)
+    {
+        if (tenant.IsLobby) return NotFound();
+        if (await todo.ShareAsync(id, ct) is not { } r) return NotFound();
+        var url = $"{Request.Scheme}://{Request.Host}/gift/{r.Token}";
+        return new JsonResult(new { url, text = BirthdayGiftService.ShareText(r.View, url, r.Linked) });
+    }
+
     public async Task<IActionResult> OnPostSnoozeAsync(int days, CancellationToken ct)
     {
         await todo.SnoozeAsync(days, ct);

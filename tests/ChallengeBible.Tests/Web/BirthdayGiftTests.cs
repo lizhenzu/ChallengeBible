@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -203,5 +203,76 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
 
         _time.Now = new DateTimeOffset(2027, 1, 31, 0, 0, 0, TimeSpan.Zero);   // 1월 31일(일) ~ 2월 6일(토) 주
         Assert.Contains("스티커북", await c.GetStringAsync("/kids/gift-board"));
+    }
+
+    /// <summary>
+    /// 담임(관리자 아님)도 오늘 할 일 카드에서 부모님 안내글을 보낸다(확정 시안 생일링크-부모안내 ①, 2026-11-17 "조진찬 선생님 링크가 없다").
+    /// 계정 없는 아이 = 링크로, 계정 연결된 아이 = "아이 계정에서 직접 고를 수 있어요"도. 다른 반 선생님은 못 받는다. 부모님 화면은 3단계 · 기한 · 다 됐어요.
+    /// </summary>
+    [Fact]
+    public async Task R321_담임은_할_일에서_부모님_안내글을_보내고_부모님은_3단계로_고른다()
+    {
+        var admin = await Login("admin@example.com");
+        await admin.GetStringAsync("/kids/admin/gifts?s=pick");   // 생일 선물 생김
+        var t = InMemoryDb.SeedAccount(_db, "kim@example.com", "조진찬 선생님");
+        InMemoryDb.SeedMembership(_db, _kids.Id, t.UserName!, MembershipStatus.Approved, Roles.Teacher);
+        var o = InMemoryDb.SeedAccount(_db, "other@example.com", "다른반");
+        InMemoryDb.SeedMembership(_db, _kids.Id, o.UserName!, MembershipStatus.Approved, Roles.Teacher);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            foreach (var u in raw.Users) u.PasswordHash = new PasswordHasher<AppUser>().HashPassword(u, "1234");
+            var term = new ClassTerm { TenantId = _kids.Id, Year = 2027, StartDate = new DateOnly(2027, 1, 1), CreatedUtc = DateTime.UtcNow };
+            raw.ClassTerms.Add(term); raw.SaveChanges();
+            var cls = new SchoolClass { TenantId = _kids.Id, TermId = term.Id, Name = "1반", CreatedUtc = DateTime.UtcNow };
+            var cls2 = new SchoolClass { TenantId = _kids.Id, TermId = term.Id, Name = "2반", CreatedUtc = DateTime.UtcNow };
+            raw.Classes.AddRange(cls, cls2); raw.SaveChanges();
+            var tp = new Person { TenantId = _kids.Id, Name = "조진찬 선생님", UserId = t.Id, CreatedUtc = DateTime.UtcNow };
+            var op = new Person { TenantId = _kids.Id, Name = "다른반", UserId = o.Id, CreatedUtc = DateTime.UtcNow };
+            raw.People.AddRange(tp, op); raw.SaveChanges();
+            raw.ClassMembers.Add(new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = cls.Id, PersonId = tp.Id, IsTeacher = true, CreatedUtc = DateTime.UtcNow });
+            raw.ClassMembers.Add(new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = cls2.Id, PersonId = op.Id, IsTeacher = true, CreatedUtc = DateTime.UtcNow });
+            foreach (var n in new[] { "박서윤", "김하준" })
+                raw.ClassMembers.Add(new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = cls.Id, PersonId = raw.People.Single(p => p.Name == n).Id, CreatedUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        var seoyun = GiftOf("박서윤").Id;
+        var kim = await Login("kim@example.com");
+        await kim.GetAsync("/kids");
+        var todo = await kim.GetStringAsync("/kids/todo");
+        Assert.Contains("생일 선물 링크 · 박서윤", todo);
+        Assert.Contains("부모님께 보내기", todo);
+        Assert.Contains("안내글 복사", todo);
+        Assert.Contains("아이 계정에서 직접 고를 수 있어요", todo);   // 김하준은 계정 연결됨
+        Assert.DoesNotContain("선생님님", todo);
+        if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(todo, "41-할일-부모님께보내기");
+
+        var r = await Post(kim, "/kids/todo", "/kids/todo?handler=Share", new() { ["id"] = seoyun.ToString() });
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+        var text = System.Text.Json.JsonDocument.Parse(await r.Content.ReadAsStringAsync()).RootElement.GetProperty("text").GetString()!;
+        Assert.Contains("박서윤 어린이의 생일(2월 3일)을 축하해요", text);
+        Assert.Contains("로그인 없이 바로 열려요", text);
+        Assert.Contains("까지 골라 주세요", text);
+        Assert.DoesNotContain("아이 계정으로", text);
+        var token = LinkRx().Match(text).Groups[1].Value;
+        Assert.Equal(token, GiftOf("박서윤").LinkToken);
+        var hajun = await Post(kim, "/kids/todo", "/kids/todo?handler=Share", new() { ["id"] = GiftOf("김하준").Id.ToString() });
+        Assert.Contains("아이 계정으로 로그인해서 직접 골라도 돼요", System.Text.Json.JsonDocument.Parse(await hajun.Content.ReadAsStringAsync()).RootElement.GetProperty("text").GetString());
+
+        var other = await Login("other@example.com");
+        await other.GetAsync("/kids");
+        Assert.Equal(HttpStatusCode.NotFound, (await Post(other, "/kids/todo", "/kids/todo?handler=Share", new() { ["id"] = seoyun.ToString() })).StatusCode);
+
+        var parent = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var link = await parent.GetStringAsync($"/gift/{token}");
+        Assert.Contains("박서윤 어린이<br />생일 축하 선물이에요", link);
+        Assert.Contains("부모님이 하실 일", link);
+        Assert.Contains("고르는 기한", link);
+        if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(link, "42-부모님-선물고르기");
+        await Post(parent, $"/gift/{token}", $"/gift/{token}", new() { ["item"] = ItemId("스티커북").ToString() });
+        var done = await parent.GetStringAsync($"/gift/{token}");
+        Assert.Contains("다 됐어요", done);
+        Assert.Contains("부모님이 더 하실 일은 없어요", done);
+        if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(done, "43-부모님-다됐어요");
+        Assert.DoesNotContain("생일 선물 링크 · 박서윤", await kim.GetStringAsync("/kids/todo"));   // 고르면 사라진다
     }
 }

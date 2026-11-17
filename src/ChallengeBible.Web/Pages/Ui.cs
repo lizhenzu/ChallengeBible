@@ -34,4 +34,7 @@ public static class Ui
         var last = name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
         return string.IsNullOrEmpty(last) ? "?" : last[..1];
     }
+
+    /// <summary>이름 뒤 "님"(이미 "선생님"처럼 님으로 끝나면 그대로 — 2026-11-17 "선생님님" 고침).</summary>
+    public static string Nim(string? name) => string.IsNullOrEmpty(name) ? "" : name.EndsWith('님') ? name : name + "님";
 }

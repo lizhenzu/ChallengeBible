@@ -31,6 +31,8 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
     [BindProperty(SupportsGet = true, Name = "link")] public long? LinkId { get; set; }
     /// <summary>[새 링크]로 방금 바꾼 링크(팝업에 "예전 링크는 막혔어요").</summary>
     [BindProperty(SupportsGet = true, Name = "new")] public bool LinkFresh { get; set; }
+    /// <summary>링크 팝업의 부모님 안내글(확정 시안 생일링크-부모안내 ②).</summary>
+    public string? ShareText { get; private set; }
     /// <summary>[전도한 아이 고르기] 팝업: 새친구 명부 번호 · 찾는 이름.</summary>
     [BindProperty(SupportsGet = true, Name = "pick")] public int? PickId { get; set; }
     /// <summary>오늘 할 일에서 [선물 처리로 이동]으로 온 건(그 줄을 강조, 2026-11-16).</summary>
@@ -72,6 +74,7 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
             "bad" => "이미 바뀐 선물이에요. 목록을 다시 확인해 주세요.", "lastyear" => "지난해 선물은 되돌릴 수 없어요.", _ => null,
         };
         await LoadAsync(fillMoney: true, ct);
+        if (LinkId is long lid && await birthdays.ShareAsync(Me, lid, ct) is { } sh) ShareText = BirthdayGiftService.ShareText(sh.View, LinkUrl(sh.Token), sh.Linked);
         return Page();
     }
 

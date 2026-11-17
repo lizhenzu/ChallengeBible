@@ -118,7 +118,7 @@
                         <details class="fmt-ask out"><summary>내보내기</summary>
                             <form method="post" asp-page-handler="Kick" asp-route-slug="@Model.Slug">
                                 <input type="hidden" name="member" value="@x.MemberId" />
-                                <span>@(x.Name)님을 팀에서 내보낼까요? 점수는 지우지 않아요.</span>
+                                <span>@Ui.Nim(x.Name)을 팀에서 내보낼까요? 점수는 지우지 않아요.</span>
                                 <button type="submit" class="fmt-btn sm no">내보내기</button>
                             </form>
                         </details>
@@ -135,7 +135,7 @@
             {
                 <div class="fmt-sent">
                     <div class="m">@i.Name<small>@FamilyTeamModel.AsRelation(i.Relation) 초대 · 수락을 기다리는 중</small></div>
-                    <form method="post" asp-page-handler="InviteCancel" asp-route-slug="@Model.Slug"><input type="hidden" name="invite" value="@i.InviteId" /><button type="submit" aria-label="@(i.Name)님 초대 취소">취소</button></form>
+                    <form method="post" asp-page-handler="InviteCancel" asp-route-slug="@Model.Slug"><input type="hidden" name="invite" value="@i.InviteId" /><button type="submit" aria-label="@Ui.Nim(i.Name) 초대 취소">취소</button></form>
                 </div>
             }
         }
@@ -239,12 +239,12 @@
                 <div class="h">@i.TeamName@if (i.Friend) {<small> · 친구팀</small>}</div>
                 @if (i.Friend)
                 {
-                    <p>@(i.InvitedBy)님이 친구팀에 초대했어요.</p>
+                    <p>@Ui.Nim(i.InvitedBy)이 친구팀에 초대했어요.</p>
                     <div class="fmt-chips">@foreach (var x in i.Members) {<span>@x.Name</span>}</div>
                 }
                 else
                 {
-                    <p>@(i.InvitedBy)님이 @FamilyTeamModel.AsRelation(i.Relation) 초대했어요. 관계가 다르면 바꿔서 수락하세요.</p>
+                    <p>@Ui.Nim(i.InvitedBy)이 @FamilyTeamModel.AsRelation(i.Relation) 초대했어요. 관계가 다르면 바꿔서 수락하세요.</p>
                     <div class="fmt-chips">@foreach (var x in i.Members) {<span>@x.Name<b>@FamilyTeamService.RelationLabel(x.Relation)</b></span>}</div>
                     <div class="q">나는 누구인가요?</div>
                     <partial name="_FamilyWho" model="i.Relation" />

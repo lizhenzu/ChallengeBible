@@ -52,7 +52,7 @@
             <h1>@g.ItemName</h1>
             <div class="gk-st">@(g.State == "Purchased" ? "선생님이 준비했어요" : "준비 중이에요")</div>
             <ul class="gk-steps">
-                <li class="gk-on"><i></i><span>@(g.PickedBy is { } pb ? $"{pb}님이 골랐어요" : "골랐어요")</span><span class="num">@g.PickedUtc?.ToString("M월 d일")</span></li>
+                <li class="gk-on"><i></i><span>@(g.PickedBy is { } pb ? $"{Ui.Nim(pb)}이 골랐어요" : "골랐어요")</span><span class="num">@g.PickedUtc?.ToString("M월 d일")</span></li>
                 <li class="@(g.PurchasedUtc is not null ? "gk-on" : "")"><i></i><span>선생님이 준비했어요</span><span class="num">@g.PurchasedUtc?.ToString("M월 d일")</span></li>
                 <li><i></i><span>선물을 받았어요</span><span></span></li>
             </ul>

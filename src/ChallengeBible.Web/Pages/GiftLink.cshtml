@@ -4,8 +4,8 @@
 <div class="gk-pg @(Model.View?.Gift.Kind switch { "Newcomer" or "Invite" => "gk-pg-g", "Reading" or "Copy" => "gk-pg-o", _ => "gk-pg-b" }) gk-link">
     @if (Model.View is { } v)
     {
-        <div class="gk-hero"><span>@v.Gift.KindLabel</span><h1>@v.Gift.Name 어린이 @(v.Gift.Kind == "Birthday" ? "생일 선물" : "선물")</h1>
-            <p>@(v.Gift.Kind switch { "Newcomer" => $"{v.Gift.TenantName}에 와 줘서 고마워요. 하나를 골라 주세요.", "Invite" => $"{ChallengeBible.Web.Pages.Admin.GiftsModel.Obj(v.Gift.About ?? "친구")} 데려와 줘서 고마워요. 하나를 골라 주세요.", "Reading" => $"성경 {v.Gift.About} 완독을 축하해요. 하나를 골라 주세요.", "Copy" => $"성경 {v.Gift.About} 필사 완필을 축하해요. 하나를 골라 주세요.", _ => $"{v.Gift.TenantName} 선생님이 보낸 선물이에요. 하나를 골라 주세요." })</p></div>
+        <div class="gk-hero"><span>@v.Gift.TenantName · @v.Gift.KindLabel</span><h1>@v.Gift.Name 어린이<br />@(v.Gift.Kind switch { "Birthday" => "생일 축하 선물이에요", "Newcomer" => "새친구 환영 선물이에요", "Invite" => "전도 감사 선물이에요", "Reading" => "완독 축하 선물이에요", "Copy" => "완필 축하 선물이에요", _ => "선물이에요" })</h1>
+            <p>@(v.Gift.Kind switch { "Newcomer" => $"{v.Gift.TenantName}에 와 줘서 고마워요. 하나를 골라 주세요.", "Invite" => $"{ChallengeBible.Web.Pages.Admin.GiftsModel.Obj(v.Gift.About ?? "친구")} 데려와 줘서 고마워요. 하나를 골라 주세요.", "Reading" => $"성경 {v.Gift.About} 완독을 축하해요. 하나를 골라 주세요.", "Copy" => $"성경 {v.Gift.About} 필사 완필을 축하해요. 하나를 골라 주세요.", _ => $"{v.Gift.Birthday:M월 d일} 생일을 축하해요. 교회에서 선물을 준비해요." })</p></div>
         <partial name="_BirthdayPick" model="v" />
     }
     else

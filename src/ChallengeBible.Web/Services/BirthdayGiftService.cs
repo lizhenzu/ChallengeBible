@@ -227,6 +227,45 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
     }
 
     /// <summary>
+    /// 부모님께 보낼 안내글(확정 시안 생일링크-부모안내 ②, 2026-11-17): 링크가 없으면 만들고(LinkAsync — 처음 만들 때 "링크 보냄" 이력) 안내글에 넣을 값을 돌려준다.
+    /// Linked = 명부가 로그인 계정과 연결된 아이(아이 계정에서 직접 고를 수도 있음).
+    /// </summary>
+    public async Task<(BirthdayGiftView View, string Token, bool Linked)?> ShareAsync(string actor, long giftId, CancellationToken ct = default)
+    {
+        var token = await LinkAsync(actor, giftId, false, ct);
+        if (token is null) return null;
+        await using var ctx = db.Create();
+        var g = await ctx.Gifts.AsNoTracking().SingleAsync(x => x.Id == giftId, ct);
+        var linked = g.UserName is not null || (g.PersonId is int pid && await ctx.People.AnyAsync(p => p.Id == pid && p.UserId != null, ct));
+        return ((await ViewsAsync(ctx, [g], ct))[0], token, linked);
+    }
+
+    /// <summary>안내글 본문: 부서 · 아이 이름 · 왜(생일 · 새친구 · 전도 · 완독 · 완필) · 할 일 · 기한 · 링크.</summary>
+    public static string ShareText(BirthdayGiftView g, string url, bool linked)
+    {
+        var why = g.Kind switch
+        {
+            GiftKinds.Newcomer => $"{g.TenantName}에 와 줘서 고마워요!",
+            GiftKinds.Invite => $"{g.About ?? "친구"}{Obj(g.About ?? "친구")} 교회에 데려와 줘서 고마워요!",
+            GiftKinds.Reading => $"성경 {g.About} 완독을 축하해요!",
+            GiftKinds.Copy => $"성경 {g.About} 필사 완필을 축하해요!",
+            _ => $"생일({g.Birthday:M월 d일})을 축하해요! 🎂",
+        };
+        var sb = new System.Text.StringBuilder();
+        sb.Append('[').Append(g.TenantName).Append("]\n");
+        sb.Append(g.Name).Append(g.Kind == GiftKinds.Birthday ? " 어린이의 " : " 어린이, ").Append(why).Append("\n\n");
+        sb.Append("교회에서 ").Append(g.KindLabel).Append("을 준비해요. 아래 링크를 눌러 아이와 함께 선물 하나를 골라 주세요.\n\n");
+        sb.Append("· 로그인 없이 바로 열려요\n");
+        if (g.OpenUntil is { } u && g.State == GiftStates.Open) sb.Append($"· {u:M월 d일}까지 골라 주세요\n");
+        if (linked) sb.Append("· 아이 계정으로 로그인해서 직접 골라도 돼요\n");
+        sb.Append("· 고른 선물은 선생님이 준비해서 주일에 전해 드려요\n\n");
+        sb.Append(url);
+        return sb.ToString();
+    }
+
+    private static string Obj(string w) => w.Length > 0 && w[^1] is >= '가' and <= '힣' && (w[^1] - '가') % 28 != 0 ? "을" : "를";
+
+    /// <summary>
     /// [건너뛰기]: 아직 사지 않은 생일 · 새친구 · 전도 선물(고를 수 있음 · 고름 · 기한 지남) → 건너뜀. [되돌리기]: 건너뜀 → 고를 수 있음(기한이 지났으면 기한 지남).
     /// 전도한 아이를 정하지 못한 채 건너뛴 것은 되돌리면 지워서 다시 "전도한 아이를 골라 주세요"로.
     /// </summary>

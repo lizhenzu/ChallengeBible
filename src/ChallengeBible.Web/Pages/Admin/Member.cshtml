@@ -148,7 +148,7 @@
             @if (Model.TemporaryPassword is { } pw)
             {
                 <div class="md-pw" role="status"><code>@pw</code><button type="button" class="btn s sm" data-copy="@pw">복사</button><a class="btn p sm" href="@Model.Url()">알려 줬어요</a></div>
-                <p class="md-warn"><b>이 칸을 닫으면 다시 볼 수 없어요.</b> @(d.Name)님께 직접 알려 주세요. 로그인하면 새 비밀번호로 바꾸게 해요.</p>
+                <p class="md-warn"><b>이 칸을 닫으면 다시 볼 수 없어요.</b> @Ui.Nim(d.Name)께 직접 알려 주세요. 로그인하면 새 비밀번호로 바꾸게 해요.</p>
             }
             <div class="mg" id="marks"><div><b>성경 읽음 초기화</b><span>성경 읽기에서 표시한 "읽음"과 책갈피를 모두 지워요. 점수 · 통독 진도는 그대로예요. 되돌릴 수 없어요.</span></div>
                 @if (d.ResetBlocked is null) { <a class="btn d sm" href="@Model.Url(ask: "marks")#marks">성경 읽음 지우기</a> }

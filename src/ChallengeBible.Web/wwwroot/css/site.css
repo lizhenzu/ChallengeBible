@@ -4233,3 +4233,18 @@ body:has(.at-hd) .imp-bar .wrap { max-width: calc(760px + 2 * var(--gut)); }   /
 .sq-hist b { color: #1B1F24; }
 .sq-hist code { font-size: 11.5px; }
 .sq .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.go-prev summary { cursor: pointer; font-size: 12.5px; color: var(--muted, #6B7280); }
+.go-prev pre { margin: 6px 0 0; max-height: 220px; overflow: auto; padding: 10px; border: 1px dashed #CBD5E1; border-radius: 12px; background: #F9FAFB; font: 12.5px/1.6 inherit; font-family: inherit; white-space: pre-wrap; word-break: break-all; }
+.go-close { justify-content: center; }
+/* 부모님 링크 화면 안내(확정 시안 생일링크-부모안내 ③) */
+.gk-3 { list-style: none; margin: 0 0 10px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.gk-3 li { border-radius: 12px; background: #F3F4F6; color: #6B7280; padding: 8px 4px; text-align: center; font-size: 12.5px; font-weight: 800; line-height: 1.35; }
+.gk-3 li i { display: block; font-style: normal; font-size: 16px; font-weight: 900; }
+.gk-3 li small { display: block; font-size: 11px; font-weight: 700; }
+.gk-3 li.on { background: #EFF6FF; color: #1D4ED8; }
+.gk-due { display: flex; justify-content: space-between; gap: 8px; margin: 0 0 10px; padding: 9px 12px; border-radius: 12px; background: #FEF3C7; color: #92400E; font-size: 13px; font-weight: 800; }
+.gk-ask { margin: 0 0 10px; font-size: 14px; line-height: 1.55; }
+.gk-fin { text-align: center; display: grid; gap: 8px; margin-bottom: 14px; }
+.gk-fin .gk-ck { width: 60px; height: 60px; margin: 0 auto; border-radius: 50%; background: #16A34A; color: #fff; font-size: 32px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+.gk-fin h2 { margin: 0; font-size: 22px; }
+.gk-fin p { margin: 0; padding: 12px; border-radius: 12px; background: #EAF7EF; color: #15803D; font-size: 14.5px; font-weight: 800; line-height: 1.6; }

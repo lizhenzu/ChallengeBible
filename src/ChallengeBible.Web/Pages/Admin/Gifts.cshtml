@@ -45,11 +45,14 @@
                     <b id="goLinkT">@lo.Who @GiftsModel.LinkTitle(lo.Kind) 링크</b>
                     @if (Model.LinkFresh) { <p class="go-fresh">새 링크를 만들었어요. 예전 링크는 이제 열리지 않아요.</p> }
                     <input class="in num" readonly value="@url" aria-label="선물 링크" onclick="this.select()" />
-                    <small>카톡으로 부모님께 보내 주세요. 로그인 없이 열려요.</small>
+                    <small>카톡으로 부모님께 보내 주세요. 로그인 없이 열려요. 안내글에는 무엇을 하면 되는지 · 기한 · 링크가 함께 들어 있어요.</small>
+                    @if (Model.ShareText is { } st) { <details class="go-prev"><summary>보낼 안내글 미리 보기</summary><pre>@st</pre></details> }
                     <div class="go-row2">
-                        <a class="btn s" href="@self?s=@Model.Step#g@(lid)" data-close>닫기</a>
-                        <button type="button" class="btn p" data-copy="@url">링크 복사</button>
+                        <button type="button" class="btn s" data-copy="@url">링크만 복사</button>
+                        @if (Model.ShareText is { } st2) { <button type="button" class="btn p" data-copy="@st2">안내글 복사</button> }
+                        else { <button type="button" class="btn p" data-copy="@url">링크 복사</button> }
                     </div>
+                    <a class="btn s go-close" href="@self?s=@Model.Step#g@(lid)" data-close>닫기</a>
                 </div>
             </div>
         }
