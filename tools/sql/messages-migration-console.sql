@@ -1,5 +1,5 @@
 -- 쪽지(ADR 0112) 마이그레이션 JoinListedAll · Messages 를 SQL 실행 화면(/platform/sql)에서 적용하는 용도. 이미 적용됐으면 아무것도 안 한다(이력 확인).
--- COMMIT · BEGIN TRAN · GO 는 뺐다(SQL 실행 화면이 트랜잭션을 다룬다). 시험 실행 → 저장(SAVE).
+-- 트랜잭션 · 배치 구분 문장은 뺐다(SQL 실행 화면이 트랜잭션을 다룬다). 시험 실행 → 저장(SAVE).
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
     WHERE [MigrationId] = N'20261117025003_JoinListedAll'
