@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using System.Data.Common;
 using System.Security.Cryptography;
 using System.Text;
@@ -129,8 +129,17 @@ public sealed partial class SqlConsoleService(ISystemDb systemDb, TimeProvider t
     private async Task AuditAsync(string actor, string mode, string sql)
     {
         await using var ctx = systemDb.Create(actor);
-        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = Action, Detail = $"{mode}: " + (sql.Length > 900 ? sql[..900] + "…" : sql) });
+        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = Action, Detail = AuditDetail(mode, sql) });
         await ctx.SaveChangesAsync();
+    }
+
+    /// <summary>감사 로그 Detail 칸은 400자(AuditLogConfig) — 넘으면 저장이 실패해 실행 뒤 오류 화면이 났다(2026-11-18). 칸에 맞게 자른다.</summary>
+    public const int AuditMax = 400;
+    internal static string AuditDetail(string mode, string sql)
+    {
+        var head = $"{mode}: ";
+        var room = AuditMax - head.Length;
+        return head + (sql.Length > room ? sql[..(room - 1)] + "…" : sql);
     }
 
     /// <summary>최근 실행 기록(감사 로그).</summary>

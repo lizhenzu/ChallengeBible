@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -121,5 +121,16 @@ public partial class SqlConsoleTests : IClassFixture<WebApplicationFactory<Progr
         string adminName;
         using (var raw = InMemoryDb.Raw(_db)) adminName = raw.Users.Single(u => u.Email == "admin@example.com").UserName!;
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => svc.RunAsync(adminName, "SELECT 1", false));
+    }
+
+    [Fact]
+    public void 감사_로그는_400자_칸에_맞게_자른다_긴_SQL_도_실행_뒤_오류가_나지_않게()
+    {
+        var longSql = string.Concat(Enumerable.Repeat("SELECT N'김경결' AS 이름; ", 60));   // 1,000자 넘음(2026-11-18 오류 화면)
+        var d = ChallengeBible.Web.Services.SqlConsoleService.AuditDetail("test", longSql);
+        Assert.True(d.Length <= ChallengeBible.Web.Services.SqlConsoleService.AuditMax);
+        Assert.StartsWith("test: SELECT", d);
+        Assert.EndsWith("…", d);
+        Assert.Equal("save: SELECT 1", ChallengeBible.Web.Services.SqlConsoleService.AuditDetail("save", "SELECT 1"));
     }
 }
