@@ -1802,7 +1802,7 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 /* 참여 신청 화면 폭: 머리말 · 본문을 기본 760px 로(2026-11-17 사용자 "/join 만 좌우 폭이 다르다") */
 body:has(main.jv4) .top .wrap, main.jv4 > .wrap { max-width: 760px; }
 /* 로그인 · 회원가입도 같은 760px(2026-11-17 사용자) */
-body:has(main.w760) .top .wrap, main.w760 > .wrap { max-width: 760px; }
+body:has(main.w760) .top .wrap, body:has(main.w760) .admintop .wrap.hd, main.w760 > .wrap { max-width: 760px; }
 .jv4 .jacts .go { border: 0; background: var(--accent); color: var(--on-accent); cursor: pointer; }
 .jv4:not(:has(input[name="TenantId"]:checked)) .jacts .go { opacity: .4; pointer-events: none; }
 
