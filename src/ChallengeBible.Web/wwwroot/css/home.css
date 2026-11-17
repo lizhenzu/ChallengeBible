@@ -482,3 +482,9 @@
   .hm .hj-sr .tg b { flex: none; white-space: nowrap; }
   .hm .hj-sr .tg span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
+/* 그림자 연하게(테두리는 그대로) · 맨 아래 여백 좁게 · 말씀 찾기 줄 테두리 없앰(2026-11-17 사용자) */
+.hm .hj-card:not(.hj-inv), .hm .hcCard { box-shadow: inset 0 2px 0 #FFFFFF, 0 1px 2px rgba(20, 35, 70, .06), 0 4px 10px -4px rgba(20, 35, 70, .10); }
+.hm main.hj .wrap { padding-bottom: 12px; }
+.hm footer .wrap { padding-block: 6px calc(12px + env(safe-area-inset-bottom, 0px)); }
+.hm .hj-sr .tg { display: flex; border: 0; border-radius: 0; }   /* site.css 의 공통 .tg(테두리 상자)가 붙지 않게 */
+.hm .hj-sr .tg b { background: #EEF4FE; color: #2F6BE0; box-shadow: inset 0 0 0 1px #D6E4FB; border-radius: 8px; }
