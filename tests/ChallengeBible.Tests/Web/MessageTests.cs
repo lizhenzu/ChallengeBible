@@ -136,6 +136,11 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
             Assert.Equal(_u["cheolsu"], raw.Messages.Single(m => m.Body.StartsWith("글자가")).SenderUserName);
         }
         var sa = await Login("superadmin@example.com");
+        var first = await sa.GetAsync("/platform");   // 할 일이 있으면 할 일 화면으로 먼저(R-309)
+        var plat = first.StatusCode == HttpStatusCode.OK ? await first.Content.ReadAsStringAsync() : await sa.GetStringAsync("/platform");
+        Assert.Contains("data-mpop", plat);                 // 플랫폼 홈에서도 로그인 후 한 번 팝업(2026-11-17 사용자)
+        Assert.Contains("새 쪽지 3개가 왔어요", plat);
+        Assert.DoesNotContain("data-mpop", await sa.GetStringAsync("/platform"));
         var inbox = await sa.GetStringAsync("/messages");
         Assert.Contains("익명", inbox);
         Assert.Contains("김철수", inbox);

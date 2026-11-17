@@ -8,8 +8,11 @@ namespace ChallengeBible.Web.Pages.Platform;
 
 /// <summary>`/platform` 플랫폼 홈(확정 시안: 플랫폼-홈): 숫자 4칸 → 챙길 일 → 부서별 오늘 | 최근 관리 기록.</summary>
 [Authorize(Policy = CurrentUser.PlatformAdminPolicy)]
-public class IndexModel(PlatformHomeService home, PlatformTodoService todo) : PageModel, ITitled
+public class IndexModel(PlatformHomeService home, PlatformTodoService todo, MessageService msgs) : PageModel, ITitled
 {
+    /// <summary>로그인 후 한 번 새 쪽지 띠 · 팝업(ADR 0112) — 개선 · 불편 쪽지는 superadmin 이 받는다.</summary>
+    public int NewMessages { get; private set; }
+    public IReadOnlyList<MsgRow> NewList { get; private set; } = [];
     public string Title => "플랫폼 홈";
     public PlatformHome Data { get; private set; } = null!;
 
@@ -20,6 +23,11 @@ public class IndexModel(PlatformHomeService home, PlatformTodoService todo) : Pa
         // 리디렉트 응답은 TempData 를 저절로 남기므로 직접 지운다 — 로그인 직후 한 번만
         if (TempData.Remove(ChallengeBible.Web.Pages.Account.LoginModel.TodoCheckKey) && Data.Todos.Count > 0 && !await todo.SnoozedAsync(User.UserName()!, ct))
             return Redirect("/platform/todo");
+        if (TempData.Remove(ChallengeBible.Web.Pages.TenantHomeModel.MsgBandKey))
+        {
+            NewMessages = await msgs.UnreadAsync(User.UserName()!, ct);
+            if (NewMessages > 0) NewList = (await msgs.InboxAsync(User.UserName()!, ct)).Where(r => r.Unread).Take(3).ToList();
+        }
         return Page();
     }
 

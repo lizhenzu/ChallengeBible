@@ -9,6 +9,7 @@
 }
 <partial name="_PlatformTop" />
 <main class="admin gut"><div class="wrap wide ph">
+    @if (Model.NewMessages > 0) { <a class="ms-band" href="/messages">새 쪽지 @(Model.NewMessages)개가 왔어요<span>쪽지함 보기</span></a> }
     <div class="ph-greet ph-span"><h1>플랫폼 홈</h1><span class="num">@d.NowLocal.ToString("yyyy년 M월 d일 dddd · tt h:mm", ko) 기준</span></div>
 
     <div class="ar-kpis ph-span">
@@ -63,3 +64,4 @@
         <p class="ph-muted small">감사 로그 전체 보기 · 사용량은 2차예요.</p>
     </section>
 </div></main>
+<partial name="_MsgPopup" model='(Model.NewMessages, Model.NewList, "/platform")' />

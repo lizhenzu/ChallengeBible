@@ -334,34 +334,7 @@
 </div></main>
 }
 
-@if (Model.NewList.Count > 0)
-{
-    @* 확정 시안 쪽지-팝업(2026-11-17, 사용자 "2" — 띠와 함께): 로그인 후 한 번, 최근 3개 · [닫기] · [쪽지함 보기] *@
-    <div class="mpop" data-mpop role="dialog" aria-modal="true" aria-labelledby="mpopT">
-        <div class="mpop-box">
-            <div class="mpop-ic" aria-hidden="true">✉<i class="num">@Model.NewMessages</i></div>
-            <h2 id="mpopT">새 쪽지 @(Model.NewMessages)개가 왔어요</h2>
-            <div class="mpop-li">
-                @foreach (var r in Model.NewList)
-                {
-                    var av = r.Anonymous ? "익명" : r.Who == ChallengeBible.Web.Services.MessageService.PlatformName ? "관리" : r.Who.Length > 1 ? r.Who[1..Math.Min(3, r.Who.Length)] : r.Who;
-                    <a class="mpop-m" href="/messages/@r.Id"><span class="av @(av is "관리" or "익명" ? "sys" : null)">@av</span><b>@r.Who@if (r.Broadcast) { <span class="bc">전체</span> }@if (r.Where is { } w) { <em>@w</em> }</b><span class="pv">@r.Body</span></a>
-                }
-            </div>
-            @if (Model.NewMessages > Model.NewList.Count) { <a class="mpop-more" href="/messages">외 @(Model.NewMessages - Model.NewList.Count)개 더</a> }
-            <div class="mpop-acts"><a class="btn s" href="/@slug" data-mpop-close>닫기</a><a class="btn p" href="/messages">쪽지함 보기</a></div>
-        </div>
-    </div>
-    <script>
-        (() => {
-            const p = document.querySelector('[data-mpop]'); if (!p) return;
-            const close = (e) => { e?.preventDefault(); p.remove(); };
-            p.addEventListener('click', e => { if (e.target === p || e.target.closest('[data-mpop-close]')) close(e); });
-            document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); }, { once: true });
-            p.querySelector('[data-mpop-close]')?.focus();
-        })();
-    </script>
-}
+<partial name="_MsgPopup" model="(Model.NewMessages, Model.NewList, '/' + slug)" />
 
 <partial name="_TenantDrawer" model="Model.Tenant" />
 

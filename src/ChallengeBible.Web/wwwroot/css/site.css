@@ -4359,8 +4359,8 @@ details.ask.lkacc form .lka-o > span { flex: 1 1 auto; min-width: 0; }
 .mailb { position: relative; flex: none; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; background: var(--soft, #F3F4F6); color: var(--fg, #111827); text-decoration: none; }
 .mailb i { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 99px; background: #DC2626; color: #fff; font-size: 11px; font-style: normal; font-weight: 900; display: flex; align-items: center; justify-content: center; }
 /* 부서 홈 개선 · 불편 접수대 · 새 쪽지 띠(확정 시안 쪽지 ①) */
-.hm .ms-band { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 11px 14px; border-radius: 14px; background: #2563EB; color: #fff; font-size: 14px; font-weight: 800; text-decoration: none; }
-.hm .ms-band span { padding: 6px 10px; border-radius: 10px; background: #fff; color: #1D4ED8; font-size: 13px; }
+.ms-band { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 11px 14px; border-radius: 14px; background: #2563EB; color: #fff; font-size: 14px; font-weight: 800; text-decoration: none; }
+.ms-band span { padding: 6px 10px; border-radius: 10px; background: #fff; color: #1D4ED8; font-size: 13px; }
 .hm .fb h2 { margin: 0 0 4px; font-size: 16px; }
 .hm .fb p { margin: 0 0 10px; font-size: 13px; color: #4B5563; line-height: 1.5; }
 .hm .fb textarea { width: 100%; min-height: 96px; padding: 10px; border: 1px solid #CBD5E1; border-radius: 12px; font: inherit; font-size: 14px; resize: vertical; box-sizing: border-box; }
