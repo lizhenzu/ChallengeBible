@@ -404,3 +404,8 @@
 .hm .hj-box.c small { color: var(--hj-copy); }
 .hm .hj-n3 .c { --n3: var(--hj-copy); --n3-l: var(--hj-copy-l); }
 .hm .hj-n3 .c2 { --n3: var(--hj-copy2); --n3-l: var(--hj-copy2-l); }
+
+/* 홈 카드 구분(확정 시안 홈-카드구분 A, 2026-11-17 사용자 "카드별 영역이 잘 구분이 안 간다"): 연한 회색 바탕 · 흰 카드 · 그림자 · 카드 사이를 조금 더 */
+.hm main.hj { background: #EEF1F5; }
+.hm main.hj .wrap { gap: 16px; }
+.hm .hj-card:not(.hj-inv) { border: 1px solid #DCE1E8; border-radius: 16px; box-shadow: 0 2px 8px rgba(15, 23, 42, .07); }
