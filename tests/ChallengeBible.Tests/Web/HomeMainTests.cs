@@ -77,7 +77,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("씨앗으로 자라는 중", home);
         Assert.Contains("<svg class=\"pea\"", home);                                  // 씨앗 그림 = 완두콩 꼬투리(2026-11-03), 🌰 이모지는 안 씀
         Assert.DoesNotContain("🌰", home);
-        Assert.DoesNotContain("새싹까지", home);                                       // 오른쪽 "다음 단계까지 N점"은 지움(2026-11-03)
+        Assert.Contains("<small>새싹까지</small><b class=\"num\">400<u>점</u></b>", home);   // 오른쪽 "다음 단계까지 N점" 다시(2026-11-17 사용자, 유년부 홈처럼)
+        Assert.DoesNotContain("class=\"hj-stg\"", home);                            // 씨앗 · 새싹 · 나무 · 숲 단계 띠는 지움(2026-11-17)
         Assert.DoesNotContain("도토리", home);
         Assert.Contains("href=\"/jamsil-kids/points\"", home);                      // 성장일지
         Assert.Contains("<a class=\"sx\" href=\"/jamsil-kids/reading/search\"", home);            // 말씀 찾기

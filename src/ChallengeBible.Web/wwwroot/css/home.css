@@ -420,3 +420,31 @@
 .hm .lb-btn { display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 12px; font-size: 15px; font-weight: 900; text-decoration: none; }
 .hm .lb-btn.p { background: #2563EB; color: #fff; }
 .hm .lb-btn.s { background: #fff; border: 1px solid #CBD5E1; color: #1F2937; }
+
+/* ── 홈 색 재구성(2026-11-17 사용자 확정 시안 A + 모서리 5px · 간격 6px · 좌우 6px · 카드 안 버튼 연하게) — 틀(순서 · 크기 · 내용)은 그대로 ── */
+.hm.sky, .hm .wl.wl-wide, .hm main.hj { background: #F7F5F0; }   /* 부서 홈 바깥 틀만(_MissionNav 의 a.hm 과 겹치지 않게) */
+.hm .hj { --hj-org: #E07B39; --hj-org-l: #FEF8F2; --hj-blue: #3A6FD8; --hj-blue-l: #F4F7FD; --hj-green: #3C9D62; --hj-green-l: #EDF6F0; --hj-mint: #2E9A74; --hj-mint-l: #F0F8F4;
+          --hj-purple: #7A62D0; --hj-copy: #8B5E3C; --hj-copy-l: #FAF6F1; --hj-copy2: #A57A52; --hj-copy2-l: #FAF6F1; --hj-sun-l: #FBF4E4; --hj-n3-l: #B7791F; --hj-sx-btn: #5E8DE8; }
+.hm main.hj.gut { padding-left: max(6px, env(safe-area-inset-left, 0px)); padding-right: max(6px, env(safe-area-inset-right, 0px)); }   /* 좌우 = 카드 사이 6px */
+.hm main.hj .wrap { gap: 6px; }
+.hm .hj-card:not(.hj-inv) { border: 0; border-radius: 5px; box-shadow: 0 1px 2px rgba(60, 50, 30, .05), 0 6px 20px rgba(60, 50, 30, .06); padding: 18px 16px; }
+.hm .hcCard { border-radius: 5px; }
+.hm .hj-box.o, .hm .hj-box.r, .hm .hj-box.c { box-shadow: none; }
+.hm .hj-box.o { background: #FEF8F2; } .hm .hj-box.r { background: #F4F7FD; } .hm .hj-box.c { background: #FAF6F1; }
+.hm .hj .hj-m4 a { background: #FBFAF7; box-shadow: none; }
+.hm .hj .hj-m4 .ok { background: var(--hj-mint-l); box-shadow: none; }
+.hm .hj .hj-m4 .cur { background: #FEF8F2; box-shadow: inset 0 0 0 1.5px #F7D9C0; }
+.hm .hj-n3 div { background: #FBFAF8; box-shadow: none; }
+.hm .hj-sr .sx .ph { background: #FAF9F6; }
+.hm .hj-sr .kw a, .hm .hj-sr .tg b, .hm .tpCard .tpMore { background: #F7F5F1; color: #5B5346; }
+.hm .hj-hi .hj-roles .ad { background: #4A5568; }
+.hm .hj-dept b { color: #2A2F3A; }
+/* 성장: 단계 띠 대신 오른쪽 "○○까지 N점"(유년부 홈과 같은 구성, 2026-11-17 사용자) */
+.hm .hj-gtx em { margin-top: 8px; color: var(--fg); }
+.hm .hj-gside { flex: none; align-self: stretch; display: flex; flex-direction: column; justify-content: center; min-width: 96px; margin-left: 4px; padding-left: 16px; border-left: 1px solid var(--rule); }
+.hm .hj-gside small { font-size: 12px; font-weight: 700; color: var(--dim); }
+.hm .hj-gside b { font-size: 22px; font-weight: 900; line-height: 1.2; }
+.hm .hj-gside b u { text-decoration: none; margin-left: 1px; font-size: 13px; font-weight: 600; color: var(--dim); }
+.hm .hj-more { margin-top: 6px; }
+.hm .hj-more b { color: var(--hj-blue); }
+@media (min-width: 600px) { .hm .hj-gtx, .hm .hj-gside { flex: 1 1 0; } .hm .hj-gside { padding-left: 24px; } }

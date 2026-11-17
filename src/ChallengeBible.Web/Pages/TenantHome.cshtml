@@ -151,17 +151,10 @@
                 </span>
                 <span class="hj-gtx"><small>나의 점수</small><b class="num">@d.SeasonPoints.ToString("N0")<u>점</u></b>
                     <em>@(g.Done ? $"{cur.Name}까지 모두 자랐어요" : $"{cur.Name}{Ro(cur.Name)} 자라는 중")</em></span>
-                @* 오른쪽 "○○까지 N점"은 지웠다(2026-11-03 사용자) *@
+                @* 오른쪽 "○○까지 N점"(2026-11-17 사용자: 유년부 홈처럼 다시 — 단계 띠 대신). 다 자랐으면 없음 *@
+                @if (!g.Done && g.Stage + 1 < stages.Count) { <span class="hj-gside"><small>@(stages[g.Stage + 1].Name)까지</small><b class="num">@g.ToNext.ToString("N0")<u>점</u></b></span> }
             </a>
-            <ol class="hj-stg" aria-label="성장 단계">
-                @for (var i = 0; i < stages.Count; i++)
-                {
-                    var s = stages[i];
-                    var state = i < g.Stage || g.Done ? "d" : i == g.Stage ? "c" : "";
-                    if (i > 0) { <li class="ln @(i <= g.Stage || g.Done ? "d" : "")" aria-hidden="true"></li> }
-                    <li class="st @state" aria-current="@(state == "c" ? "step" : "false")"><span aria-hidden="true">@Ico(s.Emoji)</span><small>@s.Name</small></li>
-                }
-            </ol>
+            @* 씨앗 · 새싹 · 나무 · 숲 단계 띠는 지웠다(2026-11-17 사용자) — 원 그래프 안 단계 그림 · 이름으로 *@
             <a class="hj-more" href="/@slug/points">@if (d.Streak > 0) { <span>🔥 @(d.Streak)일째 이어 하는 중 · </span> }<b>성장일지 ›</b></a>
         }
     </section>
