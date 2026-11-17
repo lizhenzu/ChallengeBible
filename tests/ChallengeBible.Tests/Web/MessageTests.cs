@@ -92,9 +92,13 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
 
         var mj = await Login("minji@example.com");
         var mjHome = await (await mj.GetAsync("/elem")).Content.ReadAsStringAsync();
-        Assert.Contains("새 쪽지 1개가 왔어요", mjHome);   // 로그인할 때 한 번
+        Assert.Contains("새 쪽지 1개가 왔어요", mjHome);   // 로그인할 때 한 번 — 띠 + 팝업(확정 시안 쪽지-팝업)
+        Assert.Contains("data-mpop", mjHome);
+        Assert.Contains("민지야 안녕!", mjHome);   // 팝업 미리 보기
         if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(mjHome, "48-부서홈-새쪽지띠-접수대");
-        Assert.DoesNotContain("새 쪽지 1개가 왔어요", await mj.GetStringAsync("/elem"));
+        var again = await mj.GetStringAsync("/elem");
+        Assert.DoesNotContain("새 쪽지 1개가 왔어요", again);
+        Assert.DoesNotContain("data-mpop", again);
         if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(await mj.GetStringAsync("/messages"), "49-받은쪽지");
         Assert.Contains("<i class=\"num\">1</i>", await mj.GetStringAsync("/messages"));      // ✉ 안 읽은 1
         var read = await mj.GetStringAsync($"/messages/{id}");

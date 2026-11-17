@@ -14,6 +14,8 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     /// <summary>로그인할 때 한 번 "새 쪽지" 띠(ADR 0112, 확정 시안 쪽지 ①). 로그인이 남긴다.</summary>
     public const string MsgBandKey = "msg-band";
     public int NewMessages { get; private set; }
+    /// <summary>팝업에 보일 새 쪽지(최근 3개, 확정 시안 쪽지-팝업).</summary>
+    public IReadOnlyList<MsgRow> NewList { get; private set; } = [];
     /// <summary>내 사진 파일 이름(0078) — 없으면 이름 첫 글자.</summary>
     public string? MyPhoto { get; private set; }
     public string Title => "";
@@ -53,7 +55,11 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         // 리디렉트 응답은 TempData 를 저절로 남기므로(IKeepTempDataResult) 직접 지운다 — 로그인 직후 한 번만
         if (TempData.Remove(ChallengeBible.Web.Pages.Account.LoginModel.TodoCheckKey) && await todo.ShouldRedirectAsync(ct)) return Redirect($"/{tenant.Current.Slug}/todo");
         var me = User.UserName()!;
-        if (TempData.Remove(MsgBandKey)) NewMessages = await msgs.UnreadAsync(me, ct);   // 확정 시안 쪽지 ①: 로그인할 때 한 번
+        if (TempData.Remove(MsgBandKey))   // 확정 시안 쪽지 ① · 쪽지-팝업: 로그인할 때 한 번 — 띠 + 팝업(최근 3개)
+        {
+            NewMessages = await msgs.UnreadAsync(me, ct);
+            if (NewMessages > 0) NewList = (await msgs.InboxAsync(me, ct)).Where(r => r.Unread).Take(3).ToList();
+        }
         MyPhoto = await photos.FileOfAsync(me, ct);
         if (tenant.Current.MissionEnabled) Family = await teams.MyFamilyAsync(ct);
         if (tenant.Current.MissionEnabled && Family is null) Invites = (await familyJoin.StateAsync(ct)).Invites.Where(i => !i.SnoozedToday).ToList();

@@ -4374,3 +4374,20 @@ details.ask.lkacc form .lka-o > span { flex: 1 1 auto; min-width: 0; }
 .hm .fb .fb-ok { margin: 0 0 10px; padding: 9px 12px; border-radius: 10px; background: #EAF7EF; color: #15803D; font-size: 13px; font-weight: 800; }
 .hm .fb button { width: 100%; min-height: 48px; border: 0; border-radius: 12px; background: #2563EB; color: #fff; font: inherit; font-size: 15px; font-weight: 900; cursor: pointer; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+/* 로그인 후 새 쪽지 팝업(확정 시안 쪽지-팝업, 2026-11-17) */
+.mpop { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(15, 23, 42, .5); }
+.mpop-box { width: min(420px, 100%); max-height: calc(100vh - 40px); overflow: auto; display: grid; gap: 12px; padding: 20px 18px 16px; border-radius: 20px; background: #fff; box-shadow: 0 20px 40px rgba(0, 0, 0, .25); }
+.mpop-ic { position: relative; width: 56px; height: 56px; margin: 0 auto; border-radius: 18px; background: #EFF6FF; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+.mpop-ic i { position: absolute; top: -6px; right: -6px; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 99px; background: #DC2626; color: #fff; font-size: 12px; font-style: normal; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+.mpop-box h2 { margin: 0; text-align: center; font-size: 19px; }
+.mpop-li { display: grid; gap: 6px; }
+.mpop-m { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 1px 10px; align-items: center; padding: 9px 10px; border: 1px solid #E5E7EB; border-radius: 12px; background: #F8FAFC; color: inherit; text-decoration: none; }
+.mpop-m .av { grid-row: span 2; width: 34px; height: 34px; border-radius: 50%; background: #EEF2FF; color: #4338CA; font-size: 12px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+.mpop-m .av.sys { background: #FEF3C7; color: #92400E; }
+.mpop-m b { min-width: 0; font-size: 14px; overflow-wrap: anywhere; }
+.mpop-m b em { font-style: normal; font-size: 11.5px; font-weight: 700; color: #6B7280; margin-left: 4px; }
+.mpop-m .bc { display: inline-block; margin-left: 4px; padding: 0 6px; border-radius: 99px; background: #7C3AED; color: #fff; font-size: 10.5px; font-weight: 900; vertical-align: 1px; }
+.mpop-m .pv { font-size: 12.5px; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mpop-more { text-align: center; font-size: 13px; color: #4B5563; }
+.mpop-acts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 8px; }
+.mpop-acts .btn { min-height: 48px; justify-content: center; border-radius: 12px; font-size: 15px; font-weight: 900; }
