@@ -140,6 +140,7 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
         var userId = p.UserId;
         p.UserId = null;
         p.RoleCode = member?.RoleCode;
+        await BirthdayGiftService.FollowPersonAsync(ctx, p.Id, null, ct);   // 선물은 명부를 따라간다 — 옛 계정은 더 못 본다(R-322)
         await ctx.SaveChangesAsync(ct);
         if (member is not null)
         {
@@ -189,6 +190,7 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
             }
             here.UserId = user.Id;
             here.RoleCode = null;
+            if (here.Id != 0) await BirthdayGiftService.FollowPersonAsync(sys, here.Id, user.UserName, ct);   // 이 줄의 받기 전 선물은 새 계정이 본다(R-322)
         }
         foreach (var o in old)
         {

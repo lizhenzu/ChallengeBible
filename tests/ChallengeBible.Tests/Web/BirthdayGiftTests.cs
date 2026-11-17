@@ -275,4 +275,165 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
         if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(done, "43-부모님-다됐어요");
         Assert.DoesNotContain("생일 선물 링크 · 박서윤", await kim.GetStringAsync("/kids/todo"));   // 고르면 사라진다
     }
+
+    // ── R-322 생일 선물은 명부를 따라간다(ADR 0109, 2026-11-17 사용자 검증 요청): 한 해 한 아이 1건 · 연결 변경 · 생일 고침 · 명단 다시 올리기 ──
+
+    private int BirthdayCount(string name)
+    {
+        using var raw = InMemoryDb.Raw(_db);
+        var pid = raw.People.Single(p => p.Name == name).Id;
+        return raw.Gifts.Count(g => g.Kind == GiftKinds.Birthday && g.PersonId == pid);
+    }
+
+    private void SetBirthday(string name, byte m, byte d)
+    {
+        using var raw = InMemoryDb.Raw(_db);
+        var p = raw.People.Single(x => x.Name == name);
+        (p.BirthMonth, p.BirthDay) = (m, d);
+        raw.SaveChanges();
+    }
+
+    [Fact]
+    public async Task R322_명부와_계정_연결_여부별로_한_아이_한_건이고_고른_뒤에는_다시_고르라고_하지_않는다()
+    {
+        // 계정만(명부에 생일 없음): 선물 없음 · 오류 없음
+        var solo = InMemoryDb.SeedAccount(_db, "solo@example.com", "혼자");
+        InMemoryDb.SeedMembership(_db, _kids.Id, solo.UserName!, MembershipStatus.Approved, Roles.Participant);
+        using (var raw = InMemoryDb.Raw(_db)) { raw.Users.Single(u => u.Id == solo.Id).PasswordHash = new PasswordHasher<AppUser>().HashPassword(raw.Users.Single(u => u.Id == solo.Id), "1234"); raw.SaveChanges(); }
+        var s = await Login("solo@example.com");
+        Assert.DoesNotContain("생일 선물을 골라요", await s.GetStringAsync("/kids/word-mission"));
+
+        // 명부 + 계정: 아이가 미션 홈에서 · 다른 기기에서 다시 열어도 1건
+        var c = await Login("hajun@example.com");
+        Assert.Contains("생일 선물을 골라요", await c.GetStringAsync("/kids/word-mission"));
+        var c2 = await Login("hajun@example.com");
+        await c2.GetStringAsync("/kids/word-mission");
+        // 명부만: 관리자 화면을 열면 생기고, 계정 없음
+        var admin = await Login("admin@example.com");
+        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        Assert.Equal((1, 1), (BirthdayCount("김하준"), BirthdayCount("박서윤")));
+        Assert.Null(GiftOf("박서윤").UserName);
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(0, raw.Gifts.Count(g => g.UserName == solo.UserName));
+
+        // 고르고 나면 두 기기 모두 "준비 중", 다시 고르라고 하지 않고 여전히 1건
+        var id = GiftOf("김하준").Id;
+        await Post(c, $"/kids/gifts/birthday/{id}", $"/kids/gifts/birthday/{id}", new() { ["item"] = ItemId("스티커북").ToString() });
+        var again = await c2.GetStringAsync("/kids/word-mission");
+        Assert.DoesNotContain("생일 선물을 골라요", again);
+        Assert.Contains("준비 중", again);
+        Assert.Equal(1, BirthdayCount("김하준"));
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Single(raw.GiftLogs.Where(l => l.GiftId == id && l.Action == GiftActions.Pick));
+    }
+
+    [Fact]
+    public async Task R322_연결을_풀면_옛_계정은_못_보고_새_계정이_같은_선물을_본다()
+    {
+        var c = await Login("hajun@example.com");
+        await c.GetStringAsync("/kids/word-mission");
+        var id = GiftOf("김하준").Id;
+        var neo = InMemoryDb.SeedAccount(_db, "neo@example.com", "새계정");
+        InMemoryDb.SeedMembership(_db, _kids.Id, neo.UserName!, MembershipStatus.Approved, Roles.Participant);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var u = raw.Users.Single(x => x.Id == neo.Id); u.PasswordHash = new PasswordHasher<AppUser>().HashPassword(u, "1234");
+            raw.People.RemoveRange(raw.People.Where(p => p.UserId == neo.Id));   // 새 계정의 빈 명부 줄(있으면)
+            var p = raw.People.Single(x => x.Name == "김하준");
+            p.UserId = null;   // 연결 풀기
+            await BirthdayGiftService.FollowPersonAsync(raw, p.Id, null, CancellationToken.None);
+            raw.SaveChanges();
+        }
+        Assert.Null(GiftOf("김하준").UserName);
+        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync($"/kids/gifts/birthday/{id}")).StatusCode);   // 옛 계정
+        Assert.DoesNotContain("생일 선물을 골라요", await c.GetStringAsync("/kids/word-mission"));
+
+        using (var raw = InMemoryDb.Raw(_db)) { raw.People.Single(x => x.Name == "김하준").UserId = neo.Id; raw.SaveChanges(); }   // 새 계정과 연결
+        var n = await Login("neo@example.com");
+        Assert.Contains("생일 선물을 골라요", await n.GetStringAsync("/kids/word-mission"));
+        Assert.Equal(HttpStatusCode.OK, (await n.GetAsync($"/kids/gifts/birthday/{id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync($"/kids/gifts/birthday/{id}")).StatusCode);
+        Assert.Equal((neo.UserName, 1), (GiftOf("김하준").UserName, BirthdayCount("김하준")));   // 계정은 명부를 따라 바뀌고, 선물은 그대로 1건
+    }
+
+    [Fact]
+    public async Task R322_생일을_고치면_새로_만들지_않고_그_선물의_생일과_기한을_고친다()
+    {
+        var admin = await Login("admin@example.com");
+        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        var id = GiftOf("박서윤").Id;
+
+        SetBirthday("박서윤", 2, 1);   // 기간 안에서 고침(오늘 1월 5일 — 2월 1일생은 1월 2일 ~ 25일)
+        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        var g = GiftOf("박서윤");
+        Assert.Equal((1, id, "B2027-0201", GiftStates.Open, new DateOnly(2027, 1, 25)), (BirthdayCount("박서윤"), g.Id, g.SourceKey, g.State, g.OpenUntil!.Value));
+
+        SetBirthday("박서윤", 1, 6);   // 이미 기간이 지난 날로 고침 → 기한 지남(다시 열 수 있음), 새로 안 생김
+        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        g = GiftOf("박서윤");
+        Assert.Equal((1, id, "B2027-0106", GiftStates.Expired), (BirthdayCount("박서윤"), g.Id, g.SourceKey, g.State));
+
+        SetBirthday("박서윤", 3, 20);   // 아직 기간이 안 온 날로 고침 → 지움(기간이 되면 다시 생긴다)
+        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        Assert.Equal(0, BirthdayCount("박서윤"));
+
+        SetBirthday("박서윤", 2, 3);
+        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        Assert.Equal(1, BirthdayCount("박서윤"));
+        var c = await Login("hajun@example.com");   // 이미 고른 선물은 생일을 고쳐도 그대로
+        await c.GetStringAsync("/kids/word-mission");
+        var hid = GiftOf("김하준").Id;
+        await Post(c, $"/kids/gifts/birthday/{hid}", $"/kids/gifts/birthday/{hid}", new() { ["item"] = ItemId("스티커북").ToString() });
+        SetBirthday("김하준", 2, 5);
+        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        Assert.Equal((1, "B2027-0201", GiftStates.Picked), (BirthdayCount("김하준"), GiftOf("김하준").SourceKey, GiftOf("김하준").State));
+    }
+
+    [Fact]
+    public async Task R322_명단을_다시_올려도_선물은_이어지고_고른_아이는_새_명단에_없어도_남긴다()
+    {
+        var op = InMemoryDb.SeedAccount(_db, "operator@example.com", "운영자");
+        InMemoryDb.AddRole(_db, op.Id, IdentityRoles.SuperAdmin);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.People.Add(new Person { TenantId = _kids.Id, Name = "최지우", RoleCode = "T1001", BirthMonth = 2, BirthDay = 4, CreatedUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        var admin = await Login("admin@example.com");
+        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        var seoyun = GiftOf("박서윤");
+        var jiwoo = GiftOf("최지우");
+        var res = await Post(admin, "/kids/admin/gifts?s=pick", "/kids/admin/gifts?handler=Link", new() { ["id"] = seoyun.Id.ToString(), ["s"] = "pick" });
+        var token = LinkRx().Match(await admin.GetStringAsync(res.Headers.Location!.OriginalString)).Groups[1].Value;
+        var parent = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        await Post(parent, $"/gift/{token}", $"/gift/{token}", new() { ["item"] = ItemId("스티커북").ToString() });   // 박서윤 = 고름
+        int seoyunPid, jiwooPid;
+        using (var raw = InMemoryDb.Raw(_db)) { seoyunPid = raw.People.Single(p => p.Name == "박서윤").Id; jiwooPid = raw.People.Single(p => p.Name == "최지우").Id; }
+
+        RosterPlan Plan(params string[] names) => new(_kids.Id, "kids", "kids.xlsx",
+            names.Select((n, i) => new RosterLine(i + 2, n, null, n == "박서윤" ? (byte)2 : (byte)2, n == "박서윤" ? (byte)3 : (byte)4, null, null, null)).ToList(), [], [], 0, 0, 0, []);
+        using (var scope = _app.Services.CreateScope())
+            await scope.ServiceProvider.GetRequiredService<RosterUploadService>().ApplyAsync(op.UserName!, Plan("박서윤", "최지우"), CancellationToken.None);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            Assert.Equal(seoyunPid, raw.People.Single(p => p.Name == "박서윤").Id);   // 같은 줄을 다시 씀 → 선물 · 링크가 이어진다
+            Assert.Equal(jiwooPid, raw.People.Single(p => p.Name == "최지우").Id);
+        }
+        Assert.Equal((1, 1), (BirthdayCount("박서윤"), BirthdayCount("최지우")));
+        Assert.Contains("다 됐어요", await parent.GetStringAsync($"/gift/{token}"));
+        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        Assert.Equal((1, 1), (BirthdayCount("박서윤"), BirthdayCount("최지우")));   // 다시 열어도 새로 안 생김
+
+        RosterResult r;
+        using (var scope = _app.Services.CreateScope())
+            r = await scope.ServiceProvider.GetRequiredService<RosterUploadService>().ApplyAsync(op.UserName!, Plan("이도윤"), CancellationToken.None);
+        Assert.Equal(1, r.KeptForGifts);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            Assert.True(raw.People.Any(p => p.Id == seoyunPid));   // 고른 아이는 남김(반 없음)
+            Assert.False(raw.ClassMembers.Any(m => m.PersonId == seoyunPid));
+            Assert.False(raw.People.Any(p => p.Id == jiwooPid));   // 안 고른 아이는 명부 · 선물 정리
+            Assert.False(raw.Gifts.Any(g => g.Id == jiwoo.Id));
+            Assert.Equal((GiftStates.Picked, "스티커북"), (raw.Gifts.Single(g => g.Id == seoyun.Id).State, raw.Gifts.Single(g => g.Id == seoyun.Id).ItemName));
+        }
+    }
 }

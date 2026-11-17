@@ -67,6 +67,8 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         var r = (await rules.ForDateAsync(today, ct)).Gifts;
         var now = time.GetUtcNow().UtcDateTime;
 
+        await AlignAsync(ctx, today, r.BirthdayOpenDays, r.BirthdayCloseDays, now, ct);
+
         foreach (var g in await ctx.Gifts.Where(g => g.Kind == GiftKinds.Birthday && g.State == GiftStates.Open && g.OpenUntil < today).ToListAsync(ct))
         {
             g.State = GiftStates.Expired;
@@ -86,8 +88,9 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         var (min, max) = (s?.BirthdayMin ?? r.Birthday.Min, s?.BirthdayMax ?? r.Birthday.Max);
         var reset = await YearResetService.LastResetAsync(ctx, today.Year, ct);
         var resetOn = await YearResetService.LastResetDateAsync(ctx, tenant.Current.TimeZoneId, ct);   // 고르는 기간이 초기화 뒤에 시작된 아이만(정한 것 17)
-        var have = (await ctx.Gifts.AsNoTracking().Where(g => g.Kind == GiftKinds.Birthday).Select(g => new { g.PersonId, g.SourceKey }).ToListAsync(ct))
-            .Select(g => (g.PersonId, g.SourceKey)).ToHashSet();
+        // 한 해에 한 아이당 1건(R-322): 같은 명부 줄 · 같은 해 · 같은 초기화 구간이면 생일 날짜가 달라도 이미 있다
+        var have = (await ctx.Gifts.AsNoTracking().Where(g => g.Kind == GiftKinds.Birthday && g.PersonId != null).Select(g => new { g.PersonId, g.Year, g.SourceKey }).ToListAsync(ct))
+            .Select(g => (g.PersonId!.Value, (int)g.Year, Epoch(g.SourceKey))).ToHashSet();
 
         var added = new List<Gift>();
         foreach (var (p, b) in due)
@@ -98,7 +101,7 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
             var birthday = b!.Value;
             if (resetOn is { } ro && birthday.AddDays(-r.BirthdayOpenDays) < ro) continue;
             var key = SourceKey(birthday, birthday.Year == today.Year ? reset : null);
-            if (have.Contains((p.Id, key))) continue;
+            if (!have.Add((p.Id, birthday.Year, Epoch(key)))) continue;
             var g = new Gift
             {
                 TenantId = T, Kind = GiftKinds.Birthday, Year = (short)birthday.Year, UserName = acct?.UserName, PersonId = p.Id, SourceKey = key, State = GiftStates.Open,
@@ -117,6 +120,65 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         catch (DbUpdateException) { }   // 다른 요청이 같은 선물을 먼저 만들었다
     }
 
+    /// <summary>명부 줄을 따라가는 선물(생일 · 새친구 · 전도 — 완독 · 완필은 계정이 한 일이라 계정을 따라간다).</summary>
+    public static readonly string[] PersonKinds = [GiftKinds.Birthday, GiftKinds.Newcomer, GiftKinds.Invite];
+
+    /// <summary>명부 줄의 계정이 바뀌면(연결 · 풀기) 받기 전 선물의 계정도 바꾼다(R-322). 저장은 부르는 쪽에서.</summary>
+    public static async Task FollowPersonAsync(AppDbContext ctx, int personId, string? userName, CancellationToken ct)
+    {
+        foreach (var g in await ctx.Gifts.Where(g => g.PersonId == personId && PersonKinds.Contains(g.Kind) && Live.Contains(g.State)).ToListAsync(ct))
+            if (!NewcomerGiftService.Unassigned(g)) g.UserName = userName;
+    }
+
+    /// <summary>열쇠의 초기화 구간 꼬리("-r…", 없으면 "").</summary>
+    public static string Epoch(string sourceKey) => sourceKey.Length > 10 ? sourceKey[10..] : "";
+
+    /// <summary>
+    /// 명부 기준 맞추기(ADR 0109, R-322): 생일 선물은 명부를 따라간다.
+    /// ① 계정 = 지금 그 명부 줄에 연결된 계정(연결을 풀면 비고, 바꾸면 새 계정) — 받기 전 선물(고를 수 있음 · 고름 · 삼 · 기한 지남).
+    /// ② 아직 안 고른 선물(고를 수 있음 · 기한 지남)의 생일이 명부와 다르면(생일을 고침) 새로 만들지 않고 그 선물의 생일 · 기한을 고친다.
+    ///    고친 생일의 기간이 아직 안 왔으면 지운다(기간이 되면 다시 생김), 이미 지났으면 기한 지남(관리자가 다시 열 수 있음). 생일을 지웠으면 지운다.
+    /// </summary>
+    private async Task AlignAsync(AppDbContext ctx, DateOnly today, int openDays, int closeDays, DateTime now, CancellationToken ct)
+    {
+        var live = await ctx.Gifts.Where(g => g.Kind == GiftKinds.Birthday && g.PersonId != null && Live.Contains(g.State)).ToListAsync(ct);
+        if (live.Count == 0) return;
+        var pids = live.Select(g => g.PersonId!.Value).Distinct().ToList();
+        var people = await ctx.People.AsNoTracking().Where(p => pids.Contains(p.Id)).Select(p => new { p.Id, p.UserId, p.BirthMonth, p.BirthDay }).ToDictionaryAsync(p => p.Id, ct);
+        var uids = people.Values.Select(p => p.UserId).OfType<string>().Distinct().ToList();
+        var accounts = uids.Count == 0 ? [] : await ctx.Users.Where(u => uids.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.UserName, ct);
+        foreach (var g in live)
+        {
+            if (!people.TryGetValue(g.PersonId!.Value, out var p)) continue;
+            var acct = p.UserId is { } uid ? accounts.GetValueOrDefault(uid) : null;
+            if (g.UserName != acct) g.UserName = acct;
+            if (g.State is not (GiftStates.Open or GiftStates.Expired) || BirthdayOf(g.SourceKey) is not { } old) continue;
+            if (p.BirthMonth is not { } m || p.BirthDay is not { } d)
+            {
+                ctx.GiftLogs.RemoveRange(await ctx.GiftLogs.Where(l => l.GiftId == g.Id).ToListAsync(ct));
+                ctx.Gifts.Remove(g);
+                continue;
+            }
+            if (BirthdayIn(old.Year, m, d) == old) continue;
+            var nb = WindowBirthday(m, d, today, openDays, closeDays);
+            var same = BirthdayIn(old.Year, m, d);
+            if (nb is null && today < same.AddDays(-openDays))
+            {
+                ctx.GiftLogs.RemoveRange(await ctx.GiftLogs.Where(l => l.GiftId == g.Id).ToListAsync(ct));
+                ctx.Gifts.Remove(g);
+                continue;
+            }
+            var b = nb ?? same;
+            g.SourceKey = $"B{b:yyyy}-{b:MMdd}" + Epoch(g.SourceKey);
+            g.Year = (short)b.Year;
+            g.OpenFrom = b.AddDays(-openDays);
+            g.OpenUntil = b.AddDays(-closeDays);
+            g.State = nb is null ? GiftStates.Expired : GiftStates.Open;
+            ctx.GiftLogs.Add(new GiftLog { TenantId = T, GiftId = g.Id, Action = GiftActions.Open, AtUtc = now, Detail = $"생일 고침 {old:M/d} → {b:M/d}" });
+        }
+        await ctx.SaveChangesAsync(ct);
+    }
+
     private static readonly string[] Live = [GiftStates.Open, GiftStates.Picked, GiftStates.Purchased, GiftStates.Expired];
 
     /// <summary>내 생일 선물(받기 전 + 기한 지남): 계정으로 생긴 것 + 내 명부 줄로 생긴 것(나중에 계정을 연결한 경우).</summary>
@@ -126,8 +188,10 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         await using var ctx = db.Create();
         var uid = scope.UserId;
         var pids = uid is null ? [] : await ctx.People.Where(p => p.UserId == uid).Select(p => p.Id).ToListAsync(ct);
-        var list = await ctx.Gifts.AsNoTracking().Where(g => LinkKinds.Contains(g.Kind) && Live.Contains(g.State) && (g.UserName == user || (g.Kind != GiftKinds.Reading && g.PersonId != null && pids.Contains(g.PersonId.Value))))
-            .OrderBy(g => g.Id).ToListAsync(ct);
+        // 명부 줄이 있는 선물은 명부만 따라간다(R-322): 지금 내 명부 줄의 선물만(연결을 풀거나 바꾼 옛 계정은 못 본다). 완독 · 명부 줄 없는 선물은 계정으로
+        var list = (await ctx.Gifts.AsNoTracking().Where(g => LinkKinds.Contains(g.Kind) && Live.Contains(g.State)
+                && (g.Kind == GiftKinds.Reading || g.Kind == GiftKinds.Copy || g.PersonId == null ? g.UserName == user : pids.Contains(g.PersonId.Value)))
+            .OrderBy(g => g.Id).ToListAsync(ct)).Where(g => !NewcomerGiftService.Unassigned(g)).ToList();
         return await ViewsAsync(ctx, list, ct);
     }
 
