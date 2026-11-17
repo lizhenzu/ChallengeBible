@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#E9ECF1;font-family:"Noto Sans KR",sans-serif;color:#1B1F24}
+.row{display:flex;gap:22px;justify-content:center;align-items:flex-start;padding:10px 20px 30px;flex-wrap:wrap}
+.col{width:340px}.cap{text-align:center;font:800 14px "Noto Sans KR";color:#374151;margin:14px 0 8px}
+.ph{background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #E5E7EB}.top small{display:block;font-size:12px;color:#15803D;font-weight:700}.top b{font-size:16px;font-weight:900}.top i{font-style:normal;background:#1E7A55;color:#fff;border-radius:99px;padding:6px 12px;font-size:13px;font-weight:800}
+.w{padding:14px 16px 20px;display:grid;gap:10px}
+.card{border:1px solid #E5E7EB;border-radius:16px;padding:14px;display:grid;gap:10px}
+.card h3{margin:0;font-size:15.5px}.info{background:#F3F4F6;border-radius:10px;padding:8px 10px;font-size:13px}.info b{margin-left:8px}
+.why{font-size:12.5px;color:#4B5563;line-height:1.55;margin:0}
+.btn{display:block;text-align:center;border-radius:12px;padding:12px;font-weight:900;font-size:14.5px}
+.p{background:#2563EB;color:#fff}.s{border:1px solid #CBD5E1;color:#1F2937;background:#fff}
+.sent{font-size:12px;color:#15803D;font-weight:800}
+.toast{background:#111827;color:#fff;border-radius:12px;padding:10px 12px;font-size:12.5px;font-weight:700}
+.prev{background:#F9FAFB;border:1px dashed #CBD5E1;border-radius:12px;padding:10px;font-size:12px;line-height:1.6;color:#374151;white-space:pre-line}
+.anote{font-size:11.5px;color:#9CA3AF;margin:0}
+/* 카톡 */
+.kt{background:#B2C7DA;padding:14px 12px 22px;min-height:520px}.kt .who{font-size:12px;color:#334155;margin:0 0 4px 46px}
+.kt .msg{display:flex;gap:8px}.kt .av{width:38px;height:38px;border-radius:14px;background:#94A3B8;flex:none}
+.kt .bub{background:#fff;border-radius:4px 14px 14px 14px;padding:10px 12px;font-size:13.5px;line-height:1.6;max-width:260px}
+.kt .lk{color:#2563EB;text-decoration:underline;word-break:break-all}
+.kt .og{margin-top:8px;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden}.kt .og div{padding:8px 10px;font-size:12px}.kt .og b{display:block;font-size:13px}.kt .og .im{height:70px;background:linear-gradient(135deg,#DBEAFE,#FCE7F3);padding:0;display:flex;align-items:center;justify-content:center;font-weight:900;color:#1D4ED8}
+/* 부모 화면 */
+.hero{background:linear-gradient(160deg,#2563EB,#4F46E5);color:#fff;padding:20px 18px}.hero span{font-size:12px;font-weight:800;opacity:.85}.hero h1{margin:4px 0 6px;font-size:21px;line-height:1.35}.hero p{margin:0;font-size:13px;opacity:.95;line-height:1.5}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.steps div{border-radius:12px;background:#EFF6FF;padding:8px 6px;text-align:center;font-size:12px;font-weight:800;color:#1D4ED8;line-height:1.35}.steps div.n{background:#F3F4F6;color:#6B7280}.steps i{display:block;font-style:normal;font-size:16px;font-weight:900}
+.due{display:flex;justify-content:space-between;background:#FEF3C7;color:#92400E;border-radius:12px;padding:9px 12px;font-size:13px;font-weight:800}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.it{border:1px solid #E5E7EB;border-radius:14px;overflow:hidden;font-size:13px;font-weight:800}.it div{height:78px;background:#F3F4F6}.it span{display:block;padding:8px}.it.on{border:2px solid #2563EB}
+.hint{font-size:12px;color:#6B7280;line-height:1.55;margin:0}
+.dim{position:relative}.dim:after{content:"";position:absolute;inset:0;background:rgba(15,23,42,.45)}
+.dlg{position:absolute;left:18px;right:18px;top:170px;z-index:2;background:#fff;border-radius:18px;padding:18px;display:grid;gap:10px;box-shadow:0 20px 40px rgba(0,0,0,.25)}.dlg h2{margin:0;font-size:17px}.dlg p{margin:0;font-size:13px;color:#4B5563;line-height:1.5}.dlg .b2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.done{text-align:center;display:grid;gap:10px;padding:8px 0}.done .ck{width:64px;height:64px;border-radius:50%;background:#16A34A;color:#fff;font-size:34px;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto}.done h2{margin:0;font-size:22px}.done .big{font-size:15px;font-weight:900;color:#15803D;background:#EAF7EF;border-radius:12px;padding:12px}
+.chosen{display:flex;gap:10px;align-items:center;border:1px solid #E5E7EB;border-radius:14px;padding:10px;text-align:left}.chosen div{width:54px;height:54px;border-radius:10px;background:#F3F4F6;flex:none}.chosen small{display:block;color:#6B7280;font-size:12px}
+.tl{list-style:none;margin:0;padding:0;display:grid;gap:6px;text-align:left;font-size:13px}.tl li:before{content:"○ ";color:#9CA3AF}.tl li.on:before{content:"● ";color:#16A34A}.tl li.on{font-weight:800}
+.fix{font-size:12.5px;background:#7E22CE;color:#fff;padding:8px 12px}
+</style></head><body>
+<div class="row">
+<div class="col"><p class="cap">① 선생님 · 오늘 할 일 카드</p><div class="ph">
+<div class="fix"><b>가장 중</b> · 조진찬 선생님으로 보고 있어요 <small>('님' 두 번 고침)</small></div>
+<div class="top"><div><small>도전!!! 잠실새내교회 영아부</small><b>오늘 할 일</b></div><i>홈으로</i></div>
+<div class="w"><div class="card">
+<h3>생일 선물 링크 · 주은솔</h3>
+<div class="info">생일<b>12월 10일 · 23일 남음</b></div>
+<p class="why">부모님께 안내글을 보내 주세요. 부모님이 링크를 눌러 아이와 함께 선물을 골라요(로그인 없이).</p>
+<span class="btn p">부모님께 보내기</span>
+<span class="btn s">안내글 복사</span>
+<p class="anote">휴대폰: [부모님께 보내기] = 카톡 · 문자 고르는 창 · 컴퓨터: 복사</p>
+<div class="toast">복사했어요 · 카톡에 붙여 넣어 보내 주세요</div>
+<div class="prev">보낼 글 미리 보기
+[잠실새내교회 영아부] 주은솔 어린이의 생일(12월 10일)을 축하해요! …</div>
+<span class="sent">✓ 11/17 보냄 · 아직 안 고름</span>
+</div></div></div></div>
+
+<div class="col"><p class="cap">② 부모님이 받는 글(자동)</p><div class="ph"><div class="kt">
+<p class="who">조진찬 선생님</p>
+<div class="msg"><div class="av"></div><div class="bub">[잠실새내교회 영아부]<br>주은솔 어린이의 생일(12월 10일)을 축하해요! 🎂<br><br>교회에서 생일 선물을 준비해요. 아래 링크를 눌러 아이와 함께 <b>선물 하나</b>를 골라 주세요.<br><br>· 로그인 없이 바로 열려요<br>· <b>12월 3일까지</b> 골라 주세요<br>· 고른 선물은 선생님이 준비해서 주일에 전해 드려요<br><br><span class="lk">https://…/gift/Ab3x…</span>
+<div class="og"><div class="im">생일 선물 고르기</div><div><b>주은솔 어린이 생일 선물</b>하나를 골라 주세요 · 잠실새내교회 영아부</div></div>
+</div></div></div></div></div>
+
+<div class="col"><p class="cap">③ 부모님 화면 · 고르기</p><div class="ph">
+<div class="hero"><span>잠실새내교회 영아부 · 생일 선물</span><h1>주은솔 어린이<br>생일 축하 선물이에요</h1><p>12월 10일 생일을 축하해요. 교회에서 선물을 준비해요.</p></div>
+<div class="w">
+<div class="steps"><div><i>1</i>선물 보기</div><div class="n"><i>2</i>하나 누르기</div><div class="n"><i>3</i>끝!<br>선생님이 준비</div></div>
+<div class="due"><span>고르는 기한</span><span>12월 3일까지</span></div>
+<div class="grid"><div class="it"><div></div><span>레고 클래식</span></div><div class="it"><div></div><span>그림 그리기 세트</span></div><div class="it"><div></div><span>어린이 성경</span></div><div class="it"><div></div><span>공룡 퍼즐</span></div></div>
+<p class="hint">아이와 함께 보고 마음에 드는 선물 <b>하나</b>를 눌러 주세요. 로그인하지 않아도 돼요.</p>
+</div></div></div>
+
+<div class="col"><p class="cap">③-1 누르면 한 번 더 확인</p><div class="ph" style="position:relative">
+<div class="dim"><div class="hero"><span>잠실새내교회 영아부 · 생일 선물</span><h1>주은솔 어린이<br>생일 축하 선물이에요</h1><p>&nbsp;</p></div>
+<div class="w"><div class="steps"><div><i>1</i>선물 보기</div><div><i>2</i>하나 누르기</div><div class="n"><i>3</i>끝!</div></div><div class="grid"><div class="it on"><div></div><span>레고 클래식</span></div><div class="it"><div></div><span>그림 그리기 세트</span></div><div class="it"><div></div><span>어린이 성경</span></div><div class="it"><div></div><span>공룡 퍼즐</span></div></div><p style="height:40px"></p></div></div>
+<div class="dlg"><h2>레고 클래식으로 할까요?</h2><div class="chosen"><div></div><span>레고 클래식<small>그림 · 설명</small></span></div><p>정하면 선생님이 준비해요. 선생님이 사기 전까지는 바꿀 수 있어요.</p><div class="b2"><span class="btn s">다시 볼래요</span><span class="btn p">이걸로 할게요</span></div></div>
+</div></div>
+
+<div class="col"><p class="cap">③-2 고른 뒤 · 할 일 끝</p><div class="ph">
+<div class="hero"><span>잠실새내교회 영아부 · 생일 선물</span><h1>주은솔 어린이<br>생일 축하 선물이에요</h1><p>&nbsp;</p></div>
+<div class="w"><div class="steps"><div><i>1</i>선물 보기</div><div><i>2</i>하나 누르기</div><div><i>3</i>끝!</div></div>
+<div class="done"><div class="ck">✓</div><h2>다 됐어요</h2><div class="big">부모님이 더 하실 일은 없어요.<br>선생님이 준비해서 주일에 전해 드려요.</div>
+<div class="chosen"><div></div><span>고른 선물 · 레고 클래식<small>11월 17일 골랐어요</small></span></div>
+<ul class="tl"><li class="on">골랐어요 · 11/17</li><li>선생님이 준비했어요</li><li>아이가 받았어요</li></ul>
+<span class="btn s">다른 선물로 바꾸기</span>
+<p class="hint">바꾸고 싶으면 선생님이 사기 전까지 이 링크로 다시 들어와 바꿀 수 있어요.</p></div></div></div></div>
+</div></body></html>
