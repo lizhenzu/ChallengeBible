@@ -4,7 +4,7 @@
     // 확정 시안 플랫폼-메뉴-햄버거(2026-11-15 사용자 "1"): 왼쪽 위 ☰ → 왼쪽 메뉴판. 묶음별 세로 목록이라 데스크톱에서도 좌우로 넘길 일이 없다.
     var groups = new List<(string Title, bool Danger, (string Href, string Label)[] Items)>
     {
-        ("", false, [("/platform", "플랫폼 홈"), ("/platform/todo", "오늘 할 일")]),
+        ("", false, [("/platform", "플랫폼 홈"), ("/platform/todo", "오늘 할 일"), ("/messages", "쪽지")]),
         ("부서", false, [("/platform/tenants", "부서"), ("/platform/roster-upload", "명단 올리기"), ("/platform/admin-rule", "부서 관리자 규칙"), ("/platform/families", "온가족")]),
         ("콘텐츠", false, [("/platform/content/word/check", "말씀 입력"), ("/platform/content/quiz/check", "퀴즈 출제"), ("/platform/content", "공용 콘텐츠"), ("/platform/quiz-input", "퀴즈 넣기"), ("/platform/quiz-ai-prompt", "AI 프롬프트"), ("/platform/bible", "성경 데이터"), ("/platform/prayer365", "365 기도문"), ("/platform/prayer365-stats", "365 기도 통계"), ("/platform/rules", "기본 규칙")]),
         ("선물", false, [("/platform/gifts", "공통 상품")]),
@@ -33,6 +33,7 @@
         </button>
         <div class="t pt-title"><small><em>도전!!!</em> 플랫폼</small><b>@title</b></div>
         @* 2026-11-15 사용자: 오른쪽 위는 동그란 집 버튼 대신 글자 "홈으로"(출석부 머리말과 같게) *@
+        <partial name="_MailBadge" />
         <a class="home-txt" href="/">홈으로</a>
     </div>
 </header>

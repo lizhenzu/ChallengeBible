@@ -1,0 +1,53 @@
+@page "/messages"
+@model ChallengeBible.Web.Pages.Messages.IndexModel
+@using ChallengeBible.Web.Services
+@inject TimeProvider Clock
+@* 확정 시안 쪽지 ② ③ ⑥ ⑧(2026-11-17, ADR 0112): 받은 쪽지 · 보낸 쪽지 · 전체 쪽지 읽은 수 · 보내기 취소 *@
+@{
+    var tz = TimeZoneInfo.FindSystemTimeZoneById("Asia/Seoul");
+    DateTime Loc(DateTime u) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(u, DateTimeKind.Utc), tz);
+    var today = Loc(Clock.GetUtcNow().UtcDateTime).Date;
+    string When(DateTime u) { var l = Loc(u); return l.Date == today ? l.ToString("HH:mm") : l.Date == today.AddDays(-1) ? "어제" : l.ToString("M/d"); }
+    string Av(MsgRow r) => r.Broadcast && Model.Box == "sent" ? "전체" : r.Anonymous ? "익명" : r.Who == MessageService.PlatformName ? "관리" : r.Who.Length > 1 ? r.Who[1..Math.Min(3, r.Who.Length)] : r.Who;
+    var sent = Model.Box == "sent";
+}
+<partial name="_Top" />
+<link rel="stylesheet" href="~/css/messages.css" asp-append-version="true" />
+<main class="gut msg"><div class="wrap">
+    <h1>쪽지</h1>
+    @if (Model.Msg is { } m) { <p class="okmsg" role="status">@m</p> }
+    <nav class="seg" aria-label="쪽지함">
+        <a href="/messages" aria-current="@(!sent ? "page" : "false")">받은 쪽지 @if (Model.Unread > 0) { <em class="num">@Model.Unread</em> }</a>
+        <a href="/messages?box=sent" aria-current="@(sent ? "page" : "false")">보낸 쪽지</a>
+    </nav>
+    <a class="btn p ms-write" href="/messages/write">✏️ 쪽지 쓰기</a>
+    <ul class="ms-list">
+        @if (Model.Rows.Count == 0) { <li class="empty">@(sent ? "보낸 쪽지가 없어요." : "받은 쪽지가 없어요.")</li> }
+        @foreach (var r in Model.Rows)
+        {
+            <li class="ms-row @(r.Unread ? "new" : null) @(r.Canceled ? "gone" : null)">
+                <a href="/messages/@r.Id" class="ms-a">
+                    <span class="av @(r.Anonymous || r.Who == MessageService.PlatformName || (sent && r.Broadcast) ? "sys" : null)">@Av(r)</span>
+                    <b class="nm">@r.Who@if (r.Broadcast) { <span class="bc">전체</span> }@if (r.Where is { } w) { <em>@w@(r.Feedback ? " · 개선" : "")</em> } else if (r.Feedback) { <em>개선@(r.Anonymous ? " · 익명" : "")</em> }@if (r.Unread) { <span class="nw">새</span> }</b>
+                    @if (sent && !r.Broadcast) { <span class="rd @(r.Read ? "y" : "n")">@(r.Read ? "읽음" : "안 읽음")</span> }
+                    else { <small class="tm">@When(r.SentUtc)</small> }
+                    <span class="pv">@(r.Canceled ? $"{r.Body} · 보내기 취소함" : r.Body)</span>
+                </a>
+                @if (sent && r.Broadcast && !r.Canceled)
+                {
+                    var pct = r.Total == 0 ? 0 : r.ReadCount * 100 / r.Total;
+                    <div class="ms-bc">
+                        <div class="bar" aria-hidden="true"><i style="width:@(pct)%"></i></div>
+                        <div class="cn"><span>@r.Total.ToString("N0")명 중 <b>@r.ReadCount.ToString("N0")명</b> 읽음 · 답장 @r.Replies</span>
+                            <details class="ask"><summary class="x">보내기 취소</summary>
+                                <form method="post" asp-page-handler="Cancel"><input type="hidden" name="id" value="@r.Id" />
+                                    <span>이 전체 쪽지를 취소할까요? 모든 사람의 쪽지함에서 사라져요. 이미 온 답장은 남아요.</span><button type="submit" class="btn dd sm">취소하기</button>
+                                </form>
+                            </details>
+                        </div>
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+</div></main>

@@ -2530,6 +2530,111 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("MemberTag", "app");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Message", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("CanceledUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<DateTime?>("ReadUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<bool>("RecipientDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RecipientUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<long?>("ReplyToId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("SenderDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SenderLabel")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("SenderTenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SenderUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("SentUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Kind", "SentUtc");
+
+                    b.HasIndex("RecipientUserName", "SentUtc");
+
+                    b.HasIndex("SenderUserName", "SentUtc");
+
+                    b.ToTable("Message", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MessageReceipt", b =>
+                {
+                    b.Property<long>("MessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("DeletedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime?>("ReadUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("MessageId", "UserName");
+
+                    b.HasIndex("UserName");
+
+                    b.ToTable("MessageReceipt", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MessageTarget", b =>
+                {
+                    b.Property<long>("MessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("MessageId", "TenantId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("MessageTarget", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MissionActivity", b =>
                 {
                     b.Property<int>("TenantId")
@@ -4088,6 +4193,30 @@ namespace ChallengeBible.Infrastructure.Migrations
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MemberTag", b =>
                 {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MessageReceipt", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Message", null)
+                        .WithMany()
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MessageTarget", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Message", null)
+                        .WithMany()
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")

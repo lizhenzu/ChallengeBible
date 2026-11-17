@@ -9,8 +9,11 @@ namespace ChallengeBible.Web.Pages;
 
 /// <summary>`/{slug}` 부서 홈 메인(확정 시안: 홈메인, 0044). 부서 결정 · 소속 검사는 TenantPageFilter 가 한다.</summary>
 public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, FamilyJoinService familyJoin, HomeService home, AccountService accounts,
-    PhotoService photos, CopyService copy, TodoService todo, Prayer365Service prayer365) : PageModel, ITitled
+    PhotoService photos, CopyService copy, TodoService todo, Prayer365Service prayer365, MessageService msgs) : PageModel, ITitled
 {
+    /// <summary>로그인할 때 한 번 "새 쪽지" 띠(ADR 0112, 확정 시안 쪽지 ①). 로그인이 남긴다.</summary>
+    public const string MsgBandKey = "msg-band";
+    public int NewMessages { get; private set; }
     /// <summary>내 사진 파일 이름(0078) — 없으면 이름 첫 글자.</summary>
     public string? MyPhoto { get; private set; }
     public string Title => "";
@@ -50,6 +53,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         // 리디렉트 응답은 TempData 를 저절로 남기므로(IKeepTempDataResult) 직접 지운다 — 로그인 직후 한 번만
         if (TempData.Remove(ChallengeBible.Web.Pages.Account.LoginModel.TodoCheckKey) && await todo.ShouldRedirectAsync(ct)) return Redirect($"/{tenant.Current.Slug}/todo");
         var me = User.UserName()!;
+        if (TempData.Remove(MsgBandKey)) NewMessages = await msgs.UnreadAsync(me, ct);   // 확정 시안 쪽지 ①: 로그인할 때 한 번
         MyPhoto = await photos.FileOfAsync(me, ct);
         if (tenant.Current.MissionEnabled) Family = await teams.MyFamilyAsync(ct);
         if (tenant.Current.MissionEnabled && Family is null) Invites = (await familyJoin.StateAsync(ct)).Invites.Where(i => !i.SnoozedToday).ToList();

@@ -181,6 +181,11 @@ public sealed class ResetService(ISystemDb systemDb, TimeProvider time)
             await DeleteAsync(ctx, ctx.MemberTags.Where(t => !keep.Contains(t.UserId)), ct);
             await DeleteAsync(ctx, ctx.SignupApplications.Where(s => !keep.Contains(s.UserId)), ct);
             await DeleteAsync(ctx, ctx.UserSettings.Where(s => goneNames.Contains(s.UserName)), ct);
+            // 쪽지(ADR 0112): 쪽지 자체는 초기화에서 남기지만, 지우는 계정이 주고받은 쪽지 · 읽음 기록은 함께 지운다
+            var goneMsgs = ctx.Messages.Where(m => (m.SenderUserName != null && goneNames.Contains(m.SenderUserName)) || (m.RecipientUserName != null && goneNames.Contains(m.RecipientUserName))).Select(m => m.Id);
+            await DeleteAsync(ctx, ctx.MessageReceipts.Where(r => goneNames.Contains(r.UserName) || goneMsgs.Contains(r.MessageId)), ct);
+            await DeleteAsync(ctx, ctx.MessageTargets.Where(t => goneMsgs.Contains(t.MessageId)), ct);
+            await DeleteAsync(ctx, ctx.Messages.Where(m => (m.SenderUserName != null && goneNames.Contains(m.SenderUserName)) || (m.RecipientUserName != null && goneNames.Contains(m.RecipientUserName))), ct);
             if (ctx.Database.IsRelational())
             {
                 const string keepSql = "SELECT ur.UserId FROM [Identity].[UserRoles] ur JOIN [Identity].[Role] r ON r.Id = ur.RoleId WHERE r.NormalizedName IN (N'ADMIN', N'SUPERADMIN')";

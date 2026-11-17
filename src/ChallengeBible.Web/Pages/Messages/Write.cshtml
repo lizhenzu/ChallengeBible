@@ -1,0 +1,63 @@
+@page "/messages/write"
+@model ChallengeBible.Web.Pages.Messages.WriteModel
+@using ChallengeBible.Web.Services
+@* 확정 시안 쪽지 ④ ⑦(2026-11-17): 받는 사람 찾기(이름 · 부서 · 역할만) · 플랫폼 관리자는 한 사람 / 모든 사용자 / 부서 *@
+<partial name="_Top" />
+<link rel="stylesheet" href="~/css/messages.css" asp-append-version="true" />
+<main class="gut msg"><div class="wrap">
+    <a class="ms-back" href="/messages">← 쪽지</a>
+    <h1>@(Model.Reply is null ? "쪽지 쓰기" : "답장")</h1>
+    @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }
+
+    @if (Model.Reply is null)
+    {
+        @if (Model.IsPlatformAdmin)
+        {
+            <div class="ms-tgt" role="radiogroup" aria-label="받는 사람">
+                @foreach (var (k, l) in new[] { ("one", "한 사람"), ("all", "모든 사용자"), ("dept", "부서") })
+                {
+                    <label><input type="radio" name="Mode" value="@k" form="ms-w" checked="@(Model.Mode == k)" data-ms-mode /><span>@l</span></label>
+                }
+            </div>
+        }
+        <form method="get" class="ms-find" data-ms-one>
+            <input type="hidden" name="Mode" value="one" />
+            <input class="in" type="search" name="Q" value="@Model.Q" placeholder="받는 사람 이름으로 찾기" aria-label="받는 사람 이름으로 찾기" />
+            <button type="submit" class="btn s sm">찾기</button>
+        </form>
+    }
+
+    <form method="post" id="ms-w" class="ms-form">
+        <input type="hidden" name="Reply" value="@Model.Reply" />
+        <div data-ms-one>
+            @if (Model.Picked is { } pk)
+            {
+                <label class="ms-to on"><input type="radio" name="To" value="@pk.UserName" checked /><span>받는 사람: <b>@pk.Name</b> <small>@pk.Where</small></span></label>
+            }
+            @if (Model.Reply is null && Model.Found.Count > 0)
+            {
+                <div class="ms-res" role="radiogroup" aria-label="찾은 사람">
+                    @foreach (var p in Model.Found.Where(f => f.UserName != Model.Picked?.UserName))
+                    {
+                        <label><input type="radio" name="To" value="@p.UserName" /><b>@p.Name</b><small>@p.Where</small></label>
+                    }
+                </div>
+            }
+            else if (Model.Reply is null && !string.IsNullOrWhiteSpace(Model.Q)) { <p class="ms-st">"@Model.Q" 이름으로 찾은 사람이 없어요.</p> }
+        </div>
+        @if (Model.IsPlatformAdmin && Model.Reply is null)
+        {
+            <div class="ms-depts" data-ms-dept>
+                @foreach (var (id, name) in Model.Depts)
+                {
+                    <label><input type="checkbox" name="Tids" value="@id" checked="@Model.Tids.Contains(id)" /><span>@name</span></label>
+                }
+            </div>
+            <p class="ms-tip" data-ms-count hidden></p>
+        }
+        <textarea name="Body" maxlength="@MessageService.MaxLength" placeholder="내용을 써 주세요" aria-label="쪽지 내용" required data-ms-body>@Model.Body</textarea>
+        <p class="ms-cnt"><span data-ms-n>0</span> / @MessageService.MaxLength.ToString("N0")</p>
+        <button type="submit" class="btn p ms-send" data-ms-send>보내기</button>
+    </form>
+</div></main>
+<script src="~/js/messages.js" asp-append-version="true" defer></script>
