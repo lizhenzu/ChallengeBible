@@ -1,0 +1,67 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#E9ECF1;font-family:"Noto Sans KR",sans-serif;color:#111827}
+.row{display:flex;gap:24px;justify-content:center;padding:16px;flex-wrap:wrap;align-items:flex-start}
+.h{font:900 16px "Noto Sans KR";margin:6px 0 4px}.d{font-size:12.5px;color:#4B5563;margin:0 0 8px;line-height:1.5;max-width:375px}
+.ph{width:375px;background:#F6F7F9;border-radius:22px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.top{background:#fff;padding:12px 16px;border-bottom:1px solid #E5E7EB}.top small{display:block;font-size:12px;color:#6B7280}.top b{font-size:17px;font-weight:900}
+.w{padding:12px;display:grid;gap:10px}
+.seg{display:inline-flex;background:#EEF0F3;border-radius:12px;padding:4px;gap:4px;font-size:14px;font-weight:800;justify-self:start}.seg span{padding:7px 14px;border-radius:9px;color:#4B5563}.seg span.on{background:#fff;color:#111827;box-shadow:0 1px 3px rgba(0,0,0,.08)}.seg em{font-style:normal;color:#DC2626}
+.note{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.5;color:#1E3A8A}
+.card{background:#fff;border:1px solid #DCE1E8;border-radius:16px;padding:14px;display:grid;gap:12px}
+.hd{display:grid;grid-template-columns:44px minmax(0,1fr);gap:4px 12px;align-items:center}
+.av{grid-row:span 3;width:44px;height:44px;border-radius:50%;background:#EEF2FF;color:#4338CA;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px}
+.nm{font-size:17px;font-weight:900}.chips{display:flex;flex-wrap:wrap;gap:4px}
+.c{font-size:12px;font-weight:800;padding:2px 8px;border-radius:99px;background:#F3F4F6;color:#374151}.c.pa{background:#F0F9FF;color:#0369A1}.c.st{background:#ECFDF5;color:#047857}.c.new{background:#FEE2E2;color:#B91C1C}.c.lk{background:#FFF7ED;color:#C2410C}
+.sub{font-size:12.5px;color:#4B5563;overflow-wrap:anywhere;line-height:1.5}
+.lbl{font-size:13px;font-weight:800;color:#374151;margin-bottom:6px}
+.roles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.roles span{height:42px;border:1px solid #D1D5DB;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:800;background:#fff}.roles span.on{border:2px solid #2563EB;background:#EFF6FF;color:#1D4ED8}
+.more{font-size:12.5px;color:#2563EB;font-weight:700;margin-top:6px}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid #E5E7EB;border-radius:12px;padding:10px;margin-bottom:6px;background:#fff}.opt.on{border:2px solid #2563EB;background:#EFF6FF}.opt i{width:18px;height:18px;border-radius:50%;border:2px solid #9CA3AF;flex:none;margin-top:2px}.opt.on i{border:6px solid #2563EB}.opt b{display:block;font-size:14px}.opt small{display:block;font-size:12px;color:#4B5563}
+.badge{display:inline-block;margin-left:6px;font-size:11px;font-weight:800;padding:1px 7px;border-radius:99px;background:#16A34A;color:#fff}
+.acts{display:grid;grid-template-columns:1fr 2fr;gap:8px}
+.btn{display:flex;align-items:center;justify-content:center;height:48px;border-radius:12px;font-weight:900;font-size:15px}
+.ok{background:#2563EB;color:#fff}.no{background:#fff;border:1px solid #FCA5A5;color:#B91C1C}
+.fold{display:flex;justify-content:space-between;align-items:center}
+.desk{width:1000px;background:#fff;border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.12);overflow:hidden}
+.desk .w{padding:16px 20px}
+.dcard{border:1px solid #DCE1E8;border-radius:14px;padding:14px 16px;display:grid;grid-template-columns:minmax(220px,1.3fr) minmax(260px,1.4fr) 220px;gap:20px;align-items:start}
+.dcard .acts{grid-template-columns:1fr 1.6fr}
+</style></head><body>
+<div class="row">
+<div><div class="h">휴대폰 ① 명부 후보가 없을 때</div><p class="d">한 카드 안에서 끝: 누가 · 무엇을 희망 · 언제 → 역할 버튼으로 바로 고르기 → [거절 | 승인] 한 줄. 이메일 잘리지 않게.</p>
+<div class="ph"><div class="top"><small>잠실새내교회 영아부 · 관리</small><b>도전!!! 소속 관리</b></div><div class="w">
+<div class="seg"><span class="on">참여 신청 <em>1</em></span><span>명부 60</span></div>
+<div class="note">기다리는 신청 <b>1명</b> · 승인하면 바로 이 부서 화면을 써요.</div>
+<div class="card">
+ <div class="hd"><span class="av">테스</span><span class="nm">테스트</span><span class="chips"><span class="c pa">학부모 희망</span><span class="c new">오늘 신청</span></span><span class="sub">aaaaa@aa.com · 11월 17일 14:40 신청 · 생일 안 씀</span></div>
+ <div><div class="lbl">승인할 역할</div><div class="roles"><span>학생</span><span>교사</span><span class="on">학부모</span><span>기타</span></div><div class="more">임원(부장 · 부감 · 서기 · 지도) 고르기 ›</div></div>
+ <div class="sub">명부에 같은 이름이 없어요 · 승인하면 명부에 새로 올라가요.</div>
+ <div class="acts"><span class="btn no">거절</span><span class="btn ok">학부모로 승인</span></div>
+</div></div></div></div>
+
+<div><div class="h">휴대폰 ② 명부 후보가 있을 때</div><p class="d">같은 이름 명부 줄이 있으면 "명부 후보" 칩 · 후보를 카드 안에 (생일 같음 맨 위). 승인 버튼 글자가 무엇을 하는지 말해 줌.</p>
+<div class="ph"><div class="top"><small>잠실새내교회 영아부 · 관리</small><b>도전!!! 소속 관리</b></div><div class="w">
+<div class="card">
+ <div class="hd"><span class="av">서윤</span><span class="nm">박서윤</span><span class="chips"><span class="c st">학생 희망</span><span class="c lk">명부 후보 2</span></span><span class="sub">sy@example.com · 어제 신청 · 생일 2월 3일</span></div>
+ <div><div class="lbl">승인할 역할</div><div class="roles"><span class="on">학생</span><span>교사</span><span>학부모</span><span>기타</span></div></div>
+ <div><div class="lbl">명부와 연결</div>
+ <div class="opt on"><i></i><div><b>박서윤<span class="badge">생일 같음</span></b><small>1반 · 2월 3일 · 010-…</small></div></div>
+ <div class="opt"><i></i><div><b>박서윤</b><small>3반 · 7월 21일</small></div></div>
+ <div class="opt"><i></i><div><b>새 사람으로 올리기</b><small>명부에 없는 사람이면</small></div></div></div>
+ <div class="acts"><span class="btn no">거절</span><span class="btn ok">학생으로 승인 · 1반 줄과 연결</span></div>
+</div></div></div></div>
+</div>
+
+<div class="row"><div><div class="h">넓은 화면</div><p class="d" style="max-width:1000px">한 신청 = 가로 한 줄 카드: 왼쪽 누구 · 가운데 역할 · 명부 연결 · 오른쪽 [거절 | 승인]. 여러 명이면 위아래로 쌓임.</p>
+<div class="desk"><div class="top"><small>잠실새내교회 영아부 · 관리</small><b>도전!!! 소속 관리</b></div><div class="w" style="display:grid;gap:12px">
+<div class="seg"><span class="on">참여 신청 <em>2</em></span><span>명부 60</span></div>
+<div class="dcard"><div class="hd"><span class="av">테스</span><span class="nm">테스트</span><span class="chips"><span class="c pa">학부모 희망</span><span class="c new">오늘 신청</span></span><span class="sub">aaaaa@aa.com · 11월 17일 14:40</span></div>
+<div><div class="lbl">승인할 역할</div><div class="roles"><span>학생</span><span>교사</span><span class="on">학부모</span><span>기타</span></div><div class="sub" style="margin-top:8px">명부에 같은 이름이 없어요 · 새로 올라가요</div></div>
+<div class="acts" style="align-self:center"><span class="btn no">거절</span><span class="btn ok">승인</span></div></div>
+<div class="dcard"><div class="hd"><span class="av">서윤</span><span class="nm">박서윤</span><span class="chips"><span class="c st">학생 희망</span><span class="c lk">명부 후보 2</span></span><span class="sub">sy@example.com · 어제 · 생일 2월 3일</span></div>
+<div><div class="lbl">승인할 역할</div><div class="roles"><span class="on">학생</span><span>교사</span><span>학부모</span><span>기타</span></div><div class="lbl" style="margin-top:10px">명부와 연결</div><div class="opt on"><i></i><div><b>박서윤<span class="badge">생일 같음</span></b><small>1반 · 2월 3일</small></div></div></div>
+<div class="acts" style="align-self:center"><span class="btn no">거절</span><span class="btn ok">승인</span></div></div>
+</div></div></div></div>
+</body></html>
