@@ -42,7 +42,9 @@
             @foreach (var t in d.Tenants)
             {
                 <tr>
-                    <td><span class="nm"><i style="background:@TenantsModel.ColorVar(t.ThemeColor)"></i>@t.Name@if (t.Suspended) { <span class="tag st">정지</span> }</span></td>
+                    <td>@* 부서 이름 → 그 부서 관리자로 가장 → 관리 홈(2026-11-18 사용자). 관리자가 없으면 글자만 *@
+                        @if (t.AdminUser is { } au && !t.Suspended) { <a class="nm nmlink" href="@AccountsModel.ImpToAdminUrl(au, t.Slug)" title="@(t.Name) 관리자로 들어가기"><i style="background:@TenantsModel.ColorVar(t.ThemeColor)"></i>@t.Name<span class="go" aria-hidden="true">관리 ›</span></a> }
+                        else { <span class="nm"><i style="background:@TenantsModel.ColorVar(t.ThemeColor)"></i>@t.Name@if (t.Suspended) { <span class="tag st">정지</span> }</span> }</td>
                     <td>@if (!t.Mission) { <span class="ph-muted">통독만</span> }
                         else if (t.Suspended) { <span class="ph-muted">–</span> }
                         else if (t.Participants == 0) { <span class="ph-muted">아직 참여자 없음</span> }

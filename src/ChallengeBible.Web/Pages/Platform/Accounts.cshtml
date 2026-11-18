@@ -112,8 +112,8 @@
                     }
                     else if (Model.AskImp)
                     {
-                        <form method="post" asp-page-handler="Impersonate" asp-route-q="@Model.Q" asp-route-id="@d.Id" class="imp-ask" id="imp" role="alert">
-                            <b>@Ui.Nim(d.Name)으로 들어갈까요?</b>
+                        <form method="post" asp-page-handler="Impersonate" asp-route-q="@Model.Q" asp-route-id="@d.Id" asp-route-go="@AccountsModel.SafeGo(Model.Go)" class="imp-ask" id="imp" role="alert">
+                            <b>@Ui.Nim(d.Name)으로 들어갈까요?@if (AccountsModel.SafeGo(Model.Go) is not null && d.AdminOf.Count > 0) { <text> (@string.Join(" · ", d.AdminOf) 관리 홈으로)</text> }</b>
                             <span>이 사이 저장한 일(미션 · 승인 등)은 실제로 반영되고, 감사 로그에 가장한 관리자가 함께 남아요. 맨 위 [복귀]를 누르면 돌아와요.</span>
                             <div class="row"><button type="submit" class="btn imp sm">들어가기</button><a class="btn s sm" href="@Model.Url(d.Id)">취소</a></div>
                         </form>

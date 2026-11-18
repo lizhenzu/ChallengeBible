@@ -134,4 +134,23 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
         using var raw = InMemoryDb.Raw(_db);
         Assert.Equal([_op, null], raw.AuditLogs.OrderBy(l => l.Id).Select(l => l.ImpersonatorUserName).ToList());
     }
+
+    [Fact]   // R-335
+    public async Task R335_플랫폼_홈_부서_이름을_누르면_그_부서_관리자로_확인_뒤_관리_홈으로_간다()
+    {
+        var c = await Login("operator@example.com");
+        await c.GetAsync("/platform");                                  // 로그인 직후 한 번은 할 일로 갈 수 있다
+        var home = await c.GetStringAsync("/platform");
+        var url = ChallengeBible.Web.Pages.Platform.AccountsModel.ImpToAdminUrl(_jieun, "jamsil-kids");
+        Assert.Contains(System.Net.WebUtility.HtmlEncode(url), home);   // 부서 이름 링크
+        var ask = await c.GetStringAsync(url.Split('#')[0]);
+        Assert.Contains("박지은님으로 들어갈까요?", ask);                     // 확인 한 번
+        Assert.Contains("go=%2Fjamsil-kids%2Fadmin", ask);
+        var go = await Post(c, $"/platform/accounts?handler=Impersonate&q={_jieun}&id={_jieun}&go=%2Fjamsil-kids%2Fadmin", url.Split('#')[0]);
+        Assert.Equal("/jamsil-kids/admin", go.Headers.Location!.OriginalString);
+        Assert.Contains("가장 중", await c.GetStringAsync("/jamsil-kids/admin"));
+
+        Assert.Null(ChallengeBible.Web.Pages.Platform.AccountsModel.SafeGo("https://evil.example.com"));   // 바깥 주소로는 안 감
+        Assert.Null(ChallengeBible.Web.Pages.Platform.AccountsModel.SafeGo("//evil.example.com"));
+    }
 }

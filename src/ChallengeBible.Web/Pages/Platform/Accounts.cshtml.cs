@@ -16,6 +16,8 @@ public class AccountsModel(PlatformAccountService accounts, ImpersonationService
     [BindProperty(SupportsGet = true)] public string? Q { get; set; }
     [BindProperty(SupportsGet = true)] public string? Id { get; set; }
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }
+    /// <summary>가장한 뒤 갈 곳(플랫폼 홈 부서 이름 → 그 부서 관리 홈, 2026-11-18). 이 사이트 안 주소만.</summary>
+    [BindProperty(SupportsGet = true)] public string? Go { get; set; }
 
     public List<AccountHit> Hits { get; private set; } = [];
     public AccountDetail? Detail { get; private set; }
@@ -50,6 +52,7 @@ public class AccountsModel(PlatformAccountService accounts, ImpersonationService
             return Page();
         }
         await CurrentUser.SignInAsync(HttpContext, await signed.ToSignedInAsync(target, ct), Me);
+        if (SafeGo(Go) is { } go) return Redirect(go);   // 부서 관리 홈으로 바로
         TempData[Account.LoginModel.TodoCheckKey] = "1";   // 가장도 로그인 직후처럼: 할 일이 있으면 할 일 화면으로(R-309, 2026-11-16 사용자)
         return Redirect("/");
     }
@@ -120,6 +123,12 @@ public class AccountsModel(PlatformAccountService accounts, ImpersonationService
     }
 
     public string ImpUrl(string id) => $"/platform/accounts?q={Uri.EscapeDataString(Q ?? "")}&id={Uri.EscapeDataString(id)}&askImp=true#imp";
+
+    /// <summary>플랫폼 홈 부서 이름 → 그 부서 관리자로 가장 확인 → 관리 홈.</summary>
+    public static string ImpToAdminUrl(string adminUser, string slug) =>
+        $"/platform/accounts?q={Uri.EscapeDataString(adminUser)}&id={Uri.EscapeDataString(adminUser)}&askImp=true&go={Uri.EscapeDataString($"/{slug}/admin")}#imp";
+
+    public static string? SafeGo(string? go) => go is { Length: > 1 } g && g[0] == '/' && !g.StartsWith("//") && !g.StartsWith("/\\") ? g : null;
 
     public string RenameUrl(string id) => Url(id) + "&askRename=true#rename";
 
