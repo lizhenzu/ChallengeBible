@@ -35,7 +35,7 @@
 }
 @section Scripts { <script src="~/js/content-list.js" asp-append-version="true"></script> }
 <partial name="_PlatformTop" />
-<main class="admin gut"><div class="wrap wide cp@(Model.HasSelection ? " has-sel" : "")" data-kind="@Model.Kind" data-unit="@(isDate ? "일" : Model.SlotUnit)">
+<main class="admin gut w760"><div class="wrap wide cp@(Model.HasSelection ? " has-sel" : "")" data-kind="@Model.Kind" data-unit="@(isDate ? "일" : Model.SlotUnit)">
     <h1 class="cp-title">공용 콘텐츠</h1>
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
     @if (Model.Notice is not null) { <p class="note-block">@Model.Notice</p> }

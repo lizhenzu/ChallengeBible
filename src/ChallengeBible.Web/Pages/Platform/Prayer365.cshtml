@@ -10,7 +10,7 @@
 }
 <link rel="stylesheet" href="~/css/prayer365.css" asp-append-version="true" />
 <partial name="_PlatformTop" />
-<main class="admin gut"><div class="wrap wide">
+<main class="admin gut w760"><div class="wrap wide">
     <h1>365 기도문 <small style="font-size:14px;color:var(--dim)">「@Prayer365Service.BookTitle」 · @Prayer365Service.Author</small></h1>
     @if (Model.Msg is { } msg) { <p class="ok-box" role="status">@msg</p> }
     @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }

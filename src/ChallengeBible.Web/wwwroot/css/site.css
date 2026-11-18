@@ -1098,7 +1098,7 @@ main.admin > .wrap.cc { display: grid; gap: 16px; grid-template-columns: minmax(
 
 /* 플랫폼 홈(확정 시안: 플랫폼-홈) */
 main.admin > .wrap.ph { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
-@media (min-width: 900px) { main.admin > .wrap.ph { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; } .ph-span { grid-column: 1 / -1; } }
+@media (min-width: 9999px) { main.admin > .wrap.ph { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; } .ph-span { grid-column: 1 / -1; } }   /* 760px 통일(2026-11-18) 뒤로는 한 칸: 부서별 오늘 표가 잘리지 않게 */
 .ph-greet { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
 .ph-greet span { font-size: 13px; color: var(--dim); }
 .ph .ar-kpis span { font-size: 12px; color: var(--dim); }
@@ -1209,7 +1209,7 @@ main.admin > .wrap.ph { display: grid; gap: 16px; grid-template-columns: minmax(
 .pr-log li:first-child { border-top: 0; }
 .pr-log time { flex: none; width: 80px; color: var(--dim); font-size: 12.5px; }
 .pr-save { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; background: var(--bg); border-top: 1px solid var(--rule); padding-bottom: env(safe-area-inset-bottom, 0px); box-shadow: 0 -4px 14px rgba(0,0,0,.06); }
-.pr-save .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding-block: 10px; }
+.pr-save .wrap { max-width: 760px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding-block: 10px; }
 .pr-save .sum { flex: 1 1 260px; font-size: 13px; color: var(--dim); min-width: 0; }
 .pr-save .sum .bad { color: var(--bad); font-weight: 700; }
 .pr-save label { font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
