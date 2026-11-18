@@ -37,7 +37,9 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
         var tz = TimeZoneInfo.FindSystemTimeZoneById(PlatformTimeZone);
         var nowLocal = TimeZoneInfo.ConvertTime(nowUtc, tz).DateTime;
 
-        var tenants = await ctx.Tenants.AsNoTracking().OrderBy(t => t.Name).ToListAsync(ct);
+        // 부서별 오늘 표: 나이순(처음 오신 분 → 영아부 → … → 장년부, 2026-11-18 사용자) — 플랫폼 › 부서 카드와 같은 순서
+        var tenants = (await ctx.Tenants.AsNoTracking().ToListAsync(ct))
+            .OrderBy(t => DeptOrder.AgeLastKey(t.Name)).ThenBy(t => t.Name, StringComparer.Ordinal).ToList();
         var active = tenants.Where(t => t.Status == TenantStatus.Active).ToList();
         var accounts = await ctx.Users.CountAsync(ct);
         var weekAgo = nowUtc.UtcDateTime.AddDays(-7);

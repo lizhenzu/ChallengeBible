@@ -125,4 +125,19 @@ public class PlatformHomeTests
     {
         Assert.Equal("창세기 1~3 · 5장 · 출애굽기 2장", PlatformTodayService.Where([(1, 1), (1, 2), (1, 3), (1, 5), (2, 2), (1, 2)]));
     }
+
+    [Fact]
+    public async Task 부서별_오늘_표는_나이순이다()   // 2026-11-18 사용자
+    {
+        InMemoryDb.SeedTenant(_db, "jamsil-high", "JSHIGH");
+        InMemoryDb.SeedTenant(_db, "jamsil-infant", "JSINFA");
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.Tenants.Single(t => t.Slug == "jamsil-high").Name = "잠실새내교회 고등부";
+            raw.Tenants.Single(t => t.Slug == "jamsil-infant").Name = "잠실새내교회 영아부";
+            raw.SaveChanges();
+        }
+        var names = (await Service().GetAsync(_op)).Tenants.Select(t => t.Name).ToList();
+        Assert.True(names.IndexOf("잠실새내교회 영아부") < names.IndexOf("잠실새내교회 고등부"));
+    }
 }
