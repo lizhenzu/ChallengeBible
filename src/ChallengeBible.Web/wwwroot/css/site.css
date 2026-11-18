@@ -4527,3 +4527,27 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .tdr-i.t-r { background: #FEE2E2; color: #DC2626; }
 .tdr .pd-panel h2.tdr-g.danger { color: #DC2626; }
 .tdr-r b .tdr-c { font-style: normal; display: inline-block; min-width: 20px; padding: 0 6px; border-radius: 99px; background: #EF4444; color: #fff; font-size: 11px; line-height: 18px; text-align: center; vertical-align: 2px; margin-left: 4px; }
+/* 플랫폼 › 오늘 현황(2026-11-18 확정 시안 플랫폼홈-숫자보기) */
+.tdv h1 { font-size: 22px; }
+.tdv-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tdv-tabs a { padding: 8px 13px; border-radius: 99px; background: var(--soft); font-size: 14px; font-weight: 800; color: var(--fg); text-decoration: none; }
+.tdv-tabs a b { font-weight: 900; margin-left: 2px; }
+.tdv-tabs a[aria-current="page"] { background: var(--accent); color: #fff; }
+.tdv-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.tdv-chips a { padding: 5px 11px; border-radius: 99px; border: 1px solid var(--rule); font-size: 12.5px; font-weight: 700; color: var(--dim); text-decoration: none; background: var(--bg); }
+.tdv-chips a[aria-current="true"] { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--bg)); }
+.tdv-sum { margin: 0; font-size: 13px; color: var(--dim); }
+.tdv-tbl { overflow-x: auto; }
+.tdv-tbl table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 520px; }
+.tdv-tbl th { font-size: 12px; color: var(--dim); text-align: left; border-bottom: 1.5px solid var(--fg); padding: 7px 6px; white-space: nowrap; }
+.tdv-tbl td { padding: 10px 6px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.tdv-tbl .r { text-align: right; }
+.tdv-tbl td a { color: var(--fg); font-weight: 700; }
+.tdv-tbl .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.tdv-m span { display: inline-block; font-size: 11.5px; font-weight: 800; padding: 2px 7px; border-radius: 99px; background: var(--soft); color: #9CA3AF; margin-right: 3px; }
+.tdv-m span.on { background: #E8F7EE; color: #16A34A; }
+/* 플랫폼 홈 숫자 칸 · 표 숫자를 누를 수 있게 */
+.ph .ar-kpis a { padding: 14px; border-radius: 16px; background: var(--soft); display: flex; flex-direction: column; gap: 2px; min-width: 0; color: inherit; text-decoration: none; position: relative; border: 2px solid transparent; }
+.ph .ar-kpis a:hover { border-color: var(--accent); }
+.ph .ar-kpis a i { position: absolute; right: 12px; top: 12px; font-style: normal; font-size: 12px; font-weight: 700; color: var(--dim); }
+.ph-tbl td a.nlink { color: var(--accent); font-weight: 800; text-decoration: underline; text-underline-offset: 2px; }

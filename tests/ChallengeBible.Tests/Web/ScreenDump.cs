@@ -467,6 +467,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         }));
         await op.GetAsync("/platform");   // 로그인 직후 한 번은 오늘 할 일로 갈 수 있다(R-309)
         await Save(op, "/platform", "13a-플랫폼홈");
+        await Save(op, "/platform/today?k=mission", "13a2-플랫폼-오늘현황");   // R-334(2026-11-18 확정 시안)
         await Save(op, "/platform/tenants", "13-플랫폼부서");
         await Save(op, "/platform/accounts?q=" + Uri.EscapeDataString("김"), "13b-플랫폼-계정찾기");
         await Save(op, $"/platform/accounts?q=cheolsu&id={Acc("cheolsu")}&askMove=true", "13b2-플랫폼-부서바로옮기기");   // R-333(2026-11-18 확정 시안)

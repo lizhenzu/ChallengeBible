@@ -1,0 +1,90 @@
+@page "/platform/today"
+@model ChallengeBible.Web.Pages.Platform.TodayModel
+@using ChallengeBible.Web.Services
+@using ChallengeBible.Domain.Rules
+@* 오늘 현황(2026-11-18 사용자 확정 시안 플랫폼홈-숫자보기): 탭 4개 · 부서 칩 · 목록. 숫자 세는 법은 플랫폼 홈과 같다 *@
+@{
+    var d = Model.Data;
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+    var tz = TimeZoneInfo.FindSystemTimeZoneById(PlatformHomeService.PlatformTimeZone);
+    string Local(DateTime utc) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), tz).ToString("yyyy.M.d");
+    (string K, string Label, int N)[] tabs = [(PlatformTodayService.Depts, "부서", d.ActiveDepts), (PlatformTodayService.Accounts, "계정", d.Accounts),
+        (PlatformTodayService.Missions, "미션 참여", d.Participants), (PlatformTodayService.Reads, "통독", d.Readers)];
+    (Mission M, string L)[] missions = [(Mission.Word, "말씀"), (Mission.Quiz, "퀴즈"), (Mission.Prayer, "기도"), (Mission.Recite, "암송")];
+}
+<partial name="_PlatformTop" />
+<main class="admin gut w760"><div class="wrap tdv">
+    <a class="ms-back" href="/platform">‹ 플랫폼 홈</a>
+    <h1>오늘 현황</h1>
+    <nav class="tdv-tabs" aria-label="보기">
+        @foreach (var t in tabs) { <a href="@Model.Url(t.K, Model.K == t.K ? null : Model.T)" aria-current="@(Model.K == t.K ? "page" : "false")">@t.Label <b class="num">@t.N.ToString("N0")</b></a> }
+    </nav>
+
+    @if (Model.K == PlatformTodayService.Accounts)
+    {
+        <div class="tdv-chips">
+            <a href="@Model.Url(Model.K, Model.T, "new")" aria-current="@(Model.F == "new" ? "true" : "false")">이번 주 새로 @d.NewAccounts</a>
+            <a href="@Model.Url(Model.K, Model.T, "all")" aria-current="@(Model.F == "all" ? "true" : "false")">전체 @d.Accounts</a>
+            <a href="@Model.Url(Model.K, null, "none")" aria-current="@(Model.F == "none" ? "true" : "false")">소속 없음 @d.NoDeptAccounts</a>
+        </div>
+    }
+    @if (Model.K != PlatformTodayService.Depts && !(Model.K == PlatformTodayService.Accounts && Model.F == "none") && d.DeptChips.Count > 0)
+    {
+        <div class="tdv-chips">
+            <a href="@Model.Url(Model.K, null, Model.F)" aria-current="@(Model.T is null ? "true" : "false")">모든 부서</a>
+            @foreach (var c in d.DeptChips) { <a href="@Model.Url(Model.K, c.Id, Model.F)" aria-current="@(Model.T == c.Id ? "true" : "false")">@c.Name @c.Count</a> }
+        </div>
+    }
+
+    @if (Model.K == PlatformTodayService.Missions)
+    {
+        <p class="tdv-sum">@d.Today.ToString("M월 d일(ddd)", ko) · 성경미션 부서 @(d.MissionDepts)곳 · 참여 @(d.Participants)명 / 대상 @(d.Targets)명</p>
+        <div class="tdv-tbl"><table>
+            <thead><tr><th>이름</th><th>부서</th><th>오늘 한 미션</th><th class="r">점수</th></tr></thead>
+            <tbody>
+            @foreach (var r in d.Missions)
+            {
+                <tr><td><a href="@TodayModel.Acc(r.UserName)">@r.Name</a></td><td>@r.Dept</td>
+                    <td class="tdv-m">@foreach (var (m, l) in missions) { <span class="@(r.Done.Contains(m) ? "on" : "")">@l</span> }</td><td class="r num">@r.Points</td></tr>
+            }
+            @if (d.Missions.Count == 0) { <tr><td colspan="4" class="ph-muted">오늘 미션을 한 사람이 아직 없어요.</td></tr> }
+            </tbody>
+        </table></div>
+    }
+    else if (Model.K == PlatformTodayService.Reads)
+    {
+        <p class="tdv-sum">@d.Today.ToString("M월 d일(ddd)", ko) · 한국 시간 기준 · 읽은 사람 @(d.Readers)명</p>
+        <div class="tdv-tbl"><table>
+            <thead><tr><th>이름</th><th>부서</th><th>오늘 읽은 곳</th><th class="r">장</th></tr></thead>
+            <tbody>
+            @foreach (var r in d.Reads) { <tr><td><a href="@TodayModel.Acc(r.UserName)">@r.Name</a></td><td>@(r.Dept ?? "–")</td><td>@r.Where</td><td class="r num">@r.Chapters</td></tr> }
+            @if (d.Reads.Count == 0) { <tr><td colspan="4" class="ph-muted">오늘 통독한 사람이 아직 없어요.</td></tr> }
+            </tbody>
+        </table></div>
+    }
+    else if (Model.K == PlatformTodayService.Accounts)
+    {
+        <div class="tdv-tbl"><table>
+            <thead><tr><th>이름</th><th>아이디</th><th>부서</th><th class="r">가입</th></tr></thead>
+            <tbody>
+            @foreach (var a in d.AccountRows) { <tr><td><a href="@TodayModel.Acc(a.UserName)">@a.Name</a></td><td>@a.UserName</td><td>@if (a.Depts is null) { <span class="ph-muted">소속 없음</span> } else { @a.Depts }</td><td class="r num">@Local(a.JoinedUtc)</td></tr> }
+            @if (d.AccountRows.Count == 0) { <tr><td colspan="4" class="ph-muted">해당하는 계정이 없어요.</td></tr> }
+            </tbody>
+        </table></div>
+        @if (d.AccountRows.Count >= PlatformTodayService.MaxRows) { <p class="ph-muted small">최근 @PlatformTodayService.MaxRows.ToString("N0")개까지 보여요. 특정 사람은 계정 찾기에서 찾아 주세요.</p> }
+    }
+    else
+    {
+        <div class="tdv-tbl"><table>
+            <thead><tr><th>부서</th><th class="r">소속</th><th>관리자</th><th>프로그램</th></tr></thead>
+            <tbody>
+            @foreach (var t in d.Depts)
+            {
+                <tr><td><a href="/platform/tenants"><i class="dot" style="background:@TenantsModel.ColorVar(t.ThemeColor)"></i>@PlatformTodayService.ShortDept(t.Name)</a>@if (t.Suspended) { <span class="tag st">정지</span> }</td>
+                    <td class="r num">@t.Members</td><td>@(t.Admins.Count > 0 ? string.Join(" · ", t.Admins) : t.IsLobby ? "–" : "없음")</td><td>@t.Programs</td></tr>
+            }
+            </tbody>
+        </table></div>
+    }
+    <p class="ph-muted small">이름을 누르면 계정 찾기, 부서 이름을 누르면 플랫폼 › 부서로 가요.</p>
+</div></main>

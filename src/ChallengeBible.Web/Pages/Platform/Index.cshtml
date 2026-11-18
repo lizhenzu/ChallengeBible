@@ -12,11 +12,12 @@
     @if (Model.NewMessages > 0) { <a class="ms-band" href="/messages">새 쪽지 @(Model.NewMessages)개가 왔어요<span>쪽지함 보기</span></a> }
     <div class="ph-greet ph-span"><h1>플랫폼 홈</h1><span class="num">@d.NowLocal.ToString("yyyy년 M월 d일 dddd · tt h:mm", ko) 기준</span></div>
 
+    @* 숫자 칸을 누르면 오늘 현황(2026-11-18 사용자 확정 시안 플랫폼홈-숫자보기) *@
     <div class="ar-kpis ph-span">
-        <div><small>운영 중인 부서</small><b class="num">@d.ActiveTenants<u>곳</u></b><span>@(d.SuspendedTenants > 0 ? $"정지 {d.SuspendedTenants}곳" : "정지 없음")</span></div>
-        <div><small>계정</small><b class="num">@d.Accounts<u>개</u></b><span>이번 주 새로 @(d.NewAccounts)개</span></div>
-        <div><small>오늘 미션 참여</small><b class="num">@d.TodayParticipants<u>명</u></b><span>성경미션 부서 @(d.MissionTenants)곳</span></div>
-        <div><small>오늘 통독</small><b class="num">@d.TodayReaders<u>명</u></b><span>읽은 장 @(d.TodayChapters)장</span></div>
+        <a href="/platform/today?k=dept"><i>보기 ›</i><small>운영 중인 부서</small><b class="num">@d.ActiveTenants<u>곳</u></b><span>@(d.SuspendedTenants > 0 ? $"정지 {d.SuspendedTenants}곳" : "정지 없음")</span></a>
+        <a href="/platform/today?k=acct"><i>보기 ›</i><small>계정</small><b class="num">@d.Accounts<u>개</u></b><span>이번 주 새로 @(d.NewAccounts)개</span></a>
+        <a href="/platform/today?k=mission"><i>보기 ›</i><small>오늘 미션 참여</small><b class="num">@d.TodayParticipants<u>명</u></b><span>성경미션 부서 @(d.MissionTenants)곳</span></a>
+        <a href="/platform/today?k=read"><i>보기 ›</i><small>오늘 통독</small><b class="num">@d.TodayReaders<u>명</u></b><span>읽은 장 @(d.TodayChapters)장</span></a>
     </div>
 
     <section class="ph-card ph-span" aria-labelledby="hTodo">
@@ -45,9 +46,9 @@
                     <td>@if (!t.Mission) { <span class="ph-muted">통독만</span> }
                         else if (t.Suspended) { <span class="ph-muted">–</span> }
                         else if (t.Participants == 0) { <span class="ph-muted">아직 참여자 없음</span> }
-                        else { <span class="bar"><span><i style="width:@((t.TodayParticipants * 100.0 / t.Participants).ToString("0.#", inv))%"></i></span><em class="num">@t.TodayParticipants/@t.Participants</em></span> }</td>
-                    <td class="r num">@(t.Readers > 0 ? t.Readers.ToString() : "–")</td>
-                    <td class="r num">@(t.Pending > 0 ? t.Pending.ToString() : "–")</td>
+                        else { <span class="bar"><span><i style="width:@((t.TodayParticipants * 100.0 / t.Participants).ToString("0.#", inv))%"></i></span><em class="num">@if (t.TodayParticipants > 0) { <a class="nlink" href="/platform/today?k=mission&amp;t=@t.Id">@t.TodayParticipants</a> } else { @t.TodayParticipants }/@t.Participants</em></span> }</td>
+                    <td class="r num">@if (t.Readers > 0) { <a class="nlink" href="/platform/today?k=read&amp;t=@t.Id">@t.Readers</a> } else { <text>–</text> }</td>
+                    <td class="r num">@if (t.Pending > 0) { <a class="nlink" href="/platform/tenants">@t.Pending</a> } else { <text>–</text> }</td>
                 </tr>
             }
             @if (d.Tenants.Count == 0) { <tr><td colspan="4" class="ph-muted">아직 부서가 없어요.</td></tr> }

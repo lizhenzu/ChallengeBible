@@ -45,6 +45,7 @@ builder.Services.AddScoped<MilestoneService>();
 builder.Services.AddScoped<PhotoService>();
 builder.Services.AddScoped<ContentCalendarService>();
 builder.Services.AddScoped<PlatformHomeService>();
+builder.Services.AddScoped<PlatformTodayService>();   // 오늘 현황(플랫폼 홈 숫자 → 목록)
 builder.Services.AddScoped<PlatformAccountService>();
 builder.Services.AddScoped<RuleService>();
 builder.Services.AddScoped<PlatformRuleService>();

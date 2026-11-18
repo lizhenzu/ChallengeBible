@@ -31,7 +31,8 @@
         : href == "/platform/prayer365" ? path.Equals(href, StringComparison.OrdinalIgnoreCase) || path.StartsWith(href + "/", StringComparison.OrdinalIgnoreCase)   // 통계(-stats)는 따로
         : href == "/platform/content" ? path.StartsWith(href, StringComparison.OrdinalIgnoreCase) && !WordTools() && !QuizTools()
         : path.StartsWith(href, StringComparison.OrdinalIgnoreCase) || (href == "/platform/gifts" && path.StartsWith("/platform/gift-cost", StringComparison.OrdinalIgnoreCase));   // 총비용은 공통 상품의 탭
-    var title = groups.SelectMany(g => g.Items).FirstOrDefault(i => Current(i.Href)).Label ?? "플랫폼";
+    var title = groups.SelectMany(g => g.Items).FirstOrDefault(i => Current(i.Href)).Label
+                ?? (path.StartsWith("/platform/today", StringComparison.OrdinalIgnoreCase) ? "오늘 현황" : "플랫폼");   // 오늘 현황은 홈 숫자에서 들어온다(메뉴에 없음)
     var me = User.UserName();
     var photo = me is null ? null : await Photos.FileOfAsync(me);
 }
