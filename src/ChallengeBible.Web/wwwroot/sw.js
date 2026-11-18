@@ -1,7 +1,7 @@
 // 서비스 워커(PWA, 확정 시안: 오프라인). 주소 맨 앞(/)에 두어 모든 부서 화면을 맡는다.
 // 저장하는 것: 오프라인 화면과 화면 모양(/css · /js · 부서 아이콘)뿐. 화면(HTML) · API 응답은 저장하지 않는다 —
 // 점수 · 이름 같은 개인 내용이 가족이 함께 쓰는 휴대폰에 남지 않게. 미션 버튼(POST)은 손대지 않는다(나중에 모아 보내기 없음).
-const VERSION = 'cb-v1';
+const VERSION = 'cb-v2';   // v2: 네잎 아이콘(0114)
 const OFFLINE = '/offline.html';
 
 self.addEventListener('install', (e) => {

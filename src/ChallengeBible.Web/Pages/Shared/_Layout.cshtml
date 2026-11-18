@@ -24,11 +24,22 @@
     {
         <link rel="manifest" href="/@dept.Slug/manifest.webmanifest" />
         <meta name="theme-color" content="@BrandingService.ColorHex(dept.ThemeColor)" />
-        <link rel="icon" type="image/svg+xml" href="/@dept.Slug/icon.svg" />
-        <link rel="apple-touch-icon" href="@BrandingService.IconPng(dept.ThemeColor, 180)" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="@(dept.AppShortName ?? BrandingService.DefaultShortName)" />
     }
+    @* 아이콘 · 카톡 공유 미리보기(0114 「네잎 정돈」): 모든 화면 · 모든 부서가 같은 그림, 제목에만 부서 이름 *@
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="@BrandingService.FaviconSvg" />
+    <link rel="apple-touch-icon" href="@BrandingService.AppleTouchIcon" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="@BrandingService.DefaultName" />
+    <meta property="og:title" content="@BrandingService.OgTitle(appName, dept?.Name)" />
+    <meta property="og:description" content="@BrandingService.OgDescription" />
+    <meta property="og:image" content="@($"{Context.Request.Scheme}://{Context.Request.Host}{BrandingService.OgImage}")" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content="@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.PathBase}{Context.Request.Path}")" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800;900&family=Noto+Serif+KR:wght@500;700;900&display=swap">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />

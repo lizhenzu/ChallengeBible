@@ -8,14 +8,12 @@
   const saved = () => JSON.stringify([name.value.trim(), short.value.trim(), form.elements.ThemeColor.value]);
   const first = saved();
 
-  function iconText(s) { return (s.match(/[\p{L}\p{N}]/gu) || []).slice(0, 2).join('') || '도전'; }
   function sync() {
     root.querySelector('[data-count="AppName"]').textContent = `${name.value.length} / 30`;
     root.querySelector('[data-count="AppShortName"]').textContent = `${short.value.length} / 12`;
     const n = name.value.trim() || root.dataset.defname, s = short.value.trim() || root.dataset.defshort;
     root.querySelector('[data-pvname]').textContent = n;
     root.querySelector('[data-pvshort]').textContent = s;
-    root.querySelector('[data-pvico]').textContent = iconText(s);
     const c = form.elements.ThemeColor.value;
     pv.style.setProperty('--tc', `var(--c-${c})`);
     document.documentElement.dataset.color = c;          // 화면 강조색도 바로 미리보기

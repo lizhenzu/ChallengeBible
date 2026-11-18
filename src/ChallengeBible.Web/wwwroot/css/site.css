@@ -967,7 +967,7 @@ main.admin > .wrap.br { display: grid; gap: 18px; grid-template-columns: minmax(
 .br-home { border-radius: 22px; padding: 20px 16px; background: linear-gradient(160deg, #3B4A6B, #7A5C8E); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 8px; }
 .br-home .app { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; }
 .br-home .app i { width: 52px; height: 52px; border-radius: 14px; background: rgba(255,255,255,.25); }
-.br-home .app.me i { background: var(--tc); display: grid; place-items: center; color: #fff; font-style: normal; font-weight: 900; font-size: 15px; letter-spacing: -.04em; }
+.br-home .app.me img { width: 52px; height: 52px; border-radius: 14px; display: block; }
 .br-home .app span { max-width: 100%; font-size: 11px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px rgba(0,0,0,.4); }
 .br-h2 { margin: 0 0 8px; font-size: 16px; font-weight: 800; }
 .br-log { list-style: none; margin: 0; padding: 0; font-size: 14px; border-top: 1px solid var(--rule); }

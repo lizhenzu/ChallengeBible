@@ -1,3 +1,4 @@
+using ChallengeBible.Web.Services;
 using System.Net;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -43,20 +44,35 @@ public class PwaTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task 홈_화면_아이콘_PNG_는_대표_색마다_있고_매니페스트에_들어간다()
+    public async Task 네잎_아이콘과_카톡_대표_이미지_파일이_있다()
     {
         var c = _app.CreateClient();
-        foreach (var color in new[] { "blue", "green", "red", "violet" })
-            foreach (var size in new[] { 180, 192, 512 })
-            {
-                var r = await c.GetAsync(ChallengeBible.Web.Services.BrandingService.IconPng(color, size));
-                Assert.Equal(HttpStatusCode.OK, r.StatusCode);
-                Assert.Equal("image/png", r.Content.Headers.ContentType!.MediaType);
-            }
-        Assert.Equal("/icons/apple-touch-icon-blue.png", ChallengeBible.Web.Services.BrandingService.IconPng("unknown", 180));   // 모르는 색은 파랑
-        var manifest = await c.GetStringAsync("/jamsil-kids/manifest.webmanifest");
-        Assert.Contains("/icons/icon-192-blue.png", manifest);
-        Assert.Contains("/icons/icon-512-blue.png", manifest);
+        foreach (var (url, type) in new[]
+                 {
+                     (BrandingService.Icon192, "image/png"), (BrandingService.Icon512, "image/png"), (BrandingService.IconMaskable, "image/png"),
+                     (BrandingService.AppleTouchIcon, "image/png"), (BrandingService.OgImage, "image/png"),
+                     (BrandingService.IconSvg, "image/svg+xml"), (BrandingService.FaviconSvg, "image/svg+xml"), ("/favicon.ico", "image/x-icon"),
+                 })
+        {
+            var r = await c.GetAsync(url);
+            Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+            Assert.Equal(type, r.Content.Headers.ContentType!.MediaType);
+        }
+    }
+
+    [Fact]
+    public async Task 화면마다_카톡_공유_정보와_네잎_아이콘이_붙는다()
+    {
+        var c = _app.CreateClient();
+        foreach (var url in new[] { "/", "/jamsil-kids/" })
+        {
+            var html = await c.GetStringAsync(url);
+            Assert.Contains("property=\"og:image\" content=\"http://localhost/images/og.png\"", html);
+            Assert.Contains("property=\"og:description\"", html);
+            Assert.Contains("rel=\"apple-touch-icon\" href=\"/icons/apple-touch-icon.png\"", html);
+            Assert.Contains("href=\"/icons/favicon.svg\"", html);
+        }
+        Assert.Contains("property=\"og:title\" content=\"도전!!!성경말씀\"", await c.GetStringAsync("/"));
     }
 
     [Fact]

@@ -78,11 +78,11 @@ public partial class BrandingTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
-    public void 아이콘_글자는_짧은_이름_앞_2자()
+    public void 카톡_미리보기_제목은_앱_이름_뒤에_부서_이름()
     {
-        Assert.Equal("도전", BrandingService.IconText("도전성경"));
-        Assert.Equal("유년", BrandingService.IconText("!유년부"));
-        Assert.Equal("도전", BrandingService.IconText("!!!"));
+        Assert.Equal("도전!!!성경말씀 · 유년부", BrandingService.OgTitle("도전!!!성경말씀", "유년부"));
+        Assert.Equal("유년부 말씀 챌린지", BrandingService.OgTitle("유년부 말씀 챌린지", "유년부"));   // 이미 들어 있으면 그대로
+        Assert.Equal("도전!!!성경말씀", BrandingService.OgTitle("도전!!!성경말씀", null));         // 부서 밖 화면
     }
 
     // ---- 화면 흐름 ----
@@ -179,9 +179,14 @@ public partial class BrandingTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal("/jamsil-kids/", j.GetProperty("start_url").GetString());
         Assert.Equal("/jamsil-kids/", j.GetProperty("scope").GetString());
         Assert.Equal("#1F7A5C", j.GetProperty("theme_color").GetString());
-        var icon = await anon.GetStringAsync("/jamsil-kids/icon.svg");
-        Assert.Contains("fill=\"#1F7A5C\"", icon);
-        Assert.Contains(">유년<", icon);
+        // 아이콘은 부서 색과 상관없이 모두 같은 네잎(0114) — 예전 부서 아이콘 주소는 네잎으로 보낸다
+        var icon = await anon.GetAsync("/jamsil-kids/icon.svg");
+        Assert.Equal(HttpStatusCode.Redirect, icon.StatusCode);
+        Assert.Equal(BrandingService.IconSvg, icon.Headers.Location!.OriginalString);
+        var icons = j.GetProperty("icons").EnumerateArray().Select(x => x.GetProperty("src").GetString()).ToList();
+        Assert.Equal(new[] { BrandingService.Icon192, BrandingService.Icon512, BrandingService.IconMaskable, BrandingService.IconSvg }, icons);
+        Assert.Contains(j.GetProperty("icons").EnumerateArray(), x => x.GetProperty("purpose").GetString() == "maskable");
+        Assert.Equal("#FFFFFF", j.GetProperty("background_color").GetString());   // 안드로이드 로딩 화면 바탕
         Assert.Equal(HttpStatusCode.NotFound, (await anon.GetAsync("/no-such/manifest.webmanifest")).StatusCode);
 
         var elem = JsonDocument.Parse(await anon.GetStringAsync("/jamsil-elem/manifest.webmanifest")).RootElement;
