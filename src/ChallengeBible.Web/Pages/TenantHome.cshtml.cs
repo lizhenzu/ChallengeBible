@@ -59,7 +59,8 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         {
             if (tenant.IsLobby || TodayScreen) return Redirect("/account/login?returnUrl=" + Uri.EscapeDataString(Request.Path + Request.QueryString));
             Guest = true;
-            Data = await home.GetAsync(ct);
+            Data = GuestView(await home.GetAsync(ct));   // 로그인 화면과 같은 모양, 내 기록은 0(2026-11-18 확정 시안)
+            if (tenant.Current.CopyEnabled) CopyData = await copy.SummaryAsync(ct);   // 사람 기록은 계정마다라 로그인 안 하면 0
             return Page();
         }
         // 오늘 할 일(ADR 0100, R-309): 로그인 직후 할 일이 있고 안 보기 기간이 아니면 할 일 화면으로
@@ -85,4 +86,18 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
                 .Where(m => m.Status == MembershipStatus.Requested && m.TenantActive).Select(m => m.TenantName).ToList();
         return Page();
     }
+
+    /// <summary>둘러보기 화면 값(R-336): 오늘 콘텐츠 · 부서 사람 수는 그대로, 내 점수 · 진도 · 미션은 0 · "대기 중".</summary>
+    public static HomeView GuestView(HomeView v) => new()
+    {
+        Today = v.Today, SeasonYear = v.SeasonYear, SeasonDay = v.SeasonDay, Participant = true, SeasonPoints = 0, Streak = 0, FullDays = 0, DayPoints = 0,
+        NextMilestone = MissionService.NextMilestone(v.Rules, 0), Rules = v.Rules,
+        VerseText = v.VerseText, VerseRef = v.VerseRef, WordRange = v.WordRange, WordTitle = v.WordTitle,
+        Growth = ChallengeBible.Domain.Points.PointMath.GrowthOf(0, v.Rules.GrowthStages),
+        ReciteRange = v.ReciteRange, ReciteStart = v.ReciteStart, ReciteEnd = v.ReciteEnd, PrayerTrait = v.PrayerTrait, PrayerRange = v.PrayerRange,
+        Missions = v.Missions.Select(m => m with { Done = false, State = m.Has ? "대기 중" : m.State }).ToList(),
+        NextMission = v.Missions.FirstOrDefault(m => m.Has) is { } n ? n with { Done = false, State = "대기 중" } : null,
+        Reading = null, ResumeText = null, Week = v.Week.Select(w => w with { MissionPoints = 0, AllFour = false, Chapters = 0 }).ToList(),
+        Dept = v.Dept,
+    };
 }

@@ -27,24 +27,20 @@
     static string Ro(string w) { var c = w.Length == 0 ? 'a' : w[^1]; var j = c is >= '가' and <= '힣' ? (c - '가') % 28 : 0; return j == 0 || j == 8 ? "로" : "으로"; }   // 0068: 임시 부서 `/{slug}` = 1단계(부서 안 고름) · 2단계(승인 기다림), 윗부분만
 }
 <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
-@if (Model.Guest)
-{
-    <partial name="_TenantGuest" model="Model" />
-}
-else
-{
 <div class="hm sky@(lobby ? " lobby" : "")">
 @* 하늘색 머리말(0064 · 0068, 확정 시안: 임시부서-홈-두단계). 일반 부서 홈도 임시 부서 미션 화면(/welcome/today)과 같은 모양(2026-10-31 사용자):
    머리말 → (임시 부서) 1 · 2단계 윗부분만 또는 "← 처음 화면" / (일반 부서) 부서 이름 · 관리 줄 → 흰 말씀 카드 → 아랫부분 *@
     <div class="wl@(intro ? "" : " wl-wide")">
         <header class="wl-top gut"><div class="wrap">
             @* 확정 2026-11-15 사용자: 왼쪽 위 ☰ → 내 계정 · 출석 · 관리 · 플랫폼 · 로그아웃(맨 아래 계정 줄과 같은 조건). 플랫폼 메뉴와 같은 메뉴판(platform-nav.js) *@
+            @if (!Model.Guest) {
             <button type="button" class="pmenu-btn hm-menu" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
             </button>
+            }
             <div class="wl-org"><small>대한예수교장로회</small><a class="church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)">잠실새내교회<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a></div>
             <span class="wl-today">@* 연도는 지웠다(2026-11-17 사용자) *@<b>@d.Today.ToString("M월 d일", ko)</b> @d.Today.ToString("dddd", ko)</span>
-            <partial name="_MailBadge" />
+            @if (Model.Guest) { <a class="gs-login" href="/account/login?returnUrl=/@slug">로그인</a> } else { <partial name="_MailBadge" /> }   @* 둘러보기(R-336) *@
         </div></header>
         @if (intro)
         {
@@ -94,6 +90,12 @@ else
 {
 @* 0076 확정 시안(hk.png): 말씀 한 줄 띠 → 인사 카드(나의 점수 성장) → 말씀 찾기 → 성경말씀 카드 → 성경통독 카드 → 가족팀 · 우리 부서 *@
 <main class="gut hj"><div class="wrap">
+    @if (Model.Guest)
+    {
+        @* 둘러보기(R-336, 2026-11-18 확정 시안 둘러보기-같은모양): 로그인 화면과 같은 모양, 내 기록은 0 *@
+        <div class="gs-band" role="note"><span><b>로그인하면 내 기록이 보여요</b><small>지금 숫자는 모두 0이에요</small></span>
+            <a class="p" href="/account/login?returnUrl=/@slug">로그인</a><a class="s" href="/account/signup">가입</a></div>
+    }
     @* 맨 위 말씀 한 줄 띠는 지웠다(2026-11-03 사용자) *@
     @if (Model.NewMessages > 0)
     {
@@ -120,7 +122,7 @@ else
         }
     }
 
-    @{ var name = User.DisplayName(); }
+    @{ var name = Model.Guest ? "손님" : User.DisplayName() ?? ""; }
     <section class="hj-card hj-hi" aria-labelledby="hiT">
         <div class="hj-hi-top">
             <div>
@@ -143,7 +145,7 @@ else
             </div>
             @* 0078: 누르면 내 사진 화면(올리기 · 바꾸기 · 지우기). 사진이 없으면 이름 첫 글자 *@
             <a class="hj-av" href="/account" aria-label="내 계정">@if (Model.MyPhoto is { } ph)
-                { <img src="/account/photo?handler=img&amp;v=@ph" alt="" /> } else { <span aria-hidden="true">@(name.Length > 0 ? name[..1] : "?")</span> }</a>
+                { <img src="/account/photo?handler=img&amp;v=@ph" alt="" /> } else { <span aria-hidden="true">@(Model.Guest ? "?" : name.Length > 0 ? name[..1] : "?")</span> }</a>
         </div>
         @if (d.Growth is { } g)
         {
@@ -300,6 +302,13 @@ else
         </section>
     }
 
+    @if (Model.Guest && !t.IsLobby)
+    {
+        <section class="hj-card gb-card gb-home" aria-label="누가 선물 받나요">
+            <h2>🎁 누가 선물 받나요</h2>
+            <p class="gs-hide">받은 친구 이름은 로그인하면 보여요</p>
+        </section>
+    }
     @if (Model.Board.Total > 0)
     {
         @* 누가 선물 받나요(R-297): 미션 · 개인 선물 통합 카드 — 365 기도 아래 · 우리 부서 위(2026-11-18 사용자 확정 시안) *@
@@ -347,13 +356,12 @@ else
 </div></main>
 }
 
-<partial name="_MsgPopup" model="(Model.NewMessages, Model.NewList, '/' + slug)" />
+@if (!Model.Guest) { <partial name="_MsgPopup" model="(Model.NewMessages, Model.NewList, '/' + slug)" /> }
 
-<partial name="_TenantDrawer" model="(Model.Tenant, Model.MyPhoto)" />
+@if (!Model.Guest) { <partial name="_TenantDrawer" model="(Model.Tenant, Model.MyPhoto)" /> }
 
 <footer class="gut"><div class="wrap">
     @* 맨 아래 계정 줄(출석 · 관리 · 플랫폼 · 로그아웃)은 지웠다 — 왼쪽 위 ☰ 메뉴와 같아서(2026-11-15 사용자) *@
     <p class="foot-copy">© @d.Today.Year 잠실새내 · 주일학교</p>
 </div></footer>
 </div>
-}

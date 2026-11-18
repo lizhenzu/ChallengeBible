@@ -499,7 +499,7 @@
 .hm .gb-home { margin: 0; padding: 18px 16px; }
 .hm .gb-home h2 { margin: 0 0 4px; font-size: 16px; }
 /* 로그인 안 한 사람의 부서 홈 둘러보기(2026-11-18 확정 시안 부서홈-둘러보기, R-336) */
-.hm.guest .gs-login { margin-left: 8px; padding: 7px 13px; border-radius: 99px; background: #2B59C3; color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; white-space: nowrap; }
+.hm .gs-login { margin-left: 8px; padding: 7px 13px; border-radius: 99px; background: #2B59C3; color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; white-space: nowrap; }
 .hm .gs-hi { display: grid; gap: 10px; }
 .hm .gs-hi small { color: #6B7280; font-weight: 700; }
 .hm .gs-hi h1 { font-size: 22px; margin: 0; line-height: 1.35; }
@@ -513,3 +513,11 @@
 .hm .gs-m4 a small { color: #6B7280 !important; }
 .hm .gs-dept span { display: flex; flex-direction: column; align-items: center; }
 .hm .gs-hi .hj-dname { --dept: #D9730D; --dept-mark: #FFE7CC; font-style: normal; font-size: 1.1em; font-weight: 900; color: var(--dept); padding: 0 2px; border-radius: 4px; background: linear-gradient(transparent 62%, var(--dept-mark) 62%); }
+/* 둘러보기 = 로그인 화면과 같은 모양(2026-11-18 확정 시안 둘러보기-같은모양) */
+.hm .gs-band { display: flex; align-items: center; gap: 8px; background: #EEF3FC; border: 1px solid #C7D7F5; border-radius: 14px; padding: 10px 12px; font-size: 13px; color: #1E3A8A; }
+.hm .gs-band span { flex: 1; min-width: 0; }
+.hm .gs-band small { display: block; color: #4B5563; font-size: 12px; }
+.hm .gs-band a { padding: 8px 12px; border-radius: 10px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.hm .gs-band a.p { background: #2B59C3; color: #fff; }
+.hm .gs-band a.s { background: #fff; color: #2B59C3; border: 1px solid #C7D7F5; }
+.hm .gb-home .gs-hide { margin: 6px 0 0; color: #6B7280; font-size: 13.5px; }

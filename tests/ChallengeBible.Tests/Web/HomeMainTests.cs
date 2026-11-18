@@ -193,13 +193,16 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var r = await anon.GetAsync("/jamsil-kids");
         Assert.Equal(System.Net.HttpStatusCode.OK, r.StatusCode);                                 // 로그인으로 보내지 않는다
         var html = await r.Content.ReadAsStringAsync();
-        Assert.Contains("<div class=\"hm sky guest\">", html);
-        Assert.Contains("오신 것을 환영해요", html);
-        Assert.Contains("/account/login?returnUrl=%2Fjamsil-kids%2Fword-mission", html);   // 칸을 누르면 로그인 → 그 화면
+        Assert.Contains("로그인하면 내 기록이 보여요", html);                          // 로그인 화면과 같은 모양 + 띠(2026-11-18)
+        Assert.Contains("손님", html);
+        Assert.Contains("class=\"hj-card hj-pg m\"", html);                           // 같은 카드
+        Assert.Contains(">0/", html);                                                   // 오늘 미션 0/N
         Assert.DoesNotContain("김철수", html);                                          // 이름 · 점수 · 선물 받는 아이 이름 없음
-        Assert.DoesNotContain("누가 선물 받나요", html);
+        Assert.Contains("받은 친구 이름은 로그인하면 보여요", html);                   // 선물 받는 아이 이름은 숨김
         Assert.DoesNotContain("data-pnav-open", html);                                 // ☰ 메뉴 없음
-        Assert.DoesNotContain("/feedback", html);
+        Assert.Contains("/jamsil-kids/feedback", html);                                // 개선 · 불편 접수(2026-11-18 사용자) → 누르면 로그인
+        var fb = await anon.GetAsync("/jamsil-kids/feedback");
+        Assert.Contains("/account/login", fb.Headers.Location!.OriginalString);
 
         Assert.Equal(System.Net.HttpStatusCode.Redirect, (await anon.GetAsync("/jamsil-kids/word-mission")).StatusCode);   // 다른 부서 화면은 그대로 로그인
         Assert.NotEqual(System.Net.HttpStatusCode.OK, (await anon.PostAsync("/jamsil-kids?handler=SnoozeInvites", new FormUrlEncodedContent([]))).StatusCode);
