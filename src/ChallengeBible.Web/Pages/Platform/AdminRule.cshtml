@@ -2,7 +2,7 @@
 @model ChallengeBible.Web.Pages.Platform.AdminRuleModel
 @* 확정 시안 할일이동-역할업무 ③(2026-11-16): 역할 체크(어드민 고정) + 업무 체크 → 저장하면 모든 부서에 바로 적용. 사람마다 관리자를 켜지 않는다 *@
 <partial name="_PlatformTop" />
-<main class="admin gut"><div class="wrap ar-main">
+<main class="admin gut w760"><div class="wrap ar-main">
     <h1>부서 관리자 규칙</h1>
     @if (Model.Msg is { } m) { <p class="ar-msg" role="status">@m</p> }
     <p class="ar-lead">체크한 <b>역할</b>이거나 체크한 <b>업무</b>를 맡은 사람은 그 부서에서 바로 부서 관리자가 돼요. 사람마다 관리자를 켜지 않아요.</p>

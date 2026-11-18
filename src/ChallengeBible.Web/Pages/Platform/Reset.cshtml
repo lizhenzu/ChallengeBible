@@ -9,7 +9,7 @@
     bool On(string key) => Model.Picked is null || Model.Picked.Contains(key);
 }
 <partial name="_PlatformTop" />
-<main class="admin gut"><form method="post" class="wrap rs" data-reset>
+<main class="admin gut w760"><form method="post" class="wrap rs" data-reset>
     <h1>완전 초기화</h1>
     <p class="lead">체크한 것을 모든 부서에서 지워요. 체크를 빼면 남겨요. <b>되돌릴 수 없어요.</b></p>
     @if (Model.Result is { } r) { <p class="ok-box" role="status">초기화했어요 · @ResetService.Describe(r)건을 지웠어요.</p> }

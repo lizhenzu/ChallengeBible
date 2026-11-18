@@ -470,6 +470,9 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(op, "/platform", "13a-플랫폼홈");
         await Save(op, "/platform/today?k=mission", "13a2-플랫폼-오늘현황");   // R-334(2026-11-18 확정 시안)
         await Save(op, "/platform/tenants", "13-플랫폼부서");
+        foreach (var (u, n) in new[] { ("/platform/todo", "13e-플랫폼-할일"), ("/platform/admin-rule", "13f-플랫폼-관리자규칙"), ("/platform/reset", "13g-플랫폼-완전초기화"),
+                     ("/platform/quiz-ai-prompt", "13h-플랫폼-AI프롬프트"), ("/platform/roster-upload", "13i-플랫폼-명단올리기") })
+            await Save(op, u, n);   // 머리말 · 내용 폭 760px(2026-11-18)
         await Save(op, $"/platform/tenants/{kids.Id}", "13c-플랫폼-부서화면-기본");      // 2026-11-18 확정 시안 플랫폼부서-화면분리
         await Save(op, $"/platform/tenants/{kids.Id}?tab=prog", "13c2-플랫폼-부서화면-프로그램");
         await Save(op, "/platform/accounts?q=" + Uri.EscapeDataString("김"), "13b-플랫폼-계정찾기");

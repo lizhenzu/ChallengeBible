@@ -9,7 +9,7 @@
     var have = Model.Rows.Count(r => r.Id is not null);
 }
 <partial name="_PlatformTop" />
-<main class="admin gut"><div class="wrap wm">
+<main class="admin gut w760"><div class="wrap wm">
     <a class="qa-back" href="/platform/content/word/check?month=@Model.MonthText(f)">‹ 말씀 입력</a>
     <div class="wm-head"><h1>@(f.Year)년 @(f.Month)월 · 한 달 입력</h1>
         <span><a href="?month=@Model.MonthText(f.AddMonths(-1))">‹ @(f.AddMonths(-1).Month)월</a> · <a href="?month=@Model.MonthText(f.AddMonths(1))">@(f.AddMonths(1).Month)월 ›</a></span></div>
