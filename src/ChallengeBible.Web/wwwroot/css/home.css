@@ -521,3 +521,16 @@
 .hm .gs-band a.p { background: #2B59C3; color: #fff; }
 .hm .gs-band a.s { background: #fff; color: #2B59C3; border: 1px solid #C7D7F5; }
 .hm .gb-home .gs-hide { margin: 6px 0 0; color: #6B7280; font-size: 13.5px; }
+/* 부서 홈 예배 안내 카드(ADR 0116, 확정 시안 예배안내) */
+.hm .wi { display: grid; gap: 12px; }
+.hm .wi-row { display: flex; align-items: center; gap: 12px; }
+.hm .wi-row + .wi-row { border-top: 1px solid #EEF0F4; padding-top: 12px; }
+.hm .wi-tx { flex: 1; min-width: 0; }
+.hm .wi-k { font-size: 12px; font-weight: 800; color: #2B59C3; }
+.hm .wi-t { font-size: 17px; font-weight: 900; margin-top: 4px; color: #111827; }
+.hm .wi-p { font-size: 13.5px; color: #4B5563; margin-top: 3px; }
+.hm .wi-a { font-size: 12.5px; color: #9CA3AF; margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+.hm .wi-copy { width: 24px; height: 24px; border-radius: 50%; border: 0; background: #F3F4F6; font-size: 12px; cursor: pointer; color: #4B5563; }
+.hm .wi-bt { flex: none; display: grid; place-items: center; text-align: center; background: #F97316; color: #fff; border-radius: 14px; padding: 12px 14px; min-width: 118px; text-decoration: none; box-shadow: 0 3px 0 #EA580C; }
+.hm .wi-bt b { font-size: 15px; }
+.hm .wi-bt small { font-size: 11.5px; opacity: .9; margin-top: 3px; }

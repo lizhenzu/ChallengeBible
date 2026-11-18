@@ -4572,3 +4572,16 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .tn-go .tn-body { flex: 1; min-width: 0; }
 .tn-go .chev { margin-left: auto; align-self: center; font-size: 22px; color: var(--dim); }
 .tn-go:hover .tn-name { color: var(--accent); }
+/* 관리 › 예배 안내(ADR 0116) */
+.wsa-row { border: 1px solid var(--rule); border-radius: 14px; padding: 14px; display: grid; gap: 10px; }
+.wsa-row.new { border-style: dashed; }
+.wsa-row.off { opacity: .7; }
+.wsa-row h2 { margin: 0; font-size: 16px; }
+.wsa-row h2 small { color: var(--dim); font-weight: 600; }
+.wsa-g { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; }
+.wsa-g label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; min-width: 0; }
+.wsa-g label small { font-weight: 500; color: var(--dim); }
+.wsa-g label.w { grid-column: 1 / -1; }
+.wsa-g label.ck { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.wsa-g .in, .wsa-g .sel { width: 100%; box-sizing: border-box; }
+.wsa-acts { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }

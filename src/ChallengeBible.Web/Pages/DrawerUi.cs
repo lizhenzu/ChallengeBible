@@ -11,6 +11,7 @@ public static class DrawerUi
 {
     private static readonly Dictionary<string, string> Icons = new()
     {
+        ["pin"] = """<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>""",
         ["mission"] = """<path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4z"/><path d="M20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/><path d="m15 9 1.5 1.5L19 8"/>""",
         ["reading"] = """<path d="M2 6s3-2 10 0 10 0 10 0v13s-3 2-10 0-10 0-10 0z"/><path d="M12 6v13"/>""",
         ["copy"] = """<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>""",

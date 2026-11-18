@@ -9,7 +9,7 @@ namespace ChallengeBible.Web.Pages;
 
 /// <summary>`/{slug}` 부서 홈 메인(확정 시안: 홈메인, 0044). 부서 결정 · 소속 검사는 TenantPageFilter 가 한다.</summary>
 public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, FamilyJoinService familyJoin, HomeService home, AccountService accounts,
-    PhotoService photos, CopyService copy, TodoService todo, Prayer365Service prayer365, MessageService msgs, GiftOrderService orders) : PageModel, ITitled
+    PhotoService photos, CopyService copy, TodoService todo, Prayer365Service prayer365, MessageService msgs, GiftOrderService orders, WorshipService worship) : PageModel, ITitled
 {
     /// <summary>로그인할 때 한 번 "새 쪽지" 띠(ADR 0112, 확정 시안 쪽지 ①). 로그인이 남긴다.</summary>
     public const string MsgBandKey = "msg-band";
@@ -44,6 +44,8 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     public bool TodayScreen => Screen == "today";
     /// <summary>로그인 안 한 사람의 둘러보기(R-336): 개인 정보 없이 부서 소개 · 오늘의 말씀 · 사람 수만.</summary>
     public bool Guest { get; private set; }
+    /// <summary>예배 안내(ADR 0116, R-337): 말씀 찾기 위 카드. 없으면 카드를 숨긴다. 임시 부서는 없음.</summary>
+    public IReadOnlyList<ChallengeBible.Infrastructure.Data.WorshipSchedule> Worship { get; private set; } = [];
 
     /// <summary>초대 배너 "다음에 할래요"(R-212): 오늘은 숨기고 내일 다시 보인다.</summary>
     public async Task<IActionResult> OnPostSnoozeInvitesAsync(CancellationToken ct)
@@ -59,6 +61,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         {
             if (tenant.IsLobby || TodayScreen) return Redirect("/account/login?returnUrl=" + Uri.EscapeDataString(Request.Path + Request.QueryString));
             Guest = true;
+            Worship = await worship.ListAsync(ct: ct);
             Data = GuestView(await home.GetAsync(ct));   // 로그인 화면과 같은 모양, 내 기록은 0(2026-11-18 확정 시안)
             if (tenant.Current.CopyEnabled) CopyData = await copy.SummaryAsync(ct);   // 사람 기록은 계정마다라 로그인 안 하면 0
             return Page();
@@ -75,6 +78,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         if (tenant.Current.MissionEnabled) Family = await teams.MyFamilyAsync(ct);
         if (tenant.Current.MissionEnabled && Family is null) Invites = (await familyJoin.StateAsync(ct)).Invites.Where(i => !i.SnoozedToday).ToList();
         Data = await home.GetAsync(ct);
+        if (!tenant.IsLobby) Worship = await worship.ListAsync(ct: ct);
         if (tenant.Current.CopyEnabled) CopyData = await copy.SummaryAsync(ct);   // 임시 부서(승인 전)에도(ADR 0110)
         if (prayer365.CanSee(User.IsPlatformAdmin()))
             PrayerCard = (await prayer365.GetAsync(Prayer365Service.Md(prayer365.Today), ct), await prayer365.MyStatsAsync(ct));

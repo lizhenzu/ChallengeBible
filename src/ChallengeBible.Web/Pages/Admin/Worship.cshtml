@@ -1,0 +1,45 @@
+@page "/{slug}/admin/worship"
+@model ChallengeBible.Web.Pages.Admin.WorshipModel
+@using ChallengeBible.Web.Services
+@using ChallengeBible.Infrastructure.Data
+@* 예배 안내 고치기(ADR 0116, R-337, 2026-11-18 확정 시안 예배안내): 줄마다 요일 · 시간 · 장소 · 주소. 부서 홈 말씀 찾기 위 카드에 보인다 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    string[] days = ["주일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+    string? Err(int rowId, string f) => Model.ErrorRow == rowId ? Model.Errors.GetValueOrDefault(f) : null;
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut w760"><div class="wrap wsa">
+    <h1>예배 안내</h1>
+    <p class="ar-lead">부서 홈 "말씀 찾기" 위에 보이는 예배 시간 · 장소예요. 바뀌면 여기서 고치면 바로 보여요. 주보 버튼은 주보 기능을 정한 뒤에 붙어요.</p>
+    @if (Model.Ok == "save") { <p class="okmsg" role="status">저장했어요 · 부서 홈에 바로 보여요</p> }
+    @if (Model.Ok == "delete") { <p class="okmsg" role="status">지웠어요</p> }
+    @if (Model.Rows.Count == 0) { <p class="ph-muted">아직 예배 안내가 없어요. 아래에서 넣으면 부서 홈에 카드가 생겨요.</p> }
+
+    @foreach (var r in Model.Rows.Append(null))
+    {
+        var id = r?.Id ?? 0;
+        var mine = Model.ErrorRow == id ? Model.Last : null;
+        <form method="post" asp-page-handler="Save" asp-route-slug="@slug" class="wsa-row@(r is null ? " new" : "")@(r is { IsActive: false } ? " off" : "")" novalidate>
+            <h2>@(r is null ? "+ 예배 안내 더하기" : r.Title ?? $"{PlatformTodayService.ShortDept(Model.Tenant.Current.Name)} 예배")@if (r is { IsActive: false }) { <small> · 숨김</small> }</h2>
+            @if (r is not null) { <input type="hidden" name="id" value="@r.Id" /> }
+            <div class="wsa-g">
+                <label>요일<select class="sel" name="dayOfWeek">@for (var i = 0; i < 7; i++) { <option value="@i" selected="@((mine?.DayOfWeek ?? r?.DayOfWeek ?? 0) == i)">@days[i]</option> }</select>@if (Err(id, "DayOfWeek") is { } e1) { <span class="hint bad">@e1</span> }</label>
+                <label>시간<input class="in" type="time" name="startTime" value="@(mine?.StartTime ?? r?.StartTime.ToString("HH:mm") ?? "10:00")" />@if (Err(id, "StartTime") is { } e2) { <span class="hint bad">@e2</span> }</label>
+                <label class="w">장소<input class="in" name="place" maxlength="100" value="@(mine?.Place ?? r?.Place)" placeholder="예: 비전센터 믿음홀(3F)" />@if (Err(id, "Place") is { } e3) { <span class="hint bad">@e3</span> }</label>
+                <label class="w">주소 <small>비우면 안 보여요</small><input class="in" name="address" maxlength="200" value="@(mine?.Address ?? r?.Address)" placeholder="예: 서울특별시 송파구 석촌호수로 102" />@if (Err(id, "Address") is { } e4) { <span class="hint bad">@e4</span> }</label>
+                <label class="w">예배 이름 <small>여러 예배가 있을 때만(예: 1부 예배)</small><input class="in" name="title" maxlength="50" value="@(mine?.Title ?? r?.Title)" />@if (Err(id, "Title") is { } e5) { <span class="hint bad">@e5</span> }</label>
+                <label>보이는 순서<input class="in" type="number" name="sortOrder" value="@(mine?.SortOrder ?? r?.SortOrder ?? Model.Rows.Count + 1)" min="0" max="99" /></label>
+                <label class="ck"><input type="checkbox" name="active" value="true" checked="@(mine?.IsActive ?? r?.IsActive ?? true)" />부서 홈에 보이기</label>
+            </div>
+            <div class="wsa-acts">
+                <button type="submit" class="btn p sm">@(r is null ? "더하기" : "저장")</button>
+                @if (r is not null)
+                {
+                    <button type="submit" class="btn t" formaction="/@slug/admin/worship?handler=Delete&amp;id=@r.Id" formnovalidate onclick="return confirm('이 예배 안내를 지울까요?')">지우기</button>
+                    <small class="ph-muted">마지막으로 고친 때 @r.UpdatedUtc.ToString("yyyy.MM.dd")</small>
+                }
+            </div>
+        </form>
+    }
+</div></main>

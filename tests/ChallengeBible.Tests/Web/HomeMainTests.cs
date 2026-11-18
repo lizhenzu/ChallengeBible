@@ -208,4 +208,29 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.NotEqual(System.Net.HttpStatusCode.OK, (await anon.PostAsync("/jamsil-kids?handler=SnoozeInvites", new FormUrlEncodedContent([]))).StatusCode);
         Assert.Equal(System.Net.HttpStatusCode.NotFound, (await anon.GetAsync("/no-such-dept")).StatusCode);
     }
+
+    [Fact]   // R-337
+    public async Task R337_관리자가_예배_안내를_넣으면_부서_홈_말씀_찾기_위에_보이고_손님도_본다()
+    {
+        var (admin, _) = await Member("eunhye", Roles.Teacher, Roles.TenantAdmin);
+        Assert.DoesNotContain("aria-label=\"예배 안내\"", await admin.GetStringAsync("/jamsil-kids"));   // 없으면 카드 없음
+        var page = await admin.GetStringAsync("/jamsil-kids/admin/worship");
+        Assert.Contains("+ 예배 안내 더하기", page);
+        var r = await admin.PostAsync("/jamsil-kids/admin/worship?handler=Save", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value,
+            ["dayOfWeek"] = "0", ["startTime"] = "10:00", ["place"] = "비전센터 믿음홀(3F)", ["address"] = "서울특별시 송파구 석촌호수로 102", ["sortOrder"] = "1", ["active"] = "true",
+        }));
+        Assert.Equal(System.Net.HttpStatusCode.Redirect, r.StatusCode);
+        var home = await admin.GetStringAsync("/jamsil-kids");
+        Assert.Contains("매주 주일 오전 10시", home);
+        Assert.Contains("비전센터 믿음홀(3F)", home);
+        Assert.True(home.IndexOf("aria-label=\"예배 안내\"") < home.IndexOf("aria-label=\"말씀 찾기\""));   // 말씀 찾기 바로 위
+        Assert.DoesNotContain("주보 보기", home);                                                  // 주보 링크가 없으면 버튼 없음
+        var guest = await _app.CreateClient().GetStringAsync("/jamsil-kids");
+        Assert.Contains("비전센터 믿음홀(3F)", guest);                                             // 로그인 안 한 사람도 본다
+
+        var (kid, _) = await Member("cheolsu", Roles.Participant);
+        Assert.NotEqual(System.Net.HttpStatusCode.OK, (await kid.GetAsync("/jamsil-kids/admin/worship")).StatusCode);   // 관리자만 고친다
+    }
 }
