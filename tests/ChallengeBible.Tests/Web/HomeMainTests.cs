@@ -61,8 +61,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("<small>오늘의 기도</small>", home);                    // 말씀 카드는 말씀만
         Assert.DoesNotContain("class=\"hj-rib\"", home);                             // 말씀 한 줄 띠는 지움(2026-11-03)
         Assert.Contains("<b class=\"num\">0/3</b>오늘 미션", home);                  // 오늘 있는 미션은 말씀 · 퀴즈 · 기도 세 가지
-        Assert.Contains("<a class=\"cur\" href=\"/jamsil-kids/word\">말씀<small>대기 중 ›</small>", home);
-        Assert.Contains("<a class=\"cur\" href=\"/jamsil-kids/quiz\">퀴즈<small>대기 중 ›</small>", home);   // 대기 중은 모두 같은 주황(2026-11-03)
+        Assert.DoesNotContain("class=\"hj-m4\"", home);                                  // 미션 네 칸은 지웠다 — 미션 홈에서 한다(2026-11-18 사용자)
         Assert.Contains("<a class=\"hj-box o\" href=\"/jamsil-kids/word-mission\">", home);
         Assert.Matches("<b class=\"num\">\\d+<u>명</u></b><small>전체</small>", home);              // 아래 칸 셋(ADR 0085, 2026-11-07): 전체 · 참여자 · 오늘 참여
         Assert.Matches("<b class=\"num\">\\d+<u>명</u></b><small>참여자</small>", home);

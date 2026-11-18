@@ -205,14 +205,7 @@
                     else { <b>오늘은 말씀이 없어요</b><span>내일 다시 만나요</span> }
                 </a>
             </div>
-            <div class="hj-m4">
-                @foreach (var m in d.Missions)
-                {
-                    @* 대기 중인 미션은 모두 같은 주황(2026-11-03 사용자) — 예전엔 다음 하나만 주황 *@
-                    var cls = !m.Has ? "no" : m.Done ? "ok" : d.Participant ? "cur" : "";
-                    <a class="@cls" href="/@slug/@m.Key">@m.Label<small>@(!d.Participant && m.Has ? "보기만" : m.Done || !m.Has ? m.State : m.State + " ›")</small></a>
-                }
-            </div>
+            @* 미션 네 칸(말씀 · 퀴즈 · 기도 · 암송)은 지웠다 — 미션은 미션 홈에 들어가서 한다(2026-11-18 사용자) *@
             @if (d.Participant && d.SeasonDay > 0)
             {
                 var fp = Math.Clamp(d.FullDays * 100.0 / d.SeasonDay, 0, 100);
