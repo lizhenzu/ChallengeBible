@@ -130,6 +130,8 @@ public partial class BrandingTests : IClassFixture<WebApplicationFactory<Program
         var page = await admin.GetStringAsync("/jamsil-kids/admin/branding");
         Assert.Contains("href=\"/jamsil-kids/admin/branding\"", page);                 // 관리 메뉴 "이름 · 색"
         Assert.Contains("아직 바꾼 기록이 없어요", page);
+        Assert.Contains("class=\"br-same\"", page);                                  // 바탕화면 이름은 모든 부서가 같다(ADR 0115, 2026-11-18)
+        Assert.DoesNotContain("id=\"AppShortName\"", page);                          // 짧은 이름 칸은 뺐다(값은 숨겨 그대로 보냄)
         var r = await admin.PostAsync("/jamsil-kids/admin/branding", new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value,
