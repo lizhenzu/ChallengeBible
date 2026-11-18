@@ -104,6 +104,8 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
 
         var login = await c.GetStringAsync("/test-tools/login");
         Assert.Contains("value=\"yb-s01\"", login);
+        Assert.Contains("gut tt w760\"", login);   // 머리말과 같은 760px(R-270, 2026-11-18)
+        Assert.Contains("gut tt w760\"", data);
         Assert.Contains("2,350점 · 받은 선물 600점", login);   // s01 상황 이름(ADR 0104)
         Assert.DoesNotContain("넣기</button>", login);
         Assert.DoesNotContain("시험 관리자 만들기", login);   // 관리자는 지울 수 없어 만들지 않는다(2026-11-16)

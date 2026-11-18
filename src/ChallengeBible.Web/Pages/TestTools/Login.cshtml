@@ -2,7 +2,7 @@
 @model ChallengeBible.Web.Pages.TestTools.LoginModel
 @* 상황별 로그인(ADR 0095 · 0102, 확정 시안 상황별로그인 2026-11-16): 가짜 데이터로 만든 계정으로 바로 들어간다 *@
 @if (Model.IsAdmin) { <partial name="_PlatformTop" /> } else { <partial name="_Top" /> }
-<main class="@(Model.IsAdmin ? "admin " : "page ")gut tt"><div class="wrap">
+<main class="@(Model.IsAdmin ? "admin " : "page ")gut tt w760"><div class="wrap">   @* 머리말(플랫폼 · 부서)과 같은 760px(R-270, 2026-11-18) *@
     <div>
         <h1>상황별 로그인 <small class="tt-tag">임시</small></h1>
         <p class="lead">가짜 데이터로 만든 계정으로 바로 들어가요. 오늘 할 일이 있으면 로그인처럼 할 일 화면으로 가요.@(Model.IsAdmin ? " [복귀]로 돌아와요." : "")</p>
