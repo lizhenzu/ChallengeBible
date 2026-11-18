@@ -147,7 +147,8 @@ builder.Services.AddRazorPages(o =>
     o.Conventions.AllowAnonymousToPage("/Account/AdminLogin");
     o.Conventions.AllowAnonymousToPage("/Account/Signup");
     o.Conventions.AllowAnonymousToPage("/Error");
-    o.Conventions.AllowAnonymousToPage("/Install");   // 앱 설치 안내(0115): 로그인 전 첫 방문에도
+    o.Conventions.AllowAnonymousToPage("/Install");
+    o.Conventions.AllowAnonymousToPage("/TenantHome");   // 부서 홈 둘러보기(R-336): 로그인 안 하면 개인 정보 없는 화면   // 앱 설치 안내(0115): 로그인 전 첫 방문에도
 });
 
 var app = builder.Build();

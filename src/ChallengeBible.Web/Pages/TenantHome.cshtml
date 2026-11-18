@@ -27,6 +27,12 @@
     static string Ro(string w) { var c = w.Length == 0 ? 'a' : w[^1]; var j = c is >= '가' and <= '힣' ? (c - '가') % 28 : 0; return j == 0 || j == 8 ? "로" : "으로"; }   // 0068: 임시 부서 `/{slug}` = 1단계(부서 안 고름) · 2단계(승인 기다림), 윗부분만
 }
 <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+@if (Model.Guest)
+{
+    <partial name="_TenantGuest" model="Model" />
+}
+else
+{
 <div class="hm sky@(lobby ? " lobby" : "")">
 @* 하늘색 머리말(0064 · 0068, 확정 시안: 임시부서-홈-두단계). 일반 부서 홈도 임시 부서 미션 화면(/welcome/today)과 같은 모양(2026-10-31 사용자):
    머리말 → (임시 부서) 1 · 2단계 윗부분만 또는 "← 처음 화면" / (일반 부서) 부서 이름 · 관리 줄 → 흰 말씀 카드 → 아랫부분 *@
@@ -350,3 +356,4 @@
     <p class="foot-copy">© @d.Today.Year 잠실새내 · 주일학교</p>
 </div></footer>
 </div>
+}

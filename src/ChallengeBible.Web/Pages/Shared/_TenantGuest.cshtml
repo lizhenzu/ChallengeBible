@@ -1,0 +1,78 @@
+@model ChallengeBible.Web.Pages.TenantHomeModel
+@* 로그인 안 한 사람의 부서 홈 "둘러보기"(2026-11-18 사용자 확정 시안 부서홈-둘러보기, R-336).
+   개인 정보(이름 · 사진 · 역할 · 점수 · 진도 · 선물 받는 아이 이름)는 보이지 않는다. 칸을 누르면 로그인 → 로그인하면 그 화면으로 *@
+@{
+    var d = Model.Data;
+    var t = Model.Tenant.Current;
+    var slug = t.Slug;
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+    var dept = t.Name.StartsWith("잠실새내교회 ") ? t.Name["잠실새내교회 ".Length..] : t.Name;
+    string Login(string to) => "/account/login?returnUrl=" + Uri.EscapeDataString(to);
+}
+<div class="hm sky guest">
+    <div class="wl wl-wide">
+        <header class="wl-top gut"><div class="wrap">
+            <div class="wl-org"><small>대한예수교장로회</small><a class="church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)">잠실새내교회<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a></div>
+            <span class="wl-today"><b>@d.Today.ToString("M월 d일", ko)</b> @d.Today.ToString("dddd", ko)</span>
+            <a class="gs-login" href="@Login("/" + slug)">로그인</a>
+        </div></header>
+    </div>
+<main class="gut hj"><div class="wrap">
+    <section class="hj-card gs-hi" aria-labelledby="gsT">
+        <small>처음 오셨나요?</small>
+        <h1 id="gsT">잠실새내교회 <em class="hj-dname">@dept</em>에<br>오신 것을 환영해요</h1>
+        <p>매일 말씀 · 퀴즈 · 기도 · 암송 미션으로 함께 자라요. 로그인하면 내 점수와 진도가 보여요.</p>
+        <div class="gs-acts"><a class="p" href="@Login("/" + slug)">로그인</a><a class="s" href="/account/signup">처음이에요 · 가입</a></div>
+    </section>
+
+    @if (t.ReadingEnabled)
+    {
+        <section class="hj-card hj-sr" aria-label="말씀 찾기">
+            <div class="tg"><b>📖 말씀 찾기</b><span>궁금한 단어 하나로 성경 전체를 찾아봐요</span></div>
+            <a class="sx" href="@Login($"/{slug}/reading/search")" aria-label="말씀 찾기(로그인)"><span class="ph"><i aria-hidden="true">🔍</i><em>예) 사랑, 믿음, 소망, 예수… 어떤 말씀이든 찾아봐요</em></span><span class="bt">검색</span></a>
+        </section>
+    }
+
+    @if (t.MissionEnabled)
+    {
+        <section class="hj-card hj-pg m" aria-labelledby="gpmT">
+            <h2 id="gpmT"><a href="@Login($"/{slug}/word-mission")">🎯 도전!!! 성경미션</a></h2>
+            <div class="hj-row">
+                <span class="gs-ring" aria-hidden="true">로그인하면<br>내 진도</span>
+                <a class="hj-box o" href="@Login($"/{slug}/word-mission")">
+                    <small>오늘의 말씀</small>
+                    @if (d.WordTitle is not null) { <b>@d.WordTitle</b><span>@d.WordRange ›</span> } else { <b>오늘은 말씀이 없어요</b><span>내일 다시 만나요</span> }
+                </a>
+            </div>
+            <div class="hj-m4 gs-m4">
+                @foreach (var m in d.Missions.Where(m => m.Has)) { <a href="@Login($"/{slug}/{m.Key}")">@m.Label<small>보기 ›</small></a> }
+            </div>
+        </section>
+    }
+    @if (t.ReadingEnabled)
+    {
+        <section class="hj-card hj-pg r" aria-labelledby="gprT">
+            <h2 id="gprT"><a href="@Login($"/{slug}/reading")">📖 도전!!! 성경통독</a></h2>
+            <div class="hj-row"><span class="gs-ring" aria-hidden="true">로그인하면<br>내 진도</span>
+                <a class="hj-box r" href="@Login($"/{slug}/reading")"><small>성경통독</small><b>성경 66권 1,189장</b><span>하루 몇 장씩 함께 읽어요 ›</span></a></div>
+        </section>
+    }
+    @if (t.CopyEnabled)
+    {
+        <section class="hj-card hj-pg c" aria-labelledby="gpcT">
+            <h2 id="gpcT"><a href="@Login($"/{slug}/copy")">✍️ 도전!!! 성경필사</a></h2>
+            <div class="hj-row"><span class="gs-ring" aria-hidden="true">로그인하면<br>내 진도</span>
+                <a class="hj-box c" href="@Login($"/{slug}/copy")"><small>성경필사</small><b>말씀을 한 절씩 따라 써요</b><span>신약 · 구약 완필에 도전 ›</span></a></div>
+        </section>
+    }
+    @if (d.Dept is { } dp)
+    {
+        <div class="hj-card hj-dept gs-dept">
+            <span class="b"><b class="num">@dp.Members<u>명</u></b><small>전체</small></span><i aria-hidden="true"></i>
+            <span class="pn"><b class="num">@dp.Participants<u>명</u></b><small>참여자</small></span><i aria-hidden="true"></i>
+            <span class="m"><b class="num">@dp.TodayPeople<u>명</u></b><small>오늘 참여</small></span>
+        </div>
+    }
+</div></main>
+<footer class="gut"><div class="wrap"><p class="foot-copy">© @d.Today.Year 잠실새내 · 주일학교</p></div></footer>
+</div>

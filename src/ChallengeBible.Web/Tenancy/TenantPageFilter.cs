@@ -25,6 +25,8 @@ public sealed class TenantPageFilter(TenantResolver resolver, TenantContext tena
             case TenantResolution.NotFound:
                 context.Result = new NotFoundResult();
                 return;
+            case TenantResolution.NotMember when context.HttpContext.User.Identity?.IsAuthenticated != true && context.HandlerInstance is Pages.TenantHomeModel && HttpMethods.IsGet(context.HttpContext.Request.Method):
+                break;   // 로그인 안 한 사람의 부서 홈 둘러보기(R-336) — 개인 정보 없는 화면은 TenantHomeModel 이 고른다
             case TenantResolution.NotMember:
                 context.Result = new RedirectResult($"/join?code={tenant.Current.JoinCode.Trim()}");
                 return;
