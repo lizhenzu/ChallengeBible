@@ -1,4 +1,4 @@
-using ChallengeBible.Web.Services;
+﻿using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,14 +15,12 @@ public sealed record PickSection(MissionPageBase Page, string No, string Title, 
 /// <summary>_MissionNav 모델.</summary>
 public sealed record MissionNav(MissionPageBase Page, string Current);
 
-public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoinService family, PersonalGiftService gifts, GiftOrderService orders, TeamGiftService teamGifts, BirthdayGiftService birthdays, NewcomerGiftService newcomers, ReadingGiftService readings) : MissionPageBase(missions, tenant)
+public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoinService family, PersonalGiftService gifts, TeamGiftService teamGifts, BirthdayGiftService birthdays, NewcomerGiftService newcomers, ReadingGiftService readings) : MissionPageBase(missions, tenant)
 {
     /// <summary>가족팀 · 친구팀 선물 카드(확정 시안 가족팀-선물고르기 ①).</summary>
     public IReadOnlyList<TeamGiftView> TeamGifts { get; private set; } = [];
     /// <summary>생일 선물 카드(확정 시안 생일-선물 ①, R-288).</summary>
     public IReadOnlyList<BirthdayGiftView> Birthdays { get; private set; } = [];
-    /// <summary>부서 카드 "누가 선물 받나요"(확정 시안 관리-선물처리 ④, R-297): 3명과 전체 수.</summary>
-    public (IReadOnlyList<GiftBoardRow> Rows, int Total) Board { get; private set; } = ([], 0);
     /// <summary>"내 선물" 카드 · 100점 창(확정 시안 말씀-선물고르기 ① · ②, R-285). 참여자가 아니면 null.</summary>
     public GiftWallet? Gift { get; private set; }
     public override string Title => "미션 홈";
@@ -52,7 +50,7 @@ public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoin
             await readings.EnsureAsync(ct);   // 성경을 다 읽으면 완독 선물(ADR 0094 E)
             Birthdays = await birthdays.MineAsync(ct);
         }
-        if (Tenant.IsApproved) Board = await orders.BoardAsync(GiftOrderService.BoardTake, ct);
+        // "누가 선물 받나요"는 2026-11-18 부서 홈으로 옮겼다(미션 · 개인 선물을 함께 보여 주는 통합 카드, R-297)
         Week = UserName is { } p ? await Missions.RecentDaysAsync(p, Day, ct) : [];
         NextMilestone = MissionService.NextMilestone(Data!.Rules, Data.SeasonPoints);
         SeasonStart = await Missions.SeasonStartAsync(Data.Today.Year, ct);

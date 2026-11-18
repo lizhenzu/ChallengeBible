@@ -294,6 +294,16 @@
         </section>
     }
 
+    @if (Model.Board.Total > 0)
+    {
+        @* 누가 선물 받나요(R-297): 미션 · 개인 선물 통합 카드 — 365 기도 아래 · 우리 부서 위(2026-11-18 사용자 확정 시안) *@
+        <section class="hj-card gb-card gb-home" aria-label="누가 선물 받나요">
+            <h2>🎁 누가 선물 받나요 <small>최근 순</small></h2>
+            @foreach (var r in Model.Board.Rows) { <partial name="/Pages/Mission/_GiftBoardRow.cshtml" model="r" /> }
+            @if (Model.Board.Total > Model.Board.Rows.Count) { <a class="gb-more" href="/@slug/gift-board">더 보기(@(Model.Board.Total)명)</a> }
+        </section>
+    }
+
     @if (t.MissionEnabled && Model.IsGuardian)
     {
         <a class="notice" href="/@slug/guardian"><b>자녀 미션 보기</b><span>연결된 자녀의 오늘 미션 · 점수 →</span></a>

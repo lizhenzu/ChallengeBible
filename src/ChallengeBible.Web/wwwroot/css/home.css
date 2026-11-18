@@ -495,3 +495,6 @@
   .hm .hj-ring.g > span em.nm { display: none; }
   .hm .hj-ring.g i .pea { width: 26px; height: 26px; }
 }
+/* 누가 선물 받나요 — 부서 홈 카드(2026-11-18) */
+.hm .gb-home { margin: 0; padding: 18px 16px; }
+.hm .gb-home h2 { margin: 0 0 4px; font-size: 16px; }

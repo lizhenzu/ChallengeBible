@@ -9,7 +9,7 @@ namespace ChallengeBible.Web.Pages;
 
 /// <summary>`/{slug}` 부서 홈 메인(확정 시안: 홈메인, 0044). 부서 결정 · 소속 검사는 TenantPageFilter 가 한다.</summary>
 public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, FamilyJoinService familyJoin, HomeService home, AccountService accounts,
-    PhotoService photos, CopyService copy, TodoService todo, Prayer365Service prayer365, MessageService msgs) : PageModel, ITitled
+    PhotoService photos, CopyService copy, TodoService todo, Prayer365Service prayer365, MessageService msgs, GiftOrderService orders) : PageModel, ITitled
 {
     /// <summary>로그인할 때 한 번 "새 쪽지" 띠(ADR 0112, 확정 시안 쪽지 ①). 로그인이 남긴다.</summary>
     public const string MsgBandKey = "msg-band";
@@ -33,6 +33,8 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     public (ChallengeBible.Infrastructure.Data.Prayer365 Item, Prayer365Stats Me)? PrayerCard { get; private set; }
     /// <summary>인사 카드 이름 아래 역할 칩(R-275, 확정 시안 C).</summary>
     public IReadOnlyList<RoleChip> RoleChips { get; private set; } = [];
+    /// <summary>"누가 선물 받나요"(R-297): 미션 · 개인 선물 통합이라 부서 홈에(2026-11-18 사용자). 3명과 전체 수.</summary>
+    public (IReadOnlyList<GiftBoardRow> Rows, int Total) Board { get; private set; } = ([], 0);
     /// <summary>승인된 소속이 둘 이상이면 머리말 "부서 ▼" → 부서 고르기(확정 6).</summary>
     public bool ManyTenants { get; private set; }
     /// <summary>임시 부서(0064, R-172)에서 승인을 기다리는 내 신청의 부서 이름. 비어 있으면 "내 부서 찾기" 띠.</summary>
@@ -66,6 +68,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         if (tenant.Current.CopyEnabled) CopyData = await copy.SummaryAsync(ct);   // 임시 부서(승인 전)에도(ADR 0110)
         if (prayer365.CanSee(User.IsPlatformAdmin()))
             PrayerCard = (await prayer365.GetAsync(Prayer365Service.Md(prayer365.Today), ct), await prayer365.MyStatsAsync(ct));
+        if (tenant.IsApproved && !tenant.IsLobby) Board = await orders.BoardAsync(GiftOrderService.BoardTake, ct);
         RoleChips = await home.RoleChipsAsync(User.UserId()!, ct, User.IsPlatformAdmin());
         ManyTenants = (await accounts.WhereToGoAsync(me, ct)).ApprovedCount > 1;
         if (tenant.IsLobby)

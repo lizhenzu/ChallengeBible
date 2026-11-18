@@ -1,4 +1,4 @@
-using ChallengeBible.Web.Services;
+﻿using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -14,7 +14,7 @@ public class GiftBoardModel(GiftOrderService orders, TenantContext tenant) : Pag
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        if (!tenant.Current.MissionEnabled || !tenant.IsApproved) return NotFound();
+        if (!tenant.IsApproved || tenant.IsLobby) return NotFound();   // 통합 선물이라 미션을 꺼도 연다(2026-11-18)
         Rows = (await orders.BoardAsync(500, ct)).Rows;
         return Page();
     }

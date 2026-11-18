@@ -167,8 +167,9 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
     {
         var (_, admin, id) = await Picked();
         var (other, _) = await Login("haneul", "문하늘", 50);
-        var home = await other.GetStringAsync("/kids/word-mission");
+        var home = await other.GetStringAsync("/kids");                                   // 부서 홈(2026-11-18 사용자: 통합 선물이라 미션 홈에서 옮김)
         Assert.Contains("누가 선물 받나요", home);
+        Assert.DoesNotContain("누가 선물 받나요", await other.GetStringAsync("/kids/word-mission"));
         Assert.Contains("안예빛", home);
         Assert.Contains("24색 색연필 세트 · 개인 선물", home);
         Assert.Contains(">골랐어요<", home);
@@ -177,10 +178,10 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
         var page = $"/kids/admin/gifts/{id}";
         await Post(admin, page, $"{page}?handler=Move", new() { ["act"] = "Purchase" });
         await Post(admin, page, $"{page}?handler=Move", new() { ["act"] = "Deliver" });
-        Assert.Contains(">받았어요<", await other.GetStringAsync("/kids/word-mission"));
+        Assert.Contains(">받았어요<", await other.GetStringAsync("/kids"));
         Assert.Contains("안예빛", await other.GetStringAsync("/kids/gift-board"));
 
         using (var raw = InMemoryDb.Raw(_db)) { raw.Gifts.Single().DeliveredUtc = DateTime.UtcNow.AddYears(-1); raw.SaveChanges(); }
-        Assert.DoesNotContain("누가 선물 받나요", await other.GetStringAsync("/kids/word-mission"));
+        Assert.DoesNotContain("누가 선물 받나요", await other.GetStringAsync("/kids"));
     }
 }
