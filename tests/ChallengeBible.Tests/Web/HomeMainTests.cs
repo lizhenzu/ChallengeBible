@@ -195,6 +195,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var html = await r.Content.ReadAsStringAsync();
         Assert.Contains("로그인하면 내 기록이 보여요", html);                          // 로그인 화면과 같은 모양 + 띠(2026-11-18)
         Assert.Contains("손님", html);
+        Assert.Contains("src=\"/images/guest.webp\"", html);                          // 사진 자리: 유년부 사람 그림(2026-11-18)
         Assert.Contains("class=\"hj-card hj-pg m\"", html);                           // 같은 카드
         Assert.Contains(">0/", html);                                                   // 오늘 미션 0/N
         Assert.DoesNotContain("김철수", html);                                          // 이름 · 점수 · 선물 받는 아이 이름 없음
