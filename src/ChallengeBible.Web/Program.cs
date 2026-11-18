@@ -40,6 +40,7 @@ builder.Services.AddScoped<ReadingService>();
 builder.Services.AddScoped<BibleSearchService>();
 builder.Services.AddScoped<ReadingBoardService>();
 builder.Services.AddScoped<BrandingService>();
+builder.Services.AddScoped<WorshipService>();   // 예배 안내(ADR 0116) — 화면은 나중에
 builder.Services.AddScoped<SeasonService>();
 builder.Services.AddScoped<MilestoneService>();
 builder.Services.AddScoped<PhotoService>();
