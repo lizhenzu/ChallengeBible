@@ -93,8 +93,8 @@
     @if (Model.Guest)
     {
         @* 둘러보기(R-336, 2026-11-18 확정 시안 둘러보기-같은모양): 로그인 화면과 같은 모양, 내 기록은 0 *@
-        <div class="gs-band" role="note"><span><b>로그인하면 내 기록이 보여요</b><small>지금 숫자는 모두 0이에요</small></span>
-            <a class="p" href="/account/login?returnUrl=/@slug">로그인</a><a class="s" href="/account/signup">가입</a></div>
+        @* 띠의 [로그인] [가입]은 지웠다 — 위 [로그인]과 겹치고, 칸을 누르면 로그인으로 간다(2026-11-18 사용자) *@
+        <div class="gs-band" role="note"><span><b>로그인하면 내 기록이 보여요</b><small>지금 숫자는 모두 0이에요</small></span></div>
     }
     @* 맨 위 말씀 한 줄 띠는 지웠다(2026-11-03 사용자) *@
     @if (Model.NewMessages > 0)
