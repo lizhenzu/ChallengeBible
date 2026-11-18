@@ -181,7 +181,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("<b class=\"num\">1<u>명</u></b><small>오늘 참여</small>", home);   // ADR 0085: "나는 오늘 N번째" 칸은 뺐다
         Assert.DoesNotContain("번째", home);
         Assert.Contains("<b class=\"num\">1/2</b>오늘 미션", home);
-        Assert.Contains("<a class=\"cur\" href=\"/jamsil-kids/quiz\">", home);       // 다음 할 일 = 퀴즈
+        Assert.DoesNotContain("class=\"hj-m4\"", home);                                // 미션 네 칸은 지웠다(2026-11-18) — 미션 홈에서 한다
     }
 
     [Fact]   // R-336
