@@ -13,7 +13,7 @@ public sealed record BrandingView(string? AppName, string? AppShortName, string 
 public sealed class BrandingService(IAppDb db, TenantContext tenant, TimeProvider time)
 {
     public const string DefaultName = "도전!!!성경말씀";
-    public const string DefaultShortName = "도전성경";
+    public const string DefaultShortName = "도전!!!성경말씀";   // 바탕화면 아이콘 아래 이름(0114, 2026-11-18 사용자: "도전성경" → 앱 이름 그대로)
     public const string DefaultReportOrg = "ATTENDANCE REPORT";
     public const string LogAction = "TenantBranding";
     public static readonly string[] Colors = PlatformTenantService.ThemeColors;
