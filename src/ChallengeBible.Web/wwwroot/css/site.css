@@ -178,7 +178,7 @@ details.create > summary::-webkit-details-marker { display: none; }
 /* 미션 화면 (확정 시안: 말씀-미션홈 · 말씀 · 퀴즈 · 기도 · 암송). 글자 크기는 --fs (R-167) */
 :root { --fs: 1; --pick: #16A34A; --no: #7FA3DB; --green: #16A34A; --green-no: #6FBF8B; --pickbg: #EAF7EF; --pickbg-press: #DDF1E4; --dim2: #4B5563; }
 @media not all { /* dark off R-265 */ :root { --pick: #5CC98A; --no: #6E8FCB; --green: #5CC98A; --green-no: #5CC98A; --pickbg: #1B2A22; --pickbg-press: #223529; --dim2: #B3B9C2; } }
-.mtop .wrap, .mhead .wrap, .mbody .wrap { max-width: 640px; }
+.mtop .wrap, .mhead .wrap, .mbody .wrap { max-width: 760px; }   /* 미션 화면도 표준 760px(R-270, 2026-11-18 사용자 "760으로 통일") */
 .mtop .wrap { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 56px; }
 .mtop .crumb { font-size: 14px; color: var(--dim); }
 .mtop .crumb a, .mtop .crumb b { color: var(--fg); font-weight: 700; }
@@ -363,7 +363,7 @@ ul.log b.z { color: var(--dim); font-weight: 500; }
 /* 미션 홈 — 옛 사이트 "밝은 흰색 버전" 모양 · 구성(ADR 0069, 확정 시안 미션홈-옛모양). 모두 .qz 아래 · 클래스는 h- 로만 쓴다 */
 body:has(.qz) { background: #fff; color-scheme: light; }
 .qz { --hBlue: #2F80ED; --hInk: #111827; --hTx: #374151; --hDim: #9CA3AF; --hDim2: #6B7280; --hLine: #EEF0F3; --pad: 22px;
-  width: 100%; max-width: 680px; margin: 0 auto; padding: 20px var(--pad) 0; background: #fff; color: var(--hTx);
+  width: 100%; max-width: 760px; margin: 0 auto;   /* 표준 760px(2026-11-18) */ padding: 20px var(--pad) 0; background: #fff; color: var(--hTx);
   font-family: "Gothic A1", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif; word-break: keep-all; overflow-wrap: anywhere; }
 .qz a { color: inherit; }
 .qz a:focus-visible, .qz button:focus-visible { outline: 3px solid var(--hBlue); outline-offset: 2px; }
