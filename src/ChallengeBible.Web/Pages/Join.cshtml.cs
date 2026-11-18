@@ -46,12 +46,15 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
 
     private string Me => User.UserName()!;
 
-    public async Task OnGetAsync(CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         await LoadMineAsync(ct);
+        // 이미 정식 부서(운영 중)에 소속이면 신청할 곳이 없다 — 어떤 경로로 열어도(앱을 다시 열 때 마지막 주소 등) 그 부서 홈으로(2026-11-18 사용자)
+        if (Member is { TenantActive: true } m && Waiting.Count == 0) return Redirect($"/{m.Slug}");
         // 부서 주소로 들어와 코드가 미리 채워졌으면 그 부서를 골라 둔다(0045)
         if (!string.IsNullOrWhiteSpace(Code)) await FindAsync(ct);
         await LoadListAsync(ct);
+        return Page();
     }
 
     public async Task<IActionResult> OnPostFindAsync(CancellationToken ct)

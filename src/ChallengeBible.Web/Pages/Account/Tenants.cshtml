@@ -1,4 +1,4 @@
-@page "/account/tenants"
+﻿@page "/account/tenants"
 @model ChallengeBible.Web.Pages.Account.TenantsModel
 @* 확정 시안: 부서고르기-단독시안 (1차 간단판) *@
 <partial name="_Top" />
@@ -21,5 +21,5 @@
     {
         <div class="box wait"><p><b>@w.TenantName</b> · 승인 기다리는 중</p></div>
     }
-    <a class="btn s" href="/join">+ 다른 부서 참여 신청</a>
+    @if (!Model.Approved.Any(m => !m.IsLobby)) { <a class="btn s" href="/join">+ 다른 부서 참여 신청</a> }   @* 정식 부서 소속이면 숨김(2026-11-18) *@
 </div></main>

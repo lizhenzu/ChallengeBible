@@ -78,7 +78,8 @@
         </ul>
         <div class="ma-links">
             @if (Model.Depts.Count > 1) { <a href="/account/tenants">부서 고르기 →</a> }
-            <a href="/join">다른 부서 참여 신청 →</a>
+            @* 한 사람 한 부서(ADR 0090): 정식 부서에 이미 소속이면 신청할 수 없어 링크를 숨긴다(2026-11-18 사용자) *@
+            @if (!Model.Depts.Any(d => !d.IsLobby)) { <a href="/join">다른 부서 참여 신청 →</a> }
         </div>
     </section>
 

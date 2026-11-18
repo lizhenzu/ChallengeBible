@@ -129,9 +129,10 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("어느 부서에서", after);                                // 기다리는 동안엔 목록 대신 기다림 카드
     }
 
-    /// <summary>2026-11-18 사용자: 이미 다른 부서 소속(한 사람 한 부서, ADR 0090)이면 목록 · [부서 참여하기] 대신 "이미 함께하고 있어요" + [○○로 가기].</summary>
+    /// <summary>2026-11-18 사용자: 이미 정식 부서 소속(한 사람 한 부서, ADR 0090)이면 /join 을 어떻게 열어도 그 부서 홈으로 · "다른 부서 참여 신청" 링크도 없다.
+    /// 신청을 보내도 "이 부서에"가 아니라 실제 소속 부서 이름으로 알린다.</summary>
     [Fact]
-    public async Task 이미_다른_부서_소속이면_목록_대신_내_부서_안내가_나온다()
+    public async Task 이미_다른_부서_소속이면_참여_신청은_그_부서_홈으로_보내고_신청_링크도_없다()
     {
         var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var token = TokenRx().Match(await c.GetStringAsync("/account/signup")).Groups[1].Value;
@@ -139,19 +140,17 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
         {
             ["__RequestVerificationToken"] = token, ["DisplayName"] = "김경결", ["Email"] = "gk@example.com", ["Password"] = "1234", ["PasswordConfirm"] = "1234",
         }));
+        var before = await c.GetStringAsync("/join");                                     // 소속 전에는 신청 목록
         string userName;
         using (var raw = InMemoryDb.Raw(_db)) userName = raw.Users.Single(u => u.Email == "gk@example.com").UserName!;
         InMemoryDb.SeedMembership(_db, _elem.Id, userName, MembershipStatus.Approved, Roles.Participant);
 
-        var html = await c.GetStringAsync("/join");
-        Assert.Contains("이미 부서에 함께하고 있어요", html);
-        Assert.Contains("이미 소속", html);
-        Assert.Contains("<span class=\"st\">학생</span>", html);                       // T1001
-        Assert.Contains($"href=\"/{_elem.Slug}\"", html);                               // [○○로 가기]
-        Assert.DoesNotContain(">부서 참여하기</button>", html);
-        Assert.DoesNotContain("name=\"TenantId\"", html);
-
-        // 그래도 다른 부서로 보내면: "이 부서에"가 아니라 실제 소속 부서 이름으로 알린다
+        var go = await c.GetAsync("/join");
+        Assert.Equal(HttpStatusCode.Redirect, go.StatusCode);
+        Assert.Equal($"/{_elem.Slug}", go.Headers.Location!.OriginalString);
+        Assert.DoesNotContain("다른 부서 참여 신청", await c.GetStringAsync("/account"));
+        var html = before;
+        // 그래도 (예전 화면에서) 다른 부서로 보내면 막히고 내 부서 안내가 나온다
         var r = await c.PostAsync("/join?handler=Apply", new FormUrlEncodedContent(new[]
         {
             new KeyValuePair<string, string>("__RequestVerificationToken", TokenRx().Match(html).Groups[1].Value),
@@ -159,5 +158,7 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
         }));
         var body = await r.Content.ReadAsStringAsync();
         Assert.DoesNotContain("이미 이 부서에", body);
+        Assert.Contains("이미 부서에 함께하고 있어요", body);                       // 보내도 막히고, 목록 대신 내 부서 안내(이미 소속 · [○○로 가기])
+        Assert.Contains($"href=\"/{_elem.Slug}\"", body);
     }
 }
