@@ -5,13 +5,35 @@ using Microsoft.EntityFrameworkCore;
 namespace ChallengeBible.Web.Api;
 
 /// <summary>
-/// 부서별 앱 정보(0038 결정 5): `/{slug}/manifest.webmanifest` · `/{slug}/icon.svg`(→ 네잎 아이콘, 0114).
+/// 앱 정보: `/manifest.webmanifest`(설치 앱 하나, 0115) + 예전 부서별(0038 결정 5, 이미 설치한 앱용): `/{slug}/manifest.webmanifest` · `/{slug}/icon.svg`(→ 네잎 아이콘, 0114).
 /// 브라우저는 매니페스트를 쿠키 없이 읽으므로 로그인 없이 연다 — 부서 이름 · 색처럼 공개해도 되는 값만 돌려준다.
 /// </summary>
 public static class BrandingApi
 {
     public static void MapBrandingApi(this WebApplication app)
     {
+        // 설치 앱은 하나(ADR 0115): 이름 · 아이콘 모두 플랫폼 기본, 열면 첫 화면(`/`)이 로그인 상태에 따라 내 부서 홈으로 보낸다.
+        // related_applications 는 안드로이드 · PC 크롬이 "이미 설치됨"을 알려 주게 하는 것(install-gate.js 의 getInstalledRelatedApps).
+        app.MapGet("/manifest.webmanifest", (HttpContext http) =>
+        {
+            var manifest = new
+            {
+                id = "/",
+                name = BrandingService.DefaultName,
+                short_name = BrandingService.DefaultShortName,
+                description = BrandingService.OgDescription,
+                start_url = "/",
+                scope = "/",
+                display = "standalone",
+                theme_color = "#FFFFFF",
+                background_color = "#FFFFFF",
+                lang = "ko",
+                icons = Icons,
+                related_applications = new[] { new { platform = "webapp", url = $"{http.Request.Scheme}://{http.Request.Host}/manifest.webmanifest" } },
+            };
+            return Results.Json(manifest, contentType: "application/manifest+json");
+        }).AllowAnonymous();
+
         app.MapGet("/{slug}/manifest.webmanifest", async (string slug, IAppDb db, CancellationToken ct) =>
         {
             if (await FindAsync(db, slug, ct) is not { } t) return Results.NotFound();
@@ -27,13 +49,7 @@ public static class BrandingApi
                 lang = "ko",
                 // 아이콘은 모든 부서가 같은 네잎(0114). PNG 192 · 512 는 안드로이드 설치 조건, maskable 은 둥근 모양 휴대폰용.
                 // 안드로이드 로딩 화면은 background_color(흰색) + 아이콘 + name 으로 휴대폰이 그린다.
-                icons = new[]
-                {
-                    new { src = BrandingService.Icon192, sizes = "192x192", type = "image/png", purpose = "any" },
-                    new { src = BrandingService.Icon512, sizes = "512x512", type = "image/png", purpose = "any" },
-                    new { src = BrandingService.IconMaskable, sizes = "512x512", type = "image/png", purpose = "maskable" },
-                    new { src = BrandingService.IconSvg, sizes = "any", type = "image/svg+xml", purpose = "any" },
-                },
+                icons = Icons,
             };
             return Results.Json(manifest, contentType: "application/manifest+json");
         }).AllowAnonymous();
@@ -41,6 +57,14 @@ public static class BrandingApi
         // 예전 부서 아이콘 주소(이미 설치한 앱이 들고 있을 수 있다)는 네잎 아이콘으로 보낸다(0114)
         app.MapGet("/{slug}/icon.svg", (string slug) => Results.Redirect(BrandingService.IconSvg)).AllowAnonymous();
     }
+
+    private static readonly object[] Icons =
+    [
+        new { src = BrandingService.Icon192, sizes = "192x192", type = "image/png", purpose = "any" },
+        new { src = BrandingService.Icon512, sizes = "512x512", type = "image/png", purpose = "any" },
+        new { src = BrandingService.IconMaskable, sizes = "512x512", type = "image/png", purpose = "maskable" },
+        new { src = BrandingService.IconSvg, sizes = "any", type = "image/svg+xml", purpose = "any" },
+    ];
 
     private static async Task<Tenant?> FindAsync(IAppDb db, string slug, CancellationToken ct)
     {

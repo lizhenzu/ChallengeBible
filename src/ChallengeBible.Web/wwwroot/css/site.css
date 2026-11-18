@@ -4469,3 +4469,5 @@ body:has(> .imp-bar) :is(.toast, .mpop-toast) { margin-bottom: var(--imp-h); }
 .jv4 .jmem .mk { background: var(--accent); }
 .jv4 .jmem .st { color: #15803D; }
 .jv4 .jacts a.go { background: var(--accent); color: var(--on-accent); opacity: 1 !important; pointer-events: auto !important; }
+/* 앱 설치(ADR 0115): 설치된 앱 안에서는 ☰ "앱 설치" 숨김 */
+@media (display-mode: standalone) { [data-app-install] { display: none !important; } }

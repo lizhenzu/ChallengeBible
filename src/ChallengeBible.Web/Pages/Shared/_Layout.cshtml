@@ -11,22 +11,25 @@
     var blueOnly = dept is not null && (path.StartsWith($"/{dept.Slug}/reading", StringComparison.OrdinalIgnoreCase)
                                         || path.Equals($"/{dept.Slug}/read", StringComparison.OrdinalIgnoreCase));
     var color = dept is null || blueOnly ? "blue" : dept.ThemeColor;
+    // 앱 설치 안내로 보내지 않는 화면(ADR 0115 · R-331): 플랫폼 관리 · 설치 안내 자신 · 가장 중
+    var noInstall = path.StartsWith("/platform", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/install", StringComparison.OrdinalIgnoreCase)
+                    || User.ImpersonatorId() is not null;
 }
 <!DOCTYPE html>
-<html lang="ko" data-color="@color">
+<html lang="ko" data-color="@color" data-install="@(noInstall ? "off" : null)">
 <head>
     <meta charset="utf-8" />
     <meta name="color-scheme" content="light" />@* 휴대폰 다크 모드와 상관없이 항상 밝게(사용자 2026-11-13, R-265) *@
     @* 데스크탑 전용 화면(주일 출결 보고서 등)은 ViewData["Viewport"] 로 고정 폭을 준다 — 휴대폰에서도 종이 한 장을 줄여 보고 손가락으로 확대 *@
     <meta name="viewport" content="@(ViewData["Viewport"] as string ?? "width=device-width, initial-scale=1.0, viewport-fit=cover")" />
     <title>@(string.IsNullOrEmpty(title) ? appName : $"{title} · {appName}")</title>
-    @if (dept is not null)
-    {
-        <link rel="manifest" href="/@dept.Slug/manifest.webmanifest" />
-        <meta name="theme-color" content="@BrandingService.ColorHex(dept.ThemeColor)" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-title" content="@(dept.AppShortName ?? BrandingService.DefaultShortName)" />
-    }
+    @* 설치 앱은 하나(ADR 0115): 어느 화면에서 설치해도 "도전!!!성경말씀", 열면 첫 화면 → 내 부서 홈 *@
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="@BrandingService.DefaultShortName" />
+    @if (dept is not null) { <meta name="theme-color" content="@BrandingService.ColorHex(dept.ThemeColor)" /> }
+    <script src="~/js/install-gate.js" asp-append-version="true"></script>
     @* 아이콘 · 카톡 공유 미리보기(0114 「네잎 정돈」): 모든 화면 · 모든 부서가 같은 그림, 제목에만 부서 이름 *@
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="@BrandingService.FaviconSvg" />

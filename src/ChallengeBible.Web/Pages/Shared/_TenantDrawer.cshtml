@@ -17,6 +17,7 @@
             @if (!Model.IsLobby && Model.IsApproved && !ChallengeBible.Web.Services.Prayer365Service.IsStudentRole(Model.RoleCode)) { <a href="/@Model.Current.Slug/prayer365">자녀를 위한 365 기도</a> }   @* ADR 0106: 학생 · 새친구에게는 없음 *@
             <a href="/messages">쪽지</a>   @* ADR 0112 *@
             <a href="/account">내 계정</a>
+            <a href="/install?back=@Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString)" data-app-install>📲 앱 설치</a>   @* ADR 0115: 언제든 다시 *@
             @if (Model.IsLobby) { <a href="/join">내 부서 참여</a> }
             @if (!Model.IsLobby && Model.IsStaff) { <a href="/@Model.Current.Slug/attendance">출석</a> }
             @if (Model.IsAdmin) { <a href="/@Model.Current.Slug/admin">관리</a> }
