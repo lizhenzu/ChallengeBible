@@ -107,7 +107,7 @@ public partial class Prayer365Tests : IClassFixture<WebApplicationFactory<Progra
             var home = await Home(c, "kids");
             Assert.Contains("<b class=\"tpNm\">자녀를 위한 365</b>", home);   // 부서 홈 카드(유년부 "오늘의 기도" 모양)
             Assert.Contains("<b>5</b>일째 · 366일 중", home);
-            Assert.Contains("<a href=\"/kids/prayer365\">자녀를 위한 365 기도</a>", home);   // ☰
+            Assert.Contains("class=\"tdr-r\" href=\"/kids/prayer365\"", home);   // ☰
         }
         var anon = await _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false }).GetAsync("/kids/prayer365");
         Assert.NotEqual(HttpStatusCode.OK, anon.StatusCode);
@@ -141,7 +141,7 @@ public partial class Prayer365Tests : IClassFixture<WebApplicationFactory<Progra
         var page = await admin.GetStringAsync("/kids/admin/prayer365");
         Assert.Contains("teacher", page);
         Assert.Contains("mom", page);
-        Assert.DoesNotContain("dad", page);
+        Assert.DoesNotMatch(@"\bdad\b", page);   // 파일 이름 버전 글자(예: site.x3dad9.css)에 걸리지 않게
         Assert.Contains("href=\"/kids/admin/prayer365\"", page);   // 관리 ☰ 메뉴
         Assert.NotEqual(HttpStatusCode.OK, (await mom.GetAsync("/kids/admin/prayer365")).StatusCode);   // 부서 관리자만
 

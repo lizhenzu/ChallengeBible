@@ -4471,3 +4471,38 @@ body:has(> .imp-bar) :is(.toast, .mpop-toast) { margin-bottom: var(--imp-h); }
 .jv4 .jacts a.go { background: var(--accent); color: var(--on-accent); opacity: 1 !important; pointer-events: auto !important; }
 /* 앱 설치(ADR 0115): 설치된 앱 안에서는 ☰ "앱 설치" 숨김 */
 @media (display-mode: standalone) { [data-app-install] { display: none !important; } }
+/* 부서 ☰ 메뉴판(확정 시안 부서메뉴, 2026-11-18): 위 사진 · 이름 / 가운데 그룹 · 아이콘 · 한 줄 설명(여기만 밀림) / 아래 고정 버튼 두 개. 플랫폼 · 관리 메뉴판(.pdrawer)은 그대로 */
+.tdr .pd-panel { width: min(320px, 88vw); padding: 0; display: flex; flex-direction: column; overflow: hidden; }
+.tdr-hd { display: flex; gap: 12px; align-items: center; padding: calc(16px + env(safe-area-inset-top, 0px)) 14px 16px 16px; border-bottom: 1px solid var(--rule); }
+.tdr-av { width: 56px; height: 56px; border-radius: 50%; flex: none; overflow: hidden; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 12%, #fff); box-shadow: 0 0 0 3px #fff, 0 0 0 4px #E5E7EB; text-decoration: none; }
+.tdr-av img { width: 100%; height: 100%; object-fit: cover; }
+.tdr-av span { font-size: 22px; font-weight: 900; color: var(--accent); }
+.tdr-who { flex: 1; min-width: 0; }
+.tdr-who b { display: block; font-size: 18px; font-weight: 900; color: var(--fg); }
+.tdr-who .pd-dept { display: block; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.tdr-who a { display: inline-block; margin-top: 4px; font-size: 13px; font-weight: 800; color: var(--accent); text-decoration: none; }
+.tdr .pd-x { align-self: flex-start; width: 40px; height: 40px; border-radius: 12px; background: #F3F4F6; font-size: 16px; }
+.tdr .pd-panel nav { flex: 1; overflow-y: auto; padding: 2px 12px 10px; overscroll-behavior: contain; }
+.tdr .pd-panel h2.tdr-g { margin: 16px 6px 4px; padding: 0; font-size: 12px; line-height: 1.4; font-weight: 900; color: var(--accent); letter-spacing: .02em; border: 0; }
+.tdr-g em { font-style: normal; }
+.tdr .pd-panel nav a.tdr-r { display: flex; gap: 12px; align-items: center; min-height: 0; padding: 8px 6px; border-radius: 14px; color: var(--fg); text-decoration: none; }
+.tdr .pd-panel nav a.tdr-r + a.tdr-r { border-top: 1px solid #F3F4F6; }
+.tdr .pd-panel nav a.tdr-r[aria-current="page"] { background: color-mix(in srgb, var(--accent) 9%, #fff); color: var(--fg); font-weight: inherit; }
+.tdr .pd-panel nav a.tdr-r[aria-current="page"] + a.tdr-r { border-top-color: transparent; }
+.tdr-i { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex: none; }
+.tdr-i svg { width: 21px; height: 21px; }
+.tdr-i.t-g { background: #E8F7EE; color: #16A34A; } .tdr-i.t-b { background: #EAF1FE; color: #2563EB; } .tdr-i.t-o { background: #FFF1E6; color: #EA580C; }
+.tdr-i.t-p { background: #FDEEF5; color: #DB2777; } .tdr-i.t-v { background: #F2ECFE; color: #7C3AED; } .tdr-i.t-s { background: #F1F5F9; color: #475569; }
+.tdr-r span { flex: 1; min-width: 0; }
+.tdr-r b { display: block; font-size: 15px; font-weight: 800; }
+.tdr .pd-panel nav a.tdr-r b .pd-pg { font-style: normal; color: var(--accent); font-weight: 900; margin-right: 0; }
+.tdr-r small { display: block; font-size: 12px; color: var(--dim); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tdr-r u { text-decoration: none; color: #C0C6D0; font-size: 18px; }
+.tdr-ft { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px 12px calc(14px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--rule); }
+.tdr-ft form { margin: 0; }
+.tdr-b1, .tdr-b2 { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 46px; border: 0; border-radius: 14px; font: inherit; font-size: 14px; font-weight: 800; text-decoration: none; cursor: pointer; }
+.tdr-b1 { background: color-mix(in srgb, var(--accent) 10%, #fff); color: var(--accent); }
+.tdr-b2 { background: #F3F4F6; color: #374151; }
+.tdr-inapp { display: none; }
+@media (display-mode: standalone) { .tdr-inapp { display: flex; } }
+body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); }

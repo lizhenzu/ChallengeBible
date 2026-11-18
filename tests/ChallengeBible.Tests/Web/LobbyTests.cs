@@ -120,7 +120,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.DoesNotContain("aria-label=\"오늘의 말씀\"", home);
         Assert.DoesNotContain("aria-labelledby=\"dpT\"", home);                       // "우리 부서" 숫자 칸 없음
         Assert.DoesNotContain("/welcome/ranking", home);
-        Assert.Contains("<a href=\"/join\">내 부서 참여</a>", home);                    // 계정 줄(로그아웃도 여기 있음)
+        Assert.Contains("href=\"/join\"><i", home); Assert.Contains("<b>내 부서 참여</b>", home);                    // 계정 줄(로그아웃도 여기 있음)
         var today = await c.GetStringAsync("/welcome/today");                         // 미션 화면 = 지금 홈 아랫부분
         Assert.Contains("<section class=\"hj-card hj-pg m\"", today);
         Assert.Contains("<a class=\"lb-btn p\" href=\"/join\">내 부서 참여 신청하기 →</a>", today);   // 확정 시안 임시부서-상단버튼 A: 신청 전
@@ -192,7 +192,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("<p class=\"foot-copy\">© 2027 잠실새내 · 주일학교</p>", kidsHome);
         Assert.DoesNotContain("부서 바꾸기", kidsHome);                                    // 일반 부서 홈 맨 아래에 "부서 바꾸기"는 없다(2026-11-05)
         Assert.Contains("data-pnav-open", kidsHome);
-        Assert.Contains("<a href=\"/account\">내 계정</a>", kidsHome);                     // ☰ 메뉴판
+        Assert.Contains("class=\"tdr-r\" href=\"/account\"", kidsHome); Assert.Contains("<b>내 계정</b>", kidsHome);                     // ☰ 메뉴판
     }
 
     [Fact]

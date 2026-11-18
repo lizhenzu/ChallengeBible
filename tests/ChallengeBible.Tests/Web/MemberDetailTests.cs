@@ -77,7 +77,7 @@ public partial class MemberDetailTests : IClassFixture<WebApplicationFactory<Pro
         var list = await admin.GetStringAsync("/jamsil-kids/admin/members?Tab=Approved");
         Assert.Contains($"href=\"/jamsil-kids/admin/members/{kid.Id}\"", list);
         Assert.Contains("class=\"row-more\"", list);                                       // 펼치지 않아도 보이는 "자세히 →"
-        Assert.Contains("href=\"/jamsil-kids/admin\">관리</a>", await admin.GetStringAsync("/jamsil-kids"));   // 부서 홈 → 관리 홈
+        Assert.Contains("class=\"tdr-r\" href=\"/jamsil-kids/admin\"", await admin.GetStringAsync("/jamsil-kids"));   // 부서 홈 → 관리 홈
         var html = await admin.GetStringAsync($"/jamsil-kids/admin/members/{kid.Id}");
         Assert.Contains("<h1>김철수</h1>", html);
         Assert.Contains("cheolsu@example.com", html);

@@ -130,7 +130,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     {
         var (c, _) = await Member("eunhye", Roles.Teacher, Roles.TenantAdmin);
         var home = await c.GetStringAsync("/jamsil-kids");   // 왼쪽 위 ☰ 메뉴판에 관리(맨 아래 계정 줄은 지웠다, 2026-11-15)
-        Assert.Contains("<a href=\"/jamsil-kids/admin\">관리</a>", home);
+        Assert.Contains("class=\"tdr-r\" href=\"/jamsil-kids/admin\"", home); Assert.Contains("<b>관리</b>", home);
         Assert.DoesNotContain("class=\"adm\"", home);
     }
 
