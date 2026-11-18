@@ -189,7 +189,7 @@
         const double C2 = 188.5;
         var pctToday = has.Count == 0 ? 0 : done * 100.0 / has.Count;
         <section class="hj-card hj-pg m" aria-labelledby="pmT">
-            <h2 id="pmT"><a href="/@slug/word-mission">🎯 도전!!! 성경말씀</a>@if (d.Participant) { <b class="num">@d.SeasonPoints.ToString("N0")<u>P</u></b> }</h2>
+            <h2 id="pmT"><a href="/@slug/word-mission">🎯 도전!!! 성경미션</a>@if (d.Participant) { <b class="num">@d.SeasonPoints.ToString("N0")<u>P</u></b> }</h2>
             <div class="hj-row">
                 <span class="hj-ring o" role="img" aria-label="오늘 미션 @(has.Count)개 중 @(done)개 완료">
                     <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-org-l)" stroke-width="8" /><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-org)" stroke-width="8" stroke-linecap="round" stroke-dasharray="@((C2 * pctToday / 100).ToString("0.#", inv)) @C2.ToString("0.#", inv)" transform="rotate(-90 38 38)" /></svg>

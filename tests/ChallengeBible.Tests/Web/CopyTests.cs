@@ -101,7 +101,7 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
         var home = await c.GetStringAsync("/kids");
         Assert.Contains("도전!!! 성경필사", home);
         Assert.Contains("<a href=\"/kids/copy\"><em class=\"pd-pg\">도전!!!</em> 성경필사</a>", home);   // ☰ 메뉴판
-        Assert.Contains("<a href=\"/kids/word-mission\"><em class=\"pd-pg\">도전!!!</em> 성경말씀</a>", home);   // 세 프로그램 모두(2026-11-16)
+        Assert.Contains("<a href=\"/kids/word-mission\"><em class=\"pd-pg\">도전!!!</em> 성경미션</a>", home);   // 세 프로그램 모두(2026-11-16)
         Assert.Contains("<a href=\"/kids/reading\"><em class=\"pd-pg\">도전!!!</em> 성경통독</a>", home);
         Assert.Contains("<small>이어 쓸 곳</small><b>창세기</b><span>1장 1절부터 ›</span>", home);   // 확정 시안 홈-통독필사-0펼침: 시작 전에도 0 으로 펼침
         Assert.Contains("<b class=\"num\">0</b><small>쓴 절</small>", home);

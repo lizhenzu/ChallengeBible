@@ -1,4 +1,4 @@
-@page "/{slug}/ranking"
+﻿@page "/{slug}/ranking"
 @model RankingModel
 @using ChallengeBible.Web.Services
 @* 확정 시안: 말씀-순위-단독시안 — 개인 · 가족팀 탭. 개인: 숫자 상자 → TOP 3 → 구분 · 찾기 · 정렬 → 목록(R-80 ~ R-84). 가족팀: 숫자 상자 → 찾기 · 정렬 → 팀 카드(가계도, R-92 · R-94) *@
@@ -14,7 +14,7 @@
     <span class="date num">@d.Year</span>
 </div></header>
 <main class="mbody gut"><div class="wrap rkp">
-    <div class="k">도전!!!성경말씀</div>
+    <div class="k">도전!!!성경미션</div>
     <h1>순위</h1>
     <div class="sub num">@(d.Year) 시즌 · 목표 @(d.Target.ToString("N0"))점 · @d.Today.ToString("M월 d일", ko) 기준</div>
 

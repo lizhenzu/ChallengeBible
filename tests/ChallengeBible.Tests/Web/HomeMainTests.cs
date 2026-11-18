@@ -155,7 +155,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         using (var raw = InMemoryDb.Raw(_db)) { raw.Tenants.Single(t => t.Id == _kids.Id).MissionEnabled = false; raw.SaveChanges(); }
         var (c, _) = await Member("cheolsu", Roles.Participant);
         var home = await c.GetStringAsync("/jamsil-kids");
-        Assert.DoesNotContain("🎯 도전!!! 성경말씀", home);                          // 확정 5
+        Assert.DoesNotContain("🎯 도전!!! 성경미션", home);                          // 확정 5
         Assert.Contains("📖 도전!!! 성경통독", home);
     }
 

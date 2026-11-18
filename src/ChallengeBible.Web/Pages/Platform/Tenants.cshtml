@@ -30,7 +30,7 @@
                                 <span>참여 코드</span><b class="num tn-code">@t.JoinCode</b>
                             </span>
                             <span class="tn-tags">
-                                @if (t.MissionEnabled) { <span class="tn-t m">성경말씀</span> }
+                                @if (t.MissionEnabled) { <span class="tn-t m">성경미션</span> }
                                 @if (t.ReadingEnabled) { <span class="tn-t r">성경통독</span> }
                                 @if (t.CopyEnabled) { <span class="tn-t c">성경필사</span> }
                                 @if (t.JoinListed) { <span class="tn-t l">신청 목록에 보임</span> }
@@ -70,7 +70,7 @@
                                 <input type="hidden" name="id" value="@t.Id" />
                                 <h3>프로그램 <span>· 하나 이상</span></h3>
                                 <div class="rl">
-                                    <label><input type="checkbox" name="mission" value="true" checked="@t.MissionEnabled" />도전!!!성경말씀</label>
+                                    <label><input type="checkbox" name="mission" value="true" checked="@t.MissionEnabled" />도전!!!성경미션</label>
                                     <label><input type="checkbox" name="reading" value="true" checked="@t.ReadingEnabled" />도전!!!성경통독</label>
                                     <label><input type="checkbox" name="copy" value="true" checked="@t.CopyEnabled" />도전!!!성경필사</label>
                                 </div>
@@ -153,7 +153,7 @@
                 <p class="hint bad">@E("Slug")</p></div>
             <div class="f"><label>프로그램 <small>하나 이상</small></label>
                 <div class="rl">
-                    <label><input type="checkbox" asp-for="Mission" />도전!!!성경말씀</label>
+                    <label><input type="checkbox" asp-for="Mission" />도전!!!성경미션</label>
                     <label><input type="checkbox" asp-for="Reading" />도전!!!성경통독</label>
                     <label><input type="checkbox" asp-for="Copy" />도전!!!성경필사</label>
                 </div>

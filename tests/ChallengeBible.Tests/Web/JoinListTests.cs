@@ -110,7 +110,7 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("내 부서로 가기", html);
         Assert.Contains("부서 관리자가 승인하면 시작해요", html);
         Assert.Contains("어느 부서에서 함께할까요?", html);
-        Assert.Contains("도전!!!성경말씀", html);
+        Assert.Contains("도전!!!성경미션", html);
         Assert.Contains(">돌아가기</a>", html);
         Assert.Contains(">부서 참여하기</button>", html);
 

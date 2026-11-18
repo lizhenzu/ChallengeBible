@@ -1,4 +1,4 @@
-@page "/platform"
+﻿@page "/platform"
 @model ChallengeBible.Web.Pages.Platform.IndexModel
 @using ChallengeBible.Web.Pages.Platform
 @* 확정 시안: 플랫폼-홈-단독시안 — 숫자 4칸 → 챙길 일 → 부서별 오늘 | 최근 관리 기록 *@
@@ -15,7 +15,7 @@
     <div class="ar-kpis ph-span">
         <div><small>운영 중인 부서</small><b class="num">@d.ActiveTenants<u>곳</u></b><span>@(d.SuspendedTenants > 0 ? $"정지 {d.SuspendedTenants}곳" : "정지 없음")</span></div>
         <div><small>계정</small><b class="num">@d.Accounts<u>개</u></b><span>이번 주 새로 @(d.NewAccounts)개</span></div>
-        <div><small>오늘 미션 참여</small><b class="num">@d.TodayParticipants<u>명</u></b><span>성경말씀 부서 @(d.MissionTenants)곳</span></div>
+        <div><small>오늘 미션 참여</small><b class="num">@d.TodayParticipants<u>명</u></b><span>성경미션 부서 @(d.MissionTenants)곳</span></div>
         <div><small>오늘 통독</small><b class="num">@d.TodayReaders<u>명</u></b><span>읽은 장 @(d.TodayChapters)장</span></div>
     </div>
 

@@ -265,7 +265,7 @@
             @if (Model.Errors.Count > 0) { <p class="err" role="alert">빨간 칸을 확인해 주세요. 아무것도 저장하지 않았어요.</p> }
 
             <section class="gd-card">
-                <h2>도전 성경말씀 개인 선물 <small>학생만 · 해마다 0부터</small></h2>
+                <h2>도전 성경미션 개인 선물 <small>학생만 · 해마다 0부터</small></h2>
                 <p class="gd-hint">점수 → 크레딧: 1점마다 @(r.CreditsPerPoint) 크레딧. 상한은 한 아이가 한 해에 선물에 쓰는 크레딧 합계예요(최고 @GiftsModel.N(r.PersonalCap), 부서는 낮게만 · 빈 칸이면 @GiftsModel.N(r.PersonalCap) = @GiftsModel.N(r.PersonalCap / r.CreditsPerPoint)점).</p>
                 <label class="gd-lbl" for="cap">크레딧 상한</label>
                 <div class="gd-amt gd-narrow"><input id="cap" name="Money.PersonalCap" value="@m.PersonalCap" inputmode="numeric" placeholder="@GiftsModel.N(r.PersonalCap)" aria-invalid="@(Model.Err("PersonalCap").Length > 0 ? "true" : "false")" /><span>크레딧</span></div>
