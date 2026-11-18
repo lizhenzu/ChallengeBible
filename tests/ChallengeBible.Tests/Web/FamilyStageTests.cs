@@ -194,7 +194,7 @@ public partial class FamilyStageTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("href=\"/jamsil-kids/admin/teams/stages\"", await c.GetStringAsync("/jamsil-kids/admin/teams"));
         var page = await c.GetStringAsync("/jamsil-kids/admin/teams/stages");
         Assert.Contains("처음 값을 쓰고 있어요", page);
-        Assert.Contains("aria-current=\"page\">가족팀", page);
+        Assert.Matches("aria-current=\"page\"><i [^>]*>.*?</i><span><b>가족팀", page);   // ☰ 지금 화면(새 메뉴판, 2026-11-18)
         Assert.Equal(10, Regex.Matches(page, "name=\"amount\"").Count);
 
         var form = new List<KeyValuePair<string, string>> { new("__RequestVerificationToken", TokenRx().Match(page).Groups[1].Value), new("year", "2027") };

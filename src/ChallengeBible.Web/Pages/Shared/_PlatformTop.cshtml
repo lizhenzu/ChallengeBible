@@ -1,19 +1,26 @@
 ﻿@inject Microsoft.Extensions.Configuration.IConfiguration Config
+@inject ChallengeBible.Web.Services.PhotoService Photos
+@using ChallengeBible.Web.Auth
 @{
     var path = Context.Request.Path.Value ?? "";
     // 확정 시안 플랫폼-메뉴-햄버거(2026-11-15 사용자 "1"): 왼쪽 위 ☰ → 왼쪽 메뉴판. 묶음별 세로 목록이라 데스크톱에서도 좌우로 넘길 일이 없다.
-    var groups = new List<(string Title, bool Danger, (string Href, string Label)[] Items)>
+    // 항목: (주소, 이름, 아이콘, 색, 한 줄 설명) — 확정 시안 플랫폼관리메뉴(2026-11-18): 그룹 · 색 아이콘 · 한 줄 설명. 항목 · 순서는 그대로
+    var groups = new List<(string Title, bool Danger, (string Href, string Label, string Icon, string Tone, string Desc)[] Items)>
     {
-        ("", false, [("/platform", "플랫폼 홈"), ("/platform/todo", "오늘 할 일"), ("/messages", "쪽지")]),
-        ("부서", false, [("/platform/tenants", "부서"), ("/platform/roster-upload", "명단 올리기"), ("/platform/admin-rule", "부서 관리자 규칙"), ("/platform/families", "온가족")]),
-        ("콘텐츠", false, [("/platform/content/word/check", "말씀 입력"), ("/platform/content/quiz/check", "퀴즈 출제"), ("/platform/content", "공용 콘텐츠"), ("/platform/quiz-input", "퀴즈 넣기"), ("/platform/quiz-ai-prompt", "AI 프롬프트"), ("/platform/bible", "성경 데이터"), ("/platform/prayer365", "365 기도문"), ("/platform/prayer365-stats", "365 기도 통계"), ("/platform/rules", "기본 규칙")]),
-        ("선물", false, [("/platform/gifts", "공통 상품")]),
-        ("계정", false, [("/platform/accounts", "계정 찾기")]),
+        ("한눈에", false, [("/platform", "플랫폼 홈", "home", "s", "전체 현황 · 챙길 일"), ("/platform/todo", "오늘 할 일", "todo", "g", "승인 · 빈 콘텐츠 · 관리자 없는 부서"), ("/messages", "쪽지", "msg", "v", "받은 · 보낸 쪽지 · 개선 접수")]),
+        ("부서", false, [("/platform/tenants", "부서", "dept", "b", "만들기 · 프로그램 · 관리자 · 참여 코드"), ("/platform/roster-upload", "명단 올리기", "upload", "b", "엑셀 명단을 부서에 넣기"),
+                         ("/platform/admin-rule", "부서 관리자 규칙", "key", "s", "어떤 역할 · 업무가 관리자인지"), ("/platform/families", "온가족", "family", "p", "부서를 넘는 가족 묶기")]),
+        ("콘텐츠", false, [("/platform/content/word/check", "말씀 입력", "word", "g", "날짜별 오늘의 말씀"), ("/platform/content/quiz/check", "퀴즈 출제", "quiz", "g", "날짜별 퀴즈 확인"),
+                           ("/platform/content", "공용 콘텐츠", "common", "s", "말씀 · 퀴즈 · 기도 · 암송 전체"), ("/platform/quiz-input", "퀴즈 넣기", "input", "s", "여러 문제 한꺼번에"),
+                           ("/platform/quiz-ai-prompt", "AI 프롬프트", "ai", "v", "퀴즈 만들기 지시문"), ("/platform/bible", "성경 데이터", "bible", "b", "본문 · 개관 · 장 미디어"),
+                           ("/platform/prayer365", "365 기도문", "pray", "p", "자녀를 위한 365 기도"), ("/platform/prayer365-stats", "365 기도 통계", "chart", "p", "부서별 함께 기도"),
+                           ("/platform/rules", "기본 규칙", "rules", "s", "점수 · 단계 · 스위치")]),
+        ("선물 · 계정", false, [("/platform/gifts", "공통 상품", "gift", "o", "상품 · 총비용"), ("/platform/accounts", "계정 찾기", "search", "s", "비밀번호 · 부서 옮기기 · 가장")]),
     };
     // 완전 초기화(ADR 0102) = 예전 새해 초기화 + 관리자만 남기기 + 가짜 데이터 지우기
-    (string, string)[] tools = [("/platform/ops", "운영 점검"), ("/platform/reset", "완전 초기화"), ("/platform/sql", "SQL 실행")];
+    (string, string, string, string, string)[] tools = [("/platform/ops", "운영 점검", "pulse", "s", "오류 · 느린 화면"), ("/platform/reset", "완전 초기화", "reset", "r", "관리자 · 부서 · 반은 남김"), ("/platform/sql", "SQL 실행", "sql", "r", "시험 실행 / 저장")];
     // 임시 시험 도구(ADR 0095 · 0102): 설정 TestTools:Enabled 일 때만 메뉴에 보인다. 목적별 두 화면
-    if (Config.GetValue<bool>("TestTools:Enabled")) tools = [.. tools, ("/test-tools/data", "가짜 데이터 넣기(임시)"), ("/test-tools/login", "상황별 로그인(임시)")];
+    if (Config.GetValue<bool>("TestTools:Enabled")) tools = [.. tools, ("/test-tools/data", "가짜 데이터 넣기(임시)", "flask", "o", "시험용 사람 · 기록 넣기"), ("/test-tools/login", "상황별 로그인(임시)", "login", "o", "가짜 계정으로 바로 들어가기")];
     groups.Add(("도구 — 되돌릴 수 없는 일이 있어요", true, tools));
     // 플랫폼 홈 주소는 다른 플랫폼 주소의 앞부분이라 정확히 같을 때만 현재 화면으로 본다
     // 말씀 입력 = /platform/content/word/check · month · clips, 퀴즈 출제 = /platform/content/quiz/check — 이때 "공용 콘텐츠"는 현재 화면이 아니다
@@ -25,6 +32,8 @@
         : href == "/platform/content" ? path.StartsWith(href, StringComparison.OrdinalIgnoreCase) && !WordTools() && !QuizTools()
         : path.StartsWith(href, StringComparison.OrdinalIgnoreCase) || (href == "/platform/gifts" && path.StartsWith("/platform/gift-cost", StringComparison.OrdinalIgnoreCase));   // 총비용은 공통 상품의 탭
     var title = groups.SelectMany(g => g.Items).FirstOrDefault(i => Current(i.Href)).Label ?? "플랫폼";
+    var me = User.UserName();
+    var photo = me is null ? null : await Photos.FileOfAsync(me);
 }
 <header class="admintop ptop gut">
     <div class="wrap wide hd">
@@ -37,26 +46,20 @@
         <a class="home-txt" href="/">홈으로</a>
     </div>
 </header>
-<div class="pdrawer" id="pnav" hidden>
+<div class="pdrawer tdr" id="pnav" hidden>
     <div class="pd-dim" data-pnav-close></div>
     <aside class="pd-panel" tabindex="-1" role="dialog" aria-modal="true" aria-label="플랫폼 메뉴">
-        <div class="pd-top">
-            <span><b><em>도전!!!</em></b> <span class="pl">플랫폼</span></span>
-            <button type="button" class="pd-x" aria-label="메뉴 닫기" data-pnav-close>✕</button>
-        </div>
+        @DrawerUi.Head(User.DisplayName(), photo, "도전!!! 플랫폼 · 플랫폼 관리자")
         <nav aria-label="플랫폼 메뉴">
             @foreach (var g in groups)
             {
-                if (g.Title.Length > 0) { <div class="pd-g@(g.Danger ? " danger" : "")">@g.Title</div> }
-                foreach (var (href, label) in g.Items)
-                {
-                    <a href="@href" aria-current="@(Current(href) ? "page" : "false")">@label</a>
-                }
+                <h2 class="tdr-g@(g.Danger ? " danger" : "")">@g.Title</h2>
+                foreach (var (href, label, icon, tone, desc) in g.Items) { @DrawerUi.Row(href, icon, tone, label, desc, Current(href)) }
             }
         </nav>
-        <div class="pd-foot">
-            <a href="/">처음 화면</a>
-            <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit">로그아웃</button></form>
+        <div class="tdr-ft">
+            <a class="tdr-b1" href="/">🏠 처음 화면</a>
+            <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit" class="tdr-b2">로그아웃</button></form>
         </div>
     </aside>
 </div>

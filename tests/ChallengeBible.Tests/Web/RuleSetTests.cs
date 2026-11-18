@@ -161,7 +161,7 @@ public partial class RuleSetTests : IClassFixture<WebApplicationFactory<Program>
             ["__RequestVerificationToken"] = TokenRx().Match(login).Groups[1].Value, ["Email"] = "operator@example.com", ["Password"] = "1234",
         }));
         var page = await c.GetStringAsync("/platform/rules");
-        Assert.Contains("aria-current=\"page\">기본 규칙", page);
+        Assert.Matches("aria-current=\"page\"><i [^>]*>.*?</i><span><b>기본 규칙", page);   // ☰ 지금 화면(새 메뉴판, 2026-11-18)
         Assert.Contains("v1", page);
 
         var form = new Dictionary<string, string>

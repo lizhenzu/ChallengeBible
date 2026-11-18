@@ -119,7 +119,7 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
         }
         var op1 = await Login("operator@example.com", "1234");
         var page = await op1.GetStringAsync("/platform/accounts?q=" + Uri.EscapeDataString("박지은"));
-        Assert.Contains("aria-current=\"page\">계정 찾기", page);
+        Assert.Matches("aria-current=\"page\"><i [^>]*>.*?</i><span><b>계정 찾기", page);   // ☰ 지금 화면(새 메뉴판, 2026-11-18)
         Assert.Contains("관리자예요", page);                                       // 첫 결과(부서 관리자) 자세히
         var r = await op1.PostAsync($"/platform/accounts?handler=ResetPassword&q=x&id={_jieun}", new FormUrlEncodedContent(new Dictionary<string, string>
         {

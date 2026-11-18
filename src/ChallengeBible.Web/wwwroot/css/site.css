@@ -4523,3 +4523,7 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .mv-ask { background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px; padding: 12px; font-size: 13px; color: #78350F; }
 .mv-ask ul { margin: 6px 0 0; padding-left: 18px; line-height: 1.6; }
 .mv-b { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+/* 플랫폼 · 부서 관리 ☰(확정 시안 플랫폼관리메뉴, 2026-11-18): 부서 홈 ☰(.tdr)와 같은 모양 + 위험 도구 빨강 · 기다림 숫자 */
+.tdr-i.t-r { background: #FEE2E2; color: #DC2626; }
+.tdr .pd-panel h2.tdr-g.danger { color: #DC2626; }
+.tdr-r b .tdr-c { font-style: normal; display: inline-block; min-width: 20px; padding: 0 6px; border-radius: 99px; background: #EF4444; color: #fff; font-size: 11px; line-height: 18px; text-align: center; vertical-align: 2px; margin-left: 4px; }
