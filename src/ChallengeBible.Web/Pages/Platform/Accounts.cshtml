@@ -1,4 +1,4 @@
-@page "/platform/accounts"
+﻿@page "/platform/accounts"
 @model ChallengeBible.Web.Pages.Platform.AccountsModel
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Pages.Admin
@@ -60,6 +60,33 @@
                                         @if (AccountsModel.StatusLabel(m.Status) is { Length: > 0 } st) { <span class="tag s">@st</span> }</li>
                                 }
                             </ul>
+                        }
+                        @if (Model.Ok == "moved") { <p class="okmsg" role="status">✓ @(d.Name)님을 @(Model.Move?.FromName ?? "새 부서")@Ui.EuRo(Model.Move?.FromName ?? "새 부서") 옮겼어요 · 점수 · 기록 @(TempData["moved"] ?? 0)줄도 옮겼어요</p> }
+                        @* 부서 바로 옮기기(2026-11-18 사용자 확정 시안): 받는 부서 승인 없이. 부서 관리자 · 플랫폼 관리자는 막는다(R-315) *@
+                        @if (Model.Move is { } mv)
+                        {
+                            var curRole = mv.RoleCode is { Length: > 0 } rc ? (UserRole.Codes.FirstOrDefault(c => c.Code == rc).Name ?? rc) : "학부모";
+                            <div class="mv@(Model.AskMove ? " on" : "")" id="move">
+                                <div class="mv-h"><b>부서 바로 옮기기</b><span>받는 부서 승인 없이 바로 옮겨요. 점수 · 기록도 함께 옮겨져요.</span></div>
+                                @if (mv.Blocked is { } why) { <p class="ph-muted small">@why</p> }
+                                else if (!Model.AskMove) { <a class="btn s sm" href="@Model.MoveUrl(d.Id)">부서 옮기기…</a> }
+                                else
+                                {
+                                    <form method="post" asp-page-handler="MoveDept" asp-route-q="@Model.Q" asp-route-id="@d.Id" class="mv-f" data-move data-name="@d.Name" data-from="@(mv.FromName ?? "소속 없음")">
+                                        <label class="mv-l">옮길 부서<select class="in" name="target" required>
+                                            @foreach (var t in mv.Targets) { <option value="@t.Id">@t.Name</option> }
+                                        </select></label>
+                                        <label class="mv-l">새 부서 역할<select class="in" name="role">
+                                            <option value="@PlatformAccountService.KeepRole" selected>지금 역할 그대로 (@curRole)</option>
+                                            <option value="">학부모</option>
+                                            @foreach (var c in UserRole.Codes.Where(c => c.Code != UserRole.AdminCode)) { <option value="@c.Code">@c.Name</option> }
+                                        </select></label>
+                                        <div class="mv-ask" role="alert"><b data-move-q>@(d.Name)님을 @(mv.FromName ?? "소속 없음") → 고른 부서로 옮길까요?</b>
+                                            <ul><li>점수 · 미션 · 통독 · 필사 기록이 새 부서로 옮겨져요</li><li>지금 부서의 반 · 가족팀 · 보호자 연결에서는 빠져요</li><li>명부 줄(생일 · 연락처)은 새 부서로 따라가요</li><li>되돌리려면 다시 옮기면 돼요</li></ul>
+                                            <div class="mv-b"><a class="btn s sm" href="@Model.Url(d.Id)">취소</a><button type="submit" class="btn p sm" data-move-go>옮기기</button></div></div>
+                                    </form>
+                                }
+                            </div>
                         }
                     </div>
                     @if (d.PlatformAdmin)
@@ -153,3 +180,4 @@
         navigator.clipboard?.writeText(b.dataset.copy).then(() => { b.textContent = '복사했어요'; }, () => { b.textContent = '길게 눌러 복사'; });
     }));
 </script>
+<script src="~/js/account-move.js" asp-append-version="true" defer></script>

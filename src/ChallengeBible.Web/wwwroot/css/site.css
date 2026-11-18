@@ -4512,3 +4512,14 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .sq-qh { display: flex; align-items: center; justify-content: space-between; margin-bottom: -8px; }
 .sq-qh label { font-size: 13px; font-weight: 800; color: var(--dim); }
 .sq-clear { min-height: 34px; padding: 0 12px; border: 1px solid #E5E7EB; border-radius: 99px; background: #F9FAFB; font: inherit; font-size: 13px; font-weight: 700; color: #374151; cursor: pointer; }
+/* 플랫폼 › 계정 찾기 › 부서 바로 옮기기(2026-11-18 확정 시안) */
+.mv { margin-top: 12px; border: 1px solid var(--rule); border-radius: 14px; padding: 14px; display: grid; gap: 10px; }
+.mv-h b { display: block; font-size: 15px; }
+.mv-h span { font-size: 12.5px; color: var(--dim); }
+.mv > .btn { justify-self: start; }
+.mv-f { display: grid; gap: 10px; }
+.mv-l { display: grid; gap: 4px; font-size: 13px; font-weight: 700; }
+.mv-l select { height: 44px; border: 1px solid #CBD5E1; border-radius: 10px; padding: 0 10px; font: inherit; background: #fff; }
+.mv-ask { background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px; padding: 12px; font-size: 13px; color: #78350F; }
+.mv-ask ul { margin: 6px 0 0; padding-left: 18px; line-height: 1.6; }
+.mv-b { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }

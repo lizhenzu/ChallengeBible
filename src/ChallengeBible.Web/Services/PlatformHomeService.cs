@@ -117,6 +117,7 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
         BrandingService.LogAction or SeasonService.LogAction => detail ?? "",
         PlatformAccountService.ResetPasswordAction => $"임시 비밀번호 발급 · {Target(detail)}",
         PlatformAccountService.ResetMarksAction => $"성경 읽음 · 책갈피 초기화 · {Target(detail)}",
+        PlatformAccountService.MoveDeptAction => $"부서 바로 옮기기 · {Target(detail)}",
         _ => detail is null ? action : $"{action} · {detail}",
     };
 

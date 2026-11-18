@@ -27,9 +27,12 @@ public class AccountsModel(PlatformAccountService accounts, ImpersonationService
     public bool AskImp { get; private set; }
 
     public bool AskRename { get; private set; }
+    public DeptMoveOptions? Move { get; private set; }
+    public bool AskMove { get; private set; }
 
-    public async Task OnGetAsync(bool askMarks, bool askImp, bool askRename, CancellationToken ct)
+    public async Task OnGetAsync(bool askMarks, bool askImp, bool askRename, bool askMove, CancellationToken ct)
     {
+        AskMove = askMove;
         AskMarks = askMarks;
         AskRename = askRename;
         AskImp = askImp;
@@ -90,12 +93,30 @@ public class AccountsModel(PlatformAccountService accounts, ImpersonationService
         return RedirectToPage(new { Q = moved, Id = moved, Ok = "renamed" });
     }
 
+    /// <summary>[부서 바로 옮기기](2026-11-18 사용자 확정 시안): 받는 부서 승인 없이 옮긴다.</summary>
+    public async Task<IActionResult> OnPostMoveDeptAsync(int target, string? role, CancellationToken ct)
+    {
+        var (error, moved) = Id is { } id ? await accounts.MoveDeptAsync(Me, id, target, role, ct) : ("계정을 찾을 수 없어요.", 0);
+        if (error is not null)
+        {
+            AskMove = true;
+            Error = error;
+            await LoadAsync(ct);
+            return Page();
+        }
+        TempData["moved"] = moved;
+        return RedirectToPage(new { Q, Id, Ok = "moved" });
+    }
+
+    public string MoveUrl(string id) => Url(id) + "&askMove=true#move";
+
     private async Task LoadAsync(CancellationToken ct)
     {
         Hits = await accounts.SearchAsync(Me, Q, ct);
         var id = Id ?? (Hits.Count > 0 ? Hits[0].Id : null);
         Detail = id is { } x ? await accounts.DetailAsync(Me, x, ct) : null;
         Id = Detail?.Id;
+        Move = Detail is null ? null : await accounts.MoveOptionsAsync(Me, Detail.Id, ct);
     }
 
     public string ImpUrl(string id) => $"/platform/accounts?q={Uri.EscapeDataString(Q ?? "")}&id={Uri.EscapeDataString(id)}&askImp=true#imp";

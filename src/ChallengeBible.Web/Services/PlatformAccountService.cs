@@ -8,6 +8,9 @@ namespace ChallengeBible.Web.Services;
 
 public sealed record AccountHit(string Id, string Name, string Email, bool PlatformAdmin, bool TenantAdmin, IReadOnlyList<string> Tenants);
 public sealed record AccountMembership(string Tenant, string ThemeColor, string Status, IReadOnlyList<string> Roles);
+/// <summary>[부서 바로 옮기기](2026-11-18 사용자 확정 시안): 지금 부서 · 역할, 옮길 수 있는 부서, 못 옮기면 그 까닭.</summary>
+public sealed record DeptMoveOptions(int? FromId, string? FromName, string? RoleCode, IReadOnlyList<(int Id, string Name)> Targets, string? Blocked);
+
 public sealed record AccountDetail(string Id, string Name, string Email, bool PlatformAdmin, DateTime CreatedUtc,
     IReadOnlyList<AccountMembership> Memberships, IReadOnlyList<string> AdminOf, IReadOnlyList<PlatformLog> Log);
 
@@ -131,6 +134,63 @@ public sealed partial class PlatformAccountService(ISystemDb systemDb, TimeProvi
     /// 아이디 바꾸기(ADR 0090, 지시서 07): 플랫폼 관리자만, 이메일을 똑같이 써야 한다. 회원 표와 그 사람의 모든 기록을 한 트랜잭션으로 고친다.
     /// 아이디가 기본 키에 든 표(통독 · 퀴즈 시도 · 설정)는 새 줄을 넣고 옛 줄을 지운다. 잘못되면 이유, 성공하면 null.
     /// </summary>
+    public const string MoveDeptAction = "AccountDeptMoved";
+    public const string KeepRole = "keep";
+
+    /// <summary>옮기기 칸에 쓸 값. 부서 관리자 · 플랫폼 관리자는 옮기지 않는다(R-315).</summary>
+    public async Task<DeptMoveOptions> MoveOptionsAsync(string actor, string id, CancellationToken ct = default)
+    {
+        await using var ctx = await OpenAsync(actor, ct);
+        var a = await ctx.Users.AsNoTracking().SingleOrDefaultAsync(x => x.UserName == id, ct);
+        if (a is null) return new(null, null, null, [], "계정을 찾을 수 없어요.");
+        var cur = await (from d in ctx.DeptRoles join t in ctx.Tenants on d.TenantId equals t.Id where d.UserId == a.Id orderby d.Id
+                         select new { d.TenantId, t.Name, d.RoleCode }).FirstOrDefaultAsync(ct);
+        var targets = (await ctx.Tenants.AsNoTracking().Where(t => !t.IsLobby && t.Status == TenantStatus.Active).Select(t => new { t.Id, t.Name }).ToListAsync(ct))
+            .Where(t => t.Id != cur?.TenantId).OrderBy(t => DeptOrder.Key(t.Name)).ThenBy(t => t.Name, StringComparer.Ordinal).Select(t => (t.Id, t.Name)).ToList();
+        return new(cur?.TenantId, cur?.Name, cur?.RoleCode, targets, await BlockedAsync(ctx, a, ct));
+    }
+
+    private static async Task<string?> BlockedAsync(AppDbContext ctx, AppUser a, CancellationToken ct)
+    {
+        var roles = await (from ur in ctx.UserRoles join r in ctx.IdentityRoleRows on ur.RoleId equals r.Id where ur.UserId == a.Id select r.Name).ToListAsync(ct);
+        if (roles.Contains(IdentityRoles.SuperAdmin)) return "플랫폼 관리자 계정은 옮기지 않아요.";
+        if (roles.Contains(IdentityRoles.Admin)) return "부서 관리자 계정은 옮기지 않아요.";
+        return null;
+    }
+
+    /// <summary>
+    /// [부서 바로 옮기기](2026-11-18 사용자): 받는 부서 승인 없이 진급 승인과 같은 처리(DeptMembership.PlaceAsync — 기록 이동 · 반 · 팀 · 보호자 정리 · 명부 따라감).
+    /// roleCode = "keep" 이면 지금 역할 그대로, "" 이면 학부모(코드 없음). 대기 부서 · 같은 부서 · 관리자 계정은 막는다. 감사 기록을 남긴다. 성공이면 (null, 옮긴 기록 수).
+    /// </summary>
+    public async Task<(string? Error, int Moved)> MoveDeptAsync(string actor, string id, int targetTenantId, string? roleCode, CancellationToken ct = default)
+    {
+        await using var ctx = await OpenAsync(actor, ct);
+        var a = await ctx.Users.SingleOrDefaultAsync(x => x.UserName == id, ct);
+        if (a is null) return ("계정을 찾을 수 없어요.", 0);
+        if (await BlockedAsync(ctx, a, ct) is { } why) return (why, 0);
+        var target = await ctx.Tenants.AsNoTracking().SingleOrDefaultAsync(t => t.Id == targetTenantId, ct);
+        if (target is null || target.IsLobby || target.Status != TenantStatus.Active) return ("옮길 수 없는 부서예요.", 0);
+        var cur = await (from d in ctx.DeptRoles join t in ctx.Tenants on d.TenantId equals t.Id where d.UserId == a.Id orderby d.Id
+                         select new { d.TenantId, d.RoleCode, t.Name }).FirstOrDefaultAsync(ct);
+        if (cur?.TenantId == targetTenantId) return ("이미 그 부서에 있어요.", 0);
+        var code = roleCode == KeepRole ? cur?.RoleCode : string.IsNullOrWhiteSpace(roleCode) ? null : roleCode.Trim();
+        if (code is not null && !UserRole.Codes.Any(c => c.Code == code) && code != cur?.RoleCode) return ("고를 수 없는 역할이에요.", 0);
+        if (code == UserRole.AdminCode && cur?.RoleCode != UserRole.AdminCode) return ("어드민 역할은 부서에서 정해 주세요.", 0);
+
+        await using var tx = ctx.Database.IsRelational() ? await ctx.Database.BeginTransactionAsync(ct) : null;
+        var now = time.GetUtcNow().UtcDateTime;
+        var (error, moved) = await DeptMembership.PlaceAsync(ctx, a, targetTenantId, code, now, ct, actor: actor);
+        if (error == MoveError.TeamLocked) return ("시상 기록이 있는 가족팀에 있어서 옮길 수 없어요.", 0);
+        ctx.AuditLogs.Add(new AuditLog
+        {
+            OccurredUtc = now, ActorUserName = actor, Action = MoveDeptAction, TenantId = targetTenantId,
+            Detail = $"account={id} {a.DisplayName} · {cur?.Name ?? "소속 없음"} → {target.Name} · 기록 {moved.Activities + moved.Points + moved.QuizAttempts}줄",
+        });
+        await ctx.SaveChangesAsync(ct);
+        if (tx is not null) await tx.CommitAsync(ct);
+        return (null, moved.Activities + moved.Points + moved.QuizAttempts);
+    }
+
     public async Task<string?> RenameAsync(string actor, string id, string? newName, string? confirmEmail, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
