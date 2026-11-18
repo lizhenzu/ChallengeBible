@@ -75,6 +75,8 @@ public partial class SqlConsoleTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Contains("SQL 실행", html);
         Assert.Contains("시험 실행(되돌림)", html);
         Assert.Contains("data-sql-preset", html);
+        Assert.Contains("data-sql-clear", html);                 // [지우기](2026-11-18)
+        Assert.Contains("<main class=\"admin gut w760\">", html); // 머리말과 같은 폭(R-270)
         Assert.Contains("href=\"/platform/sql\"", await op.GetStringAsync("/platform/ops"));
     }
 

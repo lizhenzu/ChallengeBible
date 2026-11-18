@@ -4,6 +4,7 @@
   if (!f) return;
   const q = f.querySelector('[data-sql-q]');
   const conf = f.querySelector('[data-sql-conf]');
+  f.querySelector('[data-sql-clear]')?.addEventListener('click', () => { q.value = ''; q.focus(); });   // 칸 비우기
   f.querySelectorAll('[data-sql-preset]').forEach(b => b.addEventListener('click', () => { q.value = b.dataset.sqlPreset; q.focus(); }));
   const sync = () => {
     const save = f.querySelector('input[name=mode]:checked')?.value === 'save';

@@ -1,4 +1,4 @@
-@page "/platform/sql"
+﻿@page "/platform/sql"
 @model ChallengeBible.Web.Pages.Platform.SqlModel
 @using ChallengeBible.Web.Services
 @* SQL 실행(ADR 0107, 확정 시안 SQL실행 2026-11-17): 자주 쓰는 쿼리 · 시험 실행(되돌림)/저장(SAVE) · 결과 표 · 최근 실행 *@
@@ -9,7 +9,7 @@
     string Body(string d) { var i = d.IndexOf(": ", StringComparison.Ordinal); var s = i < 0 ? d : d[(i + 2)..]; s = s.ReplaceLineEndings(" "); return s.Length > 60 ? s[..60] + "…" : s; }
 }
 <partial name="_PlatformTop" />
-<main class="admin gut"><form method="post" class="wrap sq" data-sql>
+<main class="admin gut w760"><form method="post" class="wrap sq" data-sql>   @* 머리말과 같은 760px(R-270, 2026-11-18 사용자) *@
     <h1>SQL 실행</h1>
     <p class="sq-warn" role="note">모든 부서를 한 번에 봐요. 기본은 <b>시험 실행</b>(끝나면 되돌림)이에요. 관리자 계정 · 권한 · 소속이 바뀌면 저장하지 않고 되돌려요.</p>
     <div class="sq-pre" aria-label="자주 쓰는 쿼리">
@@ -18,7 +18,7 @@
             <button type="button" data-sql-preset="@p.Sql">@p.Label</button>
         }
     </div>
-    <label for="sq-q" class="sr-only">SQL</label>
+    <div class="sq-qh"><label for="sq-q">SQL</label><button type="button" class="sq-clear" data-sql-clear>✕ 지우기</button></div>   @* 2026-11-18 사용자: 클리어 버튼 *@
     <textarea id="sq-q" name="query" spellcheck="false" autocapitalize="off" autocomplete="off" data-sql-q>@Model.Sql</textarea>
     <fieldset class="sq-mode"><legend class="sr-only">실행 방식</legend>
         <label><input type="radio" name="mode" value="test" @(Model.Save ? null : "checked") /> 시험 실행(되돌림)</label>
