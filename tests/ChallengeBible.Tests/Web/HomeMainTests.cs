@@ -193,7 +193,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var r = await anon.GetAsync("/jamsil-kids");
         Assert.Equal(System.Net.HttpStatusCode.OK, r.StatusCode);                                 // 로그인으로 보내지 않는다
         var html = await r.Content.ReadAsStringAsync();
-        Assert.Contains("로그인하면 내 기록이 보여요", html);                          // 로그인 화면과 같은 모양 + 띠(2026-11-18)
+        Assert.DoesNotContain("gs-band", html);                                         // 위 띠는 지웠다(2026-11-18 사용자)
         Assert.Contains("손님", html);
         Assert.Contains("src=\"/images/guest.webp\"", html);                          // 사진 자리: 유년부 사람 그림(2026-11-18)
         Assert.Contains("class=\"hj-card hj-pg m\"", html);                           // 같은 카드
