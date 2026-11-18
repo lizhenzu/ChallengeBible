@@ -1,0 +1,131 @@
+﻿@page "/platform/tenants/{id:int}"
+@model ChallengeBible.Web.Pages.Platform.TenantModel
+@using ChallengeBible.Infrastructure.Data
+@using ChallengeBible.Web.Pages.Platform
+@* 부서 화면(2026-11-18 사용자 확정 시안 플랫폼부서-화면분리): 목록 → 이 화면, 탭 4개로 한 번에 한 가지 일만. 저장은 /platform/tenants 처리기 *@
+@{
+    var t = Model.Row!;
+    string H(string handler) => $"/platform/tenants?handler={handler}";
+}
+<partial name="_PlatformTop" />
+<main class="admin gut w760"><div class="wrap tnd">
+    <a class="ms-back" href="/platform/tenants">‹ 부서 목록</a>
+    <div class="tnd-hd">
+        <h1><i class="dot" style="background:@TenantsModel.ColorVar(t.ThemeColor)"></i>@t.Name</h1>
+        <small>/@t.Slug · 참여 코드 <b class="num">@t.JoinCode</b> · 소속 @(t.MemberCount)명 · 만든 날 @t.CreatedUtc.ToString("yyyy.MM.dd")</small>
+        <partial name="_TenantTags" model="t" />
+    </div>
+    <nav class="tnd-tabs" aria-label="부서 설정">
+        @foreach (var (k, l) in TenantModel.Tabs) { <a href="@TenantModel.Url(t.Id, k, null)" aria-current="@(Model.Tab == k ? "page" : "false")">@l</a> }
+    </nav>
+    @if (Model.Error is { } err) { <p class="err" role="alert">@err</p> }
+    @if (Model.OkMessage.Length > 0) { <p class="okmsg" role="status">@Model.OkMessage</p> }
+
+    <div class="ed tnd-body">
+    @if (Model.Tab == "info")
+    {
+        <form method="post" action="@H("Info")" asp-antiforgery="true" class="basic">
+            <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="tab" value="info" />
+            <div class="f"><label for="nm">부서 이름</label>
+                <input class="in sm" id="nm" name="name" value="@t.Name" maxlength="100" />
+                <p class="hint">참여 신청 목록 · 부서 고르기에 보이는 이름이에요.</p></div>
+            <div class="f"><label>주소</label>
+                <p class="ro">/@t.Slug</p>
+                <p class="hint">만든 뒤에는 바꿀 수 없어요.</p></div>
+            <div class="f"><label for="tz">시간대</label>
+                <select class="sel" id="tz" name="timeZoneId">
+                    @foreach (var z in ChallengeBible.Web.Services.PlatformTenantService.TimeZones) { <option value="@z" selected="@(t.TimeZoneId == z)">@z</option> }
+                </select>
+                <p class="hint">"오늘"을 정하는 기준이에요. 바꾸면 미션 날짜가 바뀌는 시각이 달라져요. 이미 남긴 기록은 그대로예요.</p></div>
+            <div class="f"><label>대표 색</label>
+                <div class="colors">
+                    @foreach (var c in ChallengeBible.Web.Services.PlatformTenantService.ThemeColors)
+                    {
+                        <label class="sw" style="background:@TenantsModel.ColorVar(c)"><input type="radio" name="themeColor" value="@c" checked="@(t.ThemeColor == c)" aria-label="@TenantsModel.ColorLabel(c)" /></label>
+                    }
+                </div></div>
+            <div class="bacts"><button type="submit" class="btn pf sm">기본 정보 저장</button>
+                <span class="hint">서비스 이름(앱 이름)은 부서 관리자가 바꿔요.</span></div>
+        </form>
+    }
+    else if (Model.Tab == "prog")
+    {
+        <form method="post" action="@H("Programs")" asp-antiforgery="true" class="tnd-box">
+            <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="tab" value="prog" />
+            <h3>프로그램 <span>· 하나 이상</span></h3>
+            <div class="rl">
+                <label><input type="checkbox" name="mission" value="true" checked="@t.MissionEnabled" />도전!!!성경미션</label>
+                <label><input type="checkbox" name="reading" value="true" checked="@t.ReadingEnabled" />도전!!!성경통독</label>
+                <label><input type="checkbox" name="copy" value="true" checked="@t.CopyEnabled" />도전!!!성경필사</label>
+            </div>
+            <button type="submit" class="btn s sm mt">프로그램 저장</button>
+        </form>
+        <form method="post" action="@H("Code")" asp-antiforgery="true" class="tnd-box">
+            <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="tab" value="prog" />
+            <h3>참여 코드 <span>· 선생님이 아이들에게 알려 주는 코드</span></h3>
+            <p class="code">@t.JoinCode</p>
+            <button type="submit" class="btn s sm">새 코드로 바꾸기</button>
+            <p class="hint">바꾸면 예전 코드로는 신청할 수 없어요. 이미 소속된 사람은 그대로예요.</p>
+        </form>
+        <form method="post" action="@H("Listed")" asp-antiforgery="true" class="tnd-box">
+            <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="tab" value="prog" />
+            <input type="hidden" name="listed" value="@(t.JoinListed ? "false" : "true")" />
+            <h3>참여 목록에 보이기</h3>
+            <button type="submit" class="toggle" role="switch" aria-checked="@(t.JoinListed ? "true" : "false")" aria-label="참여 목록에 보이기">
+                <span class="tr" aria-hidden="true"></span>@(t.JoinListed ? "보임" : "숨김")
+            </button>
+            <p class="hint">켠 부서만 참여 신청 화면의 목록에 나와요. 숨겨도 부서 주소 · 코드로는 신청할 수 있어요.</p>
+        </form>
+    }
+    else if (Model.Tab == "admin")
+    {
+        <div class="tnd-box">
+            <h3>부서 관리자</h3>
+            @if (t.Admins.Count == 0) { <p class="warnline">아직 없어요. 한 명은 정해 주세요.</p> }
+            @foreach (var a in t.Admins)
+            {
+                <form method="post" action="@H("RemoveAdmin")" asp-antiforgery="true" class="adminline">
+                    <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="tab" value="admin" /><input type="hidden" name="userName" value="@a.UserName" />
+                    <span>@a.Name <small>@a.Email</small></span><button type="submit" class="btn t">빼기</button>
+                </form>
+            }
+            <form method="post" action="@H("AddAdmin")" asp-antiforgery="true" class="row">
+                <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="tab" value="admin" />
+                <input class="in sm" name="email" placeholder="이메일로 추가" autocapitalize="off" spellcheck="false" aria-label="부서 관리자 이메일" />
+                <button type="submit" class="btn s sm">추가</button>
+            </form>
+            <p class="hint">소속이 없으면 함께 승인돼요. 빼도 소속은 그대로예요.</p>
+        </div>
+    }
+    else
+    {
+        <div class="tnd-box">
+            <h3>이 부서 관리 화면</h3>
+            @if (Model.AdminImpUrl is { } imp && t.Status == TenantStatus.Active) { <a class="btn s sm" href="@imp">이 부서 관리 화면 →</a><p class="hint">이 부서 관리자로 들어가서 관리 홈을 봐요(확인 한 번). 아래 보라 띠의 [복귀]로 돌아와요.</p> }
+            else { <p class="hint">@(t.Status != TenantStatus.Active ? "정지된 부서예요." : "부서 관리자가 없어 들어갈 수 없어요. 관리자 탭에서 정해 주세요.")</p> }
+        </div>
+        <div class="tnd-box danger">
+            @if (t.Status == TenantStatus.Active)
+            {
+                <h3>부서 정지</h3>
+                <p class="hint">정지하면 소속된 모든 사람이 이 부서 주소에 들어갈 수 없어요. 데이터는 지우지 않아요.</p>
+                <details class="ask"><summary class="btn d sm">정지</summary>
+                    <form method="post" action="@H("Status")" asp-antiforgery="true">
+                        <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="tab" value="ops" /><input type="hidden" name="status" value="@TenantStatus.Suspended" />
+                        <span>@(t.Name)을(를) 정지할까요?</span>
+                        <button type="submit" class="btn dd sm">정지하기</button>
+                    </form>
+                </details>
+            }
+            else
+            {
+                <h3>정지된 부서</h3>
+                <form method="post" action="@H("Status")" asp-antiforgery="true">
+                    <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="tab" value="ops" /><input type="hidden" name="status" value="@TenantStatus.Active" />
+                    <button type="submit" class="btn p sm">다시 열기</button>
+                </form>
+            }
+        </div>
+    }
+    </div>
+</div></main>

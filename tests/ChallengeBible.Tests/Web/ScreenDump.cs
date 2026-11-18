@@ -470,6 +470,8 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(op, "/platform", "13a-플랫폼홈");
         await Save(op, "/platform/today?k=mission", "13a2-플랫폼-오늘현황");   // R-334(2026-11-18 확정 시안)
         await Save(op, "/platform/tenants", "13-플랫폼부서");
+        await Save(op, $"/platform/tenants/{kids.Id}", "13c-플랫폼-부서화면-기본");      // 2026-11-18 확정 시안 플랫폼부서-화면분리
+        await Save(op, $"/platform/tenants/{kids.Id}?tab=prog", "13c2-플랫폼-부서화면-프로그램");
         await Save(op, "/platform/accounts?q=" + Uri.EscapeDataString("김"), "13b-플랫폼-계정찾기");
         await Save(op, $"/platform/accounts?q=cheolsu&id={Acc("cheolsu")}&askMove=true", "13b2-플랫폼-부서바로옮기기");   // R-333(2026-11-18 확정 시안)
         // 가장(확정 시안 플랫폼-가장): 들어가기 확인 → 다른 운영자 창에서 이은혜(유년부 관리자)로 들어간 관리 홈(맨 위 보라 띠)
