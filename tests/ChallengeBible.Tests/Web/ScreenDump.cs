@@ -205,6 +205,15 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids/ranking", "11c-순위");
         await Save(admin, "/jamsil-kids", "05m-부서홈-관리자");   // ☰ 메뉴판 섬김 그룹(확정 시안 부서메뉴)
         await Save(admin, "/jamsil-kids/admin", "11b-관리홈");
+        await Save(admin, "/jamsil-kids/admin/worship", "12w-관리-예배안내-빈");   // 예배 안내(ADR 0116, R-337)
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            raw.WorshipSchedules.Add(new WorshipSchedule { TenantId = kids.Id, SortOrder = 1, DayOfWeek = 0, StartTime = new TimeOnly(10, 0), Place = "비전센터 믿음홀(3F)", Address = "서울특별시 송파구 석촌호수로 102", IsActive = true });
+            raw.SaveChanges();
+        }
+        await Save(admin, "/jamsil-kids/admin/worship", "12w2-관리-예배안내");
+        await Save(admin, "/jamsil-kids", "05w-부서홈-예배안내");
+        await Save(app.CreateClient(), "/jamsil-kids", "05w2-부서홈-예배안내-손님");
         await Save(admin, "/jamsil-kids/admin/members", "12-소속관리");
         // 이름 · 색: 초록 · "유년부 말씀 챌린지"로 바꾼 뒤 모습(바꾼 기록 1건), 찍고 나서 기본값으로 되돌린다
         void Brand(string? name, string? shortName, string color)
