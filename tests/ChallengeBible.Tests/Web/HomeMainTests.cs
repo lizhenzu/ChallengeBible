@@ -215,7 +215,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var (admin, _) = await Member("eunhye", Roles.Teacher, Roles.TenantAdmin);
         Assert.DoesNotContain("aria-label=\"예배 안내\"", await admin.GetStringAsync("/jamsil-kids"));   // 없으면 카드 없음
         var page = await admin.GetStringAsync("/jamsil-kids/admin/worship");
-        Assert.Contains("+ 예배 안내 더하기", page);
+        Assert.Contains("예배 안내 더하기", page);   // "+" 는 &#x2B; 로 나간다
         var r = await admin.PostAsync("/jamsil-kids/admin/worship?handler=Save", new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value,
