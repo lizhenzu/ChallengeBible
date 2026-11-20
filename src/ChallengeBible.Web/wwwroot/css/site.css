@@ -4587,7 +4587,7 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .wsa-acts { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 /* 가입 더 넣기 · 명부 연결(확정 시안 가입연결-탈퇴 ① ② ③, ADR 0119) */
-.more { margin: 0; padding: 14px 16px; border: 1.5px dashed var(--rule); border-radius: 14px; display: grid; gap: 12px; min-width: 0; }
+.more { width: 100%; box-sizing: border-box; margin: 0; padding: 14px 16px; border: 1.5px dashed var(--rule); border-radius: 14px; display: grid; gap: 12px; min-width: 0; }
 .more legend { padding: 0 6px; font-size: 13px; color: var(--dim); }
 .more legend b { color: var(--fg); }
 .b2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
@@ -4606,4 +4606,4 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .ma-leave .lv-wait { padding: 12px 14px; border-radius: 12px; background: var(--soft); display: grid; gap: 4px; }
 .ma-leave .lv-wait p { margin: 0; font-size: 14px; }
 .ma-leave .lv-wait small { color: var(--dim); }
-.btn.lv-go, .btn.lv-ok { background: var(--bg); color: #C62828; border: 1.5px solid #E4A3A3; }
+.btn.lv-go, .btn.lv-ok, .td-btns .btn.lv-ok { background: var(--bg); color: #C62828; border: 1.5px solid #E4A3A3; }
