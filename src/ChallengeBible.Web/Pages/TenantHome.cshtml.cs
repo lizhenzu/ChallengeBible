@@ -55,8 +55,6 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     public IReadOnlyList<BirthdayGiftView> Birthdays { get; private set; } = [];
     /// <summary>홈을 열면 띄우는 "생일 축하해요!" 팝업 — 띄울 때가 아니면 null(R-346).</summary>
     public BirthdayGiftView? BirthdayPopup { get; private set; }
-    /// <summary>같은 날 두 번 띄우지 않게 남기는 쿠키(하루 한 번).</summary>
-    public const string BirthdayPopupCookie = "bd-pop";
 
     /// <summary>생일 팝업 "다음에 할래요" — 내일 · 3일 · 5일 뒤(R-346).</summary>
     public async Task<IActionResult> OnPostSnoozeBirthdayAsync(int days, CancellationToken ct)
@@ -102,10 +100,8 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         {
             await birthdays.EnsureAsync(ct);
             Birthdays = (await birthdays.MineAsync(ct)).Where(g => g.Kind == GiftKinds.Birthday).ToList();
-            // 새 쪽지 팝업이 뜨는 때는 미룬다. 하루 한 번: 오늘 날짜 + 선물 번호를 쿠키에(한 기기를 형제가 같이 써도 각자 한 번)
-            if (NewList.Count == 0 && (BirthdayPopup = await birthdays.PopupAsync(Birthdays, ct)) is { } pop && Request.Cookies[BirthdayPopupCookie] == $"{Data.Today:yyyyMMdd}-{pop.Id}") BirthdayPopup = null;
-            else if (BirthdayPopup is { } shown)
-                Response.Cookies.Append(BirthdayPopupCookie, $"{Data.Today:yyyyMMdd}-{shown.Id}", new Microsoft.AspNetCore.Http.CookieOptions { MaxAge = TimeSpan.FromDays(2), HttpOnly = true, IsEssential = true, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax });
+            // 새 쪽지 팝업이 뜨는 때는 그다음에. 고르거나 [다음에 할래요]를 누르기 전까지는 홈을 열 때마다 뜬다
+            if (NewList.Count == 0) BirthdayPopup = await birthdays.PopupAsync(Birthdays, ct);
         }
         if (tenant.Current.CopyEnabled) CopyData = await copy.SummaryAsync(ct);   // 임시 부서(승인 전)에도(ADR 0110)
         if (prayer365.CanSee(User.IsPlatformAdmin()))
