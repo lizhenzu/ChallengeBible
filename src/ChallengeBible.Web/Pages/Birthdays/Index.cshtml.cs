@@ -63,7 +63,7 @@ public class IndexModel(BirthdayListService birthdays, BirthdayGiftService gifts
     {
         if (!CanSee(tenant)) return NotFound();
         var e = await gifts.StaffPickAsync(User.UserName()!, User.DisplayName() ?? User.UserName()!, gift, item, ct);
-        Msg = e == TeamPickError.None ? "선물을 골랐어요. 선물 처리 \"살 것\"으로 넘어갔어요." : e == TeamPickError.TooExpensive ? "고를 수 없는 상품이에요. 다시 골라 주세요." : "이 선물은 지금 고를 수 없어요(이미 샀거나 안 주기로 했어요).";
+        Msg = e == TeamPickError.None ? "골랐어요 · 선물 처리 \"살 것\"으로 넘어갔어요" : e == TeamPickError.TooExpensive ? "고를 수 없는 상품이에요. 다시 골라 주세요." : "이 선물은 지금 고를 수 없어요(이미 샀거나 안 주기로 했어요).";
         return Redirect(Back() + "#g" + gift);
     }
 
