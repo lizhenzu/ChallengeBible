@@ -116,6 +116,9 @@ public sealed class UserSetting
     public DateTime? FamilyInvitesSnoozedAt { get; set; }
     /// <summary>오늘 할 일 자동 이동 안 보기(ADR 0100): 이 날(부서 날짜) 전까지는 로그인해도 할 일 화면으로 보내지 않는다.</summary>
     public DateOnly? TodoSnoozedUntil { get; set; }
+    /// <summary>가입 때 본인이 넣은 생일(연도 없이, 선택 · ADR 0119). 부서에 들어가면 명부 줄로 옮겨 쓴다.</summary>
+    public byte? BirthMonth { get; set; }
+    public byte? BirthDay { get; set; }
 }
 
 // B. 가입 신청 · 역할 -----------------------------------------------------------

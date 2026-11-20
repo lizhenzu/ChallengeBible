@@ -2870,6 +2870,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasPrecision(3)
                         .HasColumnType("datetime2(3)");
 
+                    b.Property<DateOnly?>("LeftOn")
+                        .HasColumnType("date");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -3861,6 +3864,12 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<byte?>("BirthDay")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte?>("BirthMonth")
+                        .HasColumnType("tinyint");
 
                     b.Property<DateTime?>("FamilyInvitesSnoozedAt")
                         .HasColumnType("datetime2");

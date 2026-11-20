@@ -266,6 +266,10 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
             if (here is null)
             {
                 here = new Person { TenantId = target, Name = Cut(AppUser.FullName(user.LastName, user.FirstName)), CreatedUtc = now, CreatedByUserName = actor };
+                // 가입 때 본인이 넣은 전화 · 생일(선택, ADR 0119)을 새 명부 줄에
+                here.Phone1 = user.PhoneNumber is { Length: > 0 and <= 20 } ph ? ph : null;
+                var mine0 = await sys.UserSettings.AsNoTracking().Where(x => x.UserName == user.UserName).Select(x => new { x.BirthMonth, x.BirthDay }).FirstOrDefaultAsync(ct);
+                if (mine0 is { BirthMonth: > 0, BirthDay: > 0 }) (here.BirthMonth, here.BirthDay) = (mine0.BirthMonth, mine0.BirthDay);
                 sys.People.Add(here);
             }
             here.UserId = user.Id;

@@ -22,6 +22,7 @@ builder.Services.AddScoped<IAppDb>(sp => new RequestDbContextFactory(connectionS
 builder.Services.AddSingleton<ISystemDb>(new SystemDbContextFactory(connectionString));
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<JoinService>();
+builder.Services.AddScoped<RosterLinkService>();
 builder.Services.AddScoped<TenantContext>();
 builder.Services.AddScoped<TenantPageFilter>();
 builder.Services.AddScoped<MemberAdminService>();

@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record SignUpInput(string DisplayName, string Email, string Password, string PasswordConfirm);
+/// <summary>가입 값. 전화번호 · 생일(연도 없이)은 본인이 넣고 싶을 때만(선택, ADR 0119) — 명부와 이어 줄 때 쓴다.</summary>
+public sealed record SignUpInput(string DisplayName, string Email, string Password, string PasswordConfirm, string? Phone = null, int BMonth = 0, int BDay = 0);
 
 /// <summary>칸 이름 → 오류 문구. 비어 있으면 성공.</summary>
 public sealed class FieldErrors : Dictionary<string, string>
@@ -48,6 +49,10 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
         if (email.Length > 254 || !EmailRule().IsMatch(email)) errors["Email"] = "이메일 주소를 확인해 주세요. 예: name@example.com";
         if ((input.Password ?? "").Length < MinPassword) errors["Password"] = $"비밀번호는 {MinPassword}자 이상으로 정해 주세요.";
         else if (input.Password != input.PasswordConfirm) errors["PasswordConfirm"] = "비밀번호가 서로 달라요.";
+        var phone = PhoneDigits(input.Phone);
+        if (phone is { Length: > 0 } && phone.Length is < 9 or > 11) errors["Phone"] = "전화번호를 확인해 주세요. 예: 010-1234-5678 (안 넣어도 돼요)";
+        var (bm, bd) = (input.BMonth, input.BDay);
+        if ((bm == 0) != (bd == 0) || bm is < 0 or > 12 || (bm > 0 && (bd < 1 || bd > DateTime.DaysInMonth(2000, bm)))) errors["Birth"] = "생일은 월과 일을 함께 골라 주세요. (안 넣어도 돼요)";
         if (!errors.Ok) return (null, errors);
 
         var userName = UserNameFromEmail(email);
@@ -70,7 +75,9 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
             UserName = userName, NormalizedUserName = normalized, Email = email, NormalizedEmail = normalizedEmail,
             FirstName = name, LastName = "", SecurityStamp = Guid.NewGuid().ToString("N"), ConcurrencyStamp = Guid.NewGuid().ToString(),
             LockoutEnabled = true, InsertDT = time.GetUtcNow().UtcDateTime,
+            PhoneNumber = phone is { Length: > 0 } ? FormatPhone(phone) : null,
         };
+        if (bm > 0) ctx.UserSettings.Add(new UserSetting { UserName = userName, BirthMonth = (byte)bm, BirthDay = (byte)bd });
         account.PasswordHash = Hasher.HashPassword(account, input.Password!);
         ctx.Users.Add(account);
         var basic = await ctx.IdentityRoleRows.AsNoTracking().Where(r => r.Name == IdentityRoles.Basic).Select(r => r.Id).FirstOrDefaultAsync(ct);
@@ -86,6 +93,22 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
         }
         return (account, errors);
     }
+
+    /// <summary>전화번호의 숫자만. 비어 있으면 null.</summary>
+    public static string? PhoneDigits(string? phone)
+    {
+        var d = new string((phone ?? "").Where(char.IsAsciiDigit).ToArray());
+        return d.Length == 0 ? null : d;
+    }
+
+    /// <summary>숫자만 → 010-1234-5678 모양(명부와 같은 모양).</summary>
+    public static string FormatPhone(string digits) => digits.Length switch
+    {
+        11 => $"{digits[..3]}-{digits[3..7]}-{digits[7..]}",
+        10 when digits.StartsWith("02") => $"02-{digits[2..6]}-{digits[6..]}",
+        10 => $"{digits[..3]}-{digits[3..6]}-{digits[6..]}",
+        _ => digits,
+    };
 
     /// <summary>로그인 칸 하나에 아이디 또는 이메일(유년부와 같다). 이메일 모양이면 이메일로 아이디를 찾는다.</summary>
     public async Task<LoginResult> LoginAsync(string login, string password, CancellationToken ct = default)
