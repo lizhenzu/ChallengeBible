@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
 using ChallengeBible.Tests.Support;
 using ChallengeBible.Web.Services;
@@ -15,7 +15,7 @@ public class AccountAndJoinServiceTests
     private (JoinService Join, RequestScope Scope) Join()
     {
         var scope = new RequestScope();
-        return (new JoinService(new InMemoryDb(_db, scope), scope, Time), scope);
+        return (new JoinService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), scope, Time), scope);
     }
 
     private async Task<AppUser> SignUp(string id = "cheolsu@example.com", string name = "김철수", string pw = "1234")
@@ -80,7 +80,7 @@ public class AccountAndJoinServiceTests
     }
 
     [Fact]
-    public async Task 신청하면_그_부서에_신청_상태_소속이_생기고_로그인_후_갈곳은_참여신청_0045()
+    public async Task R340_참여하면_승인_없이_바로_그_부서_소속이_되고_명부_줄이_생긴다()
     {
         var me = await SignUp();
         var t = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
@@ -92,10 +92,12 @@ public class AccountAndJoinServiceTests
         Assert.Equal(t.Id, scope.TenantId);
         using var raw = InMemoryDb.Raw(_db);
         var m = raw.SignupApplications.Single(x => x.Id == id);
-        Assert.Equal(SignupStatus.Pending, m.Status);
+        Assert.Equal(SignupStatus.Approved, m.Status);   // 승인 없이 바로(2026-11-20)
         Assert.Equal(t.Id, m.TenantId);
         Assert.Equal(SignupRoleKind.Student, m.RoleKind);
-        Assert.Equal(0, (await Accounts().WhereToGoAsync(me.UserName!)).ApprovedCount);   // 승인 전이라 0곳
+        Assert.Equal(UserRole.StudentCode, raw.DeptRoles.Single(d => d.UserId == me.Id).RoleCode);
+        Assert.Single(raw.People.Where(p => p.TenantId == t.Id && p.UserId == me.Id));
+        Assert.Equal((1, "jamsil-kids"), ((await Accounts().WhereToGoAsync(me.UserName!)).ApprovedCount, (await Accounts().WhereToGoAsync(me.UserName!)).OnlyTenantSlug));
     }
 
     [Fact]
@@ -118,14 +120,14 @@ public class AccountAndJoinServiceTests
     }
 
     [Fact]
-    public async Task 신청_취소는_신청_상태일_때만()
+    public async Task 신청_취소는_신청_상태일_때만_바로_소속된_뒤에는_취소할_것이_없다()
     {
         var me = await SignUp();
         var t = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         await Join().Join.ApplyAsync(me.UserName!, "JSKIDS", SignupRoleKind.Student);
-        Assert.True(await Join().Join.CancelAsync(me.UserName!, t.Id));
+        Assert.False(await Join().Join.CancelAsync(me.UserName!, t.Id));   // 승인 없이 바로 소속(R-340) — 기다리는 신청이 없다
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Empty(raw.SignupApplications);
+        Assert.Single(raw.SignupApplications);
     }
 
     [Fact]

@@ -240,6 +240,27 @@ public sealed class MessageService(ISystemDb systemDb, TimeProvider time)
     }
 
     /// <summary>
+    /// 부서 알림(2026-11-20 사용자 "승인 대신 통보 쪽지"): 그 부서 관리자들과 플랫폼 관리자(superadmin)에게 쪽지 한 통씩. 보낸 사람 = label, 답장 없음.
+    /// 알림이 실패해도 참여 · 연결은 그대로 되게 오류는 삼킨다.
+    /// </summary>
+    public async Task NotifyDeptAsync(string actor, int tenantId, string label, string body, CancellationToken ct = default)
+    {
+        try
+        {
+            await using var ctx = systemDb.Create(actor);
+            var adminIds = await DeptMembership.AdminIdsAsync(ctx, ct);
+            var to = await (from d in ctx.DeptRoles join u in ctx.Users on d.UserId equals u.Id
+                            where d.TenantId == tenantId && adminIds.Contains(u.Id) select u.UserName!).ToListAsync(ct);
+            if (await FeedbackTargetAsync(ctx, ct) is { } boss) to.Add(boss);
+            var text = body.Length > MaxLength ? body[..MaxLength] : body;
+            foreach (var n in to.Distinct(StringComparer.OrdinalIgnoreCase).Where(n => !n.Equals(actor, StringComparison.OrdinalIgnoreCase)))
+                ctx.Messages.Add(new Message { Kind = MessageKinds.System, SenderLabel = label, RecipientUserName = n, Body = text, SentUtc = Now });
+            await ctx.SaveChangesAsync(ct);
+        }
+        catch (Exception e) when (e is System.Data.Common.DbException or InvalidOperationException or DbUpdateException) { }
+    }
+
+    /// <summary>
     /// 개선 · 불편 접수(R-326): superadmin 에게. 익명이면 보낸 계정 · 이름 · 역할을 남기지 않고 지금 부서 이름만 남긴다(답장 불가).
     /// </summary>
     public async Task<MsgError> FeedbackAsync(string userName, int tenantId, string? body, bool anonymous, CancellationToken ct = default)

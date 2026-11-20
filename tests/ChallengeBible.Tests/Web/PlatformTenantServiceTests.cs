@@ -133,7 +133,7 @@ public class PlatformTenantServiceTests
     {
         var (t, _) = await Svc.CreateAsync(_op.UserName!, Input());
         var old = t!.JoinCode;
-        var join = new JoinService(new InMemoryDb(_db, new RequestScope()), new RequestScope(), TimeProvider.System);
+        var join = new JoinService(new InMemoryDb(_db, new RequestScope()), new InMemorySystemDb(_db), new RequestScope(), TimeProvider.System);
 
         var fresh = await Svc.RegenerateCodeAsync(_op.UserName!, t.Id);
         Assert.NotEqual(old, fresh);

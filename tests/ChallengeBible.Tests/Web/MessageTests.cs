@@ -233,7 +233,7 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
     }
 
     [Fact]
-    public async Task R329_회원_가입과_부서_참여_신청은_superadmin_에게_자동_알림_쪽지()
+    public async Task R329_R340_회원_가입과_부서_참여는_superadmin_에게_자동_알림_쪽지()
     {
         using (var raw = InMemoryDb.Raw(_db)) { foreach (var t in raw.Tenants) t.JoinListed = true; raw.SaveChanges(); }
         var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
@@ -248,12 +248,43 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
             Assert.Equal(2, sys.Count);
             Assert.All(sys, m => Assert.Equal(("superadmin", (string?)null), (m.RecipientUserName, m.SenderUserName)));
             Assert.Contains("새 회원 가입 · 새친구", sys[0].Body);
-            Assert.Contains("부서 참여 신청 · 새친구 → 유년부 · 학생 희망", sys[1].Body);
+            Assert.Contains("새친구님이 유년부에 들어왔어요 · 학생", sys[1].Body);   // R-340 승인 없이 바로 · 통보만
         }
         var sa = await Login("superadmin@example.com");
         var inbox = await sa.GetStringAsync("/messages");
         Assert.Contains("도전!!! 알림", inbox);
         var id = InMemoryDb.Raw(_db).Messages.First(m => m.Kind == MessageKinds.System).Id;
         Assert.DoesNotContain(">답장<", await sa.GetStringAsync($"/messages/{id}"));   // 자동 알림은 답장 없음
+    }
+
+    /// <summary>R-340(2026-11-20 사용자): 부서 참여는 승인 없이 바로 — 그 부서 관리자와 플랫폼 관리자에게만 통보 쪽지가 가고, 다른 부서 관리자 · 일반 교사는 안 받는다.</summary>
+    [Fact]
+    public async Task R340_부서_참여는_바로_되고_그_부서_관리자와_플랫폼_관리자에게_통보()
+    {
+        Add("kadmin", "유년관리", _kids, Roles.Teacher);
+        Add("eadmin", "초등관리", _elem, Roles.Teacher);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            foreach (var u in raw.Users) u.PasswordHash ??= new PasswordHasher<AppUser>().HashPassword(u, "1234");
+            foreach (var t in raw.Tenants) t.JoinListed = true;
+            raw.SaveChanges();
+        }
+        foreach (var k in new[] { "kadmin", "eadmin" }) InMemoryDb.AddRole(_db, InMemoryDb.Raw(_db).Users.Single(u => u.UserName == _u[k]).Id, IdentityRoles.Admin);
+
+        var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var tok = TokenRx().Match(await c.GetStringAsync("/account/signup")).Groups[1].Value;
+        await c.PostAsync("/account/signup", new FormUrlEncodedContent(new Dictionary<string, string>
+        { ["__RequestVerificationToken"] = tok, ["DisplayName"] = "새친구", ["Email"] = "newbie2@example.com", ["Password"] = "abcd1234!", ["PasswordConfirm"] = "abcd1234!" }));
+        var r = await Post(c, "/join", "/join?handler=Apply", new() { ["TenantId"] = _kids.Id.ToString(), ["RoleKind"] = SignupRoleKind.Student });
+        Assert.Equal("/kids", r.Headers.Location!.OriginalString);
+
+        using var after = InMemoryDb.Raw(_db);
+        var me = after.Users.Single(u => u.Email == "newbie2@example.com");
+        Assert.Equal(_kids.Id, after.DeptRoles.Single(d => d.UserId == me.Id).TenantId);   // 승인 없이 바로 소속
+        var to = after.Messages.Where(m => m.Kind == MessageKinds.System && m.Body.Contains("유년부에 들어왔어요")).Select(m => m.RecipientUserName).ToList();
+        Assert.Contains(_u["kadmin"], to);
+        Assert.Contains("superadmin", to);
+        Assert.DoesNotContain(_u["eadmin"], to);   // 다른 부서 관리자는 안 받는다
+        Assert.DoesNotContain(_u["eunhye"], to);   // 관리자 아닌 교사도 안 받는다
     }
 }

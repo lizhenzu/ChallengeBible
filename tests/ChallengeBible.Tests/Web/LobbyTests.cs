@@ -199,7 +199,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task R171_임시_부서는_참여_신청_대상이_아니다()
     {
         var scope = new RequestScope();
-        var join = new JoinService(new InMemoryDb(_db, scope), scope, TimeProvider.System);
+        var join = new JoinService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), scope, TimeProvider.System);
         Assert.Null(await join.LookupAsync("WELCOM"));
         using (var raw = InMemoryDb.Raw(_db)) { raw.Tenants.Single(t => t.Id == _lobby.Id).JoinListed = true; raw.SaveChanges(); }
         Assert.DoesNotContain(await join.ListedAsync(), t => t.TenantId == _lobby.Id);

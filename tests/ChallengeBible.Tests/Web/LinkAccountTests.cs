@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -131,7 +131,7 @@ public partial class LinkAccountTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
-    public async Task R324_참여_신청에_쓴_생일이_같은_명부_후보를_맨_위에_생일_같음으로()
+    public async Task R324_R340_참여할_때_쓴_생일이_내_명부_줄에_들어간다()
     {
         using (var raw = InMemoryDb.Raw(_db))
         {
@@ -147,12 +147,11 @@ public partial class LinkAccountTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Equal(JoinError.None, (await join.ApplyAsync(sy.UserName!, _kids.Id, null, SignupRoleKind.Student, CancellationToken.None, 2, 3)).Error);
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal((2, 3), raw.SignupApplications.Where(a => a.UserName == sy.UserName).Select(a => new { a.BMonth, a.BDay }).AsEnumerable().Select(a => (a.BMonth, a.BDay)).Single());
 
-        var admin = await Login("admin@example.com");
-        await admin.GetAsync("/kids");
-        var page = await admin.GetStringAsync("/kids/admin/members?Tab=Requested");
-        var same = page.IndexOf("생일 같음", StringComparison.Ordinal);
-        if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(page, "47-신청-생일같음");
-        Assert.True(same > 0);
-        Assert.True(same < page.IndexOf("7월 21일", StringComparison.Ordinal));   // 생일 같은 줄(2월 3일)이 먼저
+        // R-340(2026-11-20): 승인 없이 바로 소속 — 내 명부 줄에 신청 때 쓴 생일이 들어간다(명부 연결은 가입 때 본인 확인으로, R-341)
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var mine = raw.People.Single(p => p.TenantId == _kids.Id && p.UserId == sy.Id);
+            Assert.Equal(((int?)2, (int?)3), (mine.BirthMonth, mine.BirthDay));
+        }
     }
 }
