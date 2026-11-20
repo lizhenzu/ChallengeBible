@@ -20,7 +20,7 @@
 <partial name="_AdminTop" model="Model.Tenant" />
 <main class="admin gut w760 bdy"><div class="wrap">
     <h1 class="bdy-h">생일 <small>명부 @(b.People)명 · 생일 있음 @(b.All.Count)명</small></h1>
-    @if (Model.Msg is { } msg) { <p class="okmsg" role="status">@msg</p> }
+    @if (Model.Msg is { } msg) { <p class="bdy-toast" role="status">✓ @msg</p> }
 
     <nav class="bdy-tabs" aria-label="생일 보기">
         <a href="@U(IndexModel.Up)" aria-current="@(Model.Current == IndexModel.Up ? "page" : "false")">다가오는</a>
@@ -135,23 +135,31 @@
     }
     @if (Model.PickGift is { } pgft)
     {
-        @* 선생님이 대신 고르기(확정 시안 생일카드-선물 ③): 아이와 같은 목록 *@
+        @* 선물 고르기(확정 시안 선물고르기-팝업, 2026-11-20): 두꺼운 테두리 없이, 이미 고른 것만 "지금 고른 것". 누르면 그 자리에서 "이 선물로 할까요?" *@
         <div class="go-modal" role="dialog" aria-modal="true" aria-labelledby="pickT" id="pick">
-            <form method="post" asp-antiforgery="true" action="@($"/{slug}/birthdays?handler=Pick&Tab={Model.Current}&Days={Model.Days}&M={Model.M}")" class="go-sheet bdy-pick">
-                <b id="pickT">@pgft.Name @pgft.KindLabel 고르기</b>
-                <small>한도 @pgft.MaxAmount.ToString("N0")원 · 아이가 고르는 목록과 같아요. 고르면 "골랐음"이 되고, 아이 · 부모님 화면에 "선생님이 골라 주셨어요"로 보여요. 사기 전까지 바꿀 수 있어요.</small>
+            <form method="post" asp-antiforgery="true" action="@($"/{slug}/birthdays?handler=Pick&Tab={Model.Current}&Days={Model.Days}&M={Model.M}")" class="go-sheet bdy-pick" data-pick-form>
+                <div class="bdy-pick-hd"><div><b id="pickT">@pgft.Name @pgft.KindLabel 고르기</b><small>한도 @pgft.MaxAmount.ToString("N0")원 · 아이가 고르는 목록과 같아요. 누르면 바로 물어봐요.</small></div>
+                    <a class="bdy-x" href="@Model.Back()#g@(pgft.Id)" aria-label="닫기">✕</a></div>
                 <input type="hidden" name="gift" value="@pgft.Id" />
+                <input type="hidden" value="" data-pick-item />
                 @if (Model.PickItems.Count == 0) { <p class="bdy-empty">고를 수 있는 상품이 없어요. 관리 › 선물 › 상품을 확인해 주세요.</p> }
                 <div class="bdy-items">
                     @foreach (var it in Model.PickItems)
                     {
-                        <label class="bdy-item"><input type="radio" name="item" value="@it.Id" checked="@(pgft.ItemId == it.Id)" required />
-                            <span class="pic">@if (it.HasImage) { <img src="/images/AwardItem/@(it.Id).jpg" alt="" loading="lazy" onerror="this.remove()" /> }</span>
-                            <b>@it.Name</b><small>@it.Price.ToString("N0")원</small></label>
+                        var now = pgft.ItemId == it.Id;
+                        <button type="submit" name="item" value="@it.Id" class="bdy-item" data-pick="@it.Id" data-name="@it.Name" data-price="@it.Price.ToString("N0")원" data-img="@(it.HasImage ? $"/images/AwardItem/{it.Id}.jpg" : "")">
+                            <span class="pic">@if (it.HasImage) { <img src="/images/AwardItem/@(it.Id).jpg" alt="" loading="lazy" onerror="this.remove()" /> }@if (now) { <em>지금 고른 것</em> }</span>
+                            <b>@it.Name</b><small>@it.Price.ToString("N0")원</small></button>
                     }
                 </div>
-                <div class="go-row2"><a class="btn s" href="@Model.Back()#g@(pgft.Id)">닫기</a><button type="submit" class="btn p">이 선물로 고르기</button></div>
             </form>
+            <div class="bdy-cf" data-pick-cf hidden>
+                <div class="bdy-cf-box" role="alertdialog" aria-modal="true" aria-labelledby="cfQ">
+                    <span class="pic" data-cf-pic></span><b data-cf-name></b><small data-cf-price></small>
+                    <h3 id="cfQ">이 선물로 할까요?</h3>
+                    <div class="bdy-cf-two"><button type="button" class="btn s" data-cf-no>다시 고를게요</button><button type="button" class="btn p" data-cf-yes>이 선물로 할게요</button></div>
+                </div>
+            </div>
         </div>
     }
     @if (Model.Share is { } sh)
@@ -170,6 +178,22 @@
     }
 </div></main>
 <script>
+    // 선물 고르기: 누르면 그 자리에서 "이 선물로 할까요?"(JS 가 없으면 바로 고른다)
+    (() => {
+        const f = document.querySelector('[data-pick-form]'), cf = document.querySelector('[data-pick-cf]'); if (!f || !cf) return;
+        const hid = f.querySelector('[data-pick-item]');
+        f.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', e => {
+            e.preventDefault();
+            hid.value = b.dataset.pick;
+            cf.querySelector('[data-cf-name]').textContent = b.dataset.name;
+            cf.querySelector('[data-cf-price]').textContent = b.dataset.price;
+            const pic = cf.querySelector('[data-cf-pic]'); pic.innerHTML = b.dataset.img ? '<img alt="" src="' + b.dataset.img + '">' : '';
+            cf.hidden = false; cf.querySelector('[data-cf-yes]').focus();
+        }));
+        cf.querySelector('[data-cf-no]').addEventListener('click', () => { cf.hidden = true; hid.value = ''; });
+        cf.querySelector('[data-cf-yes]').addEventListener('click', () => { f.querySelectorAll('[data-pick]').forEach(x => x.removeAttribute('name')); hid.name = 'item'; f.submit(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && !cf.hidden) { cf.hidden = true; hid.value = ''; } });
+    })();
     // 복사 버튼(선물 처리와 같다): 누르면 "복사했어요"
     document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', async () => {
         try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = '복사했어요'; b.classList.add('go-done'); }

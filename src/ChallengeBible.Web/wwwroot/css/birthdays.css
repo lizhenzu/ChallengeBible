@@ -110,9 +110,28 @@
 .bdy-pick { max-height: 86vh; overflow-y: auto; }
 .bdy-items { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 @media (min-width: 640px) { .bdy-items { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.bdy-item { position: relative; display: grid; gap: 4px; padding: 8px; border: 1.5px solid var(--rule); border-radius: 14px; cursor: pointer; }
-.bdy-item input { position: absolute; opacity: 0; }
-.bdy-item:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); }
-.bdy-item .pic { display: block; height: 84px; border-radius: 10px; overflow: hidden; background: #F3F4F6; }
+.bdy-item { position: relative; display: grid; gap: 4px; padding: 0; border: 0; background: none; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.bdy-item:active .pic, .bdy-item:focus-visible .pic { outline: 3px solid rgba(43, 89, 195, .28); outline-offset: -3px; transform: scale(.97); }
+.bdy-item .pic { position: relative; display: block; aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: #F3F4F6; }
+.bdy-item .pic em { position: absolute; left: 6px; top: 6px; padding: 2px 7px; border-radius: 999px; background: rgba(255, 255, 255, .94); font-style: normal; font-size: 10.5px; font-weight: 900; color: var(--accent); }
 .bdy-item .pic img { width: 100%; height: 100%; object-fit: cover; }
 .bdy-item b { font-size: 13.5px; } .bdy-item small { font-size: 12px; color: var(--dim); }
+
+/* 선물 고르기 창 머리 · 그 자리에서 묻기(확정 시안 선물고르기-팝업) */
+.bdy-pick-hd { display: flex; gap: 10px; align-items: flex-start; }
+.bdy-pick-hd div { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.bdy-pick-hd b { font-size: 18px; font-weight: 900; }
+.bdy-pick-hd small { font-size: 12.5px; color: var(--dim); }
+.bdy-x { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; font-weight: 900; color: var(--dim); text-decoration: none; }
+.bdy-cf { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 24px; background: rgba(15, 23, 42, .45); }
+.bdy-cf[hidden] { display: none; }
+.bdy-cf-box { width: min(360px, 100%); background: var(--bg); border-radius: 22px; padding: 18px; display: grid; gap: 8px; text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, .25); }
+.bdy-cf-box .pic { width: 150px; height: 150px; margin: 0 auto; border-radius: 18px; overflow: hidden; background: #F3F4F6; }
+.bdy-cf-box .pic img { width: 100%; height: 100%; object-fit: cover; }
+.bdy-cf-box b { font-size: 17px; font-weight: 900; }
+.bdy-cf-box small { color: var(--dim); font-size: 14px; }
+.bdy-cf-box h3 { margin: 6px 0 2px; font-size: 18px; }
+.bdy-cf-two { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; }
+.bdy-cf-two .btn { min-height: 48px; white-space: nowrap; padding: 0 8px; justify-content: center; }
+.bdy-toast { position: fixed; left: 16px; right: 16px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 70; max-width: 560px; margin: 0 auto; padding: 14px 16px; border-radius: 14px; background: #111827; color: #fff; font-size: 14px; font-weight: 800; animation: bdyToast 4s forwards; }
+@keyframes bdyToast { 0%, 85% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
