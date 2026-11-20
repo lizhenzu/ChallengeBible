@@ -10,8 +10,9 @@ public class BirthdayGiftModel(BirthdayGiftService gifts, NewcomerGiftService ne
 {
     public string Title => View is null ? "선물 고르기" : $"{View.Gift.KindLabel} 고르기";
     public string Slug => tenant.Current.Slug;
-    /// <summary>← 돌아갈 곳: 완독 선물은 통독 홈, 나머지는 미션 홈(미션을 안 쓰는 부서도 통독 홈).</summary>
-    public (string Href, string Label) Back => View?.Gift.Kind == "Copy" ? ($"/{Slug}/copy", "← 필사 홈")
+    /// <summary>← 돌아갈 곳: 생일 선물은 부서 홈, 완독 선물은 통독 홈, 나머지는 미션 홈(미션을 안 쓰는 부서도 통독 홈).</summary>
+    public (string Href, string Label) Back => View?.Gift.Kind == "Birthday" ? ($"/{Slug}", "← 부서 홈")   // 생일 선물 카드는 부서 홈에(ADR 0123)
+        : View?.Gift.Kind == "Copy" ? ($"/{Slug}/copy", "← 필사 홈")
         : View?.Gift.Kind == "Reading" || !tenant.Current.MissionEnabled ? (tenant.Current.ReadingEnabled ? ($"/{Slug}/reading", "← 통독 홈") : ($"/{Slug}", "← 부서 홈")) : ($"/{Slug}/word-mission", "← 미션 홈");
     [BindProperty(SupportsGet = true)] public long Id { get; set; }
     [BindProperty(SupportsGet = true)] public bool Change { get; set; }

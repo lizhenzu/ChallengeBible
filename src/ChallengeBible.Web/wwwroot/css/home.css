@@ -547,7 +547,7 @@
 .hm .hal-n { position: absolute; left: 6px; right: 6px; bottom: 5px; font-size: 11px; font-weight: 800; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, .7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* 생일 선물 카드 · 팝업(ADR 0123, R-346, 확정 시안 생일선물-부서홈-팝업) — bdh- 접두어(다른 화면 이름과 겹치지 않게) */
-.bdh-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; margin: 16px 0 0; padding: 16px; border-radius: 16px;
+.bdh-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; margin: 0; padding: 16px; border-radius: 16px;
   border: 1px solid #F9C9DE; background: linear-gradient(100deg, #FDEEF5, #FEF6EC); color: #111827; text-decoration: none; }
 .bdh-card .bdh-ic { font-size: 30px; line-height: 1; }
 .bdh-card .bdh-m { min-width: 0; }
@@ -564,3 +564,18 @@
 .bdh-later small { display: block; margin-bottom: 8px; font-size: 13.5px; color: #6B7280; }
 .bdh-later div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .bdh-later button { padding: 11px 4px; border: 1px solid #D1D5DB; border-radius: 12px; background: #fff; color: #111827; font-size: 14.5px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+/* 고른 생일 선물 카드(2026-11-20 확정 시안 고른선물 ①): hj-card 테두리 그대로 */
+.hm .hj-card.bdh-got { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 14px; align-items: center; color: #111827; text-decoration: none; }
+.bdh-got .bdh-pic { position: relative; width: 72px; height: 72px; border-radius: 14px; overflow: hidden; display: grid; place-items: center; font-size: 34px; background: linear-gradient(135deg, #FDE7F1, #FEF3E2); }
+.bdh-got .bdh-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #fff; }
+.bdh-got .bdh-m { min-width: 0; }
+.bdh-got .bdh-k { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 12.5px; font-weight: 800; color: #9D174D; }
+.bdh-got .bdh-k i { font-style: normal; padding: 2px 8px; border-radius: 99px; background: #DCFCE7; color: #16A34A; font-size: 11.5px; }
+.bdh-got .bdh-m > b { display: block; margin-top: 3px; font-size: 17px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bdh-got .bdh-bar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin-top: 8px; }
+.bdh-got .bdh-bar i { height: 5px; border-radius: 9px; background: #E5E7EB; }
+.bdh-got .bdh-bar i.on { background: #16A34A; }
+.bdh-got .bdh-m > small { display: block; margin-top: 5px; font-size: 12px; color: #6B7280; }
+.bdh-got .bdh-ar { font-size: 22px; color: #9CA3AF; }
+.hm .hj-card.bdh-late b { display: block; font-size: 15px; font-weight: 800; color: #111827; }
+.hm .hj-card.bdh-late small { display: block; margin-top: 3px; font-size: 13px; color: #6B7280; }
