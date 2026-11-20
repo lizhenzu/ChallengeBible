@@ -514,4 +514,75 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
         Assert.Contains($"/images/AwardItem/{ItemId("스티커북")}.jpg", page);
         Assert.Contains("준비 중이에요", page);
     }
+
+    // R-347: 고른 선물 취소 — 사기 전만, 기한 안이면 다시 고르기, 지났으면 기한 지남, 기록 Cancel. 아이 화면 · 부모님 링크 모두
+
+    [Fact]
+    public async Task R347_선물_취소는_고른_것을_지우고_다시_고르게_하고_기록을_남긴다()
+    {
+        var c = await Login("hajun@example.com");
+        await c.GetStringAsync("/kids");
+        var id = GiftOf("김하준").Id;
+        var url = $"/kids/gifts/birthday/{id}";
+        await Post(c, url, url, new() { ["item"] = ItemId("스티커북").ToString() });
+        var picked = await c.GetStringAsync(url);
+        Assert.Contains("선물 취소", picked);
+        Assert.Contains("고른 선물을 취소할까요?", picked);
+        Assert.Contains("1월 25일까지 다시 고를 수 있어요", picked);
+
+        var r = await Post(c, url, url + "?handler=Cancel", []);
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+        var g = GiftOf("김하준");
+        Assert.Equal((GiftStates.Open, (int?)null, (string?)null), (g.State, g.GiftItemId, g.ItemName));
+        var after = await c.GetStringAsync(url);
+        Assert.Contains("선물을 취소했어요. 다시 골라 주세요.", after);
+        Assert.Contains("data-gk-pick", after);   // 다시 고르기 화면
+        Assert.Contains("data-bdh-pop", await c.GetStringAsync("/kids"));   // 팝업도 다시
+        using (var raw = InMemoryDb.Raw(_db))
+            Assert.Contains(raw.GiftLogs.Where(l => l.GiftId == id), l => l.Action == GiftActions.Cancel && l.ItemName == "스티커북" && l.ActorUserName == _hajun);
+
+        await Post(c, url, url + "?handler=Cancel", []);   // 고른 것이 없으면 아무 일도 없다
+        Assert.Equal(GiftStates.Open, GiftOf("김하준").State);
+    }
+
+    [Fact]
+    public async Task R347_기한이_지났으면_취소하면_기한_지남이고_산_뒤에는_취소할_수_없다()
+    {
+        var c = await Login("hajun@example.com");
+        await c.GetStringAsync("/kids");
+        var id = GiftOf("김하준").Id;
+        var url = $"/kids/gifts/birthday/{id}";
+        await Post(c, url, url, new() { ["item"] = ItemId("스티커북").ToString() });
+        using (var raw = InMemoryDb.Raw(_db)) { raw.Gifts.Single(x => x.Id == id).OpenUntil = new DateOnly(2027, 1, 4); raw.SaveChanges(); }
+        Assert.Contains("다시 고를 수 없어요", await c.GetStringAsync(url));
+        await Post(c, url, url + "?handler=Cancel", []);
+        Assert.Equal(GiftStates.Expired, GiftOf("김하준").State);
+
+        using (var raw = InMemoryDb.Raw(_db)) { var g = raw.Gifts.Single(x => x.Id == id); g.State = GiftStates.Purchased; g.ItemName = "스티커북"; g.GiftItemId = ItemId("스티커북"); raw.SaveChanges(); }
+        Assert.DoesNotContain("선물 취소", await c.GetStringAsync(url));
+        await Post(c, "/kids", url + "?handler=Cancel", []);
+        Assert.Equal(GiftStates.Purchased, GiftOf("김하준").State);
+    }
+
+    [Fact]
+    public async Task R347_부모님_링크에서도_취소한다()
+    {
+        var admin = await Login("admin@example.com");
+        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        var gid = GiftOf("박서윤").Id;
+        string token;
+        using (var raw = InMemoryDb.Raw(_db)) token = raw.Gifts.Single(x => x.Id == gid).LinkToken ?? "";
+        if (token.Length == 0)
+        {
+            using var raw = InMemoryDb.Raw(_db);
+            var g = raw.Gifts.Single(x => x.Id == gid); g.LinkToken = token = new string('A', 32); raw.SaveChanges();
+        }
+        var p = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        await Post(p, $"/gift/{token}", $"/gift/{token}", new() { ["item"] = ItemId("스티커북").ToString() });
+        Assert.Equal(GiftStates.Picked, GiftOf("박서윤").State);
+        Assert.Contains("선물 취소", await p.GetStringAsync($"/gift/{token}"));
+        await Post(p, $"/gift/{token}", $"/gift/{token}?handler=Cancel", []);
+        Assert.Equal(GiftStates.Open, GiftOf("박서윤").State);
+        Assert.Contains("선물을 취소했어요", await p.GetStringAsync($"/gift/{token}"));
+    }
 }
