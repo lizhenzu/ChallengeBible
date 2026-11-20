@@ -232,4 +232,47 @@ public partial class LeaveTests : IClassFixture<WebApplicationFactory<Program>>
         var html = WebUtility.HtmlDecode(await _app.CreateClient().GetStringAsync("/account/login"));
         Assert.Contains("href=\"/account/admin-login\">🔒 플랫폼 관리자 로그인</a>", html);
     }
+
+    // R-348: 가장 중 탈퇴 — 비밀번호 · 확인 글자 · 승인 없이 바로. 관리자 계정은 안 된다(R-315)
+
+    [Fact]
+    public async Task R348_가장_중에는_비밀번호_없이_바로_탈퇴하고_플랫폼_홈으로_돌아온다()
+    {
+        var sa = await Login("superadmin@example.com");
+        var kidName = _u["kid"].UserName!;
+        await Post(sa, $"/platform/accounts?q=kid&id={kidName}&askImp=true", $"/platform/accounts?handler=Impersonate&q=kid&id={kidName}&askImp=true", []);
+        var page = await Text(await sa.GetAsync("/account"));
+        Assert.Contains("탈퇴 처리(가장)", page);
+        Assert.DoesNotContain("leavePw", page);   // 비밀번호 칸 없음
+
+        var r = await Post(sa, "/account", "/account?handler=LeaveNow", []);
+        Assert.Equal("/platform", r.Headers.Location!.OriginalString);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            Assert.DoesNotContain(raw.Users, u => u.UserName == kidName);
+            Assert.DoesNotContain(raw.DeptRoles, d => d.UserId == _u["kid"].Id);
+            Assert.Empty(raw.LeaveRequests);
+            Assert.Contains(raw.AuditLogs, l => l.Action == LeaveService.Action && l.ActorUserName == "superadmin" && l.Detail!.Contains("탈퇴 승인"));
+            Assert.NotNull(raw.People.Single(p => p.Name == "홍길동").LeftOn);
+            Assert.Contains(raw.Users, u => u.UserName == "superadmin");   // 플랫폼 관리자는 그대로
+        }
+        Assert.Equal(HttpStatusCode.OK, (await sa.GetAsync("/platform/leaves")).StatusCode);   // 플랫폼 관리자로 돌아옴
+        Assert.DoesNotContain("가장 중", await sa.GetStringAsync("/platform/leaves"));
+    }
+
+    [Fact]
+    public async Task R348_가장하지_않으면_바로_탈퇴를_못_하고_관리자_계정은_가장해도_안_지운다()
+    {
+        var kid = await Login("kid@example.com");
+        await Post(kid, "/account", "/account?handler=LeaveNow", []);   // 가장 중이 아니면 거절
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Contains(raw.Users, u => u.Id == _u["kid"].Id);
+
+        var sa = await Login("superadmin@example.com");
+        var an = _u["kadmin"].UserName!;
+        await Post(sa, $"/platform/accounts?q=k&id={an}&askImp=true", $"/platform/accounts?handler=Impersonate&q=k&id={an}&askImp=true", []);
+        var page = await Text(await sa.GetAsync("/account"));
+        Assert.DoesNotContain("탈퇴 처리(가장)", page);   // 관리자 계정에는 버튼이 없다
+        await Post(sa, "/account", "/account?handler=LeaveNow", []);
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Contains(raw.Users, u => u.Id == _u["kadmin"].Id);   // R-315
+    }
 }

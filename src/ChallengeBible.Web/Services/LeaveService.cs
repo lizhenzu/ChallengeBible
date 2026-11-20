@@ -61,6 +61,38 @@ public sealed class LeaveService(ISystemDb systemDb, PhotoService photos, Messag
         return LeaveError.None;
     }
 
+    /// <summary>
+    /// 가장 중 탈퇴(R-348, 2026-11-20 사용자 "비밀번호 · 확인 글자 · 승인 없이"): 가장한 플랫폼 관리자가 그 계정을 바로 탈퇴 처리한다.
+    /// 가장한 사람이 플랫폼 관리자가 아니거나 대상이 관리자 계정이면 하지 않는다(R-315). 감사 로그에 가장한 관리자 이름으로 남는다.
+    /// </summary>
+    public async Task<LeaveError> ForceAsync(string impersonator, string userName, CancellationToken ct = default)
+    {
+        string actor;
+        int requestId;
+        await using (var ctx = systemDb.Create("impersonate"))
+        {
+            var imp = await ctx.Users.SingleOrDefaultAsync(u => u.UserName == impersonator, ct);
+            var supers = from ur in ctx.UserRoles join r in ctx.IdentityRoleRows on ur.RoleId equals r.Id where r.Name == IdentityRoles.SuperAdmin select ur.UserId;
+            if (imp?.UserName is null || !await supers.ContainsAsync(imp.Id, ct)) return LeaveError.NotFound;
+            actor = imp.UserName;
+            var me = await ctx.Users.SingleOrDefaultAsync(u => u.UserName == userName, ct);
+            if (me is null) return LeaveError.NotFound;
+            if (await AdminIds(ctx).ContainsAsync(me.Id, ct)) return LeaveError.IsAdmin;
+            var req = await ctx.LeaveRequests.IgnoreQueryFilters().FirstOrDefaultAsync(r => r.UserName == userName, ct);
+            if (req is null)
+            {
+                var dept = await (from d in ctx.DeptRoles join t in ctx.Tenants on d.TenantId equals t.Id where d.UserId == me.Id orderby t.IsLobby, d.Id select new { d.TenantId, d.RoleCode }).FirstOrDefaultAsync(ct)
+                    ?? await ctx.Tenants.Where(t => t.IsLobby).Select(t => new { TenantId = t.Id, RoleCode = (string?)null }).FirstOrDefaultAsync(ct);
+                if (dept is null) return LeaveError.NoDept;
+                req = new LeaveRequest { TenantId = dept.TenantId, UserId = me.Id, UserName = userName, FullName = AppUser.FullName(me.LastName, me.FirstName), RoleCode = dept.RoleCode, RequestedUtc = time.GetUtcNow().UtcDateTime };
+                ctx.LeaveRequests.Add(req);
+                await ctx.SaveChangesAsync(ct);
+            }
+            requestId = req.Id;
+        }
+        return await ApproveAsync(actor, requestId, null, ct);
+    }
+
     public async Task<bool> CancelAsync(string userName, CancellationToken ct = default)
     {
         await using var ctx = systemDb.Create(userName);
