@@ -1,0 +1,30 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="file:///home/user/ChallengeBible/src/ChallengeBible.Web/wwwroot/css/site.css">
+<style>
+body{background:#E9ECF2;margin:0}.boards{display:flex;gap:24px;padding:24px}
+.ph{position:relative;width:390px;height:760px;background:#F6F7FB;border-radius:22px;overflow:hidden}
+.cap{font-size:13px;font-weight:800;color:#555;margin:0 0 8px}
+.top{display:flex;justify-content:space-between;align-items:center;padding:16px;background:#fff}.top b{font-size:18px;color:var(--accent)}
+.bd{padding:14px 16px;display:grid;gap:12px}
+.hi{background:#fff;border-radius:18px;padding:16px}.hi b{font-size:19px}
+.gc{display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#FFF1F2,#FFF7E6);border:1.5px solid #FBCFE8;border-radius:18px;padding:14px}
+.gc .ic{font-size:34px}.gc div{flex:1}.gc b{display:block;font-size:16px}.gc small{color:#9D174D;font-weight:800;font-size:12.5px}
+.gc span.go{padding:10px 14px;border-radius:12px;background:#DB2777;color:#fff;font-weight:900;font-size:14px;white-space:nowrap}
+.blk{background:#fff;border-radius:18px;height:120px}
+.dim{position:absolute;inset:0;background:rgba(15,23,42,.5)}
+.pop{position:absolute;left:20px;right:20px;top:120px;background:#fff;border-radius:24px;padding:22px 18px 18px;text-align:center;display:grid;gap:10px}
+.pop .cake{font-size:56px;line-height:1}.pop h3{margin:0;font-size:21px}.pop p{margin:0;color:var(--dim);font-size:14px;line-height:1.6}
+.pop .main{min-height:52px;border-radius:14px;background:#DB2777;color:#fff;font-weight:900;font-size:17px;display:grid;place-items:center}
+.pop .later{font-size:13px;color:var(--dim);font-weight:800;margin-top:4px}
+.pop .three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.pop .three span{min-height:42px;display:grid;place-items:center;border-radius:12px;border:1px solid var(--line);font-weight:800;font-size:13.5px;white-space:nowrap}
+.note{font-size:12px;color:#8A4B00;background:#FFF7E6;border-radius:12px;padding:10px 12px;line-height:1.6;margin-top:10px;width:390px;box-sizing:border-box}
+</style></head><body><div class="boards">
+<div><p class="cap">① 부서 홈 — 맨 위에 생일 선물 카드</p><div class="ph"><div class="top"><b>도전!!!성경말씀</b><span>☰</span></div><div class="bd">
+<div class="gc"><span class="ic">🎂</span><div><b>생일 선물을 골라요!</b><small>12월 11일 생일 · 12월 4일까지 골라요</small></div><span class="go">고르기 →</span></div>
+<div class="hi"><b>홍채은님, 안녕하세요</b></div><div class="blk"></div><div class="blk"></div></div></div>
+<p class="note">부서 홈 맨 위(인사 카드 위)에 보여요. 고른 뒤에는 "준비 중 · ○○"로 바뀌어요. 성경미션 화면 카드는 빼요.</p></div>
+<div><p class="cap">② 홈을 열면 팝업(하루 한 번)</p><div class="ph"><div class="top"><b>도전!!!성경말씀</b><span>☰</span></div><div class="bd"><div class="gc"><span class="ic">🎂</span><div><b>생일 선물을 골라요!</b></div></div><div class="blk"></div></div>
+<div class="dim"></div><div class="pop"><div class="cake">🎂🎁</div><h3>홍채은님, 생일 축하해요!</h3><p>12월 11일 생일 선물을 골라 주세요.<br>12월 4일까지 고를 수 있어요.</p>
+<div class="main">선물 고르러 가기</div><div class="later">다음에 할래요</div><div class="three"><span>내일 다시</span><span>3일 뒤</span><span>5일 뒤</span></div></div></div>
+<p class="note">[다음에 할래요] 아래 세 버튼으로 미뤄요(그날까지 팝업 안 뜸, 카드는 그대로). 고르면 팝업은 더 안 떠요. 기한 하루 전에는 미뤄도 다시 떠요.</p></div>
+</div></body></html>
