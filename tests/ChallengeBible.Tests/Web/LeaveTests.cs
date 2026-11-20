@@ -198,4 +198,38 @@ public partial class LeaveTests : IClassFixture<WebApplicationFactory<Program>>
         using var after = InMemoryDb.Raw(_db);
         Assert.Contains(after.Users, u => u.Id == _u["kadmin"].Id);
     }
+
+    /// <summary>2026-11-20 사용자(확정 시안 탈퇴메뉴-관리자로그인): ☰ "탈퇴 신청"(기다리는 수) · 탈퇴 신청 화면 — 플랫폼은 모든 부서, 부서 관리자는 자기 부서만.</summary>
+    [Fact]
+    public async Task R343_메뉴_탈퇴_신청_화면에서_숫자를_보고_승인한다()
+    {
+        await Requested();
+        var sa = await Login("superadmin@example.com");
+        var page = WebUtility.HtmlDecode(await sa.GetStringAsync("/platform/leaves"));
+        Assert.Contains("기다리는 탈퇴 1명", page);
+        Assert.Contains("탈퇴 신청 · 홍길동(", page);
+        Assert.Matches("href=\"/platform/leaves\"[^>]*>.*?탈퇴 신청 <em class=\"tdr-c num\"[^>]*>1</em>", page);   // ☰ 숫자
+
+        var kadmin = await Login("kadmin@example.com");
+        var mine = WebUtility.HtmlDecode(await kadmin.GetStringAsync("/kids/leaves"));
+        Assert.Contains("기다리는 탈퇴 1명", mine);
+        Assert.Matches("href=\"/kids/leaves\"[^>]*>.*?탈퇴 신청 <em class=\"tdr-c num\"[^>]*>1</em>", WebUtility.HtmlDecode(await kadmin.GetStringAsync("/kids")));
+        var eadmin = await Login("eadmin@example.com");
+        Assert.Contains("기다리는 탈퇴 0명", WebUtility.HtmlDecode(await eadmin.GetStringAsync("/elem/leaves")));   // 다른 부서 것은 안 보인다
+        var friend = await Login("friend@example.com");
+        Assert.Equal(HttpStatusCode.NotFound, (await friend.GetAsync("/kids/leaves")).StatusCode);   // 관리자만
+        Assert.DoesNotContain("/kids/leaves", await friend.GetStringAsync("/kids"));
+
+        await Post(sa, "/platform/leaves", "/platform/leaves?handler=Leave", new() { ["leaveId"] = LeaveId().ToString(), ["leaveDo"] = "ok" });
+        using var raw = InMemoryDb.Raw(_db);
+        Assert.Empty(raw.LeaveRequests);
+        Assert.DoesNotContain(raw.Users, u => u.Id == _u["kid"].Id);
+    }
+
+    [Fact]
+    public async Task 로그인_화면에_플랫폼_관리자_로그인_버튼()
+    {
+        var html = WebUtility.HtmlDecode(await _app.CreateClient().GetStringAsync("/account/login"));
+        Assert.Contains("href=\"/account/admin-login\">🔒 플랫폼 관리자 로그인</a>", html);
+    }
 }

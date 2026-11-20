@@ -1,0 +1,17 @@
+@page "/{slug}/leaves"
+@model ChallengeBible.Web.Pages.Todo.LeavesModel
+@* 확정 시안 탈퇴메뉴-관리자로그인 C(2026-11-20): 이 부서의 기다리는 탈퇴 — 부서 관리자만 *@
+<link rel="stylesheet" href="~/css/todo.css" asp-append-version="true" />
+<div class="tdo">
+<header class="td-top gut"><div class="wrap">
+    <div class="t"><small><em>도전!!!</em> @Model.Tenant.Current.Name</small><b>탈퇴 신청</b></div>
+    <a class="td-home" href="/@Model.Slug">홈으로</a>
+</div></header>
+<main class="gut"><div class="wrap td-main">
+    @if (Model.Msg is { } m) { <p class="td-msg" role="status">@m</p> }
+    <div class="td-hello"><h1>기다리는 탈퇴 @(Model.Leaves.Count)명</h1></div>
+    @if (Model.Leaves.Count == 0) { <div class="td-empty">기다리는 탈퇴 신청이 없어요</div> }
+    <partial name="_LeaveCards" model="Model.Leaves" />
+    <p class="td-why">오늘 할 일에도 같은 카드가 떠요. 어디서 처리해도 돼요.</p>
+</div></main>
+</div>
