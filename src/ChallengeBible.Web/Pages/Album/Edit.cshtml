@@ -9,7 +9,7 @@
 }
 <partial name="_Top" />
 <link rel="stylesheet" href="~/css/album.css" asp-append-version="true" />
-<main class="gut al-pg"><div class="wrap">
+<main class="gut w760 al-pg"><div class="wrap">
     <a class="al-back" href="/@slug/album@(editing ? $"/{Model.Item!.Album.Id}" : "")">‹ @(editing ? "앨범" : "사진첩")</a>
     <h1>@Model.Title</h1>
     @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }

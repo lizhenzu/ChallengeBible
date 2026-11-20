@@ -10,7 +10,7 @@
 }
 <partial name="_Top" />
 <link rel="stylesheet" href="~/css/album.css" asp-append-version="true" />
-<main class="gut al-pg"><div class="wrap">
+<main class="gut w760 al-pg"><div class="wrap">
     <a class="al-back" href="/@slug">‹ 부서 홈</a>
     <div class="al-h"><h1>@dept 사진첩</h1>@if (Model.CanManage) { <a class="al-btn p" href="/@slug/album/edit">+ 앨범 만들기</a> }</div>
     @if (Model.Msg is { } m) { <p class="ok-box" role="status">@m</p> }
