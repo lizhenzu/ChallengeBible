@@ -159,4 +159,20 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("이미 부서에 함께하고 있어요", body);                       // 보내도 막히고, 목록 대신 내 부서 안내(이미 소속 · [○○로 가기])
         Assert.Contains($"href=\"/{_elem.Slug}\"", body);
     }
+
+    /// <summary>2026-11-20 사용자: 참여는 승인 없이 바로라 소속 관리는 명부 탭이 먼저 열리고, 기다리는 신청이 없으면 "참여 신청" 탭은 숨긴다.</summary>
+    [Fact]
+    public async Task 소속_관리는_명부가_먼저_열리고_빈_참여_신청_탭은_숨긴다()
+    {
+        var admin = InMemoryDb.SeedAccount(_db, "kidsadmin@example.com", "관리자");
+        InMemoryDb.SeedMembership(_db, _kids.Id, admin.UserName!, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
+        using (var raw = InMemoryDb.Raw(_db)) { raw.Users.Single(u => u.Id == admin.Id).PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<AppUser>().HashPassword(admin, "1234"); raw.SaveChanges(); }
+        var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var tok = TokenRx().Match(await c.GetStringAsync("/account/login")).Groups[1].Value;
+        await c.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = tok, ["Email"] = "kidsadmin@example.com", ["Password"] = "1234" }));
+        await c.GetAsync("/" + _kids.Slug);
+        var html = await c.GetStringAsync($"/{_kids.Slug}/admin/members");
+        Assert.Contains("aria-current=\"page\">명부", html);
+        Assert.DoesNotContain(">참여 신청 <", html);
+    }
 }

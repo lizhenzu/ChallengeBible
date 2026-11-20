@@ -4615,3 +4615,10 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .top .who > * { flex: none; }
 .top .who > span { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 420px) { .top .wrap { gap: 8px; } .top .who, .top .lnk { gap: 8px; font-size: 13px; } .top .who button { font-size: 13px; } .brand { font-size: 16px; } }
+
+/* 플랫폼 머리말 한 줄: 도전!!!성경말씀 > 화면 이름(2026-11-20 사용자) */
+.ptop .pt-title.pt-one { display: flex; align-items: baseline; gap: 6px; flex-direction: row; white-space: nowrap; }
+.ptop .pt-one .pt-brand { flex: none; font-size: 13px; font-weight: 700; color: var(--dim); }
+.ptop .pt-one .pt-brand em { font-style: normal; font-weight: 900; color: var(--accent); }
+.ptop .pt-one .pt-sep { flex: none; font-size: 13px; color: var(--dim); }
+.ptop .pt-one b { min-width: 0; }

@@ -99,7 +99,7 @@ public partial class AdminFlowTests : IClassFixture<WebApplicationFactory<Progra
         var (kid, kidId) = await SignedUp("cheolsu", "김철수");
         var m = InMemoryDb.SeedMembership(_db, _kids.Id, kidId, MembershipStatus.Requested, Roles.Participant);
 
-        var list = await admin.GetStringAsync("/jamsil-kids/admin/members");
+        var list = await admin.GetStringAsync("/jamsil-kids/admin/members?Tab=Requested");
         Assert.Contains("김철수", list);
         Assert.Contains("학생 희망", list);
 
