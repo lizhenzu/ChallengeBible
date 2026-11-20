@@ -1,0 +1,78 @@
+@page "/{slug}/bulletin"
+@model ChallengeBible.Web.Pages.Bulletin.IndexModel
+@using ChallengeBible.Web.Services
+@* 주보 보기(ADR 0117, 2026-11-20 확정 시안 주보 ②): 최근 주보(사진 넘겨 보기 · PDF) + 지난 주보. 올리기 · 고치기 · 지우기는 교사 · 관리자만 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var dept = PlatformTodayService.ShortDept(Model.Tenant.Current.Name);
+    var b = Model.Item;
+    var photos = b?.Files.Where(f => !BulletinService.IsPdf(f)).ToList() ?? [];
+    var pdfs = b?.Files.Where(BulletinService.IsPdf).ToList() ?? [];
+    string Size(long n) => n >= 1024 * 1024 ? $"{n / 1024.0 / 1024:0.0}MB" : $"{Math.Max(1, n / 1024)}KB";
+    string Day(DateOnly d) => d.DayOfWeek == DayOfWeek.Sunday ? "주일" : d.ToString("dddd", new System.Globalization.CultureInfo("ko-KR"));
+}
+<partial name="_Top" />
+<link rel="stylesheet" href="~/css/bulletin.css" asp-append-version="true" />
+<main class="gut jb-pg"><div class="wrap">
+    <a class="jb-back" href="/@slug">‹ 부서 홈</a>
+    <div class="jb-h"><h1>@dept 주보</h1>@if (Model.CanEdit) { <a class="jb-btn p" href="/@slug/bulletin/edit">+ 주보 올리기</a> }</div>
+    @if (Model.Msg is { } m) { <p class="ok-box" role="status">@m</p> }
+    @if (b is null)
+    {
+        <p class="jb-empty">아직 올린 주보가 없어요.</p>
+    }
+    else
+    {
+        <article class="jb-cur" aria-labelledby="jbT">
+            <span class="jb-d">@b.Item.Date.ToString("yyyy년 M월 d일") @Day(b.Item.Date)</span>
+            @if (b.Item.Title is { } tt) { <h2 id="jbT">@tt</h2> } else { <h2 id="jbT" class="sr-only">@b.Item.Date.ToString("M월 d일") 주보</h2> }
+            @if (b.Item.Body is { } body) { <p class="jb-body">@body</p> }
+            @if (photos.Count > 0)
+            {
+                <div class="jb-gal" data-jb-gal>
+                    @foreach (var (f, i) in photos.Select((f, i) => (f, i)))
+                    {
+                        <a class="jb-img" href="/@slug/bulletin/file/@f.Id" target="_blank" rel="noopener" hidden="@(i > 0)" data-jb-i="@i"><img src="/@slug/bulletin/file/@f.Id" alt="@f.FileName" loading="@(i == 0 ? "eager" : "lazy")" />@if (photos.Count > 1) { <i>@(i + 1) / @photos.Count</i> }</a>
+                    }
+                    @if (photos.Count > 1)
+                    {
+                        <div class="jb-th" role="group" aria-label="사진 고르기">
+                            @foreach (var (f, i) in photos.Select((f, i) => (f, i)))
+                            {
+                                <button type="button" aria-pressed="@(i == 0 ? "true" : "false")" data-jb-go="@i" aria-label="@(i + 1)번째 사진"><img src="/@slug/bulletin/file/@f.Id" alt="" loading="lazy" /></button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            @foreach (var f in pdfs)
+            {
+                <a class="jb-pdf" href="/@slug/bulletin/file/@f.Id" target="_blank" rel="noopener"><em>PDF</em><span>@f.FileName</span><small>@Size(f.Size)</small></a>
+            }
+            @if (Model.CanEdit)
+            {
+                <div class="jb-edit">
+                    <a class="jb-btn" href="/@slug/bulletin/edit/@b.Item.Id">고치기</a>
+                    <form method="post" asp-page-handler="Delete" asp-route-slug="@slug" onsubmit="return confirm('이 주보를 지울까요? 파일도 함께 지워져요.')"><input type="hidden" name="id" value="@b.Item.Id" /><button type="submit" class="jb-btn">지우기</button></form>
+                </div>
+            }
+        </article>
+        var past = Model.Rows.Where(r => r.Id != b.Item.Id).ToList();
+        @if (past.Count > 0)
+        {
+            <div class="jb-lbl">지난 주보</div>
+            <ul class="jb-list">
+                @foreach (var r in past)
+                {
+                    <li><a href="/@slug/bulletin?id=@r.Id"><span>@r.Date.ToString("M월 d일")@(r.Title is { } rt ? $" · {rt}" : "")</span><small>@(string.Join(" · ", new[] { r.Photos > 0 ? $"사진 {r.Photos}" : null, r.Pdfs > 0 ? $"PDF {r.Pdfs}" : null }.OfType<string>()))</small></a></li>
+                }
+            </ul>
+        }
+    }
+</div></main>
+<script>
+    (() => { const g = document.querySelector('[data-jb-gal]'); if (!g) return;
+        g.addEventListener('click', e => { const b = e.target.closest('[data-jb-go]'); if (!b) return;
+            g.querySelectorAll('[data-jb-i]').forEach(a => a.hidden = a.dataset.jbI !== b.dataset.jbGo);
+            g.querySelectorAll('[data-jb-go]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); }); })();
+</script>

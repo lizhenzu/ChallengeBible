@@ -1,0 +1,49 @@
+/* 부서 주보(ADR 0117, 2026-11-20 확정 시안 주보) */
+.jb-pg .wrap { max-width: 760px; padding-block: 14px 40px; display: flex; flex-direction: column; gap: 12px; }
+.jb-pg h1 { margin: 0; font-size: 21px; }
+.jb-back { font-size: 14px; font-weight: 800; color: var(--accent); text-decoration: none; }
+.jb-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.jb-btn { min-height: 42px; padding: 0 14px; border-radius: 11px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 14px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer; font-family: inherit; }
+.jb-btn.p { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
+.jb-btn.big { min-height: 52px; font-size: 16px; width: 100%; }
+.jb-empty { margin: 0; padding: 30px 10px; text-align: center; color: var(--dim); }
+.jb-cur { border: 1px solid var(--rule); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.jb-d { font-size: 13px; font-weight: 800; color: var(--accent); }
+.jb-cur h2 { margin: 0; font-size: 18px; overflow-wrap: anywhere; }
+.jb-body { margin: 0; font-size: 14.5px; line-height: 1.65; white-space: pre-line; overflow-wrap: anywhere; }
+.jb-gal { display: flex; flex-direction: column; gap: 8px; }
+.jb-img { position: relative; display: block; border-radius: 12px; overflow: hidden; background: var(--soft); }
+.jb-img[hidden] { display: none; }
+.jb-img img { display: block; width: 100%; height: auto; }
+.jb-img i { position: absolute; right: 10px; bottom: 8px; font-style: normal; font-size: 12px; font-weight: 800; color: #fff; background: rgba(0, 0, 0, .55); padding: 2px 8px; border-radius: 99px; }
+.jb-th { display: flex; gap: 6px; overflow-x: auto; }
+.jb-th button { flex: none; width: 56px; height: 56px; padding: 0; border-radius: 10px; border: 2px solid transparent; overflow: hidden; background: var(--soft); cursor: pointer; }
+.jb-th button[aria-pressed="true"] { border-color: var(--accent); }
+.jb-th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.jb-pdf { display: flex; align-items: center; gap: 8px; border: 1px solid var(--rule); border-radius: 12px; padding: 10px 12px; font-size: 14px; font-weight: 700; color: var(--fg); text-decoration: none; min-width: 0; }
+.jb-pdf em { font-style: normal; font-size: 11px; font-weight: 800; color: #fff; background: #D92D20; border-radius: 6px; padding: 2px 6px; flex: none; }
+.jb-pdf span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jb-pdf small { margin-left: auto; color: var(--dim); font-weight: 600; flex: none; }
+.jb-edit { display: flex; gap: 6px; justify-content: flex-end; }
+.jb-edit form { margin: 0; }
+.jb-lbl { font-size: 13px; font-weight: 800; color: var(--dim); margin: 4px 2px -4px; }
+.jb-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 14px; }
+.jb-list li + li { border-top: 1px solid var(--rule); }
+.jb-list a { display: flex; justify-content: space-between; gap: 8px; padding: 12px 14px; font-size: 14px; color: var(--fg); text-decoration: none; }
+.jb-list small { color: var(--dim); flex: none; }
+.jb-form { display: flex; flex-direction: column; gap: 12px; margin: 0; }
+.jb-f { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 800; color: var(--dim); }
+.jb-f small { font-weight: 600; }
+.jb-f .in { font-size: 15px; color: var(--fg); font-weight: 400; }
+.jb-f textarea.in { min-height: 110px; resize: vertical; font-family: inherit; }
+.jb-drop { position: relative; border: 2px dashed var(--line); border-radius: 14px; padding: 16px; text-align: center; font-size: 13.5px; color: var(--dim); font-weight: 700; cursor: pointer; display: block; }
+.jb-drop b { display: block; color: var(--accent); font-size: 15px; margin-bottom: 4px; }
+.jb-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.jb-files { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.jb-files li { display: flex; align-items: center; gap: 8px; border: 1px solid var(--rule); border-radius: 10px; padding: 8px 10px; font-size: 13px; font-weight: 600; color: var(--fg); min-width: 0; }
+.jb-files li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jb-files li small { margin-left: auto; color: var(--dim); flex: none; }
+.jb-files li button { border: 0; background: none; color: var(--bad); font-weight: 800; font-size: 15px; cursor: pointer; flex: none; }
+.jb-rm { display: inline-flex; align-items: center; gap: 4px; color: var(--bad); font-weight: 800; flex: none; cursor: pointer; }
+.jb-rm input { width: 18px; height: 18px; }
+.jb-note { font-size: 12px; color: var(--dim); margin: 0; }

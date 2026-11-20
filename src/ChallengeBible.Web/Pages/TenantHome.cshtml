@@ -177,12 +177,12 @@
         </section>
     }
 
-    @* 예배 안내(ADR 0116, R-337, 2026-11-18 확정 시안 예배안내): 말씀 찾기 바로 위. 관리 › 예배 안내에서 고친다. 주보 버튼은 링크가 있을 때만 *@
+    @* 예배 안내(ADR 0116, R-337, 2026-11-18 확정 시안 예배안내): 말씀 찾기 바로 위. 관리 › 예배 안내에서 고친다. 주보 버튼은 올린 주보(ADR 0117)가 있을 때 *@
     @if (Model.Worship.Count > 0)
     {
         var dname = PlatformTodayService.ShortDept(t.Name);
         <section class="hj-card wi" aria-label="예배 안내">
-            @foreach (var w in Model.Worship)
+            @foreach (var (w, wi) in Model.Worship.Select((x, i) => (x, i)))
             {
                 <div class="wi-row">
                     <div class="wi-tx">
@@ -191,7 +191,10 @@
                         <div class="wi-p">@w.Place</div>
                         @if (w.Address is { } addr) { <div class="wi-a">@addr <button type="button" class="wi-copy" data-copy="@addr" aria-label="주소 복사">⧉</button></div> }
                     </div>
-                    @if (w.BulletinUrl is { } bu) { <a class="wi-bt" href="@bu" target="_blank" rel="noopener"><b>📄 주보 보기</b>@if (w.BulletinDate is { } bd) { <small>@bd.ToString("yyyy년 M월 d일")</small> }</a> }
+                    @* 주보(ADR 0117, 2026-11-20 확정 시안): 첫 줄 오른쪽 주황 버튼 — 올린 주보가 있으면 가장 최근 날짜, 없으면 교사 · 관리자에게만 [주보 올리기] *@
+                    @if (wi == 0 && Model.BulletinDate is { } jd) { <a class="wi-bt" href="/@t.Slug/bulletin"><b>📋 주보 보기</b><small>@jd.ToString("yyyy년 M월 d일")</small></a> }
+                    else if (wi == 0 && Model.CanBulletin) { <a class="wi-bt" href="/@t.Slug/bulletin/edit"><b>📋 주보 올리기</b><small>아직 주보가 없어요</small></a> }
+                    else if (w.BulletinUrl is { } bu) { <a class="wi-bt" href="@bu" target="_blank" rel="noopener"><b>📋 주보 보기</b>@if (w.BulletinDate is { } bd) { <small>@bd.ToString("yyyy년 M월 d일")</small> }</a> }
                 </div>
             }
         </section>

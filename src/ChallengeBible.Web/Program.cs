@@ -40,7 +40,8 @@ builder.Services.AddScoped<ReadingService>();
 builder.Services.AddScoped<BibleSearchService>();
 builder.Services.AddScoped<ReadingBoardService>();
 builder.Services.AddScoped<BrandingService>();
-builder.Services.AddScoped<WorshipService>();   // 예배 안내(ADR 0116) — 화면은 나중에
+builder.Services.AddScoped<WorshipService>();   // 예배 안내(ADR 0116)
+builder.Services.AddScoped<BulletinService>();   // 부서 주보(ADR 0117)
 builder.Services.AddScoped<SeasonService>();
 builder.Services.AddScoped<MilestoneService>();
 builder.Services.AddScoped<PhotoService>();
@@ -149,6 +150,8 @@ builder.Services.AddRazorPages(o =>
     o.Conventions.AllowAnonymousToPage("/Account/Signup");
     o.Conventions.AllowAnonymousToPage("/Error");
     o.Conventions.AllowAnonymousToPage("/Install");
+    o.Conventions.AllowAnonymousToPage("/Bulletin/Index");   // 부서 주보 보기(ADR 0117): 누구나
+    o.Conventions.AllowAnonymousToPage("/Bulletin/File");
     o.Conventions.AllowAnonymousToPage("/TenantHome");   // 부서 홈 둘러보기(R-336): 로그인 안 하면 개인 정보 없는 화면   // 앱 설치 안내(0115): 로그인 전 첫 방문에도
 });
 

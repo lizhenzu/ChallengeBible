@@ -1,0 +1,59 @@
+@page "/{slug}/bulletin/edit/{id:int?}"
+@model ChallengeBible.Web.Pages.Bulletin.EditModel
+@using ChallengeBible.Web.Services
+@* 주보 올리기 · 고치기(ADR 0117, 2026-11-20 확정 시안 주보 ③): 날짜 · 제목 · 내용 + 파일 여러 개(사진 · PDF, 10개, 10MB). 이 부서 주보로만 저장된다 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var dept = PlatformTodayService.ShortDept(Model.Tenant.Current.Name);
+    var editing = Model.Item is not null;
+    string Size(long n) => n >= 1024 * 1024 ? $"{n / 1024.0 / 1024:0.0}MB" : $"{Math.Max(1, n / 1024)}KB";
+}
+<partial name="_Top" />
+<link rel="stylesheet" href="~/css/bulletin.css" asp-append-version="true" />
+<main class="gut jb-pg"><div class="wrap">
+    <a class="jb-back" href="/@slug/bulletin@(editing ? $"?id={Model.Item!.Item.Id}" : "")">‹ 주보</a>
+    <h1>@dept 주보 @(editing ? "고치기" : "올리기")</h1>
+    @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }
+    <form method="post" enctype="multipart/form-data" class="jb-form" data-jb-form>
+        <label class="jb-f">날짜<input class="in" type="date" name="date" value="@Model.Date.ToString("yyyy-MM-dd")" required /></label>
+        <label class="jb-f">제목 <small>비워도 돼요</small><input class="in" name="title" maxlength="100" value="@Model.TitleText" placeholder="예: 추수감사주일" /></label>
+        <label class="jb-f">내용 <small>비워도 돼요</small><textarea class="in" name="body" maxlength="4000" rows="5" placeholder="예: 예배 후 반별로 감사 카드를 써요.">@Model.Body</textarea></label>
+        @if (editing && Model.Item!.Files.Count > 0)
+        {
+            <div class="jb-f">올린 파일 <small>✕ 로 뺄 파일을 고르고 저장해요</small>
+                <ul class="jb-files">
+                    @foreach (var f in Model.Item.Files)
+                    {
+                        <li><span>@(BulletinService.IsPdf(f) ? "PDF" : "사진") · @f.FileName</span><small>@Size(f.Size)</small><label class="jb-rm"><input type="checkbox" name="remove" value="@f.Id" /><span>✕ 빼기</span></label></li>
+                    }
+                </ul>
+            </div>
+        }
+        <label class="jb-drop"><input type="file" name="files" multiple accept="image/jpeg,image/png,application/pdf" data-jb-pick />
+            <b>+ 파일 고르기 (여러 개)</b><span>사진(JPG · PNG) · PDF · 한 번에 @(BulletinService.MaxFiles)개 · 파일마다 10MB</span></label>
+        <ul class="jb-files" data-jb-list hidden></ul>
+        <p class="err" data-jb-err hidden></p>
+        <button type="submit" class="jb-btn p big">@(editing ? "저장" : "올리기")</button>
+        <p class="jb-note">@dept 주보는 @dept 에서만 보여요. 다른 부서와 섞이지 않아요.</p>
+    </form>
+</div></main>
+<script>
+    // 고른 파일 목록 보이기 + ✕ 로 빼기(DataTransfer 로 input 을 다시 채운다). 크기 · 개수는 서버가 다시 확인한다
+    (() => {
+        const pick = document.querySelector('[data-jb-pick]'), list = document.querySelector('[data-jb-list]'), err = document.querySelector('[data-jb-err]');
+        if (!pick) return;
+        const max = @BulletinService.MaxFiles, maxBytes = @BulletinService.MaxBytes;
+        let files = [];
+        const size = n => n >= 1048576 ? (n / 1048576).toFixed(1) + 'MB' : Math.max(1, Math.round(n / 1024)) + 'KB';
+        function sync() {
+            const dt = new DataTransfer(); files.forEach(f => dt.items.add(f)); pick.files = dt.files;
+            list.hidden = files.length === 0;
+            list.innerHTML = files.map((f, i) => `<li><span>${f.type === 'application/pdf' ? 'PDF' : '사진'} · ${f.name.replace(/</g, '&lt;')}</span><small>${size(f.size)}</small><button type="button" data-i="${i}" aria-label="빼기">✕</button></li>`).join('');
+            const big = files.find(f => f.size > maxBytes);
+            err.hidden = !(files.length > max || big);
+            err.textContent = files.length > max ? `파일은 한 번에 ${max}개까지예요.` : big ? `"${big.name}"이(가) 10MB 를 넘어요.` : '';
+        }
+        pick.addEventListener('change', () => { files = files.concat(Array.from(pick.files)); sync(); });
+        list.addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) { files.splice(+b.dataset.i, 1); sync(); } });
+    })();
+</script>

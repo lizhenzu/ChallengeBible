@@ -214,6 +214,22 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(admin, "/jamsil-kids/admin/worship", "12w2-관리-예배안내");
         await Save(admin, "/jamsil-kids", "05w-부서홈-예배안내");
         await Save(app.CreateClient(), "/jamsil-kids", "05w2-부서홈-예배안내-손님");
+        await Save(admin, "/jamsil-kids/bulletin/edit", "05j-주보-올리기");   // 부서 주보(ADR 0117)
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            var jb = new Bulletin { TenantId = kids.Id, Date = new DateOnly(2027, 1, 10), Title = "추수감사주일", Body = "오늘은 추수감사주일이에요.\n예배 후 반별로 감사 카드를 써요." };
+            var old1 = new Bulletin { TenantId = kids.Id, Date = new DateOnly(2027, 1, 3), Title = "새해 첫 주일" };
+            raw.Bulletins.AddRange(jb, old1);
+            raw.SaveChanges();
+            raw.BulletinFiles.AddRange(
+                new BulletinFile { TenantId = kids.Id, BulletinId = jb.Id, FileName = "주보_앞면.jpg", StoredName = "x1.jpg", ContentType = "image/jpeg", Size = 2_100_000, SortOrder = 1 },
+                new BulletinFile { TenantId = kids.Id, BulletinId = jb.Id, FileName = "주보_뒷면.jpg", StoredName = "x2.jpg", ContentType = "image/jpeg", Size = 1_800_000, SortOrder = 2 },
+                new BulletinFile { TenantId = kids.Id, BulletinId = jb.Id, FileName = "1월10일_교회주보.pdf", StoredName = "x3.pdf", ContentType = "application/pdf", Size = 1_200_000, SortOrder = 3 },
+                new BulletinFile { TenantId = kids.Id, BulletinId = old1.Id, FileName = "새해.pdf", StoredName = "x4.pdf", ContentType = "application/pdf", Size = 900_000, SortOrder = 1 });
+            raw.SaveChanges();
+        }
+        await Save(app.CreateClient(), "/jamsil-kids", "05j2-부서홈-주보버튼");
+        await Save(admin, "/jamsil-kids/bulletin", "05j3-주보-보기");
         await Save(admin, "/jamsil-kids/admin/members", "12-소속관리");
         // 이름 · 색: 초록 · "유년부 말씀 챌린지"로 바꾼 뒤 모습(바꾼 기록 1건), 찍고 나서 기본값으로 되돌린다
         void Brand(string? name, string? shortName, string color)
@@ -570,7 +586,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
     {
         var dir = Environment.GetEnvironmentVariable("CB_SCREENS_DIR")!;
         // 배포 때는 파일 이름에 지문이 붙는다(/css/site.css?v=…) — 화면이 쓰는 스타일 파일(site · reading)을 그대로 안에 넣는다
-        foreach (var name2 in new[] { "site", "reading-b2", "reading", "home", "landing", "mission-old", "todo", "messages", "copy", "prayer365" })
+        foreach (var name2 in new[] { "site", "reading-b2", "reading", "home", "landing", "mission-old", "todo", "messages", "copy", "prayer365", "bulletin" })
         {
             var css = await File.ReadAllTextAsync(Path.Combine(FindWeb(), "wwwroot", "css", name2 + ".css"));
             html = Regex.Replace(html, $"<link rel=\"stylesheet\" href=\"/css/{name2}[^\"]*\\.css[^\"]*\" />", _ => $"<style>{css}</style>");
