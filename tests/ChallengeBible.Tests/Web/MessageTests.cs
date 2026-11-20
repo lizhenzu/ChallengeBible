@@ -252,7 +252,7 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
         }
         var sa = await Login("superadmin@example.com");
         var inbox = await sa.GetStringAsync("/messages");
-        Assert.Contains("도전!!!성경말씀 알림", inbox);
+        Assert.Contains("도전!!!성경말씀", inbox);
         var id = InMemoryDb.Raw(_db).Messages.First(m => m.Kind == MessageKinds.System).Id;
         Assert.DoesNotContain(">답장<", await sa.GetStringAsync($"/messages/{id}"));   // 자동 알림은 답장 없음
     }

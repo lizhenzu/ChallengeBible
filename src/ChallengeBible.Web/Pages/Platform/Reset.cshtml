@@ -1,4 +1,4 @@
-@page "/platform/reset"
+﻿@page "/platform/reset"
 @model ChallengeBible.Web.Pages.Platform.ResetModel
 @using ChallengeBible.Web.Services
 @* 완전 초기화(ADR 0102, 확정 시안 완전초기화 2026-11-16): 지울 것 체크(기본 모두) · 절대 안 지움(잠금) · 확인 글자 RESET *@
@@ -11,7 +11,7 @@
 <partial name="_PlatformTop" />
 <main class="admin gut w760"><form method="post" class="wrap rs" data-reset>
     <h1>완전 초기화</h1>
-    <p class="lead">체크한 것을 모든 부서에서 지워요. 체크를 빼면 남겨요. <b>되돌릴 수 없어요.</b></p>
+    <p class="lead">체크한 것을 모든 부서에서 지워요. 체크를 빼면 남겨요. 지우는 계정과 기록은 <b>가짜 데이터(@@fake-seed.test)</b>뿐이고, 직접 가입한 회원은 남겨요. <b>되돌릴 수 없어요.</b></p>
     @if (Model.Result is { } r) { <p class="ok-box" role="status">초기화했어요 · @ResetService.Describe(r)건을 지웠어요.</p> }
     @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }
 
@@ -19,7 +19,7 @@
     {
         <section class="rs-grp" aria-labelledby="rs-@g.First().Key">
             <h2 id="rs-@g.First().Key">@g.Key <label><input type="checkbox" data-rs-all="@g.Key" @(g.All(i => On(i.Key)) ? "checked" : null) /> 모두</label></h2>
-            @if (g.Key == ResetService.Records) { <p class="rs-note" data-rs-forced hidden>사람(계정 · 명부)을 지우면 그 사람의 기록이 남을 수 없어서 기록은 모두 함께 지워요.</p> }
+            @if (g.Key == ResetService.Records) { <p class="rs-note" data-rs-forced hidden>사람(가짜 계정 · 명부)을 지우면 그 사람의 기록이 남을 수 없어서 기록도 함께 지워요(직접 가입한 회원의 기록은 남아요).</p> }
             <div class="rs-list">
                 @foreach (var i in g)
                 {
@@ -32,7 +32,7 @@
     <section class="rs-grp" aria-labelledby="rs-keep">
         <h2 id="rs-keep">절대 안 지워요</h2>
         <div class="rs-list">
-            @foreach (var k in new[] { "플랫폼 관리자 계정", "부서 관리자 계정 · 소속 · 명부 줄", "부서", "반(이름 · 학년 · 새친구반)", "상품 · 설정 · 콘텐츠" })
+            @foreach (var k in new[] { "플랫폼 관리자 계정", "부서 관리자 계정 · 소속 · 명부 줄", "직접 가입한 회원 · 그 사람의 기록", "부서", "반(이름 · 학년 · 새친구반)", "상품 · 설정 · 콘텐츠" })
             {
                 <div class="rs-it lock"><span>@k</span><i>잠금</i></div>
             }
