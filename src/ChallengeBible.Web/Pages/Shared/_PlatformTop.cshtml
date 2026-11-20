@@ -43,7 +43,7 @@
         <button type="button" class="pmenu-btn" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
         </button>
-        <div class="t pt-title"><small><em>도전!!!</em> 플랫폼</small><b>@title</b></div>
+        <div class="t pt-title"><small><em>도전!!!</em>성경말씀 플랫폼</small><b>@title</b></div>
         @* 2026-11-15 사용자: 오른쪽 위는 동그란 집 버튼 대신 글자 "홈으로"(출석부 머리말과 같게) *@
         <partial name="_MailBadge" />
         <a class="home-txt" href="/">홈으로</a>
@@ -52,7 +52,7 @@
 <div class="pdrawer tdr" id="pnav" hidden>
     <div class="pd-dim" data-pnav-close></div>
     <aside class="pd-panel" tabindex="-1" role="dialog" aria-modal="true" aria-label="플랫폼 메뉴">
-        @DrawerUi.Head(User.DisplayName(), photo, "도전!!! 플랫폼 · 플랫폼 관리자")
+        @DrawerUi.Head(User.DisplayName(), photo, "도전!!!성경말씀 · 플랫폼 관리자")
         <nav aria-label="플랫폼 메뉴">
             @foreach (var g in groups)
             {

@@ -1,6 +1,6 @@
-@* 얇은 머리말: 왼쪽 도전!!!, 오른쪽은 로그인 상태에 따라 *@
+﻿@* 얇은 머리말: 왼쪽 도전!!!성경말씀, 오른쪽은 로그인 상태에 따라 *@
 <header class="top gut"><div class="wrap">
-    <a class="brand" href="/">도전!!!</a>
+    <a class="brand" href="/">도전!!!<span>성경말씀</span></a>   @* 2026-11-20 사용자: 플랫폼 이름 "도전!!!성경말씀"으로 통일(프로그램 이름 외 "도전!!!" 은 모두) *@
     @if (User.UserName() is not null)
     {
         <form method="post" action="/account/logout" asp-antiforgery="true" class="who">

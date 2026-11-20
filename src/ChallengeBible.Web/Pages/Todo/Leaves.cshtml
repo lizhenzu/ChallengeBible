@@ -1,10 +1,10 @@
-@page "/{slug}/leaves"
+﻿@page "/{slug}/leaves"
 @model ChallengeBible.Web.Pages.Todo.LeavesModel
 @* 확정 시안 탈퇴메뉴-관리자로그인 C(2026-11-20): 이 부서의 기다리는 탈퇴 — 부서 관리자만 *@
 <link rel="stylesheet" href="~/css/todo.css" asp-append-version="true" />
 <div class="tdo">
 <header class="td-top gut"><div class="wrap">
-    <div class="t"><small><em>도전!!!</em> @Model.Tenant.Current.Name</small><b>탈퇴 신청</b></div>
+    <div class="t"><small><em>도전!!!</em>성경말씀 · @Model.Tenant.Current.Name</small><b>탈퇴 신청</b></div>
     <a class="td-home" href="/@Model.Slug">홈으로</a>
 </div></header>
 <main class="gut"><div class="wrap td-main">
