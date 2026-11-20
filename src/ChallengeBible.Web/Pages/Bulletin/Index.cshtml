@@ -13,7 +13,7 @@
 }
 <partial name="_Top" />
 <link rel="stylesheet" href="~/css/bulletin.css" asp-append-version="true" />
-<main class="gut jb-pg"><div class="wrap">
+<main class="gut w760 jb-pg"><div class="wrap">
     <a class="jb-back" href="/@slug">‹ 부서 홈</a>
     <div class="jb-h"><h1>@dept 주보</h1>@if (Model.CanEdit) { <a class="jb-btn p" href="/@slug/bulletin/edit">+ 주보 올리기</a> }</div>
     @if (Model.Msg is { } m) { <p class="ok-box" role="status">@m</p> }

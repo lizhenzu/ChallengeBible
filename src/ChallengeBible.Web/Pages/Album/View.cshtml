@@ -11,7 +11,7 @@
 }
 <partial name="_Top" />
 <link rel="stylesheet" href="~/css/album.css" asp-append-version="true" />
-<main class="gut al-pg"><div class="wrap" data-al data-al-base="/@slug/album/@a.Id" data-al-photo="/@slug/album/photo/">
+<main class="gut w760 al-pg"><div class="wrap" data-al data-al-base="/@slug/album/@a.Id" data-al-photo="/@slug/album/photo/">
     @Html.AntiForgeryToken()
     <a class="al-back" href="/@slug/album">‹ 사진첩</a>
     <div><h1>@a.Title</h1><p class="al-info">@info</p>@if (a.Description is { } d) { <p class="al-desc">@d</p> }</div>

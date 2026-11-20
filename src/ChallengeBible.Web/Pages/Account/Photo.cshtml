@@ -5,7 +5,7 @@
 <header class="top gut"><div class="wrap">
     <a class="lnk" href="@Model.BackUrl">← 돌아가기</a>
 </div></header>
-<main class="page gut ma"><div class="wrap">
+<main class="page gut w760 ma"><div class="wrap">
     <section class="ma-card pp" aria-labelledby="ppT">
         <span class="pp-av">@if (Model.File is { } f) { <img src="/account/photo?handler=img&amp;v=@f" alt="내 사진" /> } else { <span aria-hidden="true">@(Model.Name.Length > 0 ? Model.Name[..1] : "?")</span> }</span>
         <h1 id="ppT">내 사진</h1>

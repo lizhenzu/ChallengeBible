@@ -10,7 +10,7 @@
 }
 <partial name="_Top" />
 <link rel="stylesheet" href="~/css/bulletin.css" asp-append-version="true" />
-<main class="gut jb-pg"><div class="wrap">
+<main class="gut w760 jb-pg"><div class="wrap">
     <a class="jb-back" href="/@slug/bulletin@(editing ? $"?id={Model.Item!.Item.Id}" : "")">‹ 주보</a>
     <h1>@dept 주보 @(editing ? "고치기" : "올리기")</h1>
     @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }

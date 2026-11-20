@@ -1844,7 +1844,7 @@ body:has(main.w760) .top .wrap, body:has(main.w760) .admintop .wrap.hd, body:has
 .hFam .pb i { display: block; height: 100%; border-radius: 99px; background: #F5B342; }
 .hFam .ct { flex: none; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 99px; background: #E5484D; color: #fff; font-size: 12px; font-weight: 800; text-align: center; line-height: 22px; }
 .hFam .ar { color: var(--dim); font-size: 18px; }
-.fmt .wrap { padding-block: 14px 56px; display: flex; flex-direction: column; }
+.fmt .wrap { max-width: 760px; padding-block: 14px 56px; display: flex; flex-direction: column; }
 .fmt h1 { margin: 0 0 4px; font-size: 21px; font-weight: 900; word-break: keep-all; }
 .fmt h2 { margin: 20px 0 8px; font-size: 15px; font-weight: 800; }
 .fmt h2 i { font-style: normal; color: var(--accent); margin-left: 4px; }

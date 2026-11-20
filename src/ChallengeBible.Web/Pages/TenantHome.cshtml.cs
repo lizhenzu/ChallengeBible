@@ -9,7 +9,7 @@ namespace ChallengeBible.Web.Pages;
 
 /// <summary>`/{slug}` 부서 홈 메인(확정 시안: 홈메인, 0044). 부서 결정 · 소속 검사는 TenantPageFilter 가 한다.</summary>
 public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, FamilyJoinService familyJoin, HomeService home, AccountService accounts,
-    PhotoService photos, CopyService copy, TodoService todo, Prayer365Service prayer365, MessageService msgs, GiftOrderService orders, WorshipService worship, BulletinService bulletins, AlbumService albums) : PageModel, ITitled
+    PhotoService photos, CopyService copy, TodoService todo, Prayer365Service prayer365, MessageService msgs, GiftOrderService orders, WorshipService worship, BulletinService bulletins) : PageModel, ITitled
 {
     /// <summary>로그인할 때 한 번 "새 쪽지" 띠(ADR 0112, 확정 시안 쪽지 ①). 로그인이 남긴다.</summary>
     public const string MsgBandKey = "msg-band";
@@ -48,9 +48,6 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     public IReadOnlyList<ChallengeBible.Infrastructure.Data.WorshipSchedule> Worship { get; private set; } = [];
     /// <summary>가장 최근 주보 날짜(ADR 0117) — 예배 카드 [주보 보기]. 없으면 null.</summary>
     public DateOnly? BulletinDate { get; private set; }
-    /// <summary>사진첩 카드(ADR 0118): 볼 수 있는 최근 앨범 3개. 없으면 카드 없음.</summary>
-    public IReadOnlyList<AlbumCard> Albums { get; private set; } = [];
-    private AlbumViewer AlbumViewer => new(User.UserId() is null ? null : User.UserName(), User.IsPlatformAdmin());
     /// <summary>교사 · 관리자: 주보가 없어도 [주보 올리기].</summary>
     public bool CanBulletin => bulletins.CanEdit;
 
@@ -70,7 +67,6 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
             Guest = true;
             Worship = await worship.ListAsync(ct: ct);
             BulletinDate = await bulletins.LatestDateAsync(ct);
-            Albums = (await albums.ListAsync(AlbumViewer, ct: ct)).Take(3).ToList();
             Data = GuestView(await home.GetAsync(ct));   // 로그인 화면과 같은 모양, 내 기록은 0(2026-11-18 확정 시안)
             if (tenant.Current.CopyEnabled) CopyData = await copy.SummaryAsync(ct);   // 사람 기록은 계정마다라 로그인 안 하면 0
             return Page();
@@ -87,7 +83,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         if (tenant.Current.MissionEnabled) Family = await teams.MyFamilyAsync(ct);
         if (tenant.Current.MissionEnabled && Family is null) Invites = (await familyJoin.StateAsync(ct)).Invites.Where(i => !i.SnoozedToday).ToList();
         Data = await home.GetAsync(ct);
-        if (!tenant.IsLobby) { Worship = await worship.ListAsync(ct: ct); BulletinDate = await bulletins.LatestDateAsync(ct); Albums = (await albums.ListAsync(AlbumViewer, ct: ct)).Take(3).ToList(); }
+        if (!tenant.IsLobby) { Worship = await worship.ListAsync(ct: ct); BulletinDate = await bulletins.LatestDateAsync(ct); }
         if (tenant.Current.CopyEnabled) CopyData = await copy.SummaryAsync(ct);   // 임시 부서(승인 전)에도(ADR 0110)
         if (prayer365.CanSee(User.IsPlatformAdmin()))
             PrayerCard = (await prayer365.GetAsync(Prayer365Service.Md(prayer365.Today), ct), await prayer365.MyStatsAsync(ct));
