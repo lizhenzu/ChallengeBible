@@ -14,7 +14,7 @@ public class MembersModel(MemberAdminService members, PeopleService people, Prom
     public string Title => "소속 관리";
     public TenantContext Tenant => tenant;
 
-    [BindProperty(SupportsGet = true)] public string Tab { get; set; } = MembershipStatus.Requested;
+    [BindProperty(SupportsGet = true)] public string Tab { get; set; } = MembershipStatus.Approved;   // 2026-11-20 사용자: 참여는 승인 없이 바로(R-340) — 명부가 먼저
     [BindProperty(SupportsGet = true)] public string? Q { get; set; }
     [BindProperty(SupportsGet = true)] public string? Role { get; set; }
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }
@@ -53,7 +53,10 @@ public class MembersModel(MemberAdminService members, PeopleService people, Prom
 
     public static readonly (string Key, string Label)[] Tabs =
         [(MembershipStatus.Requested, "참여 신청"), (MembershipStatus.Approved, "명부")];
-    public IEnumerable<(string Key, string Label)> MyTabs => IsAdmin ? Tabs : Tabs.Where(t => t.Key == MembershipStatus.Approved);
+    /// <summary>보이는 탭: 명부는 늘, 참여 신청은 남은 신청이 있거나 지금 그 탭일 때만(2026-11-20 사용자 — 승인 없는 참여라 늘 0).</summary>
+    public IEnumerable<(string Key, string Label)> MyTabs => IsAdmin
+        ? Tabs.Where(t => t.Key == MembershipStatus.Approved || t.Key == Tab || Counts.GetValueOrDefault(t.Key) > 0)
+        : Tabs.Where(t => t.Key == MembershipStatus.Approved);
 
     public static string RoleLabel(string r) => r switch
     {

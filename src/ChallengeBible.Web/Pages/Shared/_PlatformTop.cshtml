@@ -43,7 +43,8 @@
         <button type="button" class="pmenu-btn" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
         </button>
-        <div class="t pt-title"><small><em>도전!!!</em>성경말씀</small><b>@title</b></div>
+        @* 2026-11-20 사용자: 두 줄 대신 한 줄 "도전!!!성경말씀 > 화면 이름" *@
+        <div class="t pt-title pt-one"><span class="pt-brand"><em>도전!!!</em>성경말씀</span><span class="pt-sep" aria-hidden="true">&gt;</span><b>@title</b></div>
         @* 2026-11-15 사용자: 오른쪽 위는 동그란 집 버튼 대신 글자 "홈으로"(출석부 머리말과 같게) *@
         <partial name="_MailBadge" />
         <a class="home-txt" href="/">홈으로</a>
