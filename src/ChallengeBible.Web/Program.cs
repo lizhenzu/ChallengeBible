@@ -42,6 +42,7 @@ builder.Services.AddScoped<ReadingBoardService>();
 builder.Services.AddScoped<BrandingService>();
 builder.Services.AddScoped<WorshipService>();   // 예배 안내(ADR 0116)
 builder.Services.AddScoped<BulletinService>();   // 부서 주보(ADR 0117)
+builder.Services.AddScoped<AlbumService>();   // 부서 사진첩(ADR 0118)
 builder.Services.AddScoped<SeasonService>();
 builder.Services.AddScoped<MilestoneService>();
 builder.Services.AddScoped<PhotoService>();
@@ -152,6 +153,9 @@ builder.Services.AddRazorPages(o =>
     o.Conventions.AllowAnonymousToPage("/Install");
     o.Conventions.AllowAnonymousToPage("/Bulletin/Index");   // 부서 주보 보기(ADR 0117): 누구나
     o.Conventions.AllowAnonymousToPage("/Bulletin/File");
+    o.Conventions.AllowAnonymousToPage("/Album/Index");   // 사진첩(ADR 0118): 앨범 공개 범위가 "누구나"면 손님도
+    o.Conventions.AllowAnonymousToPage("/Album/View");
+    o.Conventions.AllowAnonymousToPage("/Album/Photo");
     o.Conventions.AllowAnonymousToPage("/TenantHome");   // 부서 홈 둘러보기(R-336): 로그인 안 하면 개인 정보 없는 화면   // 앱 설치 안내(0115): 로그인 전 첫 방문에도
 });
 

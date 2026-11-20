@@ -1,0 +1,79 @@
+@page "/{slug}/album/{id:int}"
+@model ChallengeBible.Web.Pages.Album.ViewModel
+@using ChallengeBible.Web.Services
+@* 앨범(ADR 0118, 2026-11-20 확정 시안 사진첩 ③ · ④ · ⑤): 격자 → 크게 보기, [선택] → ZIP · 지우기, [+ 사진 올리기] → 한 장씩 올리며 진행률 · 실패만 다시 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var a = Model.Item!.Album;
+    var ps = Model.Item.Photos;
+    var p = Model.Item;
+    var info = string.Join(" · ", new[] { a.EventDate?.ToString("yyyy.MM.dd"), $"사진 {ps.Count}", AlbumService.VisibilityLabel(a.Visibility), p.CanDownload ? "내려받기 가능" : null }.OfType<string>());
+}
+<partial name="_Top" />
+<link rel="stylesheet" href="~/css/album.css" asp-append-version="true" />
+<main class="gut al-pg"><div class="wrap" data-al data-al-base="/@slug/album/@a.Id" data-al-photo="/@slug/album/photo/">
+    @Html.AntiForgeryToken()
+    <a class="al-back" href="/@slug/album">‹ 사진첩</a>
+    <div><h1>@a.Title</h1><p class="al-info">@info</p>@if (a.Description is { } d) { <p class="al-desc">@d</p> }</div>
+    @if (Model.Msg is { } m) { <p class="ok-box" role="status">@m</p> }
+    <div class="al-bar">
+        @if (p.CanUpload) { <label class="al-btn p al-pick">+ 사진 올리기<input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif" data-al-files /></label> }
+        @if (ps.Count > 0 && (p.CanDownload || p.CanUpload)) { <button type="button" class="al-btn" data-al-select>선택</button> }
+        @if (ps.Count > 0 && p.CanDownload) { <a class="al-btn" href="/@slug/album/@a.Id?handler=Zip">⬇ 전체 ZIP</a> }
+        @if (p.CanManage) { <a class="al-btn" href="/@slug/album/edit/@a.Id">⚙ 앨범</a> }
+    </div>
+
+    @if (p.CanUpload)
+    {
+        <section class="al-up" data-al-up hidden aria-live="polite">
+            <b>사진 올리는 중</b>
+            <div class="al-big"><span data-al-n>0 / 0</span> <small data-al-pct>0%</small></div>
+            <div class="al-track"><i data-al-bar></i></div>
+            <div class="al-stat"><div class="ok"><b data-al-ok>0</b>성공</div><div><b data-al-wait>0</b>대기</div><div class="bad"><b data-al-bad>0</b>실패</div></div>
+            <p class="al-now" data-al-now></p>
+            <ul class="al-fl" data-al-list></ul>
+            <div class="al-bar"><button type="button" class="al-btn d" data-al-cancel>올리기 취소</button><button type="button" class="al-btn" data-al-retry hidden>실패한 것만 다시</button><button type="button" class="al-btn p" data-al-done hidden>다 했어요</button></div>
+        </section>
+    }
+
+    @if (ps.Count == 0)
+    {
+        <p class="al-empty">아직 사진이 없어요.@(p.CanUpload ? " [+ 사진 올리기]로 여러 장을 한 번에 올려요." : "")</p>
+    }
+    else
+    {
+        <form method="post" asp-page-handler="Delete" asp-route-slug="@slug" asp-route-id="@a.Id" data-al-form>
+            <div class="al-photos">
+                @foreach (var (ph, i) in ps.Select((x, i) => (x, i)))
+                {
+                    <label class="al-ph" data-al-i="@i" data-id="@ph.Id" data-name="@ph.FileName" data-size="@ph.Size" data-del="@(p.CanDelete(ph) ? "1" : "0")">
+                        <img src="/@slug/album/photo/@ph.Id?t=1" alt="@ph.FileName" loading="lazy" />
+                        <input type="checkbox" name="ids" value="@ph.Id" aria-label="@ph.FileName 고르기" />
+                    </label>
+                }
+            </div>
+            <div class="al-sel" data-al-selbar hidden>
+                <span data-al-count>0개 선택</span><span class="sp"></span>
+                <button type="button" class="al-btn" data-al-all>전체</button>
+                @if (p.CanDownload) { <button type="button" class="al-btn" data-al-zip>⬇ ZIP</button> }
+                @if (p.CanUpload) { <button type="submit" class="al-btn d" onclick="return confirm('고른 사진을 지울까요? 교사는 본인이 올린 사진만 지워져요.')">지우기</button> }
+                <button type="button" class="al-btn" data-al-off>닫기</button>
+            </div>
+        </form>
+    }
+    @if (p.CanUpload) { <p class="al-note">사진(JPG · PNG · WEBP · GIF) 한 장 20MB까지. 동영상은 올릴 수 없어요. 교사는 본인이 올린 사진만 지워요.</p> }
+</div></main>
+
+@* 크게 보기 *@
+<div class="al-vw" data-al-vw hidden role="dialog" aria-modal="true" aria-label="사진 크게 보기">
+    <button type="button" class="al-x" data-al-close aria-label="닫기">✕</button>
+    <img data-al-img alt="" />
+    <div class="al-nav"><button type="button" data-al-prev>‹ 이전</button><span data-al-pos></span><button type="button" data-al-next>다음 ›</button></div>
+    <div class="al-meta" data-al-meta></div>
+    <div class="al-bar">
+        @if (p.CanDownload) { <a class="al-btn" data-al-dl>⬇ 내려받기</a> }
+        @if (p.CanManage) { <form method="post" asp-page-handler="Cover" asp-route-slug="@slug" asp-route-id="@a.Id"><input type="hidden" name="photo" data-al-cover /><button type="submit" class="al-btn">대표 사진으로</button></form> }
+        @if (p.CanUpload) { <form method="post" asp-page-handler="Delete" asp-route-slug="@slug" asp-route-id="@a.Id" data-al-delone onsubmit="return confirm('이 사진을 지울까요?')"><input type="hidden" name="ids" data-al-delid /><button type="submit" class="al-btn d">지우기</button></form> }
+    </div>
+</div>
+<script src="~/js/album.js" asp-append-version="true" defer></script>

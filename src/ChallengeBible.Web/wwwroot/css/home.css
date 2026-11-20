@@ -535,3 +535,13 @@
 .hm .wi-bt { flex: none; display: grid; place-items: center; text-align: center; background: #F97316; color: #fff; border-radius: 12px; padding: 8px 12px; text-decoration: none; }   /* 작고 평평하게(그림자 없음) */
 .hm .wi-bt b { font-size: 14px; color: #fff; }
 .hm .wi-bt small { font-size: 11px; color: #fff; opacity: .92; margin-top: 2px; }
+/* 부서 홈 사진첩 카드(ADR 0118, 확정 시안 사진첩 ①) */
+.hm .hj-card.hal { background: #fff; border: 1px solid #E5E7EB; border-radius: 12px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(20, 35, 70, .06); }
+.hm .hal-t { display: flex; justify-content: space-between; align-items: baseline; }
+.hm .hal-t b { font-size: 15px; }
+.hm .hal-t a { font-size: 12.5px; font-weight: 800; color: #2B59C3; text-decoration: none; }
+.hm .hal-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
+.hm .hal-a { position: relative; display: block; text-decoration: none; }
+.hm .hal-cv { display: block; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: #EEF1F7; }
+.hm .hal-cv img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hm .hal-n { position: absolute; left: 6px; right: 6px; bottom: 5px; font-size: 11px; font-weight: 800; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, .7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

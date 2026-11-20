@@ -32,6 +32,7 @@
             <h2 class="tdr-g">함께하기</h2>
             @DrawerUi.Row($"/{s}", "home", "s", "부서 홈", "오늘 미션 · 점수 · 선물", Cur($"/{s}"))
             @DrawerUi.Row("/messages", "msg", "v", "쪽지", "선생님 · 친구와 주고받기", Cur("/messages"))
+            @if (!lobby) { @DrawerUi.Row($"/{s}/album", "photo", "o", "사진첩", "부서 행사 사진", Cur($"/{s}/album")) }   @* ADR 0118 *@
             @if (!lobby && (t.IsStaff || t.IsAdmin || teacher))
             {
                 <h2 class="tdr-g">섬김 · 교사</h2>

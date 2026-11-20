@@ -1,0 +1,40 @@
+@page "/{slug}/album"
+@model ChallengeBible.Web.Pages.Album.IndexModel
+@using ChallengeBible.Web.Services
+@using ChallengeBible.Infrastructure.Data
+@* 사진첩 앨범 목록(ADR 0118, 2026-11-20 확정 시안 사진첩 ②) *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var dept = PlatformTodayService.ShortDept(Model.Tenant.Current.Name);
+    string Cur(string? s) => (Model.Sort ?? "new") == (s ?? "new") ? "on" : "";
+}
+<partial name="_Top" />
+<link rel="stylesheet" href="~/css/album.css" asp-append-version="true" />
+<main class="gut al-pg"><div class="wrap">
+    <a class="al-back" href="/@slug">‹ 부서 홈</a>
+    <div class="al-h"><h1>@dept 사진첩</h1>@if (Model.CanManage) { <a class="al-btn p" href="/@slug/album/edit">+ 앨범 만들기</a> }</div>
+    @if (Model.Msg is { } m) { <p class="ok-box" role="status">@m</p> }
+    <form method="get" class="al-srch"><input class="in" name="q" value="@Model.Q" placeholder="앨범 이름 · 행사 · 날짜" aria-label="앨범 찾기" /><input type="hidden" name="s" value="@Model.Sort" /><button class="al-btn" type="submit">찾기</button></form>
+    <nav class="al-chips" aria-label="정렬">
+        <a class="@Cur(null)" href="?q=@Model.Q">최신순</a><a class="@Cur("old")" href="?s=old&amp;q=@Model.Q">오래된 순</a><a class="@Cur("title")" href="?s=title&amp;q=@Model.Q">제목순</a>
+    </nav>
+    @if (Model.Items.Count == 0)
+    {
+        <p class="al-empty">@(string.IsNullOrEmpty(Model.Q) ? "아직 볼 수 있는 앨범이 없어요." : "찾는 앨범이 없어요.")</p>
+    }
+    else
+    {
+        <div class="al-grid">
+            @foreach (var a in Model.Items)
+            {
+                <a class="al-card" href="/@slug/album/@a.Id">
+                    <span class="al-cv">@if (a.CoverPhotoId is int cv) { <img src="/@slug/album/photo/@cv?t=1" alt="" loading="lazy" /> }</span>
+                    <b>@a.Title</b>
+                    <small>@(a.EventDate?.ToString("yyyy.MM.dd") ?? "날짜 없음") · 사진 @a.Photos</small>
+                    @if (a.Visibility is AlbumVisibility.Dept or AlbumVisibility.Admin) { <span class="al-lk">🔒 @AlbumService.VisibilityLabel(a.Visibility)</span> }
+                </a>
+            }
+        </div>
+    }
+    @if (Model.CanManage) { <p class="al-note">사용량 @((Model.Used / 1024.0 / 1024 / 1024).ToString("0.0"))GB / @(Model.Quota / 1024 / 1024 / 1024)GB · 앨범 만들기 · 고치기는 부서 관리자만</p> }
+</div></main>

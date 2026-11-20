@@ -32,6 +32,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<WorshipSchedule> WorshipSchedules => Set<WorshipSchedule>();   // 예배 안내(ADR 0116)
     public DbSet<Bulletin> Bulletins => Set<Bulletin>();   // 부서 주보(ADR 0117)
     public DbSet<BulletinFile> BulletinFiles => Set<BulletinFile>();
+    public DbSet<Album> Albums => Set<Album>();   // 부서 사진첩(ADR 0118)
+    public DbSet<Photo> Photos => Set<Photo>();
     public DbSet<SchoolClass> Classes => Set<SchoolClass>();
     public DbSet<ClassMember> ClassMembers => Set<ClassMember>();
     public DbSet<AttendanceCheck> AttendanceChecks => Set<AttendanceCheck>();
