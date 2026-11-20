@@ -1,8 +1,8 @@
-@page "/account/link/{id:int?}"
+﻿@page "/account/link/{id:int?}"
 @model ChallengeBible.Web.Pages.Account.LinkModel
 @* 확정 시안: 가입연결-탈퇴-시안 ② 같은 이름 — 가린 힌트로 고르기 · ③ 본인 확인 → 연결 · 바로 참여(2026-11-20) *@
 <partial name="_Top" />
-<main class="page gut w760 lnk"><div class="wrap">
+<main class="page gut w760 acct-link"><div class="wrap">
 @if (Model.DoneSlug is { } slug)
 {
     <div>
@@ -57,7 +57,7 @@ else
         {
             <div class="f">
                 <label>생일</label>
-                <div class="b2">
+                <div class="bd-two">
                     <select class="sel" name="BMonth" aria-label="생일 월" disabled="@Model.Locked"><option value="0">월</option>@for (var m = 1; m <= 12; m++) { <option value="@m" selected="@(Model.BMonth == m)">@(m)월</option> }</select>
                     <select class="sel" name="BDay" aria-label="생일 일" disabled="@Model.Locked"><option value="0">일</option>@for (var d = 1; d <= 31; d++) { <option value="@d" selected="@(Model.BDay == d)">@(d)일</option> }</select>
                 </div>

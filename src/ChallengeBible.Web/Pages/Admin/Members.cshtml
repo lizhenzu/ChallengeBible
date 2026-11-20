@@ -83,7 +83,7 @@
                 var sub = $"{(r.Linked ? $"가입 {r.UserName}" : "가입 안 함")} · {r.Birthday} · {r.Phone1 ?? "연락처 없음"}";
                 var sameAcc = !r.Linked && Model.IsAdmin ? Model.Linkable.GetValueOrDefault(PeopleService.Key(r.Name)) ?? [] : [];
                 var searching = Model.Lp == r.PersonId;
-                <li class="pc @(picking ? "pickable" : "")">
+                <li class="mcard @(picking ? "pickable" : "")">
                     @if (picking)
                     {
                         if (r.DeptRoleId is int pickId) { <input type="checkbox" class="pick" name="pick" value="@pickId" form="promo" checked="@Model.Picks.Contains(pickId)" aria-label="@(r.Name) 고르기" /> }
