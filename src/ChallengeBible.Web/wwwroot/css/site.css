@@ -4600,3 +4600,10 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .lnk .cand.off { opacity: .55; }
 .lnk .cand.off .go { color: var(--dim); font-weight: 600; }
 .lnk .ok { padding: 12px 14px; border-radius: 12px; background: var(--ok-bg); font-weight: 800; }
+
+/* 탈퇴(확정 시안 가입연결-탈퇴 ④ ⑤) */
+.ma-leave .lv-warn { margin: 0; padding: 12px 14px; border-radius: 12px; background: #FFF4D6; color: #8A4B00; font-size: 13.5px; font-weight: 700; line-height: 1.6; word-break: keep-all; }
+.ma-leave .lv-wait { padding: 12px 14px; border-radius: 12px; background: var(--soft); display: grid; gap: 4px; }
+.ma-leave .lv-wait p { margin: 0; font-size: 14px; }
+.ma-leave .lv-wait small { color: var(--dim); }
+.btn.lv-go, .btn.lv-ok { background: var(--bg); color: #C62828; border: 1.5px solid #E4A3A3; }

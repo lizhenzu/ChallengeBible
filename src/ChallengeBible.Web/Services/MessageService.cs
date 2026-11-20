@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
@@ -255,6 +255,18 @@ public sealed class MessageService(ISystemDb systemDb, TimeProvider time)
             var text = body.Length > MaxLength ? body[..MaxLength] : body;
             foreach (var n in to.Distinct(StringComparer.OrdinalIgnoreCase).Where(n => !n.Equals(actor, StringComparison.OrdinalIgnoreCase)))
                 ctx.Messages.Add(new Message { Kind = MessageKinds.System, SenderLabel = label, RecipientUserName = n, Body = text, SentUtc = Now });
+            await ctx.SaveChangesAsync(ct);
+        }
+        catch (Exception e) when (e is System.Data.Common.DbException or InvalidOperationException or DbUpdateException) { }
+    }
+
+    /// <summary>한 사람에게 자동 알림 쪽지 한 통(예: 탈퇴 반려). 실패해도 오류는 삼킨다.</summary>
+    public async Task SendSystemAsync(string to, string label, string body, CancellationToken ct = default)
+    {
+        try
+        {
+            await using var ctx = systemDb.Create("system");
+            ctx.Messages.Add(new Message { Kind = MessageKinds.System, SenderLabel = label, RecipientUserName = to, Body = body.Length > MaxLength ? body[..MaxLength] : body, SentUtc = Now });
             await ctx.SaveChangesAsync(ct);
         }
         catch (Exception e) when (e is System.Data.Common.DbException or InvalidOperationException or DbUpdateException) { }

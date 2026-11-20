@@ -6,13 +6,14 @@
 <partial name="_PlatformTop" />
 <main class="admin gut w760"><div class="wrap td-main">   @* 머리말과 같은 760px(R-270, 2026-11-18) *@
     @if (Model.Msg is { } m) { <p class="td-msg" role="status">@m</p> }
-    <div class="td-hello"><h1>내 할 일 @(Model.Mine.Count)개</h1><p>부서 일은 아래에서 살펴만 봐요.</p></div>
+    <div class="td-hello"><h1>내 할 일 @(Model.Mine.Count + Model.Leaves.Count)개</h1><p>부서 일은 아래에서 살펴만 봐요.</p></div>
     @if (Model.Mine.Count > 0)
     {
         <form method="post" asp-page-handler="Snooze" class="td-snooze"><small>할 일 화면으로 자동 이동하지 않기 (할 일은 ☰ 에서 언제든)</small>
             <div class="td-chips"><button name="days" value="1">오늘 안 보기</button><button name="days" value="3">3일</button><button name="days" value="5">5일</button><button name="days" value="30">한 달</button></div></form>
     }
-    @if (Model.Mine.Count == 0) { <div class="td-empty">✓ 플랫폼 관리자 할 일이 없어요</div> }
+    @if (Model.Mine.Count + Model.Leaves.Count == 0) { <div class="td-empty">✓ 플랫폼 관리자 할 일이 없어요</div> }
+    <partial name="_LeaveCards" model="Model.Leaves" />
     @foreach (var t in Model.Mine)
     {
         <div class="td-card"><div class="td-row"><span class="ic" aria-hidden="true">📌</span><div class="what"><b>@t.Title · @t.Count</b><span>@t.Text</span></div></div>

@@ -14,6 +14,8 @@ public sealed record RosterRow(int PersonId, string Name, string? RoleCode, stri
     public string Birthday => PeopleService.BirthdayText(BirthMonth, BirthDay);
     /// <summary>지금 반(가장 최근 반 묶음) · 담임이면 "1반 담임"(확정 시안 명부-반응형).</summary>
     public string? ClassText { get; init; }
+    /// <summary>탈퇴한 날(ADR 0119) — 명부에 "○월 ○일 탈퇴"로 보인다.</summary>
+    public DateOnly? LeftOn { get; init; }
 }
 
 /// <summary>명부에 넣고 고치는 값. 연결된 줄은 생일 · 연락처만 쓴다.</summary>
@@ -62,6 +64,7 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
                 m?.Id, m?.UserName, m?.Email, m is not null && adminIds.Contains(m.UserId!), p.CreatedUtc)
             {
                 Prev = PrevText(p),
+                LeftOn = p.LeftOn,
                 ClassText = classes.TryGetValue(p.Id, out var cl) ? cl.Name + (cl.IsTeacher ? " 담임" : "") : null,
             };
         }).ToList();
