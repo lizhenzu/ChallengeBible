@@ -1,4 +1,4 @@
-@page "/account/login"
+﻿@page "/account/login"
 @model ChallengeBible.Web.Pages.Account.LoginModel
 @* 확정 시안: 로그인-단독시안 (구경하기 없음) *@
 <partial name="_Top" />
@@ -31,4 +31,6 @@
         <div>아직 회원이 아니신가요?<a href="/account/signup">회원가입</a></div>
         <div>비밀번호를 잊었으면 부서 선생님께 말해 주세요.</div>
     </div>
+    @* 2026-11-20 사용자: 플랫폼 관리자 로그인(비밀번호만, AdminLogin) 바로 가기 *@
+    <a class="btn s login-admin" href="/account/admin-login">🔒 플랫폼 관리자 로그인</a>
 </div></main>

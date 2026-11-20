@@ -4607,3 +4607,4 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .ma-leave .lv-wait p { margin: 0; font-size: 14px; }
 .ma-leave .lv-wait small { color: var(--dim); }
 .btn.lv-go, .btn.lv-ok, .td-btns .btn.lv-ok { background: var(--bg); color: #C62828; border: 1.5px solid #E4A3A3; }
+.btn.login-admin { min-height: 48px; font-size: 15px; color: var(--dim); }

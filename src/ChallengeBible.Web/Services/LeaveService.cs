@@ -1,4 +1,4 @@
-using ChallengeBible.Domain.Time;
+﻿using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -80,6 +80,13 @@ public sealed class LeaveService(ISystemDb systemDb, PhotoService photos, Messag
         var rows = await q.AsNoTracking().OrderBy(x => x.r.RequestedUtc).ToListAsync(ct);
         return rows.Select(x => new LeaveRow(x.r.Id, x.r.TenantId, RosterLinkService.ShortDept(x.Name), x.r.FullName,
             UserRole.LabelOf(UserRole.KindOf(x.r.RoleCode)), x.r.RequestedUtc)).ToList();
+    }
+
+    /// <summary>기다리는 탈퇴 수(☰ 메뉴 숫자): 부서 관리자는 그 부서, 플랫폼 관리자는 모두(null).</summary>
+    public async Task<int> CountAsync(string actor, int? tenantId, CancellationToken ct = default)
+    {
+        await using var ctx = systemDb.Create(actor);
+        return await ctx.LeaveRequests.IgnoreQueryFilters().CountAsync(r => tenantId == null || r.TenantId == tenantId, ct);
     }
 
     private static async Task<LeaveRequest?> FindAsync(AppDbContext ctx, int id, int? tenantId, CancellationToken ct) =>
@@ -195,4 +202,18 @@ public sealed class LeaveService(ISystemDb systemDb, PhotoService photos, Messag
         LeaveError.NoDept => "신청할 부서가 없어요. 플랫폼 관리자에게 말해 주세요.",
         _ => "탈퇴 신청을 찾을 수 없어요.",
     };
+}
+
+/// <summary>할 일 · 탈퇴 신청 화면이 같이 쓰는 승인 · 반려 한 번(R-343). tenantId = 부서 관리자의 부서, 플랫폼 관리자는 null.</summary>
+public static class LeaveActions
+{
+    public static async Task<string> DoAsync(LeaveService leave, string actor, int id, string? what, int? tenantId, CancellationToken ct)
+    {
+        if (what == "ok")
+        {
+            var e = await leave.ApproveAsync(actor, id, tenantId, ct);
+            return e == LeaveError.None ? "탈퇴를 승인했어요. 계정과 기록을 지웠어요." : LeaveService.Message(e);
+        }
+        return await leave.RejectAsync(actor, id, tenantId, ct) ? "탈퇴 신청을 반려했어요." : LeaveService.Message(LeaveError.NotFound);
+    }
 }

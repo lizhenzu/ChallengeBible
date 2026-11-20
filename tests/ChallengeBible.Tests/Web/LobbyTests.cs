@@ -105,13 +105,13 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     {
         var (c, _) = await SignUp();
         var home = await c.GetStringAsync("/welcome");
-        Assert.Contains("시작까지 3단계", home);                                          // 0068 1단계: 윗부분만
+        Assert.Contains("시작까지 2단계", home);                                          // 0068 1단계: 윗부분만
         Assert.Contains("href=\"/join\">내 부서 참여 <svg", home);                       // 큰 버튼 → 부서 고르기(이름은 "참여", 2026-10-30 고침)
         Assert.Contains("class=\"wl-btn wl-s\" href=\"/welcome/today\">먼저 미션 해 보기 <svg", home);   // 흰 큰 버튼 → 미션 화면
         Assert.Contains("<small>대한예수교장로회</small>", home);                          // 머리말 = 교단 · 교회(첫 화면과 같음)
         Assert.Contains("https://www.saenae.org/", home);
         Assert.DoesNotContain("내 부서를 찾는 동안", home);
-        Assert.Contains("먼저 내가 참여할 부서를 신청해요.", home);
+        Assert.Contains("먼저 내가 참여할 부서를 골라요.", home);
         Assert.DoesNotContain("교회 · 부서를", home);                                    // 교회를 찾는 것이 아님
         Assert.DoesNotContain("내 부서 찾기", home);
         Assert.Contains("<p class=\"foot-copy\">© 2027 잠실새내 · 주일학교</p>", home);          // 맨 아래 © 줄(해는 오늘 날짜)
@@ -129,7 +129,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("class=\"wl wl-wide\"", today);                               // 미션 화면 머리말은 아래 카드와 같은 폭(데스크톱 정렬)
         Assert.DoesNotContain("wl-wide", home);                                       // 1 · 2단계는 좁은 카드 폭 그대로
         Assert.DoesNotContain("승인 기다리는 중", today);                                // 신청 전이라 표시 없음
-        Assert.DoesNotContain("시작까지 3단계", today);
+        Assert.DoesNotContain("시작까지 2단계", today);
         Assert.DoesNotContain("/welcome/ranking", today);
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/welcome/ranking")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/welcome/ranking?t=team")).StatusCode);
@@ -139,17 +139,15 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task R172_신청해_두면_2단계_승인_기다리는_중으로_바뀐다()
+    public async Task R172_R340_예전_신청이_남아도_첫_화면엔_관리자_승인_단계가_없다()
     {
         var (c, _) = await SignUp();
         InMemoryDb.SeedMembership(_db, _kids.Id, UserName(), MembershipStatus.Requested, Roles.Participant);
         var home = await c.GetStringAsync("/welcome");
-        Assert.Contains("<span>잠실새내교회 유년부</span>", home);                        // 참여 신청 ✓ + 신청한 부서
-        Assert.Contains("관리자 승인 <span class=\"wl-tag wl-wait\">기다리는 중</span>", home);
-        Assert.Contains("href=\"/welcome/today\">미션 수행하러 가기 <svg", home);          // 큰 버튼 → 미션 화면
-        Assert.Contains("href=\"/join\">신청 보기 <svg", home);
-        Assert.DoesNotContain("먼저 미션 해 보기", home);                                  // 1단계 전용 링크
-        Assert.DoesNotContain("<section class=\"hj-card hj-pg m\"", home);
+        // R-340(2026-11-20): 참여는 승인 없이 바로 — 예전에 남은 신청이 있어도 첫 화면 카드엔 "관리자 승인" 단계가 없다
+        Assert.Contains("시작까지 2단계", home);
+        Assert.DoesNotContain("관리자 승인", home);
+        Assert.Contains("목록에서 내 부서를 고르면 바로 시작해요", home);
         var today = await c.GetStringAsync("/welcome/today");
         Assert.Contains("<span class=\"lb-pill\">승인 기다리는 중</span>유년부</b>", today);   // 확정 시안 임시부서-상단버튼 A: 신청 후
         Assert.Contains("선생님이 승인하면 바로 유년부로 바뀌어요.", today);
@@ -186,7 +184,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal("/jamsil-kids", r.Headers.Location!.OriginalString);
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/jamsil-kids")).StatusCode);
         Assert.Contains("<section class=\"hj-card hj-pg m\"", await c.GetStringAsync("/jamsil-kids"));
-        Assert.DoesNotContain("시작까지 3단계", await c.GetStringAsync("/jamsil-kids"));
+        Assert.DoesNotContain("시작까지 2단계", await c.GetStringAsync("/jamsil-kids"));
         var kidsHome = await c.GetStringAsync("/jamsil-kids");                            // 맨 아래: 계정 줄 가운데 + © 줄(모든 부서 홈, 2026-10-30)
         Assert.DoesNotContain("<div class=\"acct\">", kidsHome);                       // 맨 아래 계정 줄은 지웠다 — 왼쪽 위 ☰ 와 같아서(2026-11-15)
         Assert.Contains("<p class=\"foot-copy\">© 2027 잠실새내 · 주일학교</p>", kidsHome);

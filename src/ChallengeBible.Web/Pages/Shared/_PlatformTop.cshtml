@@ -1,5 +1,6 @@
 ﻿@inject Microsoft.Extensions.Configuration.IConfiguration Config
 @inject ChallengeBible.Web.Services.PhotoService Photos
+@inject ChallengeBible.Web.Services.LeaveService Leaves
 @using ChallengeBible.Web.Auth
 @{
     var path = Context.Request.Path.Value ?? "";
@@ -7,7 +8,7 @@
     // 항목: (주소, 이름, 아이콘, 색, 한 줄 설명) — 확정 시안 플랫폼관리메뉴(2026-11-18): 그룹 · 색 아이콘 · 한 줄 설명. 항목 · 순서는 그대로
     var groups = new List<(string Title, bool Danger, (string Href, string Label, string Icon, string Tone, string Desc)[] Items)>
     {
-        ("한눈에", false, [("/platform", "플랫폼 홈", "home", "s", "전체 현황 · 챙길 일"), ("/platform/todo", "오늘 할 일", "todo", "g", "승인 · 빈 콘텐츠 · 관리자 없는 부서"), ("/messages", "쪽지", "msg", "v", "받은 · 보낸 쪽지 · 개선 접수")]),
+        ("한눈에", false, [("/platform", "플랫폼 홈", "home", "s", "전체 현황 · 챙길 일"), ("/platform/todo", "오늘 할 일", "todo", "g", "승인 · 빈 콘텐츠 · 관리자 없는 부서"), ("/platform/leaves", "탈퇴 신청", "user", "r", "기다리는 탈퇴 · 승인 · 반려"), ("/messages", "쪽지", "msg", "v", "받은 · 보낸 쪽지 · 개선 접수")]),
         ("부서", false, [("/platform/tenants", "부서", "dept", "b", "만들기 · 프로그램 · 관리자 · 참여 코드"), ("/platform/roster-upload", "명단 올리기", "upload", "b", "엑셀 명단을 부서에 넣기"),
                          ("/platform/admin-rule", "부서 관리자 규칙", "key", "s", "어떤 역할 · 업무가 관리자인지"), ("/platform/families", "온가족", "family", "p", "부서를 넘는 가족 묶기")]),
         ("콘텐츠", false, [("/platform/content/word/check", "말씀 입력", "word", "g", "날짜별 오늘의 말씀"), ("/platform/content/quiz/check", "퀴즈 출제", "quiz", "g", "날짜별 퀴즈 확인"),
@@ -35,6 +36,7 @@
                 ?? (path.StartsWith("/platform/today", StringComparison.OrdinalIgnoreCase) ? "오늘 현황" : "플랫폼");   // 오늘 현황은 홈 숫자에서 들어온다(메뉴에 없음)
     var me = User.UserName();
     var photo = me is null ? null : await Photos.FileOfAsync(me);
+    var leaveCount = me is null ? 0 : await Leaves.CountAsync(me, null);   // ☰ 탈퇴 신청 숫자(ADR 0119)
 }
 <header class="admintop ptop gut">
     <div class="wrap wide hd">
@@ -55,7 +57,7 @@
             @foreach (var g in groups)
             {
                 <h2 class="tdr-g@(g.Danger ? " danger" : "")">@g.Title</h2>
-                foreach (var (href, label, icon, tone, desc) in g.Items) { @DrawerUi.Row(href, icon, tone, label, desc, Current(href)) }
+                foreach (var (href, label, icon, tone, desc) in g.Items) { @DrawerUi.Row(href, icon, tone, label, desc, Current(href), count: href == "/platform/leaves" ? leaveCount : 0) }
             }
         </nav>
         <div class="tdr-ft">

@@ -1,0 +1,12 @@
+@page "/platform/leaves"
+@model ChallengeBible.Web.Pages.Platform.LeavesModel
+@* 확정 시안 탈퇴메뉴-관리자로그인 C(2026-11-20): 기다리는 탈퇴 — 플랫폼 관리자는 모든 부서 *@
+<link rel="stylesheet" href="~/css/todo.css" asp-append-version="true" />
+<partial name="_PlatformTop" />
+<main class="admin gut w760"><div class="wrap td-main">
+    @if (Model.Msg is { } m) { <p class="td-msg" role="status">@m</p> }
+    <div class="td-hello"><h1>기다리는 탈퇴 @(Model.Leaves.Count)명</h1><p>플랫폼 관리자는 모든 부서 · 부서 관리자는 자기 부서만 봐요.</p></div>
+    @if (Model.Leaves.Count == 0) { <div class="td-empty">✓ 기다리는 탈퇴 신청이 없어요</div> }
+    <partial name="_LeaveCards" model="Model.Leaves" />
+    <p class="td-why">오늘 할 일에도 같은 카드가 떠요. 어디서 처리해도 돼요.</p>
+</div></main>
