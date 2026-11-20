@@ -40,6 +40,24 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
     /// <summary>생일을 받는 역할: 학생 · 새친구(사용자 2026-11-14 질문 2 → 1).</summary>
     public static readonly string[] BirthdayRoles = [UserRole.StudentCode, ClassService.NewcomerCode];
 
+    /// <summary>
+    /// 생일 선물 대상(R-350, 2026-11-20 사용자): <b>반에 소속된 학생</b> + <b>새친구</b>(반이 없어도). 반이 없는 학생 · 그 밖의 역할은 아니다.
+    /// 반 = 가장 최근 반 묶음에서 학생으로 들어간 반(새친구반 포함). 완독 · 완필 · 새친구 · 전도 선물은 이 규칙을 쓰지 않는다.
+    /// </summary>
+    public static bool BirthdayEligible(string? roleCode, bool inClass) => (roleCode ?? "").Trim() switch
+    {
+        UserRole.StudentCode => inClass,
+        ClassService.NewcomerCode => true,
+        _ => false,
+    };
+
+    /// <summary>가장 최근 반 묶음에서 학생으로 반에 든 명부 줄(R-350).</summary>
+    public static async Task<HashSet<int>> PlacedAsync(AppDbContext ctx, CancellationToken ct)
+    {
+        var term = await ctx.ClassTerms.OrderByDescending(t => t.Id).Select(t => (int?)t.Id).FirstOrDefaultAsync(ct);
+        return term is int tid ? (await ctx.ClassMembers.AsNoTracking().Where(m => m.TermId == tid && !m.IsTeacher).Select(m => m.PersonId).ToListAsync(ct)).ToHashSet() : [];
+    }
+
     private int T => tenant.Current.Id;
     private DateOnly Today => clock.Today(tenant.Current.TimeZoneId);
 
@@ -81,7 +99,7 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         }
         await ctx.SaveChangesAsync(ct);
 
-        // 생일이 있는 사람 → 역할(연결된 계정은 소속의 역할, 아니면 명부의 역할) → 학생 · 새친구만
+        // 생일이 있는 사람 → 역할(연결된 계정은 소속의 역할, 아니면 명부의 역할) → 반에 든 학생 · 새친구만(R-350)
         var people = await ctx.People.AsNoTracking().Where(p => p.BirthMonth != null && p.BirthDay != null)
             .Select(p => new { p.Id, p.UserId, p.RoleCode, M = (int)p.BirthMonth!.Value, D = (int)p.BirthDay!.Value }).ToListAsync(ct);
         var due = people.Select(p => (p, B: WindowBirthday(p.M, p.D, today, r.BirthdayOpenDays, r.BirthdayCloseDays))).Where(x => x.B is not null).ToList();
@@ -97,12 +115,13 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         var have = (await ctx.Gifts.AsNoTracking().Where(g => g.Kind == GiftKinds.Birthday && g.PersonId != null).Select(g => new { g.PersonId, g.Year, g.SourceKey }).ToListAsync(ct))
             .Select(g => (g.PersonId!.Value, (int)g.Year, Epoch(g.SourceKey))).ToHashSet();
 
+        var placed = await PlacedAsync(ctx, ct);
         var added = new List<Gift>();
         foreach (var (p, b) in due)
         {
             var acct = p.UserId is null ? null : linked.FirstOrDefault(l => l.Id == p.UserId);
             var role = p.UserId is null ? p.RoleCode : acct?.RoleCode;
-            if (!BirthdayRoles.Contains((role ?? "").Trim())) continue;
+            if (!BirthdayEligible(role, placed.Contains(p.Id))) continue;   // 반에 든 학생 · 새친구만(R-350)
             var birthday = b!.Value;
             if (resetOn is { } ro && birthday.AddDays(-r.BirthdayOpenDays) < ro) continue;
             var key = SourceKey(birthday, birthday.Year == today.Year ? reset : null);
