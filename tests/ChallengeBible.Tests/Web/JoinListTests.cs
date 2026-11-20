@@ -162,7 +162,7 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
 
     /// <summary>2026-11-20 사용자: 참여는 승인 없이 바로라 소속 관리는 명부 탭이 먼저 열리고, 기다리는 신청이 없으면 "참여 신청" 탭은 숨긴다.</summary>
     [Fact]
-    public async Task 소속_관리는_명부가_먼저_열리고_빈_참여_신청_탭은_숨긴다()
+    public async Task 소속_관리는_탭_없이_명부가_열리고_찾기는_자동()
     {
         var admin = InMemoryDb.SeedAccount(_db, "kidsadmin@example.com", "관리자");
         InMemoryDb.SeedMembership(_db, _kids.Id, admin.UserName!, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
@@ -172,7 +172,10 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
         await c.PostAsync("/account/login", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = tok, ["Email"] = "kidsadmin@example.com", ["Password"] = "1234" }));
         await c.GetAsync("/" + _kids.Slug);
         var html = await c.GetStringAsync($"/{_kids.Slug}/admin/members");
-        Assert.Contains("aria-current=\"page\">명부", html);
+        Assert.Contains("class=\"pc-total\">명부 ", html);   // 탭 없이 제목 옆에 명부 수
+        Assert.DoesNotContain("class=\"seg\"", html);
         Assert.DoesNotContain(">참여 신청 <", html);
+        Assert.Contains("data-auto-find", html);   // [찾기] 없이 자동 찾기
+        Assert.DoesNotContain(">찾기</button>", html);
     }
 }
