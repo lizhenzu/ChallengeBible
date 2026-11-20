@@ -76,13 +76,13 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
                 : await join.ApplyAsync(Me, Code, RoleKind, ct, BMonth, BDay);
             if (error == JoinError.None)
             {
-                // 자동 알림(R-329, 2026-11-17 사용자): 부서 참여 신청을 superadmin 에게 쪽지로
-                var dept = TenantId != 0 ? (await join.ListedAsync(ct)).FirstOrDefault(d => d.TenantId == TenantId)?.Name ?? (await join.LookupAsync(Code ?? "", ct))?.Name : (await join.LookupAsync(Code ?? "", ct))?.Name;
+                // 승인 없이 바로 소속(2026-11-20, R-340): 부서 관리자 · 플랫폼 관리자에게 알림 쪽지, 그 부서 홈으로
+                var target = TenantId != 0 ? (await join.ListedAsync(ct)).FirstOrDefault(d => d.TenantId == TenantId) ?? await join.LookupAsync(Code ?? "", ct) : await join.LookupAsync(Code ?? "", ct);
                 var role = RoleChoices.FirstOrDefault(r => r.Kind == RoleKind).Label ?? RoleKind;
-                var who = User.DisplayName();
-                var d = MessageService.ShortDept(dept ?? "", false);
-                await msgs.NotifyAsync(Me, "부서 참여 신청", $"부서 참여 신청 · {who} → {(d.Length > 0 ? d : "부서")} · {role} 희망\n승인은 그 부서 관리자가 해요(관리 › 소속 관리 › 참여 신청).", ct);
-                return RedirectToPage(new { Code = (string?)null, Q = (string?)null });
+                var d = MessageService.ShortDept(target?.Name ?? "", false);
+                if (target is not null)
+                    await msgs.NotifyDeptAsync(Me, target.TenantId, "부서 참여", $"{User.DisplayName()}님이 {(d.Length > 0 ? d : "부서")}에 들어왔어요 · {role}\n승인 없이 바로 들어와요. 명부와 이어지지 않았으면 관리 › 소속 관리에서 이어 주세요.", ct);
+                return target is { Slug.Length: > 0 } ? Redirect("/" + target.Slug) : RedirectToPage(new { Code = (string?)null, Q = (string?)null });
             }
             if (error is JoinError.NoRole or JoinError.BadRole) RoleError = JoinService.Message(error);
             else if (error == JoinError.AlreadyMember)

@@ -1,4 +1,4 @@
-@page "/{slug}/todo"
+﻿@page "/{slug}/todo"
 @model ChallengeBible.Web.Pages.Todo.IndexModel
 @* 확정 시안 오늘할일 ① · ②(2026-11-16): [홈으로] · 인사 · 안 보기 → 선물 → 승인 → 출석 → 생일. 급한 것(3일 넘게 아무도 안 삼)이 맨 위 *@
 @{
@@ -14,7 +14,7 @@
 <main class="gut"><div class="wrap td-main" data-td>
     @Html.AntiForgeryToken()
     @if (Model.Msg is { } m) { <p class="td-msg" role="status">@m</p> }
-    <div class="td-hello"><h1>할 일 @(b.Items.Count)개</h1></div>
+    <div class="td-hello"><h1>할 일 @(b.Items.Count + Model.Leaves.Count)개</h1></div>
     @if (b.Items.Count > 0)
     {
         <form method="post" asp-page-handler="Snooze" class="td-snooze">
@@ -22,7 +22,8 @@
             <div class="td-chips"><button name="days" value="1">오늘 안 보기</button><button name="days" value="3">3일</button><button name="days" value="5">5일</button><button name="days" value="30">한 달</button></div>
         </form>
     }
-    else { <div class="td-empty">할 일이 없어요</div> }
+    else if (Model.Leaves.Count == 0) { <div class="td-empty">할 일이 없어요</div> }
+    <partial name="_LeaveCards" model="Model.Leaves" />
 
     @foreach (var (key, title) in sections)
     {

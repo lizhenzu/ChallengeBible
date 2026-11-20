@@ -2653,6 +2653,49 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("GuardianLink", "app");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.LeaveRequest", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("RequestedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("RoleCode")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("UserName")
+                        .IsUnique();
+
+                    b.ToTable("LeaveRequest", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MemberTag", b =>
                 {
                     b.Property<int>("TenantId")
@@ -2869,6 +2912,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedUtc")
                         .HasPrecision(3)
                         .HasColumnType("datetime2(3)");
+
+                    b.Property<DateOnly?>("LeftOn")
+                        .HasColumnType("date");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -3862,6 +3908,12 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<byte?>("BirthDay")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte?>("BirthMonth")
+                        .HasColumnType("tinyint");
+
                     b.Property<DateTime?>("FamilyInvitesSnoozedAt")
                         .HasColumnType("datetime2");
 
@@ -4495,6 +4547,15 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_GuardianLink_Tenant");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.LeaveRequest", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MemberTag", b =>

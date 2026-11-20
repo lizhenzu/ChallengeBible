@@ -1,0 +1,72 @@
+@page "/account/link/{id:int?}"
+@model ChallengeBible.Web.Pages.Account.LinkModel
+@* 확정 시안: 가입연결-탈퇴-시안 ② 같은 이름 — 가린 힌트로 고르기 · ③ 본인 확인 → 연결 · 바로 참여(2026-11-20) *@
+<partial name="_Top" />
+<main class="page gut w760 lnk"><div class="wrap">
+@if (Model.DoneSlug is { } slug)
+{
+    <div>
+        <h1>본인 확인 · @Model.Dept</h1>
+    </div>
+    <div class="ok" role="status">✓ 확인됐어요 · @(Model.Dept)에 바로 들어갔어요</div>
+    <a class="btn p" href="/@slug">@(Model.Dept)로 가기</a>
+}
+else if (Model.Id is null)
+{
+    <div>
+        <h1>명부에 같은 이름이 있어요</h1>
+        <p class="sub">본인이면 눌러서 확인해 주세요. 확인되면 그 부서 명부와 바로 이어져요.</p>
+    </div>
+    <div class="cands">
+        @foreach (var c in Model.Candidates)
+        {
+            var hint = string.Join(" · ", new[] { c.PhoneHint is null ? null : "전화 " + c.PhoneHint, c.BirthHint is null ? null : "생일 " + c.BirthHint }.Where(x => x is not null));
+            @if (c.CanVerify)
+            {
+                <a class="cand" href="/account/link/@c.PersonId">
+                    <span class="tx"><b>@User.DisplayName() · @c.Dept</b><small>@hint</small></span>
+                    <span class="go">본인이에요 ›</span>
+                </a>
+            }
+            else
+            {
+                <div class="cand off" aria-disabled="true">
+                    <span class="tx"><b>@User.DisplayName() · @c.Dept</b><small>확인 정보 없음 — 부서 관리자가 이어 줘요</small></span>
+                    <span class="go">선택 불가</span>
+                </div>
+            }
+        }
+    </div>
+    <a class="btn s" href="/">저는 다른 사람이에요 · 새로 가입할래요</a>
+}
+else
+{
+    <div>
+        <h1>본인 확인 · @Model.Dept</h1>
+        <p class="sub">명부에 적힌 정보와 맞으면 이어져요.</p>
+    </div>
+    <form method="post" class="stack" novalidate>
+        @if (Model.AskPhone)
+        {
+            <div class="f">
+                <label for="l4">전화번호 끝 4자리</label>
+                <input class="in" id="l4" name="Last4" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="1234" disabled="@Model.Locked" />
+            </div>
+        }
+        @if (Model.AskBirth)
+        {
+            <div class="f">
+                <label>생일</label>
+                <div class="b2">
+                    <select class="sel" name="BMonth" aria-label="생일 월" disabled="@Model.Locked"><option value="0">월</option>@for (var m = 1; m <= 12; m++) { <option value="@m" selected="@(Model.BMonth == m)">@(m)월</option> }</select>
+                    <select class="sel" name="BDay" aria-label="생일 일" disabled="@Model.Locked"><option value="0">일</option>@for (var d = 1; d <= 31; d++) { <option value="@d" selected="@(Model.BDay == d)">@(d)일</option> }</select>
+                </div>
+            </div>
+        }
+        @if (Model.Error is { } err) { <p class="hint bad" role="alert">@err</p> }
+        else if (Model.Locked) { <p class="hint bad" role="alert">@ChallengeBible.Web.Services.RosterLinkService.Message(ChallengeBible.Web.Services.LinkError.Locked, 0)</p> }
+        <button type="submit" class="btn p" disabled="@Model.Locked">확인하고 연결</button>
+    </form>
+    <div class="note">맞지 않으면 "정보가 맞지 않아요" — 5번 틀리면 잠시 막아요. 확인되면 부서 관리자와 플랫폼 관리자에게 쪽지가 가요.<br><a href="/account/link">다른 줄 고르기</a> · <a href="/">저는 다른 사람이에요</a></div>
+}
+</div></main>

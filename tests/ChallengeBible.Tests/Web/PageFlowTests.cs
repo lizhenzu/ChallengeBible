@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -50,7 +50,7 @@ public partial class PageFlowTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
-    public async Task 가입하고_코드로_신청하면_승인_기다림이_보인다()
+    public async Task 가입하고_코드로_참여하면_승인_없이_바로_그_부서로_간다()
     {
         InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         var c = Client();
@@ -78,12 +78,7 @@ public partial class PageFlowTests : IClassFixture<WebApplicationFactory<Program
             new("SelectedRoles", Roles.Participant),
         }));
         Assert.Equal(HttpStatusCode.Redirect, applied.StatusCode);
-
-        var after = await c.GetStringAsync("/join");
-        Assert.Contains("승인을 기다리고 있어요", after);
-
-        // 승인 전이라 첫 화면은 다시 참여 신청으로
-        var home = await c.GetAsync("/");
-        Assert.Equal("/join", home.Headers.Location!.OriginalString);
+        Assert.Equal("/jamsil-kids", applied.Headers.Location!.OriginalString);   // 승인 없이 바로 소속(R-340, 2026-11-20)
+        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/jamsil-kids")).StatusCode);
     }
 }

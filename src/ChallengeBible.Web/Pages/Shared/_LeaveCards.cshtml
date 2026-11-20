@@ -1,0 +1,20 @@
+@model IReadOnlyList<ChallengeBible.Web.Services.LeaveRow>
+@* 확정 시안 가입연결-탈퇴 ⑤(2026-11-20): 탈퇴 신청 카드 — 부서 관리자 · 플랫폼 관리자 모두의 할 일. 둘 중 한 사람이 승인 · 반려 *@
+@if (Model.Count > 0)
+{
+    <div class="td-sec"><b>탈퇴</b></div>
+    @foreach (var r in Model)
+    {
+        var at = ChallengeBible.Domain.Time.TenantClock.ToTenantDate(new DateTimeOffset(DateTime.SpecifyKind(r.RequestedUtc, DateTimeKind.Utc)), "Asia/Seoul");
+        <div class="td-card td-leave">
+            <div class="td-row td-noic"><div class="what"><b>탈퇴 신청 · @(r.Name)(@r.Dept)</b></div></div>
+            <dl class="td-kv"><dt>신청</dt><dd>@at.ToString("M/d")</dd><dt>역할</dt><dd>@r.Role</dd></dl>
+            <form method="post" class="td-btns" onsubmit="return event.submitter?.value !== 'ok' || confirm('@(r.Name)님의 계정과 모든 기록을 지울까요? 되돌릴 수 없어요.');">
+                <input type="hidden" name="leaveId" value="@r.Id" />
+                <button type="submit" class="btn lv-ok" name="leaveDo" value="ok" formaction="?handler=Leave">탈퇴 승인(모두 지우기)</button>
+                <button type="submit" class="btn s" name="leaveDo" value="no" formaction="?handler=Leave">반려</button>
+            </form>
+            <p class="td-why">승인하면 명부에는 "@(at.ToString("M월 d일")) 탈퇴"만 남고 연락처 · 생일은 비워요. 그 사람이 올린 사진 · 주보는 남기고 올린 사람만 "탈퇴한 사람"으로.</p>
+        </div>
+    }
+}

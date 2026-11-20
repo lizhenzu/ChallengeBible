@@ -9,16 +9,18 @@ public sealed record JoinTarget(int TenantId, string Name, bool MissionEnabled, 
     /// <summary>성경필사(ADR 0099) — 신청 카드에 세 프로그램 모두 보인다(2026-11-17).</summary>
     public bool CopyEnabled { get; init; }
     public string ThemeColor { get; init; } = "blue";
+    public string Slug { get; init; } = "";
 }
 
 public enum JoinError { None, NotFound, AlreadyMember, NoRole, BadRole }
 
 /// <summary>
-/// 목록에서 부서를 고르거나(0059) 참여 코드로 부서를 찾아 참여 신청을 한다(0045, 0048). 신청은 "신청" 상태 소속을 만들고,
-/// 부서 관리자가 승인하면 그때 쓸 수 있다(R-130). 역할은 학생 · 교사 · 학부모 · 기타 중 하나만 묻는다(유년부와 같다).
+/// 목록에서 부서를 고르거나(0059) 참여 코드로 부서를 찾아 참여한다(0045, 0048). 2026-11-20 사용자 "승인 제약 없애고 자유롭게 가입":
+/// 승인 없이 바로 그 부서 소속이 되고(신청 줄은 "승인됨"으로 남김), 부서 관리자 · 플랫폼 관리자에게 알림 쪽지가 간다(R-340).
+/// 역할은 학생 · 교사 · 학부모 · 기타 중 하나만 묻는다(유년부와 같다).
 /// 임시 부서(0064)는 신청 대상이 아니다(목록 · 코드 · 번호 모두에서 뺌) — 가입하면 저절로 들어간다.
 /// </summary>
-public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time)
+public sealed class JoinService(IAppDb db, ISystemDb systemDb, RequestScope scope, TimeProvider time)
 {
         public static string NormalizeCode(string code) =>
         new string((code ?? "").Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
@@ -31,7 +33,7 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
         await using var ctx = db.Create();
         return await ctx.Tenants
             .Where(t => t.JoinCode == c && t.Status == TenantStatus.Active && !t.IsLobby)
-            .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor, CopyEnabled = t.CopyEnabled })
+            .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor, CopyEnabled = t.CopyEnabled, Slug = t.Slug })
             .SingleOrDefaultAsync(ct);
     }
 
@@ -41,7 +43,7 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
         await using var ctx = db.Create();
         return (await ctx.Tenants
             .Where(t => t.JoinListed && t.Status == TenantStatus.Active && !t.IsLobby)
-            .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor, CopyEnabled = t.CopyEnabled })
+            .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor, CopyEnabled = t.CopyEnabled, Slug = t.Slug })
             .ToListAsync(ct))
             .OrderBy(t => DeptOrder.Key(t.Name)).ThenBy(t => t.Name, StringComparer.Ordinal).ToList();   // 나이순 영아부 → … → 고등부(2026-11-17 사용자)
     }
@@ -57,7 +59,7 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
         await using (var ctx = db.Create())
             target = await ctx.Tenants
                 .Where(t => t.Id == tenantId && t.Status == TenantStatus.Active && !t.IsLobby && (t.JoinListed || t.JoinCode == c))
-                .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { CopyEnabled = t.CopyEnabled })
+                .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { CopyEnabled = t.CopyEnabled, Slug = t.Slug })
                 .SingleOrDefaultAsync(ct);
         return await ApplyToAsync(userName, target, roleKind, ct, bMonth, bDay);
     }
@@ -88,8 +90,21 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
         };
         // 생일(선택): 맞는 월 · 일일 때만 남긴다(2월 29일 허용). 승인 때 명부 후보 순서에만 쓴다
         if (bMonth is >= 1 and <= 12 && bDay >= 1 && bDay <= DateTime.DaysInMonth(2024, bMonth)) (a.BMonth, a.BDay) = (bMonth, bDay);
+        // 승인 없이 바로 소속(2026-11-20): 신청 줄은 "승인됨"으로 남기고, 명부 줄을 만들어 잇는다(역할 = 고른 종류의 기본 역할 코드)
+        var now = time.GetUtcNow().UtcDateTime;
+        (a.Status, a.DecidedDT, a.DecidedBy) = (SignupStatus.Approved, now, "auto");
         ctx.SignupApplications.Add(a);
         await ctx.SaveChangesAsync(ct);
+        await using (var sys = systemDb.Create(userName))
+        {
+            var account = await sys.Users.SingleAsync(u => u.Id == user.Id, ct);
+            await DeptMembership.PlaceAsync(sys, account, target.TenantId, UserRole.CodeForKind(roleKind), now, ct, actor: userName);
+            if (a.BMonth > 0 && await sys.People.SingleOrDefaultAsync(p => p.TenantId == target.TenantId && p.UserId == user.Id, ct) is { BirthMonth: null } person)
+            {
+                (person.BirthMonth, person.BirthDay) = ((byte)a.BMonth, (byte)a.BDay);
+                await sys.SaveChangesAsync(ct);
+            }
+        }
         return (JoinError.None, a.Id);
     }
 

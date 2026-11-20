@@ -100,7 +100,7 @@
                             <span class="av">@Short(r.Name)</span>
                             <span class="who">
                                 <b class="nm">@r.Name@if (r.ClassText is { } cTxt) { <em>@cTxt</em> }@if (self) { <span class="tag">나</span> }</b>
-                                <span class="chips"><span class="c @(UserRole.KindOf(r.RoleCode) switch { UserRoleKind.Student => "st", UserRoleKind.Parent => "pa", _ => "t" })">@r.RoleLabel</span>@if (r.IsAdmin) { <span class="c adm">관리자</span> }@if (r.Linked) { <span class="c ok">가입</span> } else { <span class="c no">가입 안 함</span> }@if (sameAcc.Count > 0) { <span class="c lk">같은 이름 계정 있음</span> }</span>
+                                <span class="chips"><span class="c @(UserRole.KindOf(r.RoleCode) switch { UserRoleKind.Student => "st", UserRoleKind.Parent => "pa", _ => "t" })">@r.RoleLabel</span>@if (r.IsAdmin) { <span class="c adm">관리자</span> }@if (r.LeftOn is { } lo) { <span class="c no">@lo.ToString("M월 d일") 탈퇴</span> } else if (r.Linked) { <span class="c ok">가입</span> } else { <span class="c no">가입 안 함</span> }@if (sameAcc.Count > 0) { <span class="c lk">같은 이름 계정 있음</span> }</span>
                                 <small class="sub">생일 @(r.BirthMonth is null ? "없음" : r.Birthday) · @(r.Phone1 ?? "연락처 없음")@if (r.Linked) { <text> · 계정 </text><span class="id">@r.UserName</span> }</small>
                             </span>
                             <span class="chev" aria-hidden="true">›</span>

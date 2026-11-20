@@ -37,7 +37,7 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
     private JoinService Service()
     {
         var scope = new RequestScope();
-        return new(new InMemoryDb(_db, scope), scope, TimeProvider.System);
+        return new(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), scope, TimeProvider.System);
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("name=\"SelectedRoles\"", html);
         Assert.DoesNotContain("내 부서가 안 보이나요", html);
         Assert.DoesNotContain("내 부서로 가기", html);
-        Assert.Contains("부서 관리자가 승인하면 시작해요", html);
+        Assert.Contains("승인 없이 바로 시작해요", html);   // R-340
         Assert.Contains("어느 부서에서 함께할까요?", html);
         Assert.Contains("도전!!!성경미션", html);
         Assert.Contains(">돌아가기</a>", html);
@@ -120,13 +120,10 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
             new("TenantId", _kids.Id.ToString()), new("RoleKind", SignupRoleKind.Parent),
         }));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
-        var after = await c.GetStringAsync("/join");
-        Assert.Contains("승인을 기다리고 있어요", after);
-        Assert.Contains("승인 기다리는 중", after);
+        Assert.Equal("/" + _kids.Slug, r.Headers.Location!.OriginalString);   // R-340 승인 없이 바로 그 부서로
         using var raw = InMemoryDb.Raw(_db);
-        var m = raw.SignupApplications.Single(x => x.TenantId == _kids.Id && x.Status == SignupStatus.Pending);
+        var m = raw.SignupApplications.Single(x => x.TenantId == _kids.Id && x.Status == SignupStatus.Approved);
         Assert.Equal(SignupRoleKind.Parent, m.RoleKind);
-        Assert.DoesNotContain("어느 부서에서", after);                                // 기다리는 동안엔 목록 대신 기다림 카드
     }
 
     /// <summary>2026-11-18 사용자: 이미 정식 부서 소속(한 사람 한 부서, ADR 0090)이면 /join 을 어떻게 열어도 그 부서 홈으로 · "다른 부서 참여 신청" 링크도 없다.

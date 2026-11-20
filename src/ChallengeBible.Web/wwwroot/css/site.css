@@ -4585,3 +4585,25 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .wsa-g label.ck { display: flex; align-items: center; gap: 8px; font-weight: 700; }
 .wsa-g .in, .wsa-g .sel { width: 100%; box-sizing: border-box; }
 .wsa-acts { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* 가입 더 넣기 · 명부 연결(확정 시안 가입연결-탈퇴 ① ② ③, ADR 0119) */
+.more { width: 100%; box-sizing: border-box; margin: 0; padding: 14px 16px; border: 1.5px dashed var(--rule); border-radius: 14px; display: grid; gap: 12px; min-width: 0; }
+.more legend { padding: 0 6px; font-size: 13px; color: var(--dim); }
+.more legend b { color: var(--fg); }
+.b2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.lnk .cands { display: grid; gap: 10px; }
+.lnk .cand { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; border: 1.5px solid var(--rule); background: var(--bg); color: inherit; text-decoration: none; }
+.lnk .cand .tx { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.lnk .cand .tx b { font-size: 17px; font-weight: 900; word-break: keep-all; }
+.lnk .cand .tx small { font-size: 13px; color: var(--dim); }
+.lnk .cand .go { flex: none; font-size: 14px; font-weight: 800; color: var(--accent); }
+.lnk .cand.off { opacity: .55; }
+.lnk .cand.off .go { color: var(--dim); font-weight: 600; }
+.lnk .ok { padding: 12px 14px; border-radius: 12px; background: var(--ok-bg); font-weight: 800; }
+
+/* 탈퇴(확정 시안 가입연결-탈퇴 ④ ⑤) */
+.ma-leave .lv-warn { margin: 0; padding: 12px 14px; border-radius: 12px; background: #FFF4D6; color: #8A4B00; font-size: 13.5px; font-weight: 700; line-height: 1.6; word-break: keep-all; }
+.ma-leave .lv-wait { padding: 12px 14px; border-radius: 12px; background: var(--soft); display: grid; gap: 4px; }
+.ma-leave .lv-wait p { margin: 0; font-size: 14px; }
+.ma-leave .lv-wait small { color: var(--dim); }
+.btn.lv-go, .btn.lv-ok, .td-btns .btn.lv-ok { background: var(--bg); color: #C62828; border: 1.5px solid #E4A3A3; }

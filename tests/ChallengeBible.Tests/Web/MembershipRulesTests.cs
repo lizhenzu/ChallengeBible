@@ -277,7 +277,7 @@ public class MembershipRulesTests
 
     // ── 한 사람 한 부서 ──
 
-    private JoinService Join() => new(new InMemoryDb(_db, new RequestScope()), new RequestScope(), _time);
+    private JoinService Join() => new(new InMemoryDb(_db, new RequestScope()), new InMemorySystemDb(_db), new RequestScope(), _time);
 
     [Fact]
     public async Task 임시_부서_사람은_신청할_수_있고_진짜_부서_소속이나_기다리는_신청이_있으면_못_한다()
@@ -285,15 +285,15 @@ public class MembershipRulesTests
         var kid = Person("cheolsu", "김철수");
         InMemoryDb.SeedMembership(_db, _lobby.Id, kid.UserName!, MembershipStatus.Approved, Roles.Participant);
         var scope = new RequestScope();
-        var join = new JoinService(new InMemoryDb(_db, scope), scope, _time);
+        var join = new JoinService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), scope, _time);
         Assert.Equal(JoinError.None, (await join.ApplyAsync(kid.UserName!, "JSKIDS", SignupRoleKind.Student)).Error);
 
         var scope2 = new RequestScope();
-        var again = new JoinService(new InMemoryDb(_db, scope2), scope2, _time);
+        var again = new JoinService(new InMemoryDb(_db, scope2), new InMemorySystemDb(_db), scope2, _time);
         Assert.Equal(JoinError.AlreadyMember, (await again.ApplyAsync(kid.UserName!, "JSELEM", SignupRoleKind.Student)).Error);
 
         var scope3 = new RequestScope();
-        var admin = new JoinService(new InMemoryDb(_db, scope3), scope3, _time);
+        var admin = new JoinService(new InMemoryDb(_db, scope3), new InMemorySystemDb(_db), scope3, _time);
         Assert.Equal(JoinError.AlreadyMember, (await admin.ApplyAsync(_admin.UserName!, "JSELEM", SignupRoleKind.Teacher)).Error);
     }
 

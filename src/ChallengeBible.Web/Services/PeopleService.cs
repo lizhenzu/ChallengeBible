@@ -14,6 +14,8 @@ public sealed record RosterRow(int PersonId, string Name, string? RoleCode, stri
     public string Birthday => PeopleService.BirthdayText(BirthMonth, BirthDay);
     /// <summary>지금 반(가장 최근 반 묶음) · 담임이면 "1반 담임"(확정 시안 명부-반응형).</summary>
     public string? ClassText { get; init; }
+    /// <summary>탈퇴한 날(ADR 0119) — 명부에 "○월 ○일 탈퇴"로 보인다.</summary>
+    public DateOnly? LeftOn { get; init; }
 }
 
 /// <summary>명부에 넣고 고치는 값. 연결된 줄은 생일 · 연락처만 쓴다.</summary>
@@ -62,6 +64,7 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
                 m?.Id, m?.UserName, m?.Email, m is not null && adminIds.Contains(m.UserId!), p.CreatedUtc)
             {
                 Prev = PrevText(p),
+                LeftOn = p.LeftOn,
                 ClassText = classes.TryGetValue(p.Id, out var cl) ? cl.Name + (cl.IsTeacher ? " 담임" : "") : null,
             };
         }).ToList();
@@ -266,6 +269,10 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
             if (here is null)
             {
                 here = new Person { TenantId = target, Name = Cut(AppUser.FullName(user.LastName, user.FirstName)), CreatedUtc = now, CreatedByUserName = actor };
+                // 가입 때 본인이 넣은 전화 · 생일(선택, ADR 0119)을 새 명부 줄에
+                here.Phone1 = user.PhoneNumber is { Length: > 0 and <= 20 } ph ? ph : null;
+                var mine0 = await sys.UserSettings.AsNoTracking().Where(x => x.UserName == user.UserName).Select(x => new { x.BirthMonth, x.BirthDay }).FirstOrDefaultAsync(ct);
+                if (mine0 is { BirthMonth: > 0, BirthDay: > 0 }) (here.BirthMonth, here.BirthDay) = (mine0.BirthMonth, mine0.BirthDay);
                 sys.People.Add(here);
             }
             here.UserId = user.Id;
