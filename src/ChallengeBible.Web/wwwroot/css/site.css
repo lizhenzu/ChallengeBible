@@ -4665,3 +4665,11 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .pc-nm .chips .c.no { background: #FEF3C7; color: #92400E; }
 .pc-nm .chips .c.lk { background: #FFF7ED; color: #C2410C; }
 .pc-nm .tag { margin-left: 6px; font-size: 11px; font-weight: 800; padding: 1px 6px; border-radius: 6px; background: var(--soft); color: var(--dim); }
+
+/* 관리 홈 · 다가오는 생일 칸(ADR 0121) */
+.ah-card.ah-bday { display: flex; flex-direction: row; text-align: left; justify-content: flex-start; align-items: center; gap: 14px; text-decoration: none; color: inherit; }
+.ah-bday .n { flex: none; font-size: 28px; font-weight: 900; color: #B45309; min-width: 36px; text-align: center; }
+.ah-bday .t { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.ah-bday .t b { font-size: 16px; }
+.ah-bday .t small { font-size: 13px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ah-bday .go { flex: none; font-size: 20px; color: var(--dim); }

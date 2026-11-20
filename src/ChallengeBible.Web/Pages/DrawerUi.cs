@@ -38,6 +38,7 @@ public static class DrawerUi
         ["bible"] = """<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M12 8v6M9.5 10.5h5"/>""",
         ["chart"] = """<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>""",
         ["rules"] = """<path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/>""",
+        ["cake"] = """<path d="M4 21V12a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9"/><path d="M4 16c2 0 2-1.5 4-1.5s2 1.5 4 1.5 2-1.5 4-1.5 2 1.5 4 1.5"/><path d="M3 21h18M12 10V7"/><path d="M12 7c-1-1-1-2.5 0-4 1 1.5 1 3 0 4z"/>""",
         ["gift"] = """<rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18"/><path d="M12 8S10 3 7.5 4.5 9 8 12 8zM12 8s2-5 4.5-3.5S15 8 12 8z"/>""",
         ["search"] = """<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>""",
         ["pulse"] = """<path d="M3 12h4l3-8 4 16 3-8h4"/>""",

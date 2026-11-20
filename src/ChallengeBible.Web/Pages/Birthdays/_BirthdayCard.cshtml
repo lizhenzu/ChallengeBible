@@ -1,0 +1,13 @@
+@model (ChallengeBible.Web.Services.BirthdayRow Row, bool InMonth)
+@using ChallengeBible.Web.Services
+@* 생일 카드 한 장(확정 시안 생일-시안): 왼쪽 D-day(오늘 · D-n, 월별은 날짜) · 이름 · 반 · 역할 · 오른쪽 선물 상태 *@
+@{
+    var r = Model.Row;
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+    var today = r.DaysLeft == 0;
+}
+<article class="bdy-card @(today ? "today" : "")">
+    <div class="dd">@if (Model.InMonth) { <b>@(r.Day)일</b><small>@(today ? "오늘" : $"D-{r.DaysLeft}")</small> } else { <b>@(today ? "오늘" : $"D-{r.DaysLeft}")</b><small>@r.Next.ToString("M/d (ddd)", ko)</small> }</div>
+    <div class="who"><b>@r.Name</b>@if (r.ClassText is { } c) { <em>@c</em> }@if (r.MyClass) { <span class="mine">내 반</span> }<small>@r.RoleLabel@(r.Linked ? "" : " · 가입 안 함")</small></div>
+    <span class="gs @BirthdayListService.GiftTone(r.Gift)">@BirthdayListService.GiftLabel(r.Gift)</span>
+</article>
