@@ -48,7 +48,7 @@
             var rows = list.Where(isIn).ToList();
             if (rows.Count == 0) { continue; }
             <div class="bdy-sec"><b>@title</b><span>@(title.StartsWith("🎂") ? b.Today.ToString("M월 d일", ko) + " · " : "")@(rows.Count)명</span></div>
-            @foreach (var r in rows) { <partial name="_BirthdayCard" model="(r, false)" /> }
+            @foreach (var r in rows) { <partial name="_BirthdayCard" model="(r, false, Model)" /> }
         }
         <a class="bdy-go" href="/@slug/admin/gifts">선물 사기 · 전하기는 관리 › 선물 처리 →</a>
     }
@@ -94,14 +94,14 @@
                 var isToday = Model.M == b.Today.Month && Model.D == b.Today.Day;
                 <div class="bdy-sec" id="bdyDay"><b>@(Model.M)월 @(Model.D)일@(isToday ? "(오늘)" : "")</b><span>@(dayRows.Count)명</span></div>
                 @if (dayRows.Count == 0) { <p class="bdy-empty">이 날은 생일인 사람이 없어요.</p> }
-                @foreach (var r in dayRows) { <partial name="_BirthdayCard" model="(r, true)" /> }
+                @foreach (var r in dayRows) { <partial name="_BirthdayCard" model="(r, true, Model)" /> }
             }
             else { <p class="bdy-empty">날짜를 누르면 그날 명단이 나와요.</p> }
         }
         else
         {
             @if (rows.Count == 0) { <p class="bdy-empty">@(Model.M)월에는 생일인 사람이 없어요.</p> }
-            @foreach (var r in rows) { <partial name="_BirthdayCard" model="(r, true)" /> }
+            @foreach (var r in rows) { <partial name="_BirthdayCard" model="(r, true, Model)" /> }
         }
     }
     else if (Model.Current == IndexModel.YearTab)
@@ -133,4 +133,46 @@
             </form>
         }
     }
+    @if (Model.PickGift is { } pgft)
+    {
+        @* 선생님이 대신 고르기(확정 시안 생일카드-선물 ③): 아이와 같은 목록 *@
+        <div class="go-modal" role="dialog" aria-modal="true" aria-labelledby="pickT" id="pick">
+            <form method="post" asp-antiforgery="true" action="@($"/{slug}/birthdays?handler=Pick&Tab={Model.Current}&Days={Model.Days}&M={Model.M}")" class="go-sheet bdy-pick">
+                <b id="pickT">@pgft.Name @pgft.KindLabel 고르기</b>
+                <small>한도 @pgft.MaxAmount.ToString("N0")원 · 아이가 고르는 목록과 같아요. 고르면 "골랐음"이 되고, 아이 · 부모님 화면에 "선생님이 골라 주셨어요"로 보여요. 사기 전까지 바꿀 수 있어요.</small>
+                <input type="hidden" name="gift" value="@pgft.Id" />
+                @if (Model.PickItems.Count == 0) { <p class="bdy-empty">고를 수 있는 상품이 없어요. 관리 › 선물 › 상품을 확인해 주세요.</p> }
+                <div class="bdy-items">
+                    @foreach (var it in Model.PickItems)
+                    {
+                        <label class="bdy-item"><input type="radio" name="item" value="@it.Id" checked="@(pgft.ItemId == it.Id)" required />
+                            <span class="pic">@if (it.HasImage) { <img src="/images/AwardItem/@(it.Id).jpg" alt="" loading="lazy" onerror="this.remove()" /> }</span>
+                            <b>@it.Name</b><small>@it.Price.ToString("N0")원</small></label>
+                    }
+                </div>
+                <div class="go-row2"><a class="btn s" href="@Model.Back()#g@(pgft.Id)">닫기</a><button type="submit" class="btn p">이 선물로 고르기</button></div>
+            </form>
+        </div>
+    }
+    @if (Model.Share is { } sh)
+    {
+        @* 링크 팝업 — 선물 처리 화면과 같다 *@
+        <div class="go-modal" role="dialog" aria-modal="true" aria-labelledby="linkT" data-go-modal>
+            <div class="go-sheet">
+                <b id="linkT">@sh.View.Name @sh.View.KindLabel 링크</b>
+                <input class="in num" readonly value="@sh.Url" aria-label="선물 링크" onclick="this.select()" />
+                <small>카톡으로 부모님께 보내 주세요. 로그인 없이 열려요. 안내글에는 무엇을 하면 되는지 · 기한 · 링크가 함께 들어 있어요.</small>
+                <details class="go-prev"><summary>보낼 안내글 미리 보기</summary><pre>@sh.Text</pre></details>
+                <div class="go-row2"><button type="button" class="btn s" data-copy="@sh.Url">링크만 복사</button><button type="button" class="btn p" data-copy="@sh.Text">안내글 복사</button></div>
+                <a class="btn s go-close" href="@Model.Back()#g@(sh.View.Id)">닫기</a>
+            </div>
+        </div>
+    }
 </div></main>
+<script>
+    // 복사 버튼(선물 처리와 같다): 누르면 "복사했어요"
+    document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = '복사했어요'; b.classList.add('go-done'); }
+        catch { prompt('복사해 주세요', b.dataset.copy); }
+    }));
+</script>

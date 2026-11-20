@@ -59,7 +59,7 @@ public class GiftOrderModel(GiftOrderService orders, TeamGiftService teamGifts, 
     public static string StateLabel(string s) => s switch
     {
         GiftStates.Picked => "살 것", GiftStates.Purchased => "줄 것", GiftStates.Delivered => "받음", GiftStates.Cancelled => "취소",
-        GiftStates.YearClosed => "해 넘어 닫힘", GiftStates.Open => "고를 수 있음", GiftStates.Expired => "기한 지남", GiftStates.Skipped => "건너뜀", _ => s,
+        GiftStates.YearClosed => "해 넘어 닫힘", GiftStates.Open => "고를 수 있음", GiftStates.Expired => "기한 지남", GiftStates.Skipped => "안 주기로 함", _ => s,
     };
 
     /// <summary>이력 한 줄의 동작(이름은 앞에 따로 — "윤동호 · 샀어요", 사용자 2026-11-14).</summary>

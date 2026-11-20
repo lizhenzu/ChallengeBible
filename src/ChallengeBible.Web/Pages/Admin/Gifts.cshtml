@@ -68,7 +68,7 @@
                         <small class="go-warn">적힌 이름 "@pd.Written" — @(pd.Same == 0 ? "명부에 같은 이름의 학생이 없어요" : $"명부에 같은 이름이 {pd.Same}명이에요")</small></div>
                     <div class="go-acts go-bday">
                         <a class="btn p sm" href="@self?s=pick&pick=@pd.NewcomerId#n@(pd.NewcomerId)">전도한 아이 고르기</a>
-                        <form method="post" asp-page-handler="SkipPending" asp-route-slug="@slug" onsubmit="return confirm('전도 선물을 건너뛸까요? \'취소\'에서 되돌릴 수 있어요.')"><input type="hidden" name="newcomer" value="@pd.NewcomerId" /><button type="submit" class="btn s sm go-skip">건너뛰기</button></form>
+                        <form method="post" asp-page-handler="SkipPending" asp-route-slug="@slug" onsubmit="return confirm('전도 선물을 안 주기로 할까요? \'취소\'에서 [다시 주기]로 되돌릴 수 있어요.')"><input type="hidden" name="newcomer" value="@pd.NewcomerId" /><button type="submit" class="btn s sm go-skip">선물 안 주기</button></form>
                     </div>
                 </div>
             }
@@ -112,7 +112,7 @@
                     var when = o.State switch
                     {
                         "Purchased" => $"{o.PurchasedUtc:M월 d일} 샀어요", "Delivered" => $"{o.DeliveredUtc:M월 d일} 받았어요",
-                        "Cancelled" => "취소", "Skipped" => "건너뜀", "Open" => $"한도 {GiftsModel.N(o.MaxAmount)}원 · " + (o.OpenUntil is { } ou ? $"{ou:M월 d일}까지" : "기한 없음"), "Expired" => $"{o.OpenUntil:M월 d일}까지였어요",
+                        "Cancelled" => "취소", "Skipped" => "안 주기로 함", "Open" => $"한도 {GiftsModel.N(o.MaxAmount)}원 · " + (o.OpenUntil is { } ou ? $"{ou:M월 d일}까지" : "기한 없음"), "Expired" => $"{o.OpenUntil:M월 d일}까지였어요",
                         _ => $"{(o.PickedUtc ?? o.CreatedUtc):M월 d일} 골랐어요",
                     };
                     <div class="go-r@(o.State is "Delivered" or "Cancelled" or "Skipped" ? " go-dim" : "")@(Model.Hit == o.Id ? " go-hit" : "")" id="g@(o.Id)">
@@ -153,12 +153,12 @@
                                 {
                                     <form method="post" asp-page-handler="Reopen" asp-route-slug="@slug"><input type="hidden" name="id" value="@o.Id" /><button type="submit" class="btn s sm">다시 열기(7일)</button></form>
                                 }
-                                <form method="post" asp-page-handler="Skip" asp-route-slug="@slug" onsubmit="return confirm('이 선물을 건너뛸까요? \'취소\'에서 되돌릴 수 있어요.')"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="skip" value="true" /><button type="submit" class="btn s sm go-skip">건너뛰기</button></form>
+                                <form method="post" asp-page-handler="Skip" asp-route-slug="@slug" onsubmit="return confirm('이 선물을 안 주기로 할까요? \'취소\'에서 [다시 주기]로 되돌릴 수 있어요.')"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="skip" value="true" /><button type="submit" class="btn s sm go-skip">선물 안 주기</button></form>
                             </div>
                         }
                         @if (o.State == "Skipped")
                         {
-                            <form method="post" asp-page-handler="Skip" asp-route-slug="@slug" class="go-acts"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="skip" value="false" /><button type="submit" class="btn s sm">되돌리기</button></form>
+                            <form method="post" asp-page-handler="Skip" asp-route-slug="@slug" class="go-acts"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="skip" value="false" /><button type="submit" class="btn s sm">다시 주기</button></form>
                         }
                     </div>
                 }

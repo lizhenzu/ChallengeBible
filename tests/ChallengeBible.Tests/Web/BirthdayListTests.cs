@@ -137,4 +137,73 @@ public partial class BirthdayListTests : IClassFixture<WebApplicationFactory<Pro
         Assert.Contains("href=\"/kids/birthdays\"", await t.GetStringAsync("/kids"));
         Assert.Contains("<b>생일</b>", await t.GetStringAsync("/kids/birthdays"));   // 머리말 "도전!!!성경말씀 > 생일"
     }
+
+    private (long Gift, int Item) SeedOpenGift()
+    {
+        using var raw = InMemoryDb.Raw(_db);
+        var item = new GiftItem { Name = "키캡 키링", Price = 4900, CoupangUrl = "https://www.coupang.com/vp/products/1", Status = GiftItemStatus.Active };
+        raw.GiftItems.Add(item);
+        var p1 = raw.People.Single(p => p.Name == "김하늘");
+        var g = new Gift { TenantId = _kids.Id, Kind = GiftKinds.Birthday, State = GiftStates.Open, Year = 2027, PersonId = p1.Id, UserName = raw.Users.Single(u => u.Email == "kid@example.com").UserName,
+            SourceKey = "B2027-0105", MinAmount = 0, MaxAmount = 5000, CreatedUtc = DateTime.UtcNow };
+        raw.Gifts.Add(g);
+        raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = p1.Id, Sunday = new DateOnly(2027, 1, 3), CreatedUtc = DateTime.UtcNow });
+        raw.SaveChanges();
+        return (g.Id, item.Id);
+    }
+
+    /// <summary>R-345(ADR 0122, 확정 시안 생일카드-선물): 카드에 전화 · 출석(올해) · 담임 · 선물 상태 · 링크 칩, 선생님이 대신 고르면 "골랐음" · 아이 화면 "선생님이 골라 주셨어요".</summary>
+    [Fact]
+    public async Task R345_카드_상세와_선생님이_대신_고르기()
+    {
+        var (gid, item) = SeedOpenGift();
+        using (var raw = InMemoryDb.Raw(_db)) { raw.People.Single(p => p.Name == "이바다").Phone1 = "010-1111-2222"; raw.People.Single(p => p.Name == "박선생").Phone1 = "010-3333-4444"; raw.SaveChanges(); }
+        var t = await Login("teacher@example.com");
+        var html = await t.GetStringAsync("/kids/birthdays");
+        var text = Text(html);
+        Assert.Contains("010-1111-2222", text);   // 전화
+        Assert.Contains("박선생 선생님", text);      // 담임(이바다 1반)
+        Assert.Contains("1/1 (100%)", text);        // 출석: 올해 주일 1번(1/3) 중 1번(김하늘)
+        Assert.Contains("고르는 중", text);
+        Assert.Contains("링크 없음", text);
+        Assert.Contains("선물 선택", text);
+        Assert.Contains("선물 안 주기", text);
+        Assert.DoesNotContain("건너뛰기", text);
+
+        var sheet = await t.GetStringAsync($"/kids/birthdays?pick={gid}");
+        Assert.Contains("키캡 키링", Text(sheet));
+        var r = await t.PostAsync("/kids/birthdays?handler=Pick&Tab=up", new FormUrlEncodedContent(new Dictionary<string, string>
+        { ["__RequestVerificationToken"] = TokenRx().Match(sheet).Groups[1].Value, ["gift"] = gid.ToString(), ["item"] = item.ToString() }));
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var g = raw.Gifts.Single(x => x.Id == gid);
+            Assert.Equal((GiftStates.Picked, (int?)item), (g.State, g.GiftItemId));
+            Assert.StartsWith(BirthdayGiftService.StaffPrefix, raw.GiftLogs.Where(l => l.GiftId == gid && l.Action == GiftActions.Pick).Single().Detail);
+        }
+        var after = Text(await t.GetStringAsync("/kids/birthdays"));
+        Assert.Contains("선생님(박선생)이 골라 주셨어요", after);
+        Assert.Contains("쿠팡에서 보기", after);
+        Assert.Contains("선물 바꾸기", after);
+
+        // 링크 → 부모님이 열면 "부모님이 열어 봄" · 링크 화면에 "선생님이 골라 주셨어요"
+        var page = await t.GetStringAsync("/kids/birthdays");
+        await t.PostAsync("/kids/birthdays?handler=Link&Tab=up", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["gift"] = gid.ToString() }));
+        string token; using (var raw = InMemoryDb.Raw(_db)) token = raw.Gifts.Single(x => x.Id == gid).LinkToken!;
+        Assert.Contains("선생님이 골라 주셨어요", Text(await _app.CreateClient().GetStringAsync($"/gift/{token}")));
+        Assert.Contains("부모님이 열어 봄", Text(await t.GetStringAsync("/kids/birthdays")));
+    }
+
+    [Fact]
+    public async Task R345_선물_안_주기와_다시_주기()
+    {
+        var (gid, _) = SeedOpenGift();
+        var t = await Login("teacher@example.com");
+        var page = await t.GetStringAsync("/kids/birthdays");
+        await t.PostAsync("/kids/birthdays?handler=Skip&Tab=up", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["gift"] = gid.ToString(), ["skip"] = "true" }));
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(GiftStates.Skipped, raw.Gifts.Single(x => x.Id == gid).State);
+        var html = Text(await t.GetStringAsync("/kids/birthdays"));
+        Assert.Contains("안 주기로 함", html);
+        Assert.Contains("다시 주기", html);
+    }
 }
