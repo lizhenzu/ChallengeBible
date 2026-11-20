@@ -200,7 +200,7 @@
                 <span class="bdh-pic"><span aria-hidden="true">🎁</span>@if (bg.HasImage && bg.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" onerror="this.remove()" /> }</span>
                 <span class="bdh-m">
                     <span class="bdh-k">🎂 @bg.Birthday.ToString("M월 d일") 생일 선물 <i>@(bdDone ? "준비 끝" : "준비 중")</i></span>
-                    <b>@bg.ItemName</b>
+                    <b>@(bg.ItemDescription ?? bg.ItemName)</b>
                     <span class="bdh-bar" aria-hidden="true"><i class="on"></i><i class="@(bdDone ? "on" : null)"></i><i></i></span>
                     <small>@(bdDone ? "선생님이 준비했어요 · 주일에 받아요" : bg.PickedByStaff is not null ? "선생님이 골라 주셨어요 · 준비하고 있어요" : "골랐어요 · 선생님이 준비하고 있어요")</small>
                 </span>
