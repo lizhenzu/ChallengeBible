@@ -3914,6 +3914,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.Property<byte?>("BirthMonth")
                         .HasColumnType("tinyint");
 
+                    b.Property<DateOnly?>("BirthdayPopupSnoozedUntil")
+                        .HasColumnType("date");
+
                     b.Property<DateTime?>("FamilyInvitesSnoozedAt")
                         .HasColumnType("datetime2");
 
