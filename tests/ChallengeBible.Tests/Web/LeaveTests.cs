@@ -134,7 +134,7 @@ public partial class LeaveTests : IClassFixture<WebApplicationFactory<Program>>
         var sa = await Login("superadmin@example.com");
         Assert.Contains("탈퇴 신청 · 홍길동", WebUtility.HtmlDecode(await sa.GetStringAsync("/platform/todo")));
         var eadmin = await Login("eadmin@example.com");
-        Assert.DoesNotContain("탈퇴 신청", WebUtility.HtmlDecode(await eadmin.GetStringAsync("/elem/todo")));
+        Assert.DoesNotContain("탈퇴 신청 · 홍길동", WebUtility.HtmlDecode(await eadmin.GetStringAsync("/elem/todo")));   // (☰ 메뉴의 "탈퇴 신청" 항목과 구별)
         // 다른 부서 관리자가 번호로 승인해도 안 된다
         await Post(eadmin, "/elem/todo", "/elem/todo?handler=Leave", new() { ["leaveId"] = LeaveId().ToString(), ["leaveDo"] = "ok" });
         using var raw = InMemoryDb.Raw(_db);
@@ -274,5 +274,16 @@ public partial class LeaveTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.DoesNotContain("탈퇴 처리(가장)", page);   // 관리자 계정에는 버튼이 없다
         await Post(sa, "/account", "/account?handler=LeaveNow", []);
         using (var raw = InMemoryDb.Raw(_db)) Assert.Contains(raw.Users, u => u.Id == _u["kadmin"].Id);   // R-315
+    }
+
+    [Fact]
+    public async Task 오늘_할_일_머리말은_메뉴_버튼과_한_줄_제목이다()
+    {
+        var kadmin = await Login("kadmin@example.com");
+        var page = await Text(await kadmin.GetAsync("/kids/todo"));
+        Assert.Contains("data-pnav-open", page);   // ☰ 메뉴 버튼
+        Assert.Contains("id=\"pnav\"", page);   // 메뉴판
+        Assert.Contains("td-one", page);
+        Assert.Matches(@"<em>도전!!!</em>성경말씀</span><span class=""td-sep"" aria-hidden=""true"">></span><b>오늘 할 일</b>", page);   // 도전!!!성경말씀 > 오늘 할 일
     }
 }
