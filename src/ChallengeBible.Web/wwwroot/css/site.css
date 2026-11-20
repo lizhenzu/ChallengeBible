@@ -27,7 +27,8 @@ a:focus-visible, button:focus-visible, label:focus-within { outline: 3px solid v
 
 /* 얇은 머리말 */
 .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; border-bottom: 1px solid var(--rule); }
-.brand { font-size: 17px; font-weight: 900; color: var(--accent); }
+.brand { font-size: 17px; font-weight: 900; color: var(--accent); white-space: nowrap; flex: none; }
+.brand span { color: var(--fg); }
 .top .lnk, .top .who { min-height: 40px; display: inline-flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; color: var(--dim); }
 .top .who b { color: var(--fg); }
 .top .who button { border: 0; background: none; font-size: 14px; font-weight: 700; color: var(--dim); padding: 0; min-height: 40px; }
@@ -4608,3 +4609,9 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .ma-leave .lv-wait small { color: var(--dim); }
 .btn.lv-go, .btn.lv-ok, .td-btns .btn.lv-ok { background: var(--bg); color: #C62828; border: 1.5px solid #E4A3A3; }
 .btn.login-admin { min-height: 48px; font-size: 15px; color: var(--dim); }
+
+/* 머리말 "도전!!! 성경말씀"(2026-11-20): 오른쪽은 한 줄 — 긴 이름은 말줄임, 좁은 휴대폰은 간격을 줄인다 */
+.top .who { min-width: 0; white-space: nowrap; }
+.top .who > * { flex: none; }
+.top .who > span { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 420px) { .top .wrap { gap: 8px; } .top .who, .top .lnk { gap: 8px; font-size: 13px; } .top .who button { font-size: 13px; } .brand { font-size: 16px; } }
