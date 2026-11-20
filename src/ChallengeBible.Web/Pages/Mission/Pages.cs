@@ -48,7 +48,7 @@ public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoin
             await birthdays.EnsureAsync(ct);   // 생일 30일 전이 되면 생일 선물이 생긴다(ADR 0094 D)
             await newcomers.EnsureAsync(ct);   // 새친구가 출석 4번을 채우면 새친구 · 전도 선물(ADR 0094 C)
             await readings.EnsureAsync(ct);   // 성경을 다 읽으면 완독 선물(ADR 0094 E)
-            Birthdays = await birthdays.MineAsync(ct);
+            Birthdays = (await birthdays.MineAsync(ct)).Where(g => g.Kind != ChallengeBible.Infrastructure.Data.GiftKinds.Birthday).ToList();   // 생일 선물은 부서 홈으로 옮겼다(ADR 0123)
         }
         // "누가 선물 받나요"는 2026-11-18 부서 홈으로 옮겼다(미션 · 개인 선물을 함께 보여 주는 통합 카드, R-297)
         Week = UserName is { } p ? await Missions.RecentDaysAsync(p, Day, ct) : [];

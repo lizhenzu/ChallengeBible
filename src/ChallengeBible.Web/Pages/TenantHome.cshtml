@@ -181,6 +181,20 @@
         <script src="~/js/worship.js" asp-append-version="true" defer></script>
     }
 
+    @* 생일 선물(ADR 0123, R-346, 2026-11-20 확정 시안 생일선물-부서홈-팝업): 예배 안내 카드 바로 아래. 성경미션 홈에서 옮겨 왔다 *@
+    @foreach (var bg in Model.Birthdays)
+    {
+        if (bg.State == "Open")
+        {
+            <a class="bdh-card" href="/@t.Slug/gifts/birthday/@bg.Id">
+                <span class="bdh-ic" aria-hidden="true">🎂</span>
+                <span class="bdh-m"><b>생일 선물을 골라요!</b><small>@bg.Birthday.ToString("M월 d일") 생일@(bg.OpenUntil is { } u ? $" · {u:M월 d일}까지 골라요" : "")</small></span>
+                <span class="bdh-go">고르기 →</span>
+            </a>
+        }
+        else { @await Html.PartialAsync("/Pages/Mission/_BirthdayGiftCard.cshtml", (t.Slug, (IReadOnlyList<ChallengeBible.Web.Services.BirthdayGiftView>)[bg])) }
+    }
+
     @* 사진첩 카드는 부서 홈에서 뺐다(2026-11-20 사용자) — ☰ 메뉴 "사진첩"으로 들어간다 *@
 
     @if (t.ReadingEnabled)
@@ -350,6 +364,22 @@
 </div></main>
 }
 
+@if (Model.BirthdayPopup is { } bp)
+{
+    @* 생일 팝업(R-346): 홈을 열면 하루 한 번. [다음에 할래요] 내일 · 3일 · 5일 뒤. 고르면 안 뜬다. 기한 하루 전에는 미뤄도 뜬다 *@
+    <div class="bdh-pop" data-bdh-pop role="dialog" aria-modal="true" aria-labelledby="bdhT">
+        <div class="bdh-box">
+            <div class="bdh-em" aria-hidden="true">🎂🎁</div>
+            <h2 id="bdhT">@(bp.Name.Length > 0 ? bp.Name : User.Identity?.Name)님, 생일 축하해요!</h2>
+            <p>@bp.Birthday.ToString("M월 d일") 생일 선물을 골라 주세요.@if (bp.OpenUntil is { } pu) { <br />@($"{pu:M월 d일}까지 고를 수 있어요.") }</p>
+            <a class="bdh-pick" href="/@t.Slug/gifts/birthday/@bp.Id">선물 고르러 가기</a>
+            <form method="post" asp-page-handler="SnoozeBirthday" asp-route-slug="@slug" class="bdh-later">
+                <small>다음에 할래요</small>
+                <div><button type="submit" name="days" value="1">내일 다시</button><button type="submit" name="days" value="3">3일 뒤</button><button type="submit" name="days" value="5">5일 뒤</button></div>
+            </form>
+        </div>
+    </div>
+}
 @if (!Model.Guest) { <partial name="_MsgPopup" model="(Model.NewMessages, Model.NewList, '/' + slug)" /> }
 
 @if (!Model.Guest) { <partial name="_TenantDrawer" model="(Model.Tenant, Model.MyPhoto)" /> }

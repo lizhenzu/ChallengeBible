@@ -9,7 +9,7 @@ namespace ChallengeBible.Web.Pages;
 
 /// <summary>`/{slug}` 부서 홈 메인(확정 시안: 홈메인, 0044). 부서 결정 · 소속 검사는 TenantPageFilter 가 한다.</summary>
 public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, FamilyJoinService familyJoin, HomeService home, AccountService accounts,
-    PhotoService photos, CopyService copy, TodoService todo, Prayer365Service prayer365, MessageService msgs, GiftOrderService orders, WorshipService worship, BulletinService bulletins) : PageModel, ITitled
+    PhotoService photos, CopyService copy, TodoService todo, Prayer365Service prayer365, MessageService msgs, GiftOrderService orders, WorshipService worship, BulletinService bulletins, BirthdayGiftService birthdays) : PageModel, ITitled
 {
     /// <summary>로그인할 때 한 번 "새 쪽지" 띠(ADR 0112, 확정 시안 쪽지 ①). 로그인이 남긴다.</summary>
     public const string MsgBandKey = "msg-band";
@@ -51,6 +51,20 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     /// <summary>교사 · 관리자: 주보가 없어도 [주보 올리기].</summary>
     public bool CanBulletin => bulletins.CanEdit;
 
+    /// <summary>내 생일 선물(ADR 0123, R-346): 예배 안내 카드 바로 아래 카드. 성경미션 홈에서 옮겨 왔다(미션을 안 하는 아이도 보게).</summary>
+    public IReadOnlyList<BirthdayGiftView> Birthdays { get; private set; } = [];
+    /// <summary>홈을 열면 띄우는 "생일 축하해요!" 팝업 — 띄울 때가 아니면 null(R-346).</summary>
+    public BirthdayGiftView? BirthdayPopup { get; private set; }
+    /// <summary>같은 날 두 번 띄우지 않게 남기는 쿠키(하루 한 번).</summary>
+    public const string BirthdayPopupCookie = "bd-pop";
+
+    /// <summary>생일 팝업 "다음에 할래요" — 내일 · 3일 · 5일 뒤(R-346).</summary>
+    public async Task<IActionResult> OnPostSnoozeBirthdayAsync(int days, CancellationToken ct)
+    {
+        await birthdays.SnoozePopupAsync(days, ct);
+        return Redirect($"/{tenant.Current.Slug}");
+    }
+
     /// <summary>초대 배너 "다음에 할래요"(R-212): 오늘은 숨기고 내일 다시 보인다.</summary>
     public async Task<IActionResult> OnPostSnoozeInvitesAsync(CancellationToken ct)
     {
@@ -84,6 +98,15 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         if (tenant.Current.MissionEnabled && Family is null) Invites = (await familyJoin.StateAsync(ct)).Invites.Where(i => !i.SnoozedToday).ToList();
         Data = await home.GetAsync(ct);
         if (!tenant.IsLobby) { Worship = await worship.ListAsync(ct: ct); BulletinDate = await bulletins.LatestDateAsync(ct); }
+        if (!tenant.IsLobby && tenant.Has(Roles.Participant))   // 생일 선물(ADR 0123, R-346): 생일 30일 전이 되면 생긴다
+        {
+            await birthdays.EnsureAsync(ct);
+            Birthdays = (await birthdays.MineAsync(ct)).Where(g => g.Kind == GiftKinds.Birthday).ToList();
+            // 새 쪽지 팝업이 뜨는 때는 미룬다. 하루 한 번: 오늘 날짜 + 선물 번호를 쿠키에(한 기기를 형제가 같이 써도 각자 한 번)
+            if (NewList.Count == 0 && (BirthdayPopup = await birthdays.PopupAsync(Birthdays, ct)) is { } pop && Request.Cookies[BirthdayPopupCookie] == $"{Data.Today:yyyyMMdd}-{pop.Id}") BirthdayPopup = null;
+            else if (BirthdayPopup is { } shown)
+                Response.Cookies.Append(BirthdayPopupCookie, $"{Data.Today:yyyyMMdd}-{shown.Id}", new Microsoft.AspNetCore.Http.CookieOptions { MaxAge = TimeSpan.FromDays(2), HttpOnly = true, IsEssential = true, SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax });
+        }
         if (tenant.Current.CopyEnabled) CopyData = await copy.SummaryAsync(ct);   // 임시 부서(승인 전)에도(ADR 0110)
         if (prayer365.CanSee(User.IsPlatformAdmin()))
             PrayerCard = (await prayer365.GetAsync(Prayer365Service.Md(prayer365.Today), ct), await prayer365.MyStatsAsync(ct));

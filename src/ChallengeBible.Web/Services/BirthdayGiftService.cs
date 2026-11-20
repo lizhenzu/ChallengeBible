@@ -183,6 +183,37 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
 
     private static readonly string[] Live = [GiftStates.Open, GiftStates.Picked, GiftStates.Purchased, GiftStates.Expired];
 
+    /// <summary>부서 홈 생일 팝업 "다음에 할래요"(ADR 0123, R-346): 내일 · 3일 · 5일 뒤만.</summary>
+    public static readonly int[] PopupSnoozeDays = [1, 3, 5];
+
+    /// <summary>
+    /// 팝업을 띄울 때인지(R-346): 고를 수 있는 생일 선물이 있고, 미룬 날이 없거나 지났거나, 기한 하루 전부터는 미뤄도 띄운다.
+    /// 고른 뒤(Picked …) · 기한 지남은 띄우지 않는다.
+    /// </summary>
+    public static bool PopupDue(DateOnly? snoozedUntil, DateOnly? openUntil, DateOnly today) =>
+        snoozedUntil is not { } s || s <= today || (openUntil is { } u && u.AddDays(-1) <= today);
+
+    /// <summary>부서 홈 팝업에 보일 생일 선물(고를 수 있는 것 중 기한이 가장 이른 것) — 띄울 때가 아니면 null.</summary>
+    public async Task<BirthdayGiftView?> PopupAsync(IReadOnlyList<BirthdayGiftView> mine, CancellationToken ct = default)
+    {
+        var open = mine.Where(g => g.Kind == GiftKinds.Birthday && g.State == GiftStates.Open).OrderBy(g => g.OpenUntil).FirstOrDefault();
+        if (open is null || scope.UserName is not { } user) return null;
+        await using var ctx = db.Create();
+        var snoozed = await ctx.UserSettings.AsNoTracking().Where(s => s.UserName == user).Select(s => s.BirthdayPopupSnoozedUntil).FirstOrDefaultAsync(ct);
+        return PopupDue(snoozed, open.OpenUntil, Today) ? open : null;
+    }
+
+    /// <summary>팝업 미루기(R-346): days(1 · 3 · 5) 일 뒤 다시. 다른 값은 1일.</summary>
+    public async Task SnoozePopupAsync(int days, CancellationToken ct = default)
+    {
+        if (scope.UserName is not { } user) return;
+        await using var ctx = db.Create();
+        var s = await ctx.UserSettings.SingleOrDefaultAsync(x => x.UserName == user, ct);
+        if (s is null) { s = new UserSetting { UserName = user }; ctx.UserSettings.Add(s); }
+        s.BirthdayPopupSnoozedUntil = Today.AddDays(PopupSnoozeDays.Contains(days) ? days : 1);
+        await ctx.SaveChangesAsync(ct);
+    }
+
     /// <summary>내 생일 선물(받기 전 + 기한 지남): 계정으로 생긴 것 + 내 명부 줄로 생긴 것(나중에 계정을 연결한 경우).</summary>
     public async Task<IReadOnlyList<BirthdayGiftView>> MineAsync(CancellationToken ct = default)
     {

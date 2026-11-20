@@ -119,6 +119,8 @@ public sealed class UserSetting
     /// <summary>가입 때 본인이 넣은 생일(연도 없이, 선택 · ADR 0119). 부서에 들어가면 명부 줄로 옮겨 쓴다.</summary>
     public byte? BirthMonth { get; set; }
     public byte? BirthDay { get; set; }
+    /// <summary>생일 선물 팝업 "다음에 할래요"(ADR 0123, R-346): 이 날(부서 날짜) 전까지는 부서 홈에서 팝업을 띄우지 않는다. 기한 하루 전에는 무시.</summary>
+    public DateOnly? BirthdayPopupSnoozedUntil { get; set; }
 }
 
 // B. 가입 신청 · 역할 -----------------------------------------------------------
