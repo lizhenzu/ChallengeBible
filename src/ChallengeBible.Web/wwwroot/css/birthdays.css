@@ -1,0 +1,66 @@
+/* 생일(ADR 0121, 확정 시안 생일-시안, 2026-11-20): 교사 · 관리자 관리 화면 */
+.bdy .wrap { display: flex; flex-direction: column; gap: 12px; padding-block: 16px 40px; }
+.bdy-h { margin: 0; font-size: 22px; }
+.bdy-h small { margin-left: 6px; font-size: 13px; font-weight: 700; color: var(--dim); }
+.bdy-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: var(--soft); }
+.bdy-tabs a { min-height: 40px; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 10px; font-size: 14px; font-weight: 800; color: var(--dim); text-decoration: none; white-space: nowrap; }
+.bdy-tabs a[aria-current="page"] { background: var(--bg); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.bdy-tabs a b { font-size: 12px; color: #B45309; }
+.bdy-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.bdy-chips a { min-height: 34px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); font-size: 13.5px; font-weight: 800; color: var(--dim); text-decoration: none; }
+.bdy-chips a[aria-current="page"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.bdy-sec { display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px; font-size: 14px; }
+.bdy-sec b { font-weight: 900; }
+.bdy-sec span { color: var(--dim); font-size: 13px; font-weight: 700; }
+.bdy-card { display: flex; gap: 12px; align-items: center; border: 1.5px solid var(--rule); border-radius: 16px; padding: 12px 14px; background: var(--bg); min-width: 0; }
+.bdy-card.today { border-color: #F59E0B; background: #FFFBEB; }
+.bdy-card .dd { flex: none; width: 58px; text-align: center; }
+.bdy-card .dd b { display: block; font-size: 17px; font-weight: 900; }
+.bdy-card .dd small { font-size: 11.5px; color: var(--dim); }
+.bdy-card.today .dd b { color: #B45309; }
+.bdy-card .who, .bdy-miss .who { flex: 1; min-width: 0; }
+.bdy-card .who b, .bdy-miss .who b { font-size: 16px; font-weight: 900; }
+.bdy-card .who em, .bdy-miss .who em { margin-left: 6px; font-style: normal; font-size: 12.5px; font-weight: 800; color: var(--accent); }
+.bdy-card .who small, .bdy-miss .who small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--dim); }
+.bdy-card .mine { margin-left: 4px; padding: 1px 5px; border-radius: 6px; background: var(--accent); color: var(--on-accent); font-size: 10.5px; font-weight: 900; vertical-align: 2px; }
+.bdy-card .gs { flex: none; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 800; white-space: nowrap; }
+.gs.g0 { background: #F3F4F6; color: #6B7280; } .gs.g1 { background: #FEF3C7; color: #92400E; } .gs.g2 { background: #E0E7FF; color: #3730A3; } .gs.g3 { background: #DCFCE7; color: #166534; }
+.bdy-go { align-self: flex-end; font-size: 13.5px; font-weight: 800; color: var(--accent); text-decoration: none; }
+.bdy-empty { margin: 0; padding: 18px; text-align: center; color: var(--dim); border: 1.5px dashed var(--rule); border-radius: 16px; }
+.bdy-hint { margin: 0; font-size: 13px; color: var(--dim); }
+.bdy-months { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; }
+.bdy-months a { flex: none; min-height: 34px; display: inline-flex; align-items: center; gap: 4px; padding: 0 10px; border-radius: 10px; background: var(--soft); font-size: 13px; font-weight: 800; color: var(--dim); text-decoration: none; }
+.bdy-months a small { font-size: 11px; opacity: .8; }
+.bdy-months a[aria-current="page"] { background: var(--accent); color: var(--on-accent); }
+.bdy-view { display: flex; gap: 6px; align-items: center; }
+.bdy-view a { min-height: 34px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line); font-size: 13px; font-weight: 800; color: var(--fg); text-decoration: none; }
+.bdy-view a[aria-current="page"] { background: var(--fg); color: var(--bg); }
+.bdy-view span { margin-left: auto; font-size: 13px; color: var(--dim); font-weight: 700; }
+.bdy-cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.bdy-cal .h { text-align: center; font-size: 12px; font-weight: 800; color: var(--dim); padding: 2px 0; }
+.bdy-cal .c { min-height: 56px; min-width: 0; overflow: hidden; border-radius: 9px; background: var(--soft); padding: 4px; display: flex; flex-direction: column; gap: 2px; color: inherit; text-decoration: none; }
+.bdy-cal .c.x { background: none; }
+.bdy-cal .c i { font-style: normal; font-size: 12px; font-weight: 800; color: var(--dim); }
+.bdy-cal .c u { text-decoration: none; font-size: 11px; font-weight: 800; background: var(--accent-bg); color: var(--accent); border-radius: 4px; padding: 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bdy-cal .c.td { outline: 2px solid #F59E0B; outline-offset: -2px; }
+.bdy-cal .c.sel { background: #FFF7E6; }
+@media (min-width: 640px) { .bdy-cal .c { min-height: 76px; } .bdy-cal .c u { font-size: 12px; } }
+.bdy-year { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 640px) { .bdy-year { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.bdy-year .ym { border: 1.5px solid var(--rule); border-radius: 14px; padding: 10px 12px; color: inherit; text-decoration: none; min-width: 0; }
+.bdy-year .ym.on { border-color: var(--accent); background: var(--accent-bg); }
+.bdy-year h3 { margin: 0 0 4px; font-size: 15px; display: flex; justify-content: space-between; }
+.bdy-year h3 small { color: var(--accent); font-weight: 900; }
+.bdy-year p { margin: 0; font-size: 12.5px; color: var(--dim); line-height: 1.6; overflow-wrap: anywhere; }
+.bdy-print { align-self: flex-start; }
+.bdy-miss { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border: 1.5px solid var(--rule); border-radius: 14px; padding: 10px 12px; }
+.bdy-miss .who { flex: 1 1 100%; }
+.bdy-miss .sel { flex: 1 1 0; min-width: 0; min-height: 40px; }
+.bdy-miss .btn { flex: none; min-height: 40px; }
+@media (min-width: 640px) { .bdy-miss .who { flex: 1 1 200px; } .bdy-miss .sel { flex: none; width: 92px; } }
+@media print {
+    .admintop, .pdrawer, .bdy-tabs, .bdy-print, .bdy-h small, .okmsg { display: none !important; }
+    .bdy-year { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .bdy-year .ym { break-inside: avoid; padding: 6px 8px; }
+    .bdy-year p { font-size: 10.5px; color: #000; }
+}

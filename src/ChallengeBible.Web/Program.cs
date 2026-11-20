@@ -24,6 +24,7 @@ builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<JoinService>();
 builder.Services.AddScoped<RosterLinkService>();
 builder.Services.AddScoped<LeaveService>();
+builder.Services.AddScoped<BirthdayListService>();
 builder.Services.AddScoped<TenantContext>();
 builder.Services.AddScoped<TenantPageFilter>();
 builder.Services.AddScoped<MemberAdminService>();
