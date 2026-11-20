@@ -17,6 +17,8 @@ public sealed record BirthdayGiftView(long Id, string Name, DateOnly Birthday, s
 {
     /// <summary>선생님이 대신 고른 선물이면 고른 선생님 이름(아이 화면 "선생님이 골라 주셨어요", ADR 0122).</summary>
     public string? PickedByStaff { get; init; }
+    /// <summary>고른 상품의 설명 글(상품 설명 칸, R-349) — 부서 홈 고른 선물 카드 제목 자리. 없으면 null(이름을 보인다).</summary>
+    public string? ItemDescription { get; init; }
     public string KindLabel => Kind switch { GiftKinds.Newcomer => "새친구 선물", GiftKinds.Invite => "전도 선물", GiftKinds.Reading => "완독 선물", GiftKinds.Copy => "완필 선물", _ => "생일 선물" };
 }
 
@@ -239,11 +241,14 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         var staff = (await ctx.GiftLogs.AsNoTracking().Where(l => gids.Contains(l.GiftId) && (l.Action == GiftActions.Pick || l.Action == GiftActions.Change))
                 .Select(l => new { l.GiftId, l.Id, l.Detail }).ToListAsync(ct))
             .GroupBy(l => l.GiftId).ToDictionary(g => g.Key, g => StaffName(g.OrderByDescending(x => x.Id).First().Detail));
+        var itemIds = list.Select(g => g.GiftItemId).OfType<int>().Distinct().ToList();
+        var descs = await ctx.GiftItems.AsNoTracking().Where(i => itemIds.Contains(i.Id)).Select(i => new { i.Id, i.Description }).ToDictionaryAsync(i => i.Id, i => i.Description, ct);
         return list.Select(g => new BirthdayGiftView(g.Id, g.PersonId is int pid ? names.GetValueOrDefault(pid) ?? "" : "", BirthdayOf(g.SourceKey) ?? default, g.State, g.OpenUntil,
             g.MinAmount, g.MaxAmount, g.GiftItemId, g.ItemName, g.ItemHasImage == true, g.PickedUtc, g.PurchasedUtc, g.TenantId, depts.GetValueOrDefault(g.TenantId) ?? "",
             g.Kind, g.Kind == GiftKinds.Invite && NewcomerGiftService.NewcomerOf(g.SourceKey) is int nid ? names.GetValueOrDefault(nid)
                 : g.Kind == GiftKinds.Reading && ReadingGiftService.RoundOf(g.SourceKey) is int rn ? $"{rn}독"
-                : g.Kind == GiftKinds.Copy ? CopyGiftService.AboutOf(g.SourceKey) : null) { PickedByStaff = g.State is GiftStates.Picked or GiftStates.Purchased or GiftStates.Delivered ? staff.GetValueOrDefault(g.Id) : null }).ToList();
+                : g.Kind == GiftKinds.Copy ? CopyGiftService.AboutOf(g.SourceKey) : null) { PickedByStaff = g.State is GiftStates.Picked or GiftStates.Purchased or GiftStates.Delivered ? staff.GetValueOrDefault(g.Id) : null,
+            ItemDescription = g.GiftItemId is int did && descs.GetValueOrDefault(did) is { } dsc && !string.IsNullOrWhiteSpace(dsc) ? dsc.Trim() : null }).ToList();
     }
 
     /// <summary>금액 범위 안 상품(공통 − 그 부서가 숨긴 것 + 부서 상품, 판매 중), 싼 순. 링크 화면은 시스템 연결이라 부서를 직접 준다.</summary>

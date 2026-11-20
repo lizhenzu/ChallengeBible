@@ -508,6 +508,10 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
         Assert.Contains("준비 중", home);
         Assert.Contains("스티커북", home);
         Assert.Contains("hj-card bdh-got", home);   // 다른 카드와 같은 테두리(확정 시안 고른선물 ①)
+        Assert.Contains("<b>스티커북</b>", home);   // 설명이 없는 상품은 이름을 그대로
+        using (var raw = InMemoryDb.Raw(_db)) { raw.GiftItems.Single(i => i.Name == "스티커북").Description = "알록달록 스티커로 꾸미는 책"; raw.SaveChanges(); }
+        var withDesc = await (await Login("hajun@example.com")).GetStringAsync("/kids");
+        Assert.Contains("<b>알록달록 스티커로 꾸미는 책</b>", withDesc);   // R-349: 카드 제목 자리에 선물 설명 글
         var page = await (await Login("hajun@example.com")).GetStringAsync($"/kids/gifts/birthday/{GiftOf("김하준").Id}");
         Assert.Contains("← 부서 홈", page);   // 생일 선물은 부서 홈으로 돌아간다
         Assert.Contains("gkd-pic", page);
