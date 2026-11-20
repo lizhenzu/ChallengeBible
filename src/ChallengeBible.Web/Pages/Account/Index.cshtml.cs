@@ -2,6 +2,7 @@
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -11,7 +12,7 @@ namespace ChallengeBible.Web.Pages.Account;
 /// `/account` 내 계정(확정 시안: 내계정): 이름 바꾸기 · 이메일 보기 · 내 부서 · 비밀번호 바꾸기(지금 비밀번호 확인) · 로그아웃.
 /// 이메일은 로그인 주소라 바꾸지 않는다(확정).
 /// </summary>
-public class IndexModel(AccountService accounts, MyAccountService mine, PhotoService photos, LeaveService leave) : PageModel, ITitled
+public class IndexModel(AccountService accounts, MyAccountService mine, PhotoService photos, LeaveService leave, ImpersonationService impersonation) : PageModel, ITitled
 {
     /// <summary>내 사진 파일 이름(0078).</summary>
     public string? Photo { get; private set; }
@@ -39,6 +40,25 @@ public class IndexModel(AccountService accounts, MyAccountService mine, PhotoSer
     /// <summary>탈퇴(ADR 0119): 관리자 계정은 버튼이 없다. 신청 중이면 신청한 때.</summary>
     public bool IsAdmin { get; private set; }
     public DateTime? LeavePending { get; private set; }
+
+    /// <summary>가장 중 탈퇴(R-348): 비밀번호 · 확인 글자 · 승인 없이 바로 지우고, 가장도 끝나므로 플랫폼 홈으로.</summary>
+    public async Task<IActionResult> OnPostLeaveNowAsync(CancellationToken ct)
+    {
+        if (User.ImpersonatorId() is not { } imp) return Forbid();
+        var e = await leave.ForceAsync(imp, Me, ct);
+        if (e != LeaveError.None)
+        {
+            Errors = new FieldErrors { ["Leave"] = LeaveService.Message(e) };
+            Open = "leave";
+            await LoadAsync(ct);
+            return Page();
+        }
+        // 계정이 없어졌으니 가장도 끝낸다: 플랫폼 관리자 자리로 돌아가 플랫폼 홈으로(복귀와 같게)
+        var back = await impersonation.StopAsync(imp, Me, ct);
+        if (back is null) { await HttpContext.SignOutAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme); return Redirect("/"); }
+        await CurrentUser.SignInAsync(HttpContext, await accounts.ToSignedInAsync(back, ct));
+        return Redirect("/platform");
+    }
 
     public async Task<IActionResult> OnPostLeaveAsync(string? leavePw, string? leaveWord, CancellationToken ct)
     {

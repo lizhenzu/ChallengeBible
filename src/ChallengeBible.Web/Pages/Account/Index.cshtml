@@ -123,6 +123,15 @@
                     <small>승인 전까지 평소처럼 쓸 수 있어요.</small></div>
                 <form method="post" asp-page-handler="Stay"><button type="submit" class="btn s">탈퇴 취소</button></form>
             }
+            else if (User.ImpersonatorId() is not null)
+            {
+                @* 가장 중(R-348, 2026-11-20 사용자): 비밀번호 · 확인 글자 · 승인 없이 바로 탈퇴 처리 — 한 번 더 물어보고 지운다 *@
+                <p class="lv-warn">가장 중이라 <b>비밀번호 · 승인 없이 바로</b> 탈퇴 처리해요. 계정과 모든 기록(미션 · 통독 · 필사 · 선물 · 쪽지 · 사진 · 출석 · 가족팀)이 지워지고 되돌릴 수 없어요.</p>
+                @if (Model.Errors.GetValueOrDefault("Leave") is { } le2) { <p class="hint bad" role="alert">@le2</p> }
+                <form method="post" asp-page-handler="LeaveNow" asp-antiforgery="true" onsubmit="return confirm('이 계정을 지금 바로 탈퇴 처리할까요? 되돌릴 수 없어요.');">
+                    <button type="submit" class="btn lv-go">탈퇴 처리(가장)</button>
+                </form>
+            }
             else
             {
                 <details class="ma-ed" open="@(Model.Open == "leave")">
