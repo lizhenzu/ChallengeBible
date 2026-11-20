@@ -192,7 +192,25 @@
                 <span class="bdh-go">고르기 →</span>
             </a>
         }
-        else { @await Html.PartialAsync("/Pages/Mission/_BirthdayGiftCard.cshtml", (t.Slug, (IReadOnlyList<ChallengeBible.Web.Services.BirthdayGiftView>)[bg])) }
+        else if (bg.State is "Picked" or "Purchased")
+        {
+            @* 고른 선물(2026-11-20 확정 시안 고른선물 ①): 다른 카드와 같은 테두리 · 여백. 사진 · 생일 · 상태 · 진행 막대 3칸 *@
+            var bdDone = bg.State == "Purchased";
+            <a class="hj-card bdh-got" href="/@t.Slug/gifts/birthday/@bg.Id">
+                <span class="bdh-pic"><span aria-hidden="true">🎁</span>@if (bg.HasImage && bg.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" onerror="this.remove()" /> }</span>
+                <span class="bdh-m">
+                    <span class="bdh-k">🎂 @bg.Birthday.ToString("M월 d일") 생일 선물 <i>@(bdDone ? "준비 끝" : "준비 중")</i></span>
+                    <b>@bg.ItemName</b>
+                    <span class="bdh-bar" aria-hidden="true"><i class="on"></i><i class="@(bdDone ? "on" : null)"></i><i></i></span>
+                    <small>@(bdDone ? "선생님이 준비했어요 · 주일에 받아요" : bg.PickedByStaff is not null ? "선생님이 골라 주셨어요 · 준비하고 있어요" : "골랐어요 · 선생님이 준비하고 있어요")</small>
+                </span>
+                <span class="bdh-ar" aria-hidden="true">›</span>
+            </a>
+        }
+        else
+        {
+            <div class="hj-card bdh-late"><b>생일 선물을 고르지 못했어요</b><small>선생님께 말씀드리면 다시 열어 줘요</small></div>
+        }
     }
 
     @* 사진첩 카드는 부서 홈에서 뺐다(2026-11-20 사용자) — ☰ 메뉴 "사진첩"으로 들어간다 *@

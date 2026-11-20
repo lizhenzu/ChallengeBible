@@ -4673,3 +4673,26 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .ah-bday .t b { font-size: 16px; }
 .ah-bday .t small { font-size: 13px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ah-bday .go { flex: none; font-size: 20px; color: var(--dim); }
+
+/* 고른 선물 화면(2026-11-20 확정 시안 고른선물 ②) — gkd- 접두어 */
+.gkd { text-align: left; }
+.gkd .gkd-hero { margin-top: 4px; padding: 18px 16px 20px; border-radius: 22px; background: linear-gradient(160deg, #FDEEF5 0%, #FEF6EC 100%); border: 1px solid #F9D3E4; text-align: center; }
+.gkd .gkd-k { display: inline-flex; gap: 6px; align-items: center; padding: 5px 12px; border-radius: 99px; background: #fff; color: #DB2777; font-size: 13px; font-weight: 800; }
+.gkd .gkd-pic { position: relative; width: min(180px, 52vw); aspect-ratio: 1; margin: 16px auto 0; border-radius: 20px; overflow: hidden; background: #fff; display: grid; place-items: center; font-size: 72px; box-shadow: 0 10px 24px -10px rgba(157, 23, 77, .35); }
+.gkd .gkd-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #fff; }
+.gkd .gkd-hero h1 { margin: 16px 0 6px; font-size: 23px; font-weight: 900; color: #111827; word-break: keep-all; }
+.gkd .gkd-st { display: inline-flex; padding: 5px 12px; border-radius: 99px; background: #DCFCE7; color: #16A34A; font-size: 13px; font-weight: 800; }
+.gkd .gkd-flow { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 22px 0 0; padding: 0; position: relative; }
+.gkd .gkd-flow::before, .gkd .gkd-flow::after { content: ''; position: absolute; left: 16.6%; top: 21px; height: 3px; border-radius: 9px; }
+.gkd .gkd-flow::before { right: 16.6%; background: #E5E7EB; }
+.gkd .gkd-flow::after { width: calc(66.8% * var(--gkd-p, 0)); background: #16A34A; }
+.gkd .gkd-flow li { position: relative; z-index: 1; text-align: center; min-width: 0; }
+.gkd .gkd-flow i { width: 44px; height: 44px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; font-size: 20px; font-style: normal; background: #F3F4F6; border: 2px solid #E5E7EB; filter: grayscale(1); opacity: .7; }
+.gkd .gkd-flow li.gk-on i { background: #DCFCE7; border-color: #16A34A; filter: none; opacity: 1; }
+.gkd .gkd-flow b { display: block; margin-top: 8px; font-size: 13px; font-weight: 800; color: #9CA3AF; word-break: keep-all; }
+.gkd .gkd-flow li.gk-on b { color: #111827; }
+.gkd .gkd-flow small { display: block; min-height: 16px; font-size: 12px; color: #6B7280; }
+.gkd .gkd-info { margin-top: 22px; padding: 14px; border-radius: 16px; background: #F8FAFC; border: 1px solid #E5E9F0; display: grid; gap: 10px; }
+.gkd .gkd-info > div { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px; font-size: 14px; line-height: 1.5; color: #111827; }
+.gkd .gkd-info em { display: block; font-style: normal; font-size: 12.5px; color: #6B7280; }
+.gkd .gkd-btn { margin-top: 18px; }

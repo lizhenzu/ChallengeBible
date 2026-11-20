@@ -493,19 +493,25 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
     }
 
     [Fact]
-    public async Task R346_고른_뒤에는_팝업이_안_뜨고_카드는_준비_중()
+    public async Task R346_고른_뒤에는_팝업이_안_뜨고_카드는_준비_중_선물_화면은_부서_홈으로()
     {
         var c = await Login("hajun@example.com");
         await c.GetStringAsync("/kids");   // 선물이 생긴다
         using (var raw = InMemoryDb.Raw(_db))
         {
             var g = raw.Gifts.Single(x => x.UserName == _hajun && x.Kind == GiftKinds.Birthday);
-            g.State = GiftStates.Picked; g.ItemName = "스티커북"; g.GiftItemId = ItemId("스티커북"); g.PickedUtc = DateTime.UtcNow;
+            g.State = GiftStates.Picked; g.ItemName = "스티커북"; g.GiftItemId = ItemId("스티커북"); g.ItemHasImage = true; g.PickedUtc = DateTime.UtcNow;
             raw.SaveChanges();
         }
         var home = await (await Login("hajun@example.com")).GetStringAsync("/kids");
         Assert.DoesNotContain("data-bdh-pop", home);
         Assert.Contains("준비 중", home);
         Assert.Contains("스티커북", home);
+        Assert.Contains("hj-card bdh-got", home);   // 다른 카드와 같은 테두리(확정 시안 고른선물 ①)
+        var page = await (await Login("hajun@example.com")).GetStringAsync($"/kids/gifts/birthday/{GiftOf("김하준").Id}");
+        Assert.Contains("← 부서 홈", page);   // 생일 선물은 부서 홈으로 돌아간다
+        Assert.Contains("gkd-pic", page);
+        Assert.Contains($"/images/AwardItem/{ItemId("스티커북")}.jpg", page);
+        Assert.Contains("준비 중이에요", page);
     }
 }
