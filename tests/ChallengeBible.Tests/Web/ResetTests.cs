@@ -34,7 +34,7 @@ public partial class ResetTests : IClassFixture<WebApplicationFactory<Program>>
         }));
         _kids = InMemoryDb.SeedTenant(_db, "kids", "KIDS01");
         foreach (var (login, name) in new[] { ("cheolsu", "김철수"), ("younghee", "김영희") })
-            _p[login] = InMemoryDb.SeedMembership(_db, _kids.Id, InMemoryDb.SeedAccount(_db, login + "@example.com", name).UserName!, MembershipStatus.Approved, Roles.Participant).UserName;
+            _p[login] = InMemoryDb.SeedMembership(_db, _kids.Id, InMemoryDb.SeedAccount(_db, login + "@fake-seed.test", name).UserName!, MembershipStatus.Approved, Roles.Participant).UserName;
         var adm = InMemoryDb.SeedAccount(_db, "admin@example.com", "윤동호");
         InMemoryDb.SeedMembership(_db, _kids.Id, adm.UserName!, MembershipStatus.Approved, Roles.Teacher, Roles.TenantAdmin);
         var op = InMemoryDb.SeedAccount(_db, "operator@example.com", "운영자");
@@ -118,7 +118,7 @@ public partial class ResetTests : IClassFixture<WebApplicationFactory<Program>>
         var ap = new Person { TenantId = _kids.Id, Name = "윤동호", UserId = adminUser.Id, CreatedUtc = DateTime.UtcNow };
         raw.People.Add(ap); raw.SaveChanges();
         var kid = raw.People.Single(p => p.Name == "김철수");
-        kid.UserId = raw.Users.Single(u => u.Email == "cheolsu@example.com").Id;
+        kid.UserId = raw.Users.Single(u => u.Email == "cheolsu@fake-seed.test").Id;
         raw.ClassMembers.Add(new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = cls.Id, PersonId = kid.Id, CreatedUtc = DateTime.UtcNow });
         raw.ClassMembers.Add(new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = cls.Id, PersonId = ap.Id, IsTeacher = true, CreatedUtc = DateTime.UtcNow });
         raw.GuardianLinks.Add(new GuardianLink { TenantId = _kids.Id, GuardianUserName = _p["younghee"], StudentUserName = _p["cheolsu"], CreatedUtc = DateTime.UtcNow, CreatedByUserName = "x" });
@@ -235,7 +235,7 @@ public partial class ResetTests : IClassFixture<WebApplicationFactory<Program>>
         var kid = raw.People.Single(p => p.Name == "김철수");
         Assert.Null(kid.UserId);
         Assert.Equal(2, raw.ClassMembers.Count());   // 반 배정도 남음
-        Assert.DoesNotContain(raw.Users, u => u.Email == "cheolsu@example.com");
+        Assert.DoesNotContain(raw.Users, u => u.Email == "cheolsu@fake-seed.test");
         Assert.Empty(raw.GuardianLinks);
     }
 
@@ -258,7 +258,7 @@ public partial class ResetTests : IClassFixture<WebApplicationFactory<Program>>
     {
         var admin = await Login("admin@example.com");   // 부서 관리자
         Assert.NotEqual(HttpStatusCode.OK, (await admin.GetAsync("/platform/reset")).StatusCode);
-        var student = await Login("cheolsu@example.com");
+        var student = await Login("cheolsu@fake-seed.test");
         Assert.NotEqual(HttpStatusCode.OK, (await student.GetAsync("/platform/reset")).StatusCode);
         var op = await Login("operator@example.com");
         Assert.Equal(HttpStatusCode.OK, (await op.GetAsync("/platform/reset")).StatusCode);
@@ -280,7 +280,7 @@ public partial class ResetTests : IClassFixture<WebApplicationFactory<Program>>
     {
         Pts("cheolsu", 340, _time.Now.UtcDateTime.AddHours(-1));
         await Reset(await Login("operator@example.com"), "RESET");
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.Users.Where(u => u.Email == "cheolsu@example.com"));   // 학생 계정도 지움
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.Users.Where(u => u.Email == "cheolsu@fake-seed.test"));   // 학생 계정도 지움
 
         var again = InMemoryDb.SeedAccount(_db, "cheolsu2@example.com", "김철수");
         _p["cheolsu"] = InMemoryDb.SeedMembership(_db, _kids.Id, again.UserName!, MembershipStatus.Approved, Roles.Participant).UserName;
@@ -288,5 +288,55 @@ public partial class ResetTests : IClassFixture<WebApplicationFactory<Program>>
         Pts("cheolsu", 340, _time.Now.UtcDateTime.AddDays(-30));
         var kid = await Login("cheolsu2@example.com");
         Assert.Contains("340점", await kid.GetStringAsync("/kids/word-mission"));
+    }
+
+    /// <summary>2026-11-20 사용자(1번 · A): 완전 초기화는 가짜 데이터(@fake-seed.test)만 지운다 — 직접 가입한 회원의 계정 · 소속 · 명부 줄 · 기록 · 가족팀은 모두 남긴다.</summary>
+    [Fact]
+    public async Task R314_직접_가입한_회원은_계정과_기록을_모두_남기고_가짜만_지운다()
+    {
+        var real = InMemoryDb.SeedAccount(_db, "real@gmail.com", "박진짜");
+        InMemoryDb.SeedMembership(_db, _kids.Id, real.UserName!, MembershipStatus.Approved, Roles.Participant);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var p = new Person { TenantId = _kids.Id, Name = "박진짜", UserId = real.Id, CreatedUtc = DateTime.UtcNow, Phone1 = "010-1111-2222" };
+            raw.People.Add(p); raw.SaveChanges();
+            raw.AttendanceChecks.Add(new AttendanceCheck { TenantId = _kids.Id, PersonId = p.Id, Sunday = new DateOnly(2027, 1, 3), CreatedUtc = DateTime.UtcNow });
+            raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = real.UserName!, MissionDate = new DateOnly(2027, 1, 5), MissionItem = "Word.Me", Points = 50, PerformedAt = DateTime.UtcNow });
+            raw.ReadingRounds.Add(new ReadingRound { UserName = real.UserName!, RoundNo = 1, StartedAt = new DateTime(2026, 1, 1) });
+            raw.Gifts.Add(new Gift { TenantId = _kids.Id, Kind = GiftKinds.Personal, State = GiftStates.Open, Year = 2027, UserName = real.UserName, SourceKey = "real", MaxAmount = 5000, CreatedUtc = DateTime.UtcNow });
+            var team = new FamilyTeam { TenantId = _kids.Id, Name = "진짜네", AwardKey = "진짜네", TeamType = TeamTypes.Family, InsertDT = DateTime.UtcNow, UpdateDT = DateTime.UtcNow };
+            team.Members.Add(new FamilyMember { TenantId = _kids.Id, UserName = real.UserName!, SortOrder = 0, Relation = FamilyRelation.Student });
+            team.Members.Add(new FamilyMember { TenantId = _kids.Id, UserName = _p["cheolsu"], SortOrder = 1, Relation = FamilyRelation.Student });   // 가짜가 섞인 팀
+            raw.FamilyTeams.Add(team);
+            raw.TeamAwards.Add(new TeamAward { TenantId = _kids.Id, Kind = TeamTypes.Family, AwardKey = "진짜네", Threshold = 1000, AwardedAt = new DateTime(2026, 12, 20) });
+            raw.Users.Single(u => u.Id == real.Id).PasswordHash = new PasswordHasher<AppUser>().HashPassword(real, "1234");
+            raw.SaveChanges();
+        }
+        SeedEverything();
+        FamilyTeam();
+
+        var op = await Login("operator@example.com");
+        Assert.Contains("가짜 계정(@fake-seed.test)", await op.GetStringAsync("/platform/reset"));
+        Assert.Contains("직접 가입한 회원 · 그 사람의 기록", await op.GetStringAsync("/platform/reset"));
+        await Reset(op, "RESET");
+
+        using var after = InMemoryDb.Raw(_db);
+        var un = real.UserName!;
+        Assert.Contains(after.Users, u => u.Id == real.Id);   // 계정
+        Assert.Contains(after.DeptRoles, d => d.UserId == real.Id && d.TenantId == _kids.Id);   // 소속
+        var row = after.People.Single(p => p.UserId == real.Id);   // 명부 줄 그대로
+        Assert.Equal("010-1111-2222", row.Phone1);
+        Assert.Single(after.AttendanceChecks.Where(a => a.PersonId == row.Id));   // 기록
+        Assert.Single(after.MissionActivities.Where(m => m.UserName == un));
+        Assert.Single(after.ReadingRounds.Where(r => r.UserName == un));
+        Assert.Single(after.Gifts.Where(g => g.UserName == un));
+        Assert.Equal(new[] { un }, after.FamilyMembers.Select(m => m.UserName).ToArray());   // 팀은 남고 가짜만 빠진다
+        Assert.Equal("진짜네", after.FamilyTeams.Single().Name);
+        Assert.Equal("진짜네", after.TeamAwards.Single().AwardKey);
+
+        Assert.DoesNotContain(after.Users, u => u.Email!.EndsWith("@fake-seed.test"));   // 가짜는 모두
+        Assert.DoesNotContain(after.MissionActivities, m => m.UserName == _p["cheolsu"]);
+        Assert.DoesNotContain(after.Gifts, g => g.UserName == _p["cheolsu"]);
+        Assert.Contains(after.Users, u => u.Email == "admin@example.com");   // 관리자도 그대로
     }
 }

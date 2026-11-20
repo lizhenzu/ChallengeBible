@@ -11,7 +11,8 @@ public sealed record ResetStatus(IReadOnlyList<ResetItem> Items, IReadOnlyList<(
 /// <summary>
 /// 완전 초기화(ADR 0102, R-314, 2026-11-16 사용자): 새해 초기화 · 관리자만 남기기 · 가짜 데이터 지우기를 하나로 합친 화면.
 /// 지울 것을 체크 칸으로 고르고(기본 모두), 체크를 뺀 것은 남긴다. 모든 부서에서 한 번에, 되돌릴 수 없다.
-/// 절대 안 지움: 플랫폼 관리자 · 부서 관리자 계정(과 그 소속 · 명부 줄 · 반 배정), 부서, 반(이름 · 학년 · 새친구반), 상품 · 설정 · 콘텐츠 · 규칙.
+/// 절대 안 지움: 플랫폼 관리자 · 부서 관리자 계정, 직접 가입한 회원(2026-11-20 사용자 — 지우는 계정은 가짜 데이터 @fake-seed.test 뿐)과 그 사람들의 소속 · 명부 줄 · 반 배정 · 기록,
+/// 부서, 반(이름 · 학년 · 새친구반), 상품 · 설정 · 콘텐츠 · 규칙.
 /// 사람(계정 또는 명부)을 지우면 그 사람의 기록이 남을 수 없으므로 기록은 체크와 상관없이 모두 지운다.
 /// 계정만 지우고 명부를 남기면 명부 줄의 계정 연결만 끊는다.
 /// </summary>
@@ -34,7 +35,7 @@ public sealed class ResetService(ISystemDb systemDb, TimeProvider time)
         ("prayer", Records, "365 기도 기록"),   // ADR 0106
         ("requests", Records, "진급 · 참여 신청"),
         ("logs", Records, "검색 기록 · 감사 로그"),
-        ("accounts", People, "계정(학생 · 교사 · 학부모 · 가짜)"),
+        ("accounts", People, "가짜 계정(@fake-seed.test)"),
         ("roster", People, "명부 · 반 배정 · 보호자 연결"),
     ];
 
@@ -49,29 +50,67 @@ public sealed class ResetService(ISystemDb systemDb, TimeProvider time)
         return set;
     }
 
-    /// <summary>남길 계정: Identity 역할 Admin · SuperAdmin(CLAUDE.md "관리자는 절대 지우지 않는다").</summary>
-    private static IQueryable<string> KeepIds(AppDbContext ctx) =>
-        from ur in ctx.UserRoles join r in ctx.IdentityRoleRows on ur.RoleId equals r.Id
-        where r.Name == IdentityRoles.Admin || r.Name == IdentityRoles.SuperAdmin
-        select ur.UserId;
+    /// <summary>
+    /// 남길 계정: Identity 역할 Admin · SuperAdmin(CLAUDE.md "관리자는 절대 지우지 않는다") + 직접 가입한 진짜 회원(이메일이 가짜 데이터 주소가 아닌 계정, 2026-11-20 사용자).
+    /// 지우는 계정은 가짜 데이터(이메일 @fake-seed.test)뿐이다.
+    /// </summary>
+    private static IQueryable<string> KeepIds(AppDbContext ctx)
+    {
+        var admins = from ur in ctx.UserRoles join r in ctx.IdentityRoleRows on ur.RoleId equals r.Id
+                     where r.Name == IdentityRoles.Admin || r.Name == IdentityRoles.SuperAdmin
+                     select ur.UserId;
+        return ctx.Users.Where(u => admins.Contains(u.Id) || u.Email == null || !u.Email.EndsWith(TestToolsService.EmailDomain)).Select(u => u.Id);
+    }
+
+    /// <summary>남길 계정의 아이디(기록은 아이디로 잇는다). 이 밖의 아이디 기록 = 가짜 계정 · 이미 없는 계정의 기록.</summary>
+    private static IQueryable<string> KeepNames(AppDbContext ctx) { var keep = KeepIds(ctx); return ctx.Users.Where(u => keep.Contains(u.Id)).Select(u => u.UserName!); }
 
     private static IQueryable<AppUser> GoneUsers(AppDbContext ctx) { var keep = KeepIds(ctx); return ctx.Users.Where(u => !keep.Contains(u.Id)); }
     private static IQueryable<Person> GonePeople(AppDbContext ctx) { var keep = KeepIds(ctx); return ctx.People.Where(p => p.UserId == null || !keep.Contains(p.UserId)); }
 
+    /// <summary>남길 사람(관리자 · 진짜 회원)과 이어진 명부 줄 — 그 줄의 출석 · 선물은 남긴다.</summary>
+    private static IQueryable<int> KeepPeopleIds(AppDbContext ctx) { var keep = KeepIds(ctx); return ctx.People.Where(p => p.UserId != null && keep.Contains(p.UserId)).Select(p => p.Id); }
+
+    /// <summary>남길 사람이 한 명도 없는 팀(가족팀 · 친구팀).</summary>
+    private static IQueryable<FamilyTeam> GoneTeams(AppDbContext ctx)
+    {
+        var names = KeepNames(ctx);
+        return ctx.FamilyTeams.Where(t => !ctx.FamilyMembers.Any(m => m.TenantId == t.TenantId && m.FamilyTeamId == t.Id && names.Contains(m.UserName)));
+    }
+
+    /// <summary>지울 선물: 가짜 계정 · 지울 명부 줄 · 지울 팀의 선물. 남길 사람 것은 남긴다.</summary>
+    private static IQueryable<Gift> GoneGifts(AppDbContext ctx)
+    {
+        var names = KeepNames(ctx); var people = KeepPeopleIds(ctx); var teams = GoneTeams(ctx).Select(t => t.Id);
+        return ctx.Gifts.Where(g => (g.UserName != null && !names.Contains(g.UserName))
+            || (g.UserName == null && g.PersonId != null && !people.Contains(g.PersonId.Value))
+            || (g.UserName == null && g.PersonId == null && g.FamilyTeamId != null && teams.Contains(g.FamilyTeamId.Value)));
+    }
+
+    /// <summary>지울 시상: 지울 팀의 이름(AwardKey)으로 받은 것.</summary>
+    private static IQueryable<string> GoneAwardKeys(AppDbContext ctx)
+    {
+        var names = KeepNames(ctx);
+        var keepKeys = ctx.FamilyTeams.Where(t => t.AwardKey != null && ctx.FamilyMembers.Any(m => m.TenantId == t.TenantId && m.FamilyTeamId == t.Id && names.Contains(m.UserName))).Select(t => t.AwardKey!);
+        return ctx.TeamAwards.Select(a => a.AwardKey).Union(ctx.TeamAwardArchives.Select(a => a.AwardKey)).Where(k => !keepKeys.Contains(k));
+    }
+
     private static async Task<int> CountAsync(AppDbContext ctx, string key, CancellationToken ct)
     {
         var keep = KeepIds(ctx);
+        var names = KeepNames(ctx);
+        var people = KeepPeopleIds(ctx);
         return key switch
         {
-            "missions" => await ctx.MissionActivities.CountAsync(ct) + await ctx.QuizAttempts.CountAsync(ct),
-            "attend" => await ctx.AttendanceChecks.CountAsync(ct),
-            "gifts" => await ctx.Gifts.CountAsync(ct),
-            "awards" => await ctx.TeamAwards.CountAsync(ct) + await ctx.TeamAwardArchives.CountAsync(ct),
-            "teams" => await ctx.FamilyTeams.CountAsync(ct),
-            "reading" => await ctx.ReadingRounds.CountAsync(ct),
-            "copy" => await ctx.CopyVerses.CountAsync(ct),
-            "prayer" => await ctx.Prayer365Logs.CountAsync(ct),
-            "requests" => await ctx.PromotionRequests.CountAsync(ct) + await ctx.SignupApplications.CountAsync(s => !keep.Contains(s.UserId), ct),
+            "missions" => await ctx.MissionActivities.CountAsync(x => !names.Contains(x.UserName), ct) + await ctx.QuizAttempts.CountAsync(x => !names.Contains(x.UserName), ct),
+            "attend" => await ctx.AttendanceChecks.CountAsync(a => !people.Contains(a.PersonId), ct),
+            "gifts" => await GoneGifts(ctx).CountAsync(ct),
+            "awards" => await ctx.TeamAwards.CountAsync(a => GoneAwardKeys(ctx).Contains(a.AwardKey), ct) + await ctx.TeamAwardArchives.CountAsync(a => GoneAwardKeys(ctx).Contains(a.AwardKey), ct),
+            "teams" => await GoneTeams(ctx).CountAsync(ct),
+            "reading" => await ctx.ReadingRounds.CountAsync(x => !names.Contains(x.UserName), ct),
+            "copy" => await ctx.CopyVerses.CountAsync(x => !names.Contains(x.UserName), ct),
+            "prayer" => await ctx.Prayer365Logs.CountAsync(x => !names.Contains(x.UserName), ct),
+            "requests" => await ctx.PromotionRequests.CountAsync(x => !names.Contains(x.UserName), ct) + await ctx.SignupApplications.CountAsync(s => !keep.Contains(s.UserId), ct),
             "logs" => await ctx.SearchLogs.CountAsync(ct) + await ctx.AuditLogs.CountAsync(a => a.Action != Action, ct),
             "accounts" => await GoneUsers(ctx).CountAsync(ct),
             "roster" => await GonePeople(ctx).CountAsync(ct),
@@ -108,49 +147,55 @@ public sealed class ResetService(ISystemDb systemDb, TimeProvider time)
         foreach (var (key, _, _) in Catalog.Where(c => on.Contains(c.Key))) detail.Add($"{key}={await CountAsync(ctx, key, ct)}");
         var goneNames = GoneUsers(ctx).Select(u => u.UserName);
 
+        var keepNames = KeepNames(ctx);
+        var keepPeople = KeepPeopleIds(ctx);
+        // 기록은 지울 사람(가짜 계정 · 지울 명부 줄 · 남길 사람이 없는 팀) 것만 — 관리자 · 직접 가입한 회원의 기록은 남긴다(2026-11-20 사용자 A)
         if (on.Contains("gifts"))
         {
-            await DeleteAsync(ctx, ctx.GiftLogs, ct);
-            await DeleteAsync(ctx, ctx.GiftPointUses, ct);
-            await DeleteAsync(ctx, ctx.Gifts, ct);
-            await DeleteAsync(ctx, ctx.GiftYearCloses, ct);   // 초기화 시각 기록도(처음 상태와 똑같이 계산)
+            var gone = GoneGifts(ctx).Select(g => g.Id);
+            await DeleteAsync(ctx, ctx.GiftLogs.Where(l => gone.Contains(l.GiftId)), ct);
+            await DeleteAsync(ctx, ctx.GiftPointUses.Where(u => !keepNames.Contains(u.UserName) || gone.Contains(u.GiftId)), ct);
+            await DeleteAsync(ctx, GoneGifts(ctx), ct);
+            if (!await ctx.Gifts.AnyAsync(ct)) await DeleteAsync(ctx, ctx.GiftYearCloses, ct);   // 선물이 하나도 안 남으면 초기화 시각도(처음 상태와 똑같이 계산)
         }
         if (on.Contains("awards"))
         {
-            await DeleteAsync(ctx, ctx.TeamAwards, ct);
-            await DeleteAsync(ctx, ctx.TeamAwardArchives, ct);
+            var keys = await GoneAwardKeys(ctx).ToListAsync(ct);
+            await DeleteAsync(ctx, ctx.TeamAwards.Where(a => keys.Contains(a.AwardKey)), ct);
+            await DeleteAsync(ctx, ctx.TeamAwardArchives.Where(a => keys.Contains(a.AwardKey)), ct);
         }
         if (on.Contains("missions"))
         {
-            await DeleteAsync(ctx, ctx.QuizAttempts, ct);
-            await DeleteAsync(ctx, ctx.MissionActivities, ct);
+            await DeleteAsync(ctx, ctx.QuizAttempts.Where(x => !keepNames.Contains(x.UserName)), ct);
+            await DeleteAsync(ctx, ctx.MissionActivities.Where(x => !keepNames.Contains(x.UserName)), ct);
         }
-        if (on.Contains("attend")) await DeleteAsync(ctx, ctx.AttendanceChecks, ct);
+        if (on.Contains("attend")) await DeleteAsync(ctx, ctx.AttendanceChecks.Where(a => !keepPeople.Contains(a.PersonId)), ct);
         if (on.Contains("teams"))
         {
-            await DeleteAsync(ctx, ctx.FamilyRequests, ct);
-            await DeleteAsync(ctx, ctx.FamilyNotices, ct);
-            await DeleteAsync(ctx, ctx.FamilyMilestonesHidden, ct);
-            await DeleteAsync(ctx, ctx.FamilyMembers, ct);
-            await DeleteAsync(ctx, ctx.FamilyTeams, ct);
+            var teams = await GoneTeams(ctx).Select(t => t.Id).ToListAsync(ct);
+            await DeleteAsync(ctx, ctx.FamilyRequests.Where(r => teams.Contains(r.FamilyTeamId)), ct);
+            await DeleteAsync(ctx, ctx.FamilyNotices.Where(n => teams.Contains(n.FamilyTeamId) || !keepNames.Contains(n.UserName)), ct);
+            await DeleteAsync(ctx, ctx.FamilyMilestonesHidden.Where(h => teams.Contains(h.FamilyTeamId)), ct);
+            await DeleteAsync(ctx, ctx.FamilyMembers.Where(m => teams.Contains(m.FamilyTeamId) || !keepNames.Contains(m.UserName)), ct);
+            await DeleteAsync(ctx, ctx.FamilyTeams.Where(t => teams.Contains(t.Id)), ct);
         }
         if (on.Contains("reading"))
         {
-            await DeleteAsync(ctx, ctx.ReadingVerses, ct);
-            await DeleteAsync(ctx, ctx.ReadingChapterReads, ct);
-            await DeleteAsync(ctx, ctx.ReadingChapterProgresses, ct);
-            await DeleteAsync(ctx, ctx.ReadingBookmarks, ct);
-            await DeleteAsync(ctx, ctx.ReadingRounds, ct);
+            await DeleteAsync(ctx, ctx.ReadingVerses.Where(x => !keepNames.Contains(x.UserName)), ct);
+            await DeleteAsync(ctx, ctx.ReadingChapterReads.Where(x => !keepNames.Contains(x.UserName)), ct);
+            await DeleteAsync(ctx, ctx.ReadingChapterProgresses.Where(x => !keepNames.Contains(x.UserName)), ct);
+            await DeleteAsync(ctx, ctx.ReadingBookmarks.Where(x => !keepNames.Contains(x.UserName)), ct);
+            await DeleteAsync(ctx, ctx.ReadingRounds.Where(x => !keepNames.Contains(x.UserName)), ct);
         }
-        if (on.Contains("copy")) await DeleteAsync(ctx, ctx.CopyVerses, ct);
+        if (on.Contains("copy")) await DeleteAsync(ctx, ctx.CopyVerses.Where(x => !keepNames.Contains(x.UserName)), ct);
         if (on.Contains("prayer"))
         {
-            await DeleteAsync(ctx, ctx.Prayer365Logs, ct);
-            await DeleteAsync(ctx, ctx.Prayer365Views, ct);   // 기도문(공용 콘텐츠)은 그대로
+            await DeleteAsync(ctx, ctx.Prayer365Logs.Where(x => !keepNames.Contains(x.UserName)), ct);
+            if (!await ctx.Prayer365Logs.AnyAsync(ct)) await DeleteAsync(ctx, ctx.Prayer365Views, ct);   // 함께 본 수는 모두의 것 — 기도 기록이 하나도 안 남을 때만. 기도문(공용 콘텐츠)은 그대로
         }
         if (on.Contains("requests"))
         {
-            await DeleteAsync(ctx, ctx.PromotionRequests, ct);
+            await DeleteAsync(ctx, ctx.PromotionRequests.Where(x => !keepNames.Contains(x.UserName)), ct);
             await DeleteAsync(ctx, ctx.SignupApplications.Where(s => !keep.Contains(s.UserId)), ct);
         }
         if (on.Contains("logs"))
@@ -163,7 +208,7 @@ public sealed class ResetService(ISystemDb systemDb, TimeProvider time)
         if (on.Contains("roster"))
         {
             await DeleteAsync(ctx, ctx.ClassMembers.Where(m => ctx.People.Any(p => p.TenantId == m.TenantId && p.Id == m.PersonId && (p.UserId == null || !keep.Contains(p.UserId)))), ct);
-            await DeleteAsync(ctx, ctx.GuardianLinks, ct);
+            await DeleteAsync(ctx, ctx.GuardianLinks.Where(l => !keepNames.Contains(l.GuardianUserName) || !keepNames.Contains(l.StudentUserName)), ct);
             await DeleteAsync(ctx, GonePeople(ctx), ct);
         }
 
@@ -175,7 +220,7 @@ public sealed class ResetService(ISystemDb systemDb, TimeProvider time)
                 var linked = await ctx.People.Where(p => p.UserId != null && !keep.Contains(p.UserId)).ToListAsync(ct);
                 foreach (var p in linked) p.UserId = null;
                 await ctx.SaveChangesAsync(ct);
-                await DeleteAsync(ctx, ctx.GuardianLinks, ct);   // 보호자 연결은 아이디로 잇는다 — 계정이 없으면 남을 수 없다
+                await DeleteAsync(ctx, ctx.GuardianLinks.Where(l => !keepNames.Contains(l.GuardianUserName) || !keepNames.Contains(l.StudentUserName)), ct);   // 보호자 연결은 아이디로 잇는다 — 계정이 없으면 남을 수 없다
             }
             await DeleteAsync(ctx, ctx.DeptRoles.Where(d => d.UserId == null || !keep.Contains(d.UserId)), ct);
             await DeleteAsync(ctx, ctx.MemberTags.Where(t => !keep.Contains(t.UserId)), ct);
@@ -190,7 +235,7 @@ public sealed class ResetService(ISystemDb systemDb, TimeProvider time)
             {
                 const string keepSql = "SELECT ur.UserId FROM [Identity].[UserRoles] ur JOIN [Identity].[Role] r ON r.Id = ur.RoleId WHERE r.NormalizedName IN (N'ADMIN', N'SUPERADMIN')";
                 foreach (var t in new[] { "UserTokens", "UserLogins", "UserClaims" })
-                    await ctx.Database.ExecuteSqlRawAsync($"DELETE FROM [Identity].[{t}] WHERE UserId NOT IN ({keepSql})", ct);
+                    await ctx.Database.ExecuteSqlRawAsync($"DELETE FROM [Identity].[{t}] WHERE UserId NOT IN ({keepSql}) AND UserId IN (SELECT Id FROM [Identity].[User] WHERE Email LIKE N'%@fake-seed.test')", ct);   // 가짜 계정만
             }
             await DeleteAsync(ctx, ctx.UserRoles.Where(r => !keep.Contains(r.UserId)), ct);
             await DeleteAsync(ctx, ctx.Users.Where(u => !keep.Contains(u.Id)), ct);

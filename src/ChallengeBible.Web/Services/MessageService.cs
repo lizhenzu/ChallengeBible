@@ -37,7 +37,7 @@ public sealed class MessageService(ISystemDb systemDb, TimeProvider time)
 {
     public const int MaxLength = 1000;
     public const string PlatformName = "플랫폼 관리자";
-    public const string SystemName = "도전!!!성경말씀 알림";
+    public const string SystemName = "도전!!!성경말씀";
     /// <summary>개선 · 불편 쪽지를 받는 계정(사용자 2026-11-17 "superadmin 계정 하나"). 없으면 가장 먼저 만든 플랫폼 관리자.</summary>
     public const string FeedbackAccount = "superadmin";
 
@@ -224,7 +224,7 @@ public sealed class MessageService(ISystemDb systemDb, TimeProvider time)
                   where r.Name == IdentityRoles.SuperAdmin orderby u.InsertDT select u.UserName).FirstOrDefaultAsync(ct);
 
     /// <summary>
-    /// 자동 알림(R-329, 2026-11-17 사용자): 회원 가입 · 부서 참여 신청이 생기면 superadmin 에게 쪽지 한 통. 보낸 사람 "도전!!!성경말씀 알림", 답장 없음.
+    /// 자동 알림(R-329, 2026-11-17 사용자): 회원 가입 · 부서 참여 신청이 생기면 superadmin 에게 쪽지 한 통. 보낸 사람 "도전!!!성경말씀", 답장 없음.
     /// 알림이 실패해도 가입 · 신청은 그대로 되게 오류는 삼킨다.
     /// </summary>
     public async Task NotifyAsync(string actor, string label, string body, CancellationToken ct = default)
