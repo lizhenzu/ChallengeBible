@@ -107,14 +107,6 @@
                     <small>부서 관리자가 나중에 바꿀 수 있어요.</small>
                     @if (Model.RoleError is not null) { <p class="hint bad" role="alert">@Model.RoleError</p> }
                 </section>
-                <section class="jbirth" aria-labelledby="jbT">
-                    @* 확정 시안 명부계정연결 ③(2026-11-17): 생일(선택) — 승인 때 명부의 같은 이름 · 같은 생일 줄을 맨 위로 *@
-                    <h2 id="jbT">생일 <small>(선택 — 명부와 이어 줄 때 써요)</small></h2>
-                    <div class="jb-row">
-                        <select class="sel" name="BMonth" aria-label="생일 월"><option value="0">월</option>@for (var m = 1; m <= 12; m++) { <option value="@m" selected="@(Model.BMonth == m)">@(m)월</option> }</select>
-                        <select class="sel" name="BDay" aria-label="생일 일"><option value="0">일</option>@for (var d = 1; d <= 31; d++) { <option value="@d" selected="@(Model.BDay == d)">@(d)일</option> }</select>
-                    </div>
-                </section>
             }
 
             <div class="jacts">

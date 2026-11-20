@@ -22,8 +22,6 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
     [BindProperty] public string RoleKind { get; set; } = SignupRoleKind.Student;
     [BindProperty(SupportsGet = true)] public int Welcome { get; set; }
     /// <summary>생일(선택, 확정 시안 명부계정연결 ③): 승인 때 명부 후보에서 같은 생일을 맨 위로. 0 = 안 씀.</summary>
-    [BindProperty] public int BMonth { get; set; }
-    [BindProperty] public int BDay { get; set; }
 
     /// <summary>목록(이름 거르기 적용) + 코드로 찾은 부서가 목록에 없으면 맨 앞에 더한다.</summary>
     public List<JoinTarget> Depts { get; private set; } = [];
@@ -72,8 +70,8 @@ public class JoinModel(JoinService join, AccountService accounts, LookupLimiter 
         {
             // 목록에서 고른 부서, 또는 고르지 않고 코드만 넣은 경우(예전 방식) 그 코드의 부서
             var (error, _) = TenantId != 0
-                ? await join.ApplyAsync(Me, TenantId, Code, RoleKind, ct, BMonth, BDay)
-                : await join.ApplyAsync(Me, Code, RoleKind, ct, BMonth, BDay);
+                ? await join.ApplyAsync(Me, TenantId, Code, RoleKind, ct)
+                : await join.ApplyAsync(Me, Code, RoleKind, ct);
             if (error == JoinError.None)
             {
                 // 승인 없이 바로 소속(2026-11-20, R-340): 부서 관리자 · 플랫폼 관리자에게 알림 쪽지, 그 부서 홈으로

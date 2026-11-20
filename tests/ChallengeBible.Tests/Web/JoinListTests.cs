@@ -109,6 +109,7 @@ public partial class JoinListTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("내 부서가 안 보이나요", html);
         Assert.DoesNotContain("내 부서로 가기", html);
         Assert.Contains("승인 없이 바로 시작해요", html);   // R-340
+        Assert.DoesNotContain("name=\"BMonth\"", html);   // 2026-11-20 사용자: 생일은 가입 때 · 내 계정에서만(참여 화면엔 없음)
         Assert.Contains("어느 부서에서 함께할까요?", html);
         Assert.Contains("도전!!!성경미션", html);
         Assert.Contains(">돌아가기</a>", html);

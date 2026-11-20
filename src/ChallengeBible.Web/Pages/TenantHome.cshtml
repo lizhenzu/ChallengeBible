@@ -44,41 +44,21 @@
         </div></header>
         @if (intro)
         {
-            var step2 = Model.Waiting.Count > 0;
             <section class="wl-hi gut" aria-labelledby="wlHi"><div class="wrap">
                 <div class="wl-k">환영해요</div>
                 <h1 id="wlHi">@Ui.Nim(User.DisplayName()),<br>반가워요!</h1>
-                <p class="wl-sub">@(step2 ? "신청을 보냈어요. 관리자가 승인하면 그 부서로 옮겨 가요." : "먼저 내가 참여할 부서를 신청해요.")</p>
+                <p class="wl-sub">먼저 내가 참여할 부서를 골라요.</p>
                 <div class="wl-card">
-                    <h2>시작까지 3단계</h2>
+                    <h2>시작까지 2단계</h2>
                     <ol class="wl-steps">
                         <li class="wl-done"><span class="wl-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>
-                            <div class="wl-tx"><b>가입 <span class="wl-tag wl-done">완료</span></b><span>이름 · 이메일만 받았어요</span></div></li>
-                        @if (!step2)
-                        {
-                            <li class="wl-now"><span class="wl-ic" aria-hidden="true">2</span>
-                                <div class="wl-tx"><b>내 부서 참여 <span class="wl-tag wl-now">지금 할 일</span></b><span>목록에서 내 부서를 골라 신청해요</span></div></li>
-                            <li class="wl-later"><span class="wl-ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
-                                <div class="wl-tx"><b>관리자 승인 <span class="wl-tag wl-later">다음 단계</span></b><span>승인되면 그 부서로 바로 옮겨 가요</span></div></li>
-                        }
-                        else
-                        {
-                            <li class="wl-done"><span class="wl-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>
-                                <div class="wl-tx"><b>참여 신청 <span class="wl-tag wl-done">완료</span></b><span>@(string.Join(" · ", Model.Waiting))</span></div></li>
-                            <li class="wl-wait"><span class="wl-ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
-                                <div class="wl-tx"><b>관리자 승인 <span class="wl-tag wl-wait">기다리는 중</span></b><span>승인되면 그 부서로 바로 옮겨 가요</span></div></li>
-                        }
+                            <div class="wl-tx"><b>가입 <span class="wl-tag wl-done">완료</span></b><span>이름 · 이메일 · 비밀번호만 있으면 돼요</span></div></li>
+                        @* 2026-11-20 사용자: 참여는 승인 없이 바로(R-340) — "관리자 승인" 단계 · 기다림 카드 없음 *@
+                        <li class="wl-now"><span class="wl-ic" aria-hidden="true">2</span>
+                            <div class="wl-tx"><b>내 부서 참여 <span class="wl-tag wl-now">지금 할 일</span></b><span>목록에서 내 부서를 고르면 바로 시작해요</span></div></li>
                     </ol>
-                    @if (!step2)
-                    {
-                        <a class="wl-btn wl-p" href="/join">내 부서 참여 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-                        <a class="wl-btn wl-s" href="/@slug/today">먼저 미션 해 보기 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-                    }
-                    else
-                    {
-                        <a class="wl-btn wl-p" href="/@slug/today">미션 수행하러 가기 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-                        <a class="wl-btn wl-s" href="/join">신청 보기 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
-                    }
+                    <a class="wl-btn wl-p" href="/join">내 부서 참여 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+                    <a class="wl-btn wl-s" href="/@slug/today">먼저 미션 해 보기 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
                     <p class="wl-keep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>여기서 한 미션 기록 · 점수는 부서로 그대로 옮겨져요.</p>
                 </div>
             </div></section>
