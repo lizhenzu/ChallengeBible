@@ -9,8 +9,8 @@ namespace ChallengeBible.Web.Pages.Album;
 /// `/{slug}/album/{id}` 앨범(ADR 0118, 확정 시안 사진첩 ③ · ④ · ⑤): 격자 · 크게 보기 · 선택해서 ZIP · 지우기 · 사진 올리기(한 장씩, 진행률 · 실패만 다시).
 /// 볼 수 없는 앨범은 없는 것처럼 404.
 /// </summary>
-[RequestSizeLimit(AlbumService.MaxBytes + 1024 * 1024)]
-[RequestFormLimits(MultipartBodyLengthLimit = AlbumService.MaxBytes + 1024 * 1024)]
+[RequestSizeLimit(AlbumService.MaxBytes + AlbumService.MaxThumbBytes + 1024 * 1024)]
+[RequestFormLimits(MultipartBodyLengthLimit = AlbumService.MaxBytes + AlbumService.MaxThumbBytes + 1024 * 1024)]
 public class ViewModel(AlbumService albums, TenantContext tenant) : AlbumPageBase, ITitled, IPublicTenantPage
 {
     public string Title => Item?.Album.Title ?? "앨범";
@@ -26,9 +26,9 @@ public class ViewModel(AlbumService albums, TenantContext tenant) : AlbumPageBas
     }
 
     /// <summary>사진 한 장 올리기(fetch, 화면이 차례로 보낸다): JSON { ok, id, error }.</summary>
-    public async Task<IActionResult> OnPostUploadAsync(int id, IFormFile? file, CancellationToken ct)
+    public async Task<IActionResult> OnPostUploadAsync(int id, IFormFile? file, IFormFile? thumb, int width, int height, CancellationToken ct)
     {
-        var r = await albums.UploadAsync(Viewer, id, file, ct);
+        var r = await albums.UploadAsync(Viewer, id, file, thumb, width, height, ct);
         return new JsonResult(new { ok = r.Error is null, id = r.PhotoId, error = r.Error });
     }
 

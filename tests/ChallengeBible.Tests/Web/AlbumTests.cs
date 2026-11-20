@@ -1,4 +1,4 @@
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
@@ -8,8 +8,6 @@ using ChallengeBible.Tests.Support;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace ChallengeBible.Tests.Web;
 
@@ -49,13 +47,9 @@ public partial class AlbumTests : IClassFixture<WebApplicationFactory<Program>>,
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
     private static partial Regex TokenRx();
 
-    private static byte[] Png(int seed)
-    {
-        using var img = new Image<Rgba32>(40, 30, new Rgba32((byte)seed, 120, 200));
-        using var ms = new MemoryStream();
-        img.SaveAsPng(ms);
-        return ms.ToArray();
-    }
+    /// <summary>PNG 앞머리 + 내용(서버는 앞머리로 종류만 본다 — 그림을 풀지 않는다).</summary>
+    private static byte[] Png(int seed) => [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, (byte)seed, 1, 2, 3];
+    private static readonly byte[] Jpg = [0xFF, 0xD8, 0xFF, 0xE0, 9, 9, 9];
 
     private async Task<HttpClient> Member(string email, int tenantId, params string[] roles)
     {
@@ -82,12 +76,13 @@ public partial class AlbumTests : IClassFixture<WebApplicationFactory<Program>>,
         return int.Parse(r.Headers.Location!.OriginalString.Split('/').Last());
     }
 
-    private static async Task<string> Upload(HttpClient c, int album, string name, byte[] bytes)
+    private static async Task<string> Upload(HttpClient c, int album, string name, byte[] bytes, byte[]? thumb = null)
     {
         var tok = TokenRx().Match(await c.GetStringAsync($"/jamsil-kids/album/{album}")).Groups[1].Value;
         var f = new ByteArrayContent(bytes);
         f.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
         var form = new MultipartFormDataContent { { new StringContent(tok), "__RequestVerificationToken" }, { f, "file", name } };
+        if (thumb is not null) { var t = new ByteArrayContent(thumb); t.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); form.Add(t, "thumb", "thumb.jpg"); form.Add(new StringContent("1200"), "width"); form.Add(new StringContent("900"), "height"); }
         return Regex.Unescape(await (await c.PostAsync($"/jamsil-kids/album/{album}?handler=Upload", form)).Content.ReadAsStringAsync());   // JSON 은 한글을 \uXXXX 로
     }
 
@@ -103,11 +98,16 @@ public partial class AlbumTests : IClassFixture<WebApplicationFactory<Program>>,
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(AlbumVisibility.Login, raw.Albums.Single().Visibility);   // 기본: 로그인한 사람 모두
 
         Assert.Contains("\"ok\":true", await Upload(teacher, album, "a.png", Png(1)));
-        Assert.Contains("\"ok\":true", await Upload(teacher, album, "b.png", Png(2)));
+        Assert.Contains("\"ok\":true", await Upload(teacher, album, "b.png", Png(2), thumb: Jpg));   // 브라우저가 만든 썸네일과 함께
         using (var raw = InMemoryDb.Raw(_db))
         {
             Assert.Equal(2, raw.Photos.Count());
             Assert.All(raw.Photos, p => Assert.True(File.Exists(Path.Combine(_dir, _kids.Id.ToString(), p.ThumbName))));   // 부서 폴더 + 썸네일
+            var b = raw.Photos.Single(p => p.FileName == "b.png");
+            Assert.NotEqual(b.StoredName, b.ThumbName);   // 썸네일이 오면 따로 저장(없으면 원본을 쓴다)
+            Assert.Equal((1200, 900), (b.Width, b.Height));
+            var a = raw.Photos.Single(p => p.FileName == "a.png");
+            Assert.Equal(a.StoredName, a.ThumbName);
         }
 
         var other = await Member("infant", _infant.Id, Roles.Participant);   // 다른 부서라도 로그인했으면(공개 범위 "로그인")

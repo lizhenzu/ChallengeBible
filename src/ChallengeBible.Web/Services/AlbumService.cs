@@ -3,9 +3,6 @@ using System.Security.Cryptography;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Tenancy;
 using Microsoft.EntityFrameworkCore;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Processing;
 
 namespace ChallengeBible.Web.Services;
 
@@ -27,15 +24,15 @@ public sealed record UploadResult(int? PhotoId, string? Error);
 /// <summary>
 /// 부서 사진첩(ADR 0118, R-339, 2026-11-20 확정 시안 사진첩): 앨범(1) : 사진(N), 사진만(JPG · PNG · WEBP · GIF, 한 장 20MB), 부서마다 5GB.
 /// 부서마다 완전히 따로 — 표는 RLS + 전역 필터, 파일은 Albums:Dir(없으면 App_Data/albums)/{TenantId}/ 에 GUID 이름(원본 + 썸네일 t_*.jpg)으로 두고
-/// 이 서비스로만 연다. 보기는 앨범 공개 범위(누구나 · 로그인 · 부서 · 관리자), 내려받기는 볼 수 있는 사람(앨범에서 끌 수 있음).
+/// 이 서비스로만 연다(썸네일은 브라우저가 만들어 보낸다). 보기는 앨범 공개 범위(누구나 · 로그인 · 부서 · 관리자), 내려받기는 볼 수 있는 사람(앨범에서 끌 수 있음).
 /// 앨범 만들기 · 고치기 · 지우기는 부서 관리자, 사진 올리기는 교사도, 지우기는 교사는 본인이 올린 것만(관리자는 모두). 플랫폼 관리자는 모든 부서.
 /// </summary>
 public sealed class AlbumService(IAppDb db, TenantContext tenant, TimeProvider time, IConfiguration config, IWebHostEnvironment env)
 {
     public const string LogAction = "Album";
     public const long MaxBytes = 20 * 1024 * 1024;
-    public const int MaxPixels = 12000;
-    public const int ThumbSize = 480;
+    /// <summary>브라우저가 만든 썸네일(480px JPEG)은 1MB 까지.</summary>
+    public const long MaxThumbBytes = 1024 * 1024;
     public long QuotaBytes => (config.GetValue<long?>("Albums:QuotaMb") ?? 5120) * 1024 * 1024;
 
     private string Root => config["Albums:Dir"] is { Length: > 0 } d ? d : Path.Combine(env.ContentRootPath, "App_Data", "albums");
@@ -108,8 +105,9 @@ public sealed class AlbumService(IAppDb db, TenantContext tenant, TimeProvider t
         if (p is null || p.TenantId != tenant.Current.Id) return null;
         var a = await ctx.Albums.AsNoTracking().SingleOrDefaultAsync(x => x.Id == p.AlbumId, ct);
         if (a is null || !CanSee(a, v) || (download && !CanDownload(a, v))) return null;
-        var path = Path.Combine(Dir, thumb ? p.ThumbName : p.StoredName);
-        return File.Exists(path) ? (path, thumb ? "image/jpeg" : p.ContentType, p.FileName) : null;
+        var useThumb = thumb && p.ThumbName != p.StoredName;
+        var path = Path.Combine(Dir, useThumb ? p.ThumbName : p.StoredName);
+        return File.Exists(path) ? (path, useThumb ? "image/jpeg" : p.ContentType, p.FileName) : null;
     }
 
     /// <summary>ZIP 으로 내려받기(ids 가 비면 앨범 전체): 메모리에 모으지 않고 바로 써 내려간다. 같은 이름은 (2) · (3) 을 붙인다.</summary>
@@ -191,9 +189,10 @@ public sealed class AlbumService(IAppDb db, TenantContext tenant, TimeProvider t
 
     /// <summary>
     /// 사진 한 장 올리기(화면은 한 장씩 차례로 보내 진행률 · 실패만 다시를 한다). 내용으로 종류를 보고(JPG · PNG · WEBP · GIF),
-    /// 20MB · 가로세로 12,000 · 부서 용량 · 같은 앨범의 같은 사진을 막는다. 원본은 그대로, 썸네일은 EXIF 회전을 반영해 480px JPEG.
+    /// 20MB · 부서 용량 · 같은 앨범의 같은 사진을 막는다. 원본은 그대로 둔다.
+    /// 썸네일은 브라우저가 만들어 함께 보낸다(EXIF 회전 반영, 480px JPEG, 2026-11-20 — 서버 이미지 라이브러리 없이). 없거나 JPEG 가 아니면 원본을 썸네일로 쓴다.
     /// </summary>
-    public async Task<UploadResult> UploadAsync(AlbumViewer v, int albumId, IFormFile? file, CancellationToken ct = default)
+    public async Task<UploadResult> UploadAsync(AlbumViewer v, int albumId, IFormFile? file, IFormFile? thumb = null, int width = 0, int height = 0, CancellationToken ct = default)
     {
         if (!IsUploader(v)) return new(null, "교사 · 관리자만 사진을 올릴 수 있어요.");
         if (file is null || file.Length == 0) return new(null, "빈 파일이에요.");
@@ -202,6 +201,13 @@ public sealed class AlbumService(IAppDb db, TenantContext tenant, TimeProvider t
         await using (var s = file.OpenReadStream()) await s.ReadExactlyAsync(bytes, ct);
         var (ext, type) = Kind(bytes) is { } k ? k : (null, null);
         if (ext is null) return new(null, "사진 파일이 아니에요(JPG · PNG · WEBP · GIF).");
+        byte[]? small = null;
+        if (thumb is { Length: > 0 and <= MaxThumbBytes })
+        {
+            small = new byte[thumb.Length];
+            await using (var s = thumb.OpenReadStream()) await s.ReadExactlyAsync(small, ct);
+            if (Kind(small) is not ("jpg", _)) small = null;
+        }
 
         await using var ctx = db.Create();
         if (!await ctx.Albums.AnyAsync(a => a.Id == albumId, ct)) return new(null, "앨범이 없어요.");
@@ -210,40 +216,22 @@ public sealed class AlbumService(IAppDb db, TenantContext tenant, TimeProvider t
         var used = await ctx.Photos.SumAsync(p => (long?)p.Size, ct) ?? 0;
         if (used + bytes.LongLength > QuotaBytes) return new(null, $"부서 사진 용량({QuotaBytes / 1024 / 1024 / 1024}GB)이 가득 찼어요. 플랫폼 관리자에게 알려 주세요.");
 
-        byte[] thumb; int w, h;
-        try
-        {
-            var info = Image.Identify(bytes);
-            if (info.Width > MaxPixels || info.Height > MaxPixels) return new(null, "사진이 너무 커요(가로 · 세로 12,000 픽셀까지).");
-            using var img = Image.Load(bytes);
-            img.Mutate(x => x.AutoOrient());
-            (w, h) = (img.Width, img.Height);
-            img.Mutate(x => x.Resize(new ResizeOptions { Size = new Size(ThumbSize, ThumbSize), Mode = ResizeMode.Max }));
-            using var ms = new MemoryStream();
-            img.SaveAsJpeg(ms, new JpegEncoder { Quality = 80 });
-            thumb = ms.ToArray();
-        }
-        catch (Exception e) when (e is ImageFormatException or InvalidImageContentException or UnknownImageFormatException)
-        {
-            return new(null, "사진을 읽을 수 없어요(깨진 파일).");
-        }
-
         Directory.CreateDirectory(Dir);
         var g = Guid.NewGuid().ToString("N");
         var stored = $"{g}.{ext}";
-        var thumbName = $"t_{g}.jpg";
+        var thumbName = small is null ? stored : $"t_{g}.jpg";
         await File.WriteAllBytesAsync(Path.Combine(Dir, stored), bytes, ct);
-        await File.WriteAllBytesAsync(Path.Combine(Dir, thumbName), thumb, ct);
+        if (small is not null) await File.WriteAllBytesAsync(Path.Combine(Dir, thumbName), small, ct);
         var order = (await ctx.Photos.Where(p => p.AlbumId == albumId).MaxAsync(p => (int?)p.SortOrder, ct) ?? 0) + 1;
         var photo = new Photo
         {
             TenantId = tenant.Current.Id, AlbumId = albumId, FileName = Clean(file.FileName) ?? stored, StoredName = stored, ThumbName = thumbName,
-            ContentType = type!, Size = bytes.LongLength, Width = w, Height = h, Hash = hash, SortOrder = order,
+            ContentType = type!, Size = bytes.LongLength, Width = Math.Clamp(width, 0, 100_000), Height = Math.Clamp(height, 0, 100_000), Hash = hash, SortOrder = order,
             UploadedByUserName = v.UserName, UploadedUtc = time.GetUtcNow().UtcDateTime,
         };
         ctx.Photos.Add(photo);
         try { await ctx.SaveChangesAsync(ct); }
-        catch { File.Delete(Path.Combine(Dir, stored)); File.Delete(Path.Combine(Dir, thumbName)); throw; }
+        catch { File.Delete(Path.Combine(Dir, stored)); if (small is not null) File.Delete(Path.Combine(Dir, thumbName)); throw; }
         return new(photo.Id, null);
     }
 

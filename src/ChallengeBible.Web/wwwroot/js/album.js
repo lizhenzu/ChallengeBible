@@ -77,7 +77,25 @@
     if (!q) { draw(); return; }
     q.s = 'now'; q.p = 0; draw();
     if (q.f.size > 20 * 1048576) { q.s = 'bad'; q.err = '20MB 를 넘어요.'; return next(); }
-    const fd = new FormData(); fd.append('__RequestVerificationToken', token); fd.append('file', q.f, q.f.name);
+    thumbOf(q.f).then(t => {
+      if (stopped) { q.s = 'wait'; draw(); return; }
+      const fd = new FormData(); fd.append('__RequestVerificationToken', token); fd.append('file', q.f, q.f.name);
+      if (t) { fd.append('thumb', t.blob, 'thumb.jpg'); fd.append('width', t.w); fd.append('height', t.h); }
+      send(q, fd);
+    });
+  }
+  // 썸네일: 브라우저가 사진을 읽어(EXIF 회전 반영) 긴 쪽 480px JPEG 로 줄인다. 못 읽으면 없이 보낸다(서버가 원본을 쓴다)
+  async function thumbOf(f) {
+    try {
+      const bmp = await createImageBitmap(f, { imageOrientation: 'from-image' });
+      const k = Math.min(1, 480 / Math.max(bmp.width, bmp.height));
+      const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(bmp.width * k)); c.height = Math.max(1, Math.round(bmp.height * k));
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(bmp, 0, 0, c.width, c.height);
+      const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.8));
+      const r = blob ? { blob, w: bmp.width, h: bmp.height } : null; bmp.close?.(); return r;
+    } catch { return null; }
+  }
+  function send(q, fd) {
     xhr = new XMLHttpRequest();
     xhr.open('POST', base + '?handler=Upload');
     xhr.upload.onprogress = e => { if (e.lengthComputable) { q.p = Math.round(e.loaded * 100 / e.total); draw(); } };
