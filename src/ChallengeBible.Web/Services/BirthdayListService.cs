@@ -17,8 +17,9 @@ public sealed record BirthdayGiftCard(long Id, string State, int MaxAmount, Date
 
 /// <summary>생일 카드 상세(유년부 카드 개념, ADR 0122): 계정 · 사진 · 전화 · 출석(올해 / 새친구는 처음 온 날부터) · 담임 · 선물.</summary>
 public sealed record BirthdayDetail(string? UserName, string? PhotoV, string? Phone, DateOnly? FirstVisit,
-    int AttendDone, int AttendTotal, DateOnly? LastAttend, string? TeacherName, string? TeacherPhone, bool GiftEligible, BirthdayGiftCard? Gift)
+    int AttendDone, int AttendTotal, DateOnly? LastAttend, string? TeacherName, string? TeacherPhone, bool GiftEligible, BirthdayGiftCard? Gift, bool NoClass = false)
 {
+    /// <summary>NoClass = 학생인데 반이 없어 선물 대상이 아님(R-350) — 카드에 "반 없음"을 붙인다.</summary>
     /// <summary>3주(21일) 넘게 출석이 없으면 주황(R-345).</summary>
     public bool Absent(DateOnly today) => AttendTotal > 0 && (LastAttend is not { } l || today.DayNumber - l.DayNumber > 21);
 }
@@ -170,7 +171,8 @@ public sealed class BirthdayListService(PeopleService people, IAppDb db, TenantC
             }
             return r with { Detail = new BirthdayDetail(rr.UserName, rr.UserName is { } un ? photos.GetValueOrDefault(un) : null, p?.Phone1, p?.NewcomerFirstVisit,
                 mine.Count, Sundays(first, today), mine.Count == 0 ? null : mine.Max(), tName, tPhone,
-                BirthdayGiftService.BirthdayRoles.Contains(rr.RoleCode), card) };
+                BirthdayGiftService.BirthdayEligible(rr.RoleCode, classOf.ContainsKey(r.PersonId)), card,
+                NoClass: (rr.RoleCode ?? "").Trim() == UserRole.StudentCode && !classOf.ContainsKey(r.PersonId)) };
         }).ToList();
     }
 

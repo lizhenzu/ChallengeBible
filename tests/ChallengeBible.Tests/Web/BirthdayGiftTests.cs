@@ -44,8 +44,27 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
         raw.People.Add(new Person { TenantId = _kids.Id, Name = "박서윤", RoleCode = "T1020", BirthMonth = 2, BirthDay = 3, CreatedUtc = DateTime.UtcNow });
         raw.People.Add(new Person { TenantId = _kids.Id, Name = "윤동호", UserId = adm.Id, BirthMonth = 2, BirthDay = 1, CreatedUtc = DateTime.UtcNow });
         raw.People.Add(new Person { TenantId = _kids.Id, Name = "이도윤", RoleCode = "T1001", BirthMonth = 3, BirthDay = 20, CreatedUtc = DateTime.UtcNow });   // 아직 멀다
+        raw.SaveChanges();
+        // R-350: 생일 선물은 반에 든 학생 · 새친구만 — 학생 김하준 · 이도윤은 1반
+        var term = new ClassTerm { TenantId = _kids.Id, Year = 2027, StartDate = new DateOnly(2027, 1, 1), CreatedUtc = DateTime.UtcNow };
+        raw.ClassTerms.Add(term); raw.SaveChanges();
+        var cls = new SchoolClass { TenantId = _kids.Id, TermId = term.Id, Name = "1반", CreatedUtc = DateTime.UtcNow };
+        raw.Classes.Add(cls); raw.SaveChanges();
+        _class = (term.Id, cls.Id);
+        foreach (var n in new[] { "김하준", "이도윤" })
+            raw.ClassMembers.Add(new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = cls.Id, PersonId = raw.People.Single(x => x.Name == n).Id, CreatedUtc = DateTime.UtcNow });
         foreach (var (n, p) in new[] { ("싼 연필", 500), ("곰돌이 열쇠고리", 3000), ("스티커북", 5000), ("비싼 레고", 6000) })
             raw.GiftItems.Add(new GiftItem { Name = n, Price = p, CoupangUrl = "https://www.coupang.com/vp/products/1", Status = GiftItemStatus.Active });
+        raw.SaveChanges();
+    }
+
+    private (int Term, int Class) _class;
+
+    /// <summary>그 사람을 1반에 넣는다(R-350: 반에 든 학생만 생일 선물).</summary>
+    private void Place(string name)
+    {
+        using var raw = InMemoryDb.Raw(_db);
+        raw.ClassMembers.Add(new ClassMember { TenantId = _kids.Id, TermId = _class.Term, ClassId = _class.Class, PersonId = raw.People.Single(x => x.Name == name).Id, CreatedUtc = DateTime.UtcNow });
         raw.SaveChanges();
     }
 
@@ -403,6 +422,7 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
             raw.People.Add(new Person { TenantId = _kids.Id, Name = "최지우", RoleCode = "T1001", BirthMonth = 2, BirthDay = 4, CreatedUtc = DateTime.UtcNow });
             raw.SaveChanges();
         }
+        Place("최지우");   // R-350: 반에 든 학생
         var admin = await Login("admin@example.com");
         await admin.GetStringAsync("/kids/admin/gifts?s=pick");
         var seoyun = GiftOf("박서윤");
@@ -588,5 +608,36 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
         await Post(p, $"/gift/{token}", $"/gift/{token}?handler=Cancel", []);
         Assert.Equal(GiftStates.Open, GiftOf("박서윤").State);
         Assert.Contains("선물을 취소했어요", await p.GetStringAsync($"/gift/{token}"));
+    }
+
+    // R-350: 생일 선물은 반에 든 학생 · 새친구만. 반이 없는 학생은 생기지 않고 생일 목록에 "선물 대상 아님 · 반 없음"
+
+    [Fact]
+    public void R350_대상은_반에_든_학생과_새친구()
+    {
+        Assert.True(BirthdayGiftService.BirthdayEligible("T1001", inClass: true));
+        Assert.False(BirthdayGiftService.BirthdayEligible("T1001", inClass: false));
+        Assert.True(BirthdayGiftService.BirthdayEligible("T1020", inClass: false));   // 새친구는 반이 없어도
+        Assert.False(BirthdayGiftService.BirthdayEligible("T1002", inClass: true));   // 교사
+        Assert.False(BirthdayGiftService.BirthdayEligible(null, inClass: true));   // 학부모
+    }
+
+    [Fact]
+    public async Task R350_반이_없는_학생은_선물이_안_생기고_반에_넣으면_생긴다()
+    {
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.People.Add(new Person { TenantId = _kids.Id, Name = "반없음", RoleCode = "T1001", BirthMonth = 2, BirthDay = 2, CreatedUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        var admin = await Login("admin@example.com");
+        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        Assert.Equal(0, BirthdayCount("반없음"));
+        Assert.Equal(1, BirthdayCount("박서윤"));   // 새친구는 반이 없어도 생긴다
+        Assert.Contains("선물 대상 아님 · 반 없음", await admin.GetStringAsync("/kids/birthdays"));
+
+        Place("반없음");
+        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        Assert.Equal(1, BirthdayCount("반없음"));
     }
 }

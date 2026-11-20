@@ -30,7 +30,7 @@
             @if (d.TeacherName is { } tn) { <dt>담임</dt><dd>@tn 선생님@(d.TeacherPhone is { } tp ? " · " + tp : "")</dd>@if (d.TeacherPhone is { } tp2) { <a class="tel" href="tel:@tp2">전화</a> } else { <span></span> } }
         </dl>
 
-        @if (!d.GiftEligible) { <div class="bdc-chips"><span class="g0">선물 대상 아님</span></div> }
+        @if (!d.GiftEligible && g is null) { <div class="bdc-chips"><span class="g0">@(d.NoClass ? "선물 대상 아님 · 반 없음" : "선물 대상 아님")</span></div> }   @* 반에 든 학생 · 새친구만(R-350). 이미 만든 선물이 있으면 그 선물을 보인다 *@
         else if (g is null)
         {
             <div class="bdc-chips"><span class="g0">@(r.DaysLeft > pg.Board.GiftOpenDays ? $"선물은 생일 {pg.Board.GiftOpenDays}일 전부터" : "선물 없음")</span></div>
