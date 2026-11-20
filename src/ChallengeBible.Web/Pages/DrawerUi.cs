@@ -55,7 +55,7 @@ public static class DrawerUi
 
     public static IHtmlContent Row(string href, string icon, string tone, string title, string desc, bool current, bool dj = false, int count = 0, string? attr = null)
     {
-        var t = dj ? $"<em class=\"pd-pg\">도전!!!</em> {WebUtility.HtmlEncode(title)}" : WebUtility.HtmlEncode(title);
+        var t = dj ? $"<em class=\"pd-pg\">도전!!!</em>{WebUtility.HtmlEncode(title)}" : WebUtility.HtmlEncode(title);
         if (count > 0) t += $" <em class=\"tdr-c num\" aria-label=\"기다리는 요청 {count}건\">{count}</em>";
         return new HtmlString(
             $"<a class=\"tdr-r\" href=\"{WebUtility.HtmlEncode(href)}\"{(current ? " aria-current=\"page\"" : "")}{(attr is null ? "" : " " + attr)}><i class=\"tdr-i t-{tone}\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">{Icons[icon]}</svg></i>"

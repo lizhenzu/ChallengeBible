@@ -23,7 +23,7 @@
         <nav aria-label="메뉴">
             @if (!lobby)
             {
-                <h2 class="tdr-g"><em>도전!!!</em> 프로그램</h2>
+                <h2 class="tdr-g"><em>도전!!!</em>성경말씀 프로그램</h2>
                 @* 켠 것만 · 성경미션 → 성경통독 → 성경필사(2026-11-16), 365 기도는 학생 · 새친구에게 없음(ADR 0106) *@
                 @if (c.MissionEnabled) { @DrawerUi.Row($"/{s}/word-mission", "mission", "g", "성경미션", "말씀 · 퀴즈 · 기도 · 암송, 매일 점수", Cur($"/{s}/word-mission"), dj: true) }
                 @if (c.ReadingEnabled) { @DrawerUi.Row($"/{s}/reading", "reading", "b", "성경통독", "하루 몇 장, 내 진도율", Cur($"/{s}/reading"), dj: true) }

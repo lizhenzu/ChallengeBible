@@ -100,9 +100,9 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
         TurnOn();
         var home = await c.GetStringAsync("/kids");
         Assert.Contains("도전!!! 성경필사", home);
-        Assert.Contains("href=\"/kids/copy\"", home); Assert.Contains("<em class=\"pd-pg\">도전!!!</em> 성경필사</b>", home);   // ☰ 메뉴판
-        Assert.Contains("href=\"/kids/word-mission\"", home); Assert.Contains("<em class=\"pd-pg\">도전!!!</em> 성경미션</b>", home);   // 세 프로그램 모두(2026-11-16)
-        Assert.Contains("href=\"/kids/reading\"", home); Assert.Contains("<em class=\"pd-pg\">도전!!!</em> 성경통독</b>", home);
+        Assert.Contains("href=\"/kids/copy\"", home); Assert.Contains("<em class=\"pd-pg\">도전!!!</em>성경필사</b>", home);   // ☰ 메뉴판
+        Assert.Contains("href=\"/kids/word-mission\"", home); Assert.Contains("<em class=\"pd-pg\">도전!!!</em>성경미션</b>", home);   // 세 프로그램 모두(2026-11-16)
+        Assert.Contains("href=\"/kids/reading\"", home); Assert.Contains("<em class=\"pd-pg\">도전!!!</em>성경통독</b>", home);
         Assert.Contains("<small>이어 쓸 곳</small><b>창세기</b><span>1장 1절부터 ›</span>", home);   // 확정 시안 홈-통독필사-0펼침: 시작 전에도 0 으로 펼침
         Assert.Contains("<b class=\"num\">0</b><small>쓴 절</small>", home);
         var copy = await c.GetStringAsync("/kids/copy");
