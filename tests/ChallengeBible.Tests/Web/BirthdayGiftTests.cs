@@ -457,7 +457,7 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
     }
 
     [Fact]
-    public async Task R346_부서_홈에_카드와_팝업이_하루_한_번_뜨고_성경미션_홈에서는_뺀다()
+    public async Task R346_부서_홈에_카드와_팝업이_열_때마다_뜨고_성경미션_홈에서는_뺀다()
     {
         var c = await Login("hajun@example.com");
         var home = await c.GetStringAsync("/kids");
@@ -466,7 +466,7 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
         Assert.Contains("김하준님, 생일 축하해요!", home);
         Assert.Contains("1월 25일까지 고를 수 있어요", home);
         Assert.Contains($"/kids/gifts/birthday/{GiftOf("김하준").Id}", home);
-        Assert.DoesNotContain("data-bdh-pop", await c.GetStringAsync("/kids"));   // 같은 날 두 번째는 카드만
+        Assert.Contains("data-bdh-pop", await c.GetStringAsync("/kids"));   // 고르거나 미루기 전까지는 새로 열 때마다(F5) 뜬다
         Assert.DoesNotContain("생일 선물을 골라요", await c.GetStringAsync("/kids/word-mission"));
         var a = await Login("admin@example.com");
         await a.GetAsync("/kids");   // 로그인 직후 한 번은 할 일 화면으로 간다
