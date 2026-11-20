@@ -181,19 +181,7 @@
         <script src="~/js/worship.js" asp-append-version="true" defer></script>
     }
 
-    @* 사진첩(ADR 0118, 2026-11-20 확정 시안 사진첩 ①): 볼 수 있는 최근 앨범 3개. 없으면 안 보인다 *@
-    @if (Model.Albums.Count > 0)
-    {
-        <section class="hj-card hal" aria-label="사진첩">
-            <div class="hal-t"><b>📷 사진첩</b><a href="/@t.Slug/album">모두 보기 ›</a></div>
-            <div class="hal-row">
-                @foreach (var al in Model.Albums)
-                {
-                    <a class="hal-a" href="/@t.Slug/album/@al.Id"><span class="hal-cv">@if (al.CoverPhotoId is int cv) { <img src="/@t.Slug/album/photo/@cv?t=1" alt="" loading="lazy" /> }</span><span class="hal-n">@al.Title</span></a>
-                }
-            </div>
-        </section>
-    }
+    @* 사진첩 카드는 부서 홈에서 뺐다(2026-11-20 사용자) — ☰ 메뉴 "사진첩"으로 들어간다 *@
 
     @if (t.ReadingEnabled)
     {

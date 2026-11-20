@@ -116,7 +116,9 @@ public partial class AlbumTests : IClassFixture<WebApplicationFactory<Program>>,
         var guest = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         Assert.Equal(HttpStatusCode.NotFound, (await guest.GetAsync($"/jamsil-kids/album/{album}")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await guest.GetAsync($"/jamsil-kids/album/photo/{PhotoId("a.png")}")).StatusCode);
-        Assert.Contains("사진첩", await teacher.GetStringAsync("/jamsil-kids"));   // 부서 홈 카드
+        var home = await teacher.GetStringAsync("/jamsil-kids");
+        Assert.DoesNotContain("hj-card hal", home);   // 2026-11-20 사용자: 부서 홈에는 사진첩 카드 없음
+        Assert.Contains("/jamsil-kids/album\"", home);   // ☰ 메뉴 "사진첩"으로 들어간다
     }
 
     [Fact]
