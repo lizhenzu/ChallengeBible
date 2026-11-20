@@ -1,7 +1,6 @@
 ﻿@model (ChallengeBible.Web.Tenancy.TenantContext Tenant, string? Photo)
 @using ChallengeBible.Web.Auth
 @using ChallengeBible.Web.Services
-@inject LeaveService Leaves
 @* 부서 화면 왼쪽 위 ☰ 메뉴판(확정 시안 부서메뉴, 2026-11-18 사용자: 그룹 · 아이콘 · 한 줄 설명). 여는 버튼은 data-pnav-open, 동작은 platform-nav.js.
    보이는 조건(역할 · 켠 프로그램)은 예전 그대로. 프로그램 아이콘 색은 네잎과 같게(미션 초록 · 통독 파랑 · 필사 주황 · 기도 분홍) *@
 @{
@@ -38,7 +37,6 @@
             {
                 <h2 class="tdr-g">섬김 · 교사</h2>
                 @if (t.IsStaff || t.IsAdmin) { @DrawerUi.Row($"/{s}/todo", "todo", "g", "오늘 할 일", "승인 · 선물 · 생일 챙기기", Cur($"/{s}/todo")) }   @* ADR 0100 *@
-                @if (t.IsAdmin) { @DrawerUi.Row($"/{s}/leaves", "user", "r", "탈퇴 신청", "기다리는 탈퇴 · 승인 · 반려", Cur($"/{s}/leaves"), count: await Leaves.CountAsync(User.UserName()!, c.Id)) }   @* ADR 0119 *@
                 @DrawerUi.Row($"/{s}/birthdays", "cake", "o", "생일", "다가오는 생일 · 월별 · 연간", Cur($"/{s}/birthdays"))   @* ADR 0121 · 교사 · 관리자 *@
                 @if (t.IsStaff) { @DrawerUi.Row($"/{s}/attendance", "att", "b", "출석", "주일 출석 체크 · 보고서", Cur($"/{s}/attendance")) }
                 @if (t.IsAdmin) { @DrawerUi.Row($"/{s}/admin", "admin", "s", "관리", "명부 · 규칙 · 선물 · 이름 · 색", Cur($"/{s}/admin")) }
