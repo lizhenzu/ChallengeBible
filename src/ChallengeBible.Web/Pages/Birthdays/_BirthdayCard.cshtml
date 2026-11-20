@@ -1,13 +1,75 @@
-@model (ChallengeBible.Web.Services.BirthdayRow Row, bool InMonth)
+﻿@model (ChallengeBible.Web.Services.BirthdayRow Row, bool InMonth, ChallengeBible.Web.Pages.Birthdays.IndexModel Page)
 @using ChallengeBible.Web.Services
-@* 생일 카드 한 장(확정 시안 생일-시안): 왼쪽 D-day(오늘 · D-n, 월별은 날짜) · 이름 · 반 · 역할 · 오른쪽 선물 상태 *@
+@using ChallengeBible.Infrastructure.Data
+@* 생일 카드(확정 시안 생일카드-선물, ADR 0122): 처음부터 펼친 카드 — D-day · 사진 · 이름[수정] · 계정 · 반 · 전화 · 출석 · 담임 · 선물(상태 · 링크 · 고른 상품)
+   · [선물 선택](선생님이 대신) · [링크 복사] · [새 링크] · [선물 안 주기]. 교사 · 관리자 모두 *@
 @{
     var r = Model.Row;
+    var pg = Model.Page;
+    var d = r.Detail;
     var ko = new System.Globalization.CultureInfo("ko-KR");
     var today = r.DaysLeft == 0;
+    var slug = pg.Slug;
+    string Short(string n) { var b = n.Length > 1 ? n[1..] : n; return b.Length > 2 ? b[..2] : b; }
+    var g = d?.Gift;
 }
-<article class="bdy-card @(today ? "today" : "")">
-    <div class="dd">@if (Model.InMonth) { <b>@(r.Day)일</b><small>@(today ? "오늘" : $"D-{r.DaysLeft}")</small> } else { <b>@(today ? "오늘" : $"D-{r.DaysLeft}")</b><small>@r.Next.ToString("M/d (ddd)", ko)</small> }</div>
-    <div class="who"><b>@r.Name</b>@if (r.ClassText is { } c) { <em>@c</em> }@if (r.MyClass) { <span class="mine">내 반</span> }<small>@r.RoleLabel@(r.Linked ? "" : " · 가입 안 함")</small></div>
-    <span class="gs @BirthdayListService.GiftTone(r.Gift)">@BirthdayListService.GiftLabel(r.Gift)</span>
+<article class="bdc @(today ? "today" : "")" id="@(g is null ? "p" + r.PersonId : "g" + g.Id)">
+    <div class="bdc-d">@if (Model.InMonth) { <b>@(r.Day)일</b><span>@(today ? "오늘" : $"D-{r.DaysLeft}")</span> } else { <b>@(today ? "오늘" : $"D-{r.DaysLeft}")</b><span>@r.Next.ToString("M. d (ddd)", ko)</span> }</div>
+    <div class="bdc-me">
+        <span class="av">@if (d?.PhotoV is { } pv && d.UserName is { } un) { <img src="/@slug/photo/@un?v=@pv" alt="" loading="lazy" /> } else { @Short(r.Name) }</span>
+        <div class="nm">
+            <div class="n"><b>@r.Name</b><a href="/@slug/admin/members?Tab=Approved&amp;Q=@Uri.EscapeDataString(r.Name)">수정</a>@if (r.MyClass) { <span class="mine">내 반</span> }</div>
+            <div class="s">@(d?.UserName is { } acc ? acc + " · " : "")@if (r.ClassText is { } c) { <em>@c</em><text> · </text> }@r.RoleLabel@(d?.FirstVisit is { } fv ? $" · 처음 온 날 {fv:M/d}" : "")@(r.Linked ? "" : " · 가입 안 함")</div>
+        </div>
+    </div>
+    @if (d is not null)
+    {
+        <dl class="bdc-kv">
+            @if (d.Phone is { } ph) { <dt>전화</dt><dd>@ph</dd><a class="tel" href="tel:@ph">전화</a> }
+            <dt>출석</dt><dd class="@(d.Absent(pg.Board.Today) ? "warn" : "")">@(d.AttendTotal == 0 ? "아직 주일이 없어요" : $"{d.AttendDone}/{d.AttendTotal} ({(int)Math.Round(d.AttendDone * 100.0 / d.AttendTotal)}%)")@if (d.LastAttend is { } la) { <text> · 마지막 @la.ToString("M/d") (@(pg.Board.Today.DayNumber - la.DayNumber)일 전)</text> } else if (d.AttendTotal > 0) { <text> · 아직 출석 없음</text> }</dd><span></span>
+            @if (d.TeacherName is { } tn) { <dt>담임</dt><dd>@tn 선생님@(d.TeacherPhone is { } tp ? " · " + tp : "")</dd>@if (d.TeacherPhone is { } tp2) { <a class="tel" href="tel:@tp2">전화</a> } else { <span></span> } }
+        </dl>
+
+        @if (!d.GiftEligible) { <div class="bdc-chips"><span class="g0">선물 대상 아님</span></div> }
+        else if (g is null)
+        {
+            <div class="bdc-chips"><span class="g0">@(r.DaysLeft > pg.Board.GiftOpenDays ? $"선물은 생일 {pg.Board.GiftOpenDays}일 전부터" : "선물 없음")</span></div>
+        }
+        else
+        {
+            var link = g.Viewed ? ("l2", "부모님이 열어 봄") : g.HasLink ? ("l1", "링크 만듦") : ("l0", "링크 없음");
+            var state = g.State switch { GiftStates.Open => ("g1", "고르는 중"), GiftStates.Expired => ("g1", "기한 지남"), GiftStates.Picked => ("g2", "골랐음"), GiftStates.Purchased => ("g2", "샀음"), GiftStates.Delivered => ("g3", "전달함"), GiftStates.Skipped => ("g0", "안 주기로 함"), _ => ("g0", g.State) };
+            <div class="bdc-chips"><span class="@state.Item1">@state.Item2</span>@if (g.State is GiftStates.Open or GiftStates.Expired or GiftStates.Picked) { <span class="@link.Item1">@link.Item2</span> }
+                @if (g.State is GiftStates.Open or GiftStates.Expired) { <small>한도 @g.MaxAmount.ToString("N0")원@(g.OpenUntil is { } u ? $" · {u:M월 d일}까지" : "")</small> }</div>
+            @if (g.ItemName is { } iname && g.State is GiftStates.Picked or GiftStates.Purchased or GiftStates.Delivered)
+            {
+                <div class="bdc-gift">
+                    <span class="pic">@if (g.HasImage && g.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" loading="lazy" onerror="this.remove()" /> }</span>
+                    <div><b>@iname</b>@if (g.ItemPrice is int price) { <small>@price.ToString("N0")원</small> }@if (g.StaffPicker is { } sp) { <small class="by">선생님(@sp)이 골라 주셨어요</small> }@if (g.CoupangUrl is { Length: > 0 } cu) { <a href="@cu" target="_blank" rel="noopener">쿠팡에서 보기 →</a> }</div>
+                </div>
+            }
+            <div class="bdc-acts">
+                @if (g.State is GiftStates.Open or GiftStates.Expired)
+                {
+                    <a class="btn p sm wide" href="@pg.Back(pick: g.Id)#pick">🎁 선물 선택(선생님이 골라 주기)</a>
+                    <form method="post" asp-antiforgery="true" action="@($"/{slug}/birthdays?handler=Link&Tab={pg.Current}&Days={pg.Days}&M={pg.M}")"><input type="hidden" name="gift" value="@g.Id" /><button type="submit" class="btn s sm">링크 복사</button></form>
+                    @if (g.HasLink) { <form method="post" asp-antiforgery="true" action="@($"/{slug}/birthdays?handler=Link&Tab={pg.Current}&Days={pg.Days}&M={pg.M}")"><input type="hidden" name="gift" value="@g.Id" /><input type="hidden" name="fresh" value="true" /><button type="submit" class="btn s sm">새 링크</button></form> }
+                }
+                else if (g.State == GiftStates.Picked)
+                {
+                    <a class="btn s sm" href="@pg.Back(pick: g.Id)#pick">선물 바꾸기</a>
+                    <button type="button" class="btn s sm" data-copy="@g.ItemName">상품명 복사</button>
+                }
+                else if (g.State is GiftStates.Purchased or GiftStates.Delivered) { <a class="bdc-go" href="/@slug/admin/gifts">@(g.State == GiftStates.Purchased ? "선물 처리에서 전해요 →" : "받은 선물 보기 →")</a> }
+                @if (g.State is GiftStates.Open or GiftStates.Expired or GiftStates.Picked)
+                {
+                    <form method="post" asp-antiforgery="true" action="@($"/{slug}/birthdays?handler=Skip&Tab={pg.Current}&Days={pg.Days}&M={pg.M}")" onsubmit="return confirm('이번 생일 선물을 안 주기로 할까요? [다시 주기]로 되돌릴 수 있어요.')"><input type="hidden" name="gift" value="@g.Id" /><input type="hidden" name="skip" value="true" /><button type="submit" class="btn s sm no">선물 안 주기</button></form>
+                }
+                @if (g.State == GiftStates.Skipped)
+                {
+                    <form method="post" asp-antiforgery="true" action="@($"/{slug}/birthdays?handler=Skip&Tab={pg.Current}&Days={pg.Days}&M={pg.M}")"><input type="hidden" name="gift" value="@g.Id" /><input type="hidden" name="skip" value="false" /><button type="submit" class="btn s sm">다시 주기</button></form>
+                }
+            </div>
+        }
+    }
 </article>

@@ -1,4 +1,4 @@
-using ChallengeBible.Web.Pages.Mission;
+﻿using ChallengeBible.Web.Pages.Mission;
 using ChallengeBible.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +26,7 @@ public class GiftLinkModel(BirthdayGiftService gifts) : PageModel, ITitled
     {
         var g = await gifts.ByTokenAsync(Token, ct);
         if (g is null) return Page();   // 없는 링크 · 새 링크로 막힌 링크: "열 수 없는 링크예요"
+        await gifts.MarkViewedAsync(Token, ct);   // 생일 카드 "부모님이 열어 봄"(ADR 0122)
         var items = g.State == "Open" || (Change && g.State == "Picked") ? await gifts.ItemsByTokenAsync(g, ct) : [];
         View = new BirthdayPickView(g, items, Change, $"/gift/{Token}", BirthdayGiftModel.MsgText(Msg), Link: true);
         return Page();

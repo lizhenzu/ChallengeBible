@@ -1,0 +1,110 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="file:///home/user/ChallengeBible/src/ChallengeBible.Web/wwwroot/css/site.css">
+<style>
+body{background:#E9ECF2;margin:0}
+.boards{display:flex;gap:24px;padding:24px;align-items:flex-start}
+.ph{width:390px;background:var(--bg);border-radius:22px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.cap{font-size:13px;font-weight:800;color:#555;padding:10px 14px;background:#F4F5F8;border-bottom:1px solid var(--rule)}
+.hd{display:flex;align-items:center;gap:10px;padding:0 16px;min-height:58px;border-bottom:1px solid var(--rule)}
+.hd .t{flex:1;display:flex;gap:6px;align-items:baseline}.hd .t span{font-size:13px;font-weight:700;color:var(--dim)}.hd .t em{font-style:normal;font-weight:900;color:var(--accent)}.hd .t b{font-size:16px}
+.bd{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.gsec{display:flex;justify-content:space-between;font-size:14px}.gsec b{font-weight:900}.gsec span{color:var(--dim);font-weight:700;font-size:13px}
+.bk{border:1.5px solid var(--rule);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.bk.today{border-color:#F59E0B;background:#FFFBEB}
+.dl{display:flex;align-items:baseline;gap:8px}.dl b{font-size:22px;font-weight:900;color:var(--accent)}.dl span{font-size:14px;color:var(--dim);font-weight:700}
+.bk.today .dl b{color:#B45309}
+.me{display:flex;gap:12px}.me .av{flex:none;width:56px;height:56px;border-radius:50%;background:var(--accent-bg);color:var(--accent);display:grid;place-items:center;font-weight:900}
+.me .nm{flex:1;min-width:0;display:grid;gap:4px}
+.me .nm .n{display:flex;align-items:baseline;gap:8px}.me .nm .n b{font-size:19px;font-weight:900}.me .nm .n a{font-size:12.5px;color:var(--dim);font-weight:700}
+.me .nm .s{font-size:13px;color:var(--dim)}.me .nm .s em{font-style:normal;color:var(--accent);font-weight:800}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px 10px;align-items:center;font-size:14px;padding:10px 12px;border-radius:12px;background:var(--soft)}
+.kv dt{font-weight:800;color:var(--dim)}.kv dd{margin:0;overflow-wrap:anywhere}.kv .warn{color:#C2410C;font-weight:800}
+.tel{padding:3px 10px;border-radius:999px;background:var(--accent-bg);color:var(--accent);font-weight:800;font-size:12.5px;white-space:nowrap}
+.chips2{display:flex;gap:6px;flex-wrap:wrap}.chips2 span{font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px}
+.g0{background:#F3F4F6;color:#6B7280}.g1{background:#FEF3C7;color:#92400E}.g2{background:#E0E7FF;color:#3730A3}.g3{background:#DCFCE7;color:#166534}.l0{background:#F3F4F6;color:#6B7280}.l1{background:#EEF2FF;color:#4338CA}.l2{background:#ECFDF5;color:#047857}
+.gift{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--soft)}
+.gift i{flex:none;width:64px;height:64px;border-radius:10px;background:linear-gradient(135deg,#C7D2FE,#FBCFE8)}
+.gift div{flex:1;min-width:0}.gift b{display:block;font-size:15px}.gift small{display:block;color:var(--dim);font-size:12.5px;margin-top:2px}.gift .by{color:var(--accent);font-weight:800}
+.gift a{font-size:12.5px;font-weight:800;color:var(--accent)}
+.acts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.acts a{min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid var(--line);font-weight:800;font-size:14.5px;white-space:nowrap}
+.acts .p{background:var(--accent);color:var(--on-accent);border-color:var(--accent);grid-column:1/-1}.acts .d{color:#B91C1C}
+.note{font-size:12px;color:#8A4B00;background:#FFF7E6;border-radius:12px;padding:10px 12px;line-height:1.6}
+.sheet{border-top-left-radius:22px;border-top-right-radius:22px;border:1.5px solid var(--rule);padding:16px;display:flex;flex-direction:column;gap:10px;margin-top:6px;background:var(--bg)}
+.sheet h3{margin:0;font-size:17px}.sheet p{margin:0;font-size:13px;color:var(--dim)}
+.items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.it{border:1.5px solid var(--rule);border-radius:14px;padding:8px;display:grid;gap:4px}.it i{display:block;height:84px;border-radius:10px;background:linear-gradient(135deg,#FDE68A,#A7F3D0)}
+.it b{font-size:13.5px}.it small{font-size:12px;color:var(--dim)}.it.on{border-color:var(--accent);background:var(--accent-bg)}
+.ok{min-height:48px;border-radius:12px;background:var(--accent);color:var(--on-accent);font-weight:900;display:flex;align-items:center;justify-content:center}
+</style></head><body><div class="boards">
+
+<div class="ph"><div class="cap">① 생일 › 다가오는 — 아직 안 고름 · 오늘 생일</div>
+<div class="hd"><span>☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>생일</b></div></div>
+<div class="bd">
+ <div class="gsec"><b>🎂 오늘</b><span>11월 20일 · 1명</span></div>
+ <article class="bk today">
+  <div class="dl"><b>오늘</b><span>11. 20 (금)</span></div>
+  <div class="me"><span class="av">하늘</span><div class="nm"><div class="n"><b>김하늘</b><a>수정</a></div><div class="s">haneul.kim · <em>2학년 3반</em> · 학생</div></div></div>
+  <dl class="kv">
+   <dt>전화</dt><dd>010-1234-5678</dd><a class="tel">전화</a>
+   <dt>출석</dt><dd>31/46 (67%) · 마지막 11/15 (5일 전)</dd><span></span>
+   <dt>담임</dt><dd>박선생 선생님 · 010-2222-3333</dd><a class="tel">전화</a>
+  </dl>
+  <div class="chips2"><span class="g1">고르는 중</span><span class="l1">링크 만듦</span><span style="background:none;color:var(--dim)">한도 5,000원 · 11월 26일까지</span></div>
+  <div class="acts"><a class="p">🎁 선물 선택(선생님이 골라 주기)</a><a>링크 복사</a><a>새 링크</a><a class="d" style="grid-column:1/-1">건너뛰기</a></div>
+ </article>
+ <div class="gsec"><b>30일 안</b><span>…</span></div>
+ <article class="bk">
+  <div class="dl"><b>D-21</b><span>12. 11 (금)</span></div>
+  <div class="me"><span class="av">채은</span><div class="nm"><div class="n"><b>홍채은</b><a>수정</a></div><div class="s">새친구 · <em>새친구반</em> · 처음 온 날 10/4</div></div></div>
+  <dl class="kv">
+   <dt>전화</dt><dd>010-2616-0000</dd><a class="tel">전화</a>
+   <dt>출석</dt><dd class="warn">3/7 (43%) · 마지막 10/25 (26일 전)</dd><span></span>
+   <dt>담임</dt><dd>이선생 선생님 · 010-3565-0000</dd><a class="tel">전화</a>
+  </dl>
+  <div class="chips2"><span class="g1">고르는 중</span><span class="l0">링크 없음</span></div>
+  <div class="acts"><a class="p">🎁 선물 선택(선생님이 골라 주기)</a><a>링크 복사</a><a class="d">건너뛰기</a></div>
+ </article>
+ <p class="note">교사 · 관리자 모두 버튼을 써요. 출석은 올해 1월 1일부터(새친구는 처음 온 날부터), 3주 넘게 안 나오면 주황색.</p>
+</div></div>
+
+<div class="ph"><div class="cap">② 선생님이 고른 뒤 · 선물 없는 사람</div>
+<div class="hd"><span>☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>생일</b></div></div>
+<div class="bd">
+ <article class="bk">
+  <div class="dl"><b>D-13</b><span>12. 3 (목)</span></div>
+  <div class="me"><span class="av">연아</span><div class="nm"><div class="n"><b>최연아</b><a>수정</a></div><div class="s">yeona26 · <em>1학년 2반</em> · 학생</div></div></div>
+  <dl class="kv">
+   <dt>전화</dt><dd>010-9354-0000</dd><a class="tel">전화</a>
+   <dt>출석</dt><dd>31/46 (67%) · 마지막 11/8 (12일 전)</dd><span></span>
+   <dt>담임</dt><dd>서선생 선생님 · 010-7721-0000</dd><a class="tel">전화</a>
+  </dl>
+  <div class="chips2"><span class="g2">골랐음</span><span class="l2">부모님이 열어 봄</span></div>
+  <div class="gift"><i></i><div><b>키캡 키링</b><small>고양이 LED 키캡 키링 4구 · 4,900원</small><small class="by">선생님(박선생)이 골라 주셨어요</small><a>쿠팡에서 보기 →</a></div></div>
+  <div class="acts"><a>선물 바꾸기</a><a>상품명 복사</a></div>
+  <p class="note" style="margin:0">고르면 선물 처리 "살 것"으로 넘어가요. 사기 전까지는 바꿀 수 있어요(아이도 바꿀 수 있어요).</p>
+ </article>
+ <article class="bk">
+  <div class="dl"><b>D-12</b><span>12. 2 (수)</span></div>
+  <div class="me"><span class="av">지영</span><div class="nm"><div class="n"><b>차지영</b><a>수정</a></div><div class="s">jiyoung · 교사</div></div></div>
+  <dl class="kv"><dt>전화</dt><dd>010-0000-1111</dd><a class="tel">전화</a></dl>
+  <div class="chips2"><span class="g0">선물 대상 아님</span></div>
+ </article>
+</div></div>
+
+<div class="ph"><div class="cap">③ [선물 선택]을 누르면 — 아이와 같은 목록</div>
+<div class="hd"><span>☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>생일</b></div></div>
+<div class="bd" style="background:rgba(0,0,0,.04)">
+ <div class="sheet">
+  <h3>김하늘 생일 선물 고르기</h3>
+  <p>한도 5,000원 · 아이가 고르는 목록과 같아요. 고르면 "골랐음"이 되고 아이 화면에 "선생님이 골라 주셨어요"로 보여요.</p>
+  <div class="items">
+   <div class="it on"><i></i><b>키캡 키링</b><small>4,900원</small></div>
+   <div class="it"><i></i><b>캐릭터 볼펜 세트</b><small>3,500원</small></div>
+   <div class="it"><i></i><b>미니 퍼즐</b><small>4,000원</small></div>
+   <div class="it"><i></i><b>스티커북</b><small>2,800원</small></div>
+  </div>
+  <div class="ok">키캡 키링으로 고르기</div>
+ </div>
+</div></div>
+</div></body></html>

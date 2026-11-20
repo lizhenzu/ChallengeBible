@@ -15,6 +15,8 @@ public sealed record BirthdayGiftView(long Id, string Name, DateOnly Birthday, s
     int? ItemId, string? ItemName, bool HasImage, DateTime? PickedUtc, DateTime? PurchasedUtc, int TenantId, string TenantName,
     string Kind = GiftKinds.Birthday, string? About = null)
 {
+    /// <summary>선생님이 대신 고른 선물이면 고른 선생님 이름(아이 화면 "선생님이 골라 주셨어요", ADR 0122).</summary>
+    public string? PickedByStaff { get; init; }
     public string KindLabel => Kind switch { GiftKinds.Newcomer => "새친구 선물", GiftKinds.Invite => "전도 선물", GiftKinds.Reading => "완독 선물", GiftKinds.Copy => "완필 선물", _ => "생일 선물" };
 }
 
@@ -201,11 +203,15 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         var names = await ctx.People.AsNoTracking().Where(p => pids.Contains(p.Id)).ToDictionaryAsync(p => p.Id, p => p.Name, ct);
         var tids = list.Select(g => g.TenantId).Distinct().ToList();
         var depts = await ctx.Tenants.AsNoTracking().Where(t => tids.Contains(t.Id)).ToDictionaryAsync(t => t.Id, t => t.Name, ct);
+        var gids = list.Select(g => g.Id).ToList();
+        var staff = (await ctx.GiftLogs.AsNoTracking().Where(l => gids.Contains(l.GiftId) && (l.Action == GiftActions.Pick || l.Action == GiftActions.Change))
+                .Select(l => new { l.GiftId, l.Id, l.Detail }).ToListAsync(ct))
+            .GroupBy(l => l.GiftId).ToDictionary(g => g.Key, g => StaffName(g.OrderByDescending(x => x.Id).First().Detail));
         return list.Select(g => new BirthdayGiftView(g.Id, g.PersonId is int pid ? names.GetValueOrDefault(pid) ?? "" : "", BirthdayOf(g.SourceKey) ?? default, g.State, g.OpenUntil,
             g.MinAmount, g.MaxAmount, g.GiftItemId, g.ItemName, g.ItemHasImage == true, g.PickedUtc, g.PurchasedUtc, g.TenantId, depts.GetValueOrDefault(g.TenantId) ?? "",
             g.Kind, g.Kind == GiftKinds.Invite && NewcomerGiftService.NewcomerOf(g.SourceKey) is int nid ? names.GetValueOrDefault(nid)
                 : g.Kind == GiftKinds.Reading && ReadingGiftService.RoundOf(g.SourceKey) is int rn ? $"{rn}독"
-                : g.Kind == GiftKinds.Copy ? CopyGiftService.AboutOf(g.SourceKey) : null)).ToList();
+                : g.Kind == GiftKinds.Copy ? CopyGiftService.AboutOf(g.SourceKey) : null) { PickedByStaff = g.State is GiftStates.Picked or GiftStates.Purchased or GiftStates.Delivered ? staff.GetValueOrDefault(g.Id) : null }).ToList();
     }
 
     /// <summary>금액 범위 안 상품(공통 − 그 부서가 숨긴 것 + 부서 상품, 판매 중), 싼 순. 링크 화면은 시스템 연결이라 부서를 직접 준다.</summary>
@@ -225,16 +231,19 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
     }
 
     /// <summary>고르기 · 바꾸기: 고를 수 있음 · 고름이고, 기한 안이고, 금액 안일 때. actor = 아이 계정 또는 "link".</summary>
-    private static async Task<TeamPickError> PickAsync(AppDbContext ctx, Gift? g, int itemId, string actor, DateOnly today, DateTime now, CancellationToken ct)
+    private static async Task<TeamPickError> PickAsync(AppDbContext ctx, Gift? g, int itemId, string actor, DateOnly today, DateTime now, CancellationToken ct, string? staffName = null)
     {
         if (g is null) return TeamPickError.NotFound;
-        if (g.State is not (GiftStates.Open or GiftStates.Picked) || (g.State == GiftStates.Open && g.OpenUntil is { } until && until < today)) return TeamPickError.Closed;
+        // 선생님이 대신 고르기(ADR 0122): 기한이 지난 선물도 고른다(고르는 기간은 아이 · 부모님 몫)
+        var staffOk = staffName is not null && g.State is GiftStates.Open or GiftStates.Picked or GiftStates.Expired;
+        if (!staffOk && (g.State is not (GiftStates.Open or GiftStates.Picked) || (g.State == GiftStates.Open && g.OpenUntil is { } until && until < today))) return TeamPickError.Closed;
         var item = (await ItemsAsync(ctx, g.TenantId, g.MinAmount, g.MaxAmount, ct)).FirstOrDefault(i => i.Id == itemId);
         if (item is null) return TeamPickError.TooExpensive;
         var change = g.State == GiftStates.Picked;
         g.State = GiftStates.Picked;
         g.GiftItemId = item.Id; g.ItemName = item.Name; g.ItemPrice = item.Price; g.ItemHasImage = item.HasImage; g.PickedUtc = now;
-        ctx.GiftLogs.Add(new GiftLog { TenantId = g.TenantId, GiftId = g.Id, Action = change ? GiftActions.Change : GiftActions.Pick, ActorUserName = actor, AtUtc = now, ItemName = item.Name, ItemPrice = item.Price });
+        ctx.GiftLogs.Add(new GiftLog { TenantId = g.TenantId, GiftId = g.Id, Action = change ? GiftActions.Change : GiftActions.Pick, ActorUserName = actor, AtUtc = now, ItemName = item.Name, ItemPrice = item.Price,
+            Detail = staffName is null ? null : StaffPrefix + staffName });
         await ctx.SaveChangesAsync(ct);
         return TeamPickError.None;
     }
@@ -244,6 +253,38 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         if ((await MineAsync(ct)).All(g => g.Id != giftId) || scope.UserName is not { } user) return TeamPickError.NotMember;
         await using var ctx = db.Create();
         return await PickAsync(ctx, await ctx.Gifts.SingleOrDefaultAsync(x => x.Id == giftId, ct), itemId, user, Today, time.GetUtcNow().UtcDateTime, ct);
+    }
+
+    public const string StaffPrefix = "staff:";
+    private static string? StaffName(string? detail) => detail is { } d && d.StartsWith(StaffPrefix, StringComparison.Ordinal) ? d[StaffPrefix.Length..] : null;
+
+    /// <summary>선생님(교사 · 관리자)이 아이 대신 고르기 · 바꾸기(ADR 0122, R-345): 아이와 같은 목록, 사기 전까지. 이 부서 생일 · 새친구 · 전도 · 완독 · 완필 선물.</summary>
+    public async Task<TeamPickError> StaffPickAsync(string actor, string staffName, long giftId, int itemId, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var g = await ctx.Gifts.SingleOrDefaultAsync(x => x.Id == giftId && LinkKinds.Contains(x.Kind), ct);
+        if (g is not null && g.State == GiftStates.Expired) g.State = GiftStates.Open;
+        return await PickAsync(ctx, g, itemId, actor, Today, time.GetUtcNow().UtcDateTime, ct, staffName);
+    }
+
+    /// <summary>선생님이 고를 때 보이는 목록(아이와 같다).</summary>
+    public async Task<(BirthdayGiftView? Gift, IReadOnlyList<TeamPickItem> Items)> StaffItemsAsync(long giftId, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var g = await ctx.Gifts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == giftId && LinkKinds.Contains(x.Kind), ct);
+        if (g is null || g.State is not (GiftStates.Open or GiftStates.Picked or GiftStates.Expired)) return (null, []);
+        return ((await ViewsAsync(ctx, [g], ct))[0], await ItemsAsync(ctx, T, g.MinAmount, g.MaxAmount, ct));
+    }
+
+    /// <summary>부모님이 링크를 처음 열면 한 줄 남긴다(생일 카드 "부모님이 열어 봄").</summary>
+    public async Task MarkViewedAsync(string token, CancellationToken ct = default)
+    {
+        if (!IsToken(token)) return;
+        await using var ctx = systemDb.Create(LinkActor);
+        var g = await ctx.Gifts.AsNoTracking().Where(x => x.LinkToken == token).Select(x => new { x.Id, x.TenantId }).SingleOrDefaultAsync(ct);
+        if (g is null || await ctx.GiftLogs.AnyAsync(l => l.GiftId == g.Id && l.Action == GiftActions.LinkView, ct)) return;
+        ctx.GiftLogs.Add(new GiftLog { TenantId = g.TenantId, GiftId = g.Id, Action = GiftActions.LinkView, ActorUserName = LinkActor, AtUtc = time.GetUtcNow().UtcDateTime });
+        await ctx.SaveChangesAsync(ct);
     }
 
     // ── 로그인 없는 링크(R-287): 부서를 모르는 요청이라 시스템 연결로 열쇠 하나만 찾는다 ──

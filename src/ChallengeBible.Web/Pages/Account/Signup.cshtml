@@ -32,7 +32,7 @@
             <input class="in" id="pw2" asp-for="PasswordConfirm" type="password" autocomplete="new-password" placeholder="한 번 더 입력" aria-invalid="@(E("PasswordConfirm") is null ? "false" : "true")" />
             <p class="hint bad">@E("PasswordConfirm")</p>
         </div>
-        <fieldset class="more">
+        <fieldset class="su-more">
             <legend><b>더 넣기</b> · 넣고 싶을 때만(필수 아님)</legend>
             <div class="f">
                 <label for="ph">전화번호</label>
@@ -41,7 +41,7 @@
             </div>
             <div class="f">
                 <label>생일 <small>연도 없이</small></label>
-                <div class="b2">
+                <div class="bd-two">
                     <select class="sel" name="BMonth" aria-label="생일 월"><option value="0">월</option>@for (var m = 1; m <= 12; m++) { <option value="@m" selected="@(Model.BMonth == m)">@(m)월</option> }</select>
                     <select class="sel" name="BDay" aria-label="생일 일"><option value="0">일</option>@for (var d = 1; d <= 31; d++) { <option value="@d" selected="@(Model.BDay == d)">@(d)일</option> }</select>
                 </div>

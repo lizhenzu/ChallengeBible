@@ -180,7 +180,7 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
         var id = GiftOf("김하준").Id;
         await Post(admin, "/kids/admin/gifts?s=pick", "/kids/admin/gifts?handler=Skip", new() { ["id"] = id.ToString(), ["skip"] = "true" });
         Assert.Equal(GiftStates.Skipped, GiftOf("김하준").State);
-        Assert.Contains("건너뜀", await admin.GetStringAsync("/kids/admin/gifts?s=cancel"));
+        Assert.Contains("안 주기로 함", await admin.GetStringAsync("/kids/admin/gifts?s=cancel"));   // 2026-11-20 사용자: 건너뛰기 → 선물 안 주기
         Assert.DoesNotContain("생일 선물을 골라요", await (await Login("hajun@example.com")).GetStringAsync("/kids/word-mission"));
         await Post(admin, "/kids/admin/gifts?s=cancel", "/kids/admin/gifts?handler=Skip", new() { ["id"] = id.ToString(), ["skip"] = "false" });
         Assert.Equal(GiftStates.Open, GiftOf("김하준").State);

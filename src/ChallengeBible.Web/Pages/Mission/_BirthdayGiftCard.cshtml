@@ -39,7 +39,7 @@
     {
         <a class="gk-card gk-got" href="@href">
             <span class="gk-pic">@if (g.HasImage && g.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" onerror="this.remove()" /> }</span>
-            <span class="gk-m"><span class="gk-tag">@(g.State == "Purchased" ? "선생님이 준비했어요" : "준비 중")</span><b>@g.ItemName</b><small>@g.KindLabel</small></span>
+            <span class="gk-m"><span class="gk-tag">@(g.State == "Purchased" ? "선생님이 준비했어요" : g.PickedByStaff is not null ? "선생님이 골라 주셨어요" : "준비 중")</span><b>@g.ItemName</b><small>@g.KindLabel</small></span>
             <span class="gk-ar" aria-hidden="true">›</span>
         </a>
     }

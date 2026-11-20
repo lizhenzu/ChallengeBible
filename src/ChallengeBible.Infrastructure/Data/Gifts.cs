@@ -149,6 +149,8 @@ public static class GiftActions
     public const string Skip = "Skip";
     public const string Expire = "Expire";
     public const string Link = "Link";
+    /// <summary>부모님이 로그인 없는 링크를 처음 연 때(생일 카드 "부모님이 열어 봄", ADR 0122).</summary>
+    public const string LinkView = "LinkView";
     public const string YearClose = "YearClose";
 }
 
