@@ -2,6 +2,7 @@
 @inject ChallengeBible.Web.Services.PromotionService Promotions
 @inject ChallengeBible.Web.Services.FamilyTeamService FamilyTeams
 @inject ChallengeBible.Web.Services.PhotoService Photos
+@inject ChallengeBible.Web.Services.LeaveService Leaves
 @using ChallengeBible.Web.Auth
 @{
     var slug = Model.Current.Slug;
@@ -23,6 +24,8 @@
     // 선물: 관리자만, 임시 부서는 없음(ADR 0094, 확정 시안 관리-선물)
     if (Model.IsAdmin && !Model.IsLobby) menu = [.. menu, ($"/{slug}/admin/gifts", "선물", 0)];
     menu = [.. menu, ($"/{slug}/admin/promotions", "진급", promotionsWaiting)];
+    // 탈퇴 신청(ADR 0119, 2026-11-20 사용자: 일반 메뉴판에서 관리 메뉴로 옮김): 부서 관리자만, 기다리는 수 뱃지
+    if (Model.IsAdmin && !Model.IsLobby) menu = [.. menu, ($"/{slug}/leaves", "탈퇴 신청", await Leaves.CountAsync(User.UserName()!, Model.Current.Id))];
     if (Model.IsAdmin) menu = [.. menu, ($"/{slug}/admin/content", "콘텐츠", 0)];
     if (Model.IsAdmin && !Model.IsLobby) menu = [.. menu, ($"/{slug}/admin/prayer365", "365 기도", 0)];   // 자녀를 위한 365 기도 참여자(ADR 0106)
     if (Model.Current.ReadingEnabled) menu = [.. menu, ($"/{slug}/admin/reading", "통독 현황", 0)];
@@ -33,7 +36,7 @@
     bool Current(string href) => href == home ? path.TrimEnd('/').Equals(home, StringComparison.OrdinalIgnoreCase) : path.StartsWith(href, StringComparison.OrdinalIgnoreCase);
     // 확정 시안 관리-햄버거(2026-11-16 사용자): 가로 탭 대신 ☰ 메뉴판, 묶음별. 머리말 제목 = 지금 화면
     var now = menu.FirstOrDefault(m => Current(m.Href)).Label ?? "관리";
-    string Group(string href) => href == home ? "" : href.EndsWith("/members") || href.EndsWith("/birthdays") || href.EndsWith("/classes") || href.EndsWith("/teams") || href.EndsWith("/promotions") ? "사람"
+    string Group(string href) => href == home ? "" : href.EndsWith("/members") || href.EndsWith("/birthdays") || href.EndsWith("/classes") || href.EndsWith("/teams") || href.EndsWith("/promotions") || href.EndsWith("/leaves") ? "사람"
         : href.EndsWith("/gifts") || href.EndsWith("/content") || href.EndsWith("/prayer365") || href.EndsWith("/reading") || href.EndsWith("/season") ? "선물 · 콘텐츠" : "설정";
     string[] Groups = ["", "사람", "선물 · 콘텐츠", "설정"];
     // 확정 시안 플랫폼관리메뉴(2026-11-18): 항목마다 아이콘 · 색 · 한 줄 설명(주소 끝으로 고른다)
@@ -44,6 +47,7 @@
         : href.EndsWith("/classes") ? ("cls", "b", "반 만들기 · 배정")
         : href.EndsWith("/teams") ? ("family", "p", "팀 · 시상")
         : href.EndsWith("/promotions") ? ("up", "o", "보내기 · 받기")
+        : href.EndsWith("/leaves") ? ("user", "r", "기다리는 탈퇴 · 승인 · 반려")
         : href.EndsWith("/gifts") ? ("gift", "o", "주문 · 처리")
         : href.EndsWith("/content") ? ("word", "g", "우리 부서 말씀 · 퀴즈")
         : href.EndsWith("/prayer365") ? ("pray", "p", "참여자 · 함께 기도")

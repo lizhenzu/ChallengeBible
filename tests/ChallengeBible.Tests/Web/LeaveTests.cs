@@ -213,7 +213,10 @@ public partial class LeaveTests : IClassFixture<WebApplicationFactory<Program>>
         var kadmin = await Login("kadmin@example.com");
         var mine = WebUtility.HtmlDecode(await kadmin.GetStringAsync("/kids/leaves"));
         Assert.Contains("기다리는 탈퇴 1명", mine);
-        Assert.Matches("href=\"/kids/leaves\"[^>]*>.*?탈퇴 신청 <em class=\"tdr-c num\"[^>]*>1</em>", WebUtility.HtmlDecode(await kadmin.GetStringAsync("/kids")));
+        Assert.DoesNotContain("/kids/leaves", await kadmin.GetStringAsync("/kids"));   // 일반 메뉴판에서는 뺐다
+        Assert.Matches("href=\"/kids/leaves\"[^>]*>.*?탈퇴 신청 <em class=\"tdr-c num\"[^>]*>1</em>", WebUtility.HtmlDecode(await kadmin.GetStringAsync("/kids/admin")));   // 관리 메뉴 ☰ 숫자
+        Assert.Contains("<b>탈퇴 신청</b>", await kadmin.GetStringAsync("/kids/leaves"));   // 관리 머리말 "도전!!!성경말씀 > 탈퇴 신청"
+        Assert.Contains("data-pnav-open", await kadmin.GetStringAsync("/kids/leaves"));
         var eadmin = await Login("eadmin@example.com");
         Assert.Contains("기다리는 탈퇴 0명", WebUtility.HtmlDecode(await eadmin.GetStringAsync("/elem/leaves")));   // 다른 부서 것은 안 보인다
         var friend = await Login("friend@example.com");
