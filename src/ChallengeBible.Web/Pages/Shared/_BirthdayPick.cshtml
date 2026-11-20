@@ -73,8 +73,32 @@ else
         </ol>
         <div class="gkd-info">
             <div><span aria-hidden="true">👩‍🏫</span><span>선생님이 선물을 준비해서 <b>주일에 전해 줘요.</b><em>준비가 끝나면 위 단계에 표시돼요.</em></span></div>
-            @if (g.State == "Picked") { <div><span aria-hidden="true">🔁</span><span>선생님이 사기 전까지는 <b>다른 선물로 바꿀 수 있어요.</b>@if (Model.Link) { <em>이 링크로 다시 들어와 바꾸면 돼요.</em> }</span></div> }
+            @if (g.State == "Picked") { <div><span aria-hidden="true">🔁</span><span>선생님이 사기 전까지는 <b>바꾸거나 취소할 수 있어요.</b>@if (Model.Link) { <em>이 링크로 다시 들어와 바꾸면 돼요.</em> }</span></div> }
         </div>
-        @if (g.State == "Picked") { <a class="gk-btn gk-plain gkd-btn" href="@Model.Self?change=true">다른 선물로 바꾸기</a> }
+        @if (g.State == "Picked")
+        {
+            <a class="gk-btn gk-plain gkd-btn" href="@Model.Self?change=true">다른 선물로 바꾸기</a>
+            @* 선물 취소(R-347, 2026-11-20 확정 시안 선물취소): 한 번 더 묻고 지운다. 스크립트가 없으면 바로 보내는 버튼 *@
+            <form method="post" action="@(Model.Self)?handler=Cancel" asp-antiforgery="true" class="gkc" data-gkc>
+                <button type="submit" class="gkc-open" data-gkc-open>선물 취소</button>
+                <div class="gkc-dim" data-gkc-dim hidden>
+                    <div class="gkc-box" role="dialog" aria-modal="true" aria-labelledby="gkcT">
+                        <div class="gkc-em" aria-hidden="true">🎁</div>
+                        <h2 id="gkcT">고른 선물을 취소할까요?</h2>
+                        <p><b>@g.ItemName</b>@(ChallengeBible.Web.Pages.Admin.GiftsModel.Obj(g.ItemName ?? "선물")[(g.ItemName ?? "선물").Length..]) 취소해요.<br />
+                            @if (Model.Late) { <text>기한이 지나서 <b>다시 고를 수 없어요.</b> 선생님께 말씀드려야 해요.</text> }
+                            else if (g.OpenUntil is { } cu) { <text>@cu.ToString("M월 d일")까지 다시 고를 수 있어요.</text> }
+                            else { <text>다시 고를 수 있어요.</text> }</p>
+                        <div class="gkc-two"><button type="button" data-gkc-no>아니요</button><button type="submit" class="gkc-yes">취소할게요</button></div>
+                    </div>
+                </div>
+            </form>
+            <script>
+                (() => { const f = document.querySelector('[data-gkc]'); if (!f) return; const d = f.querySelector('[data-gkc-dim]');
+                    f.querySelector('[data-gkc-open]').addEventListener('click', e => { e.preventDefault(); d.hidden = false; });
+                    f.querySelector('[data-gkc-no]').addEventListener('click', () => { d.hidden = true; });
+                    d.addEventListener('click', e => { if (e.target === d) d.hidden = true; }); })();
+            </script>
+        }
     </div>
 }

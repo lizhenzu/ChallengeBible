@@ -21,7 +21,8 @@ public sealed record BirthdayGiftView(long Id, string Name, DateOnly Birthday, s
 }
 
 /// <summary>_BirthdayPick 조각의 값: Link = 로그인 없는 링크 화면, Self = 이 화면 주소.</summary>
-public sealed record BirthdayPickView(BirthdayGiftView Gift, IReadOnlyList<TeamPickItem> Items, bool Change, string Self, string? Msg, bool Link);
+/// <summary>Late = 고르는 기한이 지났다(선물 취소 확인 문구, R-347).</summary>
+public sealed record BirthdayPickView(BirthdayGiftView Gift, IReadOnlyList<TeamPickItem> Items, bool Change, string Self, string? Msg, bool Link, bool Late = false);
 
 /// <summary>
 /// 생일 선물(확정 시안 생일-선물, ADR 0094 D · 정한 것 14, R-288 · R-287): 명부 생일이 있는 학생 · 새친구 **본인**에게, 생일 BirthdayOpenDays 일 전 ~ BirthdayCloseDays 일 전.
@@ -284,6 +285,45 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         if ((await MineAsync(ct)).All(g => g.Id != giftId) || scope.UserName is not { } user) return TeamPickError.NotMember;
         await using var ctx = db.Create();
         return await PickAsync(ctx, await ctx.Gifts.SingleOrDefaultAsync(x => x.Id == giftId, ct), itemId, user, Today, time.GetUtcNow().UtcDateTime, ct);
+    }
+
+    /// <summary>
+    /// 선물 취소(R-347, 2026-11-20 확정 시안 선물취소): 고른 선물(사기 전)만. 고른 것을 지우고 기한 안이면 고를 수 있음, 지났으면 기한 지남. 기록은 Cancel.
+    /// </summary>
+    private static async Task<TeamPickError> CancelPickAsync(AppDbContext ctx, Gift? g, string actor, DateOnly today, DateTime now, CancellationToken ct)
+    {
+        if (g is null) return TeamPickError.NotFound;
+        if (g.State != GiftStates.Picked) return TeamPickError.Closed;
+        ctx.GiftLogs.Add(new GiftLog { TenantId = g.TenantId, GiftId = g.Id, Action = GiftActions.Cancel, ActorUserName = actor, AtUtc = now, ItemName = g.ItemName, ItemPrice = g.ItemPrice });
+        g.GiftItemId = null; g.ItemName = null; g.ItemPrice = null; g.ItemHasImage = null; g.PickedUtc = null;
+        g.State = g.OpenUntil is { } u && u < today ? GiftStates.Expired : GiftStates.Open;
+        await ctx.SaveChangesAsync(ct);
+        return TeamPickError.None;
+    }
+
+    public async Task<TeamPickError> CancelAsync(long giftId, CancellationToken ct = default)
+    {
+        if ((await MineAsync(ct)).All(g => g.Id != giftId) || scope.UserName is not { } user) return TeamPickError.NotMember;
+        await using var ctx = db.Create();
+        return await CancelPickAsync(ctx, await ctx.Gifts.SingleOrDefaultAsync(x => x.Id == giftId, ct), user, Today, time.GetUtcNow().UtcDateTime, ct);
+    }
+
+    public async Task<TeamPickError> CancelByTokenAsync(string token, CancellationToken ct = default)
+    {
+        if (!IsToken(token)) return TeamPickError.NotFound;
+        await using var ctx = systemDb.Create(LinkActor);
+        var g = await ctx.Gifts.SingleOrDefaultAsync(x => x.LinkToken == token && LinkKinds.Contains(x.Kind), ct);
+        var zone = g is null ? "Asia/Seoul" : await ctx.Tenants.Where(t => t.Id == g.TenantId).Select(t => t.TimeZoneId).SingleAsync(ct);
+        return await CancelPickAsync(ctx, g, LinkActor, clock.Today(zone), time.GetUtcNow().UtcDateTime, ct);
+    }
+
+    /// <summary>고르는 기한이 지났는지(그 선물 부서의 오늘 기준) — 취소 확인 문구에 쓴다.</summary>
+    public async Task<bool> LateAsync(BirthdayGiftView g, CancellationToken ct = default)
+    {
+        if (g.OpenUntil is not { } u) return false;
+        await using var ctx = systemDb.Create(LinkActor);
+        var zone = await ctx.Tenants.Where(t => t.Id == g.TenantId).Select(t => t.TimeZoneId).SingleOrDefaultAsync(ct) ?? "Asia/Seoul";
+        return u < clock.Today(zone);
     }
 
     public const string StaffPrefix = "staff:";

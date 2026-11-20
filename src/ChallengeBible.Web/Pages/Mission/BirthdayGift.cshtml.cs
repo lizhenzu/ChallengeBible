@@ -29,7 +29,7 @@ public class BirthdayGiftModel(BirthdayGiftService gifts, NewcomerGiftService ne
         var g = (await gifts.MineAsync(ct)).FirstOrDefault(x => x.Id == Id);
         if (g is null) return NotFound();
         var items = g.State == "Open" || (Change && g.State == "Picked") ? await gifts.ItemsAsync(g, ct) : [];
-        View = new BirthdayPickView(g, items, Change, $"/{Slug}/gifts/birthday/{Id}", MsgText(Msg), Link: false);
+        View = new BirthdayPickView(g, items, Change, $"/{Slug}/gifts/birthday/{Id}", MsgText(Msg), Link: false, Late: g.State == "Picked" && await gifts.LateAsync(g, ct));
         return Page();
     }
 
@@ -42,6 +42,16 @@ public class BirthdayGiftModel(BirthdayGiftService gifts, NewcomerGiftService ne
         return Redirect($"/{Slug}/gifts/birthday/{Id}");
     }
 
+    /// <summary>[선물 취소](R-347): 고른 선물을 지우고 다시 고르기 화면으로.</summary>
+    public async Task<IActionResult> OnPostCancelAsync(CancellationToken ct)
+    {
+        if (!tenant.Current.MissionEnabled && !tenant.Current.ReadingEnabled && !tenant.Current.CopyEnabled) return NotFound();
+        var e = await gifts.CancelAsync(Id, ct);
+        if (e is TeamPickError.NotMember or TeamPickError.NotFound) return NotFound();
+        Msg = e == TeamPickError.None ? "cancelled" : "closed";
+        return Redirect($"/{Slug}/gifts/birthday/{Id}");
+    }
+
     public static string Code(TeamPickError e) => e switch { TeamPickError.None => "picked", TeamPickError.Closed => "closed", _ => "gone" };
 
     public static string? MsgText(string? code) => code switch
@@ -49,6 +59,7 @@ public class BirthdayGiftModel(BirthdayGiftService gifts, NewcomerGiftService ne
         "picked" => "선물을 골랐어요! 선생님이 준비할 거예요.",
         "closed" => "지금은 고르거나 바꿀 수 없어요. 선생님이 이미 준비했거나 기한이 지났어요.",
         "gone" => "그 선물은 지금 고를 수 없어요.",
+        "cancelled" => "선물을 취소했어요. 다시 골라 주세요.",
         _ => null,
     };
 }
