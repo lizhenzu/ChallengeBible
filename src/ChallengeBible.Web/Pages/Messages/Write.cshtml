@@ -1,12 +1,12 @@
-@page "/messages/write"
+﻿@page "/messages/write"
 @model ChallengeBible.Web.Pages.Messages.WriteModel
 @using ChallengeBible.Web.Services
 @* 확정 시안 쪽지 ④ ⑦(2026-11-17): 받는 사람 찾기(이름 · 부서 · 역할만) · 플랫폼 관리자는 한 사람 / 모든 사용자 / 부서 *@
 <partial name="_Top" />
 <link rel="stylesheet" href="~/css/messages.css" asp-append-version="true" />
 <main class="gut msg"><div class="wrap">
-    <a class="ms-back" href="/messages">← 쪽지</a>
-    <h1>@(Model.Reply is null ? "쪽지 쓰기" : "답장")</h1>
+    <a class="ms-back" href="/messages">← 단체쪽지</a>
+    <h1>@(Model.Reply is not null ? "답장" : Model.IsPlatformAdmin ? "쪽지 쓰기" : "단체쪽지 쓰기")</h1>
     @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }
 
     @if (Model.Reply is null)
@@ -20,13 +20,36 @@
                 }
             </div>
         }
+        @if (!Model.IsPlatformAdmin)
+        {
+            @* 단체쪽지(R-359, 확정 시안 인명검색 ⑤): 내가 교사 · 임원인 부서 전체에게. 학생 · 학부모는 쓰지 못한다 *@
+            if (Model.GroupDepts.Count == 0)
+            {
+                <p class="ms-tip">단체쪽지는 선생님만 보낼 수 있어요. 받은 쪽지에서 [답장]을 누르면 보낸 사람에게 답할 수 있어요.</p>
+            }
+            else
+            {
+                <p class="ms-tip">우리 부서 사람 모두에게 한 번에 보내요. 한 사람에게 보내려면 <b>인명 검색</b>에서 찾아 [쪽지]를 눌러요.</p>
+                <div class="ms-gto" role="radiogroup" aria-label="받는 부서">
+                    @foreach (var (id, name, n) in Model.GroupDepts)
+                    {
+                        <label><input type="radio" name="Tid" value="@id" form="ms-w" checked="@(Model.Tid == id)" /><span>받는 사람: <b>@name 전체</b> <small>@(n)명</small></span></label>
+                    }
+                </div>
+            }
+        }
+        else
+        {
         <form method="get" class="ms-find" data-ms-one>
             <input type="hidden" name="Mode" value="one" />
             <input class="in" type="search" name="Q" value="@Model.Q" placeholder="받는 사람 이름으로 찾기" aria-label="받는 사람 이름으로 찾기" />
             <button type="submit" class="btn s sm">찾기</button>
         </form>
+        }
     }
 
+    @if (Model.Reply is not null || Model.IsPlatformAdmin || Model.GroupDepts.Count > 0)
+    {
     <form method="post" id="ms-w" class="ms-form">
         <input type="hidden" name="Reply" value="@Model.Reply" />
         <div data-ms-one>
@@ -59,5 +82,6 @@
         <p class="ms-cnt"><span data-ms-n>0</span> / @MessageService.MaxLength.ToString("N0")</p>
         <button type="submit" class="btn p ms-send" data-ms-send>보내기</button>
     </form>
+    }
 </div></main>
 <script src="~/js/messages.js" asp-append-version="true" defer></script>

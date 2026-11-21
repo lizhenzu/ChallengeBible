@@ -66,3 +66,9 @@
 .ms-send { min-height: 48px; justify-content: center; border-radius: 12px; font-weight: 900; }
 /* 머리말 폭을 쪽지 본문(760px)과 같게 — messages.css 는 쪽지 화면에서만 읽는다(2026-11-17 사용자) */
 .top .wrap { max-width: 760px; }
+
+/* 단체쪽지 받는 부서(R-359) */
+.msg .ms-gto { display: grid; gap: 6px; margin: 10px 0 0; }
+.msg .ms-gto label { display: flex; gap: 8px; align-items: center; padding: 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 10%, #fff); cursor: pointer; }
+.msg .ms-gto b { color: var(--accent); }
+.msg .ms-gto small { color: var(--dim); }

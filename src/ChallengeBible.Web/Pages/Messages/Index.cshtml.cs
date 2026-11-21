@@ -1,4 +1,4 @@
-using ChallengeBible.Web.Auth;
+﻿using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +10,9 @@ namespace ChallengeBible.Web.Pages.Messages;
 [Authorize]
 public class IndexModel(MessageService messages) : PageModel, ITitled
 {
-    public string Title => "쪽지";
+    public string Title => "단체쪽지";
+    /// <summary>[단체쪽지 쓰기]는 교사 · 임원(보낼 부서가 있을 때) · 플랫폼 관리자만(R-359).</summary>
+    public bool CanWrite { get; private set; }
     [BindProperty(SupportsGet = true)] public string Box { get; set; } = "in";
     [TempData] public string? Msg { get; set; }
     public List<MsgRow> Rows { get; private set; } = [];
@@ -22,6 +24,7 @@ public class IndexModel(MessageService messages) : PageModel, ITitled
     {
         Box = Box == "sent" ? "sent" : "in";
         Unread = await messages.UnreadAsync(Me, ct);
+        CanWrite = IsPlatformAdmin || (await messages.GroupDeptsAsync(Me, ct)).Count > 0;
         Rows = Box == "sent" ? await messages.SentAsync(Me, ct) : await messages.InboxAsync(Me, ct);
     }
 

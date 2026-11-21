@@ -311,13 +311,45 @@ public sealed class MessageService(ISystemDb systemDb, TimeProvider time)
         return MsgError.None;
     }
 
-    /// <summary>[보내기 취소](R-327): 플랫폼 관리자의 전체 쪽지만. 모두의 쪽지함에서 사라진다(이미 온 답장은 남는다).</summary>
+    /// <summary>
+    /// 단체쪽지를 보낼 수 있는 부서(R-359, 2026-11-21 사용자): 그 부서에서 교사 · 임원(부서 관리자 포함) 역할인 곳. 임시 부서 · 쉬는 부서는 빼고, 받을 사람 수와 함께.
+    /// 학생 · 학부모 · 기타는 없다(받기와 답장만).
+    /// </summary>
+    public async Task<List<(int Id, string Name, int Count)>> GroupDeptsAsync(string userName, CancellationToken ct = default)
+    {
+        await using var ctx = systemDb.Create(userName);
+        var rows = await (from d in ctx.DeptRoles.IgnoreQueryFilters() join u in ctx.Users on d.UserId equals u.Id join t in ctx.Tenants on d.TenantId equals t.Id
+                          where u.UserName == userName && !t.IsLobby && t.Status == TenantStatus.Active
+                          select new { t.Id, t.Name, d.RoleCode }).ToListAsync(ct);
+        var list = new List<(int, string, int)>();
+        foreach (var r in rows.Where(r => UserRole.KindOf(r.RoleCode) is UserRoleKind.Teacher or UserRoleKind.Officer).DistinctBy(r => r.Id).OrderBy(r => DeptOrder.Key(r.Name)))
+            list.Add((r.Id, ShortDept(r.Name, false), await AudienceCountAsync(ctx, [r.Id], userName, ct)));
+        return list;
+    }
+
+    /// <summary>단체쪽지(R-359): 그 부서 사람 모두에게 한 줄(전체 쪽지와 같은 모양, 대상 = 그 부서). 그 부서의 교사 · 임원만. 받은 사람의 [답장]은 보낸 사람에게만.</summary>
+    public async Task<MsgError> GroupAsync(string actor, int tenantId, string? body, CancellationToken ct = default)
+    {
+        if (Check(body) is var e and not MsgError.None) return e;
+        if ((await GroupDeptsAsync(actor, ct)).All(d => d.Id != tenantId)) return MsgError.NotAllowed;
+        await using var ctx = systemDb.Create(actor);
+        var who = await WhoAsync(ctx, [actor], ct);
+        var m = new Message { Kind = MessageKinds.Broadcast, SenderUserName = actor, SenderTenantId = tenantId, SenderLabel = who.GetValueOrDefault(actor).Where, Body = body!.Trim(), SentUtc = Now };
+        ctx.Messages.Add(m);
+        await ctx.SaveChangesAsync(ct);
+        ctx.MessageTargets.Add(new MessageTarget { MessageId = m.Id, TenantId = tenantId });
+        await ctx.SaveChangesAsync(ct);
+        return MsgError.None;
+    }
+
+    /// <summary>[보내기 취소](R-327 · R-359): 전체 쪽지 · 단체쪽지 — 플랫폼 관리자, 또는 보낸 사람 본인. 모두의 쪽지함에서 사라진다(이미 온 답장은 남는다).</summary>
     public async Task<MsgError> CancelAsync(string actor, long id, CancellationToken ct = default)
     {
         await using var ctx = systemDb.Create(actor);
-        if (!await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct)) return MsgError.NotAllowed;
         var m = await ctx.Messages.SingleOrDefaultAsync(x => x.Id == id && x.Kind == MessageKinds.Broadcast, ct);
         if (m is null) return MsgError.NotFound;
+        // 플랫폼 관리자는 모든 전체 쪽지, 선생님은 내가 보낸 단체쪽지만(R-359)
+        if (m.SenderUserName != actor && !await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct)) return MsgError.NotAllowed;
         m.CanceledUtc ??= Now;
         await ctx.SaveChangesAsync(ct);
         return MsgError.None;

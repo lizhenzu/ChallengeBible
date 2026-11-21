@@ -1,0 +1,67 @@
+@page "/{slug}/people"
+@model ChallengeBible.Web.Pages.People.IndexModel
+@using ChallengeBible.Domain.Time
+@* 인명 검색(R-358, 2026-11-21 확정 시안 인명검색): 유년부 /AddressBook 을 그대로 — 이름 · 아이디 실시간 검색 · 학생/선생님·기타 거르기 · 전화 · 문자 · 쪽지 · 번호 복사 · 최근 검색. 이름은 pb- 접두어 *@
+@{
+    var thisMonth = TenantClock.ToTenantDate(DateTimeOffset.UtcNow, Model.Tenant.Current.TimeZoneId).Month;
+}
+<link rel="stylesheet" href="~/css/people.css" asp-append-version="true" />
+<partial name="_GenTop" model="(Model.Tenant, Model.Title)" />
+<div class="pbk" data-pb data-search="/@Model.Slug/people?handler=Search" data-send="/@Model.Slug/people?handler=Send" data-month="@thisMonth" data-max="@ChallengeBible.Web.Pages.People.IndexModel.NoteMax">
+    <div class="pb-tools">
+        <div class="pb-sh">
+            <label class="pb-srch">
+                <input id="pbQ" type="search" inputmode="search" autocomplete="off" placeholder="이름 또는 아이디 (2글자부터)" aria-label="이름 또는 아이디 검색" />
+                <i class="pb-spin pb-hide" id="pbSpin" aria-hidden="true"></i>
+                <button type="button" id="pbClear" class="pb-hide" aria-label="검색어 지우기">지우기</button>
+            </label>
+            <div class="pb-seg pb-hide" id="pbSeg" role="tablist" aria-label="거르기">
+                <button type="button" data-f="all" class="on">전체 <b id="pbAll">0</b></button>
+                <button type="button" data-f="st">학생 <b id="pbSt">0</b></button>
+                <button type="button" data-f="etc">선생님·기타 <b id="pbEtc">0</b></button>
+            </div>
+        </div>
+    </div>
+
+    <main class="pb-sh">
+        @* 검색 전 *@
+        <section id="pbIdle">
+            <div class="pb-recent pb-hide" id="pbRecent">
+                <div class="t"><span>최근 검색</span><button type="button" id="pbRecentClear">모두 지우기</button></div>
+                <div class="pb-chips" id="pbRecentList"></div>
+            </div>
+            <div class="pb-guide">
+                <b>이렇게 찾아요</b><br />
+                · 이름이나 아이디를 <b>2글자 이상</b> 입력하면 바로 찾아요.<br />
+                · 결과에서 <b>학생 / 선생님·기타</b>로 거를 수 있어요.<br />
+                · 전화번호가 있으면 <b>전화 · 문자 · 번호 복사</b>, 계정이 있으면 <b>쪽지</b>를 보낼 수 있어요.<br />
+                · 반별 명단은 <a href="/@Model.Slug/admin/members">@(Model.Tenant.IsAdmin ? "부서 관리 › 소속 관리" : "명부")</a>에서 볼 수 있어요.
+            </div>
+        </section>
+
+        @* 결과 *@
+        <section id="pbResult" class="pb-hide">
+            <div class="pb-cnt"><span>검색 결과 <b id="pbShown">0</b>명</span><span class="more pb-hide" id="pbMore">최대 30명까지만 보여요 · 이름을 더 입력해 보세요</span></div>
+            <div class="pb-list" id="pbList"></div>
+            <div class="pb-msg pb-hide" id="pbNone"></div>
+        </section>
+        <div class="pb-ft"><span>전화 · 문자는 휴대폰에서 바로 열려요. 쪽지는 단체쪽지(쪽지함)로 가요.</span></div>
+    </main>
+
+    @* 쪽지 보내기 — 아래에서 올라옴 *@
+    <div class="pb-scrim" id="pbScrim"></div>
+    <section class="pb-sheet" id="pbSheet" role="dialog" aria-modal="true" aria-labelledby="pbToName" aria-hidden="true">
+        <div class="pb-grab"></div>
+        @Html.AntiForgeryToken()
+        <div class="pb-shH">
+            <div><b id="pbToName">받는 사람</b><small id="pbToSub">쪽지함으로 보내요</small></div>
+            <button type="button" class="pb-shX" id="pbShClose" aria-label="닫기">닫기</button>
+        </div>
+        <textarea id="pbMsgIn" maxlength="@ChallengeBible.Web.Pages.People.IndexModel.NoteMax" placeholder="따뜻한 메시지를 입력해 주세요." aria-label="쪽지 내용"></textarea>
+        <div class="pb-shErr" id="pbShErr" aria-live="polite"></div>
+        <div class="pb-shF"><span><span id="pbMsgCnt">0</span> / @ChallengeBible.Web.Pages.People.IndexModel.NoteMax · Ctrl+Enter 로 보내기</span><button type="button" class="pb-send" id="pbSend">쪽지 보내기</button></div>
+    </section>
+
+    <div class="pb-toast" id="pbToast" role="status"></div>
+</div>
+<script src="~/js/people.js" asp-append-version="true" defer></script>
