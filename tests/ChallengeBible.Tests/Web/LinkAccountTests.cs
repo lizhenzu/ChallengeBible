@@ -81,10 +81,13 @@ public partial class LinkAccountTests : IClassFixture<WebApplicationFactory<Prog
         await admin.GetAsync("/kids");
         var page = await admin.GetStringAsync(List);
         Assert.Contains("같은 이름 계정 있음", page);
-        Assert.Contains("조진찬 — 어느 계정과 연결할까요?", page);
-        if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(page, "46-명부-계정과연결");
-
         var pid = RosterId();
+        // 2026-11-21 사람 관리 쪼개기: 계정 연결은 따로 화면 — 처음엔 같은 이름 계정을 보여 준다
+        var linkPage = WebUtility.HtmlDecode(await admin.GetStringAsync($"{List.Split('?')[0]}/p/{pid}/link"));
+        Assert.Contains("조진찬 — 계정 연결", linkPage);
+        Assert.Contains("같은 이름 계정 1개", linkPage);
+        if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(linkPage, "46-명부-계정과연결");
+
         int blankId;
         using (var raw = InMemoryDb.Raw(_db))
         {

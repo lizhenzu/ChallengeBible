@@ -84,7 +84,9 @@
       const b = e.target.closest('[data-act]'); if (!b || b.closest('[data-sheet]')) return;
       if (b.dataset.act === 'slot') {
         const code = b.dataset.code, s = slots.get(code); if (!s) return;
-        const now = ppl.filter(p => p.c === code), rest = ppl.filter(p => p.c !== code)
+        // 2026-11-21 사용자: 임원 · 봉사에는 학생을 넣지 않는다(실수 방지). 기타 · 새친구 칸은 학생도 — 학생 ↔ 새친구로 바꾸는 일이 있다
+        const noStudent = code !== 'T1099' && code !== 'T1020';
+        const now = ppl.filter(p => p.c === code), rest = ppl.filter(p => p.c !== code && !(noStudent && p.c === 'T1001'))
           .sort((a, b) => ((a.c === 'T1001' || !a.c) ? 1 : 0) - ((b.c === 'T1001' || !b.c) ? 1 : 0) || a.n.localeCompare(b.n, 'ko'));
         open(`${s.l} — 누구로 할까요?`,
           `<p class="st-p">지금 ${esc(s.l)}: ${now.length ? esc(now.map(p => p.n).join(' · ')) : '없음'}${s.one ? ' · 한 명 자리' : ''}${s.adm ? ` · ${esc(s.l)}은(는) 부서 관리자가 돼요` : ''}</p>` +
@@ -99,7 +101,7 @@
           sel.addEventListener('change', sync); sync();
         });
       } else if (b.dataset.act === 'helper') {
-        const rest = ppl.filter(p => !helpers.includes(p.c)).sort((a, b) => a.n.localeCompare(b.n, 'ko'));
+        const rest = ppl.filter(p => !helpers.includes(p.c) && p.c !== 'T1001').sort((a, b) => a.n.localeCompare(b.n, 'ko'));
         open('봉사 — 누구에게 맡길까요?',
           `<label class="st-lab">맡길 봉사<select class="st-sel" data-hcode>${helpers.map(c => `<option value="${c}">${esc(label(c))}</option>`).join('')}</select></label>` + finder('이름으로 찾기') +
           `<div class="st-list">${rest.map(p => row(p, [p.l, p.ph].filter(Boolean).join(' · '), roleForm(p, helpers[0], '맡기기'))).join('')}</div><p class="st-none" data-none hidden>맞는 사람이 없어요.</p>`, b);

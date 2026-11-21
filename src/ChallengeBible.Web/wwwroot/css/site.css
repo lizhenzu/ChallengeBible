@@ -4783,3 +4783,60 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 @supports (-webkit-touch-callout: none) {
     input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea { font-size: 16px !important; }
 }
+
+/* 사람 관리 쪼개기(2026-11-21 확정 시안 사람관리-쪼개기): 목록 한 줄 · 상세 · 고치기 · 계정 연결 — pl- · pd- 접두어 */
+.pl-list { display: block; padding: 0; margin: 0; list-style: none; }
+.plrow { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); }
+.plrow .pick { flex: none; width: 20px; height: 20px; }
+.pl-a { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 12px 2px; color: inherit; text-decoration: none; }
+.pl-a .av { flex: none; }
+.pl-n { flex: 1; min-width: 0; }
+.pl-n b { font-size: 15px; font-weight: 800; }
+.pl-n small { display: block; margin-top: 1px; font-size: 12px; color: var(--dim); overflow-wrap: anywhere; }
+.pl-s { flex: none; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 800; }
+.pl-s.ok { background: #E6F4EC; color: #1F7A55; }
+.pl-s.no { background: #FBEFE7; color: #B4531F; }
+.pl-a em { flex: none; font-style: normal; color: #D1D5DB; }
+.pl-tags { flex: none; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; max-width: 46%; }
+.pl-s.ad { background: #1E2A4A; color: #fff; }
+.pl-s.lk { background: var(--accent-bg); color: var(--accent); }
+.rost-more { position: relative; }
+.rost-more > summary { list-style: none; cursor: pointer; }
+.rost-more > summary::-webkit-details-marker { display: none; }
+.rost-menu { position: absolute; z-index: 20; left: 0; top: calc(100% + 6px); min-width: 230px; padding: 6px; border-radius: 14px; background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.16); }
+.rost-menu a { display: block; padding: 11px 12px; border-radius: 10px; color: var(--fg); font-size: 14px; font-weight: 700; text-decoration: none; }
+.rost-menu a:hover { background: var(--soft); }
+.pd { padding-bottom: 40px; }
+.pd-back { display: inline-block; margin: 6px 0 8px; color: var(--accent); font-size: 13.5px; font-weight: 700; text-decoration: none; }
+.pd h1 { margin: 0; font-size: 21px; font-weight: 900; }
+.pd-head { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+.pd-av { flex: none; width: 52px; height: 52px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); display: grid; place-items: center; font-size: 17px; font-weight: 800; }
+.pd-tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 0; }
+.pd-tags .c { padding: 2px 9px; border-radius: 99px; background: var(--soft); font-size: 11.5px; font-weight: 800; color: var(--dim); }
+.pd-tags .c.ok { background: #E6F4EC; color: #1F7A55; }
+.pd-tags .c.no { background: #FBEFE7; color: #B4531F; }
+.pd-tags .c.ad { background: #1E2A4A; color: #fff; }
+.pd-kv { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 0; margin: 16px 0 0; padding: 4px 14px; border: 1px solid var(--line); border-radius: 14px; }
+.pd-kv dt, .pd-kv dd { margin: 0; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.pd-kv dt { color: var(--dim); }
+.pd-kv dd { font-weight: 700; overflow-wrap: anywhere; }
+.pd-kv dt:nth-last-of-type(1), .pd-kv dd:last-of-type { border-bottom: 0; }
+.pd-kv .mute { color: var(--mute); font-weight: 500; }
+.pd-kv .warn { color: #B4531F; }
+.pd-acts { display: grid; gap: 8px; margin-top: 16px; }
+.pd-acts .btn { text-align: center; justify-content: center; }
+.pd-h { margin: 22px 0 8px; font-size: 14px; font-weight: 800; }
+.pd-h small { margin-left: 6px; font-size: 11.5px; font-weight: 500; color: var(--mute); }
+.pd-h.danger { color: #B4361F; }
+.pd-line { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin: 0 0 8px; }
+.pd-line select { flex: 1; min-width: 0; }
+.pd-form { margin-top: 12px; }
+.pd-foot { display: flex; gap: 8px; margin-top: 18px; }
+.pd-foot .btn { flex: 1; text-align: center; justify-content: center; }
+.pd-find { display: flex; gap: 8px; margin-top: 10px; }
+.pd-find .in { flex: 1; min-width: 0; }
+.pd-sub { margin: 14px 0 4px; font-size: 12.5px; font-weight: 800; color: var(--dim); }
+.pd-acc { display: flex; align-items: center; gap: 10px; padding: 12px 2px; border-bottom: 1px solid var(--line); }
+.pd-acc .n { flex: 1; min-width: 0; }
+.pd-acc .n b { font-size: 14.5px; }
+.pd-acc .n small { display: block; font-size: 12px; color: var(--dim); }

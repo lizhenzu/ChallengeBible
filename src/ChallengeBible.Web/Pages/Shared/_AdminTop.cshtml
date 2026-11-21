@@ -13,7 +13,7 @@
     (string Href, string Label, int Count)[] menu =
     [
         (home, "관리 홈", 0),
-        ($"/{slug}/admin/members", "소속 관리", 0),
+        ($"/{slug}/admin/members", "사람 관리", 0),
     ];
     // 생일 · 선물은 일반 ☰ 메뉴판 "생일" 묶음으로 옮겼다(2026-11-21 사용자: 관리 메뉴는 진짜 관리자 설정만)
     // 반: 관리자만(0093 조직 · 반 9)
@@ -43,7 +43,7 @@
     // 확정 시안 플랫폼관리메뉴(2026-11-18): 항목마다 아이콘 · 색 · 한 줄 설명(주소 끝으로 고른다)
     (string Icon, string Tone, string Desc) Look(string href) =>
         href == home ? ("home", "s", "오늘 챙길 일 · 숫자")
-        : href.EndsWith("/members") ? (Model.IsAdmin ? ("people", "g", "승인 · 역할 · 명부") : ("people", "g", "우리 부서 사람들"))
+        : href.EndsWith("/members") ? (Model.IsAdmin ? ("people", "g", "명부 · 계정 · 연락처") : ("people", "g", "우리 부서 사람들"))
         : href.EndsWith("/birthdays") ? ("cake", "o", "다가오는 · 월별 · 연간")
         : href.EndsWith("/teachers") ? ("people", "b", "반별 담임 · 부담임")
         : href.EndsWith("/officers") ? ("key", "v", "임원 · 봉사 · 기타 역할")

@@ -269,7 +269,7 @@ public partial class PeopleFlowTests : IClassFixture<WebApplicationFactory<Progr
     {
         var t = await Member("teacher", "정교사", "T1002");
         var home = await t.GetStringAsync(Page + "?Tab=" + MembershipStatus.Requested);
-        Assert.Contains("+ 명부에 올리기", home);                 // 교사는 늘 명부 탭
+        Assert.Contains("+ 사람 추가", home);                     // 교사는 늘 명부 탭(2026-11-21: 추가는 새 화면)
         Assert.DoesNotContain("?Tab=" + MembershipStatus.Requested + "\"", home);
 
         var r = await Post(t, Page, "AddPerson", ("name", "박하린"), ("roleCode", "T1001"), ("month", "3"), ("day", "5"), ("phone1", "010-1234-5678"));
@@ -279,6 +279,11 @@ public partial class PeopleFlowTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Contains("010-1234-5678", await t.GetStringAsync(Page));     // 교사는 연락처를 본다(R-226)
 
         Assert.Equal(HttpStatusCode.Redirect, (await Post(t, Page, "Person", ("pid", pid.ToString()), ("name", "박하린"), ("phone1", "010-1234-0000"))).StatusCode);
+        // 2026-11-21 사람 관리 쪼개기: 교사도 상세 · 고치기 화면은 열고, 계정 연결 화면 · 지우기는 못 한다
+        Assert.Contains("박하린", await t.GetStringAsync($"/jamsil-kids/admin/members/p/{pid}"));
+        Assert.Contains("name=\"phone1\"", await t.GetStringAsync($"/jamsil-kids/admin/members/p/{pid}/edit"));
+        Assert.NotEqual(HttpStatusCode.OK, (await t.GetAsync($"/jamsil-kids/admin/members/p/{pid}/link")).StatusCode);
+        Assert.DoesNotContain("명부에서 지우기", await t.GetStringAsync($"/jamsil-kids/admin/members/p/{pid}"));
         Denied(await Post(t, Page, "DeletePerson", ("pid", pid.ToString())));
         Denied(await Post(t, Page, "Approve", ("id", "1")));
         using var after = InMemoryDb.Raw(_db);
@@ -308,5 +313,48 @@ public partial class PeopleFlowTests : IClassFixture<WebApplicationFactory<Progr
 
         var t = await Member("teacher", "정교사", "T1002");
         Assert.Contains("href=\"/jamsil-kids/admin/members\"", await t.GetStringAsync("/jamsil-kids"));
+    }
+
+    private static async Task<HttpResponseMessage> PostTo(HttpClient c, string url, params (string, string)[] form)
+    {
+        var tok = TokenRx().Match(await c.GetStringAsync(url)).Groups[1].Value;
+        var f = new List<KeyValuePair<string, string>> { new("__RequestVerificationToken", tok) };
+        f.AddRange(form.Select(x => new KeyValuePair<string, string>(x.Item1, x.Item2)));
+        return await c.PostAsync(url, new FormUrlEncodedContent(f));
+    }
+
+    [Fact]
+    public async Task 사람_관리_쪼갠_화면으로_추가_고치기_지우기()   // 2026-11-21 확정 시안 사람관리-쪼개기
+    {
+        var a = await Member("admin", "이관리", "T1002", admin: true);
+        var r = await PostTo(a, Page + "/new", ("name", "한가람"), ("roleCode", "T1001"), ("month", "4"), ("day", "9"), ("phone1", "010-2222-3333"));
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+        int pid;
+        using (var raw = InMemoryDb.Raw(_db)) pid = raw.People.Single(p => p.Name == "한가람").Id;
+        Assert.EndsWith($"/admin/members/p/{pid}?Ok=padd", r.Headers.Location!.OriginalString);   // 올리면 상세로
+
+        var detail = await a.GetStringAsync($"{Page}/p/{pid}");
+        Assert.Contains("010-2222-3333", detail);
+        Assert.Contains($"/p/{pid}/edit", detail);
+        Assert.Contains($"/p/{pid}/link", detail);   // 가입 안 한 줄 → 계정 연결
+
+        var edit = await a.GetStringAsync($"{Page}/p/{pid}/edit");
+        Assert.Matches("value=\"T1001\" selected", edit);                         // 지금 역할이 골라져 있다(학부모로 바뀌지 않게)
+        Assert.DoesNotContain($"value=\"{UserRole.AdminCode}\"", edit);           // 어드민은 고를 수 없다(R-315)
+        r = await PostTo(a, $"{Page}/p/{pid}/edit", ("name", "한가람"), ("roleCode", "T1020"), ("month", "4"), ("day", "10"), ("phone1", "010-2222-4444"));
+        Assert.EndsWith($"/admin/members/p/{pid}?Ok=psave", r.Headers.Location!.OriginalString);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var p = raw.People.Single(x => x.Id == pid);
+            Assert.Equal(("T1020", (byte?)10, "010-2222-4444"), (p.RoleCode, p.BirthDay, p.Phone1));
+        }
+        var list = await a.GetStringAsync(Page);
+        Assert.Contains($"href=\"/jamsil-kids/admin/members/p/{pid}\"", list);   // 목록은 줄만 — 누르면 상세
+        Assert.DoesNotContain("pc-ed", list);                                       // 펼치는 고치기 없음
+
+        r = await PostTo(a, $"{Page}/p/{pid}?handler=Delete");
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+        using var after = InMemoryDb.Raw(_db);
+        Assert.DoesNotContain(after.People, p => p.Id == pid);
     }
 }
