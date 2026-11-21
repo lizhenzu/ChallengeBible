@@ -69,12 +69,16 @@ public static class DrawerUi
             + $"<span><b>{t}</b><small>{WebUtility.HtmlEncode(desc)}</small></span><u aria-hidden=\"true\">›</u></a>");
     }
 
-    /// <summary>맨 위: 사진(없으면 이름 첫 글자) · 이름 · 소속 줄 · [내 정보 · 사진 변경] · 닫기.</summary>
-    public static IHtmlContent Head(string? name, string? photo, string sub)
+    /// <summary>
+    /// 맨 위: 사진(없으면 이름 첫 글자) · 이름 · 소속 줄 · [내 정보 · 사진 변경] · 닫기.
+    /// role 을 주면(부서 ☰, 2026-11-21 확정 시안 메뉴판-정리) 소속은 교회 · 부서 한 줄 + 역할 딱지 한 줄이고, 링크 글자는 link.
+    /// </summary>
+    public static IHtmlContent Head(string? name, string? photo, string sub, string? role = null, bool adminRole = false, string link = "내 정보 · 사진 변경 ›")
     {
         name ??= "";
         var av = photo is { } ph ? $"<img src=\"/account/photo?handler=img&amp;v={WebUtility.HtmlEncode(ph)}\" alt=\"\" />" : $"<span aria-hidden=\"true\">{WebUtility.HtmlEncode(name.Length > 0 ? name[..1] : "?")}</span>";
+        var pill = string.IsNullOrEmpty(role) ? "" : $"<span class=\"tdr-role{(adminRole ? " tdr-role-a" : "")}\">{WebUtility.HtmlEncode(role)}</span>";
         return new HtmlString($"<div class=\"tdr-hd\"><a class=\"tdr-av\" href=\"/account\" aria-label=\"내 계정\">{av}</a><div class=\"tdr-who\"><b>{WebUtility.HtmlEncode(Ui.Nim(name))}</b>"
-            + $"<small class=\"pd-dept\">{WebUtility.HtmlEncode(sub)}</small><a href=\"/account\">내 정보 · 사진 변경 ›</a></div><button type=\"button\" class=\"pd-x\" aria-label=\"메뉴 닫기\" data-pnav-close>✕</button></div>");
+            + $"<small class=\"pd-dept\">{WebUtility.HtmlEncode(sub)}</small>{pill}<a href=\"/account\">{WebUtility.HtmlEncode(link)}</a></div><button type=\"button\" class=\"pd-x\" aria-label=\"메뉴 닫기\" data-pnav-close>✕</button></div>");
     }
 }

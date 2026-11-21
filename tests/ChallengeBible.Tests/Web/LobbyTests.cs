@@ -190,7 +190,11 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("<p class=\"foot-copy\">© 2027 잠실새내 · 주일학교</p>", kidsHome);
         Assert.DoesNotContain("부서 바꾸기", kidsHome);                                    // 일반 부서 홈 맨 아래에 "부서 바꾸기"는 없다(2026-11-05)
         Assert.Contains("data-pnav-open", kidsHome);
-        Assert.Contains("class=\"tdr-r\" href=\"/account\"", kidsHome); Assert.Contains("<b>내 계정</b>", kidsHome);                     // ☰ 메뉴판
+        // ☰ 메뉴판: 내 계정 입구는 머리 한 곳(2026-11-21, 확정 시안 메뉴판-정리) — "내 정보" 묶음의 "내 계정" 줄은 없다
+        Assert.Contains("<a href=\"/account\">내 계정 · 사진 변경 ›</a>", System.Net.WebUtility.HtmlDecode(kidsHome));
+        Assert.DoesNotContain("class=\"tdr-r\" href=\"/account\"", kidsHome);
+        Assert.DoesNotContain("<h2 class=\"tdr-g\">내 정보</h2>", kidsHome);
+        Assert.Contains("<span class=\"tdr-role", kidsHome);   // 역할 딱지(소속 두 줄)
     }
 
     [Fact]
