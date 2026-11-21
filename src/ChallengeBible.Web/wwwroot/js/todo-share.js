@@ -1,5 +1,5 @@
 // 오늘 할 일 · 선물 안내글(확정 시안 생일링크-부모안내 ①): 처음 누를 때 서버에서 안내글을 받아(링크가 없으면 만듦)
-// [부모님께 보내기] = 휴대폰 공유 창(카톡 · 문자), 안 되면 복사 · [안내글 복사] = 복사 · 미리 보기
+// [카톡으로 보내기](2026-11-22 사용자: 카톡 하나만) = 휴대폰 공유 창에서 카톡을 고른다, 안 되면 안내글 복사
 (() => {
   const root = document.querySelector('[data-td]');
   if (!root) return;
@@ -30,16 +30,10 @@
     const box = b.closest('[data-td-share]');
     let d;
     try { d = await load(box.dataset.tdShare); } catch { say(box, '안내글을 만들 수 없어요. 화면을 새로 고쳐 주세요.'); return; }
-    box.querySelector('[data-share-prev] pre').textContent = d.text;
-    if (b.dataset.share === 'send' && navigator.share) {
-      try { await navigator.share({ text: d.text }); say(box, '보냈어요. 부모님이 고르면 이 카드가 사라져요.'); return; }
+    if (navigator.share) {
+      try { await navigator.share({ text: d.text }); say(box, '공유 창을 열었어요. 카톡으로 보냈다면 부모님이 고르면 이 카드가 사라져요.'); return; }
       catch (err) { if (err && err.name === 'AbortError') return; }
     }
-    say(box, (await copy(d.text)) ? '복사했어요 · 카톡에 붙여 넣어 부모님께 보내 주세요' : '복사가 안 돼요. 아래 미리 보기 글을 길게 눌러 복사해 주세요.');
+    say(box, (await copy(d.text)) ? '안내글을 복사했어요 · 카톡에 붙여 넣어 보내 주세요' : '복사가 안 돼요. 화면을 새로 고치고 다시 눌러 주세요.');
   });
-  root.querySelectorAll('[data-share-prev]').forEach(det => det.addEventListener('toggle', async () => {
-    if (!det.open) return;
-    const box = det.closest('[data-td-share]');
-    try { det.querySelector('pre').textContent = (await load(box.dataset.tdShare)).text; } catch { say(box, '안내글을 만들 수 없어요.'); }
-  }));
 })();
