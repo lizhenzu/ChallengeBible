@@ -176,4 +176,13 @@ public partial class StaffTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal("T1017", raw.People.Single(p => p.Id == _t2).RoleCode);
         Assert.Equal("T1020", raw.People.Single(p => p.Id == _kid).RoleCode);
     }
+
+    [Fact]
+    public void R362_임원_봉사_고르기_목록에서는_학생을_빼고_기타_새친구에는_남긴다()
+    {
+        var js = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "src", "ChallengeBible.Web", "wwwroot", "js", "staff.js"));
+        Assert.Contains("const noStudent = code !== 'T1099' && code !== 'T1020';", js);
+        Assert.Contains("!(noStudent && p.c === 'T1001')", js);
+        Assert.Contains("p.c !== 'T1001'", js);   // 봉사 추가 목록도
+    }
 }
