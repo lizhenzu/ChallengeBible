@@ -1,0 +1,94 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>인명 검색 시안</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}body{margin:0;padding:28px 20px 36px;background:#E8ECF3;font-family:'Noto Sans KR',sans-serif;color:#374151}
+.row{display:flex;gap:18px;align-items:flex-start}.col{width:330px;flex:none}
+.lab{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:14px;font-weight:700;color:#374151}
+.lab b{display:inline-grid;place-items:center;width:22px;height:22px;border:1.5px solid #374151;border-radius:50%;font-size:12px}
+.ph{background:#fff;border-radius:24px;overflow:hidden;height:780px;box-shadow:0 2px 10px rgba(0,0,0,.06);position:relative}
+.note{margin-top:12px;padding:12px 14px;border-radius:14px;background:#FFF8E6;font-size:12.5px;line-height:1.6;color:#7C5A10}
+.hd{display:flex;align-items:center;gap:8px;padding:13px 14px;border-bottom:1px solid #EEF0F4}.hd .m{font-size:19px;color:#111827}
+.hd .t{flex:1;display:flex;gap:5px;align-items:baseline;white-space:nowrap}.hd .t span{font-size:11.5px;font-weight:700;color:#6B7280}.hd .t em{font-style:normal;font-weight:900;color:#1F7A55}.hd .t b{font-size:15px;font-weight:800;color:#111827}
+.hd .h{font-size:12px;font-weight:800;color:#1F7A55}
+/* drawer */
+.dh{display:flex;gap:10px;align-items:center;padding:14px;border-bottom:1px solid #EEF0F4}.av{width:48px;height:48px;border-radius:50%;background:#E6F2EC;display:grid;place-items:center;font-weight:900;color:#1F7A55}
+.dh b{display:block;font-size:15px;color:#111827}.dh small{color:#6B7280;font-size:12px}.pill{display:inline-block;margin-top:2px;padding:1px 8px;border-radius:99px;background:#FFEDD5;color:#C2410C;font-size:11px;font-weight:800}
+.pn{padding:4px 12px}.g{margin:12px 4px 4px;font-size:12px;font-weight:800;color:#1F7A55}
+.it{display:flex;gap:9px;align-items:center;padding:7px 4px;border-radius:10px}.it i{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-style:normal;font-size:16px;flex:none;background:#F1F5F9}
+.it b{font-size:14px;color:#111827}.it small{display:block;font-size:11.5px;color:#6B7280}.k{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:99px;background:#FFEDD5;color:#C2410C;font-size:10.5px;font-weight:900}
+.new{background:#FFF7E6;outline:2px dashed #F59E0B}
+/* search */
+.tl{padding:10px 14px;border-bottom:1px solid #EEF0F3}.sr{display:flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:999px;background:#F4F6F9;box-shadow:0 0 0 2px #CFE0FA}
+.sr span{flex:1;font-size:15px;color:#111827}.sr span.ph0{color:#9CA3AF}.sr em{font-style:normal;font-size:12px;font-weight:700;color:#9CA3AF}
+.seg{display:flex;gap:5px;margin-top:8px}.seg span{flex:1;text-align:center;font-size:12.5px;padding:7px 2px;border-radius:999px;background:#F4F6F9;color:#6B7280}.seg span.on{background:#1F7A55;color:#fff;font-weight:800}
+.bx{padding:0 14px}.rc{margin-top:18px;display:flex;justify-content:space-between;font-size:13px;font-weight:800;color:#111827}.rc em{font-style:normal;font-size:12px;color:#1F7A55}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.chips span{font-size:13px;padding:6px 13px;border-radius:999px;background:#F4F6F9}
+.gd{margin-top:18px;padding:13px 14px;border-radius:12px;background:#F4F6F9;font-size:12.5px;line-height:1.85;color:#6B7280}.gd b{color:#111827}
+.cnt{display:flex;justify-content:space-between;margin-top:12px;font-size:12px;color:#9CA3AF}.cnt b{color:#111827}
+.p{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #EEF0F3}.pp{flex:none;width:46px;height:46px;border-radius:50%;background:#EAF2FD;display:grid;place-items:center;font-weight:800;color:#2B5FA8}
+.nm{display:flex;flex-wrap:wrap;gap:5px 7px;align-items:center}.nm b{font-size:16px;color:#111827}.nm mark{background:#E6F2EC;color:#1F7A55;border-radius:4px}
+.tg{font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:999px;background:#F4F6F9;color:#6B7280}.tg.st{background:#E6F2EC;color:#1F7A55}.tg.bd{background:#FBEFE7;color:#B4531F}.tg.sn{background:#EAF2FD;color:#2B5FA8}
+.kv{margin:5px 0 0;display:grid;grid-template-columns:42px 1fr;gap:2px 8px;font-size:12.5px}.kv dt{color:#9CA3AF}.kv dd{margin:0;color:#111827}.kv dd.no{color:#D1D5DB}
+.ci{margin-left:5px;padding:0 8px;border-radius:999px;background:#E6F2EC;color:#1F7A55;font-size:10.5px;font-weight:700}
+.act{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}.act span{padding:6px 12px;border-radius:999px;background:#F4F6F9;color:#6B7280;font-size:12px;font-weight:700}.act .pri{background:#1F7A55;color:#fff}
+/* sheet */
+.scr{position:absolute;inset:0;background:rgba(17,24,39,.45)}.sh{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;padding:10px 16px 18px}
+.grab{width:40px;height:4px;border-radius:99px;background:#E5E7EB;margin:0 auto 10px}.shh{display:flex;justify-content:space-between}.shh b{font-size:18px;color:#111827}.shh small{display:block;font-size:12px;color:#9CA3AF}
+.shx{padding:5px 12px;border-radius:999px;background:#F4F6F9;font-size:12px;font-weight:700;height:fit-content}
+.ta{margin-top:10px;min-height:120px;padding:12px;border-radius:12px;background:#F4F6F9;font-size:14px;color:#111827;line-height:1.6}
+.shf{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:11.5px;color:#9CA3AF}.send{padding:11px 20px;border-radius:999px;background:#1F7A55;color:#fff;font-weight:800;font-size:13.5px}
+/* write */
+.wr{padding:14px}.wr h1{margin:0 0 4px;font-size:20px;color:#111827}.wr .ld{font-size:12.5px;color:#6B7280}
+.to{margin-top:12px;padding:12px;border-radius:12px;background:#E6F2EC;color:#1F7A55;font-weight:800;font-size:14px}.to small{display:block;font-weight:500;color:#4B5563;font-size:12px;margin-top:2px}
+.tx{margin-top:10px;min-height:170px;padding:12px;border:1px solid #E5E7EB;border-radius:12px;font-size:14px;color:#9CA3AF}
+.bt{margin-top:10px;padding:13px;text-align:center;border-radius:12px;background:#1F7A55;color:#fff;font-weight:800}
+.tip{margin-top:12px;padding:10px 12px;border-radius:10px;background:#F8FAFC;font-size:12px;color:#6B7280;line-height:1.6}
+</style></head><body><div class="row">
+
+<div class="col"><p class="lab"><b>1</b>부서 ☰ — [부서 관리] 위에 "인명 검색"</p><div class="ph">
+ <div class="dh"><div class="av">관</div><div><b>관리유님</b><small>잠실새내교회 유년부</small><br><span class="pill">부서 관리자</span></div></div>
+ <div class="pn"><div class="g">섬김 · 교사</div>
+  <div class="it"><i>✅</i><div><b>오늘 할 일</b><small>승인 · 선물 · 생일 챙기기</small></div></div>
+  <div class="it"><i>📋</i><div><b>출석</b><small>주일 출석 체크 · 보고서</small></div></div>
+  <div class="it new"><i>🔍</i><div><b>인명 검색</b><small>이름 · 아이디로 찾기 · 전화 · 문자 · 쪽지</small></div></div>
+  <div class="it"><i>⚙️</i><div><b>부서 관리<span class="k">관리</span></b><small>소속 · 반 · 부서 · 반 이동 · 설정</small></div></div>
+  <div class="g">생일</div><div class="it"><i>🎂</i><div><b>생일자 보기</b><small>다가오는 생일 · 월별 · 연간</small></div></div>
+  <div class="g">함께하기</div><div class="it"><i>💬</i><div><b>쪽지</b><small>받은 쪽지 · 부서 전체에 보내기</small></div></div>
+ </div></div><div class="note">교사 · 관리자에게만 보여요. 교사(관리자 아님)는 [명부] 위에.</div></div>
+
+<div class="col"><p class="lab"><b>2</b>인명 검색 — 검색 전</p><div class="ph">
+ <div class="hd"><span class="m">☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>인명 검색</b></div><span class="h">홈으로</span></div>
+ <div class="tl"><div class="sr"><span class="ph0">이름 또는 아이디 (2글자부터)</span></div></div>
+ <div class="bx"><div class="rc"><span>최근 검색</span><em>모두 지우기</em></div>
+  <div class="chips"><span>김하</span><span>이바다</span><span>박선</span><span>최지</span></div>
+  <div class="gd"><b>이렇게 찾아요</b><br>· 이름이나 아이디를 <b>2글자 이상</b> 입력하면 바로 찾아요.<br>· 결과에서 <b>학생 / 선생님·기타</b>로 거를 수 있어요.<br>· 전화번호가 있으면 <b>전화 · 문자 · 번호 복사</b>, 계정이 있으면 <b>쪽지</b>를 보낼 수 있어요.<br>· 반별 명단은 <b>부서 관리 › 소속 관리</b>에서 볼 수 있어요.</div></div>
+</div><div class="note">검색칸은 맨 위에 붙어 있어요(스크롤해도). 화면을 열면 커서가 검색칸에. 최근 검색 8개는 이 기기에만.</div></div>
+
+<div class="col"><p class="lab"><b>3</b>인명 검색 — 결과</p><div class="ph">
+ <div class="hd"><span class="m">☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>인명 검색</b></div><span class="h">홈으로</span></div>
+ <div class="tl"><div class="sr"><span>김하</span><em>지우기</em></div><div class="seg"><span class="on">전체 2</span><span>학생 1</span><span>선생님·기타 1</span></div></div>
+ <div class="bx"><div class="cnt"><span>검색 결과 <b>2</b>명</span></div>
+  <div class="p"><div class="pp">하준</div><div style="flex:1"><div class="nm"><b><mark>김하</mark>준</b><span class="tg st">믿음반</span><span class="tg bd">이번 달 생일</span></div>
+   <dl class="kv"><dt>아이디</dt><dd>hajun</dd><dt>생일</dt><dd>11월 28일</dd><dt>전화</dt><dd>010-1234-5678<span class="ci">전화</span></dd><dt>이메일</dt><dd class="no">—</dd></dl>
+   <div class="act"><span class="pri">전화</span><span>문자</span><span>쪽지</span><span>번호 복사</span></div></div></div>
+  <div class="p"><div class="pp">하늘</div><div style="flex:1"><div class="nm"><b><mark>김하</mark>늘 선생님</b><span class="tg">선생님·기타</span><span class="tg sn">방금 쪽지 보냄</span></div>
+   <dl class="kv"><dt>아이디</dt><dd>haneul</dd><dt>생일</dt><dd class="no">—</dd><dt>전화</dt><dd class="no">—</dd><dt>이메일</dt><dd>haneul@…</dd></dl>
+   <div class="act"><span>쪽지</span></div></div></div>
+ </div></div><div class="note">0.35초 멈추면 자동 검색, Enter 바로. 이름 · 아이디가 검색어로 시작하는 사람 먼저. 최대 30명. 전화번호 없으면 전화 · 문자 · 복사 없음, 계정 없으면 쪽지 없음.</div></div>
+
+<div class="col"><p class="lab"><b>4</b>[쪽지] — 아래에서 올라오는 창</p><div class="ph">
+ <div class="hd"><span class="m">☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>인명 검색</b></div><span class="h">홈으로</span></div>
+ <div class="scr"></div><div class="sh"><div class="grab"></div>
+  <div class="shh"><div><b>김하준</b><small>hajun · 쪽지함으로 보내요</small></div><span class="shx">닫기</span></div>
+  <div class="ta">하준아, 이번 주 예배 때 보자! 🙂</div>
+  <div class="shf"><span>17 / 500 · Ctrl+Enter 로 보내기</span><span class="send">쪽지 보내기</span></div></div>
+</div><div class="note">보내면 "김하준에게 쪽지를 보냈어요" 알림 + 카드에 10분 동안 "방금 쪽지 보냄". Esc · 바깥 누르면 닫기.</div></div>
+
+<div class="col"><p class="lab"><b>5</b>쪽지 쓰기 — 부서 전체</p><div class="ph">
+ <div class="hd"><span class="m">‹</span><div class="t"><b>쪽지 쓰기</b></div></div>
+ <div class="wr"><h1>부서 전체에 쪽지</h1><p class="ld">유년부 사람 모두에게 한 번에 보내요.</p>
+  <div class="to">받는 사람: 유년부 전체<small>학생 · 학부모 · 선생님 83명</small></div>
+  <div class="tx">내용을 써 주세요</div><div class="bt">보내기</div>
+  <div class="tip">한 사람에게 보내려면 <b>인명 검색</b>에서 찾아 [쪽지]를 눌러요. 받은 사람은 [답장]으로 나에게만 답할 수 있어요.</div></div>
+</div><div class="note">교사 · 관리자만 써요. 학생 · 학부모는 받기와 답장만(쪽지함에 [쪽지 쓰기] 없음). 플랫폼 관리자의 "모든 사용자 · 부서" 보내기는 그대로.</div></div>
+</div></body></html>
