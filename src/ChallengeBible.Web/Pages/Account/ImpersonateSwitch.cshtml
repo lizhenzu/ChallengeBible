@@ -28,6 +28,7 @@
 }
 @Html.Raw(Model.Frag ? "" : "<main class=\"sw-page\">")
 <section class="sw-sheet" aria-label="사람 바꾸기" data-sw-root>
+    <div class="sw-top">   @* 2026-11-21: 머리 · 찾기 · 칩은 고정, 아래 목록만 바뀌고 스크롤 — 찾을 때 창이 흔들리지 않게 *@
     <div class="sw-head"><h2>사람 바꾸기</h2><a href="@(string.IsNullOrEmpty(Model.Back) ? "/" : Model.Back)" data-sw-close>닫기</a></div>
     @if (Model.Error is { } err) { <p class="sw-err" role="alert">@err</p> }
     <form method="get" action="/account/impersonate/switch" class="sw-find" data-sw-find role="search">
@@ -49,6 +50,8 @@
             <a href="@Model.Url(searching ? null : L.Dept, key, L.Q)" data-sw aria-current="@(key == L.Role ? "true" : null)">@label<u>@count</u></a>
         }
     </nav>
+    </div>
+    <div class="sw-body">
     @if (!searching && L.Role == "all" && L.Recent.Count > 0)
     {
         <div class="sw-lbl">최근에 본 사람</div>
@@ -62,6 +65,7 @@
     }
     @if (L.More) { <a class="sw-more" href="@Model.Url(searching ? null : L.Dept, L.Role, L.Q, L.Take + 30)" data-sw>더 보기</a> }
     <p class="sw-hint">플랫폼 관리자 · 정지된 계정은 들어갈 수 없어요. 바꿀 때마다 감사 로그에 남아요.</p>
+    </div>
 </section>
 @Html.Raw(Model.Frag ? "" : "</main>")
 
