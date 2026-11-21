@@ -132,6 +132,19 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
         return PeopleError.None;
     }
 
+    /// <summary>교적부에서 고치기(R-361): 생일 · 전화 · 전화 2 만 — 이름 · 역할 · 계정 연결은 건드리지 않는다. 탈퇴한 줄은 안 된다.</summary>
+    public async Task<PeopleError> UpdateContactAsync(int id, int? month, int? day, string? phone1, string? phone2, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var p = await ctx.People.SingleOrDefaultAsync(x => x.Id == id && x.LeftOn == null, ct);
+        if (p is null) return PeopleError.NotFound;
+        if (!Birthday(month, day, out var bm, out var bd)) return PeopleError.BadBirthday;
+        if (!Phone(phone1, out var p1) || !Phone(phone2, out var p2)) return PeopleError.BadPhone;
+        (p.BirthMonth, p.BirthDay, p.Phone1, p.Phone2) = (bm, bd, p1, p2);
+        await ctx.SaveChangesAsync(ct);
+        return PeopleError.None;
+    }
+
     /// <summary>명부에서 지우기(부서 관리자만, R-227). 계정과 연결된 줄은 지우지 않는다(먼저 연결을 푼다).</summary>
     public async Task<PeopleError> DeleteAsync(int id, CancellationToken ct = default)
     {

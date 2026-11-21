@@ -1,0 +1,89 @@
+@page "/{slug}/classbook/{id:int}"
+@model ChallengeBible.Web.Pages.ClassBook.ClassModel
+@using ChallengeBible.Web.Services
+@* 반 교적(R-361, 확정 시안 교적부): 아이 카드 · 초성 검색 · 전체 / 정보 빠짐 / ○월 생일 · [정보 수정]. 이름은 rb- 접두어 *@
+@{
+    var pg = Model.Page_;
+    var c = pg.Class;
+    var slug = Model.Slug;
+    var t = c.Teachers.FirstOrDefault();
+    string Digits(string? s) => new string((s ?? "").Where(char.IsDigit).ToArray());
+    var tTel = Digits(t.Phone);
+    var kids = pg.Kids;
+}
+<link rel="stylesheet" href="~/css/classbook.css" asp-append-version="true" />
+<partial name="_GenTop" model="(Model.Tenant, Model.Title)" />
+<div class="rbk" data-rb data-save="/@slug/classbook/@c.Id?handler=Save" data-cid="@c.Id" data-cname="@c.Name" data-slug="@slug">
+<main class="gut"><div class="wrap">
+    <div class="rb-dn">
+        @if (pg.Prev is { } pv) { <a href="/@slug/classbook/@pv.Id" aria-label="이전 반 @pv.Name">‹</a> } else { <span class="off" aria-hidden="true">‹</span> }
+        <h1 class="rb-h">@c.Name<small>교적</small></h1>
+        @if (pg.Next is { } nx) { <a href="/@slug/classbook/@nx.Id" aria-label="다음 반 @nx.Name">›</a> } else { <span class="off" aria-hidden="true">›</span> }
+    </div>
+    <div class="rb-st">
+        <span>학생<b>@kids.Count</b></span><span>@(Model.Month)월 생일<b>@pg.BirthdayThisMonth</b></span>
+        @if (pg.MissingCount > 0) { <span class="lo">정보 빠짐<b>@pg.MissingCount</b></span> }
+    </div>
+    <div class="rb-tch">
+        @if (c.Teachers.Count == 0) { <span class="no">담임 미배정</span> }
+        else
+        {
+            <b>@string.Join(" · ", c.Teachers.Select(x => x.Name)) 선생님</b>
+            @if (tTel.Length > 0) { <span>@t.Phone</span> }
+            @if (tTel.Length >= 9) { <a href="tel:@tTel">전화</a><a href="sms:@tTel">문자</a> }
+        }
+    </div>
+    <label class="rb-q"><input id="rbQ" type="search" autocomplete="off" placeholder="이 반에서 이름 찾기 (초성 가능)" aria-label="이 반에서 이름 찾기" /></label>
+    <div class="rb-seg" role="tablist" aria-label="거르기">
+        <button type="button" data-f="all" class="on">전체 <b>@kids.Count</b></button>
+        <button type="button" data-f="miss">정보 빠짐 <b>@pg.MissingCount</b></button>
+        <button type="button" data-f="bday">@(Model.Month)월 생일 <b>@pg.BirthdayThisMonth</b></button>
+    </div>
+    <div class="rb-list" id="rbList">
+        @{ var no = 0; }
+        @foreach (var k in kids)
+        {
+            no++;
+            var r = k.Row;
+            var t1 = Digits(r.Phone1); var t2 = Digits(r.Phone2);
+            var bnow = r.BirthMonth == Model.Month;
+            <article class="rb-kid" id="p-@r.PersonId" data-id="@r.PersonId" data-name="@r.Name" data-miss="@(k.Missing.Count > 0 ? "1" : "0")" data-bday="@(bnow ? "1" : "0")"
+                     data-month="@r.BirthMonth" data-day="@r.BirthDay" data-p1="@r.Phone1" data-p2="@r.Phone2">
+                <div class="kT"><span class="no">@no</span><b class="js-edit" role="button" tabindex="0">@r.Name</b>
+                    @if (bnow) { <span class="tg bd">이번 달 생일</span> }
+                    @if (k.Note is { } nt && c.IsNewcomer) { <span class="tg">@nt</span> }</div>
+                <dl class="kv">
+                    <dt>생일</dt>@if (r.BirthMonth is not null && r.BirthDay is not null) { <dd>@(r.BirthMonth)월 @(r.BirthDay)일</dd> } else { <dd class="no">—</dd> }
+                    <dt>전화</dt>@if (!string.IsNullOrWhiteSpace(r.Phone1)) { <dd>@r.Phone1 @if (t1.Length >= 9) { <a href="tel:@t1">전화</a><a href="sms:@t1">문자</a> }</dd> } else { <dd class="no">—</dd> }
+                    <dt>전화 2</dt>@if (!string.IsNullOrWhiteSpace(r.Phone2)) { <dd>@r.Phone2 @if (t2.Length >= 9) { <a href="tel:@t2">전화</a><a href="sms:@t2">문자</a> }</dd> } else { <dd class="no">—</dd> }
+                </dl>
+                <div class="kF"><span class="ms @(k.Missing.Count == 0 ? "ok" : "")">@(k.Missing.Count == 0 ? "정보 모두 있음" : "빠진 정보 · " + string.Join(" · ", k.Missing))</span>
+                    <button type="button" class="ed js-edit">정보 수정</button></div>
+            </article>
+        }
+    </div>
+    <div class="rb-none @(kids.Count == 0 ? "" : "rb-hide")" id="rbNone">@(kids.Count == 0 ? "이 반에 등록된 아이가 없어요." : "")</div>
+    <div class="rb-nav2">
+        @if (pg.Prev is { } p2) { <a href="/@slug/classbook/@p2.Id">‹ @p2.Name</a> }
+        <a href="/@slug/classbook">교적부 처음</a>
+        @if (pg.Next is { } n2) { <a href="/@slug/classbook/@n2.Id">@n2.Name ›</a> }
+    </div>
+    <div class="rb-ft"><span>이름이나 정보 수정을 누르면 고칠 수 있어요. 생일 · 전화만 고쳐요.</span></div>
+</div></main>
+
+@* 정보 수정 — 아래에서 올라오는 창 *@
+<div class="rb-scrim" id="rbScrim"></div>
+<section class="rb-sheet" id="rbSheet" role="dialog" aria-modal="true" aria-labelledby="rbShName" aria-hidden="true">
+    <div class="rb-grab"></div>
+    @Html.AntiForgeryToken()
+    <div class="rb-shH"><div><b id="rbShName">이름</b><small>@c.Name · 교적 정보 수정</small></div><button type="button" class="rb-shX" id="rbShClose" aria-label="닫기">닫기</button></div>
+    <div class="rb-fg">
+        <div class="rb-f" id="rbFBirth"><label>생일 (월 · 일)</label><div class="bd2"><input id="rbMonth" type="number" inputmode="numeric" placeholder="월" aria-label="생일 월" /><input id="rbDay" type="number" inputmode="numeric" placeholder="일" aria-label="생일 일" /></div><div class="em"></div></div>
+        <div class="rb-f"><label for="rbP1">전화</label><input id="rbP1" type="tel" maxlength="20" placeholder="010-0000-0000" /></div>
+        <div class="rb-f"><label for="rbP2">전화 2</label><input id="rbP2" type="tel" maxlength="20" placeholder="보호자 등" /></div>
+    </div>
+    <div class="rb-shF"><span class="rb-shErr" id="rbShErr" aria-live="polite"></span><button type="button" class="rb-save" id="rbSave">저장</button></div>
+</section>
+<div class="rb-toast" id="rbToast" role="status"></div>
+</div>
+<script src="~/js/classbook.js" asp-append-version="true" defer></script>

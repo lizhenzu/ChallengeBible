@@ -66,6 +66,26 @@ public sealed class ClassService(IAppDb db, PeopleService people, TenantContext 
                 c.IsNewcomer ? newcomers : members.Count(m => m.ClassId == c.Id && !m.IsTeacher))).ToList();
     }
 
+    /// <summary>반마다 선생님(이름 · 연락처 1) — 교적부 반 목록(R-361). 반 번호 → 선생님들.</summary>
+    public async Task<Dictionary<int, List<(string Name, string? Phone)>>> TeachersByClassAsync(CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var term = await TermAsync(ctx, ct);
+        var teachers = await ctx.ClassMembers.AsNoTracking().Where(m => m.TermId == term && m.IsTeacher).OrderBy(m => m.Id).Select(m => new { m.ClassId, m.PersonId }).ToListAsync(ct);
+        var roster = (await people.RosterAsync(null, null, ct)).ToDictionary(r => r.PersonId);
+        return teachers.GroupBy(t => t.ClassId).ToDictionary(g => g.Key, g => g.Select(t => roster.TryGetValue(t.PersonId, out var r) ? (r.Name, r.Phone1 ?? r.Phone2) : ("?", (string?)null)).ToList());
+    }
+
+    /// <summary>정규 반에 든 학생(사람 번호 → 반 번호) — 교적부 이름 찾기(R-361). 새친구반은 빼고 실제 반만.</summary>
+    public async Task<Dictionary<int, int>> StudentClassAsync(CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var term = await TermAsync(ctx, ct);
+        var real = await ctx.Classes.AsNoTracking().Where(c => c.TermId == term && !c.IsNewcomer).Select(c => c.Id).ToListAsync(ct);
+        return (await ctx.ClassMembers.AsNoTracking().Where(m => m.TermId == term && !m.IsTeacher && real.Contains(m.ClassId)).Select(m => new { m.PersonId, m.ClassId }).ToListAsync(ct))
+            .GroupBy(m => m.PersonId).ToDictionary(g => g.Key, g => g.First().ClassId);
+    }
+
     private DateOnly Today => TenantClock.ToTenantDate(time.GetUtcNow(), tenant.Current.TimeZoneId);
 
     /// <summary>관리 중인 새친구(사람 번호 → 출석 수). 새친구는 새친구반과 실제 반(또는 미배정반) 양쪽에 보인다(반별 학생 이동 6).</summary>
