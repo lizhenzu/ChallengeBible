@@ -1,6 +1,7 @@
 ﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
+using ChallengeBible.Web.Tenancy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -13,9 +14,12 @@ namespace ChallengeBible.Web.Pages.Messages;
 /// 플랫폼 관리자는 받는 사람을 [한 사람 · 모든 사용자 · 부서]로 — 전체 쪽지는 한 줄(R-327).
 /// </summary>
 [Authorize]
-public class WriteModel(MessageService messages, ISystemDb systemDb) : PageModel, ITitled
+public class WriteModel(MessageService messages, ISystemDb systemDb, TenantResolver resolver, TenantContext tenant) : PageModel, ITitled
 {
-    public string Title => IsPlatformAdmin ? "쪽지 쓰기" : Reply is null ? "단체쪽지" : "답장";
+    /// <summary>부서가 있으면 ☰ 메뉴판 머리말(R-360).</summary>
+    public bool HasDept { get; private set; }
+    public TenantContext Tenant => tenant;
+    public string Title => "단체쪽지";
     [BindProperty(SupportsGet = true)] public string? Q { get; set; }
     [BindProperty(SupportsGet = true)] public long? Reply { get; set; }
     [BindProperty] public string? To { get; set; }
@@ -39,6 +43,7 @@ public class WriteModel(MessageService messages, ISystemDb systemDb) : PageModel
 
     private async Task LoadAsync(CancellationToken ct)
     {
+        HasDept = await MsgDept.UseAsync(HttpContext, messages, resolver, ct);
         if (Reply is long rid && await messages.OpenAsync(Me, rid, ct) is { ReplyTo: { } rt }) To = rt;
         if (To is not null) Picked = await messages.PersonAsync(Me, To, ct);
         if (CanPickOne) Found = await messages.SearchAsync(Me, Q, ct);

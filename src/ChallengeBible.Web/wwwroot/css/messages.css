@@ -37,9 +37,9 @@
 .ms-view .hd small { font-size: 12.5px; color: #4B5563; }
 .ms-view .body { padding: 14px; border-radius: 12px; background: #F9FAFB; font-size: 15px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .ms-st { margin: 0; font-size: 13px; color: #4B5563; }
-.ms-acts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 8px; }
+.ms-acts { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; }   /* 오른쪽 정렬(2026-11-21 사용자) */
 .ms-acts form { margin: 0; }
-.ms-acts .btn { width: 100%; min-height: 48px; justify-content: center; border-radius: 12px; font-weight: 900; }
+.ms-acts .btn { width: auto; min-width: 104px; min-height: 48px; justify-content: center; border-radius: 12px; font-weight: 900; padding: 0 20px; }
 .ms-tgt { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .ms-tgt label, .ms-depts label { position: relative; cursor: pointer; }
 .ms-tgt input, .ms-depts input { position: absolute; opacity: 0; pointer-events: none; }
@@ -72,3 +72,12 @@
 .msg .ms-gto label { display: flex; gap: 8px; align-items: center; padding: 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 10%, #fff); cursor: pointer; }
 .msg .ms-gto b { color: var(--accent); }
 .msg .ms-gto small { color: var(--dim); }
+
+/* 쪽지 읽기: [보내기 취소] · 확인 상자 · 취소 안내(2026-11-21 확정 시안 쪽지읽기-취소) */
+.msg .ms-acts .btn.x { border: 1px solid #F3C1C1; background: #FEF2F2; color: #B91C1C; text-decoration: none; display: inline-flex; align-items: center; }
+.msg .ms-cf { margin-top: 12px; padding: 12px; border-radius: 12px; background: #FEF2F2; border: 1px solid #F3C1C1; font-size: 13px; line-height: 1.6; color: #7F1D1D; }
+.msg .ms-cf p { margin: 0; }
+.msg .ms-cf .r { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+.msg .ms-cf .r form { margin: 0; }
+.msg .ms-cf .btn { min-height: 40px; border-radius: 10px; font-weight: 800; padding: 0 16px; }
+.msg .ms-gone { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: #F3F4F6; font-size: 13px; font-weight: 700; color: #6B7280; }

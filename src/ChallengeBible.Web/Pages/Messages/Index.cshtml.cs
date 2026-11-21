@@ -1,5 +1,6 @@
 ﻿using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
+using ChallengeBible.Web.Tenancy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -8,8 +9,11 @@ namespace ChallengeBible.Web.Pages.Messages;
 
 /// <summary>`/messages` 쪽지함(ADR 0112, 확정 시안 쪽지 ② ③ ⑧): 받은 쪽지 · 보낸 쪽지, 지우기, 전체 쪽지 [보내기 취소], 부서 홈 접수대(개선 · 불편) 보내기.</summary>
 [Authorize]
-public class IndexModel(MessageService messages) : PageModel, ITitled
+public class IndexModel(MessageService messages, TenantResolver resolver, TenantContext tenant) : PageModel, ITitled
 {
+    /// <summary>부서가 있으면 ☰ 메뉴판 머리말(R-360).</summary>
+    public bool HasDept { get; private set; }
+    public TenantContext Tenant => tenant;
     public string Title => "단체쪽지";
     /// <summary>[단체쪽지 쓰기]는 교사 · 임원(보낼 부서가 있을 때) · 플랫폼 관리자만(R-359).</summary>
     public bool CanWrite { get; private set; }
@@ -22,6 +26,7 @@ public class IndexModel(MessageService messages) : PageModel, ITitled
 
     public async Task OnGetAsync(CancellationToken ct)
     {
+        HasDept = await MsgDept.UseAsync(HttpContext, messages, resolver, ct);
         Box = Box == "sent" ? "sent" : "in";
         Unread = await messages.UnreadAsync(Me, ct);
         CanWrite = IsPlatformAdmin || (await messages.GroupDeptsAsync(Me, ct)).Count > 0;

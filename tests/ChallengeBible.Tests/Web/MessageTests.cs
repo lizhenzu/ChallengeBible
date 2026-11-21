@@ -108,7 +108,7 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
         Assert.DoesNotContain("새 쪽지 1개가 왔어요", again);
         Assert.DoesNotContain("data-mpop", again);
         if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(await mj.GetStringAsync("/messages"), "49-받은쪽지");
-        Assert.Contains("<i class=\"num\">1</i>", await mj.GetStringAsync("/messages"));      // ✉ 안 읽은 1
+        var inbox1 = await mj.GetStringAsync("/messages"); Assert.True(Regex.IsMatch(inbox1, @"받은 쪽지\s*<em class=""num"">1</em>"), inbox1.Substring(inbox1.IndexOf("받은 쪽지"), 160));      // 안 읽은 1(받은 쪽지 탭 — 머리말은 ☰ 메뉴 머리말이라 ✉ 뱃지가 없다, 2026-11-21)
         var read = await mj.GetStringAsync($"/messages/{id}");
         Assert.Contains("민지야 안녕!", read);
         if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(read, "50-쪽지읽기");
@@ -345,5 +345,41 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
         Assert.Contains("\"ok\":false", await other.Content.ReadAsStringAsync());   // 이 부서 명부의 계정에게만
         var big = await Post(t, "/kids/people", "/kids/people?handler=Send", new() { ["ToUserName"] = _u["cheolsu"], ["MessageText"] = new string('가', 501) });
         Assert.Contains("\"ok\":false", await big.Content.ReadAsStringAsync());   // 500자까지
+    }
+
+    // R-360: 쪽지 화면은 ☰ 메뉴 머리말 · 읽기 버튼 오른쪽 [나만 삭제] · 보낸 사람 [보내기 취소](확인 상자)
+
+    [Fact]
+    public async Task R360_쪽지_읽기는_나만_삭제와_보내기_취소_버튼이고_머리말은_메뉴판이다()
+    {
+        var t = await Login("eunhye@example.com");
+        await Post(t, "/messages/write", "/messages/write", new() { ["Tid"] = _kids.Id.ToString(), ["Body"] = "취소할 단체쪽지" });
+        long id; using (var raw = InMemoryDb.Raw(_db)) id = raw.Messages.Single().Id;
+
+        var mine = await t.GetStringAsync($"/messages/{id}");
+        Assert.Contains("data-pnav-open", mine);   // ☰ 메뉴 머리말(부서 메뉴판)
+        Assert.Contains("id=\"pnav\"", mine);
+        Assert.Contains("<b>단체쪽지</b>", mine);
+        Assert.Contains(">나만 삭제</button>", mine);
+        Assert.DoesNotContain(">지우기</button>", mine);
+        Assert.Contains($"href=\"/messages/{id}?ask=cancel\"", mine);   // [보내기 취소]
+        Assert.DoesNotContain("모든 사람의 쪽지함에서 사라져요", mine);   // 누르기 전에는 확인 상자가 없다
+
+        var ask = await t.GetStringAsync($"/messages/{id}?ask=cancel");
+        Assert.Contains("이 단체쪽지를 취소할까요?", ask);
+        Assert.Contains("모든 사람의 쪽지함에서 사라져요", ask);
+
+        var cs = await Login("cheolsu@example.com");   // 받은 학생: [답장] · [나만 삭제]만
+        var got = await cs.GetStringAsync($"/messages/{id}");
+        Assert.Contains(">나만 삭제</button>", got);
+        Assert.DoesNotContain("ask=cancel", got);
+        Assert.DoesNotContain("이 단체쪽지를 취소할까요?", await cs.GetStringAsync($"/messages/{id}?ask=cancel"));   // 남의 쪽지는 취소 상자가 없다
+
+        await Post(t, $"/messages/{id}?ask=cancel", "/messages?handler=Cancel", new() { ["id"] = id.ToString() });
+        var after = await t.GetStringAsync($"/messages/{id}");
+        Assert.Contains("보내기를 취소했어요", after);
+        Assert.DoesNotContain("ask=cancel", after);   // 취소한 뒤에는 버튼이 없다
+        Assert.Contains(">나만 삭제</button>", after);
+        Assert.DoesNotContain("취소할 단체쪽지", await cs.GetStringAsync("/messages"));
     }
 }
