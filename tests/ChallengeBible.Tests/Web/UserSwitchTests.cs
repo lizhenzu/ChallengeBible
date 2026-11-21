@@ -193,4 +193,25 @@ public partial class UserSwitchTests : IClassFixture<WebApplicationFactory<Progr
     [InlineData("//evil.example", "jamsil-kids", "/jamsil-kids")]
     [InlineData(null, null, "/")]
     public void 바꾼_뒤_갈_곳(string? back, string? slug, string next) => Assert.Equal(next, UserSwitchService.Next(back, slug));
+
+    [Fact]
+    public void 가장_중_볼_수_없는_화면이면_그_부서_홈으로()
+    {
+        Assert.Equal("/jamsil-kids", ChallengeBible.Web.Pages.Account.DeniedModel.Home("/jamsil-kids/admin/members"));
+        Assert.Null(ChallengeBible.Web.Pages.Account.DeniedModel.Home("/platform/reset"));
+        Assert.Null(ChallengeBible.Web.Pages.Account.DeniedModel.Home("//evil.example.com/x"));
+        Assert.Null(ChallengeBible.Web.Pages.Account.DeniedModel.Home(null));
+    }
+
+    [Fact]
+    public async Task 가장_중_학생으로_바꾼_뒤_관리_화면은_막힌_화면_대신_부서_홈()
+    {
+        var c = await AsJieun();
+        var r = await c.GetAsync("/account/denied?ReturnUrl=%2Fjamsil-kids%2Fadmin%2Fmembers");
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+        Assert.Equal("/jamsil-kids", r.Headers.Location!.OriginalString);
+        var plain = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });   // 가장이 아니면 그대로
+        var pr = await plain.GetAsync("/account/denied?ReturnUrl=%2Fjamsil-kids%2Fadmin");
+        Assert.NotEqual("/jamsil-kids", pr.Headers.Location?.OriginalString);
+    }
 }
