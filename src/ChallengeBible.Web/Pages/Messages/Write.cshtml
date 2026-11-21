@@ -2,7 +2,7 @@
 @model ChallengeBible.Web.Pages.Messages.WriteModel
 @using ChallengeBible.Web.Services
 @* 확정 시안 쪽지 ④ ⑦(2026-11-17): 받는 사람 찾기(이름 · 부서 · 역할만) · 플랫폼 관리자는 한 사람 / 모든 사용자 / 부서 *@
-<partial name="_Top" />
+@if (Model.HasDept) { <partial name="_GenTop" model="(Model.Tenant, Model.Title)" /> } else { <partial name="_Top" /> }   @* 2026-11-21 사용자: ☰ 메뉴 머리말(R-360) *@
 <link rel="stylesheet" href="~/css/messages.css" asp-append-version="true" />
 <main class="gut msg"><div class="wrap">
     <a class="ms-back" href="/messages">← 단체쪽지</a>

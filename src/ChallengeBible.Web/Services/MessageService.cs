@@ -342,6 +342,19 @@ public sealed class MessageService(ISystemDb systemDb, TimeProvider time)
         return MsgError.None;
     }
 
+    /// <summary>
+    /// 쪽지 화면(/messages, 부서 주소 없음)의 ☰ 메뉴판 부서(R-360, 2026-11-21 사용자): 내가 마지막으로 쓴 부서, 없으면 첫 정식 부서. 소속이 없으면 null(옛 머리말).
+    /// </summary>
+    public async Task<string?> HomeSlugAsync(string userName, CancellationToken ct = default)
+    {
+        await using var ctx = systemDb.Create(userName);
+        var rows = await (from d in ctx.DeptRoles.IgnoreQueryFilters() join u in ctx.Users on d.UserId equals u.Id join t in ctx.Tenants on d.TenantId equals t.Id
+                          where u.UserName == userName && !t.IsLobby && t.Status == TenantStatus.Active select new { t.Id, t.Name, t.Slug }).ToListAsync(ct);
+        if (rows.Count == 0) return null;
+        var last = await ctx.UserSettings.AsNoTracking().Where(x => x.UserName == userName).Select(x => x.LastTenantId).FirstOrDefaultAsync(ct);
+        return (rows.FirstOrDefault(r => r.Id == last) ?? rows.OrderBy(r => DeptOrder.Key(r.Name)).First()).Slug;
+    }
+
     /// <summary>[보내기 취소](R-327 · R-359): 전체 쪽지 · 단체쪽지 — 플랫폼 관리자, 또는 보낸 사람 본인. 모두의 쪽지함에서 사라진다(이미 온 답장은 남는다).</summary>
     public async Task<MsgError> CancelAsync(string actor, long id, CancellationToken ct = default)
     {
