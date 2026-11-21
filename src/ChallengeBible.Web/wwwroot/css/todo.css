@@ -96,6 +96,7 @@
 .td-share { display: grid; gap: 8px; margin-top: 10px; }
 .td-share .btn { width: 100%; min-height: 46px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; font-size: 14.5px; font-weight: 900; cursor: pointer; }
 .td-share .btn.p { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
+.td-share .btn.go-kakao { background: #FEE500; border-color: #FEE500; color: #191919; }   /* 카카오 노란색(2026-11-22 사용자) — 위 .td-share .btn 흰색을 덮는다 */
 .td-toast { margin: 0; padding: 10px 12px; border-radius: 12px; background: #111827; color: #fff; font-size: 13px; font-weight: 700; }
 .td-toast[hidden] { display: none; }
 .td-prev summary { cursor: pointer; font-size: 12.5px; color: #6B7280; }
