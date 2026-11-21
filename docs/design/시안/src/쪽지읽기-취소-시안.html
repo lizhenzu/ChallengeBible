@@ -1,0 +1,48 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>쪽지 읽기 취소 시안</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}body{margin:0;padding:28px 22px 36px;background:#E8ECF3;font-family:'Noto Sans KR',sans-serif;color:#374151}
+.row{display:flex;gap:22px;align-items:flex-start}.col{width:380px;flex:none}
+.lab{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:14.5px;font-weight:700;color:#374151}
+.lab b{display:inline-grid;place-items:center;width:22px;height:22px;border:1.5px solid #374151;border-radius:50%;font-size:12px}
+.ph{background:#F3F5F9;border-radius:24px;overflow:hidden;min-height:420px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:18px 14px}
+.note{margin-top:12px;padding:12px 14px;border-radius:14px;background:#FFF8E6;font-size:12.5px;line-height:1.6;color:#7C5A10}
+.bk{font-size:13.5px;font-weight:700;color:#374151;margin:0 0 10px}
+.card{background:#fff;border:1px solid #DDE1E7;border-radius:16px;padding:14px}
+.hd{display:flex;gap:10px;align-items:center}.av{width:40px;height:40px;border-radius:50%;background:#FDEDC4;display:grid;place-items:center;font-weight:900;color:#8A4B08;font-size:13px;flex:none}
+.hd b{font-size:15.5px;color:#374151}.bc{display:inline-block;margin-left:6px;padding:1px 9px;border-radius:99px;background:#7C3AED;color:#fff;font-size:11px;font-weight:800}
+.hd small{display:block;margin-top:2px;font-size:12.5px;font-weight:700;color:#6B7280}
+.bd{margin-top:12px;padding:12px 14px;border-radius:12px;background:#F8FAFC;font-size:14.5px;color:#374151}
+.acts{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}
+.bt{padding:12px 20px;border-radius:12px;border:1px solid #CBD2DA;background:#fff;font-size:14px;font-weight:800;color:#4B5563}
+.bt.x{border-color:#F3C1C1;background:#FEF2F2;color:#B91C1C}
+.new{outline:2px dashed #F59E0B;outline-offset:3px}
+.cf{margin-top:12px;padding:12px;border-radius:12px;background:#FEF2F2;border:1px solid #F3C1C1;font-size:13px;line-height:1.6;color:#7F1D1D}
+.cf .r{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}.cf .no{padding:9px 16px;border-radius:10px;background:#fff;border:1px solid #D1D5DB;font-weight:800;color:#4B5563;font-size:13px}.cf .yes{padding:9px 16px;border-radius:10px;background:#DC2626;color:#fff;font-weight:800;font-size:13px}
+.st{margin-top:12px;font-size:12.5px;color:#6B7280}
+.gone{margin-top:12px;padding:10px 12px;border-radius:10px;background:#F3F4F6;font-size:13px;color:#6B7280;font-weight:700}
+</style></head><body><div class="row">
+
+<div class="col"><p class="lab"><b>1</b>보낸 사람(선생님)이 보는 단체쪽지</p><div class="ph">
+ <p class="bk">← 보낸 쪽지</p>
+ <div class="card"><div class="hd"><div class="av">관리</div><div><b>받는 사람: 유년부<span class="bc">단체</span></b><small>· 11월 21일 12:50</small></div></div>
+  <div class="bd">ㅂㅈㄷㅂㅈㄷ</div>
+  <div class="acts"><span class="bt new">나만 삭제</span><span class="bt x new">보내기 취소</span></div></div>
+</div><div class="note">[지우기] → <b>[나만 삭제]</b>(왼쪽). <b>[보내기 취소]</b>를 오른쪽에 새로 둬요(빨간 톤). 보낸 사람만, 이미 취소한 쪽지에는 안 보여요.</div></div>
+
+<div class="col"><p class="lab"><b>2</b>[보내기 취소]를 누르면 — 한 번 더 묻기</p><div class="ph">
+ <p class="bk">← 보낸 쪽지</p>
+ <div class="card"><div class="hd"><div class="av">관리</div><div><b>받는 사람: 유년부<span class="bc">단체</span></b><small>· 11월 21일 12:50</small></div></div>
+  <div class="bd">ㅂㅈㄷㅂㅈㄷ</div>
+  <div class="acts"><span class="bt">나만 삭제</span><span class="bt x">보내기 취소</span></div>
+  <div class="cf">이 단체쪽지를 취소할까요?<br><b>모든 사람의 쪽지함에서 사라져요.</b> 이미 온 답장은 남아요.<div class="r"><span class="no">아니요</span><span class="yes">취소하기</span></div></div></div>
+</div><div class="note">누르면 아래에 확인 상자가 펼쳐져요. [취소하기]를 눌러야 실제로 취소돼요(보낸 쪽지함 목록의 [보내기 취소]와 같은 문구).</div></div>
+
+<div class="col"><p class="lab"><b>3</b>취소한 뒤 — 같은 쪽지</p><div class="ph">
+ <p class="bk">← 보낸 쪽지</p>
+ <div class="card"><div class="hd"><div class="av">관리</div><div><b>받는 사람: 유년부<span class="bc">단체</span></b><small>· 11월 21일 12:50</small></div></div>
+  <div class="bd">ㅂㅈㄷㅂㅈㄷ</div>
+  <div class="gone">보내기를 취소했어요 · 모든 사람의 쪽지함에서 사라졌어요</div>
+  <div class="acts"><span class="bt">나만 삭제</span><span></span></div></div>
+</div><div class="note">취소한 쪽지는 보낸 쪽지함에 "보내기 취소함"으로 남고, 이 화면에는 [나만 삭제]만 보여요. 받은 사람 화면(학생 · 학부모)에는 [나만 삭제]와 [답장]만(취소 버튼 없음).</div></div>
+</div></body></html>
