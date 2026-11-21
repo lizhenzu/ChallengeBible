@@ -1,0 +1,52 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>플랫폼 할 일 쪼개기 시안</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#111827;--dim:#6B7280;--mute:#9CA3AF;--line:#EEF0F3;--soft:#F4F6F9;--blue:#2B5BC6;--bl:#EAF0FC;--org:#B4531F}
+*{box-sizing:border-box}body{margin:0;padding:28px 24px 36px;background:#E8ECF3;font-family:'Noto Sans KR',sans-serif;color:var(--ink)}
+.row{display:flex;gap:24px;align-items:flex-start}.col{width:340px;flex:none}
+.lab{margin:0 0 2px;font-size:16px;font-weight:800}.sub{margin:0 0 10px;font-size:12.5px;color:var(--dim)}
+.ph{background:#fff;border-radius:24px;overflow:hidden;min-height:520px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.top{display:flex;align-items:center;gap:10px;padding:13px 14px;border-bottom:1px solid var(--line);font-size:12.5px}.top i{font-style:normal;font-size:17px}.top b{color:var(--blue)}.top .h{margin-left:auto;color:var(--blue);font-weight:700}
+.wr{padding:14px}h1{margin:0;font-size:20px;font-weight:900}.p{margin:4px 0 0;font-size:12.5px;color:var(--dim)}
+.em{margin-top:14px;padding:22px;border-radius:14px;background:var(--soft);text-align:center;font-size:14px;color:var(--dim)}
+.go{display:flex;justify-content:space-between;margin-top:14px;padding:13px 14px;border:1px solid #E3E8F0;border-radius:14px;font-size:14px;font-weight:700}.go span{color:var(--blue)}
+.dp{margin-top:10px;border:1px solid #E3E8F0;border-radius:14px;padding:11px 12px}.dp h3{margin:0 0 6px;font-size:14px;display:flex;justify-content:space-between}.dp h3 span{font-size:11px;color:var(--org);font-weight:800}.dp li{font-size:12px;color:var(--dim);margin:3px 0 0 -16px}
+.tb{margin-top:12px;border:1px solid #E3E8F0;border-radius:14px;overflow:hidden;font-size:11.5px}.tb div{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:4px;padding:8px 10px;border-bottom:1px solid var(--line)}.tb div:first-child{background:var(--soft);font-weight:700;color:var(--dim)}.tb div:last-child{border:0}
+.btn{margin-top:12px;display:block;padding:12px;border-radius:12px;background:var(--blue);color:#fff;text-align:center;font-weight:800;font-size:14px}
+.gt{margin:14px 0 4px;font-size:11.5px;font-weight:800;color:var(--mute)}.it{display:flex;gap:10px;align-items:center;padding:9px 0;font-size:13.5px;font-weight:700}.it small{display:block;font-size:11px;font-weight:400;color:var(--dim)}.dot{width:30px;height:30px;border-radius:9px;background:var(--bl);flex:none}
+.it.new{background:#FFF8E6;margin:0 -8px;padding:9px 8px;border-radius:10px}.it.new em{margin-left:auto;font-style:normal;font-size:10.5px;font-weight:800;color:#B4531F;background:#FDE9D4;padding:2px 8px;border-radius:99px}
+.note{margin-top:12px;padding:12px 14px;border-radius:14px;background:#FFF8E6;font-size:12px;line-height:1.7;color:#7C5A10}
+</style></head><body><div class="row">
+<div class="col"><p class="lab">① 오늘 할 일 — /platform/todo</p><p class="sub">내 할 일만 · 맨 아래 링크 한 줄</p>
+<div class="ph"><div class="top"><i>☰</i><b>도전!!!</b>성경말씀 › <strong>오늘 할 일</strong><span class="h">홈으로</span></div><div class="wr">
+<h1>내 할 일 0개</h1><p class="p">부서 일은 부서 현황에서 살펴만 봐요.</p>
+<div class="em">✓ 플랫폼 관리자 할 일이 없어요</div>
+<div class="go">부서 현황 보기<span>›</span></div></div></div>
+<div class="note">공통 규칙 · 부서 현황 구역이 이 화면에서 빠져서 짧아져요. 할 일이 있으면 카드가 위에 쌓여요.</div></div>
+
+<div class="col"><p class="lab">② 부서 현황 — /platform/depttodostatus</p><p class="sub">보기만 · 처리는 부서 사람이</p>
+<div class="ph"><div class="top"><i>☰</i><b>도전!!!</b>성경말씀 › <strong>부서 현황</strong><span class="h">홈으로</span></div><div class="wr">
+<h1>부서 현황 <span style="font-size:12px;color:var(--mute);font-weight:500">보기만</span></h1>
+<div class="dp"><h3>잠실새내 유년부 <span>밀림 2</span></h3><ul><li>🎁 사 주세요 3 · 2건은 3일 넘음</li><li>✋ 승인 1 · 🎓 진급 0</li><li>📋 출석 12/14반</li></ul></div>
+<div class="dp"><h3>잠실새내 초등부</h3><ul><li>밀린 일 없음 ✓</li></ul></div>
+<div class="dp"><h3>잠실새내 청소년부</h3><ul><li>🎁 전해 주세요 1</li><li>📋 출석 5/5반 ✓</li></ul></div>
+<p class="p" style="margin-top:12px">밀림 = 3일 넘게 아무도 사지 않은 선물. 처리는 부서 사람이 해요.</p>
+<div class="go" style="margin-top:10px">‹ 오늘 할 일로</div></div></div></div>
+
+<div class="col"><p class="lab">③ 할 일 공통 규칙 — /platform/todorules</p><p class="sub">부서가 따로 정하지 않으면 이 값</p>
+<div class="ph"><div class="top"><i>☰</i><b>도전!!!</b>성경말씀 › <strong>할 일 공통 규칙</strong><span class="h">홈으로</span></div><div class="wr">
+<h1>공통 규칙 · 누가 보나</h1><p class="p">부서가 따로 정하지 않으면 이 값을 써요.</p>
+<div class="tb"><div><span>할 일</span><span>관리자</span><span>교사</span><span>임원</span></div><div><span>선물 사기</span><span>☑</span><span>☐</span><span>☐</span></div><div><span>선물 전하기</span><span>☑</span><span>☑</span><span>☐</span></div><div><span>출석</span><span>☑</span><span>☑</span><span>☐</span></div></div>
+<span class="btn">공통 규칙 저장</span></div></div></div>
+
+<div class="col"><p class="lab">④ ☰ 메뉴 — 어디에 넣나</p><p class="sub">플랫폼 메뉴엔 "관리" 묶음이 없어서 "부서" 묶음에 넣어요</p>
+<div class="ph"><div class="wr"><div class="gt">한눈에</div>
+<div class="it"><span class="dot"></span><span>오늘 할 일<small>내 할 일 · 부서 현황 링크</small></span></div>
+<div class="gt">부서</div>
+<div class="it"><span class="dot"></span><span>부서<small>만들기 · 프로그램 · 관리자</small></span></div>
+<div class="it"><span class="dot"></span><span>명단 올리기<small>엑셀 명단을 부서에 넣기</small></span></div>
+<div class="it"><span class="dot"></span><span>부서 관리자 규칙<small>어떤 역할 · 업무가 관리자인지</small></span></div>
+<div class="it new"><span class="dot"></span><span>할 일 공통 규칙<small>누가 어떤 할 일을 보나</small></span><em>새로</em></div>
+<div class="it"><span class="dot"></span><span>온가족<small>부서를 넘는 가족 묶기</small></span></div></div></div>
+<div class="note">"부서 관리자 규칙" 바로 옆에 둬서 두 규칙을 같이 찾게 해요. 부서 현황은 메뉴에 따로 넣지 않고 할 일 화면의 링크로만 들어가요.</div></div>
+</div></body></html>
