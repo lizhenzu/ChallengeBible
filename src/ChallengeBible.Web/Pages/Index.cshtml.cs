@@ -10,9 +10,11 @@ namespace ChallengeBible.Web.Pages;
 /// `/` 공통 첫 화면(0045, 확정 시안 로그인전-첫화면-v2 · 0061). 로그인 전에는 부서 이름 없는 소개, 로그인 뒤에는 승인된 소속 수로 나눈다:
 /// 1곳 → 그 부서 홈, 2곳 이상 → 부서 고르기, 0곳 → 참여 신청.
 /// </summary>
-public class IndexModel(AccountService accounts, TenantClock clock, LandingService landing) : PageModel, ITitled
+public class IndexModel(AccountService accounts, TenantClock clock, LandingService landing, DeptAdminLoginService deptAdmins) : PageModel, ITitled
 {
     public string Title => "";
+    /// <summary>[관리자 로그인] 아래 부서 관리자 버튼(R-364).</summary>
+    public IReadOnlyList<DeptAdminButton> DeptAdmins { get; private set; } = [];
     /// <summary>맨 아래 © 연도: 부서가 없는 화면이라 한국 시간 기준 올해(하드코딩 안 함).</summary>
     public int Year => clock.Today("Asia/Seoul").Year;
     public LandingView Data { get; private set; } = null!;
@@ -22,6 +24,7 @@ public class IndexModel(AccountService accounts, TenantClock clock, LandingServi
         if (User.UserName() is not { } id)
         {
             Data = await landing.GetAsync(ct);
+            DeptAdmins = await deptAdmins.ListAsync(ct);
             return Page();
         }
         var go = await accounts.WhereToGoAsync(id, ct);

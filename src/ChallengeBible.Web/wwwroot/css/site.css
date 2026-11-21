@@ -4840,3 +4840,23 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .pd-acc .n { flex: 1; min-width: 0; }
 .pd-acc .n b { font-size: 14.5px; }
 .pd-acc .n small { display: block; font-size: 12px; color: var(--dim); }
+
+/* Dept admin login (R-364, mockup B, 2026-11-22): landing group box + password page chip. Soft colors by age. */
+.dl-c0 { --dl-bg: #FDECF1; --dl-fg: #A8436A; }
+.dl-c1 { --dl-bg: #FFEFE3; --dl-fg: #A9551C; }
+.dl-c2 { --dl-bg: #FFF6D6; --dl-fg: #866500; }
+.dl-c3 { --dl-bg: #E7F6EA; --dl-fg: #2E7A45; }
+.dl-c4 { --dl-bg: #E2F4F2; --dl-fg: #1D746D; }
+.dl-c5 { --dl-bg: #E7EEFB; --dl-fg: #2B59C3; }
+.dl-c6 { --dl-bg: #F0EBFB; --dl-fg: #6A4BB5; }
+.dl-c7, .dl-c8, .dl-c9 { --dl-bg: #F3EEE8; --dl-fg: #7A5A3A; }
+.dl-box { margin-top: 14px; text-align: left; background: color-mix(in srgb, var(--accent) 4%, var(--bg)); border: 1px dashed color-mix(in srgb, var(--accent) 35%, var(--bg)); border-radius: 18px; padding: 16px; }
+.dl-box h3 { margin: 0; font-size: 15px; }
+.dl-box > p { margin: 4px 0 12px; font-size: 13px; color: var(--dim); }
+.dl-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.dl-btn { display: flex; align-items: center; justify-content: center; min-height: 56px; padding: 0 8px; border-radius: 14px; background: var(--dl-bg); color: var(--dl-fg); font-weight: 800; font-size: 15px; text-decoration: none; text-align: center; word-break: keep-all; }
+.dl-btn:hover { filter: brightness(.97); }
+.dl-btn:focus-visible { outline: 2px solid var(--ring-key); outline-offset: 2px; }
+.dl-head { text-align: center; }
+.dl-chip { display: inline-block; padding: 5px 12px; border-radius: 999px; background: var(--dl-bg); color: var(--dl-fg); font-weight: 800; font-size: 14px; }
+.dl-head h1 { margin-top: 10px; }
