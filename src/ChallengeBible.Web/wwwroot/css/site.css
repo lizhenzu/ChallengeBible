@@ -4565,6 +4565,7 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .tdv-tabs a { padding: 8px 13px; border-radius: 99px; background: var(--soft); font-size: 14px; font-weight: 800; color: var(--fg); text-decoration: none; }
 .tdv-tabs a b { font-weight: 900; margin-left: 2px; }
 .tdv-tabs a[aria-current="page"] { background: var(--accent); color: #fff; }
+.tdv-tbl .no { width: 44px; color: var(--dim); font-size: 12.5px; text-align: center; }   /* 계정 명단 번호(2026-11-21) */
 .tdv-chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .tdv-chips a { padding: 5px 11px; border-radius: 99px; border: 1px solid var(--rule); font-size: 12.5px; font-weight: 700; color: var(--dim); text-decoration: none; background: var(--bg); }
 .tdv-chips a[aria-current="true"] { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--bg)); }
