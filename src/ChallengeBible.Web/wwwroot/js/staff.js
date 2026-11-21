@@ -16,7 +16,11 @@
     `<form method="post" action="${base}?handler=${handler}" data-ask="${esc(ask || '')}"><input type="hidden" name="__RequestVerificationToken" value="${esc(tok)}">` +
     Object.entries(fields).map(([k, v]) => `<input type="hidden" name="${k}" value="${esc(v)}">`).join('') +
     `<button type="submit" class="${cls || 'st-go'}">${esc(label)}</button></form>`;
-  body.addEventListener('submit', e => { const a = e.target.dataset.ask; if (a && !confirm(a)) e.preventDefault(); });
+  body.addEventListener('submit', e => {
+    const f = e.target;
+    if (f.matches('[data-swap]')) { const sel = f.querySelector('select'); const who = sel.options[sel.selectedIndex]?.text.split(' · ')[0] || ''; if (!confirm(`${who}님으로 바꿀까요?`)) e.preventDefault(); return; }
+    const a = f.dataset.ask; if (a && !confirm(a)) e.preventDefault();
+  });
   // 찾기 칸: 이름으로 걸러 보기
   const finder = (ph) => `<input class="st-q" type="search" placeholder="${esc(ph)}" aria-label="${esc(ph)}" autocomplete="off" data-q>`;
   body.addEventListener('input', e => {
@@ -39,9 +43,14 @@
         const p = ppl.get(pid), c = cls.get(cid); if (!p || !c) return;
         const others = [...cls.values()].filter(x => x.id !== cid);
         // 2026-11-21 사용자 "상세가 이상하다": 사람 카드 + [다른 반으로 옮기기] 칸 + [이 반에서 빼기] — 내용만큼만 높이, 고르기 칸은 label 로 감싸지 않음(겹 테두리)
+        const cand = [...ppl.values()].filter(x => !x.c && (x.k === 2 || x.k === 3 || (c.nc && x.a))).sort((a, b) => (a.k === 2 ? 0 : 1) - (b.k === 2 ? 0 : 1) || a.n.localeCompare(b.n, 'ko'));
         const opts = others.map(x => `<option value="${x.id}">${esc(x.n)}</option>`).join('');
         open(`${c.n} ${c.nc ? '담당' : '담임'}`,
           `<div class="st-card"><span class="st-av" aria-hidden="true">${ini(p.n)}</span><span class="n"><b>${esc(p.n)}</b><small>${esc([p.l, p.ph].filter(Boolean).join(' · '))}</small></span></div>` +
+          (cand.length ? `<div class="st-box"><div class="st-box-h" id="stSwL">다른 선생님으로 바꾸기</div>` +
+            `<form method="post" action="${base}?handler=Replace" class="st-move" data-swap><input type="hidden" name="__RequestVerificationToken" value="${esc(tok)}"><input type="hidden" name="classId" value="${cid}"><input type="hidden" name="oldId" value="${pid}">` +
+            `<select class="st-sel" name="newId" aria-labelledby="stSwL">${cand.map(x => `<option value="${x.id}">${esc(x.n)} · ${esc(x.l)}</option>`).join('')}</select><button type="submit" class="st-go">바꾸기</button></form>` +
+            `<p class="st-hint">반이 없는 교사 · 임원 중에서 골라요. ${esc(p.n)}님은 "반이 없는 교사"로 가요.</p></div>` : '') +
           (others.length ? `<div class="st-box"><div class="st-box-h" id="stToL">다른 반으로 옮기기</div>` +
             `<form method="post" action="${base}?handler=Move" class="st-move" data-ask="${esc(p.n)}님을 다른 반으로 옮길까요?"><input type="hidden" name="__RequestVerificationToken" value="${esc(tok)}"><input type="hidden" name="fromId" value="${cid}"><input type="hidden" name="personId" value="${pid}">` +
             `<select class="st-sel" name="toId" aria-labelledby="stToL">${opts}</select><button type="submit" class="st-go">옮기기</button></form></div>` : '') +

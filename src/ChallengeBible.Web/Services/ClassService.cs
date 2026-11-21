@@ -97,6 +97,17 @@ public sealed class ClassService(IAppDb db, PeopleService people, TenantContext 
         return new TeacherBoard(classes, noClass, pool);
     }
 
+    /// <summary>담임 교체(2026-11-21 사용자): 이 반에서 한 선생님을 빼고 다른 사람을 같은 반 선생님으로. 넣기가 안 되면 원래대로 되돌린다.</summary>
+    public async Task<ClassError> ReplaceTeacherAsync(int classId, int oldPersonId, int newPersonId, CancellationToken ct = default)
+    {
+        if (oldPersonId == newPersonId) return ClassError.None;
+        var e = await RemoveAsync(classId, oldPersonId, ct);
+        if (e != ClassError.None) return e;
+        e = await AddAsync(classId, [newPersonId], teacher: true, ct);
+        if (e != ClassError.None) await AddAsync(classId, [oldPersonId], teacher: true, ct);
+        return e;
+    }
+
     /// <summary>선생님을 다른 반으로(빼고 넣기). 넣기가 안 되면 원래 반에 다시 넣는다.</summary>
     public async Task<ClassError> MoveTeacherAsync(int fromClassId, int toClassId, int personId, CancellationToken ct = default)
     {
