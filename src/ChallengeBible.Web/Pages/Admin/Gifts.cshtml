@@ -37,10 +37,10 @@ else { <partial name="_AdminTop" model="Model.Tenant" /> }   @* 선물 설정 4�
             <div class="go-modal" role="dialog" aria-modal="true" aria-labelledby="goLinkT" data-go-modal>
                 <div class="go-sheet">
                     <b id="goLinkT">@lo.Who @GiftsModel.LinkTitle(lo.Kind) 링크</b>
-                    @if (Model.LinkFresh) { <p class="go-fresh">새 링크를 만들었어요. 예전 링크는 이제 열리지 않아요.</p> }
                     <input class="in num" readonly value="@url" aria-label="선물 링크" onclick="this.select()" />
-                    <small>카톡으로 부모님께 보내 주세요. 로그인 없이 열려요. 안내글에는 무엇을 하면 되는지 · 기한 · 링크가 함께 들어 있어요.</small>
+                    <small>[카톡으로 보내기]를 누르면 휴대폰 공유 창에서 카톡을 골라 보내요(컴퓨터는 안내글이 복사돼요). 로그인 없이 열려요. 안내글에는 무엇을 하면 되는지 · 기한 · 링크가 함께 들어 있어요.</small>
                     @if (Model.ShareText is { } st) { <details class="go-prev"><summary>보낼 안내글 미리 보기</summary><pre>@st</pre></details> }
+                    <button type="button" class="btn go-kakao" data-share="@(Model.ShareText ?? url)">💬 카톡으로 보내기</button>
                     <div class="go-row2">
                         <button type="button" class="btn s" data-copy="@url">링크만 복사</button>
                         @if (Model.ShareText is { } st2) { <button type="button" class="btn p" data-copy="@st2">안내글 복사</button> }
@@ -62,7 +62,6 @@ else { <partial name="_AdminTop" model="Model.Tenant" /> }   @* 선물 설정 4�
                         <small class="go-warn">적힌 이름 "@pd.Written" — @(pd.Same == 0 ? "명부에 같은 이름의 학생이 없어요" : $"명부에 같은 이름이 {pd.Same}명이에요")</small></div>
                     <div class="go-acts go-bday">
                         <a class="btn p sm" href="@self?s=pick&pick=@pd.NewcomerId#n@(pd.NewcomerId)">전도한 아이 고르기</a>
-                        <form method="post" asp-page-handler="SkipPending" asp-route-slug="@slug" onsubmit="return confirm('전도 선물을 안 주기로 할까요? \'취소\'에서 [다시 주기]로 되돌릴 수 있어요.')"><input type="hidden" name="newcomer" value="@pd.NewcomerId" /><button type="submit" class="btn s sm go-skip">선물 안 주기</button></form>
                     </div>
                 </div>
             }
@@ -140,19 +139,13 @@ else { <partial name="_AdminTop" model="Model.Tenant" /> }   @* 선물 설정 4�
                             <div class="go-acts go-bday">
                                 @if (o.State != "Expired")
                                 {
-                                    <form method="post" asp-page-handler="Link" asp-route-slug="@slug"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="s" value="@Model.Step" /><button type="submit" class="btn @(o.State == "Open" ? "p" : "s") sm">링크 복사</button></form>
-                                    @if (o.LinkToken is not null) { <form method="post" asp-page-handler="Link" asp-route-slug="@slug"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="fresh" value="true" /><input type="hidden" name="s" value="@Model.Step" /><button type="submit" class="btn s sm">새 링크</button></form> }
+                                    <form method="post" asp-page-handler="Link" asp-route-slug="@slug"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="s" value="@Model.Step" /><button type="submit" class="btn @(o.State == "Open" ? "p" : "s") sm">링크 복사</button></form><form method="post" asp-page-handler="Link" asp-route-slug="@slug"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="s" value="@Model.Step" /><button type="submit" class="btn kakao sm">💬 카톡으로 보내기</button></form>
                                 }
                                 else
                                 {
                                     <form method="post" asp-page-handler="Reopen" asp-route-slug="@slug"><input type="hidden" name="id" value="@o.Id" /><button type="submit" class="btn s sm">다시 열기(7일)</button></form>
                                 }
-                                <form method="post" asp-page-handler="Skip" asp-route-slug="@slug" onsubmit="return confirm('이 선물을 안 주기로 할까요? \'취소\'에서 [다시 주기]로 되돌릴 수 있어요.')"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="skip" value="true" /><button type="submit" class="btn s sm go-skip">선물 안 주기</button></form>
                             </div>
-                        }
-                        @if (o.State == "Skipped")
-                        {
-                            <form method="post" asp-page-handler="Skip" asp-route-slug="@slug" class="go-acts"><input type="hidden" name="id" value="@o.Id" /><input type="hidden" name="skip" value="false" /><button type="submit" class="btn s sm">다시 주기</button></form>
                         }
                     </div>
                 }
@@ -344,4 +337,5 @@ else { <partial name="_AdminTop" model="Model.Tenant" /> }   @* 선물 설정 4�
         <p class="gd-note">[줬어요]를 누른 날 기준이에요. 아이에게 준 선물(받음)만 들어가고, 아직 줄 것 · 취소한 선물은 빠져요. 금액은 고를 때의 상품 가격이에요. 엑셀에는 종류별 합계와 받은 선물 한 줄씩(받은 날 · 받는 사람 · 반 · 종류 · 상품 · 금액)이 들어가요.</p>
     }
     @if (Model.OrdersView) { <a class="gd-set-go" href="@self/common">⚙️ 선물 설정(상품 · 금액 · 총비용) →</a> }   @* 관리 ☰ "선물 설정"으로(확정 시안 선물분리) *@
+<script src="~/js/share.js" asp-append-version="true" defer></script>
 </div></main>

@@ -167,19 +167,11 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
     }
 
     /// <summary>생일 선물 [링크 복사](없으면 만듦) · [새 링크](옛 링크는 막힘, R-287).</summary>
-    public async Task<IActionResult> OnPostLinkAsync(long id, bool fresh, CancellationToken ct)
+    public async Task<IActionResult> OnPostLinkAsync(long id, CancellationToken ct)
     {
         if (tenant.IsLobby) return NotFound();
-        var token = await birthdays.LinkAsync(Me, id, fresh, ct);
-        return Redirect($"/{Slug}/admin/gifts?s={Step ?? GiftOrderService.Pick}" + (token is null ? "&ok=bad" : $"&link={id}" + (fresh ? "&new=true" : "")) + $"#g{id}");
-    }
-
-    /// <summary>생일 선물 [건너뛰기] · 건너뛴 것 [되돌리기](R-288).</summary>
-    public async Task<IActionResult> OnPostSkipAsync(long id, bool skip, CancellationToken ct)
-    {
-        if (tenant.IsLobby) return NotFound();
-        var ok = await birthdays.SkipAsync(Me, id, skip, ct);
-        return Redirect($"/{Slug}/admin/gifts?s={(skip ? GiftOrderService.Pick : GiftOrderService.Cancel)}&ok={(ok ? (skip ? "skip" : "unskip") : "bad")}");
+        var token = await birthdays.LinkAsync(Me, id, false, ct);
+        return Redirect($"/{Slug}/admin/gifts?s={Step ?? GiftOrderService.Pick}" + (token is null ? "&ok=bad" : $"&link={id}" + "") + $"#g{id}");
     }
 
     /// <summary>전도한 아이 고르기 [이 아이에게 선물].</summary>
@@ -188,14 +180,6 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
         if (tenant.IsLobby) return NotFound();
         var ok = await newcomers.AssignAsync(Me, newcomer, person, ct);
         return Redirect($"/{Slug}/admin/gifts?s={GiftOrderService.Pick}&ok={(ok ? "assign" : "bad")}");
-    }
-
-    /// <summary>전도한 아이를 정하지 않고 [건너뛰기].</summary>
-    public async Task<IActionResult> OnPostSkipPendingAsync(int newcomer, CancellationToken ct)
-    {
-        if (tenant.IsLobby) return NotFound();
-        var ok = await newcomers.SkipPendingAsync(Me, newcomer, ct);
-        return Redirect($"/{Slug}/admin/gifts?s={GiftOrderService.Pick}&ok={(ok ? "skip" : "bad")}");
     }
 
     public static string LinkTitle(string kind) => kind switch { GiftKinds.Newcomer => "새친구 선물", GiftKinds.Invite => "전도 선물", GiftKinds.Reading => "완독 선물", GiftKinds.Copy => "완필 선물", _ => "생일 선물" };

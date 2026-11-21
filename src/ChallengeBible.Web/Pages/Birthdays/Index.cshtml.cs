@@ -74,20 +74,12 @@ public class IndexModel(BirthdayListService birthdays, BirthdayGiftService gifts
         return Redirect(Back() + "#g" + gift);
     }
 
-    /// <summary>[링크 복사] · [새 링크]: 링크를 만들고 선물 처리와 같은 팝업으로 보여 준다.</summary>
-    public async Task<IActionResult> OnPostLinkAsync(long gift, bool fresh, CancellationToken ct)
+    /// <summary>[링크 복사] · [카톡으로 보내기]: 링크를 만들고(없으면) 선물 처리와 같은 팝업으로 보여 준다. 새 링크는 없앴다(2026-11-21 사용자).</summary>
+    public async Task<IActionResult> OnPostLinkAsync(long gift, CancellationToken ct)
     {
         if (!CanSee(tenant)) return NotFound();
-        if (await gifts.LinkAsync(User.UserName()!, gift, fresh, ct) is null) { Msg = "이 선물은 링크를 만들 수 없어요."; return Redirect(Back()); }
+        if (await gifts.LinkAsync(User.UserName()!, gift, false, ct) is null) { Msg = "이 선물은 링크를 만들 수 없어요."; return Redirect(Back()); }
         return Redirect(Back(link: gift) + "#g" + gift);
-    }
-
-    /// <summary>[선물 안 주기] · [다시 주기](예전 건너뛰기 · 되돌리기, 2026-11-20 사용자 "쉬운 말로").</summary>
-    public async Task<IActionResult> OnPostSkipAsync(long gift, bool skip, CancellationToken ct)
-    {
-        if (!CanSee(tenant)) return NotFound();
-        Msg = await gifts.SkipAsync(User.UserName()!, gift, skip, ct) ? (skip ? "이번 생일 선물은 안 주기로 했어요. [다시 주기]로 되돌릴 수 있어요." : "다시 선물을 주기로 했어요.") : "바꿀 수 없어요.";
-        return Redirect(Back() + "#g" + gift);
     }
 
     public async Task<IActionResult> OnPostBirthdayAsync(int pid, int? month, int? day, CancellationToken ct)

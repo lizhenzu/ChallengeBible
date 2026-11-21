@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -142,7 +142,7 @@ public partial class NewcomerGiftTests : IClassFixture<WebApplicationFactory<Pro
     }
 
     [Fact]
-    public async Task R286_이름이_애매하면_선생님이_고르고_건너뛰면_취소에서_되돌린다()
+    public async Task R286_이름이_애매하면_선생님이_고른다()
     {
         var admin = await Login("admin@example.com");
         var modal = await admin.GetStringAsync($"/kids/admin/gifts?s=pick&pick={_p["박하나"]}");
@@ -150,12 +150,9 @@ public partial class NewcomerGiftTests : IClassFixture<WebApplicationFactory<Pro
         Assert.Equal(2, Regex.Matches(modal, "name=\"person\"").Count);   // 같은 이름 김민준 2명
         Assert.Contains("권동석", await admin.GetStringAsync($"/kids/admin/gifts?s=pick&pick={_p["박하나"]}&q2=권"));   // 이름으로 찾기
 
-        await Post(admin, "/kids/admin/gifts?s=pick", "/kids/admin/gifts?handler=SkipPending", new() { ["newcomer"] = _p["박하나"].ToString() });
-        Assert.DoesNotContain("전도한 아이를 골라 주세요", await admin.GetStringAsync("/kids/admin/gifts?s=pick"));
-        var skipped = Gifts().Single(g => g.Kind == GiftKinds.Invite && g.State == GiftStates.Skipped);
-        Assert.Contains("박하나(새친구)를 데려온 아이", await admin.GetStringAsync("/kids/admin/gifts?s=cancel"));
-        await Post(admin, "/kids/admin/gifts?s=cancel", "/kids/admin/gifts?handler=Skip", new() { ["id"] = skipped.Id.ToString(), ["skip"] = "false" });
-        Assert.Contains("전도한 아이를 골라 주세요", await admin.GetStringAsync("/kids/admin/gifts?s=pick"));   // 되돌리면 다시 고르기로
+        var pend = await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        Assert.Contains("전도한 아이를 골라 주세요", pend);
+        Assert.DoesNotContain("SkipPending", pend);   // 2026-11-21 사용자: [선물 안 주기]는 없앴다
 
         var target = (await admin.GetStringAsync($"/kids/admin/gifts?s=pick&pick={_p["박하나"]}"));
         var minjun = Regex.Match(target, "name=\"person\" value=\"(\\d+)\"").Groups[1].Value;

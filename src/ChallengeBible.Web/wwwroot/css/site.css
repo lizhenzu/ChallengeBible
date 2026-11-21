@@ -4729,3 +4729,8 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .mv-go { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 14px 0; padding: 14px; border-radius: 14px; background: #1F7A55; color: #fff; font-size: 15px; font-weight: 800; text-decoration: none; }
 .mv-go small { display: block; margin-top: 2px; font-size: 12px; font-weight: 500; opacity: .88; }
 .mv-go u { text-decoration: none; font-size: 20px; }
+
+/* 카톡으로 보내기 버튼(2026-11-21 사용자) — 카카오 노란색 */
+.btn.kakao, .go-kakao { background: #FEE500; border-color: #FEE500; color: #191919; font-weight: 800; }
+.go-kakao { width: 100%; min-height: 48px; justify-content: center; margin-top: 8px; }
+.go-kakao.go-done { background: #16A34A; border-color: #16A34A; color: #fff; }
