@@ -93,7 +93,11 @@ public partial class ClassBookTests : IClassFixture<WebApplicationFactory<Progra
         var find = WebUtility.HtmlDecode(Regex.Replace(await c.GetStringAsync("/kids/classbook?searchName=" + Uri.EscapeDataString("바다")), "<[^>]+>", ""));   // 찾은 글자는 <mark> 로 칠한다
         Assert.Contains("이바다", Regex.Replace(find, @"\s+", ""));
         Assert.DoesNotContain("탈퇴함", WebUtility.HtmlDecode(await c.GetStringAsync("/kids/classbook?searchName=" + Uri.EscapeDataString("탈퇴"))));
+        var css = Regex.Match(home, "href=\"(/css/classbook[^\"]*\\.css[^\"]*)\"").Groups[1].Value;   // 화면 꾸밈 파일이 실제로 있다
+        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync(css)).StatusCode);
         var cls = WebUtility.HtmlDecode(await c.GetStringAsync($"/kids/classbook/{_c1}"));
+        var js = Regex.Match(cls, "src=\"(/js/classbook[^\"]*\\.js[^\"]*)\"").Groups[1].Value;
+        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync(js)).StatusCode);
         Assert.Contains("이바다", cls);
         Assert.Contains("010-3333-4444", cls);
         Assert.Contains("최별", cls);
