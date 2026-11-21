@@ -18,7 +18,12 @@ body { color: var(--fg); font-family: var(--sans); font-size: 15px; line-height:
 a { color: inherit; text-decoration: none; }
 button, input, select, textarea { font-family: inherit; color: inherit; }
 button { cursor: pointer; }
-a:focus-visible, button:focus-visible, label:focus-within { outline: 3px solid var(--accent); outline-offset: 3px; }
+/* 선택 표시(2026-11-21 확정 시안 입력칸-선택표시-A, 규칙 UI-1): 진한 굵은 선 금지. 입력 칸은 연한 2px + 은은한 빛, 칸 안의 버튼은 테두리 없이 글자 색만,
+   그 밖의 버튼 · 링크는 키보드(Tab)로 갔을 때만 연한 2px. 새 화면도 이 값을 그대로 쓴다(--ring · --ring-glow). */
+:root { --ring: color-mix(in srgb, var(--accent) 28%, #fff); --ring-glow: color-mix(in srgb, var(--accent) 8%, transparent); --ring-key: color-mix(in srgb, var(--accent) 45%, #fff); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--ring-key); outline-offset: 2px; }
+label:focus-within { outline: none; box-shadow: 0 0 0 2px var(--ring), 0 0 0 6px var(--ring-glow); }
+label button:focus-visible, label a:focus-visible { outline: none; color: var(--accent); }
 [hidden] { display: none !important; }
 :root { --gut: 20px; }   /* 화면 좌우 여백(휴대폰 12px, 아래 @media) — 끝까지 넓히는 띠(.cp-dock)도 이 값을 쓴다 */
 .gut { padding-left: max(var(--gut), env(safe-area-inset-left, 0px)); padding-right: max(var(--gut), env(safe-area-inset-right, 0px)); }
@@ -43,7 +48,7 @@ form.stack { display: flex; flex-direction: column; gap: 16px; }
 .f label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
 .f label small { font-weight: 500; color: var(--dim); margin-left: 4px; }
 .in { width: 100%; min-height: 54px; padding: 0 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); font-size: 16px; }
-.in:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.in:focus { outline: none; border-color: var(--ring-key); box-shadow: 0 0 0 4px var(--ring-glow); }
 .in.input-validation-error, .in[aria-invalid="true"] { border-color: var(--bad); }
 .in.code { font-size: 20px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
 .hint { margin: 6px 0 0; font-size: 13px; color: var(--dim); min-height: 1.4em; }
@@ -479,7 +484,7 @@ a.hM.none { opacity: .5; }
 .qopts { display: grid; gap: 8px; }
 .qopt { position: relative; display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 14px; background: var(--soft); cursor: pointer; box-shadow: 0 0 0 2px transparent inset; transition: background .15s, box-shadow .15s; }
 .qopt input { position: absolute; opacity: 0; pointer-events: none; }
-.qopt:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+.qopt:has(input:focus-visible) { outline: 2px solid var(--ring-key); outline-offset: 2px; }
 .qopt i { flex: none; width: 18px; text-align: center; font-style: normal; font-weight: 900; font-size: 15px; color: var(--no); }
 .qopt .t { flex: 1; min-width: 0; font-size: calc(16px * var(--fs)); font-weight: 700; line-height: 1.45; word-break: keep-all; }
 .qopt .t small { display: block; margin-top: 2px; font-size: 12px; font-weight: 800; }
@@ -886,7 +891,7 @@ form.stack { display: flex; flex-direction: column; gap: 14px; }
 .pick:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-bg); }
 .pick:has(input:checked) .rd { border-color: var(--accent); }
 .pick:has(input:checked) .rd::after { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
-.pick:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 3px; }
+.pick:has(input:focus-visible) { outline: 2px solid var(--ring-key); outline-offset: 3px; }
 .pick.mine { opacity: .55; cursor: default; }
 .pick .st { flex: none; font-size: 12px; font-weight: 800; color: var(--dim); }
 .depts .none { padding: 18px; text-align: center; color: var(--dim); border: 1px dashed var(--line); border-radius: 16px; font-size: 14px; }
@@ -939,7 +944,7 @@ main.admin > .wrap.br { display: grid; gap: 18px; grid-template-columns: minmax(
 .br-f .l { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 800; margin-bottom: 6px; }
 .br-f .l small { font-weight: 500; color: var(--dim); font-size: 12.5px; }
 .br-f .in { width: 100%; min-height: 50px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 16px; }
-.br-f .in:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+.br-f .in:focus { outline: none; border-color: var(--ring-key); box-shadow: 0 0 0 4px var(--ring-glow); }
 .br-f .in[aria-invalid="true"] { border-color: var(--bad); }
 .br-f .hint { margin: 6px 0 0; font-size: 12.5px; color: var(--dim); }
 .br-f .hint.bad { color: var(--bad); font-weight: 700; }
@@ -949,7 +954,7 @@ main.admin > .wrap.br { display: grid; gap: 18px; grid-template-columns: minmax(
 .br-sw span { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; color: #fff; }
 .br-sw:has(input:checked) span { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--fg); }
 .br-sw:has(input:checked) { color: var(--fg); }
-.br-sw:has(input:focus-visible) span { outline: 3px solid var(--accent); outline-offset: 4px; }
+.br-sw:has(input:focus-visible) span { outline: 2px solid var(--ring-key); outline-offset: 4px; }
 .br-sw svg { opacity: 0; }
 .br-sw:has(input:checked) svg { opacity: 1; }
 .br-acts { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -1191,14 +1196,14 @@ main.admin > .wrap.ph { display: grid; gap: 16px; grid-template-columns: minmax(
 .pr-seg input { position: absolute; opacity: 0; }
 .pr-seg span { min-width: 40px; min-height: 36px; display: grid; place-items: center; border-radius: 9px; font-weight: 800; color: var(--dim); }
 .pr-seg input:checked + span { background: var(--plat); color: var(--on-plat); }
-.pr-seg input:focus-visible + span { outline: 3px solid var(--accent); }
+.pr-seg input:focus-visible + span { outline: 2px solid var(--ring-key); }
 .pr-sw { position: relative; display: inline-block; width: 50px; height: 30px; cursor: pointer; border-radius: 99px; }
 .pr-sw input { position: absolute; opacity: 0; }
 .pr-sw span { position: absolute; inset: 0; border-radius: 99px; background: var(--line); }
 .pr-sw span::after { content: ""; position: absolute; top: 4px; left: 4px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
 .pr-sw input:checked + span { background: var(--plat); }
 .pr-sw input:checked + span::after { transform: translateX(20px); }
-.pr-sw input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.pr-sw input:focus-visible + span { outline: 2px solid var(--ring-key); outline-offset: 2px; }
 .pr-tbl { overflow-x: auto; }
 .pr-tbl table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 560px; }
 .pr-tbl th { text-align: left; font-size: 12px; font-weight: 700; color: var(--dim); padding: 0 6px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
@@ -1786,7 +1791,7 @@ main.ops .ops-tbl td:last-child { overflow-wrap: anywhere; }
 .jv4 .jrow .rd { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #C5CBD3; }
 .jv4 .jrow:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); }
 .jv4 .jrow:has(input:checked) .rd { border: 7px solid var(--accent); background: var(--bg); }
-.jv4 .jrow:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 3px; }
+.jv4 .jrow:has(input:focus-visible) { outline: 2px solid var(--ring-key); outline-offset: 3px; }
 .jv4 .jrow.off { opacity: .55; cursor: default; }
 .jv4 .jrow .st { flex: none; font-size: 12px; font-weight: 800; color: var(--accent); }
 .jv4 .none { padding: 24px 16px; border-radius: 16px; background: var(--soft); color: var(--dim); text-align: center; word-break: keep-all; }
@@ -1882,7 +1887,7 @@ body:has(main.w760) .top .wrap, body:has(main.w760) .admintop .wrap.hd, body:has
 .fmt-who span { display: block; padding: 10px 2px 8px; border-radius: 13px; background: var(--soft); text-align: center; font-size: 13px; font-weight: 700; }
 .fmt-who u { display: block; text-decoration: none; font-size: 22px; line-height: 1.3; }
 .fmt-who input:checked + span { background: var(--accent-bg); box-shadow: inset 0 0 0 2px var(--accent); color: var(--accent); }
-.fmt-who input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.fmt-who input:focus-visible + span { outline: 2px solid var(--ring-key); outline-offset: 2px; }
 .fmt-card { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; padding: 13px 14px; border-radius: 16px; background: var(--soft); }
 .fmt-card b { font-weight: 800; word-break: keep-all; }
 .fmt-card small { font-size: 12.5px; color: var(--dim); word-break: keep-all; }
@@ -1926,7 +1931,7 @@ body:has(main.w760) .top .wrap, body:has(main.w760) .admintop .wrap.hd, body:has
 .fmt-pick b { flex: none; width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--line); }
 .fmt-pick:has(input:checked) { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
 .fmt-pick input:checked ~ b { box-shadow: inset 0 0 0 6px var(--accent); }
-.fmt-pick input:focus-visible ~ b { outline: 3px solid var(--accent); outline-offset: 2px; }
+.fmt-pick input:focus-visible ~ b { outline: 2px solid var(--ring-key); outline-offset: 2px; }
 .fmt-note + .fmt-search { margin-top: 16px; }
 .fmt-inv { margin: 0 0 8px; padding: 15px 14px; }
 .fmt-inv .h { font-size: 17px; font-weight: 900; word-break: break-all; }
@@ -2175,7 +2180,7 @@ body:has(main.w760) .top .wrap, body:has(main.w760) .admintop .wrap.hd, body:has
 .stg .kinds label small { font-weight: 500; font-size: 12.5px; color: var(--dim); }
 .stg .kinds input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .stg .kinds label:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); box-shadow: inset 0 0 0 1px var(--accent); }
-.stg .kinds label:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+.stg .kinds label:has(input:focus-visible) { outline: 2px solid var(--ring-key); outline-offset: 2px; }
 .stg-card { border: 1px solid var(--rule); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; margin: 0; }
 .stg-card h2 { margin: 0; font-size: 16px; font-weight: 800; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .stg-card h2 small { font-size: 13px; font-weight: 500; color: var(--dim); }
@@ -2224,7 +2229,7 @@ body:has(main.w760) .top .wrap, body:has(main.w760) .admintop .wrap.hd, body:has
 .ft-kinds label small { font-weight: 500; font-size: 12px; color: var(--dim); }
 .ft-kinds input { position: absolute; opacity: 0; }
 .ft-kinds label:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); box-shadow: inset 0 0 0 1px var(--accent); }
-.ft-kinds label:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+.ft-kinds label:has(input:focus-visible) { outline: 2px solid var(--ring-key); outline-offset: 2px; }
 .ft-picks { display: flex; flex-wrap: wrap; gap: 6px; }
 .ft-picks label { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 99px; font-size: 13.5px; font-weight: 700; }
 .ft-picks input { accent-color: var(--accent); }
@@ -2245,7 +2250,7 @@ body:has(main.w760) .top .wrap, body:has(main.w760) .admintop .wrap.hd, body:has
 .c10 .sw i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .2); transition: left .15s; }
 .c10 .sw input:checked + i { background: var(--accent); }
 .c10 .sw input:checked + i::after { left: 21px; }
-.c10 .sw input:focus-visible + i { outline: 3px solid var(--accent); outline-offset: 2px; }
+.c10 .sw input:focus-visible + i { outline: 2px solid var(--ring-key); outline-offset: 2px; }
 .c10 .sw span { color: var(--dim); white-space: nowrap; }
 .c10 .sw input:checked ~ span { color: var(--fg); }
 .c10 .amt { display: flex; align-items: center; gap: 4px; }

@@ -161,3 +161,23 @@ public partial class ClassBookTests : IClassFixture<WebApplicationFactory<Progra
         Assert.DoesNotContain("탈퇴함", Regex.Unescape(home));
     }
 }
+
+/// <summary>UI-1(05 문서): 선택 표시에 진한 굵은 선을 쓰지 않는다 — 공통 --ring 값만.</summary>
+public class FocusRingRuleTests
+{
+    [Fact]
+    public void UI1_스타일에_진한_3px_선택_표시가_없다()
+    {
+        var dir = AppContext.BaseDirectory;
+        while (dir != null && !Directory.Exists(Path.Combine(dir, "src", "ChallengeBible.Web", "wwwroot", "css"))) dir = Path.GetDirectoryName(dir);
+        Assert.NotNull(dir);
+        var bad = Directory.GetFiles(Path.Combine(dir!, "src", "ChallengeBible.Web", "wwwroot", "css"), "*.css")
+            .Where(f => !f.EndsWith("album.css"))   // 앨범은 "고른 사진" 표시(포커스 아님)
+            .SelectMany(f => File.ReadAllLines(f).Select((l, i) => (f, i, l)))
+            .Where(x => x.l.Contains(":focus") && System.Text.RegularExpressions.Regex.IsMatch(x.l, @"outline:\s*3px\s+solid\s+var\(--accent\)"))
+            .Select(x => $"{Path.GetFileName(x.f)}:{x.i + 1}").ToList();
+        Assert.True(bad.Count == 0, "진한 3px 선택 표시: " + string.Join(", ", bad));
+        var site = File.ReadAllText(Path.Combine(dir!, "src", "ChallengeBible.Web", "wwwroot", "css", "site.css"));
+        Assert.Contains("--ring-key", site);
+    }
+}
