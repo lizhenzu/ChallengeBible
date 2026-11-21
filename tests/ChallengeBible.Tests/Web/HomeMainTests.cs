@@ -233,4 +233,18 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var (kid, _) = await Member("cheolsu", Roles.Participant);
         Assert.NotEqual(System.Net.HttpStatusCode.OK, (await kid.GetAsync("/jamsil-kids/admin/worship")).StatusCode);   // 관리자만 고친다
     }
+
+    [Fact]
+    public async Task 부서_메뉴판은_섬김_교사_생일_함께하기_순서이고_학생은_섬김_교사가_없다()
+    {
+        string[] Order(string home) => new[] { "섬김 · 교사", "생일", "함께하기" }.Select(g => home.IndexOf($"<h2 class=\"tdr-g\">{g}</h2>", StringComparison.Ordinal).ToString()).ToArray();
+        var (admin, _) = await Member("eunhye", Roles.Teacher, Roles.TenantAdmin);
+        var o = Order(System.Net.WebUtility.HtmlDecode(await admin.GetStringAsync("/jamsil-kids"))).Select(int.Parse).ToArray();
+        Assert.True(o[0] >= 0 && o[0] < o[1] && o[1] < o[2], string.Join(",", o));   // 섬김 · 교사 → 생일 → 함께하기
+
+        var (kid, _) = await Member("cheolsu", Roles.Participant);
+        var k = Order(System.Net.WebUtility.HtmlDecode(await kid.GetStringAsync("/jamsil-kids"))).Select(int.Parse).ToArray();
+        Assert.Equal(-1, k[0]);   // 학생 · 학부모는 섬김 · 교사 묶음이 없다
+        Assert.True(k[1] >= 0 && k[1] < k[2], string.Join(",", k));   // 생일 → 함께하기
+    }
 }

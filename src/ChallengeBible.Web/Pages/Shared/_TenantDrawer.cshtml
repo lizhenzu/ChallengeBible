@@ -18,19 +18,9 @@
 <div class="pdrawer tdr" id="pnav" hidden>
     <div class="pd-dim" data-pnav-close></div>
     <aside class="pd-panel" tabindex="-1" role="dialog" aria-modal="true" aria-label="메뉴">
-        @DrawerUi.Head(name, Model.Photo, c.Name + (role.Length > 0 ? " · " + role : ""))
+        @DrawerUi.Head(name, Model.Photo, c.Name, role.Length > 0 ? role : null, t.IsAdmin && t.IsApproved, "내 계정 · 사진 변경 ›")   @* 소속 두 줄(교회 · 부서 / 역할 딱지) · 내 계정 입구는 여기 한 곳(2026-11-21, 확정 시안 메뉴판-정리) *@
         <nav aria-label="메뉴">
             @* 2026-11-21 사용자: "도전!!!성경말씀" 묶음(성경미션 · 통독 · 필사 · 365 기도)과 "부서 홈" 항목은 메뉴판에서 뺐다 — 프로그램은 부서 홈 카드로, 홈으로 가는 길은 각 화면 머리말 [홈으로] *@
-            <h2 class="tdr-g">함께하기</h2>
-            @DrawerUi.Row("/messages", "msg", "v", "쪽지", "선생님 · 친구와 주고받기", Cur("/messages"))
-            @if (!lobby) { @DrawerUi.Row($"/{s}/album", "photo", "o", "사진첩", "부서 행사 사진", Cur($"/{s}/album")) }   @* ADR 0118 *@
-            @if (!lobby && t.IsApproved)
-            {
-                @* 생일(2026-11-21 사용자, 확정 시안 생일메뉴 · 선물분리): 생일자 보기 = 모두, 선물 처리 = 관리자만 — 나란히 *@
-                <h2 class="tdr-g">생일</h2>
-                @DrawerUi.Row($"/{s}/birthdays", "cake", "o", "생일자 보기", "다가오는 생일 · 월별 · 연간", Cur($"/{s}/birthdays"))
-                @if (t.IsAdmin) { @DrawerUi.Row($"/{s}/admin/gifts", "gift", "o", "선물 처리", "선택 전 · 살 것 · 줄 것", Cur($"/{s}/admin/gifts"), badge: DrawerUi.Admin) }   @* 선물 설정은 관리 ☰(확정 시안 선물분리) *@
-            }
             @if (!lobby && (t.IsStaff || t.IsAdmin || teacher))
             {
                 <h2 class="tdr-g">섬김 · 교사</h2>
@@ -39,8 +29,17 @@
                 @if (t.IsAdmin) { @DrawerUi.Row($"/{s}/admin", "gear", "s", "부서 관리", "소속 · 반 · 부서 · 반 이동 · 설정", Cur($"/{s}/admin"), badge: DrawerUi.Admin) }
                 else if (teacher) { @DrawerUi.Row($"/{s}/admin/members", "people", "s", "명부", "우리 부서 사람들", Cur($"/{s}/admin/members")) }
             }
-            <h2 class="tdr-g">내 정보</h2>
-            @DrawerUi.Row("/account", "user", "s", "내 계정", "이름 · 비밀번호 · 가족", Cur("/account"))
+            @if (!lobby && t.IsApproved)
+            {
+                @* 생일(2026-11-21 사용자, 확정 시안 생일메뉴 · 선물분리): 생일자 보기 = 모두, 선물 처리 = 관리자만 — 나란히 *@
+                <h2 class="tdr-g">생일</h2>
+                @DrawerUi.Row($"/{s}/birthdays", "cake", "o", "생일자 보기", "다가오는 생일 · 월별 · 연간", Cur($"/{s}/birthdays"))
+                @if (t.IsAdmin) { @DrawerUi.Row($"/{s}/admin/gifts", "gift", "o", "선물 처리", "선택 전 · 살 것 · 줄 것", Cur($"/{s}/admin/gifts"), badge: DrawerUi.Admin) }   @* 선물 설정은 관리 ☰(확정 시안 선물분리) *@
+            }
+            <h2 class="tdr-g">함께하기</h2>
+            @DrawerUi.Row("/messages", "msg", "v", "쪽지", "선생님 · 친구와 주고받기", Cur("/messages"))
+            @if (!lobby) { @DrawerUi.Row($"/{s}/album", "photo", "o", "사진첩", "부서 행사 사진", Cur($"/{s}/album")) }   @* ADR 0118 *@
+            @if (lobby || User.IsPlatformAdmin()) { <h2 class="tdr-g">다른 곳</h2> }   @* "내 정보" 묶음은 없앴다 — 내 계정은 머리에서(2026-11-21) *@
             @if (lobby) { @DrawerUi.Row("/join", "join", "g", "내 부서 참여", "다니는 부서에 참여 신청", Cur("/join")) }
             @if (User.IsPlatformAdmin()) { @DrawerUi.Row("/platform", "platform", "v", "플랫폼", "모든 부서 관리", Cur("/platform")) }
         </nav>
