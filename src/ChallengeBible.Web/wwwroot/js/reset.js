@@ -28,3 +28,44 @@
   }));
   sync();
 })();
+
+// 회원 내보내기(2026-11-21): 찾기 · 직접 가입/가짜 탭 · 선택 수 · 파일로 받기 · 복사. SQL 은 이 화면에만 있고 서버에 남지 않는다
+(() => {
+  const f = document.querySelector('[data-mx]');
+  if (f) {
+    const rows = [...f.querySelectorAll('.mx-u')];
+    const q = f.querySelector('[data-mx-q]');
+    const none = f.querySelector('[data-mx-none]');
+    let tab = 'real';
+    const count = () => { const n = rows.filter(r => r.querySelector('input').checked).length; f.querySelectorAll('[data-mx-n]').forEach(b => b.textContent = n); };
+    const show = () => {
+      const t = (q.value || '').trim().toLowerCase();
+      let shown = 0;
+      rows.forEach(r => { const ok = r.dataset.mxKind === tab && (!t || r.dataset.mxText.includes(t)); r.hidden = !ok; if (ok) shown++; });
+      if (none) none.hidden = shown > 0 || rows.length === 0;
+    };
+    q.addEventListener('input', show);
+    q.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+    f.querySelectorAll('[data-mx-tab]').forEach(b => b.addEventListener('click', () => {
+      tab = b.dataset.mxTab; f.querySelectorAll('[data-mx-tab]').forEach(x => x.classList.toggle('on', x === b)); show();
+    }));
+    f.querySelectorAll('[data-mx-all]').forEach(b => b.addEventListener('click', () => {
+      rows.filter(r => !r.hidden).forEach(r => r.querySelector('input').checked = b.dataset.mxAll === '1'); count();
+    }));
+    rows.forEach(r => r.querySelector('input').addEventListener('change', count));
+    show(); count();
+  }
+  const sql = document.querySelector('[data-mx-sql]');
+  if (!sql) return;
+  document.querySelector('[data-mx-save]')?.addEventListener('click', e => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['\ufeff' + sql.value], { type: 'application/sql;charset=utf-8' }));
+    a.download = e.currentTarget.dataset.name || 'member-restore.sql';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+  document.querySelector('[data-mx-copy]')?.addEventListener('click', async e => {
+    try { await navigator.clipboard.writeText(sql.value); } catch { sql.select(); document.execCommand('copy'); }
+    e.currentTarget.textContent = '복사했어요';
+  });
+  document.getElementById('rs-export')?.scrollIntoView({ block: 'start' });
+})();

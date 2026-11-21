@@ -84,6 +84,7 @@ builder.Services.AddScoped<GiftOrderService>();   // 선물 구매 · 전달 처
 builder.Services.AddScoped<QuizAiPromptService>();   // 퀴즈 출제 AI 프롬프트(유년부 그대로)
 builder.Services.AddScoped<WordToolsService>();   // 말씀 입력 · 퀴즈 출제 도구(유년부에서 옮김)
 builder.Services.AddScoped<ResetService>();   // 완전 초기화(ADR 0102)
+builder.Services.AddScoped<MemberExportService>();   // 회원 내보내기(복원용 SQL, 2026-11-21)
 builder.Services.AddScoped<Prayer365Service>();   // 자녀를 위한 365 기도(ADR 0106)
 builder.Services.AddScoped<SqlConsoleService>();   // 플랫폼 SQL 실행(ADR 0107)
 builder.Services.AddScoped<MessageService>();   // 쪽지(ADR 0112)

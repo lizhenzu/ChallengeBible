@@ -78,7 +78,7 @@ public partial class ResetTests : IClassFixture<WebApplicationFactory<Program>>
     {
         var token = TokenRx().Match(await c.GetStringAsync("/platform/reset")).Groups[1].Value;
         var form = new List<KeyValuePair<string, string>> { new("__RequestVerificationToken", token), new("confirm", confirm) };
-        form.AddRange((pick ?? ResetService.AllKeys).Select(k => new KeyValuePair<string, string>("pick", k)));
+        form.AddRange((pick ?? ResetService.AllKeys.Where(k => !ResetService.OffByDefault(k))).Select(k => new KeyValuePair<string, string>("pick", k)));
         return await c.PostAsync("/platform/reset", new FormUrlEncodedContent(form));
     }
 
@@ -138,7 +138,7 @@ public partial class ResetTests : IClassFixture<WebApplicationFactory<Program>>
         var page = await op.GetStringAsync("/platform/reset");
         Assert.Contains("되돌릴 수 없어요", page);
         Assert.Contains("절대 안 지워요", page);
-        Assert.Equal(ResetService.AllKeys.Count, System.Text.RegularExpressions.Regex.Matches(page, "name=\"pick\" value=\"[a-z]+\" data-rs-group=\"[^\"]+\" checked").Count);   // 처음엔 모두 체크
+        Assert.Equal(ResetService.AllKeys.Count(k => !ResetService.OffByDefault(k)), System.Text.RegularExpressions.Regex.Matches(page, "name=\"pick\" value=\"[a-z]+\" data-rs-group=\"[^\"]+\" checked").Count);   // 처음엔 모두 체크
 
         var body = await (await Reset(op, "RESET")).Content.ReadAsStringAsync();
         Assert.Contains("초기화했어요", body);
@@ -317,7 +317,7 @@ public partial class ResetTests : IClassFixture<WebApplicationFactory<Program>>
 
         var op = await Login("operator@example.com");
         Assert.Contains("가짜 계정(@fake-seed.test)", await op.GetStringAsync("/platform/reset"));
-        Assert.Contains("직접 가입한 회원 · 그 사람의 기록", await op.GetStringAsync("/platform/reset"));
+        Assert.Contains("직접 가입한 회원 계정(관리자 빼고 모두)", await op.GetStringAsync("/platform/reset"));   // 2026-11-21: 고를 때만 지운다(기본 꺼짐)
         await Reset(op, "RESET");
 
         using var after = InMemoryDb.Raw(_db);
@@ -338,5 +338,82 @@ public partial class ResetTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.DoesNotContain(after.MissionActivities, m => m.UserName == _p["cheolsu"]);
         Assert.DoesNotContain(after.Gifts, g => g.UserName == _p["cheolsu"]);
         Assert.Contains(after.Users, u => u.Email == "admin@example.com");   // 관리자도 그대로
+    }
+
+    private string SeedReal(string email, string name)
+    {
+        var real = InMemoryDb.SeedAccount(_db, email, name);
+        InMemoryDb.SeedMembership(_db, _kids.Id, real.UserName!, MembershipStatus.Approved, Roles.Participant);
+        using var raw = InMemoryDb.Raw(_db);
+        var p = new Person { TenantId = _kids.Id, Name = name, UserId = real.Id, CreatedUtc = DateTime.UtcNow, Phone1 = "010-1111-2222" };
+        raw.People.Add(p); raw.SaveChanges();
+        raw.MissionActivities.Add(new MissionActivity { TenantId = _kids.Id, UserName = real.UserName!, MissionDate = new DateOnly(2027, 1, 5), MissionItem = "Word.Me", Points = 50, PerformedAt = new DateTime(2027, 1, 4, 23, 0, 0, DateTimeKind.Utc) });
+        raw.SaveChanges();
+        return real.UserName!;
+    }
+
+    [Fact]
+    public async Task R314_직접_가입한_회원_계정을_고르면_관리자만_남기고_모두_지운다()
+    {
+        var un = SeedReal("real@gmail.com", "박진짜");
+        var op = await Login("operator@example.com");
+        Assert.DoesNotContain("value=\"members\" data-rs-group=\"사람\" checked", await op.GetStringAsync("/platform/reset"));   // 기본 꺼짐
+        await Reset(op, "RESET", ["members"]);
+
+        using var after = InMemoryDb.Raw(_db);
+        Assert.DoesNotContain(after.Users, u => u.UserName == un);                               // 진짜 회원도 지움
+        Assert.DoesNotContain(after.People, p => p.Name == "박진짜");
+        Assert.DoesNotContain(after.MissionActivities, m => m.UserName == un);
+        Assert.DoesNotContain(after.Users, u => u.Email != null && u.Email.EndsWith("@fake-seed.test"));
+        Assert.Contains(after.Users, u => u.Email == "operator@example.com");                     // 플랫폼 관리자(R-315)
+        var adm = after.Users.Single(u => u.Email == "admin@example.com");                       // 부서 관리자 · 소속 그대로
+        Assert.Contains(after.DeptRoles, d => d.UserId == adm.Id);
+        Assert.Contains(after.Tenants, t => t.Id == _kids.Id);
+    }
+
+    [Fact]
+    public async Task 회원_내보내기는_고른_회원만_복원용_SQL로_만들고_관리자는_빼고_내용은_남기지_않는다()
+    {
+        var un = SeedReal("real@gmail.com", "박진짜");
+        var op = await Login("operator@example.com");
+        var page = await op.GetStringAsync("/platform/reset");
+        Assert.Contains("회원 내보내기", page);
+        Assert.Contains($"value=\"{un}\"", page);
+        using (var raw = InMemoryDb.Raw(_db))
+            Assert.DoesNotContain($"value=\"{raw.Users.Single(u => u.Email == "admin@example.com").UserName}\"", page);   // 관리자는 목록에 없음
+
+        var adminName = InMemoryDb.Raw(_db).Users.Single(u => u.Email == "admin@example.com").UserName!;
+        var tok = TokenRx().Match(page).Groups[1].Value;
+        var res = await op.PostAsync("/platform/reset?handler=Export", new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("__RequestVerificationToken", tok),
+            new KeyValuePair<string, string>("member", un),
+            new KeyValuePair<string, string>("member", adminName),   // 관리자를 보내도 빠진다
+        }));
+        var body = WebUtility.HtmlDecode(await res.Content.ReadAsStringAsync());
+        Assert.Contains("복원용 SQL 준비됐어요", body);
+        Assert.Contains("INSERT INTO [Identity].[User]", body);
+        Assert.Contains("N'박진짜'", body);                                       // 한글은 N'…'
+        Assert.Contains("INSERT INTO [app].[Person]", body);
+        Assert.Contains("010-1111-2222", body);
+        Assert.Contains("SET IDENTITY_INSERT [app].[Person] ON;", body);
+        Assert.Contains("(1명)", body);
+        Assert.DoesNotContain("N'윤동호'", body);
+        using var after = InMemoryDb.Raw(_db);
+        var log = after.AuditLogs.Single(a => a.Action == MemberExportService.Action);    // 누가 · 몇 명만, SQL 내용은 없음
+        Assert.Equal("1명 · " + log.Detail!.Split(" · ")[1], log.Detail);
+        Assert.DoesNotContain("INSERT", log.Detail);
+    }
+
+    [Fact]
+    public void 회원_내보내기_값_글자()
+    {
+        Assert.Equal("NULL", MemberExportService.Literal(null));
+        Assert.Equal("N'O''Neil'", MemberExportService.Literal("O'Neil"));
+        Assert.Equal("1", MemberExportService.Literal(true));
+        Assert.Equal("CAST('2027-01-05 09:30:00.0000000' AS datetime2)", MemberExportService.Literal(new DateTime(2027, 1, 5, 9, 30, 0)));   // datetime 열에도 들어가게
+        Assert.Equal("'2027-01-05'", MemberExportService.Literal(new DateOnly(2027, 1, 5)));
+        Assert.Equal("0x0AFF", MemberExportService.Literal(new byte[] { 10, 255 }));
+        Assert.Equal("12.5", MemberExportService.Literal(12.5m));
     }
 }
