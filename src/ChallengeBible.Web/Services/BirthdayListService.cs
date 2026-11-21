@@ -17,9 +17,8 @@ public sealed record BirthdayGiftCard(long Id, string State, int MaxAmount, Date
 
 /// <summary>생일 카드 상세(유년부 카드 개념, ADR 0122): 계정 · 사진 · 전화 · 출석(올해 / 새친구는 처음 온 날부터) · 담임 · 선물.</summary>
 public sealed record BirthdayDetail(string? UserName, string? PhotoV, string? Phone, DateOnly? FirstVisit,
-    int AttendDone, int AttendTotal, DateOnly? LastAttend, string? TeacherName, string? TeacherPhone, bool GiftEligible, BirthdayGiftCard? Gift, bool NoClass = false)
+    int AttendDone, int AttendTotal, DateOnly? LastAttend, string? TeacherName, string? TeacherPhone, bool GiftEligible, BirthdayGiftCard? Gift)
 {
-    /// <summary>NoClass = 학생인데 반이 없어 선물 대상이 아님(R-350) — 카드에 "반 없음"을 붙인다.</summary>
     /// <summary>3주(21일) 넘게 출석이 없으면 주황(R-345).</summary>
     public bool Absent(DateOnly today) => AttendTotal > 0 && (LastAttend is not { } l || today.DayNumber - l.DayNumber > 21);
 }
@@ -76,8 +75,10 @@ public sealed class BirthdayListService(PeopleService people, IAppDb db, TenantC
     {
         var today = Today;
         if (detail) await gifts.EnsureAsync(ct);   // 생일 30일 전 안에 든 아이의 선물을 만든다(선물 처리 화면과 같다)
-        var roster = (await people.RosterAsync(null, null, ct)).Where(r => r.LeftOn is null).ToList();
         await using var ctx = db.Create();
+        // 목록에는 선물 대상만(R-351, 2026-11-20 사용자): 반에 든 학생 + 새친구. 반이 없는 학생 · 교사 · 기타 · 학부모는 보이지 않는다
+        var placed = await BirthdayGiftService.PlacedAsync(ctx, ct);
+        var roster = (await people.RosterAsync(null, null, ct)).Where(r => r.LeftOn is null && BirthdayGiftService.BirthdayEligible(r.RoleCode, placed.Contains(r.PersonId))).ToList();
         // 내가 담임인 반(가장 최근 반 묶음)의 아이들
         var mine = new HashSet<int>();
         if (myUserId is not null)
@@ -171,8 +172,7 @@ public sealed class BirthdayListService(PeopleService people, IAppDb db, TenantC
             }
             return r with { Detail = new BirthdayDetail(rr.UserName, rr.UserName is { } un ? photos.GetValueOrDefault(un) : null, p?.Phone1, p?.NewcomerFirstVisit,
                 mine.Count, Sundays(first, today), mine.Count == 0 ? null : mine.Max(), tName, tPhone,
-                BirthdayGiftService.BirthdayEligible(rr.RoleCode, classOf.ContainsKey(r.PersonId)), card,
-                NoClass: (rr.RoleCode ?? "").Trim() == UserRole.StudentCode && !classOf.ContainsKey(r.PersonId)) };
+                true, card) };   // 목록에는 선물 대상만 있다(R-351)
         }).ToList();
     }
 

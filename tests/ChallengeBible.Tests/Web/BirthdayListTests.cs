@@ -54,7 +54,13 @@ public partial class BirthdayListTests : IClassFixture<WebApplicationFactory<Pro
         var c1 = new SchoolClass { TenantId = _kids.Id, TermId = term.Id, Name = "1반", CreatedUtc = now };
         var c2 = new SchoolClass { TenantId = _kids.Id, TermId = term.Id, Name = "2반", CreatedUtc = now };
         raw.Classes.AddRange(c1, c2); raw.SaveChanges();
+        raw.DeptRoles.Single(d => d.UserId == kid.Id).RoleCode = "T1001";   // R-351: 목록에는 반에 든 학생 · 새친구만
         raw.ClassMembers.AddRange(
+            new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = c2.Id, PersonId = p1.Id, CreatedUtc = now },
+            new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = c2.Id, PersonId = p4.Id, CreatedUtc = now },
+            new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = c2.Id, PersonId = p5.Id, CreatedUtc = now },
+            new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = c2.Id, PersonId = p6.Id, CreatedUtc = now },
+            new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = c2.Id, PersonId = p7.Id, CreatedUtc = now },
             new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = c1.Id, PersonId = tp.Id, IsTeacher = true, CreatedUtc = now },
             new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = c1.Id, PersonId = p2.Id, CreatedUtc = now },
             new ClassMember { TenantId = _kids.Id, TermId = term.Id, ClassId = c2.Id, PersonId = p3.Id, CreatedUtc = now });
@@ -205,5 +211,30 @@ public partial class BirthdayListTests : IClassFixture<WebApplicationFactory<Pro
         var html = Text(await t.GetStringAsync("/kids/birthdays"));
         Assert.Contains("안 주기로 함", html);
         Assert.Contains("다시 주기", html);
+    }
+
+    [Fact]
+    public async Task R351_목록에는_반에_든_학생과_새친구만_보인다_교사_기타_학부모_반_없는_학생은_안_보인다()
+    {
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var now = DateTime.UtcNow;
+            raw.People.AddRange(
+                new Person { TenantId = _kids.Id, Name = "새친구가", RoleCode = "T1020", BirthMonth = 1, BirthDay = 8, CreatedUtc = now },    // 반 없어도 보임
+                new Person { TenantId = _kids.Id, Name = "반없는학생", RoleCode = "T1001", BirthMonth = 1, BirthDay = 8, CreatedUtc = now },
+                new Person { TenantId = _kids.Id, Name = "교사하나", RoleCode = "T1002", BirthMonth = 1, BirthDay = 8, CreatedUtc = now },
+                new Person { TenantId = _kids.Id, Name = "기타사람", RoleCode = "T1099", BirthMonth = 1, BirthDay = 8, CreatedUtc = now },
+                new Person { TenantId = _kids.Id, Name = "학부모님", BirthMonth = 1, BirthDay = 8, CreatedUtc = now });
+            raw.SaveChanges();
+        }
+        var t = await Login("teacher@example.com");
+        var text = Text(await t.GetStringAsync("/kids/birthdays"));
+        Assert.Contains("새친구가", text);
+        Assert.Contains("이바다", text);   // 반에 든 학생
+        foreach (var no in new[] { "반없는학생", "교사하나", "기타사람", "학부모님" }) Assert.DoesNotContain(no, text);
+        Assert.DoesNotContain("선물 대상 아님", text);
+        var year = Text(await t.GetStringAsync("/kids/birthdays?Tab=year"));
+        Assert.DoesNotContain("교사하나", year);
+        Assert.DoesNotContain("학부모님", year);
     }
 }

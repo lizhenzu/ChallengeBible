@@ -634,10 +634,11 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
         await admin.GetStringAsync("/kids/admin/gifts?s=pick");
         Assert.Equal(0, BirthdayCount("반없음"));
         Assert.Equal(1, BirthdayCount("박서윤"));   // 새친구는 반이 없어도 생긴다
-        Assert.Contains("선물 대상 아님 · 반 없음", await admin.GetStringAsync("/kids/birthdays"));
+        Assert.DoesNotContain("반없음", await admin.GetStringAsync("/kids/birthdays"));   // R-351: 생일 목록에도 안 보인다
 
         Place("반없음");
         await admin.GetStringAsync("/kids/admin/gifts?s=pick");
         Assert.Equal(1, BirthdayCount("반없음"));
+        Assert.Contains("반없음", await admin.GetStringAsync("/kids/birthdays"));
     }
 }
