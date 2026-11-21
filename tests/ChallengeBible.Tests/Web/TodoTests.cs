@@ -195,11 +195,20 @@ public partial class TodoTests : IClassFixture<WebApplicationFactory<Program>>
         InMemoryDb.AddRole(_db, op.Id, IdentityRoles.SuperAdmin);
         using (var raw = InMemoryDb.Raw(_db)) { raw.Users.Single(u => u.Id == op.Id).PasswordHash = new PasswordHasher<AppUser>().HashPassword(raw.Users.Single(u => u.Id == op.Id), "1234"); raw.SaveChanges(); }
         var c = await Login("operator@example.com");
-        var page = await c.GetStringAsync("/platform/todo");
+        var todo = await c.GetStringAsync("/platform/todo");   // 2026-11-21: 오늘 할 일은 내 할 일만, 부서 현황 · 공통 규칙은 따로
+        Assert.Contains("href=\"/platform/depttodostatus\"", todo);
+        Assert.DoesNotContain("공통 규칙 · 누가 보나", todo);
+        Assert.DoesNotContain("🎁 사 주세요", todo);
+        var page = await c.GetStringAsync("/platform/depttodostatus");
         Assert.Contains("부서 현황", page);
         Assert.Contains("🎁 사 주세요 1 · 1건은 3일 넘음", page);
         Assert.Contains("밀림 1", page);
         Assert.DoesNotContain("구매 완료", page);   // 처리 버튼 없음
-        Assert.Contains("공통 규칙 · 누가 보나", page);
+        var rules = await c.GetStringAsync("/platform/todorules");
+        Assert.Contains("공통 규칙 · 누가 보나", rules);
+        Assert.Contains("공통 규칙 저장", rules);
+        var menu = await c.GetStringAsync("/platform/todo");
+        Assert.Contains("오늘 할 일(부서)", menu);
+        Assert.Contains("할 일 공통 규칙", menu);
     }
 }

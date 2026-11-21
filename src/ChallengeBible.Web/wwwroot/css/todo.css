@@ -1,4 +1,4 @@
-/* 오늘 할 일(ADR 0100, 확정 시안 오늘할일). 색은 사이트 토큰(--accent · --ok · --bad …)을 쓴다 */
+﻿/* 오늘 할 일(ADR 0100, 확정 시안 오늘할일). 색은 사이트 토큰(--accent · --ok · --bad …)을 쓴다 */
 .tdo { min-height: 100vh; background: var(--bg); }   /* 이름 .td 는 관리 홈 칸이 이미 쓴다 */
 .td-top { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
 .td-top .wrap { max-width: 760px; display: flex; align-items: center; gap: 10px; min-height: 60px; }
@@ -106,3 +106,7 @@
 .td-top .td-one .td-brand em { font-style: normal; font-weight: 900; color: var(--accent); }
 .td-top .td-one .td-sep { flex: none; font-size: 13px; color: var(--dim); }
 .td-top .td-one b { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 16px; font-weight: 800; }
+.td-hello h1 small { margin-left: 6px; font-size: 13px; font-weight: 700; color: var(--dim); }
+/* 쪼갠 화면으로 가는 한 줄(2026-11-21) */
+.td-go { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--card, #fff); color: var(--fg); font-size: 15px; text-decoration: none; }
+.td-go span { color: var(--accent); font-size: 20px; }
