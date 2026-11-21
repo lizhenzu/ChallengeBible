@@ -65,10 +65,11 @@
     else if (Model.K == PlatformTodayService.Accounts)
     {
         <div class="tdv-tbl"><table>
-            <thead><tr><th>이름</th><th>아이디</th><th>부서</th><th class="r">가입</th></tr></thead>
+            <thead><tr><th class="no">번호</th><th>이름</th><th>아이디</th><th>부서</th><th class="r">가입</th></tr></thead>
             <tbody>
-            @foreach (var a in d.AccountRows) { <tr><td><a href="@TodayModel.Acc(a.UserName)">@a.Name</a></td><td>@a.UserName</td><td>@if (a.Depts is null) { <span class="ph-muted">소속 없음</span> } else { @a.Depts }</td><td class="r num">@Local(a.JoinedUtc)</td></tr> }
-            @if (d.AccountRows.Count == 0) { <tr><td colspan="4" class="ph-muted">해당하는 계정이 없어요.</td></tr> }
+            @{ var no = 0; }
+            @foreach (var a in d.AccountRows) { no++; <tr><td class="no num">@no</td><td><a href="@TodayModel.Acc(a.UserName)">@a.Name</a></td><td>@a.UserName</td><td>@if (a.Depts is null) { <span class="ph-muted">소속 없음</span> } else { @a.Depts }</td><td class="r num">@Local(a.JoinedUtc)</td></tr> }
+            @if (d.AccountRows.Count == 0) { <tr><td colspan="5" class="ph-muted">해당하는 계정이 없어요.</td></tr> }
             </tbody>
         </table></div>
         @if (d.AccountRows.Count >= PlatformTodayService.MaxRows) { <p class="ph-muted small">최근 @PlatformTodayService.MaxRows.ToString("N0")개까지 보여요. 특정 사람은 계정 찾기에서 찾아 주세요.</p> }

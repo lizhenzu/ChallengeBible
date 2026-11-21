@@ -416,4 +416,14 @@ public partial class ResetTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal("0x0AFF", MemberExportService.Literal(new byte[] { 10, 255 }));
         Assert.Equal("12.5", MemberExportService.Literal(12.5m));
     }
+
+    [Fact]
+    public async Task 오늘_현황_계정_명단은_앞에_번호를_붙인다()
+    {
+        var op = await Login("operator@example.com");
+        var page = await op.GetStringAsync("/platform/today?k=acct&f=all");
+        Assert.Contains("<th class=\"no\">번호</th>", page);
+        Assert.Contains("<td class=\"no num\">1</td>", page);
+        Assert.Contains("<td class=\"no num\">2</td>", page);
+    }
 }
