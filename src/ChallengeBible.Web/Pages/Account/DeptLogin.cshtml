@@ -1,0 +1,24 @@
+@page "/account/dept-login/{dept}"
+@model ChallengeBible.Web.Pages.Account.DeptLoginModel
+@* 부서 관리자 로그인(R-364, 확정 시안 첫화면-부서관리자 B, 2026-11-22): 비밀번호만. 아이디는 화면 · HTML 에 쓰지 않는다 *@
+<partial name="_Top" />
+<main class="page gut w760"><div class="wrap">
+    <div class="dl-head">
+        <span class="dl-chip dl-c@(Model.Dept!.Color)">@Model.Dept.Label</span>
+        <h1>비밀번호를 넣어 주세요</h1>
+    </div>
+
+    <form method="post" class="stack" novalidate>
+        <div class="f">
+            <label for="pw">비밀번호</label>
+            <input class="in" id="pw" asp-for="Password" type="password" autocomplete="current-password" placeholder="비밀번호" autofocus
+                   aria-invalid="@(Model.Error is null ? "false" : "true")" />
+        </div>
+        @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+        <button type="submit" class="btn p">들어가기</button>
+    </form>
+
+    <div class="foot">
+        <div><a href="/">첫 화면으로</a></div>
+    </div>
+</div></main>

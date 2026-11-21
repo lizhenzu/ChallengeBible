@@ -209,6 +209,20 @@
       @* 확정 시안 E-첫화면-관리자로그인(2026-11-12): 플랫폼 관리자 비밀번호만 *@
       <a class="btn adm" href="/account/admin-login"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>관리자 로그인</a>
       <p class="adm-note">플랫폼 관리자 전용 · 비밀번호만 넣어요</p>
+      @* 부서 관리자 로그인(R-364, 확정 시안 첫화면-부서관리자 B, 2026-11-22): 나이순 · 부드러운 색 · 항상 보임 *@
+      @if (Model.DeptAdmins.Count > 0)
+      {
+        <section class="dl-box" aria-labelledby="dlT">
+          <h3 id="dlT">부서 관리자 로그인</h3>
+          <p>누르고 비밀번호만 넣어요</p>
+          <div class="dl-grid">
+            @foreach (var da in Model.DeptAdmins)
+            {
+              <a class="dl-btn dl-c@(da.Color)" href="/account/dept-login/@da.Slug">@da.Label</a>
+            }
+          </div>
+        </section>
+      }
     </div>
   </div>
 </section>
