@@ -7,30 +7,43 @@
 .rbk .rb-st { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; font-size: 12.5px; color: #6B7280; }
 .rbk .rb-st b { margin-left: 4px; color: #111827; font-size: 15px; }
 .rbk .rb-st .lo b { color: #B4531F; }
-.rbk .rb-srch { display: flex; gap: 8px; margin-top: 12px; }
-.rbk .rb-srch input { flex: 1; min-width: 0; height: 46px; padding: 0 18px; border: 0; border-radius: 999px; background: #F4F6F9; font: inherit; font-size: 15px; color: #111827; outline: 0; }
+.rbk .rb-srch { margin-top: 12px; }
+.rbk .rb-srch input { width: 100%; height: 46px; padding: 0 18px 0 42px; border: 0; border-radius: 999px; font: inherit; font-size: 15px; color: #111827; outline: 0;
+  background: #F4F6F9 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 16px center / 17px; }
 .rbk .rb-srch input:focus, .rbk .rb-q input:focus { box-shadow: 0 0 0 2px #CFE0FA; }
-.rbk .rb-srch button { padding: 0 20px; border: 0; border-radius: 999px; background: var(--accent, #1F7A55); color: #fff; font: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer; }
-.rbk .rb-last { display: flex; justify-content: space-between; margin-top: 10px; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--accent, #1F7A55) 12%, #fff); font-size: 12.5px; font-weight: 700; color: var(--accent, #1F7A55); }
-.rbk .rb-last a { color: inherit; text-decoration: none; }
-.rbk .rb-bt { display: flex; justify-content: space-between; align-items: baseline; margin: 20px 0 4px; font-size: 14px; font-weight: 800; color: #111827; }
+.rbk .rb-bt { display: flex; justify-content: space-between; align-items: baseline; margin: 18px 0 8px; font-size: 14px; font-weight: 800; color: #111827; }
 .rbk .rb-bt span, .rbk .rb-bt a { font-size: 12px; font-weight: 500; color: #9CA3AF; text-decoration: none; }
 .rbk .rb-none { padding: 30px 0; text-align: center; font-size: 14px; color: #9CA3AF; }
-.rbk .rb-hit { display: flex; align-items: center; gap: 10px; padding: 14px 0; border-bottom: 1px solid #EEF0F3; text-decoration: none; color: inherit; }
+.rbk .rb-hit { display: flex; align-items: center; gap: 10px; padding: 13px 0; border-bottom: 1px solid #EEF0F3; text-decoration: none; color: inherit; }
 .rbk .rb-hit b { flex: 1; font-size: 16px; color: #111827; }
 .rbk .rb-hit mark { background: #EAF2FD; color: #2B5FA8; border-radius: 4px; }
 .rbk .rb-hit span { font-size: 13px; color: #6B7280; }
 .rbk .rb-hit em { font-style: normal; color: #D1D5DB; }
-.rbk .rb-cls { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #EEF0F3; }
-.rbk .rb-cls .go { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 13px 0; color: inherit; text-decoration: none; }
-.rbk .rb-cls .nm { width: 70px; flex: none; font-size: 16px; font-weight: 800; color: #111827; overflow-wrap: anywhere; }
-.rbk .rb-cls .tc { flex: 1; min-width: 0; font-size: 13px; color: #374151; }
-.rbk .rb-cls .tc small { display: block; font-size: 11.5px; color: #9CA3AF; }
-.rbk .rb-cls .tc.no { color: #B4531F; }
-.rbk .rb-cls .n { font-size: 18px; font-weight: 800; color: #111827; }
-.rbk .rb-cls .n small { font-size: 11px; font-weight: 500; color: #9CA3AF; }
-.rbk .rb-cls .tel { padding: 5px 11px; border-radius: 999px; background: color-mix(in srgb, var(--accent, #1F7A55) 12%, #fff); color: var(--accent, #1F7A55); font-size: 11.5px; font-weight: 800; text-decoration: none; }
-.rbk .rb-cls em { font-style: normal; color: #D1D5DB; }
+/* 학년 탭 · 반 카드(확정 시안 교적부-A) */
+.rbk .rb-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.rbk .rb-tabs button { padding: 7px 14px; border: 0; border-radius: 999px; background: #F4F6F9; color: #6B7280; font: inherit; font-size: 13px; cursor: pointer; }
+.rbk .rb-tabs button.on { background: #111827; color: #fff; font-weight: 700; }
+.rbk .rb-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 640px) { .rbk .rb-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.rbk .rb-card { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 11px 12px 10px; border: 1px solid #E3E8F0; border-radius: 14px; background: #fff; transition: border-color .15s, box-shadow .15s; }
+.rbk .rb-card:hover { border-color: #C9D6EC; box-shadow: 0 4px 12px -6px rgba(20, 35, 70, .25); }
+.rbk .rb-card.last { background: linear-gradient(180deg, #F5F9FF, #fff); border-color: #D6E2F7; }
+.rbk .rb-card .go { position: absolute; inset: 0; border-radius: inherit; z-index: 1; }
+.rbk .rb-card .go:focus-visible { outline: 2px solid var(--accent, #2B5BC6); outline-offset: 2px; }
+.rbk .rb-card .cn { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.rbk .rb-card .cn b { min-width: 0; font-size: 15.5px; font-weight: 800; color: #111827; overflow-wrap: anywhere; }
+.rbk .rb-card .cn em { flex: none; font-style: normal; font-size: 18px; font-weight: 900; color: #111827; }
+.rbk .rb-card .cn em small { margin-left: 1px; font-size: 11px; font-weight: 500; color: #9CA3AF; }
+.rbk .rb-card .cno { padding-top: 6px; border-top: 1px solid #EEF0F3; font-size: 12px; font-weight: 700; color: #B4531F; }
+.rbk .rb-card .ct { display: grid; grid-template-columns: minmax(0, 1fr) 32px; gap: 0 6px; align-items: center; padding-top: 6px; border-top: 1px solid #EEF0F3; }
+.rbk .rb-card .ct + .ct { border-top: 0; padding-top: 2px; }
+.rbk .rb-card .tn { font-size: 12.5px; font-weight: 700; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rbk .rb-card .tp { grid-column: 1; font-size: 11.5px; color: #6B7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rbk .rb-card .ic { position: relative; z-index: 2; grid-row: 1 / span 2; grid-column: 2; width: 32px; height: 32px; border-radius: 50%; background: #EAF0FC; display: grid; place-items: center; }
+.rbk .rb-card .ic svg { width: 15px; height: 15px; fill: none; stroke: #2B5BC6; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.rbk .rb-card .nop .tp { color: #C4C8CF; }
+.rbk .rb-card .nop .ic { z-index: 0; background: #F4F6F9; }
+.rbk .rb-card .nop .ic svg { stroke: #D1D5DB; }
 .rbk .rb-ft { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 24px; padding: 14px 0 20px; border-top: 1px solid #EEF0F3; font-size: 11.5px; color: #9CA3AF; }
 .rbk .rb-ft a { color: var(--accent, #1F7A55); font-weight: 700; text-decoration: none; }
 

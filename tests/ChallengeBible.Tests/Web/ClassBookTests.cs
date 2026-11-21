@@ -135,4 +135,29 @@ public partial class ClassBookTests : IClassFixture<WebApplicationFactory<Progra
         using var raw = InMemoryDb.Raw(_db);
         Assert.Null(raw.People.Single(x => x.Id == _kidB).BirthMonth);
     }
+
+    [Fact]
+    public void R361_처음_화면은_새친구반_학년_기타_순서로_묶고_카드에는_짧은_반_이름()
+    {
+        BookClass C(int id, string name, bool nc = false) => new(id, name, nc, [], 0);
+        var g = RosterBookService.Group([C(1, "믿음반"), C(2, "2학년 1반"), C(3, "1학년 2반"), C(4, "새친구반", true), C(5, "1학년 1반")]);
+        Assert.Equal(["new", "g1", "g2", "etc"], g.Select(x => x.Key));
+        Assert.Equal(["새친구반", "1학년", "2학년", "기타"], g.Select(x => x.Title));
+        Assert.Equal(["2반", "1반"], g[1].Classes.Select(x => x.Short));   // 반 순서는 그대로
+        Assert.Equal("반", RosterBookService.Group([C(1, "믿음반")]).Single().Title);   // 학년 반이 없으면 "반"
+    }
+
+    [Fact]
+    public async Task R361_반_카드에_담임_이름_전화번호_전화_버튼()
+    {
+        var c = await Login("teacher@example.com");
+        var home = WebUtility.HtmlDecode(await c.GetStringAsync("/kids/classbook"));
+        Assert.Contains("박선생 선생님", home);
+        Assert.Contains("010-1111-2222", home);
+        Assert.Contains("href=\"tel:01011112222\"", home);
+        Assert.Contains($"href=\"/kids/classbook/{_c1}\"", home);
+        Assert.DoesNotContain("빠짐", home);   // 확정 시안 교적부-A: 빠짐 · 생일 딱지는 처음 화면에 없다
+        Assert.Contains("\"n\":\"이바다\"", Regex.Unescape(home));   // 칠 때마다 바로 찾기용 명단
+        Assert.DoesNotContain("탈퇴함", Regex.Unescape(home));
+    }
 }
