@@ -106,7 +106,7 @@ public partial class BirthdayListTests : IClassFixture<WebApplicationFactory<Pro
         Assert.DoesNotContain("최별", text);   // D-46 → 30일 밖
         Assert.DoesNotContain("탈퇴함", text);
         Assert.Contains("최별", Text(await t.GetStringAsync("/kids/birthdays?Days=60")));
-        Assert.DoesNotContain("선물 사기 · 전하기는 선물 관리", html);   // 선물 관리 바로가기는 관리자만(R-352) — 이 사람은 교사
+        Assert.DoesNotContain("선물 사기 · 전하기는 선물 처리", html);   // 선물 관리 바로가기는 관리자만(R-352) — 이 사람은 교사
     }
 
     [Fact]
@@ -190,7 +190,10 @@ public partial class BirthdayListTests : IClassFixture<WebApplicationFactory<Pro
         Assert.Contains("선택 전", text);   // 2026-11-21 "고르는 중" → "선택 전"
         Assert.Contains("링크 없음", text);
         Assert.Contains("선물 선택", text);
-        Assert.Contains("선물 안 주기", text);
+        Assert.Contains("링크 복사", text);
+        Assert.Contains("카톡으로 보내기", text);   // 2026-11-21 사용자
+        Assert.DoesNotContain("선물 안 주기", text);   // [선물 안 주기] · [새 링크] · [다시 주기]는 없앴다
+        Assert.DoesNotContain("새 링크", text);
         Assert.DoesNotContain("건너뛰기", text);
 
         var sheet = await t.GetStringAsync($"/kids/birthdays?pick={gid}");
@@ -218,16 +221,24 @@ public partial class BirthdayListTests : IClassFixture<WebApplicationFactory<Pro
     }
 
     [Fact]
-    public async Task R345_선물_안_주기와_다시_주기()
+    public async Task R345_안_주기_다시_주기_새_링크는_없고_카톡으로_보내기_창이_열린다()
     {
         var (gid, _) = SeedOpenGift();
         var t = await Login("teacher@example.com");
         var page = await t.GetStringAsync("/kids/birthdays");
-        await t.PostAsync("/kids/birthdays?handler=Skip&Tab=up", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["gift"] = gid.ToString(), ["skip"] = "true" }));
-        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(GiftStates.Skipped, raw.Gifts.Single(x => x.Id == gid).State);
-        var html = Text(await t.GetStringAsync("/kids/birthdays"));
-        Assert.Contains("안 주기로 함", html);
-        Assert.Contains("다시 주기", html);
+        Assert.DoesNotContain("handler=Skip", page);   // 2026-11-21 사용자: 없앴다
+        Assert.DoesNotContain("다시 주기", Text(page));
+        var r = await t.PostAsync("/kids/birthdays?handler=Skip&Tab=up", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["gift"] = gid.ToString(), ["skip"] = "true" }));
+        Assert.NotEqual(HttpStatusCode.Redirect, r.StatusCode);   // 처리 길 자체가 없다
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(GiftStates.Open, raw.Gifts.Single(x => x.Id == gid).State);
+
+        // [카톡으로 보내기]: 링크를 만들고 보내기 창을 연다 — 창에 휴대폰 공유 버튼
+        var res = await t.PostAsync("/kids/birthdays?handler=Link&Tab=up", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["gift"] = gid.ToString() }));
+        var box = await t.GetStringAsync(res.Headers.Location!.OriginalString);
+        Assert.Contains("data-share=", box);
+        Assert.Contains("카톡으로 보내기", box);
+        Assert.Matches(@"/js/share\.[A-Za-z0-9_]+\.js", box);   // share.js(버전 붙은 이름)
+        Assert.Contains("링크만 복사", box);
     }
 
     [Fact]

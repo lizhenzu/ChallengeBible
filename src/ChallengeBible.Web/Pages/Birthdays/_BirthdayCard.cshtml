@@ -2,7 +2,7 @@
 @using ChallengeBible.Web.Services
 @using ChallengeBible.Infrastructure.Data
 @* 생일 카드(확정 시안 생일카드-선물, ADR 0122): 처음부터 펼친 카드 — D-day · 사진 · 이름[수정] · 계정 · 반 · 전화 · 출석 · 담임 · 선물(상태 · 링크 · 고른 상품)
-   · [선물 선택](선생님이 대신) · [링크 복사] · [새 링크] · [선물 안 주기]. 교사 · 관리자 모두 *@
+   · [선물 선택](선생님이 대신) · [링크 복사] · [카톡으로 보내기](2026-11-21 사용자: [새 링크] · [선물 안 주기] · [다시 주기]는 없앴다). 교사 · 관리자 모두 *@
 @{
     var r = Model.Row;
     var pg = Model.Page;
@@ -62,7 +62,8 @@
                 {
                     <a class="btn p sm wide" href="@pg.Back(pick: g.Id)#pick">🎁 선물 선택(선생님이 골라 주기)</a>
                     <form method="post" asp-antiforgery="true" action="@($"/{slug}/birthdays?handler=Link&Tab={pg.Current}&Days={pg.Days}&M={pg.M}")"><input type="hidden" name="gift" value="@g.Id" /><button type="submit" class="btn s sm">링크 복사</button></form>
-                    @if (g.HasLink) { <form method="post" asp-antiforgery="true" action="@($"/{slug}/birthdays?handler=Link&Tab={pg.Current}&Days={pg.Days}&M={pg.M}")"><input type="hidden" name="gift" value="@g.Id" /><input type="hidden" name="fresh" value="true" /><button type="submit" class="btn s sm">새 링크</button></form> }
+                    @* 카톡으로 보내기(2026-11-21 사용자): 링크를 만들고 보내기 창을 연다 — 창의 [카톡으로 보내기]에서 휴대폰 공유 창 *@
+                    <form method="post" asp-antiforgery="true" action="@($"/{slug}/birthdays?handler=Link&Tab={pg.Current}&Days={pg.Days}&M={pg.M}")"><input type="hidden" name="gift" value="@g.Id" /><button type="submit" class="btn kakao sm">💬 카톡으로 보내기</button></form>
                 }
                 else if (g.State == GiftStates.Picked)
                 {
@@ -70,14 +71,6 @@
                     <button type="button" class="btn s sm" data-copy="@g.ItemName">상품명 복사</button>
                 }
                 else if (g.State is GiftStates.Purchased or GiftStates.Delivered) { <a class="bdc-go" href="/@slug/admin/gifts">@(g.State == GiftStates.Purchased ? "선물 처리에서 전해요 →" : "받은 선물 보기 →")</a> }
-                @if (g.State is GiftStates.Open or GiftStates.Expired or GiftStates.Picked)
-                {
-                    <form method="post" asp-antiforgery="true" action="@($"/{slug}/birthdays?handler=Skip&Tab={pg.Current}&Days={pg.Days}&M={pg.M}")" onsubmit="return confirm('이번 생일 선물을 안 주기로 할까요? [다시 주기]로 되돌릴 수 있어요.')"><input type="hidden" name="gift" value="@g.Id" /><input type="hidden" name="skip" value="true" /><button type="submit" class="btn s sm no">선물 안 주기</button></form>
-                }
-                @if (g.State == GiftStates.Skipped)
-                {
-                    <form method="post" asp-antiforgery="true" action="@($"/{slug}/birthdays?handler=Skip&Tab={pg.Current}&Days={pg.Days}&M={pg.M}")"><input type="hidden" name="gift" value="@g.Id" /><input type="hidden" name="skip" value="false" /><button type="submit" class="btn s sm">다시 주기</button></form>
-                }
             </div>
         }
     }

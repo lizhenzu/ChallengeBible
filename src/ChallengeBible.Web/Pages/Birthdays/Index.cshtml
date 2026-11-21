@@ -50,7 +50,7 @@
             <div class="bdy-sec"><b>@title</b><span>@(title.StartsWith("🎂") ? b.Today.ToString("M월 d일", ko) + " · " : "")@(rows.Count)명</span></div>
             @foreach (var r in rows) { <partial name="_BirthdayCard" model="(r, false, Model)" /> }
         }
-        @if (Model.Tenant.IsAdmin) { <a class="bdy-go" href="/@slug/admin/gifts">선물 사기 · 전하기는 선물 관리 →</a> }
+        @if (Model.Tenant.IsAdmin) { <a class="bdy-go" href="/@slug/admin/gifts">선물 사기 · 전하기는 선물 처리 →</a> }
     }
     else if (Model.Current == IndexModel.MonthTab)
     {
@@ -169,14 +169,16 @@
             <div class="go-sheet">
                 <b id="linkT">@sh.View.Name @sh.View.KindLabel 링크</b>
                 <input class="in num" readonly value="@sh.Url" aria-label="선물 링크" onclick="this.select()" />
-                <small>카톡으로 부모님께 보내 주세요. 로그인 없이 열려요. 안내글에는 무엇을 하면 되는지 · 기한 · 링크가 함께 들어 있어요.</small>
+                <small>[카톡으로 보내기]를 누르면 휴대폰 공유 창에서 카톡을 골라 보내요(컴퓨터는 안내글이 복사돼요). 로그인 없이 열려요. 안내글에는 무엇을 하면 되는지 · 기한 · 링크가 함께 들어 있어요.</small>
                 <details class="go-prev"><summary>보낼 안내글 미리 보기</summary><pre>@sh.Text</pre></details>
+                <button type="button" class="btn go-kakao" data-share="@sh.Text">💬 카톡으로 보내기</button>
                 <div class="go-row2"><button type="button" class="btn s" data-copy="@sh.Url">링크만 복사</button><button type="button" class="btn p" data-copy="@sh.Text">안내글 복사</button></div>
                 <a class="btn s go-close" href="@Model.Back()#g@(sh.View.Id)">닫기</a>
             </div>
         </div>
     }
 </div></main>
+<script src="~/js/share.js" asp-append-version="true" defer></script>
 <script>
     // 선물 고르기: 누르면 그 자리에서 "이 선물로 할까요?"(JS 가 없으면 바로 고른다)
     (() => {

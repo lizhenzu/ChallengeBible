@@ -156,7 +156,7 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
     }
 
     [Fact]
-    public async Task R287_관리자가_링크를_만들면_로그인_없이_고르고_새_링크면_옛_링크는_막힌다()
+    public async Task R287_관리자가_링크를_만들면_로그인_없이_고르고_틀린_링크는_막힌다()
     {
         var admin = await Login("admin@example.com");
         var pick = await admin.GetStringAsync("/kids/admin/gifts?s=pick");
@@ -180,9 +180,10 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
         Assert.Contains("준비 중이에요", await parent.GetStringAsync($"/gift/{token}"));
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(BirthdayGiftService.LinkActor, raw.GiftLogs.Where(l => l.GiftId == id && l.Action == GiftActions.Pick).Single().ActorUserName);
 
-        await Post(admin, "/kids/admin/gifts?s=pick", "/kids/admin/gifts?handler=Link", new() { ["id"] = id.ToString(), ["fresh"] = "true", ["s"] = "buy" });
-        Assert.NotEqual(token, GiftOf("박서윤").LinkToken);
-        Assert.Contains("열 수 없는 링크예요", await parent.GetStringAsync($"/gift/{token}"));
+        await Post(admin, "/kids/admin/gifts?s=pick", "/kids/admin/gifts?handler=Link", new() { ["id"] = id.ToString(), ["fresh"] = "true", ["s"] = "buy" });   // [새 링크]는 없앴다 — fresh 를 보내도 링크는 그대로
+        Assert.Equal(token, GiftOf("박서윤").LinkToken);
+        Assert.Contains("data-share=", await admin.GetStringAsync($"/kids/admin/gifts?s=buy&link={id}"));   // 보내기 창에 [카톡으로 보내기](고른 뒤라 살 것)
+        Assert.DoesNotContain("새 링크", await admin.GetStringAsync("/kids/admin/gifts?s=pick"));
         Assert.Contains("열 수 없는 링크예요", await parent.GetStringAsync("/gift/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
 
         await Post(admin, "/kids/admin/gifts?s=buy", "/kids/admin/gifts?handler=Move", new() { ["id"] = id.ToString(), ["act"] = "Purchase", ["s"] = "buy" });
@@ -193,17 +194,12 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
     }
 
     [Fact]
-    public async Task R288_건너뛰기는_취소에서_되돌리고_기한이_지나면_다시_열기_7일()
+    public async Task R288_기한이_지나면_다시_열기_7일_안_주기는_없다()
     {
         var admin = await Login("admin@example.com");
-        await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        var pick = await admin.GetStringAsync("/kids/admin/gifts?s=pick");
+        Assert.DoesNotContain("handler=Skip", pick);   // 2026-11-21 사용자: [선물 안 주기] · [다시 주기] 없앰
         var id = GiftOf("김하준").Id;
-        await Post(admin, "/kids/admin/gifts?s=pick", "/kids/admin/gifts?handler=Skip", new() { ["id"] = id.ToString(), ["skip"] = "true" });
-        Assert.Equal(GiftStates.Skipped, GiftOf("김하준").State);
-        Assert.Contains("안 주기로 함", await admin.GetStringAsync("/kids/admin/gifts?s=cancel"));   // 2026-11-20 사용자: 건너뛰기 → 선물 안 주기
-        Assert.DoesNotContain("생일 선물을 골라요", await (await Login("hajun@example.com")).GetStringAsync("/kids"));
-        await Post(admin, "/kids/admin/gifts?s=cancel", "/kids/admin/gifts?handler=Skip", new() { ["id"] = id.ToString(), ["skip"] = "false" });
-        Assert.Equal(GiftStates.Open, GiftOf("김하준").State);
 
         _time.Now = new DateTimeOffset(2027, 1, 26, 0, 0, 0, TimeSpan.Zero);   // 기한(1월 25일) 지남
         Assert.Contains("기한 지남", await admin.GetStringAsync("/kids/admin/gifts?s=pick"));
