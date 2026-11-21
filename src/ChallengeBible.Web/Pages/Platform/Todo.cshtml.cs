@@ -6,22 +6,19 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace ChallengeBible.Web.Pages.Platform;
 
-/// <summary>`/platform/todo` 플랫폼 관리자의 오늘 할 일(ADR 0100, 확정 시안 오늘할일 ③): 내 할 일(처리) + 부서 현황(보기만) + 공통 규칙(누가 보나).</summary>
+/// <summary>`/platform/todo` 플랫폼 관리자의 오늘 할 일(ADR 0100, 확정 시안 오늘할일 ③): 내 할 일(처리)만. 부서 현황은 `DeptTodoStatus`, 공통 규칙은 `TodoRules` (2026-11-21 사용자: 쪼갬).</summary>
 [Authorize(Policy = CurrentUser.PlatformAdminPolicy)]
-public class TodoModel(PlatformTodoService todo, TodoRuleService rules, LeaveService leave) : PageModel, ITitled
+public class TodoModel(PlatformTodoService todo, LeaveService leave) : PageModel, ITitled
 {
     public string Title => "오늘 할 일";
     public IReadOnlyList<PlatformTodo> Mine { get; private set; } = [];
-    public IReadOnlyList<PlatformTodoDept> Depts { get; private set; } = [];
-    public IReadOnlyDictionary<string, IReadOnlyList<string>> Common { get; private set; } = new Dictionary<string, IReadOnlyList<string>>();
     [TempData] public string? Msg { get; set; }
     /// <summary>모든 부서의 기다리는 탈퇴 신청(ADR 0119).</summary>
     public IReadOnlyList<LeaveRow> Leaves { get; private set; } = [];
 
     public async Task OnGetAsync(CancellationToken ct)
     {
-        (Mine, Depts) = await todo.GetAsync(User.UserName()!, ct);
-        Common = await rules.CommonAsync(User.UserName()!, ct);
+        (Mine, _) = await todo.GetAsync(User.UserName()!, ct);
         Leaves = await leave.ListAsync(User.UserName()!, null, ct);
     }
 
@@ -42,14 +39,5 @@ public class TodoModel(PlatformTodoService todo, TodoRuleService rules, LeaveSer
     {
         await todo.SnoozeAsync(User.UserName()!, days, ct);
         return Redirect("/platform");
-    }
-
-    /// <summary>공통 규칙 저장(플랫폼 관리자): 부서가 "공통 규칙 따름"이면 이 값.</summary>
-    public async Task<IActionResult> OnPostRulesAsync(CancellationToken ct)
-    {
-        var map = TodoKinds.All.ToDictionary(k => k, k => (IReadOnlyList<string>)Request.Form[$"r_{k}"].OfType<string>().ToList());
-        await rules.SaveCommonAsync(User.UserName()!, map, ct);
-        Msg = "공통 규칙을 저장했어요.";
-        return Redirect("/platform/todo#rules");
     }
 }
