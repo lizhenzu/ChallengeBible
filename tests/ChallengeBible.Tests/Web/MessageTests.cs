@@ -51,6 +51,13 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
         r2.SaveChanges();
     }
 
+    /// <summary>1:1 쪽지 한 통(인명 검색 [쪽지]와 같은 서비스 길).</summary>
+    private async Task Dm(string from, string to, string body)
+    {
+        using var scope = _app.Services.CreateScope();
+        Assert.Equal(MsgError.None, await scope.ServiceProvider.GetRequiredService<MessageService>().SendAsync(from, to, body, null, CancellationToken.None));
+    }
+
     private void Add(string key, string name, Tenant t, string role)
     {
         var a = InMemoryDb.SeedAccount(_db, key + "@example.com", name);
@@ -84,7 +91,8 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
     {
         var cs = await Login("cheolsu@example.com");
         await cs.GetAsync("/kids");
-        Assert.Equal(HttpStatusCode.Redirect, (await Post(cs, "/messages/write", "/messages/write", new() { ["To"] = _u["minji"], ["Body"] = "민지야 안녕!" })).StatusCode);   // 다른 부서 학생에게도(제한 없음)
+        Assert.NotEqual(HttpStatusCode.Redirect, (await Post(cs, "/messages/write", "/messages/write", new() { ["To"] = _u["minji"], ["Body"] = "민지야 안녕!" })).StatusCode);   // R-359: 학생은 쓰기 화면에서 처음 쪽지를 못 보낸다
+        await Dm(_u["cheolsu"], _u["minji"], "민지야 안녕!");   // 처음 쪽지는 인명 검색 [쪽지]와 같은 길(서비스) — 1:1 쪽지 자체는 그대로
         long id;
         using (var raw = InMemoryDb.Raw(_db)) { var m = raw.Messages.Single(); id = m.Id; Assert.Equal((MessageKinds.Direct, _u["cheolsu"], _u["minji"], "유년부 · 학생"), (m.Kind, m.SenderUserName, m.RecipientUserName, m.SenderLabel ?? "")); }
         var sent = await cs.GetStringAsync("/messages?box=sent");
@@ -116,7 +124,7 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
 
         // 로그인 다시 안 해도 새 쪽지가 오면 홈을 새로 열 때(F5) 팝업 한 번 — 같은 쪽지로는 다시 안 뜬다(2026-11-17 사용자)
         Assert.DoesNotContain("data-mpop", await mj.GetStringAsync("/elem"));
-        await Post(cs, "/messages/write", "/messages/write", new() { ["To"] = _u["minji"], ["Body"] = "또 왔어요" });
+        await Dm(_u["cheolsu"], _u["minji"], "또 왔어요");
         var f5 = await mj.GetStringAsync("/elem");
         Assert.Contains("data-mpop", f5);
         Assert.Contains("또 왔어요", f5);
@@ -126,7 +134,7 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
 
         // [3일 후]: 그 날까지 새 쪽지가 와도 팝업 · 띠가 안 뜬다(오늘 = 2027-01-05)
         var req = new HttpRequestMessage(HttpMethod.Get, "/elem");
-        await Post(cs, "/messages/write", "/messages/write", new() { ["To"] = _u["minji"], ["Body"] = "세 번째" });
+        await Dm(_u["cheolsu"], _u["minji"], "세 번째");
         req.Headers.Add("Cookie", $"{MsgPopup.SnoozeCookie}={Uri.EscapeDataString(_u["minji"])}:2027-01-08");
         var snoozed = await (await mj.SendAsync(req)).Content.ReadAsStringAsync();
         Assert.DoesNotContain("data-mpop", snoozed);
@@ -220,16 +228,35 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
     }
 
     [Fact]
-    public async Task R328_받는_사람은_이름으로_찾고_이름_부서_역할만_보인다()
+    public async Task R359_쓰기는_단체쪽지_교사만_부서_전체에게_답장은_보낸_선생님에게만()
     {
         var cs = await Login("cheolsu@example.com");
-        await cs.GetAsync("/kids");
-        var page = await cs.GetStringAsync("/messages/write?Q=" + Uri.EscapeDataString("박민"));
-        Assert.Contains("<b>박민지</b><small>초등부 · 학생</small>", page);
-        Assert.DoesNotContain("minji@example.com", page);
-        Assert.DoesNotContain("박민지</b><small>" + _u["minji"], page);
-        Assert.DoesNotContain("<b>김철수</b><small>", page);   // 나는 빠진다
-        if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(page, "52-쪽지쓰기-찾기");
+        var student = await cs.GetStringAsync("/messages/write");
+        Assert.Contains("단체쪽지는 선생님만 보낼 수 있어요", student);
+        Assert.DoesNotContain("id=\"ms-w\"", student);   // 쓰기 칸이 없다
+        Assert.DoesNotContain("/messages/write\"", await cs.GetStringAsync("/messages"));   // [단체쪽지 쓰기] 버튼도 없다
+        Assert.DoesNotContain("박민지", await cs.GetStringAsync("/messages/write?Q=" + Uri.EscapeDataString("박민")));   // 이름으로 찾기는 없다(인명 검색으로)
+
+        var t = await Login("eunhye@example.com");
+        Assert.Contains("단체쪽지 쓰기", await t.GetStringAsync("/messages"));
+        var w = System.Net.WebUtility.HtmlDecode(await t.GetStringAsync("/messages/write"));
+        Assert.Contains("받는 사람: <b>유년부 전체</b>", w);
+        Assert.Equal(HttpStatusCode.Redirect, (await Post(t, "/messages/write", "/messages/write", new() { ["Tid"] = _kids.Id.ToString(), ["Body"] = "이번 주 예배는 9시예요" })).StatusCode);
+        long id;
+        using (var raw = InMemoryDb.Raw(_db)) { var m = raw.Messages.Single(); id = m.Id; Assert.Equal((MessageKinds.Broadcast, _u["eunhye"]), (m.Kind, m.SenderUserName)); Assert.Equal(_kids.Id, raw.MessageTargets.Single().TenantId); }
+        var inbox = await cs.GetStringAsync("/messages");
+        Assert.Contains("이번 주 예배는 9시예요", inbox);
+        Assert.Contains("<span class=\"bc\">단체</span>", inbox);   // 받은 목록 "단체" 꼬리표
+        Assert.DoesNotContain("이번 주 예배는 9시예요", await (await Login("minji@example.com")).GetStringAsync("/messages"));   // 다른 부서에는 안 간다
+        Assert.NotEqual(HttpStatusCode.Redirect, (await Post(t, "/messages/write", "/messages/write", new() { ["Tid"] = _elem.Id.ToString(), ["Body"] = "남의 부서" })).StatusCode);   // 내 부서만
+
+        // 답장은 보낸 선생님에게만
+        Assert.Equal(HttpStatusCode.Redirect, (await Post(cs, $"/messages/write?reply={id}", "/messages/write", new() { ["Reply"] = id.ToString(), ["To"] = _u["minji"], ["Body"] = "네 선생님!" })).StatusCode);
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(_u["eunhye"], raw.Messages.Single(m => m.Body == "네 선생님!").RecipientUserName);   // To 를 바꿔도 보낸 사람에게
+
+        // 보낸 선생님은 [보내기 취소]
+        await Post(t, "/messages?box=sent", "/messages?handler=Cancel", new() { ["id"] = id.ToString() });
+        Assert.DoesNotContain("이번 주 예배는 9시예요", await cs.GetStringAsync("/messages"));
     }
 
     [Fact]
@@ -286,5 +313,37 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
         Assert.Contains("superadmin", to);
         Assert.DoesNotContain(_u["eadmin"], to);   // 다른 부서 관리자는 안 받는다
         Assert.DoesNotContain(_u["eunhye"], to);   // 관리자 아닌 교사도 안 받는다
+    }
+
+    // R-358: 인명 검색 — 교사 · 관리자만, 유년부 /AddressBook 과 같은 검색 · 쪽지
+
+    [Fact]
+    public async Task R358_인명_검색은_교사만_2글자부터_이_부서_사람을_찾고_한_사람에게_쪽지()
+    {
+        var cs = await Login("cheolsu@example.com");
+        Assert.Equal(HttpStatusCode.NotFound, (await cs.GetAsync("/kids/people")).StatusCode);   // 학생은 못 본다(개인정보)
+        Assert.DoesNotContain("href=\"/kids/people\"", await cs.GetStringAsync("/kids"));
+
+        var t = await Login("eunhye@example.com");
+        var page = await t.GetStringAsync("/kids/people");
+        Assert.Contains("이름 또는 아이디 (2글자부터)", page);
+        Assert.Contains("/js/people.", page);
+        Assert.Contains("href=\"/kids/people\"", await t.GetStringAsync("/kids"));   // ☰ 섬김 · 교사
+
+        Assert.Contains("\"items\":[]", await t.GetStringAsync("/kids/people?handler=Search&q=" + Uri.EscapeDataString("철")));   // 1글자는 빈 결과
+        var hit = Regex.Unescape(await t.GetStringAsync("/kids/people?handler=Search&q=" + Uri.EscapeDataString("김철")));   // JSON 의 \uXXXX 를 풀어서
+        Assert.Contains("\"fullName\":\"김철수\"", hit);
+        Assert.Contains($"\"userName\":\"{_u["cheolsu"]}\"", hit);
+        Assert.Contains("\"student\":true", hit);
+        Assert.DoesNotContain("박민지", Regex.Unescape(await t.GetStringAsync("/kids/people?handler=Search&q=" + Uri.EscapeDataString("박민"))));   // 다른 부서 사람은 안 나온다
+
+        var form = new Dictionary<string, string> { ["ToUserName"] = _u["cheolsu"], ["MessageText"] = "철수야 잘 지내지?" };
+        var r = await Post(t, "/kids/people", "/kids/people?handler=Send", form);
+        Assert.Contains("\"ok\":true", await r.Content.ReadAsStringAsync());
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal((MessageKinds.Direct, _u["eunhye"], _u["cheolsu"]), raw.Messages.Where(m => m.Body == "철수야 잘 지내지?").Select(m => new { m.Kind, m.SenderUserName, m.RecipientUserName }).AsEnumerable().Select(m => (m.Kind, m.SenderUserName!, m.RecipientUserName!)).Single());
+        var other = await Post(t, "/kids/people", "/kids/people?handler=Send", new() { ["ToUserName"] = _u["minji"], ["MessageText"] = "다른 부서" });
+        Assert.Contains("\"ok\":false", await other.Content.ReadAsStringAsync());   // 이 부서 명부의 계정에게만
+        var big = await Post(t, "/kids/people", "/kids/people?handler=Send", new() { ["ToUserName"] = _u["cheolsu"], ["MessageText"] = new string('가', 501) });
+        Assert.Contains("\"ok\":false", await big.Content.ReadAsStringAsync());   // 500자까지
     }
 }

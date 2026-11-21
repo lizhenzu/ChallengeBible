@@ -1,4 +1,4 @@
-@page "/messages/{id:long}"
+﻿@page "/messages/{id:long}"
 @model ChallengeBible.Web.Pages.Messages.ReadModel
 @using ChallengeBible.Web.Services
 @{
@@ -13,7 +13,7 @@
     <a class="ms-back" href="/messages@(Model.Mine ? "?box=sent" : "")">← @(Model.Mine ? "보낸 쪽지" : "받은 쪽지")</a>
     <article class="ms-view">
         <div class="hd"><span class="av @(r.System || r.Anonymous || av == "관리" ? "sys" : null)">@av</span>
-            <b>@(Model.Mine ? (r.Broadcast ? $"받는 사람: {r.Target}" : $"받는 사람: {r.Who}") : r.Who)@if (r.Broadcast) { <span class="bc">전체</span> }</b>
+            <b>@(Model.Mine ? (r.Broadcast ? $"받는 사람: {r.Target}" : $"받는 사람: {r.Who}") : r.Who)@if (r.Broadcast) { <span class="bc">단체</span> }</b>
             <small>@(r.Broadcast && !Model.Mine ? $"{r.Target}에 보냄" : r.Where ?? (r.Anonymous ? "" : "")) @(r.Feedback ? (r.Anonymous ? "· 개선 · 익명" : "· 개선") : "") · @at.ToString("M월 d일 HH:mm")</small></div>
         <div class="body">@r.Body</div>
         @if (Model.Mine && !r.Broadcast) { <p class="ms-st">@(r.Read ? "상대가 읽었어요." : "아직 읽지 않았어요.")</p> }

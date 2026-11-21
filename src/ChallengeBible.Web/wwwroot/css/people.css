@@ -1,0 +1,90 @@
+/* 인명 검색(R-358, 확정 시안 인명검색) — 유년부 /AddressBook 과 같은 모양. 모든 이름은 pb- 접두어(site.css 와 겹치지 않게) */
+.pbk { color: #374151; }
+.pbk .pb-sh { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+.pbk .pb-hide { display: none !important; }
+
+/* 검색 — 스크롤해도 위에 붙음(머리말 아래) */
+.pbk .pb-tools { position: sticky; top: 60px; z-index: 15; background: #fff; border-bottom: 1px solid #EEF0F3; }
+.pbk .pb-tools .pb-sh { padding-top: 10px; padding-bottom: 10px; }
+.pbk .pb-srch { display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 18px; border-radius: 999px; background: #F4F6F9; }
+.pbk .pb-srch:focus-within { box-shadow: 0 0 0 2px #CFE0FA; }
+.pbk .pb-srch input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; font-size: 16px; color: #111827; }
+.pbk .pb-srch input::placeholder { color: #9CA3AF; }
+.pbk .pb-srch button { border: 0; background: none; color: #9CA3AF; font: inherit; font-size: 12.5px; font-weight: 700; padding: 6px; cursor: pointer; }
+.pbk .pb-srch button:hover { color: var(--accent, #2F80ED); }
+.pbk .pb-spin { width: 16px; height: 16px; border: 2px solid #E5E7EB; border-top-color: var(--accent, #2F80ED); border-radius: 50%; animation: pb-spin .8s linear infinite; }
+@keyframes pb-spin { to { transform: rotate(360deg); } }
+.pbk .pb-seg { display: flex; gap: 6px; margin-top: 8px; }
+.pbk .pb-seg button { flex: 1; font: inherit; font-size: 13px; padding: 8px 2px; border: 0; border-radius: 999px; background: #F4F6F9; color: #6B7280; cursor: pointer; }
+.pbk .pb-seg button:hover { color: var(--accent, #2F80ED); }
+.pbk .pb-seg button.on { background: var(--accent, #2F80ED); color: #fff; font-weight: 800; }
+.pbk .pb-seg b { font-weight: 700; }
+
+/* 최근 검색 · 안내 */
+.pbk .pb-recent { margin-top: 22px; }
+.pbk .pb-recent .t { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 800; color: #111827; }
+.pbk .pb-recent .t button { border: 0; background: none; font: inherit; font-size: 12px; font-weight: 700; color: var(--accent, #2F80ED); cursor: pointer; padding: 0; }
+.pbk .pb-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.pbk .pb-chips button { font: inherit; font-size: 13.5px; padding: 7px 14px; border: 0; border-radius: 999px; background: #F4F6F9; color: #374151; cursor: pointer; }
+.pbk .pb-chips button:hover { color: var(--accent, #2F80ED); }
+.pbk .pb-guide { margin-top: 22px; padding: 14px 16px; border-radius: 12px; background: #F4F6F9; font-size: 13px; line-height: 1.85; color: #6B7280; }
+.pbk .pb-guide b { color: #111827; }
+.pbk .pb-guide a { color: var(--accent, #2F80ED); font-weight: 700; }
+
+/* 결과 */
+.pbk .pb-cnt { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 16px; padding-bottom: 4px; font-size: 12.5px; color: #9CA3AF; }
+.pbk .pb-cnt b { color: #111827; font-weight: 800; }
+.pbk .pb-cnt .more { color: #B4531F; }
+.pbk .pb-list { display: grid; grid-template-columns: minmax(0, 1fr); border-top: 1px solid #EEF0F3; }
+.pbk .pb-p { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid #EEF0F3; }
+.pbk .pb-ph { flex: none; width: 52px; height: 52px; border-radius: 50%; background: #EAF2FD; overflow: hidden; display: grid; place-items: center; font-weight: 800; color: #2B5FA8; font-size: 15px; }
+.pbk .pb-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pbk .pb-bd { flex: 1; min-width: 0; }
+.pbk .pb-nm { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; }
+.pbk .pb-nm b { font-size: 17px; font-weight: 800; color: #111827; }
+.pbk .pb-nm mark { background: #EAF2FD; color: #2B5FA8; border-radius: 4px; padding: 0 1px; }
+.pbk .pb-tg { font-size: 11px; font-weight: 700; padding: 1px 9px; border-radius: 999px; background: #F4F6F9; color: #6B7280; white-space: nowrap; }
+.pbk .pb-tg.st { background: #EAF2FD; color: #2B5FA8; }
+.pbk .pb-tg.bd { background: #FBEFE7; color: #B4531F; }
+.pbk .pb-tg.sent { background: #EAF2FD; color: #2B5FA8; }
+.pbk .pb-kv { margin: 6px 0 0; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 3px 8px; font-size: 13.5px; }
+.pbk .pb-kv dt { color: #9CA3AF; }
+.pbk .pb-kv dd { margin: 0; color: #111827; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.pbk .pb-kv dd.no { color: #D1D5DB; }
+.pbk .pb-call { margin-left: 6px; padding: 1px 9px; border-radius: 999px; background: #EAF2FD; color: #2B5FA8; font-size: 11px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.pbk .pb-call:hover { background: #DCEAFC; }
+.pbk .pb-act { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.pbk .pb-act a, .pbk .pb-act button { display: inline-flex; align-items: center; padding: 8px 14px; border: 0; border-radius: 999px; background: #F4F6F9; color: #6B7280; font: inherit; font-size: 12.5px; font-weight: 700; text-decoration: none; cursor: pointer; }
+.pbk .pb-act a:hover, .pbk .pb-act button:hover { color: var(--accent, #2F80ED); }
+.pbk .pb-act .pri { background: var(--accent, #2F80ED); color: #fff; font-weight: 800; }
+.pbk .pb-act .pri:hover { color: #fff; filter: brightness(.95); }
+.pbk .pb-msg { padding: 44px 0; text-align: center; font-size: 14px; color: #9CA3AF; }
+.pbk .pb-ft { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 24px; padding: 14px 0 40px; border-top: 1px solid #EEF0F3; font-size: 11.5px; color: #9CA3AF; }
+
+/* 쪽지 보내기 — 아래에서 올라옴 */
+.pbk .pb-scrim { position: fixed; inset: 0; z-index: 950; background: rgba(17, 24, 39, .45); opacity: 0; pointer-events: none; transition: opacity .18s; }
+.pbk .pb-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 960; max-width: 640px; margin: 0 auto; background: #fff; border-radius: 20px 20px 0 0;
+  padding: 10px 20px calc(18px + env(safe-area-inset-bottom)); transform: translateY(105%); transition: transform .22s ease; }
+.pb-open .pbk .pb-scrim { opacity: 1; pointer-events: auto; }
+.pb-open .pbk .pb-sheet { transform: none; }
+.pbk .pb-grab { width: 40px; height: 4px; border-radius: 999px; background: #E5E7EB; margin: 0 auto 12px; }
+.pbk .pb-shH { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.pbk .pb-shH b { font-size: 19px; font-weight: 800; color: #111827; }
+.pbk .pb-shH small { display: block; margin-top: 2px; font-size: 12.5px; color: #9CA3AF; }
+.pbk .pb-shX { flex: none; padding: 6px 14px; border: 0; border-radius: 999px; background: #F4F6F9; color: #6B7280; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.pbk .pb-sheet textarea { width: 100%; min-height: 140px; margin-top: 12px; padding: 12px 16px; border: 0; border-radius: 12px; background: #F4F6F9; font: inherit; font-size: 15px; line-height: 1.7; color: #111827; resize: vertical; outline: none; }
+.pbk .pb-sheet textarea:focus { box-shadow: 0 0 0 2px #CFE0FA; }
+.pbk .pb-shF { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; }
+.pbk .pb-shF span { font-size: 12px; color: #9CA3AF; }
+.pbk .pb-send { position: relative; height: 46px; padding: 0 26px; border: 0; border-radius: 999px; background: var(--accent, #2F80ED); color: #fff; font: inherit; font-size: 14.5px; font-weight: 800; cursor: pointer; }
+.pbk .pb-send:disabled { cursor: progress; }
+.pbk .pb-send.busy { color: transparent; }
+.pbk .pb-send.busy::after { content: ""; position: absolute; top: 50%; left: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border: 2px solid rgba(255, 255, 255, .35); border-top-color: #fff; border-radius: 50%; animation: pb-spin .8s linear infinite; }
+.pbk .pb-shErr { min-height: 18px; margin-top: 6px; font-size: 12.5px; color: #B4531F; }
+
+.pbk .pb-toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 990; transform: translate(-50%, 12px); opacity: 0; pointer-events: none; max-width: calc(100% - 32px);
+  padding: 11px 20px; border-radius: 999px; background: #111827; color: #fff; font-size: 13.5px; transition: opacity .18s, transform .18s; }
+.pbk .pb-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.pbk .pb-toast.bad { background: #B4531F; }
+/* 브라우저 기본 검색 지우기(×)는 숨긴다 — [지우기] 하나만(유년부와 같다) */
+.pbk .pb-srch input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
