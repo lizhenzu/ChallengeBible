@@ -134,4 +134,16 @@ public partial class StaffTests : IClassFixture<WebApplicationFactory<Program>>
         using var after = InMemoryDb.Raw(_db);
         Assert.False(after.ClassMembers.Any(m => m.PersonId == _t2));
     }
+
+    [Fact]
+    public async Task 부서_메뉴판의_부서_관리는_맨_아래_관리_묶음에()
+    {
+        var a = await Login("admin@example.com");
+        var html = WebUtility.HtmlDecode(await a.GetStringAsync("/kids"));
+        var nav = html[html.IndexOf("<nav aria-label=\"메뉴\">")..];
+        var g = nav.IndexOf("<h2 class=\"tdr-g\">관리</h2>");
+        Assert.True(g > nav.IndexOf("사진첩"), "관리 묶음은 함께하기 뒤");
+        Assert.True(nav.IndexOf("href=\"/kids/admin\"") > g, "부서 관리는 관리 묶음 안");
+        Assert.True(nav.IndexOf("href=\"/kids/admin\"") > nav.IndexOf("인명 검색"));
+    }
 }

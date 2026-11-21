@@ -28,8 +28,7 @@
                 @if (t.IsStaff) { @DrawerUi.Row($"/{s}/attendance", "att", "b", "출석", "주일 출석 체크 · 보고서", Cur($"/{s}/attendance")) }
                 @if (ChallengeBible.Web.Pages.ClassBook.IndexModel.CanUse(t)) { @DrawerUi.Row($"/{s}/classbook", "book", "g", "교적부", "반별 아이 정보 보기", Cur($"/{s}/classbook")) }   @* R-361: 교사 · 관리자만 *@
                 @if (ChallengeBible.Web.Pages.People.IndexModel.CanUse(t)) { @DrawerUi.Row($"/{s}/people", "search", "b", "인명 검색", "이름 · 아이디로 찾기 · 전화 · 문자 · 쪽지", Cur($"/{s}/people")) }   @* R-358: [부서 관리] · [명부] 바로 위 *@
-                @if (t.IsAdmin) { @DrawerUi.Row($"/{s}/admin", "gear", "s", "부서 관리", "소속 · 반 · 부서 · 반 이동 · 설정", Cur($"/{s}/admin"), badge: DrawerUi.Admin) }
-                else if (teacher) { @DrawerUi.Row($"/{s}/admin/members", "people", "s", "명부", "우리 부서 사람들", Cur($"/{s}/admin/members")) }
+                @if (!t.IsAdmin && teacher) { @DrawerUi.Row($"/{s}/admin/members", "people", "s", "명부", "우리 부서 사람들", Cur($"/{s}/admin/members")) }
             }
             @if (!lobby && t.IsApproved)
             {
@@ -41,6 +40,12 @@
             <h2 class="tdr-g">함께하기</h2>
             @DrawerUi.Row("/messages", "msg", "v", "단체쪽지", "받은 쪽지 · 부서 전체에 보내기", Cur("/messages"))   @* 2026-11-21 사용자: 메뉴 이름 "단체쪽지"(R-359) *@
             @if (!lobby) { @DrawerUi.Row($"/{s}/album", "photo", "o", "사진첩", "부서 행사 사진", Cur($"/{s}/album")) }   @* ADR 0118 *@
+            @if (!lobby && t.IsAdmin)
+            {
+                @* 2026-11-21 사용자: [부서 관리]는 맨 아래 "관리" 묶음으로(확정 시안 부서관리-메뉴위치) *@
+                <h2 class="tdr-g">관리</h2>
+                @DrawerUi.Row($"/{s}/admin", "gear", "s", "부서 관리", "소속 · 반 · 부서 · 반 이동 · 설정", Cur($"/{s}/admin"), badge: DrawerUi.Admin)
+            }
             @if (lobby || User.IsPlatformAdmin()) { <h2 class="tdr-g">다른 곳</h2> }   @* "내 정보" 묶음은 없앴다 — 내 계정은 머리에서(2026-11-21) *@
             @if (lobby) { @DrawerUi.Row("/join", "join", "g", "내 부서 참여", "다니는 부서에 참여 신청", Cur("/join")) }
             @if (User.IsPlatformAdmin()) { @DrawerUi.Row("/platform", "platform", "v", "플랫폼", "모든 부서 관리", Cur("/platform")) }
