@@ -25,16 +25,35 @@ w("SET NOCOUNT ON;")
 w("DECLARE @L TABLE (n int IDENTITY(1,1) PRIMARY KEY, s nvarchar(max));")
 w("DECLARE @sa TABLE (Id nvarchar(450) PRIMARY KEY);")
 w("INSERT @sa SELECT DISTINCT ur.UserId FROM [Identity].[UserRoles] ur JOIN [Identity].[Role] r ON r.Id = ur.RoleId WHERE r.NormalizedName = N'SUPERADMIN';")
+# 역할(2026-11-21 사용자 "부장 · 부감 · 서기 같은 역할이 다 빠져서 온다"): 여러 곳에서 후보를 모아 "특별한 역할 먼저"로 하나를 고른다.
+#   후보: DeptRoleUserAssoc(계정) · view_All_Person_2026(반 배정에 적힌 역할) · [계정 없는 사람만] 담임 T1002 · 반 있음 T1001
+#   순서: 임원(지도 · 부장 · 부감 · 서기 · 회계 · 교장) → 봉사(보조 · 지원 · 율동 · 촬영 · 영상 · 반주 · 스텝) → 교사 → 새친구 → 학생 → 그 밖 → 기타(T1099)
+RANK = ("CASE WHEN {c} IN (N'T1004', N'T1005', N'T1006', N'T1008', N'T1009', N'T1040') THEN 1"
+        " WHEN {c} IN (N'T1010', N'T1013', N'T1015', N'T1016', N'T1017', N'T1018', N'T1019') THEN 2"
+        " WHEN {c} IN (N'T1002', N'T1003') THEN 3 WHEN {c} = N'T1020' THEN 4 WHEN {c} = N'T1001' THEN 5 WHEN {c} = N'T1099' THEN 7 ELSE 6 END")
+w("DECLARE @cand TABLE (PersonId int NULL, UserId nvarchar(450) NULL, RoleCode nvarchar(50) NOT NULL, Src tinyint NOT NULL);")
+w("""INSERT @cand (PersonId, UserId, RoleCode, Src)
+SELECT pm.PersonId, d.UserId, LTRIM(RTRIM(d.RoleCode)), 1
+FROM dbo.DeptRoleUserAssoc d LEFT JOIN [Identity].[User] u ON u.Id = d.UserId LEFT JOIN dbo.PersonMaster_2026 pm ON pm.UserName = u.UserName
+WHERE d.UserId IS NOT NULL AND NULLIF(LTRIM(RTRIM(d.RoleCode)), N'') IS NOT NULL;""")
+w("""INSERT @cand (PersonId, UserId, RoleCode, Src)
+SELECT ap.PersonId, COALESCE(NULLIF(LTRIM(RTRIM(ap.userid)), N''), u.Id), LTRIM(RTRIM(ap.RoleCode)), 2
+FROM dbo.view_All_Person_2026 ap LEFT JOIN dbo.PersonMaster_2026 pm ON pm.PersonId = ap.PersonId LEFT JOIN [Identity].[User] u ON u.UserName = pm.UserName
+WHERE NULLIF(LTRIM(RTRIM(ap.RoleCode)), N'') IS NOT NULL;""")
 w("DECLARE @role TABLE (UserId nvarchar(450) PRIMARY KEY, RoleCode nvarchar(50));")
-w("INSERT @role SELECT UserId, RoleCode FROM (SELECT UserId, RoleCode, ROW_NUMBER() OVER (PARTITION BY UserId ORDER BY CASE WHEN RoleCode = N'T1099' THEN 1 ELSE 0 END, updateDT DESC, Id DESC) k FROM dbo.DeptRoleUserAssoc WHERE UserId IS NOT NULL AND NULLIF(LTRIM(RTRIM(RoleCode)), N'') IS NOT NULL) x WHERE k = 1;")
+w("INSERT @role SELECT UserId, RoleCode FROM (SELECT UserId, RoleCode, ROW_NUMBER() OVER (PARTITION BY UserId ORDER BY " + RANK.format(c='RoleCode') + ", Src) k FROM @cand WHERE UserId IS NOT NULL) x WHERE k = 1;")
 w("DECLARE @users TABLE (Id nvarchar(450) PRIMARY KEY, UserName nvarchar(256));")
 w("INSERT @users SELECT u.Id, u.UserName FROM [Identity].[User] u WHERE u.Id NOT IN (SELECT Id FROM @sa) AND NULLIF(LTRIM(RTRIM(u.UserName)), N'') IS NOT NULL;")
 w("DECLARE @teach TABLE (Pid int PRIMARY KEY);")
 w("INSERT @teach SELECT DISTINCT Pid FROM (SELECT TeacherPersonId Pid FROM dbo.ClassTeacherMap_2026 WHERE IsActive = 1 UNION SELECT SubTeacherPersonId FROM dbo.ClassTeacherMap_2026 WHERE IsActive = 1 AND SubTeacherPersonId IS NOT NULL) t;")
+w("INSERT @cand (PersonId, UserId, RoleCode, Src) SELECT Pid, NULL, N'T1002', 3 FROM @teach;")
+w("INSERT @cand (PersonId, UserId, RoleCode, Src) SELECT DISTINCT PersonID, NULL, N'T1001', 4 FROM dbo.ClassInfo_2026 WHERE PersonID IS NOT NULL;")
+w("DECLARE @prole TABLE (PersonId int PRIMARY KEY, RoleCode nvarchar(50));")
+w("INSERT @prole SELECT PersonId, RoleCode FROM (SELECT PersonId, RoleCode, ROW_NUMBER() OVER (PARTITION BY PersonId ORDER BY " + RANK.format(c='RoleCode') + ", Src) k FROM @cand WHERE PersonId IS NOT NULL) x WHERE k = 1;")
 w("DECLARE @people TABLE (Pid int PRIMARY KEY, Name nvarchar(50), UserName nvarchar(256), RoleCode nvarchar(50), BM tinyint, BD tinyint, Ph1 nvarchar(20), Ph2 nvarchar(20));")
 w("""INSERT @people
 SELECT p.PersonId, LEFT(LTRIM(RTRIM(p.fullName)), 50), NULLIF(LTRIM(RTRIM(p.UserName)), N''),
-       COALESCE(CASE WHEN p.PersonId IN (SELECT Pid FROM @teach) THEN N'T1002' END, r.RoleCode, CASE WHEN EXISTS (SELECT 1 FROM dbo.ClassInfo_2026 c WHERE c.PersonID = p.PersonId) THEN N'T1001' END, N'T1099'),
+       COALESCE(r.RoleCode, pr.RoleCode, N'T1099'),
        CASE WHEN p.bMonth BETWEEN 1 AND 12 AND p.bDay BETWEEN 1 AND 31 THEN p.bMonth END, CASE WHEN p.bMonth BETWEEN 1 AND 12 AND p.bDay BETWEEN 1 AND 31 THEN p.bDay END,
        LEFT(CASE WHEN x.p1 NOT LIKE N'%[^0-9]%' AND LEN(x.p1) = 11 THEN STUFF(STUFF(x.p1, 8, 0, N'-'), 4, 0, N'-') ELSE x.p1 END, 20),
        LEFT(CASE WHEN x.p2 NOT LIKE N'%[^0-9]%' AND LEN(x.p2) = 11 THEN STUFF(STUFF(x.p2, 8, 0, N'-'), 4, 0, N'-') ELSE x.p2 END, 20)
@@ -42,6 +61,7 @@ FROM dbo.PersonMaster_2026 p
 CROSS APPLY (SELECT NULLIF(LTRIM(RTRIM(CONVERT(nvarchar(100), p.PhoneNumber))), N'') p1, NULLIF(LTRIM(RTRIM(p.PhoneNumber2)), N'') p2) x
 LEFT JOIN [Identity].[User] au ON au.UserName = p.UserName
 LEFT JOIN @role r ON r.UserId = au.Id
+LEFT JOIN @prole pr ON pr.PersonId = p.PersonId
 WHERE NULLIF(LTRIM(RTRIM(p.fullName)), N'') IS NOT NULL
   AND (au.Id IS NULL OR au.Id NOT IN (SELECT Id FROM @sa));""")
 w("DECLARE @cls TABLE (Y int, B int, Name nvarchar(50), PRIMARY KEY (Y, B));")
