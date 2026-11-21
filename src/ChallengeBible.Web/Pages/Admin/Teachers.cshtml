@@ -22,7 +22,7 @@
     @if (Model.Msg is { } m) { <p class="st-msg @(Model.Bad ? "bad" : "")" role="status">@m</p> }
     <div class="st-sum"><span>교사<b>@teacherCount</b></span><span>반<b>@regular</b></span>@if (noTeacher > 0) { <span class="w">담임 없는 반<b>@noTeacher</b></span> }</div>
 
-    <div class="st-sec"><b>반별 담임</b><small>칩을 누르면 빼기 · 다른 반으로</small></div>
+    <div class="st-sec"><b>반별 담임</b><small>이름을 누르면 바꾸기 · 다른 반으로 · 빼기</small></div>
     @foreach (var c in b.Classes)
     {
         <div class="st-cls">

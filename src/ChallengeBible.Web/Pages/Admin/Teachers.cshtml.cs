@@ -23,6 +23,7 @@ public class TeachersModel(ClassService classes, TenantContext tenant) : PageMod
 
     public Task<IActionResult> OnPostAddAsync(int classId, int personId, CancellationToken ct) => Done(classes.AddAsync(classId, [personId], teacher: true, ct), "넣었어요");
     public Task<IActionResult> OnPostRemoveAsync(int classId, int personId, CancellationToken ct) => Done(classes.RemoveAsync(classId, personId, ct), "뺐어요");
+    public Task<IActionResult> OnPostReplaceAsync(int classId, int oldId, int newId, CancellationToken ct) => Done(classes.ReplaceTeacherAsync(classId, oldId, newId, ct), "바꿨어요");
     public Task<IActionResult> OnPostMoveAsync(int fromId, int toId, int personId, CancellationToken ct) => Done(classes.MoveTeacherAsync(fromId, toId, personId, ct), "옮겼어요");
 
     private async Task<IActionResult> Done(Task<ClassError> work, string ok)

@@ -146,4 +146,34 @@ public partial class StaffTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.True(nav.IndexOf("href=\"/kids/admin\"") > g, "부서 관리는 관리 묶음 안");
         Assert.True(nav.IndexOf("href=\"/kids/admin\"") > nav.IndexOf("인명 검색"));
     }
+
+    [Fact]
+    public async Task R362_담임을_다른_선생님으로_바꾸면_원래_선생님은_반이_없는_교사로()
+    {
+        var a = await Login("admin@example.com");
+        await Post(a, "/kids/admin/teachers", "Replace", new() { ["classId"] = _c1.ToString(), ["oldId"] = _t1.ToString(), ["newId"] = _t2.ToString() });
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            Assert.True(raw.ClassMembers.Any(m => m.ClassId == _c1 && m.PersonId == _t2 && m.IsTeacher));
+            Assert.False(raw.ClassMembers.Any(m => m.PersonId == _t1));
+        }
+        await Post(a, "/kids/admin/teachers", "Replace", new() { ["classId"] = _c1.ToString(), ["oldId"] = _t2.ToString(), ["newId"] = _kid.ToString() });   // 학생으로는 안 됨 → 그대로
+        using var after = InMemoryDb.Raw(_db);
+        Assert.True(after.ClassMembers.Any(m => m.ClassId == _c1 && m.PersonId == _t2 && m.IsTeacher));
+        Assert.False(after.ClassMembers.Any(m => m.PersonId == _kid));
+    }
+
+    [Fact]
+    public async Task R362_봉사_기타_새친구도_한_줄_칸으로_보이고_바꿀_수_있다()
+    {
+        var a = await Login("admin@example.com");
+        var page = WebUtility.HtmlDecode(await a.GetStringAsync("/kids/admin/officers"));
+        foreach (var code in new[] { "T1017", "T1018", UserRole.EtcCode, "T1020" })
+            Assert.Matches($"class=\"st-slot[^\"]*\" data-act=\"slot\" data-code=\"{code}\"", page);
+        await Post(a, "/kids/admin/officers", "Role", new() { ["personId"] = _t2.ToString(), ["code"] = "T1017" });   // 한교사 → 영상
+        await Post(a, "/kids/admin/officers", "Role", new() { ["personId"] = _kid.ToString(), ["code"] = "T1020" });  // 이학생 → 새친구
+        using var raw = InMemoryDb.Raw(_db);
+        Assert.Equal("T1017", raw.People.Single(p => p.Id == _t2).RoleCode);
+        Assert.Equal("T1020", raw.People.Single(p => p.Id == _kid).RoleCode);
+    }
 }
