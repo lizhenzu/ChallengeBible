@@ -5,13 +5,14 @@
     if (Model.Frag) { Layout = null; }
     var L = Model.List!;
     var searching = !string.IsNullOrEmpty(L.Q);
+    string ShortDept(string? n) => (n ?? "").Replace("잠실새내교회", "").Trim();   // 2026-11-21: 부서 이름 앞의 교회 이름은 뺀다
 
     void Row(SwitchRow r, bool showDept)
     {
         var me = r.UserName.Equals(Model.Me, StringComparison.OrdinalIgnoreCase);
         <!form method="post" action="/account/impersonate/switch" class="sw-p@(me ? " me" : "")@(r.Blocked ? " off" : "")">@Html.AntiForgeryToken()
             <span class="sw-av" aria-hidden="true">@Initial(r.Name)</span>
-            <span class="sw-who"><b>@r.Name</b><small>@if (showDept && r.TenantName is not null) { <em>@r.TenantName</em><text> · </text> }@if (r.Admin) { <i class="sw-t ad">관리자</i> }<i class="sw-t @r.Kind">@r.RoleLabel</i>@(r.ClassText is null ? "" : r.ClassText + " · ")@r.UserName</small></span>
+            <span class="sw-who"><b>@r.Name</b><small>@if (showDept && r.TenantName is not null) { <em>@ShortDept(r.TenantName)</em><text> · </text> }@if (r.Admin) { <i class="sw-t ad">관리자</i> }<i class="sw-t @r.Kind">@r.RoleLabel</i>@(r.ClassText is null ? "" : r.ClassText + " · ")@r.UserName</small></span>
             @if (me) { <span class="sw-go now">지금</span> }
             else if (r.Blocked) { <span class="sw-go now">들어갈 수 없음</span> }
             else
@@ -40,7 +41,7 @@
         <nav class="sw-chips" aria-label="부서">
             @foreach (var d in L.Depts)
             {
-                <a href="@Model.Url(d.Id)" data-sw aria-current="@(d.Id == L.Dept ? "true" : null)">@d.Name</a>
+                <a href="@Model.Url(d.Id)" data-sw aria-current="@(d.Id == L.Dept ? "true" : null)">@ShortDept(d.Name)</a>
             }
         </nav>
     }
@@ -57,7 +58,7 @@
         <div class="sw-lbl">최근에 본 사람</div>
         <div class="sw-list">@foreach (var r in L.Recent) { Row(r, true); }</div>
     }
-    <div class="sw-lbl">@(searching ? $"\"{L.Q}\" 찾은 사람" : (L.Depts.FirstOrDefault(d => d.Id == L.Dept)?.Name ?? "") + " · 이름 순")</div>
+    <div class="sw-lbl">@(searching ? $"\"{L.Q}\" 찾은 사람" : ShortDept(L.Depts.FirstOrDefault(d => d.Id == L.Dept)?.Name) + " · 이름 순")</div>
     @if (L.Rows.Count == 0) { <p class="sw-none">맞는 사람이 없어요.</p> }
     else
     {
