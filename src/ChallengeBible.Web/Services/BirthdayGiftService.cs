@@ -51,12 +51,12 @@ public sealed class BirthdayGiftService(IAppDb db, ISystemDb systemDb, RequestSc
         _ => false,
     };
 
-    /// <summary>가장 최근 반 묶음에서 학생으로 반에 든 명부 줄(R-350).</summary>
-    public static async Task<HashSet<int>> PlacedAsync(AppDbContext ctx, CancellationToken ct)
-    {
-        var term = await ctx.ClassTerms.OrderByDescending(t => t.Id).Select(t => (int?)t.Id).FirstOrDefaultAsync(ct);
-        return term is int tid ? (await ctx.ClassMembers.AsNoTracking().Where(m => m.TermId == tid && !m.IsTeacher).Select(m => m.PersonId).ToListAsync(ct)).ToHashSet() : [];
-    }
+    /// <summary>
+    /// 학생으로 반에 든 명부 줄(R-350). 반 묶음이 여러 개여도(반 화면은 첫 묶음, 예전 이관 · 새해 초기화는 새 묶음) 어느 묶음이든
+    /// 학생으로 든 적이 있으면 반에 든 것으로 본다 — 묶음이 달라 "아무도 안 보이는" 일이 없게.
+    /// </summary>
+    public static async Task<HashSet<int>> PlacedAsync(AppDbContext ctx, CancellationToken ct) =>
+        (await ctx.ClassMembers.AsNoTracking().Where(m => !m.IsTeacher).Select(m => m.PersonId).Distinct().ToListAsync(ct)).ToHashSet();
 
     private int T => tenant.Current.Id;
     private DateOnly Today => clock.Today(tenant.Current.TimeZoneId);
