@@ -17,7 +17,7 @@
             <nav class="tt-depts" aria-label="부서">
                 @foreach (var d in Model.Depts)
                 {
-                    <a class="tt-chip @(d == Model.Dept ? "on" : "")" href="/test-tools/login?t=@d.TenantId" aria-current="@(d == Model.Dept ? "page" : null)">@d.Name</a>
+                    <a class="tt-chip @(d == Model.Dept ? "on" : "")" href="/test-tools/login?t=@d.TenantId" aria-current="@(d == Model.Dept ? "page" : null)">@d.Name.Replace("잠실새내교회", "").Trim()</a>
                 }
             </nav>
             @foreach (var g in Model.Dept!.Logins.GroupBy(l => l.Scenario.Group))
