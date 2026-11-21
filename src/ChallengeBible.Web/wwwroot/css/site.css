@@ -4709,3 +4709,14 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .gkc .gkc-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .gkc .gkc-two button { padding: 13px 4px; border-radius: 12px; border: 1px solid #D1D5DB; background: #fff; color: #111827; font-size: 15px; font-weight: 800; cursor: pointer; }
 .gkc .gkc-two .gkc-yes { background: #DC2626; border-color: #DC2626; color: #fff; }
+
+/* 일반 ☰ 머리말(_GenTop, 2026-11-21 확정 시안 생일메뉴) — gt- 접두어 */
+.gt-top { position: sticky; top: 0; z-index: 20; background: var(--bg, #fff); border-bottom: 1px solid var(--rule, #E5E7EB); }
+.gt-top .wrap { max-width: 760px; display: flex; align-items: center; gap: 10px; min-height: 60px; }
+.gt-top .gt-t { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 6px; white-space: nowrap; overflow: hidden; }
+.gt-top .gt-brand { flex: none; font-size: 13px; font-weight: 700; color: var(--dim, #6B7280); }
+.gt-top .gt-brand em { font-style: normal; font-weight: 900; color: var(--accent, #1F7A55); }
+.gt-top .gt-sep { flex: none; font-size: 13px; color: var(--dim, #6B7280); }
+.gt-top .gt-t b { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 16px; font-weight: 800; }
+.gt-top .gt-home { flex: none; font-size: 14px; font-weight: 800; color: var(--accent, #1F7A55); text-decoration: none; }
+.bdc.bdc-lite .bdc-me { margin-top: 0; }

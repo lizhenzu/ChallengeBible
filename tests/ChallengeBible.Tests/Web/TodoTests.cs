@@ -136,8 +136,8 @@ public partial class TodoTests : IClassFixture<WebApplicationFactory<Program>>
         // 관리 머리말(확정 시안 관리-햄버거): 가로 탭 대신 ☰ 메뉴판, 제목 = 지금 화면
         Assert.Contains("data-pnav-open", hit);
         Assert.DoesNotContain("class=\"wrap wide tabs\"", hit);
-        Assert.Contains("<span class=\"pt-brand\"><em>도전!!!</em>성경말씀</span>", hit);
-        Assert.Contains("<b>선물</b>", hit);
+        Assert.Contains("<span class=\"gt-brand\"><em>도전!!!</em>성경말씀</span>", hit);   // 일반 ☰ 머리말(2026-11-21)
+        Assert.Contains("<b>선물 관리</b>", hit);
         Assert.Contains("href=\"/kids/admin/gifts\" aria-current=\"page\"", hit);
         await GiftMove(admin, id, "Purchase");
         var after = await boo.GetStringAsync("/kids/todo");

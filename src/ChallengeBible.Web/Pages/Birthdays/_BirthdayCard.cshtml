@@ -13,6 +13,16 @@
     string Short(string n) { var b = n.Length > 1 ? n[1..] : n; return b.Length > 2 ? b[..2] : b; }
     var g = d?.Gift;
 }
+@if (!pg.Staff)
+{
+    @* 일반 사용자(R-352): 이름 · 생일 · 반만 — 전화 · 출석 · 담임 · 선물 · 수정은 없다 *@
+    <article class="bdc bdc-lite @(today ? "today" : "")">
+        <div class="bdc-d">@if (Model.InMonth) { <b>@(r.Day)일</b><span>@(today ? "오늘" : $"D-{r.DaysLeft}")</span> } else { <b>@(today ? "오늘" : $"D-{r.DaysLeft}")</b><span>@r.Next.ToString("M. d (ddd)", ko)</span> }</div>
+        <div class="bdc-me"><span class="av">@Short(r.Name)</span>
+            <div class="nm"><div class="n"><b>@r.Name</b></div><div class="s">@r.Next.ToString("M월 d일", ko)@if (r.ClassText is { } lc) { <text> · </text><em>@lc</em> }</div></div></div>
+    </article>
+    return;
+}
 <article class="bdc @(today ? "today" : "")" id="@(g is null ? "p" + r.PersonId : "g" + g.Id)">
     <div class="bdc-d">@if (Model.InMonth) { <b>@(r.Day)일</b><span>@(today ? "오늘" : $"D-{r.DaysLeft}")</span> } else { <b>@(today ? "오늘" : $"D-{r.DaysLeft}")</b><span>@r.Next.ToString("M. d (ddd)", ko)</span> }</div>
     <div class="bdc-me">

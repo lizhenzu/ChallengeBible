@@ -1,0 +1,13 @@
+@model (ChallengeBible.Web.Tenancy.TenantContext Tenant, string Title)
+@inject ChallengeBible.Web.Services.PhotoService Photos
+@using ChallengeBible.Web.Auth
+@* 일반 ☰ 메뉴판을 쓰는 부서 화면의 한 줄 머리말(2026-11-21 사용자, 확정 시안 생일메뉴): ☰ · "도전!!!성경말씀 > 화면 이름" · [홈으로]. 메뉴판은 부서 홈과 같은 _TenantDrawer *@
+@{ var gtPhoto = await Photos.FileOfAsync(User.UserName() ?? ""); }
+<header class="gt-top gut"><div class="wrap">
+    <button type="button" class="pmenu-btn gt-menu" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
+    </button>
+    <div class="gt-t"><span class="gt-brand"><em>도전!!!</em>성경말씀</span><span class="gt-sep" aria-hidden="true">&gt;</span><b>@Model.Title</b></div>
+    <a class="gt-home" href="/@Model.Tenant.Current.Slug">홈으로</a>
+</div></header>
+<partial name="_TenantDrawer" model="(Model.Tenant, gtPhoto)" />

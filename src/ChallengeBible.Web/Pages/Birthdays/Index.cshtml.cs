@@ -7,12 +7,12 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace ChallengeBible.Web.Pages.Birthdays;
 
 /// <summary>
-/// `/{slug}/birthdays` 생일(ADR 0121, R-344, 확정 시안 생일-시안): 교사 · 관리자만. 탭 = 다가오는(기본, 7 · 14 · 30 · 60일) · 월별(달력 · 명단) · 연간(인쇄) · 생일 없음(바로 넣기).
+/// `/{slug}/birthdays` 생일자 보기(ADR 0121, R-344 · R-352, 확정 시안 생일-시안 · 생일메뉴): 부서 사람 모두 — 일반 사용자는 이름 · 생일 · 반만, 교사 · 관리자는 상세 · 선물. 탭 = 다가오는(기본, 7 · 14 · 30 · 60일) · 월별(달력 · 명단) · 연간(인쇄) · 생일 없음(바로 넣기).
 /// 선물은 상태만 — 사기 · 전하기는 관리 › 선물 처리.
 /// </summary>
 public class IndexModel(BirthdayListService birthdays, BirthdayGiftService gifts, TenantContext tenant) : PageModel, ITitled
 {
-    public string Title => "생일";
+    public string Title => "생일자 보기";
     public const string Up = "up", MonthTab = "month", YearTab = "year", None = "none";
 
     [BindProperty(SupportsGet = true)] public string? Tab { get; set; }
@@ -39,13 +39,20 @@ public class IndexModel(BirthdayListService birthdays, BirthdayGiftService gifts
     public string Current => Tab is MonthTab or YearTab or None ? Tab : Up;
     public bool CalendarView => V != "list";
 
-    /// <summary>교사 · 관리자만(R-344): 부서 관리자, 교사 꼬리표, 역할이 교사인 사람.</summary>
-    public static bool CanSee(TenantContext t) => !t.IsLobby && t.IsApproved && (t.IsStaff || UserRole.KindOf(t.RoleCode) == UserRoleKind.Teacher);
+    /// <summary>생일자 보기(R-352, 2026-11-21 사용자): 이 부서에 든 사람 모두(임시 부서 · 로그인 안 함은 아님).</summary>
+    public static bool CanView(TenantContext t) => !t.IsLobby && t.IsApproved;
+
+    /// <summary>상세 · 선물 버튼 · 생일 없음 탭(R-344 · R-352): 교사 · 관리자만 — 부서 관리자, 교사 꼬리표, 역할이 교사인 사람.</summary>
+    public static bool CanSee(TenantContext t) => CanView(t) && (t.IsStaff || UserRole.KindOf(t.RoleCode) == UserRoleKind.Teacher);
+
+    /// <summary>이 화면을 보는 사람이 교사 · 관리자인지(아니면 이름 · 생일 · 반만).</summary>
+    public bool Staff => CanSee(tenant);
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        if (!CanSee(tenant)) return NotFound();
-        Board = await birthdays.BoardAsync(User.UserId(), ct, detail: Current is Up or MonthTab);
+        if (!CanView(tenant)) return NotFound();
+        if (!Staff) { Tab = Current == None ? Up : Tab; PickId = null; LinkId = null; }   // 일반 사용자: 생일 없음 탭 · 선물 창 없음
+        Board = await birthdays.BoardAsync(User.UserId(), ct, detail: Staff && (Current == Up || Current == MonthTab));
         if (!BirthdayListService.DayChoices.Contains(Days)) Days = BirthdayListService.DefaultDays;
         if (M is < 1 or > 12) M = Board.Today.Month;
         if (D == 0 && M == Board.Today.Month) D = Board.Today.Day;

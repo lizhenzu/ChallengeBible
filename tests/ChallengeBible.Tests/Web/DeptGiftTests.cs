@@ -74,7 +74,8 @@ public partial class DeptGiftTests : IClassFixture<WebApplicationFactory<Program
         var pen = Item("볼펜");
         Item("노트");
         var c = await Admin("kidsadmin", _kids);
-        Assert.Contains("href=\"/kids/admin/gifts\"", await c.GetStringAsync("/kids/admin"));   // 관리 메뉴 "선물"
+        Assert.Contains("href=\"/kids/admin/gifts\"", await c.GetStringAsync("/kids"));   // 일반 ☰ "생일" 묶음 "선물 관리"(2026-11-21)
+        Assert.DoesNotContain("href=\"/kids/admin/gifts\"", await c.GetStringAsync("/kids/admin/members"));   // 관리 메뉴에서는 뺐다
         var tabs = await c.GetStringAsync("/kids/admin/gifts");
         Assert.Contains(">공통 상품</a>", tabs);
         Assert.Contains(">부서 상품</a>", tabs);

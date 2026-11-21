@@ -1,4 +1,4 @@
-using ChallengeBible.Domain.Rules;
+﻿using ChallengeBible.Domain.Rules;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
@@ -15,7 +15,7 @@ namespace ChallengeBible.Web.Pages.Admin;
 [TenantRoles(Roles.TenantAdmin)]
 public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftOrderService orders, TeamGiftService teamGifts, GiftCostService cost, BirthdayGiftService birthdays, NewcomerGiftService newcomers, ReadingGiftService readings, TenantContext tenant, CopyGiftService copies) : PageModel, ITitled
 {
-    public string Title => "선물";
+    public string Title => "선물 관리";
     public TenantContext Tenant => tenant;
 
     [BindProperty(SupportsGet = true, Name = "t")] public string? Tab { get; set; }

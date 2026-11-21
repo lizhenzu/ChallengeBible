@@ -106,7 +106,7 @@ public partial class BirthdayListTests : IClassFixture<WebApplicationFactory<Pro
         Assert.DoesNotContain("최별", text);   // D-46 → 30일 밖
         Assert.DoesNotContain("탈퇴함", text);
         Assert.Contains("최별", Text(await t.GetStringAsync("/kids/birthdays?Days=60")));
-        Assert.Contains("/kids/admin/gifts", html);   // 선물 처리로만
+        Assert.DoesNotContain("선물 사기 · 전하기는 선물 관리", html);   // 선물 관리 바로가기는 관리자만(R-352) — 이 사람은 교사
     }
 
     [Fact]
@@ -134,14 +134,31 @@ public partial class BirthdayListTests : IClassFixture<WebApplicationFactory<Pro
     }
 
     [Fact]
-    public async Task R344_학생은_못_보고_메뉴도_없다_교사_메뉴와_관리_머리말에는_있다()
+    public async Task R352_생일자_보기는_모두_보지만_학생에게는_이름_날짜_반만_선물_관리는_관리자만()
     {
+        using (var raw = InMemoryDb.Raw(_db)) { raw.People.Single(p => p.Name == "이바다").Phone1 = "010-1111-2222"; raw.SaveChanges(); }
         var kid = await Login("kid@example.com");
-        Assert.Equal(HttpStatusCode.NotFound, (await kid.GetAsync("/kids/birthdays")).StatusCode);
-        Assert.DoesNotContain("/kids/birthdays", await kid.GetStringAsync("/kids"));
+        var page = await kid.GetStringAsync("/kids/birthdays");
+        var text = Text(page);
+        Assert.Contains("이바다", text);
+        Assert.Contains("1월 7일", text);
+        Assert.Contains("1반", text);
+        Assert.DoesNotContain("010-1111-2222", text);   // 전화 없음
+        Assert.DoesNotContain("골랐음", text);   // 선물 상태 없음
+        Assert.DoesNotContain("담임", text);
+        Assert.DoesNotContain("Tab=none", page);   // 생일 없음 탭 없음
+        Assert.Contains("<b>생일자 보기</b>", page);   // 머리말 "도전!!!성경말씀 > 생일자 보기"
+        Assert.Contains("data-pnav-open", page);   // 일반 ☰
+        Assert.DoesNotContain("오하린", Text(await kid.GetStringAsync("/kids/birthdays?Tab=none")));   // 생일 없음은 교사 · 관리자만
+        var home = await kid.GetStringAsync("/kids");
+        Assert.Contains("href=\"/kids/birthdays\"", home);   // 메뉴판 "생일" 묶음: 생일자 보기
+        Assert.DoesNotContain("href=\"/kids/admin/gifts\"", home);   // 선물 관리는 관리자만
+
         var t = await Login("teacher@example.com");
-        Assert.Contains("href=\"/kids/birthdays\"", await t.GetStringAsync("/kids"));
-        Assert.Contains("<b>생일</b>", await t.GetStringAsync("/kids/birthdays"));   // 머리말 "도전!!!성경말씀 > 생일"
+        var tp = Text(await t.GetStringAsync("/kids/birthdays"));
+        Assert.Contains("010-1111-2222", tp);   // 교사는 상세
+        Assert.Contains("골랐음", tp);
+        Assert.DoesNotContain("href=\"/kids/admin/gifts\"", await t.GetStringAsync("/kids"));   // 교사(관리자 아님)
     }
 
     private (long Gift, int Item) SeedOpenGift()

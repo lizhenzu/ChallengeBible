@@ -17,16 +17,16 @@
     }
 }
 <link rel="stylesheet" href="~/css/birthdays.css" asp-append-version="true" />
-<partial name="_AdminTop" model="Model.Tenant" />
+<partial name="_GenTop" model="(Model.Tenant, Model.Title)" />   @* 2026-11-21 사용자(확정 시안 생일메뉴): 일반 ☰ 메뉴판 그대로 *@
 <main class="admin gut w760 bdy"><div class="wrap">
-    <h1 class="bdy-h">생일 <small>명부 @(b.People)명 · 생일 있음 @(b.All.Count)명</small></h1>
+    <h1 class="bdy-h">생일자 보기 @if (Model.Staff) { <small>명부 @(b.People)명 · 생일 있음 @(b.All.Count)명</small> }</h1>
     @if (Model.Msg is { } msg) { <p class="bdy-toast" role="status">✓ @msg</p> }
 
     <nav class="bdy-tabs" aria-label="생일 보기">
         <a href="@U(IndexModel.Up)" aria-current="@(Model.Current == IndexModel.Up ? "page" : "false")">다가오는</a>
         <a href="@U(IndexModel.MonthTab)" aria-current="@(Model.Current == IndexModel.MonthTab ? "page" : "false")">월별</a>
         <a href="@U(IndexModel.YearTab)" aria-current="@(Model.Current == IndexModel.YearTab ? "page" : "false")">연간</a>
-        <a href="@U(IndexModel.None)" aria-current="@(Model.Current == IndexModel.None ? "page" : "false")">생일 없음 <b class="num">@b.Missing.Count</b></a>
+        @if (Model.Staff) { <a href="@U(IndexModel.None)" aria-current="@(Model.Current == IndexModel.None ? "page" : "false")">생일 없음 <b class="num">@b.Missing.Count</b></a> }
     </nav>
 
     @if (Model.Current == IndexModel.Up)
@@ -50,7 +50,7 @@
             <div class="bdy-sec"><b>@title</b><span>@(title.StartsWith("🎂") ? b.Today.ToString("M월 d일", ko) + " · " : "")@(rows.Count)명</span></div>
             @foreach (var r in rows) { <partial name="_BirthdayCard" model="(r, false, Model)" /> }
         }
-        <a class="bdy-go" href="/@slug/admin/gifts">선물 사기 · 전하기는 관리 › 선물 처리 →</a>
+        @if (Model.Tenant.IsAdmin) { <a class="bdy-go" href="/@slug/admin/gifts">선물 사기 · 전하기는 선물 관리 →</a> }
     }
     else if (Model.Current == IndexModel.MonthTab)
     {
