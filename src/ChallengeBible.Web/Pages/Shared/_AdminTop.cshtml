@@ -15,14 +15,11 @@
         (home, "관리 홈", 0),
         ($"/{slug}/admin/members", "소속 관리", 0),
     ];
-    // 생일(ADR 0121): 교사 · 관리자 — 임시 부서는 없음
-    if (!Model.IsLobby) menu = [.. menu, ($"/{slug}/birthdays", "생일", 0)];
+    // 생일 · 선물은 일반 ☰ 메뉴판 "생일" 묶음으로 옮겼다(2026-11-21 사용자: 관리 메뉴는 진짜 관리자 설정만)
     // 반: 관리자만(0093 조직 · 반 9)
     if (Model.IsAdmin && !Model.IsLobby) menu = [.. menu, ($"/{slug}/admin/classes", "반", 0)];
     // 가족팀: 관리자만, 기본 규칙 "가족팀" 스위치가 켜졌을 때만(0012)
     if (Model.IsAdmin && await FamilyTeams.EnabledAsync()) menu = [.. menu, ($"/{slug}/admin/teams", "가족팀", 0)];
-    // 선물: 관리자만, 임시 부서는 없음(ADR 0094, 확정 시안 관리-선물)
-    if (Model.IsAdmin && !Model.IsLobby) menu = [.. menu, ($"/{slug}/admin/gifts", "선물", 0)];
     menu = [.. menu, ($"/{slug}/admin/promotions", "진급", promotionsWaiting)];
     // 탈퇴 신청(ADR 0119, 2026-11-20 사용자: 일반 메뉴판에서 관리 메뉴로 옮김): 부서 관리자만, 기다리는 수 뱃지
     if (Model.IsAdmin && !Model.IsLobby) menu = [.. menu, ($"/{slug}/leaves", "탈퇴 신청", await Leaves.CountAsync(User.UserName()!, Model.Current.Id))];
@@ -31,7 +28,7 @@
     if (Model.Current.ReadingEnabled) menu = [.. menu, ($"/{slug}/admin/reading", "통독 현황", 0)];
     if (Model.IsAdmin) menu = [.. menu, ($"/{slug}/admin/season", "시즌", 0), ($"/{slug}/admin/branding", "이름 · 색", 0), ($"/{slug}/admin/worship", "예배 안내", 0), ($"/{slug}/admin/todo", "할 일", 0)];   // 할 일 · 누가 보나(ADR 0100)
     // 교사(관리자 아님)는 명부만 쓴다(0093)
-    if (!Model.IsAdmin) menu = [($"/{slug}/admin/members", "명부", 0), ($"/{slug}/birthdays", "생일", 0)];
+    if (!Model.IsAdmin) menu = [($"/{slug}/admin/members", "명부", 0)];
     // 관리 홈 주소는 다른 관리 주소의 앞부분이라 정확히 같을 때만 현재 화면으로 본다
     bool Current(string href) => href == home ? path.TrimEnd('/').Equals(home, StringComparison.OrdinalIgnoreCase) : path.StartsWith(href, StringComparison.OrdinalIgnoreCase);
     // 확정 시안 관리-햄버거(2026-11-16 사용자): 가로 탭 대신 ☰ 메뉴판, 묶음별. 머리말 제목 = 지금 화면

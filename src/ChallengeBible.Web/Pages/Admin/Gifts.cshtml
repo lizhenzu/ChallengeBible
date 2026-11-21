@@ -12,9 +12,9 @@
     var c = Model.Counts;
     string Tab(string k) => Model.Tab == k ? "page" : null!;
 }
-<partial name="_AdminTop" model="Model.Tenant" />
+<partial name="_GenTop" model="(Model.Tenant, Model.Title)" />   @* 선물 관리는 일반 ☰ 메뉴판의 "생일" 묶음(2026-11-21 사용자, 확정 시안 생일메뉴) *@
 <main class="admin gut gd"><div class="wrap">
-    <h1>선물</h1>
+    <h1>선물 관리</h1>
     <p class="gd-lead">우리 부서 아이들이 고를 선물과 금액을 정해요.</p>
     <nav class="gd-tabs" aria-label="선물 설정">
         <a href="@self" aria-current="@Tab("orders")">선물 처리</a>

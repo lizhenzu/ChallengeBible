@@ -1,4 +1,4 @@
-@page "/{slug}/admin/gifts/edit/{id:int?}"
+﻿@page "/{slug}/admin/gifts/edit/{id:int?}"
 @model ChallengeBible.Web.Pages.Admin.GiftEditModel
 @using ChallengeBible.Infrastructure.Data
 @* 확정 시안 관리-선물 ②: 부서 상품 등록 · 고치기 — 폼은 플랫폼 상품과 같다(_GiftItemForm) *@
@@ -6,7 +6,7 @@
     var i = Model.Item;
     var own = i is null || i.TenantId == Model.Tenant.Current.Id;
 }
-<partial name="_AdminTop" model="Model.Tenant" />
+<partial name="_GenTop" model="(Model.Tenant, Model.Title)" />   @* 선물 관리는 일반 ☰ 메뉴판의 "생일" 묶음(2026-11-21 사용자, 확정 시안 생일메뉴) *@
 <main class="admin gut gf"><div class="wrap">
     <a class="gf-back" href="@Model.Back">← 부서 상품</a>
     <h1 class="gf-h">@Model.Title

@@ -1,4 +1,4 @@
-@page "/{slug}/admin/gifts/{id:long}"
+﻿@page "/{slug}/admin/gifts/{id:long}"
 @model ChallengeBible.Web.Pages.Admin.GiftOrderModel
 @using ChallengeBible.Web.Services
 @* 확정 시안 관리-선물처리 ③(2026-11-14): 한 건 자세히 — 고른 때의 이름 · 사진 · 금액 그대로(R-295), 이력 최근 순 *@
@@ -8,7 +8,7 @@
     var tz = TimeZoneInfo.FindSystemTimeZoneById(Model.Tenant.Current.TimeZoneId);
     string Local(DateTime utc, string f) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), tz).ToString(f);
 }
-<partial name="_AdminTop" model="Model.Tenant" />
+<partial name="_GenTop" model="(Model.Tenant, Model.Title)" />   @* 선물 관리는 일반 ☰ 메뉴판의 "생일" 묶음(2026-11-21 사용자, 확정 시안 생일메뉴) *@
 <main class="admin gut gd"><div class="wrap go-det">
     <a class="go-back" href="/@slug/admin/gifts?s=@(o.State switch { "Purchased" => "give", "Delivered" => "done", "Cancelled" => "cancel", _ => "buy" })">← 선물 처리</a>
     @if (Model.Message is { } msg) { <p class="ok-box" role="status">@msg</p> }
