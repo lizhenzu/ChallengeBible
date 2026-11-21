@@ -8,7 +8,7 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const ini = n => esc((n || '?').slice(0, 1));
   let opener = null;
-  const open = (t, html, btn) => { title.textContent = t; body.innerHTML = html; dim.hidden = false; document.documentElement.classList.add('st-lock'); opener = btn; setTimeout(() => body.querySelector('input,select,button')?.focus(), 30); };
+  const open = (t, html, btn, tall = true) => { title.textContent = t; body.innerHTML = html; dim.querySelector('.st-sheet').classList.toggle('tall', tall); dim.hidden = false; document.documentElement.classList.add('st-lock'); opener = btn; setTimeout(() => body.querySelector('input,select,button')?.focus(), 30); };
   const close = () => { dim.hidden = true; document.documentElement.classList.remove('st-lock'); opener?.focus(); };
   dim.addEventListener('click', e => { if (e.target === dim || e.target.closest('[data-close]')) close(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !dim.hidden) close(); });
@@ -38,12 +38,14 @@
       if (act === 'chip') {
         const p = ppl.get(pid), c = cls.get(cid); if (!p || !c) return;
         const others = [...cls.values()].filter(x => x.id !== cid);
-        open(`${p.n} — ${c.n}`,
-          `<p class="st-p">${esc(p.l)}${p.ph ? ' · ' + esc(p.ph) : ''}</p>` +
-          (others.length ? `<div class="st-row"><label class="st-lab">다른 반으로<select class="st-sel" data-to>${others.map(x => `<option value="${x.id}">${esc(x.n)}</option>`).join('')}</select></label>` +
-            `<form method="post" action="${base}?handler=Move" data-move data-ask="${esc(p.n)}님을 다른 반으로 옮길까요?"><input type="hidden" name="__RequestVerificationToken" value="${esc(tok)}"><input type="hidden" name="fromId" value="${cid}"><input type="hidden" name="personId" value="${pid}"><input type="hidden" name="toId" value="${others[0].id}"><button type="submit" class="st-go">옮기기</button></form></div>` : '') +
-          `<div class="st-danger">${form('Remove', { classId: cid, personId: pid }, `${c.n}에서 빼기`, 'st-go ghost', `${p.n}님을 ${c.n}에서 뺄까요?`)}</div>`, b);
-        body.querySelector('[data-to]')?.addEventListener('change', ev => { body.querySelector('[data-move] input[name=toId]').value = ev.target.value; });
+        // 2026-11-21 사용자 "상세가 이상하다": 사람 카드 + [다른 반으로 옮기기] 칸 + [이 반에서 빼기] — 내용만큼만 높이, 고르기 칸은 label 로 감싸지 않음(겹 테두리)
+        const opts = others.map(x => `<option value="${x.id}">${esc(x.n)}</option>`).join('');
+        open(`${c.n} ${c.nc ? '담당' : '담임'}`,
+          `<div class="st-card"><span class="st-av" aria-hidden="true">${ini(p.n)}</span><span class="n"><b>${esc(p.n)}</b><small>${esc([p.l, p.ph].filter(Boolean).join(' · '))}</small></span></div>` +
+          (others.length ? `<div class="st-box"><div class="st-box-h" id="stToL">다른 반으로 옮기기</div>` +
+            `<form method="post" action="${base}?handler=Move" class="st-move" data-ask="${esc(p.n)}님을 다른 반으로 옮길까요?"><input type="hidden" name="__RequestVerificationToken" value="${esc(tok)}"><input type="hidden" name="fromId" value="${cid}"><input type="hidden" name="personId" value="${pid}">` +
+            `<select class="st-sel" name="toId" aria-labelledby="stToL">${opts}</select><button type="submit" class="st-go">옮기기</button></form></div>` : '') +
+          `<div class="st-out">${form('Remove', { classId: cid, personId: pid }, `${c.n}에서 빼기`, 'st-go ghost wide', `${p.n}님을 ${c.n}에서 뺄까요?`)}</div>`, b, false);
       } else if (act === 'add') {
         const c = cls.get(cid); if (!c) return;
         // 담임 후보: 반이 없는 교사 · 임원(새친구반 담당은 관리자도) — 서버가 다시 확인한다
