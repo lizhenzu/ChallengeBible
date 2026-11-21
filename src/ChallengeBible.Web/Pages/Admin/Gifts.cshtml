@@ -1,4 +1,4 @@
-﻿@page "/{slug}/admin/gifts"
+﻿@page "/{slug}/admin/gifts/{view:regex(^(common|ours|money|cost)$)?}"
 @model ChallengeBible.Web.Pages.Admin.GiftsModel
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Pages.Admin
@@ -12,17 +12,11 @@
     var c = Model.Counts;
     string Tab(string k) => Model.Tab == k ? "page" : null!;
 }
-<partial name="_GenTop" model="(Model.Tenant, Model.Title)" />   @* 선물 관리는 일반 ☰ 메뉴판의 "생일" 묶음(2026-11-21 사용자, 확정 시안 생일메뉴) *@
+@if (Model.OrdersView) { <partial name="_GenTop" model="(Model.Tenant, Model.Title)" /> }   @* 선물 처리 = 일반 ☰ "생일" 묶음(2026-11-21, 확정 시안 선물분리) *@
+else { <partial name="_AdminTop" model="Model.Tenant" /> }   @* 선물 설정 4화면 = 관리 ☰ "선물 설정" *@
 <main class="admin gut gd"><div class="wrap">
-    <h1>선물 관리</h1>
-    <p class="gd-lead">우리 부서 아이들이 고를 선물과 금액을 정해요.</p>
-    <nav class="gd-tabs" aria-label="선물 설정">
-        <a href="@self" aria-current="@Tab("orders")">선물 처리</a>
-        <a href="@self?t=list" aria-current="@Tab("list")">공통 상품</a>
-        <a href="@self?t=ours" aria-current="@Tab("ours")">부서 상품</a>
-        <a href="@self?t=money" aria-current="@Tab("money")">금액 · 점수</a>
-        <a href="@self?t=cost" aria-current="@Tab("cost")">총비용</a>
-    </nav>
+    <h1>@Model.Title</h1>
+    <p class="gd-lead">@(Model.Tab switch { "list" => "모든 부서가 같이 쓰는 상품이에요. 끄면 우리 부서에서만 숨겨요.", "ours" => "우리 부서만의 상품이에요.", "money" => "선물 종류별 금액 범위와 점수를 정해요.", "cost" => "선물에 든 돈이에요.", _ => "아이들이 고른 선물을 사고 전해요." })</p>
     @if (Model.Message is not null) { <p class="ok-box" role="status">@Model.Message</p> }
 
     @if (Model.Tab == "orders")
@@ -30,7 +24,7 @@
         var oc = Model.OrderCounts;
         string Cur(string k) => Model.Step == k ? "page" : null!;
         <nav class="gd-seg" aria-label="선물 처리">
-            <a href="@self?s=pick" class="@(oc.Pick > 0 ? "go-hot" : "")" aria-current="@Cur("pick")">고르는 중<u class="num">@oc.Pick</u></a>
+            <a href="@self?s=pick" class="@(oc.Pick > 0 ? "go-hot" : "")" aria-current="@Cur("pick")">선택 전<u class="num">@oc.Pick</u></a>
             <a href="@self?s=buy" class="@(oc.Buy > 0 ? "go-hot" : "")" aria-current="@Cur("buy")">살 것<u class="num">@oc.Buy</u></a>
             <a href="@self?s=give" class="@(oc.Give > 0 ? "go-hot" : "")" aria-current="@Cur("give")">줄 것<u class="num">@oc.Give</u></a>
             <a href="@self?s=done" aria-current="@Cur("done")">받음<u class="num">@oc.Done</u></a>
@@ -102,7 +96,7 @@
         }
         @if (Model.Orders.Count == 0 && !(Model.Step == "pick" && Model.Pending.Count > 0))
         {
-            <div class="empty-box">@(Model.Step switch { "pick" => "고르는 중인 선물이 없어요.", "buy" => "살 선물이 없어요.", "give" => "줄 선물이 없어요.", "done" => "받은 선물이 아직 없어요.", _ => "취소한 선물이 없어요." })</div>
+            <div class="empty-box">@(Model.Step switch { "pick" => "선택 전인 선물이 없어요.", "buy" => "살 선물이 없어요.", "give" => "줄 선물이 없어요.", "done" => "받은 선물이 아직 없어요.", _ => "취소한 선물이 없어요." })</div>
         }
         else
         {
@@ -185,7 +179,7 @@
             <a href="@Model.Url("hidden")" aria-current="@(Model.Show == "hidden" ? "page" : null)">숨김<u class="num">@c.Hidden</u></a>
         </nav>
         <form method="get" class="gd-tools" role="search">
-            <input type="hidden" name="t" value="list" /><input type="hidden" name="v" value="@Model.Show" />
+            <input type="hidden" name="v" value="@Model.Show" />
             <input class="in" type="search" name="q" value="@Model.Q" placeholder="상품 이름 · 번호로 찾기" aria-label="찾기" />
             <select class="in" name="p" aria-label="가격대" onchange="this.form.submit()">
                 @foreach (var b in ChallengeBible.Web.Pages.Platform.GiftsModel.Bands) { <option value="@b.Key" selected="@(Model.Band == b.Key || (Model.Band is null && b.Key == ""))">@b.Label</option> }
@@ -322,7 +316,7 @@
 
             <a class="gd-link" href="/@slug/admin/teams/stages"><span><b>가족팀 · 친구팀 선물</b><br /><small>단계마다 줄지 · 최대 금액(공통: 1,000점 @GiftsModel.N(GiftRules.Pick(r.FamilyAmounts, 1)) · 2,000점 @GiftsModel.N(GiftRules.Pick(r.FamilyAmounts, 2)) · 3,000점부터 @GiftsModel.N(GiftRules.Pick(r.FamilyAmounts, 3))원, 친구팀은 반씩 각자)</small></span><span>시상 기준 ›</span></a>
 
-            <div class="gd-bar"><a class="btn s" href="@self?t=money">되돌리기</a><button class="btn p" type="submit">저장</button></div>
+            <div class="gd-bar"><a class="btn s" href="@self/money">되돌리기</a><button class="btn p" type="submit">저장</button></div>
         </form>
     }
     else if (Model.Tab == "cost" && Model.Cost is { } cs)
@@ -346,7 +340,8 @@
             </ul>
             @if (Model.More) { <div class="gd-more"><a class="btn s sm" href="@Model.CostUrl(n: Model.Take + GiftCostService.PageSize)">@(GiftCostService.PageSize)개 더 보기</a></div> }
         }
-        <a class="btn gc-xl" href="@self?handler=Excel&per=@cs.Period.Key&from=@cs.Period.From.ToString("yyyy-MM-dd")&to=@cs.Period.To.ToString("yyyy-MM-dd")">엑셀로 받기 (.xlsx)</a>
+        <a class="btn gc-xl" href="@self/cost?handler=Excel&per=@cs.Period.Key&from=@cs.Period.From.ToString("yyyy-MM-dd")&to=@cs.Period.To.ToString("yyyy-MM-dd")">엑셀로 받기 (.xlsx)</a>
         <p class="gd-note">[줬어요]를 누른 날 기준이에요. 아이에게 준 선물(받음)만 들어가고, 아직 줄 것 · 취소한 선물은 빠져요. 금액은 고를 때의 상품 가격이에요. 엑셀에는 종류별 합계와 받은 선물 한 줄씩(받은 날 · 받는 사람 · 반 · 종류 · 상품 · 금액)이 들어가요.</p>
     }
+    @if (Model.OrdersView) { <a class="gd-set-go" href="@self/common">⚙️ 선물 설정(상품 · 금액 · 총비용) →</a> }   @* 관리 ☰ "선물 설정"으로(확정 시안 선물분리) *@
 </div></main>

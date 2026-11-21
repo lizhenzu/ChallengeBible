@@ -56,7 +56,7 @@ public sealed class BirthdayListService(PeopleService people, IAppDb db, TenantC
 
     public static string GiftLabel(string? state) => state switch
     {
-        GiftStates.Open or GiftStates.Expired => "고르는 중",
+        GiftStates.Open or GiftStates.Expired => "선택 전",
         GiftStates.Picked => "골랐음",
         GiftStates.Purchased => "샀음",
         GiftStates.Delivered => "전달함",

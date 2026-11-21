@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -97,7 +97,7 @@ public partial class GiftCostTests : IClassFixture<WebApplicationFactory<Program
     {
         Seed();
         var admin = await Login("admin@example.com");
-        var page = await admin.GetStringAsync("/kids/admin/gifts?t=cost");
+        var page = await admin.GetStringAsync("/kids/admin/gifts/cost");
         Assert.Contains("15,500<u>원</u>", page);   // 4,500 + 6,000 + 3,000 + 2,000 (줄 것 · 취소 · 지난달 · 초등부는 빠짐)
         Assert.Contains("받은 선물 <b class=\"num\">4건</b>", page);
         Assert.Contains("새친구 · 초대", page);
@@ -106,11 +106,11 @@ public partial class GiftCostTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("1.3 받음", page);
         Assert.Contains(">엑셀로 받기 (.xlsx)<", page);
 
-        var last = await admin.GetStringAsync("/kids/admin/gifts?t=cost&per=last");
+        var last = await admin.GetStringAsync("/kids/admin/gifts/cost?per=last");
         Assert.Contains("10,000<u>원</u>", last);   // 지난달: 가족팀 1건
 
-        Assert.Equal(HttpStatusCode.OK, (await admin.GetAsync("/kids/admin/gifts?t=cost&per=custom&from=2026-12-01&to=2027-01-05")).StatusCode);
-        Assert.Contains("25,500<u>원</u>", await admin.GetStringAsync("/kids/admin/gifts?t=cost&per=custom&from=2026-12-01&to=2027-01-05"));
+        Assert.Equal(HttpStatusCode.OK, (await admin.GetAsync("/kids/admin/gifts/cost?per=custom&from=2026-12-01&to=2027-01-05")).StatusCode);
+        Assert.Contains("25,500<u>원</u>", await admin.GetStringAsync("/kids/admin/gifts/cost?per=custom&from=2026-12-01&to=2027-01-05"));
     }
 
     [Fact]
@@ -135,7 +135,7 @@ public partial class GiftCostTests : IClassFixture<WebApplicationFactory<Program
     public async Task R294_총비용은_부서_관리자만()
     {
         var kid = await Login("kid@example.com");
-        Assert.NotEqual(HttpStatusCode.OK, (await kid.GetAsync("/kids/admin/gifts?t=cost")).StatusCode);
+        Assert.NotEqual(HttpStatusCode.OK, (await kid.GetAsync("/kids/admin/gifts/cost")).StatusCode);
         Assert.NotEqual(HttpStatusCode.OK, (await kid.GetAsync("/kids/admin/gifts?handler=Excel")).StatusCode);
         var admin = await Login("admin@example.com");
         Assert.NotEqual(HttpStatusCode.OK, (await admin.GetAsync("/platform/gift-cost")).StatusCode);   // 모든 부서는 플랫폼 관리자만

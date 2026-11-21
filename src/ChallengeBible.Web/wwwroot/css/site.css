@@ -4720,3 +4720,7 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .gt-top .gt-t b { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 16px; font-weight: 800; }
 .gt-top .gt-home { flex: none; font-size: 14px; font-weight: 800; color: var(--accent, #1F7A55); text-decoration: none; }
 .bdc.bdc-lite .bdc-me { margin-top: 0; }
+
+/* 관리자만 보는 메뉴 딱지 "관리"(2026-11-21 사용자) · 선물 처리 → 선물 설정 바로가기 */
+.tdr-k { display: inline-block; margin-left: 4px; padding: 1px 6px; border-radius: 99px; background: #FFEDD5; color: #C2410C; font-size: 10.5px; font-weight: 900; font-style: normal; vertical-align: 2px; }
+.gd-set-go { display: block; margin: 18px 0 0; padding: 12px 14px; border-radius: 12px; background: #F8FAFC; color: #1F7A55; font-size: 13.5px; font-weight: 800; text-decoration: none; }

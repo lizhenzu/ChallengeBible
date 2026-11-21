@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
@@ -27,7 +27,7 @@ public class GiftEditModel(GiftCatalogService catalog, TenantContext tenant) : P
     public string? Error { get; private set; }
 
     private GiftEditor Editor => GiftEditor.Dept(User.UserName()!, tenant.Current.Id);
-    public string Back => $"/{tenant.Current.Slug}/admin/gifts?t=ours";
+    public string Back => $"/{tenant.Current.Slug}/admin/gifts/ours";
     private string Self(int id) => $"/{tenant.Current.Slug}/admin/gifts/edit/{id}";
 
     private async Task<bool> LoadAsync(CancellationToken ct)
