@@ -1,0 +1,52 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>메뉴판 내 계정 통합 시안</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}body{margin:0;padding:28px 22px 36px;background:#E8ECF3;font-family:'Noto Sans KR',sans-serif;color:#111827}
+.row{display:flex;gap:26px;align-items:flex-start}.col{width:380px;flex:none}
+.lab{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:14.5px;font-weight:700;color:#374151}
+.lab b{display:inline-grid;place-items:center;width:22px;height:22px;border:1.5px solid #374151;border-radius:50%;font-size:12px}
+.ph{background:#fff;border-radius:24px;overflow:hidden;height:640px;box-shadow:0 2px 10px rgba(0,0,0,.06);position:relative}
+.note{margin-top:12px;padding:12px 14px;border-radius:14px;background:#FFF8E6;font-size:12.5px;line-height:1.6;color:#7C5A10}
+.hd{display:flex;gap:12px;align-items:center;padding:16px 14px;border-bottom:1px solid #EEF0F4}
+.av{width:56px;height:56px;border-radius:50%;background:#E6EDFB;display:grid;place-items:center;font-weight:900;color:#2F5FD0;font-size:20px;flex:none}
+.who{flex:1;min-width:0}.who b{display:block;font-size:17px}.who small{display:block;color:#6B7280;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who a{display:inline-block;margin-top:2px;font-size:13px;font-weight:800;color:#2F5FD0;text-decoration:none}
+.x{width:38px;height:38px;border-radius:10px;background:#F1F5F9;display:grid;place-items:center;font-weight:900}
+.pn{padding:6px 12px}.g{margin:12px 4px 4px;font-size:12px;font-weight:800;color:#2F5FD0}
+.it{display:flex;gap:9px;align-items:center;padding:7px 4px}
+.it i{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-style:normal;font-size:17px;flex:none;background:#F1F5F9}
+.it b{font-size:14.5px}.it small{display:block;font-size:12px;color:#6B7280}
+.dup{background:#FEE2E2;outline:2px dashed #DC2626;border-radius:10px}
+.new{background:#FFF7E6;outline:2px dashed #F59E0B;border-radius:12px}
+.hd.new{outline-offset:-3px}
+.go{display:inline-flex;gap:6px;margin-top:4px;padding:6px 11px;border-radius:99px;background:#EAF0FD;color:#2F5FD0;font-weight:800;font-size:12.5px}
+.sp{height:18px}
+.ft{position:absolute;left:12px;right:12px;bottom:12px;display:flex;gap:8px}.ft span{flex:1;text-align:center;padding:12px;border-radius:12px;background:#EAF0FD;font-weight:800;font-size:14px}.ft span+span{background:#F1F5F9}
+</style></head><body><div class="row">
+
+<div class="col"><p class="lab"><b>1</b>지금 — 같은 곳으로 가는 입구가 둘</p><div class="ph">
+ <div class="hd dup"><div class="av">관</div><div class="who"><b>관리유님</b><small>잠실새내교회 유년부 · 부서 관…</small><a>내 정보 · 사진 변경 ›</a></div><div class="x">✕</div></div>
+ <div class="pn">
+  <div class="g">함께하기</div>
+  <div class="it"><i>💬</i><div><b>쪽지</b><small>선생님 · 친구와 주고받기</small></div></div>
+  <div class="it"><i>🖼️</i><div><b>사진첩</b><small>부서 행사 사진</small></div></div>
+  <div class="g">생일</div>
+  <div class="it"><i>🎂</i><div><b>생일자 보기</b><small>다가오는 생일 · 월별 · 연간</small></div></div>
+  <div class="g">내 정보</div>
+  <div class="it dup"><i>👤</i><div><b>내 계정</b><small>이름 · 비밀번호 · 가족</small></div></div>
+ </div>
+ <div class="ft"><span>📲 앱 설치</span><span>로그아웃</span></div>
+</div><div class="note">빨간 점선 두 곳이 모두 <b>내 계정(/account)</b> 으로 가요. 사진 · 이름이 있는 머리와 "내 정보 › 내 계정" 한 줄이 겹쳐요.</div></div>
+
+<div class="col"><p class="lab"><b>2</b>통합 — 머리 한 곳으로</p><div class="ph">
+ <div class="hd new"><div class="av">관</div><div class="who"><b>관리유님</b><small>잠실새내교회 유년부 · 부서 관…</small><span class="go">내 계정 · 사진 변경 ›</span></div><div class="x">✕</div></div>
+ <div class="pn">
+  <div class="g">함께하기</div>
+  <div class="it"><i>💬</i><div><b>쪽지</b><small>선생님 · 친구와 주고받기</small></div></div>
+  <div class="it"><i>🖼️</i><div><b>사진첩</b><small>부서 행사 사진</small></div></div>
+  <div class="g">생일</div>
+  <div class="it"><i>🎂</i><div><b>생일자 보기</b><small>다가오는 생일 · 월별 · 연간</small></div></div>
+ </div>
+ <div class="ft"><span>📲 앱 설치</span><span>로그아웃</span></div>
+</div><div class="note">머리 한 곳만 남겨요. 버튼 글자를 <b>"내 계정 · 사진 변경 ›"</b> 으로 해서 "이름 · 비밀번호 · 가족"이 거기 있다는 걸 알려요. 아래 "내 정보" 묶음은 없애요(메뉴판이 한 묶음 더 짧아져요). 사진 · 이름을 눌러도 같은 곳으로 가요.</div></div>
+</div></body></html>
