@@ -54,9 +54,13 @@ public static class DrawerUi
         ["bell"] = """<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21h4"/>""",
     };
 
-    public static IHtmlContent Row(string href, string icon, string tone, string title, string desc, bool current, bool dj = false, int count = 0, string? attr = null)
+    /// <summary>Admin = 관리자만 보는 메뉴 딱지 글자(부서 ☰ 메뉴판, 2026-11-21 사용자 "관리자에게만 관리").</summary>
+    public const string Admin = "관리";
+
+    public static IHtmlContent Row(string href, string icon, string tone, string title, string desc, bool current, bool dj = false, int count = 0, string? attr = null, string? badge = null)
     {
         var t = dj ? $"<em class=\"pd-pg\">도전!!!</em>{WebUtility.HtmlEncode(title)}" : WebUtility.HtmlEncode(title);
+        if (badge is not null) t += $" <em class=\"tdr-k\" title=\"관리자만 보는 메뉴\">{WebUtility.HtmlEncode(badge)}</em>";   // "관리" 딱지(2026-11-21 사용자)
         if (count > 0) t += $" <em class=\"tdr-c num\" aria-label=\"기다리는 요청 {count}건\">{count}</em>";
         return new HtmlString(
             $"<a class=\"tdr-r\" href=\"{WebUtility.HtmlEncode(href)}\"{(current ? " aria-current=\"page\"" : "")}{(attr is null ? "" : " " + attr)}><i class=\"tdr-i t-{tone}\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">{Icons[icon]}</svg></i>"

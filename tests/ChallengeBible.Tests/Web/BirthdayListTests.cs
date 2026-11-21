@@ -187,7 +187,7 @@ public partial class BirthdayListTests : IClassFixture<WebApplicationFactory<Pro
         Assert.Contains("010-1111-2222", text);   // 전화
         Assert.Contains("박선생 선생님", text);      // 담임(이바다 1반)
         Assert.Contains("1/1 (100%)", text);        // 출석: 올해 주일 1번(1/3) 중 1번(김하늘)
-        Assert.Contains("고르는 중", text);
+        Assert.Contains("선택 전", text);   // 2026-11-21 "고르는 중" → "선택 전"
         Assert.Contains("링크 없음", text);
         Assert.Contains("선물 선택", text);
         Assert.Contains("선물 안 주기", text);

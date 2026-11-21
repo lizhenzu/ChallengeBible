@@ -47,7 +47,7 @@
         else
         {
             var link = g.Viewed ? ("l2", "부모님이 열어 봄") : g.HasLink ? ("l1", "링크 만듦") : ("l0", "링크 없음");
-            var state = g.State switch { GiftStates.Open => ("g1", "고르는 중"), GiftStates.Expired => ("g1", "기한 지남"), GiftStates.Picked => ("g2", "골랐음"), GiftStates.Purchased => ("g2", "샀음"), GiftStates.Delivered => ("g3", "전달함"), GiftStates.Skipped => ("g0", "안 주기로 함"), _ => ("g0", g.State) };
+            var state = g.State switch { GiftStates.Open => ("g1", "선택 전"), GiftStates.Expired => ("g1", "기한 지남"), GiftStates.Picked => ("g2", "골랐음"), GiftStates.Purchased => ("g2", "샀음"), GiftStates.Delivered => ("g3", "전달함"), GiftStates.Skipped => ("g0", "안 주기로 함"), _ => ("g0", g.State) };
             <div class="bdc-chips"><span class="@state.Item1">@state.Item2</span>@if (g.State is GiftStates.Open or GiftStates.Expired or GiftStates.Picked) { <span class="@link.Item1">@link.Item2</span> }
                 @if (g.State is GiftStates.Open or GiftStates.Expired) { <small>한도 @g.MaxAmount.ToString("N0")원@(g.OpenUntil is { } u ? $" · {u:M월 d일}까지" : "")</small> }</div>
             @if (g.ItemName is { } iname && g.State is GiftStates.Picked or GiftStates.Purchased or GiftStates.Delivered)

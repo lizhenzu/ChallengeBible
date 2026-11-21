@@ -35,17 +35,17 @@
             @if (!lobby) { @DrawerUi.Row($"/{s}/album", "photo", "o", "사진첩", "부서 행사 사진", Cur($"/{s}/album")) }   @* ADR 0118 *@
             @if (!lobby && t.IsApproved)
             {
-                @* 생일(2026-11-21 사용자, 확정 시안 생일메뉴): 생일자 보기 = 모두, 선물 관리 = 관리자만 — 나란히 *@
+                @* 생일(2026-11-21 사용자, 확정 시안 생일메뉴 · 선물분리): 생일자 보기 = 모두, 선물 처리 = 관리자만 — 나란히 *@
                 <h2 class="tdr-g">생일</h2>
                 @DrawerUi.Row($"/{s}/birthdays", "cake", "o", "생일자 보기", "다가오는 생일 · 월별 · 연간", Cur($"/{s}/birthdays"))
-                @if (t.IsAdmin) { @DrawerUi.Row($"/{s}/admin/gifts", "gift", "o", "선물 관리", "선물 처리 · 상품 · 금액", here.StartsWith($"/{s}/admin/gifts", StringComparison.OrdinalIgnoreCase)) }
+                @if (t.IsAdmin) { @DrawerUi.Row($"/{s}/admin/gifts", "gift", "o", "선물 처리", "선택 전 · 살 것 · 줄 것", Cur($"/{s}/admin/gifts"), badge: DrawerUi.Admin) }   @* 선물 설정은 관리 ☰(확정 시안 선물분리) *@
             }
             @if (!lobby && (t.IsStaff || t.IsAdmin || teacher))
             {
                 <h2 class="tdr-g">섬김 · 교사</h2>
                 @if (t.IsStaff || t.IsAdmin) { @DrawerUi.Row($"/{s}/todo", "todo", "g", "오늘 할 일", "승인 · 선물 · 생일 챙기기", Cur($"/{s}/todo")) }   @* ADR 0100 *@
                 @if (t.IsStaff) { @DrawerUi.Row($"/{s}/attendance", "att", "b", "출석", "주일 출석 체크 · 보고서", Cur($"/{s}/attendance")) }
-                @if (t.IsAdmin) { @DrawerUi.Row($"/{s}/admin", "admin", "s", "관리", "명부 · 반 · 진급 · 설정", Cur($"/{s}/admin")) }
+                @if (t.IsAdmin) { @DrawerUi.Row($"/{s}/admin", "admin", "s", "관리", "명부 · 반 · 진급 · 설정", Cur($"/{s}/admin"), badge: DrawerUi.Admin) }
                 else if (teacher) { @DrawerUi.Row($"/{s}/admin/members", "people", "s", "명부", "우리 부서 사람들", Cur($"/{s}/admin/members")) }
             }
             <h2 class="tdr-g">내 정보</h2>
