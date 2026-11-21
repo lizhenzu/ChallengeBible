@@ -1,4 +1,4 @@
-@page "/{slug}/admin/promotions"
+﻿@page "/{slug}/admin/promotions"
 @model ChallengeBible.Web.Pages.Admin.PromotionsModel
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Pages.Admin
@@ -13,8 +13,10 @@
 }
 <partial name="_AdminTop" model="Model.Tenant" />
 <main class="admin gut"><div class="wrap wide">
-    <h1>진급</h1>
-    <p class="lead">학년이 올라간 아이를 다음 부서로 옮겨요. 받는 부서가 승인하면 점수 · 미션 기록도 함께 옮겨져요(보낸 부서에서는 빠져요).</p>
+    <h1>부서 · 반 이동</h1>
+    <p class="lead">아이를 다른 반 · 다른 부서로 옮기고, 다른 부서가 보낸 아이를 받아요. 받는 부서가 승인하면 점수 · 미션 기록도 함께 옮겨져요(보낸 부서에서는 빠져요).</p>
+    @* 확정 시안 부서관리-이동(2026-11-21): 반 이동 4단계(반 → 아이 → 보낼 곳 → 확인)도 여기서 시작한다 *@
+    <a class="mv-go" href="/@slug/admin/classes/move"><span>🔀 이동하기<small>반 → 아이 → 보낼 곳(다른 반 · 다른 부서) → 확인</small></span><u aria-hidden="true">›</u></a>
 
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
     @if (Model.Error is not null && Model.ErrorFor is null) { <p class="err" role="alert">@Model.Error</p> }
@@ -41,7 +43,7 @@
 
     @if (waiting.Count == 0)
     {
-        <div class="empty-box">@(Model.Tab == "in" ? "기다리는 진급 요청이 없어요." : "기다리는 요청이 없어요. 진급 보내기는 소속 관리에서 여러 명을 골라 할 수 있어요.")</div>
+        <div class="empty-box">@(Model.Tab == "in" ? "기다리는 이동 요청이 없어요." : "기다리는 요청이 없어요. 이동 보내기는 소속 관리에서 여러 명을 골라 할 수 있어요.")</div>
     }
     @foreach (var r in waiting)
     {
@@ -116,5 +118,5 @@
             }
         </ul>
     }
-    @if (Model.Tab == "out") { <a class="btn s sm self-start" href="/@slug/admin/members?Tab=@MembershipStatus.Approved">소속 관리에서 진급 보내기 →</a> }
+    @if (Model.Tab == "out") { <a class="btn s sm self-start" href="/@slug/admin/members?Tab=@MembershipStatus.Approved">소속 관리에서 이동 보내기 →</a> }
 </div></main>

@@ -70,7 +70,11 @@ public partial class PromotionFlowTests : IClassFixture<WebApplicationFactory<Pr
         Assert.Contains("기다리는 중", await kidsAdmin.GetStringAsync("/jamsil-kids/admin/promotions?Tab=out"));
 
         // 받는 부서: 메뉴 숫자 · 관리 홈 카드 · 받은 요청
-        Assert.Contains("받은 진급 요청", await elemAdmin.GetStringAsync("/jamsil-elem/admin"));
+        Assert.Contains("받은 이동 요청", await elemAdmin.GetStringAsync("/jamsil-elem/admin"));   // 2026-11-21 "진급" → "부서 · 반 이동"
+        var mv = await elemAdmin.GetStringAsync("/jamsil-elem/admin/promotions");
+        Assert.Contains("<h1>부서 · 반 이동</h1>", mv);
+        Assert.Contains("href=\"/jamsil-elem/admin/classes/move\"", mv);   // [이동하기]
+        Assert.Contains("<b>부서 · 반 이동", System.Net.WebUtility.HtmlDecode(await elemAdmin.GetStringAsync("/jamsil-elem/admin")));   // 관리 ☰ 메뉴 이름
         var inbox = await elemAdmin.GetStringAsync("/jamsil-elem/admin/promotions");
         Assert.Contains("cheolsu@example.com", inbox);
         Assert.Contains("기다리는 요청 1건", inbox);
