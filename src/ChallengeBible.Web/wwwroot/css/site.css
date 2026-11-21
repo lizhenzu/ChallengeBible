@@ -4724,3 +4724,8 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 /* 관리자만 보는 메뉴 딱지 "관리"(2026-11-21 사용자) · 선물 처리 → 선물 설정 바로가기 */
 .tdr-k { display: inline-block; margin-left: 4px; padding: 1px 6px; border-radius: 99px; background: #FFEDD5; color: #C2410C; font-size: 10.5px; font-weight: 900; font-style: normal; vertical-align: 2px; }
 .gd-set-go { display: block; margin: 18px 0 0; padding: 12px 14px; border-radius: 12px; background: #F8FAFC; color: #1F7A55; font-size: 13.5px; font-weight: 800; text-decoration: none; }
+
+/* 부서 · 반 이동 화면의 [이동하기](2026-11-21 확정 시안 부서관리-이동) */
+.mv-go { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 14px 0; padding: 14px; border-radius: 14px; background: #1F7A55; color: #fff; font-size: 15px; font-weight: 800; text-decoration: none; }
+.mv-go small { display: block; margin-top: 2px; font-size: 12px; font-weight: 500; opacity: .88; }
+.mv-go u { text-decoration: none; font-size: 20px; }

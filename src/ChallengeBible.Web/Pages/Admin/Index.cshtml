@@ -32,7 +32,7 @@
                 }
                 @if (d.PromotionCount > 0)
                 {
-                    <a class="td b" href="/@slug/admin/promotions"><span class="n num">@d.PromotionCount</span><div><b>받은 진급 요청</b><span>@string.Join(" · ", d.Promotions)@(d.PromotionCount > d.Promotions.Count ? $" 외 {d.PromotionCount - d.Promotions.Count}명" : "")</span></div></a>
+                    <a class="td b" href="/@slug/admin/promotions"><span class="n num">@d.PromotionCount</span><div><b>받은 이동 요청</b><span>@string.Join(" · ", d.Promotions)@(d.PromotionCount > d.Promotions.Count ? $" 외 {d.PromotionCount - d.Promotions.Count}명" : "")</span></div></a>
                 }
                 @if (d.Empty is { } e)
                 {

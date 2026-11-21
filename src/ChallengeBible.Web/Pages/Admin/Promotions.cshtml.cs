@@ -1,4 +1,4 @@
-using ChallengeBible.Domain.Time;
+﻿using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
@@ -12,7 +12,7 @@ namespace ChallengeBible.Web.Pages.Admin;
 [TenantRoles(Roles.TenantAdmin)]
 public class PromotionsModel(PromotionService promotions, PromotionApprover approver, MemberAdminService members, TenantContext tenant) : PageModel, ITitled
 {
-    public string Title => "진급";
+    public string Title => "부서 · 반 이동";
     public TenantContext Tenant => tenant;
 
     [BindProperty(SupportsGet = true)] public string Tab { get; set; } = "in";
@@ -33,9 +33,9 @@ public class PromotionsModel(PromotionService promotions, PromotionApprover appr
     {
         "approve" => "받았어요 · 바로 미션을 할 수 있어요",
         "all" => "모두 받았어요 · 명부 · 기록이 함께 옮겨 왔어요",
-        "reject" => "진급 요청을 거절했어요",
-        "cancel" => "진급 요청을 취소했어요",
-        "sent" => "진급 요청을 보냈어요 · 받는 부서가 승인하면 옮겨져요",
+        "reject" => "이동 요청을 거절했어요",
+        "cancel" => "이동 요청을 취소했어요",
+        "sent" => "이동 요청을 보냈어요 · 받는 부서가 승인하면 옮겨져요",
         _ => "",
     };
 
