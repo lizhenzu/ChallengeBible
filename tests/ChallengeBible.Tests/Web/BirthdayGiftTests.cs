@@ -256,8 +256,9 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
         await kim.GetAsync("/kids");
         var todo = await kim.GetStringAsync("/kids/todo");
         Assert.Contains("생일 선물 링크 · 박서윤", todo);
-        Assert.Contains("부모님께 보내기", todo);
-        Assert.Contains("안내글 복사", todo);
+        Assert.Contains("💬 카톡으로 보내기", todo);   // 카톡 버튼 하나(2026-11-22 사용자)
+        Assert.DoesNotContain("안내글 복사", todo);
+        Assert.DoesNotContain("부모님께 보내기", todo);
         Assert.Contains("아이 계정에서 직접 고를 수 있어요", todo);   // 김하준은 계정 연결됨
         Assert.DoesNotContain("선생님님", todo);
         if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(todo, "41-할일-부모님께보내기");
