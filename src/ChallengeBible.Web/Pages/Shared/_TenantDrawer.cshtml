@@ -26,6 +26,7 @@
                 <h2 class="tdr-g">섬김 · 교사</h2>
                 @if (t.IsStaff || t.IsAdmin) { @DrawerUi.Row($"/{s}/todo", "todo", "g", "오늘 할 일", "승인 · 선물 · 생일 챙기기", Cur($"/{s}/todo")) }   @* ADR 0100 *@
                 @if (t.IsStaff) { @DrawerUi.Row($"/{s}/attendance", "att", "b", "출석", "주일 출석 체크 · 보고서", Cur($"/{s}/attendance")) }
+                @if (ChallengeBible.Web.Pages.ClassBook.IndexModel.CanUse(t)) { @DrawerUi.Row($"/{s}/classbook", "book", "g", "교적부", "반별 아이 정보 보기", Cur($"/{s}/classbook")) }   @* R-361: 교사 · 관리자만 *@
                 @if (ChallengeBible.Web.Pages.People.IndexModel.CanUse(t)) { @DrawerUi.Row($"/{s}/people", "search", "b", "인명 검색", "이름 · 아이디로 찾기 · 전화 · 문자 · 쪽지", Cur($"/{s}/people")) }   @* R-358: [부서 관리] · [명부] 바로 위 *@
                 @if (t.IsAdmin) { @DrawerUi.Row($"/{s}/admin", "gear", "s", "부서 관리", "소속 · 반 · 부서 · 반 이동 · 설정", Cur($"/{s}/admin"), badge: DrawerUi.Admin) }
                 else if (teacher) { @DrawerUi.Row($"/{s}/admin/members", "people", "s", "명부", "우리 부서 사람들", Cur($"/{s}/admin/members")) }

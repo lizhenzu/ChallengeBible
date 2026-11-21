@@ -1,0 +1,76 @@
+@page "/{slug}/classbook"
+@model ChallengeBible.Web.Pages.ClassBook.IndexModel
+@using ChallengeBible.Web.Services
+@* 교적부(R-361, 확정 시안 교적부): 교사 · 관리자가 모든 반을 훑어본다. 이름은 rb- 접두어 *@
+@{
+    var h = Model.Home;
+    var key = (Model.Search ?? "").Trim();
+    string Digits(string? s) => new string((s ?? "").Where(char.IsDigit).ToArray());
+    var teams = h.Classes.Where(c => c.IsNewcomer).ToList();
+    var regular = h.Classes.Where(c => !c.IsNewcomer).ToList();
+}
+<link rel="stylesheet" href="~/css/classbook.css" asp-append-version="true" />
+<partial name="_GenTop" model="(Model.Tenant, Model.Title)" />
+<main class="rbk gut"><div class="wrap">
+    <h1 class="rb-h">교적부<small>@Model.Year</small></h1>
+    <div class="rb-st">
+        <span>학생<b>@h.Students</b></span><span>반<b>@h.Classes.Count</b></span>
+        @if (h.NoTeacher > 0) { <span class="lo">담임 미배정<b>@h.NoTeacher</b></span> }
+    </div>
+    <form class="rb-srch" method="get" action="/@Model.Slug/classbook" role="search">
+        <input name="searchName" value="@key" autocomplete="off" placeholder="아이 이름으로 찾기 (전체 반)" aria-label="아이 이름" />
+        <button type="submit">찾기</button>
+    </form>
+    <div class="rb-last rb-hide" id="rbLast"><span>마지막으로 본 반</span><a id="rbLastA" href="#"></a></div>
+
+    @if (key.Length > 0)
+    {
+        <section class="rb-blk">
+            <div class="rb-bt"><b>'@key' 찾은 결과</b><a href="/@Model.Slug/classbook">검색 지우기</a></div>
+            @if (h.Hits.Count == 0) { <div class="rb-none">이 이름의 아이가 없어요.</div> }
+            @foreach (var hit in h.Hits)
+            {
+                var i = hit.Name.IndexOf(key, StringComparison.OrdinalIgnoreCase);
+                <a class="rb-hit" href="/@Model.Slug/classbook/@hit.ClassId#p-@hit.PersonId">
+                    <b>@(i >= 0 ? hit.Name[..i] : hit.Name)@if (i >= 0) { <mark>@hit.Name.Substring(i, key.Length)</mark>@hit.Name[(i + key.Length)..] }</b>
+                    <span>@hit.ClassName</span><em>›</em>
+                </a>
+            }
+            @if (h.Hits.Count >= RosterBookService.HitMax) { <div class="rb-none">50명까지만 보여요 · 이름을 더 입력해 보세요</div> }
+        </section>
+    }
+
+    @foreach (var (title, list) in new[] { ("새친구반", teams), ("반", regular) })
+    {
+        if (list.Count == 0) { continue; }
+        <section class="rb-blk">
+            <div class="rb-bt"><b>@title</b><span>@(title == "반" ? $"{list.Count}개 반 · " : "")학생 @list.Sum(c => c.Students)명</span></div>
+            @foreach (var c in list)
+            {
+                var t = c.Teachers.FirstOrDefault();
+                var tel = Digits(t.Phone);
+                <div class="rb-cls">
+                    <a class="go" href="/@Model.Slug/classbook/@c.Id">
+                        <span class="nm">@c.Name</span>
+                        <span class="tc @(c.Teachers.Count == 0 ? "no" : "")">@(c.Teachers.Count == 0 ? "담임 미배정" : string.Join(" · ", c.Teachers.Select(x => x.Name)) + " 선생님")@if (tel.Length > 0) { <small>@t.Phone</small> }</span>
+                        <span class="n">@c.Students<small>명</small></span>
+                    </a>
+                    @if (tel.Length >= 9) { <a class="tel" href="tel:@tel" aria-label="@t.Name 선생님께 전화">전화</a> }
+                    <em aria-hidden="true">›</em>
+                </div>
+            }
+        </section>
+    }
+    @if (h.Classes.Count == 0) { <div class="rb-none">등록된 반이 없어요.</div> }
+    <div class="rb-ft"><span>반을 누르면 아이들 교적(생일 · 전화)을 보고 고칠 수 있어요</span><a href="/@Model.Slug/people">인명 검색</a></div>
+</div></main>
+<script>
+    // 마지막으로 본 반(이 기기에만 저장)
+    try {
+        const id = localStorage.getItem('rbLastClass'), nm = localStorage.getItem('rbLastName'), sl = '@Model.Slug';
+        if (id && nm && localStorage.getItem('rbLastSlug') === sl) {
+            const a = document.getElementById('rbLastA'); a.textContent = nm + ' →'; a.href = '/' + sl + '/classbook/' + encodeURIComponent(id);
+            document.getElementById('rbLast').classList.remove('rb-hide');
+        }
+    } catch (e) { }
+</script>
