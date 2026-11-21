@@ -1,0 +1,83 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>생일 메뉴 시안</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box} body{margin:0;padding:28px 24px 36px;background:#E8ECF3;font-family:'Noto Sans KR',sans-serif;color:#111827}
+.row{display:flex;gap:26px;align-items:flex-start}.col{width:390px;flex:none}
+.lab{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:15px;font-weight:700;color:#374151}
+.lab b{display:inline-grid;place-items:center;width:22px;height:22px;border:1.5px solid #374151;border-radius:50%;font-size:12px}
+.ph{background:#fff;border-radius:26px;overflow:hidden;height:800px;box-shadow:0 2px 10px rgba(0,0,0,.06);position:relative}
+.note{margin-top:12px;padding:12px 14px;border-radius:14px;background:#FFF8E6;font-size:13px;line-height:1.6;color:#7C5A10}
+.hd{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #EEF0F4}
+.hd .m{font-size:22px} .hd .t{flex:1;display:flex;gap:6px;align-items:baseline;white-space:nowrap}
+.hd .t span{font-size:13px;font-weight:700;color:#6B7280}.hd .t em{font-style:normal;font-weight:900;color:#1F7A55}.hd .t b{font-size:16px;font-weight:800}
+.hd .h{font-size:13.5px;font-weight:800;color:#1F7A55}
+/* drawer */
+.dr{position:absolute;inset:0;background:rgba(17,24,39,.45)}
+.pn{position:absolute;left:0;top:0;bottom:0;width:330px;background:#fff;padding:18px 14px;overflow:hidden}
+.me{display:flex;gap:12px;align-items:center;padding-bottom:14px;border-bottom:1px solid #EEF0F4}
+.av{width:52px;height:52px;border-radius:50%;background:#E6F2EC;display:grid;place-items:center;font-weight:900;color:#1F7A55;font-size:20px}
+.me b{display:block;font-size:17px}.me small{color:#6B7280;font-size:12.5px}
+.g{margin:14px 4px 6px;font-size:12.5px;font-weight:800;color:#1F7A55}
+.it{display:flex;gap:10px;align-items:center;padding:8px 6px;border-radius:12px}
+.it i{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-style:normal;font-size:18px;flex:none}
+.it b{display:block;font-size:14.5px}.it small{display:block;font-size:12px;color:#6B7280}
+.it.new{background:#FFF4E5;outline:2px dashed #F59E0B}
+.it.gone{opacity:.35;text-decoration:line-through}
+.o{background:#FFF1E6}.s{background:#F1F5F9}.v{background:#F3E8FF}.b{background:#E8F1FD}.g2{background:#E8F7EF}
+.tag{margin-left:6px;font-size:10.5px;font-weight:800;color:#B45309;background:#FEF3C7;padding:1px 6px;border-radius:99px}
+/* list */
+.tabs{display:flex;gap:6px;padding:12px 14px 4px}.tabs span{padding:7px 12px;border-radius:99px;background:#F1F5F9;font-size:13px;font-weight:700}
+.tabs span.on{background:#1F7A55;color:#fff}
+.sec{margin:12px 14px 6px;font-size:13px;font-weight:800;color:#6B7280}
+.cd{margin:8px 14px;padding:12px 14px;border:1px solid #E5E7EB;border-radius:14px}
+.cd .r1{display:flex;align-items:baseline;gap:8px}.cd .r1 b{font-size:16px}.cd .r1 .d{margin-left:auto;font-size:12.5px;font-weight:800;color:#DB2777}
+.cd .r2{margin-top:3px;font-size:13px;color:#6B7280}
+.kv{margin-top:8px;padding:8px 10px;border-radius:10px;background:#F8FAFC;font-size:12.5px;line-height:1.7;color:#374151}
+.chip{display:inline-block;margin-top:8px;padding:3px 9px;border-radius:99px;background:#DCFCE7;color:#15803D;font-size:12px;font-weight:800}
+.btn{display:inline-block;margin:8px 6px 0 0;padding:6px 10px;border:1px solid #D1D5DB;border-radius:10px;font-size:12.5px;font-weight:700}
+</style></head><body>
+<div class="row">
+ <div class="col"><p class="lab"><b>1</b>부서 홈 ☰ 메뉴판 — 새 "생일" 묶음</p>
+  <div class="ph"><div class="hd"><span class="m">☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span></div></div>
+   <div class="dr"></div><div class="pn">
+    <div class="me"><div class="av">초</div><div><b>초등부 관리자님</b><small>유년부 · 부서 관리자</small></div></div>
+    <div class="g">함께하기</div>
+    <div class="it"><i class="s">🏠</i><div><b>부서 홈</b><small>오늘 미션 · 점수 · 선물</small></div></div>
+    <div class="it"><i class="v">💬</i><div><b>쪽지</b><small>선생님 · 친구와 주고받기</small></div></div>
+    <div class="it"><i class="o">🖼️</i><div><b>사진첩</b><small>부서 행사 사진</small></div></div>
+    <div class="g">생일</div>
+    <div class="it new"><i class="o">🎂</i><div><b>생일자 보기<span class="tag">모두</span></b><small>다가오는 생일 · 월별 · 연간</small></div></div>
+    <div class="it new"><i class="o">🎁</i><div><b>선물 관리<span class="tag">관리자</span></b><small>선물 처리 · 상품 · 금액</small></div></div>
+    <div class="g">섬김 · 교사</div>
+    <div class="it"><i class="g2">✅</i><div><b>오늘 할 일</b><small>승인 · 선물 · 생일 챙기기</small></div></div>
+    <div class="it gone"><i class="o">🎂</i><div><b>생일</b><small>(여기서 위 "생일" 묶음으로)</small></div></div>
+    <div class="it"><i class="b">📋</i><div><b>출석</b><small>주일 출석 체크 · 보고서</small></div></div>
+    <div class="it"><i class="s">⚙️</i><div><b>관리</b><small>명부 · 반 · 진급 · 설정</small></div></div>
+   </div></div>
+  <div class="note">학생 · 학부모에게는 "생일" 묶음에 <b>생일자 보기</b>만 보여요. 관리 메뉴(관리 ☰)에서는 생일 · 선물이 빠져요. 관리 홈 바로가기 칸은 그대로.</div></div>
+
+ <div class="col"><p class="lab"><b>2</b>생일자 보기 — 학생 · 학부모가 볼 때</p>
+  <div class="ph"><div class="hd"><span class="m">☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>생일자 보기</b></div><span class="h">홈으로</span></div>
+   <div class="tabs"><span class="on">다가오는</span><span>월별</span><span>연간</span></div>
+   <div class="sec">🎂 오늘</div>
+   <div class="cd"><div class="r1"><b>김하늘</b><span class="d">오늘</span></div><div class="r2">1월 5일 · 1학년 2반</div></div>
+   <div class="sec">이번 주</div>
+   <div class="cd"><div class="r1"><b>이바다</b><span class="d">D-2</span></div><div class="r2">1월 7일 · 1학년 1반</div></div>
+   <div class="cd"><div class="r1"><b>가나다</b><span class="d">D-2</span></div><div class="r2">1월 7일 · 2학년 1반</div></div>
+   <div class="cd"><div class="r1"><b>박서윤</b><span class="d">D-6</span></div><div class="r2">1월 11일 · 새친구</div></div>
+  </div>
+  <div class="note">이름 · 생일 날짜 · 반만. 전화 · 출석 · 담임 · 선물 · [선물 선택] · "생일 없음" 탭은 안 보여요. ☰ 는 일반 메뉴판 그대로.</div></div>
+
+ <div class="col"><p class="lab"><b>3</b>생일자 보기 — 교사 · 관리자가 볼 때</p>
+  <div class="ph"><div class="hd"><span class="m">☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>생일자 보기</b></div><span class="h">홈으로</span></div>
+   <div class="tabs"><span class="on">다가오는</span><span>월별</span><span>연간</span><span>생일 없음</span></div>
+   <div class="sec">🎂 오늘</div>
+   <div class="cd"><div class="r1"><b>김하늘</b><span class="d">오늘</span></div><div class="r2">1월 5일 · 1학년 2반</div>
+    <div class="kv">전화 010-5555-1234<br>출석 1/1 (100%) · 마지막 1/3<br>담임 박선생 선생님</div>
+    <span class="chip">고르는 중 · 링크 없음</span><br><span class="btn">선물 선택</span><span class="btn">링크 복사</span><span class="btn">선물 안 주기</span></div>
+   <div class="sec">이번 주</div>
+   <div class="cd"><div class="r1"><b>이바다</b><span class="d">D-2</span></div><div class="r2">1월 7일 · 1학년 1반 · 내 반</div>
+    <div class="kv">출석 3/4 (75%) · 담임 박선생 선생님</div><span class="chip">골랐음 · 스티커북</span></div>
+  </div>
+  <div class="note">지금 화면과 같아요(상세 · 선물 버튼 · 생일 없음 탭). 달라지는 것은 머리말과 ☰ 가 일반 메뉴판이라는 것뿐. "선물 관리" 화면도 같은 머리말 "도전!!!성경말씀 &gt; 선물 관리" + 일반 ☰.</div></div>
+</div></body></html>
