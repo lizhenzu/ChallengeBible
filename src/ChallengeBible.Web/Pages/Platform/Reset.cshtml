@@ -13,7 +13,6 @@
     <h1>완전 초기화</h1>
     <p class="lead">체크한 것을 모든 부서에서 지워요. 체크를 빼면 남겨요. 관리자(플랫폼 · 부서)는 언제나 남아요. 직접 가입한 회원은 <b>"직접 가입한 회원 계정"</b>을 체크할 때만 지워요 — 그 전에 아래 <a href="#rs-export">회원 내보내기</a>로 받아 두세요. <b>되돌릴 수 없어요.</b></p>
     @if (Model.Result is { } r) { <p class="ok-box" role="status">초기화했어요 · @ResetService.Describe(r)건을 지웠어요.</p> }
-    @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }
 
     @foreach (var g in s.Items.GroupBy(i => i.Group))
     {
@@ -41,7 +40,8 @@
 
     <div class="rs-go">
         <p class="rs-sum" data-rs-sum>@s.Items.Count(i => On(i.Key))개 중 @s.Items.Count(i => On(i.Key))개를 지워요</p>
-        <label><span>확인 칸에 <b>@ResetService.ConfirmWord</b> 를 써 주세요</span><input class="in" name="confirm" autocomplete="off" placeholder="@ResetService.ConfirmWord" /></label>
+        @if (Model.Error is { } e2) { <p class="err" role="alert">@e2</p> }   @* 2026-11-21: 위에만 있으면 못 보고 지나쳐서 버튼 바로 위에도 *@
+        <label><span>확인 칸에 <b>@ResetService.ConfirmWord</b> 를 써 주세요 <small>(영문 대문자 · 한글 자판이면 ㄱㄷㄴㄷㅅ 으로 들어가요)</small></span><input class="in" name="confirm" autocomplete="off" autocapitalize="characters" spellcheck="false" lang="en" inputmode="latin" placeholder="@ResetService.ConfirmWord" /></label>
         <button type="submit" class="btn">초기화</button>
     </div>
 
