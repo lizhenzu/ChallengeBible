@@ -47,6 +47,7 @@
         </select>
     </form>
     @if (roster) { <p class="pc-hint">두 글자부터 입력을 멈추면 바로 찾아요 · 이름 · 연락처 · 계정 아이디</p> }
+    @if (Model.IsAdmin && roster) { <p class="pc-hint">담임은 <a href="/@Model.Tenant.Current.Slug/admin/teachers">교사</a>, 부장 · 부감 · 서기 같은 역할은 <a href="/@Model.Tenant.Current.Slug/admin/officers">임원 및 기타</a>에서 한눈에 보고 바꿔요</p> }   @* 2026-11-21 *@
 
     @if (roster)
     {

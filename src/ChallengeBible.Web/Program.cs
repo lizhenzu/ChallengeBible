@@ -27,6 +27,7 @@ builder.Services.AddScoped<LeaveService>();
 builder.Services.AddScoped<BirthdayListService>();
 builder.Services.AddScoped<PeopleSearchService>();
 builder.Services.AddScoped<RosterBookService>();   // 교적부(R-361)   // 인명 검색(R-358)
+builder.Services.AddScoped<StaffService>();   // 임원 및 기타(2026-11-21)
 builder.Services.AddScoped<TenantContext>();
 builder.Services.AddScoped<TenantPageFilter>();
 builder.Services.AddScoped<MemberAdminService>();
