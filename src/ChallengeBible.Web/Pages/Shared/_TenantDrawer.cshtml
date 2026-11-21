@@ -20,17 +20,8 @@
     <aside class="pd-panel" tabindex="-1" role="dialog" aria-modal="true" aria-label="메뉴">
         @DrawerUi.Head(name, Model.Photo, c.Name + (role.Length > 0 ? " · " + role : ""))
         <nav aria-label="메뉴">
-            @if (!lobby)
-            {
-                <h2 class="tdr-g"><em>도전!!!</em>성경말씀</h2>
-                @* 켠 것만 · 성경미션 → 성경통독 → 성경필사(2026-11-16), 365 기도는 학생 · 새친구에게 없음(ADR 0106) *@
-                @if (c.MissionEnabled) { @DrawerUi.Row($"/{s}/word-mission", "mission", "g", "성경미션", "말씀 · 퀴즈 · 기도 · 암송, 매일 점수", Cur($"/{s}/word-mission"), dj: true) }
-                @if (c.ReadingEnabled) { @DrawerUi.Row($"/{s}/reading", "reading", "b", "성경통독", "하루 몇 장, 내 진도율", Cur($"/{s}/reading"), dj: true) }
-                @if (c.CopyEnabled) { @DrawerUi.Row($"/{s}/copy", "copy", "o", "성경필사", "말씀 따라 쓰기 · 완필 선물", Cur($"/{s}/copy"), dj: true) }
-                @if (t.IsApproved && !Prayer365Service.IsStudentRole(t.RoleCode)) { @DrawerUi.Row($"/{s}/prayer365", "pray", "p", "자녀를 위한 365 기도", "부모가 매일 한 가지씩 기도", Cur($"/{s}/prayer365")) }
-            }
+            @* 2026-11-21 사용자: "도전!!!성경말씀" 묶음(성경미션 · 통독 · 필사 · 365 기도)과 "부서 홈" 항목은 메뉴판에서 뺐다 — 프로그램은 부서 홈 카드로, 홈으로 가는 길은 각 화면 머리말 [홈으로] *@
             <h2 class="tdr-g">함께하기</h2>
-            @DrawerUi.Row($"/{s}", "home", "s", "부서 홈", "오늘 미션 · 점수 · 선물", Cur($"/{s}"))
             @DrawerUi.Row("/messages", "msg", "v", "쪽지", "선생님 · 친구와 주고받기", Cur("/messages"))
             @if (!lobby) { @DrawerUi.Row($"/{s}/album", "photo", "o", "사진첩", "부서 행사 사진", Cur($"/{s}/album")) }   @* ADR 0118 *@
             @if (!lobby && t.IsApproved)
