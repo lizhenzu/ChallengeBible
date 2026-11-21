@@ -132,6 +132,17 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
         return PeopleError.None;
     }
 
+    /// <summary>계정이 없는 명부 줄의 역할만 바꾼다(임원 및 기타 화면). 계정이 있는 줄은 소속(DeptRoleUserAssoc)에서 바꾼다.</summary>
+    public async Task<PeopleError> SetRoleAsync(int id, string? roleCode, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var p = await ctx.People.SingleOrDefaultAsync(x => x.Id == id && x.LeftOn == null, ct);
+        if (p is null || p.UserId is not null) return PeopleError.NotFound;
+        p.RoleCode = Clean(roleCode);
+        await ctx.SaveChangesAsync(ct);
+        return PeopleError.None;
+    }
+
     /// <summary>교적부에서 고치기(R-361): 생일 · 전화 · 전화 2 만 — 이름 · 역할 · 계정 연결은 건드리지 않는다. 탈퇴한 줄은 안 된다.</summary>
     public async Task<PeopleError> UpdateContactAsync(int id, int? month, int? day, string? phone1, string? phone2, CancellationToken ct = default)
     {

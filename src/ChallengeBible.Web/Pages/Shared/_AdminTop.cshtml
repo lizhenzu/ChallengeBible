@@ -17,6 +17,8 @@
     ];
     // 생일 · 선물은 일반 ☰ 메뉴판 "생일" 묶음으로 옮겼다(2026-11-21 사용자: 관리 메뉴는 진짜 관리자 설정만)
     // 반: 관리자만(0093 조직 · 반 9)
+    // 교사 · 임원 및 기타(2026-11-21 사용자, 확정 시안 역할-담임-시안2): 담임 정하기 · 역할 바꾸기를 따로
+    if (Model.IsAdmin && !Model.IsLobby) menu = [.. menu, ($"/{slug}/admin/teachers", "교사", 0), ($"/{slug}/admin/officers", "임원 및 기타", 0)];
     if (Model.IsAdmin && !Model.IsLobby) menu = [.. menu, ($"/{slug}/admin/classes", "반", 0)];
     // 가족팀: 관리자만, 기본 규칙 "가족팀" 스위치가 켜졌을 때만(0012)
     if (Model.IsAdmin && await FamilyTeams.EnabledAsync()) menu = [.. menu, ($"/{slug}/admin/teams", "가족팀", 0)];
@@ -35,7 +37,7 @@
     bool Current(string href) => href == home ? path.TrimEnd('/').Equals(home, StringComparison.OrdinalIgnoreCase) : path.StartsWith(href, StringComparison.OrdinalIgnoreCase);
     // 확정 시안 관리-햄버거(2026-11-16 사용자): 가로 탭 대신 ☰ 메뉴판, 묶음별. 머리말 제목 = 지금 화면
     var now = menu.FirstOrDefault(m => Current(m.Href)).Label ?? "관리";
-    string Group(string href) => href == home ? "" : href.Contains("/admin/gifts/") ? "선물 설정" : href.EndsWith("/members") || href.EndsWith("/birthdays") || href.EndsWith("/classes") || href.EndsWith("/teams") || href.EndsWith("/promotions") || href.EndsWith("/leaves") ? "사람"
+    string Group(string href) => href == home ? "" : href.Contains("/admin/gifts/") ? "선물 설정" : href.EndsWith("/members") || href.EndsWith("/teachers") || href.EndsWith("/officers") || href.EndsWith("/birthdays") || href.EndsWith("/classes") || href.EndsWith("/teams") || href.EndsWith("/promotions") || href.EndsWith("/leaves") ? "사람"
         : href.EndsWith("/gifts") || href.EndsWith("/content") || href.EndsWith("/prayer365") || href.EndsWith("/reading") || href.EndsWith("/season") ? "선물 · 콘텐츠" : "설정";
     string[] Groups = ["", "사람", "선물 설정", "선물 · 콘텐츠", "설정"];
     // 확정 시안 플랫폼관리메뉴(2026-11-18): 항목마다 아이콘 · 색 · 한 줄 설명(주소 끝으로 고른다)
@@ -43,6 +45,8 @@
         href == home ? ("home", "s", "오늘 챙길 일 · 숫자")
         : href.EndsWith("/members") ? (Model.IsAdmin ? ("people", "g", "승인 · 역할 · 명부") : ("people", "g", "우리 부서 사람들"))
         : href.EndsWith("/birthdays") ? ("cake", "o", "다가오는 · 월별 · 연간")
+        : href.EndsWith("/teachers") ? ("people", "b", "반별 담임 · 부담임")
+        : href.EndsWith("/officers") ? ("key", "v", "임원 · 봉사 · 기타 역할")
         : href.EndsWith("/classes") ? ("cls", "b", "반 만들기 · 배정")
         : href.EndsWith("/teams") ? ("family", "p", "팀 · 시상")
         : href.EndsWith("/promotions") ? ("move", "o", "받은 요청 · 이동하기 · 보낸 기록")
