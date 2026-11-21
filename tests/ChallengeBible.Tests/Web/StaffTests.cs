@@ -162,4 +162,18 @@ public partial class StaffTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.True(after.ClassMembers.Any(m => m.ClassId == _c1 && m.PersonId == _t2 && m.IsTeacher));
         Assert.False(after.ClassMembers.Any(m => m.PersonId == _kid));
     }
+
+    [Fact]
+    public async Task R362_봉사_기타_새친구도_한_줄_칸으로_보이고_바꿀_수_있다()
+    {
+        var a = await Login("admin@example.com");
+        var page = WebUtility.HtmlDecode(await a.GetStringAsync("/kids/admin/officers"));
+        foreach (var code in new[] { "T1017", "T1018", UserRole.EtcCode, "T1020" })
+            Assert.Matches($"class=\"st-slot[^\"]*\" data-act=\"slot\" data-code=\"{code}\"", page);
+        await Post(a, "/kids/admin/officers", "Role", new() { ["personId"] = _t2.ToString(), ["code"] = "T1017" });   // 한교사 → 영상
+        await Post(a, "/kids/admin/officers", "Role", new() { ["personId"] = _kid.ToString(), ["code"] = "T1020" });  // 이학생 → 새친구
+        using var raw = InMemoryDb.Raw(_db);
+        Assert.Equal("T1017", raw.People.Single(p => p.Id == _t2).RoleCode);
+        Assert.Equal("T1020", raw.People.Single(p => p.Id == _kid).RoleCode);
+    }
 }

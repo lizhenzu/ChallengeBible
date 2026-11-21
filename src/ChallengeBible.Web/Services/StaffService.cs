@@ -13,7 +13,7 @@ public sealed record StaffSlot(string Code, string Label, bool Single, bool Make
     public bool Empty => People.Count == 0;
 }
 
-public sealed record StaffBoard(IReadOnlyList<StaffSlot> Officers, IReadOnlyList<StaffSlot> Helpers, int Etc, int Newcomers, IReadOnlyList<StaffPerson> People,
+public sealed record StaffBoard(IReadOnlyList<StaffSlot> Officers, IReadOnlyList<StaffSlot> Helpers, IReadOnlyList<StaffSlot> Others, IReadOnlyList<StaffPerson> People,
     IReadOnlyList<(string Code, string Label)> Choices)
 {
     /// <summary>확인할 것: 한 명 자리에 두 명 이상 · 비어 있는 임원 자리.</summary>
@@ -34,6 +34,8 @@ public sealed class StaffService(PeopleService people, MemberAdminService member
     public static readonly HashSet<string> SingleCodes = ["T1005", "T1006", "T1008", "T1009", "T1040"];
     /// <summary>봉사: 보조 · 지원 · 율동 · 촬영 · 영상 · 반주 · 스텝.</summary>
     public static readonly string[] HelperCodes = ["T1010", "T1013", "T1015", "T1016", "T1017", "T1018", "T1019"];
+    /// <summary>기타 · 새친구(2026-11-21 사용자: 임원처럼 한 줄 칸으로).</summary>
+    public static readonly string[] OtherCodes = [UserRole.EtcCode, "T1020"];
 
     public async Task<StaffBoard> BoardAsync(CancellationToken ct = default)
     {
@@ -47,8 +49,7 @@ public sealed class StaffService(PeopleService people, MemberAdminService member
         StaffSlot Slot(string code) => new(code, Label(code), SingleCodes.Contains(code), adminCodes.Contains(code),
             all.Where(p => p.RoleCode == code).OrderBy(p => p.Name, StringComparer.Ordinal).ToList());
         var choices = UserRole.Codes.Where(c => c.Code != UserRole.AdminCode).Select(c => (c.Code, Label(c.Code))).ToList();
-        return new StaffBoard(OfficerCodes.Select(Slot).ToList(), HelperCodes.Select(Slot).ToList(),
-            all.Count(p => p.RoleCode == UserRole.EtcCode), all.Count(p => p.RoleCode == "T1020"), all, choices);
+        return new StaffBoard(OfficerCodes.Select(Slot).ToList(), HelperCodes.Select(Slot).ToList(), OtherCodes.Select(Slot).ToList(), all, choices);
     }
 
     private static StaffPerson P(RosterRow r)
