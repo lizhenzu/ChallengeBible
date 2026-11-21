@@ -1,0 +1,60 @@
+@page "/{slug}/admin/members/p/{pid:int}"
+@model ChallengeBible.Web.Pages.Admin.PersonDetailModel
+@using ChallengeBible.Web.Services
+@* 사람 상세(2026-11-21 확정 시안 사람관리-쪼개기 ②): 읽기 전용. 고치기 · 계정 연결은 각각 새 화면 *@
+@{
+    var r = Model.Row!;
+    var slug = Model.Tenant.Current.Slug;
+    var back = $"/{slug}/admin/members";
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut w760"><div class="wrap pd">
+    <a class="pd-back" href="@back">‹ @(Model.IsAdmin ? "사람 관리" : "명부")</a>
+    @if (PersonUi.Ok(Model.Ok) is { Length: > 0 } ok) { <p class="okmsg" role="status">@ok</p> }
+    @if (Model.Error is { } err) { <p class="err" role="alert">@err</p> }
+    <div class="pd-head"><span class="pd-av" aria-hidden="true">@PersonUi.Short(r.Name)</span>
+        <div><h1>@r.Name</h1>
+            <p class="pd-tags"><span class="c">@r.RoleLabel</span>@if (r.IsAdmin) { <span class="c ad">부서 관리자</span> }<span class="c @(r.Linked ? "ok" : "no")">@(r.Linked ? "가입" : "가입 안 함")</span></p></div></div>
+    <dl class="pd-kv">
+        <dt>생일</dt><dd>@(r.BirthMonth is null ? "없음" : r.Birthday)</dd>
+        <dt>연락처</dt><dd>@if (r.Phone1 is { } p1) { <a href="tel:@p1">@p1</a> } else { <span class="mute">없음</span> }</dd>
+        <dt>연락처 2</dt><dd>@if (r.Phone2 is { } p2) { <a href="tel:@p2">@p2</a> } else { <span class="mute">없음</span> }</dd>
+        <dt>역할</dt><dd>@r.RoleLabel</dd>
+        <dt>반</dt><dd>@(r.ClassText ?? "없음")</dd>
+        <dt>계정</dt><dd>@if (r.Linked) { <span class="id">@r.UserName</span> } else { <span class="warn">아직 가입 안 했어요</span> }</dd>
+    </dl>
+    <div class="pd-acts">
+        <a class="btn p" href="/@slug/admin/members/p/@r.PersonId/edit">고치기</a>
+        @if (Model.IsAdmin && !r.Linked) { <a class="btn s" href="/@slug/admin/members/p/@r.PersonId/link">계정 연결</a> }
+        @if (Model.IsAdmin && r.DeptRoleId is int did) { <a class="btn s" href="/@slug/admin/members/@did">계정 자세히 →</a> }
+    </div>
+    @if (Model.IsAdmin && r.Linked && r.RoleCode == UserRole.StudentCode)
+    {
+        var free = Model.Guardians.Where(g => !Model.MyGuardians.Contains(g.UserName) && g.UserName != r.UserName).ToList();
+        <h2 class="pd-h">보호자 연결 <small>연결된 보호자는 미션 · 점수를 보기만 해요</small></h2>
+        @foreach (var g in Model.Guardians.Where(g => Model.MyGuardians.Contains(g.UserName)))
+        {
+            <form method="post" asp-page-handler="Guardian" class="pd-line"><input type="hidden" name="guardian" value="@g.UserName" /><input type="hidden" name="student" value="@r.UserName" /><input type="hidden" name="unlink" value="true" />
+                <span>@g.Name</span><button type="submit" class="btn t">풀기</button></form>
+        }
+        @if (free.Count > 0)
+        {
+            <form method="post" asp-page-handler="Guardian" class="pd-line"><input type="hidden" name="student" value="@r.UserName" />
+                <select class="sel" name="guardian" aria-label="연결할 보호자">@foreach (var g in free) { <option value="@g.UserName">@g.Name</option> }</select>
+                <button type="submit" class="btn s sm">연결</button></form>
+        }
+        else if (Model.MyGuardians.Count == 0) { <p class="hint">이 부서에 보호자 역할을 가진 사람이 아직 없어요.</p> }
+    }
+    @if (Model.IsAdmin)
+    {
+        <h2 class="pd-h danger">정리</h2>
+        @if (r.Linked)
+        {
+            <form method="post" asp-page-handler="Unlink" onsubmit="return confirm('잘못 연결했을 때 써요. 이 줄은 가입 안 함으로 돌아가고, 계정은 새 명부 줄을 받아요. 풀까요?')"><button type="submit" class="btn s">명부 연결 풀기</button></form>
+        }
+        else
+        {
+            <form method="post" asp-page-handler="Delete" onsubmit="return confirm('@(r.Name)님을 명부에서 지울까요?')"><button type="submit" class="btn d">명부에서 지우기</button></form>
+        }
+    }
+</div></main>

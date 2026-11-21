@@ -11,7 +11,7 @@ namespace ChallengeBible.Web.Pages.Admin;
 [TenantRoles(Roles.TenantAdmin, Roles.Teacher)]
 public class MembersModel(MemberAdminService members, PeopleService people, PromotionService promotions, LookupLimiter limiter, TenantContext tenant) : PageModel, ITitled
 {
-    public string Title => "소속 관리";
+    public string Title => IsAdmin ? "사람 관리" : "명부";
     public TenantContext Tenant => tenant;
 
     [BindProperty(SupportsGet = true)] public string Tab { get; set; } = MembershipStatus.Approved;   // 2026-11-20 사용자: 참여는 승인 없이 바로(R-340) — 명부가 먼저
