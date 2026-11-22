@@ -223,6 +223,20 @@
           </div>
         </section>
       }
+      @* 부서 대표 학생 로그인(R-367, 확정 시안 첫화면-대표학생, 2026-11-22): 같은 모양, 아이 이름 없이 부서만 *@
+      @if (Model.DeptStudents.Count > 0)
+      {
+        <section class="dl-box" aria-labelledby="dsT">
+          <h3 id="dsT">부서 대표 학생 로그인</h3>
+          <p>생일이 다가오고 점수 · 기록이 많은 아이로 · 누르고 비밀번호만 넣어요</p>
+          <div class="dl-grid">
+            @foreach (var ds in Model.DeptStudents)
+            {
+              <a class="dl-btn dl-c@(ds.Color)" href="/account/student-login/@ds.Slug">@ds.Short 학생</a>
+            }
+          </div>
+        </section>
+      }
     </div>
   </div>
 </section>
