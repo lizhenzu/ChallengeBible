@@ -98,10 +98,10 @@ else
 
         @if (t.ReadingEnabled)
         {
-            <a class="hmx-search" href="/@slug/reading/search" aria-label="말씀 찾기 화면으로">
-                <span>성경에서 단어 검색</span>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-            </a>
+            <form class="hmx-search" method="get" action="@($"/{slug}/reading/search")" role="search">
+                <input type="search" name="q" maxlength="50" placeholder="성경에서 단어 검색" aria-label="성경에서 단어 검색" />
+                <button type="submit">검색</button>
+            </form>
         }
 
         <nav class="hmx-grid" aria-label="프로그램 바로가기">

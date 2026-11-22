@@ -62,7 +62,9 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
 
         Assert.Contains("<h1 id=\"hmxT\">도전!!! <span>성경말씀</span></h1>", home);   // 로고
         Assert.Contains("하루 5분, 말씀과 함께 자라요.", home);                          // 태그라인
-        Assert.Contains("<a class=\"hmx-search\" href=\"/jamsil-kids/reading/search\"", home);   // 검색
+        Assert.Contains("<form class=\"hmx-search\" method=\"get\" action=\"/jamsil-kids/reading/search\"", home);   // 검색
+        Assert.Contains("name=\"q\"", home);
+        Assert.Contains("<button type=\"submit\">검색</button>", home);
         Assert.Contains("<a class=\"hmx-item\" href=\"/jamsil-kids/word-mission\">", home);      // 프로그램 4칸 중 미션
         Assert.Contains("<a class=\"hmx-item\" href=\"/jamsil-kids/reading\">", home);           // 통독
         Assert.Contains("<a class=\"hmx-item\" href=\"/jamsil-kids/copy\">", home);              // 필사
@@ -89,7 +91,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("href=\"/jamsil-kids/feedback\"", home);                                // 의견은 작은 링크로
         Assert.Contains("data-pnav-open", home);                                                // ☰
         Assert.Contains("class=\"mailb\" href=\"/messages\"", home);                          // 우측 편지 = 받은 쪽지
-        Assert.DoesNotContain("<a class=\"hmx-ico\" href=\"/jamsil-kids/reading/search\"", home);   // 우측 검색 아이콘은 뺐다(검색 알약은 그대로)
+        Assert.DoesNotContain("<a class=\"hmx-ico\" href=\"/jamsil-kids/reading/search\"", home);   // 우측 검색 아이콘은 뺐다(검색은 아래 입력+버튼)
         Assert.Contains("로그아웃", home);
     }
 
