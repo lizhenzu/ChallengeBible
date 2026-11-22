@@ -49,9 +49,9 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         var html = await Page();
         Assert.Contains("<small>대한예수교장로회</small>", html);
         Assert.Contains("href=\"https://www.saenae.org/\" target=\"_blank\" rel=\"noopener\"", html);
-        Assert.Contains("<time class=\"lp-date\" datetime=\"2027-01-05\">", html);
+        Assert.Contains("<time class=\"vb-date\" datetime=\"2027-01-05\">", html);
         Assert.Contains("1월 5일", html);
-        Assert.Contains("<a class=\"hmx-ico lp-me\" href=\"/account/login\" aria-label=\"로그인\" title=\"로그인\">", html);   // 로그인은 우측 사람 아이콘 하나
+        Assert.Contains("<a class=\"person-btn\" href=\"/account/login\" aria-label=\"로그인\" title=\"로그인\">", html);   // 로그인은 우측 사람 아이콘 하나
         Assert.DoesNotContain("data-pnav-open", html);                // 로그인 전에는 ☰ 메뉴가 없다
         Assert.DoesNotContain("hamburger", html, StringComparison.OrdinalIgnoreCase);
     }
@@ -87,11 +87,11 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
             raw.SaveChanges();
         }
         var html = await Page();
-        Assert.Contains("함께하는 부서</div><div class=\"vl num\">2곳</div>", html);
-        Assert.Contains("참여하는 사람</div><div class=\"vl num\">2명</div>", html);
-        Assert.Contains("오늘 함께한 사람</div><div class=\"vl num\">2명</div>", html);
-        Assert.Contains("올해 읽은 성경</div><div class=\"vl num\">2장</div>", html);
-        Assert.Contains("최근 7일 참여</div>", html);
+        Assert.Contains(">2<small>곳</small></b><span>함께하는 부서</span>", html);
+        Assert.Contains(">2<small>명</small></b><span>참여하는 사람</span>", html);
+        Assert.Contains(">2<small>명</small></b><span>오늘 함께한 사람</span>", html);
+        Assert.Contains("class=\"vb-big num\">2<small>장</small>", html);
+        Assert.Contains("최근 7일 참여", html);
         Assert.DoesNotContain("잠실새내교회 유년부", html);
         Assert.DoesNotMatch(@"\bk1\b", html);
     }
@@ -100,14 +100,13 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task 네_프로그램과_로그인_가입_관리자_로그인이_보인다()
     {
         var html = await Page();
-        Assert.Contains("도전!!!<br>성경미션", html);
-        Assert.Contains("도전!!!<br>성경통독", html);
-        Assert.Contains("도전!!!<br>성경필사", html);
-        Assert.Contains("자녀를 위한<br>기도365", html);
-        Assert.Contains("<a class=\"hmx-ico lp-me\" href=\"/account/login\"", html);   // 로그인은 사람 아이콘 하나
-        Assert.DoesNotContain("class=\"lp-login\"", html);                              // 큰 로그인 카드는 없앴다
-        Assert.Contains("<a class=\"hmx-item\" href=\"/account/login\" aria-label=\"도전!!!성경미션\">", html);   // 미션 칸도 로그인
-        Assert.Contains("href=\"/account/signup\"", html);
+        Assert.Contains("<b>성경미션</b>", html);
+        Assert.Contains("<b>성경통독</b>", html);
+        Assert.Contains("<b>성경필사</b>", html);
+        Assert.Contains("<b>기도365</b>", html);
+        Assert.Contains("<a class=\"person-btn\" href=\"/account/login\"", html);   // 로그인은 사람 아이콘 하나
+        Assert.DoesNotContain("class=\"lp-login\"", html);                          // 큰 로그인 카드는 없앴다
+        Assert.Contains("<a class=\"vb-item\" href=\"/account/login\"", html);      // 미션 칸도 로그인
         Assert.Contains("관리자 로그인", html);
         Assert.Contains("href=\"/account/admin-login\"", html);        // 플랫폼 관리자
     }

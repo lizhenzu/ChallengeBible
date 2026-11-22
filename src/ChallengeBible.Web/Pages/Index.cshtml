@@ -1,15 +1,15 @@
 ﻿@page
 @model IndexModel
 @using ChallengeBible.Domain.Time
-@* 첫 화면(2026-11-22 사용자 확정, ADR 0128 · 2026-11-23 사용자: 로그인 진입점은 우측 사람 아이콘 하나).
-   머리말 → 로고 → 프로그램 4칸 → 오늘의 말씀 → 함께하는 현황 → 관리자 로그인.
-   큰 로그인 카드는 뺐다 — 사람 아이콘과 프로그램 칸이 모두 로그인으로 안내한다.
-   로그인한 사람은 지금처럼 소속 수에 따라 부서 홈 · 부서 고르기 · 참여 신청으로 보낸다. *@
+@* 첫 화면(2026-11-23 사용자 확정: design_handoff_home_b · 시안 B 모노 톤).
+   히어로(교회 · 날짜 · 사람 아이콘) → 네 가지 도전 목록 → 오늘의 말씀 + 현황 → 접이식 관리자 로그인 → 저작권.
+   로그인한 사람은 이 화면에 머물며 머리말 「000님」과 부서 바로가기를 본다(R-173). *@
 @{
     var d = Model.Data;
     var st = d.Stats;
     var ko = new System.Globalization.CultureInfo("ko-KR");
-    static string Md(DateOnly d) => d.ToString("M'/'d");
+    static string Md(DateOnly x) => x.ToString("M'/'d");
+    var weekPeople = st.Week.Sum(w => w.People);
     // 로그인 전 → 로그인 / 부서 1곳 → 그 부서의 프로그램 / 여러 곳 → 부서 고르기 / 없음 → 참여 신청
     string P(string prog) => Model.Me switch
     {
@@ -19,142 +19,195 @@
         _ => "/join",
     };
 }
-<link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
-<link rel="stylesheet" href="~/css/first.css" asp-append-version="true" />
-<div class="hm hmx lp">
+<link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
+<div class="vb">
 
-<main class="gut"><div class="wrap hmx-wrap">
+<header class="vb-hero">
+    <img class="vb-clover" src="~/icons/clover.svg" alt="" aria-hidden="true" />
+    <div class="vb-hero-in">
+        <div class="vb-top">
+            <a class="church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)">
+                <small>대한예수교장로회</small>
+                <span>잠실새내교회</span>
+            </a>
+            <div class="vb-top-r">
+                <time class="vb-date" datetime="@d.Today.ToString("yyyy-MM-dd")">@d.Today.ToString("M월 d일", ko) <small>@d.Today.ToString("dddd", ko)</small></time>
+                @if (Model.Me is { } me)
+                {
+                    <a class="hmx-me" href="/account" aria-label="내 계정 · @Ui.Nim(me.Name)">
+                        <span class="av" aria-hidden="true">@Ui.Initial(me.Name)</span>
+                        <b>@Ui.Nim(me.Name)</b>
+                    </a>
+                }
+                else
+                {
+                    <a class="person-btn" href="/account/login" aria-label="로그인" title="로그인">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.6 4.1-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/></svg>
+                    </a>
+                }
+            </div>
+        </div>
 
-    <div class="hmx-top">
-        <a class="lp-church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)">
-            <small>대한예수교장로회</small>
-            <span>잠실새내교회</span>
-        </a>
-        <div class="hmx-act">
-            <time class="lp-date" datetime="@d.Today.ToString("yyyy-MM-dd")">@d.Today.ToString("M월 d일", ko) <small>@d.Today.ToString("dddd", ko)</small></time>
-            @if (Model.Me is { } me)
+        <div class="vb-body">
+            <h1 class="brand-title">
+                <span class="bt-1">도전<span class="bt-ex"><i class="e1">!</i><i class="e2">!</i><i class="e3">!</i></span></span>
+                <span class="bt-2">성경말씀</span>
+            </h1>
+            <p class="vb-tag">네 가지 도전, 하나의 말씀.<br />하루 5분, 말씀과 함께 자라요.</p>
+            <div class="vb-pills" aria-label="프로그램">
+                <span class="pp1">성경미션</span><span class="pp2">성경통독</span><span class="pp3">성경필사</span><span class="pp4">기도365</span>
+            </div>
+            @if (Model.Me is { } mine)
             {
-                <a class="hmx-me" href="/account" aria-label="내 계정 · @Ui.Nim(me.Name)">
-                    <span class="av" aria-hidden="true">@Ui.Initial(me.Name)</span>
-                    <b>@Ui.Nim(me.Name)</b>
-                </a>
-            }
-            else
-            {
-                <a class="hmx-ico lp-me" href="/account/login" aria-label="로그인" title="로그인">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                <a class="vb-go-pill" href="@(mine.DeptCount switch { 1 => "/" + mine.Slug, >= 2 => "/account/tenants", _ => "/join" })">
+                    @(mine.DeptCount switch { 1 => "내 부서 홈으로 가기", >= 2 => "부서 고르기", _ => "부서 참여하기" })
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                 </a>
             }
         </div>
     </div>
+</header>
 
-    <section class="hmx-logo" aria-labelledby="lpT">
-        <h1 id="lpT">도전!!! <span>성경말씀</span></h1>
-        <p>하루 5분, 말씀과 함께 자라요.</p>
-    </section>
+<main class="vb-main">
 
-    @if (Model.Me is { } mine)
-    {
-        <a class="lp-go" href="@(mine.DeptCount switch { 1 => "/" + mine.Slug, >= 2 => "/account/tenants", _ => "/join" })">
-            @(mine.DeptCount switch { 1 => "내 부서 홈으로 가기", >= 2 => "부서 고르기", _ => "부서 참여하기" })
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
-    }
+    <div class="vb-sec-h">
+        <h2>네 가지 도전</h2>
+        <p>어느 것부터 해도 좋아요</p>
+    </div>
 
-    <nav class="hmx-grid" aria-label="프로그램">
-        <a class="hmx-item" href="@P("word-mission")" aria-label="도전!!!성경미션">
-            <span class="hmx-tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V7.5z"/><path d="M14 3v4.5h4.5"/><path d="M9 13.5l2 2 4-4.5"/><path d="M8 18h8"/></svg></span><span>도전!!!<br>성경미션</span>
+    <nav class="vb-list" aria-label="프로그램">
+        <a class="vb-item" href="@P("word-mission")" style="--c: var(--p1); --s: var(--s1);">
+            <span class="vb-no">01</span>
+            <span class="vb-t">
+                <small>도전!!!</small>
+                <b>성경미션</b>
+                <p>매일 하나씩 주어지는 말씀 미션을 풀어요</p>
+            </span>
+            <span class="vb-go"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
         </a>
-        <a class="hmx-item" href="@P("reading")" aria-label="도전!!!성경통독">
-            <span class="hmx-tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H14l3.5 3.5V19.5A1.5 1.5 0 0 1 16 21H6.5A1.5 1.5 0 0 1 5 19.5z"/><path d="M14 3v3.5h3.5"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/></svg></span><span>도전!!!<br>성경통독</span>
+        <a class="vb-item" href="@P("reading")" style="--c: var(--p2); --s: var(--s2);">
+            <span class="vb-no">02</span>
+            <span class="vb-t">
+                <small>도전!!!</small>
+                <b>성경통독</b>
+                <p>계획표를 따라 하루 몇 장씩, 끝까지 읽어요</p>
+            </span>
+            <span class="vb-go"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
         </a>
-        <a class="hmx-item" href="@P("copy")" aria-label="도전!!!성경필사">
-            <span class="hmx-tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 4.5l3 3L9 18l-4 1 1-4z"/><path d="M14.5 6.5l3 3"/><path d="M4 21h16"/></svg></span><span>도전!!!<br>성경필사</span>
+        <a class="vb-item" href="@P("copy")" style="--c: var(--p3); --s: var(--s3);">
+            <span class="vb-no">03</span>
+            <span class="vb-t">
+                <small>도전!!!</small>
+                <b>성경필사</b>
+                <p>말씀을 한 절씩 따라 쓰며 마음에 새겨요</p>
+            </span>
+            <span class="vb-go"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
         </a>
-        <a class="hmx-item" href="@P("prayer365")" aria-label="자녀를 위한 기도365">
-            <span class="hmx-tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.9c0 5.4-7.5 10-7.5 10z"/><path d="M12 10.5v4M10 12.5h4"/></svg></span><span>자녀를 위한<br>기도365</span>
+        <a class="vb-item" href="@P("prayer365")" style="--c: var(--p4); --s: var(--s4);">
+            <span class="vb-no">04</span>
+            <span class="vb-t">
+                <small>자녀를 위한</small>
+                <b>기도365</b>
+                <p>매일 한 가지 주제로 자녀를 위해 기도해요</p>
+            </span>
+            <span class="vb-go"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
         </a>
     </nav>
 
-    @if (d.VerseText is { } vt)
-    {
-        <section class="hmx-card" aria-label="오늘의 말씀">
-            <h2>오늘의 말씀</h2>
-            <div class="hmx-vs solo">
-                <p>“@vt”@if (d.VerseRef is { } vr) { <span class="ref"> (@vr)</span> }@if (d.WordRange is { } wr) { <span class="ref"> · @wr</span> }</p>
+    <div class="vb-row">
+        @if (d.VerseText is { } vt)
+        {
+            <section class="vb-verse" aria-label="오늘의 말씀">
+                <h3>오늘의 말씀</h3>
+                <blockquote class="serif">“@vt”</blockquote>
+                @if (d.VerseRef is not null || d.WordRange is not null)
+                {
+                    <cite>@d.VerseRef@if (d.WordRange is { } wr) { <text> · @wr</text> }</cite>
+                }
+                @if (d.ReciteRange is not null || d.PrayerTrait is not null)
+                {
+                    <div class="vb-meta">
+                        @if (d.ReciteRange is { } rr && d.ReciteStart is { } rs && d.ReciteEnd is { } re)
+                        {
+                            <span>이번 주 암송 <b>@rr</b> <span class="nw">(@Md(rs) ~ @Md(re))</span></span>
+                        }
+                        @if (d.PrayerTrait is { } pt)
+                        {
+                            <span>오늘의 기도 <b>@pt</b>@if (d.PrayerRange is { } pr) { <text> · @pr</text> }</span>
+                        }
+                    </div>
+                }
+            </section>
+        }
+
+        <section class="vb-stat" aria-label="함께하는 현황">
+            <h3>올해 함께 읽은 성경</h3>
+            <p class="vb-big num">@st.YearChapters.ToString("N0")<small>장</small></p>
+            <div class="vb-three">
+                <div><b class="num">@st.Tenants<small>곳</small></b><span>함께하는 부서</span></div>
+                <div><b class="num">@st.People<small>명</small></b><span>참여하는 사람</span></div>
+                <div><b class="num">@st.TodayPeople<small>명</small></b><span>오늘 함께한 사람</span></div>
             </div>
-            @if (d.ReciteRange is not null || d.PrayerTrait is not null)
-            {
-                <div class="lp-chips">
-                    @if (d.ReciteRange is { } rr && d.ReciteStart is { } rs && d.ReciteEnd is { } re)
-                    {
-                        <span>이번 주 암송 <b>@rr</b> <span class="nw">(@Md(rs) ~ @Md(re))</span></span>
-                    }
-                    @if (d.PrayerTrait is { } pt)
-                    {
-                        <span>오늘의 기도 <b>@pt</b>@if (d.PrayerRange is { } pr) { <text> · @pr</text> }</span>
-                    }
-                </div>
-            }
+            <p class="vb-week">최근 7일 참여 <b class="num">@(weekPeople)명</b></p>
         </section>
-    }
-
-    <section class="hmx-card" aria-labelledby="lpSt">
-        <div class="hmx-ch">
-            <h2 id="lpSt">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f2b01e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 5M17 6h3a3 3 0 0 1-3 5"/><path d="M12 14v3M8.5 20h7"/></svg>
-                함께하는 현황
-            </h2>
-        </div>
-        <div class="hmx-stats">
-            <div class="hmx-stat"><div class="lb">함께하는 부서</div><div class="vl num">@(st.Tenants)곳</div></div>
-            <div class="hmx-stat"><div class="lb">참여하는 사람</div><div class="vl num">@(st.People)명</div></div>
-            <div class="hmx-stat"><div class="lb">오늘 함께한 사람</div><div class="vl num">@(st.TodayPeople)명</div></div>
-        </div>
-        <div class="hmx-stats detail">
-            <div class="hmx-stat"><div class="lb">올해 읽은 성경</div><div class="vl num">@(st.YearChapters.ToString("N0"))장</div></div>
-            <div class="hmx-stat"><div class="lb">최근 7일 참여</div><div class="vl num">@(st.Week.Sum(w => w.People))명</div></div>
-        </div>
-    </section>
-
-    <section class="lp-mgr" aria-labelledby="lpAd">
-        <div class="hmx-ch"><h2 id="lpAd">관리자 로그인</h2></div>
-        <p class="lp-sub">부서 관리자 · 대표 학생은 누르고 비밀번호만 넣어요.</p>
-
-        @if (Model.DeptAdmins.Count > 0)
-        {
-            <h3 class="lp-h3">부서 관리자 로그인</h3>
-            <div class="lp-row">
-                @foreach (var da in Model.DeptAdmins)
-                {
-                    <a class="lp-adm c@(da.Color)" href="/account/dept-login/@da.Slug"><i></i>@da.Label</a>
-                }
-            </div>
-        }
-        @if (Model.DeptStudents.Count > 0)
-        {
-            <h3 class="lp-h3">부서 대표 학생 로그인</h3>
-            <div class="lp-row">
-                @foreach (var ds in Model.DeptStudents)
-                {
-                    <a class="lp-adm c@(ds.Color)" href="/account/student-login/@ds.Slug"><i></i>@ds.Short 학생</a>
-                }
-            </div>
-        }
-        <a class="lp-plat" href="/account/admin-login">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-            플랫폼 관리자 로그인
-        </a>
-    </section>
-
-    <div class="hmx-links">
-        <a href="/account/signup">처음이에요 · 가입하기</a>
-        <a href="/install">앱으로 설치</a>
     </div>
 
-</div></main>
+    <div class="vb-foot">
+        <details class="adm">
+            <summary class="adm-toggle">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+                <span>관리자 · 부서 대표 학생 로그인</span>
+                <svg class="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="adm-body">
+                <div class="adm-tabs" role="tablist" aria-label="로그인 종류">
+                    <button type="button" class="on" data-tab="mgr" role="tab" aria-selected="true">부서 관리자</button>
+                    <button type="button" data-tab="stu" role="tab" aria-selected="false">대표 학생</button>
+                </div>
+                <p class="adm-hint">부서를 누르고 비밀번호만 넣어요.</p>
+                <h3 class="sr-only">부서 관리자 로그인</h3>
+                <div class="adm-grid" data-panel="mgr">
+                    @foreach (var da in Model.DeptAdmins)
+                    {
+                        <a class="lp-adm c@(da.Color)" href="/account/dept-login/@da.Slug"><i></i>@da.Label</a>
+                    }
+                </div>
+                <h3 class="sr-only">부서 대표 학생 로그인</h3>
+                <div class="adm-grid" data-panel="stu" hidden>
+                    @foreach (var ds in Model.DeptStudents)
+                    {
+                        <a class="lp-adm c@(ds.Color)" href="/account/student-login/@ds.Slug"><i></i>@ds.Short 학생</a>
+                    }
+                </div>
+                <a class="adm-plat" href="/account/admin-login">
+                    플랫폼 관리자 로그인
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </a>
+            </div>
+        </details>
+        <div class="vb-footrow">
+            <span class="foot">© @Model.Year 잠실새내 · 주일학교</span>
+            <a href="/install">앱으로 설치</a>
+        </div>
+    </div>
 
-<footer class="gut"><div class="wrap">
-    <p class="foot-copy">© @Model.Year 잠실새내 · 주일학교</p>
-</div></footer>
+</main>
 </div>
+
+<script>
+    (function () {
+        var panel = document.querySelector('.vb .adm');
+        if (!panel) return;
+        panel.querySelectorAll('.adm-tabs button').forEach(function (b) {
+            b.addEventListener('click', function () {
+                panel.querySelectorAll('.adm-tabs button').forEach(function (x) {
+                    x.classList.toggle('on', x === b);
+                    x.setAttribute('aria-selected', x === b ? 'true' : 'false');
+                });
+                panel.querySelectorAll('.adm-grid').forEach(function (g) {
+                    g.hidden = g.getAttribute('data-panel') !== b.getAttribute('data-tab');
+                });
+            });
+        });
+    })();
+</script>
