@@ -60,6 +60,9 @@ public static class DrawerUi
     /// <summary>Admin = 관리자만 보는 메뉴 딱지 글자(부서 ☰ 메뉴판, 2026-11-21 사용자 "관리자에게만 관리").</summary>
     public const string Admin = "관리";
 
+    /// <summary>가장 중 표시(R-366, 2026-11-22 사용자): 이름 뒤 "(가)" 하나. 보라 띠는 없앴다.</summary>
+    public const string Ga = "<em class=\"imp-ga\" title=\"가장 중\">(가)</em>";
+
     public static IHtmlContent Row(string href, string icon, string tone, string title, string desc, bool current, bool dj = false, int count = 0, string? attr = null, string? badge = null)
     {
         var t = dj ? $"<em class=\"pd-pg\">도전!!!</em>{WebUtility.HtmlEncode(title)}" : WebUtility.HtmlEncode(title);
@@ -74,12 +77,13 @@ public static class DrawerUi
     /// 맨 위: 사진(없으면 이름 첫 글자) · 이름 · 소속 줄 · [내 정보 · 사진 변경] · 닫기.
     /// role 을 주면(부서 ☰, 2026-11-21 확정 시안 메뉴판-정리) 소속은 교회 · 부서 한 줄 + 역할 딱지 한 줄이고, 링크 글자는 link.
     /// </summary>
-    public static IHtmlContent Head(string? name, string? photo, string sub, string? role = null, bool adminRole = false, string link = "내 정보 · 사진 변경 ›")
+    public static IHtmlContent Head(string? name, string? photo, string sub, string? role = null, bool adminRole = false, string link = "내 정보 · 사진 변경 ›", bool imp = false)
     {
         name ??= "";
         var av = photo is { } ph ? $"<img src=\"/account/photo?handler=img&amp;v={WebUtility.HtmlEncode(ph)}\" alt=\"\" />" : $"<span aria-hidden=\"true\">{WebUtility.HtmlEncode(name.Length > 0 ? name[..1] : "?")}</span>";
         var pill = string.IsNullOrEmpty(role) ? "" : $"<span class=\"tdr-role{(adminRole ? " tdr-role-a" : "")}\">{WebUtility.HtmlEncode(role)}</span>";
-        return new HtmlString($"<div class=\"tdr-hd\"><a class=\"tdr-av\" href=\"/account\" aria-label=\"내 계정\">{av}</a><div class=\"tdr-who\"><b>{WebUtility.HtmlEncode(Ui.Nim(name))}</b>"
+        var ga = imp ? $" {Ga}" : "";   // 가장 중(2026-11-22 사용자)
+        return new HtmlString($"<div class=\"tdr-hd\"><a class=\"tdr-av\" href=\"/account\" aria-label=\"내 계정\">{av}</a><div class=\"tdr-who\"><b>{WebUtility.HtmlEncode(Ui.Nim(name))}{ga}</b>"
             + $"<small class=\"pd-dept\">{WebUtility.HtmlEncode(sub)}</small>{pill}<a href=\"/account\">{WebUtility.HtmlEncode(link)}</a></div><button type=\"button\" class=\"pd-x\" aria-label=\"메뉴 닫기\" data-pnav-close>✕</button></div>");
     }
 }

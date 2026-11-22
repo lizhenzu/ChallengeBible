@@ -48,16 +48,8 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    @if (User.ImpersonatorId() is not null)
-    {
-        @* 가장 중(ADR 0067, 확정 시안 플랫폼-가장): 모든 화면 보라 띠 + [복귀] — 2026-11-17 사용자: 맨 아래에 고정(site.css) *@
-        <div class="imp-bar" role="status"><div class="wrap gut">
-            <span><b>가장 중</b> · @Ui.Nim(User.DisplayName())으로 보고 있어요</span>
-            @* 사람 바꾸기(ADR 0096, 확정 시안 사람바꾸기): 로그아웃 없이 다른 계정으로 *@
-            <a class="sw-btn" href="/account/impersonate/switch?back=@Uri.EscapeDataString(path + Context.Request.QueryString)" data-imp-switch>사람 바꾸기</a>
-            <form method="post" action="/account/impersonate/stop">@Html.AntiForgeryToken()<button type="submit">복귀</button></form>
-        </div></div>
-    }
+    @* 가장 중(ADR 0067 · 0096): 2026-11-22 사용자 "그 사람이 로그인한 것처럼" — 보라 띠는 없앴다. 이름 뒤 (가), [사람 바꾸기] · [복귀]는 부서 ☰ 맨 위(_TenantDrawer),
+       ☰ 이 없는 화면은 머리말(_Top)의 [복귀] *@
     @RenderBody()
     @await RenderSectionAsync("Scripts", required: false)
     <script src="~/js/pwa.js" asp-append-version="true" defer></script>

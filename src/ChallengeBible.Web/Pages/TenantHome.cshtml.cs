@@ -107,7 +107,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         if (prayer365.CanSee(User.IsPlatformAdmin()))
             PrayerCard = (await prayer365.GetAsync(Prayer365Service.Md(prayer365.Today), ct), await prayer365.MyStatsAsync(ct));
         if (tenant.IsApproved && !tenant.IsLobby) Board = await orders.BoardAsync(GiftOrderService.BoardTake, ct);
-        RoleChips = await home.RoleChipsAsync(User.UserId()!, ct, User.IsPlatformAdmin());
+        RoleChips = await home.RoleChipsAsync(User.UserId()!, ct);
         ManyTenants = (await accounts.WhereToGoAsync(me, ct)).ApprovedCount > 1;
         if (tenant.IsLobby)
             Waiting = (await accounts.MyMembershipsAsync(me, ct))

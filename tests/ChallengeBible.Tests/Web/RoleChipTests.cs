@@ -99,10 +99,11 @@ public partial class RoleChipTests : IClassFixture<WebApplicationFactory<Program
         => Assert.Contains(Chips(("nc", "새친구"), ("cl", "3학년 믿음반")), await Home("nc", "T1020", _class3));
 
     [Fact]
-    public async Task R275_부서_관리자는_직분_앞에_부서_관리자_칩()
+    public async Task R366_부서_관리자는_부서_이름_관리자_칩_하나만()
     {
-        Assert.Contains(Chips(("ad", "부서 관리자"), ("of", "부장"), ("cl", "새친구반 담당")), await Home("ad1", "T1005", _ncClass, teacher: true, admin: true));
-        Assert.Contains(Chips(("ad", "부서 관리자"), ("te", "교사"), ("cl", "3학년 믿음반 담임")), await Home("ad2", "T1002", _class3, teacher: true, admin: true));
+        // 최종 상태만(2026-11-22 사용자): 직분 · 반 칩 없이 "유년부 관리자" 하나
+        Assert.Contains(Chips(("ad", "유년부 관리자")), await Home("ad1", "T1005", _ncClass, teacher: true, admin: true));
+        Assert.Contains(Chips(("ad", "유년부 관리자")), await Home("ad2", "T1002", _class3, teacher: true, admin: true));
     }
 
     [Fact]
@@ -110,6 +111,6 @@ public partial class RoleChipTests : IClassFixture<WebApplicationFactory<Program
     {
         var html = await Home("of3", "T1005");
         Assert.Contains(Chips(("of", "부장")), html);
-        Assert.DoesNotContain("부서 관리자</i>", html);
+        Assert.DoesNotContain("관리자</i>", html);
     }
 }

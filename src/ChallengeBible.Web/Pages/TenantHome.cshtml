@@ -102,7 +102,7 @@
         <div class="hj-hi-top">
             <div>
                 <small>안녕하세요</small>
-                <h1 id="hiT">@name@if (!name.EndsWith("님")) { <text> <u>님</u></text> }</h1>
+                <h1 id="hiT">@name@if (!name.EndsWith("님")) { <text> <u>님</u></text> }@if (User.ImpersonatorId() is not null) { @Html.Raw(" " + ChallengeBible.Web.Pages.DrawerUi.Ga) }</h1>   @* 가장 중이면 (가)(R-366) *@
                 @* 역할 칩(R-275, 확정 시안 C 2026-11-14): 역할 + 반(담임 · 새친구반 담당) *@
                 @if (Model.RoleChips.Count > 0)
                 {

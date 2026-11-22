@@ -81,8 +81,9 @@
 <div class="pdrawer tdr" id="pnav" hidden>
     <div class="pd-dim" data-pnav-close></div>
     <aside class="pd-panel" tabindex="-1" role="dialog" aria-modal="true" aria-label="관리 메뉴">
-        @DrawerUi.Head(User.DisplayName(), photo, Model.Current.Name + " · " + myRole)
+        @DrawerUi.Head(User.DisplayName(), photo, Model.Current.Name + " · " + myRole, imp: User.ImpersonatorId() is not null)
         <nav aria-label="관리 메뉴">
+            <partial name="_ImpMenu" />   @* 가장 중이면 [사람 바꾸기] · [복귀](R-366) *@
             @{ var last = (string?)null; }
             @foreach (var (href, label, count) in menu.OrderBy(m => Array.IndexOf(Groups, Group(m.Href))))   // 묶음 순서대로(같은 묶음 안은 원래 순서)
             {
