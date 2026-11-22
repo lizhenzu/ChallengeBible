@@ -4554,7 +4554,7 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .tdr2-imp u { text-decoration: none; }
 .tdr2-imp .imp-ga { font-style: normal; color: #7c3aed; font-weight: 800; }
 .tdr2-nav { flex: 1; overflow-y: auto; padding: 10px 0 16px; overscroll-behavior: contain; }
-.tdr2-g { margin: 0; padding: 20px 22px 6px; font-size: 16px; font-weight: 700; color: #9aa0aa; letter-spacing: 0; border: 0; }   /* 메뉴 15px + 1pt(2026-11-22) */
+.tdr2-g { margin: 0; padding: 20px 22px 6px; font-size: 14px; font-weight: 700; color: #9aa0aa; letter-spacing: 0; border: 0; }   /* 메뉴 15px - 1pt(2026-11-22) */
 .tdr2-r { display: flex; align-items: center; gap: 13px; width: 100%; min-height: 48px; padding: 0 22px; background: none; border: 0; text-align: left; font-family: inherit; font-size: 15px; font-weight: 700; color: #222; text-decoration: none; cursor: pointer; }
 .tdr2-r:hover { background: #f6f8fb; }
 .tdr2-r[aria-current="page"] { background: #eaf1fe; color: #1e3a8a; font-weight: 900; }

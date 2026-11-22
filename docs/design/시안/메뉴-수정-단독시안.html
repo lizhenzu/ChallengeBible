@@ -58,7 +58,7 @@
   .dr-x{width:34px;height:34px;display:grid;place-items:center;flex:none;margin-top:-4px}
   .dr-nav{flex:1;overflow-y:auto;padding:8px 0 14px;overscroll-behavior:contain}
   /* 그룹 라벨 = 메뉴(15px) + 1pt */
-  .dr-nav h2{padding:20px 22px 6px;font-size:16px;font-weight:700;color:#9aa0aa;letter-spacing:0}
+  .dr-nav h2{padding:20px 22px 6px;font-size:14px;font-weight:700;color:#9aa0aa;letter-spacing:0}
   .dr-row{display:flex;align-items:center;gap:13px;min-height:48px;padding:0 22px;font-size:15px;font-weight:700;color:#222}
   .dr-row svg{flex:none;stroke:var(--blue)}
   .dr-row.home{font-weight:900}
@@ -81,12 +81,12 @@
 </style>
 </head>
 <body>
-<div class="mockbar"><div class="in"><b>☰ 메뉴 수정 시안</b><span>삭제안 · 그룹 라벨 16px · 로그아웃 수정 · 2026-11-22</span></div></div>
+<div class="mockbar"><div class="in"><b>☰ 메뉴 수정 시안</b><span>삭제안 · 그룹 라벨 14px · 로그아웃 수정 · 2026-11-22</span></div></div>
 
 <div class="stage">
   <aside class="side">
     <h1>무엇을 지울까요?</h1>
-    <p>이미지에 표시가 없어 세 가지로 나눴습니다. 그룹 라벨은 메뉴 글자 15px보다 1pt 큰 <b>16px</b>, 로그아웃은 테두리 없는 파란 글자로 고쳤습니다.</p>
+    <p>이미지에 표시가 없어 세 가지로 나눴습니다. 그룹 라벨은 메뉴 글자 15px보다 1pt 작은 <b>14px</b>, 로그아웃은 테두리 없는 파란 글자로 고쳤습니다.</p>
     <div class="variants">
       <button type="button" class="on" data-v="a"><i>A</i>바로가기 그룹 삭제 (오늘의 말씀 · 나의 기록)</button>
       <button type="button" data-v="b"><i>B</i>프로그램 그룹 삭제 (미션 · 통독 · 필사 · 365)</button>
@@ -94,7 +94,7 @@
       <button type="button" data-v="d"><i>D</i>삭제 없이 라벨 · 로그아웃만 수정</button>
     </div>
     <ul>
-      <li>그룹 라벨 <b>16px</b> / 메뉴 <b>15px</b></li>
+      <li>그룹 라벨 <b>14px</b> / 메뉴 <b>15px</b></li>
       <li>로그아웃: 테두리·배경 없이 파란 글자</li>
       <li>바닥이 잘리지 않게 한 줄 고정</li>
     </ul>
@@ -182,7 +182,7 @@
   <div class="in">
     <h2>이 시안에서 고친 것</h2>
     <ul>
-      <li><b>그룹 라벨</b> — 11px → <b>16px</b> (메뉴 15px + 1pt). 굵기 700, 회색.</li>
+      <li><b>그룹 라벨</b> — 16px → <b>14px</b> (메뉴 15px − 1pt). 굵기 700, 회색.</li>
       <li><b>로그아웃</b> — 브라우저 기본 버튼 테두리·회색 배경이 보여 깨져 보이던 것. 테두리·배경 없이 파란 글자로.</li>
       <li><b>바닥</b> — 앱 설치 · 내 계정 · 로그아웃을 한 줄에 두고, 로그아웃을 오른쪽 끝에 붙여 잘리지 않게.</li>
       <li><b>삭제안</b> — A 바로가기만 / B 프로그램만 / C 둘 다 / D 삭제 없음.</li>
