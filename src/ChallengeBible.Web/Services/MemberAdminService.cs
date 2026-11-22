@@ -17,7 +17,7 @@ public sealed record MemberFilter(string Status, string? Query, string? Role);
 
 public enum MemberError
 {
-    None, NotFound, NoRole, BadState, SelfAdminRemove, TeamLocked, RuleAdmin, RuleOnly,
+    None, NotFound, NoRole, BadState, SelfAdminRemove, TeamLocked, RuleAdmin, RuleOnly, AdminNotStudent,
 }
 
 /// <summary>
@@ -114,6 +114,7 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         var user = await sys.Users.SingleAsync(u => u.Id == a.UserId, ct);
         var (error, moved) = await DeptMembership.PlaceAsync(sys, user, me, Clean(roleCode), now, ct, personId, actor);
         if (error == MoveError.TeamLocked) return MemberError.TeamLocked;
+        if (error == MoveError.AdminNotStudent) return MemberError.AdminNotStudent;   // R-365
         a.Status = SignupStatus.Approved;
         a.DecidedDT = now;
         a.DecidedBy = actor;
@@ -149,6 +150,7 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         if (d is null) return MemberError.NotFound;
         var userName = await ctx.Users.Where(u => u.Id == d.UserId).Select(u => u.UserName).SingleAsync(ct);
         var code = Clean(roleCode);
+        if (DeptMembership.StudentLike(code) && await DeptMembership.IsAdminAccountAsync(ctx, d.UserId!, ct)) return MemberError.AdminNotStudent;   // R-365
         if (!await FamilyTeamService.FitTeamToRoleAsync(ctx, tenant.Current.Id, userName!, UserRole.KindOf(code), ct)) return MemberError.TeamLocked;
         d.RoleCode = code;
         d.UpdateDT = time.GetUtcNow().UtcDateTime;
@@ -223,6 +225,7 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         MemberError.RuleOnly => "부서 관리자는 사람마다 정하지 않아요. 지도 · 부장 · 부감 · 서기 · 어드민 역할이나 선물 담당 같은 관리자 업무를 맡으면 저절로 돼요.",
         MemberError.RuleAdmin => "부서 관리자 규칙으로 관리자인 역할이에요. 역할을 바꾸거나 플랫폼의 부서 관리자 규칙을 바꿔 주세요.",
         MemberError.TeamLocked => "시상 기록이 있는 팀에 있어 바꿀 수 없어요.",
+        MemberError.AdminNotStudent => DeptMembership.AdminNotStudentMessage,
         _ => "",
     };
 }

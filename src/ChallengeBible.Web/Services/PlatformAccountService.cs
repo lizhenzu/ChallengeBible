@@ -181,6 +181,7 @@ public sealed partial class PlatformAccountService(ISystemDb systemDb, TimeProvi
         var now = time.GetUtcNow().UtcDateTime;
         var (error, moved) = await DeptMembership.PlaceAsync(ctx, a, targetTenantId, code, now, ct, actor: actor);
         if (error == MoveError.TeamLocked) return ("시상 기록이 있는 가족팀에 있어서 옮길 수 없어요.", 0);
+        if (error == MoveError.AdminNotStudent) return (DeptMembership.AdminNotStudentMessage, 0);   // R-365
         ctx.AuditLogs.Add(new AuditLog
         {
             OccurredUtc = now, ActorUserName = actor, Action = MoveDeptAction, TenantId = targetTenantId,

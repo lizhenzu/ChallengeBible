@@ -47,6 +47,7 @@ public sealed class PromotionApprover(IAppDb db, ISystemDb systemDb, TenantConte
         var code = string.IsNullOrWhiteSpace(roleCode) ? null : roleCode.Trim();
         var (error, moved) = await DeptMembership.PlaceAsync(sys, user, req.TargetTenantId, code, now, ct);
         if (error == MoveError.TeamLocked) return PromotionError.TeamLocked;
+        if (error == MoveError.AdminNotStudent) return PromotionError.AdminNotStudent;   // R-365
 
         req.Status = PromotionStatus.Approved;
         req.DecidedUtc = now;

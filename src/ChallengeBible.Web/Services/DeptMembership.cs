@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public enum MoveError { None, TeamLocked }
+public enum MoveError { None, TeamLocked, AdminNotStudent }
 
 /// <summary>이 부서 사람 한 명(소속 한 줄 + 회원). Name = 성 + 이름.</summary>
 public sealed record DeptPerson(int DeptRoleId, string UserName, string UserId, string Name, string Email, string? RoleCode, DateTime JoinedUtc);
@@ -26,10 +26,25 @@ public static class DeptMembership
     public static async Task<HashSet<string>> AdminIdsAsync(AppDbContext ctx, CancellationToken ct) =>
         (await (from ur in ctx.UserRoles join r in ctx.IdentityRoleRows on ur.RoleId equals r.Id where r.Name == IdentityRoles.Admin select ur.UserId).ToListAsync(ct)).ToHashSet();
 
+    /// <summary>R-365: 학생 · 새친구 역할인가(관리자 계정은 이 역할이 될 수 없다).</summary>
+    public static bool StudentLike(string? roleCode) =>
+        UserRole.KindOf(roleCode) == UserRoleKind.Student || (roleCode ?? "").Trim() == ClassService.NewcomerCode;
+
+    /// <summary>R-365: 관리자 계정(Identity 역할 Admin · SuperAdmin)인가.</summary>
+    public static Task<bool> IsAdminAccountAsync(AppDbContext ctx, string userId, CancellationToken ct) =>
+        (from ur in ctx.UserRoles join r in ctx.IdentityRoleRows on ur.RoleId equals r.Id
+         where ur.UserId == userId && (r.Name == IdentityRoles.Admin || r.Name == IdentityRoles.SuperAdmin)
+         select ur).AnyAsync(ct);
+
+    /// <summary>R-365 메시지(가입 · 승인 · 역할 바꾸기 · 옮기기 모두 같은 말).</summary>
+    public const string AdminNotStudentMessage = "관리자 계정은 학생 · 새친구가 될 수 없어요.";
+
     public static async Task<(MoveError Error, LobbyMove Moved)> PlaceAsync(AppDbContext sys, AppUser user, int target, string? roleCode, DateTime now, CancellationToken ct,
         int? linkPersonId = null, string? actor = null)
     {
         var moved = new LobbyMove(0, 0, 0, 0);
+        // R-365(2026-11-22 사용자 "관리자는 학생 될 수 없다"): 아무것도 바꾸기 전에 막는다
+        if (StudentLike(roleCode) && await IsAdminAccountAsync(sys, user.Id, ct)) return (MoveError.AdminNotStudent, moved);
         var userName = user.UserName!;
         var rows = await sys.DeptRoles.Where(d => d.UserId == user.Id).OrderBy(d => d.Id).ToListAsync(ct);
         var from = rows.FirstOrDefault(r => r.TenantId != target)?.TenantId;
