@@ -147,7 +147,7 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
         var cs = await Login("cheolsu@example.com");
         await cs.GetAsync("/kids");
         var home = await cs.GetStringAsync("/kids");
-        Assert.Contains("<a class=\"hcCard\" href=\"/kids/feedback\"", home);   // 홈은 상자 하나(2026-11-17 사용자) — 입력은 따로
+        Assert.Contains("<div class=\"hmx-links\">", home); Assert.Contains("href=\"/kids/feedback\"", home);   // 홈은 상자 하나(2026-11-17 사용자) — 입력은 따로
         Assert.DoesNotContain("name=\"anon\"", home);
         var fb = await cs.GetStringAsync("/kids/feedback");
         Assert.Contains("개선사항 · 불편사항 접수", fb);

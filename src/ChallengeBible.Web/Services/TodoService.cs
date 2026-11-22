@@ -154,7 +154,7 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
                 {
                     GiftId = g.Id, Tone = days >= LateDays ? "late" : "", Href = Work("buy", g.Id), HrefLabel = WorkLabel,
                     Why = $"{g.Who}{Subject(g.Who)} {g.KindText} 선물을 골랐어요. 사서 전해 줘야 아이가 선물을 받아요.",
-                    Info = [("선물", g.ItemName), ("가격", $"{g.Price:N0}원"), ("고른 날", $"{Local(g.PickedUtc):M/d}")], Steps = Steps(g),
+                    Info = [("선물", g.ItemName), ("가격", $"{g.Price:N0}원"), ("고른 날", $"{Local(g.PickedUtc):M'/'d}")], Steps = Steps(g),
                 });
             }
             foreach (var g in give)
@@ -163,9 +163,9 @@ public sealed class TodoService(IAppDb db, RequestScope scope, TenantContext ten
                 var by = b is null ? "누군가" : b.ActorName ?? b.Actor ?? "누군가";
                 items.Add(new(TodoKinds.Gift, "gift", "🎁", $"전해 주세요 · {g.Who} · {g.ItemName}", null)
                 {
-                    GiftId = g.Id, Tone = "done", Note = $"{ChallengeBible.Web.Pages.Ui.Nim(by)}이 {Local(g.PurchasedUtc):M/d} 구매", Href = Work("give", g.Id), HrefLabel = WorkLabel,
+                    GiftId = g.Id, Tone = "done", Note = $"{ChallengeBible.Web.Pages.Ui.Nim(by)}이 {Local(g.PurchasedUtc):M'/'d} 구매", Href = Work("give", g.Id), HrefLabel = WorkLabel,
                     Why = "이미 샀어요. 아이에게 직접 건네고 선물 처리 화면에서 [전달 완료]를 눌러 주세요.",
-                    Info = [("선물", g.ItemName), ("산 사람", $"{by} · {Local(g.PurchasedUtc):M/d}")], Steps = Steps(g),
+                    Info = [("선물", g.ItemName), ("산 사람", $"{by} · {Local(g.PurchasedUtc):M'/'d}")], Steps = Steps(g),
                 });
             }
         }

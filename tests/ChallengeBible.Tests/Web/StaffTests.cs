@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -140,8 +140,8 @@ public partial class StaffTests : IClassFixture<WebApplicationFactory<Program>>
     {
         var a = await Login("admin@example.com");
         var html = WebUtility.HtmlDecode(await a.GetStringAsync("/kids"));
-        var nav = html[html.IndexOf("<nav aria-label=\"메뉴\">")..];
-        var g = nav.IndexOf("<h2 class=\"tdr-g\">관리</h2>");
+        var nav = html[html.IndexOf("<nav class=\"tdr2-nav\" aria-label=\"메뉴\">")..];
+        var g = nav.IndexOf("<h2 class=\"tdr2-g\">관리</h2>");
         Assert.True(g > nav.IndexOf("사진첩"), "관리 묶음은 함께하기 뒤");
         Assert.True(nav.IndexOf("href=\"/kids/admin\"") > g, "부서 관리는 관리 묶음 안");
         Assert.True(nav.IndexOf("href=\"/kids/admin\"") > nav.IndexOf("인명 검색"));

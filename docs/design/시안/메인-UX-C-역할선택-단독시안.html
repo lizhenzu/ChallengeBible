@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>시안 C · 역할 선택 — 도전!!! 성경말씀 첫 화면</title>
+<style>
+:root{
+  --bg:#fff; --soft:#F5F6F8; --fg:#1B1F24; --dim:#5B6470; --rule:#E3E6EA;
+  --accent:#2B59C3; --accent-soft:#E8EEFA; --on-accent:#fff;
+  --sky:#EAF4FF; --sky-rule:#CFE3FA; --rd:#2F7D55; --rd-soft:#E3F1E9;
+  --word:#3D5A96; --pray:#6E5A9A; --rec:#3F7A5A;
+  --ring:rgba(43,89,195,.55);
+  --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --serif:"Noto Serif KR","Nanum Myeongjo",Batang,serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--sky);color:var(--fg);font-family:var(--sans);word-break:keep-all;overflow-wrap:anywhere;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none}
+a:focus-visible,button:focus-visible{outline:2px solid var(--ring);outline-offset:3px;border-radius:10px}
+.num{font-variant-numeric:tabular-nums}
+.gut{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+
+.mockbar{background:#1B1F24;color:#fff;font-size:12.5px}
+.mockbar .wrap{display:flex;gap:10px;align-items:center;justify-content:space-between;min-height:36px;padding-block:6px;padding-inline:max(20px,env(safe-area-inset-left,0px))}
+.mockbar b{font-weight:800}.mockbar span{opacity:.72}
+
+.top .wrap{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;padding-block:8px}
+.org small{display:block;font-size:12px;color:var(--dim);line-height:1.3}
+.org .church{font-size:18px;font-weight:900;color:var(--accent)}
+.today{font-size:12.5px;color:var(--dim);text-align:right;white-space:nowrap}
+.today b{display:block;font-size:15px;font-weight:800;color:var(--fg)}
+
+.shell{max-width:760px;margin:0 auto;padding-block:10px 40px}
+.card{background:var(--bg);border-radius:24px;padding:24px 20px 20px;box-shadow:0 22px 50px -36px rgba(27,31,36,.5)}
+.card .eyebrow{font-size:12px;font-weight:700;letter-spacing:.16em;color:var(--accent)}
+.card h1{margin:9px 0 0;font-family:var(--serif);font-size:30px;line-height:1.3;letter-spacing:-.02em}
+.card .lead{margin:9px 0 0;font-size:14px;line-height:1.65;color:var(--dim)}
+
+.roles{margin-top:18px;display:grid;gap:9px}
+.role{display:flex;align-items:center;gap:13px;width:100%;text-align:left;padding:14px;border:1px solid var(--rule);border-radius:16px;background:var(--bg);transition:border-color .15s,background .15s}
+.role:hover{border-color:#C7D2DF}
+.role[aria-expanded="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.ic{width:42px;height:42px;border-radius:12px;flex:none;display:grid;place-items:center}
+.ic svg{width:22px;height:22px}
+.role.st .ic{background:#EEF3FC;color:var(--word)}
+.role.pa .ic{background:#F4F1FA;color:var(--pray)}
+.role.te .ic{background:#EEF6F1;color:var(--rec)}
+.role .tx{flex:1;min-width:0}
+.role .tx b{display:block;font-size:16px;font-weight:900;letter-spacing:-.01em}
+.role .tx small{display:block;margin-top:2px;font-size:12.5px;color:var(--dim);line-height:1.45}
+.role .ar{flex:none;color:var(--dim);transition:transform .15s}
+.role[aria-expanded="true"] .ar{transform:rotate(90deg)}
+
+.panel{margin:10px 0 0;padding:14px;border-radius:16px;background:var(--soft);font-size:13.5px;line-height:1.65;color:var(--dim)}
+.panel[hidden]{display:none}
+.panel b{color:var(--fg)}
+.panel .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:46px;padding:0 16px;border-radius:12px;font-size:14.5px;font-weight:800;border:1px solid transparent}
+.btn.p{background:var(--accent);color:var(--on-accent)}
+.btn.s{background:var(--bg);border-color:var(--rule)}
+.btn.link{min-height:34px;padding:0;background:none;border:0;color:var(--accent);font-size:13px;text-decoration:underline;text-underline-offset:3px}
+.mini{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.mini a{display:inline-flex;align-items:center;min-height:34px;padding:0 11px;border-radius:999px;background:var(--bg);border:1px solid var(--rule);font-size:12.5px;font-weight:700}
+
+.divider{display:flex;align-items:center;gap:10px;margin:18px 0 0;font-size:11.5px;color:var(--dim);letter-spacing:.08em}
+.divider:before,.divider:after{content:"";height:1px;background:var(--rule);flex:1}
+
+.side{margin-top:12px}
+.word{background:var(--bg);border:1px solid var(--sky-rule);border-radius:18px;padding:18px}
+.word .k{font-size:11.5px;font-weight:800;letter-spacing:.06em;color:var(--accent)}
+.word blockquote{margin:8px 0 0;font-family:var(--serif);font-size:17px;line-height:1.7}
+.word .ref{margin-top:6px;font-size:12.5px;color:var(--dim)}
+.word .meta{display:flex;gap:14px;margin-top:12px;padding-top:11px;border-top:1px solid var(--rule);font-size:12px;color:var(--dim)}
+.word .meta b{display:block;margin-top:2px;font-size:13px;color:var(--fg)}
+
+.steps{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+.steps li{display:flex;gap:10px;align-items:flex-start;background:var(--bg);border:1px solid var(--rule);border-radius:14px;padding:12px}
+.steps .n{width:22px;height:22px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:11.5px;font-weight:900;display:grid;place-items:center;flex:none;margin-top:1px}
+.steps b{display:block;font-size:13.5px;font-weight:900}
+.steps small{display:block;margin-top:2px;font-size:12px;color:var(--dim);line-height:1.5}
+
+.foot{max-width:760px;margin:0 auto;text-align:center;font-size:12.5px;color:var(--dim);padding-block:0 calc(26px + env(safe-area-inset-bottom,0px))}
+
+.notes{background:#0F1216;color:#D7DBE1;padding:26px max(20px,env(safe-area-inset-left,0px)) 40px}
+.notes .wrap{max-width:760px;margin:0 auto}
+.notes h2{margin:0 0 10px;font-size:13px;letter-spacing:.16em;color:#8FA3C7}
+.notes ol{margin:0;padding-left:18px;font-size:13.5px;line-height:1.85}
+.notes li b{color:#fff}
+.notes .keep{margin-top:14px;padding-top:12px;border-top:1px solid #2A3038;font-size:12.5px;color:#9AA3AF}
+
+@media (max-width:380px){
+  .card{padding:20px 15px 16px}
+  .card h1{font-size:26px}
+}
+@media (min-width:820px){
+  .shell{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.82fr);gap:16px;align-items:start;max-width:1000px}
+  .card{border-radius:26px;padding:30px 30px 26px}
+  .card h1{font-size:34px}
+  .side{margin-top:0}
+  .side .block{margin-bottom:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="mockbar"><div class="wrap"><b>시안 C · 역할 선택</b><span>UX 제안 목업 · 실제 동작 아님 · 2026-11-22</span></div></div>
+
+<header class="top gut">
+  <div class="wrap">
+    <div class="org">
+      <small>대한예수교장로회</small>
+      <a class="church" href="#">잠실새내교회</a>
+    </div>
+    <time class="today"><small>2026년</small> <b>11월 22일 일요일</b></time>
+  </div>
+</header>
+
+<div class="shell gut">
+  <main class="card">
+    <div class="eyebrow">도전!!! 성경말씀</div>
+    <h1>어떤 분이세요?</h1>
+    <p class="lead">고르시면 그에 맞는 화면으로 안내해 드려요. 나중에 바꿀 수 있어요.</p>
+
+    <div class="roles" role="group" aria-label="역할 고르기">
+      <button class="role st" type="button" aria-expanded="false" aria-controls="p-st">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-3a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v3"/></svg></span>
+        <span class="tx"><b>학생이에요</b><small>오늘 미션 하고 점수를 모아요</small></span>
+        <span class="ar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+      </button>
+      <div class="panel" id="p-st" hidden>
+        <b>내 부서를 고르고 로그인해요.</b> 계정이 없으면 가입한 뒤 부서를 고르면 바로 시작해요.
+        <div class="row">
+          <a class="btn p" href="#">로그인</a>
+          <a class="btn s" href="#">처음이에요 · 가입</a>
+        </div>
+        <div class="mini">
+          <a href="#">유년부</a><a href="#">초등부</a><a href="#">중등부</a><a href="#">부서 더 보기</a>
+        </div>
+      </div>
+
+      <button class="role pa" type="button" aria-expanded="false" aria-controls="p-pa">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-1 3-4 5-4 9a4 4 0 0 0 8 0c0-4-3-6-4-9z"/><path d="M12 21v-5"/></svg></span>
+        <span class="tx"><b>학부모예요</b><small>아이 기록을 보고 함께 미션해요</small></span>
+        <span class="ar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+      </button>
+      <div class="panel" id="p-pa" hidden>
+        <b>아이와 연결하면 아이의 오늘 미션과 점수를 볼 수 있어요.</b> 연결은 부서 관리자가 도와드려요.
+        <div class="row">
+          <a class="btn p" href="#">학부모 로그인</a>
+          <a class="btn s" href="#">가족 연결 안내</a>
+        </div>
+      </div>
+
+      <button class="role te" type="button" aria-expanded="false" aria-controls="p-te">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5h16v14"/><path d="M8 9h8M8 13h5"/></svg></span>
+        <span class="tx"><b>선생님 · 관리자예요</b><small>명부 · 출석 · 부서를 맡고 있어요</small></span>
+        <span class="ar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+      </button>
+      <div class="panel" id="p-te" hidden>
+        <b>부서 관리자는 비밀번호만 넣으면 돼요.</b> 대표 학생 로그인도 같은 곳에 있어요.
+        <div class="row">
+          <a class="btn p" href="#">유년부 관리자</a>
+          <a class="btn s" href="#">초등부 관리자</a>
+        </div>
+        <div class="mini">
+          <a href="#">유년부 대표 학생</a>
+          <a href="#">플랫폼 관리자</a>
+          <a href="#">관리자 목록 더 보기</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider">처음 오셨나요</div>
+    <ol class="steps">
+      <li><span class="n">1</span><div><b>가입하기</b><small>이름 · 이메일 · 비밀번호만 넣어요.</small></div></li>
+      <li><span class="n">2</span><div><b>내 부서 고르기</b><small>고르면 승인 없이 바로 시작해요.</small></div></li>
+    </ol>
+    <div class="row" style="margin-top:12px">
+      <a class="btn p" href="#" style="flex:1">30초 가입하기</a>
+    </div>
+  </main>
+
+  <aside class="side">
+    <div class="block word" aria-label="오늘의 말씀">
+      <div class="k">오늘의 말씀 · 모든 부서 공통</div>
+      <blockquote>여호와는 나의 목자시니 내게 부족함이 없으리로다 그가 나를 푸른 풀밭에 누이시며 쉴 만한 물 가로 인도하시는도다</blockquote>
+      <div class="ref">시편 23:1-2</div>
+      <div class="meta">
+        <div>이번 주 암송<b>시편 23:1-3</b></div>
+        <div>오늘의 기도<b>감사 · 가족</b></div>
+      </div>
+    </div>
+    <div class="block" style="background:var(--bg);border:1px solid var(--rule);border-radius:16px;padding:15px 16px">
+      <div style="font-size:12px;color:var(--dim)">지금 함께하고 있어요</div>
+      <div style="display:flex;gap:16px;margin-top:8px">
+        <div><b class="num" style="font-size:20px;font-weight:400">4</b><small style="display:block;font-size:11.5px;color:var(--dim)">부서</small></div>
+        <div><b class="num" style="font-size:20px;font-weight:400">128</b><small style="display:block;font-size:11.5px;color:var(--dim)">사람</small></div>
+        <div><b class="num" style="font-size:20px;font-weight:400">42</b><small style="display:block;font-size:11.5px;color:var(--dim)">오늘</small></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<footer class="foot gut">© 2026 잠실새내 · 주일학교</footer>
+
+<section class="notes">
+  <div class="wrap">
+    <h2>시안 C 가 바꾼 것</h2>
+    <ol>
+      <li><b>사용자를 먼저 구분</b>합니다. 지금은 학생·학부모·교사가 같은 로그인 화면으로 몰리는데, 역할마다 다음 행동이 다릅니다.</li>
+      <li><b>한 번에 한 가지만</b> 펼칩니다. 역할을 누르면 필요한 버튼만 아래에 나타나서 첫 화면이 짧아져요.</li>
+      <li><b>관리자 · 대표 학생 로그인을 "선생님 · 관리자" 안</b>에 넣었습니다. 일반 사용자에게는 보이지 않는 대신, 한 번 더 눌러 도달합니다(항상 보임 요구와 충돌 검토 필요).</li>
+      <li><b>가입은 맨 아래 한 곳</b>으로 모아 중복 CTA를 없앴습니다.</li>
+      <li>모바일은 420px 세로 카드, 데스크톱은 오늘 말씀 <b>옆 카드</b>로 배치해 빈 공간을 없앴습니다.</li>
+    </ol>
+    <div class="keep">주의 — R-364 · R-367은 관리자 · 대표 학생 로그인의 "항상 보임"을 확정했습니다. 이 시안은 접힌 형태라 결정 변경이 필요합니다.</div>
+  </div>
+</section>
+
+<script>
+(function () {
+  var roles = document.querySelectorAll('.role');
+  function closeAll(except) {
+    roles.forEach(function (b) {
+      if (b === except) return;
+      b.setAttribute('aria-expanded', 'false');
+      var p = document.getElementById(b.getAttribute('aria-controls'));
+      if (p) p.hidden = true;
+    });
+  }
+  roles.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var open = b.getAttribute('aria-expanded') === 'true';
+      closeAll(b);
+      b.setAttribute('aria-expanded', String(!open));
+      var p = document.getElementById(b.getAttribute('aria-controls'));
+      if (p) p.hidden = open;
+    });
+  });
+})();
+</script>
+</body>
+</html>

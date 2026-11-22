@@ -92,7 +92,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task R323_임시_부서에서도_필사를_하고_참여자_현황은_숨긴다()
     {
         var (c, _) = await SignUp();
-        Assert.Contains("도전!!! 성경필사", await c.GetStringAsync("/welcome/today"));   // 미션 화면(홈 아랫부분)에 필사 카드
+        Assert.Contains("도전!!!<br>성경필사", await c.GetStringAsync("/welcome/today"));   // 미션 화면(홈 아랫부분)에 필사 카드
         var copyHome = await c.GetStringAsync("/welcome/copy");
         Assert.DoesNotContain("/welcome/copy/participants", copyHome);
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/welcome/copy/books?t=nt")).StatusCode);
@@ -120,13 +120,12 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.DoesNotContain("aria-label=\"오늘의 말씀\"", home);
         Assert.DoesNotContain("aria-labelledby=\"dpT\"", home);                       // "우리 부서" 숫자 칸 없음
         Assert.DoesNotContain("/welcome/ranking", home);
-        Assert.Contains("href=\"/join\"><i", home); Assert.Contains("<b>내 부서 참여</b>", home);                    // 계정 줄(로그아웃도 여기 있음)
+        Assert.Contains("href=\"/join\"", home); Assert.Contains("내 부서 참여", home);                    // ☰ 메뉴(계정 줄은 2026-11-15에 뺐다)
         var today = await c.GetStringAsync("/welcome/today");                         // 미션 화면 = 지금 홈 아랫부분
-        Assert.Contains("<section class=\"hj-card hj-pg m\"", today);
+        Assert.Contains("<nav class=\"hmx-grid\"", today);
         Assert.Contains("<a class=\"lb-btn p\" href=\"/join\">내 부서 참여 신청하기 →</a>", today);   // 확정 시안 임시부서-상단버튼 A: 신청 전
         Assert.DoesNotContain("← 처음 화면", today);
         if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(today, "44-임시부서-미션화면-신청전");
-        Assert.Contains("class=\"wl wl-wide\"", today);                               // 미션 화면 머리말은 아래 카드와 같은 폭(데스크톱 정렬)
         Assert.DoesNotContain("wl-wide", home);                                       // 1 · 2단계는 좁은 카드 폭 그대로
         Assert.DoesNotContain("승인 기다리는 중", today);                                // 신청 전이라 표시 없음
         Assert.DoesNotContain("시작까지 2단계", today);
@@ -154,7 +153,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("<a class=\"lb-btn s\" href=\"/join\">신청 확인 · 바꾸기 →</a>", today);
         Assert.DoesNotContain("내 부서 참여 신청하기", today);
         if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(today, "45-임시부서-미션화면-신청후");
-        Assert.Contains("<section class=\"hj-card hj-pg m\"", today);
+        Assert.Contains("<nav class=\"hmx-grid\"", today);
     }
 
     [Fact]
@@ -183,18 +182,18 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         var r = await c.GetAsync("/jamsil-kids/today");                                  // 일반 부서 홈은 한 화면 그대로 — today 는 홈으로
         Assert.Equal("/jamsil-kids", r.Headers.Location!.OriginalString);
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/jamsil-kids")).StatusCode);
-        Assert.Contains("<section class=\"hj-card hj-pg m\"", await c.GetStringAsync("/jamsil-kids"));
+        Assert.Contains("<a class=\"hmx-item\" href=\"/jamsil-kids/word-mission\">", await c.GetStringAsync("/jamsil-kids"));
         Assert.DoesNotContain("시작까지 2단계", await c.GetStringAsync("/jamsil-kids"));
-        var kidsHome = await c.GetStringAsync("/jamsil-kids");                            // 맨 아래: 계정 줄 가운데 + © 줄(모든 부서 홈, 2026-10-30)
+        var kidsHome = await c.GetStringAsync("/jamsil-kids");                            // 맨 아래: © 줄(모든 부서 홈, 2026-10-30)
         Assert.DoesNotContain("<div class=\"acct\">", kidsHome);                       // 맨 아래 계정 줄은 지웠다 — 왼쪽 위 ☰ 와 같아서(2026-11-15)
         Assert.Contains("<p class=\"foot-copy\">© 2027 잠실새내 · 주일학교</p>", kidsHome);
         Assert.DoesNotContain("부서 바꾸기", kidsHome);                                    // 일반 부서 홈 맨 아래에 "부서 바꾸기"는 없다(2026-11-05)
         Assert.Contains("data-pnav-open", kidsHome);
-        // ☰ 메뉴판: 내 계정 입구는 머리 한 곳(2026-11-21, 확정 시안 메뉴판-정리) — "내 정보" 묶음의 "내 계정" 줄은 없다
-        Assert.Contains("<a href=\"/account\">내 계정 · 사진 변경 ›</a>", System.Net.WebUtility.HtmlDecode(kidsHome));
-        Assert.DoesNotContain("class=\"tdr-r\" href=\"/account\"", kidsHome);
-        Assert.DoesNotContain("<h2 class=\"tdr-g\">내 정보</h2>", kidsHome);
-        Assert.Contains("<span class=\"tdr-role", kidsHome);   // 역할 딱지(소속 두 줄)
+        // ☰ 메뉴판(2026-11-22 깔끔판): 프로그램 · 바로가기 묶음, 내 계정은 바닥에
+        Assert.Contains("<h2 class=\"tdr2-g\">프로그램</h2>", kidsHome);
+        Assert.Contains("<h2 class=\"tdr2-g\">바로가기</h2>", kidsHome);
+        Assert.Contains("href=\"/account\"", kidsHome);
+        Assert.DoesNotContain("class=\"tdr-role", kidsHome);
     }
 
     [Fact]
@@ -234,6 +233,6 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task R172_첫_화면_부서_수에_임시_부서는_세지_않는다()
     {
         var html = await _app.CreateClient().GetStringAsync("/");
-        Assert.Contains("1<i>곳</i>", html);
+        Assert.Contains("함께하는 부서</div><div class=\"vl num\">1곳</div>", html);
     }
 }

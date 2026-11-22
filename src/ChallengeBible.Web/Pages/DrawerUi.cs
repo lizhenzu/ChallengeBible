@@ -74,6 +74,19 @@ public static class DrawerUi
     }
 
     /// <summary>
+    /// 깔끔한 한 줄(2026-11-22 확정 시안 메뉴-깔끔, ADR 0127): 색 타일 · 설명 없이 파란 선 아이콘 + 제목만.
+    /// 부서 ☰ 메뉴가 쓴다. 관리자만 보는 줄에는 작은 "관리" 딱지.
+    /// </summary>
+    public static IHtmlContent Line(string href, string icon, string title, bool current = false, string? badge = null, string? attr = null)
+    {
+        var b = badge is null ? "" : $"<em class=\"tdr2-k\">{WebUtility.HtmlEncode(badge)}</em>";
+        return new HtmlString(
+            $"<a class=\"tdr2-r\" href=\"{WebUtility.HtmlEncode(href)}\"{(current ? " aria-current=\"page\"" : "")}{(attr is null ? "" : " " + attr)}>"
+            + $"<i class=\"tdr2-i\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">{Icons[icon]}</svg></i>"
+            + $"<span>{WebUtility.HtmlEncode(title)}</span>{b}</a>");
+    }
+
+    /// <summary>
     /// 맨 위: 사진(없으면 이름 첫 글자) · 이름 · 소속 줄 · [내 정보 · 사진 변경] · 닫기.
     /// role 을 주면(부서 ☰, 2026-11-21 확정 시안 메뉴판-정리) 소속은 교회 · 부서 한 줄 + 역할 딱지 한 줄이고, 링크 글자는 link.
     /// </summary>

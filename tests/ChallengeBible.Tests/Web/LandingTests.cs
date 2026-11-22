@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
 using ChallengeBible.Tests.Support;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ChallengeBible.Tests.Web;
 
-/// <summary>로그인 전 첫 화면(확정 시안 로그인전-첫화면-v2, 0061). 오늘 = 2027-01-05 (서울).</summary>
+/// <summary>로그인 전 첫 화면(2026-11-22 사용자 확정, ADR 0128) — 부서 홈과 같은 dodan 네이비 테마. 오늘 = 2027-01-05 (서울).</summary>
 public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private static readonly DateOnly Jan5 = new(2027, 1, 5);
@@ -29,30 +29,31 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
     private Task<string> Page() => _app.CreateClient().GetStringAsync("/");
 
     [Fact]
-    public async Task 공용_말씀이_있으면_오늘의_말씀_카드가_보인다()
+    public async Task 공용_말씀이_있으면_오늘의_말씀_카드와_암송_기도_칩이_보인다()
     {
         ContentSeed.Word(_db, Jan5);
         ContentSeed.Verse(_db, 1);
         ContentSeed.Prayer(_db, Jan5);
         var html = await Page();
-        Assert.Contains("<small>오늘의 기도</small><b>신뢰 · 잠언 3장 5~6절</b>", html);    // 성품 + 본문 범위(2026-10-25 결정)
         Assert.Contains("aria-label=\"오늘의 말씀\"", html);
-        Assert.Contains("창세기 24:1 · 오늘 읽을 범위 창세기 24장 1~9절", html);
-        Assert.Contains("이번 주 암송 <span class=\"nw\">(1/3 ~ 1/9)</span>", html);   // 날짜 범위는 한 덩어리(줄바꿈에서 안 갈라짐)
-        Assert.Contains("© 2027 잠실새내 · 주일학교", html);                       // 올해 = 시스템 날짜
+        Assert.Contains("창세기 24:1", html);
+        Assert.Contains("이번 주 암송", html);
+        Assert.Contains("(1/3 ~ 1/9)", html);                       // 날짜 범위는 한 덩어리
+        Assert.Contains("오늘의 기도 <b>신뢰</b>", html);
+        Assert.Contains("© 2027 잠실새내 · 주일학교", html);
     }
 
     [Fact]
-    public async Task 머리말은_교단_교회_이름과_오늘_날짜뿐이고_메뉴_버튼이_없다()
+    public async Task 머리말은_교회_날짜_로그인이고_햄버거는_없다()
     {
         var html = await Page();
         Assert.Contains("<small>대한예수교장로회</small>", html);
-        Assert.Contains("href=\"https://www.saenae.org/\" target=\"_blank\" rel=\"noopener\"", html);   // 교회 홈페이지는 새 창
-        Assert.Contains("<time class=\"today\" datetime=\"2027-01-05\">", html);
-        Assert.Contains("<b>1월 5일</b> <small>화요일</small>", html);
-        Assert.DoesNotContain("class=\"login\"", html);                        // 머리말 로그인 버튼은 없앰(본문 버튼은 그대로)
+        Assert.Contains("href=\"https://www.saenae.org/\" target=\"_blank\" rel=\"noopener\"", html);
+        Assert.Contains("<time class=\"lp-date\" datetime=\"2027-01-05\">", html);
+        Assert.Contains("1월 5일", html);
+        Assert.Contains("<a class=\"hmx-login\" href=\"/account/login\">로그인</a>", html);
+        Assert.DoesNotContain("data-pnav-open", html);                // 로그인 전에는 ☰ 메뉴가 없다
         Assert.DoesNotContain("hamburger", html, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("href=\"/account/login\"", html);
     }
 
     [Fact]
@@ -61,7 +62,7 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         var kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         ContentSeed.Word(_db, Jan5, kids.Id, title: "부서만의 말씀");
         var html = await Page();
-        Assert.DoesNotContain("aria-label=\"오늘의 말씀\"", html);                // 0061 결정 1: 공용만
+        Assert.DoesNotContain("aria-label=\"오늘의 말씀\"", html);
         Assert.DoesNotContain("부서만의 말씀", html);
     }
 
@@ -72,40 +73,40 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         var b = InMemoryDb.SeedTenant(_db, "jamsil-elem", "JSELEM");
         string Acc(string e) => InMemoryDb.SeedAccount(_db, e + "@example.com", e).UserName!;
         var k1 = Acc("k1"); var k2 = Acc("k2"); var k3 = Acc("k3");
-        var m1 = InMemoryDb.SeedMembership(_db, a.Id, k1, MembershipStatus.Approved, Roles.Participant);
-        InMemoryDb.SeedMembership(_db, b.Id, k1, MembershipStatus.Approved, Roles.Participant);   // 두 부서 소속도 한 사람
+        InMemoryDb.SeedMembership(_db, a.Id, k1, MembershipStatus.Approved, Roles.Participant);
+        InMemoryDb.SeedMembership(_db, b.Id, k1, MembershipStatus.Approved, Roles.Participant);
         InMemoryDb.SeedMembership(_db, b.Id, k2, MembershipStatus.Approved, Roles.Participant);
-        InMemoryDb.SeedMembership(_db, b.Id, k3, MembershipStatus.Requested, Roles.Participant);  // 승인 전은 세지 않음
+        InMemoryDb.SeedMembership(_db, b.Id, k3, MembershipStatus.Requested, Roles.Participant);
         using (var raw = InMemoryDb.Raw(_db))
         {
-            raw.SaveChanges();
             raw.MissionActivities.Add(new MissionActivity { TenantId = a.Id, UserName = k1, MissionItem = "Word.Me", MissionDate = Jan5, Points = 1, PerformedAt = new DateTime(2027, 1, 4, 23, 0, 0, DateTimeKind.Utc) });
-            var at = new DateTime(2027, 1, 4, 23, 30, 0, DateTimeKind.Utc);   // 서울 1월 5일 아침
-            raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = k1, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = at });   // 미션도 한 k1 — 오늘 한 명으로
+            var at = new DateTime(2027, 1, 4, 23, 30, 0, DateTimeKind.Utc);
+            raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = k1, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = at });
             raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = k2, RoundNo = 1, BookId = 1, Chapter = 1, ReadAt = at });
-            raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = k2, RoundNo = 1, BookId = 1, Chapter = 2, ReadAt = new DateTime(2026, 12, 30, 0, 0, 0, DateTimeKind.Utc) });   // 지난해
+            raw.ReadingChapterReads.Add(new ReadingChapterRead { UserName = k2, RoundNo = 1, BookId = 1, Chapter = 2, ReadAt = new DateTime(2026, 12, 30, 0, 0, 0, DateTimeKind.Utc) });
             raw.SaveChanges();
         }
         var html = await Page();
-        Assert.Contains("2<i>곳</i>", html);          // 운영 중 부서
-        Assert.Contains("2<i>명</i></b><small>참여하는 사람", html);
-        Assert.Contains("2<i>명</i></b><small>오늘 말씀과 함께한 사람", html);
-        Assert.Contains("2<i>장</i></b><small>올해 함께 읽은 성경", html);
-        Assert.Contains("<span class=\"num\">2</span><i style=\"height:94px\"></i>오늘", html);
-        Assert.DoesNotContain("잠실새내교회 유년부", html);   // 부서 이름은 내보내지 않음(머리말의 교회 이름과는 별개)
-        Assert.DoesNotMatch(@"\bk1\b", html);   // 계정 이름(낱말로) — CSS 주소 해시 속 글자와는 구별
+        Assert.Contains("함께하는 부서</div><div class=\"vl num\">2곳</div>", html);
+        Assert.Contains("참여하는 사람</div><div class=\"vl num\">2명</div>", html);
+        Assert.Contains("오늘 함께한 사람</div><div class=\"vl num\">2명</div>", html);
+        Assert.Contains("올해 읽은 성경</div><div class=\"vl num\">2장</div>", html);
+        Assert.Contains("최근 7일 참여</div>", html);
+        Assert.DoesNotContain("잠실새내교회 유년부", html);
+        Assert.DoesNotMatch(@"\bk1\b", html);
     }
 
     [Fact]
-    public async Task 미션_점수와_퀴즈_횟수는_규칙에서_읽는다()
+    public async Task 네_프로그램과_로그인_가입_관리자_로그인이_보인다()
     {
         var html = await Page();
-        Assert.Contains("내가 읽었어요<b>+1점</b>", html);
-        Assert.Contains("기회는 하루 2번", html);
-        Assert.Contains("3,000점이 되면", html);        // 첫 축하 단계
-        Assert.DoesNotContain("가족 선물", html);                  // 선물 · 보상은 부서마다 다르고 확정 전이라 첫 화면에 쓰지 않음
-        Assert.DoesNotContain("class=\"cheer\"", html);
+        Assert.Contains("도전!!!<br>성경미션", html);
+        Assert.Contains("도전!!!<br>성경통독", html);
+        Assert.Contains("도전!!!<br>성경필사", html);
+        Assert.Contains("자녀를 위한<br>기도365", html);
+        Assert.Contains("<a class=\"lp-b p\" href=\"/account/login\">로그인</a>", html);
         Assert.Contains("href=\"/account/signup\"", html);
-        Assert.Contains("href=\"/account/login\"", html);
+        Assert.Contains("관리자 로그인", html);
+        Assert.Contains("href=\"/account/admin-login\"", html);        // 플랫폼 관리자
     }
 }

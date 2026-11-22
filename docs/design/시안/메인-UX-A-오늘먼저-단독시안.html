@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>시안 A · 오늘 먼저 — 도전!!! 성경말씀 첫 화면</title>
+<style>
+:root{
+  --bg:#fff; --soft:#F5F6F8; --fg:#1B1F24; --dim:#5B6470; --rule:#E3E6EA;
+  --accent:#2B59C3; --accent-soft:#E8EEFA; --on-accent:#fff;
+  --sky:#EAF4FF; --sky-rule:#CFE3FA; --sun:#FFF4D6; --sun-fg:#A66A00;
+  --rd:#2F7D55; --rd-soft:#E3F1E9;
+  --word:#3D5A96; --quiz:#9A6638; --pray:#6E5A9A; --rec:#3F7A5A;
+  --word-bg:#EEF3FC; --quiz-bg:#FCF4EC; --pray-bg:#F4F1FA; --rec-bg:#EEF6F1;
+  --ring:rgba(43,89,195,.55);
+  --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --serif:"Noto Serif KR","Nanum Myeongjo",Batang,serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);word-break:keep-all;overflow-wrap:anywhere;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;color:inherit;cursor:pointer}
+a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--ring);outline-offset:3px;border-radius:6px}
+.num{font-variant-numeric:tabular-nums}
+.gut{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto}
+
+/* 시안 표시 띠 (실서비스 아님) */
+.mockbar{background:#1B1F24;color:#fff;font-size:12.5px;letter-spacing:.02em}
+.mockbar .wrap{display:flex;gap:10px;align-items:center;justify-content:space-between;min-height:36px;padding-block:6px}
+.mockbar b{font-weight:800}
+.mockbar span{opacity:.72}
+
+/* 머리말 */
+.top{background:var(--sky)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;padding-block:8px}
+.org small{display:block;font-size:12px;color:var(--dim);line-height:1.3}
+.org .church{display:inline-flex;align-items:center;gap:4px;font-size:19px;font-weight:900;letter-spacing:-.01em;color:var(--accent)}
+.org .church svg{width:12px;height:12px;margin-top:-5px}
+.tright{display:flex;align-items:center;gap:14px}
+.today{font-size:13px;color:var(--dim);white-space:nowrap;text-align:right}
+.today b{display:block;font-size:16px;font-weight:800;color:var(--fg)}
+.top-login{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:10px;background:var(--bg);border:1px solid var(--sky-rule);font-size:13.5px;font-weight:700}
+
+/* 첫 장면 */
+.hero{background:var(--sky)}
+.hero .wrap{display:grid;gap:28px;padding-block:22px 34px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.18em;color:var(--accent)}
+h1{margin:10px 0 0;font-family:var(--serif);font-size:34px;line-height:1.28;letter-spacing:-.02em;font-weight:900}
+h1 em{font-style:normal;color:var(--accent)}
+.hero .sub{margin:12px 0 0;font-size:15.5px;line-height:1.65;color:var(--dim);max-width:440px}
+.cta{margin-top:20px;display:grid;gap:9px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 20px;border-radius:13px;font-size:16px;font-weight:800;border:1px solid transparent}
+.btn.p{background:var(--accent);color:var(--on-accent)}
+.btn.s{background:var(--bg);border-color:var(--sky-rule)}
+.hint{margin:10px 0 0;font-size:12.5px;color:var(--dim)}
+
+/* 관리자 진입 — 눈에 덜 띄지만 항상 보임 (R-364 · R-367) */
+.admin{margin-top:18px;border-top:1px dashed var(--sky-rule);padding-top:14px;max-width:460px}
+.admin .hd{font-size:11.5px;font-weight:700;color:var(--dim);letter-spacing:.06em}
+.admin .row{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px;border-radius:999px;background:var(--bg);border:1px solid var(--sky-rule);font-size:12.5px;font-weight:700;color:var(--fg)}
+.chip i{width:7px;height:7px;border-radius:50%;flex:none}
+.chip.org-c i{background:#D9730D}.chip.c1 i{background:#2B59C3}.chip.c2 i{background:#2F7D55}.chip.c3 i{background:#6E5A9A}.chip.c4 i{background:#9A6638}
+.chip small{font-weight:600;color:var(--dim)}
+
+/* 오늘의 말씀 카드 */
+.paper{background:var(--bg);border:1px solid var(--sky-rule);border-radius:22px;padding:22px 20px 20px;box-shadow:0 18px 40px -30px rgba(43,89,195,.55)}
+.paper .k{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:800;color:var(--accent);letter-spacing:.02em}
+.paper .k time{font-weight:600;color:var(--dim)}
+.paper blockquote{margin:12px 0 0;font-family:var(--serif);font-size:20px;line-height:1.75;letter-spacing:-.01em}
+.paper blockquote:before{content:"\201C";color:var(--sky-rule);font-size:34px;line-height:0;vertical-align:-8px;margin-right:3px}
+.paper .ref{margin-top:8px;font-size:13px;color:var(--dim)}
+.paper .ref b{color:var(--fg);font-weight:800}
+.paper .meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--rule)}
+.paper .meta div{min-width:0}
+.paper .meta small{display:block;font-size:11.5px;color:var(--dim)}
+.paper .meta b{display:block;margin-top:3px;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 오늘 미션 상태 */
+.todayline{background:var(--bg)}
+.todayline .wrap{padding-block:26px 8px}
+.tl-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.tl-head h2{margin:0;font-size:19px;font-weight:900;letter-spacing:-.01em}
+.tl-head span{font-size:13px;color:var(--dim)}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}
+.tile{border-radius:16px;padding:12px 8px 11px;text-align:center;border:1px solid transparent;opacity:.72}
+.tile b{display:block;font-size:13px;font-weight:900}
+.tile small{display:block;margin-top:3px;font-size:11px;font-weight:600}
+.tile .st{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;margin-bottom:8px;font-size:13px;font-weight:900}
+.tile.w{background:var(--word-bg);color:var(--word)}
+.tile.q{background:var(--quiz-bg);color:var(--quiz)}
+.tile.pr{background:var(--pray-bg);color:var(--pray)}
+.tile.rc{background:var(--rec-bg);color:var(--rec)}
+.tile .st{background:var(--bg)}
+.tl-note{margin:12px 0 0;font-size:12.5px;color:var(--dim)}
+.tl-note a{color:var(--accent);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+
+/* 세 프로그램 */
+.progs{padding-block:34px 44px}
+.progs .hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.progs h2{margin:6px 0 0;font-size:23px;font-weight:900;letter-spacing:-.02em}
+.progs .lead{margin:8px 0 0;font-size:14.5px;color:var(--dim)}
+.cards{display:grid;gap:10px;margin-top:18px}
+.card{border:1px solid var(--rule);border-radius:18px;padding:16px 16px 15px;background:var(--bg)}
+.card .tag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;letter-spacing:.04em}
+.card .tag i{width:8px;height:8px;border-radius:50%}
+.card h3{margin:8px 0 0;font-size:16.5px;font-weight:900}
+.card p{margin:6px 0 0;font-size:13.5px;line-height:1.6;color:var(--dim)}
+.card .go{display:inline-flex;align-items:center;gap:4px;margin-top:10px;font-size:13px;font-weight:800;color:var(--accent)}
+.card.m .tag{color:var(--word)}.card.m .tag i{background:var(--word)}
+.card.r .tag{color:var(--rd)}.card.r .tag i{background:var(--rd)}
+.card.c .tag{color:var(--pray)}.card.c .tag i{background:var(--pray)}
+
+/* 숫자 · 접이식 안내 */
+.strip{background:var(--soft)}
+.strip .wrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding-block:26px}
+.stat{background:var(--bg);border-radius:14px;padding:14px}
+.stat b{display:block;font-size:22px;font-weight:300;letter-spacing:-.02em}
+.stat b i{font-style:normal;font-size:12px;font-weight:700;color:var(--dim);margin-left:2px}
+.stat small{display:block;margin-top:2px;font-size:11.5px;color:var(--dim)}
+.fold{padding-bottom:46px}
+.fold details{border-top:1px solid var(--rule)}
+.fold details:last-child{border-bottom:1px solid var(--rule)}
+.fold summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:56px;font-size:15px;font-weight:800;cursor:pointer}
+.fold summary::-webkit-details-marker{display:none}
+.fold summary:after{content:"+";font-size:20px;font-weight:400;color:var(--dim)}
+.fold details[open] summary:after{content:"\2212"}
+.fold .body{padding:0 0 16px;font-size:14px;line-height:1.7;color:var(--dim)}
+.fold h3{margin:0 0 4px;font-size:14.5px;color:var(--fg)}
+.end{background:var(--sky);text-align:center}
+.end .wrap{padding-block:48px 30px}
+.end h2{margin:0;font-family:var(--serif);font-size:26px;line-height:1.35}
+.end p{margin:8px auto 0;max-width:420px;font-size:14px;color:var(--dim)}
+.end .cta{max-width:420px;margin:20px auto 0;grid-auto-flow:row}
+.foot{background:var(--sky);color:var(--dim);text-align:center;font-size:12.5px}
+.foot .wrap{padding-block:0 26px}
+
+/* UX 설명 */
+.notes{margin:0;padding:26px 20px 40px;background:#0F1216;color:#D7DBE1}
+.notes .wrap{max-width:860px}
+.notes h2{margin:0 0 10px;font-size:13px;letter-spacing:.16em;color:#8FA3C7}
+.notes ol{margin:0;padding-left:18px;font-size:13.5px;line-height:1.85}
+.notes li b{color:#fff}
+.notes .keep{margin-top:14px;padding-top:12px;border-top:1px solid #2A3038;font-size:12.5px;color:#9AA3AF}
+
+@media (max-width:380px){
+  h1{font-size:30px}
+  .paper blockquote{font-size:18px}
+  .tile b{font-size:12px}
+}
+@media (min-width:900px){
+  h1{font-size:50px}
+  .hero .wrap{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);align-items:center;gap:44px;padding-block:36px 52px}
+  .cta{grid-auto-flow:column;justify-content:start}
+  .paper{padding:30px 30px 26px;border-radius:26px}
+  .paper blockquote{font-size:24px}
+  .cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .strip .wrap{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .progs .wrap{display:grid;grid-template-columns:minmax(0,.62fr) minmax(0,1fr);gap:40px;align-items:start}
+  .progs .cards{grid-template-columns:1fr;gap:10px;margin-top:0}
+}
+</style>
+</head>
+<body>
+
+<div class="mockbar"><div class="wrap gut"><b>시안 A · 오늘 먼저</b><span>UX 제안 목업 · 실제 동작 아님 · 2026-11-22</span></div></div>
+
+<header class="top gut">
+  <div class="wrap">
+    <div class="org">
+      <small>대한예수교장로회</small>
+      <a class="church" href="#">잠실새내교회
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+      </a>
+    </div>
+    <div class="tright">
+      <time class="today"><small>2026년</small> <b>11월 22일 일요일</b></time>
+      <a class="top-login" href="#">로그인</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero gut">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">주일학교 거룩한 습관</div>
+      <h1>오늘의 말씀,<br><em>5분</em>이면 시작해요</h1>
+      <p class="sub">말씀 읽고, 기도하고, 퀴즈 풀고, 한 주 구절을 외워요. 통독과 필사도 같은 계정으로 이어져요.</p>
+      <div class="cta">
+        <a class="btn p" href="#">로그인하고 이어서 하기</a>
+        <a class="btn s" href="#">처음이에요 · 가입하기</a>
+      </div>
+      <p class="hint">로그인하면 내가 속한 부서로 바로 들어가요.</p>
+
+      <div class="admin">
+        <div class="hd">관리자 · 대표 학생은 여기로</div>
+        <div class="row">
+          <a class="chip org-c" href="#"><i></i>유년부 관리자</a>
+          <a class="chip c1" href="#"><i></i>초등부 관리자</a>
+          <a class="chip c2" href="#"><i></i>유년부 대표 학생</a>
+          <a class="chip" href="#"><i></i>플랫폼 관리자</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="paper" aria-label="오늘의 말씀 예시">
+      <div class="k">오늘의 말씀 <time>11월 22일 일요일</time></div>
+      <blockquote>여호와는 나의 목자시니 내게 부족함이 없으리로다 그가 나를 푸른 풀밭에 누이시며 쉴 만한 물 가로 인도하시는도다</blockquote>
+      <div class="ref"><b>시편 23:1-2</b> · 오늘 읽을 범위 시편 23장</div>
+      <div class="meta">
+        <div><small>이번 주 암송 (11/16 ~ 11/22)</small><b>시편 23:1-3</b></div>
+        <div><small>오늘의 기도</small><b>감사 · 가족</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="todayline gut">
+  <div class="wrap">
+    <div class="tl-head">
+      <h2>오늘 내 미션</h2>
+      <span>4개 중 3개 완료 · 예시</span>
+    </div>
+    <div class="tiles" aria-label="오늘 미션 상태 예시">
+      <div class="tile w"><span class="st">✓</span><b>말씀</b><small>완료</small></div>
+      <div class="tile q"><span class="st">!</span><b>퀴즈</b><small>할 차례</small></div>
+      <div class="tile pr"><span class="st">✓</span><b>기도</b><small>완료</small></div>
+      <div class="tile rc"><span class="st">✓</span><b>암송</b><small>완료</small></div>
+    </div>
+    <p class="tl-note">로그인하면 내 진행이 그대로 보여요. <a href="#">내 부서 찾기</a></p>
+  </div>
+</section>
+
+<section class="progs gut">
+  <div class="wrap">
+    <div class="hd">
+      <div>
+        <div class="eyebrow">세 가지 프로그램</div>
+        <h2>한 계정으로<br>이어서 해요</h2>
+        <p class="lead">부서마다 필요한 것만 켜 두었어요.</p>
+      </div>
+    </div>
+    <div class="cards">
+      <article class="card m">
+        <span class="tag"><i></i>도전!!!성경미션</span>
+        <h3>하루 네 가지, 점수가 쌓여요</h3>
+        <p>말씀 · 퀴즈 · 기도 · 암송. 이어서 할수록 연속 기록이 늘어나요.</p>
+        <span class="go">미리 보기 →</span>
+      </article>
+      <article class="card r">
+        <span class="tag"><i></i>도전!!!성경통독</span>
+        <h3>1,189장, 내 속도로 끝까지</h3>
+        <p>읽은 절을 표시하면 장이 저절로 끝나요. 어른 모임도 함께해요.</p>
+        <span class="go">미리 보기 →</span>
+      </article>
+      <article class="card c">
+        <span class="tag"><i></i>도전!!!성경필사</span>
+        <h3>본문을 따라 한 절씩</h3>
+        <p>오늘 본문을 그대로 써 내려가요. 다 쓰면 완필 선물이 기다려요.</p>
+        <span class="go">미리 보기 →</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="strip gut">
+  <div class="wrap">
+    <div class="stat"><b class="num">4<i>곳</i></b><small>함께하는 부서</small></div>
+    <div class="stat"><b class="num">128<i>명</i></b><small>참여하는 사람</small></div>
+    <div class="stat"><b class="num">42<i>명</i></b><small>오늘 함께한 사람</small></div>
+    <div class="stat"><b class="num">1,240<i>장</i></b><small>올해 함께 읽은 성경</small></div>
+  </div>
+</section>
+
+<section class="fold gut">
+  <div class="wrap">
+    <details>
+      <summary>가족이 함께하면 점수가 모여요</summary>
+      <div class="body">
+        <h3>가족팀</h3>
+        부모님도 함께 미션을 하면 가족 점수가 쌓이고, 단계를 넘을 때마다 다 같이 축하해요. 보호자는 아이의 오늘 미션도 볼 수 있어요.
+      </div>
+    </details>
+    <details>
+      <summary>시작하는 방법</summary>
+      <div class="body">
+        <h3>두 단계면 돼요</h3>
+        ① 이름 · 이메일 · 비밀번호로 가입해요. ② 목록에서 내 부서와 역할을 고르면 승인 없이 바로 시작해요.
+      </div>
+    </details>
+    <details>
+      <summary>비밀번호를 잊었어요</summary>
+      <div class="body">
+        내 부서 관리자께 말씀해 주세요. 관리자가 새 비밀번호를 만들어 드려요.
+      </div>
+    </details>
+  </div>
+</section>
+
+<section class="end gut">
+  <div class="wrap">
+    <h2>오늘부터 말씀과 함께해요</h2>
+    <p>처음이면 30초 가입, 다시 오셨으면 로그인만 하면 돼요.</p>
+    <div class="cta">
+      <a class="btn p" href="#">처음이에요 · 가입하기</a>
+      <a class="btn s" href="#">이미 계정이 있어요 · 로그인</a>
+    </div>
+  </div>
+</section>
+
+<footer class="foot gut"><div class="wrap">© 2026 잠실새내 · 주일학교</div></footer>
+
+<section class="notes">
+  <div class="wrap">
+    <h2>시안 A 가 바꾼 것</h2>
+    <ol>
+      <li><b>첫 화면에 실제 오늘의 말씀</b>을 올렸습니다. 지금은 목업 그림만 있고 말씀은 두 번째 섹션에 있습니다.</li>
+      <li><b>주 행동을 하나로</b> — 재방문 사용자는 "로그인하고 이어서 하기", 첫 방문자는 보조 버튼. 두 CTA의 무게를 나눴습니다.</li>
+      <li><b>오늘 미션 상태를 첫 화면 아래</b>에 미리 보여 줍니다. 로그인 전에도 "내일 뭐 하는지"가 보입니다.</li>
+      <li><b>필사 프로그램을 추가</b>했습니다. 지금 랜딩에는 미션·통독만 있어 세 번째 프로그램이 존재하지 않는 것처럼 보입니다.</li>
+      <li><b>장문 안내를 접이식으로</b> 접었습니다. 가족팀·시작 방법·문의는 필요할 때만 펼칩니다.</li>
+      <li><b>관리자 로그인은 접지 않고</b> 첫 화면의 보조 영역에 모았습니다. R-364 · R-367의 "항상 보임"을 지키면서 일반 사용자의 시선을 덜 뺏습니다.</li>
+    </ol>
+    <div class="keep">유지한 것 — 하늘색 첫 장면, 교회명 링크, 오늘 날짜, --ring 포커스만 사용, 그라데이션 없음.</div>
+  </div>
+</section>
+
+</body>
+</html>

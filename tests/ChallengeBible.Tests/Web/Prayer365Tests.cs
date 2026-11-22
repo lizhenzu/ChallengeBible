@@ -105,9 +105,8 @@ public partial class Prayer365Tests : IClassFixture<WebApplicationFactory<Progra
             Assert.Contains("1월 5일 · 화요일", page);
             Assert.Contains("한치호 지음", page);
             var home = await Home(c, "kids");
-            Assert.Contains("<b class=\"tpNm\">자녀를 위한 365</b>", home);   // 부서 홈 카드(유년부 "오늘의 기도" 모양)
-            Assert.Contains("<b>5</b>일째 · 366일 중", home);
-            Assert.DoesNotContain("class=\"tdr-r\" href=\"/kids/prayer365\"", home);   // ☰ 메뉴판에서는 뺐다(2026-11-21) — 부서 홈 카드로
+            Assert.Contains("<a class=\"hmx-item\" href=\"/kids/prayer365\">", home);      // 프로그램 아이콘(ADR 0127)
+            Assert.Contains("class=\"tdr2-r\" href=\"/kids/prayer365\"", home);           // ☰ 메뉴에도
         }
         var anon = await _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false }).GetAsync("/kids/prayer365");
         Assert.NotEqual(HttpStatusCode.OK, anon.StatusCode);

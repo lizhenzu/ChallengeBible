@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -72,7 +72,7 @@ public partial class DeptStudentLoginTests : IClassFixture<WebApplicationFactory
     {
         var html = await Client().GetStringAsync("/");
         Assert.Contains("부서 대표 학생 로그인", html);
-        var links = Regex.Matches(html, "href=\"/account/student-login/([^\"]+)\">([^<]+)</a>").Select(m => (m.Groups[1].Value, m.Groups[2].Value)).ToArray();
+        var links = Regex.Matches(html, "href=\"/account/student-login/([^\"]+)\"><i></i>([^<]+)</a>").Select(m => (m.Groups[1].Value, m.Groups[2].Value)).ToArray();
         Assert.Equal(new[] { ("jamsil-kids", "유년부 학생") }, links);
         Assert.DoesNotContain("jamsil-kids-s0", html);
     }

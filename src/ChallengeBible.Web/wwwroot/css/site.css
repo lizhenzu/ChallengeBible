@@ -4543,6 +4543,28 @@ body:has(> .imp-bar) :is(.toast, .mpop-toast) { margin-bottom: var(--imp-h); }
 .tdr-inapp { display: none; }
 @media (display-mode: standalone) { .tdr-inapp { display: flex; } }
 body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); }
+/* 부서 ☰ 깔끔판(2026-11-22 사용자 확정, ADR 0127, 시안 메뉴-깔끔): 흰 바탕 · 파란 선 아이콘 · 제목만 */
+.tdr2 .pd-panel { width: min(300px, 88vw); padding: 0; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
+.tdr2-hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: calc(20px + env(safe-area-inset-top, 0px)) 16px 18px 22px; border-bottom: 1px solid #eceef2; }
+.tdr2-ttl { font-size: 19px; font-weight: 900; color: #1e3a8a; letter-spacing: .2px; line-height: 1.25; }
+.tdr2-ttl span { color: #0179dc; }
+.tdr2-sub { margin-top: 4px; font-size: 9.5px; font-weight: 700; letter-spacing: .18em; color: #8a8f99; }
+.tdr2-x { width: 34px; height: 34px; display: grid; place-items: center; flex: none; margin-top: -4px; border-radius: 8px; color: #222; }
+.tdr2-imp { margin: 0; padding: 12px 22px 0; font-size: 12px; color: #8a8f99; }
+.tdr2-imp u { text-decoration: none; }
+.tdr2-imp .imp-ga { font-style: normal; color: #7c3aed; font-weight: 800; }
+.tdr2-nav { flex: 1; overflow-y: auto; padding: 10px 0 16px; overscroll-behavior: contain; }
+.tdr2-g { margin: 0; padding: 22px 22px 8px; font-size: 11px; font-weight: 800; color: #9aa0aa; letter-spacing: .02em; border: 0; }
+.tdr2-r { display: flex; align-items: center; gap: 13px; width: 100%; min-height: 48px; padding: 0 22px; background: none; border: 0; text-align: left; font-family: inherit; font-size: 15px; font-weight: 700; color: #222; text-decoration: none; cursor: pointer; }
+.tdr2-r:hover { background: #f6f8fb; }
+.tdr2-r[aria-current="page"] { background: #eaf1fe; color: #1e3a8a; font-weight: 900; }
+.tdr2-i { width: 22px; height: 22px; flex: none; display: grid; place-items: center; color: #2563eb; }
+.tdr2-i svg { width: 21px; height: 21px; }
+.tdr2-k { margin-left: 4px; font-style: normal; font-size: 9.5px; font-weight: 800; color: #2563eb; background: #eaf1fe; border-radius: 999px; padding: 2px 6px; }
+.tdr2-back { margin: 0; }
+.tdr2-ft { border-top: 1px solid #eceef2; padding: 12px 18px calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tdr2-b1 { font-size: 12.5px; font-weight: 700; color: #8a8f99; }
+.tdr2-out { font-size: 12.5px; font-weight: 800; color: #2563eb; }
 /* 관리 › 이름 · 색: 바탕화면 이름은 모든 부서가 같다는 안내(2026-11-18 사용자 1번, ADR 0115) */
 .br-same { margin: 8px 0 0; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px; padding: 8px 10px; font-size: 13px; color: #92400E; line-height: 1.5; }
 /* SQL 실행: 칸 위 [지우기](2026-11-18 사용자) */

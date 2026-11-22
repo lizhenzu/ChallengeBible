@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Domain.Rules;
 using ChallengeBible.Domain.Time;
@@ -651,20 +651,14 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Contains("이미 초대를 보냈어요", again);
         Assert.Contains("가족 초대하기", again);
 
-        // 부서 홈 말씀 찾기 위에 배너(미션 홈에는 없다), 찾기 화면 맨 위에서 수락
+        // 부서 홈 배너는 2026-11-22 확정으로 뺐다(ADR 0127) — ☰ > 함께하기 > 가족팀에서 확인 · 수락
         var other = await LoggedIn("other@example.com");
         var home = await other.GetStringAsync("/jamsil-kids");
-        Assert.Contains("가족팀 초대가 왔어요!", home);
-        Assert.Contains("김민호님이 웃음폭탄네로 초대했어요", home);
-        Assert.Contains("<a class=\"ivgo\" href=\"/jamsil-kids/family-team\">", home);
-        Assert.Contains("다음에 할래요", home);
-        Assert.True(home.IndexOf("hj-hi-top", StringComparison.Ordinal) < home.IndexOf("hj-inv", StringComparison.Ordinal));   // 인사 카드 다음
-        Assert.True(home.IndexOf("hj-inv", StringComparison.Ordinal) < home.IndexOf("hj-card hj-sr", StringComparison.Ordinal));   // 말씀 찾기 바로 위
+        Assert.DoesNotContain("가족팀 초대가 왔어요", home);
+        Assert.Contains("href=\"/jamsil-kids/family-team\"", home);                     // ☰ 메뉴 입구
         var missionHome = await other.GetStringAsync("/jamsil-kids/word-mission");
         Assert.DoesNotContain("초대가 왔어요", missionHome);
-        Assert.DoesNotContain("class=\"ct num\"", missionHome);                          // 입구 숫자에 초대를 세지 않는다
         Assert.Contains("우리 가족팀 만들기", missionHome);
-        Assert.DoesNotContain("hj-inv", await dad.GetStringAsync("/jamsil-kids"));        // 보낸 사람 · 팀이 있는 사람에게는 없다
         var got = await other.GetStringAsync("/jamsil-kids/family-team");
         Assert.Contains("김민호님이 학생으로 초대했어요", got);
         Assert.Contains("handler=InviteReject", got);
@@ -679,55 +673,6 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         // 보낸 초대가 사라지고 입구도 팀 점수로 바뀐다
         Assert.DoesNotContain("보낸 초대", await dad.GetStringAsync("/jamsil-kids/family-team"));
         Assert.DoesNotContain("가족팀 초대가 왔어요", await other.GetStringAsync("/jamsil-kids"));
-    }
-
-    [Fact]
-    public async Task R212_다음에_할래요는_오늘만_배너에서_숨기고_초대는_남는다()
-    {
-        Assert.Equal(FamilyError.None, await As("dad").CreateAsync("웃음폭탄네", FamilyRelation.Father));
-        await DadInvites("other");
-        var c = await LoggedIn("other@example.com");
-        var home = await c.GetStringAsync("/jamsil-kids");
-        var token = TokenRx().Match(home).Groups[1].Value;
-        var r = await c.PostAsync("/jamsil-kids?handler=SnoozeInvites", new FormUrlEncodedContent([new("__RequestVerificationToken", token)]));
-        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
-        Assert.DoesNotContain("초대가 왔어요", await c.GetStringAsync("/jamsil-kids"));
-
-        // 초대는 그대로: 가족팀 화면에서 처리할 수 있다(다른 기기에서도 같은 기록)
-        Assert.Contains("김민호님이 학생으로 초대했어요", await c.GetStringAsync("/jamsil-kids/family-team"));
-        Assert.True((await As("other").StateAsync()).Invites.Single().SnoozedToday);
-
-        // 내일이 되면 다시 보인다
-        using (var raw = InMemoryDb.Raw(_db))
-        {
-            raw.UserSettings.Single(x => x.UserName == _p["other"].UserName).FamilyInvitesSnoozedAt = new DateTime(2027, 1, 3, 23, 0, 0, DateTimeKind.Utc);
-            raw.SaveChanges();
-        }
-        Assert.Contains("초대가 왔어요", await c.GetStringAsync("/jamsil-kids"));
-    }
-
-    [Fact]
-    public async Task R212_다음에_할래요_뒤에_새로_온_초대는_같은_날에도_보인다()
-    {
-        Assert.Equal(FamilyError.None, await As("dad").CreateAsync("웃음폭탄네", FamilyRelation.Father));
-        Assert.Equal(FamilyError.None, await As("mom").CreateAsync("말씀 수호대", FamilyRelation.Mother));
-        await DadInvites("other");
-        Assert.Equal(FamilyError.None, await As("other").SnoozeInvitesAsync());
-        using (var raw = InMemoryDb.Raw(_db))   // 시계가 멈춰 있어 "다음에 할래요"를 조금 앞으로 옮긴다
-        {
-            var setting = raw.UserSettings.Single(x => x.UserName == _p["other"].UserName);
-            setting.FamilyInvitesSnoozedAt = setting.FamilyInvitesSnoozedAt!.Value.AddMinutes(-1);
-            raw.SaveChanges();
-        }
-        Assert.Equal(FamilyError.None, await As("mom").InviteAsync(_p["other"].Pid, FamilyRelation.Student));
-        using (var raw = InMemoryDb.Raw(_db))
-        {
-            foreach (var q in raw.FamilyRequests.Where(q => q.FromUserName == _p["dad"].UserName)) q.CreatedAt = q.CreatedAt.AddMinutes(-2);
-            raw.SaveChanges();
-        }
-        var home = await (await LoggedIn("other@example.com")).GetStringAsync("/jamsil-kids");
-        Assert.Contains("이수진님이 말씀 수호대로 초대했어요", home);
-        Assert.DoesNotContain("웃음폭탄네", home);
     }
 
     [Fact]
@@ -747,17 +692,6 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         var m = InMemoryDb.SeedMembership(_db, _kids.Id, a, MembershipStatus.Approved, Roles.Teacher);
         _p["t2"] = (a, m, a);
         return As("t2");
-    }
-
-    [Fact]
-    public async Task R212_여러_팀에서_초대받으면_배너는_먼저_온_팀과_나머지_수를_보인다()
-    {
-        Assert.Equal(FamilyError.None, await As("dad").CreateAsync("웃음폭탄네", FamilyRelation.Father));
-        Assert.Equal(FamilyError.None, await As("mom").CreateAsync("말씀 수호대", FamilyRelation.Mother));
-        await DadInvites("other");
-        Assert.Equal(FamilyError.None, await As("mom").InviteAsync(_p["other"].Pid, FamilyRelation.Student));
-        var c = await LoggedIn("other@example.com");
-        Assert.Contains("웃음폭탄네 외 1팀에서 초대했어요", await c.GetStringAsync("/jamsil-kids"));
     }
 
     [Fact]

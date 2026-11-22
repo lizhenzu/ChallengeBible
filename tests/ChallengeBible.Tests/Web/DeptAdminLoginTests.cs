@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -64,7 +64,7 @@ public partial class DeptAdminLoginTests : IClassFixture<WebApplicationFactory<P
     {
         var html = await Client().GetStringAsync("/");
         Assert.Contains("부서 관리자 로그인", html);
-        var labels = Regex.Matches(html, "class=\"dl-btn [^\"]*\" href=\"/account/dept-login/([^\"]+)\">([^<]+)</a>").Select(m => (m.Groups[1].Value, m.Groups[2].Value)).ToArray();
+        var labels = Regex.Matches(html, "class=\"lp-adm c[0-9]\" href=\"/account/dept-login/([^\"]+)\"><i></i>([^<]+)</a>").Select(m => (m.Groups[1].Value, m.Groups[2].Value)).ToArray();
         Assert.Equal(new[]
         {
             ("jamsil-infant", "영아부 관리자"), ("jamsil-kids", "유년부 관리자"), ("jamsil-highschool", "고등부 관리자"), ("jamsil-youth", "청년부 관리자"),

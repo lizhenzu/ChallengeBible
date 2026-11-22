@@ -78,7 +78,11 @@ public partial class UserSwitchTests : IClassFixture<WebApplicationFactory<Progr
     }
 
     /// <summary>가장 중인 사람: 부서 홈 인사 카드 이름(뒤에 (가), R-366 — 보라 띠는 없앴다).</summary>
-    private static string Who(string html) => Regex.Match(html, "<h1 id=\"hiT\">(.+?) <u>님</u> <em class=\"imp-ga\"").Groups[1].Value;
+    private static string Who(string html)
+    {
+        var m = Regex.Match(html, "class=\"tdr2-imp\">([^<]+)으로 보는 중").Groups[1].Value;
+        return m.EndsWith("님") ? m[..^1] : m;
+    }
 
     [Fact]
     public async Task 가장_중이_아니면_바꾸기_화면은_없다()

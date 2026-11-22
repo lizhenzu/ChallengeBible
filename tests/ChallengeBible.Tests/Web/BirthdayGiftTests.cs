@@ -116,7 +116,8 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
     {
         var c = await Login("hajun@example.com");
         var home = await c.GetStringAsync("/kids");
-        Assert.Contains("생일 선물을 골라요", home);
+        Assert.DoesNotContain("생일 선물을 골라요", home);      // 카드는 2026-11-22 확정으로 뺐다(ADR 0127)
+        Assert.Contains("data-bdh-pop", home);                 // 팝업만
         Assert.Contains("2월 1일 생일", home);
         Assert.Contains("1월 25일까지", home);   // 생일 7일 전
 
@@ -150,7 +151,7 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
         Assert.Equal((GiftStates.Picked, "곰돌이 열쇠고리"), (GiftOf("김하준").State, GiftOf("김하준").ItemName));
         await Post(c, $"/kids/gifts/birthday/{id}?change=true", $"/kids/gifts/birthday/{id}", new() { ["item"] = ItemId("스티커북").ToString() });
         Assert.Equal("스티커북", GiftOf("김하준").ItemName);
-        Assert.Contains("준비 중", await c.GetStringAsync("/kids"));
+        Assert.Contains("준비 중이에요", await c.GetStringAsync($"/kids/gifts/birthday/{id}"));
 
         Assert.Equal(HttpStatusCode.NotFound, (await (await Login("admin@example.com")).GetAsync($"/kids/gifts/birthday/{id}")).StatusCode);   // 남의 생일 선물
     }
@@ -322,7 +323,7 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
 
         // 명부 + 계정: 아이가 미션 홈에서 · 다른 기기에서 다시 열어도 1건
         var c = await Login("hajun@example.com");
-        Assert.Contains("생일 선물을 골라요", await c.GetStringAsync("/kids"));
+        Assert.Contains("data-bdh-pop", await c.GetStringAsync("/kids"));
         var c2 = await Login("hajun@example.com");
         await c2.GetStringAsync("/kids");
         // 명부만: 관리자 화면을 열면 생기고, 계정 없음
@@ -338,7 +339,8 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
         await Post(c, $"/kids/gifts/birthday/{id}", $"/kids/gifts/birthday/{id}", new() { ["item"] = ItemId("스티커북").ToString() });
         var again = await c2.GetStringAsync("/kids");
         Assert.DoesNotContain("생일 선물을 골라요", again);
-        Assert.Contains("준비 중", again);
+        Assert.DoesNotContain("data-bdh-pop", again);
+        Assert.Contains("준비 중이에요", await c2.GetStringAsync($"/kids/gifts/birthday/{id}"));
         Assert.Equal(1, BirthdayCount("김하준"));
         using (var raw = InMemoryDb.Raw(_db)) Assert.Single(raw.GiftLogs.Where(l => l.GiftId == id && l.Action == GiftActions.Pick));
     }
@@ -366,7 +368,7 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
 
         using (var raw = InMemoryDb.Raw(_db)) { raw.People.Single(x => x.Name == "김하준").UserId = neo.Id; raw.SaveChanges(); }   // 새 계정과 연결
         var n = await Login("neo@example.com");
-        Assert.Contains("생일 선물을 골라요", await n.GetStringAsync("/kids"));
+        Assert.Contains("data-bdh-pop", await n.GetStringAsync("/kids"));
         Assert.Equal(HttpStatusCode.OK, (await n.GetAsync($"/kids/gifts/birthday/{id}")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync($"/kids/gifts/birthday/{id}")).StatusCode);
         using (var raw = InMemoryDb.Raw(_db))   // 옛 계정이 부서 홈을 열면 자기 빈 명부 줄이 생기므로(이름이 같다) 선물 번호로 본다
@@ -478,7 +480,7 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
     {
         var c = await Login("hajun@example.com");
         var home = await c.GetStringAsync("/kids");
-        Assert.Contains("bdh-card", home);
+        Assert.DoesNotContain("bdh-card", home);
         Assert.Contains("data-bdh-pop", home);
         Assert.Contains("김하준님, 생일 축하해요!", home);
         Assert.Contains("1월 25일까지 고를 수 있어요", home);
@@ -499,7 +501,7 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(new DateOnly(2027, 1, 8), raw.UserSettings.Single(x => x.UserName == _hajun).BirthdayPopupSnoozedUntil);
         var home = await (await Login("hajun@example.com")).GetStringAsync("/kids");
         Assert.DoesNotContain("data-bdh-pop", home);
-        Assert.Contains("bdh-card", home);   // 카드는 그대로
+        Assert.DoesNotContain("bdh-card", home);   // 카드는 뺐다(ADR 0127)
 
         await Post(c, "/kids", "/kids?handler=SnoozeBirthday", new() { ["days"] = "99" });   // 정한 값이 아니면 하루
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(new DateOnly(2027, 1, 6), raw.UserSettings.Single(x => x.UserName == _hajun).BirthdayPopupSnoozedUntil);
@@ -510,7 +512,7 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
     }
 
     [Fact]
-    public async Task R346_고른_뒤에는_팝업이_안_뜨고_카드는_준비_중_선물_화면은_부서_홈으로()
+    public async Task R346_고른_뒤에는_팝업이_안_뜨고_선물_화면은_준비_중_부서_홈으로()
     {
         var c = await Login("hajun@example.com");
         await c.GetStringAsync("/kids");   // 선물이 생긴다
@@ -522,13 +524,7 @@ public partial class BirthdayGiftTests : IClassFixture<WebApplicationFactory<Pro
         }
         var home = await (await Login("hajun@example.com")).GetStringAsync("/kids");
         Assert.DoesNotContain("data-bdh-pop", home);
-        Assert.Contains("준비 중", home);
-        Assert.Contains("스티커북", home);
-        Assert.Contains("hj-card bdh-got", home);   // 다른 카드와 같은 테두리(확정 시안 고른선물 ①)
-        Assert.Contains("<b>스티커북</b>", home);   // 설명이 없는 상품은 이름을 그대로
-        using (var raw = InMemoryDb.Raw(_db)) { raw.GiftItems.Single(i => i.Name == "스티커북").Description = "알록달록 스티커로 꾸미는 책"; raw.SaveChanges(); }
-        var withDesc = await (await Login("hajun@example.com")).GetStringAsync("/kids");
-        Assert.Contains("<b>알록달록 스티커로 꾸미는 책</b>", withDesc);   // R-349: 카드 제목 자리에 선물 설명 글
+        Assert.DoesNotContain("bdh-got", home);   // 홈 카드는 2026-11-22 확정으로 뺐다(ADR 0127)
         var page = await (await Login("hajun@example.com")).GetStringAsync($"/kids/gifts/birthday/{GiftOf("김하준").Id}");
         Assert.Contains("← 부서 홈", page);   // 생일 선물은 부서 홈으로 돌아간다
         Assert.Contains("gkd-pic", page);

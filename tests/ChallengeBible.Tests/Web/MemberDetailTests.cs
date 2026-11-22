@@ -80,7 +80,7 @@ public partial class MemberDetailTests : IClassFixture<WebApplicationFactory<Pro
         foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(list, "href=\"(/jamsil-kids/admin/members/p/\\d+)\""))
             details.Add(await admin.GetStringAsync(m.Groups[1].Value));
         Assert.Contains(details, d => d.Contains($"href=\"/jamsil-kids/admin/members/{kid.Id}\""));
-        Assert.Contains("class=\"tdr-r\" href=\"/jamsil-kids/admin\"", await admin.GetStringAsync("/jamsil-kids"));   // 부서 홈 → 관리 홈
+        Assert.Contains("class=\"tdr2-r\" href=\"/jamsil-kids/admin\"", await admin.GetStringAsync("/jamsil-kids"));   // 부서 홈 → 관리 홈
         var html = await admin.GetStringAsync($"/jamsil-kids/admin/members/{kid.Id}");
         Assert.Contains("<h1>김철수</h1>", html);
         Assert.Contains("cheolsu@example.com", html);

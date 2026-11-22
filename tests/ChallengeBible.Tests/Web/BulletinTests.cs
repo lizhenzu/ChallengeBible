@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
@@ -88,12 +88,10 @@ public partial class BulletinTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
-    public async Task R338_교사가_여러_파일을_올리면_누구나_보고_예배_카드에_주보_보기가_생긴다()
+    public async Task R338_교사가_여러_파일을_올리면_누구나_본다()
     {
         var teacher = await Member("sunmi", _kids.Id, Roles.Teacher);
-        Assert.Contains("주보 올리기", await teacher.GetStringAsync("/jamsil-kids"));   // 주보가 없어도 교사에게는 [주보 올리기]
         var guest = _app.CreateClient();
-        Assert.DoesNotContain("주보 보기", await guest.GetStringAsync("/jamsil-kids"));   // 주보가 없으면 손님에겐 버튼 없음
 
         var r = await Upload(teacher, "jamsil-kids", ("앞면.jpg", Jpg), ("뒷면.png", Png), ("교회주보.pdf", Pdf));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
@@ -105,9 +103,7 @@ public partial class BulletinTests : IClassFixture<WebApplicationFactory<Program
             Assert.All(raw.BulletinFiles, f => Assert.True(File.Exists(Path.Combine(_dir, _kids.Id.ToString(), f.StoredName))));   // 부서 폴더
         }
 
-        var home = await guest.GetStringAsync("/jamsil-kids");
-        Assert.Contains("주보 보기", home);
-        Assert.Contains("2027년 1월 10일", home);
+        Assert.DoesNotContain("주보 보기", await guest.GetStringAsync("/jamsil-kids"));   // 홈 카드는 2026-11-22 확정으로 뺐다(ADR 0127)
         var page = await guest.GetStringAsync("/jamsil-kids/bulletin");   // 로그인 안 해도 본다
         Assert.Contains("추수감사주일", page);
         Assert.Contains("교회주보.pdf", page);

@@ -1,4 +1,4 @@
-using ChallengeBible.Domain.Rules;
+﻿using ChallengeBible.Domain.Rules;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
 using ChallengeBible.Tests.Support;
@@ -50,7 +50,7 @@ public class GiftDataTests
         var scope = new RequestScope();
         scope.SetTenant(a.Id);
         using var ctx = new InMemoryDb(name, scope).Create();
-        Assert.Equal(["A 부서 공책", "공통 연필"], ctx.GiftItems.Select(i => i.Name).OrderBy(n => n).ToList());
+        Assert.Equal(["A 부서 공책", "공통 연필"], ctx.GiftItems.Select(i => i.Name).ToList().OrderBy(n => n, StringComparer.Ordinal).ToList());
         Assert.Equal(["a1"], ctx.Gifts.Select(x => x.UserName!).ToList());
     }
 

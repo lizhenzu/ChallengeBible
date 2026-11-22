@@ -20,7 +20,7 @@
                 <tbody>
                 @foreach (var r in Model.Rows)
                 {
-                    <tr class="@(r.Me ? "me" : "")"><td>@r.Name@(r.Me ? " (나)" : "")<small>@(r.LastPlace is { } lp ? $"{lp} · {r.LastOn:M/d}" : "아직 시작 전")</small></td>
+                    <tr class="@(r.Me ? "me" : "")"><td>@r.Name@(r.Me ? " (나)" : "")<small>@(r.LastPlace is { } lp ? $"{lp} · {r.LastOn.Value.ToString("M'/'d")}" : "아직 시작 전")</small></td>
                         <td class="n num">@r.Done.ToString("N0")</td>
                         <td class="n num">@(CopyPageBaseHelpers.P(CopySummary.Percent(r.NewDone, t.NewTotal)))%</td>
                         <td class="n num">@(CopyPageBaseHelpers.P(CopySummary.Percent(r.OldDone, t.OldTotal)))%</td></tr>

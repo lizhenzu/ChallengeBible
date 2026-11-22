@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -86,7 +86,7 @@ public partial class ClassBookTests : IClassFixture<WebApplicationFactory<Progra
     public async Task R361_교사는_메뉴와_처음_화면_반_교적을_본다()
     {
         var c = await Login("teacher@example.com");
-        Assert.Contains("반별 아이 정보 보기", await c.GetStringAsync("/kids"));
+        Assert.Contains("class=\"tdr2-r\" href=\"/kids/classbook\"", await c.GetStringAsync("/kids"));
         var home = WebUtility.HtmlDecode(await c.GetStringAsync("/kids/classbook"));
         Assert.Contains("1반", home);
         Assert.Contains("박선생", home);

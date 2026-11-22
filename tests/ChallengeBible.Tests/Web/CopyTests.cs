@@ -99,14 +99,10 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
 
         TurnOn();
         var home = await c.GetStringAsync("/kids");
-        Assert.Contains("도전!!! 성경필사", home);
-        // ☰ 메뉴판에서 "도전!!!성경말씀" 묶음(세 프로그램 · 365 기도)과 "부서 홈"은 뺐다(2026-11-21 사용자) — 프로그램은 부서 홈 카드로 들어간다
-        Assert.DoesNotContain("<em class=\"pd-pg\">", home);
-        Assert.DoesNotContain("class=\"tdr-r\" href=\"/kids/copy\"", home);
-        Assert.DoesNotContain("class=\"tdr-r\" href=\"/kids\"", home);
-        Assert.Contains("href=\"/kids/copy\"", home); Assert.Contains("href=\"/kids/word-mission\"", home); Assert.Contains("href=\"/kids/reading\"", home);   // 홈 카드
-        Assert.Contains("<small>이어 쓸 곳</small><b>창세기</b><span>1장 1절부터 ›</span>", home);   // 확정 시안 홈-통독필사-0펼침: 시작 전에도 0 으로 펼침
-        Assert.Contains("<b class=\"num\">0</b><small>쓴 절</small>", home);
+        Assert.Contains("도전!!!<br>성경필사", home);                                   // 프로그램 아이콘(ADR 0127)
+        Assert.Contains("href=\"/kids/copy\"", home); Assert.Contains("href=\"/kids/word-mission\"", home); Assert.Contains("href=\"/kids/reading\"", home);
+        Assert.Contains("<h2 class=\"tdr2-g\">프로그램</h2>", home);                    // ☰ 메뉴에도 프로그램
+        Assert.Contains("class=\"tdr2-r\" href=\"/kids/copy\"", home);
         var copy = await c.GetStringAsync("/kids/copy");
         Assert.Contains("필사 시작", copy);
         Assert.Contains("0 / 5절", copy);
@@ -156,11 +152,9 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("1 / 5절", home);
         Assert.Contains("요한복음 3장 2절", home);   // 이어 쓰기 = 같은 장의 안 쓴 첫 절
         Assert.Contains("신약 1 / 3절", home);
-        var dept = await c.GetStringAsync("/kids");   // 부서 홈 카드(확정 시안 홈-필사카드): 원 · 이어 쓸 곳 · 신약 · 구약 · 쓴 절 · 오늘 N절
-        Assert.Contains("hj-card hj-pg c", dept);
-        Assert.Contains("<small>이어 쓸 곳</small><b>요한복음</b><span>3장 2절부터 ›</span>", dept);
-        Assert.Contains("<small>쓴 절</small>", dept);
-        Assert.Contains("오늘 1절", dept);
+        var dept = await c.GetStringAsync("/kids");   // 부서 홈은 아이콘만(ADR 0127)
+        Assert.DoesNotContain("hj-card hj-pg c", dept);
+        Assert.Contains("href=\"/kids/copy\"", dept);
         var write = await c.GetStringAsync("/kids/copy/write/43/3");   // 쓰는 화면도 같은 틀(ADR 0105)
         Assert.Contains("aria-label=\"성경 필사 메뉴\"", write);
         Assert.Contains("class=\"b2it on\" aria-current=\"page\">신약 쓰기</a>", write);
