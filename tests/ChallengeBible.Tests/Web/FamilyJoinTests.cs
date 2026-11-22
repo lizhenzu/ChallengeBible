@@ -651,11 +651,14 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Contains("이미 초대를 보냈어요", again);
         Assert.Contains("가족 초대하기", again);
 
-        // 부서 홈 배너는 2026-11-22 확정으로 뺐다(ADR 0127) — ☰ > 함께하기 > 가족팀에서 확인 · 수락
+        // 부서 홈 아래 초대 배너(2026-11-22 3차) — ☰ 메뉴도 그대로
         var other = await LoggedIn("other@example.com");
         var home = await other.GetStringAsync("/jamsil-kids");
-        Assert.DoesNotContain("가족팀 초대가 왔어요", home);
-        Assert.Contains("href=\"/jamsil-kids/family-team\"", home);                     // ☰ 메뉴 입구
+        Assert.Contains("가족팀 초대가 왔어요", home);
+        Assert.Contains("김민호님이 웃음폭탄네로 초대했어요", home);
+        Assert.Contains("초대 확인하기", home);
+        Assert.Contains("다음에 할래요", home);
+        Assert.Contains("href=\"/jamsil-kids/family-team\"", home);
         var missionHome = await other.GetStringAsync("/jamsil-kids/word-mission");
         Assert.DoesNotContain("초대가 왔어요", missionHome);
         Assert.Contains("우리 가족팀 만들기", missionHome);
@@ -672,7 +675,27 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
 
         // 보낸 초대가 사라지고 입구도 팀 점수로 바뀐다
         Assert.DoesNotContain("보낸 초대", await dad.GetStringAsync("/jamsil-kids/family-team"));
-        Assert.DoesNotContain("가족팀 초대가 왔어요", await other.GetStringAsync("/jamsil-kids"));
+        var joined = await other.GetStringAsync("/jamsil-kids");
+        Assert.DoesNotContain("가족팀 초대가 왔어요", joined);
+        Assert.Contains("우리 가족팀", joined);        // 팀에 들어오면 홈 카드
+    }
+
+    [Fact]
+    public async Task R212_홈_초대_배너_다음에_할래요는_오늘_숨긴다()
+    {
+        await DadAndKid();
+        await DadInvites("other");
+        var c = await LoggedIn("other@example.com");
+        var home = await c.GetStringAsync("/jamsil-kids");
+        Assert.Contains("가족팀 초대가 왔어요", home);
+
+        var tok = TokenRx().Match(home).Groups[1].Value;
+        var r = await c.PostAsync("/jamsil-kids?handler=SnoozeInvites", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = tok }));
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+
+        var after = await c.GetStringAsync("/jamsil-kids");
+        Assert.DoesNotContain("가족팀 초대가 왔어요", after);
+        Assert.Contains("가족팀 · 친구팀을 만들어 보세요", after);   // 초대는 숨고 만들기 카드
     }
 
     [Fact]

@@ -635,3 +635,39 @@
   .hmx-grid { padding-inline: 16px; }
   .hmx-tile { width: 64px; height: 64px; }
 }
+
+
+/* 가족팀 — 초대 배너 · 우리 가족팀 · 만들기 유도 (2026-11-22 3차) */
+.hmx-inv { margin-top: 18px; padding: 16px 16px 14px; border: 1px solid #d6e2f8; border-radius: 14px; background: #eef4fe; }
+.hmx-inv .hd { display: flex; align-items: flex-start; gap: 11px; }
+.hmx-inv .em { width: 38px; height: 38px; border-radius: 11px; background: #fff; display: grid; place-items: center; flex: none; font-size: 19px; }
+.hmx-inv b { display: block; font-size: 15px; font-weight: 900; color: #1e3a8a; }
+.hmx-inv small { display: block; margin-top: 3px; font-size: 12.5px; color: #4a5a7d; line-height: 1.5; }
+.hmx-inv .cnt { margin-left: auto; font-size: 11px; color: #5b6b8c; flex: none; }
+.hmx-inv .row { display: flex; align-items: center; gap: 10px; margin-top: 13px; }
+.hmx-inv .row form { margin: 0; display: inline-flex; }
+.hmx-inv .go { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 16px; border-radius: 11px; background: #1e3a8a; color: #fff; font-size: 13.5px; font-weight: 800; }
+.hmx-inv .later { border: 0; background: none; padding: 6px 0; font: inherit; font-size: 12.5px; font-weight: 700; color: #5b6b8c; cursor: pointer; }
+
+.hmx-fam { display: flex; align-items: center; gap: 13px; margin-top: 18px; padding: 16px; border: 1px solid #eceef2; border-radius: 14px; background: #f6f7f9; color: inherit; text-decoration: none; }
+.hmx-fam .em { width: 44px; height: 44px; border-radius: 13px; background: #fff; border: 1px solid #eceef2; display: grid; place-items: center; flex: none; font-size: 22px; }
+.hmx-fam .tx { flex: 1; min-width: 0; }
+.hmx-fam .tx b { display: block; font-size: 15px; font-weight: 900; }
+.hmx-fam .tx b i { font-style: normal; color: #1e3a8a; font-weight: 900; }
+.hmx-fam .tx small { display: block; margin-top: 3px; font-size: 12px; color: #8a8f99; }
+.hmx-fam .avs { display: inline-flex; margin-left: 5px; vertical-align: -4px; }
+.hmx-fam .avs i { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 1px solid #e3e6ea; margin-left: -5px; display: inline-grid; place-items: center; font-size: 8px; font-style: normal; color: #5b6470; }
+.hmx-fam .avs i:first-child { margin-left: 0; }
+.hmx-fam .bar { display: block; height: 6px; border-radius: 99px; background: #e3e8f0; margin-top: 9px; overflow: hidden; }
+.hmx-fam .bar i { display: block; height: 100%; border-radius: 99px; background: #5b8def; }
+.hmx-fam .ar { flex: none; color: #b3bcc9; font-size: 20px; }
+
+.hmx-make { margin-top: 18px; padding: 18px 16px 16px; border: 1px dashed #c9d6ea; border-radius: 14px; background: #fff; }
+.hmx-make .hd { display: flex; align-items: flex-start; gap: 11px; }
+.hmx-make .em { width: 42px; height: 42px; border-radius: 12px; background: #eef4fe; display: grid; place-items: center; flex: none; font-size: 21px; }
+.hmx-make b { display: block; font-size: 15px; font-weight: 900; line-height: 1.4; }
+.hmx-make small { display: block; margin-top: 4px; font-size: 12.5px; color: #8a8f99; line-height: 1.55; }
+.hmx-make .row { display: flex; gap: 8px; margin-top: 14px; }
+.hmx-make .go, .hmx-make .alt { flex: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 12px; border-radius: 11px; font-size: 13.5px; font-weight: 800; }
+.hmx-make .go { background: #1e3a8a; color: #fff; }
+.hmx-make .alt { background: #fff; border: 1px solid #c9d6ea; color: #3b4a7d; }

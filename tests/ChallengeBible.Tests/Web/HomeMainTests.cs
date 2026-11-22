@@ -189,6 +189,24 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("href=\"/messages\"", after);            // 받은 쪽지 탭으로
     }
 
+    [Fact]
+    public async Task 가족팀도_초대도_없으면_만들기_카드가_보인다()
+    {
+        var (kid, _) = await Member("cheolsu", Roles.Participant);
+        var home = await kid.GetStringAsync("/jamsil-kids");
+        Assert.Contains("가족팀 · 친구팀을 만들어 보세요", home);
+        Assert.Contains(">가족팀 만들기</a>", home);
+        Assert.Contains(">친구팀 만들기</a>", home);        // 학생
+
+        var (mom, _) = await Member("mom", Roles.Guardian);
+        var mh = await mom.GetStringAsync("/jamsil-kids");
+        Assert.Contains(">가족팀 만들기</a>", mh);
+        Assert.DoesNotContain(">친구팀 만들기</a>", mh);   // 학부모에게는 친구팀 없음
+
+        var (teacher, _) = await Member("teacher", Roles.Teacher);
+        Assert.DoesNotContain("가족팀 · 친구팀을 만들어 보세요", await teacher.GetStringAsync("/jamsil-kids"));   // 교사는 가족팀 대상 아님
+    }
+
     [Fact]   // R-336
     public async Task R336_로그인_안_한_사람은_로그인_안내가_있는_부서_홈을_본다()
     {

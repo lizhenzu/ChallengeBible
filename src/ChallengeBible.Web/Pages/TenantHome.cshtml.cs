@@ -12,7 +12,7 @@ namespace ChallengeBible.Web.Pages;
 /// 머리말 · 로고 · 검색 · 프로그램 4칸 · 오늘의 말씀 · 나의 도전 현황만 둔다.
 /// 부서 결정 · 소속 검사는 TenantPageFilter 가 한다.
 /// </summary>
-public class TenantHomeModel(TenantContext tenant, HomeService home, AccountService accounts,
+public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, FamilyJoinService familyJoin, HomeService home, AccountService accounts,
     PhotoService photos, TodoService todo, Prayer365Service prayer365, MessageService msgs,
     BirthdayGiftService birthdays, RankingService rankings) : PageModel, ITitled
 {
@@ -28,6 +28,14 @@ public class TenantHomeModel(TenantContext tenant, HomeService home, AccountServ
     public TenantContext Tenant => tenant;
     /// <summary>학부모 — 홈 맨 아래 "자녀 미션 보기" 작은 링크(2026-11-22 확정).</summary>
     public bool IsGuardian => tenant.Has(Roles.Guardian);
+    /// <summary>우리 가족팀 카드 — 내가 든 팀이 없으면 null(2026-11-22 3차: 홈 아래에 다시).</summary>
+    public FamilyHome? Family { get; private set; }
+    /// <summary>받은 가족팀 초대 — 오늘 "다음에 할래요"를 누른 것은 뺀다(R-212).</summary>
+    public IReadOnlyList<FamilyReceivedInvite> Invites { get; private set; } = [];
+    /// <summary>친구팀을 만들 수 있는 학생인지(빈 상태 카드의 친구팀 버튼).</summary>
+    public bool FamilyIsStudent { get; private set; }
+    /// <summary>가족팀에 들어갈 수 있는 역할인지(교사·임원 제외). 빈 상태 만들기 카드 판단.</summary>
+    public bool FamilyCanJoin { get; private set; }
     public HomeView Data { get; private set; } = null!;
     /// <summary>임시 부서(0064)에서 승인을 기다리는 내 신청의 부서 이름.</summary>
     public IReadOnlyList<string> Waiting { get; private set; } = [];
@@ -52,6 +60,13 @@ public class TenantHomeModel(TenantContext tenant, HomeService home, AccountServ
         return Redirect($"/{tenant.Current.Slug}");
     }
 
+    /// <summary>초대 배너 "다음에 할래요"(R-212): 오늘은 숨기고 내일 다시 보인다.</summary>
+    public async Task<IActionResult> OnPostSnoozeInvitesAsync(CancellationToken ct)
+    {
+        await familyJoin.SnoozeInvitesAsync(ct);
+        return Redirect($"/{tenant.Current.Slug}");
+    }
+
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (TodayScreen && !tenant.IsLobby) return Redirect($"/{tenant.Current.Slug}");
@@ -71,6 +86,19 @@ public class TenantHomeModel(TenantContext tenant, HomeService home, AccountServ
         (var popN, NewList) = await MsgPopup.DecideAsync(HttpContext, msgs, me, afterLogin, ct);
         if (afterLogin || popN > 0) NewMessages = popN > 0 ? popN : await msgs.UnreadAsync(me, ct);
         MyPhoto = await photos.FileOfAsync(me, ct);
+
+        if (tenant.Current.MissionEnabled)
+        {
+            Family = await teams.MyFamilyAsync(ct);
+            var kind = UserRole.KindOf(tenant.RoleCode);
+            FamilyIsStudent = kind == UserRoleKind.Student;
+            FamilyCanJoin = UserRole.CanJoinFamily(kind);
+            if (Family is null)
+            {
+                var fam = await familyJoin.StateAsync(ct);
+                Invites = fam.Invites.Where(i => !i.SnoozedToday).ToList();
+            }
+        }
 
         Data = await home.GetAsync(ct);
 

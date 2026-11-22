@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>부서 홈 · 가족팀 카드 + 초대 배너 시안</title>
+<style>
+  :root{
+    --navy:#1e3a8a; --navy-soft:#3b4a7d; --blue:#2563eb; --accent:#0179dc; --btn:#5b8def;
+    --ink:#222; --dim:#8a8f99; --line:#e3e6ea; --line-soft:#eceef2; --card:#f6f7f9;
+    --word:#3d5a96; --pray:#6e5a9a; --rec:#3f7a5a; --quiz:#9a6638;
+    --word-bg:#eef3fc; --pray-bg:#f4f1fa; --rec-bg:#eef6f1; --quiz-bg:#fcf4ec;
+    --ring:rgba(30,58,138,.45);
+    --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+    --serif:"Noto Serif KR","Nanum Myeongjo",Batang,serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:#e9ebef;color:var(--ink);display:flex;justify-content:center;min-height:100vh;word-break:keep-all;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:8px}
+  .num{font-variant-numeric:tabular-nums}
+  .mockbar{position:fixed;left:0;top:0;right:0;z-index:90;height:36px;background:#161c2b;color:#fff;font-size:12.5px;display:flex;align-items:center}
+  .mockbar .in{width:100%;max-width:1000px;margin:0 auto;padding:0 20px;display:flex;justify-content:space-between;gap:10px}
+  .mockbar b{font-weight:800}.mockbar span{opacity:.7}
+
+  .stage{display:flex;gap:30px;align-items:flex-start;padding:64px 20px 40px;flex-wrap:wrap;justify-content:center}
+  .side{max-width:320px;padding-top:6px}
+  .side h1{font-size:20px;font-weight:900;letter-spacing:-.01em}
+  .side p{margin-top:8px;font-size:13px;line-height:1.65;color:#5b6470}
+  .variants{display:grid;gap:6px;margin-top:16px}
+  .variants button{display:flex;align-items:center;gap:9px;min-height:42px;padding:0 12px;border:1px solid var(--line);border-radius:11px;background:#fff;font-size:12.5px;font-weight:800;color:#3b4a7d;text-align:left}
+  .variants button.on{border-color:var(--navy);background:#eaf1fe;color:var(--navy)}
+  .variants i{width:22px;height:22px;border-radius:7px;background:#eef1f5;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:900;color:#5b6470;flex:none}
+  .variants button.on i{background:var(--navy);color:#fff}
+  .side ul{margin:16px 0 0;padding-left:16px;font-size:12px;line-height:1.8;color:#5b6470}
+  .side ul b{color:#222}
+
+  .phone{width:420px;max-width:100%;background:#fff;box-shadow:0 30px 70px -50px rgba(0,0,0,.5);padding:8px 0 26px}
+  .gut{padding-inline:20px}
+  .wrap{max-width:760px;margin:0 auto}
+
+  /* 머리말 */
+  .top{display:flex;align-items:center;justify-content:space-between;min-height:52px}
+  .ico{width:40px;height:40px;display:grid;place-items:center;border-radius:10px;color:#222}
+  .act{display:flex;align-items:center;gap:2px}
+  .mail{position:relative}
+  .mail .bdg{position:absolute;top:2px;right:2px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#ef4444;color:#fff;font-size:9.5px;font-weight:800;line-height:16px;text-align:center;box-shadow:0 0 0 2px #fff}
+  .av{width:27px;height:27px;border-radius:50%;background:#e8edf7;color:#3b4a7d;display:grid;place-items:center;font-size:11px;font-weight:900}
+
+  .logo{text-align:center;padding:8px 0 2px}
+  .logo h1{font-size:32px;font-weight:900;color:var(--navy);letter-spacing:.4px;line-height:1.25}
+  .logo h1 span{color:var(--accent)}
+  .logo p{margin-top:8px;font-size:13.5px;font-weight:500;color:var(--navy-soft)}
+
+  .search{display:flex;align-items:stretch;height:50px;margin-top:16px;border:1px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden}
+  .search input{flex:1;min-width:0;border:0;padding:0 16px;background:transparent;font:inherit;font-size:14.5px;color:#222;outline:0;border-radius:12px 0 0 12px}
+  .search input::placeholder{color:#9aa0aa}
+  .search button{flex:none;min-width:84px;border:0;background:var(--btn);color:#fff;font-size:15px;font-weight:800;padding:0 16px;border-radius:0 12px 12px 0}
+
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 14px;padding:22px 30px 4px}
+  .item{display:flex;flex-direction:column;align-items:center;gap:9px;min-width:0}
+  .tile{width:72px;height:72px;border-radius:18px;background:#fff;border:1px solid var(--line-soft);box-shadow:0 2px 8px rgba(30,58,138,.07);display:grid;place-items:center}
+  .item > span:last-child{font-size:13px;font-weight:500;text-align:center;line-height:1.35}
+
+  .card{display:block;margin-top:18px;padding:18px;background:var(--card);border:1px solid var(--line-soft);border-radius:14px}
+  .card h2{display:flex;align-items:center;gap:8px;font-size:16.5px;font-weight:900}
+  .card h2:before{content:"";width:4px;height:16px;border-radius:2px;background:var(--navy);flex:none}
+  .vs{display:flex;gap:14px;margin-top:12px}
+  .vs p{font-size:14px;line-height:1.7}
+  .vs .ref{color:var(--navy-soft);font-weight:700}
+  .ch{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .more{display:inline-flex;align-items:center;gap:3px;padding:6px 11px;border:1px solid #d8dbe2;border-radius:999px;background:#fff;font-size:11.5px;color:var(--dim)}
+  .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:14px}
+  .stat{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;min-width:0}
+  .stat+.stat{border-left:1px solid #e5e8ee}
+  .stat .lb{font-size:10px;color:var(--dim)}
+  .stat .vl{font-size:15.5px;font-weight:700;color:var(--navy-soft)}
+  .stats.detail{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px;padding-top:12px;border-top:1px solid #e5e8ee}
+
+  /* 가족팀 — 초대 배너 */
+  .inv{margin-top:18px;padding:16px 16px 14px;border:1px solid #d6e2f8;border-radius:14px;background:#eef4fe}
+  .inv .hd{display:flex;align-items:flex-start;gap:11px}
+  .inv .em{width:38px;height:38px;border-radius:11px;background:#fff;display:grid;place-items:center;flex:none;font-size:19px}
+  .inv b{display:block;font-size:15px;font-weight:900;color:var(--navy)}
+  .inv small{display:block;margin-top:3px;font-size:12.5px;color:#4a5a7d;line-height:1.5}
+  .inv .row{display:flex;align-items:center;gap:10px;margin-top:13px}
+  .inv .go{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 16px;border-radius:11px;background:var(--navy);color:#fff;font-size:13.5px;font-weight:800}
+  .inv .later{font-size:12.5px;font-weight:700;color:#5b6b8c}
+  .inv .cnt{margin-left:auto;font-size:11px;color:#5b6b8c}
+
+  /* 가족팀 — 우리 팀 카드 */
+  .fam{display:flex;align-items:center;gap:13px;margin-top:18px;padding:16px;border:1px solid var(--line-soft);border-radius:14px;background:var(--card)}
+  .fam .em{width:44px;height:44px;border-radius:13px;background:#fff;border:1px solid var(--line-soft);display:grid;place-items:center;flex:none;font-size:22px}
+  .fam .tx{flex:1;min-width:0}
+  .fam .tx b{display:block;font-size:15px;font-weight:900}
+  .fam .tx b i{font-style:normal;color:var(--navy);font-weight:900}
+  .fam .tx small{display:block;margin-top:3px;font-size:12px;color:var(--dim)}
+  .fam .bar{height:6px;border-radius:99px;background:#e3e8f0;margin-top:9px;overflow:hidden}
+  .fam .bar i{display:block;height:100%;border-radius:99px;background:var(--btn)}
+  .fam .ar{flex:none;color:#b3bcc9;font-size:20px}
+  .fam .avs{display:flex;margin-left:2px}
+  .fam .avs i{width:20px;height:20px;border-radius:50%;background:#fff;border:1px solid var(--line);margin-left:-6px;display:grid;place-items:center;font-size:8.5px;font-style:normal;color:#5b6470}
+
+  /* 가족팀 · 친구팀 만들기 유도 (아무것도 없을 때) */
+  .make{margin-top:18px;padding:18px 16px 16px;border:1px dashed #c9d6ea;border-radius:14px;background:#fff}
+  .make .hd{display:flex;align-items:flex-start;gap:11px}
+  .make .em{width:42px;height:42px;border-radius:12px;background:#eef4fe;display:grid;place-items:center;flex:none;font-size:21px}
+  .make b{display:block;font-size:15px;font-weight:900;line-height:1.4}
+  .make small{display:block;margin-top:4px;font-size:12.5px;color:var(--dim);line-height:1.55}
+  .make .row{display:flex;gap:8px;margin-top:14px}
+  .make .go,.make .alt{flex:1;display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 12px;border-radius:11px;font-size:13.5px;font-weight:800}
+  .make .go{background:var(--navy);color:#fff}
+  .make .alt{background:#fff;border:1px solid #c9d6ea;color:var(--navy-soft)}
+
+  .links{display:flex;justify-content:center;gap:14px;margin-top:20px;font-size:12.5px;color:var(--dim)}
+  .links a{color:var(--navy-soft);text-decoration:underline;text-underline-offset:3px}
+  .foot{text-align:center;font-size:11.5px;color:var(--dim);padding-top:24px}
+
+  .hide{display:none}
+  .notes{background:#161c2b;color:#d7dbe1;padding:26px 20px 40px;width:100%}
+  .notes .in{max-width:900px;margin:0 auto}
+  .notes h2{margin:0 0 10px;font-size:13px;letter-spacing:.16em;color:#8fa3c7}
+  .notes ul{margin:0;padding-left:18px;font-size:13px;line-height:1.8}
+  .notes li b{color:#fff}
+  @media (max-width:760px){ .stage{padding-top:52px} .side{max-width:420px;width:100%} .grid{padding-inline:22px} }
+</style>
+</head>
+<body>
+<div class="mockbar"><div class="in"><b>부서 홈 · 가족팀 추가 시안</b><span>아래쪽 배치 · 2026-11-22</span></div></div>
+
+<div class="stage">
+  <aside class="side">
+    <h1>아래쪽에 가족팀</h1>
+    <p>현황 카드 다음, 작은 링크 위에 넣습니다. 초대가 오면 배너, 가족팀에 속해 있으면 카드가 보입니다.</p>
+    <div class="variants">
+      <button type="button" data-v="inv"><i>A</i>초대만 (배너)</button>
+      <button type="button" data-v="fam"><i>B</i>가족팀만 (카드)</button>
+      <button type="button" data-v="both"><i>C</i>둘 다 (자리 확인)</button>
+      <button type="button" class="on" data-v="make"><i>D</i>아무것도 없음 (만들기 유도)</button>
+    </div>
+    <ul>
+      <li>초대: <b>김민호님 → 웃음폭탄네</b>, [초대 확인하기] [다음에 할래요]</li>
+      <li>카드: <b>철수네 · 42점</b>, 다음 축하까지 58점, 구성원 3명</li>
+      <li>아무것도 없을 때: <b>가족팀 · 친구팀 만들기</b> 유도 카드</li>
+      <li>친구팀은 학생만 만들 수 있어 학부모·교사에게는 가족팀 버튼만</li>
+    </ul>
+  </aside>
+
+  <div class="phone">
+    <div class="top gut">
+      <span class="ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></span>
+      <div class="act">
+        <a class="ico mail" href="#" aria-label="받은 쪽지 1개">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+          <span class="bdg num">1</span>
+        </a>
+        <span class="av">철</span>
+      </div>
+    </div>
+
+    <div class="logo gut"><h1>도전!!! <span>성경말씀</span></h1><p>하루 5분, 말씀과 함께 자라요.</p></div>
+
+    <div class="gut"><form class="search" role="search"><input type="search" placeholder="성경에서 단어 검색" aria-label="성경에서 단어 검색" /><button type="button">검색</button></form></div>
+
+    <div class="grid">
+      <a class="item" href="#"><span class="tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V7.5z"/><path d="M9 13.5l2 2 4-4.5"/></svg></span><span>도전!!!<br>성경미션</span></a>
+      <a class="item" href="#"><span class="tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H14l3.5 3.5V19.5z"/><path d="M8.5 8.5h7M8.5 12h7"/></svg></span><span>도전!!!<br>성경통독</span></a>
+      <a class="item" href="#"><span class="tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6"><path d="M16.5 4.5l3 3L9 18l-4 1 1-4z"/></svg></span><span>도전!!!<br>성경필사</span></a>
+      <a class="item" href="#"><span class="tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6"><path d="M12 20.5s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.9c0 5.4-7.5 10-7.5 10z"/><path d="M12 10.5v4M10 12.5h4"/></svg></span><span>자녀를 위한<br>기도365</span></a>
+    </div>
+
+    <div class="gut">
+      <section class="card">
+        <h2>오늘의 말씀</h2>
+        <div class="vs">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.6" aria-hidden="true"><path d="M12 6.5C10.2 5 7.6 4.5 5 4.5v13c2.6 0 5.2.5 7 2 1.8-1.5 4.4-2 7-2v-13c-2.6 0-5.2.5-7 2z"/><path d="M12 6.5v13"/></svg>
+          <p>“내가 주의 이름을 열매맺게 하시고 회중 가운데서 주를 찬송하리이다” <span class="ref">(시편 22:22)</span></p>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="ch"><h2>나의 도전 현황</h2><a class="more" href="#">더보기 ›</a></div>
+        <div class="stats">
+          <div class="stat"><div class="lb">오늘 미션</div><div class="vl num">0/4</div></div>
+          <div class="stat"><div class="lb">이번 주 참여</div><div class="vl num">0회</div></div>
+          <div class="stat"><div class="lb">전체 참여자</div><div class="vl num">206명</div></div>
+        </div>
+        <div class="stats detail">
+          <div class="stat"><div class="lb">나의 포인트</div><div class="vl num">0점</div></div>
+          <div class="stat"><div class="lb">순위</div><div class="vl num">—</div></div>
+        </div>
+      </section>
+
+      <!-- 초대 배너 -->
+      <section class="inv hide" data-inv aria-label="가족팀 초대">
+        <div class="hd">
+          <span class="em" aria-hidden="true">💌</span>
+          <div><b>가족팀 초대가 왔어요!</b><small>김민호님이 웃음폭탄네로 초대했어요</small></div>
+          <span class="cnt">1개</span>
+        </div>
+        <div class="row">
+          <a class="go" href="#">초대 확인하기</a>
+          <button class="later" type="button">다음에 할래요</button>
+        </div>
+      </section>
+
+      <!-- 우리 가족팀 카드 -->
+      <a class="fam hide" data-fam href="#" aria-label="우리 가족팀 철수네">
+        <span class="em" aria-hidden="true">👨‍👩‍👧</span>
+        <span class="tx">
+          <b>우리 가족팀 · <i class="num">42점</i></b>
+          <small>철수네 · 다음 가족 축하까지 58점
+            <span class="avs" aria-hidden="true"><i>민</i><i>지</i><i>철</i></span>
+          </small>
+          <span class="bar" aria-hidden="true"><i style="width:42%"></i></span>
+        </span>
+        <span class="ar" aria-hidden="true">›</span>
+      </a>
+
+      <!-- 아무것도 없을 때: 가족팀 · 친구팀 만들기 유도 -->
+      <section class="make" data-make aria-label="가족팀 · 친구팀 만들기">
+        <div class="hd">
+          <span class="em" aria-hidden="true">👨‍👩‍👧</span>
+          <div><b>가족팀 · 친구팀을 만들어 보세요</b><small>함께 하면 점수가 모여요. 부모님·형제, 친구와 팀을 이뤄요.</small></div>
+        </div>
+        <div class="row">
+          <a class="go" href="#">가족팀 만들기</a>
+          <a class="alt" href="#">친구팀 만들기</a>
+        </div>
+      </section>
+
+      <div class="links"><a href="#">자녀 미션 보기</a><a href="#">의견 보내기</a></div>
+      <div class="foot">© 2026 잠실새내 · 주일학교</div>
+    </div>
+  </div>
+</div>
+
+<section class="notes">
+  <div class="in">
+    <h2>이 시안의 결정</h2>
+    <ul>
+      <li><b>자리</b> — 나의 도전 현황 카드 아래, 작은 링크 위. 초대 배너 → 가족팀 카드 순서.</li>
+      <li><b>초대 배너</b> — 받은 초대가 있을 때만. [초대 확인하기]는 가족팀 화면, [다음에 할래요]는 오늘 숨김(R-212).</li>
+      <li><b>가족팀 카드</b> — 내가 팀에 속해 있을 때만. 팀 이름 · 시즌 점수 · 다음 축하까지 남은 점수 · 진행 막대 · 구성원 3명.</li>
+      <li><b>둘 다</b> — 보통 함께 뜨지 않는다(팀이 있으면 초대 배너 숨김). 시안 C는 자리 확인용.</li>
+      <li><b>아무것도 없을 때</b> — 점선 카드로 <b>가족팀 · 친구팀 만들기</b>를 권한다. 누르면 가족팀 화면으로.</li>
+      <li><b>친구팀</b> — 학생만(2명까지, R-221). 학부모·교사에게는 `가족팀 만들기`만 보인다.</li>
+      <li><b>메뉴</b> — ☰ > 함께하기 > 가족팀은 그대로 둔다. 홈 카드는 빠른 입구.</li>
+    </ul>
+  </div>
+</section>
+
+<script>
+  var btns = document.querySelectorAll('.variants button');
+  var inv = document.querySelector('[data-inv]');
+  var fam = document.querySelector('[data-fam]');
+  var make = document.querySelector('[data-make]');
+  btns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      btns.forEach(function (x) { x.classList.toggle('on', x === b); });
+      var v = b.dataset.v;
+      inv.classList.toggle('hide', v !== 'inv' && v !== 'both');
+      fam.classList.toggle('hide', v !== 'fam' && v !== 'both');
+      make.classList.toggle('hide', v !== 'make');
+    });
+  });
+</script>
+</body>
+</html>
