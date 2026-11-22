@@ -3,10 +3,9 @@
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Auth
 @using ChallengeBible.Web.Services
-@* 2026-11-22 사용자 확정(ADR 0127): 부서 홈을 dodan 시안 하나로 교체 —
-   머리말(☰ · 검색 · 내 계정) → 로고 → 검색 → 프로그램 4칸 → 오늘의 말씀 → 나의 도전 현황 → 작은 링크.
-   기존 카드(진행 링 · 예배/주보 · 생일 카드 · 선물 보드 · 가족팀 · 의견 카드)는 홈에서 뺐다.
-   임시 부서(로비)의 1단계 안내는 그대로 둔다. *@
+@* 2026-11-23 사용자 확정(design_handoff_home_b): 부서 홈 = 시안 B 모노 톤.
+   머리말(☰ · 교회 · 날짜 · 쪽지 · 내 계정) → 로고 → 검색 → 네 가지 도전 목록 → 오늘의 말씀 + 나의 도전 현황 → 가족팀/임시 부서 안내 → 링크.
+   기능 카드(가족팀 · 임시 부서 1단계 안내 · 생일 · 쪽지)는 그대로 둔다. *@
 @{
     var d = Model.Data;
     var t = Model.Tenant.Current;
@@ -21,8 +20,9 @@
     var loginTo = "/account/login?returnUrl=" + Uri.EscapeDataString(HttpContext.Request.Path + HttpContext.Request.QueryString);
     static string Ro(string w) { var c = w.Length == 0 ? 'a' : w[^1]; var j = c is >= '가' and <= '힣' ? (c - '가') % 28 : 0; return j == 0 || j == 8 ? "로" : "으로"; }
 }
+<link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
-<div class="hm @(intro ? "sky" : "hmx")@(lobby ? " lobby" : "")">
+<div class="@(intro ? "hm hmx sky" : "vb")@(lobby ? " lobby" : "")">
 
 @if (intro)
 {
@@ -56,47 +56,59 @@
 }
 else
 {
-    <main class="gut"><div class="wrap hmx-wrap">
-
-        <div class="hmx-top">
-            @if (!Model.Guest)
-            {
-                <button type="button" class="hmx-ico" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-                </button>
-            }
-            else
-            {
-                <span class="hmx-ico" aria-hidden="true"></span>
-            }
-            <div class="hmx-act">
-                @if (Model.Guest)
-                {
-                    <a class="hmx-login" href="@loginTo">로그인</a>
-                }
-                else
-                {
-                    @* 2026-11-22 사용자: 우측 검색 아이콘을 빼고, 안 읽은 쪽지 편지(숫자 배지)로. 검색은 로고 아래 알약이 맡는다. *@
-                    <partial name="_MailBadge" />
-                    <a class="hmx-me" href="/account" aria-label="내 계정 · @Ui.Nim(User.DisplayName())">
-                        @if (Model.MyPhoto is { } ph)
-                        {
-                            <span class="av"><img src="/account/photo?handler=img&amp;v=@ph" alt="" /></span>
-                        }
-                        else
-                        {
-                            <span class="av" aria-hidden="true">@Ui.Initial(User.DisplayName())</span>
-                        }
-                        <b>@Ui.Nim(User.DisplayName())</b>
+    <header class="vb-hero">
+        <img class="vb-clover" src="~/icons/clover.svg" alt="" aria-hidden="true" />
+        <div class="vb-hero-in">
+            <div class="vb-top">
+                <div class="vb-top-l">
+                    @if (!Model.Guest)
+                    {
+                        <button type="button" class="vb-burger" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+                        </button>
+                    }
+                    <a class="church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)">
+                        <small>대한예수교장로회</small>
+                        <span>잠실새내교회</span>
                     </a>
-                }
+                </div>
+                <div class="vb-top-r">
+                    <time class="vb-date" datetime="@d.Today.ToString("yyyy-MM-dd")">@d.Today.ToString("M월 d일", ko) <small>@d.Today.ToString("dddd", ko)</small></time>
+                    @if (Model.Guest)
+                    {
+                        <a class="person-btn" href="@loginTo" aria-label="로그인" title="로그인">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.6 4.1-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/></svg>
+                        </a>
+                    }
+                    else
+                    {
+                        <partial name="_MailBadge" />
+                        <a class="hmx-me" href="/account" aria-label="내 계정 · @Ui.Nim(User.DisplayName())">
+                            @if (Model.MyPhoto is { } ph)
+                            {
+                                <span class="av"><img src="/account/photo?handler=img&amp;v=@ph" alt="" /></span>
+                            }
+                            else
+                            {
+                                <span class="av" aria-hidden="true">@Ui.Initial(User.DisplayName())</span>
+                            }
+                            <b>@Ui.Nim(User.DisplayName())</b>
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <div class="vb-body">
+                <h1 class="brand-title">
+                    <span class="bt-1">도전<span class="bt-ex"><i class="e1">!</i><i class="e2">!</i><i class="e3">!</i></span></span>
+                    <span class="bt-2">성경말씀</span>
+                </h1>
+                <p class="vb-tag">@(lobby ? "먼저 미션으로 시작해 보세요." : "하루 5분, 말씀과 함께 자라요.")</p>
             </div>
         </div>
+    </header>
 
-        <section class="hmx-logo" aria-labelledby="hmxT">
-            <h1 id="hmxT">도전!!! <span>성경말씀</span></h1>
-            <p>하루 5분, 말씀과 함께 자라요.</p>
-        </section>
+    <main class="vb-main">
 
         @if (t.ReadingEnabled)
         {
@@ -106,115 +118,113 @@ else
             </form>
         }
 
-        <nav class="hmx-grid" aria-label="프로그램 바로가기">
+        <div class="vb-sec-h">
+            <h2>네 가지 도전</h2>
+            <p>어느 것부터 해도 좋아요</p>
+        </div>
+
+        <nav class="vb-list" aria-label="프로그램 바로가기">
             @if (t.MissionEnabled)
             {
-                <a class="hmx-item" href="/@slug/word-mission"><span class="hmx-tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V7.5z"/><path d="M14 3v4.5h4.5"/><path d="M9 13.5l2 2 4-4.5"/><path d="M8 18h8"/></svg></span><span>도전!!!<br>성경미션</span></a>
+                <a class="vb-item" href="/@slug/word-mission" style="--c: var(--p1); --s: var(--s1);">
+                    <span class="vb-no">01</span>
+                    <span class="vb-t"><small>도전!!!</small><b>성경미션</b><p>매일 하나씩 주어지는 말씀 미션을 풀어요</p></span>
+                    <span class="vb-go"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                </a>
             }
             @if (t.ReadingEnabled)
             {
-                <a class="hmx-item" href="/@slug/reading"><span class="hmx-tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H14l3.5 3.5V19.5A1.5 1.5 0 0 1 16 21H6.5A1.5 1.5 0 0 1 5 19.5z"/><path d="M14 3v3.5h3.5"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/></svg></span><span>도전!!!<br>성경통독</span></a>
+                <a class="vb-item" href="/@slug/reading" style="--c: var(--p2); --s: var(--s2);">
+                    <span class="vb-no">02</span>
+                    <span class="vb-t"><small>도전!!!</small><b>성경통독</b><p>계획표를 따라 하루 몇 장씩, 끝까지 읽어요</p></span>
+                    <span class="vb-go"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                </a>
             }
             @if (t.CopyEnabled)
             {
-                <a class="hmx-item" href="/@slug/copy"><span class="hmx-tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 4.5l3 3L9 18l-4 1 1-4z"/><path d="M14.5 6.5l3 3"/><path d="M4 21h16"/></svg></span><span>도전!!!<br>성경필사</span></a>
+                <a class="vb-item" href="/@slug/copy" style="--c: var(--p3); --s: var(--s3);">
+                    <span class="vb-no">03</span>
+                    <span class="vb-t"><small>도전!!!</small><b>성경필사</b><p>말씀을 한 절씩 따라 쓰며 마음에 새겨요</p></span>
+                    <span class="vb-go"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                </a>
             }
             @if (Model.PrayerVisible)
             {
-                <a class="hmx-item" href="/@slug/prayer365"><span class="hmx-tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.9c0 5.4-7.5 10-7.5 10z"/><path d="M12 10.5v4M10 12.5h4"/></svg></span><span>자녀를 위한<br>기도365</span></a>
+                <a class="vb-item" href="/@slug/prayer365" style="--c: var(--p4); --s: var(--s4);">
+                    <span class="vb-no">04</span>
+                    <span class="vb-t"><small>자녀를 위한</small><b>기도365</b><p>매일 한 가지 주제로 자녀를 위해 기도해요</p></span>
+                    <span class="vb-go"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                </a>
             }
         </nav>
 
-        @if (d.VerseText is { } vt)
-        {
-            <section class="hmx-card" aria-label="오늘의 말씀">
-                <h2>오늘의 말씀</h2>
-                <div class="hmx-vs">
-                    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.5C10.2 5 7.6 4.5 5 4.5v13c2.6 0 5.2.5 7 2 1.8-1.5 4.4-2 7-2v-13c-2.6 0-5.2.5-7 2z"/><path d="M12 6.5v13"/><path d="M14.5 4.5v6l1.8-1.4 1.7 1.4v-6"/></svg>
-                    <p>“@vt”@if (d.VerseRef is { } vr) { <span class="ref"> (@vr)</span> }</p>
-                </div>
-            </section>
-        }
-        else if (d.WordTitle is not null)
-        {
-            <a class="hmx-card" href="/@slug/word-mission" aria-label="오늘의 말씀 — 미션 홈으로">
-                <h2>오늘의 말씀</h2>
-                <div class="hmx-vs">
-                    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.5C10.2 5 7.6 4.5 5 4.5v13c2.6 0 5.2.5 7 2 1.8-1.5 4.4-2 7-2v-13c-2.6 0-5.2.5-7 2z"/><path d="M12 6.5v13"/><path d="M14.5 4.5v6l1.8-1.4 1.7 1.4v-6"/></svg>
-                    <p><b>@d.WordTitle</b> <span class="ref">@d.WordRange ›</span></p>
-                </div>
-            </a>
-        }
-
-        <section class="hmx-card" aria-labelledby="hmxSt">
-            <div class="hmx-ch">
-                <h2 id="hmxSt">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f2b01e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 5M17 6h3a3 3 0 0 1-3 5"/><path d="M12 14v3M8.5 20h7"/></svg>
-                    나의 도전 현황
-                </h2>
-                @if (!Model.Guest)
-                {
-                    <a class="hmx-more" href="/@slug/points">더보기
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-                    </a>
-                }
-            </div>
-
-            @if (Model.Guest)
+        <div class="vb-row">
+            @if (d.VerseText is { } vt)
             {
-                <div class="hmx-guest">
-                    <b>로그인하면 내 기록이 보여요</b>
-                    <span>오늘 미션 · 이번 주 참여 · 나의 포인트</span>
-                    <a href="@loginTo">로그인</a>
-                </div>
+                <section class="vb-verse" id="vb-verse" aria-label="오늘의 말씀">
+                    <h3>오늘의 말씀</h3>
+                    <blockquote class="serif">“@vt”</blockquote>
+                    @if (d.VerseRef is { } vr)
+                    {
+                        <cite>@vr</cite>
+                    }
+                </section>
             }
-            else if (d.Participant)
+            else if (d.WordTitle is not null)
             {
-                <div class="hmx-stats">
+                <a class="vb-verse" href="/@slug/word-mission" aria-label="오늘의 말씀 — 미션 홈으로">
+                    <h3>오늘의 말씀</h3>
+                    <blockquote class="serif">@d.WordTitle</blockquote>
+                    @if (d.WordRange is { } wr)
+                    {
+                        <cite>@wr ›</cite>
+                    }
+                </a>
+            }
+
+            <section class="vb-stat" id="vb-stat" aria-labelledby="vbSt">
+                <div class="vb-stat-h">
+                    <h3 id="vbSt">나의 도전 현황</h3>
+                    @if (!Model.Guest)
+                    {
+                        <a class="vb-more" href="/@slug/points">더보기
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                        </a>
+                    }
+                </div>
+
+                @if (Model.Guest)
+                {
+                    <div class="vb-guest">
+                        <b>로그인하면 내 기록이 보여요</b>
+                        <span>오늘 미션 · 이번 주 참여 · 나의 포인트</span>
+                        <a href="@loginTo">로그인</a>
+                    </div>
+                }
+                else if (d.Participant)
+                {
+                    <div class="vb-three">
+                        @if (t.MissionEnabled)
+                        {
+                            <div><b class="num">@done/@has.Count</b><span>오늘 미션</span></div>
+                            <div><b class="num">@(week)회</b><span>이번 주 참여</span></div>
+                        }
+                        <div><b class="num">@((d.Dept?.Members ?? 0).ToString("N0"))<small>명</small></b><span>전체 참여자</span></div>
+                    </div>
                     @if (t.MissionEnabled)
                     {
-                        <div class="hmx-stat">
-                            <div class="lb"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V7.5z"/><path d="M14 3v4.5h4.5"/><path d="M9 13.5l2 2 4-4.5"/></svg>오늘 미션</div>
-                            <div class="vl num">@(done)/@(has.Count)</div>
-                        </div>
-                        <div class="hmx-stat">
-                            <div class="lb"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>이번 주 참여</div>
-                            <div class="vl num">@(week)회</div>
-                        </div>
+                        <p class="vb-week">나의 포인트 <b class="num">@d.SeasonPoints.ToString("N0")점</b> · 순위 <b class="num">@(Model.MyRank is { } rk ? $"{rk}위" : "—")</b></p>
                     }
-                    <div class="hmx-stat">
-                        <div class="lb"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c0-3 2.5-5.5 5.5-5.5s5.5 2.5 5.5 5.5"/><path d="M16 8.5h5M18.5 6v5"/></svg>전체 참여자</div>
-                        <div class="vl num">@((d.Dept?.Members ?? 0).ToString("N0"))명</div>
-                    </div>
-                </div>
-                @if (t.MissionEnabled)
+                }
+                else
                 {
-                    <div class="hmx-stats detail">
-                        <div class="hmx-stat">
-                            <div class="lb"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-3-5.4 3 1.1-6L3.2 9.4l6.1-.8z"/></svg>나의 포인트</div>
-                            <div class="vl num">@d.SeasonPoints.ToString("N0")점</div>
-                        </div>
-                        <div class="hmx-stat">
-                            <div class="lb"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>순위</div>
-                            <div class="vl num">@(Model.MyRank is { } rk ? $"{rk}위" : "—")</div>
-                        </div>
+                    <div class="vb-three">
+                        <div><b class="num">@((d.Dept?.Members ?? 0).ToString("N0"))<small>명</small></b><span>전체 참여자</span></div>
+                        <div><b class="num">@((d.Dept?.TodayPeople ?? 0).ToString("N0"))<small>명</small></b><span>오늘 참여</span></div>
                     </div>
                 }
-            }
-            else
-            {
-                <div class="hmx-stats detail" style="margin-top:0;padding-top:0;border-top:0">
-                    <div class="hmx-stat">
-                        <div class="lb">전체 참여자</div>
-                        <div class="vl num">@((d.Dept?.Members ?? 0).ToString("N0"))명</div>
-                    </div>
-                    <div class="hmx-stat">
-                        <div class="lb">오늘 참여</div>
-                        <div class="vl num">@((d.Dept?.TodayPeople ?? 0).ToString("N0"))명</div>
-                    </div>
-                </div>
-            }
-        </section>
+            </section>
+        </div>
 
         @* 가족팀(2026-11-22 3차 확정): 초대 배너 → 우리 가족팀 카드 → 둘 다 없으면 만들기 유도. 현황 카드 아래. *@
         @if (!lobby && t.MissionEnabled && d.Rules.Features.FamilyTeam)
@@ -294,7 +304,7 @@ else
             <a href="/@slug/feedback">의견 보내기</a>
         </div>
 
-    </div></main>
+    </main>
 }
 
 @if (Model.BirthdayPopup is { } bp)

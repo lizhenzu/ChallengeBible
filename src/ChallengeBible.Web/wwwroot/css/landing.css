@@ -130,3 +130,50 @@
   .vb .hmx-me b { display: none; }
   .vb .hmx-me { padding: 0 5px; }
 }
+
+/* ☰ 메뉴 (design_handoff_home_b(1)) — 부서 하나인 사람은 기존 부서 메뉴판, 그 밖에는 이 손님용 메뉴판 */
+.vb-top-l { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.vb-burger { width: 40px; height: 40px; flex: none; margin-left: -8px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+.vb-burger:hover { background: #e7e7ea; }
+.vb-burger:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.vb-dr .pd-panel { width: min(300px, 86vw); padding: 18px 18px 24px; }
+@media (min-width: 720px) { .vb-dr .pd-panel { width: min(340px, 86vw); } }
+.vb-dr-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.vb-dr-x { width: 36px; height: 36px; flex: none; border: 0; border-radius: 10px; background: transparent; color: var(--ink-3); display: grid; place-items: center; cursor: pointer; }
+.vb-dr-x:hover { background: #f4f4f5; }
+.vb-dr-login { display: flex; align-items: center; gap: 12px; margin-top: 18px; padding: 14px; border-radius: 16px; background: #f4f4f5; color: var(--ink); }
+.vb-dr-login > span:nth-child(2) { flex: 1; min-width: 0; }
+.vb-dr-login b { display: block; font-size: 15px; font-weight: 800; }
+.vb-dr-login small { display: block; margin-top: 1px; font-size: 12px; color: var(--ink-3); }
+.vb-dr-cap { margin-top: 22px !important; padding: 0 4px; font-size: 11.5px; font-weight: 800; color: var(--ink-3); }
+.vb-dr-list { display: grid; margin-top: 6px; }
+.vb-dr-list a { display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 4px; border-radius: 10px; font-size: 15px; font-weight: 700; color: var(--ink); }
+.vb-dr-list a:hover { background: #f4f4f5; }
+.vb-dr-list.plain a { height: 42px; font-size: 14.5px; font-weight: 600; color: var(--ink-2); }
+.vb-dr-ic { width: 32px; height: 32px; flex: none; border-radius: 9px; background: var(--s, #f4f4f5); color: var(--c, var(--ink)); display: grid; place-items: center; }
+.vb-dr-church { display: block; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; font-weight: 700; color: var(--ink-3); }
+
+/* 부서 홈(같은 시안) — 현황 카드 머리 · 손님 안내 · 검색/가족팀/임시 부서 안내는 모노 톤으로 */
+.vb-stat-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.vb-more { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.vb-guest { margin-top: 14px; padding: 14px; border-radius: 14px; background: var(--soft); }
+.vb-guest b { display: block; font-size: 14px; font-weight: 800; }
+.vb-guest span { display: block; margin-top: 2px; font-size: 12px; color: var(--ink-3); }
+.vb-guest a { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; margin-top: 10px; padding: 0 16px; border-radius: 10px; background: var(--ink); color: #fff; font-size: 13.5px; font-weight: 800; }
+.vb .hmx-search { margin-top: 0; border-color: var(--line); background: var(--soft); }
+.vb .hmx-search button { background: var(--ink); }
+.vb .hmx-search button:active { background: #000; }
+.vb .hmx-links a { color: var(--ink-2); }
+.vb .hmx-inv { border-color: var(--line); background: var(--soft); }
+.vb .hmx-inv b { color: var(--ink); }
+.vb .hmx-inv small { color: var(--ink-2); }
+.vb .hmx-inv .go, .vb .hmx-make .go { background: var(--ink); }
+.vb .hmx-make { border-color: #d6d6db; }
+.vb .lb-ban { display: grid; gap: 10px; margin-top: 18px; padding: 14px; border-radius: 16px; }
+.vb .lb-ban.lb-go { background: var(--soft); border: 1px solid var(--line); }
+.vb .lb-ban.lb-wait { background: #fffbeb; border: 1px solid #fde68a; }
+.vb .lb-ban p { margin: 0; font-size: 13.5px; font-weight: 500; line-height: 1.55; color: var(--ink-2); }
+.vb .lb-ban p b { display: block; margin-bottom: 2px; font-size: 15.5px; font-weight: 900; color: var(--ink); }
+.vb .lb-ban .lb-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 11px; font-size: 14px; font-weight: 800; }
+.vb .lb-ban .lb-btn.p { background: var(--ink); color: #fff; }
+.vb .lb-ban .lb-btn.s { background: #fff; border: 1px solid var(--line); color: var(--ink-2); }

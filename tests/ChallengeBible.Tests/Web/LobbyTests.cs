@@ -70,10 +70,10 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task R171_가입하면_임시_부서_참여자가_되어_바로_홈으로_간다()
     {
         var (c, signup) = await SignUp();
-        Assert.Equal("/welcome", signup.Headers.Location!.OriginalString);   // 가입 직후는 임시 부서 홈
-        var landing = await c.GetStringAsync("/");                           // 2026-11-23 사용자: 첫 화면에 머물며 「000님」
-        Assert.Contains("class=\"hmx-me\"", landing);
-        Assert.Contains("href=\"/welcome\"", landing);                       // 임시 부서 홈 바로가기
+        Assert.Equal("/welcome", signup.Headers.Location!.OriginalString);   // 새 시안은 부서 홈 = 가입 직후 임시 부서 홈
+        var home = await c.GetStringAsync("/welcome");
+        Assert.Contains("시작까지 2단계", home);                             // 임시 부서 첫 안내
+        Assert.Contains("<span>오늘 미션</span>", await c.GetStringAsync("/welcome/today"));   // 새 시안 부서 홈
         var me = UserName();
         using var raw = InMemoryDb.Raw(_db);
         var m = raw.DeptRoles.Single(x => x.TenantId == _lobby.Id && x.UserId == raw.Users.Single(u => u.UserName == me).Id);
@@ -93,7 +93,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task R323_임시_부서에서도_필사를_하고_참여자_현황은_숨긴다()
     {
         var (c, _) = await SignUp();
-        Assert.Contains("도전!!!<br>성경필사", await c.GetStringAsync("/welcome/today"));   // 미션 화면(홈 아랫부분)에 필사 카드
+        Assert.Contains("<b>성경필사</b>", await c.GetStringAsync("/welcome/today"));   // 홈 프로그램 목록에 필사
         var copyHome = await c.GetStringAsync("/welcome/copy");
         Assert.DoesNotContain("/welcome/copy/participants", copyHome);
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/welcome/copy/books?t=nt")).StatusCode);
@@ -123,7 +123,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.DoesNotContain("/welcome/ranking", home);
         Assert.Contains("href=\"/join\"", home); Assert.Contains("내 부서 참여", home);                    // ☰ 메뉴(계정 줄은 2026-11-15에 뺐다)
         var today = await c.GetStringAsync("/welcome/today");                         // 미션 화면 = 지금 홈 아랫부분
-        Assert.Contains("<nav class=\"hmx-grid\"", today);
+        Assert.Contains("<nav class=\"vb-list\"", today);
         Assert.Contains("<a class=\"lb-btn p\" href=\"/join\">내 부서 참여 신청하기 →</a>", today);   // 확정 시안 임시부서-상단버튼 A: 신청 전
         Assert.DoesNotContain("← 처음 화면", today);
         if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(today, "44-임시부서-미션화면-신청전");
@@ -154,7 +154,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("<a class=\"lb-btn s\" href=\"/join\">신청 확인 · 바꾸기 →</a>", today);
         Assert.DoesNotContain("내 부서 참여 신청하기", today);
         if (Environment.GetEnvironmentVariable("CB_SCREENS_DIR") is not null) await ScreenDump.Write(today, "45-임시부서-미션화면-신청후");
-        Assert.Contains("<nav class=\"hmx-grid\"", today);
+        Assert.Contains("<nav class=\"vb-list\"", today);
     }
 
     [Fact]
@@ -183,7 +183,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         var r = await c.GetAsync("/jamsil-kids/today");                                  // 일반 부서 홈은 한 화면 그대로 — today 는 홈으로
         Assert.Equal("/jamsil-kids", r.Headers.Location!.OriginalString);
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/jamsil-kids")).StatusCode);
-        Assert.Contains("<a class=\"hmx-item\" href=\"/jamsil-kids/word-mission\">", await c.GetStringAsync("/jamsil-kids"));
+        Assert.Contains("<a class=\"vb-item\" href=\"/jamsil-kids/word-mission\"", await c.GetStringAsync("/jamsil-kids"));
         Assert.DoesNotContain("시작까지 2단계", await c.GetStringAsync("/jamsil-kids"));
         var kidsHome = await c.GetStringAsync("/jamsil-kids");                            // 맨 아래: © 줄(모든 부서 홈, 2026-10-30)
         Assert.DoesNotContain("<div class=\"acct\">", kidsHome);                       // 맨 아래 계정 줄은 지웠다 — 왼쪽 위 ☰ 와 같아서(2026-11-15)
@@ -230,6 +230,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         var landing = await c.GetStringAsync("/");   // 2026-11-23 사용자: 자동으로 넘기지 않고 첫 화면에 머문다
         Assert.Contains("class=\"hmx-me\"", landing);                       // 머리말 「000님」
         Assert.Contains("href=\"/jamsil-kids\"", landing);                  // 진짜 부서 바로가기
+        Assert.Contains("class=\"pdrawer tdr2\"", landing);                 // ☰ 는 그 부서의 기존 메뉴판 그대로
     }
 
     [Fact]

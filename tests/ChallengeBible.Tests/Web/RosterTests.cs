@@ -159,7 +159,7 @@ public partial class RosterTests : IClassFixture<WebApplicationFactory<Program>>
         ContentSeed.Word(_db, Jan5);
         var c = await LoggedIn("seoyeon@example.com", "박서연", true);   // 소속원 7 · 참여자 4
         var home = await c.GetStringAsync("/jamsil-kids");
-        Assert.Contains("<div class=\"vl num\">6명</div>", home);   // 홈 현황의 전체 참여자 = 명단 전체(ADR 0127)
+        Assert.Contains(">6<small>명</small></b><span>전체 참여자</span>", home);   // 홈 현황의 전체 참여자 = 명단 전체(시안 B)
 
         var all = await c.GetStringAsync("/jamsil-kids/roster");
         Assert.Matches(@"전체<em class=""num"">6</em>", all);

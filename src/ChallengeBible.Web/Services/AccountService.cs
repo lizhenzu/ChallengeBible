@@ -275,7 +275,7 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
     }
 
     /// <summary>
-    /// 로그인·가입 직후 보낼 곳(2026-11-23 사용자: 첫 화면 `/`은 로그인해도 머무는 화면이라, 인증 직후 목적지는 따로 정한다).
+    /// 로그인·가입 직후 보낼 곳(2026-11-23 사용자: 새 시안은 부서 홈 화면이다 — 로그인하면 곧장 그 부서 홈으로).
     /// 1곳 → 그 부서 홈, 2곳 이상 → 부서 고르기, 0곳 → 참여 신청.
     /// </summary>
     public async Task<string> HomePathAsync(string userName, CancellationToken ct = default)

@@ -44,7 +44,7 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task 머리말은_교회_날짜_로그인이고_햄버거는_없다()
+    public async Task 머리말은_교회_날짜_로그인이고_햄버거_메뉴가_있다()
     {
         var html = await Page();
         Assert.Contains("<small>대한예수교장로회</small>", html);
@@ -52,8 +52,8 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("<time class=\"vb-date\" datetime=\"2027-01-05\">", html);
         Assert.Contains("1월 5일", html);
         Assert.Contains("<a class=\"person-btn\" href=\"/account/login\" aria-label=\"로그인\" title=\"로그인\">", html);   // 로그인은 우측 사람 아이콘 하나
-        Assert.DoesNotContain("data-pnav-open", html);                // 로그인 전에는 ☰ 메뉴가 없다
-        Assert.DoesNotContain("hamburger", html, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("aria-label=\"메뉴 열기\" aria-controls=\"pnav\" aria-expanded=\"false\" data-pnav-open", html);     // ☰ 메뉴(2026-11-23 사용자)
+        Assert.Contains("<div class=\"pdrawer vb-dr\" id=\"pnav\" hidden>", html);
     }
 
     [Fact]
