@@ -69,18 +69,14 @@ else
                 <span class="hmx-ico" aria-hidden="true"></span>
             }
             <div class="hmx-act">
-                @if (t.ReadingEnabled)
-                {
-                    <a class="hmx-ico" href="/@slug/reading/search" aria-label="말씀 찾기">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-                    </a>
-                }
                 @if (Model.Guest)
                 {
                     <a class="hmx-login" href="@loginTo">로그인</a>
                 }
                 else
                 {
+                    @* 2026-11-22 사용자: 우측 검색 아이콘을 빼고, 안 읽은 쪽지 편지(숫자 배지)로. 검색은 로고 아래 알약이 맡는다. *@
+                    <partial name="_MailBadge" />
                     <a class="hmx-ico hmx-prof" href="/account" aria-label="내 계정">
                         @if (Model.MyPhoto is { } ph)
                         {

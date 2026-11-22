@@ -589,6 +589,8 @@
 .hmx-ico svg { stroke: currentColor; }
 .hmx-act { display: flex; align-items: center; gap: 2px; }
 .hmx-prof img { width: 27px; height: 27px; border-radius: 50%; object-fit: cover; display: block; }
+.hmx-act .mailb { width: 40px; height: 40px; border-radius: 10px; background: transparent; color: #222; }
+.hmx-act .mailb i { top: 2px; right: 2px; box-shadow: 0 0 0 2px #fff; }
 .hmx-login { min-height: 38px; padding: 0 16px; display: inline-flex; align-items: center; border-radius: 11px; background: #1e3a8a; color: #fff; font-size: 14px; font-weight: 800; }
 .hmx-logo { text-align: center; padding: 8px 0 2px; }
 .hmx-logo h1 { margin: 0; font-size: 32px; font-weight: 900; color: #1e3a8a; letter-spacing: .5px; line-height: 1.25; word-break: keep-all; }

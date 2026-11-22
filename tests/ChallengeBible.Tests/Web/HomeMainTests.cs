@@ -88,6 +88,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
 
         Assert.Contains("href=\"/jamsil-kids/feedback\"", home);                                // 의견은 작은 링크로
         Assert.Contains("data-pnav-open", home);                                                // ☰
+        Assert.Contains("class=\"mailb\" href=\"/messages\"", home);                          // 우측 편지 = 받은 쪽지
+        Assert.DoesNotContain("<a class=\"hmx-ico\" href=\"/jamsil-kids/reading/search\"", home);   // 우측 검색 아이콘은 뺐다(검색 알약은 그대로)
         Assert.Contains("로그아웃", home);
     }
 
@@ -166,6 +168,25 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("번째", home);
     }
 
+    [Fact]
+    public async Task 머리말_편지는_받은_쪽지로_가고_안_읽은_수가_배지로_보인다()
+    {
+        var (kid, kidId) = await Member("cheolsu", Roles.Participant);
+        var before = await kid.GetStringAsync("/jamsil-kids");
+        Assert.Contains("class=\"mailb\" href=\"/messages\"", before);
+        Assert.DoesNotContain("<i class=\"num\">", before);      // 안 읽은 쪽지 0 — 숫자 없음
+
+        var (_, momId) = await Member("mom", Roles.Guardian);
+        using (var scope = _app.Services.CreateScope())
+        {
+            var svc = scope.ServiceProvider.GetRequiredService<ChallengeBible.Web.Services.MessageService>();
+            Assert.Equal(ChallengeBible.Web.Services.MsgError.None, await svc.SendAsync(momId, kidId, "안녕", null, CancellationToken.None));
+        }
+        var after = await kid.GetStringAsync("/jamsil-kids");
+        Assert.Contains("<i class=\"num\">1</i>", after);        // 안 읽은 1개
+        Assert.Contains("href=\"/messages\"", after);            // 받은 쪽지 탭으로
+    }
+
     [Fact]   // R-336
     public async Task R336_로그인_안_한_사람은_로그인_안내가_있는_부서_홈을_본다()
     {
@@ -179,6 +200,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("나의 포인트</div>", html);
         Assert.DoesNotContain("김철수", html);
         Assert.DoesNotContain("data-pnav-open", html);                          // ☰ 메뉴 없음
+        Assert.DoesNotContain("class=\"mailb\"", html);                        // 로그인 전에는 쪽지함이 없다
         Assert.Contains("href=\"/jamsil-kids/feedback\"", html);
         var fb = await anon.GetAsync("/jamsil-kids/feedback");
         Assert.Contains("/account/login", fb.Headers.Location!.OriginalString);
