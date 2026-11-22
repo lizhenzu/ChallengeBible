@@ -12,7 +12,7 @@ public sealed record JoinTarget(int TenantId, string Name, bool MissionEnabled, 
     public string Slug { get; init; } = "";
 }
 
-public enum JoinError { None, NotFound, AlreadyMember, NoRole, BadRole }
+public enum JoinError { None, NotFound, AlreadyMember, NoRole, BadRole, AdminNotStudent }
 
 /// <summary>
 /// 목록에서 부서를 고르거나(0059) 참여 코드로 부서를 찾아 참여한다(0045, 0048). 2026-11-20 사용자 "승인 제약 없애고 자유롭게 가입":
@@ -82,6 +82,9 @@ public sealed class JoinService(IAppDb db, ISystemDb systemDb, RequestScope scop
         if (await ctx.DeptRoles.IgnoreQueryFilters().AnyAsync(d => d.UserId == user.Id && !lobbies.Contains(d.TenantId), ct)
             || await ctx.SignupApplications.IgnoreQueryFilters().AnyAsync(a => a.UserName == userName && a.Status == SignupStatus.Pending, ct))
             return (JoinError.AlreadyMember, null);
+        // R-365: 관리자 계정은 학생으로 가입할 수 없다(신청 줄도 만들지 않는다)
+        if (DeptMembership.StudentLike(UserRole.CodeForKind(roleKind)) && await DeptMembership.IsAdminAccountAsync(ctx, user.Id, ct))
+            return (JoinError.AdminNotStudent, null);
 
         var a = new SignupApplication
         {
@@ -126,6 +129,7 @@ public sealed class JoinService(IAppDb db, ISystemDb systemDb, RequestScope scop
         JoinError.AlreadyMember => "이미 이 부서에 신청했거나 들어가 있어요.",
         JoinError.NoRole => "하나는 골라 주세요.",
         JoinError.BadRole => "역할을 다시 골라 주세요.",
+        JoinError.AdminNotStudent => DeptMembership.AdminNotStudentMessage,
         _ => "",
     };
 }

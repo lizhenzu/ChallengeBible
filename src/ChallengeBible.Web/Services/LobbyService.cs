@@ -21,6 +21,7 @@ public sealed class LobbyService(ISystemDb systemDb, TimeProvider time)
         var lobby = await sys.Tenants.Where(t => t.IsLobby && t.Status == TenantStatus.Active).Select(t => (int?)t.Id).FirstOrDefaultAsync(ct);
         if (lobby is not int id) return false;
         if (await sys.DeptRoles.AnyAsync(d => d.UserId == userId, ct)) return true;
+        if (await DeptMembership.IsAdminAccountAsync(sys, userId, ct)) return false;   // R-365: 관리자 계정은 학생으로 넣지 않는다
         var now = time.GetUtcNow().UtcDateTime;
         sys.DeptRoles.Add(new DeptRoleUserAssoc { TenantId = id, UserId = userId, RoleCode = UserRole.StudentCode, InsertDT = now, UpdateDT = now });
         await sys.SaveChangesAsync(ct);

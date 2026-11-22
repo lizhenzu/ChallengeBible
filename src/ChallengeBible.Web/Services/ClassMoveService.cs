@@ -113,7 +113,7 @@ public sealed class ClassMoveService(IAppDb db, ISystemDb systemDb, ClassService
                 var user = await sys.Users.SingleAsync(u => u.Id == p.UserId, ct);
                 var role = await sys.DeptRoles.Where(d => d.TenantId == me && d.UserId == user.Id).Select(d => d.RoleCode).FirstOrDefaultAsync(ct);
                 var (err, _) = await DeptMembership.PlaceAsync(sys, user, targetTenantId, role, now, ct, null, actor);
-                if (err == MoveError.TeamLocked) { skipped.Add(p.Name); continue; }
+                if (err != MoveError.None) { skipped.Add(p.Name); continue; }   // 팀 잠김 · 관리자는 학생 안 됨(R-365)
             }
             else
             {
