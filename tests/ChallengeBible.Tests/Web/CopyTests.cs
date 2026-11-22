@@ -101,8 +101,8 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
         var home = await c.GetStringAsync("/kids");
         Assert.Contains("도전!!!<br>성경필사", home);                                   // 프로그램 아이콘(ADR 0127)
         Assert.Contains("href=\"/kids/copy\"", home); Assert.Contains("href=\"/kids/word-mission\"", home); Assert.Contains("href=\"/kids/reading\"", home);
-        Assert.Contains("<h2 class=\"tdr2-g\">프로그램</h2>", home);                    // ☰ 메뉴에도 프로그램
-        Assert.Contains("class=\"tdr2-r\" href=\"/kids/copy\"", home);
+        Assert.DoesNotContain("<h2 class=\"tdr2-g\">프로그램</h2>", home);              // 2026-11-22 2차: 메뉴에서 프로그램 그룹 제거
+        Assert.DoesNotContain("class=\"tdr2-r\" href=\"/kids/copy\"", home);
         var copy = await c.GetStringAsync("/kids/copy");
         Assert.Contains("필사 시작", copy);
         Assert.Contains("0 / 5절", copy);

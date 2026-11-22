@@ -106,7 +106,7 @@ public partial class Prayer365Tests : IClassFixture<WebApplicationFactory<Progra
             Assert.Contains("한치호 지음", page);
             var home = await Home(c, "kids");
             Assert.Contains("<a class=\"hmx-item\" href=\"/kids/prayer365\">", home);      // 프로그램 아이콘(ADR 0127)
-            Assert.Contains("class=\"tdr2-r\" href=\"/kids/prayer365\"", home);           // ☰ 메뉴에도
+            Assert.DoesNotContain("class=\"tdr2-r\" href=\"/kids/prayer365\"", home);      // 2026-11-22 2차: 메뉴에서 프로그램 그룹 제거
         }
         var anon = await _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false }).GetAsync("/kids/prayer365");
         Assert.NotEqual(HttpStatusCode.OK, anon.StatusCode);

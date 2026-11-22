@@ -3,7 +3,8 @@
 @using ChallengeBible.Web.Services
 @* 부서 화면 ☰ 메뉴판. 2026-11-22 사용자 확정(ADR 0127, 시안 메뉴-깔끔):
    흰 바탕 · 도전!!! 성경말씀 + GROW IN THE WORD · 파란 선 아이콘 · 제목만(설명 없음) · 그룹 라벨.
-   여는 버튼은 data-pnav-open, 동작은 platform-nav.js. 보이는 조건(역할 · 켠 프로그램)은 예전 그대로. *@
+   여는 버튼은 data-pnav-open, 동작은 platform-nav.js.
+   프로그램 · 바로가기 그룹은 2026-11-22 2차 확정으로 뺐다 — 프로그램은 부서 홈 아이콘, 오늘의 말씀·나의 기록은 홈 카드로 간다. *@
 @{
     var t = Model.Tenant;
     var c = t.Current;
@@ -13,7 +14,6 @@
     var teacher = !lobby && t.IsApproved && UserRole.KindOf(t.RoleCode) == UserRoleKind.Teacher;
     var imp = User.ImpersonatorId() is not null;
     var back = Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString);
-    var prayer = !lobby && (User.IsPlatformAdmin() || (t.IsApproved && !Prayer365Service.IsStudentRole(t.RoleCode)));
     bool Cur(string href) => here.Equals(href.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
 }
 <div class="pdrawer tdr2" id="pnav" hidden>
@@ -45,19 +45,6 @@
                     <button type="submit" class="tdr2-r"><i class="tdr2-i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></i><span>복귀</span></button>
                 </form>
             }
-
-            @if (c.MissionEnabled || c.ReadingEnabled || c.CopyEnabled || prayer)
-            {
-                <h2 class="tdr2-g">프로그램</h2>
-                @if (c.MissionEnabled) { @DrawerUi.Line($"/{s}/word-mission", "mission", "도전!!!성경미션", Cur($"/{s}/word-mission")) }
-                @if (c.ReadingEnabled) { @DrawerUi.Line($"/{s}/reading", "reading", "도전!!!성경통독", Cur($"/{s}/reading")) }
-                @if (c.CopyEnabled) { @DrawerUi.Line($"/{s}/copy", "copy", "도전!!!성경필사", Cur($"/{s}/copy")) }
-                @if (prayer) { @DrawerUi.Line($"/{s}/prayer365", "pray", "자녀를 위한 기도365", Cur($"/{s}/prayer365")) }
-            }
-
-            <h2 class="tdr2-g">바로가기</h2>
-            @if (c.MissionEnabled) { @DrawerUi.Line($"/{s}/word-mission", "word", "오늘의 말씀", Cur($"/{s}/word-mission")) }
-            @DrawerUi.Line($"/{s}/points", "chart", "나의 기록", Cur($"/{s}/points"))
 
             @if (!lobby && (t.IsStaff || t.IsAdmin || teacher))
             {

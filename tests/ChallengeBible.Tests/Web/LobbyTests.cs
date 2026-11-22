@@ -190,8 +190,8 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.DoesNotContain("부서 바꾸기", kidsHome);                                    // 일반 부서 홈 맨 아래에 "부서 바꾸기"는 없다(2026-11-05)
         Assert.Contains("data-pnav-open", kidsHome);
         // ☰ 메뉴판(2026-11-22 깔끔판): 프로그램 · 바로가기 묶음, 내 계정은 바닥에
-        Assert.Contains("<h2 class=\"tdr2-g\">프로그램</h2>", kidsHome);
-        Assert.Contains("<h2 class=\"tdr2-g\">바로가기</h2>", kidsHome);
+        Assert.DoesNotContain("<h2 class=\"tdr2-g\">프로그램</h2>", kidsHome);   // 2026-11-22 2차: 프로그램·바로가기 그룹 제거
+        Assert.DoesNotContain("<h2 class=\"tdr2-g\">바로가기</h2>", kidsHome);
         Assert.Contains("href=\"/account\"", kidsHome);
         Assert.DoesNotContain("class=\"tdr-role", kidsHome);
     }

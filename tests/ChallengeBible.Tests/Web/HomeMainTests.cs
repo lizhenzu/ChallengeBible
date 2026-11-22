@@ -207,19 +207,23 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
-    public async Task 부서_메뉴판은_프로그램_바로가기_섬김교사_생일_함께하기_관리_순서다()
+    public async Task 부서_메뉴판은_섬김교사_생일_함께하기_관리_순서다()
     {
-        string[] Order(string home) => new[] { "프로그램", "바로가기", "섬김 · 교사", "생일", "함께하기", "관리" }
+        // 2026-11-22 2차 확정: 프로그램 · 바로가기 그룹은 뺐다(부서 홈 아이콘 · 홈 카드로 간다).
+        string[] Order(string home) => new[] { "섬김 · 교사", "생일", "함께하기", "관리" }
             .Select(g => home.IndexOf($"<h2 class=\"tdr2-g\">{g}</h2>", StringComparison.Ordinal).ToString()).ToArray();
         var (admin, _) = await Member("eunhye", Roles.Teacher, Roles.TenantAdmin);
-        var o = Order(System.Net.WebUtility.HtmlDecode(await admin.GetStringAsync("/jamsil-kids"))).Select(int.Parse).ToArray();
+        var html = await admin.GetStringAsync("/jamsil-kids");
+        var o = Order(System.Net.WebUtility.HtmlDecode(html)).Select(int.Parse).ToArray();
         Assert.True(o.All(x => x >= 0), string.Join(",", o));
-        Assert.True(o.SequenceEqual(o.Order()), string.Join(",", o));   // 프로그램 → 바로가기 → 섬김 · 교사 → 생일 → 함께하기 → 관리
+        Assert.True(o.SequenceEqual(o.Order()), string.Join(",", o));   // 섬김 · 교사 → 생일 → 함께하기 → 관리
+        Assert.DoesNotContain("<h2 class=\"tdr2-g\">프로그램</h2>", html);
+        Assert.DoesNotContain("<h2 class=\"tdr2-g\">바로가기</h2>", html);
 
         var (kid, _) = await Member("cheolsu", Roles.Participant);
         var k = Order(System.Net.WebUtility.HtmlDecode(await kid.GetStringAsync("/jamsil-kids"))).Select(int.Parse).ToArray();
-        Assert.Equal(-1, k[2]);   // 학생은 섬김 · 교사 없음
-        Assert.Equal(-1, k[5]);   // 관리 없음
+        Assert.Equal(-1, k[0]);   // 학생은 섬김 · 교사 없음
+        Assert.Equal(-1, k[3]);   // 관리 없음
         Assert.Contains("href=\"/jamsil-kids/family-team\"", await kid.GetStringAsync("/jamsil-kids"));   // 가족팀은 메뉴로 이동
     }
 }
