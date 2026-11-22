@@ -11,15 +11,17 @@
     var here = (Context.Request.Path.Value ?? "").TrimEnd('/');
     var lobby = t.IsLobby;
     var teacher = !lobby && t.IsApproved && UserRole.KindOf(t.RoleCode) == UserRoleKind.Teacher;
-    var role = !t.IsApproved ? "" : t.IsAdmin ? "부서 관리자" : UserRole.LabelOf(UserRole.KindOf(t.RoleCode));
+    var role = !t.IsApproved ? "" : t.IsAdmin ? DeptAdminLoginService.ShortName(c.Name) + " 관리자" : UserRole.LabelOf(UserRole.KindOf(t.RoleCode));   // 최종 상태 하나(R-366)
     bool Cur(string href) => here.Equals(href.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
     var back = Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString);
+    var imp = User.ImpersonatorId() is not null;   // 가장 중(R-366)
 }
 <div class="pdrawer tdr" id="pnav" hidden>
     <div class="pd-dim" data-pnav-close></div>
     <aside class="pd-panel" tabindex="-1" role="dialog" aria-modal="true" aria-label="메뉴">
-        @DrawerUi.Head(name, Model.Photo, c.Name, role.Length > 0 ? role : null, t.IsAdmin && t.IsApproved, "내 계정 · 사진 변경 ›")   @* 소속 두 줄(교회 · 부서 / 역할 딱지) · 내 계정 입구는 여기 한 곳(2026-11-21, 확정 시안 메뉴판-정리) *@
+        @DrawerUi.Head(name, Model.Photo, c.Name, role.Length > 0 ? role : null, t.IsAdmin && t.IsApproved, "내 계정 · 사진 변경 ›", imp)   @* 소속 두 줄(교회 · 부서 / 역할 딱지) · 내 계정 입구는 여기 한 곳(2026-11-21, 확정 시안 메뉴판-정리) *@
         <nav aria-label="메뉴">
+            <partial name="_ImpMenu" />   @* 가장 중이면 [사람 바꾸기] · [복귀](R-366) *@
             @* 2026-11-21 사용자: "도전!!!성경말씀" 묶음(성경미션 · 통독 · 필사 · 365 기도)과 "부서 홈" 항목은 메뉴판에서 뺐다 — 프로그램은 부서 홈 카드로, 홈으로 가는 길은 각 화면 머리말 [홈으로] *@
             @if (!lobby && (t.IsStaff || t.IsAdmin || teacher))
             {

@@ -1,0 +1,10 @@
+@using ChallengeBible.Web.Auth
+@using ChallengeBible.Web.Pages
+@* 가장 중(R-366, 확정 시안 가장-최종칩 ③, 2026-11-22 사용자): 보라 띠 대신 ☰ 맨 위에 [사람 바꾸기] · [복귀]. 부서 ☰ · 관리 ☰ 이 같이 쓴다 *@
+@if (User.ImpersonatorId() is not null)
+{
+    var back = Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString);
+    <h2 class="tdr-g">가장 중</h2>
+    @DrawerUi.Row($"/account/impersonate/switch?back={back}", "people", "v", "사람 바꾸기", "로그아웃 없이 다른 계정으로", false, attr: "data-imp-switch")
+    <form method="post" action="/account/impersonate/stop" class="imp-back">@Html.AntiForgeryToken()<button type="submit" class="tdr-r"><i class="tdr-i t-v" aria-hidden="true">↩</i><span><b>복귀</b><small>플랫폼 관리자로 돌아가기</small></span><u aria-hidden="true">›</u></button></form>
+}

@@ -4860,3 +4860,10 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .dl-head { text-align: center; }
 .dl-chip { display: inline-block; padding: 5px 12px; border-radius: 999px; background: var(--dl-bg); color: var(--dl-fg); font-weight: 800; font-size: 14px; }
 .dl-head h1 { margin-top: 10px; }
+
+/* Impersonation (R-366, 2026-11-22): no purple band; "(ga)" after the name, switch/back rows at the top of the menu. */
+.imp-ga { font-style: normal; font-size: .78em; font-weight: 800; color: #7B3FA6; margin-left: 2px; }
+.imp-back { margin: 0; }
+.imp-back .tdr-r { width: 100%; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; color: inherit; }
+.imp-back .tdr-i { font-style: normal; font-weight: 900; }
+.imp-top { margin-left: 6px; }

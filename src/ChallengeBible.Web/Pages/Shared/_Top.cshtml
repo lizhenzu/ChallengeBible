@@ -6,9 +6,11 @@
         <form method="post" action="/account/logout" asp-antiforgery="true" class="who">
             <partial name="_MailBadge" />
             @if (User.IsPlatformAdmin()) { <a class="plat" href="/platform">플랫폼</a> }
-            <span><b>@User.DisplayName()</b>님</span>
-            <button type="submit">로그아웃</button>
+            <span><b>@User.DisplayName()</b>님@if (User.ImpersonatorId() is not null) { @Html.Raw(" " + ChallengeBible.Web.Pages.DrawerUi.Ga) }</span>
+            @if (User.ImpersonatorId() is null) { <button type="submit">로그아웃</button> }
         </form>
+        @* 가장 중(R-366): ☰ 메뉴가 없는 화면은 여기 [복귀] *@
+        @if (User.ImpersonatorId() is not null) { <form method="post" action="/account/impersonate/stop" class="who imp-top">@Html.AntiForgeryToken()<button type="submit">복귀</button></form> }
     }
     else if (ViewContext.RouteData.Values["page"]?.ToString() == "/Account/Login")
     {
