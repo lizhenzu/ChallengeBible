@@ -582,7 +582,7 @@
 
 /* 부서 홈 dodan 화면(2026-11-22 사용자 확정, ADR 0127) — 머리말 · 로고 · 검색 · 프로그램 4칸 · 말씀 · 현황 */
 .hm.hmx { background: #fff; color: #222; }
-.hm.hmx .wrap { max-width: 760px; }
+.hm.hmx .wrap { max-width: 760px; display: block; padding: 6px 0 30px; }
 .hmx-wrap { padding: 6px 0 30px; }
 .hmx-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 52px; }
 .hmx-ico { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; color: #222; }
