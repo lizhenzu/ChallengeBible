@@ -75,7 +75,7 @@ public partial class PhotoTests : IClassFixture<WebApplicationFactory<Program>>,
         InMemoryDb.SeedMembership(_db, _elem.Id, strangerId, MembershipStatus.Approved, Roles.Participant);
 
         var home = await kid.GetStringAsync("/jamsil-kids");   // 확정 시안 홈사진-내계정(2026-11-15): 홈 사진은 카메라 없이 → 내 계정
-        Assert.Contains("<a class=\"hmx-ico hmx-prof\" href=\"/account\" aria-label=\"내 계정\">", home);
+        Assert.Contains("<a class=\"hmx-me\" href=\"/account\" aria-label=\"내 계정 · 김철수님\">", home);
         Assert.DoesNotContain("class=\"cam\"", home);
         var acct = await kid.GetStringAsync("/account");                                   // 내 계정: 사진 옆 📷 → 사진 바꾸기, 사진 없으면 이름 첫 글자 한 자
         Assert.Contains("<a class=\"cam\" href=\"/account/photo\" aria-label=\"내 사진 바꾸기\">", acct);

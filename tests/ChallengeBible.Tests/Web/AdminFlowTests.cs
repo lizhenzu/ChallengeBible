@@ -114,7 +114,8 @@ public partial class AdminFlowTests : IClassFixture<WebApplicationFactory<Progra
         Assert.Contains("Ok=approve", approve.Headers.Location!.OriginalString);
 
         var home = await kid.GetAsync("/");
-        Assert.Equal("/jamsil-kids", home.Headers.Location!.OriginalString);
+        Assert.Equal(HttpStatusCode.OK, home.StatusCode);                                          // 2026-11-23 사용자: 첫 화면에 머문다
+        Assert.Contains("class=\"hmx-me\"", await home.Content.ReadAsStringAsync());                // 머리말 「000님」
         Assert.Contains("<h1 id=\"hmxT\">도전!!! <span>성경말씀</span></h1>", await kid.GetStringAsync("/jamsil-kids"));   // 2026-11-22 새 홈(ADR 0127)
     }
 }

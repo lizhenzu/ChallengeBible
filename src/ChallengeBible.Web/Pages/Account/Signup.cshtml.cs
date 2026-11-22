@@ -39,7 +39,7 @@ public class SignupModel(AccountService accounts, LobbyService lobby, MessageSer
         var lobbied = await lobby.EnrollAsync(account.UserName!, account.Id, ct);
         // R-341: 명부에 같은 이름이 있으면 본인 확인으로 잇는 화면부터
         if ((await roster.CandidatesAsync(account.UserName!, ct)).Count > 0) return Redirect("/account/link");
-        if (lobbied) return Redirect("/");
+        if (lobbied) return Redirect(await accounts.HomePathAsync(account.UserName!, ct));
         return RedirectToPage("/Join", new { welcome = 1 });
     }
 }

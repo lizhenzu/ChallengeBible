@@ -273,6 +273,21 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
             .Where(m => m.Status == MembershipStatus.Approved && m.TenantActive).ToList();
         return new(approved.Count, approved.Count == 1 ? approved[0].Slug : null);
     }
+
+    /// <summary>
+    /// 로그인·가입 직후 보낼 곳(2026-11-23 사용자: 첫 화면 `/`은 로그인해도 머무는 화면이라, 인증 직후 목적지는 따로 정한다).
+    /// 1곳 → 그 부서 홈, 2곳 이상 → 부서 고르기, 0곳 → 참여 신청.
+    /// </summary>
+    public async Task<string> HomePathAsync(string userName, CancellationToken ct = default)
+    {
+        var go = await WhereToGoAsync(userName, ct);
+        return go.ApprovedCount switch
+        {
+            0 => "/join",
+            1 => "/" + go.OnlyTenantSlug,
+            _ => "/account/tenants",
+        };
+    }
 }
 
 public sealed record MyMembership(int MembershipId, int TenantId, string Slug, string TenantName, string Status,

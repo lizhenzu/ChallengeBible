@@ -51,7 +51,7 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("href=\"https://www.saenae.org/\" target=\"_blank\" rel=\"noopener\"", html);
         Assert.Contains("<time class=\"lp-date\" datetime=\"2027-01-05\">", html);
         Assert.Contains("1월 5일", html);
-        Assert.Contains("<a class=\"hmx-login\" href=\"/account/login\">로그인</a>", html);
+        Assert.Contains("<a class=\"hmx-ico lp-me\" href=\"/account/login\" aria-label=\"로그인\" title=\"로그인\">", html);   // 로그인은 우측 사람 아이콘 하나
         Assert.DoesNotContain("data-pnav-open", html);                // 로그인 전에는 ☰ 메뉴가 없다
         Assert.DoesNotContain("hamburger", html, StringComparison.OrdinalIgnoreCase);
     }
@@ -104,7 +104,9 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("도전!!!<br>성경통독", html);
         Assert.Contains("도전!!!<br>성경필사", html);
         Assert.Contains("자녀를 위한<br>기도365", html);
-        Assert.Contains("<a class=\"lp-b p\" href=\"/account/login\">로그인</a>", html);
+        Assert.Contains("<a class=\"hmx-ico lp-me\" href=\"/account/login\"", html);   // 로그인은 사람 아이콘 하나
+        Assert.DoesNotContain("class=\"lp-login\"", html);                              // 큰 로그인 카드는 없앴다
+        Assert.Contains("<a class=\"hmx-item\" href=\"/account/login\" aria-label=\"도전!!!성경미션\">", html);   // 미션 칸도 로그인
         Assert.Contains("href=\"/account/signup\"", html);
         Assert.Contains("관리자 로그인", html);
         Assert.Contains("href=\"/account/admin-login\"", html);        // 플랫폼 관리자

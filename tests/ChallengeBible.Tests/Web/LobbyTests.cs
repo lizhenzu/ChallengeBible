@@ -70,9 +70,10 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task R171_가입하면_임시_부서_참여자가_되어_바로_홈으로_간다()
     {
         var (c, signup) = await SignUp();
-        Assert.Equal("/", signup.Headers.Location!.OriginalString);
-        var home = await c.GetAsync("/");
-        Assert.Equal("/welcome", home.Headers.Location!.OriginalString);
+        Assert.Equal("/welcome", signup.Headers.Location!.OriginalString);   // 가입 직후는 임시 부서 홈
+        var landing = await c.GetStringAsync("/");                           // 2026-11-23 사용자: 첫 화면에 머물며 「000님」
+        Assert.Contains("class=\"hmx-me\"", landing);
+        Assert.Contains("href=\"/welcome\"", landing);                       // 임시 부서 홈 바로가기
         var me = UserName();
         using var raw = InMemoryDb.Raw(_db);
         var m = raw.DeptRoles.Single(x => x.TenantId == _lobby.Id && x.UserId == raw.Users.Single(u => u.UserName == me).Id);
@@ -218,7 +219,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task R173_승인되면_첫_화면은_진짜_부서로()
+    public async Task R173_승인되면_첫_화면에_진짜_부서_바로가기()
     {
         var (c, _) = await SignUp();
         var me = UserName();
@@ -226,7 +227,9 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         InMemoryDb.SeedMembership(_db, _kids.Id, admin.UserName!, MembershipStatus.Approved, Roles.TenantAdmin);
         var req = InMemoryDb.SeedMembership(_db, _kids.Id, me, MembershipStatus.Requested, Roles.Guardian);
         await AdminIn(_kids).ApproveAsync(admin.UserName!, req.Id, null);
-        Assert.Equal("/jamsil-kids", (await c.GetAsync("/")).Headers.Location!.OriginalString);
+        var landing = await c.GetStringAsync("/");   // 2026-11-23 사용자: 자동으로 넘기지 않고 첫 화면에 머문다
+        Assert.Contains("class=\"hmx-me\"", landing);                       // 머리말 「000님」
+        Assert.Contains("href=\"/jamsil-kids\"", landing);                  // 진짜 부서 바로가기
     }
 
     [Fact]

@@ -589,6 +589,12 @@
 .hmx-ico svg { stroke: currentColor; }
 .hmx-act { display: flex; align-items: center; gap: 2px; }
 .hmx-prof img { width: 27px; height: 27px; border-radius: 50%; object-fit: cover; display: block; }
+/* 머리말 내 계정: 프로필 + "000님" (2026-11-23 사용자) */
+.hmx-me { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; max-width: 156px; padding: 0 10px 0 5px; border: 1px solid #e3e6ea; border-radius: 999px; background: #fff; color: #222; text-decoration: none; }
+.hmx-me .av { width: 30px; height: 30px; flex: none; border-radius: 50%; background: #e8edf9; color: #1e3a8a; font-size: 12px; font-weight: 900; display: grid; place-items: center; overflow: hidden; }
+.hmx-me .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hmx-me b { font-size: 13.5px; font-weight: 800; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hmx-me:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 .hmx-act .mailb { width: 40px; height: 40px; border-radius: 10px; background: transparent; color: #222; }
 .hmx-act .mailb i { top: 2px; right: 2px; box-shadow: 0 0 0 2px #fff; }
 .hmx-login { min-height: 38px; padding: 0 16px; display: inline-flex; align-items: center; border-radius: 11px; background: #1e3a8a; color: #fff; font-size: 14px; font-weight: 800; }
@@ -672,3 +678,5 @@
 .hmx-make .go, .hmx-make .alt { flex: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 12px; border-radius: 11px; font-size: 13.5px; font-weight: 800; }
 .hmx-make .go { background: #1e3a8a; color: #fff; }
 .hmx-make .alt { background: #fff; border: 1px solid #c9d6ea; color: #3b4a7d; }
+
+@media (max-width: 380px) { .hmx-me { padding: 0 5px; } .hmx-me b { display: none; } }

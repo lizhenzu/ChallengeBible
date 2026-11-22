@@ -37,4 +37,7 @@ public static class Ui
 
     /// <summary>이름 뒤 "님"(이미 "선생님"처럼 님으로 끝나면 그대로 — 2026-11-17 "선생님님" 고침).</summary>
     public static string Nim(string? name) => string.IsNullOrEmpty(name) ? "" : name.EndsWith('님') ? name : name + "님";
+
+    /// <summary>프로필 동그라미 글자: 표시 이름 첫 글자(사진이 없을 때 — 2026-11-23 머리말 "000님").</summary>
+    public static string Initial(string? name) => string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[..1];
 }

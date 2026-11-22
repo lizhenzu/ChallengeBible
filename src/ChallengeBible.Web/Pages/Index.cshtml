@@ -1,14 +1,23 @@
 ﻿@page
 @model IndexModel
 @using ChallengeBible.Domain.Time
-@* 첫 화면(2026-11-22 사용자 확정, ADR 0128): 부서 홈과 같은 dodan 네이비 테마.
-   로고 → 로그인 → 프로그램 4칸 → 오늘의 말씀 → 함께하는 현황 → 관리자 로그인.
+@* 첫 화면(2026-11-22 사용자 확정, ADR 0128 · 2026-11-23 사용자: 로그인 진입점은 우측 사람 아이콘 하나).
+   머리말 → 로고 → 프로그램 4칸 → 오늘의 말씀 → 함께하는 현황 → 관리자 로그인.
+   큰 로그인 카드는 뺐다 — 사람 아이콘과 프로그램 칸이 모두 로그인으로 안내한다.
    로그인한 사람은 지금처럼 소속 수에 따라 부서 홈 · 부서 고르기 · 참여 신청으로 보낸다. *@
 @{
     var d = Model.Data;
     var st = d.Stats;
     var ko = new System.Globalization.CultureInfo("ko-KR");
     static string Md(DateOnly d) => d.ToString("M'/'d");
+    // 로그인 전 → 로그인 / 부서 1곳 → 그 부서의 프로그램 / 여러 곳 → 부서 고르기 / 없음 → 참여 신청
+    string P(string prog) => Model.Me switch
+    {
+        null => "/account/login",
+        { DeptCount: 1, Slug: { } s } => $"/{s}/{prog}",
+        { DeptCount: >= 2 } => "/account/tenants",
+        _ => "/join",
+    };
 }
 <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/first.css" asp-append-version="true" />
@@ -23,7 +32,19 @@
         </a>
         <div class="hmx-act">
             <time class="lp-date" datetime="@d.Today.ToString("yyyy-MM-dd")">@d.Today.ToString("M월 d일", ko) <small>@d.Today.ToString("dddd", ko)</small></time>
-            <a class="hmx-login" href="/account/login">로그인</a>
+            @if (Model.Me is { } me)
+            {
+                <a class="hmx-me" href="/account" aria-label="내 계정 · @Ui.Nim(me.Name)">
+                    <span class="av" aria-hidden="true">@Ui.Initial(me.Name)</span>
+                    <b>@Ui.Nim(me.Name)</b>
+                </a>
+            }
+            else
+            {
+                <a class="hmx-ico lp-me" href="/account/login" aria-label="로그인" title="로그인">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                </a>
+            }
         </div>
     </div>
 
@@ -32,26 +53,25 @@
         <p>하루 5분, 말씀과 함께 자라요.</p>
     </section>
 
-    <section class="lp-login" aria-labelledby="lpG">
-        <h2 id="lpG">로그인하고<br>이어서 해요</h2>
-        <p>내 부서 · 내 기록 그대로</p>
-        <div class="lp-btns">
-            <a class="lp-b p" href="/account/login">로그인</a>
-            <a class="lp-b s" href="/account/signup">처음이에요 · 가입</a>
-        </div>
-    </section>
+    @if (Model.Me is { } mine)
+    {
+        <a class="lp-go" href="@(mine.DeptCount switch { 1 => "/" + mine.Slug, >= 2 => "/account/tenants", _ => "/join" })">
+            @(mine.DeptCount switch { 1 => "내 부서 홈으로 가기", >= 2 => "부서 고르기", _ => "부서 참여하기" })
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+    }
 
     <nav class="hmx-grid" aria-label="프로그램">
-        <a class="hmx-item" href="/account/login" aria-label="도전!!!성경미션 — 로그인하고 시작">
+        <a class="hmx-item" href="@P("word-mission")" aria-label="도전!!!성경미션">
             <span class="hmx-tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V7.5z"/><path d="M14 3v4.5h4.5"/><path d="M9 13.5l2 2 4-4.5"/><path d="M8 18h8"/></svg></span><span>도전!!!<br>성경미션</span>
         </a>
-        <a class="hmx-item" href="/account/login" aria-label="도전!!!성경통독 — 로그인하고 시작">
+        <a class="hmx-item" href="@P("reading")" aria-label="도전!!!성경통독">
             <span class="hmx-tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H14l3.5 3.5V19.5A1.5 1.5 0 0 1 16 21H6.5A1.5 1.5 0 0 1 5 19.5z"/><path d="M14 3v3.5h3.5"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/></svg></span><span>도전!!!<br>성경통독</span>
         </a>
-        <a class="hmx-item" href="/account/login" aria-label="도전!!!성경필사 — 로그인하고 시작">
+        <a class="hmx-item" href="@P("copy")" aria-label="도전!!!성경필사">
             <span class="hmx-tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 4.5l3 3L9 18l-4 1 1-4z"/><path d="M14.5 6.5l3 3"/><path d="M4 21h16"/></svg></span><span>도전!!!<br>성경필사</span>
         </a>
-        <a class="hmx-item" href="/account/login" aria-label="자녀를 위한 기도365 — 로그인하고 시작">
+        <a class="hmx-item" href="@P("prayer365")" aria-label="자녀를 위한 기도365">
             <span class="hmx-tile"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.9c0 5.4-7.5 10-7.5 10z"/><path d="M12 10.5v4M10 12.5h4"/></svg></span><span>자녀를 위한<br>기도365</span>
         </a>
     </nav>

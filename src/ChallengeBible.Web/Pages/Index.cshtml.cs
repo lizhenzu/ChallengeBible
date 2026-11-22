@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace ChallengeBible.Web.Pages;
 
 /// <summary>
-/// `/` 공통 첫 화면(0045, 확정 시안 로그인전-첫화면-v2 · 0061). 로그인 전에는 부서 이름 없는 소개, 로그인 뒤에는 승인된 소속 수로 나눈다:
-/// 1곳 → 그 부서 홈, 2곳 이상 → 부서 고르기, 0곳 → 참여 신청.
+/// `/` 공통 첫 화면(0045, 확정 시안 로그인전-첫화면-v2 · 0061). 2026-11-23 사용자: 로그인한 사람도 이 화면에 머문다 —
+/// 머리말에 "000님"을 보여 주고, 부서가 하나면 그 부서 홈 바로가기를 둔다(자동으로 넘기지 않는다).
+/// 플랫폼 관리자이면서 소속이 없을 때만 플랫폼 홈으로 보낸다.
 /// </summary>
 public class IndexModel(AccountService accounts, TenantClock clock, LandingService landing, DeptAdminLoginService deptAdmins, DeptStudentLoginService deptStudents) : PageModel, ITitled
 {
@@ -20,23 +21,23 @@ public class IndexModel(AccountService accounts, TenantClock clock, LandingServi
     /// <summary>맨 아래 © 연도: 부서가 없는 화면이라 한국 시간 기준 올해(하드코딩 안 함).</summary>
     public int Year => clock.Today("Asia/Seoul").Year;
     public LandingView Data { get; private set; } = null!;
+    /// <summary>로그인한 사람의 머리말 정보(이름 · 승인된 부서 수 · 하나뿐인 부서 slug). 로그인 전에는 null.</summary>
+    public LandingMe? Me { get; private set; }
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        if (User.UserName() is not { } id)
+        Data = await landing.GetAsync(ct);
+        DeptAdmins = await deptAdmins.ListAsync(ct);
+        DeptStudents = (await deptStudents.ListAsync(ct)).Select(p => p.Dept).ToList();
+        if (User.UserName() is { } id)
         {
-            Data = await landing.GetAsync(ct);
-            DeptAdmins = await deptAdmins.ListAsync(ct);
-            DeptStudents = (await deptStudents.ListAsync(ct)).Select(p => p.Dept).ToList();
-            return Page();
+            var go = await accounts.WhereToGoAsync(id, ct);
+            if (go.ApprovedCount == 0 && User.IsPlatformAdmin()) return Redirect("/platform");
+            Me = new(User.DisplayName(), go.ApprovedCount, go.OnlyTenantSlug);
         }
-        var go = await accounts.WhereToGoAsync(id, ct);
-        if (go.ApprovedCount == 0 && User.IsPlatformAdmin()) return Redirect("/platform");
-        return go.ApprovedCount switch
-        {
-            0 => RedirectToPage("/Join"),
-            1 => Redirect($"/{go.OnlyTenantSlug}"),
-            _ => RedirectToPage("/Account/Tenants"),
-        };
+        return Page();
     }
 }
+
+/// <summary>첫 화면 머리말에 쓰는 로그인 정보(이름 · 부서 수 · 하나뿐인 부서 slug).</summary>
+public sealed record LandingMe(string Name, int DeptCount, string? Slug);

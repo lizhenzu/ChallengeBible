@@ -35,6 +35,6 @@ public class LoginModel(AccountService accounts) : PageModel, ITitled
         if (r.MustChangePassword) return RedirectToPage("/Account/ChangePassword");   // 0035
         if (!Url.IsLocalUrl(ReturnUrl)) TempData[TodoCheckKey] = "1";
         TempData[ChallengeBible.Web.Pages.TenantHomeModel.MsgBandKey] = "1";   // 새 쪽지 띠 한 번(ADR 0112)   // 오늘 할 일(ADR 0100): 처음 가는 화면에서 할 일이 있으면 할 일 화면으로
-        return LocalRedirect(Url.IsLocalUrl(ReturnUrl) ? ReturnUrl! : "/");
+        return LocalRedirect(Url.IsLocalUrl(ReturnUrl) ? ReturnUrl! : await accounts.HomePathAsync(r.Account.UserName!, ct));
     }
 }
