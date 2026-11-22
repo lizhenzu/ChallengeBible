@@ -1,0 +1,58 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>부서 관리자 로그인 시안 B</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; background: #EAF4FF; color: #1B1F24; }
+.end { padding: 44px 16px 28px; text-align: center; }
+h2 { font-family: "Batang", serif; font-size: 28px; margin: 0; line-height: 1.35; }
+.end > p { margin: 10px auto 0; color: #5B6470; max-width: 440px; font-size: 14px; line-height: 1.6; word-break: keep-all; }
+.cta { max-width: 420px; margin: 24px auto 0; display: grid; gap: 10px; }
+.btn { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; border-radius: 14px; font-weight: 800; font-size: 16px; text-decoration: none; }
+.btn.p { background: #2B59C3; color: #fff; } .btn.s { background: #fff; color: #1B1F24; border: 1px solid #CFE3FA; } .btn.adm { background: #1B1F24; color: #fff; }
+.btn svg { width: 18px; height: 18px; }
+.note { margin: 2px 0 0; font-size: 13px; color: #5B6470; }
+.grp { margin-top: 14px; text-align: left; background: #F7FBFF; border: 1px dashed #A9C8EE; border-radius: 18px; padding: 16px; }
+.grp h3 { margin: 0; font-size: 15px; } .grp .sub { margin: 4px 0 12px; font-size: 13px; color: #5B6470; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.grid a { display: flex; align-items: center; justify-content: center; min-height: 56px; border-radius: 14px; background: var(--c); color: var(--t); font-weight: 800; font-size: 15px; text-decoration: none; }
+.d1 { --c: #FDECF1; --t: #A8436A; } .d2 { --c: #FFEFE3; --t: #A9551C; } .d3 { --c: #FFF6D6; --t: #866500; } .d4 { --c: #E7F6EA; --t: #2E7A45; }
+.d5 { --c: #E2F4F2; --t: #1D746D; } .d6 { --c: #E7EEFB; --t: #2B59C3; } .d7 { --c: #F0EBFB; --t: #6A4BB5; } .d8 { --c: #F3EEE8; --t: #7A5A3A; }
+.pw { max-width: 420px; margin: 28px auto 0; background: #fff; border-radius: 18px; padding: 20px 16px; text-align: center; border: 1px solid #CFE3FA; }
+.pw .chip { display: inline-block; padding: 5px 12px; border-radius: 999px; background: #E7F6EA; color: #2E7A45; font-weight: 800; font-size: 14px; }
+.pw h3 { margin: 10px 0 14px; font-size: 18px; }
+.pw input { width: 100%; height: 50px; border: 2px solid #CFDCF3; border-radius: 12px; font-size: 16px; padding: 0 14px; }
+.pw .go { margin-top: 10px; }
+.cap { max-width: 420px; margin: 20px auto 6px; font-size: 13px; color: #5B6470; text-align: left; }
+</style></head><body>
+<section class="end">
+<h2>오늘부터<br>말씀과 함께해요</h2>
+<p>사용 문의는 내 부서 관리자께 해 주세요. 비밀번호를 잊었을 때도 관리자가 도와주세요.</p>
+<div class="cta">
+  <a class="btn p">처음이에요 · 가입하기</a>
+  <a class="btn s">이미 계정이 있어요 · 로그인</a>
+  <a class="btn adm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>관리자 로그인</a>
+  <p class="note">플랫폼 관리자 전용 · 비밀번호만 넣어요</p>
+  <div class="grp">
+    <h3>부서 관리자 로그인</h3>
+    <p class="sub">누르고 비밀번호만 넣어요</p>
+    <div class="grid">
+      <a class="d1">영아부 관리자</a><a class="d2">유아부 관리자</a>
+      <a class="d3">유치부 관리자</a><a class="d4">유년부 관리자</a>
+      <a class="d5">초등부 관리자</a><a class="d6">중등부 관리자</a>
+      <a class="d7">고등부 관리자</a><a class="d8">청년부 관리자</a>
+    </div>
+  </div>
+  <div class="grp">
+    <h3>부서 대표 학생 로그인</h3>
+    <p class="sub">생일이 다가오고 점수 · 기록이 많은 아이로 · 누르고 비밀번호만 넣어요</p>
+    <div class="grid">
+      <a class="d1">영아부 학생</a><a class="d2">유아부 학생</a>
+      <a class="d3">유치부 학생</a><a class="d4">유년부 학생</a>
+      <a class="d5">초등부 학생</a><a class="d6">중등부 학생</a>
+      <a class="d7">고등부 학생</a><a class="d8">청년부 학생</a>
+    </div>
+  </div>
+</div>
+<p class="cap">▼ [유년부 학생]을 누르면</p>
+<div class="pw"><span class="chip">유년부 학생</span><h3>비밀번호를 넣어 주세요</h3>
+  <input type="password" value="12345678"><a class="btn p go">들어가기</a></div>
+</section></body></html>
