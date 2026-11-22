@@ -50,7 +50,7 @@ public class GiftDataTests
         var scope = new RequestScope();
         scope.SetTenant(a.Id);
         using var ctx = new InMemoryDb(name, scope).Create();
-        Assert.Equal(["A 부서 공책", "공통 연필"], ctx.GiftItems.Select(i => i.Name).ToList().OrderBy(n => n, StringComparer.Ordinal).ToList());
+        Assert.Equal(["A 부서 공책", "공통 연필"], ctx.GiftItems.Select(i => i.Name).AsEnumerable().OrderBy(n => n, StringComparer.Ordinal).ToList());   // PC 언어(ko-KR)와 상관없이
         Assert.Equal(["a1"], ctx.Gifts.Select(x => x.UserName!).ToList());
     }
 
