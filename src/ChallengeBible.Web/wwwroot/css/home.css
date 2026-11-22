@@ -585,7 +585,7 @@
 .hm.hmx .wrap { max-width: 760px; display: block; padding: 6px 0 30px; }
 .hmx-wrap { padding: 6px 0 30px; }
 .hmx-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 52px; }
-.hmx-ico { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; color: #222; }
+.hmx-ico { width: 40px; height: 40px; display: grid; place-items: center; border: 0; padding: 0; background: transparent; border-radius: 10px; color: #222; }
 .hmx-ico svg { stroke: currentColor; }
 .hmx-act { display: flex; align-items: center; gap: 2px; }
 .hmx-prof img { width: 27px; height: 27px; border-radius: 50%; object-fit: cover; display: block; }

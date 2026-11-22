@@ -4549,7 +4549,7 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .tdr2-ttl { font-size: 19px; font-weight: 900; color: #1e3a8a; letter-spacing: .2px; line-height: 1.25; }
 .tdr2-ttl span { color: #0179dc; }
 .tdr2-sub { margin-top: 4px; font-size: 9.5px; font-weight: 700; letter-spacing: .18em; color: #8a8f99; }
-.tdr2-x { width: 34px; height: 34px; display: grid; place-items: center; flex: none; margin-top: -4px; border-radius: 8px; color: #222; }
+.tdr2-x { width: 34px; height: 34px; display: grid; place-items: center; flex: none; margin-top: -4px; border: 0; padding: 0; background: transparent; border-radius: 8px; color: #222; }
 .tdr2-imp { margin: 0; padding: 12px 22px 0; font-size: 12px; color: #8a8f99; }
 .tdr2-imp u { text-decoration: none; }
 .tdr2-imp .imp-ga { font-style: normal; color: #7c3aed; font-weight: 800; }
