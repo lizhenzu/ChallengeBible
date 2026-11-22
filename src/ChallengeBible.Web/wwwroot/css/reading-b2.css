@@ -1,4 +1,4 @@
-/* 도전!!!성경통독 — 옛 Views/Bible2 와 같은 구조 · 배치(확정 시안 통독-옛Bible2-*, ADR 0071). 색은 reading.css 의 .rp 색(--r-*) 그대로.
+﻿/* 도전!!!성경통독 — 옛 Views/Bible2 와 같은 구조 · 배치(확정 시안 통독-옛Bible2-*, ADR 0071). 색은 reading.css 의 .rp 색(--r-*) 그대로.
    reading.css 다음에 읽는다. .b2 아래만 바꾼다 */
 
 /* 색 테마(ADR 0073, 확정 시안 통독-자연색테마 처음 3안): 계정마다 고른다. default = reading.css 의 파랑 */
@@ -285,3 +285,12 @@ body:has(.rp[data-theme]) { background: var(--bg); }
   --r-acc: #7A4E2D; --r-accSoft: #EFE2D4; --r-l1: #E3D0BC; --r-l2: #B88B63; --r-l3: #7A4E2D; }
 .rp[data-theme="copy"] .bc { background: transparent; min-height: 0; }
 .b2top .b2r-right { margin-left: auto; font-size: 14px; font-weight: 800; color: var(--r-acc); }
+
+
+/* 검색 화면 검색칸도 부서 홈과 같은 모양(2026-11-22 사용자 "양쪽 모양세 똑같이") */
+.srch .rp-sform { height: 50px; margin-top: 12px; border: 1px solid #e3e6ea; border-radius: 12px; background: #f6f7f9; overflow: hidden; }
+.srch .rp-sform input { min-height: 0; height: 100%; padding: 0 16px; font-size: 16px; color: #222; }
+.srch .rp-sform input::placeholder { color: #9aa0aa; }
+.srch .rp-sform button { min-width: 84px; padding: 0 16px; border: 0; border-radius: 0 12px 12px 0; background: #5b8def; color: #fff; font-size: 15px; font-weight: 800; }
+.srch .rp-sform button:active { background: #4b7fe0; }
+.srch .rp-sform:focus-within { outline: 2px solid var(--ring, rgba(30, 58, 138, .45)); outline-offset: 2px; }
