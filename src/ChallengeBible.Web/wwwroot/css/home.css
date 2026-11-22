@@ -611,6 +611,7 @@
 .hmx-card h2:before { content: ""; width: 4px; height: 16px; border-radius: 2px; background: #1e3a8a; flex: none; }
 .hmx-vs { display: flex; align-items: flex-start; gap: 14px; margin-top: 12px; }
 .hmx-vs svg { flex: none; margin-top: 1px; }
+.hmx-vs.solo { display: block; margin-top: 10px; padding-left: 12px; }   /* 아이콘 없이 글만(첫 화면) — 제목 글자와 왼쪽 선 맞춤 */
 .hmx-vs p { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.7; color: #222; }
 .hmx-vs .ref { color: #3b4a7d; font-weight: 700; }
 .hmx-ch { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

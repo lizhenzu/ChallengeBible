@@ -60,8 +60,7 @@
     {
         <section class="hmx-card" aria-label="오늘의 말씀">
             <h2>오늘의 말씀</h2>
-            <div class="hmx-vs">
-                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.5C10.2 5 7.6 4.5 5 4.5v13c2.6 0 5.2.5 7 2 1.8-1.5 4.4-2 7-2v-13c-2.6 0-5.2.5-7 2z"/><path d="M12 6.5v13"/><path d="M14.5 4.5v6l1.8-1.4 1.7 1.4v-6"/></svg>
+            <div class="hmx-vs solo">
                 <p>“@vt”@if (d.VerseRef is { } vr) { <span class="ref"> (@vr)</span> }@if (d.WordRange is { } wr) { <span class="ref"> · @wr</span> }</p>
             </div>
             @if (d.ReciteRange is not null || d.PrayerTrait is not null)
