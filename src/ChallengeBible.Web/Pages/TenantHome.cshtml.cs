@@ -14,7 +14,7 @@ namespace ChallengeBible.Web.Pages;
 /// </summary>
 public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, FamilyJoinService familyJoin, HomeService home, AccountService accounts,
     PhotoService photos, TodoService todo, Prayer365Service prayer365, MessageService msgs,
-    BirthdayGiftService birthdays, ChallengeCardService cards, GiftOrderService gifts) : PageModel, ITitled
+    BirthdayGiftService birthdays, GiftOrderService gifts) : PageModel, ITitled
 {
     /// <summary>로그인이 남기는 표식. 새 쪽지 팝업을 로그인 직후 한 번 띄우는 데 쓴다(ADR 0112).</summary>
     public const string MsgBandKey = "msg-band";
@@ -50,8 +50,8 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     public BirthdayGiftView? BirthdayPopup { get; private set; }
     /// <summary>365 기도는 학생 · 새친구에게 보이지 않는다(ADR 0106). 홈에서는 아이콘 노출만 판단한다.</summary>
     public bool PrayerVisible { get; private set; }
-    /// <summary>나의 도전 현황 통합 카드(2026-11-23 사용자 확정): 오늘 미션 · 통독 · 필사 · 기도365 · 포인트. 손님이면 null.</summary>
-    public ChallengeCard? Card { get; private set; }
+    /// <summary>홈 상단 포인트 링(2026-11-23 사용자 확정 B안 · ADR 0136): 누르면 `/{slug}/challenge`. 참여자만.</summary>
+    public PointRing? Ring { get; private set; }
     /// <summary>선물 대상자와 상태 카드(2026-11-23 사용자 확정 C안 · ADR 0134). 승인 소속 · 임시 부서 아님일 때만 채운다.</summary>
     public GiftTargetBoard? GiftBoard { get; private set; }
 
@@ -112,7 +112,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         }
 
         PrayerVisible = prayer365.CanSee(User.IsPlatformAdmin());
-        Card = await cards.GetAsync(Data, User.IsPlatformAdmin(), ct);
+        Ring = Guest ? null : ChallengeCardService.RingOf(Data, tenant.Current.Slug);
         if (tenant.IsApproved && !tenant.IsLobby) GiftBoard = await gifts.TargetBoardAsync(3, ct);
 
         if (tenant.IsLobby)

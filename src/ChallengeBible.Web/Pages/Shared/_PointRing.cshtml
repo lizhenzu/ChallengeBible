@@ -1,0 +1,51 @@
+@using ChallengeBible.Web.Services
+@model PointRing
+@* 홈 상단 · 「나의 도전」 화면의 포인트 링(2026-11-23 사용자 확정 B안 · ADR 0136).
+   링 안에 포인트와 지금 성장 단계. Href 가 있으면 누를 수 있고(홈 → 나의 도전), 없으면 그냥 보여 준다.
+   크기는 ViewData["RingSize"] 로 정한다(홈 96 · 나의 도전 150). *@
+@{
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var size = ViewData["RingSize"] is int s0 ? s0 : 96;
+    var stroke = size >= 130 ? 11.0 : 9.0;
+    var r = (size - stroke) / 2.0;
+    var len = 2 * Math.PI * r;
+    var off = len * (1 - Math.Clamp(Model.Growth.Percent, 0, 100) / 100.0);
+    var c = (size / 2.0).ToString("0.##", inv);
+    var cls = size >= 130 ? "vb-ring lg" : "vb-ring";
+    var label = $"나의 포인트 {Model.Points:N0}점 · {Model.Growth.Name} 단계";
+    var rs = r.ToString("0.##", inv);
+    var sw = stroke.ToString("0.##", inv);
+    var da = len.ToString("0.#", inv);
+    var doff = off.ToString("0.#", inv);
+    var px = $"{size}px";
+}
+@if (Model.Href is { } href)
+{
+    <a class="@cls" href="@href" aria-label="@label — 나의 도전 열기">
+        <span class="ring" style="width:@px;height:@px">
+            <svg width="@size" height="@size" viewBox="0 0 @size @size" aria-hidden="true">
+                <circle class="track" cx="@c" cy="@c" r="@rs" stroke-width="@sw" />
+                <circle class="arc" cx="@c" cy="@c" r="@rs" stroke-width="@sw" stroke-dasharray="@da" stroke-dashoffset="@doff" />
+            </svg>
+            <span class="in">
+                <b class="pts num">@Model.Points.ToString("N0")<i>점</i></b>
+                <span class="stg">@Model.Growth.Emoji @Model.Growth.Name</span>
+            </span>
+        </span>
+    </a>
+}
+else
+{
+    <span class="@cls" role="img" aria-label="@label">
+        <span class="ring" style="width:@px;height:@px">
+            <svg width="@size" height="@size" viewBox="0 0 @size @size" aria-hidden="true">
+                <circle class="track" cx="@c" cy="@c" r="@rs" stroke-width="@sw" />
+                <circle class="arc" cx="@c" cy="@c" r="@rs" stroke-width="@sw" stroke-dasharray="@da" stroke-dashoffset="@doff" />
+            </svg>
+            <span class="in">
+                <b class="pts num">@Model.Points.ToString("N0")<i>점</i></b>
+                <span class="stg">@Model.Growth.Emoji @Model.Growth.Name</span>
+            </span>
+        </span>
+    </span>
+}

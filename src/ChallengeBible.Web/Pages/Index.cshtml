@@ -147,12 +147,8 @@
             </section>
         }
 
-        @* 로그인한 사람(부서 하나): 나의 도전 현황 통합 카드(2026-11-23 사용자 확정) *@
-        @if (Model.Card is not null)
-        {
-            <partial name="_ChallengeCard" model="new ChallengeCardVm(Model.Card, Model.CardSlug!, false, null)" />
-        }
-        else
+        @* 현황 카드는 「나의 도전」 화면으로 옮겼다(2026-11-23 사용자 확정 · ADR 0136). *@
+        @if (Model.Card is null)
         {
             <section class="vb-stat" id="vb-stat" aria-label="함께하는 현황">
                 <h3>올해 함께 읽은 성경</h3>
@@ -167,7 +163,7 @@
         }
     </div>
 
-    @* 선물 대상자와 상태(2026-11-23 사용자 확정 C안 · ADR 0134): 현황 카드 아래 · 가족팀 위. 부서 하나뿐인 사람만. *@
+    @* 선물 대상자와 상태(ADR 0134): 「나의 도전」 화면에는 넣지 않고, 홈에 그대로 둔다. 부서 하나뿐인 사람만. *@
     @if (Model.GiftBoard is not null && Model.CardSlug is { } giftSlug)
     {
         <partial name="_GiftTargetCard" model="new GiftTargetCardVm(Model.GiftBoard, giftSlug, false, null)" />

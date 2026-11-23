@@ -1,0 +1,125 @@
+@page "/{slug}/challenge"
+@model ChallengeBible.Web.Pages.Mission.ChallengeModel
+@using ChallengeBible.Web.Services
+@* 「나의 도전」(2026-11-23 사용자 확정 · ADR 0136): A안 링 히어로 + B안 「이번 주」 막대.
+   홈 상단 포인트 링을 눌러 들어온다. 선물 대상자 · 우리 가족팀은 이 화면에 넣지 않는다(각자 화면에서 본다). *@
+@{
+    var slug = Model.Slug;
+    var ko = System.Globalization.CultureInfo.GetCultureInfo("ko-KR");
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var c = Model.Card;
+    var ring = Model.Ring;
+}
+<link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
+<div class="vb vb-ch">
+<main class="vb-ch-main">
+    <div class="vb-ch-top">
+        <a class="vb-ch-back" href="/@slug">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+            홈으로
+        </a>
+        <time class="vb-ch-date" datetime="@Model.Today.ToString("yyyy-MM-dd")">@Model.Today.ToString("M월 d일", ko) @Model.Today.ToString("dddd", ko)</time>
+    </div>
+    <div class="vb-ch-hd">
+        <h1>나의 도전</h1>
+        <p>점수와 성장, 이번 주 기록을 한 곳에서</p>
+    </div>
+
+    @if (ring is null || c is null)
+    {
+        <section class="vb-ch-card">
+            <p class="vb-guest"><b>로그인하면 내 기록이 보여요</b><span>오늘 미션 · 성경통독 · 성경필사 · 기도365</span></p>
+        </section>
+    }
+    else
+    {
+        @* A안 — 링 히어로: 포인트를 가장 크게, 그 아래 성장 단계 눈금 *@
+        <section class="vb-ch-hero" aria-label="나의 포인트와 성장 단계">
+            @{ ViewData["RingSize"] = 150; }
+            <partial name="_PointRing" model="ring with { Href = null }" />
+            @if (c.Growth is { } g)
+            {
+                <p class="vb-ch-next">
+                    @if (g.Done)
+                    {
+                        <text>모든 성장 단계를 넘었어요</text>
+                    }
+                    else
+                    {
+                        <text>@($"{g.NextUntil:N0}")점까지 <b class="num">@g.ToNext.ToString("N0")점</b></text>
+                    }
+                </p>
+                <div class="vb-ch-steps" aria-hidden="true">
+                    @foreach (var s in g.Steps) { <u class="@(s.Reached ? "on" : "")"></u> }
+                </div>
+                <div class="vb-ch-names">
+                    @foreach (var s in g.Steps) { <span class="@(s.Now ? "now" : s.Reached ? "past" : "")">@s.Name</span> }
+                </div>
+            }
+        </section>
+
+        @if (c.Week.Count > 0)
+        {
+            @* B안에서 가져온 「이번 주」 — 일~토 점수 막대 *@
+            <section class="vb-ch-card" aria-labelledby="vbWeek">
+                <div class="vb-ch-cardh"><h2 id="vbWeek">이번 주</h2><span class="num"><b class="num">@(c.WeekCount)회</b> 참여</span></div>
+                <div class="vb-ch-week" aria-hidden="true">
+                    @foreach (var w in c.Week)
+                    {
+                        <div>
+                            <i class="@(w.Points > 0 ? "on" : "")" style="height:@(w.Height.ToString(inv))%"></i>
+                            <span>@w.Day</span>
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+
+        @if (c.Chips.Count > 0)
+        {
+            <section class="vb-ch-card" aria-labelledby="vbToday">
+                <div class="vb-ch-cardh"><h2 id="vbToday">오늘 미션</h2><span class="num"><b class="num">@c.Done/@c.Total</b></span></div>
+                <div class="vb-chips" role="list" aria-label="오늘 미션">
+                    @foreach (var chip in c.Chips)
+                    {
+                        <div class="vb-chip@(chip.Done ? " ok" : chip.Has ? " wait" : " none")" role="listitem">
+                            <b>@chip.Label</b><span>@chip.State</span>
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+
+        @if (c.Rows.Count > 0)
+        {
+            <section class="vb-ch-card" aria-labelledby="vbProg">
+                <div class="vb-ch-cardh"><h2 id="vbProg">프로그램 진행</h2><span>@(c.Rows.Count)개</span></div>
+                <div class="vb-prog">
+                    @foreach (var r in c.Rows)
+                    {
+                        <a class="p" href="/@slug/@Model.Href(r.Key)">
+                            <span class="nm"><i class="c-@r.Key" aria-hidden="true"></i>@r.Label</span>
+                            @if (r.Started)
+                            {
+                                <span class="pc num">@ChallengeCardService.Width(r.Percent)<small>%</small></span>
+                                <span class="bar" aria-hidden="true"><i class="c-@r.Key" style="width:@ChallengeCardService.Width(r.Percent)%"></i></span>
+                                <span class="sub num">@r.Sub</span>
+                            }
+                            else
+                            {
+                                <span class="pc none">시작 전</span>
+                                <span class="start"><span>@r.Sub</span><b>시작하기 ›</b></span>
+                            }
+                        </a>
+                    }
+                </div>
+            </section>
+        }
+
+        <div class="vb-deptnum">
+            <div><b class="num">@c.Members.ToString("N0")<small>명</small></b><span>전체 참여자</span></div>
+            <div><b class="num">@c.TodayPeople.ToString("N0")<small>명</small></b><span>오늘 참여</span></div>
+        </div>
+    }
+</main>
+</div>
