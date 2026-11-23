@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>홈루트 · 선물 대상자와 상태 카드 시안 (A · B · C)</title>
+<style>
+  :root{
+    --ink:#1d1d1f; --ink-2:#56565c; --ink-3:#8e8e94;
+    --line:#e7e7ea; --track:#ededef; --paper:#fff; --soft:#f4f4f5;
+    --p1:#1f9d55; --s1:#e8f6ee;
+    --p2:#2f6fe4; --s2:#eaf1fd;
+    --p3:#ea6a1c; --s3:#fdf0e6;
+    --p4:#dc3f8a; --s4:#fcebf3;
+    --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:#e9ebef;color:var(--ink);word-break:keep-all;letter-spacing:-.01em}
+  a{color:inherit;text-decoration:none}
+  .num{font-variant-numeric:tabular-nums}
+
+  .mockbar{position:fixed;left:0;top:0;right:0;z-index:90;height:36px;background:#161c2b;color:#fff;font-size:12.5px;display:flex;align-items:center}
+  .mockbar .in{width:100%;max-width:1240px;margin:0 auto;padding:0 20px;display:flex;justify-content:space-between;gap:10px}
+  .mockbar b{font-weight:800}.mockbar span{opacity:.7}
+
+  .stage{display:flex;gap:26px;align-items:flex-start;padding:60px 20px 40px;flex-wrap:wrap;justify-content:center}
+  .col{width:400px;max-width:100%}
+  .cap{margin:0 0 10px;font-size:13.5px;font-weight:900}
+  .cap small{display:block;margin-top:4px;font-size:11.5px;font-weight:600;line-height:1.6;color:#5b6470}
+  .phone{background:#fff;box-shadow:0 30px 70px -50px rgba(0,0,0,.5);padding:16px 0 20px;border-radius:6px}
+  .gut{padding-inline:20px}
+
+  /* 위 맥락(첫 화면 축소판) */
+  .ctx{opacity:.38}
+  .ctx .logo{padding:0 0 10px}
+  .ctx .logo b{font-size:19px;font-weight:900}
+  .ctx .bars{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding-bottom:12px}
+  .ctx .bars i{height:34px;border-radius:10px;background:var(--soft);display:block}
+  .ctx .fake{border:1px solid var(--line);border-radius:20px;padding:18px 18px 16px}
+  .ctx .fake h4{font-size:12px;font-weight:800;color:var(--ink-3)}
+  .ctx .fake .row{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px}
+  .ctx .fake .row i{height:6px;border-radius:99px;background:var(--track);display:block}
+  .ctx .fake .row i:last-child{width:60px}
+
+  /* 공통 카드 */
+  .card{border:1px solid var(--line);border-radius:20px;padding:20px 18px;margin-top:12px}
+  .card-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .card-h h3{font-size:13px;font-weight:800;color:var(--ink-3)}
+  .more{font-size:12px;font-weight:700;color:var(--ink-3);display:inline-flex;align-items:center;gap:3px}
+
+  /* 상태 칩 공통: 완료=초록 바탕·흰 글자, 준비=옅은 초록·초록 글자, 대기=테두리만 */
+  .st{display:inline-flex;align-items:center;padding:3px 8px;border-radius:99px;font-size:11px;font-weight:800;white-space:nowrap}
+  .st.done{background:var(--p1);color:#fff}
+  .st.ing{background:var(--s1);color:#2f7a51}
+  .st.wait{background:#fafafb;color:var(--ink-3);box-shadow:inset 0 0 0 1px var(--line)}
+
+  /* 명단 줄 공통 */
+  .r{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:11px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+  .r:first-of-type{border-top:0}
+  .pic{width:42px;height:42px;border-radius:11px;background:var(--soft);display:grid;place-items:center;font-size:17px}
+  .pic img{width:100%;height:100%;object-fit:cover;border-radius:11px}
+  .r .t{min-width:0}
+  .r .t b{display:block;font-size:14px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .r .t small{display:block;margin-top:2px;font-size:11.5px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .k{display:inline-block;margin-right:4px;padding:1px 6px;border-radius:99px;font-size:10px;font-weight:800;background:var(--s2);color:var(--p2);vertical-align:1px}
+  .k.b{background:var(--s3);color:var(--p3)} .k.f{background:var(--s1);color:var(--p1)} .k.p{background:#f1f1f3;color:var(--ink-2)}
+  .fmore{display:flex;justify-content:center;margin-top:10px;padding-top:11px;border-top:1px solid var(--line);font-size:12px;font-weight:800;color:var(--ink-2)}
+
+  /* ───── A안: 단계 요약 + 최근 명단 ───── */
+  .trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:14px}
+  .trio div{border-radius:13px;padding:11px 4px;text-align:center;background:var(--soft)}
+  .trio div.on{background:var(--s1)}
+  .trio div b{display:block;font-size:19px;font-weight:900;letter-spacing:-.03em}
+  .trio div span{display:block;margin-top:2px;font-size:10.5px;font-weight:700;color:var(--ink-3)}
+  .trio div.on b{color:#1f7a4a}
+  .alist{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+
+  /* ───── B안: 3단계 스텝 막대 + 명단 ───── */
+  .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:14px}
+  .steps .s{position:relative;padding-top:16px;text-align:center}
+  .steps .s::before{content:"";position:absolute;left:0;right:0;top:4px;height:4px;background:var(--track)}
+  .steps .s:first-child::before{left:50%;border-radius:99px 0 0 99px}
+  .steps .s:last-child::before{right:50%;border-radius:0 99px 99px 0}
+  .steps .s.done::before{background:var(--p1)}
+  .steps .s.now::before{background:var(--p1);opacity:.45}
+  .steps .s i{position:absolute;left:50%;top:0;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--track);box-shadow:0 0 0 3px #fff}
+  .steps .s.done i,.steps .s.now i{background:var(--p1)}
+  .steps .s b{display:block;font-size:11.5px;font-weight:800;color:var(--ink-2)}
+  .steps .s.done b,.steps .s.now b{color:var(--ink)}
+  .steps .s span{display:block;margin-top:2px;font-size:10.5px;font-weight:700;color:var(--ink-3)}
+  .sline{display:flex;align-items:baseline;justify-content:space-between;margin-top:14px;font-size:11.5px;color:var(--ink-3)}
+  .sline b{color:var(--ink);font-weight:900}
+
+  /* ───── C안: 받는 사람 한 줄 카드(상태 눈금) ───── */
+  .g{display:grid;gap:8px;margin-top:14px}
+  .gc{display:grid;grid-template-columns:38px minmax(0,1fr);gap:11px;padding:12px 12px 11px;border-radius:14px;background:var(--soft)}
+  .gc.done{background:var(--s1)}
+  .gc .pic{width:38px;height:38px;border-radius:10px;background:#fff;font-size:15px}
+  .gc .hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+  .gc .hd b{font-size:13.5px;font-weight:900}
+  .gc .t small{display:block;margin-top:2px;font-size:11px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .gc .dots{display:flex;align-items:center;gap:4px;margin-top:7px}
+  .gc .dots u{flex:1;height:4px;border-radius:99px;background:#fff;display:block;text-decoration:none}
+  .gc .dots u.on{background:var(--p1)}
+  .gc .lbl{display:flex;justify-content:space-between;margin-top:4px;font-size:9.5px;font-weight:700;color:var(--ink-3)}
+  .empty{margin-top:14px;padding:18px 14px;border-radius:14px;background:var(--soft);text-align:center}
+  .empty b{display:block;font-size:13px;font-weight:800}
+  .empty small{display:block;margin-top:3px;font-size:11.5px;color:var(--ink-3)}
+
+  .notes{margin-top:34px;background:#161c2b;color:#d7dbe1;padding:26px 20px 44px;width:100%}
+  .notes .in{max-width:1240px;margin:0 auto}
+  .notes h2{margin:0 0 10px;font-size:13px;letter-spacing:.16em;color:#8fa3c7}
+  .notes ul{margin:0;padding-left:18px;font-size:13px;line-height:1.8}
+  .notes li b{color:#fff}
+  .notes .cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+  .notes .cols h3{font-size:13px;color:#fff;margin:0 0 6px}
+  @media (max-width:1240px){ .notes .cols{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="mockbar"><div class="in"><b>홈루트 · 선물 대상자와 상태 카드 시안 (A · B · C)</b><span>2026-11-23 · 모노 톤 + 초록 상태</span></div></div>
+
+<div class="stage">
+
+  <!-- ============ A ============ -->
+  <div class="col">
+    <p class="cap">A안 · 단계 요약 + 최근 명단
+      <small>위에 세 숫자(살 것 · 줄 것 · 받았어요), 아래는 최근 3명. 지금 홈의 진행 카드와 같은 리듬이라 한 장처럼 붙습니다.</small>
+    </p>
+    <div class="phone">
+      <div class="gut ctx">
+        <div class="logo"><b>도전!!! 성경말씀</b></div>
+        <div class="bars"><i></i><i></i><i></i><i></i></div>
+        <div class="fake">
+          <h4>나의 도전 현황</h4>
+          <div class="row"><i></i><i></i></div><div class="row"><i></i><i></i></div><div class="row"><i></i><i></i></div>
+        </div>
+      </div>
+      <div class="gut">
+        <section class="card">
+          <div class="card-h"><h3>선물 대상자와 상태</h3><a class="more" href="#">더보기 ›</a></div>
+          <div class="trio">
+            <div><b class="num">2</b><span>살 것</span></div>
+            <div class="on"><b class="num">3</b><span>줄 것</span></div>
+            <div><b class="num">7</b><span>받았어요</span></div>
+          </div>
+          <div class="alist">
+            <div class="r">
+              <span class="pic">🎁</span>
+              <span class="t"><b>김서준</b><small><span class="k">완독</span>어린이 성경 필통 세트</small></span>
+              <span class="st done">받았어요</span>
+            </div>
+            <div class="r">
+              <span class="pic">🎁</span>
+              <span class="t"><b>이하윤</b><small><span class="k b">생일 12.4</span>무지개 색연필 24색</small></span>
+              <span class="st ing">샀어요</span>
+            </div>
+            <div class="r">
+              <span class="pic">🎁</span>
+              <span class="t"><b>박도윤</b><small><span class="k f">가족팀 2,000점</span>보드게임 한 세트</small></span>
+              <span class="st wait">골랐어요</span>
+            </div>
+          </div>
+          <a class="fmore" href="#">선물 대상자 12명 전체 보기 ›</a>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ B ============ -->
+  <div class="col">
+    <p class="cap">B안 · 3단계 스텝 막대
+      <small>골랐어요 → 샀어요 → 줬어요 를 막대 하나로. "지금 어디까지 왔나"가 한눈에 보이고, 명단은 그 아래.</small>
+    </p>
+    <div class="phone">
+      <div class="gut ctx">
+        <div class="logo"><b>도전!!! 성경말씀</b></div>
+        <div class="bars"><i></i><i></i><i></i><i></i></div>
+        <div class="fake">
+          <h4>나의 도전 현황</h4>
+          <div class="row"><i></i><i></i></div><div class="row"><i></i><i></i></div><div class="row"><i></i><i></i></div>
+        </div>
+      </div>
+      <div class="gut">
+        <section class="card">
+          <div class="card-h"><h3>선물 대상자와 상태</h3><a class="more" href="#">더보기 ›</a></div>
+          <div class="steps">
+            <div class="s done"><i></i><b>골랐어요</b><span class="num">12명</span></div>
+            <div class="s now"><i></i><b>샀어요</b><span class="num">3명 남음</span></div>
+            <div class="s done"><i></i><b>줬어요</b><span class="num">7명</span></div>
+          </div>
+          <p class="sline"><span>이번 주 선물</span><b class="num">12명 · 5명 남았어요</b></p>
+          <div class="alist">
+            <div class="r">
+              <span class="pic">🎁</span>
+              <span class="t"><b>김서준</b><small><span class="k">완독</span>어린이 성경 필통 세트</small></span>
+              <span class="st done">받았어요</span>
+            </div>
+            <div class="r">
+              <span class="pic">🎁</span>
+              <span class="t"><b>이하윤</b><small><span class="k b">생일 12.4</span>무지개 색연필 24색</small></span>
+              <span class="st ing">샀어요</span>
+            </div>
+          </div>
+          <a class="fmore" href="#">선물 대상자 12명 전체 보기 ›</a>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ C ============ -->
+  <div class="col">
+    <p class="cap">C안 · 받는 사람 카드 + 상태 눈금
+      <small>사람마다 작은 카드, 그 안에 3칸 눈금. "누가 · 무엇을 · 어디까지"를 사람 중심으로 읽습니다.</small>
+    </p>
+    <div class="phone">
+      <div class="gut ctx">
+        <div class="logo"><b>도전!!! 성경말씀</b></div>
+        <div class="bars"><i></i><i></i><i></i><i></i></div>
+        <div class="fake">
+          <h4>나의 도전 현황</h4>
+          <div class="row"><i></i><i></i></div><div class="row"><i></i><i></i></div><div class="row"><i></i><i></i></div>
+        </div>
+      </div>
+      <div class="gut">
+        <section class="card">
+          <div class="card-h"><h3>선물 대상자와 상태</h3><a class="more" href="#">더보기 ›</a></div>
+          <div class="g">
+            <div class="gc done">
+              <span class="pic">🎁</span>
+              <span class="t">
+                <span class="hd"><b>김서준</b><span class="st done">받았어요</span></span>
+                <small><span class="k">완독</span>어린이 성경 필통 세트</small>
+                <span class="dots"><u class="on"></u><u class="on"></u><u class="on"></u></span>
+                <span class="lbl"><span>골랐어요</span><span>샀어요</span><span>줬어요</span></span>
+              </span>
+            </div>
+            <div class="gc">
+              <span class="pic">🎁</span>
+              <span class="t">
+                <span class="hd"><b>이하윤</b><span class="st ing">샀어요</span></span>
+                <small><span class="k b">생일 12.4</span>무지개 색연필 24색</small>
+                <span class="dots"><u class="on"></u><u class="on"></u><u></u></span>
+                <span class="lbl"><span>골랐어요</span><span>샀어요</span><span>줬어요</span></span>
+              </span>
+            </div>
+            <div class="gc">
+              <span class="pic">🎁</span>
+              <span class="t">
+                <span class="hd"><b>박도윤</b><span class="st wait">골랐어요</span></span>
+                <small><span class="k f">가족팀 2,000점</span>보드게임 한 세트</small>
+                <span class="dots"><u class="on"></u><u></u><u></u></span>
+                <span class="lbl"><span>골랐어요</span><span>샀어요</span><span>줬어요</span></span>
+              </span>
+            </div>
+          </div>
+          <a class="fmore" href="#">선물 대상자 12명 전체 보기 ›</a>
+        </section>
+        <section class="card">
+          <div class="card-h"><h3>선물이 아직 없을 때</h3></div>
+          <div class="empty"><b>아직 선물 대상자가 없어요</b><small>미션 · 생일 · 완독 선물이 생기면 여기에 보여요</small></div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="notes">
+  <div class="in">
+    <h2>세 시안의 차이</h2>
+    <div class="cols">
+      <div>
+        <h3>A · 단계 요약 + 최근 명단</h3>
+        <ul>
+          <li>3숫자(<b>살 것 · 줄 것 · 받았어요</b>)로 규모를 먼저</li>
+          <li>최근 3명, 이름 · 선물 · 상태 칩</li>
+          <li>지금 홈의 진행 카드와 같은 리듬</li>
+        </ul>
+      </div>
+      <div>
+        <h3>B · 3단계 스텝 막대</h3>
+        <ul>
+          <li>막대 하나로 <b>골랐어요 → 샀어요 → 줬어요</b></li>
+          <li>"몇 명 남았나"를 문장으로 한 번 더</li>
+          <li>관리자가 처리할 양이 바로 보임</li>
+        </ul>
+      </div>
+      <div>
+        <h3>C · 사람별 카드 + 눈금</h3>
+        <ul>
+          <li>사람마다 카드 하나, 3칸 눈금</li>
+          <li>완료는 옅은 초록 바탕으로 한 번에 구분</li>
+          <li>카드가 커서 3명까지만 — 더보기로</li>
+        </ul>
+      </div>
+    </div>
+    <ul style="margin-top:16px">
+      <li><b>상태 글자</b> — 골랐어요 / 샀어요 / 받았어요 (체크 표시 없이 바탕색 + 글자색). 받은 선물은 <b>받은 지 30일까지</b>(R-297).</li>
+      <li><b>가격은 넣지 않는다</b> — 아이 · 학부모 화면이라 관리 화면의 원 · 쿠팡 링크는 두지 않는다.</li>
+      <li><b>누구에게</b> — 부서 홈과 첫 화면(`/`) 모두. 승인된 소속 · 임시 부서 아님. 손님에게는 "로그인하면 보여요".</li>
+      <li><b>자리</b> — 나의 도전 현황 카드 바로 아래, 가족팀 카드 위.</li>
+    </ul>
+  </div>
+</section>
+</body>
+</html>
