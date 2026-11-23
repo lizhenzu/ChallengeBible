@@ -15,20 +15,30 @@ public sealed record ChallengeChip(string Label, bool Has, bool Done)
 /// <summary>프로그램별 진행 한 줄(성경통독 · 성경필사 · 기도365). Started=false 면 아직 시작 전.</summary>
 public sealed record ChallengeRow(string Key, string Label, bool Started, double Percent, string Sub);
 
+/// <summary>성장 단계 한 칸(씨앗 · 새싹 · 나무 · 숲). Reached = 지나온 단계(지금 단계 포함), Now = 지금 단계.</summary>
+public sealed record GrowthStep(string Name, string Emoji, bool Reached, bool Now);
+
+/// <summary>
+/// 나의 성장 단계(2026-11-23 사용자 확정 B안) — 「성장 3단계 · 나무」와 다음 단계까지 남은 점수.
+/// Stage 는 1부터 세는 단계 번호, Count 는 전체 단계 수. Done 이면 마지막 단계를 넘었다.
+/// </summary>
+public sealed record GrowthView(int Stage, int Count, string Name, string Emoji, int? NextUntil, int ToNext, bool Done, IReadOnlyList<GrowthStep> Steps);
+
 /// <summary>
 /// "나의 도전 현황" 통합 카드(2026-11-23 사용자 확정: 시안 A — docs/design/시안/홈-나의도전-통합카드-단독시안.html).
-/// 오늘 미션 4칸 + 프로그램 진행률 + 아래 줄(포인트 · 순위 · 연속)을 카드 하나로 모은다.
+/// 오늘 미션 4칸 + 프로그램 진행률 + 나의 포인트 · 성장 단계를 카드 하나로 모은다.
+/// 순위 · 연속은 2026-11-23 사용자 요청으로 화면에서 뺐다.
 /// </summary>
 public sealed record ChallengeCard(
     IReadOnlyList<ChallengeChip> Chips, int Done, int Total, IReadOnlyList<ChallengeRow> Rows,
-    int Points, int? Rank, int Streak, int WeekCount, int Members, int TodayPeople);
+    int Points, GrowthView? Growth, int WeekCount, int Members, int TodayPeople);
 
 /// <summary>
 /// 통합 카드 값 만들기. 부서 홈 · 첫 화면(`/`)이 같은 카드를 그린다.
-/// 이미 계산한 <see cref="HomeView"/>를 받아 미션 · 점수 · 연속 · 부서 숫자를 다시 세지 않고,
-/// 없던 것(필사 · 기도365 · 순위)만 여기서 더한다. 부서가 끈 프로그램은 줄에서 뺀다.
+/// 이미 계산한 <see cref="HomeView"/>를 받아 미션 · 점수 · 성장 · 부서 숫자를 다시 세지 않고,
+/// 없던 것(필사 · 기도365)만 여기서 더한다. 부서가 끈 프로그램은 줄에서 뺀다.
 /// </summary>
-public sealed class ChallengeCardService(TenantContext tenant, RequestScope scope, CopyService copy, Prayer365Service prayer, RankingService rankings)
+public sealed class ChallengeCardService(TenantContext tenant, RequestScope scope, CopyService copy, Prayer365Service prayer)
 {
     public async Task<ChallengeCard> GetAsync(HomeView data, bool platformAdmin, CancellationToken ct = default)
     {
@@ -38,16 +48,20 @@ public sealed class ChallengeCardService(TenantContext tenant, RequestScope scop
             : [];
         var rows = await RowsAsync(t, data, platformAdmin, ct);
 
-        int? rank = null;
-        if (data.Participant && data.SeasonPoints > 0 && data.Rules.Features.Ranking)
-        {
-            var r = await rankings.GetAsync(ct);
-            if (r.Enabled) rank = r.Rows.FirstOrDefault(x => x.Me)?.Rank;
-        }
-
         return new(chips, chips.Count(c => c.Done), chips.Count(c => c.Has), rows,
-            data.SeasonPoints, rank, data.Streak, data.Week.Count(w => w.MissionPoints > 0),
+            data.SeasonPoints, GrowthOf(data), data.Week.Count(w => w.MissionPoints > 0),
             data.Dept?.Members ?? 0, data.Dept?.TodayPeople ?? 0);
+    }
+
+    /// <summary>성장 단계 — 값은 규칙(`Rules.GrowthStages`) 그대로. 참여자가 아니면 null.</summary>
+    private static GrowthView? GrowthOf(HomeView data)
+    {
+        var stages = data.Rules.GrowthStages;
+        if (!data.Participant || data.Growth is not { } g || stages.Count == 0) return null;
+        var i = Math.Clamp(g.Stage, 0, stages.Count - 1);
+        var s = stages[i];
+        return new(i + 1, stages.Count, s.Name, s.Emoji, g.Done ? null : s.Until, g.ToNext, g.Done,
+            stages.Select((x, n) => new GrowthStep(x.Name, x.Emoji, n <= i, n == i)).ToList());
     }
 
     /// <summary>프로그램 진행 줄. 로그인 · 승인된 소속일 때만(개인 기록이라).</summary>

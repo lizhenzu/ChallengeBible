@@ -206,9 +206,25 @@
 .vb-deptnum b small { margin-left: 1px; font-size: 12px; font-weight: 700; color: var(--ink-2); }
 .vb-deptnum span { display: block; margin-top: 2px; font-size: 11.5px; color: var(--ink-3); }
 
-.vb-cardfoot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-3); }
-.vb-cardfoot b { font-weight: 900; color: var(--ink); }
-.vb-cardfoot .sep { color: #d8d8dd; }
+/* 나의 포인트 띠(2026-11-23 사용자 확정 B안 · ADR 0135 · 시안 docs/design/시안/홈-포인트강조-B-성장단계-단독시안.html)
+   카드 맨 위에서 포인트를 가장 크게. 오른쪽에 「성장 N단계 · 이름」과 다음 단계까지 남은 점수, 아래에 단계 눈금. */
+.vb-pts { margin-top: 14px; padding: 14px 15px 13px; border-radius: 15px; background: var(--s1); }
+.vb-pts .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.vb-pts .lb { display: block; font-size: 11.5px; font-weight: 800; color: #5f8a71; }
+.vb-pts .v { display: flex; align-items: baseline; gap: 4px; margin-top: 1px; }
+.vb-pts .v b { font-size: 30px; font-weight: 900; letter-spacing: -.04em; line-height: 1.05; color: #17663a; }
+.vb-pts .v > span { font-size: 13px; font-weight: 800; color: #3f7a58; }
+.vb-pts .right { flex: none; text-align: right; }
+.vb-pts .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px; background: #fff; font-size: 11px; font-weight: 900; color: #17663a; white-space: nowrap; }
+.vb-pts .badge i { font-style: normal; }
+.vb-pts .right small { display: block; margin-top: 4px; font-size: 10.5px; font-weight: 700; line-height: 1.4; color: #5f8a71; }
+.vb-pts .right small b { font-weight: 900; color: #17663a; }
+.vb-pts .steps { display: flex; gap: 5px; margin-top: 11px; }
+.vb-pts .steps u { flex: 1; height: 5px; border-radius: 99px; background: #d6e9dd; display: block; }
+.vb-pts .steps u.on { background: var(--p1); }
+.vb-pts .names { display: flex; justify-content: space-between; margin-top: 5px; font-size: 9.5px; font-weight: 700; color: #8fb8a2; }
+.vb-pts .names .past { color: #5f9c78; }
+.vb-pts .names .now { font-weight: 900; color: #17663a; }
 /* 2026-11-23 사용자: 검색 상자 위 · 아래 여백을 같게 — 위는 .vb-main 의 padding-top(30/56)이라 아래도 같은 값 */
 .vb .hmx-search { margin: 0 0 30px; border-color: var(--line); background: var(--soft); }
 .vb .hmx-search button { background: var(--ink); }

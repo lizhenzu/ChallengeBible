@@ -76,8 +76,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("<b class=\"num\">0/3</b>", home);                               // 말씀 · 퀴즈 · 기도 세 가지
         Assert.Contains("<span>이번 주 참여</span>", home);
         Assert.Contains("<span>전체 참여자</span>", home);
-        Assert.Contains("나의 포인트 <b", home);
-        Assert.Contains("순위 <b", home);
+        Assert.Contains("나의 포인트", home);                                             // 카드 맨 위 포인트 띠(ADR 0135)
+        Assert.Contains("class=\"vb-pts\"", home);
 
         // 옛 홈 블록 — 2026-11-22 사용자 확정으로 뺐다.
         Assert.DoesNotContain("dz-hero", home);
@@ -159,7 +159,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("시작 전", home);                                      // 아직 시작하지 않음
         Assert.Contains("시작하기 ›", home);
         Assert.DoesNotContain("기도365</span>", home);                         // 학생에게는 365 기도 줄 없음(ADR 0106)
-        Assert.Contains("class=\"vb-cardfoot\"", home);                        // 포인트 · 순위 · 연속
+        Assert.Contains("class=\"vb-pts\"", home);                            // 포인트 · 성장 단계 띠
+        Assert.DoesNotContain("vb-cardfoot", home);                            // 순위 · 연속은 뺐다(ADR 0135)
     }
 
     [Fact]   // ADR 0133 — 교사는 365 기도 줄이 함께 보인다
@@ -245,7 +246,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var html = await r.Content.ReadAsStringAsync();
         Assert.Contains("<span class=\"bt-2\">성경말씀</span>", html);
         Assert.Contains("로그인하면 내 기록이 보여요", html);                    // 개인 숫자 대신 로그인 안내
-        Assert.DoesNotContain("나의 포인트 <b", html);
+        Assert.DoesNotContain("나의 포인트", html);
         Assert.DoesNotContain("김철수", html);
         Assert.DoesNotContain("data-pnav-open", html);                          // ☰ 메뉴 없음
         Assert.DoesNotContain("class=\"mailb\"", html);                        // 로그인 전에는 쪽지함이 없다
