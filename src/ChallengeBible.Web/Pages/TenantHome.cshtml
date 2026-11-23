@@ -183,6 +183,12 @@ else
             <partial name="_ChallengeCard" model="new ChallengeCardVm(Model.Card, slug, Model.Guest, loginTo)" />
         </div>
 
+        @* 선물 대상자와 상태(2026-11-23 사용자 확정 C안 · ADR 0134): 현황 카드 아래 · 가족팀 위. 승인 소속만, 손님은 안내. *@
+        @if (!lobby)
+        {
+            <partial name="_GiftTargetCard" model="new GiftTargetCardVm(Model.GiftBoard, slug, Model.Guest, loginTo)" />
+        }
+
         @* 가족팀(2026-11-22 3차 확정): 초대 배너 → 우리 가족팀 카드 → 둘 다 없으면 만들기 유도. 현황 카드 아래. *@
         @if (!lobby && t.MissionEnabled && d.Rules.Features.FamilyTeam)
         {

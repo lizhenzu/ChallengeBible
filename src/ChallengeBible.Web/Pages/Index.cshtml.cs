@@ -14,7 +14,8 @@ namespace ChallengeBible.Web.Pages;
 /// </summary>
 public class IndexModel(AccountService accounts, TenantClock clock, LandingService landing, DeptAdminLoginService deptAdmins,
     DeptStudentLoginService deptStudents, TenantResolver tenants, TenantContext tenant,
-    FamilyTeamService teams, FamilyJoinService familyJoin, RuleService rules, HomeService home, ChallengeCardService cards) : PageModel, ITitled
+    FamilyTeamService teams, FamilyJoinService familyJoin, RuleService rules, HomeService home, ChallengeCardService cards,
+    GiftOrderService gifts) : PageModel, ITitled
 {
     public string Title => "";
     /// <summary>[관리자 로그인] 아래 부서 관리자 버튼(R-364).</summary>
@@ -47,6 +48,8 @@ public class IndexModel(AccountService accounts, TenantClock clock, LandingServi
     public ChallengeCard? Card { get; private set; }
     /// <summary>그 부서 주소(카드 링크). 카드가 없으면 null.</summary>
     public string? CardSlug { get; private set; }
+    /// <summary>선물 대상자와 상태 카드(2026-11-23 사용자 확정 C안 · ADR 0134). 부서 하나뿐인 사람만.</summary>
+    public GiftTargetBoard? GiftBoard { get; private set; }
 
     /// <summary>초대 배너 "다음에 할래요"(R-212): 오늘은 숨기고 내일 다시 보인다.</summary>
     public async Task<IActionResult> OnPostSnoozeInvitesAsync(CancellationToken ct)
@@ -81,6 +84,7 @@ public class IndexModel(AccountService accounts, TenantClock clock, LandingServi
                 var data = await home.GetAsync(ct);
                 Card = await cards.GetAsync(data, User.IsPlatformAdmin(), ct);
                 CardSlug = slug;
+                if (tenant.IsApproved && !tenant.IsLobby) GiftBoard = await gifts.TargetBoardAsync(3, ct);
             }
         }
         return Page();

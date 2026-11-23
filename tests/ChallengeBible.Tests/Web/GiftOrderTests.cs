@@ -185,4 +185,44 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
         using (var raw = InMemoryDb.Raw(_db)) { raw.Gifts.Single().DeliveredUtc = DateTime.UtcNow.AddYears(-1); raw.SaveChanges(); }
         Assert.DoesNotContain("안예빛", await other.GetStringAsync("/kids/gift-board"));
     }
+
+    [Fact]   // ADR 0134 — 홈 카드(사람별 카드 + 3단계 눈금)
+    public async Task 홈_선물_카드는_사람마다_카드와_골랐어요_샀어요_받았어요_눈금을_보인다()
+    {
+        var (_, admin, id) = await Picked();
+        var (other, _) = await Login("haneul", "문하늘", 50);
+
+        var home = await other.GetStringAsync("/kids");
+        Assert.Contains("선물 대상자와 상태", home);          // 홈 카드가 돌아왔다
+        Assert.Contains("class=\"vb-giftlist\"", home);
+        Assert.Contains("class=\"vb-gift\"", home);           // 받기 전 = 기본 바탕
+        Assert.Contains("안예빛", home);
+        Assert.Contains("골랐어요", home);
+        Assert.Contains("샀어요", home);
+        Assert.Contains("줬어요", home);
+        Assert.DoesNotContain("6,000", home);                 // 가격은 없다(R-297)
+
+        var page = $"/kids/admin/gifts/{id}";
+        await Post(admin, page, $"{page}?handler=Move", new() { ["act"] = "Purchase" });
+        var bought = await other.GetStringAsync("/kids");
+        Assert.Contains("class=\"st s2\"", bought);           // 샀어요 = 옅은 초록
+
+        await Post(admin, page, $"{page}?handler=Move", new() { ["act"] = "Deliver" });
+        var given = await other.GetStringAsync("/kids");
+        Assert.Contains("class=\"st s3\"", given);            // 받았어요 = 초록 바탕 · 흰 글자
+        Assert.Contains("class=\"vb-gift done\"", given);
+    }
+
+    [Fact]   // ADR 0134 — 대상이 없으면 빈 안내, 손님에게는 로그인 안내
+    public async Task 홈_선물_카드는_대상이_없으면_빈_안내를_보인다()
+    {
+        var (other, _) = await Login("haneul", "문하늘", 50);
+        var home = await other.GetStringAsync("/kids");
+        Assert.Contains("선물 대상자와 상태", home);
+        Assert.Contains("아직 선물 대상자가 없어요", home);
+
+        var anon = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var guest = await anon.GetStringAsync("/kids");
+        Assert.Contains("로그인하면 선물 준비 상태가 보여요", guest);   // 이름은 손님에게 숨긴다
+    }
 }

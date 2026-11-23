@@ -167,6 +167,12 @@
         }
     </div>
 
+    @* 선물 대상자와 상태(2026-11-23 사용자 확정 C안 · ADR 0134): 현황 카드 아래 · 가족팀 위. 부서 하나뿐인 사람만. *@
+    @if (Model.GiftBoard is not null && Model.CardSlug is { } giftSlug)
+    {
+        <partial name="_GiftTargetCard" model="new GiftTargetCardVm(Model.GiftBoard, giftSlug, false, null)" />
+    }
+
     @* 가족팀(2026-11-23 사용자 · ADR 0132 시안 · docs/design/시안/메인-가족팀-아래-단독시안.html):
        초대 배너 → 우리 가족팀 카드 → 둘 다 없으면 만들기 유도. 현황 카드 아래, 작은 링크 위.
        누르면 모두 그 부서의 가족팀 화면으로 간다. 부서가 꼭 하나인 사람만(가족팀 화면이 있는 곳). *@

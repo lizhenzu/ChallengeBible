@@ -37,6 +37,27 @@ public sealed record GiftOrderCounts(int Buy, int Give, int Done, int Cancel, in
 /// <summary>부서 카드 "누가 선물 받나요"의 한 줄(가격 없음, R-297).</summary>
 public sealed record GiftBoardRow(long Id, string Who, string Kind, string State, int? ItemId, string ItemName, bool HasImage, DateTime At);
 
+/// <summary>
+/// 홈 "선물 대상자와 상태" 카드 한 줄(2026-11-23 사용자 확정 C안 · ADR 0134). 가격 없음(R-297).
+/// Step 1 골랐어요 · 2 샀어요 · 3 받았어요 — 카드 안 3칸 눈금을 이 값으로 칠한다.
+/// </summary>
+public sealed record GiftTargetRow(long Id, string Who, string Kind, string KindText, string State, int? ItemId, string ItemName, bool HasImage, DateTime At)
+{
+    public int Step => State switch { GiftStates.Delivered => 3, GiftStates.Purchased => 2, _ => 1 };
+    public string StateText => GiftOrderService.StateText(State);
+    /// <summary>종류 딱지 색 — 완독 · 완필은 파랑, 생일은 주황, 가족팀 · 친구팀은 초록, 나머지는 회색.</summary>
+    public string KindTone => Kind switch
+    {
+        GiftKinds.Birthday => "b",
+        GiftKinds.Family or GiftKinds.Friend => "f",
+        GiftKinds.Reading or GiftKinds.Copy => "r",
+        _ => "p",
+    };
+}
+
+/// <summary>홈 카드 전체 — 줄(최대 take 명) · 전체 수 · 단계별 수(살 것 · 줄 것 · 받았어요).</summary>
+public sealed record GiftTargetBoard(IReadOnlyList<GiftTargetRow> Rows, int Total, int Picked, int Purchased, int Delivered);
+
 public enum GiftOrderError { None, NotFound, BadState, LastYear }
 
 /// <summary>
@@ -59,6 +80,12 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
     };
 
     public static string StateOf(string tab) => tab switch { Give => GiftStates.Purchased, Done => GiftStates.Delivered, Cancel => GiftStates.Cancelled, _ => GiftStates.Picked };
+
+    /// <summary>홈 카드의 상태 글자(2026-11-23 C안): 골랐어요 · 샀어요 · 받았어요.</summary>
+    public static string StateText(string state) => state switch
+    {
+        GiftStates.Delivered => "받았어요", GiftStates.Purchased => "샀어요", GiftStates.Picked => "골랐어요", _ => "골랐어요",
+    };
 
     public async Task<GiftOrderCounts> CountsAsync(CancellationToken ct = default)
     {
@@ -206,5 +233,28 @@ public sealed class GiftOrderService(IAppDb db, TenantContext tenant, TenantCloc
         var list = await q.OrderByDescending(g => g.DeliveredUtc ?? g.PurchasedUtc ?? g.PickedUtc ?? g.CreatedUtc).ThenByDescending(g => g.Id).Take(take).ToListAsync(ct);
         var rows = await RowsAsync(ctx, list, ct);
         return (rows.Select(r => new GiftBoardRow(r.Id, r.Who, r.Kind, r.State, r.ItemId, r.ItemName, r.HasImage, r.DeliveredUtc ?? r.PurchasedUtc ?? r.PickedUtc ?? r.CreatedUtc)).ToList(), total);
+    }
+
+    /// <summary>
+    /// 홈 "선물 대상자와 상태" 카드(2026-11-23 사용자 확정 C안 · ADR 0134): 사람마다 한 칸, 안에 3단계 눈금.
+    /// 대상은 <see cref="BoardAsync"/> 와 같다 — 골랐어요 · 샀어요 + 받은 지 30일까지(R-297), 생일은 생일 주에만. 가격 없음.
+    /// </summary>
+    public async Task<GiftTargetBoard> TargetBoardAsync(int take, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var since = time.GetUtcNow().UtcDateTime.AddDays(-BoardDeliveredDays);
+        var today = clock.Today(tenant.Current.TimeZoneId);
+        var sunday = today.AddDays(-(int)today.DayOfWeek);
+        var week = Enumerable.Range(0, 7).Select(i => BirthdayGiftService.SourceKey(sunday.AddDays(i))).ToList();
+        var q = ctx.Gifts.AsNoTracking().Where(g => (g.State == GiftStates.Picked || g.State == GiftStates.Purchased || (g.State == GiftStates.Delivered && g.DeliveredUtc >= since))
+            && (g.Kind != GiftKinds.Birthday || week.Contains(g.SourceKey.Substring(0, 10))));
+        var total = await q.CountAsync(ct);
+        var counts = await q.GroupBy(g => g.State).Select(g => new { g.Key, N = g.Count() }).ToListAsync(ct);
+        int N(string s) => counts.FirstOrDefault(x => x.Key == s)?.N ?? 0;
+        var list = await q.OrderByDescending(g => g.DeliveredUtc ?? g.PurchasedUtc ?? g.PickedUtc ?? g.CreatedUtc).ThenByDescending(g => g.Id).Take(take).ToListAsync(ct);
+        var rows = await RowsAsync(ctx, list, ct);
+        return new(rows.Select(r => new GiftTargetRow(r.Id, r.Who, r.Kind, r.KindText, r.State, r.ItemId, r.ItemName, r.HasImage,
+                r.DeliveredUtc ?? r.PurchasedUtc ?? r.PickedUtc ?? r.CreatedUtc)).ToList(),
+            total, N(GiftStates.Picked), N(GiftStates.Purchased), N(GiftStates.Delivered));
     }
 }

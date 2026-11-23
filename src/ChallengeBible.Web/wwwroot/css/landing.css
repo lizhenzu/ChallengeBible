@@ -257,3 +257,32 @@
 .vb .lb-ban .lb-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 11px; font-size: 14px; font-weight: 800; }
 .vb .lb-ban .lb-btn.p { background: var(--ink); color: #fff; }
 .vb .lb-ban .lb-btn.s { background: #fff; border: 1px solid var(--line); color: var(--ink-2); }
+
+/* 선물 대상자와 상태 카드(2026-11-23 사용자 확정 C안 · ADR 0134 · 시안 docs/design/시안/홈-선물대상자-상태카드-단독시안.html)
+   사람마다 한 칸, 안에 3단계 눈금(골랐어요 → 샀어요 → 받았어요). 가격 없음(R-297). 완료는 옅은 초록 바탕. */
+.vb-gifts { margin-top: 12px; }
+.vb-giftlist { display: grid; gap: 8px; margin-top: 14px; }
+.vb-gift { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 11px; padding: 12px 12px 11px; border-radius: 14px; background: var(--soft); }
+.vb-gift.done { background: var(--s1); }
+.vb-gift .pic { width: 38px; height: 38px; flex: none; border-radius: 10px; background: #fff; display: grid; place-items: center; font-size: 15px; overflow: hidden; }
+.vb-gift .pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vb-gift .t { min-width: 0; }
+.vb-gift .hd { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.vb-gift .hd b { font-size: 13.5px; font-weight: 900; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vb-gift .t small { display: block; margin-top: 2px; font-size: 11px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vb-gift .st { flex: none; padding: 3px 8px; border-radius: 99px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.vb-gift .st.s1 { background: #fafafb; color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--line); }
+.vb-gift .st.s2 { background: var(--s1); color: #2f7a51; }
+.vb-gift .st.s3 { background: var(--p1); color: #fff; }
+.vb-gift .k { display: inline-block; margin-right: 4px; padding: 1px 6px; border-radius: 99px; font-size: 10px; font-weight: 800; background: #f1f1f3; color: var(--ink-2); vertical-align: 1px; }
+.vb-gift .k-b { background: var(--s3); color: var(--p3); }
+.vb-gift .k-f { background: var(--s1); color: #2f7a51; }
+.vb-gift .k-r { background: var(--s2); color: var(--p2); }
+.vb-gift .dots { display: flex; align-items: center; gap: 4px; margin-top: 7px; }
+.vb-gift .dots u { flex: 1; height: 4px; border-radius: 99px; background: #fff; display: block; }
+.vb-gift .dots u.on { background: var(--p1); }
+.vb-gift .lbl { display: flex; justify-content: space-between; margin-top: 4px; font-size: 9.5px; font-weight: 700; color: var(--ink-3); }
+.vb-giftfoot { display: flex; justify-content: center; margin-top: 10px; padding-top: 11px; border-top: 1px solid var(--line); font-size: 12px; font-weight: 800; color: var(--ink-2); }
+.vb-gift-empty { margin-top: 14px; padding: 18px 14px; border-radius: 14px; background: var(--soft); text-align: center; }
+.vb-gift-empty b { display: block; font-size: 13px; font-weight: 800; color: var(--ink); }
+.vb-gift-empty span { display: block; margin-top: 3px; font-size: 11.5px; color: var(--ink-3); }
