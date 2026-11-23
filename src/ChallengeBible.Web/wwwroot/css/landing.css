@@ -414,20 +414,23 @@
 .vb-landing .vb-hero-in { padding-bottom: 14px; }
 .vb-landing .vb-main { padding-top: 22px; }
 .vb-landing .vb-pills { margin-top: 18px; }
-.vb-landing .vb-hero-row .vb-ring { margin-top: 58px; margin-right: 6px; }
-.vb-landing .vb-hero-row .vb-ring .ring { width: 112px !important; height: 112px !important; }
-.vb-landing .vb-hero-row .vb-ring svg { width: 100%; height: 100%; }
-.vb-landing .vb-hero-row .vb-ring .rb-pts { font-size: 23px; }
-.vb-landing .vb-hero-row .vb-ring .rb-pts i { font-size: 11px; }
-.vb-landing .vb-hero-row .vb-ring .rb-stg { font-size: 11.5px; }
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring { margin-top: 58px; margin-right: 6px; }
+.vb-dept .vb-hero-row .vb-ring { margin-top: 46px; }
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .ring { width: 112px !important; height: 112px !important; }
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring svg { width: 100%; height: 100%; }
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts { font-size: 23px; }
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts i { font-size: 11px; }
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-stg { font-size: 11.5px; }
 @media (min-width: 720px) {
   .vb-landing .vb-hero-in { padding-bottom: 24px; }
   .vb-landing .vb-main { padding-top: 40px; }
-  .vb-landing .vb-hero-row .vb-ring { margin-top: 94px; margin-right: 110px; }
-  .vb-landing .vb-hero-row .vb-ring .ring { width: 168px !important; height: 168px !important; }
-  .vb-landing .vb-hero-row .vb-ring .rb-pts { font-size: 34px; }
-  .vb-landing .vb-hero-row .vb-ring .rb-pts i { font-size: 14px; }
-  .vb-landing .vb-hero-row .vb-ring .rb-stg { font-size: 13.5px; }
+  :is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring { margin-top: 94px; margin-right: 110px; }
+  .vb-landing .vb-hero-row .vb-ring { margin-top: 67px; }   /* 제목+문구 두 줄 덩어리(약 218px)의 세로 가운데 */
+  .vb-dept .vb-hero-row .vb-ring { margin-top: 53px; }      /* 문구가 한 줄뿐인 부서 홈(약 190px) */
+  :is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .ring { width: 168px !important; height: 168px !important; }
+  :is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts { font-size: 34px; }
+  :is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts i { font-size: 14px; }
+  :is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-stg { font-size: 13.5px; }
 }
 
 /* ── 첫 화면(/) 균형 정리 2차(2026-11-23 사용자 "추천" · 시안 docs/design/시안/첫화면-균형-비교-*.png A안) ──
