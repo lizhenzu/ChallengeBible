@@ -31,7 +31,7 @@ public sealed record RuleSet
     public GiftRules Gifts { get; init; } = GiftRules.Default;
 
     public static readonly IReadOnlyList<GrowthStage> DefaultGrowth =
-        [new("씨앗", "🌰", 400), new("새싹", "🌱", 900), new("나무", "🌿", 1300), new("숲", "🌲", 1700)];
+        [new("씨앗", "☘️", 400), new("새싹", "🌱", 900), new("나무", "🌳", 1300), new("숲", "🌲", 1700)];
 
     /// <summary>목표 점수 = 가장 높은 축하 단계(R-82).</summary>
     public int TargetPoints => Milestones.Count == 0 ? 0 : Milestones.Max();

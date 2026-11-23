@@ -61,6 +61,17 @@ public class PointRuleTests
         Assert.Equal(ChallengeBible.Domain.Rules.RuleSet.DefaultGrowth,
             ChallengeBible.Web.Services.RuleService.FromJson("{\"Version\":2,\"WeekStart\":\"Sunday\",\"GraceDays\":3,\"QuizMaxAttempts\":2,\"Items\":[],\"Milestones\":[3000],\"FamilyMilestones\":[],\"Features\":{\"Ranking\":true,\"FamilyTeam\":true,\"TranslationCompare\":true}}").GrowthStages);
 
+    [Fact]   // R-190 — 예전에 저장된 규칙 JSON 에 옛 이모지(🌰 · 🌿)가 있어도 읽을 때 새 기본 모양으로 보인다. 이름 · 끝 점수는 저장값 그대로
+    public void R190_저장된_옛_성장_이모지는_기본_모양으로_바꿔_읽는다()
+    {
+        var json = "{\"Version\":2,\"WeekStart\":\"Sunday\",\"GraceDays\":3,\"QuizMaxAttempts\":2,\"Items\":[],\"Milestones\":[3000],\"FamilyMilestones\":[],\"Features\":{\"Ranking\":true,\"FamilyTeam\":true,\"TranslationCompare\":true},"
+                 + "\"GrowthStages\":[{\"Name\":\"씨앗\",\"Emoji\":\"🌰\",\"Until\":500},{\"Name\":\"새싹\",\"Emoji\":\"🌱\",\"Until\":900},{\"Name\":\"나무\",\"Emoji\":\"🌿\",\"Until\":1300},{\"Name\":\"숲\",\"Emoji\":\"🌲\",\"Until\":1700}]}";
+        var g = ChallengeBible.Web.Services.RuleService.FromJson(json).GrowthStages;
+        Assert.Equal(["☘️", "🌱", "🌳", "🌲"], g.Select(x => x.Emoji));
+        Assert.Equal(500, g[0].Until);
+        Assert.Equal("☘️", ChallengeBible.Domain.Rules.RuleSet.DefaultGrowth[0].Emoji);
+    }
+
     [Fact]
     public void R82_목표_점수는_가장_높은_단계() =>
         Assert.Equal(8000, RuleSet.Default.TargetPoints);
