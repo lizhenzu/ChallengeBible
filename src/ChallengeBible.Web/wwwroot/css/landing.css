@@ -310,16 +310,17 @@
 .vb-ring { display: inline-grid; justify-items: center; gap: 5px; flex: none; margin-top: 22px; border-radius: 50%; }
 .vb-ring .ring { position: relative; display: block; }
 .vb-ring svg { display: block; transform: rotate(-90deg); }
-.vb-ring .track { stroke: var(--track); fill: none; stroke-linecap: round; }
-.vb-ring .arc { stroke: var(--p1); fill: none; stroke-linecap: round; }
-.vb-ring .in { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1px; text-align: center; }
-.vb-ring .pts { font-size: 18px; font-weight: 900; letter-spacing: -.045em; line-height: 1.1; color: #17663a; }
-.vb-ring .pts i { font-style: normal; margin-left: 1px; font-size: 9px; font-weight: 800; color: #3f7a58; }
-.vb-ring .stg { margin-top: 1px; font-size: 9.5px; font-weight: 800; color: #5f8a71; white-space: nowrap; }
-.vb-ring.lg .pts { font-size: 31px; }
-.vb-ring.lg .pts i { font-size: 12px; margin-left: 2px; }
-.vb-ring.lg .stg { font-size: 11.5px; font-weight: 900; color: var(--p1); }
-.vb-ring:hover .arc { stroke: #17824a; }
+.vb-ring .rb-track { stroke: var(--track); fill: none; stroke-linecap: round; }
+.vb-ring .rb-arc { stroke: var(--p1); fill: none; stroke-linecap: round; }
+/* rb- 접두사: site.css 의 .in(입력칸 · 흰 바탕 · 테두리) · .stg 와 겹치지 않게 */
+.vb-ring .rb-in { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1px; text-align: center; background: none; border: 0; padding: 0; min-height: 0; }
+.vb-ring .rb-pts { font-size: 18px; font-weight: 900; letter-spacing: -.045em; line-height: 1.1; color: #17663a; }
+.vb-ring .rb-pts i { font-style: normal; margin-left: 1px; font-size: 9px; font-weight: 800; color: #3f7a58; }
+.vb-ring .rb-stg { display: block; margin-top: 1px; font-size: 9.5px; font-weight: 800; color: #5f8a71; white-space: nowrap; }
+.vb-ring.lg .rb-pts { font-size: 31px; }
+.vb-ring.lg .rb-pts i { font-size: 12px; margin-left: 2px; }
+.vb-ring.lg .rb-stg { font-size: 11.5px; font-weight: 900; color: var(--p1); }
+.vb-ring:hover .rb-arc { stroke: #17824a; }
 @media (max-width: 380px) { .vb-ring { margin-top: 16px; } }
 
 /* 「나의 도전」 화면(ADR 0136) — A안 링 히어로 + B안 「이번 주」 막대 */

@@ -309,7 +309,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var root = await c.GetStringAsync("/");
         Assert.Contains("class=\"vb-ring\"", root);                          // 첫 화면 상단 포인트 링
         Assert.Contains("href=\"/jamsil-kids/challenge\"", root);            // 누르면 「나의 도전」
-        Assert.Contains("<span class=\"stg\">", root);                       // 링 안 성장 단계
+        Assert.Contains("<span class=\"rb-stg\">", root);   // site.css .stg 와 겹치지 않게 rb- 접두사                       // 링 안 성장 단계
         var anon = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         Assert.DoesNotContain("class=\"vb-ring\"", await anon.GetStringAsync("/"));   // 손님에게는 없다
     }
