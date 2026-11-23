@@ -11,7 +11,6 @@
     var t = Model.Tenant.Current;
     var slug = t.Slug;
     var ko = new System.Globalization.CultureInfo("ko-KR");
-    var inv = System.Globalization.CultureInfo.InvariantCulture;
     var lobby = Model.Tenant.IsLobby;
     var intro = lobby && !Model.TodayScreen;
     var loginTo = "/account/login?returnUrl=" + Uri.EscapeDataString(HttpContext.Request.Path + HttpContext.Request.QueryString);
@@ -216,23 +215,7 @@ else
                     </div>
                 </section>
             }
-            else if (Model.Family is { } f)
-            {
-                var span = (f.NextStage ?? f.Total) - f.PrevStage;
-                var fpct = f.NextStage is null ? 100 : span <= 0 ? 0 : Math.Clamp((f.Total - f.PrevStage) * 100.0 / span, 1, 100);
-                <a class="hmx-fam" href="/@slug/family-team" aria-label="우리 가족팀 @f.Name">
-                    <span class="em" aria-hidden="true">👨‍👩‍👧</span>
-                    <span class="tx">
-                        <b>우리 가족팀 · <i class="num">@f.Total.ToString("N0")</i>점</b>
-                        <small>@f.Name · @(f.NextStage is { } n ? $"다음 가족 축하까지 {n - f.Total:N0}점" : "모든 가족 단계를 넘었어요")
-                            <span class="avs" aria-hidden="true">@foreach (var m in f.Members.Take(3)) { <i>@(m.Name.Length > 0 ? m.Name[..1] : "·")</i> }</span>
-                        </small>
-                        <span class="bar" aria-hidden="true"><i style="width:@fpct.ToString("0.#", inv)%"></i></span>
-                    </span>
-                    <span class="ar" aria-hidden="true">›</span>
-                </a>
-            }
-            else if (Model.FamilyCanJoin)
+            else if (Model.Family is null && Model.FamilyCanJoin)
             {
                 <section class="hmx-make" aria-label="가족팀 · 친구팀 만들기">
                     <div class="hd">

@@ -677,7 +677,9 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Assert.DoesNotContain("보낸 초대", await dad.GetStringAsync("/jamsil-kids/family-team"));
         var joined = await other.GetStringAsync("/jamsil-kids");
         Assert.DoesNotContain("가족팀 초대가 왔어요", joined);
-        Assert.Contains("우리 가족팀", joined);        // 팀에 들어오면 홈 카드
+        Assert.DoesNotContain("우리 가족팀", joined);                              // 팀에 들어와도 홈 카드는 없다(2026-11-23 · ADR 0139)
+        Assert.DoesNotContain("가족팀 · 친구팀을 만들어 보세요", joined);            // 팀이 있으니 만들기 유도도 없다
+        Assert.Contains("구성원 2명", await other.GetStringAsync("/jamsil-kids/family-team"));
     }
 
     [Fact]
