@@ -73,7 +73,8 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal("/welcome", signup.Headers.Location!.OriginalString);   // 새 시안은 부서 홈 = 가입 직후 임시 부서 홈
         var home = await c.GetStringAsync("/welcome");
         Assert.Contains("시작까지 2단계", home);                             // 임시 부서 첫 안내
-        Assert.Contains("<span>오늘 미션</span>", await c.GetStringAsync("/welcome/today"));   // 새 시안 부서 홈
+        Assert.Contains("href=\"/welcome/challenge\"", await c.GetStringAsync("/welcome/today"));   // 홈 상단 포인트 링(ADR 0136)
+        Assert.Contains(">오늘 미션<", await c.GetStringAsync("/welcome/challenge"));                // 현황 카드는 이 화면
         var me = UserName();
         using var raw = InMemoryDb.Raw(_db);
         var m = raw.DeptRoles.Single(x => x.TenantId == _lobby.Id && x.UserId == raw.Users.Single(u => u.UserName == me).Id);
