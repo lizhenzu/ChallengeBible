@@ -186,43 +186,56 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
         Assert.DoesNotContain("안예빛", await other.GetStringAsync("/kids/gift-board"));
     }
 
-    [Fact]   // ADR 0134 — 홈 카드(사람별 카드 + 3단계 눈금)
-    public async Task 홈_선물_카드는_사람마다_카드와_골랐어요_샀어요_받았어요_눈금을_보인다()
+    [Fact]   // ADR 0138 — 홈은 「오늘의 말씀」 아래 한 줄, 자세한 카드는 새 화면
+    public async Task 홈_선물_알림은_한_줄이고_누르면_상세_화면으로_간다()
     {
         var (_, admin, id) = await Picked();
         var (other, _) = await Login("haneul", "문하늘", 50);
 
         var home = await other.GetStringAsync("/kids");
-        Assert.Contains("선물 대상자와 상태", home);          // 홈 카드가 돌아왔다
-        Assert.Contains("class=\"vb-giftlist\"", home);
-        Assert.Contains("class=\"vb-gift\"", home);           // 받기 전 = 기본 바탕
-        Assert.Contains("안예빛", home);
-        Assert.Contains("골랐어요", home);
-        Assert.Contains("샀어요", home);
-        Assert.Contains("줬어요", home);
-        Assert.DoesNotContain("6,000", home);                 // 가격은 없다(R-297)
+        Assert.Contains("class=\"vb-galert\"", home);                        // 한 줄 알림
+        Assert.Contains("href=\"/kids/gift-status\"", home);                 // 누르면 새 화면
+        Assert.Contains("선물 <span class=\"num\">1</span>명", home);
+        Assert.Contains("받았어요 <span class=\"num\">0</span>명", home);
+        Assert.DoesNotContain("안예빛", home);                               // 홈에서는 이름을 꺼내지 않는다
+        Assert.DoesNotContain("골랐어요", home);                             // 3단계 눈금은 상세에서
+        Assert.DoesNotContain("6,000", home);                                // 가격은 없다(R-297)
+
+        var detail = await other.GetStringAsync("/kids/gift-status");
+        Assert.Contains("선물 대상자와 상태", detail);
+        Assert.Contains("class=\"vb-gs-row\"", detail);                     // 사람마다 한 칸
+        Assert.Contains("안예빛", detail);
+        Assert.Contains("24색 색연필 세트", detail);
+        Assert.Contains("골랐어요", detail);
+        Assert.Contains("샀어요", detail);
+        Assert.Contains("줬어요", detail);
+        Assert.DoesNotContain("6,000", detail);                             // 가격은 없다(R-297)
 
         var page = $"/kids/admin/gifts/{id}";
         await Post(admin, page, $"{page}?handler=Move", new() { ["act"] = "Purchase" });
-        var bought = await other.GetStringAsync("/kids");
-        Assert.Contains("class=\"st s2\"", bought);           // 샀어요 = 옅은 초록
+        var bought = await other.GetStringAsync("/kids/gift-status");
+        Assert.Contains("class=\"st s2\"", bought);                          // 샀어요 = 옅은 초록
 
         await Post(admin, page, $"{page}?handler=Move", new() { ["act"] = "Deliver" });
-        var given = await other.GetStringAsync("/kids");
-        Assert.Contains("class=\"st s3\"", given);            // 받았어요 = 초록 바탕 · 흰 글자
-        Assert.Contains("class=\"vb-gift done\"", given);
+        var given = await other.GetStringAsync("/kids/gift-status");
+        Assert.Contains("class=\"st s3\"", given);                           // 받았어요 = 초록 바탕 · 흰 글자
+        Assert.Contains("class=\"vb-gs-row done\"", given);
+        Assert.Contains("role=\"list\"", given);
     }
 
-    [Fact]   // ADR 0134 — 대상이 없으면 빈 안내, 손님에게는 로그인 안내
-    public async Task 홈_선물_카드는_대상이_없으면_빈_안내를_보인다()
+    [Fact]   // ADR 0138 — 대상이 없으면 홈에 한 줄이 아예 없고, 손님에게는 로그인 안내
+    public async Task 홈_선물_알림은_대상이_없으면_그리지_않고_손님에게는_로그인_안내()
     {
         var (other, _) = await Login("haneul", "문하늘", 50);
         var home = await other.GetStringAsync("/kids");
-        Assert.Contains("선물 대상자와 상태", home);
-        Assert.Contains("아직 선물 대상자가 없어요", home);
+        Assert.DoesNotContain("vb-galert", home);                            // 대상이 없으면 한 줄도 없다
+        Assert.DoesNotContain("선물 대상자와 상태", home);
+
+        var detail = await other.GetStringAsync("/kids/gift-status");
+        Assert.Contains("아직 선물 대상자가 없어요", detail);                  // 상세는 빈 안내
 
         var anon = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var guest = await anon.GetStringAsync("/kids");
-        Assert.Contains("로그인하면 선물 준비 상태가 보여요", guest);   // 이름은 손님에게 숨긴다
+        Assert.Contains("로그인하면 선물 준비 상태가 보여요", guest);           // 이름은 손님에게 숨긴다
     }
 }

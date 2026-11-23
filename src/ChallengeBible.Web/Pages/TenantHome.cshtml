@@ -189,10 +189,11 @@ else
 
         </div>
 
-        @* 선물 대상자와 상태(ADR 0134): 「나의 도전」 화면에는 넣지 않고(2026-11-23 사용자), 홈에 그대로 둔다. *@
+        @* 「오늘의 말씀」 바로 아래 한 줄 선물 알림(2026-11-23 사용자 확정 B안 · ADR 0138).
+           홈은 한 줄만 — 이름 · 선물 이름은 누르면 가는 `/{slug}/gift-status` 에서 본다. *@
         @if (!lobby)
         {
-            <partial name="_GiftTargetCard" model="new GiftTargetCardVm(Model.GiftBoard, slug, Model.Guest, loginTo)" />
+            <partial name="_GiftAlert" model="new GiftTargetCardVm(Model.GiftBoard, slug, Model.Guest, loginTo)" />
         }
 
         @* 가족팀(2026-11-22 3차 확정): 초대 배너 → 우리 가족팀 카드 → 둘 다 없으면 만들기 유도. 현황 카드 아래. *@
