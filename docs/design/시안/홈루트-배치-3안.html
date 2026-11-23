@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>홈 루트 배치 3안 — 나의 도전 현황 아래 카드 정리</title>
+<style>
+  :root{
+    --ink:#1d1d1f; --ink-2:#56565c; --ink-3:#8e8e94;
+    --line:#e7e7ea; --track:#ededef; --paper:#fff; --soft:#f4f4f5;
+    --p1:#1f9d55; --s1:#e8f6ee;
+    --p2:#2f6fe4; --s2:#eaf1fd;
+    --p3:#ea6a1c; --s3:#fdf0e6;
+    --p4:#dc3f8a; --s4:#fcebf3;
+    --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:#e9ebef;color:var(--ink);word-break:keep-all;letter-spacing:-.01em}
+  a{color:inherit;text-decoration:none}
+  .num{font-variant-numeric:tabular-nums}
+
+  .mockbar{position:fixed;left:0;top:0;right:0;z-index:90;height:36px;background:#161c2b;color:#fff;font-size:12.5px;display:flex;align-items:center}
+  .mockbar .in{width:100%;max-width:1420px;margin:0 auto;padding:0 20px;display:flex;justify-content:space-between;gap:10px}
+  .mockbar b{font-weight:800}.mockbar span{opacity:.7}
+
+  .stageWrap{display:flex;gap:30px;align-items:flex-start;padding:60px 20px 50px;flex-wrap:wrap;justify-content:center}
+  .col{width:396px;max-width:100%;background:#fff;border-radius:8px;padding:18px 18px 24px;box-shadow:0 30px 70px -50px rgba(0,0,0,.55)}
+  .cap{margin:0 0 12px;font-size:13.5px;font-weight:900;line-height:1.45}
+  .cap b{color:#17663a}
+  .cap small{display:block;margin-top:5px;font-size:11.5px;font-weight:600;line-height:1.65;color:#5b6470}
+
+  /* 공통 카드 */
+  .card{border:1px solid var(--line);border-radius:20px;padding:18px 16px}
+  .card + .card{margin-top:14px}
+  .hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .hd h3{font-size:13px;font-weight:800;color:var(--ink-3)}
+  .more{font-size:12px;font-weight:700;color:var(--ink-3)}
+
+  /* 오늘 미션 칸 */
+  .chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:12px}
+  .chip{display:grid;justify-items:center;gap:3px;padding:11px 2px;border-radius:12px;text-align:center}
+  .chip b{font-size:11.5px;font-weight:800}
+  .chip span{font-size:9.5px;font-weight:700}
+  .chip.ok{background:var(--p1)} .chip.ok b{color:#fff} .chip.ok span{color:rgba(255,255,255,.78)}
+  .chip.wait{background:var(--s1)} .chip.wait b{color:#5f8a71} .chip.wait span{color:#7ba48c}
+  .chip.none{box-shadow:inset 0 0 0 1px var(--line)} .chip.none b{color:#b9b9bf} .chip.none span{color:#c8c8cd}
+  .chipsum{margin-top:9px;font-size:12px;color:var(--ink-3)}
+  .chipsum b{color:var(--ink-2);font-weight:800}
+
+  /* A안 — 머리 포인트 칩 */
+  .ptchip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;background:var(--s1);font-size:11px;font-weight:900;color:#17663a}
+  .ptchip em{font-style:normal;font-size:11.5px}
+
+  /* 프로그램 타일(진행 흡수) */
+  .tiles{display:grid;gap:8px;margin-top:12px}
+  .tile{display:grid;grid-template-columns:22px minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center;gap:3px 9px;padding:12px 12px 11px;border-radius:13px}
+  .tile .dot{grid-row:1 / span 2;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:900;color:#fff}
+  .tile .nm{font-size:12.5px;font-weight:800}
+  .tile .pc{font-size:12px;font-weight:900;color:var(--ink)}
+  .tile .pc small{margin-left:1px;font-size:9.5px;font-weight:700;color:var(--ink-3)}
+  .tile .pc.none{font-size:10.5px;font-weight:700;color:var(--ink-3)}
+  .tile .bar{grid-column:2 / -1;height:4px;border-radius:99px;background:#fff;overflow:hidden}
+  .tile .bar i{display:block;height:100%;border-radius:99px}
+  .t-m{background:var(--s1)} .t-m .dot{background:var(--p1)} .t-m .bar i{background:var(--p1)}
+  .t-r{background:var(--s2)} .t-r .dot{background:var(--p2)} .t-r .bar i{background:var(--p2)}
+  .t-c{background:var(--s3)} .t-c .dot{background:var(--p3)} .t-c .bar i{background:var(--p3)}
+  .t-p{background:var(--s4)} .t-p .dot{background:var(--p4)} .t-p .bar i{background:var(--p4)}
+
+  /* 새 소식 한 줄 */
+  .news{display:grid;gap:2px;margin-top:10px}
+  .nrow{display:grid;grid-template-columns:26px minmax(0,1fr) auto;align-items:center;gap:9px;padding:11px 2px;border-top:1px solid var(--line)}
+  .nrow:first-child{border-top:0}
+  .nrow .em{width:26px;height:26px;border-radius:8px;background:var(--soft);display:grid;place-items:center;font-size:13px}
+  .nrow .tx{min-width:0}
+  .nrow .tx b{display:block;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nrow .tx small{display:block;font-size:10.5px;font-weight:600;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nrow .ar{font-size:11px;font-weight:800;color:var(--ink-3)}
+  .newsempty{display:flex;align-items:center;gap:7px;margin-top:10px;padding:11px 12px;border-radius:11px;background:var(--soft);font-size:11px;font-weight:700;color:var(--ink-3)}
+
+  /* C안 — 기록 링크 타일 */
+  .rec{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;margin-top:14px;padding:13px 14px;border:1px solid var(--line);border-radius:15px}
+  .rec .l1{display:flex;align-items:baseline;gap:5px}
+  .rec .l1 b{font-size:20px;font-weight:900;letter-spacing:-.03em;color:#17663a}
+  .rec .l1 span{font-size:11px;font-weight:800;color:#3f7a58}
+  .rec .l2{margin-top:2px;font-size:10.5px;font-weight:700;color:var(--ink-3)}
+  .rec .ar{font-size:15px;font-weight:900;color:#c3c3c9}
+  .bigbtn{display:grid;place-items:center;margin-top:12px;min-height:44px;border-radius:12px;background:var(--p1);color:#fff;font-size:12.5px;font-weight:900}
+
+  /* 하단 안내 */
+  .note{margin-top:12px;padding:10px 12px;border-radius:10px;background:#f7f8fa;font-size:10.5px;font-weight:600;line-height:1.6;color:#6b7280}
+  .note b{color:#374151}
+</style>
+</head>
+<body>
+<div class="mockbar"><div class="in"><b>홈 루트 · 「나의 도전 현황」 아래 카드 배치 3안</b><span>2026-11-23 · UX 검토안 · 오늘의 말씀 위는 그대로</span></div></div>
+
+<div class="stageWrap">
+
+  <!-- ════════ A안 ════════ -->
+  <div class="col" id="colA">
+    <p class="cap">A안 · <b>타일 흡수형</b> — 홈 카드 2장으로 축소
+      <small>진행률을 프로그램 타일 안으로 흡수해 중복을 없앱니다. 포인트는 카드 머리의 작은 칩으로 내리고, 참여자 숫자는 홈에서 뺍니다.</small>
+    </p>
+
+    <section class="card">
+      <div class="hd">
+        <h3>오늘의 도전</h3>
+        <a class="ptchip" href="#"><em aria-hidden="true">🌿</em>1,050점 · 나무 ›</a>
+      </div>
+      <div class="chips">
+        <div class="chip ok"><b>말씀</b><span>완료</span></div>
+        <div class="chip wait"><b>퀴즈</b><span>대기중</span></div>
+        <div class="chip wait"><b>기도</b><span>대기중</span></div>
+        <div class="chip none"><b>암송</b><span>—</span></div>
+      </div>
+      <p class="chipsum">오늘 미션 <b class="num">1/3</b> · 이번 주 <b class="num">5회</b></p>
+    </section>
+
+    <section class="card">
+      <div class="hd"><h3>도전 프로그램</h3><span class="more">4개</span></div>
+      <div class="tiles">
+        <a class="tile t-m" href="#"><span class="dot">01</span><span class="nm">성경미션</span><span class="pc num">1/3</span><span class="bar" aria-hidden="true"><i style="width:33%"></i></span></a>
+        <a class="tile t-r" href="#"><span class="dot">02</span><span class="nm">성경통독</span><span class="pc num">34.7<small>%</small></span><span class="bar" aria-hidden="true"><i style="width:34.7%"></i></span></a>
+        <a class="tile t-c" href="#"><span class="dot">03</span><span class="nm">성경필사</span><span class="pc num">12.3<small>%</small></span><span class="bar" aria-hidden="true"><i style="width:12.3%"></i></span></a>
+        <a class="tile t-p" href="#"><span class="dot">04</span><span class="nm">기도365</span><span class="pc none">시작 전</span><span class="bar" aria-hidden="true"><i style="width:0%"></i></span></a>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="hd"><h3>새 소식</h3><a class="more" href="#">모두 보기 ›</a></div>
+      <div class="news">
+        <a class="nrow" href="#"><span class="em" aria-hidden="true">🎁</span><span class="tx"><b>민지 · 준우 선물 준비 중</b><small>샀어요 · 아직 전달 전</small></span><span class="ar">›</span></a>
+        <a class="nrow" href="#"><span class="em" aria-hidden="true">💌</span><span class="tx"><b>가족팀 초대가 왔어요</b><small>김은혜 선생님이 초대했어요</small></span><span class="ar">›</span></a>
+      </div>
+    </section>
+    <p class="note">소식이 없으면 <b>카드를 통째로 숨깁니다</b>(빈 카드 금지). 선물·가족팀은 각각 전체 화면으로 연결만.</p>
+  </div>
+
+  <!-- ════════ B안 ════════ -->
+  <div class="col" id="colB">
+    <p class="cap">B안 · <b>현황 유지 + 소식 통일</b> — 지금 모양에서 다이어트
+      <small>포인트 띠는 그대로 두고 중복인 진행 줄·참여자 숫자만 뺍니다. 선물·가족팀은 「새 소식」 한 카드로 묶습니다.</small>
+    </p>
+
+    <section class="card">
+      <div class="hd"><h3>나의 도전 현황</h3><a class="more" href="#">더보기 ›</a></div>
+      <div class="band">
+        <div class="top">
+          <div><span class="lb">나의 포인트</span><span class="v"><b class="num">1,050</b><span>점</span></span></div>
+          <div class="right"><span class="badge"><i aria-hidden="true">🌿</i>성장 3단계 · 나무</span><small>1,300점까지 <b class="num">250점</b></small></div>
+        </div>
+        <div class="steps" aria-hidden="true"><u class="on"></u><u class="on"></u><u class="on"></u><u></u></div>
+        <div class="names"><span class="past">씨앗</span><span class="past">새싹</span><span class="now">나무</span><span>숲</span></div>
+      </div>
+      <div class="chips">
+        <div class="chip ok"><b>말씀</b><span>완료</span></div>
+        <div class="chip wait"><b>퀴즈</b><span>대기중</span></div>
+        <div class="chip wait"><b>기도</b><span>대기중</span></div>
+        <div class="chip none"><b>암송</b><span>—</span></div>
+      </div>
+      <p class="chipsum">오늘 미션 <b class="num">1/3</b> · 이번 주 <b class="num">5회</b></p>
+    </section>
+
+    <section class="card">
+      <div class="hd"><h3>도전 프로그램</h3><span class="more">4개</span></div>
+      <div class="tiles">
+        <a class="tile t-m" href="#"><span class="dot">01</span><span class="nm">성경미션</span><span class="pc num">1/3</span><span class="bar" aria-hidden="true"><i style="width:33%"></i></span></a>
+        <a class="tile t-r" href="#"><span class="dot">02</span><span class="nm">성경통독</span><span class="pc num">34.7<small>%</small></span><span class="bar" aria-hidden="true"><i style="width:34.7%"></i></span></a>
+        <a class="tile t-c" href="#"><span class="dot">03</span><span class="nm">성경필사</span><span class="pc num">12.3<small>%</small></span><span class="bar" aria-hidden="true"><i style="width:12.3%"></i></span></a>
+        <a class="tile t-p" href="#"><span class="dot">04</span><span class="nm">기도365</span><span class="pc none">시작 전</span><span class="bar" aria-hidden="true"><i style="width:0%"></i></span></a>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="hd"><h3>새 소식</h3><a class="more" href="#">모두 보기 ›</a></div>
+      <div class="news">
+        <a class="nrow" href="#"><span class="em" aria-hidden="true">🎁</span><span class="tx"><b>민지 · 준우 선물 준비 중</b><small>샀어요 · 아직 전달 전</small></span><span class="ar">›</span></a>
+        <a class="nrow" href="#"><span class="em" aria-hidden="true">💌</span><span class="tx"><b>가족팀 초대가 왔어요</b><small>김은혜 선생님이 초대했어요</small></span><span class="ar">›</span></a>
+        <a class="nrow" href="#"><span class="em" aria-hidden="true">👨‍👩‍👧</span><span class="tx"><b>우리 가족팀 · 1,240점</b><small>다음 가족 축하까지 260점</small></span><span class="ar">›</span></a>
+      </div>
+    </section>
+    <p class="note">현황 카드의 <b>진행 줄 3개 + 참여자 숫자</b>를 뺀 만큼 스크롤이 짧아집니다. 가족팀은 초대가 있으면 소식 맨 위로.</p>
+  </div>
+
+  <!-- ════════ C안 ════════ -->
+  <div class="col" id="colC">
+    <p class="cap">C안 · <b>행동 우선</b> — 홈은 "지금 할 일"만, 기록은 링크
+      <small>미션 칸 + 큰 버튼 하나, 프로그램 타일. 포인트·성장·진행률·참여자·선물은 기록 화면으로 모으고 홈은 한 줄 링크만.</small>
+    </p>
+
+    <section class="card">
+      <div class="hd"><h3>오늘 할 일</h3><span class="more num">1 / 3</span></div>
+      <div class="chips">
+        <div class="chip ok"><b>말씀</b><span>완료</span></div>
+        <div class="chip wait"><b>퀴즈</b><span>대기중</span></div>
+        <div class="chip wait"><b>기도</b><span>대기중</span></div>
+        <div class="chip none"><b>암송</b><span>—</span></div>
+      </div>
+      <a class="bigbtn" href="#">퀴즈 풀고 3점 받기</a>
+    </section>
+
+    <section class="card">
+      <div class="hd"><h3>도전 프로그램</h3><span class="more">4개</span></div>
+      <div class="tiles">
+        <a class="tile t-m" href="#"><span class="dot">01</span><span class="nm">성경미션</span><span class="pc num">1/3</span><span class="bar" aria-hidden="true"><i style="width:33%"></i></span></a>
+        <a class="tile t-r" href="#"><span class="dot">02</span><span class="nm">성경통독</span><span class="pc num">34.7<small>%</small></span><span class="bar" aria-hidden="true"><i style="width:34.7%"></i></span></a>
+        <a class="tile t-c" href="#"><span class="dot">03</span><span class="nm">성경필사</span><span class="pc num">12.3<small>%</small></span><span class="bar" aria-hidden="true"><i style="width:12.3%"></i></span></a>
+        <a class="tile t-p" href="#"><span class="dot">04</span><span class="nm">기도365</span><span class="pc none">시작 전</span><span class="bar" aria-hidden="true"><i style="width:0%"></i></span></a>
+      </div>
+    </section>
+
+    <a class="rec" href="#">
+      <span>
+        <span class="l1"><em aria-hidden="true" style="font-style:normal">🌿</em><b class="num">1,050</b><span>점 · 나무</span></span>
+        <span class="l2">통독 34.7% · 필사 12.3% · 선물 2명 준비 중</span>
+      </span>
+      <span class="ar" aria-hidden="true">›</span>
+    </a>
+    <p class="note">홈 카드 2장 + 링크 1줄. 기록은 <b>/{부서}/points</b> 한 곳에 모으고, 선물은 그 안에서 다시 연결합니다.</p>
+  </div>
+
+</div>
+<style>
+  /* B안 포인트 띠(구현 그대로) */
+  .band{margin-top:12px;padding:13px 14px 12px;border-radius:15px;background:var(--s1)}
+  .band .top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .band .lb{display:block;font-size:11.5px;font-weight:800;color:#5f8a71}
+  .band .v{display:flex;align-items:baseline;gap:4px;margin-top:1px}
+  .band .v b{font-size:28px;font-weight:900;letter-spacing:-.04em;line-height:1.05;color:#17663a}
+  .band .v > span{font-size:12.5px;font-weight:800;color:#3f7a58}
+  .band .right{flex:none;text-align:right}
+  .band .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;background:#fff;font-size:11px;font-weight:900;color:#17663a;white-space:nowrap}
+  .band .badge i{font-style:normal}
+  .band .right small{display:block;margin-top:4px;font-size:10.5px;font-weight:700;line-height:1.4;color:#5f8a71}
+  .band .right small b{font-weight:900;color:#17663a}
+  .band .steps{display:flex;gap:5px;margin-top:10px}
+  .band .steps u{flex:1;height:5px;border-radius:99px;background:#d6e9dd;display:block}
+  .band .steps u.on{background:var(--p1)}
+  .band .names{display:flex;justify-content:space-between;margin-top:5px;font-size:9.5px;font-weight:700;color:#8fb8a2}
+  .band .names .past{color:#5f9c78}
+  .band .names .now{font-weight:900;color:#17663a}
+</style>
+</body>
+</html>
