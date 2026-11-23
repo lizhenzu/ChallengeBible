@@ -1,0 +1,78 @@
+@using ChallengeBible.Web.Services
+@model ChallengeCardVm
+@* 나의 도전 현황 통합 카드(2026-11-23 사용자 확정 · 시안 docs/design/시안/홈-나의도전-통합카드-단독시안.html).
+   오늘 미션 4칸(완료=초록 바탕·흰 글자, 대기중=옅은 초록) → 프로그램 진행 줄(통독 · 필사 · 기도365) → 전체 참여자 → 포인트 · 순위 · 연속.
+   부서 홈(`/{slug}`)과 첫 화면(`/`)이 같은 부품을 쓴다. *@
+@{
+    var card = Model.Card;
+}
+<section class="vb-stat" id="vb-stat" aria-labelledby="vbSt">
+    <div class="vb-stat-h">
+        <h3 id="vbSt">나의 도전 현황</h3>
+        @if (Model.MoreHref is { } more)
+        {
+            <a class="vb-more" href="@more">더보기
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+            </a>
+        }
+    </div>
+
+    @if (Model.Guest || card is null)
+    {
+        <div class="vb-guest">
+            <b>로그인하면 내 기록이 보여요</b>
+            <span>오늘 미션 · 성경통독 · 성경필사 · 기도365</span>
+            <a href="@(Model.LoginTo ?? "/account/login")">로그인</a>
+        </div>
+    }
+    else
+    {
+        @if (card.Chips.Count > 0)
+        {
+            <div class="vb-chips" role="list" aria-label="오늘 미션">
+                @foreach (var c in card.Chips)
+                {
+                    <div class="vb-chip@(c.Done ? " ok" : c.Has ? " wait" : " none")" role="listitem">
+                        <b>@c.Label</b>
+                        <span>@c.State</span>
+                    </div>
+                }
+            </div>
+            <p class="vb-chipsum"><span>오늘 미션</span> <b class="num">@card.Done/@card.Total</b> · <span>이번 주 참여</span> <b class="num">@(card.WeekCount)회</b></p>
+        }
+
+        @if (card.Rows.Count > 0)
+        {
+            <div class="vb-prog">
+                @foreach (var r in card.Rows)
+                {
+                    <a class="p" href="@Model.Href(r.Key)">
+                        <span class="nm"><i class="c-@r.Key" aria-hidden="true"></i>@r.Label</span>
+                        @if (r.Started)
+                        {
+                            <span class="pc num">@ChallengeCardService.Width(r.Percent)<small>%</small></span>
+                            <span class="bar" aria-hidden="true"><i class="c-@r.Key" style="width:@ChallengeCardService.Width(r.Percent)%"></i></span>
+                            <span class="sub num">@r.Sub</span>
+                        }
+                        else
+                        {
+                            <span class="pc none">시작 전</span>
+                            <span class="start"><span>@r.Sub</span><b>시작하기 ›</b></span>
+                        }
+                    </a>
+                }
+            </div>
+        }
+
+        <div class="vb-deptnum">
+            <div><b class="num">@card.Members.ToString("N0")<small>명</small></b><span>전체 참여자</span></div>
+            <div><b class="num">@card.TodayPeople.ToString("N0")<small>명</small></b><span>오늘 참여</span></div>
+        </div>
+
+        <div class="vb-cardfoot">
+            <span>나의 포인트 <b class="num">@card.Points.ToString("N0")점</b></span><span class="sep">·</span>
+            <span>순위 <b class="num">@(card.Rank is { } rk ? $"{rk}위" : "—")</b></span><span class="sep">·</span>
+            <span>연속 <b class="num">@(card.Streak)일</b></span>
+        </div>
+    }
+</section>

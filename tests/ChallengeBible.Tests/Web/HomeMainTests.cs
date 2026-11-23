@@ -145,6 +145,33 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("오늘 미션</div>", home);                       // 현황에서도 뺀다
     }
 
+    [Fact]   // ADR 0133 — 통합 카드: 프로그램 진행 줄
+    public async Task 나의_도전_현황_카드에_통독_필사_진행_줄이_보인다()
+    {
+        var (c, _) = await Member("cheolsu", Roles.Participant);
+        var home = await c.GetStringAsync("/jamsil-kids");
+        Assert.Contains("class=\"vb-chips\"", home);                          // 오늘 미션 칸
+        Assert.Contains("class=\"vb-chip wait\"", home);                      // 아직 안 한 칸 = 대기중(옅은 초록 바탕)
+        Assert.Contains("<span>대기중</span>", home);                          // 체크 표시 대신 글자
+        Assert.Contains("class=\"vb-prog\"", home);                           // 진행 줄
+        Assert.Contains("성경통독", home);                                     // 통독 줄
+        Assert.Contains("성경필사", home);                                     // 필사 줄
+        Assert.Contains("시작 전", home);                                      // 아직 시작하지 않음
+        Assert.Contains("시작하기 ›", home);
+        Assert.DoesNotContain("기도365</span>", home);                         // 학생에게는 365 기도 줄 없음(ADR 0106)
+        Assert.Contains("class=\"vb-cardfoot\"", home);                        // 포인트 · 순위 · 연속
+    }
+
+    [Fact]   // ADR 0133 — 교사는 365 기도 줄이 함께 보인다
+    public async Task 교사_나의_도전_현황_카드에는_기도365_줄도_있다()
+    {
+        ContentSeed.Prayer(_db, Jan5);
+        var (c, _) = await Member("eunhye", Roles.Teacher);
+        var home = await c.GetStringAsync("/jamsil-kids");
+        Assert.Contains(">기도365</span>", home);
+        Assert.Contains(" / 366일</span>", home);
+    }
+
     [Fact]
     public async Task 소속이_둘이면_내_계정에서_부서를_고르고_홈_맨_아래에는_부서_바꾸기가_없다()
     {

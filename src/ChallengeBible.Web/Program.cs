@@ -63,6 +63,7 @@ builder.Services.AddScoped<TenantContentService>();
 builder.Services.AddScoped<RankingService>();
 builder.Services.AddScoped<RosterService>();
 builder.Services.AddScoped<HomeService>();
+builder.Services.AddScoped<ChallengeCardService>();   // 나의 도전 현황 통합 카드(2026-11-23 사용자)
 builder.Services.AddScoped<LandingService>();
 builder.Services.AddScoped<LobbyService>();
 builder.Services.AddScoped<BookOverviewService>();

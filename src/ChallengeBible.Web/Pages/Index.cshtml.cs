@@ -14,7 +14,7 @@ namespace ChallengeBible.Web.Pages;
 /// </summary>
 public class IndexModel(AccountService accounts, TenantClock clock, LandingService landing, DeptAdminLoginService deptAdmins,
     DeptStudentLoginService deptStudents, TenantResolver tenants, TenantContext tenant,
-    FamilyTeamService teams, FamilyJoinService familyJoin, RuleService rules) : PageModel, ITitled
+    FamilyTeamService teams, FamilyJoinService familyJoin, RuleService rules, HomeService home, ChallengeCardService cards) : PageModel, ITitled
 {
     public string Title => "";
     /// <summary>[관리자 로그인] 아래 부서 관리자 버튼(R-364).</summary>
@@ -42,6 +42,11 @@ public class IndexModel(AccountService accounts, TenantClock clock, LandingServi
     public bool FamilyCanJoin { get; private set; }
     /// <summary>가족팀 카드를 그릴 수 있는 상태인지(부서 하나 · 미션 켜짐 · 규칙 Features.FamilyTeam).</summary>
     public bool FamilyOn { get; private set; }
+
+    /// <summary>나의 도전 현황 통합 카드(2026-11-23 사용자 확정). 하나뿐인 부서의 내 기록으로 채운다.</summary>
+    public ChallengeCard? Card { get; private set; }
+    /// <summary>그 부서 주소(카드 링크). 카드가 없으면 null.</summary>
+    public string? CardSlug { get; private set; }
 
     /// <summary>초대 배너 "다음에 할래요"(R-212): 오늘은 숨기고 내일 다시 보인다.</summary>
     public async Task<IActionResult> OnPostSnoozeInvitesAsync(CancellationToken ct)
@@ -73,6 +78,9 @@ public class IndexModel(AccountService accounts, TenantClock clock, LandingServi
             {
                 DrawerTenant = tenant;
                 await LoadFamilyAsync(ct);
+                var data = await home.GetAsync(ct);
+                Card = await cards.GetAsync(data, User.IsPlatformAdmin(), ct);
+                CardSlug = slug;
             }
         }
         return Page();

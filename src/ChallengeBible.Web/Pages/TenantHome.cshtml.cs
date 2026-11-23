@@ -14,7 +14,7 @@ namespace ChallengeBible.Web.Pages;
 /// </summary>
 public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, FamilyJoinService familyJoin, HomeService home, AccountService accounts,
     PhotoService photos, TodoService todo, Prayer365Service prayer365, MessageService msgs,
-    BirthdayGiftService birthdays, RankingService rankings) : PageModel, ITitled
+    BirthdayGiftService birthdays, ChallengeCardService cards) : PageModel, ITitled
 {
     /// <summary>로그인이 남기는 표식. 새 쪽지 팝업을 로그인 직후 한 번 띄우는 데 쓴다(ADR 0112).</summary>
     public const string MsgBandKey = "msg-band";
@@ -50,8 +50,8 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     public BirthdayGiftView? BirthdayPopup { get; private set; }
     /// <summary>365 기도는 학생 · 새친구에게 보이지 않는다(ADR 0106). 홈에서는 아이콘 노출만 판단한다.</summary>
     public bool PrayerVisible { get; private set; }
-    /// <summary>시즌 순위(내 순위). 참여자가 아니거나 순위가 꺼졌으면 null.</summary>
-    public int? MyRank { get; private set; }
+    /// <summary>나의 도전 현황 통합 카드(2026-11-23 사용자 확정): 오늘 미션 · 통독 · 필사 · 기도365 · 포인트. 손님이면 null.</summary>
+    public ChallengeCard? Card { get; private set; }
 
     /// <summary>생일 팝업 "다음에 할래요" — 내일 · 3일 · 5일 뒤(R-346).</summary>
     public async Task<IActionResult> OnPostSnoozeBirthdayAsync(int days, CancellationToken ct)
@@ -110,12 +110,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
         }
 
         PrayerVisible = prayer365.CanSee(User.IsPlatformAdmin());
-
-        if (Data.Participant && Data.SeasonPoints > 0 && Data.Rules.Features.Ranking)
-        {
-            var rank = await rankings.GetAsync(ct);
-            if (rank.Enabled) MyRank = rank.Rows.FirstOrDefault(r => r.Me)?.Rank;
-        }
+        Card = await cards.GetAsync(Data, User.IsPlatformAdmin(), ct);
 
         if (tenant.IsLobby)
             Waiting = (await accounts.MyMembershipsAsync(me, ct))

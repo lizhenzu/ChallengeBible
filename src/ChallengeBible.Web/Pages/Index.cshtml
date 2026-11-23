@@ -147,16 +147,24 @@
             </section>
         }
 
-        <section class="vb-stat" id="vb-stat" aria-label="함께하는 현황">
-            <h3>올해 함께 읽은 성경</h3>
-            <p class="vb-big num">@st.YearChapters.ToString("N0")<small>장</small></p>
-            <div class="vb-three">
-                <div><b class="num">@st.Tenants<small>곳</small></b><span>함께하는 부서</span></div>
-                <div><b class="num">@st.People<small>명</small></b><span>참여하는 사람</span></div>
-                <div><b class="num">@st.TodayPeople<small>명</small></b><span>오늘 함께한 사람</span></div>
-            </div>
-            <p class="vb-week">최근 7일 참여 <b class="num">@(weekPeople)명</b></p>
-        </section>
+        @* 로그인한 사람(부서 하나): 나의 도전 현황 통합 카드(2026-11-23 사용자 확정) *@
+        @if (Model.Card is not null)
+        {
+            <partial name="_ChallengeCard" model="new ChallengeCardVm(Model.Card, Model.CardSlug!, false, null)" />
+        }
+        else
+        {
+            <section class="vb-stat" id="vb-stat" aria-label="함께하는 현황">
+                <h3>올해 함께 읽은 성경</h3>
+                <p class="vb-big num">@st.YearChapters.ToString("N0")<small>장</small></p>
+                <div class="vb-three">
+                    <div><b class="num">@st.Tenants<small>곳</small></b><span>함께하는 부서</span></div>
+                    <div><b class="num">@st.People<small>명</small></b><span>참여하는 사람</span></div>
+                    <div><b class="num">@st.TodayPeople<small>명</small></b><span>오늘 함께한 사람</span></div>
+                </div>
+                <p class="vb-week">최근 7일 참여 <b class="num">@(weekPeople)명</b></p>
+            </section>
+        }
     </div>
 
     @* 가족팀(2026-11-23 사용자 · ADR 0132 시안 · docs/design/시안/메인-가족팀-아래-단독시안.html):

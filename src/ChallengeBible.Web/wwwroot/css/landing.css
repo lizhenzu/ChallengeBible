@@ -164,6 +164,51 @@
 .vb-guest b { display: block; font-size: 14px; font-weight: 800; }
 .vb-guest span { display: block; margin-top: 2px; font-size: 12px; color: var(--ink-3); }
 .vb-guest a { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; margin-top: 10px; padding: 0 16px; border-radius: 10px; background: var(--ink); color: #fff; font-size: 13.5px; font-weight: 800; }
+
+/* 나의 도전 현황 통합 카드(2026-11-23 사용자 확정 · ADR 0133 · 시안 docs/design/시안/홈-나의도전-통합카드-단독시안.html)
+   체크 표시 없이 바탕색+글자색으로 완료/대기중을 나타낸다. 완료=초록 바탕·흰 글자, 대기중=옅은 초록 바탕·초록 글자. */
+.vb-chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 14px; }
+.vb-chip { display: grid; justify-items: center; gap: 3px; padding: 11px 2px; border-radius: 12px; text-align: center; }
+.vb-chip b { font-size: 11.5px; font-weight: 800; }
+.vb-chip span { font-size: 9.5px; font-weight: 700; letter-spacing: 0; }
+.vb-chip.ok { background: var(--p1); }
+.vb-chip.ok b { color: #fff; }
+.vb-chip.ok span { color: rgba(255, 255, 255, .78); }
+.vb-chip.wait { background: var(--s1); }
+.vb-chip.wait b { color: #5f8a71; }
+.vb-chip.wait span { color: #7ba48c; }
+.vb-chip.none { background: #fafafb; box-shadow: inset 0 0 0 1px var(--line); }
+.vb-chip.none b { color: #c2c2c8; }
+.vb-chip.none span { color: #c9c9cf; }
+.vb-chipsum { margin-top: 10px; font-size: 12px; color: var(--ink-3); }
+.vb-chipsum b { color: var(--ink-2); font-weight: 800; }
+
+.vb-prog { display: grid; gap: 14px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+.vb-prog a.p { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 8px; color: inherit; }
+.vb-prog .nm { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; color: var(--ink); }
+.vb-prog .nm i { width: 6px; height: 6px; flex: none; border-radius: 2px; display: block; }
+.vb-prog .pc { font-size: 14px; font-weight: 900; color: var(--ink); }
+.vb-prog .pc small { margin-left: 3px; font-size: 10.5px; font-weight: 700; color: var(--ink-3); }
+.vb-prog .bar { grid-column: 1 / -1; height: 6px; margin-top: 7px; border-radius: 99px; background: var(--track); overflow: hidden; }
+.vb-prog .bar i { display: block; height: 100%; border-radius: 99px; }
+.vb-prog .sub { grid-column: 1 / -1; font-size: 10.5px; font-weight: 700; color: var(--ink-3); }
+.vb-prog .pc.none { font-size: 11px; font-weight: 700; color: var(--ink-3); }
+.vb-prog .start { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; padding: 11px 13px; border-radius: 11px; background: var(--soft); font-size: 12px; font-weight: 800; color: var(--ink-2); }
+.vb-prog .start b { font-weight: 900; color: var(--ink); }
+.vb .c-reading { background: var(--p2); }
+.vb .c-copy { background: var(--p3); }
+.vb .c-prayer { background: var(--p4); }
+
+.vb-deptnum { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 16px; padding: 14px 0; border-radius: 14px; background: var(--soft); }
+.vb-deptnum div { text-align: center; padding: 0 6px; }
+.vb-deptnum div + div { border-left: 1px solid #e3e3e7; }
+.vb-deptnum b { display: block; font-size: 22px; font-weight: 900; letter-spacing: -.03em; color: var(--ink); }
+.vb-deptnum b small { margin-left: 1px; font-size: 12px; font-weight: 700; color: var(--ink-2); }
+.vb-deptnum span { display: block; margin-top: 2px; font-size: 11.5px; color: var(--ink-3); }
+
+.vb-cardfoot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-3); }
+.vb-cardfoot b { font-weight: 900; color: var(--ink); }
+.vb-cardfoot .sep { color: #d8d8dd; }
 /* 2026-11-23 사용자: 검색 상자 위 · 아래 여백을 같게 — 위는 .vb-main 의 padding-top(30/56)이라 아래도 같은 값 */
 .vb .hmx-search { margin: 0 0 30px; border-color: var(--line); background: var(--soft); }
 .vb .hmx-search button { background: var(--ink); }
