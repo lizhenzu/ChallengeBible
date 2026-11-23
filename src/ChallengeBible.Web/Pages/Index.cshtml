@@ -28,7 +28,7 @@
     };
 }
 <link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
-<div class="vb">
+<div class="vb vb-landing">
 
 <header class="vb-hero">
     <img class="vb-clover" src="~/icons/clover.svg" alt="" aria-hidden="true" />
@@ -48,7 +48,6 @@
                 @if (Model.Me is { } me)
                 {
                     <a class="hmx-me" href="/account" aria-label="내 계정 · @Ui.Nim(me.Name)">
-                        <span class="av" aria-hidden="true">@Ui.Initial(me.Name)</span>
                         <b>@Ui.Nim(me.Name)</b>
                     </a>
                 }
@@ -68,9 +67,6 @@
                     <span class="bt-2">성경말씀</span>
                 </h1>
                 <p class="vb-tag">4가지 도전, 하나의 말씀.<br />하루 5분, 말씀과 함께 자라요.</p>
-                <div class="vb-pills" aria-label="프로그램">
-                    <span class="pp1">성경미션</span><span class="pp2">성경통독</span><span class="pp3">성경필사</span><span class="pp4">기도365</span>
-                </div>
             </div>
             @* 나의 포인트 링(2026-11-23 사용자 확정 B안 · ADR 0136): 「도전 성경말씀」 오른쪽 빈자리. *@
             @if (Model.Ring is { } ring)
@@ -78,6 +74,10 @@
                 ViewData["RingSize"] = 92;
                 <partial name="_PointRing" model="ring" />
             }
+        </div>
+        @* 알약은 링 줄 아래 전체 폭(2026-11-23 사용자: 링을 키우면 알약이 줄바꿈되므로) *@
+        <div class="vb-pills" aria-label="프로그램">
+            <span class="pp1">성경미션</span><span class="pp2">성경통독</span><span class="pp3">성경필사</span><span class="pp4">기도365</span>
         </div>
     </div>
 </header>

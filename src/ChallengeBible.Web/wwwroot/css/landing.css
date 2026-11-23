@@ -33,6 +33,7 @@
 .person-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 /* 로그인한 사람: 머리말 「000님」 (2026-11-23 사용자) */
 .vb .hmx-me { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; max-width: 156px; padding: 0 10px 0 5px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); }
+.vb .hmx-me:not(:has(.av)) { padding: 0 13px; }   /* 사진이 없으면 「이」 동그라미 없이 이름만(2026-11-23 사용자: 공간 부족) */
 .vb .hmx-me .av { width: 30px; height: 30px; flex: none; border-radius: 50%; background: #ededef; color: var(--ink); font-size: 12px; font-weight: 900; display: grid; place-items: center; overflow: hidden; }
 .vb .hmx-me .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .vb .hmx-me b { font-size: 13.5px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -131,8 +132,8 @@
 }
 @media (max-width: 380px) {
   .vb-date { display: none; }
-  .vb .hmx-me b { display: none; }
-  .vb .hmx-me { padding: 0 5px; }
+  .vb .hmx-me:has(.av) b { display: none; }
+  .vb .hmx-me:has(.av) { padding: 0 5px; }
 }
 
 /* ☰ 메뉴 (design_handoff_home_b(1)) — 부서 하나인 사람은 기존 부서 메뉴판, 그 밖에는 이 손님용 메뉴판 */
@@ -406,3 +407,25 @@
 .vb-gs-row .dots u.on { background: var(--p1); }
 .vb-gs-row .lbl { display: flex; justify-content: space-between; margin-top: 6px; font-size: 10.5px; font-weight: 700; color: var(--ink-3); }
 .vb-gs-note { margin: 0; font-size: 11.5px; font-weight: 600; color: var(--ink-3); text-align: center; }
+
+/* ── 첫 화면(/) 균형 정리(2026-11-23 사용자 확정 · 시안 docs/design/시안/첫화면-링-비교-*.png 1안) ──
+   ① 히어로 아래 가는 줄 삭제 · 「4가지 도전」을 위로  ② 포인트 링 크게 · 문구 덩어리 옆 세로 가운데  ③ 알약은 링 줄 아래 */
+.vb-landing .vb-hero { border-bottom: 0; }
+.vb-landing .vb-hero-in { padding-bottom: 14px; }
+.vb-landing .vb-main { padding-top: 22px; }
+.vb-landing .vb-pills { margin-top: 18px; }
+.vb-landing .vb-hero-row .vb-ring { margin-top: 58px; margin-right: 6px; }
+.vb-landing .vb-hero-row .vb-ring .ring { width: 112px !important; height: 112px !important; }
+.vb-landing .vb-hero-row .vb-ring svg { width: 100%; height: 100%; }
+.vb-landing .vb-hero-row .vb-ring .rb-pts { font-size: 23px; }
+.vb-landing .vb-hero-row .vb-ring .rb-pts i { font-size: 11px; }
+.vb-landing .vb-hero-row .vb-ring .rb-stg { font-size: 11.5px; }
+@media (min-width: 720px) {
+  .vb-landing .vb-hero-in { padding-bottom: 24px; }
+  .vb-landing .vb-main { padding-top: 40px; }
+  .vb-landing .vb-hero-row .vb-ring { margin-top: 94px; margin-right: 110px; }
+  .vb-landing .vb-hero-row .vb-ring .ring { width: 168px !important; height: 168px !important; }
+  .vb-landing .vb-hero-row .vb-ring .rb-pts { font-size: 34px; }
+  .vb-landing .vb-hero-row .vb-ring .rb-pts i { font-size: 14px; }
+  .vb-landing .vb-hero-row .vb-ring .rb-stg { font-size: 13.5px; }
+}
