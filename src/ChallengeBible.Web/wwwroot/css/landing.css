@@ -429,3 +429,21 @@
   .vb-landing .vb-hero-row .vb-ring .rb-pts i { font-size: 14px; }
   .vb-landing .vb-hero-row .vb-ring .rb-stg { font-size: 13.5px; }
 }
+
+/* ── 첫 화면(/) 균형 정리 2차(2026-11-23 사용자 "추천" · 시안 docs/design/시안/첫화면-균형-비교-*.png A안) ──
+   ① 통계 카드가 없을 때(로그인) 「오늘의 말씀」을 전체 폭으로 — 오른쪽 빈칸 없앰  ② 선물 눈금은 가늘고 옅게
+   ③ 네잎 무늬는 머리말(날짜 · 이름) 뒤가 아니라 히어로 오른쪽 아래로  ④ 말씀 문장은 단어 중간에서 줄바꿈하지 않음 */
+.vb-landing .vb-row:not(:has(.vb-stat)) { grid-template-columns: 1fr; }
+.vb-landing .vb-verse blockquote { word-break: keep-all; }
+.vb-landing .vb-galert .mdots { width: 36px; gap: 3px; }
+.vb-landing .vb-galert .mdots u { height: 3px; }
+.vb-landing .vb-galert .mdots u.on { background: #7fc79d; }
+.vb-landing .vb-clover { top: auto; bottom: -70px; right: -40px; width: 230px; }
+@media (min-width: 720px) {
+  .vb-landing .vb-clover { bottom: -90px; right: -30px; width: 340px; }
+}
+/* 링이 있을 때(로그인)는 네잎 무늬가 링 뒤에 겹치지 않게: 데스크톱은 링 오른쪽 바깥으로, 휴대폰은 자리가 없어 숨김 */
+.vb-landing .vb-hero:has(.vb-ring) .vb-clover { display: none; }
+@media (min-width: 720px) {
+  .vb-landing .vb-hero:has(.vb-ring) .vb-clover { display: block; bottom: -70px; right: -150px; width: 300px; }
+}
