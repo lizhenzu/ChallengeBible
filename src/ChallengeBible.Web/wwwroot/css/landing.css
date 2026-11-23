@@ -360,9 +360,12 @@
    클래스는 vb- 접두사 + ga/gs 로 좁혀 site.css 의 .in · .stg · .sum 같은 일반 이름과 부딪히지 않게 한다. */
 .vb-galert { display: flex; align-items: center; gap: 11px; margin-top: 12px; padding: 13px 14px; border: 1px solid var(--line); border-radius: 18px; background: #fff; box-shadow: 0 6px 18px -14px rgba(0,0,0,.4); }
 .vb-galert .ic { flex: none; width: 34px; height: 34px; border-radius: 11px; background: var(--s1); display: grid; place-items: center; font-size: 16px; }
+/* 자식 선택자(>)로만 — 예전 `.tx span` 은 글자 안의 <span class="num"> 까지 block 으로 만들어
+   「선물 / 2 / 명」처럼 한 줄이 세 줄로 쪼개졌다(2026-11-23 버그). */
 .vb-galert .tx { min-width: 0; flex: 1; }
-.vb-galert .tx b { display: block; font-size: 13.5px; font-weight: 900; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.vb-galert .tx span { display: block; margin-top: 1px; font-size: 11px; font-weight: 700; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vb-galert .tx > b { display: block; font-size: 13.5px; font-weight: 900; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vb-galert .tx > span { display: block; margin-top: 1px; font-size: 11px; font-weight: 700; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vb-galert .tx .num { display: inline; }
 .vb-galert .mdots { flex: none; display: flex; flex-direction: column; gap: 4px; width: 56px; }
 .vb-galert .mdots u { height: 5px; border-radius: 99px; background: var(--track); display: block; }
 .vb-galert .mdots u.on { background: var(--p1); }
