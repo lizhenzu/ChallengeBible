@@ -301,4 +301,16 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal(-1, k[3]);   // 관리 없음
         Assert.Contains("href=\"/jamsil-kids/family-team\"", await kid.GetStringAsync("/jamsil-kids"));   // 가족팀은 메뉴로 이동
     }
+
+    [Fact]   // ADR 0136 — 첫 화면(/) 상단에도 포인트 링
+    public async Task 첫화면_상단에_포인트_링이_보이고_나의_도전으로_간다()
+    {
+        var (c, _) = await Member("cheolsu", Roles.Participant);
+        var root = await c.GetStringAsync("/");
+        Assert.Contains("class=\"vb-ring\"", root);                          // 첫 화면 상단 포인트 링
+        Assert.Contains("href=\"/jamsil-kids/challenge\"", root);            // 누르면 「나의 도전」
+        Assert.Contains("<span class=\"stg\">", root);                       // 링 안 성장 단계
+        var anon = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        Assert.DoesNotContain("class=\"vb-ring\"", await anon.GetStringAsync("/"));   // 손님에게는 없다
+    }
 }
