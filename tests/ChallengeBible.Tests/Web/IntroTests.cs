@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
@@ -87,6 +87,14 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
     private static bool GoesToWelcome(HttpResponseMessage r, string slug = "jamsil-kids") =>
         r.StatusCode == HttpStatusCode.Redirect && r.Headers.Location?.ToString() == $"/{slug}/welcome";
 
+    /// <summary>다른 화면(from)에서 링크를 눌러 온 요청(Referer).</summary>
+    private static Task<HttpResponseMessage> FromPage(HttpClient c, string url, string from)
+    {
+        var req = new HttpRequestMessage(HttpMethod.Get, url);
+        req.Headers.Referrer = new Uri("http://localhost" + from);
+        return c.SendAsync(req);
+    }
+
     private async Task<HttpResponseMessage> PostWelcome(HttpClient c, string handler)
     {
         var token = TokenRx().Match(await c.GetStringAsync("/jamsil-kids/welcome")).Groups[1].Value;
@@ -146,9 +154,12 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
 
         var go = await a.GetAsync("/jamsil-kids/welcome?handler=Go");                         // 「성경말씀으로 가기」
         Assert.Equal("/jamsil-kids", go.Headers.Location?.ToString());
-        Assert.Equal(HttpStatusCode.OK, (await a.GetAsync("/jamsil-kids")).StatusCode);       // 이번 방문은 다시 안 보냄
+        Assert.Equal(HttpStatusCode.OK, (await FromPage(a, "/jamsil-kids", "/jamsil-kids/welcome")).StatusCode);     // 소개 화면에서 온 요청은 되돌려 보내지 않는다
+        Assert.Equal(HttpStatusCode.OK, (await FromPage(a, "/jamsil-kids", "/jamsil-kids/bulletin")).StatusCode);    // 주보 · 사진첩 등 그 부서 화면에서 「부서 홈」으로 와도 마찬가지
+        Assert.True(GoesToWelcome(await a.GetAsync("/jamsil-kids")));                         // 버그 회귀(2026-11-23): 「가기」를 눌렀어도 **두 번째 방문**(주소창 · 즐겨찾기)에는 또 나온다
+        Assert.True(GoesToWelcome(await FromPage(a, "/jamsil-kids", "/account/login")));      // 첫 화면 · 로그인에서 들어와도 나온다(그 부서 화면이 아니다)
+        Assert.True(GoesToWelcome(await NewClient().GetAsync("/jamsil-kids")));               // 손님도 들어올 때마다
         var other = await Login("cheolsu");
-        Assert.True(GoesToWelcome(await other.GetAsync("/jamsil-kids")));                     // 「가기」는 계정에 남지 않는다 → 새 기기에선 또 나옴
 
         var later = await PostWelcome(other, "Later");                                         // 1주일 후 다시 보기
         Assert.Equal(HttpStatusCode.Redirect, later.StatusCode);

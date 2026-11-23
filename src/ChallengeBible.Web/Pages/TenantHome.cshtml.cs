@@ -72,9 +72,9 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (TodayScreen && !tenant.IsLobby) return Redirect($"/{tenant.Current.Slug}");
-        // 부서 소개 화면(ADR 0140): 소개 줄이 있는 부서(유년부)는 들어올 때 먼저 보여 준다. 계정이 「1주일 후」 · 「다시 보지 않기」를 골랐거나
-        // 이번 방문에서 「성경말씀으로 가기」를 눌렀으면(쿠키) 건너뛴다. 손님은 계정이 없어 방문마다 한 번.
-        if (!tenant.IsLobby && !TodayScreen && !Request.Cookies.ContainsKey(Welcome.IndexModel.SeenCookie(tenant.Current.Id))
+        // 부서 소개 화면(ADR 0140): 소개 줄이 있는 부서(유년부)는 **밖에서 들어올 때** 먼저 보여 준다(그 부서 화면들 사이를 오갈 때는 안 끼어든다).
+        // 계정이 「1주일 후」 · 「다시 보지 않기」를 골랐으면 건너뛴다. 손님은 계정이 없어 들어올 때마다.
+        if (!tenant.IsLobby && !TodayScreen && !Welcome.IndexModel.IsFromSameDept(Request, tenant.Current.Slug)
             && await intro.ShouldShowAsync(User.UserName(), ct))
             return Redirect($"/{tenant.Current.Slug}/welcome");
         if (User.UserId() is null)

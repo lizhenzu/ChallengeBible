@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
@@ -14,8 +14,14 @@ namespace ChallengeBible.Web.Pages.Welcome;
 /// </summary>
 public class IndexModel(IntroService intro, WorshipService worship, BulletinService bulletins, TenantContext tenant) : PageModel, ITitled, IPublicTenantPage
 {
-    /// <summary>이번 방문에서 소개 화면을 이미 봤다는 표시(브라우저를 닫으면 사라지는 쿠키). 부서마다 따로.</summary>
-    public static string SeenCookie(int tenantId) => $"cb_intro_{tenantId}";
+    /// <summary>**이 부서 화면에서** 옮겨 온 요청인가(Referer 가 같은 주소의 `/{부서}` 또는 `/{부서}/…`).
+    /// 부서 홈은 밖에서 들어올 때(주소창 · 즐겨찾기 · QR · 앱 아이콘 · 첫 화면 · 로그인 · 다른 사이트)만 소개 화면으로 보내고,
+    /// 그 부서 화면들 사이를 오갈 때(소개 화면의 「가기」 · 주보 · 사진첩에서 「부서 홈」)는 끼어들지 않는다.
+    /// (처음엔 「가기」를 누르면 브라우저를 닫을 때까지 건너뛰는 쿠키를 썼는데, 두 번째 방문에도 안 나오는 버그였다 — 2026-11-23 사용자 신고.)</summary>
+    public static bool IsFromSameDept(HttpRequest r, string slug) =>
+        Uri.TryCreate(r.Headers.Referer.ToString(), UriKind.Absolute, out var from)
+        && from.Authority.Equals(r.Host.Value, StringComparison.OrdinalIgnoreCase)
+        && (from.AbsolutePath.Equals($"/{slug}", StringComparison.OrdinalIgnoreCase) || from.AbsolutePath.StartsWith($"/{slug}/", StringComparison.OrdinalIgnoreCase));
 
     public string Title => $"{PlatformTodayService.ShortDept(tenant.Current.Name)} 소개";
     public TenantContext Tenant => tenant;
@@ -34,27 +40,18 @@ public class IndexModel(IntroService intro, WorshipService worship, BulletinServ
         return Page();
     }
 
-    /// <summary>「도전!!! 성경말씀으로 가기」: 이번 방문 동안은 부서 홈이 다시 소개 화면으로 보내지 않는다.</summary>
-    public IActionResult OnGetGo()
-    {
-        MarkSeen();
-        return Redirect($"/{tenant.Current.Slug}");
-    }
+    /// <summary>「도전!!! 성경말씀으로 가기」: 소개 화면에서 온 요청이라 부서 홈이 다시 보내지 않는다(기억하는 것은 없다).</summary>
+    public IActionResult OnGetGo() => Redirect($"/{tenant.Current.Slug}");
 
     public async Task<IActionResult> OnPostLaterAsync(CancellationToken ct)
     {
         if (User.UserName() is { } me) await intro.LaterAsync(me, ct);
-        MarkSeen();
         return Redirect($"/{tenant.Current.Slug}");
     }
 
     public async Task<IActionResult> OnPostNeverAsync(CancellationToken ct)
     {
         if (User.UserName() is { } me) await intro.NeverAsync(me, ct);
-        MarkSeen();
         return Redirect($"/{tenant.Current.Slug}");
     }
-
-    private void MarkSeen() => Response.Cookies.Append(SeenCookie(tenant.Current.Id), "1",
-        new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Lax, Secure = Request.IsHttps, IsEssential = true });
 }
