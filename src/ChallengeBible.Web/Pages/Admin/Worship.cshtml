@@ -37,7 +37,7 @@
                 @if (r is not null)
                 {
                     <button type="submit" class="btn t" formaction="/@slug/admin/worship?handler=Delete&amp;id=@r.Id" formnovalidate onclick="return confirm('이 예배 안내를 지울까요?')">지우기</button>
-                    <small class="ph-muted">마지막으로 고친 때 @r.UpdatedUtc.ToString("yyyy.MM.dd")</small>
+                    @if (r.UpdatedUtc > DateTime.MinValue) { <small class="ph-muted">마지막으로 고친 때 @r.UpdatedUtc.ToString("yyyy.MM.dd")</small> }
                 }
             </div>
         </form>
