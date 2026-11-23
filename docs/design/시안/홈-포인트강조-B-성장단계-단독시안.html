@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>나의 도전 현황 · B안(성장 단계 표시) 시안</title>
+<style>
+  :root{
+    --ink:#1d1d1f; --ink-2:#56565c; --ink-3:#8e8e94;
+    --line:#e7e7ea; --track:#ededef; --paper:#fff; --soft:#f4f4f5;
+    --p1:#1f9d55; --s1:#e8f6ee;
+    --p2:#2f6fe4; --s2:#eaf1fd;
+    --p3:#ea6a1c; --s3:#fdf0e6;
+    --p4:#dc3f8a; --s4:#fcebf3;
+    --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:#e9ebef;color:var(--ink);word-break:keep-all;letter-spacing:-.01em}
+  a{color:inherit;text-decoration:none}
+  .num{font-variant-numeric:tabular-nums}
+
+  .mockbar{position:fixed;left:0;top:0;right:0;z-index:90;height:36px;background:#161c2b;color:#fff;font-size:12.5px;display:flex;align-items:center}
+  .mockbar .in{width:100%;max-width:1240px;margin:0 auto;padding:0 20px;display:flex;justify-content:space-between;gap:10px}
+  .mockbar b{font-weight:800}.mockbar span{opacity:.7}
+
+  .stageWrap{display:flex;gap:26px;align-items:flex-start;padding:60px 20px 40px;flex-wrap:wrap;justify-content:center}
+  .col{width:400px;max-width:100%}
+  .cap{margin:0 0 10px;font-size:13.5px;font-weight:900}
+  .cap small{display:block;margin-top:4px;font-size:11.5px;font-weight:600;line-height:1.6;color:#5b6470}
+  .phone{background:#fff;box-shadow:0 30px 70px -50px rgba(0,0,0,.5);padding:18px 20px 22px;border-radius:6px}
+
+  .card{border:1px solid var(--line);border-radius:20px;padding:20px 18px}
+  .card-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .card-h h3{font-size:13px;font-weight:800;color:var(--ink-3)}
+  .more{font-size:12px;font-weight:700;color:var(--ink-3);display:inline-flex;align-items:center;gap:3px}
+
+  /* ── 포인트 띠(B안) ── */
+  .band{margin-top:14px;padding:14px 15px 13px;border-radius:15px;background:var(--s1)}
+  .band .top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .band .lb{font-size:11.5px;font-weight:800;color:#5f8a71}
+  .band .v{display:flex;align-items:baseline;gap:4px;margin-top:1px}
+  .band .v b{font-size:30px;font-weight:900;letter-spacing:-.04em;line-height:1.05;color:#17663a}
+  .band .v span{font-size:13px;font-weight:800;color:#3f7a58}
+  .band .right{text-align:right;flex:none}
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;background:#fff;font-size:11px;font-weight:900;color:#17663a}
+  .badge i{font-style:normal}
+  .band .right small{display:block;margin-top:4px;font-size:10.5px;font-weight:700;color:#5f8a71;line-height:1.4}
+
+  /* B-1 눈금 4칸 */
+  .dots4{display:flex;gap:5px;margin-top:11px}
+  .dots4 u{flex:1;height:5px;border-radius:99px;background:#d6e9dd;display:block}
+  .dots4 u.on{background:var(--p1)}
+  .names{display:flex;justify-content:space-between;margin-top:5px;font-size:9.5px;font-weight:700;color:#8fb8a2}
+  .names span.now{color:#17663a;font-weight:900}
+  .names span.past{color:#5f9c78}
+
+  /* B-2 단계 사다리 */
+  .ladder{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:12px;position:relative}
+  .ladder .s{text-align:center}
+  .ladder .s .cir{width:24px;height:24px;margin:0 auto;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:900;
+    background:#fff;color:#8fb8a2;box-shadow:inset 0 0 0 1px #d6e9dd}
+  .ladder .s.past .cir{background:#bde3cd;color:#17663a;box-shadow:none}
+  .ladder .s.now .cir{background:var(--p1);color:#fff;box-shadow:0 0 0 3px #fff}
+  .ladder .s b{display:block;margin-top:4px;font-size:9.5px;font-weight:700;color:#8fb8a2}
+  .ladder .s.past b{color:#5f9c78}
+  .ladder .s.now b{color:#17663a;font-weight:900}
+  .ladder::before{content:"";position:absolute;left:12.5%;right:12.5%;top:11px;height:2px;background:#d6e9dd}
+  .ladder .fill{position:absolute;left:12.5%;top:11px;height:2px;background:var(--p1)}
+  .ladder .s{position:relative;z-index:1}
+
+  /* ── 나머지(기존 그대로) ── */
+  .chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:14px}
+  .chip{display:grid;justify-items:center;gap:3px;padding:11px 2px;border-radius:12px;text-align:center}
+  .chip b{font-size:11.5px;font-weight:800}
+  .chip span{font-size:9.5px;font-weight:700}
+  .chip.ok{background:var(--p1)} .chip.ok b{color:#fff} .chip.ok span{color:rgba(255,255,255,.78)}
+  .chip.wait{background:var(--s1)} .chip.wait b{color:#5f8a71} .chip.wait span{color:#7ba48c}
+  .chipsum{margin-top:10px;font-size:12px;color:var(--ink-3)}
+  .chipsum b{color:var(--ink-2);font-weight:800}
+  .prog{display:grid;gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+  .pl{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:8px}
+  .pl .nm{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800}
+  .pl .nm i{width:6px;height:6px;border-radius:2px;flex:none;display:block}
+  .pl .pc{font-size:14px;font-weight:900}
+  .pl .pc small{font-size:10.5px;font-weight:700;color:var(--ink-3);margin-left:3px}
+  .bar{grid-column:1/-1;height:6px;border-radius:99px;background:var(--track);overflow:hidden;margin-top:7px}
+  .bar i{display:block;height:100%;border-radius:99px}
+  .pl .sub{grid-column:1/-1;font-size:10.5px;font-weight:700;color:var(--ink-3)}
+  .deptnum{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:16px;padding:14px 0;border-radius:14px;background:var(--soft)}
+  .deptnum div{text-align:center;padding:0 6px}
+  .deptnum div+div{border-left:1px solid #e3e3e7}
+  .deptnum b{display:block;font-size:22px;font-weight:900;letter-spacing:-.03em}
+  .deptnum b small{margin-left:1px;font-size:12px;font-weight:700;color:var(--ink-2)}
+  .deptnum span{display:block;margin-top:2px;font-size:11.5px;color:var(--ink-3)}
+
+  .notes{margin-top:34px;background:#161c2b;color:#d7dbe1;padding:26px 20px 44px;width:100%}
+  .notes .in{max-width:1240px;margin:0 auto}
+  .notes h2{margin:0 0 10px;font-size:13px;letter-spacing:.16em;color:#8fa3c7}
+  .notes .cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+  .notes h3{font-size:13px;color:#fff;margin:0 0 6px}
+  .notes ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.8}
+  .notes li b{color:#fff}
+  @media (max-width:1240px){ .notes .cols{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="mockbar"><div class="in"><b>나의 도전 현황 · B안 + 성장 단계 표시</b><span>2026-11-23 · 순위 · 연속 삭제</span></div></div>
+
+<div class="stageWrap">
+
+  <!-- B-1 -->
+  <div class="col">
+    <p class="cap">B-1 · 띠 + 눈금 4칸
+      <small>띠 안 오른쪽에 「성장 3단계 · 나무」, 그 아래 4칸 눈금과 단계 이름. 지금 단계만 진한 초록.</small>
+    </p>
+    <div class="phone">
+      <section class="card">
+        <div class="card-h"><h3>나의 도전 현황</h3><a class="more" href="#">더보기 ›</a></div>
+        <div class="band">
+          <div class="top">
+            <div>
+              <div class="lb">나의 포인트</div>
+              <div class="v"><b class="num">1,050</b><span>점</span></div>
+            </div>
+            <div class="right">
+              <span class="badge"><i>🌿</i>성장 3단계 · 나무</span>
+              <small>1,300점까지 <b class="num">250점</b></small>
+            </div>
+          </div>
+          <div class="dots4"><u class="on"></u><u class="on"></u><u class="on"></u><u></u></div>
+          <div class="names"><span class="past">씨앗</span><span class="past">새싹</span><span class="now">나무</span><span>숲</span></div>
+        </div>
+        <div class="chips">
+          <div class="chip ok"><b>말씀</b><span>완료</span></div>
+          <div class="chip wait"><b>퀴즈</b><span>대기중</span></div>
+          <div class="chip wait"><b>기도</b><span>대기중</span></div>
+          <div class="chip wait"><b>암송</b><span>대기중</span></div>
+        </div>
+        <p class="chipsum"><span>오늘 미션</span> <b class="num">1/4</b> · <span>이번 주 참여</span> <b class="num">3회</b></p>
+        <div class="prog">
+          <div class="pl"><span class="nm"><i style="background:var(--p2)"></i>성경통독</span><span class="pc num">34.7<small>%</small></span>
+            <span class="bar"><i style="width:34.7%;background:var(--p2)"></i></span><span class="sub num">412 / 1,189장</span></div>
+          <div class="pl"><span class="nm"><i style="background:var(--p3)"></i>성경필사</span><span class="pc num">12.3<small>%</small></span>
+            <span class="bar"><i style="width:12.3%;background:var(--p3)"></i></span><span class="sub num">3,825 / 31,102절</span></div>
+        </div>
+        <div class="deptnum"><div><b class="num">206<small>명</small></b><span>전체 참여자</span></div><div><b class="num">2<small>명</small></b><span>오늘 참여</span></div></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- B-2 -->
+  <div class="col">
+    <p class="cap">B-2 · 띠 + 단계 사다리
+      <small>같은 띠, 아래는 동그라미 4개 사다리. 지나온 단계는 연한 초록, 지금 단계는 진한 초록 테두리.</small>
+    </p>
+    <div class="phone">
+      <section class="card">
+        <div class="card-h"><h3>나의 도전 현황</h3><a class="more" href="#">더보기 ›</a></div>
+        <div class="band">
+          <div class="top">
+            <div>
+              <div class="lb">나의 포인트</div>
+              <div class="v"><b class="num">1,050</b><span>점</span></div>
+            </div>
+            <div class="right">
+              <span class="badge"><i>🌿</i>나무 단계</span>
+              <small>4단계 중 <b class="num">3</b>번째</small>
+            </div>
+          </div>
+          <div class="ladder">
+            <span class="fill" style="width:50%"></span>
+            <div class="s past"><span class="cir">✓</span><b>씨앗</b></div>
+            <div class="s past"><span class="cir">✓</span><b>새싹</b></div>
+            <div class="s now"><span class="cir">3</span><b>나무</b></div>
+            <div class="s"><span class="cir">4</span><b>숲</b></div>
+          </div>
+        </div>
+        <div class="chips">
+          <div class="chip ok"><b>말씀</b><span>완료</span></div>
+          <div class="chip wait"><b>퀴즈</b><span>대기중</span></div>
+          <div class="chip wait"><b>기도</b><span>대기중</span></div>
+          <div class="chip wait"><b>암송</b><span>대기중</span></div>
+        </div>
+        <p class="chipsum"><span>오늘 미션</span> <b class="num">1/4</b> · <span>이번 주 참여</span> <b class="num">3회</b></p>
+        <div class="prog">
+          <div class="pl"><span class="nm"><i style="background:var(--p2)"></i>성경통독</span><span class="pc num">34.7<small>%</small></span>
+            <span class="bar"><i style="width:34.7%;background:var(--p2)"></i></span><span class="sub num">412 / 1,189장</span></div>
+          <div class="pl"><span class="nm"><i style="background:var(--p3)"></i>성경필사</span><span class="pc num">12.3<small>%</small></span>
+            <span class="bar"><i style="width:12.3%;background:var(--p3)"></i></span><span class="sub num">3,825 / 31,102절</span></div>
+        </div>
+        <div class="deptnum"><div><b class="num">206<small>명</small></b><span>전체 참여자</span></div><div><b class="num">2<small>명</small></b><span>오늘 참여</span></div></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- B-3 -->
+  <div class="col">
+    <p class="cap">B-3 · 마지막 단계(숲)까지 다 자랐을 때
+      <small>지금 화면의 1,901점이 이 경우입니다. 눈금 4칸이 모두 차고 「모든 성장 단계를 넘었어요」.</small>
+    </p>
+    <div class="phone">
+      <section class="card">
+        <div class="card-h"><h3>나의 도전 현황</h3><a class="more" href="#">더보기 ›</a></div>
+        <div class="band">
+          <div class="top">
+            <div>
+              <div class="lb">나의 포인트</div>
+              <div class="v"><b class="num">1,901</b><span>점</span></div>
+            </div>
+            <div class="right">
+              <span class="badge"><i>🌲</i>성장 4단계 · 숲</span>
+              <small>모든 성장 단계를 넘었어요</small>
+            </div>
+          </div>
+          <div class="dots4"><u class="on"></u><u class="on"></u><u class="on"></u><u class="on"></u></div>
+          <div class="names"><span class="past">씨앗</span><span class="past">새싹</span><span class="past">나무</span><span class="now">숲</span></div>
+        </div>
+        <div class="chips">
+          <div class="chip ok"><b>말씀</b><span>완료</span></div>
+          <div class="chip wait"><b>퀴즈</b><span>대기중</span></div>
+          <div class="chip wait"><b>기도</b><span>대기중</span></div>
+          <div class="chip wait"><b>암송</b><span>대기중</span></div>
+        </div>
+        <p class="chipsum"><span>오늘 미션</span> <b class="num">1/4</b> · <span>이번 주 참여</span> <b class="num">1회</b></p>
+        <div class="prog">
+          <div class="pl"><span class="nm"><i style="background:var(--p2)"></i>성경통독</span><span class="pc num">0<small>%</small></span>
+            <span class="bar"><i style="width:1%;background:var(--p2)"></i></span><span class="sub num">0 / 1,189장</span></div>
+          <div class="pl"><span class="nm"><i style="background:var(--p3)"></i>성경필사</span><span class="pc num">0<small>%</small></span>
+            <span class="bar"><i style="width:1%;background:var(--p3)"></i></span><span class="sub num">1 / 31,102절</span></div>
+        </div>
+        <div class="deptnum"><div><b class="num">206<small>명</small></b><span>전체 참여자</span></div><div><b class="num">2<small>명</small></b><span>오늘 참여</span></div></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<section class="notes">
+  <div class="in">
+    <h2>성장 단계 표시 규칙</h2>
+    <div class="cols">
+      <div><h3>B-1 · 눈금 4칸</h3><ul>
+        <li>띠 오른쪽에 <b>「성장 3단계 · 나무」</b> + 남은 점수</li>
+        <li>띠 아래 <b>4칸 눈금</b>, 지나온 칸은 채움</li>
+        <li>가장 작게 · 카드 높이 거의 그대로</li>
+      </ul></div>
+      <div><h3>B-2 · 단계 사다리</h3><ul>
+        <li>띠 오른쪽에 <b>「나무 단계 · 4단계 중 3번째」</b></li>
+        <li>동그라미 사다리 — 지나온 단계는 ✓</li>
+        <li>단계가 눈에 확 들어옴 · 높이가 조금 늘어남</li>
+      </ul></div>
+      <div><h3>B-3 · 마지막 단계</h3><ul>
+        <li>모든 칸이 차고 <b>「모든 성장 단계를 넘었어요」</b></li>
+        <li>남은 점수 대신 축하 문구</li>
+        <li>지금 화면(1,901점)이 이 상태</li>
+      </ul></div>
+    </div>
+    <ul style="margin-top:16px">
+      <li><b>단계 값</b> — 규칙의 성장 단계 그대로: 씨앗 400 · 새싹 900 · 나무 1,300 · 숲 1,700점. 부서가 규칙을 바꾸면 이름 · 개수도 따라 바뀝니다.</li>
+      <li><b>몇 단계인지</b> — 「N단계 · 이름」 (전체 4개 중 N번째). 마지막이면 「모든 성장 단계를 넘었어요」.</li>
+      <li><b>남은 점수</b> — 다음 단계 끝 점수까지 남은 점수(규칙 계산값 그대로).</li>
+      <li><b>삭제</b> — 아래 순위 · 연속 줄은 없앱니다. 오늘 미션 · 진행 줄 · 전체 참여자 · 오늘 참여만 남습니다.</li>
+    </ul>
+  </div>
+</section>
+</body>
+</html>
