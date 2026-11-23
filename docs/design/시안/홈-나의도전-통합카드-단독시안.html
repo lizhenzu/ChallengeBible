@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>홈 · 나의 도전 현황 통합 카드 시안</title>
+<title>홈 · 나의 도전 현황 통합 카드 시안 (A · 완료/대기중 글자형)</title>
 <style>
   :root{
     --ink:#1d1d1f; --ink-2:#56565c; --ink-3:#8e8e94;
@@ -17,7 +17,6 @@
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:var(--sans);background:#e9ebef;color:var(--ink);word-break:keep-all;letter-spacing:-.01em}
   a{color:inherit;text-decoration:none}
-  button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer}
   .num{font-variant-numeric:tabular-nums}
 
   .mockbar{position:fixed;left:0;top:0;right:0;z-index:90;height:36px;background:#161c2b;color:#fff;font-size:12.5px;display:flex;align-items:center}
@@ -28,11 +27,6 @@
   .side{max-width:330px;padding-top:6px}
   .side h1{font-size:20px;font-weight:900}
   .side p{margin-top:8px;font-size:13px;line-height:1.65;color:#5b6470}
-  .variants{display:grid;gap:6px;margin-top:16px}
-  .variants button{display:flex;align-items:center;gap:9px;min-height:42px;padding:0 12px;border:1px solid var(--line);border-radius:11px;background:#fff;font-size:12.5px;font-weight:800;color:#3b4a7d;text-align:left}
-  .variants button.on{border-color:var(--ink);background:#f1f1f3;color:var(--ink)}
-  .variants i{width:22px;height:22px;border-radius:7px;background:#eef1f5;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:900;color:#5b6470;flex:none}
-  .variants button.on i{background:var(--ink);color:#fff}
   .side ul{margin:16px 0 0;padding-left:16px;font-size:12px;line-height:1.8;color:#5b6470}
   .side ul b{color:#222}
 
@@ -40,7 +34,7 @@
   .gut{padding-inline:20px}
 
   /* 위쪽 맥락(첫 화면 축소판) */
-  .ctx{opacity:.55}
+  .ctx{opacity:.5}
   .ctx .top{display:flex;align-items:center;justify-content:space-between;min-height:44px;font-size:13px;font-weight:800;color:var(--ink-2)}
   .ctx .logo{padding:4px 0 10px}
   .ctx .logo b{font-size:20px;font-weight:900;color:var(--ink)}
@@ -53,51 +47,43 @@
   .card-h h2{font-size:13px;font-weight:800;color:var(--ink-3)}
   .card-h .more{font-size:12px;font-weight:700;color:var(--ink-3);display:inline-flex;align-items:center;gap:3px}
 
-  /* 오늘 미션 4칸 */
+  /* 오늘 미션 4칸 — 체크 표시 없이 배경색 + 글자색 + '완료/대기중' */
   .four{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px}
-  .four .m{display:grid;justify-items:center;gap:5px;padding:10px 2px;border-radius:12px;background:var(--soft)}
-  .four .m .dot{width:20px;height:20px;border-radius:50%;border:1.5px solid #d5d5da;display:grid;place-items:center;font-size:11px;font-weight:900;color:#fff}
-  .four .m.done .dot{background:var(--ink);border-color:var(--ink)}
-  .four .m .lb{font-size:11px;font-weight:700;color:var(--ink-2)}
-  .four .m.done .lb{color:var(--ink)}
+  .four .m{display:grid;justify-items:center;gap:3px;padding:11px 2px;border-radius:12px;text-align:center}
+  .four .m .lb{font-size:11.5px;font-weight:800}
+  .four .m .st{font-size:9.5px;font-weight:700;letter-spacing:0}
+  /* 완료: 초록 바탕 · 흰 글자 */
+  .four .m.done{background:var(--p1)}
+  .four .m.done .lb{color:#fff}
+  .four .m.done .st{color:rgba(255,255,255,.78)}
+  /* 대기중: 옅은 초록 바탕 · 초록 글자 */
+  .four .m.wait{background:var(--s1)}
+  .four .m.wait .lb{color:#5f8a71}
+  .four .m.wait .st{color:#7ba48c}
+  /* 없음(그날 콘텐츠 없음) */
+  .four .m.none{background:#fafafb;box-shadow:inset 0 0 0 1px var(--line)}
+  .four .m.none .lb{color:#c2c2c8}
+  .four .m.none .st{color:#c9c9cf}
 
   /* 진행 줄 */
   .prog{display:grid;gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
   .pl{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:8px}
   .pl .nm{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:var(--ink)}
   .pl .nm i{width:6px;height:6px;border-radius:2px;flex:none;display:block}
-  .pl .nm em{font-style:normal;font-size:10.5px;font-weight:700;color:var(--ink-3);margin-left:2px}
+  .pl .sub{font-size:10.5px;font-weight:700;color:var(--ink-3)}
   .pl .pc{font-size:14px;font-weight:900;color:var(--ink)}
   .pl .pc small{font-size:10.5px;font-weight:700;color:var(--ink-3);margin-left:3px}
   .bar{grid-column:1/-1;height:6px;border-radius:99px;background:var(--track);overflow:hidden;margin-top:7px}
-  .bar i{display:block;height:100%;border-radius:99px;background:var(--ink)}
-  .bar.c1 i{background:var(--p1)} .bar.c2 i{background:var(--p2)} .bar.c3 i{background:var(--p3)} .bar.c4 i{background:var(--p4)}
-  .empty{font-size:11px;font-weight:700;color:var(--ink-3)}
+  .bar i{display:block;height:100%;border-radius:99px}
+  .bar.c2 i{background:var(--p2)} .bar.c3 i{background:var(--p3)} .bar.c4 i{background:var(--p4)}
+  .start{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;padding:11px 13px;border-radius:11px;background:var(--soft);font-size:12px;font-weight:800;color:var(--ink-2)}
+  .start b{color:var(--ink);font-weight:900}
 
   /* 아래 줄 */
   .foot{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-3)}
   .foot b{color:var(--ink);font-weight:900}
   .foot .sep{color:#d8d8dd}
 
-  /* B 격자형 */
-  .tri{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
-  .tri .t{display:grid;gap:6px;justify-items:center;padding:14px 4px;border-radius:14px;background:var(--soft)}
-  .tri .t .v{font-size:20px;font-weight:900;letter-spacing:-.03em}
-  .tri .t .v small{font-size:11px;font-weight:800;margin-left:2px}
-  .tri .t .k{font-size:11px;font-weight:700;color:var(--ink-2)}
-  .tri .t .sub{font-size:10px;font-weight:700;color:var(--ink-3)}
-
-  /* C 상세형: 프로그램 4행 */
-  .rows{margin-top:14px;border-top:1px solid var(--line)}
-  .r{display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid var(--line)}
-  .r:last-child{border-bottom:0}
-  .r .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:900}
-  .r .tx b{display:block;font-size:13px;font-weight:800}
-  .r .tx .s{display:block;font-size:10.5px;color:var(--ink-3);margin-top:2px}
-  .r .tx .bar{margin-top:6px}
-  .r .pct{font-size:13px;font-weight:900}
-
-  .hide{display:none}
   .notes{background:#161c2b;color:#d7dbe1;padding:26px 20px 44px;width:100%}
   .notes .in{max-width:920px;margin:0 auto}
   .notes h2{margin:0 0 10px;font-size:13px;letter-spacing:.16em;color:#8fa3c7}
@@ -107,24 +93,19 @@
 </style>
 </head>
 <body>
-<div class="mockbar"><div class="in"><b>홈 · 나의 도전 현황 통합 카드</b><span>2026-11-23 · 모노 톤(.vb)</span></div></div>
+<div class="mockbar"><div class="in"><b>홈 · 나의 도전 현황 통합 카드 (A안 확정)</b><span>2026-11-23 · 초록 완료/대기중 글자형</span></div></div>
 
 <div class="stage">
   <aside class="side">
-    <h1>통합 카드 3안</h1>
-    <p>오늘 미션 · 성경통독률 · 필사율 · 365 기도 진행을 <b>한 카드</b>에 모읍니다. 전부 "내 것"이라 한 자리에 둡니다.</p>
-    <div class="variants">
-      <button type="button" class="on" data-v="a"><i>A</i>진행 줄 3개 (기본 추천)</button>
-      <button type="button" data-v="b"><i>B</i>3칸 격자 (숫자만)</button>
-      <button type="button" data-v="c"><i>C</i>프로그램 4행 (자세히)</button>
-    </div>
+    <h1>A안 · 진행 줄</h1>
+    <p>오늘 미션 4칸 + 성경통독 · 성경필사 · 기도365 진행을 <b>한 카드</b>에 모읍니다.</p>
     <ul>
-      <li><b>오늘 미션</b> — 말씀 · 퀴즈 · 기도 · 암송 4칸(한눈에 오늘 상태)</li>
-      <li><b>성경통독</b> — 읽은 장 / 1,189장</li>
-      <li><b>성경필사</b> — 쓴 절 / 전체 절</li>
-      <li><b>기도365</b> — 기도한 날 / 366일</li>
-      <li><b>아래 줄</b> — 나의 포인트 · 순위 · 연속</li>
-      <li>켜지 않은 프로그램(부서 설정)은 줄에서 빠집니다</li>
+      <li><b>체크 표시 없음</b> — 완료는 <b>초록 바탕 + 흰 글자</b>, 대기중은 <b>옅은 초록 바탕 + 초록 글자</b></li>
+      <li>칸마다 미션 이름 아래 <b>완료 / 대기중</b> 글자</li>
+      <li>그날 콘텐츠가 없으면 <b>—</b> (테두리만)</li>
+      <li>진행 줄: 통독 %(장) · 필사 %(절) · 기도365 %(일)</li>
+      <li>통독을 시작하지 않았으면 <b>아직 시작 전 · 시작하기</b> 한 줄</li>
+      <li>아래 줄: 나의 포인트 · 순위 · 연속</li>
     </ul>
   </aside>
 
@@ -136,15 +117,14 @@
     </div>
 
     <div class="gut">
-      <!-- ══ A · 진행 줄 3개 ══ -->
-      <section class="card" data-v="a">
+      <section class="card">
         <div class="card-h"><h2>나의 도전 현황</h2><a class="more" href="#">더보기 ›</a></div>
 
         <div class="four">
-          <div class="m done"><span class="dot">✓</span><span class="lb">말씀</span></div>
-          <div class="m done"><span class="dot">✓</span><span class="lb">퀴즈</span></div>
-          <div class="m"><span class="dot"></span><span class="lb">기도</span></div>
-          <div class="m"><span class="dot"></span><span class="lb">암송</span></div>
+          <div class="m done"><span class="lb">말씀</span><span class="st">완료</span></div>
+          <div class="m done"><span class="lb">퀴즈</span><span class="st">완료</span></div>
+          <div class="m wait"><span class="lb">기도</span><span class="st">대기중</span></div>
+          <div class="m wait"><span class="lb">암송</span><span class="st">대기중</span></div>
         </div>
 
         <div class="prog">
@@ -152,16 +132,19 @@
             <span class="nm"><i style="background:var(--p2)"></i>성경통독</span>
             <span class="pc num">34.7<small>%</small></span>
             <span class="bar c2"><i style="width:34.7%"></i></span>
+            <span class="sub num" style="grid-column:1/-1">412 / 1,189장 · 1독째</span>
           </div>
           <div class="pl">
             <span class="nm"><i style="background:var(--p3)"></i>성경필사</span>
             <span class="pc num">12.3<small>%</small></span>
             <span class="bar c3"><i style="width:12.3%"></i></span>
+            <span class="sub num" style="grid-column:1/-1">3,825 / 31,102절 · 오늘 20절</span>
           </div>
           <div class="pl">
             <span class="nm"><i style="background:var(--p4)"></i>기도365</span>
             <span class="pc num">62.0<small>%</small></span>
             <span class="bar c4"><i style="width:62%"></i></span>
+            <span class="sub num" style="grid-column:1/-1">227 / 366일 · 연속 12일</span>
           </div>
         </div>
 
@@ -169,61 +152,6 @@
           <span>나의 포인트 <b class="num">1,240점</b></span><span class="sep">·</span>
           <span>순위 <b class="num">7위</b></span><span class="sep">·</span>
           <span>연속 <b class="num">12일</b></span>
-        </div>
-      </section>
-
-      <!-- ══ B · 3칸 격자 ══ -->
-      <section class="card hide" data-v="b">
-        <div class="card-h"><h2>나의 도전 현황</h2><a class="more" href="#">더보기 ›</a></div>
-
-        <div class="four">
-          <div class="m done"><span class="dot">✓</span><span class="lb">말씀</span></div>
-          <div class="m done"><span class="dot">✓</span><span class="lb">퀴즈</span></div>
-          <div class="m"><span class="dot"></span><span class="lb">기도</span></div>
-          <div class="m"><span class="dot"></span><span class="lb">암송</span></div>
-        </div>
-
-        <div class="tri">
-          <div class="t"><span class="v num">34.7<small>%</small></span><span class="k">성경통독</span><span class="sub num">412 / 1,189장</span></div>
-          <div class="t"><span class="v num">12.3<small>%</small></span><span class="k">성경필사</span><span class="sub num">3,825 / 31,102절</span></div>
-          <div class="t"><span class="v num">62<small>%</small></span><span class="k">기도365</span><span class="sub num">227 / 366일</span></div>
-        </div>
-
-        <div class="foot">
-          <span>나의 포인트 <b class="num">1,240점</b></span><span class="sep">·</span>
-          <span>순위 <b class="num">7위</b></span><span class="sep">·</span>
-          <span>연속 <b class="num">12일</b></span>
-        </div>
-      </section>
-
-      <!-- ══ C · 프로그램 4행 ══ -->
-      <section class="card hide" data-v="c">
-        <div class="card-h"><h2>나의 도전 현황</h2><a class="more" href="#">더보기 ›</a></div>
-        <div class="rows">
-          <div class="r">
-            <span class="ic" style="background:var(--s1);color:var(--p1)">미</span>
-            <span class="tx"><b>성경미션</b><span class="s">오늘 2/4 · 이번 주 5회</span></span>
-            <span class="pct num">2/4</span>
-          </div>
-          <div class="r">
-            <span class="ic" style="background:var(--s2);color:var(--p2)">통</span>
-            <span class="tx"><b>성경통독</b><span class="s num">412 / 1,189장 · 1독째</span><span class="bar c2"><i style="width:34.7%"></i></span></span>
-            <span class="pct num">34.7%</span>
-          </div>
-          <div class="r">
-            <span class="ic" style="background:var(--s3);color:var(--p3)">필</span>
-            <span class="tx"><b>성경필사</b><span class="s num">3,825 / 31,102절</span><span class="bar c3"><i style="width:12.3%"></i></span></span>
-            <span class="pct num">12.3%</span>
-          </div>
-          <div class="r">
-            <span class="ic" style="background:var(--s4);color:var(--p4)">기</span>
-            <span class="tx"><b>기도365</b><span class="s num">227 / 366일 · 연속 12일</span><span class="bar c4"><i style="width:62%"></i></span></span>
-            <span class="pct num">62%</span>
-          </div>
-        </div>
-        <div class="foot">
-          <span>나의 포인트 <b class="num">1,240점</b></span><span class="sep">·</span>
-          <span>순위 <b class="num">7위</b></span>
         </div>
       </section>
     </div>
@@ -234,26 +162,14 @@
   <div class="in">
     <h2>이 시안의 결정</h2>
     <ul>
-      <li><b>자리</b> — 첫 화면 · 부서 홈의 "나의 도전 현황" 카드 한 장으로 통합. 가족팀 카드는 그 아래 그대로.</li>
-      <li><b>A(추천)</b> — 오늘 미션 4칸 + 통독 · 필사 · 기도365 진행 줄. 퍼센트가 크게 보여 "얼마나 했는지"가 바로 읽힌다.</li>
-      <li><b>B</b> — 숫자 3칸. 짧지만 장/절/일 같은 근거 숫자를 작게 넣어야 한다.</li>
-      <li><b>C</b> — 프로그램 4행. 미션까지 포함해 모든 도전을 같은 모양으로. 카드가 조금 길다.</li>
-      <li><b>켜지 않은 프로그램</b> — 부서가 끈 것은 줄에서 뺀다(통독 꺼짐 → 통독 줄 없음).</li>
-      <li><b>학생</b> — 365 기도는 보이지 않는다(R-316). 학생은 통독 · 필사만.</li>
-      <li><b>시작 전</b> — 통독을 시작하지 않았으면 "아직 시작 전 · 시작하기" 한 줄로 바꾼다.</li>
+      <li><b>자리</b> — 첫 화면 · 부서 홈의 "나의 도전 현황" 카드 한 장. 가족팀 카드는 그 아래 그대로.</li>
+      <li><b>오늘 미션 4칸</b> — 체크 표시 대신 <b>바탕색 + 글자색</b>. 완료 = 초록 바탕 · 흰 글자 + "완료", 대기중 = 옅은 초록 바탕 · 초록 글자 + "대기중".</li>
+      <li><b>진행 줄</b> — 프로그램 색(통독 파랑 · 필사 주황 · 기도 분홍)은 점과 막대에만. 퍼센트는 검정 굵게.</li>
+      <li><b>근거 숫자</b> — 퍼센트 아래 작은 글자로 장/절/일과 오늘 기록을 붙인다("얼마나 했는지"를 숫자로 확인).</li>
+      <li><b>켜지 않은 프로그램</b> — 부서가 끈 것은 줄에서 뺀다. 학생은 365 기도가 없다(R-316).</li>
+      <li><b>시작 전</b> — 통독을 시작하지 않았으면 막대 대신 "아직 시작 전 · 시작하기" 한 줄.</li>
     </ul>
   </div>
 </section>
-
-<script>
-  var btns = document.querySelectorAll('.variants button');
-  var cards = document.querySelectorAll('.card[data-v]');
-  btns.forEach(function (b) {
-    b.addEventListener('click', function () {
-      btns.forEach(function (x) { x.classList.toggle('on', x === b); });
-      cards.forEach(function (c) { c.classList.toggle('hide', c.dataset.v !== b.dataset.v); });
-    });
-  });
-</script>
 </body>
 </html>
