@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>신규 페이지 「나의 도전」 시안 3안 — 홈 루트 카드 이사</title>
+<style>
+  :root{
+    --ink:#1d1d1f; --ink-2:#56565c; --ink-3:#8e8e94;
+    --line:#e7e7ea; --track:#ededef; --paper:#fff; --soft:#f4f4f5;
+    --p1:#1f9d55; --s1:#e8f6ee; --p2:#2f6fe4; --s2:#eaf1fd; --p3:#ea6a1c; --s3:#fdf0e6; --p4:#dc3f8a; --s4:#fcebf3;
+    --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:#e9ebef;color:var(--ink);word-break:keep-all;letter-spacing:-.01em}
+  a{color:inherit;text-decoration:none}
+  .num{font-variant-numeric:tabular-nums}
+  .mockbar{position:fixed;left:0;top:0;right:0;z-index:90;height:36px;background:#161c2b;color:#fff;font-size:12.5px;display:flex;align-items:center}
+  .mockbar .in{width:100%;max-width:1440px;margin:0 auto;padding:0 20px;display:flex;justify-content:space-between;gap:10px}
+  .mockbar b{font-weight:800}.mockbar span{opacity:.7}
+  .stageWrap{display:flex;gap:26px;align-items:flex-start;padding:60px 20px 50px;flex-wrap:wrap;justify-content:center}
+  .col{width:404px;max-width:100%}
+  .cap{margin:0 0 10px;font-size:13.5px;font-weight:900;line-height:1.45}
+  .cap b{color:#17663a}
+  .cap small{display:block;margin-top:5px;font-size:11.5px;font-weight:600;line-height:1.65;color:#5b6470}
+  .phone{background:#fff;border-radius:10px;box-shadow:0 30px 70px -50px rgba(0,0,0,.5);overflow:hidden}
+
+  /* 페이지 골격 */
+  .pg{background:#fff;padding:0 0 20px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px 10px}
+  .back{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:800;color:var(--ink-2)}
+  .top time{font-size:11.5px;font-weight:700;color:var(--ink-3)}
+  .pghead{padding:2px 18px 0}
+  .pghead h1{font-size:25px;font-weight:900;letter-spacing:-.04em;line-height:1.25}
+  .pghead p{margin-top:5px;font-size:12px;font-weight:600;color:var(--ink-3)}
+  .body{padding:16px 18px 0;display:grid;gap:13px}
+
+  .card{border:1px solid var(--line);border-radius:20px;padding:17px 15px}
+  .hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .hd h3{font-size:12.5px;font-weight:800;color:var(--ink-3)}
+  .more{font-size:11.5px;font-weight:700;color:var(--ink-3)}
+
+  /* 포인트 띠(현행 그대로) */
+  .band{padding:14px 15px 13px;border-radius:15px;background:var(--s1)}
+  .band .t{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .band .lb{display:block;font-size:11.5px;font-weight:800;color:#5f8a71}
+  .band .v{display:flex;align-items:baseline;gap:4px;margin-top:1px}
+  .band .v b{font-size:30px;font-weight:900;letter-spacing:-.04em;line-height:1.05;color:#17663a}
+  .band .v > span{font-size:13px;font-weight:800;color:#3f7a58}
+  .band .r{flex:none;text-align:right}
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;background:#fff;font-size:11px;font-weight:900;color:#17663a;white-space:nowrap}
+  .band .r small{display:block;margin-top:4px;font-size:10.5px;font-weight:700;line-height:1.4;color:#5f8a71}
+  .band .r small b{font-weight:900;color:#17663a}
+  .band .steps{display:flex;gap:5px;margin-top:11px}
+  .band .steps u{flex:1;height:5px;border-radius:99px;background:#d6e9dd;display:block}
+  .band .steps u.on{background:var(--p1)}
+  .band .names{display:flex;justify-content:space-between;margin-top:5px;font-size:9.5px;font-weight:700;color:#8fb8a2}
+  .band .names .past{color:#5f9c78}
+  .band .names .now{font-weight:900;color:#17663a}
+
+  /* 큰 링 히어로 */
+  .hero{display:grid;justify-items:center;gap:10px;padding:16px 15px 15px;border-radius:20px;background:linear-gradient(180deg,#f4fbf7,#fff);border:1px solid var(--line)}
+  .bigring{position:relative}
+  .bigring svg{display:block;transform:rotate(-90deg)}
+  .bigring .track{stroke:#e3efe8;fill:none;stroke-linecap:round}
+  .bigring .arc{stroke:var(--p1);fill:none;stroke-linecap:round}
+  .bigring .in{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:2px;text-align:center}
+  .bigring .p{font-size:30px;font-weight:900;letter-spacing:-.045em;color:#17663a;line-height:1.05}
+  .bigring .p i{font-style:normal;font-size:12px;font-weight:800;color:#3f7a58;margin-left:2px}
+  .bigring .st{font-size:11.5px;font-weight:900;color:#1f9d55}
+  .hero .next{font-size:11px;font-weight:700;color:#5f8a71}
+  .hero .next b{font-weight:900;color:#17663a}
+  .hero .steps{display:flex;gap:5px;width:100%;margin-top:2px}
+  .hero .steps u{flex:1;height:5px;border-radius:99px;background:#d6e9dd;display:block}
+  .hero .steps u.on{background:var(--p1)}
+  .hero .names{display:flex;justify-content:space-between;width:100%;margin-top:-4px;font-size:9.5px;font-weight:700;color:#8fb8a2}
+  .hero .names .past{color:#5f9c78}
+  .hero .names .now{font-weight:900;color:#17663a}
+
+  /* 미션 칸 */
+  .chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:12px}
+  .chip{display:grid;justify-items:center;gap:3px;padding:11px 2px;border-radius:12px;text-align:center}
+  .chip b{font-size:11.5px;font-weight:800}
+  .chip span{font-size:9.5px;font-weight:700}
+  .chip.ok{background:var(--p1)}.chip.ok b{color:#fff}.chip.ok span{color:rgba(255,255,255,.78)}
+  .chip.wait{background:var(--s1)}.chip.wait b{color:#5f8a71}.chip.wait span{color:#7ba48c}
+  .chip.none{box-shadow:inset 0 0 0 1px var(--line)}.chip.none b{color:#b9b9bf}.chip.none span{color:#c8c8cd}
+  .chipsum{margin-top:9px;font-size:11.5px;color:var(--ink-3)}
+  .chipsum b{color:var(--ink-2);font-weight:800}
+
+  /* 진행 줄 */
+  .prog{display:grid;gap:13px;margin-top:12px}
+  .pl{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:2px 8px}
+  .pl .nm{font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:6px}
+  .pl .nm i{width:7px;height:7px;border-radius:50%;display:block}
+  .pl .pc{font-size:13.5px;font-weight:900}
+  .pl .pc small{margin-left:2px;font-size:9.5px;font-weight:700;color:var(--ink-3)}
+  .pl .bar{grid-column:1 / -1;height:5px;border-radius:99px;background:var(--track);overflow:hidden;margin-top:5px}
+  .pl .bar i{display:block;height:100%;border-radius:99px}
+  .pl .sub{grid-column:1 / -1;margin-top:3px;font-size:10px;font-weight:700;color:var(--ink-3)}
+  .pl .pc.none{font-size:10.5px;font-weight:700;color:var(--ink-3)}
+  .c-reading{background:var(--p2)}.c-copy{background:var(--p3)}.c-prayer{background:var(--p4)}
+
+  /* 참여자 숫자 */
+  .deptnum{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:13px 0;border-radius:14px;background:var(--soft)}
+  .deptnum div{text-align:center;padding:0 6px}
+  .deptnum div + div{border-left:1px solid #e3e3e7}
+  .deptnum b{display:block;font-size:20px;font-weight:900;letter-spacing:-.03em}
+  .deptnum b small{margin-left:1px;font-size:11px;font-weight:700;color:var(--ink-2)}
+  .deptnum span{display:block;margin-top:2px;font-size:10.5px;color:var(--ink-3)}
+
+  /* 선물 카드 */
+  .gift{display:grid;gap:8px;margin-top:11px}
+  .g{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 8px;padding:11px 12px;border-radius:12px;background:var(--soft)}
+  .g .who{font-size:12px;font-weight:800}
+  .g .k{font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:#fff;color:var(--ink-2)}
+  .g .what{grid-column:1 / -1;font-size:10.5px;font-weight:700;color:var(--ink-3)}
+  .g .dots{grid-column:1 / -1;display:flex;gap:4px;margin-top:3px}
+  .g .dots u{flex:1;height:4px;border-radius:99px;background:#e2e2e6;display:block}
+  .g .dots u.on{background:var(--p1)}
+
+  /* 가족팀 */
+  .fam{display:flex;align-items:center;gap:10px;margin-top:11px;padding:12px;border-radius:13px;background:var(--soft)}
+  .fam .em{font-size:16px}
+  .fam .tx{min-width:0;flex:1}
+  .fam .tx b{display:block;font-size:12px;font-weight:800}
+  .fam .tx small{display:block;margin-top:2px;font-size:10.5px;font-weight:700;color:var(--ink-3)}
+  .fam .ar{font-size:13px;font-weight:900;color:#c3c3c9}
+
+  /* 요약 타일 */
+  .sum{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .tile{padding:13px 13px 12px;border-radius:15px;border:1px solid var(--line)}
+  .tile small{display:block;font-size:10px;font-weight:800;color:var(--ink-3)}
+  .tile b{display:block;margin-top:3px;font-size:19px;font-weight:900;letter-spacing:-.035em}
+  .tile b i{font-style:normal;font-size:10px;font-weight:800;color:var(--ink-3);margin-left:2px}
+  .tile .sub{display:block;margin-top:3px;font-size:9.5px;font-weight:700;color:var(--ink-3)}
+  .tile.g{background:var(--s1);border-color:#d6e9dd}
+  .tile.g b{color:#17663a}
+  .linkrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 14px;border:1px solid var(--line);border-radius:14px;font-size:12.5px;font-weight:800}
+  .linkrow span{font-size:11px;font-weight:700;color:var(--ink-3)}
+  .hint{margin-top:11px;padding:10px 12px;border-radius:10px;background:#f7f8fa;font-size:10.5px;font-weight:600;line-height:1.65;color:#6b7280}
+  .hint b{color:#374151}
+</style>
+</head>
+<body>
+<div class="mockbar"><div class="in"><b>신규 페이지 「나의 도전」 — 홈 루트 카드 이사 시안 3안</b><span>2026-11-23 · 홈 상단 숫자 링 → 이 페이지</span></div></div>
+
+<div class="stageWrap">
+
+  <!-- ═════ 1안 ═════ -->
+  <div class="col" id="col1">
+    <p class="cap">1안 · <b>링 히어로</b> — 포인트를 가장 크게
+      <small>페이지 맨 위에 큰 링(1,050점 · 나무)과 단계 눈금. 그 아래 오늘 미션 · 프로그램 진행 · 선물 · 가족팀 · 참여자 순서.</small>
+    </p>
+    <div class="phone"><div class="pg">
+      <div class="top"><a class="back" href="#"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>홈으로</a><time>11월 23일 주일</time></div>
+      <div class="pghead"><h1>나의 도전</h1><p>점수 · 성장 · 오늘 미션 · 선물을 한 곳에서</p></div>
+      <div class="body">
+        <div class="hero">
+          <span class="bigring">
+            <svg width="150" height="150" viewBox="0 0 150 150" aria-hidden="true">
+              <circle class="track" cx="75" cy="75" r="66" stroke-width="11"/>
+              <circle class="arc" cx="75" cy="75" r="66" stroke-width="11" stroke-dasharray="415" stroke-dashoffset="274"/>
+            </svg>
+            <span class="in"><span class="p num">1,050<i>점</i></span><span class="st">🌿 나무</span></span>
+          </span>
+          <span class="next">1,300점까지 <b class="num">250점</b></span>
+          <div class="steps" aria-hidden="true"><u class="on"></u><u class="on"></u><u class="on"></u><u></u></div>
+          <div class="names"><span class="past">씨앗</span><span class="past">새싹</span><span class="now">나무</span><span>숲</span></div>
+        </div>
+
+        <section class="card">
+          <div class="hd"><h3>오늘 미션</h3><span class="more num">1 / 3</span></div>
+          <div class="chips">
+            <div class="chip ok"><b>말씀</b><span>완료</span></div>
+            <div class="chip wait"><b>퀴즈</b><span>대기중</span></div>
+            <div class="chip wait"><b>기도</b><span>대기중</span></div>
+            <div class="chip none"><b>암송</b><span>—</span></div>
+          </div>
+          <p class="chipsum">이번 주 참여 <b class="num">5회</b></p>
+        </section>
+
+        <section class="card">
+          <div class="hd"><h3>프로그램 진행</h3><span class="more">3개</span></div>
+          <div class="prog">
+            <a class="pl" href="#"><span class="nm"><i class="c-reading" aria-hidden="true"></i>성경통독</span><span class="pc num">34.7<small>%</small></span><span class="bar" aria-hidden="true"><i class="c-reading" style="width:34.7%"></i></span><span class="sub num">412 / 1,189장 · 1독째</span></a>
+            <a class="pl" href="#"><span class="nm"><i class="c-copy" aria-hidden="true"></i>성경필사</span><span class="pc num">12.3<small>%</small></span><span class="bar" aria-hidden="true"><i class="c-copy" style="width:12.3%"></i></span><span class="sub num">3,825 / 31,102절</span></a>
+            <a class="pl" href="#"><span class="nm"><i class="c-prayer" aria-hidden="true"></i>기도365</span><span class="pc num">62<small>%</small></span><span class="bar" aria-hidden="true"><i class="c-prayer" style="width:62%"></i></span><span class="sub num">227 / 366일</span></a>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="hd"><h3>선물 대상자</h3><a class="more" href="#">전체 보기 ›</a></div>
+          <div class="gift">
+            <div class="g"><span class="who">김민지</span><span class="k">생일</span><span class="what">샀어요 · 아직 전달 전</span><span class="dots" aria-hidden="true"><u class="on"></u><u class="on"></u><u></u></span></div>
+            <div class="g"><span class="who">이준우</span><span class="k">미션</span><span class="what">골랐어요 · 구매 전</span><span class="dots" aria-hidden="true"><u class="on"></u><u></u><u></u></span></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="hd"><h3>우리 가족팀</h3></div>
+          <a class="fam" href="#"><span class="em" aria-hidden="true">👨‍👩‍👧</span><span class="tx"><b>우리 가족팀 · <i class="num">1,240</i>점</b><small>다음 가족 축하까지 260점</small></span><span class="ar" aria-hidden="true">›</span></a>
+        </section>
+
+        <div class="deptnum"><div><b class="num">206<small>명</small></b><span>전체 참여자</span></div><div><b class="num">2<small>명</small></b><span>오늘 참여</span></div></div>
+      </div>
+    </div></div>
+    <p class="hint">홈에서 링을 눌러 들어온 <b>첫 화면이 포인트</b>. 아래로 갈수록 상세해집니다.</p>
+  </div>
+
+  <!-- ═════ 2안 ═════ -->
+  <div class="col" id="col2">
+    <p class="cap">2안 · <b>이사 그대로</b> — 홈 카드를 순서 그대로
+      <small>지금 홈에 있는 카드를 모양·순서까지 그대로 옮깁니다(포인트 띠 → 미션 → 진행 → 선물 → 가족팀 → 참여자). 구현·검증이 가장 빠릅니다.</small>
+    </p>
+    <div class="phone"><div class="pg">
+      <div class="top"><a class="back" href="#"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>홈으로</a><time>11월 23일 주일</time></div>
+      <div class="pghead"><h1>나의 도전</h1><p>홈에서 보던 기록을 그대로 모았어요</p></div>
+      <div class="body">
+        <section class="card">
+          <div class="hd"><h3>나의 포인트</h3><a class="more" href="#">점수 달력 ›</a></div>
+          <div class="band" style="margin-top:11px">
+            <div class="t">
+              <div><span class="lb">올해 포인트</span><span class="v"><b class="num">1,050</b><span>점</span></span></div>
+              <div class="r"><span class="badge"><i aria-hidden="true">🌿</i>성장 3단계 · 나무</span><small>1,300점까지 <b class="num">250점</b></small></div>
+            </div>
+            <div class="steps" aria-hidden="true"><u class="on"></u><u class="on"></u><u class="on"></u><u></u></div>
+            <div class="names"><span class="past">씨앗</span><span class="past">새싹</span><span class="now">나무</span><span>숲</span></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="hd"><h3>오늘 미션</h3><span class="more num">1 / 3</span></div>
+          <div class="chips">
+            <div class="chip ok"><b>말씀</b><span>완료</span></div>
+            <div class="chip wait"><b>퀴즈</b><span>대기중</span></div>
+            <div class="chip wait"><b>기도</b><span>대기중</span></div>
+            <div class="chip none"><b>암송</b><span>—</span></div>
+          </div>
+          <p class="chipsum">이번 주 참여 <b class="num">5회</b></p>
+        </section>
+
+        <section class="card">
+          <div class="hd"><h3>프로그램 진행</h3><span class="more">3개</span></div>
+          <div class="prog">
+            <a class="pl" href="#"><span class="nm"><i class="c-reading" aria-hidden="true"></i>성경통독</span><span class="pc num">34.7<small>%</small></span><span class="bar" aria-hidden="true"><i class="c-reading" style="width:34.7%"></i></span><span class="sub num">412 / 1,189장 · 1독째</span></a>
+            <a class="pl" href="#"><span class="nm"><i class="c-copy" aria-hidden="true"></i>성경필사</span><span class="pc num">12.3<small>%</small></span><span class="bar" aria-hidden="true"><i class="c-copy" style="width:12.3%"></i></span><span class="sub num">3,825 / 31,102절</span></a>
+            <a class="pl" href="#"><span class="nm"><i class="c-prayer" aria-hidden="true"></i>기도365</span><span class="pc num">62<small>%</small></span><span class="bar" aria-hidden="true"><i class="c-prayer" style="width:62%"></i></span><span class="sub num">227 / 366일</span></a>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="hd"><h3>선물 대상자</h3><a class="more" href="#">전체 보기 ›</a></div>
+          <div class="gift">
+            <div class="g"><span class="who">김민지</span><span class="k">생일</span><span class="what">샀어요 · 아직 전달 전</span><span class="dots" aria-hidden="true"><u class="on"></u><u class="on"></u><u></u></span></div>
+            <div class="g"><span class="who">이준우</span><span class="k">미션</span><span class="what">골랐어요 · 구매 전</span><span class="dots" aria-hidden="true"><u class="on"></u><u></u><u></u></span></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="hd"><h3>우리 가족팀</h3></div>
+          <a class="fam" href="#"><span class="em" aria-hidden="true">👨‍👩‍👧</span><span class="tx"><b>우리 가족팀 · <i class="num">1,240</i>점</b><small>다음 가족 축하까지 260점</small></span><span class="ar" aria-hidden="true">›</span></a>
+        </section>
+
+        <div class="deptnum"><div><b class="num">206<small>명</small></b><span>전체 참여자</span></div><div><b class="num">2<small>명</small></b><span>오늘 참여</span></div></div>
+      </div>
+    </div></div>
+    <p class="hint">새 디자인 없이 <b>부품을 그대로 재사용</b> — 홈에서 지운 카드가 여기서 그대로 살아납니다.</p>
+  </div>
+
+  <!-- ═════ 3안 ═════ -->
+  <div class="col" id="col3">
+    <p class="cap">3안 · <b>요약 먼저, 상세는 접기</b>
+      <small>맨 위 2×2 요약 타일(포인트 · 오늘 미션 · 통독 · 필사)만 펼치고, 선물·가족팀·참여자는 「더 보기」 접이식으로 내립니다.</small>
+    </p>
+    <div class="phone"><div class="pg">
+      <div class="top"><a class="back" href="#"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>홈으로</a><time>11월 23일 주일</time></div>
+      <div class="pghead"><h1>나의 도전</h1><p>한눈에 보고, 자세히는 펼쳐서</p></div>
+      <div class="body">
+        <div class="sum">
+          <div class="tile g"><small>나의 포인트</small><b class="num">1,050<i>점</i></b><span class="sub">🌿 나무 · 다음까지 250점</span></div>
+          <div class="tile"><small>오늘 미션</small><b class="num">1<i>/ 3</i></b><span class="sub">퀴즈 · 기도 남았어요</span></div>
+          <div class="tile"><small>성경통독</small><b class="num">34.7<i>%</i></b><span class="sub num">412 / 1,189장</span></div>
+          <div class="tile"><small>성경필사</small><b class="num">12.3<i>%</i></b><span class="sub num">3,825 / 31,102절</span></div>
+        </div>
+
+        <section class="card">
+          <div class="hd"><h3>오늘 미션</h3><span class="more num">1 / 3</span></div>
+          <div class="chips">
+            <div class="chip ok"><b>말씀</b><span>완료</span></div>
+            <div class="chip wait"><b>퀴즈</b><span>대기중</span></div>
+            <div class="chip wait"><b>기도</b><span>대기중</span></div>
+            <div class="chip none"><b>암송</b><span>—</span></div>
+          </div>
+          <p class="chipsum">이번 주 참여 <b class="num">5회</b></p>
+        </section>
+
+        <section class="card">
+          <div class="hd"><h3>성장 단계</h3><a class="more" href="#">점수 달력 ›</a></div>
+          <div class="band" style="margin-top:11px">
+            <div class="t">
+              <div><span class="lb">올해 포인트</span><span class="v"><b class="num">1,050</b><span>점</span></span></div>
+              <div class="r"><span class="badge"><i aria-hidden="true">🌿</i>3단계 · 나무</span><small>1,300점까지 <b class="num">250점</b></small></div>
+            </div>
+            <div class="steps" aria-hidden="true"><u class="on"></u><u class="on"></u><u class="on"></u><u></u></div>
+            <div class="names"><span class="past">씨앗</span><span class="past">새싹</span><span class="now">나무</span><span>숲</span></div>
+          </div>
+        </section>
+
+        <a class="linkrow" href="#">선물 대상자 <span>2명 준비 중 ›</span></a>
+        <a class="linkrow" href="#">우리 가족팀 <span>1,240점 ›</span></a>
+        <a class="linkrow" href="#">우리 부서 <span>206명 · 오늘 2명 ›</span></a>
+      </div>
+    </div></div>
+    <p class="hint">정보 밀도를 낮춘 안 — 세부는 각 화면으로 넘기고 <b>이 페이지는 요약판</b>.</p>
+  </div>
+
+</div>
+</body>
+</html>
