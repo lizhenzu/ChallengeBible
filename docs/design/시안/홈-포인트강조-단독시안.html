@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>나의 도전 현황 · 포인트 강조 시안 (A · B · C)</title>
+<style>
+  :root{
+    --ink:#1d1d1f; --ink-2:#56565c; --ink-3:#8e8e94;
+    --line:#e7e7ea; --track:#ededef; --paper:#fff; --soft:#f4f4f5;
+    --p1:#1f9d55; --s1:#e8f6ee;
+    --p2:#2f6fe4; --s2:#eaf1fd;
+    --p3:#ea6a1c; --s3:#fdf0e6;
+    --p4:#dc3f8a; --s4:#fcebf3;
+    --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:#e9ebef;color:var(--ink);word-break:keep-all;letter-spacing:-.01em}
+  a{color:inherit;text-decoration:none}
+  .num{font-variant-numeric:tabular-nums}
+
+  .mockbar{position:fixed;left:0;top:0;right:0;z-index:90;height:36px;background:#161c2b;color:#fff;font-size:12.5px;display:flex;align-items:center}
+  .mockbar .in{width:100%;max-width:1240px;margin:0 auto;padding:0 20px;display:flex;justify-content:space-between;gap:10px}
+  .mockbar b{font-weight:800}.mockbar span{opacity:.7}
+
+  .stage{display:flex;gap:26px;align-items:flex-start;padding:60px 20px 40px;flex-wrap:wrap;justify-content:center}
+  .col{width:400px;max-width:100%}
+  .cap{margin:0 0 10px;font-size:13.5px;font-weight:900}
+  .cap small{display:block;margin-top:4px;font-size:11.5px;font-weight:600;line-height:1.6;color:#5b6470}
+  .phone{background:#fff;box-shadow:0 30px 70px -50px rgba(0,0,0,.5);padding:18px 20px 22px;border-radius:6px}
+
+  /* 카드 공통 */
+  .card{border:1px solid var(--line);border-radius:20px;padding:20px 18px}
+  .card-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .card-h h3{font-size:13px;font-weight:800;color:var(--ink-3)}
+  .more{font-size:12px;font-weight:700;color:var(--ink-3);display:inline-flex;align-items:center;gap:3px}
+
+  /* 오늘 미션 4칸 */
+  .chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:14px}
+  .chip{display:grid;justify-items:center;gap:3px;padding:11px 2px;border-radius:12px;text-align:center}
+  .chip b{font-size:11.5px;font-weight:800}
+  .chip span{font-size:9.5px;font-weight:700}
+  .chip.ok{background:var(--p1)} .chip.ok b{color:#fff} .chip.ok span{color:rgba(255,255,255,.78)}
+  .chip.wait{background:var(--s1)} .chip.wait b{color:#5f8a71} .chip.wait span{color:#7ba48c}
+  .chipsum{margin-top:10px;font-size:12px;color:var(--ink-3)}
+  .chipsum b{color:var(--ink-2);font-weight:800}
+
+  /* 진행 줄 */
+  .prog{display:grid;gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+  .pl{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:8px}
+  .pl .nm{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800}
+  .pl .nm i{width:6px;height:6px;border-radius:2px;flex:none;display:block}
+  .pl .pc{font-size:14px;font-weight:900}
+  .pl .pc small{font-size:10.5px;font-weight:700;color:var(--ink-3);margin-left:3px}
+  .bar{grid-column:1/-1;height:6px;border-radius:99px;background:var(--track);overflow:hidden;margin-top:7px}
+  .bar i{display:block;height:100%;border-radius:99px}
+  .pl .sub{grid-column:1/-1;font-size:10.5px;font-weight:700;color:var(--ink-3)}
+
+  .deptnum{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:16px;padding:14px 0;border-radius:14px;background:var(--soft)}
+  .deptnum div{text-align:center;padding:0 6px}
+  .deptnum div+div{border-left:1px solid #e3e3e7}
+  .deptnum b{display:block;font-size:22px;font-weight:900;letter-spacing:-.03em}
+  .deptnum b small{margin-left:1px;font-size:12px;font-weight:700;color:var(--ink-2)}
+  .deptnum span{display:block;margin-top:2px;font-size:11.5px;color:var(--ink-3)}
+
+  /* ── A: 맨 위 큰 숫자 ── */
+  .ptA{margin-top:12px}
+  .ptA .lb{font-size:12px;font-weight:800;color:var(--ink-3)}
+  .ptA .v{display:flex;align-items:baseline;gap:4px;margin-top:2px}
+  .ptA .v b{font-size:38px;font-weight:900;letter-spacing:-.045em;line-height:1}
+  .ptA .v span{font-size:14px;font-weight:800;color:var(--ink-2)}
+  .ptA .sub{margin-top:5px;font-size:11.5px;color:var(--ink-3)}
+
+  /* ── B: 옅은 초록 강조 띠 ── */
+  .ptB{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding:14px 15px;border-radius:15px;background:var(--s1)}
+  .ptB .lb{font-size:11.5px;font-weight:800;color:#5f8a71}
+  .ptB .v{display:flex;align-items:baseline;gap:4px;margin-top:1px}
+  .ptB .v b{font-size:30px;font-weight:900;letter-spacing:-.04em;line-height:1.05;color:#17663a}
+  .ptB .v span{font-size:13px;font-weight:800;color:#3f7a58}
+  .ptB .next{text-align:right;font-size:10.5px;font-weight:700;color:#5f8a71;line-height:1.5}
+
+  /* ── C: 숫자 + 성장 막대 ── */
+  .ptC{margin-top:14px}
+  .ptC .row{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .ptC .lb{font-size:12px;font-weight:800;color:var(--ink-3)}
+  .ptC .v{display:flex;align-items:baseline;gap:4px}
+  .ptC .v b{font-size:32px;font-weight:900;letter-spacing:-.045em;line-height:1;color:var(--p1)}
+  .ptC .v span{font-size:13px;font-weight:800;color:#2f7a51}
+  .ptC .bar{margin-top:9px}
+  .ptC .bar i{background:var(--p1)}
+  .ptC .sub{display:flex;justify-content:space-between;margin-top:6px;font-size:10.5px;font-weight:700;color:var(--ink-3)}
+
+  .notes{margin-top:34px;background:#161c2b;color:#d7dbe1;padding:26px 20px 44px;width:100%}
+  .notes .in{max-width:1240px;margin:0 auto}
+  .notes h2{margin:0 0 10px;font-size:13px;letter-spacing:.16em;color:#8fa3c7}
+  .notes .cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+  .notes h3{font-size:13px;color:#fff;margin:0 0 6px}
+  .notes ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.8}
+  .notes li b{color:#fff}
+  @media (max-width:1240px){ .notes .cols{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="mockbar"><div class="in"><b>나의 도전 현황 · 포인트 강조 시안 (A · B · C)</b><span>2026-11-23 · 순위 · 연속 삭제</span></div></div>
+
+<div class="stage">
+
+  <!-- A -->
+  <div class="col">
+    <p class="cap">A안 · 맨 위 큰 숫자
+      <small>카드 머리 바로 아래에 「나의 포인트」 38px. 다른 요소는 손대지 않아 가장 단순합니다.</small>
+    </p>
+    <div class="phone">
+      <section class="card">
+        <div class="card-h"><h3>나의 도전 현황</h3><a class="more" href="#">더보기 ›</a></div>
+        <div class="ptA">
+          <span class="lb">나의 포인트</span>
+          <span class="v"><b class="num">1,901</b><span>점</span></span>
+          <span class="sub">올해 모은 점수예요</span>
+        </div>
+        <div class="chips">
+          <div class="chip ok"><b>말씀</b><span>완료</span></div>
+          <div class="chip wait"><b>퀴즈</b><span>대기중</span></div>
+          <div class="chip wait"><b>기도</b><span>대기중</span></div>
+          <div class="chip wait"><b>암송</b><span>대기중</span></div>
+        </div>
+        <p class="chipsum"><span>오늘 미션</span> <b class="num">1/4</b> · <span>이번 주 참여</span> <b class="num">1회</b></p>
+        <div class="prog">
+          <div class="pl"><span class="nm"><i style="background:var(--p2)"></i>성경통독</span><span class="pc num">0<small>%</small></span>
+            <span class="bar"><i style="width:1%;background:var(--p2)"></i></span><span class="sub num">0 / 1,189장</span></div>
+          <div class="pl"><span class="nm"><i style="background:var(--p3)"></i>성경필사</span><span class="pc num">0<small>%</small></span>
+            <span class="bar"><i style="width:1%;background:var(--p3)"></i></span><span class="sub num">1 / 31,102절</span></div>
+        </div>
+        <div class="deptnum"><div><b class="num">206<small>명</small></b><span>전체 참여자</span></div><div><b class="num">2<small>명</small></b><span>오늘 참여</span></div></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- B -->
+  <div class="col">
+    <p class="cap">B안 · 옅은 초록 강조 띠
+      <small>포인트만 띠 안에 넣어 한 덩어리로. 오른쪽에 「다음 단계까지」를 작게 붙여 목표가 보입니다.</small>
+    </p>
+    <div class="phone">
+      <section class="card">
+        <div class="card-h"><h3>나의 도전 현황</h3><a class="more" href="#">더보기 ›</a></div>
+        <div class="ptB">
+          <div>
+            <div class="lb">나의 포인트</div>
+            <div class="v"><b class="num">1,901</b><span>점</span></div>
+          </div>
+          <div class="next">다음 성장까지<br><b class="num">99점</b> 남았어요</div>
+        </div>
+        <div class="chips">
+          <div class="chip ok"><b>말씀</b><span>완료</span></div>
+          <div class="chip wait"><b>퀴즈</b><span>대기중</span></div>
+          <div class="chip wait"><b>기도</b><span>대기중</span></div>
+          <div class="chip wait"><b>암송</b><span>대기중</span></div>
+        </div>
+        <p class="chipsum"><span>오늘 미션</span> <b class="num">1/4</b> · <span>이번 주 참여</span> <b class="num">1회</b></p>
+        <div class="prog">
+          <div class="pl"><span class="nm"><i style="background:var(--p2)"></i>성경통독</span><span class="pc num">0<small>%</small></span>
+            <span class="bar"><i style="width:1%;background:var(--p2)"></i></span><span class="sub num">0 / 1,189장</span></div>
+          <div class="pl"><span class="nm"><i style="background:var(--p3)"></i>성경필사</span><span class="pc num">0<small>%</small></span>
+            <span class="bar"><i style="width:1%;background:var(--p3)"></i></span><span class="sub num">1 / 31,102절</span></div>
+        </div>
+        <div class="deptnum"><div><b class="num">206<small>명</small></b><span>전체 참여자</span></div><div><b class="num">2<small>명</small></b><span>오늘 참여</span></div></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- C -->
+  <div class="col">
+    <p class="cap">C안 · 숫자 + 성장 막대
+      <small>초록 큰 숫자 + 다음 성장 단계까지 막대. "점수를 모으면 무엇이 되나"를 함께 보여 줍니다.</small>
+    </p>
+    <div class="phone">
+      <section class="card">
+        <div class="card-h"><h3>나의 도전 현황</h3><a class="more" href="#">더보기 ›</a></div>
+        <div class="ptC">
+          <div class="row">
+            <span class="lb">나의 포인트</span>
+            <span class="v"><b class="num">1,901</b><span>점</span></span>
+          </div>
+          <span class="bar"><i style="width:76%"></i></span>
+          <div class="sub"><span>성장 3단계</span><span class="num">2,000점까지 99점</span></div>
+        </div>
+        <div class="chips">
+          <div class="chip ok"><b>말씀</b><span>완료</span></div>
+          <div class="chip wait"><b>퀴즈</b><span>대기중</span></div>
+          <div class="chip wait"><b>기도</b><span>대기중</span></div>
+          <div class="chip wait"><b>암송</b><span>대기중</span></div>
+        </div>
+        <p class="chipsum"><span>오늘 미션</span> <b class="num">1/4</b> · <span>이번 주 참여</span> <b class="num">1회</b></p>
+        <div class="prog">
+          <div class="pl"><span class="nm"><i style="background:var(--p2)"></i>성경통독</span><span class="pc num">0<small>%</small></span>
+            <span class="bar"><i style="width:1%;background:var(--p2)"></i></span><span class="sub num">0 / 1,189장</span></div>
+          <div class="pl"><span class="nm"><i style="background:var(--p3)"></i>성경필사</span><span class="pc num">0<small>%</small></span>
+            <span class="bar"><i style="width:1%;background:var(--p3)"></i></span><span class="sub num">1 / 31,102절</span></div>
+        </div>
+        <div class="deptnum"><div><b class="num">206<small>명</small></b><span>전체 참여자</span></div><div><b class="num">2<small>명</small></b><span>오늘 참여</span></div></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<section class="notes">
+  <div class="in">
+    <h2>세 시안의 차이</h2>
+    <div class="cols">
+      <div><h3>A · 맨 위 큰 숫자</h3><ul>
+        <li>「나의 포인트」 라벨 + <b>38px</b> 숫자</li>
+        <li>아래 한 줄 설명</li>
+        <li>가장 단순 · 카드 높이 그대로</li>
+      </ul></div>
+      <div><h3>B · 옅은 초록 강조 띠</h3><ul>
+        <li>띠 안에 숫자 <b>30px</b></li>
+        <li>오른쪽 「다음 성장까지 N점」</li>
+        <li>포인트만 색으로 분리</li>
+      </ul></div>
+      <div><h3>C · 숫자 + 성장 막대</h3><ul>
+        <li>초록 숫자 <b>32px</b> + 막대</li>
+        <li>다음 단계까지 남은 점수</li>
+        <li>모으면 무엇이 되는지 보임</li>
+      </ul></div>
+    </div>
+    <ul style="margin-top:16px">
+      <li><b>삭제</b> — 아래 줄의 <b>순위</b> · <b>연속</b> 은 없앱니다. 아래 줄 자체가 사라지고, 전체 참여자 · 오늘 참여만 남습니다.</li>
+      <li><b>포인트 자리</b> — 카드 머리 바로 아래(오늘 미션 위). "나의 포인트"가 가장 먼저 읽힙니다.</li>
+      <li><b>숫자</b> — 시즌 점수 그대로(지금 화면의 1,901점). 순위 계산은 화면에서만 빼고 서버 값은 그대로 둡니다.</li>
+    </ul>
+  </div>
+</section>
+</body>
+</html>
