@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>유년부 소개 화면 · 색상 3안</title><style>
+:root{--ink:#1d1d1f;--ink-2:#56565c;--ink-3:#6e6e75;--line:#e7e7ea;--soft:#f4f4f5;--p1:#1f9d55;--s1:#e8f6ee;--p2:#2f6fe4;--s2:#eaf1fd;--p3:#ea6a1c;--s3:#fdf0e6;--p4:#dc3f8a;--s4:#fcebf3;
+ --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:#e9ebef;color:var(--ink);word-break:keep-all;letter-spacing:-.01em}
+a{color:inherit;text-decoration:none}
+.bar{background:#161c2b;color:#fff;font-size:12.5px;height:38px;display:flex;align-items:center;padding:0 22px}
+.stage{display:flex;gap:28px;justify-content:center;align-items:flex-start;padding:30px 18px 46px;flex-wrap:wrap}
+.cap{font-size:14px;font-weight:900;margin-bottom:10px}
+.m{width:400px}.d{width:900px;max-width:100%}
+.page{background:#fff;box-shadow:0 26px 60px -46px rgba(0,0,0,.55);border-radius:8px;overflow:hidden}
+.in{padding:0 20px 22px}.d .in{padding:0 44px 34px}
+.top{display:flex;align-items:center;justify-content:space-between;padding:16px 0 12px}
+.church small{display:block;font-size:11px;color:var(--ink-3);line-height:1.3}.church b{display:block;font-size:15px;font-weight:800;letter-spacing:-.02em}
+.skip{font-size:12.5px;font-weight:700;color:var(--ink-3)}
+/* 대표 사진(관리자가 올림) — 시안은 자리표시 */
+.photo{position:relative;border-radius:20px;overflow:hidden;aspect-ratio:16/10;background:linear-gradient(135deg,#dfe9f7,#eaf4ea 55%,#fdf0e6);display:grid;place-items:center}
+.d .photo{aspect-ratio:21/9}
+.photo span{font-size:12px;font-weight:800;color:#7b8794;background:rgba(255,255,255,.75);padding:6px 12px;border-radius:99px}
+.photo .tag{position:absolute;left:14px;bottom:14px;background:#fff;border-radius:99px;font-size:12px;font-weight:900;padding:6px 12px;color:var(--ink)}
+h1{margin-top:18px;font-size:24px;font-weight:900;letter-spacing:-.035em;line-height:1.3}
+.d h1{font-size:32px;margin-top:24px}
+.intro{margin-top:10px;font-size:14.5px;line-height:1.7;color:var(--ink-2)}
+.d .intro{font-size:16.5px;max-width:640px}
+/* 예배 안내(B안 띠 · 숯색) */
+.wb{margin-top:20px;background:var(--wb);color:var(--wbfg);border:1px solid var(--wbbd,transparent);border-radius:18px;padding:16px 18px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.wb h4{font-size:11.5px;font-weight:800;color:var(--wbsub)}.wb .t{margin-top:6px;font-size:17px;font-weight:900}.wb .p{margin-top:3px;font-size:12.5px;color:var(--wbsub)}
+.wb .map{flex:none;font-size:12px;font-weight:800;background:var(--mapbg);color:var(--mapfg);padding:8px 13px;border-radius:99px}
+/* 주보 · 사진첩 */
+.two{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:18px;padding:15px 14px;background:#fff}
+.card .ic{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:18px}
+.card .tx b{display:block;font-size:14.5px;font-weight:900}.card .tx span{display:block;margin-top:1px;font-size:11.5px;font-weight:700;color:var(--ink-3)}
+.card .go{margin-left:auto;color:#b9b9c0;font-weight:900}
+/* 도전 성경말씀으로 */
+.cta{margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--cta);color:#fff;border-radius:18px;padding:18px 20px}
+.cta .l small{display:block;font-size:11.5px;font-weight:700;color:rgba(255,255,255,.82)}.cta .l b{display:block;margin-top:2px;font-size:17px;font-weight:900;letter-spacing:-.03em}
+.cta .l b i{font-style:normal;letter-spacing:0}.cta .l b i{color:#fff}
+.cta .ar{flex:none;width:38px;height:38px;border-radius:50%;background:#fff;color:var(--cta);display:grid;place-items:center;font-weight:900}
+/* 다시 보기 */
+.later{margin-top:18px;display:flex;justify-content:center;gap:10px;padding-top:16px;border-top:1px solid var(--line)}
+.later a{flex:1;max-width:210px;text-align:center;font-size:13px;font-weight:800;padding:12px 8px;border-radius:12px;background:var(--soft);color:var(--ink-2)}
+.d .two{grid-template-columns:1fr 1fr}
+.d .row2{display:grid;grid-template-columns:1.1fr 1fr;gap:12px}.d .row2 .wb{margin-top:20px}.d .row2 .two{margin-top:20px;grid-template-columns:1fr;gap:12px}
+
+.A{--wb:#e8f6ee;--wbfg:#0f4f2b;--wbsub:#3f7a58;--wbbd:#cfe9d8;--mapbg:#1f9d55;--mapfg:#fff;--cta:#1f9d55}
+.B{--wb:#e8f2fc;--wbfg:#0b3a66;--wbsub:#4a7099;--wbbd:#cfe1f5;--mapbg:#0179dc;--mapfg:#fff;--cta:#0179dc}
+.C{--wb:#fff6e3;--wbfg:#4a3510;--wbsub:#8a7144;--wbbd:#f1e2bb;--mapbg:#ea6a1c;--mapfg:#fff;--cta:#ea6a1c}
+.stage{gap:22px;flex-wrap:nowrap;align-items:flex-start}.stage>div{width:400px;flex:none}.stage .m{width:100%}.cap small{display:block;margin-top:4px;font-size:11.5px;font-weight:600;line-height:1.6;color:#5b6470}
+</style></head><body><div class="bar">시안 · 유년부 소개 화면 — 검은색 대신 3가지 색 (글 · 시간 예시)</div><div class="stage"><div class="A"><p class="cap">A · 브랜드 초록(추천)<small>로고의 네잎 · 포인트 링과 같은 초록. 예배 띠는 옅은 초록 바탕, 버튼은 진한 초록</small></p><div class="m page"><div class="in">
+ <div class="top"><div class="church"><small>대한예수교장로회</small><b>잠실새내교회</b></div></div>
+ <div class="photo"><span>대표 사진 (관리자가 올림)</span><div class="tag">유년부</div></div>
+ <h1>유년부에 오신 것을 환영해요</h1>
+ <p class="intro">말씀 안에서 함께 예배하고, 기도하고, 자라 가는 유년부예요. 매주 주일, 친구들과 만나요.</p>
+ <div class="wb"><div><h4>예배 안내</h4><div class="t">주일 오전 10:00</div><div class="p">비전센터 믿음홀(3F)</div></div><a class="map" href="#">지도</a></div>
+ <div class="two">
+  <a class="card" href="#"><span class="ic" style="background:var(--s3)">📋</span><span class="tx"><b>주보 보기</b><span>이번 주 주보</span></span><span class="go">›</span></a>
+  <a class="card" href="#"><span class="ic" style="background:var(--s2)">📷</span><span class="tx"><b>사진첩 보기</b><span>우리 모습</span></span><span class="go">›</span></a>
+ </div>
+ <a class="cta" href="#"><span class="l"><small>매일 5분, 말씀과 함께</small><b>도전<i>!</i><i>!</i><i>!</i> 성경말씀으로 가기</b></span><span class="ar">→</span></a>
+ <div class="later"><a href="#">1주일 후 다시 보기</a><a href="#">다시 보지 않기</a></div>
+</div></div></div><div class="B"><p class="cap">B · 하늘 파랑<small>부서 홈의 파란 검색 버튼과 같은 계열. 차분하고 믿음직한 느낌</small></p><div class="m page"><div class="in">
+ <div class="top"><div class="church"><small>대한예수교장로회</small><b>잠실새내교회</b></div></div>
+ <div class="photo"><span>대표 사진 (관리자가 올림)</span><div class="tag">유년부</div></div>
+ <h1>유년부에 오신 것을 환영해요</h1>
+ <p class="intro">말씀 안에서 함께 예배하고, 기도하고, 자라 가는 유년부예요. 매주 주일, 친구들과 만나요.</p>
+ <div class="wb"><div><h4>예배 안내</h4><div class="t">주일 오전 10:00</div><div class="p">비전센터 믿음홀(3F)</div></div><a class="map" href="#">지도</a></div>
+ <div class="two">
+  <a class="card" href="#"><span class="ic" style="background:var(--s3)">📋</span><span class="tx"><b>주보 보기</b><span>이번 주 주보</span></span><span class="go">›</span></a>
+  <a class="card" href="#"><span class="ic" style="background:var(--s2)">📷</span><span class="tx"><b>사진첩 보기</b><span>우리 모습</span></span><span class="go">›</span></a>
+ </div>
+ <a class="cta" href="#"><span class="l"><small>매일 5분, 말씀과 함께</small><b>도전<i>!</i><i>!</i><i>!</i> 성경말씀으로 가기</b></span><span class="ar">→</span></a>
+ <div class="later"><a href="#">1주일 후 다시 보기</a><a href="#">다시 보지 않기</a></div>
+</div></div></div><div class="C"><p class="cap">C · 따뜻한 크림 + 주황<small>교회 안내판 같은 따뜻한 느낌. 예배 띠는 크림, 버튼은 주황</small></p><div class="m page"><div class="in">
+ <div class="top"><div class="church"><small>대한예수교장로회</small><b>잠실새내교회</b></div></div>
+ <div class="photo"><span>대표 사진 (관리자가 올림)</span><div class="tag">유년부</div></div>
+ <h1>유년부에 오신 것을 환영해요</h1>
+ <p class="intro">말씀 안에서 함께 예배하고, 기도하고, 자라 가는 유년부예요. 매주 주일, 친구들과 만나요.</p>
+ <div class="wb"><div><h4>예배 안내</h4><div class="t">주일 오전 10:00</div><div class="p">비전센터 믿음홀(3F)</div></div><a class="map" href="#">지도</a></div>
+ <div class="two">
+  <a class="card" href="#"><span class="ic" style="background:var(--s3)">📋</span><span class="tx"><b>주보 보기</b><span>이번 주 주보</span></span><span class="go">›</span></a>
+  <a class="card" href="#"><span class="ic" style="background:var(--s2)">📷</span><span class="tx"><b>사진첩 보기</b><span>우리 모습</span></span><span class="go">›</span></a>
+ </div>
+ <a class="cta" href="#"><span class="l"><small>매일 5분, 말씀과 함께</small><b>도전<i>!</i><i>!</i><i>!</i> 성경말씀으로 가기</b></span><span class="ar">→</span></a>
+ <div class="later"><a href="#">1주일 후 다시 보기</a><a href="#">다시 보지 않기</a></div>
+</div></div></div></div></body></html>
