@@ -13,7 +13,8 @@ namespace ChallengeBible.Web.Pages;
 /// 플랫폼 관리자이면서 소속이 없을 때만 플랫폼 홈으로 보낸다.
 /// </summary>
 public class IndexModel(AccountService accounts, TenantClock clock, LandingService landing, DeptAdminLoginService deptAdmins,
-    DeptStudentLoginService deptStudents, TenantResolver tenants, TenantContext tenant) : PageModel, ITitled
+    DeptStudentLoginService deptStudents, TenantResolver tenants, TenantContext tenant,
+    FamilyTeamService teams, FamilyJoinService familyJoin, RuleService rules) : PageModel, ITitled
 {
     public string Title => "";
     /// <summary>[관리자 로그인] 아래 부서 관리자 버튼(R-364).</summary>
@@ -27,6 +28,33 @@ public class IndexModel(AccountService accounts, TenantClock clock, LandingServi
     public LandingMe? Me { get; private set; }
     /// <summary>☰ 가 여는 기존 부서 메뉴판. 부서가 꼭 하나이고 승인된 소속일 때만 채운다.</summary>
     public TenantContext? DrawerTenant { get; private set; }
+
+    /// <summary>
+    /// 가족팀 카드(2026-11-23 사용자 · ADR 0132): 부서 홈과 같은 세 상태(초대 배너 → 우리 팀 카드 → 만들기 유도).
+    /// 부서가 꼭 하나이고 그 부서에서 가족팀을 켰을 때만 채운다. 하나뿐인 부서 = 가족팀 화면이 있는 부서.
+    /// </summary>
+    public FamilyHome? Family { get; private set; }
+    /// <summary>받은 가족팀 초대 — 오늘 "다음에 할래요"를 누른 것은 뺀다(R-212).</summary>
+    public IReadOnlyList<FamilyReceivedInvite> Invites { get; private set; } = [];
+    /// <summary>친구팀을 만들 수 있는 학생인지(만들기 카드의 친구팀 버튼, R-221).</summary>
+    public bool FamilyIsStudent { get; private set; }
+    /// <summary>가족팀에 들어갈 수 있는 역할인지(교사·임원 제외). 만들기 카드 판단.</summary>
+    public bool FamilyCanJoin { get; private set; }
+    /// <summary>가족팀 카드를 그릴 수 있는 상태인지(부서 하나 · 미션 켜짐 · 규칙 Features.FamilyTeam).</summary>
+    public bool FamilyOn { get; private set; }
+
+    /// <summary>초대 배너 "다음에 할래요"(R-212): 오늘은 숨기고 내일 다시 보인다.</summary>
+    public async Task<IActionResult> OnPostSnoozeInvitesAsync(CancellationToken ct)
+    {
+        if (User.UserName() is { } id)
+        {
+            var go = await accounts.WhereToGoAsync(id, ct);
+            if (go.ApprovedCount == 1 && go.OnlyTenantSlug is { } slug
+                && await tenants.ResolveAsync(HttpContext, slug) == TenantResolution.Ok)
+                await familyJoin.SnoozeInvitesAsync(ct);
+        }
+        return Redirect("/");
+    }
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
@@ -42,9 +70,35 @@ public class IndexModel(AccountService accounts, TenantClock clock, LandingServi
             // ☰ 는 "기존 햄버거 메뉴 그대로"(2026-11-23 사용자) — 부서가 하나면 그 부서 메뉴판을 쓴다.
             if (go.ApprovedCount == 1 && go.OnlyTenantSlug is { } slug
                 && await tenants.ResolveAsync(HttpContext, slug) == TenantResolution.Ok)
+            {
                 DrawerTenant = tenant;
+                await LoadFamilyAsync(ct);
+            }
         }
         return Page();
+    }
+
+    /// <summary>
+    /// 부서 홈과 같은 가족팀 세 상태를 채운다(2026-11-22 3차 확정 · ADR 0132).
+    /// 부서가 하나뿐인 사람만 — 그 부서의 가족팀 화면(`/{slug}/family-team`)으로 이어진다.
+    /// </summary>
+    private async Task LoadFamilyAsync(CancellationToken ct)
+    {
+        var t = tenant.Current;
+        if (!t.MissionEnabled) return;
+        var r = await rules.ForDateAsync(clock.Today(t.TimeZoneId), ct);
+        if (!r.Features.FamilyTeam) return;
+
+        FamilyOn = true;
+        Family = await teams.MyFamilyAsync(ct);
+        var kind = UserRole.KindOf(tenant.RoleCode);
+        FamilyIsStudent = kind == UserRoleKind.Student;
+        FamilyCanJoin = UserRole.CanJoinFamily(kind);
+        if (Family is null)
+        {
+            var fam = await familyJoin.StateAsync(ct);
+            Invites = fam.Invites.Where(i => !i.SnoozedToday).ToList();
+        }
     }
 }
 

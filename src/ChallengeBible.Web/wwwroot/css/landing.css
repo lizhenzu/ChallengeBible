@@ -169,11 +169,41 @@
 .vb .hmx-search button { background: var(--ink); }
 .vb .hmx-search button:active { background: #000; }
 .vb .hmx-links a { color: var(--ink-2); }
-.vb .hmx-inv { border-color: var(--line); background: var(--soft); }
-.vb .hmx-inv b { color: var(--ink); }
-.vb .hmx-inv small { color: var(--ink-2); }
-.vb .hmx-inv .go, .vb .hmx-make .go { background: var(--ink); }
-.vb .hmx-make { border-color: #d6d6db; }
+/* 가족팀(2026-11-23 사용자 · ADR 0132 시안 `메인-가족팀-아래-단독시안.html`) — 초대 배너 · 우리 팀 카드 · 만들기 유도.
+   첫 화면(`/`)은 landing.css 만 읽으므로 모노 톤 정의를 여기에 둔다(부서 홈은 home.css 와 겹쳐도 이 값이 이긴다). */
+.vb .hmx-inv { display: block; margin-top: 18px; padding: 16px 16px 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--soft); }
+.vb .hmx-inv .hd { display: flex; align-items: flex-start; gap: 11px; }
+.vb .hmx-inv .em { width: 38px; height: 38px; flex: none; border-radius: 11px; background: #fff; display: grid; place-items: center; font-size: 19px; }
+.vb .hmx-inv b { display: block; font-size: 15px; font-weight: 900; color: var(--ink); }
+.vb .hmx-inv small { display: block; margin-top: 3px; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); }
+.vb .hmx-inv .cnt { margin-left: auto; flex: none; font-size: 11px; color: var(--ink-3); }
+.vb .hmx-inv .row { display: flex; align-items: center; gap: 10px; margin-top: 13px; }
+.vb .hmx-inv .row form { margin: 0; display: inline-flex; }
+.vb .hmx-inv .go { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 16px; border-radius: 11px; background: var(--ink); color: #fff; font-size: 13.5px; font-weight: 800; }
+.vb .hmx-inv .later { border: 0; background: none; padding: 6px 0; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--ink-3); cursor: pointer; }
+
+.vb .hmx-fam { display: flex; align-items: center; gap: 13px; margin-top: 18px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--soft); color: inherit; text-decoration: none; }
+.vb .hmx-fam .em { width: 44px; height: 44px; flex: none; border-radius: 13px; background: #fff; border: 1px solid var(--line); display: grid; place-items: center; font-size: 22px; }
+.vb .hmx-fam .tx { flex: 1; min-width: 0; }
+.vb .hmx-fam .tx b { display: block; font-size: 15px; font-weight: 900; color: var(--ink); }
+.vb .hmx-fam .tx b i { font-style: normal; color: var(--ink); font-weight: 900; }
+.vb .hmx-fam .tx small { display: block; margin-top: 3px; font-size: 12px; color: var(--ink-3); }
+.vb .hmx-fam .avs { display: inline-flex; margin-left: 5px; vertical-align: -4px; }
+.vb .hmx-fam .avs i { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 1px solid var(--line); margin-left: -5px; display: inline-grid; place-items: center; font-size: 8px; font-style: normal; color: var(--ink-2); }
+.vb .hmx-fam .avs i:first-child { margin-left: 0; }
+.vb .hmx-fam .bar { display: block; height: 6px; border-radius: 99px; background: var(--track); margin-top: 9px; overflow: hidden; }
+.vb .hmx-fam .bar i { display: block; height: 100%; border-radius: 99px; background: var(--ink); }
+.vb .hmx-fam .ar { flex: none; color: var(--ink-3); font-size: 20px; }
+
+.vb .hmx-make { display: block; margin-top: 18px; padding: 18px 16px 16px; border: 1px dashed #d6d6db; border-radius: 16px; background: var(--paper); }
+.vb .hmx-make .hd { display: flex; align-items: flex-start; gap: 11px; }
+.vb .hmx-make .em { width: 42px; height: 42px; flex: none; border-radius: 12px; background: var(--soft); display: grid; place-items: center; font-size: 21px; }
+.vb .hmx-make b { display: block; font-size: 15px; font-weight: 900; line-height: 1.4; color: var(--ink); }
+.vb .hmx-make small { display: block; margin-top: 4px; font-size: 12.5px; line-height: 1.55; color: var(--ink-3); }
+.vb .hmx-make .row { display: flex; gap: 8px; margin-top: 14px; }
+.vb .hmx-make .go, .vb .hmx-make .alt { flex: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 12px; border-radius: 11px; font-size: 13.5px; font-weight: 800; }
+.vb .hmx-make .go { background: var(--ink); color: #fff; }
+.vb .hmx-make .alt { background: var(--paper); border: 1px solid #d6d6db; color: var(--ink-2); }
 .vb .lb-ban { display: grid; gap: 10px; margin-top: 18px; padding: 14px; border-radius: 16px; }
 .vb .lb-ban.lb-go { background: var(--soft); border: 1px solid var(--line); }
 .vb .lb-ban.lb-wait { background: #fffbeb; border: 1px solid #fde68a; }
