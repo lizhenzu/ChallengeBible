@@ -19,6 +19,9 @@
 /* 1. 히어로 */
 .vb-hero { position: relative; overflow: hidden; background: var(--paper); border-bottom: 1px solid var(--line); }
 .vb-hero-in { position: relative; max-width: 1120px; margin: 0 auto; padding: 18px 20px 34px; }
+/* 부서 홈(2026-11-23 사용자): 태그라인과 검색 상자 사이 구분선 없음 · 검색 상자 위아래 여백 같게 */
+.vb-dept .vb-hero { border-bottom: 0; }
+.vb-dept .vb-hero-in { padding-bottom: 0; }
 .vb-clover { position: absolute; right: -70px; top: -50px; width: 230px; opacity: .06; filter: grayscale(1); pointer-events: none; }
 .vb-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .vb-top-r { display: flex; align-items: center; gap: 10px; }
@@ -114,6 +117,7 @@
   .brand-title { font-size: 72px; }
   .vb-tag { font-size: 18px; }
   .vb-main { padding: 56px 40px 40px; }
+  .vb .hmx-search { margin-bottom: 56px; }   /* 넓은 화면도 검색 상자 위 · 아래 여백을 .vb-main padding-top 과 같게 */
   .vb-sec-h h2 { font-size: 28px; }
   .vb-list { margin-top: 22px; grid-template-columns: 1fr 1fr; column-gap: 40px; }
   .vb-item { grid-template-columns: 56px 1fr auto; padding: 24px 0; }
@@ -160,7 +164,8 @@
 .vb-guest b { display: block; font-size: 14px; font-weight: 800; }
 .vb-guest span { display: block; margin-top: 2px; font-size: 12px; color: var(--ink-3); }
 .vb-guest a { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; margin-top: 10px; padding: 0 16px; border-radius: 10px; background: var(--ink); color: #fff; font-size: 13.5px; font-weight: 800; }
-.vb .hmx-search { margin-top: 0; border-color: var(--line); background: var(--soft); }
+/* 2026-11-23 사용자: 검색 상자 위 · 아래 여백을 같게 — 위는 .vb-main 의 padding-top(30/56)이라 아래도 같은 값 */
+.vb .hmx-search { margin: 0 0 30px; border-color: var(--line); background: var(--soft); }
 .vb .hmx-search button { background: var(--ink); }
 .vb .hmx-search button:active { background: #000; }
 .vb .hmx-links a { color: var(--ink-2); }
