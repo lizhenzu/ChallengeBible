@@ -10,7 +10,6 @@
     var ko = new System.Globalization.CultureInfo("ko-KR");
     static string Md(DateOnly x) => x.ToString("M'/'d");
     var weekPeople = st.Week.Sum(w => w.People);
-    var inv = System.Globalization.CultureInfo.InvariantCulture;
     static string Ro(string w) { var c = w.Length == 0 ? 'a' : w[^1]; var j = c is >= '가' and <= '힣' ? (c - '가') % 28 : 0; return j == 0 || j == 8 ? "로" : "으로"; }
     // 가족팀 화면은 부서가 하나일 때만(그 부서의 family-team). 초대·카드·만들기 카드가 모두 이 주소로 간다.
     var famTo = Model.Me switch
@@ -177,9 +176,8 @@
         <partial name="_GiftTargetCard" model="new GiftTargetCardVm(Model.GiftBoard, giftSlug, false, null)" />
     }
 
-    @* 가족팀(2026-11-23 사용자 · ADR 0132 시안 · docs/design/시안/메인-가족팀-아래-단독시안.html):
-       초대 배너 → 우리 가족팀 카드 → 둘 다 없으면 만들기 유도. 현황 카드 아래, 작은 링크 위.
-       누르면 모두 그 부서의 가족팀 화면으로 간다. 부서가 꼭 하나인 사람만(가족팀 화면이 있는 곳). *@
+    @* 가족팀(ADR 0132 · 0137): 2026-11-23 사용자 확정 — 첫 화면(/)에서는 「우리 가족팀」 카드를 뺐다.
+       초대 배너 → 만들기 유도만 남긴다(팀 점수 · 구성원은 가족팀 화면에서 본다). *@
     @if (Model.FamilyOn)
     {
         if (Model.Invites.Count > 0)
@@ -198,22 +196,6 @@
                     <form method="post" asp-page-handler="SnoozeInvites"><button type="submit" class="later">다음에 할래요</button></form>
                 </div>
             </section>
-        }
-        else if (Model.Family is { } f)
-        {
-            var span = (f.NextStage ?? f.Total) - f.PrevStage;
-            var fpct = f.NextStage is null ? 100 : span <= 0 ? 0 : Math.Clamp((f.Total - f.PrevStage) * 100.0 / span, 1, 100);
-            <a class="hmx-fam" href="@famTo" aria-label="우리 가족팀 @f.Name">
-                <span class="em" aria-hidden="true">👨‍👩‍👧</span>
-                <span class="tx">
-                    <b>우리 가족팀 · <i class="num">@f.Total.ToString("N0")</i>점</b>
-                    <small>@f.Name · @(f.NextStage is { } n ? $"다음 가족 축하까지 {n - f.Total:N0}점" : "모든 가족 단계를 넘었어요")
-                        <span class="avs" aria-hidden="true">@foreach (var m in f.Members.Take(3)) { <i>@(m.Name.Length > 0 ? m.Name[..1] : "·")</i> }</span>
-                    </small>
-                    <span class="bar" aria-hidden="true"><i style="width:@fpct.ToString("0.#", inv)%"></i></span>
-                </span>
-                <span class="ar" aria-hidden="true">›</span>
-            </a>
         }
         else if (Model.FamilyCanJoin)
         {
