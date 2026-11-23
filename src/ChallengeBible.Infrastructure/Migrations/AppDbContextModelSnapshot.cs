@@ -3833,6 +3833,71 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantIntro", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Body")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PhotoContentType")
+                        .HasMaxLength(30)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("PhotoStoredName")
+                        .HasMaxLength(60)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(60)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("UpdatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("TenantId");
+
+                    b.ToTable("TenantIntro", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantIntroSeen", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("HideUntilUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<bool>("Never")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("TenantId", "UserName");
+
+                    b.ToTable("TenantIntroSeen", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantSeason", b =>
                 {
                     b.Property<int>("TenantId")
@@ -4737,6 +4802,24 @@ namespace ChallengeBible.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TeamAwardArchive", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantIntro", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantIntroSeen", b =>
                 {
                     b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
                         .WithMany()

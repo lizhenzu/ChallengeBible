@@ -14,7 +14,7 @@ namespace ChallengeBible.Web.Pages;
 /// </summary>
 public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, FamilyJoinService familyJoin, HomeService home, AccountService accounts,
     PhotoService photos, TodoService todo, Prayer365Service prayer365, MessageService msgs,
-    BirthdayGiftService birthdays, GiftOrderService gifts) : PageModel, ITitled
+    BirthdayGiftService birthdays, GiftOrderService gifts, IntroService intro) : PageModel, ITitled
 {
     /// <summary>로그인이 남기는 표식. 새 쪽지 팝업을 로그인 직후 한 번 띄우는 데 쓴다(ADR 0112).</summary>
     public const string MsgBandKey = "msg-band";
@@ -72,6 +72,11 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (TodayScreen && !tenant.IsLobby) return Redirect($"/{tenant.Current.Slug}");
+        // 부서 소개 화면(ADR 0140): 소개 줄이 있는 부서(유년부)는 들어올 때 먼저 보여 준다. 계정이 「1주일 후」 · 「다시 보지 않기」를 골랐거나
+        // 이번 방문에서 「성경말씀으로 가기」를 눌렀으면(쿠키) 건너뛴다. 손님은 계정이 없어 방문마다 한 번.
+        if (!tenant.IsLobby && !TodayScreen && !Request.Cookies.ContainsKey(Welcome.IndexModel.SeenCookie(tenant.Current.Id))
+            && await intro.ShouldShowAsync(User.UserName(), ct))
+            return Redirect($"/{tenant.Current.Slug}/welcome");
         if (User.UserId() is null)
         {
             if (tenant.IsLobby || TodayScreen) return Redirect("/account/login?returnUrl=" + Uri.EscapeDataString(Request.Path + Request.QueryString));

@@ -215,6 +215,20 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(admin, "/jamsil-kids/admin/worship", "12w2-관리-예배안내");
         await Save(admin, "/jamsil-kids", "05w-부서홈-예배안내");
         await Save(app.CreateClient(), "/jamsil-kids", "05w2-부서홈-예배안내-손님");
+        // 부서 소개 화면(ADR 0140): 소개 줄은 이 캡처 동안만 둔다(있으면 부서 홈이 소개 화면으로 먼저 보내므로 다른 캡처가 달라진다)
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            raw.TenantIntros.Add(new TenantIntro { TenantId = kids.Id, Title = "유년부에 오신 것을 환영해요", Body = "말씀 안에서 함께 예배하고, 기도하고, 자라 가는 유년부예요. 매주 주일, 친구들과 만나요.", IsActive = true, UpdatedUtc = new DateTime(2027, 1, 5, 0, 0, 0, DateTimeKind.Utc) });
+            raw.SaveChanges();
+        }
+        await Save(app.CreateClient(), "/jamsil-kids/welcome", "05x-유년부-소개-손님");
+        await Save(admin, "/jamsil-kids/welcome", "05x2-유년부-소개-회원");
+        await Save(admin, "/jamsil-kids/admin/intro", "12x-관리-소개화면");
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            raw.TenantIntros.RemoveRange(raw.TenantIntros);
+            raw.SaveChanges();
+        }
         await Save(admin, "/jamsil-kids/bulletin/edit", "05j-주보-올리기");   // 부서 주보(ADR 0117)
         using (var raw = InMemoryDb.Raw(db))
         {
@@ -587,7 +601,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
     {
         var dir = Environment.GetEnvironmentVariable("CB_SCREENS_DIR")!;
         // 배포 때는 파일 이름에 지문이 붙는다(/css/site.css?v=…) — 화면이 쓰는 스타일 파일(site · reading)을 그대로 안에 넣는다
-        foreach (var name2 in new[] { "site", "reading-b2", "reading", "home", "landing", "mission-old", "todo", "messages", "copy", "prayer365", "bulletin" })
+        foreach (var name2 in new[] { "site", "reading-b2", "reading", "home", "landing", "mission-old", "todo", "messages", "copy", "prayer365", "bulletin", "welcome" })
         {
             var css = await File.ReadAllTextAsync(Path.Combine(FindWeb(), "wwwroot", "css", name2 + ".css"));
             html = Regex.Replace(html, $"<link rel=\"stylesheet\" href=\"/css/{name2}[^\"]*\\.css[^\"]*\" />", _ => $"<style>{css}</style>");

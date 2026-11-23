@@ -30,6 +30,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, int? tenantId)
     public DbSet<Person> People => Set<Person>();
     public DbSet<ClassTerm> ClassTerms => Set<ClassTerm>();
     public DbSet<WorshipSchedule> WorshipSchedules => Set<WorshipSchedule>();   // 예배 안내(ADR 0116)
+    public DbSet<TenantIntro> TenantIntros => Set<TenantIntro>();   // 부서 소개 화면(ADR 0140)
+    public DbSet<TenantIntroSeen> TenantIntroSeens => Set<TenantIntroSeen>();
     public DbSet<Bulletin> Bulletins => Set<Bulletin>();   // 부서 주보(ADR 0117)
     public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();   // 탈퇴 신청(ADR 0119)
     public DbSet<BulletinFile> BulletinFiles => Set<BulletinFile>();

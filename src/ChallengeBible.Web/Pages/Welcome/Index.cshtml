@@ -1,0 +1,56 @@
+@page "/{slug}/welcome"
+@model ChallengeBible.Web.Pages.Welcome.IndexModel
+@using ChallengeBible.Web.Services
+@* 부서 소개 화면(ADR 0140, 2026-11-23 확정 시안 유년부-소개 C안 · 크림 + 주황).
+   대표 사진 → 제목 · 소개 글 → 예배 안내 띠 → 주보 · 사진첩 → 「도전!!! 성경말씀으로 가기」 → (로그인한 사람만) 1주일 후 다시 보기 · 다시 보지 않기 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var dept = PlatformTodayService.ShortDept(Model.Tenant.Current.Name);
+    var it = Model.Item;
+    string Clock(TimeOnly t) => $"{(t.Hour < 12 ? "오전" : "오후")} {(t.Hour % 12 == 0 ? 12 : t.Hour % 12)}:{t.Minute:00}";
+    string Day(byte d) => d == 0 ? "주일" : new[] { "일", "월", "화", "수", "목", "금", "토" }[d] + "요일";
+}
+<link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/welcome.css" asp-append-version="true" />
+<div class="vb wc">
+<main class="wc-main">
+    <div class="wc-top"><a class="wc-church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)"><small>대한예수교장로회</small><b>잠실새내교회</b></a></div>
+
+    <div class="wc-photo">
+        @if (it.PhotoStoredName is not null) { <img src="/@slug/welcome/photo?v=@it.UpdatedUtc.Ticks" alt="@dept 대표 사진" /> }
+        <span class="wc-tag">@dept</span>
+    </div>
+    <h1>@it.Title</h1>
+    @if (it.Body is { } body) { <p class="wc-intro">@body</p> }
+
+    @foreach (var w in Model.Worship)
+    {
+        <section class="wc-wb" aria-label="예배 안내">
+            <div>
+                <h2>@(w.Title ?? "예배 안내")</h2>
+                <p class="t">@Day(w.DayOfWeek) @Clock(w.StartTime)</p>
+                <p class="p">@w.Place</p>
+            </div>
+            @if (w.Address is { } addr) { <a class="map" href="https://map.naver.com/p/search/@Uri.EscapeDataString(addr)" target="_blank" rel="noopener">지도</a> }
+        </section>
+    }
+
+    <div class="wc-two">
+        <a class="wc-card" href="/@slug/bulletin"><span class="ic o" aria-hidden="true">📋</span><span class="tx"><b>주보 보기</b><span>@(Model.LatestBulletin is { } d ? $"가장 최근 {d:M월 d일}" : "아직 없어요")</span></span><span class="go" aria-hidden="true">›</span></a>
+        <a class="wc-card" href="/@slug/album"><span class="ic b" aria-hidden="true">📷</span><span class="tx"><b>사진첩 보기</b><span>우리 모습</span></span><span class="go" aria-hidden="true">›</span></a>
+    </div>
+
+    <a class="wc-cta" href="/@slug/welcome?handler=Go">
+        <span class="l"><small>매일 5분, 말씀과 함께</small><b>도전<i>!</i><i>!</i><i>!</i> 성경말씀으로 가기</b></span>
+        <span class="ar" aria-hidden="true">→</span>
+    </a>
+
+    @if (Model.Member)
+    {
+        <form class="wc-later" method="post" asp-route-slug="@slug">
+            <button type="submit" asp-page-handler="Later">1주일 후 다시 보기</button>
+            <button type="submit" asp-page-handler="Never">다시 보지 않기</button>
+        </form>
+    }
+</main>
+</div>

@@ -1,0 +1,42 @@
+/* 부서 소개 화면(ADR 0140, 2026-11-23 확정 시안 유년부-소개 C안 · 크림 + 주황). landing.css 의 변수(--ink · --line · --soft · --p3 …)를 쓴다 */
+.wc { background: #fff; }
+.wc-main { max-width: 760px; margin: 0 auto; padding: 0 20px 34px; }
+.wc-top { padding: 16px 0 12px; }
+.wc-church small { display: block; font-size: 11px; color: var(--ink-3); line-height: 1.3; }
+.wc-church b { display: block; font-size: 15px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); }
+.wc-photo { position: relative; border-radius: 20px; overflow: hidden; aspect-ratio: 16 / 10; background: linear-gradient(135deg, #dfe9f7, #eaf4ea 55%, #fdf0e6); }
+.wc-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wc-tag { position: absolute; left: 14px; bottom: 14px; background: #fff; border-radius: 99px; font-size: 12px; font-weight: 900; padding: 6px 12px; color: var(--ink); }
+.wc h1 { margin: 18px 0 0; font-size: 24px; font-weight: 900; letter-spacing: -.035em; line-height: 1.3; }
+.wc-intro { margin: 10px 0 0; font-size: 14.5px; line-height: 1.7; color: var(--ink-2); white-space: pre-line; word-break: keep-all; }
+/* 예배 안내 띠(크림) */
+.wc-wb { margin-top: 20px; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; padding: 16px 18px; border-radius: 18px; background: #fff6e3; border: 1px solid #f1e2bb; color: #4a3510; }
+.wc-wb h2 { margin: 0; font-size: 11.5px; font-weight: 800; color: #8a7144; }
+.wc-wb .t { margin: 6px 0 0; font-size: 17px; font-weight: 900; }
+.wc-wb .p { margin: 3px 0 0; font-size: 12.5px; color: #8a7144; }
+.wc-wb .map { flex: none; font-size: 12px; font-weight: 800; background: var(--p3); color: #fff; padding: 8px 13px; border-radius: 99px; text-decoration: none; }
+/* 주보 · 사진첩 */
+.wc-two { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.wc-card { display: flex; align-items: center; gap: 11px; border: 1px solid var(--line); border-radius: 18px; padding: 15px 14px; background: #fff; color: var(--ink); text-decoration: none; min-width: 0; }
+.wc-card .ic { flex: none; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 18px; }
+.wc-card .ic.o { background: var(--s3); } .wc-card .ic.b { background: var(--s2); }
+.wc-card .tx { min-width: 0; }
+.wc-card .tx b { display: block; font-size: 14.5px; font-weight: 900; }
+.wc-card .tx span { display: block; margin-top: 1px; font-size: 11.5px; font-weight: 700; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wc-card .go { margin-left: auto; color: #b9b9c0; font-weight: 900; }
+/* 도전!!! 성경말씀으로 */
+.wc-cta { margin-top: 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px; border-radius: 18px; background: var(--p3); color: #fff; text-decoration: none; }
+.wc-cta small { display: block; font-size: 11.5px; font-weight: 700; color: rgba(255, 255, 255, .85); }
+.wc-cta b { display: block; margin-top: 2px; font-size: 17px; font-weight: 900; letter-spacing: -.03em; }
+.wc-cta b i { font-style: normal; letter-spacing: 0; }
+.wc-cta .ar { flex: none; width: 38px; height: 38px; border-radius: 50%; background: #fff; color: var(--p3); display: grid; place-items: center; font-weight: 900; }
+/* 1주일 후 다시 보기 · 다시 보지 않기(로그인한 사람만) */
+.wc-later { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); display: flex; justify-content: center; gap: 10px; }
+.wc-later button { flex: 1; max-width: 210px; border: 0; font: inherit; font-size: 13px; font-weight: 800; padding: 12px 8px; border-radius: 12px; background: var(--soft); color: var(--ink-2); cursor: pointer; }
+@media (min-width: 720px) {
+  .wc-main { padding: 0 40px 44px; }
+  .wc-photo { aspect-ratio: 21 / 9; }
+  .wc h1 { font-size: 32px; margin-top: 24px; }
+  .wc-intro { font-size: 16.5px; max-width: 640px; }
+}
+@media (max-width: 380px) { .wc-two { grid-template-columns: 1fr; } }

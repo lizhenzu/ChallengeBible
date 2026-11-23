@@ -47,6 +47,7 @@ builder.Services.AddScoped<BibleSearchService>();
 builder.Services.AddScoped<ReadingBoardService>();
 builder.Services.AddScoped<BrandingService>();
 builder.Services.AddScoped<WorshipService>();   // 예배 안내(ADR 0116)
+builder.Services.AddScoped<IntroService>();   // 부서 소개 화면(ADR 0140)
 builder.Services.AddScoped<BulletinService>();   // 부서 주보(ADR 0117)
 builder.Services.AddScoped<AlbumService>();   // 부서 사진첩(ADR 0118)
 builder.Services.AddScoped<SeasonService>();
@@ -164,6 +165,8 @@ builder.Services.AddRazorPages(o =>
     o.Conventions.AllowAnonymousToPage("/Error");
     o.Conventions.AllowAnonymousToPage("/Install");
     o.Conventions.AllowAnonymousToPage("/Bulletin/Index");   // 부서 주보 보기(ADR 0117): 누구나
+    o.Conventions.AllowAnonymousToPage("/Welcome/Index");   // 부서 소개 화면(ADR 0140): 누구나 — 손님도 들어올 때 먼저 본다
+    o.Conventions.AllowAnonymousToPage("/Welcome/Photo");
     o.Conventions.AllowAnonymousToPage("/Bulletin/File");
     o.Conventions.AllowAnonymousToPage("/Album/Index");   // 사진첩(ADR 0118): 앨범 공개 범위가 "누구나"면 손님도
     o.Conventions.AllowAnonymousToPage("/Album/View");

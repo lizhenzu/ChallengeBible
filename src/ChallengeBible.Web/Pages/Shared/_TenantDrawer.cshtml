@@ -1,5 +1,6 @@
 ﻿@model (ChallengeBible.Web.Tenancy.TenantContext Tenant, string? Photo)
 @using ChallengeBible.Web.Auth
+@inject ChallengeBible.Web.Services.IntroService Intro
 @using ChallengeBible.Web.Services
 @* 부서 화면 ☰ 메뉴판. 2026-11-22 사용자 확정(ADR 0127, 시안 메뉴-깔끔):
    흰 바탕 · 도전!!! 성경말씀 + GROW IN THE WORD · 파란 선 아이콘 · 제목만(설명 없음) · 그룹 라벨.
@@ -66,6 +67,7 @@
             <h2 class="tdr2-g">함께하기</h2>
             @DrawerUi.Line("/messages", "msg", "단체쪽지", Cur("/messages"))
             @if (!lobby) { @DrawerUi.Line($"/{s}/album", "photo", "사진첩", Cur($"/{s}/album")) }
+            @if (!lobby && await Intro.GetAsync() is not null) { @DrawerUi.Line($"/{s}/welcome", "home", $"{PlatformTodayService.ShortDept(t.Current.Name)} 소개", Cur($"/{s}/welcome")) }
             @if (!lobby && c.MissionEnabled) { @DrawerUi.Line($"/{s}/family-team", "family", "가족팀", Cur($"/{s}/family-team")) }
 
             @if (!lobby && t.IsAdmin)
