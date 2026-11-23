@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>홈 루트 상단 · 포인트 링 3안</title>
+<style>
+  :root{
+    --ink:#1d1d1f; --ink-2:#56565c; --ink-3:#8e8e94;
+    --line:#e7e7ea; --track:#ededef; --paper:#fff; --soft:#f4f4f5;
+    --p1:#1f9d55; --s1:#e8f6ee; --p2:#2f6fe4; --p3:#ea6a1c; --p4:#dc3f8a;
+    --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:#e9ebef;color:var(--ink);word-break:keep-all;letter-spacing:-.01em}
+  a{color:inherit;text-decoration:none}
+  .num{font-variant-numeric:tabular-nums}
+  .mockbar{position:fixed;left:0;top:0;right:0;z-index:90;height:36px;background:#161c2b;color:#fff;font-size:12.5px;display:flex;align-items:center}
+  .mockbar .in{width:100%;max-width:1440px;margin:0 auto;padding:0 20px;display:flex;justify-content:space-between;gap:10px}
+  .mockbar b{font-weight:800}.mockbar span{opacity:.7}
+
+  .stageWrap{display:flex;gap:26px;align-items:flex-start;padding:60px 20px 50px;flex-wrap:wrap;justify-content:center}
+  .col{width:404px;max-width:100%}
+  .cap{margin:0 0 10px;font-size:13.5px;font-weight:900;line-height:1.45}
+  .cap b{color:#17663a}
+  .cap small{display:block;margin-top:5px;font-size:11.5px;font-weight:600;line-height:1.65;color:#5b6470}
+  .phone{background:#fff;border-radius:10px;box-shadow:0 30px 70px -50px rgba(0,0,0,.5);overflow:hidden}
+
+  /* ── 실제 홈 히어로와 같은 골격 ── */
+  .vb{--ink:#1d1d1f;--ink-2:#56565c;--ink-3:#8e8e94;--line:#e7e7ea;--track:#ededef;--paper:#fff;--soft:#f4f4f5;--p1:#1f9d55;--s1:#e8f6ee;background:#fff}
+  .vb-hero{position:relative;overflow:hidden;background:#fff}
+  .vb-hero-in{position:relative;max-width:1120px;margin:0 auto;padding:18px 20px 30px}
+  .vb-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .vb-top-l{display:flex;align-items:center;gap:10px;min-width:0}
+  .vb-burger{width:40px;height:40px;flex:none;margin-left:-8px;border:0;border-radius:12px;background:transparent;color:var(--ink);display:grid;place-items:center}
+  .vb .church small{display:block;font-size:11px;color:var(--ink-3);line-height:1.3}
+  .vb .church span{display:block;font-size:15px;font-weight:800;letter-spacing:-.02em}
+  .vb-top-r{display:flex;align-items:center;gap:8px}
+  .vb-date{font-size:12px;font-weight:700;color:var(--ink-2);text-align:right;line-height:1.3;white-space:nowrap}
+  .vb-date small{display:block;font-size:10.5px;font-weight:600;color:var(--ink-3)}
+  .av{width:30px;height:30px;border-radius:50%;background:#ededef;font-size:11.5px;font-weight:900;display:grid;place-items:center}
+
+  .brand-title{font-weight:900;letter-spacing:-.04em;line-height:1.08;font-size:38px}
+  .brand-title .bt-1,.brand-title .bt-2{display:block}
+  .brand-title .bt-ex i{font-style:normal;margin-left:.02em}
+  .brand-title .e1{color:#22b35e}.brand-title .e2{color:#3b7cf0}.brand-title .e3{color:#f07a22}
+  .vb-tag{margin-top:12px;font-size:14.5px;color:var(--ink-2);line-height:1.55}
+
+  /* ── 포인트 링(첨부 모양) ── */
+  .ptlink{display:inline-grid;justify-items:center;gap:6px;border:0;background:none;padding:0;cursor:pointer;text-decoration:none}
+  .ring{position:relative;display:block}
+  .ring svg{display:block;transform:rotate(-90deg)}
+  .ring .track{stroke:#ededef;fill:none;stroke-linecap:round}
+  .ring .arc{stroke:var(--p1);fill:none;stroke-linecap:round}
+  .ring .in{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:1px;text-align:center}
+  .ring .em{font-size:26px;line-height:1}
+  .ring .s{font-size:12px;font-weight:900;color:#1f9d55;letter-spacing:-.02em}
+  .ring .big{font-size:21px;font-weight:900;letter-spacing:-.045em;color:#17663a;line-height:1.1}
+  .ring .big i{font-style:normal;font-size:10px;font-weight:800;color:#3f7a58;margin-left:1px}
+  .ring .nm{margin-top:1px;font-size:10px;font-weight:800;color:#5f8a71}
+  .ptsub{font-size:10.5px;font-weight:800;color:var(--ink-3);white-space:nowrap}
+  .ptsub b{color:#17663a;font-weight:900}
+  .ptbadge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;background:var(--s1);font-size:10.5px;font-weight:900;color:#17663a;white-space:nowrap}
+
+  .hint{margin-top:12px;padding:10px 12px;border-radius:10px;background:#f7f8fa;font-size:10.5px;font-weight:600;line-height:1.65;color:#6b7280}
+  .hint b{color:#374151}
+</style>
+</head>
+<body>
+<div class="mockbar"><div class="in"><b>홈 루트 상단 · 「도전 성경말씀」 오른쪽 빈자리에 포인트 링</b><span>2026-11-23 · 3안 · 누르면 포인트 화면으로</span></div></div>
+
+<div class="stageWrap">
+
+  <!-- A안 -->
+  <div class="col" id="colA">
+    <p class="cap">A안 · <b>오른쪽 위 정렬 · 이모지 링</b> (첨부와 같은 모양)
+      <small>링 안에 지금 단계 이모지와 「숲 3%」. 링 아래 한 줄에 포인트와 다음 단계까지 남은 점수.</small>
+    </p>
+    <div class="phone"><div class="vb"><header class="vb-hero"><div class="vb-hero-in">
+      <div class="vb-top">
+        <div class="vb-top-l">
+          <button class="vb-burger" aria-label="메뉴">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+          <a class="church" href="#"><small>대한예수교장로회</small><span>잠실새내교회</span></a>
+        </div>
+        <div class="vb-top-r">
+          <time class="vb-date">11월 23일<small>주일</small></time>
+          <span class="av" aria-hidden="true">철</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-top:26px">
+        <div style="min-width:0">
+          <h1 class="brand-title">
+            <span class="bt-1">도전<span class="bt-ex"><i class="e1">!</i><i class="e2">!</i><i class="e3">!</i></span></span>
+            <span class="bt-2">성경말씀</span>
+          </h1>
+          <p class="vb-tag">하루 5분, 말씀과 함께 자라요.</p>
+        </div>
+        <a class="ptlink" href="#" aria-label="나의 포인트 1,050점 · 숲 단계">
+          <span class="ring">
+            <svg width="96" height="96" viewBox="0 0 96 96" role="img" aria-hidden="true">
+              <circle class="track" cx="48" cy="48" r="42" stroke-width="9"/>
+              <circle class="arc" cx="48" cy="48" r="42" stroke-width="9" stroke-dasharray="264" stroke-dashoffset="256"/>
+            </svg>
+            <span class="in"><span class="em">🌲</span><span class="s">숲 3%</span></span>
+          </span>
+          <span class="ptsub"><b class="num">1,050</b>점 · 다음까지 <b class="num">250</b></span>
+        </a>
+      </div>
+    </div></header></div></div>
+    <p class="hint">제목 첫 줄과 링 위쪽을 맞춥니다. 링이 96px 이라 <b>제목을 가리지 않습니다</b>.</p>
+  </div>
+
+  <!-- B안 -->
+  <div class="col" id="colB">
+    <p class="cap">B안 · <b>숫자 링</b> — 포인트를 링 안에 크게
+      <small>링 안에 「1,050점」, 그 아래 「🌿 나무」. 진행률은 점수 아래 한 줄로.</small>
+    </p>
+    <div class="phone"><div class="vb"><header class="vb-hero"><div class="vb-hero-in">
+      <div class="vb-top">
+        <div class="vb-top-l">
+          <button class="vb-burger" aria-label="메뉴">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+          <a class="church" href="#"><small>대한예수교장로회</small><span>잠실새내교회</span></a>
+        </div>
+        <div class="vb-top-r">
+          <time class="vb-date">11월 23일<small>주일</small></time>
+          <span class="av" aria-hidden="true">철</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:26px">
+        <div style="min-width:0">
+          <h1 class="brand-title">
+            <span class="bt-1">도전<span class="bt-ex"><i class="e1">!</i><i class="e2">!</i><i class="e3">!</i></span></span>
+            <span class="bt-2">성경말씀</span>
+          </h1>
+          <p class="vb-tag">하루 5분, 말씀과 함께 자라요.</p>
+        </div>
+        <a class="ptlink" href="#" aria-label="나의 포인트 1,050점 · 나무 단계">
+          <span class="ring">
+            <svg width="104" height="104" viewBox="0 0 104 104" role="img" aria-hidden="true">
+              <circle class="track" cx="52" cy="52" r="45" stroke-width="9"/>
+              <circle class="arc" cx="52" cy="52" r="45" stroke-width="9" stroke-dasharray="283" stroke-dashoffset="274"/>
+            </svg>
+            <span class="in"><span class="big num">1,050<i>점</i></span><span class="nm">🌿 나무</span></span>
+          </span>
+          <span class="ptsub">1,300점까지 <b class="num">250</b></span>
+        </a>
+      </div>
+    </div></header></div></div>
+    <p class="hint">포인트가 링 안 주인공. 「나의 포인트」라는 이름표는 빼고 <b>숫자와 단계만</b> 남깁니다.</p>
+  </div>
+
+  <!-- C안 -->
+  <div class="col" id="colC">
+    <p class="cap">C안 · <b>링 + 옆 설명 블록</b> — 링은 작게, 설명은 오른쪽 두 줄
+      <small>링 72px 옆에 「나의 포인트 1,050점」과 딱지 「성장 3단계 · 나무」를 붙여 읽을 거리를 오른쪽으로 모읍니다.</small>
+    </p>
+    <div class="phone"><div class="vb"><header class="vb-hero"><div class="vb-hero-in">
+      <div class="vb-top">
+        <div class="vb-top-l">
+          <button class="vb-burger" aria-label="메뉴">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+          <a class="church" href="#"><small>대한예수교장로회</small><span>잠실새내교회</span></a>
+        </div>
+        <div class="vb-top-r">
+          <time class="vb-date">11월 23일<small>주일</small></time>
+          <span class="av" aria-hidden="true">철</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-top:26px">
+        <div style="min-width:0">
+          <h1 class="brand-title">
+            <span class="bt-1">도전<span class="bt-ex"><i class="e1">!</i><i class="e2">!</i><i class="e3">!</i></span></span>
+            <span class="bt-2">성경말씀</span>
+          </h1>
+          <p class="vb-tag">하루 5분, 말씀과 함께 자라요.</p>
+        </div>
+        <a class="ptlink" href="#" style="grid-template-columns:auto auto;align-items:center;gap:8px" aria-label="나의 포인트 1,050점 · 성장 3단계 나무">
+          <span class="ring">
+            <svg width="72" height="72" viewBox="0 0 72 72" role="img" aria-hidden="true">
+              <circle class="track" cx="36" cy="36" r="31" stroke-width="7"/>
+              <circle class="arc" cx="36" cy="36" r="31" stroke-width="7" stroke-dasharray="195" stroke-dashoffset="189"/>
+            </svg>
+            <span class="in"><span class="em" style="font-size:20px">🌿</span></span>
+          </span>
+          <span style="text-align:left;display:grid;gap:3px;justify-items:start">
+            <span style="font-size:9.5px;font-weight:800;color:#5f8a71">나의 포인트</span>
+            <span style="font-size:17px;font-weight:900;letter-spacing:-.04em;color:#17663a;line-height:1" class="num">1,050<i style="font-style:normal;font-size:10px;color:#3f7a58;margin-left:1px">점</i></span>
+            <span class="ptbadge">성장 3단계 · 나무</span>
+          </span>
+        </a>
+      </div>
+    </div></header></div></div>
+    <p class="hint">링은 「진행률」만, 글자는 옆에서. 좁은 화면(380px 이하)에서는 아래 줄로 내려 놓습니다.</p>
+  </div>
+
+</div>
+</body>
+</html>
