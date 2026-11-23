@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>부서 홈 · 예배 안내 카드 시안 (A · B · C)</title>
+<style>
+  :root{--ink:#1d1d1f;--ink-2:#56565c;--ink-3:#8e8e94;--line:#e7e7ea;--track:#ededef;--soft:#f4f4f5;
+    --p1:#1f9d55;--s1:#e8f6ee;--p2:#2f6fe4;--s2:#eaf1fd;--navy:#1e3a8a;
+    --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:#e9ebef;color:var(--ink);word-break:keep-all;letter-spacing:-.01em}
+  a{color:inherit;text-decoration:none}
+  .mockbar{background:#161c2b;color:#fff;font-size:12.5px;height:38px;display:flex;align-items:center;padding:0 22px;gap:10px}
+  .mockbar span{opacity:.7}
+  .stage{display:flex;gap:24px;align-items:flex-start;padding:34px 22px 46px;flex-wrap:wrap;justify-content:center;max-width:1420px;margin:0 auto}
+  .col{width:400px;max-width:100%}
+  .cap{margin:0 0 12px;font-size:14px;font-weight:900}
+  .cap small{display:block;margin-top:5px;font-size:11.5px;font-weight:600;line-height:1.65;color:#5b6470}
+  .phone{background:#fff;box-shadow:0 26px 60px -46px rgba(0,0,0,.55);border-radius:8px;padding:14px 18px 18px;overflow:hidden}
+  /* 홈 축소 맥락 */
+  .ctx{display:block;background:var(--soft);border-radius:12px;color:var(--ink-3);font-size:11px;font-weight:700;padding:11px 14px;margin-bottom:10px}
+  .ctx.lst{height:62px;display:flex;align-items:center}
+  .search{display:flex;gap:6px;margin-bottom:10px}
+  .search i{flex:1;height:38px;border:1px solid var(--line);border-radius:12px;display:block}
+  .search b{width:56px;height:38px;border-radius:12px;background:#0179dc;display:block}
+  .verse{background:var(--soft);border-radius:18px;padding:16px;margin-bottom:10px}
+  .verse h4{font-size:11.5px;font-weight:800;color:var(--ink-2)}
+  .verse p{margin-top:8px;font-size:14px;line-height:1.55;font-weight:700}
+  .gift{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:18px;margin-bottom:10px;font-size:12.5px;font-weight:800}
+  /* A: 한 줄 카드 */
+  .wa{display:flex;align-items:center;gap:11px;padding:13px 14px;border:1px solid var(--line);border-radius:18px;margin-bottom:10px;background:#fff}
+  .wa .ic{flex:none;width:34px;height:34px;border-radius:11px;background:var(--s2);display:grid;place-items:center;font-size:16px}
+  .wa .tx{min-width:0;flex:1}
+  .wa .tx b{display:block;font-size:13.5px;font-weight:900}
+  .wa .tx span{display:block;margin-top:1px;font-size:11px;font-weight:700;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wa .go{color:#b9b9c0;font-weight:900}
+  /* B: 네이비 띠 */
+  .wb{background:var(--navy);color:#fff;border-radius:18px;padding:15px 16px;margin-bottom:10px}
+  .wb h4{font-size:11.5px;font-weight:800;opacity:.75}
+  .wb .t{margin-top:6px;font-size:16px;font-weight:900}
+  .wb .p{margin-top:3px;font-size:12px;opacity:.85}
+  .wb .row{display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
+  .wb .map{flex:none;font-size:11.5px;font-weight:800;background:rgba(255,255,255,.16);padding:7px 11px;border-radius:99px}
+  /* C: 여러 예배 목록 */
+  .wc{border:1px solid var(--line);border-radius:18px;padding:14px 16px 6px;margin-bottom:10px}
+  .wc h4{font-size:11.5px;font-weight:800;color:var(--ink-2);margin-bottom:4px}
+  .wc .it{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:13px}
+  .wc .it:first-of-type{border-top:0}
+  .wc .it b{font-weight:900}.wc .it span{color:var(--ink-3);font-weight:700;font-size:11.5px;text-align:right}
+</style>
+</head>
+<body>
+<div class="mockbar"><b>시안</b><span>부서 홈 · 예배 안내 카드 — 위치는 모두 「오늘의 말씀」 아래, 선물 알림 위(ADR 0127 · 0138 구성 유지). 값은 예시</span></div>
+<div class="stage">
+
+<div class="col"><p class="cap">A · 한 줄 카드 (추천)<small>선물 알림과 같은 한 줄 모양. 예배가 1개일 때 깔끔. 누르면 지도(주소 있을 때). 예배가 여러 개면 가장 이른 다음 예배 하나만.</small></p>
+<div class="phone">
+  <div class="search"><i></i><b></b></div><div class="ctx lst">4가지 도전 목록</div>
+  <div class="verse"><h4>오늘의 말씀</h4><p>“하나님이 세상을 이처럼 사랑하사…”</p></div>
+  <a class="wa" href="#"><span class="ic">⛪</span><span class="tx"><b>이번 주일 오전 10:00</b><span>비전센터 믿음홀(3F) · 서울 송파구 석촌호수로 102</span></span><span class="go">›</span></a>
+  <div class="gift">🎁 선물 한 줄 알림</div>
+</div></div>
+
+<div class="col"><p class="cap">B · 네이비 띠<small>홈 상단 색과 맞춘 눈에 띄는 띠. 시간을 크게. 오른쪽 [지도] 버튼. 처음 오는 가족에게 잘 보이지만 홈에서 가장 튄다.</small></p>
+<div class="phone">
+  <div class="search"><i></i><b></b></div><div class="ctx lst">4가지 도전 목록</div>
+  <div class="verse"><h4>오늘의 말씀</h4><p>“하나님이 세상을 이처럼 사랑하사…”</p></div>
+  <div class="wb"><h4>예배 안내</h4><div class="row"><div><div class="t">주일 오전 10:00</div><div class="p">비전센터 믿음홀(3F)</div></div><a class="map" href="#">지도</a></div></div>
+  <div class="gift">🎁 선물 한 줄 알림</div>
+</div></div>
+
+<div class="col"><p class="cap">C · 목록 카드<small>예배가 여러 개(1부 · 2부 · 수요)인 부서용. 한 카드에 줄로 모두 보인다. 1개뿐이면 한 줄만.</small></p>
+<div class="phone">
+  <div class="search"><i></i><b></b></div><div class="ctx lst">4가지 도전 목록</div>
+  <div class="verse"><h4>오늘의 말씀</h4><p>“하나님이 세상을 이처럼 사랑하사…”</p></div>
+  <div class="wc"><h4>예배 안내</h4>
+    <div class="it"><b>1부 · 주일 오전 9:00</b><span>믿음홀(3F)</span></div>
+    <div class="it"><b>2부 · 주일 오전 11:00</b><span>믿음홀(3F)</span></div>
+    <div class="it"><b>수요 · 오후 7:30</b><span>소예배실</span></div></div>
+  <div class="gift">🎁 선물 한 줄 알림</div>
+</div></div>
+
+</div>
+</body></html>
