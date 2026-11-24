@@ -12,7 +12,7 @@
     var inv = CultureInfo.InvariantCulture;
     var kq = Model.Friend ? "Kind=friend&" : "";
 }
-@{ ViewData["PbTitle"] = "가족팀"; ViewData["PbParent"] = new[] { "성경미션", home }; ViewData["PbButton"] = new[] { "미션 홈", home }; }
+@{ ViewData["PbTitle"] = "가족팀"; ViewData["PbParent"] = new[] { "성경미션", home }; ViewData["PbButton"] = new[] { "미션홈", home }; }
 <partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <main class="gut fmt"><div class="wrap">
     @if (Model.Notice is not null) { <div class="fmt-joined" role="status"><span aria-hidden="true">🎉</span><div>@(Model.Notice)에 들어갔어요</div></div> }

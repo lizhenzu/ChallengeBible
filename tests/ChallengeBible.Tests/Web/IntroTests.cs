@@ -264,9 +264,10 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         var kid = await Member("cheolsu", _kids.Id, Roles.Participant);
         var bul = await kid.GetStringAsync("/jamsil-kids/bulletin");
         Assert.Contains("data-pnav-open", bul);                                   // ☰ 메뉴가 새로 생김
-        Assert.Contains("class=\"par\"", bul);                                    // 부서 이름
+        Assert.DoesNotContain("class=\"par\"", bul);                            // 부서 이름(유년부 ›)은 머리줄에서 뺐다(2026-11-24 사용자)
         Assert.Contains("class=\"cur\">주보</b>", bul);                           // 현재 화면
-        Assert.Contains("class=\"hb\" href=\"/jamsil-kids\">", bul);                // 오른쪽은 「부서 홈」 이동 버튼(알약은 부서 홈 · 첫 화면에만, 기준표 6판)
+        Assert.Contains("class=\"hb\" href=\"/jamsil-kids\">", bul);                // 오른쪽은 「홈으로」 이동 버튼(알약은 부서 홈 · 첫 화면에만, 기준표 6판)
+        Assert.Contains("홈으로</a>", bul);
         Assert.DoesNotContain("class=\"hpill\"", bul);
         Assert.DoesNotContain("class=\"brand\"", bul);                            // 「도전!!! 성경말씀」 글자는 뺐다
         Assert.Contains("id=\"pnav\"", bul);
