@@ -74,4 +74,4 @@
         }
     </span>
 </div></header>
-@if (member && !b2) { if (attMenu) { <partial name="_AttDrawer" model="(Ten, attScope!.Admin, attCare)" /> } else { <partial name="_TenantDrawer" model="(Ten, (string?)null)" /> } }
+@if (member && !b2 && ViewData["PbOwnDrawer"] as bool? != true) { if (attMenu) { <partial name="_AttDrawer" model="(Ten, attScope!.Admin, attCare)" /> } else { <partial name="_TenantDrawer" model="(Ten, (string?)null)" /> } }
