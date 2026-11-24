@@ -177,6 +177,6 @@ body:has(.mbody) .mnav a.hm .S { color: #6B7280; }
 /* 글자 크기 도구: 머리줄에서 제목 줄로 옮김(2026-11-24 머리줄 표준) — 작은 알약으로 */
 .mhead .krow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
 body:has(.mbody) .mhead .krow .k { margin-top: 0; }
-.mhead .fs { --rr: 10px; margin: 0; }   /* 알약 → 둥근 사각형(모서리 절반, 2026-11-24 사용자), 오른쪽 끝 */
+.mhead .fs { --rr: 10px; margin: 0 4px 0 0; }   /* 오른쪽 끝을 머리줄 이동 버튼 글자 끝(안쪽 여백 4px)에 맞춤 */   /* 알약 → 둥근 사각형(모서리 절반, 2026-11-24 사용자), 오른쪽 끝 */
 .mhead .fs button { border-radius: 7px; }
 .mhead .fs .pct { border-radius: 0; }   /* 가운데 100% 칸은 양옆 곧은 선(괄호처럼 둥글어지지 않게) */

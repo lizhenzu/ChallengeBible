@@ -297,7 +297,7 @@ body:has(.rp[data-theme]) { background: var(--bg); }
 
 /* 머리줄 표준(2026-11-24 기준표 8판): 통독 · 필사도 공통 머리줄(_Top) — ☰ 는 이 프로그램 서랍, 파란 띠는 제목만 */
 .b2rh .hkrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; }
-.b2rh .fs { --rr: 10px; }
+.b2rh .fs { --rr: 10px; margin-right: 4px; }
 .b2rh .fs button { border-radius: 7px; }
 .b2rh .fs .pct { border-radius: 0; }
 @media (min-width: 900px) {   /* 넓은 화면: 왼쪽 목차가 항상 보이므로 ☰ 는 없고, 머리줄은 본문 쪽으로 */
