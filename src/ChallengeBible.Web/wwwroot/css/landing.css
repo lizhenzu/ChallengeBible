@@ -128,7 +128,7 @@
 
 /* ☰ 메뉴 (design_handoff_home_b(1)) — 부서 하나인 사람은 기존 부서 메뉴판, 그 밖에는 이 손님용 메뉴판 */
 .vb-top-l { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.vb-burger { width: 40px; height: 40px; flex: none; margin-left: -8px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+.vb-burger { width: 44px; height: 44px; flex: none; margin-left: -8px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; }
 .vb-burger:hover { background: #e7e7ea; }
 .vb-burger:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .vb-dr .pd-panel { width: min(300px, 86vw); padding: 18px 18px 24px; }
@@ -477,6 +477,8 @@
 .vb-top-l { gap: 4px; }
 /* ☰ ↔ 오른쪽 이름 간격을 지금의 절반으로(2026-11-24 사용자): 14 → 7px. 누르는 칸 크기는 그대로(음수 오른쪽 여백) */
 .vb-burger { margin-right: -7px; }
+/* ☰ 막대 왼쪽 끝 = 좌우 여백 20px 선(날짜 · 제목 글자와 같은 선) — 누르는 칸은 44px(2026-11-24 사용자 · 기준표 8판). 막대 간격은 그대로 */
+.vb-burger { margin-left: -15.3px; margin-right: -9px; }
 /* 부서 홈 맨 아래(2026-11-24 사용자): 첫 화면 맨 아래와 같은 모양 — 위 여백 없이 .vb-foot 이 간격을 갖는다 */
 .vb-dept .vb-bottom { padding-top: 0; padding-bottom: 26px; }
 

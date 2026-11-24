@@ -3972,7 +3972,7 @@ body:has(main.tt) .top .wrap { max-width: 760px; }   /* 시험 도구: 머리말
 .ptop .pt-title { flex: 1; min-width: 0; }
 .ptop .pt-title small em { font-style: normal; font-weight: 900; color: var(--accent); }
 .ptop .pt-title b { font-size: 16px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pmenu-btn { flex: none; width: 44px; height: 44px; margin-left: -10px; display: grid; place-items: center; border: 0; border-radius: 10px; background: none; color: var(--fg); cursor: pointer; }   /* 테두리 없는 ☰(2026-11-15 사용자) */
+.pmenu-btn { flex: none; width: 44px; height: 44px; margin-left: -13px; display: grid; place-items: center; border: 0; border-radius: 10px; background: none; color: var(--fg); cursor: pointer; }   /* 테두리 없는 ☰(2026-11-15 사용자) */
 .pmenu-btn:active { background: var(--soft); }
 .pdrawer { position: fixed; inset: 0; z-index: 1000; }
 .pdrawer[hidden] { display: none; }
@@ -4899,7 +4899,7 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .top.pb .wrap.pbw { max-width: 760px; min-height: 56px; gap: 8px; }   /* 표준 폭 760px — 기본 .wrap 440px 에 갇혀 버튼이 가운데로 오던 것 고침(2026-11-24) */
 .pb .pb-l { display: flex; align-items: center; gap: 4px; min-width: 0; font-size: 14px; white-space: nowrap; overflow: hidden; }
 .pb .pb-r { display: flex; align-items: center; gap: 8px; flex: none; }
-.pb .pb-b { width: 40px; height: 40px; margin-left: -8px; flex: none; border: 0; border-radius: 12px; background: none; color: var(--fg); display: grid; place-items: center; cursor: pointer; text-decoration: none; }
+.pb .pb-b { width: 44px; height: 44px; margin-left: -14.7px; flex: none; border: 0; border-radius: 12px; background: none; color: var(--fg); display: grid; place-items: center; cursor: pointer; text-decoration: none; }
 .pb .par { font-size: 14px; font-weight: 700; color: var(--dim); text-decoration: none; }
 .pb .sep { color: #9aa0aa; margin: 0 4px; font-size: 13px; }
 .pb .cur { font-size: 15px; font-weight: 800; color: var(--fg); overflow: hidden; text-overflow: ellipsis; }
@@ -4912,7 +4912,8 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .pb .hpill .hmx-me b { font-size: 13.5px; font-weight: 800; }
 .pb .pb-imp { border: 0; background: none; font-size: 13px; font-weight: 800; color: var(--accent); padding: 0 4px; min-height: 40px; }
 /* ☰ ↔ 오른쪽 이름 간격을 지금의 절반으로(2026-11-24 사용자): 얇은 머리말 13 → 6.5px · 관리 · 플랫폼 · 기타 ☰ 20 → 10px. 누르는 칸 크기는 그대로 */
-.pb .pb-b { margin-right: -6.5px; }
+.pb .pb-b { margin-right: -8.5px; }
+.pb a.pb-b { margin-left: -19.7px; }   /* 뒤로 가기 화살표도 끝을 20px 선에 */
 .pmenu-btn { margin-right: -10px; }
 /* 오른쪽 이동 버튼(2026-11-24 확정 · 기준표 6판): 홈 아이콘 + 글자, 파랑 글자 · 테두리 알약 40px */
 .pb .hb { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; padding: 0 4px; border: 0; background: transparent; font-size: 15px; font-weight: 800; color: #111; white-space: nowrap; text-decoration: none; }
