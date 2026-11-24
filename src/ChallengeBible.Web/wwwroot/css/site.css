@@ -4933,3 +4933,4 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .tdr2-t small { margin-top: 1px; font-size: 12px; font-weight: 500; color: #6e6e75; }
 .tdr2-r[aria-current="page"] .tdr2-t small { color: #3b4a7d; }
 .tdr2-g.danger { color: #b02a2a; }
+.tdr2-me + .tdr2-nav, .tdr2-me + .tdr2-imp { margin-top: 12px; border-top: 1px solid #eceef2; }

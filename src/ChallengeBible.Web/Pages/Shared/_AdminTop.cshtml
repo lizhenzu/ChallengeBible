@@ -65,6 +65,7 @@
         : href.EndsWith("/season") ? ("season", "s", "기간 · 시상")
         : href.EndsWith("/branding") ? ("palette", "v", "앱 이름 · 대표 색 · 보고서")
         : href.EndsWith("/worship") ? ("pin", "b", "예배 시간 · 장소 · 주소")
+        : href.EndsWith("/intro") ? ("dept", "b", "처음 오는 분께 보여 주는 소개")
         : href.EndsWith("/todo") ? ("bell", "s", "누가 어떤 할 일을 보나") : ("rules", "s", "");
     var me = User.UserName();
     var photo = me is null ? null : await Photos.FileOfAsync(me);
