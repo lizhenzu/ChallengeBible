@@ -13,10 +13,10 @@
 }
 <partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): 글자 크기 도구는 아래 제목 줄로 옮김: ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <div class="mhead gut"><div class="wrap">
-    <div class="k">@Model.Label</div>
+    <div class="krow"><div class="k">@Model.Label</div>
     <div class="fs" role="group" aria-label="글자 크기">
         <button type="button" data-fs="-1" aria-label="글자 작게">가−</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
-    </div>
+    </div></div>
     <div class="ttl">
         <div class="cal" aria-label="@p.Day.ToString("yyyy년 M월 d일 dddd", ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko)">
             <div class="m num">@p.Day.ToString("yyyy.MM")</div><div class="d num">@p.Day.ToString("dd")</div><div class="w @(dow == DayOfWeek.Sunday ? "sun" : dow == DayOfWeek.Saturday ? "sat" : "")">@p.Day.ToString("dddd", ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko)</div>
