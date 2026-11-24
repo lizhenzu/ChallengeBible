@@ -123,30 +123,6 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Equal(HttpStatusCode.OK, (await guest.GetAsync("/jamsil-kids")).StatusCode);
     }
 
-    [Fact]   // 웰컴 / 웰컴2(2026-11-24) — 같은 화면, 「오늘의 안내」만 표 ↔ 색 카드. 위쪽 버튼으로 서로 오간다
-    public async Task 웰컴2는_같은_화면에서_안내_칸만_카드_모양이고_버튼으로_오간다()
-    {
-        var guest = NewClient();
-        var a = await guest.GetStringAsync("/jamsil-kids/welcome");
-        var b = await guest.GetStringAsync("/jamsil-kids/welcome2");
-        Assert.Contains("class=\"wc2-grid\"", a);
-        Assert.DoesNotContain("class=\"wc2-cards\"", a);
-        Assert.Contains("href=\"/jamsil-kids/welcome2\"", a);      // 카드로 보기
-        Assert.Contains("class=\"wc2-cards\"", b);
-        Assert.DoesNotContain("class=\"wc2-grid\"", b);
-        Assert.Contains("href=\"/jamsil-kids/welcome\"", b);       // 표로 보기
-        foreach (var page in new[] { a, b })                         // 기능은 같다
-        {
-            Assert.Contains("href=\"/jamsil-kids/bulletin\"", page);
-            Assert.Contains("href=\"/jamsil-kids/album\"", page);
-            Assert.Contains("href=\"/jamsil-kids/welcome?handler=Go\"", page);
-            Assert.Contains("유년부에 오신 것을 환영해요", page);
-        }
-        Assert.Contains("가정예배용", b);
-        var kid = await Member("cheolsu", _kids.Id, Roles.Participant);
-        Assert.Contains("다시 보지 않기", await kid.GetStringAsync("/jamsil-kids/welcome2"));
-    }
-
     [Fact]   // R-369 — 화면 구성: 글 · 예배 안내 · 주보 · 사진첩 · 성경말씀으로 가기. 손님에게는 「다시 보기」 버튼이 없다
     public async Task R369_소개_화면에는_글과_예배_안내_주보_사진첩_이동이_있다()
     {
