@@ -88,11 +88,8 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
             raw.SaveChanges();
         }
         var html = await Page();
-        Assert.Contains(">2<small>곳</small></b><span>함께하는 부서</span>", html);
-        Assert.Contains(">2<small>명</small></b><span>참여하는 사람</span>", html);
-        Assert.Contains(">2<small>명</small></b><span>오늘 함께한 사람</span>", html);
-        Assert.Contains("class=\"vb-big num\">2<small>장</small>", html);
-        Assert.Contains("최근 7일 참여", html);
+        Assert.DoesNotContain("올해 함께 읽은 성경", html);      // 현황 카드는 첫 화면에서 지웠다(2026-11-24 사용자)
+        Assert.DoesNotContain("함께하는 부서", html);
         Assert.DoesNotContain("잠실새내교회 유년부", html);
         Assert.DoesNotMatch(@"\bk1\b", html);
     }

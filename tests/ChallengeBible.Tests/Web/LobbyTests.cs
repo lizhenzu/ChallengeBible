@@ -238,6 +238,6 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task R172_첫_화면_부서_수에_임시_부서는_세지_않는다()
     {
         var html = await _app.CreateClient().GetStringAsync("/");
-        Assert.Contains(">1<small>곳</small></b><span>함께하는 부서</span>", html);
+        Assert.DoesNotContain("함께하는 부서", html);   // 현황 카드는 첫 화면에서 지웠다(2026-11-24) — 임시 부서 수도 보이지 않는다
     }
 }

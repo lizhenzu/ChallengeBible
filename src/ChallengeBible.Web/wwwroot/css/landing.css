@@ -479,3 +479,7 @@
 .vb-burger { margin-right: -7px; }
 /* 부서 홈 맨 아래(2026-11-24 사용자): 첫 화면 맨 아래와 같은 모양 — 위 여백 없이 .vb-foot 이 간격을 갖는다 */
 .vb-dept .vb-bottom { padding-top: 0; padding-bottom: 26px; }
+
+/* 첫 화면: 현황 카드를 지운 뒤 위·아래 여백을 1/3로(2026-11-24 사용자) */
+.vb-landing .vb-foot { margin-top: 20px; }
+.vb-landing .vb-main { padding-bottom: 9px; }
