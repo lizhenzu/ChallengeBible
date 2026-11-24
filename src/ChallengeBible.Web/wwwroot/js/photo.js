@@ -2,7 +2,7 @@
 // 끌어서 옮기고 · 두 손가락(또는 막대 · 휠)으로 키우고 · 90°씩 돌린 뒤 "이대로 올리기" → 동그라미 안만 320px JPEG 로 올린다.
 // 사진을 읽지 못하면(오래된 브라우저) 고른 파일 그대로 올리고, 크기는 서버가 400KB 로 막는다.
 // data-photo="square" 면 네모 틀(선물 상품 사진, R-278), data-photo-size 로 올리는 크기(기본 320px).
-// data-photo="wide" + data-photo-ratio="1.6" 면 가로로 긴 틀(웰컴 화면 대표 사진 16:10, 2026-11-24). data-photo-size = 가로 px(세로는 비율로).
+// data-photo="wide" + data-photo-ratio="1.6" 면 가로로 긴 틀(웰컴 화면 대표 사진 16:9, 2026-11-24). data-photo-size = 가로 px(세로는 비율로).
 // data-photo-defer 면 자른 사진을 바로 올리지 않고 [data-photo-preview] 에 보여 두었다가, 폼을 낼 때 다른 칸과 함께 올린다(상품 등록 2026-11-14).
 (function () {
   var MAXZ = 4;
