@@ -531,6 +531,8 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
 
         var t = await Member("teacher", Roles.Teacher);
         Assert.Contains("아직 맡은 반이 없어요", await t.GetStringAsync("/jamsil-kids/attendance"));
+        Assert.Contains("class=\"attTabs\"", await a.GetStringAsync("/jamsil-kids/attendance"));          // 관리자는 하단 탭(오늘 · 새친구 · 돌봄 · 더보기)
+        Assert.DoesNotContain("class=\"attTabs\"", await t.GetStringAsync("/jamsil-kids/attendance"));   // 반 담임(새친구 담당 아님)은 하단 탭 없음 — 더보기에 보일 메뉴가 없다(2026-11-24)
 
         // 더보기(유년부 "더보기"와 같은 모양): 관리자에게만 관리자 메뉴, 맡은 반 없는 교사는 못 들어온다
         var more = await a.GetStringAsync("/jamsil-kids/attendance/more");
