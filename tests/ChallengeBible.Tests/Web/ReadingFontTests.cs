@@ -76,7 +76,7 @@ public partial class ReadingFontTests : IClassFixture<WebApplicationFactory<Prog
     /// <summary>글자가 있는 요소마다 --rs 를 1 로 되돌려 보고, 안 줄어든 것을 찾는다(11px 이하 · 화살표 아이콘은 그대로).</summary>
     private const string AllShrink = """
         var texted = [].slice.call(document.querySelectorAll('body *')).filter(function (e) {
-          return !/^(SCRIPT|STYLE)$/.test(e.tagName) && !e.classList.contains('chev')
+          return !/^(SCRIPT|STYLE)$/.test(e.tagName) && !e.classList.contains('chev') && !e.closest('header.pb')   // 공통 머리줄(2026-11-24)은 글자 크기와 상관없이 고정
             && [].some.call(e.childNodes, function (n) { return n.nodeType === 3 && n.textContent.trim(); });
         });
         var now = texted.map(function (e) { return parseFloat(getComputedStyle(e).fontSize); });
