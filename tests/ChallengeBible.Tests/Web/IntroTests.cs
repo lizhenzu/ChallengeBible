@@ -136,7 +136,6 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Contains("href=\"/jamsil-kids/bulletin\"", page);
         Assert.Contains("href=\"/jamsil-kids/album\"", page);
         Assert.Contains("href=\"/jamsil-kids/welcome?handler=Go\"", page);
-        Assert.Contains("아직 없어요", page);
         Assert.DoesNotContain("1주일 후 다시 보기", page);                                   // 손님: 기억할 계정이 없다
         Assert.DoesNotContain("다시 보지 않기", page);
 

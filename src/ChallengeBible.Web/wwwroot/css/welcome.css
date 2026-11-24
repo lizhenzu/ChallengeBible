@@ -1,18 +1,21 @@
 /* 부서 소개(웰컴) 화면 — 2026-11-24 새 퍼블리시본 「JAMSIL KIDS · v2」(순백 · 헤어라인 · 검정 헤비 제목 · 컬러 번호 2열 표).
    기준표 8판: 최소 글자 12px · 좌우 20px · 폭 760px · 누르는 칸 44px */
-.wc2 { --ink: #1D1D1F; --ink-2: #56565C; --ink-3: #6e6e75; --hair: #E7E7EA; --wash: #F6F6F7; background: #fff; color: var(--ink); min-height: 100vh; }
+.wc2 { font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; -webkit-font-smoothing: antialiased; --ink: #1D1D1F; --ink-2: #56565C; --ink-3: #6e6e75; --hair: #E7E7EA; --wash: #F6F6F7; background: #fff; color: var(--ink); min-height: 100vh; }
 .wc2 a { color: inherit; text-decoration: none; }
 .wc2-page { max-width: 760px; margin: 0 auto; padding: 0 20px 46px; }
 .wc2-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 19px 0 14px; }
-.wc2-brand { font-size: 15px; font-weight: 800; letter-spacing: -.022em; }
+.wc2-brand { font-size: 14.5px; font-weight: 700; letter-spacing: -.022em; }
 .wc2-pill { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px 0 11px; border: 1px solid var(--hair); border-radius: 999px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
 .wc2-pill svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .wc2-hero { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: var(--wash); border: 1px solid var(--hair); display: grid; place-items: center; }
 .wc2-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-.wc2-nophoto { width: 26px; height: 26px; fill: none; stroke: #b3b3b8; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.wc2-hint { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--ink-3); }
+.wc2-hint svg { width: 22px; height: 22px; fill: none; stroke: #b3b3b8; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 6px; }
+.wc2-hint span { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.wc2-hint em { font-style: normal; font-size: 12px; color: var(--ink-3); }
 .wc2-title { padding: 22px 0 10px; }
 .wc2-kicker { margin: 0 0 12px; font-size: 12px; font-weight: 550; color: var(--ink-3); }
-.wc2 h1 { margin: 0; font-size: 32px; line-height: 1.16; font-weight: 850; letter-spacing: -.058em; text-wrap: balance; word-break: keep-all; white-space: pre-line; }
+.wc2 h1 { margin: 0; font-size: 32px; line-height: 1.16; font-weight: 830; letter-spacing: -.058em; text-wrap: balance; word-break: keep-all; white-space: pre-line; }
 .wc2-sub { margin: 13px 0 0; font-size: 13.5px; line-height: 1.6; letter-spacing: -.012em; color: var(--ink-2); }
 .wc2-sec { margin-top: 8px; }
 .wc2-sec h2, .wc2-about h2 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -.036em; }
@@ -25,12 +28,12 @@
 .wc2-tile .go { width: 28px; height: 28px; flex: none; display: grid; place-items: center; border-radius: 999px; background: var(--cbg); color: var(--c); transition: transform .2s; }
 .wc2-tile .go svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .wc2-tile:hover .go { transform: translateX(2px); }
-.wc2-tile .lbl { font-size: 16px; font-weight: 750; letter-spacing: -.04em; line-height: 1.34; text-wrap: balance; word-break: keep-all; }
+.wc2-tile .lbl { font-size: 16px; white-space: normal; font-weight: 720; letter-spacing: -.04em; line-height: 1.34; text-wrap: balance; word-break: keep-all; }
 .wc2-tile .lbl i { font-style: normal; letter-spacing: -.1em; }
-.wc2-tile .sub { margin-top: 4px; font-size: 12px; line-height: 1.5; color: var(--ink-3); }
 .wc2-tile:focus-visible { outline: 2px solid var(--ink); outline-offset: -3px; }
 /* 소개(글 + 예배 안내) */
-.wc2-about { margin-top: 28px; scroll-margin-top: 12px; }
+.wc2-about { display: none; margin-top: 28px; scroll-margin-top: 12px; }
+.wc2-about:target { display: block; }   /* 「소개」 칸을 눌렀을 때만 펼친다(퍼블리시본과 같은 첫 화면) */
 .wc2-intro { margin: 12px 0 0; font-size: 15px; line-height: 1.7; color: var(--ink-2); white-space: pre-line; word-break: keep-all; }
 .wc2-wb { margin-top: 14px; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; padding: 14px 0 2px; border-top: 1px solid var(--hair); }
 .wc2-wb h3 { margin: 0; font-size: 12px; font-weight: 800; color: var(--ink-3); }
@@ -39,7 +42,7 @@
 .wc2-wb .map { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 16px; border: 1px solid var(--ink); font-size: 13px; font-weight: 800; }
 /* 앱 설치 */
 .wc2-install { margin-top: 32px; text-align: center; }
-.wc2-install-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 52px; background: var(--ink); color: #fff !important; font-size: 14px; font-weight: 700; letter-spacing: -.02em; }
+.wc2-install-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 50px; background: var(--ink); color: #fff !important; font-size: 13.5px; font-weight: 680; letter-spacing: -.02em; }
 .wc2-install-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .wc2-note { margin: 9px 0 0; font-size: 12px; color: var(--ink-3); }
 @media (display-mode: standalone) { .wc2-install { display: none; } }

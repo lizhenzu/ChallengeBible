@@ -14,8 +14,9 @@
     string Clock(TimeOnly t) => $"{(t.Hour < 12 ? "오전" : "오후")} {(t.Hour % 12 == 0 ? 12 : t.Hour % 12)}:{t.Minute:00}";
     string Day(byte d) => d == 0 ? "주일" : new[] { "일", "월", "화", "수", "목", "금", "토" }[d] + "요일";
     var ko = new System.Globalization.CultureInfo("ko-KR");
-    var today = Model.Today.ToString("yyyy년 M월 d일 dddd", ko);
+    var today = Model.Today.ToString("yyyy년 M월 d일 ", ko) + (Model.Today.DayOfWeek == DayOfWeek.Sunday ? "주일" : Model.Today.ToString("dddd", ko));
 }
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />   @* 퍼블리시본과 같은 글꼴(Pretendard) *@
 <link rel="stylesheet" href="~/css/welcome.css" asp-append-version="true" />
 <div class="wc2">
 <main class="wc2-page">
@@ -27,7 +28,8 @@
 
     <div class="wc2-hero">
         @if (it.PhotoStoredName is not null) { <img src="/@slug/welcome/photo?v=@it.UpdatedUtc.Ticks" alt="@dept 대표 사진" /> }
-        else { <svg class="wc2-nophoto" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="1.6"/><circle cx="8.6" cy="10" r="1.5"/><path d="m20 16-4.6-4.6L7 19"/></svg> }
+        else if (Model.Tenant.IsAdmin) { <a class="wc2-hint" href="/@slug/admin/intro"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="1.6"/><circle cx="8.6" cy="10" r="1.5"/><path d="m20 16-4.6-4.6L7 19"/></svg><span>단체사진</span><em>눌러서 사진 넣기</em></a> }
+        else { <div class="wc2-hint"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="1.6"/><circle cx="8.6" cy="10" r="1.5"/><path d="m20 16-4.6-4.6L7 19"/></svg><span>단체사진</span></div> }
     </div>
 
     <section class="wc2-title">
@@ -41,22 +43,26 @@
         <a class="wc2-tile" style="--c:#1F9D55;--cbg:#E4F5EB" href="/@slug/bulletin">
             <span class="wc2-row"><span class="num">01</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
             <span class="lbl">이번 주 주보</span>
-            <span class="sub">@(Model.LatestBulletin is { } d ? $"가장 최근 {d:M월 d일}" : "아직 없어요")</span>
+        </a>
+        <a class="wc2-tile" style="--c:#2F6FE4;--cbg:#E6EEFC" href="/@slug/word">
+            <span class="wc2-row"><span class="num">02</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+            <span class="lbl">이번 주 말씀</span>
         </a>
         <a class="wc2-tile" style="--c:#E8681F;--cbg:#FCEBDF" href="/@slug/album">
-            <span class="wc2-row"><span class="num">02</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+            <span class="wc2-row"><span class="num">03</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
             <span class="lbl">@dept 앨범</span>
-            <span class="sub">우리 모습</span>
         </a>
         <a class="wc2-tile" style="--c:#E04088;--cbg:#FAE3EE" href="/@slug/welcome?handler=Go">
-            <span class="wc2-row"><span class="num">03</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+            <span class="wc2-row"><span class="num">04</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
             <span class="lbl">도전<i>!!!</i>성경말씀</span>
-            <span class="sub">매일 5분, 말씀과 함께</span>
+        </a>
+        <a class="wc2-tile" style="--c:#7A4BD0;--cbg:#EDE8FA" href="/@slug/word-mission">
+            <span class="wc2-row"><span class="num">05</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+            <span class="lbl">부모님과 함께하는 미션북</span>
         </a>
         <a class="wc2-tile" style="--c:#0E8FA0;--cbg:#DDF1F3" href="#about">
-            <span class="wc2-row"><span class="num">04</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+            <span class="wc2-row"><span class="num">06</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
             <span class="lbl">@dept 소개</span>
-            <span class="sub">예배 안내 · 오시는 길</span>
         </a>
     </nav>
 
