@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
@@ -209,7 +209,7 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Equal(HttpStatusCode.OK, (await admin.GetAsync("/jamsil-kids/admin/intro")).StatusCode);
         var editHtml = await admin.GetStringAsync("/jamsil-kids/admin/intro");
         Assert.Contains("data-photo=\"wide\" data-photo-ratio=\"1.6\" data-photo-size=\"1280\" data-photo-defer", editHtml);   // 대표 사진은 가로 16:10 틀로 잘라서 올린다(2026-11-24)
-        Assert.Contains("/js/photo.js", editHtml);
+        Assert.Matches("src=\"/js/photo(\\.[a-z0-9]+)?\\.js\"", editHtml);   // 자르기 스크립트(파일 이름에 지문이 붙는다)
 
         var r = await Save(admin, "jamsil-kids", "함께 자라요", "새 소개 글", Png);
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
