@@ -48,5 +48,5 @@
   });
 
   root.querySelector('[data-done]').addEventListener('click', () => { save({ s: 'done' }); location.replace(back); });
-  root.querySelector('[data-later]').addEventListener('click', () => { save({ s: 'later', until: Date.now() + WEEK }); location.replace(back); });
+  root.querySelectorAll('[data-later]').forEach((b) => b.addEventListener('click', () => { save({ s: 'later', until: Date.now() + WEEK }); location.replace(back); }));   // 카드의 ✕ 도 같은 「나중에」
 })();
