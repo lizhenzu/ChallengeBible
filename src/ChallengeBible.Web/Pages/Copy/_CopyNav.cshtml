@@ -33,7 +33,12 @@
     </div>
     <div class="b2ft"><a href="/@s">← 부서 홈으로</a></div>
 </nav>
-@if (!string.IsNullOrEmpty(Model.Title)) { <header class="b2top"><button type="button" class="b2hb" data-b2open aria-label="메뉴 열기" aria-controls="b2dr">☰</button><b>@Model.Title</b>@if (Model.Right is { } rt) { <span class="b2r-right">@rt</span> }</header> }
+@if (!string.IsNullOrEmpty(Model.Title))
+{
+    var vd = new ViewDataDictionary(ViewData) { ["PbDrawer"] = "b2", ["PbTitle"] = Model.Key == "home" ? "성경필사" : Model.Title };
+    if (Model.Key != "home") { vd["PbParent"] = new[] { "성경필사", $"/{s}/copy" }; vd["PbButton"] = new[] { "필사홈", $"/{s}/copy" }; }
+<partial name="_Top" view-data="vd" />
+}
 <script>
     // ☰ 서랍 열기 · 닫기(좁은 화면) — 성경통독과 같다
     (() => {

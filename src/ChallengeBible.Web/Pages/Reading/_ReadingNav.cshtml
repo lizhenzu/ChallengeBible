@@ -48,7 +48,9 @@
 </nav>
 @if (!Model.NoTop)
 {
-    <header class="b2top"><button type="button" class="b2hb" data-b2open aria-label="메뉴 열기" aria-controls="b2dr">☰</button><b>@Model.Title</b></header>
+        var vd = new ViewDataDictionary(ViewData) { ["PbDrawer"] = "b2", ["PbTitle"] = Model.Key == "home" ? "성경통독" : Model.Title };
+        if (Model.Key != "home") { vd["PbParent"] = new[] { "성경통독", $"/{s}/reading" }; vd["PbButton"] = new[] { "통독홈", $"/{s}/reading" }; }
+    <partial name="_Top" view-data="vd" />
 }
 <script>
     // ☰ 서랍 열기 · 닫기(좁은 화면)

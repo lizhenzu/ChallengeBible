@@ -26,15 +26,17 @@
 <div class="b2main brd b2r">
 @* 확정 시안: 통독-옛Bible2-본문읽기(0071) — 옛 Bible2 Read 배치: 파란 머리(☰ · 경로 · 글자 크기 | 구약 · 성경 통독 | 책 이름 + 큰 장 번호 | 절 진도)
    → 장 번호 줄 → 설정 칸(읽기 단위 · 번역 · 듣기 해설) → 책 개요 → 절 목록 → 큰 완료 버튼 → 이전 · 다음 장 → 대시보드 · 목록 · 부서 홈 *@
+@{
+    var vd = new ViewDataDictionary(ViewData) { ["PbDrawer"] = "b2", ["PbTitle"] = $"{name} {Model.Chapter}{unit}",
+        ["PbParent"] = new[] { t == "ot" ? "구약" : "신약", Model.ListUrl(t) }, ["PbButton"] = new[] { "통독홈", $"/{Model.Slug}/reading" } };
+}
+<partial name="_Top" view-data="vd" />
 <header class="b2rh"><div class="b2ri">
-    <div class="cr">
-        <button type="button" class="b2hb" data-b2open aria-label="메뉴 열기" aria-controls="b2dr">☰</button>
-        <span class="path"><a href="@Model.ListUrl(t)">@(t == "ot" ? "구약" : "신약")</a> › <b>@name @(Model.Chapter)@unit</b></span>
+    <div class="hkrow"><div class="hk">@(t == "ot" ? "구약" : "신약") · 성경 통독 · @(v.RoundNo)회차</div>
         <div class="fs" role="group" aria-label="글자 크기">
             <button type="button" data-fs="-1" aria-label="글자 작게">가−</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
         </div>
     </div>
-    <div class="hk">@(t == "ot" ? "구약" : "신약") · 성경 통독 · @(v.RoundNo)회차</div>
     <h1 class="ht">@name<b class="num">@Model.Chapter</b><small>@unit</small></h1>
     <div class="rdprog" data-total="@v.VerseCount">
         <p class="num"><span>@(v.VerseCount)절 · <b data-readcount>@v.VersesRead.Count</b>절 읽음<span class="rd-done" data-chapterdone @(v.Done ? "" : "hidden")> · 다 읽은 장</span></span><span data-readpct>@(Model.ReadPercent)%</span></p>

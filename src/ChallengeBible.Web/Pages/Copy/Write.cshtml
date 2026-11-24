@@ -15,11 +15,12 @@
 @{ var nav = ((ChallengeBible.Web.Pages.Copy.CopyPageBase)Model, t, "", (string?)null); }
 <partial name="_CopyNav" model="nav" />
 <div class="b2main brd b2r">
+@{
+    var vd = new ViewDataDictionary(ViewData) { ["PbDrawer"] = "b2", ["PbTitle"] = $"{d.Name} {d.Chapter}{unit}",
+        ["PbParent"] = new[] { t == "ot" ? "구약" : "신약", $"/{Model.Slug}/copy/books?t={t}" }, ["PbButton"] = new[] { "필사홈", $"/{Model.Slug}/copy" } };
+}
+<partial name="_Top" view-data="vd" />
 <header class="b2rh"><div class="b2ri">
-    <div class="cr">
-        <button type="button" class="b2hb" data-b2open aria-label="메뉴 열기" aria-controls="b2dr">☰</button>
-        <span class="path"><a href="/@Model.Slug/copy/books?t=@t">@(t == "ot" ? "구약" : "신약")</a> › <b>@d.Name @(d.Chapter)@unit</b></span>
-    </div>
     <div class="hk">@(t == "ot" ? "구약" : "신약") · 성경 필사</div>
     <h1 class="ht">@d.Name<b class="num">@d.Chapter</b><small>@unit</small></h1>
     <div class="rdprog">

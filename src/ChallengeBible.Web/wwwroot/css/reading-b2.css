@@ -294,3 +294,13 @@ body:has(.rp[data-theme]) { background: var(--bg); }
 .srch .rp-sform button { min-width: 84px; padding: 0 16px; border: 0; border-radius: 0 12px 12px 0; background: #5b8def; color: #fff; font-size: 15px; font-weight: 800; }
 .srch .rp-sform button:active { background: #4b7fe0; }
 .srch .rp-sform:focus-within { outline: 2px solid var(--ring, rgba(30, 58, 138, .45)); outline-offset: 2px; }
+
+/* 머리줄 표준(2026-11-24 기준표 8판): 통독 · 필사도 공통 머리줄(_Top) — ☰ 는 이 프로그램 서랍, 파란 띠는 제목만 */
+.b2rh .hkrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; }
+.b2rh .fs { --rr: 10px; }
+.b2rh .fs button { border-radius: 7px; }
+.b2rh .fs .pct { border-radius: 0; }
+@media (min-width: 900px) {   /* 넓은 화면: 왼쪽 목차가 항상 보이므로 ☰ 는 없고, 머리줄은 본문 쪽으로 */
+  .b2 > header.pb { margin-left: var(--b2w); }
+  .pb-b2 { display: none !important; }
+}
