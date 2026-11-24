@@ -63,13 +63,10 @@ else
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
                         </button>
                     }
-                    <a class="church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)">
-                        <small>대한예수교장로회</small>
-                        <span>잠실새내교회</span>
-                    </a>
+                    @* 머리줄 표준(2026-11-24 확정 · 기준표 5판): 왼쪽은 ☰ + 소속 이름 하나(교회 홈페이지 링크는 ☰ 메뉴 맨 아래로) *@
+                    <span class="church"><span>@PlatformTodayService.ShortDept(t.Name)</span></span>
                 </div>
                 <div class="vb-top-r">
-                    <time class="vb-date" datetime="@d.Today.ToString("yyyy-MM-dd")">@d.Today.ToString("M월 d일", ko) <small>@d.Today.ToString("dddd", ko)</small></time>
                     @if (Model.Guest)
                     {
                         <a class="person-btn" href="@loginTo" aria-label="로그인" title="로그인">
@@ -78,20 +75,24 @@ else
                     }
                     else
                     {
-                        <partial name="_MailBadge" />
-                        <a class="hmx-me" href="/account" aria-label="내 계정 · @Ui.Nim(User.DisplayName())">
-                            @if (Model.MyPhoto is { } ph)
-                            {
-                                <span class="av"><img src="/account/photo?handler=img&amp;v=@ph" alt="" /></span>
-                            }
-                            <b>@Ui.Nim(User.DisplayName())</b>
-                        </a>
+                        <span class="hpill">
+                            <partial name="_MailBadge" />
+                            <span class="sp" aria-hidden="true"></span>
+                            <a class="hmx-me" href="/account" aria-label="내 계정 · @Ui.Nim(User.DisplayName())">
+                                @if (Model.MyPhoto is { } ph)
+                                {
+                                    <span class="av"><img src="/account/photo?handler=img&amp;v=@ph" alt="" /></span>
+                                }
+                                <b>@Ui.Nim(User.DisplayName())</b>
+                            </a>
+                        </span>
                     }
                 </div>
             </div>
 
             <div class="vb-hero-row">
                 <div class="vb-body">
+                    <time class="vb-today" datetime="@d.Today.ToString("yyyy-MM-dd")">@d.Today.ToString("M월 d일 dddd", ko)</time>   @* 날짜는 머리줄에서 본문 위로(기준표 5판) *@
                     <h1 class="brand-title">
                         <span class="bt-1">도전<span class="bt-ex"><i class="e1">!</i><i class="e2">!</i><i class="e3">!</i></span></span>
                         <span class="bt-2">성경말씀</span>

@@ -322,4 +322,25 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var anon = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         Assert.DoesNotContain("class=\"vb-ring\"", await anon.GetStringAsync("/"));   // 손님에게는 없다
     }
+
+    [Fact]   // 머리줄 표준(2026-11-24 확정 · 기준표 5판): 오른쪽 「쪽지 | 이름님」 한 덩어리 알약 · 날짜는 본문 위 · 첫 화면은 교단 문구 유지
+    public async Task 머리줄은_한_덩어리_알약이고_날짜는_본문_위이며_첫_화면은_교단_문구가_남는다()
+    {
+        var (c, _) = await Member("cheolsu", Roles.Participant);
+        var root = await c.GetStringAsync("/");
+        Assert.Contains("<small>대한예수교장로회</small>", root);            // 이단이 많아 첫 화면에는 교단 문구를 둔다(2026-11-24 사용자)
+        Assert.Contains("class=\"hpill\"", root);
+        Assert.Contains("class=\"mailb\"", root);                           // 알약 안의 편지
+        Assert.Contains("<a class=\"hmx-me\" href=\"/account\"", root);     // 알약 안의 이름(누르면 내 계정)
+        Assert.Contains("class=\"vb-today\"", root);
+        Assert.DoesNotContain("class=\"vb-date\"", root);
+
+        var dept = await c.GetStringAsync("/jamsil-kids");
+        Assert.Contains("class=\"hpill\"", dept);
+        Assert.Contains("class=\"vb-today\"", dept);
+        Assert.DoesNotContain("class=\"vb-date\"", dept);
+        Assert.DoesNotContain("<small>대한예수교장로회</small>", dept);       // 부서 홈 머리줄은 소속 이름 하나
+        Assert.Contains("대한예수교장로회 · 잠실새내교회 홈페이지", dept);      // 교회 홈페이지 링크는 ☰ 메뉴로
+        Assert.Contains("href=\"https://www.saenae.org/\"", dept);
+    }
 }

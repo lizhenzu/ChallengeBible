@@ -49,7 +49,8 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         var html = await Page();
         Assert.Contains("<small>대한예수교장로회</small>", html);
         Assert.Contains("href=\"https://www.saenae.org/\" target=\"_blank\" rel=\"noopener\"", html);
-        Assert.Contains("<time class=\"vb-date\" datetime=\"2027-01-05\">", html);
+        Assert.Contains("<time class=\"vb-today\" datetime=\"2027-01-05\">", html);   // 날짜는 머리줄이 아니라 본문 제목 위(기준표 5판, 2026-11-24)
+        Assert.DoesNotContain("class=\"vb-date\"", html);
         Assert.Contains("1월 5일", html);
         Assert.Contains("<a class=\"person-btn\" href=\"/account/login\" aria-label=\"로그인\" title=\"로그인\">", html);   // 로그인은 우측 사람 아이콘 하나
         Assert.Contains("aria-label=\"메뉴 열기\" aria-controls=\"pnav\" aria-expanded=\"false\" data-pnav-open", html);     // ☰ 메뉴(2026-11-23 사용자)

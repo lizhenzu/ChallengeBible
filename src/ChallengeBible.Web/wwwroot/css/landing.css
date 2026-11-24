@@ -460,3 +460,16 @@
 /* 「나의 도전」 남은 점검(2026-11-24 사용자 "추천"): ① 이번 주 기록이 하나도 없으면 막대 영역을 낮춰 빈 공백을 줄인다 ② 작은 회색 글자는 이 화면 안에서만 한 단계 진하게(#8e8e94 → #6e6e75, 흰 바탕 대비 3.3 → 5:1) */
 .vb-ch-week.empty { height: 38px; }
 .vb.vb-ch { --ink-3: #6e6e75; }
+
+/* ── 머리줄 표준(2026-11-24 확정 · 기준표 5판 · 시안 머리줄-홈계열-비교) ──
+   오른쪽은 「쪽지 | 이름님」 한 덩어리 알약, 날짜는 머리줄에서 본문 제목 위로. 첫 화면은 「대한예수교장로회」 문구를 그대로 둔다. */
+.vb-top-r { gap: 0; }
+.vb .hpill { display: inline-flex; align-items: center; height: 40px; border: 1px solid #e3e6eb; border-radius: 999px; padding: 0 13px 0 4px; background: #fff; }
+.vb .hpill .mailb { width: 34px; height: 34px; border-radius: 50%; background: transparent; color: var(--ink); }
+.vb .hpill .mailb i { top: 0; right: -4px; }
+.vb .hpill .sp { width: 1px; height: 16px; flex: none; background: #e3e6eb; margin: 0 8px 0 2px; }
+.vb .hpill .hmx-me { min-height: 0; padding: 0; border: 0; background: transparent; max-width: none; }
+.vb .hpill .hmx-me:not(:has(.av)) { padding: 0; }
+.vb .hpill .hmx-me:has(.av) { padding: 0; }
+.vb-today { display: block; margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--ink-3); }
+.vb .church > span:only-child { font-size: 15px; font-weight: 800; color: var(--ink); letter-spacing: -.02em; }
