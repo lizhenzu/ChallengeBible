@@ -243,4 +243,18 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Equal(HttpStatusCode.NotFound, (await infantAdmin.GetAsync("/jamsil-infant/welcome/photo")).StatusCode);
         Assert.DoesNotContain("소개 화면", await infantAdmin.GetStringAsync("/jamsil-infant/admin"));   // 관리 메뉴에도 없다
     }
+
+    [Fact]   // 버그 수정(2026-11-24 사용자 신고) — 로그인한 사람의 얇은 머리말(주보 · 막힌 화면 등)에 「@if (User…」 소스가 글자로 찍히던 문제
+    public async Task 얇은_머리말에_소스_글자가_찍히지_않는다()
+    {
+        var kid = await Member("cheolsu", _kids.Id, Roles.Participant);
+        foreach (var url in new[] { "/jamsil-kids/bulletin", "/jamsil-kids/admin/intro" })   // 둘 다 얇은 머리말(_Top)을 쓴다(뒤쪽은 권한이 없어 막힌 화면)
+        {
+            var r = await kid.GetAsync(url);
+            var html = r.StatusCode == HttpStatusCode.Redirect ? await (await kid.GetAsync(r.Headers.Location!.ToString())).Content.ReadAsStringAsync() : await r.Content.ReadAsStringAsync();
+            Assert.DoesNotContain("@if", html);
+            Assert.DoesNotContain("ImpersonatorId", html);
+        }
+        Assert.Contains("김철수</b>님", await kid.GetStringAsync("/jamsil-kids/bulletin"));
+    }
 }

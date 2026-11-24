@@ -6,7 +6,7 @@
         <form method="post" action="/account/logout" asp-antiforgery="true" class="who">
             <partial name="_MailBadge" />
             @if (User.IsPlatformAdmin()) { <a class="plat" href="/platform">플랫폼</a> }
-            <span><b>@User.DisplayName()</b>님@if (User.ImpersonatorId() is not null) { @Html.Raw(" " + ChallengeBible.Web.Pages.DrawerUi.Ga) }</span>
+            <span><b>@User.DisplayName()</b>@Html.Raw("님" + (User.ImpersonatorId() is not null ? " " + ChallengeBible.Web.Pages.DrawerUi.Ga : ""))</span>   @* 글자 바로 뒤의 @ 는 Razor 가 이메일 주소로 읽어 소스가 그대로 찍힌다(「님@if」 · 「님@Html」, 2026-11-24 사용자 신고) — 「님」도 식 안에 넣는다 *@
             @if (User.ImpersonatorId() is null) { <button type="submit">로그아웃</button> }
         </form>
         @* 가장 중(R-366): ☰ 메뉴가 없는 화면은 여기 [복귀] *@
