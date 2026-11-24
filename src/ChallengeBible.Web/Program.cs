@@ -166,6 +166,7 @@ builder.Services.AddRazorPages(o =>
     o.Conventions.AllowAnonymousToPage("/Install");
     o.Conventions.AllowAnonymousToPage("/Bulletin/Index");   // 부서 주보 보기(ADR 0117): 누구나
     o.Conventions.AllowAnonymousToPage("/Welcome/Index");   // 부서 소개 화면(ADR 0140): 누구나 — 손님도 들어올 때 먼저 본다
+    o.Conventions.AllowAnonymousToPage("/Welcome/Index2");   // 웰컴2(카드 모양, 2026-11-24): 웰컴과 같다
     o.Conventions.AllowAnonymousToPage("/Welcome/Photo");
     o.Conventions.AllowAnonymousToPage("/Bulletin/File");
     o.Conventions.AllowAnonymousToPage("/Album/Index");   // 사진첩(ADR 0118): 앨범 공개 범위가 "누구나"면 손님도
