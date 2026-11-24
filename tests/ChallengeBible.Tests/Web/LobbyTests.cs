@@ -188,7 +188,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.DoesNotContain("시작까지 2단계", await c.GetStringAsync("/jamsil-kids"));
         var kidsHome = await c.GetStringAsync("/jamsil-kids");                            // 맨 아래: © 줄(모든 부서 홈, 2026-10-30)
         Assert.DoesNotContain("<div class=\"acct\">", kidsHome);                       // 맨 아래 계정 줄은 지웠다 — 왼쪽 위 ☰ 와 같아서(2026-11-15)
-        Assert.Contains("<p class=\"foot-copy\">© 2027 잠실새내 · 주일학교</p>", kidsHome);
+        Assert.Contains("<span class=\"foot\">© 2027 잠실새내 · 주일학교</span>", kidsHome);   // 첫 화면과 같은 모양(가운데 · 앱으로 설치, 2026-11-24 사용자)
         Assert.DoesNotContain("부서 바꾸기", kidsHome);                                    // 일반 부서 홈 맨 아래에 "부서 바꾸기"는 없다(2026-11-05)
         Assert.Contains("data-pnav-open", kidsHome);
         // ☰ 메뉴판(2026-11-22 깔끔판): 프로그램 · 바로가기 묶음, 내 계정은 바닥에

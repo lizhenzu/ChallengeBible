@@ -276,7 +276,18 @@ else
 
 @if (!Model.Guest) { <partial name="_TenantDrawer" model="(Model.Tenant, Model.MyPhoto)" /> }
 
-<footer class="gut"><div class="wrap">
-    <p class="foot-copy">© @d.Today.Year 잠실새내 · 주일학교</p>
-</div></footer>
+@if (!intro)
+{
+    @* 맨 아래 문구는 첫 화면(홈 루트)과 똑같이: 가운데 · 11.5px · 보조색, 오른쪽 「앱으로 설치」(2026-11-24 사용자) *@
+    <footer class="vb-main vb-bottom"><div class="vb-foot"><div class="vb-footrow">
+        <span class="foot">© @d.Today.Year 잠실새내 · 주일학교</span>
+        <a href="/install">앱으로 설치</a>
+    </div></div></footer>
+}
+else
+{
+    <footer class="gut"><div class="wrap">
+        <p class="foot-copy">© @d.Today.Year 잠실새내 · 주일학교</p>
+    </div></footer>
+}
 </div>

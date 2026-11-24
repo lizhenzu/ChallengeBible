@@ -477,3 +477,5 @@
 .vb-top-l { gap: 4px; }
 /* ☰ ↔ 오른쪽 이름 간격을 지금의 절반으로(2026-11-24 사용자): 14 → 7px. 누르는 칸 크기는 그대로(음수 오른쪽 여백) */
 .vb-burger { margin-right: -7px; }
+/* 부서 홈 맨 아래(2026-11-24 사용자): 첫 화면 맨 아래와 같은 모양 — 위 여백 없이 .vb-foot 이 간격을 갖는다 */
+.vb-dept .vb-bottom { padding-top: 0; padding-bottom: 26px; }
