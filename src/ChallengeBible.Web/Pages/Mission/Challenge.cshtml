@@ -64,7 +64,7 @@
             @* B안에서 가져온 「이번 주」 — 일~토 점수 막대 *@
             <section class="vb-ch-card" aria-labelledby="vbWeek">
                 <div class="vb-ch-cardh"><h2 id="vbWeek">이번 주</h2><span class="num"><b class="num">@(c.WeekCount)회</b> 참여</span></div>
-                <div class="vb-ch-week" aria-hidden="true">
+                <div class="vb-ch-week@(c.Week.All(x => x.Points <= 0) ? " empty" : "")" aria-hidden="true">
                     @foreach (var w in c.Week)
                     {
                         <div>

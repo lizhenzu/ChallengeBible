@@ -40,4 +40,12 @@ public class ScreenStyleGuardTests
         var line = Css("landing.css").Split('\n').First(l => l.StartsWith(".vb-footrow {"));
         Assert.DoesNotContain("border-top", line);
     }
+
+    [Fact]   // 2026-11-24 사용자: 「나의 도전」 이번 주 빈 공백 · 작은 회색 글자 대비
+    public void 나의_도전은_기록이_없으면_막대_영역을_낮추고_작은_글자를_진하게_쓴다()
+    {
+        var css = Css("landing.css");
+        Assert.Contains(".vb-ch-week.empty { height: 38px; }", css);
+        Assert.Contains(".vb.vb-ch { --ink-3: #6e6e75; }", css);
+    }
 }

@@ -457,3 +457,6 @@
 /* 「오늘 미션」 제목 줄 오른쪽 「들어가기 ›」(2026-11-24 사용자 A안 · 시안 나의도전-미션들어가기) */
 .vb-ch-cardh .rt { display: flex; align-items: baseline; gap: 10px; }
 .vb-ch-cardh .go { font-size: 11.5px; font-weight: 900; color: var(--ink); }
+/* 「나의 도전」 남은 점검(2026-11-24 사용자 "추천"): ① 이번 주 기록이 하나도 없으면 막대 영역을 낮춰 빈 공백을 줄인다 ② 작은 회색 글자는 이 화면 안에서만 한 단계 진하게(#8e8e94 → #6e6e75, 흰 바탕 대비 3.3 → 5:1) */
+.vb-ch-week.empty { height: 38px; }
+.vb.vb-ch { --ink-3: #6e6e75; }

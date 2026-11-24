@@ -166,7 +166,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal(2, System.Text.RegularExpressions.Regex.Matches(page, "<b class=\"go\">들어가기 ›</b>").Count);   // 학생: 통독 · 필사 두 줄 모두(시작 전이든 아니든)
         Assert.DoesNotContain("기도365</span>", page);                         // 학생에게는 365 기도 줄 없음(ADR 0106)
         Assert.Contains("class=\"vb-ch-hero\"", page);                        // A안 링 히어로(ADR 0136)
-        Assert.Contains("class=\"vb-ch-week\"", page);                        // B안 「이번 주」 막대
+        Assert.Contains("class=\"vb-ch-week empty\"", page);                  // B안 「이번 주」 막대 — 이번 주 기록이 없으면 낮은 모양(2026-11-24)
         Assert.Matches("<i class=\"[^\"]*\" style=\"--h:[0-9.]+\"></i>", page);   // 막대 높이는 --h 로(예전 height:N% 는 격자 안에서 0px 가 돼 막대가 안 그려졌다 · 2026-11-24)
         Assert.DoesNotContain("style=\"height:", page);
         Assert.Contains("다음 단계(새싹)까지", page);                          // 「400점까지 400점」이 아니라 다음 단계 이름으로
