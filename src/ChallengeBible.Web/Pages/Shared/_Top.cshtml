@@ -39,7 +39,7 @@
             @if (parent is not null) { <a class="par" href="@parent[1]">@parent[0]</a><span class="sep" aria-hidden="true">›</span> }
             @if (!string.IsNullOrEmpty(title)) { <b class="cur">@title</b> }
         }
-        else if (member)
+        else if (member || ViewData["PbOwnDrawer"] as bool? == true)
         {
             <button type="button" class="pb-b" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
                 @if (attCare > 0) { <i class="pb-dot" aria-label="돌봄 알림"></i> }
