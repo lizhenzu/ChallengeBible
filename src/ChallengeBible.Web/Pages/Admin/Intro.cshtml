@@ -13,16 +13,13 @@
     <h1>소개 화면</h1>
     <p class="ar-lead">부서에 처음 들어온 사람에게 먼저 보이는 화면이에요. 제목 · 소개 글 · 대표 사진을 고치면 바로 보여요. 예배 시간 · 장소는 「예배 안내」에서 고쳐요.</p>
     @if (Model.Ok == "save") { <p class="okmsg" role="status">저장했어요 · <a href="/@slug/welcome">소개 화면 보기</a></p> }
-    <form method="post" asp-page-handler="Save" asp-route-slug="@slug" enctype="multipart/form-data" class="wsa-row" novalidate>
+    <form method="post" asp-page-handler="Save" asp-route-slug="@slug" enctype="multipart/form-data" class="wsa-row" data-photo="wide" data-photo-ratio="1.6" data-photo-size="1280" data-photo-defer novalidate>
         <div class="wsa-g">
             <label class="w">제목<input class="in" name="title" maxlength="60" value="@(mine?.Title ?? it.Title)" />@if (Err("Title") is { } e1) { <span class="hint bad">@e1</span> }</label>
             <label class="w">소개 글 <small>줄바꿈은 그대로 보여요(1000자까지)</small><textarea class="in" name="body" rows="5" maxlength="1000">@(mine?.Body ?? it.Body)</textarea>@if (Err("Body") is { } e2) { <span class="hint bad">@e2</span> }</label>
-            <label class="w">대표 사진 <small>JPG · PNG, 5MB까지. 올리면 지금 사진이 바뀌어요</small><input class="in" type="file" name="photo" accept="image/jpeg,image/png" />@if (Err("Photo") is { } e3) { <span class="hint bad">@e3</span> }</label>
-            @if (it.PhotoStoredName is not null)
-            {
-                <div class="w"><img src="/@slug/welcome/photo?v=@it.UpdatedUtc.Ticks" alt="지금 대표 사진" style="max-width:260px;border-radius:12px;display:block" /></div>
-                <label class="ck"><input type="checkbox" name="removePhoto" value="true" />대표 사진 빼기</label>
-            }
+            <label class="w">대표 사진 <small data-photo-note>JPG · PNG. 고르면 가로 16 : 10 틀에 맞춰 끌어서 자르고, [저장] 때 함께 올라가요</small><input class="in" type="file" name="photo" accept="image/jpeg,image/png" />@if (Err("Photo") is { } e3) { <span class="hint bad">@e3</span> }</label>
+            <div class="w" data-photo-preview>@if (it.PhotoStoredName is not null) { <img src="/@slug/welcome/photo?v=@it.UpdatedUtc.Ticks" alt="지금 대표 사진" style="max-width:260px;display:block" /> }</div>
+            @if (it.PhotoStoredName is not null) { <label class="ck"><input type="checkbox" name="removePhoto" value="true" />대표 사진 빼기</label> }
             <label class="ck w"><input type="checkbox" name="active" value="true" checked="@(mine?.Active ?? it.IsActive)" /><span>소개 화면 보이기 <small class="ph-muted" style="display:block;font-weight:400">끄면 처음 들어온 사람에게도 나오지 않아요</small></span></label>
         </div>
         <div class="wsa-acts">
@@ -31,3 +28,4 @@
         </div>
     </form>
 </div></main>
+<script src="~/js/photo.js" asp-append-version="true"></script>

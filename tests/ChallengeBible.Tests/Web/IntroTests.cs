@@ -207,6 +207,9 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
     {
         var admin = await Member("eunhye", _kids.Id, Roles.Teacher, Roles.TenantAdmin);
         Assert.Equal(HttpStatusCode.OK, (await admin.GetAsync("/jamsil-kids/admin/intro")).StatusCode);
+        var editHtml = await admin.GetStringAsync("/jamsil-kids/admin/intro");
+        Assert.Contains("data-photo=\"wide\" data-photo-ratio=\"1.6\" data-photo-size=\"1280\" data-photo-defer", editHtml);   // 대표 사진은 가로 16:10 틀로 잘라서 올린다(2026-11-24)
+        Assert.Contains("/js/photo.js", editHtml);
 
         var r = await Save(admin, "jamsil-kids", "함께 자라요", "새 소개 글", Png);
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);

@@ -3505,6 +3505,9 @@ body:has(main.tt) .top .wrap { max-width: 760px; }   /* 시험 도구: 머리말
 /* 네모 자르기(선물 상품 사진, R-278): 같은 자르기 화면, 틀만 네모 */
 .crop.sq .crop-mask { background: none; }
 .crop.sq .crop-ring { border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .6); }
+/* 가로로 긴 틀(웰컴 화면 대표 사진 16:10, 2026-11-24): 모서리 각지게 */
+.crop.wide .crop-mask { background: none; }
+.crop.wide .crop-ring { width: calc(var(--rw, 120px) * 2); border-radius: 0; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .6); }
 
 /* 선물 상품 관리 /platform/gifts(확정 시안 플랫폼-선물상품 B, ADR 0094 A) — 내용 폭 760px, 칸은 minmax(0, 1fr) */
 .gf .wrap { max-width: 760px; display: flex; flex-direction: column; gap: 14px; }
