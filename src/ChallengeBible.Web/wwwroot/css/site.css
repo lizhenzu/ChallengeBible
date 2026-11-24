@@ -4554,13 +4554,13 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .tdr2-imp u { text-decoration: none; }
 .tdr2-imp .imp-ga { font-style: normal; color: #7c3aed; font-weight: 800; }
 .tdr2-nav { flex: 1; overflow-y: auto; padding: 10px 0 16px; overscroll-behavior: contain; }
-.tdr2-g { margin: 0; padding: 20px 22px 6px; font-size: 14px; font-weight: 700; color: #9aa0aa; letter-spacing: 0; border: 0; }   /* 메뉴 15px - 1pt(2026-11-22) */
+.tdr2-g { margin: 0; padding: 20px 22px 6px; font-size: 14px; font-weight: 700; color: #6e6e75; letter-spacing: 0; border: 0; }   /* 메뉴 15px - 1pt(2026-11-22) */
 .tdr2-r { display: flex; align-items: center; gap: 13px; width: 100%; min-height: 48px; padding: 0 22px; background: none; border: 0; text-align: left; font-family: inherit; font-size: 15px; font-weight: 700; color: #222; text-decoration: none; cursor: pointer; }
 .tdr2-r:hover { background: #f6f8fb; }
 .tdr2-r[aria-current="page"] { background: #eaf1fe; color: #1e3a8a; font-weight: 900; }
 .tdr2-i { width: 22px; height: 22px; flex: none; display: grid; place-items: center; color: #2563eb; }
 .tdr2-i svg { width: 21px; height: 21px; }
-.tdr2-k { margin-left: 4px; font-style: normal; font-size: 9.5px; font-weight: 800; color: #2563eb; background: #eaf1fe; border-radius: 999px; padding: 2px 6px; }
+.tdr2-k { margin-left: 4px; font-style: normal; font-size: 11px; font-weight: 800; color: #2563eb; background: #eaf1fe; border-radius: 999px; padding: 2px 6px; }
 .tdr2-back { margin: 0; }
 .tdr2-church { display: block; margin: 0 22px 12px; padding-top: 12px; border-top: 1px solid #eceef2; font-size: 12.5px; font-weight: 700; color: #6e6e75; text-decoration: none; }
 .tdr2-ft { border-top: 1px solid #eceef2; padding: 12px 18px calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -4918,3 +4918,18 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 
 .pb .pb-b { position: relative; }
 .pb .pb-dot { position: absolute; top: 7px; right: 6px; width: 10px; height: 10px; border-radius: 50%; background: #d93025; border: 2px solid #fff; }
+
+/* ☰ 메뉴 통일(기준표 8판 · 공통 1, 2026-11-24): 사람 카드 · 설명 줄 항목 · 위험 그룹 */
+.tdr2-me { display: flex; align-items: center; gap: 12px; margin: 14px 16px 2px; padding: 12px 14px; border-radius: 14px; background: #f4f4f5; color: #222; text-decoration: none; }
+.tdr2-av { width: 40px; height: 40px; flex: none; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: #dbe6fb; color: #1e3a8a; font-style: normal; font-weight: 900; font-size: 16px; }
+.tdr2-av img { width: 100%; height: 100%; object-fit: cover; }
+.tdr2-who { flex: 1; min-width: 0; }
+.tdr2-who b { display: block; font-size: 15px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tdr2-who small { display: block; margin-top: 1px; font-size: 12px; color: #6e6e75; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tdr2-me u { text-decoration: none; color: #6e6e75; font-size: 18px; }
+.tdr2 .tdr2-d { min-height: 56px; padding-top: 4px; padding-bottom: 4px; }
+.tdr2-t { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.tdr2-t b { font-size: 15px; font-weight: inherit; }
+.tdr2-t small { margin-top: 1px; font-size: 12px; font-weight: 500; color: #6e6e75; }
+.tdr2-r[aria-current="page"] .tdr2-t small { color: #3b4a7d; }
+.tdr2-g.danger { color: #b02a2a; }

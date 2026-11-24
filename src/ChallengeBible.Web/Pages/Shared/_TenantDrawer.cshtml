@@ -2,6 +2,7 @@
 @using ChallengeBible.Web.Auth
 @inject ChallengeBible.Web.Services.IntroService Intro
 @inject ChallengeBible.Web.Services.FamilyTeamService FamilyTeams
+@inject ChallengeBible.Web.Services.PhotoService Photos
 @using ChallengeBible.Web.Services
 @* 부서 화면 ☰ 메뉴판. 2026-11-22 사용자 확정(ADR 0127, 시안 메뉴-깔끔):
    흰 바탕 · 도전!!! 성경말씀 + GROW IN THE WORD · 파란 선 아이콘 · 제목만(설명 없음) · 그룹 라벨.
@@ -16,6 +17,9 @@
     var teacher = !lobby && t.IsApproved && UserRole.KindOf(t.RoleCode) == UserRoleKind.Teacher;
     var imp = User.ImpersonatorId() is not null;
     var back = Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString);
+    var meName = User.UserName();
+    var mePhoto = meName is null ? null : await Photos.FileOfAsync(meName);
+    var meSub = User.IsPlatformAdmin() ? "플랫폼 관리자" : lobby ? "처음 오신 분" : PlatformTodayService.ShortDept(c.Name) + " · " + (t.IsAdmin ? "관리자" : UserRole.LabelOf(UserRole.KindOf(t.RoleCode)));
     bool Cur(string href) => here.Equals(href.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
 }
 <div class="pdrawer tdr2" id="pnav" hidden>
@@ -30,6 +34,8 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
             </button>
         </div>
+
+        @DrawerUi.Me(User.DisplayName(), mePhoto, meSub, imp)
 
         @if (imp)
         {
@@ -88,7 +94,6 @@
         <a class="tdr2-church" href="https://www.saenae.org/" target="_blank" rel="noopener">대한예수교장로회 · 잠실새내교회 홈페이지 ↗</a>   @* 머리줄에서 옮김(2026-11-24 기준표 5판) *@
         <div class="tdr2-ft">
             <a class="tdr2-b1" href="/install?back=@back" data-app-install>앱 설치</a>
-            <a class="tdr2-b1 tdr-inapp" href="/account">내 계정</a>
             <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit" class="tdr2-out">로그아웃</button></form>
         </div>
     </aside>

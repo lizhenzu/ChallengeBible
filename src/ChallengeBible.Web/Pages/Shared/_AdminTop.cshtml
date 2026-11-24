@@ -77,28 +77,46 @@
     if (Model.IsAdmin && !atHome) { vd["PbParent"] = new[] { "관리", home }; vd["PbButton"] = new[] { "관리홈", home }; }
 }
 <partial name="_Top" view-data="vd" />
-<div class="pdrawer tdr" id="pnav" hidden>
+<div class="pdrawer tdr2" id="pnav" hidden>
     <div class="pd-dim" data-pnav-close></div>
     <aside class="pd-panel" tabindex="-1" role="dialog" aria-modal="true" aria-label="관리 메뉴">
-        @DrawerUi.Head(User.DisplayName(), photo, Model.Current.Name + " · " + myRole, imp: User.ImpersonatorId() is not null)
-        <nav aria-label="관리 메뉴">
-            <partial name="_ImpMenu" />   @* 가장 중이면 [사람 바꾸기] · [복귀](R-366) *@
+        <div class="tdr2-hd">
+            <div>
+                <div class="tdr2-ttl">도전!!! <span>성경말씀</span></div>
+                <div class="tdr2-sub">GROW IN THE WORD</div>
+            </div>
+            <button type="button" class="tdr2-x" aria-label="메뉴 닫기" data-pnav-close>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
+            </button>
+        </div>
+        @DrawerUi.Me(User.DisplayName(), photo, PlatformTodayService.ShortDept(Model.Current.Name) + " · " + myRole, User.ImpersonatorId() is not null)
+        <nav class="tdr2-nav" aria-label="관리 메뉴">
+            @if (User.ImpersonatorId() is not null)
+            {
+                var impBack = Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString);
+                <h2 class="tdr2-g">가장 중</h2>
+                @DrawerUi.Line($"/account/impersonate/switch?back={impBack}", "people", "사람 바꾸기", false, attr: "data-imp-switch")
+                <form method="post" action="/account/impersonate/stop" class="tdr2-back">@Html.AntiForgeryToken()
+                    <button type="submit" class="tdr2-r"><i class="tdr2-i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></i><span>복귀</span></button>
+                </form>
+            }
+            @DrawerUi.Line($"/{slug}", "home", "홈으로", false)
             @{ var last = (string?)null; }
             @foreach (var (href, label, count) in menu.OrderBy(m => Array.IndexOf(Groups, Group(m.Href))))   // 묶음 순서대로(같은 묶음 안은 원래 순서)
             {
                 var g = Group(href);
-                if (g != last && g.Length > 0) { <h2 class="tdr-g">@g</h2> }
+                if (g != last && g.Length > 0) { <h2 class="tdr2-g">@g</h2> }
                 last = g;
                 var (icon, tone, desc) = Look(href);
-                @DrawerUi.Row(href, icon, tone, label, desc, Current(href), count: count)
+                @DrawerUi.RowD(href, icon, label, desc, Current(href), count)
             }
-            <h2 class="tdr-g">바로 가기</h2>
-            @DrawerUi.Row("/messages", "msg", "v", "쪽지", "받은 · 보낸 쪽지", false)
-            @if (User.IsPlatformAdmin()) { @DrawerUi.Row("/platform", "platform", "v", "플랫폼", "모든 부서 관리", false) }
+            <h2 class="tdr2-g">바로 가기</h2>
+            @DrawerUi.RowD("/messages", "msg", "쪽지", "받은 · 보낸 쪽지", false)
+            @if (User.IsPlatformAdmin()) { @DrawerUi.RowD("/platform", "platform", "플랫폼", "모든 부서 관리", false) }
         </nav>
-        <div class="tdr-ft">
-            <a class="tdr-b1" href="/@slug">🏠 부서 홈</a>
-            <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit" class="tdr-b2">로그아웃</button></form>
+        <div class="tdr2-ft">
+            <a class="tdr2-b1" href="/install?back=@(Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString))" data-app-install>앱 설치</a>
+            <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit" class="tdr2-out">로그아웃</button></form>
         </div>
     </aside>
 </div>

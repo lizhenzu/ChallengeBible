@@ -87,6 +87,28 @@ public static class DrawerUi
     }
 
     /// <summary>
+    /// ☰ 메뉴 「지금 누구인지」 카드(기준표 8판 · 공통 1, 2026-11-24): 로고 아래, 누르면 내 계정. 아바타 40px · 이름님 · 소속 한 줄 · ›.
+    /// </summary>
+    public static IHtmlContent Me(string? name, string? photo, string sub, bool imp = false)
+    {
+        name ??= "";
+        var av = photo is { } ph ? $"<img src=\"/account/photo?handler=img&amp;v={WebUtility.HtmlEncode(ph)}\" alt=\"\" />" : $"<span aria-hidden=\"true\">{WebUtility.HtmlEncode(name.Length > 0 ? name[..1] : "·")}</span>";
+        return new HtmlString($"<a class=\"tdr2-me\" href=\"/account\" aria-label=\"내 계정\"><i class=\"tdr2-av\">{av}</i><span class=\"tdr2-who\"><b>{WebUtility.HtmlEncode(Ui.Nim(name))}{(imp ? " " + Ga : "")}</b><small>{WebUtility.HtmlEncode(sub)}</small></span><u aria-hidden=\"true\">›</u></a>");
+    }
+
+    /// <summary>
+    /// 설명 줄이 있는 한 줄(관리 · 플랫폼 ☰ 에서만 허용, 기준표 8판): 파란 선 아이콘 + 이름 + 12px 설명, 높이 56px. count 는 기다리는 수 배지.
+    /// </summary>
+    public static IHtmlContent RowD(string href, string icon, string title, string desc, bool current, int count = 0, string? attr = null)
+    {
+        var b = count > 0 ? $" <em class=\"tdr2-k\" aria-label=\"기다리는 요청 {count}건\">{count}</em>" : "";
+        return new HtmlString(
+            $"<a class=\"tdr2-r tdr2-d\" href=\"{WebUtility.HtmlEncode(href)}\"{(current ? " aria-current=\"page\"" : "")}{(attr is null ? "" : " " + attr)}>"
+            + $"<i class=\"tdr2-i\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">{Icons[icon]}</svg></i>"
+            + $"<span class=\"tdr2-t\"><b>{WebUtility.HtmlEncode(title)}{b}</b>{(desc.Length > 0 ? $"<small>{WebUtility.HtmlEncode(desc)}</small>" : "")}</span></a>");
+    }
+
+    /// <summary>
     /// 맨 위: 사진(없으면 이름 첫 글자) · 이름 · 소속 줄 · [내 정보 · 사진 변경] · 닫기.
     /// role 을 주면(부서 ☰, 2026-11-21 확정 시안 메뉴판-정리) 소속은 교회 · 부서 한 줄 + 역할 딱지 한 줄이고, 링크 글자는 link.
     /// </summary>

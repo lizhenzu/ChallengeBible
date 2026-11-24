@@ -88,7 +88,7 @@ public partial class AdminFlowTests : IClassFixture<WebApplicationFactory<Progra
         Assert.Contains("오늘 참여", html);
         Assert.Contains("최근 7일", html);
         Assert.Contains("오늘 아직 안 한 친구", html);
-        Assert.Matches("aria-current=\"page\"><i [^>]*>.*?</i><span><b>관리 홈", html);   // ☰ 지금 화면(새 메뉴판, 2026-11-18)   // 관리 메뉴의 첫 칸
+        Assert.Matches("aria-current=\"page\"><i [^>]*>.*?</i><span class=\"tdr2-t\"><b>관리 홈", html);   // ☰ 지금 화면(새 메뉴판, 2026-11-18)   // 관리 메뉴의 첫 칸
     }
 
     [Fact]

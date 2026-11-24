@@ -1,5 +1,8 @@
 @model (ChallengeBible.Web.Tenancy.TenantContext Tenant, bool Admin, int Care)
 @using ChallengeBible.Web.Pages
+@using ChallengeBible.Web.Services
+@using ChallengeBible.Web.Auth
+@inject ChallengeBible.Web.Services.PhotoService Photos
 @* 출석 화면 ☰ 메뉴판(2026-11-24 사용자 확정 시안 출석-햄버거-메뉴): 하단 탭 대신. 제목 「주일출석관리」.
    관리자 · 새친구반 담당에게만(반 담임은 부서 ☰ 메뉴). 여는 버튼은 data-pnav-open, 동작은 platform-nav.js. *@
 @{
@@ -7,6 +10,9 @@
     var s = t.Current.Slug;
     var here = (Context.Request.Path.Value ?? "").TrimEnd('/');
     var back = Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString);
+    var meName = User.UserName();
+    var mePhoto = meName is null ? null : await Photos.FileOfAsync(meName);
+    var meSub = PlatformTodayService.ShortDept(t.Current.Name) + " · " + (Model.Admin ? "관리자" : UserRole.LabelOf(UserRole.KindOf(t.RoleCode)));
     bool Cur(string href) => here.Equals(href.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
 }
 <div class="pdrawer tdr2" id="pnav" hidden>
@@ -20,6 +26,7 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
             </button>
         </div>
+        @DrawerUi.Me(User.DisplayName(), mePhoto, meSub)
         <nav class="tdr2-nav" aria-label="출석 메뉴">
             @DrawerUi.Line($"/{s}/attendance", "todo", "오늘", Cur($"/{s}/attendance"))
             @DrawerUi.Line($"/{s}/attendance/newcomers", "join", "새친구", Cur($"/{s}/attendance/newcomers"))
@@ -38,7 +45,6 @@
         </nav>
         <div class="tdr2-ft">
             <a class="tdr2-b1" href="/install?back=@back" data-app-install>앱 설치</a>
-            <a class="tdr2-b1 tdr-inapp" href="/account">내 계정</a>
             <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit" class="tdr2-out">로그아웃</button></form>
         </div>
     </aside>
