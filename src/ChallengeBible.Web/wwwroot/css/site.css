@@ -4907,3 +4907,6 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .pb .hpill .hmx-me { display: inline-flex; align-items: center; gap: 4px; min-height: 0; padding: 0; border: 0; background: transparent; max-width: none; text-decoration: none; color: var(--fg); }
 .pb .hpill .hmx-me b { font-size: 13.5px; font-weight: 800; }
 .pb .pb-imp { border: 0; background: none; font-size: 13px; font-weight: 800; color: var(--accent); padding: 0 4px; min-height: 40px; }
+/* ☰ ↔ 오른쪽 이름 간격을 지금의 절반으로(2026-11-24 사용자): 얇은 머리말 13 → 6.5px · 관리 · 플랫폼 · 기타 ☰ 20 → 10px. 누르는 칸 크기는 그대로 */
+.pb .pb-b { margin-right: -6.5px; }
+.pmenu-btn { margin-right: -10px; }
