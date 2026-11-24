@@ -109,7 +109,7 @@
                                 <span class="pc none">시작 전</span>
                             }
                             <span class="bar" aria-hidden="true"><i class="c-@r.Key" style="width:@(r.Started ? ChallengeCardService.Width(r.Percent) : "0")%"></i></span>
-                            <span class="sub num"><span>@r.Sub</span>@if (!r.Started) { <b class="go">시작하기 ›</b> }</span>
+                            <span class="sub num"><span>@r.Sub</span><b class="go">들어가기 ›</b></span>   @* 2026-11-24 사용자: 시작 전이든 아니든 항상 「들어가기」(시작 판단 기준이 프로그램마다 달라 통독만 버튼이 없던 문제) *@
                         </a>
                     }
                 </div>

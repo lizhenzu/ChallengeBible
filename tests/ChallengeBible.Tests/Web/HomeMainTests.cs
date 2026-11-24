@@ -161,7 +161,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("성경통독", page);                                     // 통독 줄
         Assert.Contains("성경필사", page);                                     // 필사 줄
         Assert.Contains("시작 전", page);                                      // 아직 시작하지 않음
-        Assert.Contains("시작하기 ›", page);
+        Assert.DoesNotContain("시작하기 ›", page);                              // 2026-11-24 사용자: 「시작하기」가 아니라 항상 「들어가기」
+        Assert.Equal(2, System.Text.RegularExpressions.Regex.Matches(page, "<b class=\"go\">들어가기 ›</b>").Count);   // 학생: 통독 · 필사 두 줄 모두(시작 전이든 아니든)
         Assert.DoesNotContain("기도365</span>", page);                         // 학생에게는 365 기도 줄 없음(ADR 0106)
         Assert.Contains("class=\"vb-ch-hero\"", page);                        // A안 링 히어로(ADR 0136)
         Assert.Contains("class=\"vb-ch-week\"", page);                        // B안 「이번 주」 막대
