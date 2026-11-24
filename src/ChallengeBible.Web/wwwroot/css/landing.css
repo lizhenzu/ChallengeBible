@@ -483,3 +483,9 @@
 /* 첫 화면: 현황 카드를 지운 뒤 위·아래 여백을 1/3로(2026-11-24 사용자) */
 .vb-landing .vb-foot { margin-top: 20px; }
 .vb-landing .vb-main { padding-bottom: 9px; }
+
+/* 부서 홈: 「의견 보내기」 ↔ © 사이 13px, 맨 아래 9px(2026-11-24 사용자 "13으로") */
+.vb-dept main.vb-main { padding-bottom: 0; }
+.vb-dept .vb-bottom { padding-bottom: 9px; }
+.vb-dept .vb-foot { margin-top: 0; }
+.vb-dept .vb-footrow { padding-top: 12px; }
