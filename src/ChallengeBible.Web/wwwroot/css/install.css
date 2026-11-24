@@ -46,7 +46,7 @@
 .ins-go { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; margin-top: 26px; padding: 0 16px; border-radius: 16px; background: #18181B; color: #fff; box-shadow: 0 6px 16px rgba(17,24,39,.18); font-size: 17px; font-weight: 700; }
 .ins-go:hover { filter: brightness(1.18); }
 .ins-go:active { transform: none; box-shadow: 0 3px 8px rgba(17,24,39,.18); }
-.ins-go.blue { background: #3B82F6; box-shadow: 0 6px 16px rgba(59,130,246,.3); }
+.ins-go.blue { background: #18181B; box-shadow: 0 6px 16px rgba(17,24,39,.18); }   /* 카톡 안 안내도 설치 버튼과 같은 검정(2026-11-24 사용자) */
 .ins-go:focus-visible, .ins-more button:focus-visible, .ins-x:focus-visible, .ins-ghost:focus-visible { outline: 3px solid #93C5FD; outline-offset: 2px; }
 .ins-more { display: flex; gap: 8px; margin-top: 8px; }
 .ins-more .dv { width: 1px; background: #E5E7EB; margin: 12px 0; }
