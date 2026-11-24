@@ -179,3 +179,4 @@ body:has(.mbody) .mnav a.hm .S { color: #6B7280; }
 body:has(.mbody) .mhead .krow .k { margin-top: 0; }
 .mhead .fs { --rr: 10px; margin: 0; }   /* 알약 → 둥근 사각형(모서리 절반, 2026-11-24 사용자), 오른쪽 끝 */
 .mhead .fs button { border-radius: 7px; }
+.mhead .fs .pct { border-radius: 0; }   /* 가운데 100% 칸은 양옆 곧은 선(괄호처럼 둥글어지지 않게) */
