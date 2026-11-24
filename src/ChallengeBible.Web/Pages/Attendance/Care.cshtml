@@ -6,9 +6,10 @@
     var slug = Model.Tenant.Current.Slug;
     var c = Model.Care;
 }
+@{ ViewData["PbTitle"] = "연락할 아이"; ViewData["PbParent"] = new[] { "출석", $"/{slug}/attendance" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
+<partial name="_Top" view-data="ViewData" />
 <div class="yb">
     <header class="sh">
-        <div class="hdTop"><a href="/@slug/attendance">출석부</a><a href="/@slug">홈으로</a></div>
         <div class="hdK">CARE</div>
         <h1 class="hdT">연락할 아이</h1>
         <div class="prog2"><b>@c.Rows.Count</b><span>명 · @CareModel.FilterName(c.AbsentDays) 결석</span></div>

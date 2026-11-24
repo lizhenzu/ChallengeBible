@@ -635,7 +635,7 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("이번 달 출석 요약", stats);
         Assert.Matches("/jamsil-kids/attendance/stats/detail\\?year=2020&(amp;)?month=1\"", stats);
         var detail = await a.GetStringAsync("/jamsil-kids/attendance/stats/detail?year=2020&month=1");
-        Assert.Equal(4, Regex.Matches(detail, "<circle ").Count);                  // 2020년 1월 주일 4번
+        Assert.Equal(4, Regex.Matches(detail[detail.IndexOf("<main", StringComparison.Ordinal)..], "<circle ").Count);                  // 2020년 1월 주일 4번
         Assert.Contains("반별 출석 합계", detail);
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/stats")).StatusCode);
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/stats/detail")).StatusCode);

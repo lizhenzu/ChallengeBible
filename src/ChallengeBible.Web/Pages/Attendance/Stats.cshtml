@@ -8,10 +8,11 @@
     var self = $"/{slug}/attendance/stats";
     var detail = $"/{slug}/attendance/stats/detail?year={s.Year}&month={s.Month}";
 }
+@{ ViewData["PbTitle"] = "월별 통계"; ViewData["PbParent"] = new[] { "출석", $"/{slug}/attendance" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
+<partial name="_Top" view-data="ViewData" />
 <div class="yb ybd ybst">
     <div class="dbTop">
         <div class="sh">
-            <div class="hdTop"><a href="/@slug/attendance/more">더보기</a><a href="/@slug">홈으로</a></div>
             <div class="dbHead">
                 <div>
                     <h1 class="dbT">월별 출석 통계</h1>

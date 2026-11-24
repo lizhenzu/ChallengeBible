@@ -12,11 +12,9 @@
     var pct = total == 0 ? 0 : present * 100 / total;
     var back = Model.BackUrl(slug, d);
 }
+@{ ViewData["PbTitle"] = g.Name; ViewData["PbParent"] = new[] { "출석", back }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
+<partial name="_Top" view-data="ViewData" />
 <main class="att gut fcw"><div class="wrap">
-    <div class="fc-top">
-        <a href="@back">← @(Model.Tenant.IsAdmin ? "반별 출석" : "출석부")</a>
-        <a href="/@slug">홈으로</a>
-    </div>
     @Html.AntiForgeryToken()
     <section class="fc-card">
         <div class="k">CLASS</div>
