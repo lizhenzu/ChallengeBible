@@ -679,4 +679,4 @@
 .hmx-make .go { background: #1e3a8a; color: #fff; }
 .hmx-make .alt { background: #fff; border: 1px solid #c9d6ea; color: #3b4a7d; }
 
-@media (max-width: 380px) { .hmx-me { padding: 0 5px; } .hmx-me b { display: none; } }
+@media (max-width: 380px) { .hmx-me:has(.av) { padding: 0 5px; } .hmx-me:has(.av) b { display: none; } }   /* 사진 동그라미가 없으면 이름을 숨기지 않는다 — 안 그러면 빈 테두리만 남는다(2026-11-24 사용자 신고) */

@@ -1,4 +1,4 @@
-@page "/{slug}/challenge"
+﻿@page "/{slug}/challenge"
 @model ChallengeBible.Web.Pages.Mission.ChallengeModel
 @using ChallengeBible.Web.Services
 @* 「나의 도전」(2026-11-23 사용자 확정 · ADR 0136): A안 링 히어로 + B안 「이번 주」 막대.
@@ -46,7 +46,8 @@
                     }
                     else
                     {
-                        <text>@($"{g.NextUntil:N0}")점까지 <b class="num">@g.ToNext.ToString("N0")점</b></text>
+                        var next = g.Steps.FirstOrDefault(x => !x.Reached)?.Name;
+                        <text>다음 단계@(next is null ? "" : $"({next})")까지 <b class="num">@g.ToNext.ToString("N0")점</b></text>
                     }
                 </p>
                 <div class="vb-ch-steps" aria-hidden="true">
@@ -67,7 +68,7 @@
                     @foreach (var w in c.Week)
                     {
                         <div>
-                            <i class="@(w.Points > 0 ? "on" : "")" style="height:@(w.Height.ToString(inv))%"></i>
+                            <i class="@(w.Points > 0 ? "on" : "")" style="--h:@(w.Height.ToString(inv))"></i>
                             <span>@w.Day</span>
                         </div>
                     }
@@ -82,7 +83,7 @@
                 <div class="vb-chips" role="list" aria-label="오늘 미션">
                     @foreach (var chip in c.Chips)
                     {
-                        <div class="vb-chip@(chip.Done ? " ok" : chip.Has ? " wait" : " none")" role="listitem">
+                        <div class="vb-chip k-@chip.Key@(chip.Done ? " ok" : chip.Has ? " wait" : " none")" role="listitem">
                             <b>@chip.Label</b><span>@chip.State</span>
                         </div>
                     }
@@ -102,14 +103,13 @@
                             @if (r.Started)
                             {
                                 <span class="pc num">@ChallengeCardService.Width(r.Percent)<small>%</small></span>
-                                <span class="bar" aria-hidden="true"><i class="c-@r.Key" style="width:@ChallengeCardService.Width(r.Percent)%"></i></span>
-                                <span class="sub num">@r.Sub</span>
                             }
                             else
                             {
                                 <span class="pc none">시작 전</span>
-                                <span class="start"><span>@r.Sub</span><b>시작하기 ›</b></span>
                             }
+                            <span class="bar" aria-hidden="true"><i class="c-@r.Key" style="width:@(r.Started ? ChallengeCardService.Width(r.Percent) : "0")%"></i></span>
+                            <span class="sub num"><span>@r.Sub</span>@if (!r.Started) { <b class="go">시작하기 ›</b> }</span>
                         </a>
                     }
                 </div>

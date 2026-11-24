@@ -152,7 +152,10 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var (c, _) = await Member("cheolsu", Roles.Participant);
         var page = await c.GetStringAsync("/jamsil-kids/challenge");            // 카드는 이 화면(ADR 0136)
         Assert.Contains("class=\"vb-chips\"", page);                          // 오늘 미션 칸
-        Assert.Contains("class=\"vb-chip wait\"", page);                      // 아직 안 한 칸 = 대기중(옅은 초록 바탕)
+        Assert.Contains("class=\"vb-chip k-word wait\"", page);               // 아직 안 한 칸 = 대기중(그 프로그램 색의 옅은 바탕, 2026-11-24 시안 나의도전-정리)
+        Assert.Contains("vb-chip k-quiz wait", page);
+        Assert.Contains("vb-chip k-prayer", page);   // 콘텐츠가 없으면 없음 칸이지만 종류 클래스는 붙는다
+        Assert.Contains("vb-chip k-recite", page);
         Assert.Contains("<span>대기중</span>", page);                          // 체크 표시 대신 글자
         Assert.Contains("class=\"vb-prog\"", page);                           // 진행 줄
         Assert.Contains("성경통독", page);                                     // 통독 줄
@@ -162,6 +165,10 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("기도365</span>", page);                         // 학생에게는 365 기도 줄 없음(ADR 0106)
         Assert.Contains("class=\"vb-ch-hero\"", page);                        // A안 링 히어로(ADR 0136)
         Assert.Contains("class=\"vb-ch-week\"", page);                        // B안 「이번 주」 막대
+        Assert.Matches("<i class=\"[^\"]*\" style=\"--h:[0-9.]+\"></i>", page);   // 막대 높이는 --h 로(예전 height:N% 는 격자 안에서 0px 가 돼 막대가 안 그려졌다 · 2026-11-24)
+        Assert.DoesNotContain("style=\"height:", page);
+        Assert.Contains("다음 단계(새싹)까지", page);                          // 「400점까지 400점」이 아니라 다음 단계 이름으로
+        Assert.DoesNotContain("class=\"start\"", page);                       // 시작 전 줄도 다른 줄과 같은 모양(막대 + 숫자 줄)
         Assert.DoesNotContain("vb-cardfoot", page);                            // 순위 · 연속은 뺐다(ADR 0135)
         Assert.DoesNotContain("선물 대상자와 상태", page);                       // 선물은 이 화면에 없다
         Assert.DoesNotContain("우리 가족팀", page);                             // 가족팀도 이 화면에 없다

@@ -93,7 +93,7 @@
 /* 4. 푸터 */
 .vb-foot { margin-top: 26px; }
 /* 2026-11-24 사용자: 「© 잠실새내 · 주일학교」를 가운데로 — 3칸(빈칸 · 문구 · 앱으로 설치), 아주 좁은 화면은 위아래로 가운데 */
-.vb-footrow { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+.vb-footrow { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding-top: 12px; }   /* 2026-11-24 사용자: 위 가는 줄(hr) 삭제 */
 .vb-footrow .foot { grid-column: 2; font-size: 11.5px; color: var(--ink-3); text-align: center; white-space: nowrap; }
 .vb-footrow a { grid-column: 3; justify-self: end; font-size: 12.5px; font-weight: 700; color: var(--ink-2); white-space: nowrap; }
 @media (max-width: 380px) {
@@ -164,10 +164,13 @@
 .vb-chip span { font-size: 9.5px; font-weight: 700; letter-spacing: 0; }
 .vb-chip.ok { background: var(--p1); }
 .vb-chip.ok b { color: #fff; }
-.vb-chip.ok span { color: rgba(255, 255, 255, .78); }
-.vb-chip.wait { background: var(--s1); }
-.vb-chip.wait b { color: #5f8a71; }
-.vb-chip.wait span { color: #7ba48c; }
+.vb-chip.ok span { color: rgba(255, 255, 255, .85); }
+.vb-chip.k-word { --c: var(--p1); --s: var(--s1); } .vb-chip.k-quiz { --c: var(--p2); --s: var(--s2); }
+.vb-chip.k-prayer { --c: var(--p4); --s: var(--s4); } .vb-chip.k-recite { --c: var(--p3); --s: var(--s3); }
+.vb-chip.ok { background: var(--c, var(--p1)); }
+.vb-chip.wait { background: var(--s, var(--s1)); }
+.vb-chip.wait b { color: var(--c, #5f8a71); }
+.vb-chip.wait span { color: var(--c, #7ba48c); opacity: .8; }
 .vb-chip.none { background: #fafafb; box-shadow: inset 0 0 0 1px var(--line); }
 .vb-chip.none b { color: #c2c2c8; }
 .vb-chip.none span { color: #c9c9cf; }
@@ -182,10 +185,9 @@
 .vb-prog .pc small { margin-left: 3px; font-size: 10.5px; font-weight: 700; color: var(--ink-3); }
 .vb-prog .bar { grid-column: 1 / -1; height: 6px; margin-top: 7px; border-radius: 99px; background: var(--track); overflow: hidden; }
 .vb-prog .bar i { display: block; height: 100%; border-radius: 99px; }
-.vb-prog .sub { grid-column: 1 / -1; font-size: 10.5px; font-weight: 700; color: var(--ink-3); }
+.vb-prog .sub { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 10.5px; font-weight: 700; color: var(--ink-3); }
+.vb-prog .sub .go { font-size: 11.5px; font-weight: 900; color: var(--ink); }
 .vb-prog .pc.none { font-size: 11px; font-weight: 700; color: var(--ink-3); }
-.vb-prog .start { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; padding: 11px 13px; border-radius: 11px; background: var(--soft); font-size: 12px; font-weight: 800; color: var(--ink-2); }
-.vb-prog .start b { font-weight: 900; color: var(--ink); }
 .vb .c-reading { background: var(--p2); }
 .vb .c-copy { background: var(--p3); }
 .vb .c-prayer { background: var(--p4); }
@@ -324,13 +326,13 @@
 .vb-ch-hd p { margin-top: 5px; font-size: 12px; font-weight: 600; color: var(--ink-3); }
 .vb-ch-hero { display: grid; justify-items: center; gap: 10px; padding: 18px 15px 15px; border: 1px solid var(--line); border-radius: 20px; background: linear-gradient(180deg, #f4fbf7, #fff); }
 .vb-ch-hero .vb-ring { margin-top: 0; }
-.vb-ch-next { font-size: 11px; font-weight: 700; color: #5f8a71; }
+.vb-ch-next { font-size: 12.5px; font-weight: 700; color: #5f8a71; }
 .vb-ch-next b { font-weight: 900; color: #17663a; }
 .vb-ch-steps, .vb-ch-names { width: 100%; }
 .vb-ch-steps { display: flex; gap: 5px; margin-top: 2px; }
 .vb-ch-steps u { flex: 1; height: 5px; border-radius: 99px; background: #d6e9dd; display: block; }
 .vb-ch-steps u.on { background: var(--p1); }
-.vb-ch-names { display: flex; justify-content: space-between; margin-top: -4px; font-size: 9.5px; font-weight: 700; color: #8fb8a2; }
+.vb-ch-names { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; text-align: center; margin-top: -4px; font-size: 10.5px; font-weight: 700; color: #8fb8a2; }
 .vb-ch-names .past { color: #5f9c78; }
 .vb-ch-names .now { font-weight: 900; color: #17663a; }
 .vb-ch-card { border: 1px solid var(--line); border-radius: 20px; padding: 17px 15px; }
@@ -338,8 +340,9 @@
 .vb-ch-cardh h2 { font-size: 12.5px; font-weight: 800; color: var(--ink-3); }
 .vb-ch-cardh span { font-size: 11.5px; font-weight: 700; color: var(--ink-3); }
 .vb-ch-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; align-items: end; height: 66px; margin-top: 13px; }
-.vb-ch-week div { display: grid; justify-items: center; gap: 4px; align-content: end; height: 100%; }
-.vb-ch-week i { display: block; width: 100%; border-radius: 5px 5px 2px 2px; background: #dcefe4; }
+.vb-ch-week div { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; height: 100%; }
+/* 막대 높이 = (칸 높이 − 요일 글자 줄) × --h/100. 예전엔 height: N% 를 격자 칸 안에서 써서 0px 로 계산돼 막대가 하나도 안 그려졌다(2026-11-24 사용자 신고) */
+.vb-ch-week i { display: block; flex: none; width: 100%; height: calc((100% - 18px) * var(--h, 0) / 100); border-radius: 5px 5px 2px 2px; background: #dcefe4; }
 .vb-ch-week i.on { background: var(--p1); }
 .vb-ch-week span { font-size: 9px; font-weight: 700; color: var(--ink-3); }
 .vb-ch .vb-chips { margin-top: 12px; }
@@ -439,4 +442,15 @@
 .vb-landing .vb-hero:has(.vb-ring) .vb-clover { display: none; }
 @media (min-width: 720px) {
   .vb-landing .vb-hero:has(.vb-ring) .vb-clover { display: block; bottom: -70px; right: -150px; width: 300px; }
+}
+
+/* 「나의 도전」 정리(2026-11-24 사용자 확정 · 시안 나의도전-정리): 링은 홈(168)보다 크게 — 휴대폰 190 · 데스크톱 210 */
+.vb-ch-hero .vb-ring .ring { width: 190px !important; height: 190px !important; }
+.vb-ch-hero .vb-ring svg { width: 100%; height: 100%; }
+.vb-ch-hero .vb-ring.lg .rb-pts { font-size: 40px; }
+.vb-ch-hero .vb-ring.lg .rb-pts i { font-size: 15px; }
+.vb-ch-hero .vb-ring.lg .rb-stg { font-size: 14px; }
+@media (min-width: 720px) {
+  .vb-ch-hero .vb-ring .ring { width: 210px !important; height: 210px !important; }
+  .vb-ch-hero .vb-ring.lg .rb-pts { font-size: 44px; }
 }

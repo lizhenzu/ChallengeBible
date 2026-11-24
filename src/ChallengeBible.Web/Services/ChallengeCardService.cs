@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
 using ChallengeBible.Web.Tenancy;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace ChallengeBible.Web.Services;
 
 /// <summary>오늘 미션 한 칸(말씀 · 퀴즈 · 기도 · 암송). 체크 표시 대신 상태 글자를 쓴다(2026-11-23 사용자).</summary>
-public sealed record ChallengeChip(string Label, bool Has, bool Done)
+public sealed record ChallengeChip(string Label, bool Has, bool Done, string Key = "")
 {
     /// <summary>완료 · 대기중 · —(그날 콘텐츠 없음).</summary>
     public string State => !Has ? "—" : Done ? "완료" : "대기중";
@@ -51,7 +51,7 @@ public sealed class ChallengeCardService(TenantContext tenant, RequestScope scop
     {
         var t = tenant.Current;
         var chips = data.Participant && t.MissionEnabled
-            ? data.Missions.Select(m => new ChallengeChip(m.Label, m.Has, m.Done)).ToList()
+            ? data.Missions.Select(m => new ChallengeChip(m.Label, m.Has, m.Done, m.Key)).ToList()
             : [];
         var rows = await RowsAsync(t, data, platformAdmin, ct);
 
