@@ -4,21 +4,22 @@
 .wc2 a { color: inherit; text-decoration: none; }
 .wc2-page { max-width: 760px; margin: 0 auto; padding: 0 20px 46px; }
 .wc2-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 19px 0 14px; }
-.wc2-brand { font-size: 14.5px; font-weight: 700; letter-spacing: -.022em; }
+.wc2-church small { display: block; font-size: 12px; color: var(--ink-3); line-height: 1.3; }
+.wc2-church b { display: block; font-size: 15px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); }
 .wc2-pill { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px 0 11px; border: 1px solid var(--hair); border-radius: 999px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
 .wc2-pill svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-.wc2-hero { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: var(--wash); border: 1px solid var(--hair); display: grid; place-items: center; }   /* 사진 테두리 다시 보이게(2026-11-24 사용자) */
-.wc2-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.wc2-hero { position: relative; box-sizing: border-box; aspect-ratio: 16 / 9; overflow: hidden; padding: 7px; margin-bottom: 8px; background: #fff; border: 1px solid #D9D9DE; box-shadow: 0 16px 30px -14px rgba(30, 30, 40, .5), 0 2px 6px rgba(30, 30, 40, .12); display: grid; place-items: center; }   /* B안: 흰 액자 + 테두리 + 3D 그림자(2026-11-24 사용자) */
+.wc2-hero img { position: absolute; inset: 7px; width: calc(100% - 14px); height: calc(100% - 14px); object-fit: cover; display: block; }
 .wc2-hint { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--ink-3); }
 .wc2-hint svg { width: 22px; height: 22px; fill: none; stroke: #b3b3b8; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 6px; }
 .wc2-hint span { font-size: 13px; font-weight: 600; color: var(--ink-2); }
 .wc2-hint em { font-style: normal; font-size: 12px; color: var(--ink-3); }
 .wc2-title { padding: 22px 0 10px; }
 .wc2-kicker { margin: 0 0 12px; font-size: 12px; font-weight: 550; color: var(--ink-3); }
-.wc2 h1 { margin: 0; font-size: 32px; line-height: 1.16; font-weight: 830; letter-spacing: -.058em; text-wrap: balance; word-break: keep-all; white-space: pre-line; }
+.wc2 h1 { margin: 0; font-size: 25.6px; line-height: 1.16; font-weight: 830; letter-spacing: -.058em; text-wrap: balance; word-break: keep-all; white-space: pre-line; }
 .wc2-sub { margin: 13px 0 0; font-size: 13.5px; line-height: 1.6; letter-spacing: -.012em; color: var(--ink-2); }
 .wc2-sec { margin-top: 8px; }
-.wc2-sec h2, .wc2-about h2 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -.036em; }
+.wc2-sec h2 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -.036em; }
 /* 「오늘의 안내」 틴트 카드(핸드오프 v2 tint cards B안, 2026-11-24). 번호는 기준표 12px · 번호 색은 핸드오프가 권한 대로 진하게(대비 5:1 이상) */
 .wc2-tintgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 10px; border-top: 1px solid var(--ink); padding-top: 12px; }
 .wc2-tint[data-id="bulletin"] { --f: #F8EACD; --fd: #EFDFBF; --fa: #E9D7B4; --ik: #705832; --lk: #E6CFA1; }
@@ -27,27 +28,19 @@
 .wc2-tint[data-id="mission"]  { --f: #E1EAF5; --fd: #D2DDEC; --fa: #C8D4E5; --ik: #415066; --lk: #BECFE6; }
 .wc2-tint[data-id="family"]   { --f: #EDE5F3; --fd: #E2D8EA; --fa: #D9CFE3; --ik: #5C4B66; --lk: #D5C8E4; }
 .wc2-tint[data-id="about"]    { --f: #F3E9DB; --fd: #E9DDCE; --fa: #E1D5C4; --ik: #665540; --lk: #E3D3BB; }
-.wc2-tint { display: flex; flex-direction: column; align-items: stretch; justify-content: space-between; min-height: 92px; padding: 12px 12px 13px; border: 1px solid var(--lk); border-radius: 16px; background: var(--f); color: var(--ink); text-align: left; -webkit-tap-highlight-color: transparent; transition: transform .22s cubic-bezier(.2, .7, .3, 1), background-color .22s ease, box-shadow .22s ease; }
-.wc2-tint:hover { transform: translateY(-1px); background: var(--fd); box-shadow: 0 10px 20px -16px rgba(50, 43, 35, .65); }
-.wc2-tint:active { transform: translateY(0); background: var(--fa); box-shadow: none; }
-.wc2-tint:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.wc2-tint { display: flex; flex-direction: column; align-items: stretch; justify-content: space-between; min-height: 92px; padding: 12px 12px 13px; border: 1px solid var(--lk); border-radius: 16px; background: var(--f); color: var(--ink); text-align: left; -webkit-tap-highlight-color: transparent; cursor: pointer; transition: transform .22s cubic-bezier(.2, .7, .3, 1), background-color .22s ease, box-shadow .22s ease; }
+a.wc2-tint:hover { transform: translateY(-1px); background: var(--fd); box-shadow: 0 10px 20px -16px rgba(50, 43, 35, .65); }
+a.wc2-tint:active { transform: translateY(0); background: var(--fa); box-shadow: none; }
+a.wc2-tint:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .wc2-tint .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
 .wc2-tint .num { font-family: 'Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size: 12px; line-height: 1; letter-spacing: .04em; font-variant-numeric: tabular-nums; color: var(--ik); }
 .wc2-tint .go { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 999px; background: rgba(255, 255, 255, .72); color: var(--ik); transition: transform .2s cubic-bezier(.2, .7, .3, 1); }
 .wc2-tint .go svg { width: 13px; height: 13px; display: block; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.wc2-tint:hover .go { transform: translateX(2px); }
+a.wc2-tint:hover .go { transform: translateX(2px); }
 .wc2-tint .lbl { font-size: 15px; font-weight: 720; line-height: 1.34; letter-spacing: -.04em; color: var(--ink); text-wrap: balance; word-break: keep-all; }
 .wc2-tint .lbl i { font-style: normal; letter-spacing: -.1em; }
 @media (prefers-reduced-motion: reduce) { .wc2-tint, .wc2-tint .go { transition-duration: .001ms; } }
 /* 소개(글 + 예배 안내) */
-.wc2-about { display: none; margin-top: 28px; scroll-margin-top: 12px; }
-.wc2-about:target { display: block; }   /* 「소개」 칸을 눌렀을 때만 펼친다(퍼블리시본과 같은 첫 화면) */
-.wc2-intro { margin: 12px 0 0; font-size: 15px; line-height: 1.7; color: var(--ink-2); white-space: pre-line; word-break: keep-all; }
-.wc2-wb { margin-top: 14px; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; padding: 14px 0 2px; border-top: 1px solid var(--hair); }
-.wc2-wb h3 { margin: 0; font-size: 12px; font-weight: 800; color: var(--ink-3); }
-.wc2-wb .t { margin: 6px 0 0; font-size: 17px; font-weight: 850; }
-.wc2-wb .p { margin: 3px 0 0; font-size: 13px; color: var(--ink-2); }
-.wc2-wb .map { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 16px; border: 1px solid var(--ink); font-size: 13px; font-weight: 800; }
 /* 앱 설치 */
 .wc2-install { margin-top: 32px; text-align: center; }
 .wc2-install-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 50px; background: var(--ink); color: #fff !important; font-size: 13.5px; font-weight: 680; letter-spacing: -.02em; }
@@ -59,9 +52,8 @@
 .wc2-later button { flex: 1; max-width: 220px; min-height: 44px; border: 1px solid var(--hair); background: #fff; font: inherit; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer; }
 /* 푸터 */
 .wc2-foot { margin-top: 34px; padding-top: 20px; border-top: 1px solid var(--hair); }
-.wc2-foot .f1 { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.wc2-foot b { font-size: 13px; font-weight: 750; letter-spacing: -.02em; }
-.wc2-foot .en { font-size: 12px; letter-spacing: .08em; color: var(--ink-3); }
+.wc2-foot { text-align: center; }
+.wc2-foot b { display: block; font-size: 13px; font-weight: 750; letter-spacing: -.02em; }
 .wc2-foot .f3 { margin: 9px 0 0; font-size: 12px; color: var(--ink-3); }
 @media (min-width: 720px) {
   .wc2 h1 { font-size: 40px; }
@@ -73,3 +65,4 @@
 .wc2-me .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .wc2-me .nm { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-weight: 700; }
 .wc2 a.wc2-login { padding: 0 18px; background: var(--ink); border-color: var(--ink); color: #fff; font-weight: 700; }
+.wc2-tint.off { cursor: default; }   /* 05 · 06 은 눌러도 반응 없음(2026-11-24 사용자) */

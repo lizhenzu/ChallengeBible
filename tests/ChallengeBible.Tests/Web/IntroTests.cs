@@ -129,10 +129,14 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         var guest = NewClient();
         var page = await guest.GetStringAsync("/jamsil-kids/welcome");
         Assert.Contains("유년부에 오신 것을 환영해요", page);
-        Assert.Contains("말씀 안에서 자라 가는 유년부예요.", page);
-        Assert.Contains("주일 오전 10:00", page);
-        Assert.Contains("비전센터 믿음홀(3F)", page);
-        Assert.Contains("https://map.naver.com/p/search/", page);
+        Assert.DoesNotContain("말씀 안에서 자라 가는 유년부예요.", page);                      // 소개 글 · 예배 안내 본문은 잠시 뺐다(나중에 상세 설계, 2026-11-24)
+        Assert.Contains("주일 오전 10:00", page);                                           // 위쪽 부제 줄(부서 · 요일 시각)
+        Assert.DoesNotContain("비전센터 믿음홀(3F)", page);
+        Assert.DoesNotContain("https://map.naver.com/p/search/", page);
+        Assert.Contains("href=\"https://www.saenae.org/\"", page);                              // 맨 위: 대한예수교장로회 / 잠실새내교회(새 창)
+        Assert.DoesNotContain("JAMSIL SAENAE CHURCH", page);                                // 푸터 영문은 삭제
+        Assert.DoesNotContain("href=\"/jamsil-kids/word-mission\"", page);                    // 05 · 06 은 눌러도 반응 없음
+        Assert.DoesNotContain("href=\"#about\"", page);
         Assert.Contains("class=\"wc2-tintgrid\"", page);   // 안내 6칸은 틴트 카드(2026-11-24)
         Assert.Contains("href=\"/jamsil-kids/bulletin\"", page);
         Assert.Contains("href=\"/jamsil-kids/album\"", page);
@@ -222,7 +226,7 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         var guest = NewClient();
         var page = await guest.GetStringAsync("/jamsil-kids/welcome");
         Assert.Contains("함께 자라요", page);
-        Assert.Contains("새 소개 글", page);
+        Assert.DoesNotContain("새 소개 글", page);                                          // 소개 글은 이 화면에서 잠시 뺐다(데이터는 저장됨)
         Assert.Contains("src=\"/jamsil-kids/welcome/photo?v=", page);
         var photo = await guest.GetAsync("/jamsil-kids/welcome/photo");                        // 사진은 누구나, 파일은 부서 폴더
         Assert.Equal("image/png", photo.Content.Headers.ContentType?.MediaType);

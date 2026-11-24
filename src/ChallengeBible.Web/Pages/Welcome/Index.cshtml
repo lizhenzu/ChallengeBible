@@ -12,7 +12,6 @@
     var it = Model.Item;
     var first = Model.Worship.FirstOrDefault();
     var addr = Model.Worship.Select(w => w.Address).FirstOrDefault(a => !string.IsNullOrWhiteSpace(a));
-    var brand = slug.Replace('-', ' ').ToUpperInvariant();
     string Clock(TimeOnly t) => $"{(t.Hour < 12 ? "오전" : "오후")} {(t.Hour % 12 == 0 ? 12 : t.Hour % 12)}:{t.Minute:00}";
     string Day(byte d) => d == 0 ? "주일" : new[] { "일", "월", "화", "수", "목", "금", "토" }[d] + "요일";
     var meName = User.UserName();
@@ -26,7 +25,7 @@
 <div class="wc2">
 <main class="wc2-page">
     <header class="wc2-top">
-        <b class="wc2-brand">@brand</b>
+        <a class="wc2-church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)"><small>대한예수교장로회</small><b>잠실새내교회</b></a>
         @* 로그인한 사람은 「내 정보」 대신 사진(없으면 이름 첫 글자) + 이름님, 손님은 검정 「로그인」(2026-11-24 사용자, 기준표 8판) *@
         @if (Model.Member)
         {
@@ -69,31 +68,17 @@
             <span class="top"><span class="num">04</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.6 12h14.2"/><path d="M13.2 6.2 19 12l-5.8 5.8"/></svg></span></span>
             <span class="lbl">도전<i>!!!</i>성경말씀</span>
         </a>
-        <a class="wc2-tint" data-id="family" href="/@slug/word-mission">
+        <div class="wc2-tint off" data-id="family">
             <span class="top"><span class="num">05</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.6 12h14.2"/><path d="M13.2 6.2 19 12l-5.8 5.8"/></svg></span></span>
             <span class="lbl">부모님과 함께하는 미션북</span>
-        </a>
-        <a class="wc2-tint" data-id="about" href="#about">
+        </div>
+        <div class="wc2-tint off" data-id="about">
             <span class="top"><span class="num">06</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.6 12h14.2"/><path d="M13.2 6.2 19 12l-5.8 5.8"/></svg></span></span>
             <span class="lbl">@dept 소개</span>
-        </a>
+        </div>
     </nav>
 
-    <section class="wc2-about" id="about" aria-label="@dept 소개">
-        <h2>@dept 소개</h2>
-        @if (it.Body is { } body) { <p class="wc2-intro">@body</p> }
-        @foreach (var w in Model.Worship)
-        {
-            <div class="wc2-wb">
-                <div>
-                    <h3>@(w.Title ?? "예배 안내")</h3>
-                    <p class="t">@Day(w.DayOfWeek) @Clock(w.StartTime)</p>
-                    <p class="p">@w.Place</p>
-                </div>
-                @if (w.Address is { } a) { <a class="map" href="https://map.naver.com/p/search/@Uri.EscapeDataString(a)" target="_blank" rel="noopener">지도</a> }
-            </div>
-        }
-    </section>
+    @* 소개 글 · 예배 안내(시간 · 장소 · 지도)는 이 화면에서 잠시 뺐다 — 나중에 상세 설계(2026-11-24 사용자). 관리의 입력 칸 · 데이터는 그대로. *@
 
     <section class="wc2-install" aria-label="앱 설치">
         <a class="wc2-install-btn" href="/install?back=@Uri.EscapeDataString($"/{slug}/welcome")" data-app-install>
@@ -111,7 +96,7 @@
     }
 
     <footer class="wc2-foot">
-        <div class="f1"><b>@Model.Tenant.Current.Name</b><a class="en" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)">JAMSIL SAENAE CHURCH</a></div>
+        <b>@Model.Tenant.Current.Name</b>
         @if (addr is not null) { <p class="f3">@addr</p> }
     </footer>
 </main>
