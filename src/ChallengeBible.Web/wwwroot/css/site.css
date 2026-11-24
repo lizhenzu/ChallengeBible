@@ -4642,7 +4642,8 @@ body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); 
 .wsa-g { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; }
 .wsa-g label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; min-width: 0; }
 .wsa-g label small { font-weight: 500; color: var(--dim); }
-.wsa-g label.w { grid-column: 1 / -1; }
+.wsa-g label.w, .wsa-g div.w, .wsa-g label.ck { grid-column: 1 / -1; }   /* 사진 · 「대표 사진 빼기」가 반쪽 칸에서 겹치던 것(2026-11-24) */
+.wsa-g div.w img { max-width: min(260px, 100%); height: auto; }
 .wsa-g label.ck { display: flex; align-items: center; gap: 8px; font-weight: 700; }
 .wsa-g .in, .wsa-g .sel { width: 100%; box-sizing: border-box; }
 .wsa-acts { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
