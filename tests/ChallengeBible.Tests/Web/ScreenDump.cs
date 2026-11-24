@@ -204,6 +204,7 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids/points", "11-내점수");
         await Save(kid, "/jamsil-kids/ranking", "11c-순위");
         await Save(admin, "/jamsil-kids", "05m-부서홈-관리자");   // ☰ 메뉴판 섬김 그룹(확정 시안 부서메뉴)
+        await Save(admin, "/jamsil-kids/challenge", "05z-나의도전");   // 「나의 도전」 화면 점검(ADR 0136)
         await Save(admin, "/", "01b-첫화면-로그인");   // 첫 화면 균형 정리(링 크게 · 가는 줄 삭제 · 이름 칩)
         await Save(admin, "/jamsil-kids/admin", "11b-관리홈");
         await Save(admin, "/jamsil-kids/admin/worship", "12w-관리-예배안내-빈");   // 예배 안내(ADR 0116, R-337)
