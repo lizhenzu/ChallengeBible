@@ -304,3 +304,4 @@ body:has(.rp[data-theme]) { background: var(--bg); }
   .b2 > header.pb { margin-left: var(--b2w); }
   .pb-b2 { display: none !important; }
 }
+@media (min-width: 769px) { .b2 header.pb .wrap.pbw { max-width: 696px; } }   /* 파란 띠 안쪽 글자 폭(760 − 좌우 32)과 같게 */

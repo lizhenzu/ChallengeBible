@@ -4892,7 +4892,7 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .imp-top { margin-left: 6px; }
 
 /* ── 머리줄 표준 · 얇은 머리말(2026-11-24 확정 · 기준표 5판 · 시안 머리줄-얇은-비교) ── */
-.top.pb .wrap.pbw { min-height: 56px; gap: 8px; }
+.top.pb .wrap.pbw { max-width: 760px; min-height: 56px; gap: 8px; }   /* 표준 폭 760px — 기본 .wrap 440px 에 갇혀 버튼이 가운데로 오던 것 고침(2026-11-24) */
 .pb .pb-l { display: flex; align-items: center; gap: 4px; min-width: 0; font-size: 14px; white-space: nowrap; overflow: hidden; }
 .pb .pb-r { display: flex; align-items: center; gap: 8px; flex: none; }
 .pb .pb-b { width: 40px; height: 40px; margin-left: -8px; flex: none; border: 0; border-radius: 12px; background: none; color: var(--fg); display: grid; place-items: center; cursor: pointer; text-decoration: none; }
