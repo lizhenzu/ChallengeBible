@@ -473,9 +473,5 @@
 .vb .hpill .hmx-me:has(.av) { padding: 0; }
 .vb-today { display: block; margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--ink-3); }
 .vb .church > span:only-child { font-size: 15px; font-weight: 800; color: var(--ink); letter-spacing: -.02em; }
-/* 머리줄 간격 약간 줄이기(2026-11-24 사용자): ☰ ↔ 이름 10 → 4px, 알약 안 글자 13.5 → 13px · 안쪽 여백 · 편지 ↔ 세로선 ↔ 이름 간격 */
+/* 머리줄 간격 약간 줄이기(2026-11-24 사용자): ☰ ↔ 그 오른쪽 이름 10 → 4px. 오른쪽 알약은 건드리지 않는다(사용자 "알약은 그대로") */
 .vb-top-l { gap: 4px; }
-.vb .hpill { height: 38px; padding: 0 11px 0 2px; }
-.vb .hpill .mailb { width: 32px; height: 32px; }
-.vb .hpill .sp { margin: 0 6px 0 1px; }
-.vb .hpill .hmx-me b { font-size: 13px; }
