@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>햄버거 메뉴 맨 위 왼쪽(머리) 표준 시안 A · B · C</title>
+<style>
+:root{--ink:#1d1d1f;--ink-2:#56565c;--ink-3:#6e6e75;--line:#e7e7ea;--soft:#f4f4f5;--blue:#2b59c3;--sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:#e9ebef;color:var(--ink);word-break:keep-all;letter-spacing:-.01em}
+.bar{background:#161c2b;color:#fff;font-size:12.5px;height:38px;display:flex;align-items:center;padding:0 22px}
+.wrap{max-width:1300px;margin:0 auto;padding:24px 18px 40px}
+.opt{background:#fff;border-radius:12px;padding:18px 20px 20px;margin-bottom:18px;box-shadow:0 20px 50px -44px #000}
+.opt h2{font-size:15px;font-weight:900}.opt p{font-size:12px;color:#5b6470;line-height:1.6;margin:3px 0 12px}
+.row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.cap{font-size:11.5px;font-weight:800;color:#5b6470;margin-bottom:5px}
+.dr{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 8px 24px -20px #000}
+.item{display:flex;align-items:center;gap:12px;min-height:48px;padding:6px 16px;font-size:15px;font-weight:700;border-top:1px solid #f0f0f2}
+.item i{width:20px;height:20px;border:2px solid var(--blue);border-radius:6px;flex:none}
+/* 공통 부품 */
+.logo b{font-size:17px;font-weight:900;letter-spacing:-.03em;color:var(--blue)}.logo b em{font-style:normal;color:var(--ink)}.logo small{display:block;font-size:9.5px;letter-spacing:.14em;color:var(--ink-3);margin-top:2px;font-weight:700}
+.x{margin-left:auto;width:44px;height:44px;display:grid;place-items:center;font-size:18px;color:var(--ink-2)}
+.av{width:40px;height:40px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-weight:900;color:var(--blue);flex:none}
+.nm b{display:block;font-size:15px;font-weight:800}.nm small{display:block;font-size:12px;color:var(--ink-3);margin-top:1px}
+.lk{font-size:12px;font-weight:800;color:var(--blue)}
+/* A: 로고형 */
+.A .hd{display:flex;align-items:center;padding:8px 8px 8px 16px;border-bottom:1px solid var(--line)}
+/* B: 프로필형 */
+.B .hd{display:flex;align-items:center;gap:10px;padding:10px 8px 10px 16px;border-bottom:1px solid var(--line)}
+/* C: 2단 */
+.C .h1{display:flex;align-items:center;padding:6px 8px 0 16px}
+.C .h2{display:flex;align-items:center;gap:10px;margin:2px 12px 12px;padding:10px 12px;background:var(--soft);border-radius:14px}
+.C .h2 .lk{margin-left:auto}
+.C .guest{margin:2px 12px 12px;display:flex;gap:8px}.C .guest div{flex:1;text-align:center;padding:12px 0;border-radius:12px;font-size:13px;font-weight:800}.C .guest .p{background:var(--ink);color:#fff}.C .guest .s{background:var(--soft);color:var(--ink-2)}
+.A .glog{padding:10px 16px;font-size:12.5px;color:var(--ink-3)}
+</style></head><body>
+<div class="bar">시안 · 햄버거 메뉴를 열었을 때 맨 위 왼쪽(머리) 표준 — 같은 네 상황(회원 · 관리자 · 플랫폼 관리자 · 손님)에 세 안을 적용 (이름 · 소속은 예시)</div>
+<div class="wrap">
+
+<div class="opt A"><h2>A · 로고만 (모든 메뉴 같은 머리)</h2><p>맨 위는 항상 「도전!!! 성경말씀」 로고 + ✕. 이름 · 내 정보는 메뉴 맨 아래나 항목으로 내린다. 네 곳이 가장 똑같아지지만, 지금 관리 · 플랫폼 메뉴 머리의 "누구로 로그인했는지"가 사라진다.</p>
+<div class="row">
+ <div><div class="cap">회원(부서 홈)</div><div class="dr"><div class="hd"><div class="logo"><b>도전!!!<em> 성경말씀</em></b><small>GROW IN THE WORD</small></div><span class="x">✕</span></div><div class="item"><i></i>홈</div></div></div>
+ <div><div class="cap">부서 관리자</div><div class="dr"><div class="hd"><div class="logo"><b>도전!!!<em> 성경말씀</em></b><small>GROW IN THE WORD</small></div><span class="x">✕</span></div><div class="item"><i></i>관리 홈</div></div></div>
+ <div><div class="cap">플랫폼 관리자</div><div class="dr"><div class="hd"><div class="logo"><b>도전!!!<em> 성경말씀</em></b><small>GROW IN THE WORD</small></div><span class="x">✕</span></div><div class="item"><i></i>플랫폼 홈</div></div></div>
+ <div><div class="cap">손님</div><div class="dr"><div class="hd"><div class="logo"><b>도전!!!<em> 성경말씀</em></b><small>GROW IN THE WORD</small></div><span class="x">✕</span></div><div class="item"><i></i>로그인</div></div></div>
+</div></div>
+
+<div class="opt B"><h2>B · 사람 먼저 (이름 · 소속이 머리)</h2><p>맨 위 왼쪽은 항상 "누구인지"(아바타 + 이름 + 소속). 로고는 없앤다. 관리 · 플랫폼 메뉴의 지금 모양에 가깝다. 손님은 보여 줄 사람이 없어 로고로 바뀌어서 머리 모양이 둘로 갈린다.</p>
+<div class="row">
+ <div><div class="cap">회원(부서 홈)</div><div class="dr"><div class="hd"><div class="av">김</div><div class="nm"><b>김철수님</b><small>유년부 · 학생</small></div><span class="x">✕</span></div><div class="item"><i></i>홈</div></div></div>
+ <div><div class="cap">부서 관리자</div><div class="dr"><div class="hd"><div class="av">이</div><div class="nm"><b>이은혜님</b><small>유년부 · 관리자</small></div><span class="x">✕</span></div><div class="item"><i></i>관리 홈</div></div></div>
+ <div><div class="cap">플랫폼 관리자</div><div class="dr"><div class="hd"><div class="av">운</div><div class="nm"><b>운영자님</b><small>플랫폼 관리자</small></div><span class="x">✕</span></div><div class="item"><i></i>플랫폼 홈</div></div></div>
+ <div><div class="cap">손님</div><div class="dr"><div class="hd"><div class="logo"><b>도전!!!<em> 성경말씀</em></b><small>GROW IN THE WORD</small></div><span class="x">✕</span></div><div class="item"><i></i>로그인</div></div></div>
+</div></div>
+
+<div class="opt C"><h2>C · 위 로고 줄 + 아래 사람 카드 (추천)</h2><p>맨 위 한 줄은 <b>어디서 열어도 같은 로고 + ✕</b>, 바로 아래에 "지금 누구인지" 카드(아바타 · 이름 · 소속 · 내 정보 ›). 손님은 같은 자리에 [로그인] [가입] 두 버튼. 네 곳이 같은 위치 순서(로고 → 사람 → 메뉴)가 되고, 누구로 로그인했는지도 남는다.</p>
+<div class="row">
+ <div><div class="cap">회원(부서 홈)</div><div class="dr"><div class="h1"><div class="logo"><b>도전!!!<em> 성경말씀</em></b><small>GROW IN THE WORD</small></div><span class="x">✕</span></div><div class="h2"><div class="av">김</div><div class="nm"><b>김철수님</b><small>유년부 · 학생</small></div><span class="lk">내 정보 ›</span></div><div class="item"><i></i>홈</div></div></div>
+ <div><div class="cap">부서 관리자</div><div class="dr"><div class="h1"><div class="logo"><b>도전!!!<em> 성경말씀</em></b><small>GROW IN THE WORD</small></div><span class="x">✕</span></div><div class="h2"><div class="av">이</div><div class="nm"><b>이은혜님</b><small>유년부 · 관리자</small></div><span class="lk">내 정보 ›</span></div><div class="item"><i></i>관리 홈</div></div></div>
+ <div><div class="cap">플랫폼 관리자</div><div class="dr"><div class="h1"><div class="logo"><b>도전!!!<em> 성경말씀</em></b><small>GROW IN THE WORD</small></div><span class="x">✕</span></div><div class="h2"><div class="av">운</div><div class="nm"><b>운영자님</b><small>플랫폼 관리자</small></div><span class="lk">내 정보 ›</span></div><div class="item"><i></i>플랫폼 홈</div></div></div>
+ <div><div class="cap">손님</div><div class="dr"><div class="h1"><div class="logo"><b>도전!!!<em> 성경말씀</em></b><small>GROW IN THE WORD</small></div><span class="x">✕</span></div><div class="guest"><div class="p">로그인</div><div class="s">가입하기</div></div><div class="item"><i></i>앱 설치</div></div></div>
+</div></div>
+
+</div></body></html>
