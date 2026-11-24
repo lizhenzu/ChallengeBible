@@ -133,6 +133,7 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Contains("주일 오전 10:00", page);
         Assert.Contains("비전센터 믿음홀(3F)", page);
         Assert.Contains("https://map.naver.com/p/search/", page);
+        Assert.Contains("class=\"wc2-tintgrid\"", page);   // 안내 6칸은 틴트 카드(2026-11-24)
         Assert.Contains("href=\"/jamsil-kids/bulletin\"", page);
         Assert.Contains("href=\"/jamsil-kids/album\"", page);
         Assert.Contains("href=\"/jamsil-kids/welcome?handler=Go\"", page);

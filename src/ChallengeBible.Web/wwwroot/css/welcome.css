@@ -19,18 +19,26 @@
 .wc2-sub { margin: 13px 0 0; font-size: 13.5px; line-height: 1.6; letter-spacing: -.012em; color: var(--ink-2); }
 .wc2-sec { margin-top: 8px; }
 .wc2-sec h2, .wc2-about h2 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -.036em; }
-.wc2-grid { display: grid; grid-template-columns: 1fr 1fr; margin-top: 10px; border-top: 1px solid var(--ink); }
-.wc2-tile { position: relative; display: flex; flex-direction: column; padding: 15px 0 16px; border-bottom: 1px solid var(--hair); min-height: 44px; }
-.wc2-tile:nth-child(odd) { padding-right: 14px; }
-.wc2-tile:nth-child(even) { padding-left: 14px; border-left: 1px solid var(--hair); }
-.wc2-tile .wc2-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.wc2-tile .num { font-size: 18px; font-weight: 800; letter-spacing: -.05em; line-height: 1; color: var(--c); font-variant-numeric: tabular-nums; }
-.wc2-tile .go { width: 28px; height: 28px; flex: none; display: grid; place-items: center; border-radius: 999px; background: var(--cbg); color: var(--c); transition: transform .2s; }
-.wc2-tile .go svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.wc2-tile:hover .go { transform: translateX(2px); }
-.wc2-tile .lbl { font-size: 16px; white-space: normal; font-weight: 720; letter-spacing: -.04em; line-height: 1.34; text-wrap: balance; word-break: keep-all; }
-.wc2-tile .lbl i { font-style: normal; letter-spacing: -.1em; }
-.wc2-tile:focus-visible { outline: 2px solid var(--ink); outline-offset: -3px; }
+/* 「오늘의 안내」 틴트 카드(핸드오프 v2 tint cards B안, 2026-11-24). 번호는 기준표 12px · 번호 색은 핸드오프가 권한 대로 진하게(대비 5:1 이상) */
+.wc2-tintgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 10px; border-top: 1px solid var(--ink); padding-top: 12px; }
+.wc2-tint[data-id="bulletin"] { --f: #F8EACD; --fd: #EFDFBF; --fa: #E9D7B4; --ik: #705832; --lk: #E6CFA1; }
+.wc2-tint[data-id="word"]     { --f: #E5EDDC; --fd: #D8E2CE; --fa: #CED9C4; --ik: #4C593D; --lk: #C9D8BB; }
+.wc2-tint[data-id="rules"]    { --f: #F5E2DE; --fd: #EDD7D1; --fa: #E8CFC8; --ik: #775346; --lk: #E6C6BE; }
+.wc2-tint[data-id="mission"]  { --f: #E1EAF5; --fd: #D2DDEC; --fa: #C8D4E5; --ik: #415066; --lk: #BECFE6; }
+.wc2-tint[data-id="family"]   { --f: #EDE5F3; --fd: #E2D8EA; --fa: #D9CFE3; --ik: #5C4B66; --lk: #D5C8E4; }
+.wc2-tint[data-id="about"]    { --f: #F3E9DB; --fd: #E9DDCE; --fa: #E1D5C4; --ik: #665540; --lk: #E3D3BB; }
+.wc2-tint { display: flex; flex-direction: column; align-items: stretch; justify-content: space-between; min-height: 92px; padding: 12px 12px 13px; border: 1px solid var(--lk); border-radius: 16px; background: var(--f); color: var(--ink); text-align: left; -webkit-tap-highlight-color: transparent; transition: transform .22s cubic-bezier(.2, .7, .3, 1), background-color .22s ease, box-shadow .22s ease; }
+.wc2-tint:hover { transform: translateY(-1px); background: var(--fd); box-shadow: 0 10px 20px -16px rgba(50, 43, 35, .65); }
+.wc2-tint:active { transform: translateY(0); background: var(--fa); box-shadow: none; }
+.wc2-tint:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.wc2-tint .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+.wc2-tint .num { font-family: 'Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size: 12px; line-height: 1; letter-spacing: .04em; font-variant-numeric: tabular-nums; color: var(--ik); }
+.wc2-tint .go { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 999px; background: rgba(255, 255, 255, .72); color: var(--ik); transition: transform .2s cubic-bezier(.2, .7, .3, 1); }
+.wc2-tint .go svg { width: 13px; height: 13px; display: block; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.wc2-tint:hover .go { transform: translateX(2px); }
+.wc2-tint .lbl { font-size: 15px; font-weight: 720; line-height: 1.34; letter-spacing: -.04em; color: var(--ink); text-wrap: balance; word-break: keep-all; }
+.wc2-tint .lbl i { font-style: normal; letter-spacing: -.1em; }
+@media (prefers-reduced-motion: reduce) { .wc2-tint, .wc2-tint .go { transition-duration: .001ms; } }
 /* 소개(글 + 예배 안내) */
 .wc2-about { display: none; margin-top: 28px; scroll-margin-top: 12px; }
 .wc2-about:target { display: block; }   /* 「소개」 칸을 눌렀을 때만 펼친다(퍼블리시본과 같은 첫 화면) */
