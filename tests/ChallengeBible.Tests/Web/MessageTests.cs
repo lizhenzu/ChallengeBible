@@ -359,7 +359,7 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
         var mine = await t.GetStringAsync($"/messages/{id}");
         Assert.Contains("data-pnav-open", mine);   // ☰ 메뉴 머리말(부서 메뉴판)
         Assert.Contains("id=\"pnav\"", mine);
-        Assert.Contains("<b>단체쪽지</b>", mine);
+        Assert.Contains("class=\"cur\">단체쪽지</b>", mine);   // 머리줄 표준(2026-11-24): ☰ + 부서 › 단체쪽지
         Assert.Contains(">나만 삭제</button>", mine);
         Assert.DoesNotContain(">지우기</button>", mine);
         Assert.Contains($"href=\"/messages/{id}?ask=cancel\"", mine);   // [보내기 취소]

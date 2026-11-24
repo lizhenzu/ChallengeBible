@@ -1,4 +1,4 @@
-@page "/{slug}/roster"
+﻿@page "/{slug}/roster"
 @model RosterModel
 @using ChallengeBible.Web.Services
 @* 확정 시안: dept-roster(ADR 0085) — 탭(전체 · 참여자) → 구분 · 찾기 → 목록. 전체는 구분별, 참여자는 점수 있는 분 · 없는 분 *@
@@ -8,10 +8,8 @@
     var kinds = new[] { RankKind.Student, RankKind.Parent, RankKind.Teacher };
     var ko = StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false);
 }
-<header class="mtop gut"><div class="wrap">
-    <nav class="crumb"><a href="/@slug">홈으로</a></nav>
-    <span class="date num">@d.Today.Year</span>
-</div></header>
+@{ ViewData["PbTitle"] = "명단"; }
+<partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <main class="mbody gut"><div class="wrap rst">
     <h1>명단</h1>
     <p class="sub">@(Model.ParticipantTab ? "미션에 참여하는 분이에요." + (d.ShowPoints ? " 점수가 없어도 보여요." : "") : "부서에 함께하는 모든 분이에요.")</p>

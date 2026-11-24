@@ -1,17 +1,26 @@
-﻿@inject ChallengeBible.Web.Tenancy.TenantContext Ten
+@inject ChallengeBible.Web.Tenancy.TenantContext Ten
 @using ChallengeBible.Web.Pages
 @using ChallengeBible.Web.Services
-@* 얇은 머리말 = 머리줄 표준(2026-11-24 확정 · 기준표 5판 · 시안 머리줄-얇은-비교).
-   「도전!!! 성경말씀」 글자는 뺀다. 왼쪽: 부서 안 화면(승인된 소속)은 ☰ + 「부서 › 화면」(☰ 부서 메뉴가 생김), 그 밖(로그인 전 · 부서 없음 · 쪽지 · 계정)은 「‹ 화면 이름」(‹ = 뒤로).
-   오른쪽: 로그인했으면 「쪽지 | 이름님」 한 덩어리 알약(로그아웃은 ☰ 메뉴 · 내 계정으로), 손님은 반대 이동 링크 하나(로그인 화면 = 가입하기, 그 밖 = 로그인). *@
+@* 머리줄 표준 = 모든 화면의 단일 머리줄 부품(2026-11-24 확정 · 기준표 6판).
+   「도전!!! 성경말씀」 글자는 없다. 왼쪽: 부서 안 화면(승인된 소속)은 ☰ + 「상위 › 현재」, 그 밖은 「‹ 현재」.
+   오른쪽: 그 화면 바로 위 단계로 가는 이동 버튼 하나(알약 「쪽지 | 이름」은 첫 화면 · 부서 홈에만). 손님은 반대 이동 링크 하나.
+   화면이 바꾸는 값(ViewData): PbTitle(현재 이름) · PbParent(string[]{ 이름, 주소 } — 있으면 부서 이름 대신 이것을 상위로) ·
+   PbButton(string[]{ 이름, 주소 } — 오른쪽 버튼) · PbDept(true — 주소에 부서가 없어도 마지막 부서를 쓴다, 예: 쪽지). *@
 @{
     var me = User.UserName();
-    var title = (ViewContext.ViewData.Model as ITitled)?.Title;
-    var isLogin = ViewContext.RouteData.Values["page"]?.ToString() == "/Account/Login";
-    var isSignup = ViewContext.RouteData.Values["page"]?.ToString() == "/Account/Signup";
-    var inDept = Ten.Tenant is not null && ViewContext.RouteData.Values.ContainsKey("slug");   // 주소에 부서가 있는 화면만(쪽지 · 계정 화면은 마지막 부서가 잡혀도 「‹ 뒤로」)
+    var title = ViewData["PbTitle"] as string ?? (ViewContext.ViewData.Model as ITitled)?.Title;
+    var parent = ViewData["PbParent"] as string[];
+    var btn = ViewData["PbButton"] as string[];
+    var force = ViewData["PbDept"] as bool? == true;
+    var page = ViewContext.RouteData.Values["page"]?.ToString();
+    var isLogin = page == "/Account/Login";
+    var inDept = Ten.Tenant is not null && (ViewContext.RouteData.Values.ContainsKey("slug") || force);
     var member = me is not null && inDept && Ten.IsApproved && !Ten.IsLobby;
+    var hasHome = me is not null && Ten.Tenant is not null && Ten.IsApproved && !Ten.IsLobby;
+    var homeHref = hasHome ? $"/{Ten.Current.Slug}" : "/";
     var back = inDept ? $"/{Ten.Current.Slug}" : "/";
+    var btnLabel = btn?[0] ?? (hasHome ? "부서 홈" : "처음 화면");
+    var btnHref = btn?[1] ?? homeHref;
     var imp = User.ImpersonatorId() is not null;
 }
 <header class="top gut pb"><div class="wrap pbw">
@@ -21,7 +30,8 @@
             <button type="button" class="pb-b" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
             </button>
-            <a class="par" href="/@Ten.Current.Slug">@PlatformTodayService.ShortDept(Ten.Current.Name)</a>
+            @if (parent is not null) { <a class="par" href="@parent[1]">@parent[0]</a> }
+            else { <a class="par" href="/@Ten.Current.Slug">@PlatformTodayService.ShortDept(Ten.Current.Name)</a> }
             @if (!string.IsNullOrEmpty(title)) { <span class="sep" aria-hidden="true">›</span><b class="cur">@title</b> }
         }
         else
@@ -35,11 +45,7 @@
     <span class="pb-r">
         @if (me is not null)
         {
-            <span class="hpill">
-                <partial name="_MailBadge" />
-                <span class="sp" aria-hidden="true"></span>
-                <a class="hmx-me" href="/account" aria-label="내 계정 · @Ui.Nim(User.DisplayName())"><b>@Ui.Nim(User.DisplayName())</b>@if (imp) { @Html.Raw(" " + DrawerUi.Ga) }</a>
-            </span>
+            <a class="hb" href="@btnHref"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg>@btnLabel</a>
             @* 가장 중(R-366): ☰ 메뉴가 없는 화면은 여기 [복귀] *@
             @if (imp && !member) { <form method="post" action="/account/impersonate/stop" class="imp-top">@Html.AntiForgeryToken()<button type="submit" class="pb-imp">복귀</button></form> }
         }
@@ -49,7 +55,7 @@
         }
         else
         {
-            <a class="lnk" href="/account/login">@(isSignup ? "로그인" : "로그인")</a>
+            <a class="lnk" href="/account/login">로그인</a>
         }
     </span>
 </div></header>

@@ -11,16 +11,12 @@
     var ring = Model.Ring;
 }
 <link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
+@{ ViewData["PbTitle"] = "나의 도전"; }
+<partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <div class="vb vb-ch">
 <main class="vb-ch-main">
-    <div class="vb-ch-top">
-        <a class="vb-ch-back" href="/@slug">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
-            홈으로
-        </a>
-        <time class="vb-ch-date" datetime="@Model.Today.ToString("yyyy-MM-dd")">@Model.Today.ToString("M월 d일", ko) @Model.Today.ToString("dddd", ko)</time>
-    </div>
     <div class="vb-ch-hd">
+        <time class="vb-ch-date" datetime="@Model.Today.ToString("yyyy-MM-dd")">@Model.Today.ToString("M월 d일", ko) @Model.Today.ToString("dddd", ko)</time>
         <h1>나의 도전</h1>
         <p>점수와 성장, 이번 주 기록을 한 곳에서</p>
     </div>

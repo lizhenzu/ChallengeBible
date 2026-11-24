@@ -1,4 +1,4 @@
-@page "/{slug}/prayer365"
+﻿@page "/{slug}/prayer365"
 @model ChallengeBible.Web.Pages.Prayer365.IndexModel
 @using ChallengeBible.Web.Services
 @* 확정 시안 365기도 ①(2026-11-16, ADR 0106): 유년부 Prayer365 일반 보기(?view=user)와 같은 구성 — 원 진행 · 제목 · 말씀 · 본문(호칭 줄 · 아멘) · [오늘 기도 했어요] · 함께 기도 · 나의 기도 기록 · 출처 *@
@@ -16,8 +16,10 @@
     var first = new DateOnly(s.Today.Year, s.Today.Month, 1);
 }
 <link rel="stylesheet" href="~/css/prayer365.css" asp-append-version="true" />
+@{ ViewData["PbTitle"] = "기도365"; }
+<partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <main class="p365" data-p365>
-    <div class="p365-bar"><span><a href="/@Model.Slug">← 부서 홈</a><i>·</i>자녀를 위한 365 기도</span>
+    <div class="p365-bar">
         <span class="p365-fz" role="group" aria-label="글자 크기"><button type="button" data-fs="-1" aria-label="글자 작게">가−</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button></span></div>
     <div class="p365-prog"><i style="width:@pct%"></i></div>
     @if (Model.Msg is { } m) { <p class="p365-msg" role="status">@m</p> }

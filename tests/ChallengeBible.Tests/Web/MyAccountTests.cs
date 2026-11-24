@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -88,7 +88,7 @@ public partial class MyAccountTests : IClassFixture<WebApplicationFactory<Progra
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
         var after = await c.GetStringAsync("/account?Ok=name");
         Assert.Contains("이름을 바꿨어요", after);
-        Assert.Contains("<b>김영희 엄마</b>님", after);   // 쿠키 이름도 새로
+        Assert.Contains("value=\"김영희 엄마\"", after);   // 바꾼 이름이 내 계정 화면에 새로(머리줄 이름 알약은 부서 홈 · 첫 화면에만 — 2026-11-24 기준표 6판)
 
         var bad = await (await Post(c, "/account?handler=Password", TokenRx().Match(after).Groups[1].Value, ("Current", "틀림"), ("Password", "5678"), ("PasswordConfirm", "5678"))).Content.ReadAsStringAsync();
         Assert.Contains("지금 비밀번호가 맞지 않아요", bad);

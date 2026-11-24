@@ -5,10 +5,8 @@
 @{
     string Short(string n) => n.Trim() is { Length: > 0 } t ? t[..1] : "?";   // 이름 첫 글자 한 자(홈 사진과 같게, 2026-11-15 — 긴 이름이 동그라미 밖으로 넘치지 않게)
 }
-<header class="top gut"><div class="wrap">
-    <a class="lnk" href="/">← 돌아가기</a>
-    <span class="who"><b>@Model.Name</b>님</span>
-</div></header>
+@{ ViewData["PbTitle"] = "내 계정"; }
+<partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <main class="page gut w760 ma"><div class="wrap">
     <h1>내 계정</h1>
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }

@@ -1,4 +1,4 @@
-/* 말씀 · 퀴즈 · 기도 · 암송 화면 — 옛 사이트 DailyMission4 "밝은 흰색 버전" 모양 그대로(모든 부서, 2026-10-30 사용자).
+﻿/* 말씀 · 퀴즈 · 기도 · 암송 화면 — 옛 사이트 DailyMission4 "밝은 흰색 버전" 모양 그대로(모든 부서, 2026-10-30 사용자).
    참조(읽기만): YuYunBu Views/DailyMission4/Word · Quiz · Pray · Recite.cshtml 의 <style> + Partials(_DateChip · _Dm2Nav · _FontSizeCtl) + css/mission3/bone.css.
    site.css 다음에 읽어 같은 이름의 규칙을 덮어쓴다. 미션 네 화면(.mbody 가 있는 화면)에만 걸린다. */
 body:has(.mbody) {
@@ -174,3 +174,5 @@ body:has(.mbody) .mnav a.dn .S.done { color: #16A34A; font-weight: 700; opacity:
 body:has(.mbody) .mnav a[aria-current="page"] .S:not(.done) { color: #2F80ED; }
 body:has(.mbody) .mnav a.hm .L { color: #2F80ED; }
 body:has(.mbody) .mnav a.hm .S { color: #6B7280; }
+/* 글자 크기 도구: 머리줄에서 제목 줄로 옮김(2026-11-24 머리줄 표준) — 작은 알약으로 */
+.mhead .fs { display: inline-flex; flex: none; align-self: flex-start; width: max-content; margin: 6px 0 10px; }

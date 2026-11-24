@@ -40,12 +40,9 @@
     string Inv(double v) => v.ToString("0.#", CultureInfo.InvariantCulture);
 }
 @* 옛 사이트처럼 Gothic A1 글꼴 파일은 불러오지 않는다(없으면 맑은 고딕으로 보임) *@
+@{ ViewData["PbTitle"] = "성경미션"; }
+<partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <div class="qz" data-slug="@Model.Slug">
-    <div class="qzBar">
-        <a class="qzHome" href="/@Model.Slug">홈으로</a>
-        <div class="qzDate num">@Model.Day.ToString("yyyy.MM.dd ddd", CultureInfo.InvariantCulture).ToUpperInvariant()</div>
-    </div>
-
     <div class="hPg">
         <div class="hK">도전!!! 성경미션</div>
         <div class="hKs">"거룩한 습관 만들기" 프로그램에 오심을 환영해요.</div>

@@ -1,18 +1,22 @@
-@model ChallengeBible.Web.Pages.Mission.MissionHead
+﻿@model ChallengeBible.Web.Pages.Mission.MissionHead
 @{ var p = Model.Page; var dow = p.Day.DayOfWeek; }
 @* 미션 화면 위쪽: 홈으로 · 미션홈 / 글자 크기 → 오늘의 ○○ · 달력 배지 · 제목 · 범위.
    모양은 옛 사이트 DailyMission4 "밝은 흰색 버전" 그대로(mission-old.css, 모든 부서) *@
 @* 옛 사이트처럼 Gothic A1 글꼴 파일은 불러오지 않는다(없으면 맑은 고딕으로 보임) — 날짜 쪽지 숫자용 Inter 만 *@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500&display=swap">
 <link rel="stylesheet" href="~/css/mission-old.css" asp-append-version="true" />
-<header class="mtop gut"><div class="wrap">
-    <nav class="crumb"><a href="/@p.Slug">홈으로</a> · <a href="@p.Link("word-mission")">미션홈</a></nav>
+@{
+    var shortTitle = Model.Label.Contains("퀴즈") ? "퀴즈" : Model.Label.Contains("기도") ? "기도" : Model.Label.Contains("암송") ? "암송" : "말씀";
+    ViewData["PbTitle"] = shortTitle;
+    ViewData["PbParent"] = new[] { "성경미션", p.Link("word-mission") };
+    ViewData["PbButton"] = new[] { "미션 홈", p.Link("word-mission") };
+}
+<partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): 글자 크기 도구는 아래 제목 줄로 옮김: ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
+<div class="mhead gut"><div class="wrap">
+    <div class="k">@Model.Label</div>
     <div class="fs" role="group" aria-label="글자 크기">
         <button type="button" data-fs="-1" aria-label="글자 작게">가−</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
     </div>
-</div></header>
-<div class="mhead gut"><div class="wrap">
-    <div class="k">@Model.Label</div>
     <div class="ttl">
         <div class="cal" aria-label="@p.Day.ToString("yyyy년 M월 d일 dddd", ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko)">
             <div class="m num">@p.Day.ToString("yyyy.MM")</div><div class="d num">@p.Day.ToString("dd")</div><div class="w @(dow == DayOfWeek.Sunday ? "sun" : dow == DayOfWeek.Saturday ? "sat" : "")">@p.Day.ToString("dddd", ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko)</div>

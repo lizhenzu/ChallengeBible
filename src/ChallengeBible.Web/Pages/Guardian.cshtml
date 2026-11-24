@@ -1,4 +1,4 @@
-@page "/{slug}/guardian"
+﻿@page "/{slug}/guardian"
 @model GuardianModel
 @using ChallengeBible.Domain.Rules
 @using M = ChallengeBible.Domain.Rules.Mission
@@ -14,10 +14,8 @@
     var start = first.AddDays(-(int)first.DayOfWeek);
     var yesterdayDone = Model.Month.Any(d => d.Date == Model.Today.AddDays(-1) && d.Total > 0);
 }
-<header class="mtop gut"><div class="wrap">
-    <nav class="crumb"><a href="/@slug">홈으로</a> · <b>보호자</b></nav>
-    <span class="date">@Model.Today.ToString("M월 d일 dddd", ko)</span>
-</div></header>
+@{ ViewData["PbTitle"] = "보호자"; }
+<partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <main class="mbody home gut"><div class="wrap">
     @if (cur is null || t is null)
     {

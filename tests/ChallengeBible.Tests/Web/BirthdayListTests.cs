@@ -147,7 +147,7 @@ public partial class BirthdayListTests : IClassFixture<WebApplicationFactory<Pro
         Assert.DoesNotContain("골랐음", text);   // 선물 상태 없음
         Assert.DoesNotContain("담임", text);
         Assert.DoesNotContain("Tab=none", page);   // 생일 없음 탭 없음
-        Assert.Contains("<b>생일자 보기</b>", page);   // 머리말 "도전!!!성경말씀 > 생일자 보기"
+        Assert.Contains("class=\"cur\">생일자 보기</b>", page);   // 머리줄 표준(2026-11-24): ☰ + 부서 › 생일자 보기
         Assert.Contains("data-pnav-open", page);   // 일반 ☰
         Assert.DoesNotContain("오하린", Text(await kid.GetStringAsync("/kids/birthdays?Tab=none")));   // 생일 없음은 교사 · 관리자만
         var home = await kid.GetStringAsync("/kids");

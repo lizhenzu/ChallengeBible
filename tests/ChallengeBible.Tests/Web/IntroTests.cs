@@ -255,7 +255,7 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
             Assert.DoesNotContain("@if", html);
             Assert.DoesNotContain("ImpersonatorId", html);
         }
-        Assert.Contains("<b>김철수님</b>", await kid.GetStringAsync("/jamsil-kids/bulletin"));   // 알약 안의 이름(머리줄 표준)
+        Assert.Contains("class=\"hb\"", await kid.GetStringAsync("/jamsil-kids/bulletin"));   // 머리줄 오른쪽은 이동 버튼(이름 알약은 부서 홈 · 첫 화면에만)
     }
 
     [Fact]   // 머리줄 ② 얇은 머리말(2026-11-24 확정 · 기준표 5판): 부서 안 = ☰ + 부서 › 화면 + 알약 · 밖 = ‹ 뒤로 · 「도전!!! 성경말씀」 글자 없음 · 로그아웃은 ☰ 메뉴로
@@ -266,7 +266,8 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Contains("data-pnav-open", bul);                                   // ☰ 메뉴가 새로 생김
         Assert.Contains("class=\"par\"", bul);                                    // 부서 이름
         Assert.Contains("class=\"cur\">주보</b>", bul);                           // 현재 화면
-        Assert.Contains("class=\"hpill\"", bul);                                  // 쪽지 | 이름님 알약
+        Assert.Contains("class=\"hb\" href=\"/jamsil-kids\">", bul);                // 오른쪽은 「부서 홈」 이동 버튼(알약은 부서 홈 · 첫 화면에만, 기준표 6판)
+        Assert.DoesNotContain("class=\"hpill\"", bul);
         Assert.DoesNotContain("class=\"brand\"", bul);                            // 「도전!!! 성경말씀」 글자는 뺐다
         Assert.Contains("id=\"pnav\"", bul);
         Assert.Contains("action=\"/account/logout\"", bul);                       // 로그아웃은 ☰ 메뉴에서
