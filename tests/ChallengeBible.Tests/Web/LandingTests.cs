@@ -97,7 +97,7 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task 네_프로그램과_로그인_가입_관리자_로그인이_보인다()
+    public async Task 네_프로그램과_로그인_가입이_보이고_관리자_로그인은_로그인_화면에만_있다()
     {
         var html = await Page();
         Assert.Contains("<b>성경미션</b>", html);
@@ -107,7 +107,7 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("<a class=\"person-btn\" href=\"/account/login\"", html);   // 로그인은 사람 아이콘 하나
         Assert.DoesNotContain("class=\"lp-login\"", html);                          // 큰 로그인 카드는 없앴다
         Assert.Contains("<a class=\"vb-item\" href=\"/account/login\"", html);      // 미션 칸도 로그인
-        Assert.Contains("관리자 로그인", html);
-        Assert.Contains("href=\"/account/admin-login\"", html);        // 플랫폼 관리자
+        Assert.DoesNotContain("관리자 로그인", html);                    // 2026-11-24 사용자: 첫 화면 맨 아래 「관리자 · 부서 대표 학생 로그인」 상자를 지우고
+        Assert.DoesNotContain("href=\"/account/admin-login\"", html);   // 플랫폼 관리자는 로그인 화면(/account/login)에만
     }
 }

@@ -54,11 +54,11 @@ public partial class AdminLoginTests : IClassFixture<WebApplicationFactory<Progr
     }
 
     [Fact]
-    public async Task 첫_화면에서_비밀번호만으로_플랫폼_관리자가_들어가고_아이디는_보이지_않는다()
+    public async Task 로그인_화면에서_비밀번호만으로_플랫폼_관리자가_들어가고_아이디는_보이지_않는다()
     {
         await SeedSuperAdmin(platformAdmin: true);
         var c = Client();
-        Assert.Contains("href=\"/account/admin-login\"", await c.GetStringAsync("/"));
+        Assert.Contains("href=\"/account/admin-login\"", await c.GetStringAsync("/account/login"));   // 2026-11-24 사용자: 첫 화면 맨 아래 상자는 지우고 로그인 화면에만
         var page = await c.GetStringAsync("/account/admin-login");
         Assert.DoesNotContain("superadmin", page);
 
