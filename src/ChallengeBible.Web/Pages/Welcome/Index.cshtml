@@ -1,6 +1,8 @@
 @page "/{slug}/welcome"
 @model ChallengeBible.Web.Pages.Welcome.IndexModel
 @using ChallengeBible.Web.Services
+@using ChallengeBible.Web.Auth
+@inject ChallengeBible.Web.Services.PhotoService Photos
 @* 부서 소개(웰컴) 화면 — 2026-11-24 새 퍼블리시본 「JAMSIL KIDS · v2」로 교체(ADR 0140). 순백 바탕 · 헤어라인 · 검정 헤비 제목 · 컬러 번호 2열 표.
    현재 있는 기능만 연결: 내 정보(계정) · 대표 사진 · 날짜 · 제목 · 예배 줄 · 주보 · 앨범 · 도전!!! 성경말씀으로 가기 · 소개(글 + 예배 안내) · 앱 설치 ·
    (로그인한 사람만) 1주일 후 다시 보기 · 다시 보지 않기. 퍼블리시본의 「이번 주 말씀」 · 「미션북」 칸은 아직 없는 기능이라 연결하지 않았다. *@
@@ -13,6 +15,9 @@
     var brand = slug.Replace('-', ' ').ToUpperInvariant();
     string Clock(TimeOnly t) => $"{(t.Hour < 12 ? "오전" : "오후")} {(t.Hour % 12 == 0 ? 12 : t.Hour % 12)}:{t.Minute:00}";
     string Day(byte d) => d == 0 ? "주일" : new[] { "일", "월", "화", "수", "목", "금", "토" }[d] + "요일";
+    var meName = User.UserName();
+    var meShow = User.DisplayName();
+    var mePhoto = meName is null ? null : await Photos.FileOfAsync(meName);
     var ko = new System.Globalization.CultureInfo("ko-KR");
     var today = Model.Today.ToString("yyyy년 M월 d일 ", ko) + (Model.Today.DayOfWeek == DayOfWeek.Sunday ? "주일" : Model.Today.ToString("dddd", ko));
 }
@@ -22,8 +27,15 @@
 <main class="wc2-page">
     <header class="wc2-top">
         <b class="wc2-brand">@brand</b>
-        @if (Model.Member) { <a class="wc2-pill" href="/account"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.4" r="3.4"/><path d="M5.4 20.2c.5-3.3 3.2-5.4 6.6-5.4s6.1 2.1 6.6 5.4"/></svg>내 정보</a> }
-        else { <a class="wc2-pill" href="/account/login"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.4" r="3.4"/><path d="M5.4 20.2c.5-3.3 3.2-5.4 6.6-5.4s6.1 2.1 6.6 5.4"/></svg>로그인</a> }
+        @* 로그인한 사람은 「내 정보」 대신 사진(없으면 이름 첫 글자) + 이름님, 손님은 검정 「로그인」(2026-11-24 사용자, 기준표 8판) *@
+        @if (Model.Member)
+        {
+            <a class="wc2-pill wc2-me" href="/account" aria-label="내 계정">
+                <i class="av">@if (mePhoto is { } ph) { <img src="/account/photo?handler=img&amp;v=@ph" alt="" /> } else { <span aria-hidden="true">@(meShow.Length > 0 ? meShow[..1] : "·")</span> }</i>
+                <span class="nm">@Ui.Nim(meShow)</span>
+            </a>
+        }
+        else { <a class="wc2-pill wc2-login" href="/account/login">로그인</a> }
     </header>
 
     <div class="wc2-hero">

@@ -137,11 +137,16 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Contains("href=\"/jamsil-kids/bulletin\"", page);
         Assert.Contains("href=\"/jamsil-kids/album\"", page);
         Assert.Contains("href=\"/jamsil-kids/welcome?handler=Go\"", page);
+        Assert.Contains("class=\"wc2-pill wc2-login\"", page);                              // 손님: 검정 「로그인」(2026-11-24)
+        Assert.DoesNotContain("내 정보", page);
         Assert.DoesNotContain("1주일 후 다시 보기", page);                                   // 손님: 기억할 계정이 없다
         Assert.DoesNotContain("다시 보지 않기", page);
 
         var kid = await Member("cheolsu", _kids.Id, Roles.Participant);
         var mine = await kid.GetStringAsync("/jamsil-kids/welcome");
+        Assert.Contains("class=\"wc2-pill wc2-me\"", mine);                                 // 로그인한 사람: 동그라미 + 이름님(「내 정보」 아님)
+        Assert.DoesNotContain("내 정보", mine);
+        Assert.DoesNotContain("class=\"wc2-pill wc2-login\"", mine);
         Assert.Contains("1주일 후 다시 보기", mine);
         Assert.Contains("다시 보지 않기", mine);
     }
