@@ -50,7 +50,6 @@
         <p class="wc2-sub">@Model.Tenant.Current.Name@(first is null ? "" : $" · {Day(first.DayOfWeek)} {Clock(first.StartTime)}")</p>
     </section>
 
-    <div class="wc2-sec"><h2>오늘의 안내</h2></div>
     @* 「오늘의 안내」 6칸 = 파스텔 틴트 카드(2026-11-24 사용자 확정 핸드오프 「v2 tint cards」 B안) *@
     <nav class="wc2-tintgrid" aria-label="오늘의 안내">
         <a class="wc2-tint" data-id="bulletin" href="/@slug/bulletin">

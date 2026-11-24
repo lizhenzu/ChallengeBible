@@ -16,10 +16,8 @@
 .wc2-kicker { margin: 0 0 12px; font-size: 12px; font-weight: 550; color: var(--ink-3); }
 .wc2 h1 { margin: 0; font-size: 25.6px; line-height: 1.16; font-weight: 830; letter-spacing: -.058em; text-wrap: balance; word-break: keep-all; white-space: pre-line; }
 .wc2-sub { margin: 13px 0 0; font-size: 13.5px; line-height: 1.6; letter-spacing: -.012em; color: var(--ink-2); }
-.wc2-sec { margin-top: 8px; }
-.wc2-sec h2 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -.036em; }
 /* 「오늘의 안내」 틴트 카드(핸드오프 v2 tint cards B안, 2026-11-24). 번호는 기준표 12px · 번호 색은 핸드오프가 권한 대로 진하게(대비 5:1 이상) */
-.wc2-tintgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 10px; border-top: 1px solid var(--ink); padding-top: 12px; }
+.wc2-tintgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 20px; }   /* 「오늘의 안내」 제목과 위쪽 검정 선은 뺐다(2026-11-24 사용자) */
 .wc2-tint[data-id="bulletin"] { --f: #F8EACD; --fd: #EFDFBF; --fa: #E9D7B4; --ik: #705832; --lk: #E6CFA1; }
 .wc2-tint[data-id="word"]     { --f: #E5EDDC; --fd: #D8E2CE; --fa: #CED9C4; --ik: #4C593D; --lk: #C9D8BB; }
 .wc2-tint[data-id="rules"]    { --f: #F5E2DE; --fd: #EDD7D1; --fa: #E8CFC8; --ik: #775346; --lk: #E6C6BE; }
