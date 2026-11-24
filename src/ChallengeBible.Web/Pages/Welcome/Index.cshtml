@@ -26,15 +26,16 @@
 <main class="wc2-page">
     <header class="wc2-top">
         <a class="wc2-church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)"><small>대한예수교장로회</small><b>잠실새내교회</b></a>
-        @* 로그인한 사람은 「내 정보」 대신 사진(없으면 이름 첫 글자) + 이름님, 손님은 검정 「로그인」(2026-11-24 사용자, 기준표 8판) *@
+        @* 위쪽 오른쪽(2026-11-24 확정 · 기준표): 동그라미 하나 — 로그인 + 사진 = 사진, 로그인 + 사진 없음 = 이름 첫 글자(연한 회색 바탕 · 검정 글자), 손님 = 기본 사람 아이콘(누르면 로그인) *@
         @if (Model.Member)
         {
-            <a class="wc2-pill wc2-me" href="/account" aria-label="내 계정">
-                <i class="av">@if (mePhoto is { } ph) { <img src="/account/photo?handler=img&amp;v=@ph" alt="" /> } else { <span aria-hidden="true">@(meShow.Length > 0 ? meShow[..1] : "·")</span> }</i>
-                <span class="nm">@Ui.Nim(meShow)</span>
-            </a>
+            <a class="wc2-av" href="/account" aria-label="내 계정 (@Ui.Nim(meShow))"><i class="c">
+                @if (mePhoto is { } ph) { <img src="/account/photo?handler=img&amp;v=@ph" alt="" /> }
+                else if (meShow.Length > 0) { <span aria-hidden="true">@meShow[..1]</span> }
+                else { <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.4" r="3.6"/><path d="M5 20.4c.5-3.6 3.4-5.8 7-5.8s6.5 2.2 7 5.8"/></svg> }
+            </i></a>
         }
-        else { <a class="wc2-pill wc2-login" href="/account/login">로그인</a> }
+        else { <a class="wc2-av wc2-av-guest" href="/account/login" aria-label="로그인"><i class="c"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.4" r="3.6"/><path d="M5 20.4c.5-3.6 3.4-5.8 7-5.8s6.5 2.2 7 5.8"/></svg></i></a> }
     </header>
 
     <div class="wc2-hero">

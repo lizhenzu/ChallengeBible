@@ -6,10 +6,8 @@
 .wc2-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 19px 0 14px; }
 .wc2-church small { display: block; font-size: 12px; color: var(--ink-3); line-height: 1.3; }
 .wc2-church b { display: block; font-size: 15px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); }
-.wc2-pill { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px 0 11px; border: 1px solid var(--hair); border-radius: 999px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
-.wc2-pill svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-.wc2-hero { position: relative; box-sizing: border-box; aspect-ratio: 16 / 9; overflow: hidden; padding: 7px; margin-bottom: 8px; background: #fff; border: 1px solid #D9D9DE; box-shadow: 0 16px 30px -14px rgba(30, 30, 40, .5), 0 2px 6px rgba(30, 30, 40, .12); display: grid; place-items: center; }   /* B안: 흰 액자 + 테두리 + 3D 그림자(2026-11-24 사용자) */
-.wc2-hero img { position: absolute; inset: 7px; width: calc(100% - 14px); height: calc(100% - 14px); object-fit: cover; display: block; }
+.wc2-hero { position: relative; box-sizing: border-box; aspect-ratio: 16 / 9; overflow: hidden; padding: 2px; margin-bottom: 8px; background: #fff; border: 1px solid #D9D9DE; box-shadow: 0 16px 30px -14px rgba(30, 30, 40, .5), 0 2px 6px rgba(30, 30, 40, .12); display: grid; place-items: center; }   /* B안: 흰 액자(2px, 처음 7px의 약 1/3) + 테두리 + 3D 그림자(2026-11-24 사용자) */
+.wc2-hero img { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); object-fit: cover; display: block; }
 .wc2-hint { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--ink-3); }
 .wc2-hint svg { width: 22px; height: 22px; fill: none; stroke: #b3b3b8; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 6px; }
 .wc2-hint span { font-size: 13px; font-weight: 600; color: var(--ink-2); }
@@ -59,10 +57,10 @@ a.wc2-tint:hover .go { transform: translateX(2px); }
   .wc2 h1 { font-size: 40px; }
 }
 
-/* 위쪽 오른쪽: 로그인한 사람 = 동그라미 + 이름님, 손님 = 검정 「로그인」(2026-11-24) */
-.wc2-me { padding: 0 14px 0 8px; }
-.wc2-me .av { width: 28px; height: 28px; flex: none; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: #dbe6fb; color: #1e3a8a; font-style: normal; font-size: 13px; font-weight: 900; }
-.wc2-me .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.wc2-me .nm { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-weight: 700; }
-.wc2 a.wc2-login { padding: 0 18px; background: var(--ink); border-color: var(--ink); color: #fff; font-weight: 700; }
 .wc2-tint.off { cursor: default; }   /* 05 · 06 은 눌러도 반응 없음(2026-11-24 사용자) */
+/* 위쪽 오른쪽 동그라미(2026-11-24 확정): 보이는 동그라미 40px, 누르는 칸 44px, 오른쪽 끝이 아래 사진 액자 오른쪽 끝과 같은 선 */
+.wc2-av { flex: none; width: 44px; height: 44px; margin-right: -2px; display: grid; place-items: center; }
+.wc2-av .c { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: #eceef1; border: 1px solid #e1e3e8; color: var(--ink); font-style: normal; font-size: 17px; font-weight: 800; line-height: 1; box-sizing: border-box; }
+.wc2-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wc2-av svg { width: 22px; height: 22px; fill: none; stroke: #6e6e75; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.wc2-av:focus-visible .c { outline: 2px solid var(--ink); outline-offset: 2px; }
