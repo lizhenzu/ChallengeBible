@@ -1,4 +1,4 @@
-using ChallengeBible.Domain.Time;
+﻿using ChallengeBible.Domain.Time;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
@@ -12,16 +12,12 @@ namespace ChallengeBible.Web.Pages;
 /// 머리말에 "000님", 부서가 하나면 그 부서 홈 바로가기, ☰ 는 그 부서의 기존 메뉴판(부서 하나일 때)을 연다.
 /// 플랫폼 관리자이면서 소속이 없을 때만 플랫폼 홈으로 보낸다.
 /// </summary>
-public class IndexModel(AccountService accounts, TenantClock clock, LandingService landing, DeptAdminLoginService deptAdmins,
-    DeptStudentLoginService deptStudents, TenantResolver tenants, TenantContext tenant,
+public class IndexModel(AccountService accounts, TenantClock clock, LandingService landing,
+    TenantResolver tenants, TenantContext tenant,
     FamilyTeamService teams, FamilyJoinService familyJoin, RuleService rules, HomeService home, ChallengeCardService cards,
     GiftOrderService gifts) : PageModel, ITitled
 {
     public string Title => "";
-    /// <summary>[관리자 로그인] 아래 부서 관리자 버튼(R-364).</summary>
-    public IReadOnlyList<DeptAdminButton> DeptAdmins { get; private set; } = [];
-    /// <summary>그 아래 부서 대표 학생 버튼(R-367). 버튼에는 부서만, 아이 이름은 쓰지 않는다.</summary>
-    public IReadOnlyList<DeptAdminButton> DeptStudents { get; private set; } = [];
     /// <summary>맨 아래 © 연도: 부서가 없는 화면이라 한국 시간 기준 올해(하드코딩 안 함).</summary>
     public int Year => clock.Today("Asia/Seoul").Year;
     public LandingView Data { get; private set; } = null!;
@@ -70,8 +66,6 @@ public class IndexModel(AccountService accounts, TenantClock clock, LandingServi
     {
         // 공용 자료는 부서 영역 없는 상태에서 먼저 읽는다(부서를 정하면 공용 콘텐츠가 가려진다).
         Data = await landing.GetAsync(ct);
-        DeptAdmins = await deptAdmins.ListAsync(ct);
-        DeptStudents = (await deptStudents.ListAsync(ct)).Select(p => p.Dept).ToList();
         if (User.UserName() is { } id)
         {
             var go = await accounts.WhereToGoAsync(id, ct);

@@ -213,40 +213,8 @@
     }
 
     <div class="vb-foot">
-        <details class="adm">
-            <summary class="adm-toggle">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-                <span>관리자 · 부서 대표 학생 로그인</span>
-                <svg class="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-            </summary>
-            <div class="adm-body">
-                <div class="adm-tabs" role="tablist" aria-label="로그인 종류">
-                    <button type="button" class="on" data-tab="mgr" role="tab" aria-selected="true">부서 관리자</button>
-                    <button type="button" data-tab="stu" role="tab" aria-selected="false">대표 학생</button>
-                </div>
-                <p class="adm-hint">부서를 누르고 비밀번호만 넣어요.</p>
-                <h3 class="sr-only">부서 관리자 로그인</h3>
-                <div class="adm-grid" data-panel="mgr">
-                    @foreach (var da in Model.DeptAdmins)
-                    {
-                        <a class="lp-adm c@(da.Color)" href="/account/dept-login/@da.Slug"><i></i>@da.Label</a>
-                    }
-                </div>
-                <h3 class="sr-only">부서 대표 학생 로그인</h3>
-                <div class="adm-grid" data-panel="stu" hidden>
-                    @foreach (var ds in Model.DeptStudents)
-                    {
-                        <a class="lp-adm c@(ds.Color)" href="/account/student-login/@ds.Slug"><i></i>@ds.Short 학생</a>
-                    }
-                </div>
-                <a class="adm-plat" href="/account/admin-login">
-                    플랫폼 관리자 로그인
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                </a>
-            </div>
-        </details>
         <div class="vb-footrow">
-            <span class="foot">© @Model.Year 잠실새내 · 주일학교</span>
+            <span class="foot">© @Model.Year 잠실새내 · 주일학교</span>   @* 2026-11-24 사용자: 가운데로 *@
             <a href="/install">앱으로 설치</a>
         </div>
     </div>
@@ -324,21 +292,3 @@ else
     <script src="~/js/platform-nav.js" asp-append-version="true" defer></script>
 }
 </div>
-
-<script>
-    (function () {
-        var panel = document.querySelector('.vb .adm');
-        if (!panel) return;
-        panel.querySelectorAll('.adm-tabs button').forEach(function (b) {
-            b.addEventListener('click', function () {
-                panel.querySelectorAll('.adm-tabs button').forEach(function (x) {
-                    x.classList.toggle('on', x === b);
-                    x.setAttribute('aria-selected', x === b ? 'true' : 'false');
-                });
-                panel.querySelectorAll('.adm-grid').forEach(function (g) {
-                    g.hidden = g.getAttribute('data-panel') !== b.getAttribute('data-tab');
-                });
-            });
-        });
-    })();
-</script>

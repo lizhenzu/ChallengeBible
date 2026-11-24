@@ -60,16 +60,18 @@ public partial class DeptAdminLoginTests : IClassFixture<WebApplicationFactory<P
     }
 
     [Fact]
-    public async Task R364_첫_화면에_관리자_계정이_있는_부서만_나이순으로_영아부부터_청년부까지_버튼이_있다()
+    public async Task R364_로그인_화면에_관리자_계정이_있는_부서만_나이순으로_영아부부터_청년부까지_버튼이_있다()
     {
-        var html = await Client().GetStringAsync("/");
+        Assert.DoesNotContain("/account/dept-login/", await Client().GetStringAsync("/"));   // 2026-11-24 사용자: 첫 화면 맨 아래에서 로그인 화면으로 옮김
+        var html = await Client().GetStringAsync("/account/login");
+        Assert.True(html.IndexOf("플랫폼 관리자 로그인", StringComparison.Ordinal) < html.IndexOf("부서 관리자 로그인", StringComparison.Ordinal));   // [플랫폼 관리자 로그인] 아래
         Assert.Contains("부서 관리자 로그인", html);
         var labels = Regex.Matches(html, "class=\"lp-adm c[0-9]\" href=\"/account/dept-login/([^\"]+)\"><i></i>([^<]+)</a>").Select(m => (m.Groups[1].Value, m.Groups[2].Value)).ToArray();
         Assert.Equal(new[]
         {
             ("jamsil-infant", "영아부 관리자"), ("jamsil-kids", "유년부 관리자"), ("jamsil-highschool", "고등부 관리자"), ("jamsil-youth", "청년부 관리자"),
         }, labels);
-        Assert.DoesNotContain("-admin", html);   // 아이디는 화면에 쓰지 않는다
+        foreach (var slug in new[] { "jamsil-infant", "jamsil-kids", "jamsil-highschool", "jamsil-youth" }) Assert.DoesNotContain(slug + "-admin", html);   // 아이디는 화면에 쓰지 않는다
     }
 
     [Fact]

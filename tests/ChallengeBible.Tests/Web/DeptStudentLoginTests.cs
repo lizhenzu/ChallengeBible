@@ -68,9 +68,10 @@ public partial class DeptStudentLoginTests : IClassFixture<WebApplicationFactory
     private HttpClient Client() => _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
     [Fact]
-    public async Task R367_첫_화면에_가짜_학생이_있는_부서만_학생_버튼이_있고_아이_이름은_없다()
+    public async Task R367_로그인_화면에_가짜_학생이_있는_부서만_학생_버튼이_있고_아이_이름은_없다()
     {
-        var html = await Client().GetStringAsync("/");
+        Assert.DoesNotContain("/account/student-login/", await Client().GetStringAsync("/"));   // 2026-11-24 사용자: 첫 화면 맨 아래에서 로그인 화면으로 옮김
+        var html = await Client().GetStringAsync("/account/login");
         Assert.Contains("부서 대표 학생 로그인", html);
         var links = Regex.Matches(html, "href=\"/account/student-login/([^\"]+)\"><i></i>([^<]+)</a>").Select(m => (m.Groups[1].Value, m.Groups[2].Value)).ToArray();
         Assert.Equal(new[] { ("jamsil-kids", "유년부 학생") }, links);

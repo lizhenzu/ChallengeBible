@@ -1,0 +1,57 @@
+@inject ChallengeBible.Web.Services.DeptAdminLoginService DeptAdmins
+@inject ChallengeBible.Web.Services.DeptStudentLoginService DeptStudents
+@* 부서 관리자(R-364) · 부서 대표 학생(R-367) 로그인 버튼. 2026-11-24 사용자: 첫 화면 맨 아래에서 로그인 화면의 [플랫폼 관리자 로그인] 아래로 옮김.
+   접는 상자(기본 닫힘) 안에 탭 둘 — 부서 관리자 · 대표 학생. 부서를 누르면 비밀번호만 묻는다(아이디 · 아이 이름은 화면에 쓰지 않음). *@
+@{
+    var mgr = await DeptAdmins.ListAsync();
+    var stu = (await DeptStudents.ListAsync()).Select(p => p.Dept).ToList();
+}
+<link rel="stylesheet" href="~/css/deptlogin.css" asp-append-version="true" />
+@if (mgr.Count + stu.Count > 0)
+{
+    <details class="dl">
+        <summary class="dl-toggle">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+            <span>관리자 · 부서 대표 학생 로그인</span>
+            <svg class="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="dl-body">
+            <div class="dl-tabs" role="tablist" aria-label="로그인 종류">
+                <button type="button" class="on" data-tab="mgr" role="tab" aria-selected="true">부서 관리자</button>
+                <button type="button" data-tab="stu" role="tab" aria-selected="false">대표 학생</button>
+            </div>
+            <p class="dl-hint">부서를 누르고 비밀번호만 넣어요.</p>
+            <h2 class="sr-only">부서 관리자 로그인</h2>
+            <div class="dl-grid" data-panel="mgr">
+                @foreach (var da in mgr)
+                {
+                    <a class="lp-adm c@(da.Color)" href="/account/dept-login/@da.Slug"><i></i>@da.Label</a>
+                }
+            </div>
+            <h2 class="sr-only">부서 대표 학생 로그인</h2>
+            <div class="dl-grid" data-panel="stu" hidden>
+                @foreach (var ds in stu)
+                {
+                    <a class="lp-adm c@(ds.Color)" href="/account/student-login/@ds.Slug"><i></i>@ds.Short 학생</a>
+                }
+            </div>
+        </div>
+    </details>
+    <script>
+        (function () {
+            var panel = document.querySelector('.dl');
+            if (!panel) return;
+            panel.querySelectorAll('.dl-tabs button').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    panel.querySelectorAll('.dl-tabs button').forEach(function (x) {
+                        x.classList.toggle('on', x === b);
+                        x.setAttribute('aria-selected', x === b ? 'true' : 'false');
+                    });
+                    panel.querySelectorAll('.dl-grid').forEach(function (g) {
+                        g.hidden = g.getAttribute('data-panel') !== b.getAttribute('data-tab');
+                    });
+                });
+            });
+        })();
+    </script>
+}
