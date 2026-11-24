@@ -79,7 +79,7 @@
         @if (c.Chips.Count > 0)
         {
             <section class="vb-ch-card" aria-labelledby="vbToday">
-                <div class="vb-ch-cardh"><h2 id="vbToday">오늘 미션</h2><span class="num"><b class="num">@c.Done/@c.Total</b></span></div>
+                <div class="vb-ch-cardh"><h2 id="vbToday">오늘 미션</h2><span class="rt"><span class="num"><b class="num">@c.Done/@c.Total</b></span><a class="go" href="/@slug/word-mission" aria-label="성경미션 들어가기">들어가기 ›</a></span></div>   @* 2026-11-24 사용자 A안: 제목 줄 오른쪽에 성경미션 「들어가기」 *@
                 <div class="vb-chips" role="list" aria-label="오늘 미션">
                     @foreach (var chip in c.Chips)
                     {
