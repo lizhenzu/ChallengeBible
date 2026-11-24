@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>화면 통일 기준표 시안 (홈 화면 기준)</title>
+<style>
+:root{--ink:#1d1d1f;--ink-2:#56565c;--ink-3:#6e6e75;--line:#e7e7ea;--track:#ededef;--soft:#f4f4f5;--p1:#1f9d55;--s1:#e8f6ee;--p2:#2f6fe4;--s2:#eaf1fd;--p3:#ea6a1c;--s3:#fdf0e6;--p4:#dc3f8a;--s4:#fcebf3;
+ --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:#e9ebef;color:var(--ink);word-break:keep-all;letter-spacing:-.01em}
+.bar{background:#161c2b;color:#fff;font-size:12.5px;height:38px;display:flex;align-items:center;padding:0 22px}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 20px 44px;display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.pn{background:#fff;border-radius:12px;padding:20px 22px;box-shadow:0 20px 50px -44px #000}
+.pn h2{font-size:15px;font-weight:900;margin-bottom:4px}.pn .why{font-size:12px;color:#5b6470;line-height:1.6;margin-bottom:14px}
+.sw{display:flex;gap:10px;flex-wrap:wrap}.sw div{width:96px}.sw i{display:block;height:44px;border-radius:10px;border:1px solid var(--line)}.sw b{display:block;margin-top:5px;font-size:11.5px;font-weight:800}.sw span{font-size:10.5px;color:#6e6e75}
+table{width:100%;border-collapse:collapse;font-size:12.5px}td,th{padding:7px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-size:11.5px;color:#6e6e75;font-weight:700}
+.ph{width:360px;margin:0 auto;border:1px solid var(--line);border-radius:14px;padding:14px 16px 18px;background:#fff}
+.back{display:flex;justify-content:space-between;font-size:12.5px;font-weight:800;color:var(--ink-2);margin-bottom:12px}.back small{font-weight:700;color:var(--ink-3);font-size:11.5px}
+.h1{font-size:25px;font-weight:900;letter-spacing:-.04em;line-height:1.25}.sub{margin-top:5px;font-size:12px;font-weight:600;color:var(--ink-3)}
+.card{margin-top:13px;border:1px solid var(--line);border-radius:20px;padding:17px 15px}
+.ch{display:flex;justify-content:space-between;align-items:baseline}.ch h4{font-size:12.5px;font-weight:800;color:var(--ink-3)}.ch span{font-size:11.5px;font-weight:700;color:var(--ink-3)}.ch .go{font-weight:900;color:var(--ink)}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}.chip{border-radius:12px;padding:10px 2px;text-align:center}.chip b{display:block;font-size:12px}.chip span{display:block;font-size:10.5px;margin-top:3px;opacity:.8}
+.chip.a{background:var(--s1);color:var(--p1)}.chip.b{background:var(--s2);color:var(--p2)}.chip.c{background:var(--s4);color:var(--p4)}.chip.d{background:var(--s3);color:var(--p3)}
+.chip.on{background:var(--p1);color:#fff}
+.row{margin-top:12px}.row .nm{display:flex;justify-content:space-between;font-size:12.5px;font-weight:800}.row .nm i{display:inline-block;width:6px;height:6px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.row .bar2{height:6px;border-radius:99px;background:var(--track);margin-top:7px;overflow:hidden}.row .bar2 u{display:block;height:100%;border-radius:99px}
+.row .ft{display:flex;justify-content:space-between;margin-top:6px;font-size:10.5px;font-weight:700;color:var(--ink-3)}.row .ft b{font-size:11.5px;font-weight:900;color:var(--ink)}
+.btns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.btn{font-size:13px;font-weight:800;padding:12px 16px;border-radius:12px}.btn.p{background:var(--ink);color:#fff}.btn.s{background:var(--soft);color:var(--ink-2)}.btn.c{background:var(--p3);color:#fff}
+.sp{display:flex;align-items:flex-end;gap:8px;margin-top:6px}.sp div{background:#dbe7f8;border-radius:4px;text-align:center;font-size:10.5px;color:#345;padding-top:2px}
+.full{grid-column:1/-1}
+</style></head><body>
+<div class="bar">시안 · 화면 통일 기준표 — 홈 화면(첫 화면 · 나의 도전)을 기준으로 정리한 규칙 (확정하면 모든 화면에 이 규칙을 적용)</div>
+<div class="wrap">
+
+<div class="pn"><h2>① 색</h2><p class="why">바탕은 흰색 · 글자는 차콜 · 프로그램 4색은 "그 프로그램"을 가리킬 때만 쓴다. 작은 회색 글자는 한 단계 진하게(#6e6e75, 대비 5:1).</p>
+<div class="sw"><div><i style="background:#1d1d1f"></i><b>글자 기본</b><span>#1d1d1f</span></div><div><i style="background:#56565c"></i><b>글자 2</b><span>#56565c</span></div><div><i style="background:#6e6e75"></i><b>보조 글자</b><span>#6e6e75 (지금 #8e8e94 → 진하게)</span></div><div><i style="background:#e7e7ea"></i><b>선</b><span>#e7e7ea</span></div><div><i style="background:#f4f4f5"></i><b>옅은 면</b><span>#f4f4f5</span></div></div>
+<div class="sw" style="margin-top:14px"><div><i style="background:#1f9d55"></i><b>성경미션</b><span>#1f9d55 · 옅게 #e8f6ee</span></div><div><i style="background:#2f6fe4"></i><b>성경통독</b><span>#2f6fe4 · 옅게 #eaf1fd</span></div><div><i style="background:#ea6a1c"></i><b>성경필사</b><span>#ea6a1c · 옅게 #fdf0e6</span></div><div><i style="background:#dc3f8a"></i><b>기도365</b><span>#dc3f8a · 옅게 #fcebf3</span></div></div>
+<p class="why" style="margin-top:12px">상태: <b>완료</b> = 그 색 진하게(흰 글자) · <b>대기</b> = 옅은 바탕 + 같은 색 글자 · <b>없음</b> = 회색. 미션 안의 말씀/퀴즈/기도/암송은 초록/파랑/분홍/주황(나의 도전과 같음).</p></div>
+
+<div class="pn"><h2>② 글자 · 간격 · 폭</h2><p class="why">숫자로 정해 두면 화면마다 달라지지 않는다.</p>
+<table><tr><th>쓰임</th><th>휴대폰</th><th>데스크톱</th></tr>
+<tr><td>화면 제목(h1)</td><td>25px · 900</td><td>28px</td></tr>
+<tr><td>섹션 제목</td><td>21px · 900</td><td>28px</td></tr>
+<tr><td>카드 제목</td><td>12.5px · 800 · 보조 글자색</td><td>같음</td></tr>
+<tr><td>본문</td><td>14.5px · 줄간격 1.7</td><td>16.5px</td></tr>
+<tr><td>설명 · 작은 글자</td><td>11.5px (최소 11px)</td><td>12.5px</td></tr>
+<tr><td>카드 모서리 · 테두리</td><td>20px · 1px #e7e7ea</td><td>같음</td></tr>
+<tr><td>카드 안쪽 여백</td><td>17px 15px</td><td>30px 32px</td></tr>
+<tr><td>카드 사이 간격</td><td>13px (8 · 12 · 16 · 24 · 32 · 48 단계)</td><td>16px</td></tr>
+<tr><td>화면 좌우 여백</td><td>18~20px</td><td>가운데 정렬</td></tr>
+<tr><td>내용 폭</td><td>꽉 참</td><td><b>760px</b> (첫 화면만 2열이라 예외)</td></tr></table></div>
+
+<div class="pn full"><h2>③ 머리말 · 카드 · 버튼 — 기준 모양(휴대폰)</h2><p class="why">서브 화면은 모두 이 순서: 「‹ 뒤로」(왼쪽) · 보조 정보(오른쪽) → 제목 → 부제 → 카드들. 뒤로 문구는 가는 곳 이름 하나("홈으로" · "미션 홈" 등)로 통일.</p>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+<div class="ph"><div class="back"><span>‹ 홈으로</span><small>1월 5일 화요일</small></div><div class="h1">나의 도전</div><p class="sub">점수와 성장, 이번 주 기록을 한 곳에서</p>
+ <div class="card"><div class="ch"><h4>오늘 미션</h4><span><span>0/4</span> &nbsp;<span class="go">들어가기 ›</span></span></div>
+  <div class="chips"><div class="chip a"><b>말씀</b><span>대기중</span></div><div class="chip b"><b>퀴즈</b><span>대기중</span></div><div class="chip c"><b>기도</b><span>대기중</span></div><div class="chip on"><b>암송</b><span>완료</span></div></div></div></div>
+<div class="ph"><div class="back"><span>‹ 홈으로</span><small></small></div><div class="h1">프로그램</div><p class="sub">카드 · 진행 줄 기준</p>
+ <div class="card"><div class="ch"><h4>프로그램 진행</h4><span>3개</span></div>
+  <div class="row"><div class="nm"><span><i style="background:var(--p2)"></i>성경통독</span><span>0.4 %</span></div><div class="bar2"><u style="width:4%;background:var(--p2)"></u></div><div class="ft"><span>5 / 1,189장</span><b>들어가기 ›</b></div></div>
+  <div class="row"><div class="nm"><span><i style="background:var(--p3)"></i>성경필사</span><span style="color:var(--ink-3);font-weight:700;font-size:11px">시작 전</span></div><div class="bar2"></div><div class="ft"><span>0 / 3,573절</span><b>들어가기 ›</b></div></div></div></div>
+<div class="ph"><div class="back"><span>‹ 홈으로</span><small></small></div><div class="h1">버튼</div><p class="sub">한 화면에 큰 버튼은 하나</p>
+ <div class="btns"><div class="btn p">진한 버튼(주 행동)</div><div class="btn s">옅은 버튼</div><div class="btn c">프로그램 색 버튼</div></div>
+ <div class="card"><div class="ch"><h4>작은 링크</h4><span class="go">들어가기 ›</span></div><div class="sp" style="margin-top:10px"><div style="width:20px;height:8px"></div><div style="width:20px;height:16px"></div><div style="width:20px;height:24px"></div><div style="width:20px;height:32px"></div><div style="width:20px;height:40px"></div><span style="font-size:10.5px;color:#6e6e75;margin-left:6px">간격 4 · 8 · 12 · 16 · 24 · 32</span></div></div></div>
+</div></div>
+
+<div class="pn full"><h2>④ 적용 순서(한 화면씩, 화면마다 시안 먼저)</h2><p class="why">① 미션 홈 → ② 말씀 · 퀴즈 · 기도 · 암송 → ③ 통독 → ④ 필사 → ⑤ 365기도 → ⑥ 가족팀 → ⑦ 순위 · 내 점수 → ⑧ 내 계정 → ⑨ 관리 · 플랫폼(마지막). 기능 · 문구는 바꾸지 않고 모양만 맞춘다. 모양이 크게 달라 판단이 어려운 화면(미션 홈, 통독, 필사)은 모델을 Opus 로 바꿀지 그때 이야기한다.</p></div>
+</div></body></html>
