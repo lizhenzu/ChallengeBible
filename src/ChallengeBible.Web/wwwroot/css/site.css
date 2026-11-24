@@ -4890,3 +4890,20 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .imp-back .tdr-r { width: 100%; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; color: inherit; }
 .imp-back .tdr-i { font-style: normal; font-weight: 900; }
 .imp-top { margin-left: 6px; }
+
+/* ── 머리줄 표준 · 얇은 머리말(2026-11-24 확정 · 기준표 5판 · 시안 머리줄-얇은-비교) ── */
+.top.pb .wrap.pbw { min-height: 56px; gap: 8px; }
+.pb .pb-l { display: flex; align-items: center; gap: 4px; min-width: 0; font-size: 14px; white-space: nowrap; overflow: hidden; }
+.pb .pb-r { display: flex; align-items: center; gap: 8px; flex: none; }
+.pb .pb-b { width: 40px; height: 40px; margin-left: -8px; flex: none; border: 0; border-radius: 12px; background: none; color: var(--fg); display: grid; place-items: center; cursor: pointer; text-decoration: none; }
+.pb .par { font-size: 14px; font-weight: 700; color: var(--dim); text-decoration: none; }
+.pb .sep { color: #9aa0aa; margin: 0 4px; font-size: 13px; }
+.pb .cur { font-size: 15px; font-weight: 800; color: var(--fg); overflow: hidden; text-overflow: ellipsis; }
+.pb .lnk { font-size: 13px; font-weight: 800; color: var(--accent); padding: 0 4px; }
+.pb .hpill { display: inline-flex; align-items: center; height: 40px; border: 1px solid #e3e6eb; border-radius: 999px; padding: 0 13px 0 4px; background: #fff; }
+.pb .hpill .mailb { width: 34px; height: 34px; border-radius: 50%; background: transparent; color: var(--fg); }
+.pb .hpill .mailb i { top: 0; right: -4px; }
+.pb .hpill .sp { width: 1px; height: 16px; flex: none; background: #e3e6eb; margin: 0 8px 0 2px; }
+.pb .hpill .hmx-me { display: inline-flex; align-items: center; gap: 4px; min-height: 0; padding: 0; border: 0; background: transparent; max-width: none; text-decoration: none; color: var(--fg); }
+.pb .hpill .hmx-me b { font-size: 13.5px; font-weight: 800; }
+.pb .pb-imp { border: 0; background: none; font-size: 13px; font-weight: 800; color: var(--accent); padding: 0 4px; min-height: 40px; }

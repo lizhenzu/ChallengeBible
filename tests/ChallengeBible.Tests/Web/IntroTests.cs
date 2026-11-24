@@ -255,6 +255,30 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
             Assert.DoesNotContain("@if", html);
             Assert.DoesNotContain("ImpersonatorId", html);
         }
-        Assert.Contains("김철수</b>님", await kid.GetStringAsync("/jamsil-kids/bulletin"));
+        Assert.Contains("<b>김철수님</b>", await kid.GetStringAsync("/jamsil-kids/bulletin"));   // 알약 안의 이름(머리줄 표준)
+    }
+
+    [Fact]   // 머리줄 ② 얇은 머리말(2026-11-24 확정 · 기준표 5판): 부서 안 = ☰ + 부서 › 화면 + 알약 · 밖 = ‹ 뒤로 · 「도전!!! 성경말씀」 글자 없음 · 로그아웃은 ☰ 메뉴로
+    public async Task 얇은_머리말은_부서_안에서는_메뉴와_경로이고_밖에서는_뒤로_가기이다()
+    {
+        var kid = await Member("cheolsu", _kids.Id, Roles.Participant);
+        var bul = await kid.GetStringAsync("/jamsil-kids/bulletin");
+        Assert.Contains("data-pnav-open", bul);                                   // ☰ 메뉴가 새로 생김
+        Assert.Contains("class=\"par\"", bul);                                    // 부서 이름
+        Assert.Contains("class=\"cur\">주보</b>", bul);                           // 현재 화면
+        Assert.Contains("class=\"hpill\"", bul);                                  // 쪽지 | 이름님 알약
+        Assert.DoesNotContain("class=\"brand\"", bul);                            // 「도전!!! 성경말씀」 글자는 뺐다
+        Assert.Contains("id=\"pnav\"", bul);
+        Assert.Contains("action=\"/account/logout\"", bul);                       // 로그아웃은 ☰ 메뉴에서
+
+        // 쪽지 화면은 이미 ☰ 머리말 부품(_GenTop)을 써서 ③ 자체 머리줄 묶음에서 맞춘다
+
+        var guest = NewClient();
+        var login = await guest.GetStringAsync("/account/login");
+        Assert.Contains("aria-label=\"뒤로\"", login);
+        Assert.Contains(">가입하기</a>", login);                                    // 반대 이동 링크 하나
+        Assert.DoesNotContain("class=\"brand\"", login);
+        Assert.DoesNotContain("data-pnav-open", login);
+        Assert.Contains("href=\"/account/login\">로그인</a>", await guest.GetStringAsync("/account/signup"));
     }
 }
