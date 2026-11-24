@@ -2389,7 +2389,7 @@ body:has(main.w760) .top .wrap, body:has(main.w760) .admintop .wrap.hd, body:has
 .copy label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; color: var(--dim); }
 
 /* 출석(0093 출석, 확정 시안 A-출석부-오늘 · B-새친구 · C-새친구-등록) */
-.att { padding-bottom: 90px; }
+.att { padding-bottom: 32px; }   /* 하단 탭을 ☰ 메뉴로 옮김(2026-11-24) */
 .att .top { display: grid; gap: 8px; padding: 14px 0 6px; }
 .att .crumb { display: flex; justify-content: space-between; font-size: 13px; color: var(--dim); }
 /* 주일 이동: 전주 · 보는 주 · 차주 3칸(확정 시안, 2026-11-13) */
@@ -4915,4 +4915,6 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .pb .hb svg { flex: none; }
 
 /* 출석 담임: 하단 탭 없음(2026-11-24 사용자) */
-.att.notabs { padding-bottom: 32px; }
+
+.pb .pb-b { position: relative; }
+.pb .pb-dot { position: absolute; top: 7px; right: 6px; width: 10px; height: 10px; border-radius: 50%; background: #d93025; border: 2px solid #fff; }

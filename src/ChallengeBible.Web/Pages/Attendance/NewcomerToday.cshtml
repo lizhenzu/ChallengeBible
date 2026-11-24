@@ -6,7 +6,7 @@
     var h = Model.Home;
     var present = h.Active.Count(a => a.PresentThisSunday);
 }
-@{ ViewData["PbTitle"] = "주일 출석"; ViewData["PbParent"] = new[] { "새친구", $"/{slug}/attendance/newcomers" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
+@{ ViewData["PbDrawer"] = "att"; ViewData["PbTitle"] = "주일 출석"; ViewData["PbParent"] = new[] { "새친구", $"/{slug}/attendance/newcomers" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
 <partial name="_Top" view-data="ViewData" />
 <main class="att gut attw"><div class="wrap">
     <div class="hd2"><h1>@h.ThisSunday.ToString("M월 d일") 주일</h1><p>이름을 누르면 바로 저장돼요 · 다시 누르면 취소</p></div>

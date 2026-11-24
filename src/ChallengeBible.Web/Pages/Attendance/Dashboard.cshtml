@@ -10,7 +10,7 @@
     var regular = m.Rep.Classes.Where(x => x.Id > 0).ToList();
     int total = c?.Kids.Count ?? 0, present = c?.Kids.Count(k => k.Present) ?? 0;
 }
-@{ ViewData["PbTitle"] = "출석 대시보드"; ViewData["PbParent"] = new[] { "출석", $"/{slug}/attendance" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
+@{ ViewData["PbDrawer"] = "att"; ViewData["PbTitle"] = "출석 대시보드"; ViewData["PbParent"] = new[] { "출석", $"/{slug}/attendance" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
 <partial name="_Top" view-data="ViewData" />
 <div class="yb ybd">
     <div class="dbTop">
@@ -81,4 +81,3 @@
         }
     </main>
 </div>
-<partial name="_AttTabs" model='(slug, "more", true)' />

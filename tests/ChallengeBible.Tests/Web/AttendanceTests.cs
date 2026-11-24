@@ -531,13 +531,14 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
 
         var t = await Member("teacher", Roles.Teacher);
         Assert.Contains("아직 맡은 반이 없어요", await t.GetStringAsync("/jamsil-kids/attendance"));
-        Assert.Contains("class=\"attTabs\"", await a.GetStringAsync("/jamsil-kids/attendance"));          // 관리자는 하단 탭(오늘 · 새친구 · 돌봄 · 더보기)
-        Assert.DoesNotContain("class=\"attTabs\"", await t.GetStringAsync("/jamsil-kids/attendance"));   // 반 담임(새친구 담당 아님)은 하단 탭 없음 — 더보기에 보일 메뉴가 없다(2026-11-24)
+        Assert.Contains("주일출석관리", await a.GetStringAsync("/jamsil-kids/attendance"));             // 관리자는 출석 전용 ☰ 메뉴(하단 탭 없음, 2026-11-24)
+        Assert.DoesNotContain("class=\"attTabs\"", await a.GetStringAsync("/jamsil-kids/attendance"));
+        Assert.DoesNotContain("주일출석관리", await t.GetStringAsync("/jamsil-kids/attendance"));          // 반 담임은 부서 ☰ 메뉴(출석 메뉴에 담길 것이 「오늘」 하나뿐)
 
         // 더보기(유년부 "더보기"와 같은 모양): 관리자에게만 관리자 메뉴, 맡은 반 없는 교사는 못 들어온다
         var more = await a.GetStringAsync("/jamsil-kids/attendance/more");
         Assert.Contains("교사 · 반 배정", more);
-        Assert.Contains("href=\"/jamsil-kids/attendance/more\"", await a.GetStringAsync("/jamsil-kids/attendance"));
+        Assert.Contains("href=\"/jamsil-kids/attendance/report\"", await a.GetStringAsync("/jamsil-kids/attendance"));
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/more")).StatusCode);
 
         // 돌봄(유년부 "돌봄"과 같은 모양): 관리자만, 탭에 돌봄, 기준 고르기

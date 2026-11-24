@@ -14,7 +14,7 @@
     int pct = total == 0 ? 0 : (int)Math.Round(present * 100.0 / total);
     var prevD = sunday.AddDays(-7); var nextD = sunday.AddDays(7); var nextOk = nextD <= r.ThisSunday;
 }
-@{ ViewData["PbTitle"] = "주일 명단"; ViewData["PbParent"] = new[] { "출석", $"/{slug}/attendance" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
+@{ ViewData["PbDrawer"] = "att"; ViewData["PbTitle"] = "주일 명단"; ViewData["PbParent"] = new[] { "출석", $"/{slug}/attendance" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
 <partial name="_Top" view-data="ViewData" />
 <div class="yb ybda sl2">
     <header class="sh">
@@ -87,7 +87,6 @@
         <div class="ft"><span>✓ 초록 = 출석 · 점선 = 결석 · 반 안에서 출석한 아이부터 · 출석률 = 출석 ÷ 총원(지금 반 편성 기준)</span></div>
     </main>
 </div>
-<partial name="_AttTabs" model='(slug, "more", true)' />
 <script>
 (function () {
     const list = document.getElementById('slList');

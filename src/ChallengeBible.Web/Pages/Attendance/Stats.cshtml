@@ -8,7 +8,7 @@
     var self = $"/{slug}/attendance/stats";
     var detail = $"/{slug}/attendance/stats/detail?year={s.Year}&month={s.Month}";
 }
-@{ ViewData["PbTitle"] = "월별 통계"; ViewData["PbParent"] = new[] { "출석", $"/{slug}/attendance" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
+@{ ViewData["PbDrawer"] = "att"; ViewData["PbTitle"] = "월별 통계"; ViewData["PbParent"] = new[] { "출석", $"/{slug}/attendance" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
 <partial name="_Top" view-data="ViewData" />
 <div class="yb ybd ybst">
     <div class="dbTop">
@@ -70,4 +70,3 @@
         <div class="dbCard stMuted">그래프(막대 · 선)는 <a href="@detail">상세 보기 →</a>에서 볼 수 있어요.</div>
     </main>
 </div>
-<partial name="_AttTabs" model='(slug, "more", true)' />

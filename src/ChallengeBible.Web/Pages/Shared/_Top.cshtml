@@ -1,4 +1,5 @@
 @inject ChallengeBible.Web.Tenancy.TenantContext Ten
+@inject ChallengeBible.Web.Services.AttendanceService Att
 @using ChallengeBible.Web.Pages
 @using ChallengeBible.Web.Services
 @* 머리줄 표준 = 모든 화면의 단일 머리줄 부품(2026-11-24 확정 · 기준표 6판).
@@ -22,6 +23,10 @@
     var btnLabel = btn?[0] ?? (hasHome ? "홈으로" : "처음 화면");
     var btnHref = btn?[1] ?? homeHref;
     var b2 = ViewData["PbDrawer"] as string == "b2";   // 통독 · 필사: ☰ 는 그 프로그램 자체 서랍(_ReadingNav · _CopyNav)을 연다
+    // 출석 화면(PbDrawer="att"): 관리자 · 새친구반 담당은 하단 탭 대신 출석 전용 ☰ 메뉴(시안 출석-햄버거-메뉴). 반 담임은 부서 ☰ 메뉴.
+    var attScope = ViewData["PbDrawer"] as string == "att" && member ? await Att.ScopeAsync(me!) : null;
+    var attMenu = attScope?.Newcomers == true;
+    var attCare = attMenu && attScope!.Admin ? await Att.CareCountAsync() : 0;
     var imp = User.ImpersonatorId() is not null;
 }
 <header class="top gut pb"><div class="wrap pbw">
@@ -37,6 +42,7 @@
         else if (member)
         {
             <button type="button" class="pb-b" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
+                @if (attCare > 0) { <i class="pb-dot" aria-label="돌봄 알림"></i> }
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
             </button>
             @if (parent is not null) { <a class="par" href="@parent[1]">@parent[0]</a> }
@@ -68,4 +74,4 @@
         }
     </span>
 </div></header>
-@if (member && !b2) { <partial name="_TenantDrawer" model="(Ten, (string?)null)" /> }
+@if (member && !b2) { if (attMenu) { <partial name="_AttDrawer" model="(Ten, attScope!.Admin, attCare)" /> } else { <partial name="_TenantDrawer" model="(Ten, (string?)null)" /> } }

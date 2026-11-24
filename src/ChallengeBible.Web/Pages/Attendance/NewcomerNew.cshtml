@@ -3,7 +3,7 @@
 @using ChallengeBible.Web.Services
 @* 확정 시안 C-새친구-등록(ADR 0093 출석 7 · 8): 학교 · 주소 · 부모님 이름 · 사진은 받지 않는다 *@
 @{ var slug = Model.Tenant.Current.Slug; }
-@{ ViewData["PbTitle"] = "새친구 등록"; ViewData["PbParent"] = new[] { "새친구", $"/{slug}/attendance/newcomers" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
+@{ ViewData["PbDrawer"] = "att"; ViewData["PbTitle"] = "새친구 등록"; ViewData["PbParent"] = new[] { "새친구", $"/{slug}/attendance/newcomers" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
 <partial name="_Top" view-data="ViewData" />
 <main class="att gut attw"><div class="wrap">
     <div class="top">

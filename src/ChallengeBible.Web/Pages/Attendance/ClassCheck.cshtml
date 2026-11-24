@@ -12,7 +12,7 @@
     var pct = total == 0 ? 0 : present * 100 / total;
     var back = Model.BackUrl(slug, d);
 }
-@{ ViewData["PbTitle"] = g.Name; ViewData["PbParent"] = new[] { "출석", back }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
+@{ ViewData["PbDrawer"] = "att"; ViewData["PbTitle"] = g.Name; ViewData["PbParent"] = new[] { "출석", back }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
 <partial name="_Top" view-data="ViewData" />
 <main class="att gut fcw"><div class="wrap">
     @Html.AntiForgeryToken()
@@ -52,5 +52,4 @@
     <p class="fc-foot">이름 아래 점 = 지난 4주 출석 · 빨간 테두리 = 3주 이상 결석</p>
     <div class="toast hidden" id="toast" role="alert"></div>
 </div></main>
-<partial name="_AttTabs" model='(slug, "a", Model.Newcomers)' />
 <script src="~/js/attendance.js" asp-append-version="true"></script>

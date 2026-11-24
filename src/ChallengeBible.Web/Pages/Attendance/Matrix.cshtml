@@ -34,7 +34,7 @@
     }
     bool MonthStart(int i) => i > 0 && sundays[i].Month != sundays[i - 1].Month;
 }
-@{ ViewData["PbTitle"] = "출석표"; ViewData["PbParent"] = new[] { "출석", $"/{slug}/attendance" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
+@{ ViewData["PbDrawer"] = "att"; ViewData["PbTitle"] = "출석표"; ViewData["PbParent"] = new[] { "출석", $"/{slug}/attendance" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
 <partial name="_Top" view-data="ViewData" />
 <div class="yb ybm dsk">
     <header class="sh">

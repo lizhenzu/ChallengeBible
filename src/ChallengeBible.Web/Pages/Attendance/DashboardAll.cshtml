@@ -12,7 +12,7 @@
     bool atLatest = r.Sunday >= r.ThisSunday;
     string Self(DateOnly d) => $"/{slug}/attendance/dashboard/all?date={d:yyyy-MM-dd}";
 }
-@{ ViewData["PbTitle"] = "전체반 현황"; ViewData["PbParent"] = new[] { "출석", $"/{slug}/attendance" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
+@{ ViewData["PbDrawer"] = "att"; ViewData["PbTitle"] = "전체반 현황"; ViewData["PbParent"] = new[] { "출석", $"/{slug}/attendance" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
 <partial name="_Top" view-data="ViewData" />
 <div class="yb ybd ybda">
     <div class="dbTop flow">@* 위 덩어리는 화면에 고정하지 않는다(R-260) *@
@@ -70,7 +70,6 @@
         }
     </main>
 </div>
-<partial name="_AttTabs" model='(slug, "more", true)' />
 <script>
 (function () {
     const grid = document.getElementById('grid');

@@ -2,7 +2,7 @@
 @model ChallengeBible.Web.Pages.Attendance.MoreModel
 @* 유년부 출석부 "더보기"(Views/Attendance/More)와 같은 모양 · 색(DailyMission4 밝은 흰색 버전) *@
 @{ var slug = Model.Tenant.Current.Slug; }
-@{ ViewData["PbTitle"] = "더보기"; ViewData["PbParent"] = new[] { "출석", $"/{slug}/attendance" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
+@{ ViewData["PbDrawer"] = "att"; ViewData["PbTitle"] = "더보기"; ViewData["PbParent"] = new[] { "출석", $"/{slug}/attendance" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
 <partial name="_Top" view-data="ViewData" />
 <div class="yb">
     <header class="sh">
@@ -21,4 +21,3 @@
         <div class="ft"><span>© @Model.Tenant.Current.Name · 출석부</span></div>
     </main>
 </div>
-<partial name="_AttTabs" model='(slug, "more", Model.Newcomers)' />
