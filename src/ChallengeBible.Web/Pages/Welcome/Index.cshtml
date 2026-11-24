@@ -1,56 +1,99 @@
 @page "/{slug}/welcome"
 @model ChallengeBible.Web.Pages.Welcome.IndexModel
 @using ChallengeBible.Web.Services
-@* 부서 소개 화면(ADR 0140, 2026-11-23 확정 시안 유년부-소개 C안 · 크림 + 주황).
-   대표 사진 → 제목 · 소개 글 → 예배 안내 띠 → 주보 · 사진첩 → 「도전!!! 성경말씀으로 가기」 → (로그인한 사람만) 1주일 후 다시 보기 · 다시 보지 않기 *@
+@* 부서 소개(웰컴) 화면 — 2026-11-24 새 퍼블리시본 「JAMSIL KIDS · v2」로 교체(ADR 0140). 순백 바탕 · 헤어라인 · 검정 헤비 제목 · 컬러 번호 2열 표.
+   현재 있는 기능만 연결: 내 정보(계정) · 대표 사진 · 날짜 · 제목 · 예배 줄 · 주보 · 앨범 · 도전!!! 성경말씀으로 가기 · 소개(글 + 예배 안내) · 앱 설치 ·
+   (로그인한 사람만) 1주일 후 다시 보기 · 다시 보지 않기. 퍼블리시본의 「이번 주 말씀」 · 「미션북」 칸은 아직 없는 기능이라 연결하지 않았다. *@
 @{
     var slug = Model.Tenant.Current.Slug;
     var dept = PlatformTodayService.ShortDept(Model.Tenant.Current.Name);
     var it = Model.Item;
+    var first = Model.Worship.FirstOrDefault();
+    var addr = Model.Worship.Select(w => w.Address).FirstOrDefault(a => !string.IsNullOrWhiteSpace(a));
+    var brand = slug.Replace('-', ' ').ToUpperInvariant();
     string Clock(TimeOnly t) => $"{(t.Hour < 12 ? "오전" : "오후")} {(t.Hour % 12 == 0 ? 12 : t.Hour % 12)}:{t.Minute:00}";
     string Day(byte d) => d == 0 ? "주일" : new[] { "일", "월", "화", "수", "목", "금", "토" }[d] + "요일";
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+    var today = Model.Today.ToString("yyyy년 M월 d일 dddd", ko);
 }
-<link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/welcome.css" asp-append-version="true" />
-<div class="vb wc">
-<main class="wc-main">
-    <div class="wc-top"><a class="wc-church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)"><small>대한예수교장로회</small><b>잠실새내교회</b></a></div>
+<div class="wc2">
+<main class="wc2-page">
+    <header class="wc2-top">
+        <b class="wc2-brand">@brand</b>
+        @if (Model.Member) { <a class="wc2-pill" href="/account"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.4" r="3.4"/><path d="M5.4 20.2c.5-3.3 3.2-5.4 6.6-5.4s6.1 2.1 6.6 5.4"/></svg>내 정보</a> }
+        else { <a class="wc2-pill" href="/account/login"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.4" r="3.4"/><path d="M5.4 20.2c.5-3.3 3.2-5.4 6.6-5.4s6.1 2.1 6.6 5.4"/></svg>로그인</a> }
+    </header>
 
-    <div class="wc-photo">
+    <div class="wc2-hero">
         @if (it.PhotoStoredName is not null) { <img src="/@slug/welcome/photo?v=@it.UpdatedUtc.Ticks" alt="@dept 대표 사진" /> }
-        <span class="wc-tag">@dept</span>
+        else { <svg class="wc2-nophoto" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="1.6"/><circle cx="8.6" cy="10" r="1.5"/><path d="m20 16-4.6-4.6L7 19"/></svg> }
     </div>
-    <h1>@it.Title</h1>
-    @if (it.Body is { } body) { <p class="wc-intro">@body</p> }
 
-    @foreach (var w in Model.Worship)
-    {
-        <section class="wc-wb" aria-label="예배 안내">
-            <div>
-                <h2>@(w.Title ?? "예배 안내")</h2>
-                <p class="t">@Day(w.DayOfWeek) @Clock(w.StartTime)</p>
-                <p class="p">@w.Place</p>
+    <section class="wc2-title">
+        <p class="wc2-kicker">@today</p>
+        <h1>@it.Title</h1>
+        <p class="wc2-sub">@Model.Tenant.Current.Name@(first is null ? "" : $" · {Day(first.DayOfWeek)} {Clock(first.StartTime)}")</p>
+    </section>
+
+    <div class="wc2-sec"><h2>오늘의 안내</h2></div>
+    <nav class="wc2-grid" aria-label="오늘의 안내">
+        <a class="wc2-tile" style="--c:#1F9D55;--cbg:#E4F5EB" href="/@slug/bulletin">
+            <span class="wc2-row"><span class="num">01</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+            <span class="lbl">이번 주 주보</span>
+            <span class="sub">@(Model.LatestBulletin is { } d ? $"가장 최근 {d:M월 d일}" : "아직 없어요")</span>
+        </a>
+        <a class="wc2-tile" style="--c:#E8681F;--cbg:#FCEBDF" href="/@slug/album">
+            <span class="wc2-row"><span class="num">02</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+            <span class="lbl">@dept 앨범</span>
+            <span class="sub">우리 모습</span>
+        </a>
+        <a class="wc2-tile" style="--c:#E04088;--cbg:#FAE3EE" href="/@slug/welcome?handler=Go">
+            <span class="wc2-row"><span class="num">03</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+            <span class="lbl">도전<i>!!!</i>성경말씀</span>
+            <span class="sub">매일 5분, 말씀과 함께</span>
+        </a>
+        <a class="wc2-tile" style="--c:#0E8FA0;--cbg:#DDF1F3" href="#about">
+            <span class="wc2-row"><span class="num">04</span><span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+            <span class="lbl">@dept 소개</span>
+            <span class="sub">예배 안내 · 오시는 길</span>
+        </a>
+    </nav>
+
+    <section class="wc2-about" id="about" aria-label="@dept 소개">
+        <h2>@dept 소개</h2>
+        @if (it.Body is { } body) { <p class="wc2-intro">@body</p> }
+        @foreach (var w in Model.Worship)
+        {
+            <div class="wc2-wb">
+                <div>
+                    <h3>@(w.Title ?? "예배 안내")</h3>
+                    <p class="t">@Day(w.DayOfWeek) @Clock(w.StartTime)</p>
+                    <p class="p">@w.Place</p>
+                </div>
+                @if (w.Address is { } a) { <a class="map" href="https://map.naver.com/p/search/@Uri.EscapeDataString(a)" target="_blank" rel="noopener">지도</a> }
             </div>
-            @if (w.Address is { } addr) { <a class="map" href="https://map.naver.com/p/search/@Uri.EscapeDataString(addr)" target="_blank" rel="noopener">지도</a> }
-        </section>
-    }
+        }
+    </section>
 
-    <div class="wc-two">
-        <a class="wc-card" href="/@slug/bulletin"><span class="ic o" aria-hidden="true">📋</span><span class="tx"><b>주보 보기</b><span>@(Model.LatestBulletin is { } d ? $"가장 최근 {d:M월 d일}" : "아직 없어요")</span></span><span class="go" aria-hidden="true">›</span></a>
-        <a class="wc-card" href="/@slug/album"><span class="ic b" aria-hidden="true">📷</span><span class="tx"><b>사진첩 보기</b><span>우리 모습</span></span><span class="go" aria-hidden="true">›</span></a>
-    </div>
-
-    <a class="wc-cta" href="/@slug/welcome?handler=Go">
-        <span class="l"><small>매일 5분, 말씀과 함께</small><b>도전<i>!</i><i>!</i><i>!</i> 성경말씀으로 가기</b></span>
-        <span class="ar" aria-hidden="true">→</span>
-    </a>
+    <section class="wc2-install" aria-label="앱 설치">
+        <a class="wc2-install-btn" href="/install?back=@Uri.EscapeDataString($"/{slug}/welcome")" data-app-install>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M12 8v6M9.5 12l2.5 2.5 2.5-2.5"/></svg>앱으로 설치
+        </a>
+        <p class="wc2-note">홈 화면에 추가하면 주보를 바로 열 수 있어요</p>
+    </section>
 
     @if (Model.Member)
     {
-        <form class="wc-later" method="post" asp-route-slug="@slug">
+        <form class="wc2-later" method="post" asp-route-slug="@slug">
             <button type="submit" asp-page-handler="Later">1주일 후 다시 보기</button>
             <button type="submit" asp-page-handler="Never">다시 보지 않기</button>
         </form>
     }
+
+    <footer class="wc2-foot">
+        <div class="f1"><b>@Model.Tenant.Current.Name</b><a class="en" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)">JAMSIL SAENAE CHURCH</a></div>
+        @if (addr is not null) { <p class="f3">@addr</p> }
+    </footer>
 </main>
 </div>

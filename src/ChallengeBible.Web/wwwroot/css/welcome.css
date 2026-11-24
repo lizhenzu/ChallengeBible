@@ -1,42 +1,58 @@
-/* 부서 소개 화면(ADR 0140, 2026-11-23 확정 시안 유년부-소개 C안 · 크림 + 주황). landing.css 의 변수(--ink · --line · --soft · --p3 …)를 쓴다 */
-.wc { background: #fff; }
-.wc-main { max-width: 760px; margin: 0 auto; padding: 0 20px 34px; }
-.wc-top { padding: 16px 0 12px; }
-.wc-church small { display: block; font-size: 11px; color: var(--ink-3); line-height: 1.3; }
-.wc-church b { display: block; font-size: 15px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); }
-.wc-photo { position: relative; border-radius: 20px; overflow: hidden; aspect-ratio: 16 / 10; background: linear-gradient(135deg, #dfe9f7, #eaf4ea 55%, #fdf0e6); }
-.wc-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.wc-tag { position: absolute; left: 14px; bottom: 14px; background: #fff; border-radius: 99px; font-size: 12px; font-weight: 900; padding: 6px 12px; color: var(--ink); }
-.wc h1 { margin: 18px 0 0; font-size: 24px; font-weight: 900; letter-spacing: -.035em; line-height: 1.3; }
-.wc-intro { margin: 10px 0 0; font-size: 14.5px; line-height: 1.7; color: var(--ink-2); white-space: pre-line; word-break: keep-all; }
-/* 예배 안내 띠(크림) */
-.wc-wb { margin-top: 20px; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; padding: 16px 18px; border-radius: 18px; background: #fff6e3; border: 1px solid #f1e2bb; color: #4a3510; }
-.wc-wb h2 { margin: 0; font-size: 11.5px; font-weight: 800; color: #8a7144; }
-.wc-wb .t { margin: 6px 0 0; font-size: 17px; font-weight: 900; }
-.wc-wb .p { margin: 3px 0 0; font-size: 12.5px; color: #8a7144; }
-.wc-wb .map { flex: none; font-size: 12px; font-weight: 800; background: var(--p3); color: #fff; padding: 8px 13px; border-radius: 99px; text-decoration: none; }
-/* 주보 · 사진첩 */
-.wc-two { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.wc-card { display: flex; align-items: center; gap: 11px; border: 1px solid var(--line); border-radius: 18px; padding: 15px 14px; background: #fff; color: var(--ink); text-decoration: none; min-width: 0; }
-.wc-card .ic { flex: none; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 18px; }
-.wc-card .ic.o { background: var(--s3); } .wc-card .ic.b { background: var(--s2); }
-.wc-card .tx { min-width: 0; }
-.wc-card .tx b { display: block; font-size: 14.5px; font-weight: 900; }
-.wc-card .tx span { display: block; margin-top: 1px; font-size: 11.5px; font-weight: 700; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.wc-card .go { margin-left: auto; color: #b9b9c0; font-weight: 900; }
-/* 도전!!! 성경말씀으로 */
-.wc-cta { margin-top: 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px; border-radius: 18px; background: var(--p3); color: #fff; text-decoration: none; }
-.wc-cta small { display: block; font-size: 11.5px; font-weight: 700; color: rgba(255, 255, 255, .85); }
-.wc-cta b { display: block; margin-top: 2px; font-size: 17px; font-weight: 900; letter-spacing: -.03em; }
-.wc-cta b i { font-style: normal; letter-spacing: 0; }
-.wc-cta .ar { flex: none; width: 38px; height: 38px; border-radius: 50%; background: #fff; color: var(--p3); display: grid; place-items: center; font-weight: 900; }
+/* 부서 소개(웰컴) 화면 — 2026-11-24 새 퍼블리시본 「JAMSIL KIDS · v2」(순백 · 헤어라인 · 검정 헤비 제목 · 컬러 번호 2열 표).
+   기준표 8판: 최소 글자 12px · 좌우 20px · 폭 760px · 누르는 칸 44px */
+.wc2 { --ink: #1D1D1F; --ink-2: #56565C; --ink-3: #6e6e75; --hair: #E7E7EA; --wash: #F6F6F7; background: #fff; color: var(--ink); min-height: 100vh; }
+.wc2 a { color: inherit; text-decoration: none; }
+.wc2-page { max-width: 760px; margin: 0 auto; padding: 0 20px 46px; }
+.wc2-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 19px 0 14px; }
+.wc2-brand { font-size: 15px; font-weight: 800; letter-spacing: -.022em; }
+.wc2-pill { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px 0 11px; border: 1px solid var(--hair); border-radius: 999px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.wc2-pill svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.wc2-hero { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: var(--wash); border: 1px solid var(--hair); display: grid; place-items: center; }
+.wc2-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.wc2-nophoto { width: 26px; height: 26px; fill: none; stroke: #b3b3b8; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.wc2-title { padding: 22px 0 10px; }
+.wc2-kicker { margin: 0 0 12px; font-size: 12px; font-weight: 550; color: var(--ink-3); }
+.wc2 h1 { margin: 0; font-size: 32px; line-height: 1.16; font-weight: 850; letter-spacing: -.058em; text-wrap: balance; word-break: keep-all; white-space: pre-line; }
+.wc2-sub { margin: 13px 0 0; font-size: 13.5px; line-height: 1.6; letter-spacing: -.012em; color: var(--ink-2); }
+.wc2-sec { margin-top: 8px; }
+.wc2-sec h2, .wc2-about h2 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -.036em; }
+.wc2-grid { display: grid; grid-template-columns: 1fr 1fr; margin-top: 10px; border-top: 1px solid var(--ink); }
+.wc2-tile { position: relative; display: flex; flex-direction: column; padding: 15px 0 16px; border-bottom: 1px solid var(--hair); min-height: 44px; }
+.wc2-tile:nth-child(odd) { padding-right: 14px; }
+.wc2-tile:nth-child(even) { padding-left: 14px; border-left: 1px solid var(--hair); }
+.wc2-tile .wc2-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.wc2-tile .num { font-size: 18px; font-weight: 800; letter-spacing: -.05em; line-height: 1; color: var(--c); font-variant-numeric: tabular-nums; }
+.wc2-tile .go { width: 28px; height: 28px; flex: none; display: grid; place-items: center; border-radius: 999px; background: var(--cbg); color: var(--c); transition: transform .2s; }
+.wc2-tile .go svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.wc2-tile:hover .go { transform: translateX(2px); }
+.wc2-tile .lbl { font-size: 16px; font-weight: 750; letter-spacing: -.04em; line-height: 1.34; text-wrap: balance; word-break: keep-all; }
+.wc2-tile .lbl i { font-style: normal; letter-spacing: -.1em; }
+.wc2-tile .sub { margin-top: 4px; font-size: 12px; line-height: 1.5; color: var(--ink-3); }
+.wc2-tile:focus-visible { outline: 2px solid var(--ink); outline-offset: -3px; }
+/* 소개(글 + 예배 안내) */
+.wc2-about { margin-top: 28px; scroll-margin-top: 12px; }
+.wc2-intro { margin: 12px 0 0; font-size: 15px; line-height: 1.7; color: var(--ink-2); white-space: pre-line; word-break: keep-all; }
+.wc2-wb { margin-top: 14px; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; padding: 14px 0 2px; border-top: 1px solid var(--hair); }
+.wc2-wb h3 { margin: 0; font-size: 12px; font-weight: 800; color: var(--ink-3); }
+.wc2-wb .t { margin: 6px 0 0; font-size: 17px; font-weight: 850; }
+.wc2-wb .p { margin: 3px 0 0; font-size: 13px; color: var(--ink-2); }
+.wc2-wb .map { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 16px; border: 1px solid var(--ink); font-size: 13px; font-weight: 800; }
+/* 앱 설치 */
+.wc2-install { margin-top: 32px; text-align: center; }
+.wc2-install-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 52px; background: var(--ink); color: #fff !important; font-size: 14px; font-weight: 700; letter-spacing: -.02em; }
+.wc2-install-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.wc2-note { margin: 9px 0 0; font-size: 12px; color: var(--ink-3); }
+@media (display-mode: standalone) { .wc2-install { display: none; } }
 /* 1주일 후 다시 보기 · 다시 보지 않기(로그인한 사람만) */
-.wc-later { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); display: flex; justify-content: center; gap: 10px; }
-.wc-later button { flex: 1; max-width: 210px; border: 0; font: inherit; font-size: 13px; font-weight: 800; padding: 12px 8px; border-radius: 12px; background: var(--soft); color: var(--ink-2); cursor: pointer; }
+.wc2-later { margin-top: 22px; display: flex; justify-content: center; gap: 8px; }
+.wc2-later button { flex: 1; max-width: 220px; min-height: 44px; border: 1px solid var(--hair); background: #fff; font: inherit; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer; }
+/* 푸터 */
+.wc2-foot { margin-top: 34px; padding-top: 20px; border-top: 1px solid var(--hair); }
+.wc2-foot .f1 { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.wc2-foot b { font-size: 13px; font-weight: 750; letter-spacing: -.02em; }
+.wc2-foot .en { font-size: 12px; letter-spacing: .08em; color: var(--ink-3); }
+.wc2-foot .f3 { margin: 9px 0 0; font-size: 12px; color: var(--ink-3); }
 @media (min-width: 720px) {
-  .wc-main { padding: 0 40px 44px; }
-  .wc-photo { aspect-ratio: 21 / 9; }
-  .wc h1 { font-size: 32px; margin-top: 24px; }
-  .wc-intro { font-size: 16.5px; max-width: 640px; }
+  .wc2-hero { aspect-ratio: 21 / 9; }
+  .wc2 h1 { font-size: 40px; }
 }
-@media (max-width: 380px) { .wc-two { grid-template-columns: 1fr; } }
