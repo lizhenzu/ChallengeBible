@@ -331,3 +331,9 @@ body:has(.rp[data-theme]) { background: var(--bg); }
 .b2dr-th .sw-forest[aria-pressed="true"] { border-color: #5F8C5A; }
 .b2dr-th .sw-sand[aria-pressed="true"] { border-color: #4F9AA6; }
 @media (min-width: 769px) { .b2dr { width: var(--b2w); } }
+
+/* ☰ 메뉴 표준 개정(2026-11-25 사용자): 프로필 카드는 맨 아래 · 앱 설치 / 로그아웃 줄 없음 · 프로그램 이름 줄 없음 */
+.b2dr .tdr2-hd { border-bottom: 0; padding-bottom: 6px; }
+.b2dr .tdr2-nav { padding-top: 6px; }
+.b2dr .tdr2-prof { margin-top: auto; border-top: 1px solid var(--r-rule); padding: 6px 0 calc(8px + env(safe-area-inset-bottom, 0px)); }
+.b2dr .tdr2-prof .tdr2-me { margin: 8px 16px; }

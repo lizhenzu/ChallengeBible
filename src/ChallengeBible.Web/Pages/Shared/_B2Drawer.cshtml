@@ -2,11 +2,10 @@
 @using ChallengeBible.Web.Auth
 @inject ChallengeBible.Web.Services.PhotoService Photos
 @using ChallengeBible.Web.Services
-@* 성경통독 · 성경필사 ☰ 메뉴(2026-11-25 사용자 확정, 시안 햄버거-통독필사-통일): 미션 ☰ 메뉴와 같은 모양(로고 · 이름 카드 · 홈으로 · 항목별 아이콘 · 앱 설치 · 로그아웃).
+@* 성경통독 · 성경필사 ☰ 메뉴(2026-11-25 사용자 확정, 시안 햄버거-통독필사-통일): 미션 ☰ 메뉴와 같은 모양(로고 · 홈으로 · 항목별 아이콘 · 맨 아래 프로필 카드. 앱 설치 · 로그아웃 줄은 없다 — 로그아웃은 내 계정 화면, 2026-11-25 사용자).
    메뉴 바탕 · 현재 메뉴 색은 그 프로그램 색(--r-*). 넓은 화면에서는 왼쪽 고정 목차(.b2dr)로 그대로 쓰인다. 열고 닫기 · 색 테마 저장은 _ReadingNav · _CopyNav 의 스크립트. *@
 @{
     var t = Model.Tenant;
-    var back = Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString);
     var meName = User.UserName();
     var mePhoto = meName is null ? null : await Photos.FileOfAsync(meName);
     var meSub = User.IsPlatformAdmin() ? "플랫폼 관리자" : t.IsLobby ? "처음 오신 분" : PlatformTodayService.ShortDept(t.Current.Name) + " · " + (t.IsAdmin ? "관리자" : UserRole.LabelOf(UserRole.KindOf(t.RoleCode)));
@@ -23,10 +22,8 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
         </button>
     </div>
-    @DrawerUi.Me(User.DisplayName(), mePhoto, meSub, imp)
     <div class="tdr2-nav">
         @DrawerUi.Line(Model.Home, "home", "홈으로", false)
-        <h2 class="tdr2-g">@Model.Name</h2>
         @foreach (var (href, label, icon, key) in Model.Menu)
         {
             @DrawerUi.Line(href, icon, label, Model.CurKey == key)
@@ -43,8 +40,5 @@
         }
     </div>
     @Html.AntiForgeryToken()
-    <div class="tdr2-ft">
-        <a class="tdr2-b1" href="/install?back=@back" data-app-install>앱 설치</a>
-        <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit" class="tdr2-out">로그아웃</button></form>
-    </div>
+    <div class="tdr2-prof">@DrawerUi.Me(User.DisplayName(), mePhoto, meSub, imp)</div>
 </nav>
