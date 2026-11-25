@@ -1,0 +1,365 @@
+/* 행정업무 메인(2026-11-25 사용자 시안 「행정업무 HTML」 그대로 — 모든 규칙을 .office 아래로 가둠). 글꼴 Pretendard(없으면 Noto Sans KR) */
+body:has(.office) { background: #fafafa; }
+.office { min-height: 100vh; }
+.office {
+    --ink: #1d1d1f;
+    --ink-2: #56565c;
+    --ink-3: #8e8e94;
+    --line: #e7e7ea;
+    --bg: #fafafa;
+
+    --today: #1f9d55;  --today-s: #e8f6ee;  --today-k: #14663a;
+    --attend: #2f6fe4; --attend-s: #eaf1fd; --attend-k: #1d4aa3;
+    --record: #ea6a1c; --record-s: #fdf0e6; --record-k: #a8460c;
+    --find: #dc3f8a;   --find-s: #fcebf3;   --find-k: #9c2762;
+    --birth: #7b57d6;  --birth-s: #f0ebfc;  --birth-k: #4f2f9c;
+    --roster: #0d8f8a; --roster-s: #e3f5f4; --roster-k: #0a645f;
+
+    --gap: 8px;
+  }
+.office, .office * { box-sizing: border-box; }
+.office { margin: 0; padding: 0; }
+.office {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, 'Malgun Gothic', sans-serif;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+.office a { color: inherit; text-decoration: none; }
+.office button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; }
+.office h1, .office h2, .office p { margin: 0; }
+.office .num { font-variant-numeric: tabular-nums; }
+.office .of-wrap {
+    max-width: 100%;
+    margin: 0 auto;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+.office .of-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 14px;
+  }
+.office .of-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 44px;
+    padding: 0 10px 0 4px;
+    margin-left: -6px;
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    transition: background .15s;
+  }
+.office .of-back:hover { background: #ececef; }
+.office .of-back svg { flex: none; }
+.office .of-top-right { display: flex; align-items: center; gap: 10px; }
+.office .of-date {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink-2);
+    text-align: right;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+.office .of-date small { display: block; font-size: 12px; font-weight: 600; color: var(--ink-3); }
+.office .of-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    font-weight: 800;
+    flex: none;
+  }
+.office .of-tabs { display: none; gap: 4px; flex: none; }
+.office .of-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 44px;
+    padding: 0 13px 0 11px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--ink-2);
+    background: var(--s);
+    white-space: nowrap;
+    transition: background .15s, color .15s;
+  }
+.office .of-tab svg { flex: none; color: var(--c); transition: color .15s; }
+.office .of-tab:hover { color: var(--ink); }
+.office .of-tab.on { background: var(--c); color: #fff; }
+.office .of-tab.on svg { color: #fff; }
+.office .of-head { padding-top: 4px; }
+.office .of-cap {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 22px;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--today);
+  }
+.office .of-cap i {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--today);
+    box-shadow: 0 0 0 3px rgba(31, 157, 85, .14);
+    flex: none;
+  }
+.office .of-hi {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 10px;
+  }
+.office .of-hi h1 {
+    font-size: 29px;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+.office .of-side { text-align: right; flex: none; padding-bottom: 3px; }
+.office .of-side > span {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+.office .of-side b {
+    display: block;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1.15;
+    margin-top: 1px;
+    color: var(--today);
+    white-space: nowrap;
+  }
+.office .of-side b small {
+    font-size: .5em;
+    color: var(--ink-3);
+    font-weight: 700;
+    margin-left: 1px;
+    letter-spacing: 0;
+  }
+.office .of-side b span {
+    display: inline;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+    white-space: nowrap;
+  }
+.office .of-sub { font-size: 12.5px; color: var(--ink-2); margin-top: 8px; }
+.office .of-sub b { color: var(--ink); font-weight: 800; }
+.office .of-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.office .of-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 29px;
+    padding: 0 11px 0 9px;
+    border-radius: 3px;
+    background: var(--s);
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--k);
+  }
+.office .of-chip i {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--c);
+    flex: none;
+  }
+.office .of-chip b { font-weight: 900; font-variant-numeric: tabular-nums; margin-left: -1px; }
+.office .of-main { padding-top: 18px; padding-bottom: 28px; }
+.office .of-sec-h {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 2px solid var(--ink);
+  }
+.office .of-sec-h h2 { font-size: 17px; font-weight: 900; letter-spacing: -0.04em; }
+.office .of-sec-h span { font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.office .of-list { margin-top: 10px; display: grid; gap: var(--gap); }
+.office .of-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 38px 1fr auto;
+    align-items: center;
+    gap: 13px;
+    width: 100%;
+    padding: 13px 13px 13px 16px;
+    text-align: left;
+    background: #fff;
+    border-radius: 3px;
+    box-shadow: 0 1px 2px rgba(20, 20, 30, .055);
+    overflow: hidden;
+    transition: box-shadow .18s, transform .18s;
+  }
+.office .of-row::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--c);
+  }
+.office .of-row:hover {
+    box-shadow: 0 7px 20px rgba(20, 20, 30, .10);
+    transform: translateY(-1px);
+  }
+.office .of-row:hover .of-go { background: var(--c); color: #fff; }
+.office .of-row:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.office .of-ic {
+    width: 38px; height: 38px;
+    border-radius: 4px;
+    background: var(--s);
+    color: var(--c);
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+.office .of-t { min-width: 0; }
+.office .of-t b {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+  }
+.office .of-no {
+    font-size: 12px;
+    font-weight: 900;
+    color: var(--c);
+    letter-spacing: 0;
+    font-variant-numeric: tabular-nums;
+    margin-right: 1px;
+  }
+.office .of-t p {
+    font-size: 12px;
+    color: var(--ink-3);
+    margin-top: 3px;
+    line-height: 1.35;
+  }
+.office .of-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 900;
+    color: #fff;
+    background: var(--c);
+    border-radius: 3px;
+    padding: 2px 6px;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+.office .of-go {
+    width: 33px; height: 33px;
+    border-radius: 3px;
+    background: var(--s);
+    color: var(--c);
+    display: grid;
+    place-items: center;
+    flex: none;
+    transition: background .18s, color .18s;
+  }
+.office .of-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: 20px;
+    padding: 19px 16px 17px;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #ececef;
+    border-radius: 3px;
+    box-shadow: 0 1px 2px rgba(20, 20, 30, .055);
+    transition: box-shadow .18s, transform .18s, border-color .18s;
+  }
+.office .of-brand:hover {
+    box-shadow: 0 7px 20px rgba(20, 20, 30, .10);
+    transform: translateY(-1px);
+    border-color: #dcdce0;
+  }
+.office .of-brand:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.office .of-brand b {
+    display: block;
+    font-size: 15.5px;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+  }
+.office .of-brand b i { font-style: normal; margin-left: .02em; }
+.office .of-brand p { font-size: 12px; color: var(--ink-3); margin-top: 3px; transition: color .18s; }
+.office .of-brand:hover p { color: var(--ink-2); }
+.office .of-foot {
+    margin-top: 18px;
+    padding-top: 15px;
+    border-top: 1px solid #e6e6ea;
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+@media (min-width: 720px) {
+.office { --gap: 9px; }
+.office .of-wrap {
+      max-width: 760px;
+      padding-left: 40px;
+      padding-right: 40px;
+    }
+.office .of-top { padding-top: 22px; }
+.office .of-tabs { display: flex; }
+.office .of-tab { font-size: 13px; }
+.office .of-cap { margin-top: 28px; }
+.office .of-hi { margin-top: 12px; gap: 16px; }
+.office .of-hi h1 { font-size: 40px; }
+.office .of-side { padding-bottom: 6px; }
+.office .of-side b { font-size: 26px; }
+.office .of-sub { font-size: 14px; margin-top: 10px; }
+.office .of-chips { margin-top: 18px; }
+.office .of-chip { height: 32px; font-size: 12px; }
+.office .of-main { padding-top: 26px; padding-bottom: 44px; }
+.office .of-sec-h { padding-top: 18px; }
+.office .of-sec-h h2 { font-size: 21px; }
+.office .of-list { margin-top: 14px; }
+.office .of-row {
+      grid-template-columns: 46px 1fr auto;
+      gap: 18px;
+      padding: 16px 18px 16px 20px;
+    }
+.office .of-ic { width: 46px; height: 46px; }
+.office .of-t b { font-size: 18px; }
+.office .of-no { font-size: 12.5px; }
+.office .of-t p { font-size: 13px; margin-top: 3px; }
+.office .of-go { width: 38px; height: 38px; }
+.office .of-brand { margin-top: 26px; padding: 22px 20px 20px; }
+.office .of-brand b { font-size: 17px; }
+.office .of-brand p { font-size: 12px; }
+.office .of-foot { margin-top: 24px; padding-top: 18px; }
+}
+
+/* 공통 3: 최소 글자 12px · 누르는 칸 44px(시안의 11~11.5px · 38~40px 를 맞춤, 2026-11-25) */
+/* 항목이 여섯이라 PC 에서 한 줄에 다 안 들어간다 → 탭은 둘째 줄로(2026-11-25) · 「홈으로」는 줄바꿈 금지 */
+.office .of-back { white-space: nowrap; flex: none; }
+@media (min-width: 720px) {
+  .office .of-top { flex-wrap: wrap; }
+  .office .of-tabs { order: 3; flex: 1 1 100%; flex-wrap: wrap; margin-top: 10px; }
+}
