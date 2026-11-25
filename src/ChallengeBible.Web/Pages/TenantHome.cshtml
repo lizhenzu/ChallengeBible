@@ -159,22 +159,6 @@ else
             }
         </nav>
 
-        @* 교사 · 관리자에게만(2026-11-25 사용자): 도전 성경말씀과 따로인 행정업무 화면 입구 *@
-        @if (!Model.Guest && Office.IndexModel.CanUse(Model.Tenant))
-        {
-            <div class="vb-sec-h" style="margin-top: 28px">
-                <h2>섬김</h2>
-                <p>교사 · 관리자에게만 보여요</p>
-            </div>
-            <nav class="vb-list" aria-label="행정업무 바로가기">
-                <a class="vb-item" href="/@slug/office" style="--c: #475569; --s: #EEF1F5;">
-                    <span class="vb-no"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/></svg></span>
-                    <span class="vb-t"><small>우리 부서를 섬기는 일</small><b>행정업무</b><p>오늘 할 일 · 출석 · 교적부 · 인명 검색 · 생일 · 명부</p></span>
-                    <span class="vb-go"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-                </a>
-            </nav>
-        }
-
         <div class="vb-row">
             @if (d.VerseText is { } vt)
             {
