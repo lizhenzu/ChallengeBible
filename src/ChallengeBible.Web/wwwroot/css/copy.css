@@ -30,7 +30,7 @@
 .bc-back { flex: none; width: 44px; height: 44px; margin-left: -10px; display: grid; place-items: center; color: var(--fg); border-radius: 10px; }
 .bc-main .wrap { max-width: 760px; padding-block: 16px 40px; display: flex; flex-direction: column; gap: 14px; }
 .bc-k { font-size: 12.5px; font-weight: 800; letter-spacing: .08em; color: var(--bc-acc); margin: 0; }
-.bc-card { background: var(--bc-card); border: 1px solid var(--rule); border-radius: 16px; padding: 14px; min-width: 0; }
+.bc-card { background: var(--bc-card); border: 1px solid var(--rule); border-radius: 10px; padding: 14px; min-width: 0; }
 
 /* ── ① 홈 ── */
 .bc-ring { display: flex; gap: 16px; align-items: center; }
@@ -38,11 +38,11 @@
 .bc-ring .big { font-size: 24px; font-weight: 800; }
 .bc-ring .big small { font-size: 15px; color: var(--dim); font-weight: 600; }
 .bc-ring .sub { display: block; color: var(--dim); font-size: 13px; line-height: 1.6; }
-.bc-go { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--bc-acc); color: var(--bc-on-acc); border-radius: 16px; padding: 16px; text-decoration: none; }
+.bc-go { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--bc-acc); color: var(--bc-on-acc); border-radius: 10px; padding: 16px; text-decoration: none; }
 .bc-go small { display: block; font-size: 12px; letter-spacing: .08em; opacity: .85; font-weight: 700; }
 .bc-go b { display: block; font-size: 20px; margin: 4px 0 2px; }
 .bc-go span { font-size: 13px; opacity: .9; }
-.bc-gift { display: flex; gap: 10px; align-items: center; background: var(--bc-gift); border: 1px solid var(--bc-gift-line); border-radius: 14px; padding: 12px; font-size: 13.5px; line-height: 1.5; }
+.bc-gift { display: flex; gap: 10px; align-items: center; background: var(--bc-gift); border: 1px solid var(--bc-gift-line); border-radius: 10px; padding: 12px; font-size: 13.5px; line-height: 1.5; }
 .bc-gift .ic { font-size: 22px; flex: none; }
 .bc-bar { height: 8px; border-radius: 99px; background: var(--bc-track); overflow: hidden; }
 .bc-bar i { display: block; height: 100%; background: var(--bc-acc); border-radius: 99px; min-width: 0; }
@@ -66,18 +66,18 @@
 .bc-verse .todo { color: var(--bc-todo); }
 .bc-verse .cur { box-shadow: -2px 0 0 var(--bc-acc); }
 .bc-vno { font-size: 13px; font-weight: 800; color: var(--bc-acc); margin-right: 4px; vertical-align: 2px; }
-.bc-ta { width: 100%; min-height: 120px; border: 2px solid var(--bc-acc); border-radius: 14px; padding: 12px; font-size: 18px; line-height: 1.6; background: var(--bc-card); color: var(--fg); font-family: inherit; resize: vertical; }
+.bc-ta { width: 100%; min-height: 120px; border: 2px solid var(--bc-acc); border-radius: 10px; padding: 12px; font-size: 18px; line-height: 1.6; background: var(--bc-card); color: var(--fg); font-family: inherit; resize: vertical; }
 .bc-ta:disabled { border-color: var(--line); opacity: .7; }
 .bc-hint { margin: 0; font-size: 12.5px; color: var(--dim); line-height: 1.5; }
 .bc-hint b { color: var(--bc-bad); }
 .bc-btns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 8px; }
-.bc-btn { min-height: 48px; padding: 0 10px; border-radius: 14px; display: grid; place-items: center; font-size: 15px; font-weight: 800; border: 1px solid var(--line); background: var(--bc-card); color: var(--fg); cursor: pointer; text-decoration: none; text-align: center; }
+.bc-btn { min-height: 48px; padding: 0 10px; border-radius: 10px; display: grid; place-items: center; font-size: 15px; font-weight: 800; border: 1px solid var(--line); background: var(--bc-card); color: var(--fg); cursor: pointer; text-decoration: none; text-align: center; }
 .bc-btn.p { background: var(--bc-acc); border-color: var(--bc-acc); color: var(--bc-on-acc); }
 .bc-btn:disabled { background: var(--bc-track); border-color: var(--bc-track); color: var(--dim); cursor: default; }
-.bc-done { background: var(--bc-ok-bg); border: 1px solid color-mix(in srgb, var(--bc-ok) 30%, transparent); border-radius: 14px; padding: 12px; color: var(--bc-ok-tx, var(--bc-ok)); }
+.bc-done { background: var(--bc-ok-bg); border: 1px solid color-mix(in srgb, var(--bc-ok) 30%, transparent); border-radius: 10px; padding: 12px; color: var(--bc-ok-tx, var(--bc-ok)); }
 .bc-done b { font-size: 13px; }
 .bc-done p { margin: 2px 0 0; font-size: 12.5px; line-height: 1.5; }
-.bc-err { background: var(--bc-bad-bg); color: var(--bc-bad); border-radius: 12px; padding: 10px 12px; font-size: 13.5px; font-weight: 700; margin: 0; }
+.bc-err { background: var(--bc-bad-bg); color: var(--bc-bad); border-radius: 10px; padding: 10px 12px; font-size: 13.5px; font-weight: 700; margin: 0; }
 
 /* ── ③ 장 고르기 ── */
 .bc-tabs { display: flex; border-bottom: 1px solid var(--rule); }
@@ -106,7 +106,7 @@
 /* ── 부서 홈 카드(home.css 의 hj-card 안) ── */
 .hm .hj-pg.bc { min-height: 0; background: var(--bg); }
 .hm .bc-home h2 a { color: var(--bc-acc); }
-.hm .bc-home .bc-cta { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--bc-acc-l); color: var(--fg); border-radius: 12px; padding: 12px; margin-top: 10px; font-weight: 800; text-decoration: none; }
+.hm .bc-home .bc-cta { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--bc-acc-l); color: var(--fg); border-radius: 10px; padding: 12px; margin-top: 10px; font-weight: 800; text-decoration: none; }
 /* 복사 · 붙여넣기 막기(ADR 0105): 본문은 고를 수 없게 */
 .bc-verse { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .bc-recent { color: inherit; text-decoration: none; }
