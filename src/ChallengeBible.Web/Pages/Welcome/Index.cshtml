@@ -88,7 +88,7 @@
                 <span class="wl-admin__go">@Html.Raw(ARROW)</span>
             </a>
         }
-        <div class="wl-install">
+        <div class="wl-install" data-wl-install>
             <a class="wl-install__btn" href="/install?back=@Uri.EscapeDataString($"/{slug}/welcome")" data-app-install>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6.2" y="2.6" width="11.6" height="18.8" rx="2.6"/><path d="M10.6 18.4h2.8"/><path d="M12 7.4v6.2M9.4 11l2.6 2.6L14.6 11"/></svg>
                 앱으로 설치
@@ -104,6 +104,15 @@
 </div>
 </div>
 <script>
+    // 이미 설치했으면(이 기기에서 설치 안내를 마쳤거나 앱으로 열었으면) 설치 안내를 숨긴다. 설치 화면(install.js)이 완료를 localStorage(cb-install)에 적어 둔다.
+    (() => {
+        const box = document.querySelector('[data-wl-install]');
+        if (!box) return;
+        let done = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+        try { done = done || JSON.parse(localStorage.getItem('cb-install') || '{}').s === 'done'; } catch { /* 무시 */ }
+        if (done) box.hidden = true;
+        addEventListener('appinstalled', () => { box.hidden = true; });
+    })();
     // 제목 한 줄 맞춤: 넘치면 글자 크기를 1px 씩 줄인다(최소 18px). 화면 폭이 바뀌면 다시 맞춘다.
     (() => {
         const t = document.querySelector('.wl-title');
