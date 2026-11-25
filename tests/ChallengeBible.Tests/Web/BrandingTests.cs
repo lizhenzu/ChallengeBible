@@ -146,7 +146,7 @@ public partial class BrandingTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("data-color=\"violet\"", home);
         Assert.Contains("유년부 말씀 챌린지</title>", home);                              // 부서 화면 제목은 부서 이름(0038)
         Assert.Contains("rel=\"manifest\" href=\"/manifest.webmanifest\"", home);         // 설치 앱은 하나(0115 · R-332)
-        Assert.Contains("data-app-install", home);                                          // ☰ "앱 설치"(0115)
+        Assert.Contains("class=\"tdr2-prof\"", home);                                    // ☰ 맨 아래 프로필 카드(앱 설치 · 로그아웃 줄은 2026-11-25 삭제)
         Assert.DoesNotContain("data-install=\"off\"", home);                               // 부서 화면은 설치 안내로 보낼 수 있음(R-331)
         Assert.Contains("name=\"theme-color\" content=\"#6A4BB5\"", home);
         var reading = await admin.GetStringAsync("/jamsil-kids/reading");

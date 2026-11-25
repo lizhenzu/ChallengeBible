@@ -90,7 +90,6 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
             </button>
         </div>
-        @DrawerUi.Me(User.DisplayName(), photo, PlatformTodayService.ShortDept(Model.Current.Name) + " · " + myRole, User.ImpersonatorId() is not null)
         <nav class="tdr2-nav" aria-label="관리 메뉴">
             @if (User.ImpersonatorId() is not null)
             {
@@ -115,10 +114,8 @@
             @DrawerUi.RowD("/messages", "msg", "쪽지", "받은 · 보낸 쪽지", false)
             @if (User.IsPlatformAdmin()) { @DrawerUi.RowD("/platform", "platform", "플랫폼", "모든 부서 관리", false) }
         </nav>
-        <div class="tdr2-ft">
-            <a class="tdr2-b1" href="/install?back=@(Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString))" data-app-install>앱 설치</a>
-            <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit" class="tdr2-out">로그아웃</button></form>
-        </div>
+        @Html.AntiForgeryToken()   @* 로그아웃 줄을 뺀 뒤에도 화면 스크립트가 쓰는 요청 확인 값은 여기서 계속 낸다 *@
+        <div class="tdr2-prof">@DrawerUi.Me(User.DisplayName(), photo, PlatformTodayService.ShortDept(Model.Current.Name) + " · " + myRole, User.ImpersonatorId() is not null)</div>
     </aside>
 </div>
 <script src="~/js/platform-nav.js" asp-append-version="true" defer></script>

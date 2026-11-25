@@ -26,7 +26,6 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
             </button>
         </div>
-        @DrawerUi.Me(User.DisplayName(), mePhoto, meSub)
         <nav class="tdr2-nav" aria-label="출석 메뉴">
             @DrawerUi.Line($"/{s}/attendance", "todo", "오늘", Cur($"/{s}/attendance"))
             @DrawerUi.Line($"/{s}/attendance/newcomers", "join", "새친구", Cur($"/{s}/attendance/newcomers"))
@@ -43,10 +42,8 @@
             <h2 class="tdr2-g">다른 곳</h2>
             @DrawerUi.Line($"/{s}", "home", "홈으로", false)
         </nav>
-        <div class="tdr2-ft">
-            <a class="tdr2-b1" href="/install?back=@back" data-app-install>앱 설치</a>
-            <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit" class="tdr2-out">로그아웃</button></form>
-        </div>
+        @Html.AntiForgeryToken()   @* 로그아웃 줄을 뺀 뒤에도 화면 스크립트가 쓰는 요청 확인 값은 여기서 계속 낸다 *@
+        <div class="tdr2-prof">@DrawerUi.Me(User.DisplayName(), mePhoto, meSub)</div>
     </aside>
 </div>
 <script src="~/js/platform-nav.js" asp-append-version="true" defer></script>

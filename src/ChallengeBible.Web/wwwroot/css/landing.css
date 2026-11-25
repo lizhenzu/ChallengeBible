@@ -132,12 +132,12 @@
 .vb-burger { width: 44px; height: 44px; flex: none; margin-left: -8px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; }
 .vb-burger:hover { background: #e7e7ea; }
 .vb-burger:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.vb-dr .pd-panel { width: min(264px, 84vw); padding: 18px 18px 24px; }
-@media (min-width: 720px) { .vb-dr .pd-panel { width: min(264px, 84vw); } }
+.vb-dr .pd-panel { width: min(216px, 84vw); padding: 18px 18px 24px; display: flex; flex-direction: column; }
+.vb-dr-prof { margin: auto -18px -24px; padding: 8px 18px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); }   /* 프로필(로그인) 카드는 맨 아래(2026-11-25 ☰ 표준 개정) */
 .vb-dr-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .vb-dr-x { width: 36px; height: 36px; flex: none; border: 0; border-radius: 10px; background: transparent; color: var(--ink-3); display: grid; place-items: center; cursor: pointer; }
 .vb-dr-x:hover { background: #f4f4f5; }
-.vb-dr-login { display: flex; align-items: center; gap: 12px; margin-top: 18px; padding: 14px; border-radius: 16px; background: #f4f4f5; color: var(--ink); }
+.vb-dr-login { display: flex; align-items: center; gap: 12px; margin-top: 0; padding: 12px 0; border-radius: 10px; background: transparent; color: var(--ink); }
 .vb-dr-login > span:nth-child(2) { flex: 1; min-width: 0; }
 .vb-dr-login b { display: block; font-size: 15px; font-weight: 800; }
 .vb-dr-login small { display: block; margin-top: 1px; font-size: 12px; color: var(--ink-3); }

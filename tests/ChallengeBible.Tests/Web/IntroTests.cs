@@ -284,7 +284,7 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.DoesNotContain("class=\"hpill\"", bul);
         Assert.DoesNotContain("class=\"brand\"", bul);                            // 「도전!!! 성경말씀」 글자는 뺐다
         Assert.Contains("id=\"pnav\"", bul);
-        Assert.Contains("action=\"/account/logout\"", bul);                       // 로그아웃은 ☰ 메뉴에서
+        Assert.Contains("class=\"tdr2-prof\"", bul);                       // ☰ 메뉴 맨 아래 프로필 카드(로그아웃은 내 계정 화면, 2026-11-25 ☰ 표준 개정)
 
         // 쪽지 화면은 이미 ☰ 머리말 부품(_GenTop)을 써서 ③ 자체 머리줄 묶음에서 맞춘다
 

@@ -4548,7 +4548,7 @@ body:has(> .imp-bar) :is(.toast, .mpop-toast) { margin-bottom: var(--imp-h); }
 body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); }
 /* 부서 ☰ 깔끔판(2026-11-22 사용자 확정, ADR 0127, 시안 메뉴-깔끔): 흰 바탕 · 파란 선 아이콘 · 제목만 */
 .tdr2 .pd-panel { width: min(216px, 84vw); padding: 0; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
-.tdr2-hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: calc(20px + env(safe-area-inset-top, 0px)) 16px 18px 22px; border-bottom: 1px solid #eceef2; }
+.tdr2-hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: calc(20px + env(safe-area-inset-top, 0px)) 16px 6px 22px; }   /* 아래 줄 없음(2026-11-25 ☰ 표준 개정) */
 .tdr2-ttl { font-size: 17px; white-space: nowrap; font-weight: 900; color: #1e3a8a; letter-spacing: .2px; line-height: 1.25; }
 .tdr2-ttl span { color: #1f55c0; }
 .tdr2-sub { margin-top: 4px; font-size: 9.5px; font-weight: 700; letter-spacing: .14em; white-space: nowrap; color: #6e6e75; }
@@ -4937,7 +4937,8 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .tdr2-t small { margin-top: 1px; font-size: 12px; font-weight: 500; color: #6e6e75; }
 .tdr2-r[aria-current="page"] .tdr2-t small { color: #3b4a7d; }
 .tdr2-g.danger { color: #b02a2a; }
-.tdr2-me + .tdr2-nav, .tdr2-me + .tdr2-imp { margin-top: 12px; border-top: 1px solid #eceef2; }
+.tdr2-prof { border-top: 1px solid #eceef2; padding: 6px 0 calc(8px + env(safe-area-inset-bottom, 0px)); }   /* 프로필 카드는 맨 아래(2026-11-25) */
+.tdr2-prof .tdr2-me { margin: 8px 16px; }
 
 /* 글자 크기 도구 「가− 100% 가+」: 눈에 보이는 크기는 그대로, 누르는 칸만 위아래로 44px 까지(공통 3, 2026-11-25) */
 .fs button { position: relative; }

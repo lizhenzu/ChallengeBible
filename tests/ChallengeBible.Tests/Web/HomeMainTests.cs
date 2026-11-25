@@ -94,7 +94,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("data-pnav-open", home);                                                // ☰
         Assert.Contains("class=\"mailb\" href=\"/messages\"", home);                          // 우측 편지 = 받은 쪽지
         Assert.DoesNotContain("<a class=\"hmx-ico\" href=\"/jamsil-kids/reading/search\"", home);   // 우측 검색 아이콘은 뺐다(검색은 아래 입력+버튼)
-        Assert.Contains("로그아웃", home);
+        Assert.Contains("class=\"tdr2-prof\"", home);   // 로그아웃 줄은 ☰ 에서 뺐다(내 계정 화면에서, 2026-11-25)
     }
 
     [Fact]
