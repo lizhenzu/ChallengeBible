@@ -340,8 +340,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("class=\"vb-today\"", dept);
         Assert.DoesNotContain("class=\"vb-date\"", dept);
         Assert.DoesNotContain("<small>대한예수교장로회</small>", dept);       // 부서 홈 머리줄은 소속 이름 하나
-        Assert.Contains("대한예수교장로회 · 잠실새내교회 홈페이지", dept);      // 교회 홈페이지 링크는 ☰ 메뉴로
-        Assert.Contains("href=\"https://www.saenae.org/\"", dept);
+        Assert.DoesNotContain("잠실새내교회 홈페이지", dept);      // ☰ 메뉴에는 교회 홈페이지 링크 없음(2026-11-25 사용자 "필요 없다, 다 지워줘")
+        Assert.DoesNotContain("href=\"https://www.saenae.org/\"", dept);
         Assert.Contains("class=\"vb-footrow\"", dept);                         // 맨 아래 문구는 첫 화면과 같은 모양(가운데 · 앱으로 설치)
         Assert.Contains("href=\"/install\">앱으로 설치</a>", dept);
         Assert.DoesNotContain("class=\"foot-copy\"", dept);

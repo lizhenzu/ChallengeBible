@@ -147,7 +147,6 @@
 .vb-dr-list a:hover { background: #f4f4f5; }
 .vb-dr-list.plain a { height: 42px; font-size: 14.5px; font-weight: 600; color: var(--ink-2); }
 .vb-dr-ic { width: 32px; height: 32px; flex: none; border-radius: 9px; background: var(--s, #f4f4f5); color: var(--c, var(--ink)); display: grid; place-items: center; }
-.vb-dr-church { display: block; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; font-weight: 700; color: var(--ink-3); }
 
 /* 부서 홈(같은 시안) — 현황 카드 머리 · 손님 안내 · 검색/가족팀/임시 부서 안내는 모노 톤으로 */
 .vb-stat-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
