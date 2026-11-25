@@ -137,23 +137,30 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.DoesNotContain("JAMSIL SAENAE CHURCH", page);                                // 푸터 영문은 삭제
         Assert.DoesNotContain("href=\"/jamsil-kids/word-mission\"", page);                    // 05 · 06 은 눌러도 반응 없음
         Assert.DoesNotContain("href=\"#about\"", page);
-        Assert.Contains("class=\"wc2-tintgrid\"", page);   // 안내 6칸은 틴트 카드(2026-11-24)
+        Assert.Contains("class=\"wl-grid\"", page);   // 안내 6칸(2026-11-25 새 퍼블리시본)
         Assert.Contains("href=\"/jamsil-kids/bulletin\"", page);
         Assert.Contains("href=\"/jamsil-kids/album\"", page);
         Assert.Contains("href=\"/jamsil-kids/welcome?handler=Go\"", page);
-        Assert.Contains("class=\"wc2-av wc2-av-guest\" href=\"/account/login\"", page);        // 손님: 기본 사람 아이콘 동그라미(누르면 로그인, 2026-11-24)
+        Assert.Contains("class=\"wl-icon-btn\" href=\"/account/login\"", page);        // 손님: 사람 아이콘(누르면 로그인, 2026-11-25)
+        Assert.DoesNotContain("/jamsil-kids/office", page);                               // 행정업무 버튼은 교사 · 관리자에게만
         Assert.DoesNotContain("내 정보", page);
         Assert.DoesNotContain("1주일 후 다시 보기", page);                                   // 손님: 기억할 계정이 없다
         Assert.DoesNotContain("다시 보지 않기", page);
 
         var kid = await Member("cheolsu", _kids.Id, Roles.Participant);
         var mine = await kid.GetStringAsync("/jamsil-kids/welcome");
-        Assert.Contains("class=\"wc2-av\" href=\"/account\"", mine);                             // 로그인한 사람: 동그라미(사진 없으면 이름 첫 글자)
-        Assert.Matches("<span aria-hidden=\"true\">김</span>", mine);                         // 사진이 없으면 「성」(이름 첫 글자)만
+        Assert.Contains("class=\"wl-icon-btn\" href=\"/account\"", mine);                             // 로그인한 사람: 사진(없으면 이름 첫 글자)
+        Assert.Matches("<b aria-hidden=\"true\">김</b>", mine);
+        Assert.DoesNotContain("/jamsil-kids/office", mine);                                  // 학생에게는 행정업무 버튼 없음                         // 사진이 없으면 「성」(이름 첫 글자)만
         Assert.DoesNotContain("내 정보", mine);
         Assert.DoesNotContain("wc2-av-guest", mine);
         Assert.Contains("1주일 후 다시 보기", mine);
         Assert.Contains("다시 보지 않기", mine);
+
+        var admin = await Member("eunhye", _kids.Id, Roles.TenantAdmin);
+        var adm = await admin.GetStringAsync("/jamsil-kids/welcome");
+        Assert.Contains("<a class=\"wl-admin\" href=\"/jamsil-kids/office\">", adm);                // 행정업무 버튼(교사 · 관리자, 2026-11-25)
+        Assert.Contains("ADMIN · 교사 전용", adm);
     }
 
     [Fact]   // R-370 — 처음 들어온 계정에게 먼저. 「가기」는 이번 방문만, 「1주일 후」 · 「다시 보지 않기」는 계정 기준(다른 기기에서도)

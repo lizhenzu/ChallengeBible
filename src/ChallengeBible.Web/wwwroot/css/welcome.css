@@ -1,64 +1,320 @@
-/* 부서 소개(웰컴) 화면 — 2026-11-24 새 퍼블리시본 「JAMSIL KIDS · v2」(순백 · 헤어라인 · 검정 헤비 제목 · 컬러 번호 2열 표).
-   기준표 8판: 최소 글자 12px · 좌우 20px · 폭 760px · 누르는 칸 44px */
-.wc2 { font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; -webkit-font-smoothing: antialiased; --ink: #1D1D1F; --ink-2: #56565C; --ink-3: #6e6e75; --hair: #E7E7EA; --wash: #F6F6F7; background: #fff; color: var(--ink); min-height: 100vh; }
-.wc2 a { color: inherit; text-decoration: none; }
-.wc2-page { max-width: 800px; margin: 0 auto; padding: 0 20px 46px; }
-.wc2-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 19px 0 14px; }
-.wc2-church small { display: block; font-size: 12px; color: var(--ink-3); line-height: 1.3; }
-.wc2-church b { display: block; font-size: 15px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); }
-.wc2-hero { position: relative; box-sizing: border-box; aspect-ratio: 16 / 9; overflow: hidden; padding: 2px; margin-bottom: 8px; background: #fff; border: 1px solid #D9D9DE; box-shadow: 0 16px 30px -14px rgba(30, 30, 40, .5), 0 2px 6px rgba(30, 30, 40, .12); display: grid; place-items: center; }   /* B안: 흰 액자(2px, 처음 7px의 약 1/3) + 테두리 + 3D 그림자(2026-11-24 사용자) */
-.wc2-hero img { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); object-fit: cover; display: block; }
-.wc2-hint { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--ink-3); }
-.wc2-hint svg { width: 22px; height: 22px; fill: none; stroke: #b3b3b8; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 6px; }
-.wc2-hint span { font-size: 13px; font-weight: 600; color: var(--ink-2); }
-.wc2-hint em { font-style: normal; font-size: 12px; color: var(--ink-3); }
-.wc2-title { padding: 22px 0 10px; }
-.wc2-kicker { margin: 0 0 12px; font-size: 12px; font-weight: 550; color: var(--ink-3); }
-.wc2 h1 { margin: 0; font-size: 25.6px; line-height: 1.16; font-weight: 830; letter-spacing: -.058em; text-wrap: balance; word-break: keep-all; white-space: pre-line; }
-.wc2-sub { margin: 13px 0 0; font-size: 13.5px; line-height: 1.6; letter-spacing: -.012em; color: var(--ink-2); }
-/* 「오늘의 안내」 틴트 카드(핸드오프 v2 tint cards B안, 2026-11-24). 번호는 기준표 12px · 번호 색은 핸드오프가 권한 대로 진하게(대비 5:1 이상) */
-.wc2-tintgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 20px; }   /* 「오늘의 안내」 제목과 위쪽 검정 선은 뺐다(2026-11-24 사용자) */
-.wc2-tint[data-id="bulletin"] { --f: #F8EACD; --fd: #EFDFBF; --fa: #E9D7B4; --ik: #705832; --lk: #E6CFA1; }
-.wc2-tint[data-id="word"]     { --f: #E5EDDC; --fd: #D8E2CE; --fa: #CED9C4; --ik: #4C593D; --lk: #C9D8BB; }
-.wc2-tint[data-id="rules"]    { --f: #F5E2DE; --fd: #EDD7D1; --fa: #E8CFC8; --ik: #775346; --lk: #E6C6BE; }
-.wc2-tint[data-id="mission"]  { --f: #E1EAF5; --fd: #D2DDEC; --fa: #C8D4E5; --ik: #415066; --lk: #BECFE6; }
-.wc2-tint[data-id="family"]   { --f: #EDE5F3; --fd: #E2D8EA; --fa: #D9CFE3; --ik: #5C4B66; --lk: #D5C8E4; }
-.wc2-tint[data-id="about"]    { --f: #F3E9DB; --fd: #E9DDCE; --fa: #E1D5C4; --ik: #665540; --lk: #E3D3BB; }
-.wc2-tint { display: flex; flex-direction: column; align-items: stretch; justify-content: space-between; min-height: 92px; padding: 12px 12px 13px; border: 1px solid var(--lk); border-radius: 16px; background: var(--f); color: var(--ink); text-align: left; -webkit-tap-highlight-color: transparent; cursor: pointer; transition: transform .22s cubic-bezier(.2, .7, .3, 1), background-color .22s ease, box-shadow .22s ease; }
-a.wc2-tint:hover { transform: translateY(-1px); background: var(--fd); box-shadow: 0 10px 20px -16px rgba(50, 43, 35, .65); }
-a.wc2-tint:active { transform: translateY(0); background: var(--fa); box-shadow: none; }
-a.wc2-tint:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.wc2-tint .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
-.wc2-tint .num { font-family: 'Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size: 12px; line-height: 1; letter-spacing: .04em; font-variant-numeric: tabular-nums; color: var(--ik); }
-.wc2-tint .go { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 999px; background: rgba(255, 255, 255, .72); color: var(--ik); transition: transform .2s cubic-bezier(.2, .7, .3, 1); }
-.wc2-tint .go svg { width: 13px; height: 13px; display: block; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-a.wc2-tint:hover .go { transform: translateX(2px); }
-.wc2-tint .lbl { font-size: 15px; font-weight: 720; line-height: 1.34; letter-spacing: -.04em; color: var(--ink); text-wrap: balance; word-break: keep-all; }
-.wc2-tint .lbl i { font-style: normal; letter-spacing: -.1em; }
-@media (prefers-reduced-motion: reduce) { .wc2-tint, .wc2-tint .go { transition-duration: .001ms; } }
-/* 소개(글 + 예배 안내) */
-/* 앱 설치 */
-.wc2-install { margin-top: 32px; text-align: center; }
-.wc2-install-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 50px; background: var(--ink); color: #fff !important; font-size: 13.5px; font-weight: 680; letter-spacing: -.02em; }
-.wc2-install-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.wc2-note { margin: 9px 0 0; font-size: 12px; color: var(--ink-3); }
-@media (display-mode: standalone) { .wc2-install { display: none; } }
-/* 1주일 후 다시 보기 · 다시 보지 않기(로그인한 사람만) */
-.wc2-later { margin-top: 22px; display: flex; justify-content: center; gap: 8px; }
-.wc2-later button { flex: 1; max-width: 220px; min-height: 44px; border: 1px solid var(--hair); background: #fff; font: inherit; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer; }
-/* 푸터 */
-.wc2-foot { margin-top: 34px; padding-top: 20px; border-top: 1px solid var(--hair); }
-.wc2-foot { text-align: center; }
-.wc2-foot b { display: block; font-size: 13px; font-weight: 750; letter-spacing: -.02em; }
-.wc2-foot .f3 { margin: 9px 0 0; font-size: 12px; color: var(--ink-3); }
-@media (min-width: 720px) {
-  .wc2 h1 { font-size: 40px; }
+/* 부서 소개(웰컴) 화면 — 2026-11-25 사용자 새 퍼블리시본 「JAMSIL KIDS · 유년부 주보 v2 — 홈」으로 완전 교체. 모든 규칙을 .wl 아래로 가두고 클래스는 wl- 접두사 */
+body:has(.wl) { background: #F1F1F3; }
+.wl {
+  
+  --color-bg:        #FFFFFF;   
+  --color-canvas:    #F1F1F3;   
+  --color-ink:       #1D1D1F;   
+  --color-ink-2:     #56565C;   
+  --color-ink-3:     #6E6E73;   
+  --color-line:      #E7E7EA;   
+  --color-rule:      #1D1D1F;   
+  --color-wash:      #F4F4F6;   
+  --color-link:      #2F6FE4;   
+
+  
+  --color-card-1:    #1F9D55;   
+  --color-card-2:    #2F6FE4;   
+  --color-card-3:    #E8681F;   
+  --color-card-4:    #E04088;   
+  --color-card-5:    #7A4BD0;   
+  --color-card-6:    #0E8FA0;   
+
+  
+  --color-badge-1:   #D12F7A;   
+  --color-badge-2:   #7A4BD0;   
+  --color-install:   #1A8670;   
+  --color-error:     #C8372D;   
+
+  
+  --gutter:          20px;      
+  --space-2:          4px;
+  --space-3:          8px;
+  --space-4:         12px;
+  --space-5:         16px;
+  --space-6:         20px;
+  --space-7:         24px;
+  --space-8:         32px;
+
+  
+  --fs-min:          12px;      
+  --fs-sm:           13px;      
+  --fs-md:           15px;      
+  --fs-lg:           16px;      
+  --fs-num:          18px;      
+  --fs-title:        32px;      
+
+  
+  --radius:          10px;      
+  --radius-pill:     999px;     
+  --tap:             44px;      
+  --container:       390px;     
+  --container-wide:  760px;     
+
+  
+  --ease-out:        cubic-bezier(.2, .7, .3, 1);
+  --dur-screen:      .30s;      
+  --dur-card:        .45s;      
+  --stagger:         .04s;      
 }
 
-.wc2-tint.off { cursor: default; }   /* 05 · 06 은 눌러도 반응 없음(2026-11-24 사용자) */
-/* 위쪽 오른쪽 동그라미(2026-11-24 확정): 보이는 동그라미 40px, 누르는 칸 44px, 오른쪽 끝이 아래 사진 액자 오른쪽 끝과 같은 선 */
-.wc2-av { flex: none; width: 44px; height: 44px; margin-right: -2px; display: grid; place-items: center; }
-.wc2-av .c { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: #eceef1; border: 1px solid #e1e3e8; color: var(--ink); font-style: normal; font-size: 17px; font-weight: 800; line-height: 1; box-sizing: border-box; }
-.wc2-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.wc2-av svg { width: 22px; height: 22px; fill: none; stroke: #6e6e75; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.wc2-av:focus-visible .c { outline: 2px solid var(--ink); outline-offset: 2px; }
+.wl *, .wl *::before, .wl *::after { box-sizing: border-box; }
+
+.wl {
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: 'Pretendard', 'Noto Sans KR', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wl a { color: inherit; text-decoration: none; }
+
+.wl button { font: inherit; color: inherit; cursor: pointer; }
+
+.wl :focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+
+.wl svg { display: block; }
+
+.wl .wl-page {
+  width: 100%;
+  max-width: var(--container);
+  min-height: 100vh;
+  margin: 0 auto;
+  background: var(--color-bg);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@keyframes wlk-screen-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+
+@keyframes wlk-card-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+@keyframes wlk-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+
+.wl .wl-screen { animation: wlk-screen-in var(--dur-screen) var(--ease-out) both; }
+
+.wl .wl-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--gutter);
+}
+
+.wl .wl-brand { display: flex; flex-direction: column; gap: 1px; }
+
+.wl .wl-brand__denom { font-size: var(--fs-min); line-height: 16px; font-weight: 500; color: var(--color-ink-3); }
+
+.wl .wl-brand__name {
+  display: inline-flex; align-items: center;
+  padding: 11px 0; margin: -11px 0;   
+  font-size: var(--fs-lg); line-height: 22px; font-weight: 750; letter-spacing: -.03em;
+  color: var(--color-link);
+}
+
+.wl .wl-icon-btn {
+  width: var(--tap); height: var(--tap);
+  flex: none;
+  display: grid; place-items: center;
+  border: 0; border-radius: var(--radius);
+  background: var(--color-canvas);
+  color: var(--color-ink-2);
+}
+
+.wl .wl-icon-btn svg { width: 20px; height: 20px; }
+
+.wl .wl-hero {
+  margin: var(--space-2) var(--gutter) 0;
+  padding: 5px;
+  aspect-ratio: 16 / 9;
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 2px rgba(29,29,31,.08), 0 6px 20px rgba(29,29,31,.14);
+}
+
+.wl .wl-hero img {
+  display: block; width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.wl .wl-hero__empty {
+  width: 100%; height: 100%; border-radius: 6px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-3);
+  background: var(--color-wash);
+  color: var(--color-ink-3);
+  font-size: var(--fs-sm); font-weight: 600;
+}
+
+.wl .wl-hero__empty svg { width: 28px; height: 28px; }
+
+.wl .wl-titleblock { padding: var(--space-7) var(--gutter) var(--space-3); }
+
+.wl .wl-kicker { margin: 0 0 var(--space-4); font-size: var(--fs-min); font-weight: 550; color: var(--color-ink-3); }
+
+.wl .wl-title {
+  margin: 0;
+  font-size: var(--fs-title); line-height: 1.16; font-weight: 830; letter-spacing: -.058em;
+  text-wrap: balance;
+}
+
+.wl .wl-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+
+.wl .wl-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 28px; padding: 0 11px 0 9px;
+  border-radius: var(--radius-pill);
+  color: #FFFFFF;
+  font-size: var(--fs-sm); font-weight: 650; letter-spacing: -.015em; white-space: nowrap;
+}
+
+.wl .wl-badge svg { width: 14px; height: 14px; }
+
+.wl .wl-badge--1 { background: var(--color-badge-1); }
+
+.wl .wl-badge--2 { background: var(--color-badge-2); }
+
+.wl .wl-sec-head { padding: 0 var(--gutter); margin-top: var(--space-2); }
+
+.wl .wl-sec-head h2 { margin: 0; font-size: var(--fs-md); font-weight: 780; letter-spacing: -.036em; }
+
+.wl .wl-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 10px var(--gutter) 0;
+  border-top: 1px solid var(--color-rule);
+}
+
+.wl .wl-tile {
+  display: flex; flex-direction: column;
+  min-height: var(--tap);
+  padding: 15px 0 16px;
+  border-bottom: 1px solid var(--color-line);
+  animation: wlk-card-in var(--dur-card) var(--ease-out) both;
+}
+
+.wl .wl-tile:nth-child(odd) { padding-right: 14px; }
+
+.wl .wl-tile:nth-child(even) { padding-left: 14px; border-left: 1px solid var(--color-line); }
+
+.wl .wl-tile:nth-child(1) { animation-delay: calc(var(--stagger) * 1); }
+
+.wl .wl-tile:nth-child(2) { animation-delay: calc(var(--stagger) * 2); }
+
+.wl .wl-tile:nth-child(3) { animation-delay: calc(var(--stagger) * 3); }
+
+.wl .wl-tile:nth-child(4) { animation-delay: calc(var(--stagger) * 4); }
+
+.wl .wl-tile:nth-child(5) { animation-delay: calc(var(--stagger) * 5); }
+
+.wl .wl-tile:nth-child(6) { animation-delay: calc(var(--stagger) * 6); }
+
+.wl .wl-tile__row { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4); }
+
+.wl .wl-tile__num { font-size: var(--fs-num); font-weight: 800; letter-spacing: -.05em; line-height: 1; color: var(--c); font-variant-numeric: tabular-nums; }
+
+.wl .wl-tile__go {
+  width: 26px; height: 26px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 50%;              
+  background: var(--cbg); color: var(--c);
+  transition: transform .2s var(--ease-out);
+}
+
+.wl .wl-tile__go svg { width: 13px; height: 13px; }
+
+.wl .wl-tile:hover .wl-tile__go { transform: translateX(2px); }
+
+.wl .wl-tile__label { font-size: var(--fs-lg); font-weight: 720; letter-spacing: -.04em; line-height: 1.34; text-wrap: balance; }
+
+.wl .wl-tile--1 { --c: var(--color-card-1); --cbg: #E6F4EC; }
+
+.wl .wl-tile--2 { --c: var(--color-card-2); --cbg: #E8EFFC; }
+
+.wl .wl-tile--3 { --c: var(--color-card-3); --cbg: #FCEEE6; }
+
+.wl .wl-tile--4 { --c: var(--color-card-4); --cbg: #FBE9F1; }
+
+.wl .wl-tile--5 { --c: var(--color-card-5); --cbg: #EFEAF9; }
+
+.wl .wl-tile--6 { --c: var(--color-card-6); --cbg: #E3F3F5; }
+
+.wl .wl-admin {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+  min-height: var(--tap);
+  margin: 14px var(--gutter) 0;
+  padding: 15px 0 16px;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.wl .wl-admin__kicker { display: block; margin-bottom: 4px; font-size: var(--fs-min); font-weight: 600; letter-spacing: .04em; color: var(--color-ink-3); }
+
+.wl .wl-admin__label { font-size: var(--fs-lg); font-weight: 720; letter-spacing: -.04em; }
+
+.wl .wl-admin__go { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 50%; background: #EDEDEF; }
+
+.wl .wl-admin__go svg { width: 13px; height: 13px; }
+
+.wl .wl-install { margin-top: var(--space-7); padding: 0 var(--gutter); text-align: center; }
+
+.wl .wl-install__btn {
+  display: flex; align-items: center; justify-content: center; gap: var(--space-3);
+  width: 100%; height: 52px;
+  border: 0; border-radius: var(--radius);
+  background: var(--color-install); color: #FFFFFF;
+  font-size: var(--fs-md); font-weight: 700; letter-spacing: -.02em;
+  transition: opacity .18s ease;
+}
+
+.wl .wl-install__btn:hover { opacity: .9; }
+
+.wl .wl-install__btn svg { width: 18px; height: 18px; }
+
+.wl .wl-install__note { margin: 10px 0 0; font-size: var(--fs-min); color: var(--color-ink-3); }
+
+.wl .wl-footer { margin-top: var(--space-6); padding: 0 var(--gutter) 44px; text-align: center; }
+
+.wl .wl-footer p { margin: 0; font-size: var(--fs-min); color: var(--color-ink-3); }
+
+.wl .wl-install__btn--done { background: var(--color-wash); color: var(--color-ink-2); cursor: default; }
+
+.wl .wl-install__btn--done:hover { opacity: 1; }
+
+@media (min-width: 720px) {
+.wl { padding: var(--space-8) 0; }
+.wl .wl-page {
+    max-width: var(--container-wide);
+    min-height: auto;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(29,29,31,.06), 0 30px 80px -50px rgba(29,29,31,.40);
+  }
+.wl .wl-topbar { padding-top: var(--space-6); padding-bottom: var(--space-6); }
+.wl .wl-intro { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: var(--space-7); padding: 0 var(--gutter); }
+.wl .wl-intro .wl-hero { margin: 0; }
+.wl .wl-intro .wl-titleblock { padding: 0; }
+.wl .wl-sec-head { margin-top: var(--space-8); }
+.wl .wl-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.wl .wl-tile:nth-child(odd), .wl .wl-tile:nth-child(even) { padding-left: 14px; padding-right: 14px; border-left: 1px solid var(--color-line); }
+.wl .wl-tile:nth-child(3n+1) { padding-left: 0; border-left: 0; }
+.wl .wl-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: var(--space-7); margin: var(--space-6) var(--gutter) 0; }
+.wl .wl-actions .wl-admin { margin: 0; }
+.wl .wl-actions .wl-install { margin: 0; padding: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+.wl *, .wl *::before, .wl *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}
+
+
+/* 이 부서 화면에서 더한 것(2026-11-25): 아직 없는 기능 칸 · 내 정보 동그라미 · 앱 설치 링크 · 다시 보기 버튼 */
+.wl .wl-tile--off { opacity: .45; }
+.wl .wl-icon-btn img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+.wl .wl-icon-btn b { font-size: 15px; font-weight: 800; color: var(--color-ink); }
+.wl a.wl-hero__empty { color: var(--color-ink-3); }
+.wl .wl-install__btn { color: #FFFFFF; }
+.wl .wl-later { display: flex; justify-content: center; gap: var(--space-5); margin-top: var(--space-5); padding: 0 var(--gutter); }
+.wl .wl-later button { min-height: var(--tap); padding: 0 8px; border: 0; background: none; color: var(--color-ink-3); font-size: var(--fs-sm); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.wl .wl-admin { color: var(--color-ink); }
+.wl .wl-admin__kicker { color: var(--color-ink-3); }
+@media (min-width: 720px) { .wl .wl-actions--solo { grid-template-columns: minmax(0, 1fr); } }
