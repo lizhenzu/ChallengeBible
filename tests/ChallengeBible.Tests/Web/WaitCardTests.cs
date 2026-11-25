@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ChallengeBible.Tests.Web;
 
-/// <summary>대기 카드(ADR 0082): 공통 레이아웃에서 불러온다. 2026-11-25 부터 페이지 이동에는 쓰지 않고, 큰 동작(읽음 표시 · 사진 올리기)에서만 쓴다.</summary>
+/// <summary>대기 카드(ADR 0082 · 2026-11-25 시안 「페이지 이동 대기」): 공통 레이아웃에서 불러온다. 링크 0.2초 뒤 이동 · 로딩 → 지연 → 오류 · 큰 동작(읽음 표시 · 사진 올리기)에서도 쓴다.</summary>
 public class WaitCardTests(WebApplicationFactory<Program> app) : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly string _db = InMemoryDb.NewName();
@@ -43,7 +43,13 @@ public class WaitCardTests(WebApplicationFactory<Program> app) : IClassFixture<W
     }
 
     [Theory]
-    [InlineData("잠시만 기다려 주세요")]
+    [InlineData("이동 중입니다")]
+    [InlineData("기다려 주세요")]
+    [InlineData("평소보다 조금 오래 걸리고 있어요")]
+    [InlineData("이동하지 못했어요")]
+    [InlineData("다시 시도")]
+    [InlineData("홈으로 돌아가기")]
+    [InlineData("저장하고 있어요")]
     public async Task Script_has_message(string message)
     {
         var js = await Client().GetStringAsync("/js/wait.js");
@@ -51,13 +57,14 @@ public class WaitCardTests(WebApplicationFactory<Program> app) : IClassFixture<W
     }
 
     [Fact]
-    public async Task 페이지_이동과_폼_제출에는_대기_카드를_띄우지_않고_바로_이동한다()
+    public async Task 링크_이동은_0점2초만_늦추고_폼은_늦추지_않는다()
     {
-        // 2026-11-25 사용자: 페이지 이동마다 느리게 하는 효과 삭제 — 링크 · 폼 처리기가 없어야 한다
+        // 2026-11-25 사용자: 0.6초 지연을 0.2초로 — 카드는 그대로 띄운다(시안 「페이지 이동 대기」)
         var js = await Client().GetStringAsync("/js/wait.js");
-        Assert.DoesNotContain("addEventListener('click'", js);
-        Assert.DoesNotContain("addEventListener('submit'", js);
-        Assert.DoesNotContain("location.assign", js);
+        Assert.Contains("LINK_HOLD_MS = 200", js);
+        Assert.Contains("addEventListener('click'", js);
+        Assert.Contains("addEventListener('submit'", js);
+        Assert.Contains("setTimeout(() => location.assign(url), LINK_HOLD_MS)", js);   // 폼에는 이 늦춤이 없다(submit 처리기는 start 만)
     }
 
     [Fact]
@@ -67,6 +74,6 @@ public class WaitCardTests(WebApplicationFactory<Program> app) : IClassFixture<W
         var photo = await c.GetStringAsync("/js/photo.js");
         Assert.Contains("사진을 올리고 있어요", photo);   // 2026-11-14 사용자: 사진 등록 때 진행 상태 · 대기 카드
         Assert.Contains("upload.onprogress", photo);
-        Assert.Contains("show: (message) => start(message, true)", await c.GetStringAsync("/js/wait.js"));
+        Assert.Contains("show: (message) => start(message, { keep: true })", await c.GetStringAsync("/js/wait.js"));
     }
 }
