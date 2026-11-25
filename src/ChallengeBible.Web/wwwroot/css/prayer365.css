@@ -9,7 +9,7 @@
 .p365-hd { display: flex; gap: 14px; align-items: center; margin-top: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--p-rule); }
 .p365-ring { flex: none; width: 72px; height: 72px; border-radius: 50%; background: conic-gradient(var(--p-acc) var(--p), var(--p-mark) 0); display: grid; place-items: center; }
 .p365-ring > div { width: 60px; height: 60px; border-radius: 50%; background: #fff; display: grid; place-content: center; text-align: center; line-height: 1.15; }
-.p365-ring b { font-size: 19px; font-weight: 800; color: var(--p-tx); } .p365-ring small { display: block; font-size: 10px; color: var(--p-dim2); }
+.p365-ring b { font-size: 19px; font-weight: 800; color: var(--p-tx); } .p365-ring small { display: block; font-size: 12px; color: var(--p-dim2); }
 .p365-kk { font-size: 12px; font-weight: 800; color: var(--p-acc); }
 .p365-hd h1 { margin: 4px 0 0; font-size: 19px; font-weight: 800; line-height: 1.4; color: var(--p-tx); word-break: keep-all; }
 .p365-sub { margin-top: 3px; font-size: 12px; color: var(--p-dim); }
@@ -30,13 +30,13 @@
 .p365-ps .bar { height: 6px; border-radius: 99px; background: #fff; margin-top: 6px; overflow: hidden; } .p365-ps .bar i { display: block; height: 100%; background: var(--p-acc); }
 .p365-ps .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
 .p365-ps .tiles div { background: #fff; border-radius: 12px; padding: 10px 4px; text-align: center; }
-.p365-ps .tiles b { display: block; font-size: 17px; font-weight: 800; color: var(--p-tx); } .p365-ps .tiles span { font-size: 11.5px; color: var(--p-dim2); } .p365-ps .tiles .hl b { color: var(--p-acc); }
-.p365-ps .p3cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-top: 8px; font-size: 11.5px; text-align: center; }
+.p365-ps .tiles b { display: block; font-size: 17px; font-weight: 800; color: var(--p-tx); } .p365-ps .tiles span { font-size: 12px; color: var(--p-dim2); } .p365-ps .tiles .hl b { color: var(--p-acc); }
+.p365-ps .p3cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-top: 8px; font-size: 12px; text-align: center; }
 .p365-ps .p3cal .h { color: var(--p-dim); } .p365-ps .p3cal .d { padding: 6px 0; border-radius: 8px; background: #fff; color: var(--p-dim2); }
 .p365-ps .p3cal .on { background: var(--p-acc); color: #fff; font-weight: 800; } .p365-ps .p3cal .miss { background: var(--p-warnbg); color: var(--p-warn); } .p365-ps .p3cal .today { box-shadow: inset 0 0 0 2px var(--p-tx); }
 .p365-ps .p3mo { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px 10px; align-items: center; margin-top: 8px; font-size: 12.5px; color: var(--p-dim2); }
 .p365-ps .p3mo div { height: 6px; border-radius: 99px; background: #fff; overflow: hidden; } .p365-ps .p3mo div i { display: block; height: 100%; background: var(--p-acc); } .p365-ps .p3mo em { font-style: normal; }
-.p365-src { margin-top: 18px; font-size: 11.5px; color: var(--p-dim); text-align: center; line-height: 1.7; word-break: keep-all; }
+.p365-src { margin-top: 18px; font-size: 12px; color: var(--p-dim); text-align: center; line-height: 1.7; word-break: keep-all; }
 
 /* 부서 홈 365 기도 카드 — 유년부 홈 "오늘의 기도"(_Banner_TodayPrayer) 와 같은 모양(2026-11-17 사용자 A안) */
 .hm .hj-card.tpCard { padding: 18px; font-family: "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif; color: #374151; text-align: left; }
@@ -56,15 +56,15 @@ a.tpRow:hover .tpTx b { color: #2F80ED; }
 .tpTx span.hl { font-weight: 700; color: #2F80ED; }
 .tpG { flex: none; font-size: 18px; font-weight: 300; color: #7FA3DB; }
 .tpChip { flex: none; width: 52px; border-radius: 10px; overflow: hidden; background: #fff; text-align: center; box-shadow: 0 1px 2px rgba(17,24,39,.08), 0 0 0 1px #EEF0F3; }
-.tpChip small { display: block; padding: 3px 0; background: #2F80ED; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.tpChip small { display: block; padding: 3px 0; background: #2F80ED; color: #fff; font-size: 12px; font-weight: 800; letter-spacing: 0; font-variant-numeric: tabular-nums; }
 .tpChip strong { display: block; padding: 2px 0 0; font-size: 24px; font-weight: 300; line-height: 1.15; color: #111827; }
-.tpChip em { display: block; padding: 0 0 5px; font-style: normal; font-size: 10.5px; font-weight: 800; color: #111827; }
+.tpChip em { display: block; padding: 0 0 5px; font-style: normal; font-size: 12px; font-weight: 800; color: #111827; }
 .tpChip em.sat { color: #2F80ED; } .tpChip em.sun { color: #E03131; }
 .tpTx .tpDay { display: flex; align-items: center; gap: 8px; margin-top: 7px; overflow: visible; white-space: normal; }
 .tpDay i { display: block; flex: 1; max-width: 130px; height: 5px; border-radius: 99px; background: #E5EDF9; overflow: hidden; }
 .tpDay s { display: block; height: 100%; border-radius: 99px; background: #2F80ED; text-decoration: none; }
-.tpDay em { font-style: normal; font-size: 11.5px; font-weight: 700; color: #6B7280; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.tpTx .tpDay em b { display: inline; font-size: 11.5px; font-weight: 800; color: #2F80ED; }
+.tpDay em { font-style: normal; font-size: 12px; font-weight: 700; color: #6B7280; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tpTx .tpDay em b { display: inline; font-size: 12px; font-weight: 800; color: #2F80ED; }
 @media (max-width: 480px) { .hm .hj-card.tpCard { padding: 16px 14px; } .tpT { font-size: 19px; } }
 
 /* 관리 · 플랫폼(확정 시안 365기도 ③ ~ ⑤) */
@@ -84,7 +84,7 @@ a.tpRow:hover .tpTx b { color: #2F80ED; }
 .p3rank li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .p3rank b { color: #2F80ED; flex: none; }
 .p3m { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; } @media (max-width: 760px) { .p3m { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .p3m b { font-size: 13px; } .p3m .ds { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; margin-top: 6px; }
-.p3m .ds a { height: 22px; border-radius: 4px; background: #E5E7EB; font-size: 10px; text-align: center; line-height: 22px; color: #4B5563; text-decoration: none; }
+.p3m .ds a { height: 22px; border-radius: 4px; background: #E5E7EB; font-size: 12px; text-align: center; line-height: 22px; color: #4B5563; text-decoration: none; }
 .p3m .ds a.s { background: #FDE7C8; } .p3m .ds a.c { background: #DCEBFB; } .p3m .ds a.r { background: #BBE5C8; } .p3m .ds a.t { box-shadow: inset 0 0 0 2px #2F80ED; }
 .p3lg { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--dim); } .p3lg i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
 .p3f { display: grid; gap: 10px; } .p3f label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; } .p3f textarea { min-height: 220px; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }

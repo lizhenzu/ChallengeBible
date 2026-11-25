@@ -16,10 +16,10 @@
 .ms-a .av.sys, .ms-view .av.sys { background: #FEF3C7; color: #92400E; }
 .ms-a .nm { min-width: 0; font-size: 15px; font-weight: 900; overflow-wrap: anywhere; }
 .ms-a .nm em { font-style: normal; font-size: 12px; font-weight: 700; color: #4B5563; margin-left: 6px; }
-.bc { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 99px; background: #7C3AED; color: #fff; font-size: 11px; font-weight: 900; vertical-align: 2px; }
-.nw { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 99px; background: #DC2626; color: #fff; font-size: 10.5px; font-weight: 900; vertical-align: 2px; }
+.bc { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 99px; background: #7C3AED; color: #fff; font-size: 12px; font-weight: 900; vertical-align: 2px; }
+.nw { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 99px; background: #DC2626; color: #fff; font-size: 12px; font-weight: 900; vertical-align: 2px; }
 .ms-a .tm { font-size: 12px; color: #6B7280; white-space: nowrap; }
-.ms-a .rd { font-size: 11.5px; font-weight: 800; padding: 1px 8px; border-radius: 99px; white-space: nowrap; }
+.ms-a .rd { font-size: 12px; font-weight: 800; padding: 1px 8px; border-radius: 99px; white-space: nowrap; }
 .ms-a .rd.y { background: #EAF7EF; color: #15803D; }
 .ms-a .rd.n { background: #F3F4F6; color: #6B7280; }
 .ms-a .pv { grid-column: 2 / 4; font-size: 13px; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

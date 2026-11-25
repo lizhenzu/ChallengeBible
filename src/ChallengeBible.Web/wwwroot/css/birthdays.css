@@ -16,21 +16,21 @@
 .bdy-card.today { border-color: #F59E0B; background: #FFFBEB; }
 .bdy-card .dd { flex: none; width: 58px; text-align: center; }
 .bdy-card .dd b { display: block; font-size: 17px; font-weight: 900; }
-.bdy-card .dd small { font-size: 11.5px; color: var(--dim); }
+.bdy-card .dd small { font-size: 12px; color: var(--dim); }
 .bdy-card.today .dd b { color: #B45309; }
 .bdy-card .who, .bdy-miss .who { flex: 1; min-width: 0; }
 .bdy-card .who b, .bdy-miss .who b { font-size: 16px; font-weight: 900; }
 .bdy-card .who em, .bdy-miss .who em { margin-left: 6px; font-style: normal; font-size: 12.5px; font-weight: 800; color: var(--accent); }
 .bdy-card .who small, .bdy-miss .who small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--dim); }
-.bdy-card .mine { margin-left: 4px; padding: 1px 5px; border-radius: 6px; background: var(--accent); color: var(--on-accent); font-size: 10.5px; font-weight: 900; vertical-align: 2px; }
-.bdy-card .gs { flex: none; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 800; white-space: nowrap; }
+.bdy-card .mine { margin-left: 4px; padding: 1px 5px; border-radius: 6px; background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 900; vertical-align: 2px; }
+.bdy-card .gs { flex: none; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
 .gs.g0 { background: #F3F4F6; color: #6B7280; } .gs.g1 { background: #FEF3C7; color: #92400E; } .gs.g2 { background: #E0E7FF; color: #3730A3; } .gs.g3 { background: #DCFCE7; color: #166534; }
 .bdy-go { align-self: flex-end; font-size: 13.5px; font-weight: 800; color: var(--accent); text-decoration: none; }
 .bdy-empty { margin: 0; padding: 18px; text-align: center; color: var(--dim); border: 1.5px dashed var(--rule); border-radius: 16px; }
 .bdy-hint { margin: 0; font-size: 13px; color: var(--dim); }
 .bdy-months { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; }
 .bdy-months a { flex: none; min-height: 34px; display: inline-flex; align-items: center; gap: 4px; padding: 0 10px; border-radius: 10px; background: var(--soft); font-size: 13px; font-weight: 800; color: var(--dim); text-decoration: none; }
-.bdy-months a small { font-size: 11px; opacity: .8; }
+.bdy-months a small { font-size: 12px; opacity: .8; }
 .bdy-months a[aria-current="page"] { background: var(--accent); color: var(--on-accent); }
 .bdy-view { display: flex; gap: 6px; align-items: center; }
 .bdy-view a { min-height: 34px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line); font-size: 13px; font-weight: 800; color: var(--fg); text-decoration: none; }
@@ -41,7 +41,7 @@
 .bdy-cal .c { min-height: 56px; min-width: 0; overflow: hidden; border-radius: 9px; background: var(--soft); padding: 4px; display: flex; flex-direction: column; gap: 2px; color: inherit; text-decoration: none; }
 .bdy-cal .c.x { background: none; }
 .bdy-cal .c i { font-style: normal; font-size: 12px; font-weight: 800; color: var(--dim); }
-.bdy-cal .c u { text-decoration: none; font-size: 11px; font-weight: 800; background: var(--accent-bg); color: var(--accent); border-radius: 4px; padding: 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bdy-cal .c u { text-decoration: none; font-size: 12px; font-weight: 800; background: var(--accent-bg); color: var(--accent); border-radius: 4px; padding: 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bdy-cal .c.td { outline: 2px solid #F59E0B; outline-offset: -2px; }
 .bdy-cal .c.sel { background: #FFF7E6; }
 @media (min-width: 640px) { .bdy-cal .c { min-height: 76px; } .bdy-cal .c u { font-size: 12px; } }
@@ -62,7 +62,7 @@
     .admintop, .pdrawer, .bdy-tabs, .bdy-print, .bdy-h small, .okmsg { display: none !important; }
     .bdy-year { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
     .bdy-year .ym { break-inside: avoid; padding: 6px 8px; }
-    .bdy-year p { font-size: 10.5px; color: #000; }
+    .bdy-year p { font-size: 12px; color: #000; }
 }
 
 /* 생일 카드 상세 · 선물(확정 시안 생일카드-선물, ADR 0122) */
@@ -79,7 +79,7 @@
 .bdc-me .n { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .bdc-me .n b { font-size: 19px; font-weight: 900; }
 .bdc-me .n a { font-size: 12.5px; font-weight: 700; color: var(--dim); }
-.bdc-me .mine { padding: 1px 6px; border-radius: 6px; background: var(--accent); color: var(--on-accent); font-size: 11px; font-weight: 900; }
+.bdc-me .mine { padding: 1px 6px; border-radius: 6px; background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 900; }
 .bdc-me .s { font-size: 13px; color: var(--dim); overflow-wrap: anywhere; }
 .bdc-me .s em { font-style: normal; font-weight: 800; color: var(--accent); }
 .bdc-kv { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--soft); font-size: 14px; }
@@ -113,7 +113,7 @@
 .bdy-item { position: relative; display: grid; gap: 4px; padding: 0; border: 0; background: none; text-align: left; font: inherit; color: inherit; cursor: pointer; }
 .bdy-item:active .pic, .bdy-item:focus-visible .pic { outline: 3px solid rgba(43, 89, 195, .28); outline-offset: -3px; transform: scale(.97); }
 .bdy-item .pic { position: relative; display: block; aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: #F3F4F6; }
-.bdy-item .pic em { position: absolute; left: 6px; top: 6px; padding: 2px 7px; border-radius: 999px; background: rgba(255, 255, 255, .94); font-style: normal; font-size: 10.5px; font-weight: 900; color: var(--accent); }
+.bdy-item .pic em { position: absolute; left: 6px; top: 6px; padding: 2px 7px; border-radius: 999px; background: rgba(255, 255, 255, .94); font-style: normal; font-size: 12px; font-weight: 900; color: var(--accent); }
 .bdy-item .pic img { width: 100%; height: 100%; object-fit: cover; }
 .bdy-item b { font-size: 13.5px; } .bdy-item small { font-size: 12px; color: var(--dim); }
 

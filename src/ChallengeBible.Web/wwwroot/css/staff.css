@@ -11,7 +11,7 @@
 .st-sum .w b { color: #C0392B; }
 .st-sec { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 18px 0 8px; }
 .st-sec b { font-size: 14.5px; font-weight: 800; }
-.st-sec small { font-size: 11.5px; color: #6e6e75; text-align: right; }
+.st-sec small { font-size: 12px; color: #6e6e75; text-align: right; }
 .st-slot { display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 8px; padding: 12px 14px; border: 1px solid #E3E8F0; border-radius: 14px; background: #fff; font: inherit; text-align: left; cursor: pointer; }
 .st-slot:hover { border-color: #C9D6EC; }
 .st-slot .r { flex: none; width: 52px; font-size: 14px; font-weight: 900; color: #2B5BC6; }
@@ -35,7 +35,7 @@
 .st-av { flex: none; width: 34px; height: 34px; border-radius: 50%; background: #EAF0FC; color: #2B5BC6; display: grid; place-items: center; font-size: 13px; font-weight: 800; }
 .st-pr .n { flex: 1; min-width: 0; }
 .st-pr .n b { display: block; font-size: 14px; }
-.st-pr .n small { display: block; font-size: 11.5px; color: #6B7280; overflow-wrap: anywhere; }
+.st-pr .n small { display: block; font-size: 12px; color: #6B7280; overflow-wrap: anywhere; }
 .st-link { border: 0; background: none; padding: 6px 2px; color: #2B5BC6; font: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer; }
 .st-none { margin: 6px 0; padding: 14px; border-radius: 12px; background: #F4F6F9; color: #6B7280; font-size: 13px; text-align: center; }
 .st-none[hidden] { display: none; }

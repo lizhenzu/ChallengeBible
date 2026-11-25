@@ -23,9 +23,9 @@ body:has(.mbody) .mhead .wrap { padding-block: 0; gap: 0; }
 body:has(.mbody) .mhead .k { margin-top: 18px; font-size: 12px; font-weight: 800; letter-spacing: .02em; color: #2F80ED; }
 body:has(.mbody) .mhead .ttl { margin-top: 10px; gap: 14px; align-items: flex-start; }
 body:has(.mbody) .cal { width: 60px; margin-top: 4px; border: 1px solid #E2E0DB; border-radius: 0; background: #fff; }
-body:has(.mbody) .cal .m { font-family: "Inter", system-ui, sans-serif; font-size: 10px; letter-spacing: .08em; background: #16181C; color: #F7F6F3; padding: 3px 0; }
+body:has(.mbody) .cal .m { font-family: "Inter", system-ui, sans-serif; font-size: 12px; letter-spacing: .08em; background: #16181C; color: #F7F6F3; padding: 3px 0; }
 body:has(.mbody) .cal .d { font-family: "Inter", system-ui, sans-serif; font-weight: 300; font-size: 26px; line-height: 1.1; padding-top: 3px; color: #16181C; }
-body:has(.mbody) .cal .w { font-size: 10.5px; font-weight: 600; color: #9A7B4F; padding-bottom: 5px; }
+body:has(.mbody) .cal .w { font-size: 12px; font-weight: 600; color: #9A7B4F; padding-bottom: 5px; }
 body:has(.mbody) .cal .w.sun { color: #B4531F; }
 body:has(.mbody) .cal .w.sat { color: #3B6EA8; }
 body:has(.mbody) .mhead h1 { margin: 0; font-size: calc(23px * var(--fs)); font-weight: 800; line-height: 1.35; letter-spacing: -.02em; color: #111827; }
@@ -39,7 +39,7 @@ body:has(.mbody) .mbody .wrap { padding-block: 26px 0; }
 body:has(.mbody) .sec { padding: 18px 0 16px; border-top: 1px solid #EEF0F3; gap: 8px; }
 body:has(.mbody) .sec h2 { font-size: calc(16px * var(--fs)); font-weight: 800; color: #111827; gap: 10px; }
 body:has(.mbody) .sec h2 .n { font-size: 17px; font-weight: 900; letter-spacing: .02em; }
-body:has(.mbody) .sec h2 small { font-size: 11.5px; font-weight: 600; color: #6e6e75; }
+body:has(.mbody) .sec h2 small { font-size: 12px; font-weight: 600; color: #6e6e75; }
 body:has(.mbody) .sec.done h2 small, body:has(.mbody) .sec h2 small.ok { color: #16A34A; font-weight: 800; }
 body:has(.mbody) .sec h2 small.warn { color: #E5484D; font-weight: 800; }
 body:has(.mbody) .mbody .empty { margin-top: 0; padding: 26px 0; color: #6B7280; font-size: 14px; border-top: 1px solid #EEF0F3; border-bottom: 1px solid #EEF0F3; }
@@ -63,7 +63,7 @@ body:has(.mbody) .pnote { font-size: 12px; color: #6e6e75; }
 /* 기도: 본문(접힘, 절 번호 흐린 파랑) · 기도문(크게, 이름은 연한 노랑 밑줄) */
 body:has(.mbody) .vlines { gap: 4px; padding-top: 4px; }
 body:has(.mbody) .vlines p { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 6px; font-size: calc(14.5px * var(--fs)); line-height: 1.85; color: #6B7280; }
-body:has(.mbody) .vlines .num { margin: 0; padding-top: 4px; font-size: 11px; font-weight: 800; color: #7FA3DB; text-align: right; vertical-align: baseline; }
+body:has(.mbody) .vlines .num { margin: 0; padding-top: 4px; font-size: 12px; font-weight: 800; color: #7FA3DB; text-align: right; vertical-align: baseline; }
 body:has(.mbody) .rdmore { color: #2F80ED; font-size: 12.5px; }
 /* 기도문 · 암송 구절은 같은 글자(2026-11-03 사용자): 17px · 400 · 줄 간격 1.95 */
 body:has(.mbody) .story.pray { margin-top: 0; font-size: calc(17px * var(--fs)); line-height: 1.95; font-weight: 400; color: #1F2937; }
@@ -91,7 +91,7 @@ body:has(.mbody) .qopt { background: #F4F6F9; box-shadow: none; }
 body:has(.mbody) .qopt:active { background: #E9EDF3; }
 body:has(.mbody) .qopt i { color: #7FA3DB; }
 body:has(.mbody) .qopt .t { font-size: calc(15.5px * var(--fs)); color: #1F2937; }
-body:has(.mbody) .qopt .t small { font-size: 11.5px; }
+body:has(.mbody) .qopt .t small { font-size: 12px; }
 body:has(.mbody) .qopt.sel { background: #EAF2FD; box-shadow: none; }
 body:has(.mbody) .qopt.sel .t { color: #1D5FBF; }
 body:has(.mbody) .qopt.sel i { color: #2F80ED; }
@@ -126,7 +126,7 @@ body:has(.mbody) .mnav { position: static; max-width: 760px; margin: 24px auto 0
 body:has(.mbody) .mnav a { min-height: 0; padding: 11px 2px 13px; color: #6e6e75; }
 body:has(.mbody) .mnav a[aria-current="page"]::before { top: -1px; left: 0; right: 0; height: 2px; border-radius: 0; background: #2F80ED; }
 body:has(.mbody) .mnav .L { font-size: 15px; font-weight: 800; }
-body:has(.mbody) .mnav .S { font-size: 11.5px; font-weight: 600; margin-top: 3px; color: #C4C9D2; }
+body:has(.mbody) .mnav .S { font-size: 12px; font-weight: 600; margin-top: 3px; color: #C4C9D2; }
 body:has(.mbody) .mnav .S.done { color: #6FBF8B; }
 body:has(.mbody) .mnav a.dn .L { color: #16A34A; }
 body:has(.mbody) .mnav a[aria-current="page"] .L { color: #111827; }
