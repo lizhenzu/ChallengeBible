@@ -7,10 +7,19 @@ namespace ChallengeBible.Web.Pages;
 /// ☰ 메뉴판 한 줄(확정 시안 부서메뉴 · 플랫폼관리메뉴, 2026-11-18): 색 아이콘 + 이름 + 한 줄 설명 + ›. 부서 홈 · 부서 관리 · 플랫폼이 같이 쓴다.
 /// tone: g 초록 · b 파랑 · o 주황 · p 분홍 · v 보라 · s 회색 · r 빨강(되돌릴 수 없는 도구).
 /// </summary>
+/// <summary>통독 · 필사 ☰ 메뉴(_B2Drawer) 재료. Menu = (주소, 이름, 아이콘 이름, 현재 위치 키).</summary>
+public sealed record B2DrawerModel(ChallengeBible.Web.Tenancy.TenantContext Tenant, string Name, string Home, string CurKey,
+    (string Href, string Label, string Icon, string Key)[] Menu, (string Key, string Label)[]? Themes, string? Theme);
+
 public static class DrawerUi
 {
     private static readonly Dictionary<string, string> Icons = new()
     {
+        ["ot"] = """<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/>""",
+        ["nt"] = """<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/><path d="M12 7v7M9 10h6"/>""",
+        ["bookmark"] = """<path d="M6 3h12v18l-6-4-6 4z"/>""",
+        ["clock"] = """<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>""",
+        ["copynt"] = """<path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/><path d="M19 15v6M16 18h6"/>""",
         ["pin"] = """<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>""",
         ["mission"] = """<path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4z"/><path d="M20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/><path d="m15 9 1.5 1.5L19 8"/>""",
         ["reading"] = """<path d="M2 6s3-2 10 0 10 0 10 0v13s-3 2-10 0-10 0-10 0z"/><path d="M12 6v13"/>""",

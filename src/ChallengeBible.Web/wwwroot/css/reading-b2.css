@@ -305,3 +305,30 @@ body:has(.rp[data-theme]) { background: var(--bg); }
   .pb-b2 { display: none !important; }
 }
 @media (min-width: 769px) { .b2 header.pb .wrap.pbw { max-width: 696px; } }   /* 파란 띠 안쪽 글자 폭(760 − 좌우 32)과 같게 */
+
+/* 통독 · 필사 ☰ 메뉴를 미션 ☰ 메뉴 모양으로(2026-11-25 사용자 확정, 시안 햄버거-통독필사-통일). 안쪽은 tdr2-* 를 그대로 쓰고, 바탕 · 글자 · 현재 메뉴만 그 프로그램 색(--r-*) */
+.b2dr { width: min(216px, 84vw); overflow: hidden; }
+.b2dr .tdr2-hd { border-bottom-color: var(--r-rule); }
+.b2dr .tdr2-ttl { color: var(--r-ink); }
+.b2dr .tdr2-ttl span { color: var(--r-acc); }
+.b2dr .tdr2-sub, .b2dr .tdr2-g, .b2dr .tdr2-who small, .b2dr .tdr2-me u { color: var(--r-dim); }
+.b2dr .tdr2-x, .b2dr .tdr2-me, .b2dr .tdr2-who b, .b2dr .tdr2-r { color: var(--r-ink); }
+.b2dr .tdr2-me { box-shadow: inset 0 0 0 1px var(--r-rule); }
+.b2dr .tdr2-me + .tdr2-nav { border-top-color: var(--r-rule); }
+.b2dr .tdr2-r:hover { background: var(--r-cell); }
+.b2dr .tdr2-r[aria-current="page"] { background: var(--r-cell); color: var(--r-acc); font-weight: 900; }
+.b2dr .tdr2-r[aria-current="page"] .tdr2-i { color: var(--r-acc); }
+.b2dr .tdr2-ft { border-top-color: var(--r-rule); }
+.b2dr .tdr2-b1 { color: var(--r-dim); }
+.b2dr-th { display: flex; gap: 6px; padding: 2px 22px 10px; }
+.b2dr-th button { width: 44px; height: 44px; padding: 0; border-radius: 10px; border: 1.5px solid; cursor: pointer; }
+.b2dr-th button[aria-pressed="true"] { border-width: 2.5px; }
+.b2dr-th .sw-default { background: #EAF1FD; border-color: #9DB8EA; }
+.b2dr-th .sw-paper { background: #F3EBDD; border-color: #C9B48F; }
+.b2dr-th .sw-forest { background: #DDEBD9; border-color: #8FB08A; }
+.b2dr-th .sw-sand { background: #DCEBEC; border-color: #8DBCC2; }
+.b2dr-th .sw-default[aria-pressed="true"] { border-color: #4F7BD0; }
+.b2dr-th .sw-paper[aria-pressed="true"] { border-color: #A98B5E; }
+.b2dr-th .sw-forest[aria-pressed="true"] { border-color: #5F8C5A; }
+.b2dr-th .sw-sand[aria-pressed="true"] { border-color: #4F9AA6; }
+@media (min-width: 769px) { .b2dr { width: var(--b2w); } }

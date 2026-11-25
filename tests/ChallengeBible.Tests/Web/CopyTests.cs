@@ -109,10 +109,10 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
         // 성경통독과 같은 틀(ADR 0105): 필사 목차(대시보드 · 구약 쓰기 · 신약 쓰기 · 참여자 현황) · 필사 테마 · ← 부서 홈으로
         Assert.Contains("aria-label=\"성경 필사 메뉴\"", copy);
         Assert.Contains("dataset.theme = 'copy'", copy);
-        Assert.Contains("<a href=\"/kids/copy\" class=\"b2it on\" aria-current=\"page\">대시보드</a>", copy);
-        Assert.Contains(">구약 쓰기</a>", copy);
-        Assert.Contains(">신약 쓰기</a>", copy);
-        Assert.Contains("← 부서 홈으로", copy);
+        Assert.Matches("href=\"/kids/copy\" aria-current=\"page\"><i class=\"tdr2-i\"[^>]*>(?:(?!</a>)[\\s\\S])*<span>대시보드</span></a>", copy);
+        Assert.Contains("<span>구약 쓰기</span></a>", copy);
+        Assert.Contains("<span>신약 쓰기</span></a>", copy);
+        Assert.Matches("href=\"/kids\"[^>]*><i class=\"tdr2-i\"[^>]*>(?:(?!</a>)[\\s\\S])*<span>홈으로</span></a>", copy);   // ☰ 메뉴 맨 위 「홈으로」(2026-11-25)
         Assert.Contains("최근 8주", copy);
         Assert.Contains("구약 0 / 2절", copy);
         Assert.Contains("신약 0 / 3절", copy);
@@ -157,8 +157,8 @@ public partial class CopyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("href=\"/kids/copy\"", dept);
         var write = await c.GetStringAsync("/kids/copy/write/43/3");   // 쓰는 화면도 같은 틀(ADR 0105)
         Assert.Contains("aria-label=\"성경 필사 메뉴\"", write);
-        Assert.Contains("class=\"b2it on\" aria-current=\"page\">신약 쓰기</a>", write);
-        Assert.Contains("이어 쓰기<small>요한복음 3장</small>", write);   // 빠른 이동
+        Assert.Matches("aria-current=\"page\"><i class=\"tdr2-i\"[^>]*>(?:(?!</a>)[\\s\\S])*<span>신약 쓰기</span></a>", write);
+        Assert.DoesNotContain("빠른 이동", write);   // 통독 · 필사 ☰ 메뉴에서 빠른 이동 삭제(2026-11-25 사용자)
         Assert.Contains("class=\"b2rh\"", write);                     // 통독 본문 화면과 같은 색 띠 머리(확정 시안 필사-통독흐름 ③)
         Assert.Contains("신약 · 성경 필사", write);
         Assert.Contains("<nav class=\"b2chs\" aria-label=\"장 번호\">", write);
