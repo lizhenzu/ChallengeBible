@@ -74,7 +74,7 @@
 @{
     // 머리줄 표준(기준표 8판, 2026-11-24): ☰ + 「관리 › 화면」 + 오른쪽 이동 버튼(관리 홈 = 홈으로, 그 아래 = 관리홈). 쪽지는 ☰ 메뉴 「바로 가기」로.
     var atHome = path.TrimEnd('/').Equals(home, StringComparison.OrdinalIgnoreCase);
-    var vd = new ViewDataDictionary(ViewData) { ["PbOwnDrawer"] = true, ["PbTitle"] = atHome || !Model.IsAdmin ? (Model.IsAdmin ? "관리" : "명부") : now };
+    var vd = new ViewDataDictionary(ViewData) { ["PbOwnDrawer"] = true, ["PbClass"] = "pb-adm", ["PbTitle"] = atHome || !Model.IsAdmin ? (Model.IsAdmin ? "관리" : "명부") : now };
     if (Model.IsAdmin && !atHome) { vd["PbParent"] = new[] { "관리", home }; vd["PbButton"] = new[] { "관리홈", home }; }
 }
 <partial name="_Top" view-data="vd" />

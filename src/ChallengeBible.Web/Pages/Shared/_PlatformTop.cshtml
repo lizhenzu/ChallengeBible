@@ -42,7 +42,7 @@
 @{
     // 머리줄 표준(기준표 8판, 2026-11-24): ☰ + 「플랫폼 › 화면」 + 오른쪽 이동 버튼(플랫폼 홈 = 홈으로 → 첫 화면, 그 아래 = 플랫폼홈).
     var atHome = path.TrimEnd('/').Equals("/platform", StringComparison.OrdinalIgnoreCase);
-    var vd = new ViewDataDictionary(ViewData) { ["PbOwnDrawer"] = true, ["PbTitle"] = atHome ? "플랫폼" : title };
+    var vd = new ViewDataDictionary(ViewData) { ["PbOwnDrawer"] = true, ["PbClass"] = "pb-plat", ["PbTitle"] = atHome ? "플랫폼" : title };
     if (!atHome) { vd["PbParent"] = new[] { "플랫폼", "/platform" }; vd["PbButton"] = new[] { "플랫폼홈", "/platform" }; }
     else { vd["PbButton"] = new[] { "홈으로", "/" }; }
 }

@@ -29,7 +29,7 @@
     var attCare = attMenu && attScope!.Admin ? await Att.CareCountAsync() : 0;
     var imp = User.ImpersonatorId() is not null;
 }
-<header class="top gut pb"><div class="wrap pbw">
+<header class="top gut pb@(ViewData["PbClass"] is string pbc ? " " + pbc : "")"><div class="wrap pbw">
     <span class="pb-l">
         @if (b2)
         {
