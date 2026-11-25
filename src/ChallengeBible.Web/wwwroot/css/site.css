@@ -4512,7 +4512,7 @@ body:has(> .imp-bar) :is(.toast, .mpop-toast) { margin-bottom: var(--imp-h); }
 /* 앱 설치(ADR 0115): 설치된 앱 안에서는 ☰ "앱 설치" 숨김 */
 @media (display-mode: standalone) { [data-app-install] { display: none !important; } }
 /* 부서 ☰ 메뉴판(확정 시안 부서메뉴, 2026-11-18): 위 사진 · 이름 / 가운데 그룹 · 아이콘 · 한 줄 설명(여기만 밀림) / 아래 고정 버튼 두 개. 플랫폼 · 관리 메뉴판(.pdrawer)은 그대로 */
-.tdr .pd-panel { width: min(320px, 88vw); padding: 0; display: flex; flex-direction: column; overflow: hidden; }
+.tdr .pd-panel { width: min(264px, 84vw); padding: 0; display: flex; flex-direction: column; overflow: hidden; }
 .tdr-hd { display: flex; gap: 12px; align-items: center; padding: calc(16px + env(safe-area-inset-top, 0px)) 14px 16px 16px; border-bottom: 1px solid var(--rule); }
 .tdr-av { width: 56px; height: 56px; border-radius: 50%; flex: none; overflow: hidden; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 12%, #fff); box-shadow: 0 0 0 3px #fff, 0 0 0 4px #E5E7EB; text-decoration: none; }
 .tdr-av img { width: 100%; height: 100%; object-fit: cover; }
@@ -4547,7 +4547,7 @@ body:has(> .imp-bar) :is(.toast, .mpop-toast) { margin-bottom: var(--imp-h); }
 @media (display-mode: standalone) { .tdr-inapp { display: flex; } }
 body:has(> .imp-bar) .tdr-ft { padding-bottom: calc(14px + var(--imp-h, 56px)); }
 /* 부서 ☰ 깔끔판(2026-11-22 사용자 확정, ADR 0127, 시안 메뉴-깔끔): 흰 바탕 · 파란 선 아이콘 · 제목만 */
-.tdr2 .pd-panel { width: min(300px, 88vw); padding: 0; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
+.tdr2 .pd-panel { width: min(264px, 84vw); padding: 0; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
 .tdr2-hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: calc(20px + env(safe-area-inset-top, 0px)) 16px 18px 22px; border-bottom: 1px solid #eceef2; }
 .tdr2-ttl { font-size: 19px; font-weight: 900; color: #1e3a8a; letter-spacing: .2px; line-height: 1.25; }
 .tdr2-ttl span { color: #1f55c0; }

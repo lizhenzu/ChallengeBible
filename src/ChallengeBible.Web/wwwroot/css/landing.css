@@ -132,8 +132,8 @@
 .vb-burger { width: 44px; height: 44px; flex: none; margin-left: -8px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; }
 .vb-burger:hover { background: #e7e7ea; }
 .vb-burger:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.vb-dr .pd-panel { width: min(300px, 86vw); padding: 18px 18px 24px; }
-@media (min-width: 720px) { .vb-dr .pd-panel { width: min(340px, 86vw); } }
+.vb-dr .pd-panel { width: min(264px, 84vw); padding: 18px 18px 24px; }
+@media (min-width: 720px) { .vb-dr .pd-panel { width: min(264px, 84vw); } }
 .vb-dr-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .vb-dr-x { width: 36px; height: 36px; flex: none; border: 0; border-radius: 10px; background: transparent; color: var(--ink-3); display: grid; place-items: center; cursor: pointer; }
 .vb-dr-x:hover { background: #f4f4f5; }
