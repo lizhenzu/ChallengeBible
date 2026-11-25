@@ -313,7 +313,6 @@ body:has(.rp[data-theme]) { background: var(--bg); }
 .b2dr .tdr2-ttl span { color: var(--r-acc); }
 .b2dr .tdr2-sub, .b2dr .tdr2-g, .b2dr .tdr2-who small, .b2dr .tdr2-me u { color: var(--r-dim); }
 .b2dr .tdr2-x, .b2dr .tdr2-me, .b2dr .tdr2-who b, .b2dr .tdr2-r { color: var(--r-ink); }
-.b2dr .tdr2-me { box-shadow: inset 0 0 0 1px var(--r-rule); }
 .b2dr .tdr2-me + .tdr2-nav { border-top-color: var(--r-rule); }
 .b2dr .tdr2-r:hover { background: var(--r-cell); }
 .b2dr .tdr2-r[aria-current="page"] { background: var(--r-cell); color: var(--r-acc); font-weight: 900; }

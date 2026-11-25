@@ -4924,7 +4924,7 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 .pb .pb-dot { position: absolute; top: 7px; right: 6px; width: 10px; height: 10px; border-radius: 50%; background: #d93025; border: 2px solid #fff; }
 
 /* ☰ 메뉴 통일(기준표 8판 · 공통 1, 2026-11-24): 사람 카드 · 설명 줄 항목 · 위험 그룹 */
-.tdr2-me { display: flex; align-items: center; gap: 12px; margin: 14px 16px 2px; padding: 12px 14px; border-radius: 14px; background: transparent; box-shadow: inset 0 0 0 1px #e7e7ea; color: #222; text-decoration: none; }   /* 이름 카드: 회색 바탕 → 메뉴 바탕색 + 옅은 테두리(2026-11-25) */
+.tdr2-me { display: flex; align-items: center; gap: 12px; margin: 14px 16px 2px; padding: 12px 14px; border-radius: 14px; background: transparent; color: #222; text-decoration: none; }   /* 이름 카드: 회색 바탕 → 메뉴 바탕색, 테두리 없음(2026-11-25 사용자) */
 .tdr2-av { width: 40px; height: 40px; flex: none; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: #dbe6fb; color: #1e3a8a; font-style: normal; font-weight: 900; font-size: 16px; }
 .tdr2-av img { width: 100%; height: 100%; object-fit: cover; }
 .tdr2-who { flex: 1; min-width: 0; }
