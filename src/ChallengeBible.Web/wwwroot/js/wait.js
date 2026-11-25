@@ -1,47 +1,9 @@
-﻿// 페이지 이동 대기 카드(ADR 0082, 확정 시안 wait-card.png 1안).
-// 누르면 진행 줄과 카드를 바로 보여 준다. 링크는 카드가 보이도록 0.6초 뒤에 옮기고, 폼은 늦추지 않는다.
-// 그 자리에서 처리하는 동작(preventDefault) · 새 창 · 다운로드 · data-nowait 에는 나오지 않는다.
-// 다른 처리기가 모두 돈 뒤에 판단하도록 window 에서 듣는다.
+﻿// 대기 카드(ADR 0082, 확정 시안 wait-card.png 1안). 2026-11-25 사용자 "페이지 이동마다 느리게 하는 효과 삭제, 바로 이동":
+// 링크 · 폼 이동에는 더 이상 카드를 띄우지 않는다(링크는 바로 이동). 화면을 옮기지 않는 큰 동작(읽음 표시 · 사진 올리기)에서만
+// window.cbWait(during · show · text · hide)로 부른다.
 (() => {
     const LINK_HOLD_MS = 600;
     const GIVE_UP_MS = 15000;   // 이동이 일어나지 않은 경우(응답이 파일 등) 카드가 남지 않게
-    const MOVING = '이동하고 있어요';
-    const ME = '내 정보를 확인하고 있어요';
-
-    // 슬러그 뒤 주소(/{slug}/quiz → quiz)에 맞는 문구. 위에서부터 먼저 맞는 것을 쓴다.
-    const IN_TENANT = [
-        [/^reading\/read(\/|$)/, '성경을 펼치고 있어요'],
-        [/^reading(\/|$)/, '통독 기록을 찾고 있어요'],
-        [/^(word|read)$/, '말씀을 펼치고 있어요'],
-        [/^quiz$/, '퀴즈를 준비하고 있어요'],
-        [/^prayer$/, '기도 시간을 준비하고 있어요'],
-        [/^recite$/, '암송 구절을 꺼내고 있어요'],
-        [/^word-mission$/, '오늘의 미션을 불러오고 있어요'],
-        [/^calendar$/, '달력을 넘기고 있어요'],
-        [/^(points|ranking)$/, '점수를 모으고 있어요'],
-        [/^family-team$/, '우리 가족을 찾고 있어요'],
-        [/^roster$/, '명단을 펼치고 있어요'],
-        [/^gifts$/, '선물을 펼치고 있어요'],
-    ];
-
-    const clean = (pathname) => pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
-
-    const forPage = (pathname) => {
-        const p = clean(pathname);
-        if (p === 'account/logout' || p === 'account/impersonate/stop') return MOVING;
-        if (p === 'account' || p.startsWith('account/')) return ME;
-        const rest = p.slice(p.indexOf('/') + 1);
-        if (!p.includes('/')) return MOVING;
-        const hit = IN_TENANT.find(([rx]) => rx.test(rest));
-        return hit ? hit[1] : MOVING;
-    };
-
-    const forPost = (pathname) => {
-        const p = clean(pathname);
-        if (p === 'account/login' || p === 'account/signup') return ME;
-        if (p === 'account/logout' || p === 'account/impersonate/stop') return MOVING;
-        return '저장하고 있어요';
-    };
 
     const line = document.createElement('div');
     line.className = 'wline';
@@ -107,28 +69,4 @@
             return res;
         },
     };
-
-    window.addEventListener('click', (e) => {
-        if (e.defaultPrevented) return;
-        const a = e.target.closest && e.target.closest('a[href]');
-        if (!a || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-        if ((a.target && a.target !== '_self') || a.hasAttribute('download') || a.hasAttribute('data-nowait')) return;
-        const u = new URL(a.href, location.href);
-        if (u.origin !== location.origin || (u.pathname === location.pathname && u.search === location.search)) return;
-        e.preventDefault();
-        start(forPage(u.pathname));
-        timers.push(setTimeout(() => location.assign(u.href), LINK_HOLD_MS));
-    });
-
-    window.addEventListener('submit', (e) => {
-        if (e.defaultPrevented) return;
-        const f = e.target;
-        const by = e.submitter;
-        if (f.hasAttribute('data-nowait') || (by && by.hasAttribute('data-nowait'))) return;
-        if ((by && by.getAttribute('formtarget')) === '_blank' || f.getAttribute('target') === '_blank') return;
-        const action = (by && by.getAttribute('formaction')) || f.getAttribute('action') || location.href;
-        const method = ((by && by.getAttribute('formmethod')) || f.getAttribute('method') || 'get').toLowerCase();
-        const u = new URL(action, location.href);
-        start(method === 'post' ? forPost(u.pathname) : forPage(u.pathname));
-    });
 })();

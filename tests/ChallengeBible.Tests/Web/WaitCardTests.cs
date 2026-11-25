@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ChallengeBible.Tests.Web;
 
-/// <summary>페이지 이동 대기 카드(ADR 0082): 공통 레이아웃에서 불러오고, 페이지별 문구를 담는다.</summary>
+/// <summary>대기 카드(ADR 0082): 공통 레이아웃에서 불러온다. 2026-11-25 부터 페이지 이동에는 쓰지 않고, 큰 동작(읽음 표시 · 사진 올리기)에서만 쓴다.</summary>
 public class WaitCardTests(WebApplicationFactory<Program> app) : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly string _db = InMemoryDb.NewName();
@@ -44,22 +44,20 @@ public class WaitCardTests(WebApplicationFactory<Program> app) : IClassFixture<W
 
     [Theory]
     [InlineData("잠시만 기다려 주세요")]
-    [InlineData("말씀을 펼치고 있어요")]
-    [InlineData("퀴즈를 준비하고 있어요")]
-    [InlineData("기도 시간을 준비하고 있어요")]
-    [InlineData("암송 구절을 꺼내고 있어요")]
-    [InlineData("오늘의 미션을 불러오고 있어요")]
-    [InlineData("달력을 넘기고 있어요")]
-    [InlineData("점수를 모으고 있어요")]
-    [InlineData("성경을 펼치고 있어요")]
-    [InlineData("통독 기록을 찾고 있어요")]
-    [InlineData("내 정보를 확인하고 있어요")]
-    [InlineData("저장하고 있어요")]
-    [InlineData("이동하고 있어요")]
     public async Task Script_has_message(string message)
     {
         var js = await Client().GetStringAsync("/js/wait.js");
         Assert.Contains(message, js);
+    }
+
+    [Fact]
+    public async Task 페이지_이동과_폼_제출에는_대기_카드를_띄우지_않고_바로_이동한다()
+    {
+        // 2026-11-25 사용자: 페이지 이동마다 느리게 하는 효과 삭제 — 링크 · 폼 처리기가 없어야 한다
+        var js = await Client().GetStringAsync("/js/wait.js");
+        Assert.DoesNotContain("addEventListener('click'", js);
+        Assert.DoesNotContain("addEventListener('submit'", js);
+        Assert.DoesNotContain("location.assign", js);
     }
 
     [Fact]
