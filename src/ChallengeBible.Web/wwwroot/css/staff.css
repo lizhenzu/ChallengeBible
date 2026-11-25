@@ -56,7 +56,7 @@
 .st-sub { margin: 12px 0 2px; font-size: 12px; font-weight: 800; color: #6e6e75; }
 .st-q { width: 100%; height: 42px; margin: 6px 0 2px; padding: 0 14px; border: 0; border-radius: 999px; background: #F4F6F9; font: inherit; font-size: 16px; color: #111827; outline: 0; }
 .st-q:focus { box-shadow: 0 0 0 2px var(--ring, #CFE0FA), 0 0 0 6px var(--ring-glow, transparent); }
-.st-sel { height: 36px; padding: 0 8px; border: 1px solid #E3E8F0; border-radius: 10px; background: #fff; font: inherit; font-size: 16px; }   /* 16px 아래면 아이폰이 확대 */
+.st-sel { height: 44px; padding: 0 8px; border: 1px solid #E3E8F0; border-radius: 10px; background: #fff; font: inherit; font-size: 16px; }   /* 16px 아래면 아이폰이 확대 */
 .st-lab { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #374151; }
 .st-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 10px 0; border-bottom: 1px solid #EEF0F3; }
 .st-pair { display: flex; gap: 6px; align-items: center; flex: none; }

@@ -25,7 +25,7 @@
 .hm .tenant span { font-size: 12px; }
 .hm-top .r { display: flex; align-items: center; gap: 12px; flex: none; }
 .hm .date { font-size: 13px; letter-spacing: .14em; color: var(--dim); }
-.hm .adm { min-height: 36px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 10px; border: 1px solid var(--rule); font-size: 13px; font-weight: 700; color: var(--dim); }
+.hm .adm { min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 10px; border: 1px solid var(--rule); font-size: 13px; font-weight: 700; color: var(--dim); }
 
 /* 임시 부서 띠(0064, 확정 시안: 임시부서-내부서찾기 ㄱ안): 노란 띠 + 파란 "내 부서 찾기" */
 .hm { --fb-bg: #FFF4D6; --fb-rule: #F3DFA8; --fb-ink: #5A3B00; --fb-dim: #6B5320; }
@@ -145,7 +145,7 @@
 .hm .dept b i { font-style: normal; font-size: 14px; color: var(--dim); }
 .hm .dept small { font-size: 13px; color: var(--dim); }
 .hm .links { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
-.hm .links a { min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--rule); display: inline-flex; align-items: center; font-size: 14px; }
+.hm .links a { min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--rule); display: inline-flex; align-items: center; font-size: 14px; }
 
 /* 우리 가족팀: 모양은 site.css 의 fh-* 를 쓴다 */
 .hm .fh h2 { font-size: 22px; }
@@ -155,9 +155,9 @@
 .hm footer .wrap { padding-block: 22px calc(30px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; font-size: 14px; color: var(--dim); }
 .hm footer .acct { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 20px; }
 .hm footer .foot-copy { margin: 0; font-size: 12.5px; color: var(--dim); }   /* 이름이 .copy 면 site.css 의 상자(테두리 · 배경)가 붙는다(사용자 2026-11-15) */
-.hm footer a { min-height: 32px; display: inline-flex; align-items: center; }
+.hm footer a { min-height: 44px; display: inline-flex; align-items: center; }
 .hm footer form { margin: 0; }
-.hm footer button { border: 0; background: none; padding: 0; min-height: 32px; font-size: 14px; color: var(--dim); }
+.hm footer button { border: 0; background: none; padding: 0; min-height: 44px; font-size: 14px; color: var(--dim); }
 
 /* 임시 부서 홈 두 단계(0068, 확정 시안: 임시부서-홈-두단계). 하늘색 머리말 → 1 · 2단계 윗부분만 / 미션 화면(← 처음 화면 + 아랫부분). 일반 부서 홈도 같은 모양(.sky, 2026-10-31 사용자) */
 .hm.sky { --sky: #EAF4FF; --sky-rule: #CFE3FA; --okc: #2F7D55; --ok-soft: #E3F1E9; --wait: #A66A00; --wait-soft: #FFF4D6; --acc-soft: #E8EEFA; }
@@ -195,7 +195,7 @@
 .hm .wl-btn { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 54px; padding: 0 18px; border-radius: 14px; font-size: 16px; font-weight: 800; }
 .hm .wl .wl-btn.wl-p { background: var(--accent); color: var(--on-accent); }
 .hm .wl .wl-btn.wl-s { margin-top: 10px; background: var(--bg); color: var(--accent); border: 1px solid var(--sky-rule); }
-.hm .wl-org .church { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; font-size: 20px; font-weight: 900; letter-spacing: -.01em; color: var(--accent); white-space: nowrap; }
+.hm .wl-org .church { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; font-size: 20px; font-weight: 900; letter-spacing: -.01em; color: var(--accent); white-space: nowrap; }
 .hm .wl-org .church svg { width: 13px; height: 13px; flex: none; margin-top: -6px; }
 .hm .wl-keep { margin: 12px 0 0; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--dim); }
 .hm .wl-keep svg { flex: none; margin-top: 3px; color: var(--okc); }
@@ -210,7 +210,7 @@
 .hm .wl-dept .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .hm .wl-dept .tenant { color: var(--fg); font-weight: 800; }
 .hm .wl-dept a.tenant { color: var(--accent); }
-.hm .wl-dept .adm { min-height: 36px; background: var(--bg); border-color: var(--sky-rule); }
+.hm .wl-dept .adm { min-height: 44px; background: var(--bg); border-color: var(--sky-rule); }
 /* 미션 화면의 오늘의 말씀: 남색 띠 → 흰 말씀 카드(첫 화면과 같은 모양) */
 .hm.sky .verse { background: transparent; color: var(--fg); padding-top: 22px; }
 .hm.sky .verse .wrap { position: relative; background: var(--bg); border: 1px solid var(--rule); border-radius: 22px; padding: 24px 20px 20px; box-shadow: 0 18px 34px -28px rgba(43,89,195,.45); }
@@ -460,7 +460,7 @@
 @media (max-width: 480px) {
   .hm .wl-top .wrap { min-height: 52px; padding-block: 4px; gap: 8px; }
   .hm .wl-top .wrap > .mailb { margin-right: -8px; }   /* 날짜 · 봉투를 오른쪽 끝으로 */
-  .hm .wl-org .church { font-size: 17px; min-height: 22px; }
+  .hm .wl-org .church { font-size: 17px; min-height: 44px; }
   .hm .wl-org small { font-size: 12px; }
   .hm .hj-card.hj-hi { padding: 16px 14px 14px; }
   .hm .hj-hi h1 { font-size: 23px; margin: 0 0 6px; }
@@ -590,14 +590,14 @@
 .hmx-act { display: flex; align-items: center; gap: 2px; }
 .hmx-prof img { width: 27px; height: 27px; border-radius: 50%; object-fit: cover; display: block; }
 /* 머리말 내 계정: 프로필 + "000님" (2026-11-23 사용자) */
-.hmx-me { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; max-width: 156px; padding: 0 10px 0 5px; border: 1px solid #e3e6ea; border-radius: 999px; background: #fff; color: #222; text-decoration: none; }
+.hmx-me { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; max-width: 156px; padding: 0 10px 0 5px; border: 1px solid #e3e6ea; border-radius: 999px; background: #fff; color: #222; text-decoration: none; }
 .hmx-me .av { width: 30px; height: 30px; flex: none; border-radius: 50%; background: #e8edf9; color: #1e3a8a; font-size: 12px; font-weight: 900; display: grid; place-items: center; overflow: hidden; }
 .hmx-me .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .hmx-me b { font-size: 13.5px; font-weight: 800; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hmx-me:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 .hmx-act .mailb { width: 40px; height: 40px; border-radius: 10px; background: transparent; color: #222; }
 .hmx-act .mailb i { top: 2px; right: 2px; box-shadow: 0 0 0 2px #fff; }
-.hmx-login { min-height: 38px; padding: 0 16px; display: inline-flex; align-items: center; border-radius: 11px; background: #1e3a8a; color: #fff; font-size: 14px; font-weight: 800; }
+.hmx-login { min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; border-radius: 11px; background: #1e3a8a; color: #fff; font-size: 14px; font-weight: 800; }
 .hmx-logo { text-align: center; padding: 8px 0 2px; }
 .hmx-logo h1 { margin: 0; font-size: 32px; font-weight: 900; color: #1e3a8a; letter-spacing: .5px; line-height: 1.25; word-break: keep-all; }
 .hmx-logo h1 span { color: #0179dc; }
@@ -632,7 +632,7 @@
 .hmx-guest { display: grid; gap: 4px; margin-top: 14px; padding: 14px; background: #fff; border: 1px solid #e6e9ef; border-radius: 12px; text-align: center; }
 .hmx-guest b { font-size: 13.5px; font-weight: 900; }
 .hmx-guest span { font-size: 12px; color: #6e6e75; }
-.hmx-guest a { justify-self: center; margin-top: 6px; min-height: 40px; padding: 0 18px; display: inline-flex; align-items: center; border-radius: 10px; background: #1e3a8a; color: #fff; font-size: 13.5px; font-weight: 800; }
+.hmx-guest a { justify-self: center; margin-top: 6px; min-height: 44px; padding: 0 18px; display: inline-flex; align-items: center; border-radius: 10px; background: #1e3a8a; color: #fff; font-size: 13.5px; font-weight: 800; }
 .hmx-links { display: flex; justify-content: center; gap: 14px; margin-top: 20px; font-size: 12.5px; color: #6e6e75; }
 .hmx-links a { color: #3b4a7d; text-decoration: underline; text-underline-offset: 3px; }
 @media (min-width: 720px) { .hmx-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); padding-inline: 10px; } }
@@ -653,7 +653,7 @@
 .hmx-inv .cnt { margin-left: auto; font-size: 12px; color: #5b6b8c; flex: none; }
 .hmx-inv .row { display: flex; align-items: center; gap: 10px; margin-top: 13px; }
 .hmx-inv .row form { margin: 0; display: inline-flex; }
-.hmx-inv .go { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 16px; border-radius: 11px; background: #1e3a8a; color: #fff; font-size: 13.5px; font-weight: 800; }
+.hmx-inv .go { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: 11px; background: #1e3a8a; color: #fff; font-size: 13.5px; font-weight: 800; }
 .hmx-inv .later { border: 0; background: none; padding: 6px 0; font: inherit; font-size: 12.5px; font-weight: 700; color: #5b6b8c; cursor: pointer; }
 
 .hmx-fam { display: flex; align-items: center; gap: 13px; margin-top: 18px; padding: 16px; border: 1px solid #eceef2; border-radius: 14px; background: #f6f7f9; color: inherit; text-decoration: none; }
@@ -675,7 +675,7 @@
 .hmx-make b { display: block; font-size: 15px; font-weight: 900; line-height: 1.4; }
 .hmx-make small { display: block; margin-top: 4px; font-size: 12.5px; color: #6e6e75; line-height: 1.55; }
 .hmx-make .row { display: flex; gap: 8px; margin-top: 14px; }
-.hmx-make .go, .hmx-make .alt { flex: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 12px; border-radius: 11px; font-size: 13.5px; font-weight: 800; }
+.hmx-make .go, .hmx-make .alt { flex: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 12px; border-radius: 11px; font-size: 13.5px; font-weight: 800; }
 .hmx-make .go { background: #1e3a8a; color: #fff; }
 .hmx-make .alt { background: #fff; border: 1px solid #c9d6ea; color: #3b4a7d; }
 

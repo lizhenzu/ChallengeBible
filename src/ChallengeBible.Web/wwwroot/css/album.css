@@ -3,7 +3,7 @@
 .al-pg h1 { margin: 0; font-size: 21px; overflow-wrap: anywhere; }
 .al-back { font-size: 14px; font-weight: 800; color: var(--accent); text-decoration: none; }
 .al-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.al-btn { min-height: 40px; padding: 0 12px; border-radius: 11px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 13.5px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 4px; text-decoration: none; cursor: pointer; font-family: inherit; }
+.al-btn { min-height: 44px; padding: 0 12px; border-radius: 11px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 13.5px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 4px; text-decoration: none; cursor: pointer; font-family: inherit; }
 .al-btn.p { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
 .al-btn.d { color: var(--bad); }
 .al-btn.big { min-height: 52px; font-size: 16px; width: 100%; }
@@ -39,7 +39,7 @@ form.sel .al-ph:has(input:checked) { outline: 3px solid var(--accent); outline-o
 .al-sel { position: sticky; bottom: 10px; margin-top: 10px; background: var(--fg); color: var(--bg); border-radius: 14px; padding: 8px 10px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; font-weight: 800; z-index: 5; }
 .al-sel[hidden] { display: none; }
 .al-sel .sp { flex: 1; }
-.al-sel .al-btn { min-height: 34px; font-size: 12.5px; border: 0; }
+.al-sel .al-btn { min-height: 44px; font-size: 12.5px; border: 0; }
 .al-up { border: 1px solid var(--rule); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
 .al-up[hidden] { display: none; }
 .al-big { font-size: 26px; font-weight: 900; }
@@ -65,7 +65,7 @@ form.sel .al-ph:has(input:checked) { outline: 3px solid var(--accent); outline-o
 .al-vw img { max-width: 100%; max-height: calc(100vh - 200px); object-fit: contain; border-radius: 6px; }
 .al-x { position: absolute; top: 10px; right: 12px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, .15); color: #fff; font-size: 18px; cursor: pointer; }
 .al-nav { display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 800; }
-.al-nav button { min-height: 38px; padding: 0 14px; border-radius: 99px; border: 0; background: rgba(255, 255, 255, .15); color: #fff; font-weight: 800; cursor: pointer; }
+.al-nav button { min-height: 44px; padding: 0 14px; border-radius: 99px; border: 0; background: rgba(255, 255, 255, .15); color: #fff; font-weight: 800; cursor: pointer; }
 .al-meta { font-size: 12px; color: #6e6e75; text-align: center; overflow-wrap: anywhere; }
 .al-vw .al-btn { background: #fff; color: #111; border: 0; }
 .al-vw .al-btn.d { color: #e03131; }
@@ -75,7 +75,7 @@ form.sel .al-ph:has(input:checked) { outline: 3px solid var(--accent); outline-o
 .al-f .in { font-size: 15px; color: var(--fg); font-weight: 400; }
 .al-f textarea.in { min-height: 80px; resize: vertical; font-family: inherit; }
 .al-f legend { padding: 0; margin-bottom: 6px; }
-.al-radio, .al-check { display: flex; align-items: center; gap: 8px; min-height: 40px; font-size: 14.5px; font-weight: 700; color: var(--fg); cursor: pointer; }
+.al-radio, .al-check { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14.5px; font-weight: 700; color: var(--fg); cursor: pointer; }
 .al-radio input, .al-check input { width: 20px; height: 20px; accent-color: var(--accent); }
 .al-danger { margin: 14px 0 0; padding: 12px; border: 1px solid color-mix(in srgb, var(--bad) 30%, var(--rule)); border-radius: 14px; display: flex; flex-direction: column; gap: 8px; }
 .al-danger p { margin: 0; font-size: 13px; color: var(--dim); }

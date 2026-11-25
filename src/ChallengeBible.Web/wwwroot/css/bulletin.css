@@ -1,9 +1,9 @@
 /* 부서 주보(ADR 0117, 2026-11-20 확정 시안 주보) */
 .jb-pg .wrap { max-width: 760px; padding-block: 14px 40px; display: flex; flex-direction: column; gap: 12px; }
 .jb-pg h1 { margin: 0; font-size: 21px; }
-.jb-back { font-size: 14px; font-weight: 800; color: var(--accent); text-decoration: none; }
+.jb-back { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 800; color: var(--accent); text-decoration: none; }
 .jb-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.jb-btn { min-height: 42px; padding: 0 14px; border-radius: 11px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 14px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer; font-family: inherit; }
+.jb-btn { min-height: 44px; padding: 0 14px; border-radius: 11px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 14px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer; font-family: inherit; }
 .jb-btn.p { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
 .jb-btn.big { min-height: 52px; font-size: 16px; width: 100%; }
 .jb-empty { margin: 0; padding: 30px 10px; text-align: center; color: var(--dim); }

@@ -32,7 +32,7 @@
 .person-btn { width: 40px; height: 40px; flex: none; border-radius: 50%; background: #fff; border: 1px solid var(--line); display: inline-grid; place-items: center; color: var(--ink); }
 .person-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 /* 로그인한 사람: 머리말 「000님」 (2026-11-23 사용자) */
-.vb .hmx-me { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; max-width: 156px; padding: 0 10px 0 5px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); }
+.vb .hmx-me { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; max-width: 156px; padding: 0 10px 0 5px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); }
 .vb .hmx-me:not(:has(.av)) { padding: 0 13px; }   /* 사진이 없으면 「이」 동그라미 없이 이름만(2026-11-23 사용자: 공간 부족) */
 .vb .hmx-me .av { width: 30px; height: 30px; flex: none; border-radius: 50%; background: #ededef; color: var(--ink); font-size: 12px; font-weight: 900; display: grid; place-items: center; overflow: hidden; }
 .vb .hmx-me .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -154,7 +154,7 @@
 .vb-guest { margin-top: 14px; padding: 14px; border-radius: 14px; background: var(--soft); }
 .vb-guest b { display: block; font-size: 14px; font-weight: 800; }
 .vb-guest span { display: block; margin-top: 2px; font-size: 12px; color: var(--ink-3); }
-.vb-guest a { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; margin-top: 10px; padding: 0 16px; border-radius: 10px; background: var(--ink); color: #fff; font-size: 13.5px; font-weight: 800; }
+.vb-guest a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; margin-top: 10px; padding: 0 16px; border-radius: 10px; background: var(--ink); color: #fff; font-size: 13.5px; font-weight: 800; }
 
 /* 나의 도전 현황 통합 카드(2026-11-23 사용자 확정 · ADR 0133 · 시안 docs/design/시안/홈-나의도전-통합카드-단독시안.html)
    체크 표시 없이 바탕색+글자색으로 완료/대기중을 나타낸다. 완료=초록 바탕·흰 글자, 대기중=옅은 초록 바탕·초록 글자. */
@@ -233,7 +233,7 @@
 .vb .hmx-inv .cnt { margin-left: auto; flex: none; font-size: 12px; color: var(--ink-3); }
 .vb .hmx-inv .row { display: flex; align-items: center; gap: 10px; margin-top: 13px; }
 .vb .hmx-inv .row form { margin: 0; display: inline-flex; }
-.vb .hmx-inv .go { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 16px; border-radius: 11px; background: var(--ink); color: #fff; font-size: 13.5px; font-weight: 800; }
+.vb .hmx-inv .go { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: 11px; background: var(--ink); color: #fff; font-size: 13.5px; font-weight: 800; }
 .vb .hmx-inv .later { border: 0; background: none; padding: 6px 0; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--ink-3); cursor: pointer; }
 
 .vb .hmx-fam { display: flex; align-items: center; gap: 13px; margin-top: 18px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--soft); color: inherit; text-decoration: none; }
@@ -255,7 +255,7 @@
 .vb .hmx-make b { display: block; font-size: 15px; font-weight: 900; line-height: 1.4; color: var(--ink); }
 .vb .hmx-make small { display: block; margin-top: 4px; font-size: 12.5px; line-height: 1.55; color: var(--ink-3); }
 .vb .hmx-make .row { display: flex; gap: 8px; margin-top: 14px; }
-.vb .hmx-make .go, .vb .hmx-make .alt { flex: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 12px; border-radius: 11px; font-size: 13.5px; font-weight: 800; }
+.vb .hmx-make .go, .vb .hmx-make .alt { flex: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 12px; border-radius: 11px; font-size: 13.5px; font-weight: 800; }
 .vb .hmx-make .go { background: var(--ink); color: #fff; }
 .vb .hmx-make .alt { background: var(--paper); border: 1px solid #d6d6db; color: var(--ink-2); }
 .vb .lb-ban { display: grid; gap: 10px; margin-top: 18px; padding: 14px; border-radius: 16px; }

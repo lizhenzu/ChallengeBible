@@ -4,7 +4,7 @@
 .msg .seg { justify-self: start; }
 .msg .seg em { font-style: normal; color: #DC2626; margin-left: 4px; }
 .ms-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.ms-write { flex: none; justify-content: center; min-height: 40px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 900; white-space: nowrap; }
+.ms-write { flex: none; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 900; white-space: nowrap; }
 .ms-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .ms-list .empty { padding: 32px 16px; text-align: center; color: var(--dim); border: 1px solid #DCE1E8; border-radius: 16px; }
 .ms-row { border: 1px solid #DCE1E8; border-radius: 14px; background: var(--bg); }
@@ -29,7 +29,7 @@
 .ms-bc .cn { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px; margin-top: 6px; font-size: 12.5px; color: #4B5563; }
 .ms-bc .x { font-size: 12.5px; font-weight: 800; color: #B91C1C; border: 1px solid #FCA5A5; border-radius: 9px; padding: 4px 10px; background: #fff; cursor: pointer; }
 .ms-bc details[open] { flex-basis: 100%; }
-.ms-back { font-size: 14px; font-weight: 800; color: var(--accent); }
+.ms-back { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 800; color: var(--accent); }
 .ms-view { display: grid; gap: 12px; padding: 16px; border: 1px solid #DCE1E8; border-radius: 16px; background: var(--bg); }
 .ms-view .hd { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 2px 10px; align-items: center; }
 .ms-view .hd .av { width: 40px; height: 40px; }
@@ -79,5 +79,5 @@
 .msg .ms-cf p { margin: 0; }
 .msg .ms-cf .r { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
 .msg .ms-cf .r form { margin: 0; }
-.msg .ms-cf .btn { min-height: 40px; border-radius: 10px; font-weight: 800; padding: 0 16px; }
+.msg .ms-cf .btn { min-height: 44px; border-radius: 10px; font-weight: 800; padding: 0 16px; }
 .msg .ms-gone { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: #F3F4F6; font-size: 13px; font-weight: 700; color: #6B7280; }

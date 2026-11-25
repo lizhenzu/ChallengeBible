@@ -54,7 +54,7 @@
 
 /* ── ② 따라 치기 ── */
 .bc-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.bc-chip { min-height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--line); font-size: 13px; font-weight: 700; background: var(--bc-card); color: var(--fg); cursor: pointer; }
+.bc-chip { min-height: 44px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--line); font-size: 13px; font-weight: 700; background: var(--bc-card); color: var(--fg); cursor: pointer; }
 .bc-chip[aria-pressed="true"] { background: var(--bc-acc); border-color: var(--bc-acc); color: var(--bc-on-acc); }
 .bc-dots { display: flex; flex-wrap: wrap; gap: 4px; }
 .bc-dots button { width: 18px; height: 18px; padding: 0; border-radius: 5px; border: 0; background: var(--bc-track); cursor: pointer; }

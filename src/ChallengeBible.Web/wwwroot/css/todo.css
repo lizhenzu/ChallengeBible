@@ -6,7 +6,7 @@
 .td-top .t small { display: block; font-size: 12px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .td-top .t small em { font-style: normal; font-weight: 900; color: var(--accent); }
 .td-top .t b { font-size: 16px; font-weight: 800; }
-.td-home { flex: none; min-height: 40px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 99px; background: var(--accent); color: var(--on-accent, #fff); font-size: 14px; font-weight: 800; text-decoration: none; }
+.td-home { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 99px; background: var(--accent); color: var(--on-accent, #fff); font-size: 14px; font-weight: 800; text-decoration: none; }
 .td-main { max-width: 760px; padding-block: 14px 40px; display: flex; flex-direction: column; gap: 12px; }
 .td-msg { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--ok-bg); color: var(--ok); font-weight: 700; font-size: 14px; }
 .td-hello h1 { margin: 0; font-size: 22px; }
@@ -14,7 +14,7 @@
 .td-snooze { margin: 0; background: var(--soft); border-radius: 14px; padding: 10px 12px; }
 .td-snooze small { display: block; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
 .td-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.td-chips button { min-height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 13px; font-weight: 700; cursor: pointer; }
+.td-chips button { min-height: 44px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 13px; font-weight: 700; cursor: pointer; }
 .td-empty { text-align: center; padding: 30px 10px; color: var(--dim); font-size: 15px; }
 .td-sec { display: flex; flex-wrap: wrap; gap: 2px 10px; justify-content: space-between; align-items: baseline; margin: 6px 2px -4px; font-size: 12.5px; font-weight: 800; color: var(--dim); }
 .td-sec b { color: var(--fg); font-size: 15px; }
@@ -29,7 +29,7 @@
 .td-row .what .who.late { background: var(--bad-bg); color: var(--bad); }
 .td-btns { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
 .td-btns form { margin: 0; }
-.td-btns .btn { min-height: 40px; padding: 0 12px; border-radius: 11px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; text-decoration: none; cursor: pointer; }
+.td-btns .btn { min-height: 44px; padding: 0 12px; border-radius: 11px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; text-decoration: none; cursor: pointer; }
 .td-btns .btn.p { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
 .td-btns .btn.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
 .td-dept { border: 1px solid var(--rule); border-radius: 14px; padding: 10px 12px; }
@@ -53,7 +53,7 @@
   .td-rule tr { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--rule); border-radius: 14px; }
   .td-rule td { padding: 0; border: 0; }
   .td-rule td:first-child { flex-basis: 100%; font-size: 15px; margin-bottom: 4px; }
-  .td-rule label { min-height: 40px; min-width: 0; gap: 6px; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; font-weight: 700; color: var(--dim); background: var(--bg); }
+  .td-rule label { min-height: 44px; min-width: 0; gap: 6px; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; font-weight: 700; color: var(--dim); background: var(--bg); }
   .td-rule label span { display: inline; }
   .td-rule input { width: 18px; height: 18px; }
   .td-rule label:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
