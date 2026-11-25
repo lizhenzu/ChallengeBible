@@ -45,7 +45,7 @@
 .brand-title .bt-ex i { font-style: normal; margin-left: .02em; }
 .brand-title .e1 { color: #22b35e; }
 .brand-title .e2 { color: #3b7cf0; }
-.brand-title .e3 { color: #f07a22; }
+.brand-title .e3 { color: #e8458f; }   /* 주황 → 분홍(2026-11-25 사용자): 초록 · 파랑 · 분홍 */
 .vb-tag { margin-top: 16px !important; font-size: 15px; color: var(--ink-2); line-height: 1.55; }
 .vb-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
 .vb-pills span { font-size: 12px; font-weight: 800; padding: 6px 11px; border-radius: 999px; color: #fff; }
