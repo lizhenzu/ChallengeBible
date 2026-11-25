@@ -201,7 +201,7 @@ body:has(.rp[data-theme]) { background: var(--bg); }
 
 /* 본문 읽기(옛 Read): 파란 머리 → 장 번호 줄 → 설정 칸 → 개요 → 절 → 큰 버튼 → 장 이동 → 아래 버튼. 절 · 해설 · 큰 버튼 모양은 .brd(site.css · reading.css) 그대로 */
 .b2main.b2r { max-width: none; margin-right: 0; padding: 0 0 calc(40px + env(safe-area-inset-bottom, 0px)); --b-acc: var(--r-acc); --b-accSoft: var(--r-accSoft); }
-.b2r .b2ri { max-width: 760px; margin: 0 auto; padding: 0 18px; }
+.b2r .b2ri { max-width: 760px; margin: 0 auto; padding: 0 20px; }   /* 좌우 20px 통일(2026-11-25 공통 2) */
 @media (min-width: 769px) { .b2r .b2ri { padding: 0 32px; } }
 .b2rh { background: var(--r-acc); color: #fff; padding: 12px 0 18px; }
 .b2rh a { color: #fff; }
