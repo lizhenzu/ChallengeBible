@@ -318,3 +318,5 @@ body:has(.wl) { background: #F1F1F3; }
 .wl .wl-admin { color: var(--color-ink); }
 .wl .wl-admin__kicker { color: var(--color-ink-3); }
 @media (min-width: 720px) { .wl .wl-actions--solo { grid-template-columns: minmax(0, 1fr); } }
+/* 제목은 한 줄(2026-11-25 사용자 "2줄이다. 한 줄로"): 줄바꿈 없이 글자 크기를 줄여 맞춘다(아래 스크립트, 최소 18px) */
+.wl .wl-title { white-space: nowrap; overflow: hidden; text-wrap: nowrap; }
