@@ -32,7 +32,7 @@ public sealed class ResetService(ISystemDb systemDb, TimeProvider time)
         ("teams", Records, "가족팀 · 친구팀"),
         ("reading", Records, "성경통독"),
         ("copy", Records, "성경필사"),
-        ("prayer", Records, "365 기도 기록"),   // ADR 0106
+        ("prayer", Records, "365축복기도 기록"),   // ADR 0106
         ("requests", Records, "진급 · 참여 신청"),
         ("logs", Records, "검색 기록 · 감사 로그"),
         ("accounts", People, "가짜 계정(@fake-seed.test)"),
@@ -274,7 +274,7 @@ public sealed class ResetService(ISystemDb systemDb, TimeProvider time)
     {
         var label = p[0] switch
         {
-            "missions" => "미션", "attend" => "출석", "gifts" => "선물", "awards" => "시상", "teams" => "팀", "reading" => "통독", "copy" => "필사", "prayer" => "365 기도",
+            "missions" => "미션", "attend" => "출석", "gifts" => "선물", "awards" => "시상", "teams" => "팀", "reading" => "통독", "copy" => "필사", "prayer" => "365축복기도",
             "requests" => "신청", "logs" => "로그", "audits" => "감사 로그", "accounts" => "계정", "members" => "회원", "people" or "roster" => "명부", _ => p[0],
         };
         return label + " " + (int.TryParse(p[1], out var n) ? n.ToString("N0") : p[1]);

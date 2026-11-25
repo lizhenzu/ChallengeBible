@@ -48,7 +48,7 @@ public sealed record Prayer365Dashboard(int Today, int Week, int Total, int AvgR
     IReadOnlyList<Prayer365DeptRow> Depts, IReadOnlyList<(string MonthDay, string Title, int Views)> TopViewed, IReadOnlyList<(DateOnly Day, int People)> TopDays);
 
 /// <summary>
-/// 자녀를 위한 365 기도(ADR 0106, R-316 ~ R-319). 기도문은 플랫폼 공용(월일마다 한 편, 비어 있는 날은 샘플을 보여 준다),
+/// 자녀를 위한 365축복기도(ADR 0106, R-316 ~ R-319). 기도문은 플랫폼 공용(월일마다 한 편, 비어 있는 날은 샘플을 보여 준다),
 /// 기도 기록 · 조회 수는 부서 표. 학생 · 새친구에게는 보이지 않는다.
 /// </summary>
 public sealed class Prayer365Service(IAppDb db, ISystemDb systemDb, RequestScope scope, TenantContext tenant, TenantClock clock, TimeProvider time)
@@ -90,7 +90,7 @@ public sealed class Prayer365Service(IAppDb db, ISystemDb systemDb, RequestScope
     }
 
     // ── 누가 보나(R-316) ──
-    /// <summary>학생 · 새친구 역할인가(365 기도를 보지 않는다).</summary>
+    /// <summary>학생 · 새친구 역할인가(365축복기도를 보지 않는다).</summary>
     public static bool IsStudentRole(string? roleCode) => UserRole.KindOf(roleCode) == UserRoleKind.Student || (roleCode ?? "").Trim() == ClassService.NewcomerCode;
     /// <summary>이 부서에서 볼 수 있나: 로그인 · 승인된 소속 · 학생 · 새친구가 아님 · 임시 부서가 아님. 플랫폼 관리자는 늘.</summary>
     public bool CanSee(bool platformAdmin) => tenant.Tenant is not null && !tenant.IsLobby && scope.UserName is not null
@@ -175,7 +175,7 @@ public sealed class Prayer365Service(IAppDb db, ISystemDb systemDb, RequestScope
     }
 
     // ── 플랫폼 관리자 ──
-    /// <summary>365 기도 통계(대시보드, ADR 0106 질문 7): 오늘 · 이번 주 · 누적 · 평균 기도율 · 최근 30일 · 부서별 · 많이 읽힌 기도문 · 함께 기도가 많은 날.</summary>
+    /// <summary>365축복기도 통계(대시보드, ADR 0106 질문 7): 오늘 · 이번 주 · 누적 · 평균 기도율 · 최근 30일 · 부서별 · 많이 읽힌 기도문 · 함께 기도가 많은 날.</summary>
     public async Task<Prayer365Dashboard> DashboardAsync(string actor, CancellationToken ct = default)
     {
         await using var ctx = systemDb.Create(actor);

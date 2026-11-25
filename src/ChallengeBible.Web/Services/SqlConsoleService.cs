@@ -30,7 +30,7 @@ public sealed partial class SqlConsoleService(ISystemDb systemDb, TimeProvider t
         ("부서별 소속", "SELECT t.Slug, t.Name, COUNT(d.Id) AS 소속\nFROM app.Tenant t\nLEFT JOIN dbo.DeptRoleUserAssoc d ON d.TenantId = t.Id\nGROUP BY t.Slug, t.Name\nORDER BY t.Name;"),
         ("할 일이 뜨는 이유", "-- 이름을 바꿔서 실행: 역할 코드 · 권한 · 업무 칩 · 담임 반 수\nSELECT t.Slug, u.UserName, u.LastName + u.FirstName AS 이름, d.RoleCode,\n  (SELECT STRING_AGG(r.Name, ', ') FROM [Identity].[UserRoles] ur JOIN [Identity].[Role] r ON r.Id = ur.RoleId WHERE ur.UserId = u.Id) AS 권한,\n  (SELECT COUNT(*) FROM app.MemberTag m WHERE m.UserId = u.Id AND m.TenantId = d.TenantId) AS 업무칩,\n  (SELECT COUNT(*) FROM app.Person p JOIN app.ClassMember cm ON cm.TenantId = p.TenantId AND cm.PersonId = p.Id\n   WHERE p.UserId = u.Id AND p.TenantId = d.TenantId AND cm.IsTeacher = 1) AS 담임반수\nFROM [Identity].[User] u\nJOIN dbo.DeptRoleUserAssoc d ON d.UserId = u.Id\nJOIN app.Tenant t ON t.Id = d.TenantId\nWHERE u.LastName + u.FirstName LIKE N'%조진찬%';"),
         ("가짜 계정 수", "SELECT COUNT(*) AS 가짜계정 FROM [Identity].[User] WHERE Email LIKE N'%@fake-seed.test';"),
-        ("오늘 365 기도", "SELECT t.Name AS 부서, COUNT(*) AS 기도한사람\nFROM app.Prayer365Log l JOIN app.Tenant t ON t.Id = l.TenantId\nWHERE l.PrayDate = CAST(SWITCHOFFSET(SYSUTCDATETIME(), '+09:00') AS date)\nGROUP BY t.Name;"),
+        ("오늘 365축복기도", "SELECT t.Name AS 부서, COUNT(*) AS 기도한사람\nFROM app.Prayer365Log l JOIN app.Tenant t ON t.Id = l.TenantId\nWHERE l.PrayDate = CAST(SWITCHOFFSET(SYSUTCDATETIME(), '+09:00') AS date)\nGROUP BY t.Name;"),
     ];
 
     [GeneratedRegex(@"\b(COMMIT|ROLLBACK)\b|\bBEGIN\s+(DISTRIBUTED\s+)?TRAN|\bSAVE\s+TRAN|IMPLICIT_TRANSACTIONS", RegexOptions.IgnoreCase)]

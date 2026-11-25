@@ -563,17 +563,17 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids/copy", "33-필사홈");
         await Save(kid, "/jamsil-kids/copy/books?t=nt&b=43", "34-필사-장고르기");
         await Save(kid, "/jamsil-kids/copy/write/43/3", "35-필사-쓰기");
-        using (var raw = InMemoryDb.Raw(db))   // 확정 시안 365기도: 관리자(교사)가 지난 며칠 기도함 · 오늘도
+        using (var raw = InMemoryDb.Raw(db))   // 확정 시안 365축복기도: 관리자(교사)가 지난 며칠 기도함 · 오늘도
         {
             foreach (var d in new[] { 1, 2, 3, 5 }) raw.Prayer365Logs.Add(new Prayer365Log { TenantId = kids.Id, UserName = Acc("eunhye"), PrayDate = new DateOnly(2027, 1, d), MonthDay = $"01{d:00}", PrayedUtc = DateTime.UtcNow });
             raw.SaveChanges();
         }
-        await Save(admin, "/jamsil-kids/prayer365", "36-365기도");
-        await Save(admin, "/jamsil-kids", "36b-부서홈-365기도카드");
-        await Save(admin, "/jamsil-kids/admin/prayer365", "37-365기도-참여자");
-        await Save(op, "/platform/prayer365", "38-플랫폼-365기도문");
-        await Save(op, "/platform/prayer365-stats", "39-플랫폼-365기도통계");
-        await Save(op, "/platform/prayer365/edit?md=1218", "39b-플랫폼-365기도문-고치기");
+        await Save(admin, "/jamsil-kids/prayer365", "36-365축복기도");
+        await Save(admin, "/jamsil-kids", "36b-부서홈-365축복기도카드");
+        await Save(admin, "/jamsil-kids/admin/prayer365", "37-365축복기도-참여자");
+        await Save(op, "/platform/prayer365", "38-플랫폼-365축복기도문");
+        await Save(op, "/platform/prayer365-stats", "39-플랫폼-365축복기도통계");
+        await Save(op, "/platform/prayer365/edit?md=1218", "39b-플랫폼-365축복기도문-고치기");
         await Save(op, "/platform/content/word/check", "39c-플랫폼-말씀입력");
         await Save(op, "/platform/content/quiz/check", "39d-플랫폼-퀴즈출제");
         await Save(op, "/platform/gifts", "39e-플랫폼-선물상품");

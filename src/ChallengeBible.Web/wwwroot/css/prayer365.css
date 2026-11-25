@@ -1,4 +1,4 @@
-﻿/* 자녀를 위한 365 기도(ADR 0106, 확정 시안 365기도) — 유년부 Prayer365 밝은 버전과 같은 모양 */
+﻿/* 자녀를 위한 365축복기도(ADR 0106, 확정 시안 365축복기도) — 유년부 Prayer365 밝은 버전과 같은 모양 */
 .p365 { --p-tx: #111827; --p-dim: #6e6e75; --p-dim2: #6B7280; --p-rule: #EEF0F3; --p-mark: #F4F6F9; --p-acc: #2F80ED; --p-acc-tx: #1f55c0; --p-ok: #15803D; --p-okbg: #EAF7EF; --p-warn: #B4531F; --p-warnbg: #FBEFE7;
   max-width: 760px; margin: 0 auto; padding: 0 20px 48px; color: #374151; }
 .p365-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 0 12px; font-size: 13px; color: var(--p-dim); }
@@ -38,7 +38,7 @@
 .p365-ps .p3mo div { height: 6px; border-radius: 99px; background: #fff; overflow: hidden; } .p365-ps .p3mo div i { display: block; height: 100%; background: var(--p-acc); } .p365-ps .p3mo em { font-style: normal; }
 .p365-src { margin-top: 18px; font-size: 12px; color: var(--p-dim); text-align: center; line-height: 1.7; word-break: keep-all; }
 
-/* 부서 홈 365 기도 카드 — 유년부 홈 "오늘의 기도"(_Banner_TodayPrayer) 와 같은 모양(2026-11-17 사용자 A안) */
+/* 부서 홈 365축복기도 카드 — 유년부 홈 "오늘의 기도"(_Banner_TodayPrayer) 와 같은 모양(2026-11-17 사용자 A안) */
 .hm .hj-card.tpCard { padding: 18px; font-family: "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif; color: #374151; text-align: left; }
 .tpHd { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .tpK { font-size: 12px; font-weight: 800; letter-spacing: .02em; color: #1f55c0; }
@@ -67,7 +67,7 @@ a.tpRow:hover .tpTx b { color: #1f55c0; }
 .tpTx .tpDay em b { display: inline; font-size: 12px; font-weight: 800; color: #1f55c0; }
 @media (max-width: 480px) { .hm .hj-card.tpCard { padding: 16px 14px; } .tpT { font-size: 19px; } }
 
-/* 관리 · 플랫폼(확정 시안 365기도 ③ ~ ⑤) */
+/* 관리 · 플랫폼(확정 시안 365축복기도 ③ ~ ⑤) */
 .p3k { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .p3k div { background: var(--soft); border-radius: 14px; padding: 12px 14px; min-width: 0; } .p3k small { font-size: 12px; color: var(--dim); }
 .p3k b { display: block; font-size: 24px; font-weight: 800; margin-top: 2px; } .p3k b u { text-decoration: none; font-size: 13px; font-weight: 500; margin-left: 2px; }

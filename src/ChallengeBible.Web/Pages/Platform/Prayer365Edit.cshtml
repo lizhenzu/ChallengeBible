@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="~/css/prayer365.css" asp-append-version="true" />
 <partial name="_PlatformTop" />
 <main class="admin gut p3e"><div class="wrap">
-    <a href="/platform/prayer365">← 365 기도문</a>
+    <a href="/platform/prayer365">← 365축복기도문</a>
     <h1>@Prayer365Service.Label(md) 기도문 <small style="font-size:13px;color:var(--dim)">@(Model.Missing ? "빈 날 — 샘플을 채워 두었어요" : it.IsSample ? "샘플" : it.IsReviewed ? "검수 완료" : "확인 필요")</small></h1>
     @if (Model.Msg is { } msg) { <p class="ok-box" role="status">@msg</p> }
     <form method="post" class="p3f">

@@ -1,7 +1,7 @@
 ﻿@page "/{slug}/prayer365"
 @model ChallengeBible.Web.Pages.Prayer365.IndexModel
 @using ChallengeBible.Web.Services
-@* 확정 시안 365기도 ①(2026-11-16, ADR 0106): 유년부 Prayer365 일반 보기(?view=user)와 같은 구성 — 원 진행 · 제목 · 말씀 · 본문(호칭 줄 · 아멘) · [오늘 기도 했어요] · 함께 기도 · 나의 기도 기록 · 출처 *@
+@* 확정 시안 365축복기도 ①(2026-11-16, ADR 0106): 유년부 Prayer365 일반 보기(?view=user)와 같은 구성 — 원 진행 · 제목 · 말씀 · 본문(호칭 줄 · 아멘) · [오늘 기도 했어요] · 함께 기도 · 나의 기도 기록 · 출처 *@
 @{
     var it = Model.Item;
     var idx = Prayer365Service.DayIndex(Model.MonthDay);
@@ -16,7 +16,7 @@
     var first = new DateOnly(s.Today.Year, s.Today.Month, 1);
 }
 <link rel="stylesheet" href="~/css/prayer365.css" asp-append-version="true" />
-@{ ViewData["PbTitle"] = "기도365"; }
+@{ ViewData["PbTitle"] = "365축복기도"; }
 <partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <main class="p365" data-p365>
     <div class="p365-bar">

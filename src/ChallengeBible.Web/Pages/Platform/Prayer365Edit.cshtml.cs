@@ -10,7 +10,7 @@ namespace ChallengeBible.Web.Pages.Platform;
 [Authorize(Policy = CurrentUser.PlatformAdminPolicy)]
 public class Prayer365EditModel(Prayer365Service prayers) : PageModel, ITitled
 {
-    public string Title => "365 기도문 고치기";
+    public string Title => "365축복기도문 고치기";
     [BindProperty(SupportsGet = true)] public string? Md { get; set; }
     public ChallengeBible.Infrastructure.Data.Prayer365 Item { get; private set; } = null!;
     public bool Missing { get; private set; }

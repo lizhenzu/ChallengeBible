@@ -8,12 +8,12 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace ChallengeBible.Web.Pages.Prayer365;
 
 /// <summary>
-/// `/{slug}/prayer365` 자녀를 위한 365 기도(ADR 0106, 확정 시안 365기도 ①): 오늘 기도문만(날짜 이동 없음).
+/// `/{slug}/prayer365` 자녀를 위한 365축복기도(ADR 0106, 확정 시안 365축복기도 ①): 오늘 기도문만(날짜 이동 없음).
 /// 학생 · 새친구 · 로그인 안 한 사람에게는 없는 화면(R-316). [오늘 기도 했어요]는 하루 한 번(R-317).
 /// </summary>
 public class IndexModel(Prayer365Service prayers, TenantContext tenant) : PageModel, ITitled
 {
-    public string Title => "자녀를 위한 365 기도";
+    public string Title => "자녀를 위한 365축복기도";
     public string Slug => tenant.Current.Slug;
     public ChallengeBible.Infrastructure.Data.Prayer365 Item { get; private set; } = null!;
     public string MonthDay { get; private set; } = "";

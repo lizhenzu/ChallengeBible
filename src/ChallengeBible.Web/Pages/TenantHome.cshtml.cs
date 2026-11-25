@@ -48,7 +48,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     public IReadOnlyList<BirthdayGiftView> Birthdays { get; private set; } = [];
     /// <summary>홈을 열면 띄우는 "생일 축하해요!" 팝업 — 띄울 때가 아니면 null(R-346).</summary>
     public BirthdayGiftView? BirthdayPopup { get; private set; }
-    /// <summary>365 기도는 학생 · 새친구에게 보이지 않는다(ADR 0106). 홈에서는 아이콘 노출만 판단한다.</summary>
+    /// <summary>365축복기도는 학생 · 새친구에게 보이지 않는다(ADR 0106). 홈에서는 아이콘 노출만 판단한다.</summary>
     public bool PrayerVisible { get; private set; }
     /// <summary>홈 상단 포인트 링(2026-11-23 사용자 확정 B안 · ADR 0136): 누르면 `/{slug}/challenge`. 참여자만.</summary>
     public PointRing? Ring { get; private set; }

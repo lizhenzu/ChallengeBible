@@ -101,7 +101,7 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("<b>성경미션</b>", html);
         Assert.Contains("<b>성경통독</b>", html);
         Assert.Contains("<b>성경필사</b>", html);
-        Assert.Contains("<b>기도365</b>", html);
+        Assert.Contains("<b>365축복기도</b>", html);
         Assert.Contains("<a class=\"person-btn\" href=\"/account/login\"", html);   // 로그인은 사람 아이콘 하나
         Assert.DoesNotContain("class=\"lp-login\"", html);                          // 큰 로그인 카드는 없앴다
         Assert.Contains("<a class=\"vb-item\" href=\"/account/login\"", html);      // 미션 칸도 로그인

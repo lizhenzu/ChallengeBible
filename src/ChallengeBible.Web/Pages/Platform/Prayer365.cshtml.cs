@@ -6,11 +6,11 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace ChallengeBible.Web.Pages.Platform;
 
-/// <summary>`/platform/prayer365` 365 기도문 관리(ADR 0106, 확정 시안 365기도 ⑤): 366칸 달력판 · 샘플 채우기 · 진짜 기도문 넣기(JSON).</summary>
+/// <summary>`/platform/prayer365` 365축복기도문 관리(ADR 0106, 확정 시안 365축복기도 ⑤): 366칸 달력판 · 샘플 채우기 · 진짜 기도문 넣기(JSON).</summary>
 [Authorize(Policy = CurrentUser.PlatformAdminPolicy)]
 public class Prayer365Model(Prayer365Service prayers, TimeProvider time) : PageModel, ITitled
 {
-    public string Title => "365 기도문";
+    public string Title => "365축복기도문";
     public IReadOnlyDictionary<string, ChallengeBible.Infrastructure.Data.Prayer365> Map { get; private set; } = new Dictionary<string, ChallengeBible.Infrastructure.Data.Prayer365>();
     [TempData] public string? Msg { get; set; }
     /// <summary>달력판에서 오늘(플랫폼 시간대) 칸 표시.</summary>

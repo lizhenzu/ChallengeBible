@@ -32,7 +32,7 @@ public sealed class BrandingService(IAppDb db, TenantContext tenant, TimeProvide
     public const string IconMaskable = "/icons/icon-maskable-512.png"; // 안드로이드 둥근 · 물방울 모양(가운데 80% 안전 영역)
     public const string AppleTouchIcon = "/icons/apple-touch-icon.png"; // 아이폰 180
     public const string OgImage = "/images/og.png";                  // 카톡 · SNS 공유 대표 이미지 1200×630
-    public const string OgDescription = "4가지 도전, 하나의 말씀! 성경미션 · 성경통독 · 성경필사 · 365 기도";
+    public const string OgDescription = "4가지 도전, 하나의 말씀! 성경미션 · 성경통독 · 성경필사 · 365축복기도";
 
     /// <summary>카톡 미리보기 제목: 앱 이름 뒤에 부서 이름(앱 이름에 이미 들어 있으면 그대로). 부서 밖 화면은 기본 이름.</summary>
     public static string OgTitle(string appName, string? deptName) =>

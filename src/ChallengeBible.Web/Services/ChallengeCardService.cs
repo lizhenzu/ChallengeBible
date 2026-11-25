@@ -12,7 +12,7 @@ public sealed record ChallengeChip(string Label, bool Has, bool Done, string Key
     public string State => !Has ? "—" : Done ? "완료" : "대기중";
 }
 
-/// <summary>프로그램별 진행 한 줄(성경통독 · 성경필사 · 기도365). Started=false 면 아직 시작 전.</summary>
+/// <summary>프로그램별 진행 한 줄(성경통독 · 성경필사 · 365축복기도). Started=false 면 아직 시작 전.</summary>
 public sealed record ChallengeRow(string Key, string Label, bool Started, double Percent, string Sub);
 
 /// <summary>성장 단계 한 칸(씨앗 · 새싹 · 나무 · 숲). Reached = 지나온 단계(지금 단계 포함), Now = 지금 단계.</summary>
@@ -43,7 +43,7 @@ public sealed record ChallengeCard(
 /// <summary>
 /// 통합 카드 값 만들기. 부서 홈 · 첫 화면(`/`)이 같은 카드를 그린다.
 /// 이미 계산한 <see cref="HomeView"/>를 받아 미션 · 점수 · 성장 · 부서 숫자를 다시 세지 않고,
-/// 없던 것(필사 · 기도365)만 여기서 더한다. 부서가 끈 프로그램은 줄에서 뺀다.
+/// 없던 것(필사 · 365축복기도)만 여기서 더한다. 부서가 끈 프로그램은 줄에서 뺀다.
 /// </summary>
 public sealed class ChallengeCardService(TenantContext tenant, RequestScope scope, CopyService copy, Prayer365Service prayer)
 {
@@ -113,7 +113,7 @@ public sealed class ChallengeCardService(TenantContext tenant, RequestScope scop
         if (prayer.CanSee(platformAdmin))
         {
             var p = await prayer.MyStatsAsync(ct);
-            rows.Add(new("prayer", "기도365", p.PrayedDays > 0, p.ProgressPct, $"{p.PrayedDays:N0} / {Prayer365Stats.TotalDays}일"));
+            rows.Add(new("prayer", "365축복기도", p.PrayedDays > 0, p.ProgressPct, $"{p.PrayedDays:N0} / {Prayer365Stats.TotalDays}일"));
         }
         return rows;
     }

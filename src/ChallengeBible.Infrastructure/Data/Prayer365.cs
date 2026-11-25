@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace ChallengeBible.Infrastructure.Data;
 
 /// <summary>
-/// 자녀를 위한 365 기도(ADR 0106): 날짜(월일 "0101" ~ "1231", 2/29 포함 366편)마다 기도문 한 편. 해마다 같은 날 같은 기도문.
+/// 자녀를 위한 365축복기도(ADR 0106): 날짜(월일 "0101" ~ "1231", 2/29 포함 366편)마다 기도문 한 편. 해마다 같은 날 같은 기도문.
 /// 플랫폼 공용(TenantId 없음, 성경 데이터 · 업무 목록처럼) — 플랫폼 관리자만 시스템 연결로 고친다.
 /// 처음에는 샘플(IsSample), 진짜는 유년부에서 JSON 으로 옮겨 같은 날짜를 바꿔 넣는다.
 /// </summary>

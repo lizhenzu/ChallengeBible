@@ -29,7 +29,7 @@
     // 탈퇴 신청(ADR 0119, 2026-11-20 사용자: 일반 메뉴판에서 관리 메뉴로 옮김): 부서 관리자만, 기다리는 수 뱃지
     if (Model.IsAdmin && !Model.IsLobby) menu = [.. menu, ($"/{slug}/leaves", "탈퇴 신청", await Leaves.CountAsync(User.UserName()!, Model.Current.Id))];
     if (Model.IsAdmin) menu = [.. menu, ($"/{slug}/admin/content", "콘텐츠", 0)];
-    if (Model.IsAdmin && !Model.IsLobby) menu = [.. menu, ($"/{slug}/admin/prayer365", "365 기도", 0)];   // 자녀를 위한 365 기도 참여자(ADR 0106)
+    if (Model.IsAdmin && !Model.IsLobby) menu = [.. menu, ($"/{slug}/admin/prayer365", "365축복기도", 0)];   // 자녀를 위한 365축복기도 참여자(ADR 0106)
     if (Model.Current.ReadingEnabled) menu = [.. menu, ($"/{slug}/admin/reading", "통독 현황", 0)];
     if (Model.IsAdmin) menu = [.. menu, ($"/{slug}/admin/season", "시즌", 0), ($"/{slug}/admin/branding", "이름 · 색", 0), ($"/{slug}/admin/worship", "예배 안내", 0), ($"/{slug}/admin/todo", "할 일", 0)];   // 할 일 · 누가 보나(ADR 0100)
     // 부서 소개 화면(ADR 0140): 소개 줄이 있는 부서(유년부)만

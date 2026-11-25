@@ -30,7 +30,7 @@ public class ChallengeModel(HomeService home, ChallengeCardService cards, Tenant
         return Page();
     }
 
-    /// <summary>진행 줄 주소 — 성경통독 · 성경필사 · 기도365.</summary>
+    /// <summary>진행 줄 주소 — 성경통독 · 성경필사 · 365축복기도.</summary>
     public string Href(string key) => key switch
     {
         "reading" => "reading",

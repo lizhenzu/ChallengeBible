@@ -69,7 +69,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("<a class=\"vb-item\" href=\"/jamsil-kids/word-mission\"", home);      // 프로그램 목록 중 미션
         Assert.Contains("<a class=\"vb-item\" href=\"/jamsil-kids/reading\"", home);           // 통독
         Assert.Contains("<a class=\"vb-item\" href=\"/jamsil-kids/copy\"", home);              // 필사
-        Assert.DoesNotContain("href=\"/jamsil-kids/prayer365\"", home);                          // 학생에게는 365 기도 없음(ADR 0106)
+        Assert.DoesNotContain("href=\"/jamsil-kids/prayer365\"", home);                          // 학생에게는 365축복기도 없음(ADR 0106)
         Assert.Contains("aria-label=\"오늘의 말씀\"", home);                                     // 말씀 카드
         Assert.DoesNotContain("나의 도전 현황", home);                                   // 카드는 「나의 도전」 화면으로 옮겼다(ADR 0136)
         Assert.Contains("href=\"/jamsil-kids/challenge\"", home);                        // 홈 상단 포인트 링(ADR 0136)
@@ -109,7 +109,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
-    public async Task 교사_홈은_365기도_아이콘과_관리_메뉴를_보인다()
+    public async Task 교사_홈은_365축복기도_아이콘과_관리_메뉴를_보인다()
     {
         var (c, _) = await Member("eunhye", Roles.Teacher, Roles.TenantAdmin);
         var home = await c.GetStringAsync("/jamsil-kids");
@@ -164,7 +164,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("<a class=\"go\" href=\"/jamsil-kids/word-mission\" aria-label=\"성경미션 들어가기\">들어가기 ›</a>", page);   // 오늘 미션 카드 제목 줄 오른쪽(2026-11-24 A안)
         Assert.DoesNotContain("시작하기 ›", page);                              // 2026-11-24 사용자: 「시작하기」가 아니라 항상 「들어가기」
         Assert.Equal(2, System.Text.RegularExpressions.Regex.Matches(page, "<b class=\"go\">들어가기 ›</b>").Count);   // 학생: 통독 · 필사 두 줄 모두(시작 전이든 아니든)
-        Assert.DoesNotContain("기도365</span>", page);                         // 학생에게는 365 기도 줄 없음(ADR 0106)
+        Assert.DoesNotContain("365축복기도</span>", page);                         // 학생에게는 365축복기도 줄 없음(ADR 0106)
         Assert.Contains("class=\"vb-ch-hero\"", page);                        // A안 링 히어로(ADR 0136)
         Assert.Contains("class=\"vb-ch-week empty\"", page);                  // B안 「이번 주」 막대 — 이번 주 기록이 없으면 낮은 모양(2026-11-24)
         Assert.Matches("<i class=\"[^\"]*\" style=\"--h:[0-9.]+\"></i>", page);   // 막대 높이는 --h 로(예전 height:N% 는 격자 안에서 0px 가 돼 막대가 안 그려졌다 · 2026-11-24)
@@ -176,13 +176,13 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("우리 가족팀", page);                             // 가족팀도 이 화면에 없다
     }
 
-    [Fact]   // ADR 0133 — 교사는 365 기도 줄이 함께 보인다
-    public async Task 교사_나의_도전_현황_카드에는_기도365_줄도_있다()
+    [Fact]   // ADR 0133 — 교사는 365축복기도 줄이 함께 보인다
+    public async Task 교사_나의_도전_현황_카드에는_365축복기도_줄도_있다()
     {
         ContentSeed.Prayer(_db, Jan5);
         var (c, _) = await Member("eunhye", Roles.Teacher);
         var page = await c.GetStringAsync("/jamsil-kids/challenge");
-        Assert.Contains(">기도365</span>", page);
+        Assert.Contains(">365축복기도</span>", page);
         Assert.Contains(" / 366일</span>", page);
     }
 

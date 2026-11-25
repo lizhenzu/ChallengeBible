@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace ChallengeBible.Tests.Web;
 
 /// <summary>
-/// 자녀를 위한 365 기도(ADR 0106, R-316 ~ R-319): 학생 · 새친구에게는 없음, 하루 한 번, 부서별 집계, 나의 기도 기록은 그 사람 전체.
+/// 자녀를 위한 365축복기도(ADR 0106, R-316 ~ R-319): 학생 · 새친구에게는 없음, 하루 한 번, 부서별 집계, 나의 기도 기록은 그 사람 전체.
 /// 오늘 = 2027-01-05(화, 서울) → 월일 "0105".
 /// </summary>
 public partial class Prayer365Tests : IClassFixture<WebApplicationFactory<Program>>

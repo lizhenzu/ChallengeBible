@@ -1,7 +1,7 @@
 @page "/{slug}/admin/prayer365"
 @model ChallengeBible.Web.Pages.Admin.Prayer365Model
 @using ChallengeBible.Web.Services
-@* 확정 시안 365기도 ③(2026-11-16, ADR 0106): 참여자 · 오늘 · 쉬는 사람 · 평균 기도율, 최근 · 기도한 날 · 쉬는 사람 순 *@
+@* 확정 시안 365축복기도 ③(2026-11-16, ADR 0106): 참여자 · 오늘 · 쉬는 사람 · 평균 기도율, 최근 · 기도한 날 · 쉬는 사람 순 *@
 @{
     var rows = Model.Rows;
     var rates = rows.Where(r => r.RatePct >= 0).Select(r => r.RatePct).ToList();
@@ -11,8 +11,8 @@
 <link rel="stylesheet" href="~/css/prayer365.css" asp-append-version="true" />
 <partial name="_AdminTop" model="Model.Tenant" />
 <main class="admin gut"><div class="wrap">
-    <h1>365 기도 참여자</h1>
-    <p class="lead">우리 부서에서 "자녀를 위한 365 기도"로 [오늘 기도 했어요]를 누른 사람이에요. 학생에게는 보이지 않는 기도예요.</p>
+    <h1>365축복기도 참여자</h1>
+    <p class="lead">우리 부서에서 "자녀를 위한 365축복기도"로 [오늘 기도 했어요]를 누른 사람이에요. 학생에게는 보이지 않는 기도예요.</p>
     <div class="p3k">
         <div><small>참여자</small><b>@rows.Count<u>명</u></b></div>
         <div><small>오늘 기도</small><b>@rows.Count(r => r.DaysAgo == 0)<u>명</u></b></div>
