@@ -33,9 +33,13 @@
     <div class="vb-hero-in">
         <div class="vb-top">
             <div class="vb-top-l">
-                <button type="button" class="vb-burger" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-                </button>
+                @* 로그인 전에는 ☰ 를 숨긴다(2026-11-25 사용자 — 메뉴 내용이 화면과 겹쳐 의미가 없음). 로그인은 오른쪽 사람 아이콘 *@
+                @if (Model.Me is not null)
+                {
+                    <button type="button" class="vb-burger" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+                    </button>
+                }
                 <a class="church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)">
                     <small>대한예수교장로회</small>
                     <span>잠실새내교회</span>
@@ -215,7 +219,7 @@
     @* 부서가 하나인 사람: 부서 화면의 기존 ☰ 메뉴판을 그대로 쓴다(2026-11-23 사용자). *@
     <partial name="_TenantDrawer" model="(drawer, (string?)null)" />
 }
-else
+else if (Model.Me is not null)
 {
     <div class="pdrawer vb-dr" id="pnav" hidden>
         <div class="pd-dim" data-pnav-close></div>
