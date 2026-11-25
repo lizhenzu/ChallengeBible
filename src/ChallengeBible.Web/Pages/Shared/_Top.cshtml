@@ -28,6 +28,9 @@
     var attMenu = attScope?.Newcomers == true;
     var attCare = attMenu && attScope!.Admin ? await Att.CareCountAsync() : 0;
     var imp = User.ImpersonatorId() is not null;
+    // 성경미션 화면은 부서 공통 ☰ 대신 성경미션 ☰(2026-11-25 사용자). 365축복기도는 ☰ 없이 제목 + 오른쪽 「홈으로」만(PbPlain)
+    var missionMenu = page is "/Mission/Home" or "/Mission/Word" or "/Mission/Quiz" or "/Mission/Prayer" or "/Mission/Recite" or "/Mission/Calendar" or "/Mission/Points" or "/Mission/Ranking" or "/Mission/FamilyTeam" or "/Mission/GiftStatus";
+    var plain = ViewData["PbPlain"] as bool? == true;
 }
 <header class="top gut pb@(ViewData["PbClass"] is string pbc ? " " + pbc : "")"><div class="wrap pbw">
     <span class="pb-l">
@@ -37,6 +40,10 @@
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
             </button>
             @if (parent is not null) { <a class="par" href="@parent[1]">@parent[0]</a><span class="sep" aria-hidden="true">›</span> }
+            @if (!string.IsNullOrEmpty(title)) { <b class="cur">@title</b> }
+        }
+        else if (plain)
+        {
             @if (!string.IsNullOrEmpty(title)) { <b class="cur">@title</b> }
         }
         else if (member || ViewData["PbOwnDrawer"] as bool? == true)
@@ -74,4 +81,4 @@
         }
     </span>
 </div></header>
-@if (member && !b2 && ViewData["PbOwnDrawer"] as bool? != true) { if (attMenu) { <partial name="_AttDrawer" model="(Ten, attScope!.Admin, attCare)" /> } else { <partial name="_TenantDrawer" model="(Ten, (string?)null)" /> } }
+@if (member && !b2 && !plain && ViewData["PbOwnDrawer"] as bool? != true) { if (missionMenu && !attMenu) { <partial name="_MissionDrawer" model="(Ten, (string?)null)" /> } else if (attMenu) { <partial name="_AttDrawer" model="(Ten, attScope!.Admin, attCare)" /> } else { <partial name="_TenantDrawer" model="(Ten, (string?)null)" /> } }

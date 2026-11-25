@@ -1,0 +1,63 @@
+@model (ChallengeBible.Web.Tenancy.TenantContext Tenant, string? Photo)
+@using ChallengeBible.Web.Auth
+@inject ChallengeBible.Web.Services.FamilyTeamService FamilyTeams
+@inject ChallengeBible.Web.Services.PhotoService Photos
+@using ChallengeBible.Web.Services
+@* 성경미션 ☰ 메뉴(2026-11-25 사용자 확정, 시안 햄버거-성경미션-프로그램메뉴): 미션 화면은 부서 공통 메뉴 대신 프로그램 메뉴.
+   로고 · 홈으로 · 미션(미션 홈 · 말씀 · 퀴즈 · 기도 · 암송) · 기록(달력 · 내 점수 · 순위) · 함께(가족팀) · 맨 아래 프로필. 여는 버튼은 data-pnav-open, 동작은 platform-nav.js. *@
+@{
+    var t = Model.Tenant;
+    var c = t.Current;
+    var s = c.Slug;
+    var here = (Context.Request.Path.Value ?? "").TrimEnd('/');
+    var meName = User.UserName();
+    var mePhoto = meName is null ? null : await Photos.FileOfAsync(meName);
+    var meSub = User.IsPlatformAdmin() ? "플랫폼 관리자" : t.IsLobby ? "처음 오신 분" : PlatformTodayService.ShortDept(c.Name) + " · " + (t.IsAdmin ? "관리자" : UserRole.LabelOf(UserRole.KindOf(t.RoleCode)));
+    var imp = User.ImpersonatorId() is not null;
+    bool Cur(string href) => here.Equals(href.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
+}
+<div class="pdrawer tdr2" id="pnav" hidden>
+    <div class="pd-dim" data-pnav-close></div>
+    <aside class="pd-panel" tabindex="-1" role="dialog" aria-modal="true" aria-label="성경미션 메뉴">
+        <div class="tdr2-hd">
+            <div>
+                <div class="tdr2-ttl">도전!!! <span>성경미션</span></div>
+                <div class="tdr2-sub">GROW IN THE WORD</div>
+            </div>
+            <button type="button" class="tdr2-x" aria-label="메뉴 닫기" data-pnav-close>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
+            </button>
+        </div>
+
+        @if (imp)
+        {
+            <p class="tdr2-imp">@Ui.Nim(User.DisplayName() ?? "")으로 보는 중 @Html.Raw(DrawerUi.Ga)</p>
+        }
+
+        <nav class="tdr2-nav" aria-label="메뉴">
+            @DrawerUi.Line($"/{s}", "home", "홈으로", false)
+
+            <h2 class="tdr2-g">미션</h2>
+            @DrawerUi.Line($"/{s}/word-mission", "mission", "미션 홈", Cur($"/{s}/word-mission"))
+            @DrawerUi.Line($"/{s}/word", "word", "말씀", Cur($"/{s}/word"))
+            @DrawerUi.Line($"/{s}/quiz", "quiz", "퀴즈", Cur($"/{s}/quiz"))
+            @DrawerUi.Line($"/{s}/prayer", "pray", "기도", Cur($"/{s}/prayer"))
+            @DrawerUi.Line($"/{s}/recite", "recite", "암송", Cur($"/{s}/recite"))
+
+            <h2 class="tdr2-g">기록</h2>
+            @DrawerUi.Line($"/{s}/calendar", "season", "달력", Cur($"/{s}/calendar"))
+            @DrawerUi.Line($"/{s}/points", "chart", "내 점수", Cur($"/{s}/points"))
+            @DrawerUi.Line($"/{s}/ranking", "trophy", "순위", Cur($"/{s}/ranking"))
+
+            @if (!t.IsLobby && c.MissionEnabled && await FamilyTeams.EnabledAsync())
+            {
+                <h2 class="tdr2-g">함께</h2>
+                @DrawerUi.Line($"/{s}/family-team", "family", "가족팀", Cur($"/{s}/family-team"))
+            }
+        </nav>
+
+        @Html.AntiForgeryToken()
+        <div class="tdr2-prof">@DrawerUi.Me(User.DisplayName(), mePhoto, meSub, imp)</div>
+    </aside>
+</div>
+<script src="~/js/platform-nav.js" asp-append-version="true" defer></script>

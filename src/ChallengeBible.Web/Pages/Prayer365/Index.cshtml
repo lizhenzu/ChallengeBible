@@ -16,7 +16,7 @@
     var first = new DateOnly(s.Today.Year, s.Today.Month, 1);
 }
 <link rel="stylesheet" href="~/css/prayer365.css" asp-append-version="true" />
-@{ ViewData["PbTitle"] = "365축복기도"; }
+@{ ViewData["PbTitle"] = "365축복기도"; ViewData["PbPlain"] = true; }   @* ☰ · 뒤로 없이 제목 + 오른쪽 「홈으로」(2026-11-25 사용자) *@
 <partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <main class="p365" data-p365>
     <div class="p365-bar">

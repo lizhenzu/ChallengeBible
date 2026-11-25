@@ -20,6 +20,8 @@ public static class DrawerUi
         ["bookmark"] = """<path d="M6 3h12v18l-6-4-6 4z"/>""",
         ["clock"] = """<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>""",
         ["copynt"] = """<path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/><path d="M19 15v6M16 18h6"/>""",
+        ["trophy"] = """<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3"/>""",
+        ["recite"] = """<path d="M7 17c-2 0-3-1.3-3-3 0-3 2-5.5 5-6.5M17 17c-2 0-3-1.3-3-3 0-3 2-5.5 5-6.5"/>""",
         ["pin"] = """<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>""",
         ["mission"] = """<path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4z"/><path d="M20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/><path d="m15 9 1.5 1.5L19 8"/>""",
         ["reading"] = """<path d="M2 6s3-2 10 0 10 0 10 0v13s-3 2-10 0-10 0-10 0z"/><path d="M12 6v13"/>""",
