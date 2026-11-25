@@ -86,7 +86,8 @@ public partial class ClassBookTests : IClassFixture<WebApplicationFactory<Progra
     public async Task R361_교사는_메뉴와_처음_화면_반_교적을_본다()
     {
         var c = await Login("teacher@example.com");
-        Assert.Contains("class=\"tdr2-r\" href=\"/kids/classbook\"", await c.GetStringAsync("/kids"));
+        Assert.Contains("class=\"tdr2-r\" href=\"/kids/office\"", await c.GetStringAsync("/kids"));   // ☰ 에는 「행정업무」 한 줄(2026-11-25)
+        Assert.Contains("href=\"/kids/classbook\"", await c.GetStringAsync("/kids/office"));   // 교적부는 행정업무 화면에
         var home = WebUtility.HtmlDecode(await c.GetStringAsync("/kids/classbook"));
         Assert.Contains("1반", home);
         Assert.Contains("박선생", home);

@@ -52,15 +52,8 @@
                 </form>
             }
 
-            @if (!lobby && (t.IsStaff || t.IsAdmin || teacher))
-            {
-                <h2 class="tdr2-g">섬김 · 교사</h2>
-                @if (t.IsStaff || t.IsAdmin) { @DrawerUi.Line($"/{s}/todo", "todo", "오늘 할 일", Cur($"/{s}/todo")) }
-                @if (t.IsStaff) { @DrawerUi.Line($"/{s}/attendance", "att", "출석", Cur($"/{s}/attendance")) }
-                @if (ChallengeBible.Web.Pages.ClassBook.IndexModel.CanUse(t)) { @DrawerUi.Line($"/{s}/classbook", "book", "교적부", Cur($"/{s}/classbook")) }
-                @if (ChallengeBible.Web.Pages.People.IndexModel.CanUse(t)) { @DrawerUi.Line($"/{s}/people", "search", "인명 검색", Cur($"/{s}/people")) }
-                @if (!t.IsAdmin && teacher) { @DrawerUi.Line($"/{s}/admin/members", "people", "명부", Cur($"/{s}/admin/members")) }
-            }
+            @* 교사 · 관리자의 일(오늘 할 일 · 출석 · 교적부 · 인명 검색 · 명부)은 「행정업무」 화면 한 줄로(2026-11-25 사용자) *@
+            @if (ChallengeBible.Web.Pages.Office.IndexModel.CanUse(t)) { @DrawerUi.Line($"/{s}/office", "att", "행정업무", Cur($"/{s}/office")) }
 
             @if (!lobby && t.IsApproved)
             {

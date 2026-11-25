@@ -31,6 +31,8 @@
     // 성경미션 화면은 부서 공통 ☰ 대신 성경미션 ☰(2026-11-25 사용자). 365축복기도는 ☰ 없이 제목 + 오른쪽 「홈으로」만(PbPlain)
     var missionMenu = page is "/Mission/Home" or "/Mission/Word" or "/Mission/Quiz" or "/Mission/Prayer" or "/Mission/Recite" or "/Mission/Calendar" or "/Mission/Points" or "/Mission/Ranking" or "/Mission/FamilyTeam" or "/Mission/GiftStatus";
     var plain = ViewData["PbPlain"] as bool? == true;
+    // 행정업무 화면(오늘 할 일 · 출석 · 교적부 · 인명 검색 · 생일자) 은 부서 공통 ☰ 대신 행정업무 ☰(2026-11-25 사용자)
+    var officeMenu = page is "/Todo/Index" or "/ClassBook/Index" or "/ClassBook/Class" or "/People/Index" or "/Birthdays/Index" or "/Attendance/Index" or "/Attendance/More" or "/Attendance/ClassCheck";
 }
 <header class="top gut pb@(ViewData["PbClass"] is string pbc ? " " + pbc : "")"><div class="wrap pbw">
     <span class="pb-l">
@@ -81,4 +83,4 @@
         }
     </span>
 </div></header>
-@if (member && !b2 && !plain && ViewData["PbOwnDrawer"] as bool? != true) { if (missionMenu && !attMenu) { <partial name="_MissionDrawer" model="(Ten, (string?)null)" /> } else if (attMenu) { <partial name="_AttDrawer" model="(Ten, attScope!.Admin, attCare)" /> } else { <partial name="_TenantDrawer" model="(Ten, (string?)null)" /> } }
+@if (member && !b2 && !plain && ViewData["PbOwnDrawer"] as bool? != true) { if (missionMenu && !attMenu) { <partial name="_MissionDrawer" model="(Ten, (string?)null)" /> } else if (officeMenu && !attMenu && ChallengeBible.Web.Pages.Office.IndexModel.CanUse(Ten)) { <partial name="_OfficeDrawer" model="(Ten, (string?)null)" /> } else if (attMenu) { <partial name="_AttDrawer" model="(Ten, attScope!.Admin, attCare)" /> } else { <partial name="_TenantDrawer" model="(Ten, (string?)null)" /> } }

@@ -14,11 +14,11 @@
     <button type="button" class="pmenu-btn td-menu" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
     </button>
-    <div class="t td-one"><span class="td-brand"><em>도전!!!</em>성경말씀</span><span class="td-sep" aria-hidden="true">&gt;</span><b>오늘 할 일</b></div>
+    <div class="t td-one"><a class="td-brand" href="/@Model.Slug/office">행정업무</a><span class="td-sep" aria-hidden="true">&gt;</span><b>오늘 할 일</b></div>
     <a class="td-home" href="/@Model.Slug">홈으로</a>
 </div></header>
 @{ var tdPhoto = await Photos.FileOfAsync(User.UserName() ?? ""); }
-<partial name="_TenantDrawer" model="(Model.Tenant, tdPhoto)" />
+@if (ChallengeBible.Web.Pages.Office.IndexModel.CanUse(Model.Tenant)) { <partial name="_OfficeDrawer" model="(Model.Tenant, tdPhoto)" /> } else { <partial name="_TenantDrawer" model="(Model.Tenant, tdPhoto)" /> }
 <main class="gut"><div class="wrap td-main" data-td>
     @Html.AntiForgeryToken()
     @if (Model.Msg is { } m) { <p class="td-msg" role="status">@m</p> }

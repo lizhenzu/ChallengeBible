@@ -328,7 +328,7 @@ public partial class MessageTests : IClassFixture<WebApplicationFactory<Program>
         var page = await t.GetStringAsync("/kids/people");
         Assert.Contains("이름 또는 아이디 (2글자부터)", page);
         Assert.Contains("/js/people.", page);
-        Assert.Contains("href=\"/kids/people\"", await t.GetStringAsync("/kids"));   // ☰ 섬김 · 교사
+        Assert.Contains("href=\"/kids/people\"", await t.GetStringAsync("/kids/office"));   // 행정업무 화면(2026-11-25)
 
         Assert.Contains("\"items\":[]", await t.GetStringAsync("/kids/people?handler=Search&q=" + Uri.EscapeDataString("철")));   // 1글자는 빈 결과
         var hit = Regex.Unescape(await t.GetStringAsync("/kids/people?handler=Search&q=" + Uri.EscapeDataString("김철")));   // JSON 의 \uXXXX 를 풀어서

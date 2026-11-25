@@ -312,7 +312,7 @@ public partial class PeopleFlowTests : IClassFixture<WebApplicationFactory<Progr
         using (var raw = InMemoryDb.Raw(_db)) Assert.DoesNotContain(raw.People, p => p.Id == pid);
 
         var t = await Member("teacher", "정교사", "T1002");
-        Assert.Contains("href=\"/jamsil-kids/admin/members\"", await t.GetStringAsync("/jamsil-kids"));
+        Assert.Contains("href=\"/jamsil-kids/admin/members\"", await t.GetStringAsync("/jamsil-kids/office"));   // 명부 관리는 행정업무 화면에(2026-11-25)
     }
 
     private static async Task<HttpResponseMessage> PostTo(HttpClient c, string url, params (string, string)[] form)

@@ -4958,3 +4958,9 @@ body:has(.ma-card) .ma-depts li, body:has(.ma-card) .lv-warn { border-radius: 10
   .hot, .empty-box, .ft-mem, .ft-team, .stack.card,
   .ar-kpis > *, .p3k > *, .stg-years > *, .ft-stats > *, .awd-stats > *, .facts > *, .ar-sum > *, .gd-tabs > *) { border-radius: 10px !important; }
 .pb .pb-b { border-radius: 10px; }
+
+/* 행정업무 ☰ 메뉴 색(2026-11-25): 로고 · 현재 메뉴 = 회색빛 남색. 「도전」 없는 로고라 17px 한 줄 */
+.tdr2-office .tdr2-ttl span { color: #475569; }
+.tdr2-office .tdr2-sub { letter-spacing: .04em; font-size: 12px; font-weight: 700; }
+.tdr2-office .tdr2-r[aria-current="page"] { background: #EEF1F5; color: #334155; }
+.tdr2-office .tdr2-r[aria-current="page"] .tdr2-i { color: #475569; }

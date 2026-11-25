@@ -287,6 +287,6 @@ public partial class LeaveTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("data-pnav-open", page);   // ☰ 메뉴 버튼
         Assert.Contains("id=\"pnav\"", page);   // 메뉴판
         Assert.Contains("td-one", page);
-        Assert.Matches(@"<em>도전!!!</em>성경말씀</span><span class=""td-sep"" aria-hidden=""true"">></span><b>오늘 할 일</b>", page);   // 도전!!!성경말씀 > 오늘 할 일
+        Assert.Matches(@"행정업무</a><span class=""td-sep"" aria-hidden=""true"">></span><b>오늘 할 일</b>", page);   // 행정업무 > 오늘 할 일(2026-11-25, 「도전」 없음)
     }
 }

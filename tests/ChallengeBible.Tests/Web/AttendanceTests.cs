@@ -445,7 +445,7 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
     public async Task 관리자는_새친구를_등록하고_출석부에서_저장하고_학생은_들어오지_못한다()
     {
         var a = await Member("admin", Roles.TenantAdmin);
-        Assert.Contains("href=\"/jamsil-kids/attendance\"", await a.GetStringAsync("/jamsil-kids"));
+        Assert.Contains("href=\"/jamsil-kids/attendance\"", await a.GetStringAsync("/jamsil-kids/office"));   // 출석은 행정업무 화면에(2026-11-25)
         var form = await a.GetStringAsync("/jamsil-kids/attendance/newcomers/new");
         var r = await a.PostAsync("/jamsil-kids/attendance/newcomers/new", new FormUrlEncodedContent(new Dictionary<string, string>
         {
