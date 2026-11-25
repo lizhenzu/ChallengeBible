@@ -20,12 +20,12 @@
 .bdy-card.today .dd b { color: #B45309; }
 .bdy-card .who, .bdy-miss .who { flex: 1; min-width: 0; }
 .bdy-card .who b, .bdy-miss .who b { font-size: 16px; font-weight: 900; }
-.bdy-card .who em, .bdy-miss .who em { margin-left: 6px; font-style: normal; font-size: 12.5px; font-weight: 800; color: var(--accent); }
+.bdy-card .who em, .bdy-miss .who em { margin-left: 6px; font-style: normal; font-size: 12.5px; font-weight: 800; color: var(--accent-tx, var(--accent)); }
 .bdy-card .who small, .bdy-miss .who small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--dim); }
 .bdy-card .mine { margin-left: 4px; padding: 1px 5px; border-radius: 6px; background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 900; vertical-align: 2px; }
 .bdy-card .gs { flex: none; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
 .gs.g0 { background: #F3F4F6; color: #6B7280; } .gs.g1 { background: #FEF3C7; color: #92400E; } .gs.g2 { background: #E0E7FF; color: #3730A3; } .gs.g3 { background: #DCFCE7; color: #166534; }
-.bdy-go { align-self: flex-end; font-size: 13.5px; font-weight: 800; color: var(--accent); text-decoration: none; }
+.bdy-go { align-self: flex-end; font-size: 13.5px; font-weight: 800; color: var(--accent-tx, var(--accent)); text-decoration: none; }
 .bdy-empty { margin: 0; padding: 18px; text-align: center; color: var(--dim); border: 1.5px dashed var(--rule); border-radius: 16px; }
 .bdy-hint { margin: 0; font-size: 13px; color: var(--dim); }
 .bdy-months { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; }
@@ -41,7 +41,7 @@
 .bdy-cal .c { min-height: 56px; min-width: 0; overflow: hidden; border-radius: 9px; background: var(--soft); padding: 4px; display: flex; flex-direction: column; gap: 2px; color: inherit; text-decoration: none; }
 .bdy-cal .c.x { background: none; }
 .bdy-cal .c i { font-style: normal; font-size: 12px; font-weight: 800; color: var(--dim); }
-.bdy-cal .c u { text-decoration: none; font-size: 12px; font-weight: 800; background: var(--accent-bg); color: var(--accent); border-radius: 4px; padding: 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bdy-cal .c u { text-decoration: none; font-size: 12px; font-weight: 800; background: var(--accent-bg); color: var(--accent-tx, var(--accent)); border-radius: 4px; padding: 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bdy-cal .c.td { outline: 2px solid #F59E0B; outline-offset: -2px; }
 .bdy-cal .c.sel { background: #FFF7E6; }
 @media (min-width: 640px) { .bdy-cal .c { min-height: 76px; } .bdy-cal .c u { font-size: 12px; } }
@@ -50,7 +50,7 @@
 .bdy-year .ym { border: 1.5px solid var(--rule); border-radius: 14px; padding: 10px 12px; color: inherit; text-decoration: none; min-width: 0; }
 .bdy-year .ym.on { border-color: var(--accent); background: var(--accent-bg); }
 .bdy-year h3 { margin: 0 0 4px; font-size: 15px; display: flex; justify-content: space-between; }
-.bdy-year h3 small { color: var(--accent); font-weight: 900; }
+.bdy-year h3 small { color: var(--accent-tx, var(--accent)); font-weight: 900; }
 .bdy-year p { margin: 0; font-size: 12.5px; color: var(--dim); line-height: 1.6; overflow-wrap: anywhere; }
 .bdy-print { align-self: flex-start; }
 .bdy-miss { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border: 1.5px solid var(--rule); border-radius: 14px; padding: 10px 12px; }
@@ -69,11 +69,11 @@
 .bdc { border: 1.5px solid var(--rule); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 12px; background: var(--bg); min-width: 0; scroll-margin-top: 80px; }
 .bdc.today { border-color: #F59E0B; background: #FFFBEB; }
 .bdc-d { display: flex; align-items: baseline; gap: 8px; }
-.bdc-d b { font-size: 22px; font-weight: 900; color: var(--accent); }
+.bdc-d b { font-size: 22px; font-weight: 900; color: var(--accent-tx, var(--accent)); }
 .bdc.today .bdc-d b { color: #B45309; }
 .bdc-d span { font-size: 14px; font-weight: 700; color: var(--dim); }
 .bdc-me { display: flex; gap: 12px; align-items: center; min-width: 0; }
-.bdc-me .av { flex: none; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--accent-bg); color: var(--accent); font-weight: 900; }
+.bdc-me .av { flex: none; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--accent-bg); color: var(--accent-tx, var(--accent)); font-weight: 900; }
 .bdc-me .av img { width: 100%; height: 100%; object-fit: cover; }
 .bdc-me .nm { flex: 1; min-width: 0; display: grid; gap: 4px; }
 .bdc-me .n { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
@@ -81,12 +81,12 @@
 .bdc-me .n a { font-size: 12.5px; font-weight: 700; color: var(--dim); }
 .bdc-me .mine { padding: 1px 6px; border-radius: 6px; background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 900; }
 .bdc-me .s { font-size: 13px; color: var(--dim); overflow-wrap: anywhere; }
-.bdc-me .s em { font-style: normal; font-weight: 800; color: var(--accent); }
+.bdc-me .s em { font-style: normal; font-weight: 800; color: var(--accent-tx, var(--accent)); }
 .bdc-kv { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--soft); font-size: 14px; }
 .bdc-kv dt { font-weight: 800; color: var(--dim); }
 .bdc-kv dd { margin: 0; overflow-wrap: anywhere; }
 .bdc-kv dd.warn { color: #C2410C; font-weight: 800; }
-.bdc-kv .tel { padding: 3px 10px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); font-weight: 800; font-size: 12.5px; white-space: nowrap; text-decoration: none; }
+.bdc-kv .tel { padding: 3px 10px; border-radius: 999px; background: var(--accent-bg); color: var(--accent-tx, var(--accent)); font-weight: 800; font-size: 12.5px; white-space: nowrap; text-decoration: none; }
 .bdc-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .bdc-chips span { padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; }
 .bdc-chips small { font-size: 12.5px; color: var(--dim); font-weight: 700; }
@@ -98,22 +98,22 @@
 .bdc-gift div { flex: 1; min-width: 0; display: grid; gap: 2px; }
 .bdc-gift b { font-size: 15px; }
 .bdc-gift small { font-size: 12.5px; color: var(--dim); }
-.bdc-gift small.by { color: var(--accent); font-weight: 800; }
-.bdc-gift a { font-size: 12.5px; font-weight: 800; color: var(--accent); }
+.bdc-gift small.by { color: var(--accent-tx, var(--accent)); font-weight: 800; }
+.bdc-gift a { font-size: 12.5px; font-weight: 800; color: var(--accent-tx, var(--accent)); }
 .bdc-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .bdc-acts .wide { grid-column: 1 / -1; }
 .bdc-acts form { display: contents; }
 .bdc-acts .btn { min-height: 44px; justify-content: center; white-space: nowrap; padding: 0 8px; }
 .bdc-acts .btn.no { color: #B91C1C; }
 .bdc-acts .btn.go-done { background: #16A34A; border-color: #16A34A; color: #fff; }
-.bdc-go { grid-column: 1 / -1; font-size: 13.5px; font-weight: 800; color: var(--accent); text-decoration: none; }
+.bdc-go { grid-column: 1 / -1; font-size: 13.5px; font-weight: 800; color: var(--accent-tx, var(--accent)); text-decoration: none; }
 .bdy-pick { max-height: 86vh; overflow-y: auto; }
 .bdy-items { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 @media (min-width: 640px) { .bdy-items { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .bdy-item { position: relative; display: grid; gap: 4px; padding: 0; border: 0; background: none; text-align: left; font: inherit; color: inherit; cursor: pointer; }
 .bdy-item:active .pic, .bdy-item:focus-visible .pic { outline: 3px solid rgba(43, 89, 195, .28); outline-offset: -3px; transform: scale(.97); }
 .bdy-item .pic { position: relative; display: block; aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: #F3F4F6; }
-.bdy-item .pic em { position: absolute; left: 6px; top: 6px; padding: 2px 7px; border-radius: 999px; background: rgba(255, 255, 255, .94); font-style: normal; font-size: 12px; font-weight: 900; color: var(--accent); }
+.bdy-item .pic em { position: absolute; left: 6px; top: 6px; padding: 2px 7px; border-radius: 999px; background: rgba(255, 255, 255, .94); font-style: normal; font-size: 12px; font-weight: 900; color: var(--accent-tx, var(--accent)); }
 .bdy-item .pic img { width: 100%; height: 100%; object-fit: cover; }
 .bdy-item b { font-size: 13.5px; } .bdy-item small { font-size: 12px; color: var(--dim); }
 

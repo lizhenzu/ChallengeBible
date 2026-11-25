@@ -120,11 +120,11 @@ body { font-size: calc(15px * var(--rs)); }
 /* 통독 본문: v2 모양(.brd) + 장 번호 줄 */
 .brd-chs { margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; }
 .brd-chs a { aspect-ratio: 1 / 1; border-radius: 50%; display: grid; place-items: center; font-size: calc(13px * var(--rs, 1)); font-weight: 800; background: var(--b-grey); color: var(--b-dim2); }
-.brd-chs a.done { background: var(--b-accSoft); color: var(--b-acc); }
+.brd-chs a.done { background: var(--b-accSoft); color: var(--b-acc-tx, var(--b-acc)); }
 .brd-chs a.cur { background: var(--b-acc); color: #fff; }
 .brd-chnav { margin-top: 14px; display: flex; justify-content: space-between; gap: 10px; }
 .brd-chnav a { min-height: 44px; padding: 0 16px; border-radius: 5px; background: var(--b-grey); display: inline-flex; align-items: center; font-weight: 800; color: var(--b-ink); }
-.rd-done { color: var(--b-acc); font-weight: 800; }
+.rd-done { color: var(--b-acc-tx, var(--b-acc)); font-weight: 800; }
 
 /* 북마크 모음 (확정 시안: 통독-북마크) */
 .rp-head { padding-bottom: 20px; }
@@ -143,7 +143,7 @@ body { font-size: calc(15px * var(--rs)); }
 .rp-bms p { margin: 8px 0 0; font-size: calc(17px * var(--fs, 1) * var(--rs, 1)); line-height: 1.8; word-break: keep-all; }
 .rp-bms a { display: inline-flex; min-height: 44px; align-items: center; margin-top: 4px; font-size: calc(14px * var(--rs, 1)); font-weight: 700; color: var(--r-dim); }
 .rp-bms .star { position: absolute; right: 0; top: 18px; width: 52px; height: 52px; border: 0; border-radius: 50%; background: var(--r-cell); color: #B0B6C0; font-size: calc(18px * var(--rs, 1)); }
-.rp-bms .star.on { background: #FFF1C9; color: #E0A000; }
+.rp-bms .star.on { background: #FFF1C9; color: #b8500d; }
 .rp-bms .star.wait { color: transparent; }
 .rp-bms .star.wait::after { content: ""; position: absolute; inset: 14px; border: 2px solid var(--r-rule); border-top-color: var(--r-acc); border-radius: 50%; animation: rp-spin .8s linear infinite; }
 .rp-bms li.off p, .rp-bms li.off .h { opacity: .45; }
@@ -217,7 +217,7 @@ body { font-size: calc(15px * var(--rs)); }
 .rr { display: flex; flex-direction: column; gap: 14px; }
 .rr-h { margin: 12px 0 0; font-size: calc(15px * var(--rs, 1)); font-weight: 800; display: flex; justify-content: space-between; align-items: baseline; }
 .rr-h small { font-size: calc(13px * var(--rs, 1)); font-weight: 500; color: var(--r-dim); }
-.rr-ok { margin: 8px 0 0; padding: 12px 14px; border-radius: 5px; background: var(--ok-bg); color: var(--ok); font-weight: 700; }
+.rr-ok { margin: 8px 0 0; padding: 12px 14px; border-radius: 5px; background: var(--ok-bg); color: var(--ok-tx, var(--ok)); font-weight: 700; }
 .rp-body section.rr-now { margin-top: 0; }
 .rr-now { border: 1px solid var(--r-acc); box-shadow: inset 0 0 0 1px var(--r-acc); border-radius: 5px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
 .rr .row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
@@ -227,7 +227,7 @@ body { font-size: calc(15px * var(--rs)); }
 .rr .meta { margin: 0; font-size: calc(13px * var(--rs, 1)); color: var(--r-dim); }
 .rr-tag { font-size: max(11px, calc(12px * var(--rs, 1))); font-weight: 800; padding: 2px 10px; border-radius: 5px; }
 .rr-tag.go { background: var(--r-accSoft); color: var(--r-acc); }
-.rr-tag.ok { background: var(--ok-bg); color: var(--ok); }
+.rr-tag.ok { background: var(--ok-bg); color: var(--ok-tx, var(--ok)); }
 .rr-tag.cl { background: var(--r-band); color: var(--r-dim); }
 .rr-bar { display: block; height: 8px; border-radius: 4px; background: var(--r-band); overflow: hidden; }
 .rr-bar.thin { height: 5px; }

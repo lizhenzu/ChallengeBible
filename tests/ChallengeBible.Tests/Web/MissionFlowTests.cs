@@ -448,8 +448,8 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         }
         var css = await c.GetStringAsync("/css/site.css");
         Assert.Contains(".mnav { grid-template-columns: repeat(5, minmax(0, 1fr)); }", css);
-        Assert.Contains(".mnav a.dn .L { color: #16A34A; opacity: 1; }", css);   // 확정 시안 미션탭-완료글자 2: 한 미션 = 이름 초록
-        Assert.Contains(".mnav a.dn .S.done { color: #16A34A; font-weight: 700; opacity: .6; }", css);   // ✓ 완료 = 초록 약간 흐리게
+        Assert.Contains(".mnav a.dn .L { color: #167a41; opacity: 1; }", css);   // 확정 시안 미션탭-완료글자 2: 한 미션 = 이름 초록
+        Assert.Contains(".mnav a.dn .S.done { color: #167a41; font-weight: 700; opacity: .6; }", css);   // ✓ 완료 = 초록 약간 흐리게
     }
 
     [Fact]

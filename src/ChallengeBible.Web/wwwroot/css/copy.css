@@ -8,7 +8,7 @@
   --bc-track: #ECEAE4;      /* 막대 · 원 바탕 */
   --bc-page: var(--bg);     /* 화면 바탕 */
   --bc-card: var(--bg);     /* 카드 바탕 */
-  --bc-ok: #16A34A;         /* 맞게 친 글자 */
+  --bc-ok: #16A34A; --bc-ok-tx: #167a41;         /* 맞게 친 글자 */
   --bc-ok-bg: #EAF7EF;
   --bc-bad: #DC2626;        /* 틀린 글자 */
   --bc-bad-bg: #FDECEC;
@@ -61,7 +61,7 @@
 .bc-dots button.d { background: var(--bc-acc); }
 .bc-dots button.c { background: var(--bc-card); box-shadow: inset 0 0 0 2px var(--bc-acc); }
 .bc-verse { font-size: 19px; line-height: 1.75; word-break: keep-all; overflow-wrap: anywhere; margin: 0; }
-.bc-verse .ok { color: var(--bc-ok); }
+.bc-verse .ok { color: var(--bc-ok-tx, var(--bc-ok)); }
 .bc-verse .bad { color: var(--bc-bad); background: var(--bc-bad-bg); border-radius: 3px; }
 .bc-verse .todo { color: var(--bc-todo); }
 .bc-verse .cur { box-shadow: -2px 0 0 var(--bc-acc); }
@@ -74,7 +74,7 @@
 .bc-btn { min-height: 48px; padding: 0 10px; border-radius: 14px; display: grid; place-items: center; font-size: 15px; font-weight: 800; border: 1px solid var(--line); background: var(--bc-card); color: var(--fg); cursor: pointer; text-decoration: none; text-align: center; }
 .bc-btn.p { background: var(--bc-acc); border-color: var(--bc-acc); color: var(--bc-on-acc); }
 .bc-btn:disabled { background: var(--bc-track); border-color: var(--bc-track); color: var(--dim); cursor: default; }
-.bc-done { background: var(--bc-ok-bg); border: 1px solid color-mix(in srgb, var(--bc-ok) 30%, transparent); border-radius: 14px; padding: 12px; color: var(--bc-ok); }
+.bc-done { background: var(--bc-ok-bg); border: 1px solid color-mix(in srgb, var(--bc-ok) 30%, transparent); border-radius: 14px; padding: 12px; color: var(--bc-ok-tx, var(--bc-ok)); }
 .bc-done b { font-size: 13px; }
 .bc-done p { margin: 2px 0 0; font-size: 12.5px; line-height: 1.5; }
 .bc-err { background: var(--bc-bad-bg); color: var(--bc-bad); border-radius: 12px; padding: 10px 12px; font-size: 13.5px; font-weight: 700; margin: 0; }
