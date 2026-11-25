@@ -258,7 +258,7 @@ details.create > summary::-webkit-details-marker { display: none; }
 .hello .k { margin: 0; font-size: 13px; color: var(--dim); }
 .hello h1 { font-size: 24px; }
 .score { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.score div { padding: 14px; border-radius: 16px; background: var(--accent-bg); display: flex; flex-direction: column; }
+.score div { padding: 14px; border-radius: 10px; background: var(--accent-bg); display: flex; flex-direction: column; }
 .score small { font-size: 12.5px; color: var(--dim); }
 .score b { font-size: 26px; font-weight: 900; color: var(--accent); }
 .score b u { text-decoration: none; font-size: 14px; margin-left: 2px; }
@@ -289,7 +289,7 @@ details.create > summary::-webkit-details-marker { display: none; }
 /* 내 점수 · 달력 (확정 시안: 말씀-내점수) */
 .pthead { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; }
 .pthead h1 { font-size: 24px; }
-.calbox { margin-top: 18px; padding: 14px; border: 1px solid var(--rule); border-radius: 18px; display: flex; flex-direction: column; gap: 8px; }
+.calbox { margin-top: 18px; padding: 14px; border: 1px solid var(--rule); border-radius: 10px; display: flex; flex-direction: column; gap: 8px; }
 .monbar { display: flex; align-items: center; justify-content: space-between; }
 .monbar a, .monbar span { width: 40px; height: 44px; display: grid; place-items: center; border-radius: 10px; font-size: 20px; }
 .monbar a { border: 1px solid var(--line); }
@@ -1339,10 +1339,10 @@ main.admin > .wrap.ce { display: flex; flex-direction: column; gap: 14px; }
 .rkp .t3 .p u { text-decoration: none; font-size: 12px; color: var(--dim); }
 .rkp .t3 small { font-size: 12px; color: var(--ok-tx, var(--ok)); font-weight: 700; }
 .rkp .filt { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 6px; }
-.rkp .filt a, .rkp .sort a { min-height: 44px; padding: 0 14px; border-radius: 18px; border: 1px solid var(--rule); display: inline-flex; align-items: center; font-size: 13px; }
+.rkp .filt a, .rkp .sort a { min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--rule); display: inline-flex; align-items: center; font-size: 13px; }
 .rkp .filt a[aria-current="true"], .rkp .sort a[aria-current="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); font-weight: 700; }
 .rkp .srch { margin-top: 10px; display: flex; gap: 8px; }
-.rkp .srch label { flex: 1; display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 12px; }
+.rkp .srch label { flex: 1; display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 10px; }
 .rkp .srch input { flex: 1; min-width: 0; border: 0; outline: none; background: none; font-size: 15px; }
 .rkp .sort { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--dim); }
 .rkp .rk-note { margin: 6px 0 0; font-size: 12px; color: var(--dim); }
@@ -1383,7 +1383,7 @@ main.admin > .wrap.ce { display: flex; flex-direction: column; gap: 14px; }
 .rst-note b { color: var(--accent-tx, var(--accent)); }
 .rst .empty { margin-top: 18px; padding: 24px 0; text-align: center; color: var(--dim); }
 @media not all { /* dark off R-265 */ .rst-row .av.k-parent, .rst-row .kd.k-parent { background: #33291A; color: #F2C063; } .rst-row .av.k-teacher, .rst-row .kd.k-teacher { background: #173229; color: #5ED0AE; } }
-.rkp .rk.me { background: var(--accent-bg); border-radius: 12px; }
+.rkp .rk.me { background: var(--accent-bg); border-radius: 10px; }
 .rkp .rk .no { font-weight: 900; font-size: 15px; color: var(--dim); text-align: center; }
 .rkp .rk .av { width: 44px; height: 44px; }
 .rkp .rk .nm { font-size: 16px; font-weight: 800; }
@@ -1600,10 +1600,10 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 @media (min-width: 900px) { .fh-box { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: start; column-gap: 28px; } }
 
 /* ranking family tab (mockup: word ranking, family) */
-.rkp .rk-tabs { margin-top: 14px; width: fit-content; display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: var(--soft); }
+.rkp .rk-tabs { margin-top: 14px; width: fit-content; display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: var(--soft); }
 .rkp .rk-tabs a { min-height: 44px; padding: 0 18px; border-radius: 10px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 700; color: var(--dim); }
 .rkp .rk-tabs a[aria-current="page"] { background: var(--bg); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-.rkp .rk-team { margin-top: 14px; border: 1px solid var(--rule); border-radius: 20px; padding: 16px; }
+.rkp .rk-team { margin-top: 14px; border: 1px solid var(--rule); border-radius: 10px; padding: 16px; }
 .rkp .rk-team.me { box-shadow: 0 0 0 2px var(--accent) inset; border-color: transparent; }
 .rkp .rk-team .th { display: flex; align-items: center; gap: 12px; }
 .rkp .rk-team .th .no { font-weight: 900; font-size: 16px; color: var(--dim); width: 26px; text-align: center; }
@@ -1619,14 +1619,14 @@ main.admin > .wrap.pfam { max-width: 640px; gap: 16px; }
 .rkp .rk-team .tree { margin-top: 14px; display: flex; flex-direction: column; align-items: center; }
 .rkp .rk-team .tree .row { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
 .rkp .rk-team .tree .stem { width: 2px; height: 16px; background: var(--rule); }
-.rkp .rk-team .one { width: 92px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 4px; border-radius: 14px; background: var(--soft); text-align: center; }
+.rkp .rk-team .one { width: 92px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 4px; border-radius: 10px; background: var(--soft); text-align: center; }
 .rkp .rk-team .one.me { box-shadow: 0 0 0 2px var(--accent) inset; background: var(--bg); }
 .rkp .rk-team .one .av { width: 40px; height: 40px; font-size: 15px; }
 .rkp .rk-team .one .ro { font-size: 12px; color: var(--dim); }
 .rkp .rk-team .one b { font-size: 14px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rkp .rk-team .one .v { font-size: 16px; font-weight: 300; }
 .rkp .rk-team .one small.td { font-size: 12px; color: var(--ok-tx, var(--ok)); font-weight: 700; }
-.rkp .rk-team .famGoal { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: var(--soft); font-size: 13px; color: var(--dim); display: flex; justify-content: space-between; gap: 10px; }
+.rkp .rk-team .famGoal { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--soft); font-size: 13px; color: var(--dim); display: flex; justify-content: space-between; gap: 10px; }
 .rkp .rk-team .famGoal b { color: var(--fg); }
 
 /* family celebration (mockup: family celebration, R-96 R-97) */
