@@ -144,7 +144,7 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Contains("class=\"wl-icon-btn\" href=\"/account/login\"", page);        // 손님: 사람 아이콘(누르면 로그인, 2026-11-25)
         Assert.Contains("<a class=\"wl-admin\" href=\"/account/login?returnUrl=%2Fjamsil-kids%2Foffice\">", page);   // 손님에게도 행정업무 버튼 — 누르면 로그인(2026-11-25 사용자)
         Assert.DoesNotContain("내 정보", page);
-        Assert.DoesNotContain("1주일 후 다시 보기", page);                                   // 손님: 기억할 계정이 없다
+        Assert.DoesNotContain("1주일 후 다시 보기", page);                                   // 사람마다 고르는 것은 없다(2026-11-25)
         Assert.DoesNotContain("다시 보지 않기", page);
 
         var kid = await Member("cheolsu", _kids.Id, Roles.Participant);
@@ -154,8 +154,8 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.DoesNotContain("/jamsil-kids/office", mine);                                  // 학생에게는 행정업무 버튼 없음                         // 사진이 없으면 「성」(이름 첫 글자)만
         Assert.DoesNotContain("내 정보", mine);
         Assert.DoesNotContain("wc2-av-guest", mine);
-        Assert.Contains("1주일 후 다시 보기", mine);
-        Assert.Contains("다시 보지 않기", mine);
+        Assert.DoesNotContain("1주일 후 다시 보기", mine);
+        Assert.DoesNotContain("다시 보지 않기", mine);
 
         var admin = await Member("eunhye", _kids.Id, Roles.TenantAdmin);
         var adm = await admin.GetStringAsync("/jamsil-kids/welcome");
@@ -163,8 +163,8 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Contains("ADMIN · 교사 전용", adm);
     }
 
-    [Fact]   // R-370 — 처음 들어온 계정에게 먼저. 「가기」는 이번 방문만, 「1주일 후」 · 「다시 보지 않기」는 계정 기준(다른 기기에서도)
-    public async Task R370_처음_들어온_사람에게_먼저_보이고_계정_기준으로_기억한다()
+    [Fact]   // R-370 — 소개 화면이 켜져 있으면 밖에서 들어올 때마다 먼저(2026-11-25: 「1주일 후 · 다시 보지 않기」는 없앴다). 「가기」는 이번 방문만
+    public async Task R370_소개_화면이_켜져_있으면_밖에서_들어올_때마다_먼저_보인다()
     {
         var a = await Member("cheolsu", _kids.Id, Roles.Participant);
         Assert.True(GoesToWelcome(await a.GetAsync("/jamsil-kids")));                         // 처음
@@ -172,34 +172,52 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         var go = await a.GetAsync("/jamsil-kids/welcome?handler=Go");                         // 「성경말씀으로 가기」
         Assert.Equal("/jamsil-kids", go.Headers.Location?.ToString());
         Assert.Equal(HttpStatusCode.OK, (await FromPage(a, "/jamsil-kids", "/jamsil-kids/welcome")).StatusCode);     // 소개 화면에서 온 요청은 되돌려 보내지 않는다
-        Assert.Equal(HttpStatusCode.OK, (await FromPage(a, "/jamsil-kids", "/jamsil-kids/bulletin")).StatusCode);    // 주보 · 사진첩 등 그 부서 화면에서 「부서 홈」으로 와도 마찬가지
-        Assert.True(GoesToWelcome(await a.GetAsync("/jamsil-kids")));                         // 버그 회귀(2026-11-23): 「가기」를 눌렀어도 **두 번째 방문**(주소창 · 즐겨찾기)에는 또 나온다
+        Assert.Equal(HttpStatusCode.OK, (await FromPage(a, "/jamsil-kids", "/jamsil-kids/bulletin")).StatusCode);    // 주보 · 사진첩 등 그 부서 화면에서 「부서 홈」으로 와도 되돌려 보내지 않는다
+        Assert.True(GoesToWelcome(await a.GetAsync("/jamsil-kids")));                         // 두 번째 방문(주소창 · 즐겨찾기)에도 나온다
         Assert.True(GoesToWelcome(await FromPage(a, "/jamsil-kids", "/account/login")));      // 첫 화면 · 로그인에서 들어와도 나온다(그 부서 화면이 아니다)
         Assert.True(GoesToWelcome(await NewClient().GetAsync("/jamsil-kids")));               // 손님도 들어올 때마다
-        var other = await Login("cheolsu");
 
-        var later = await PostWelcome(other, "Later");                                         // 1주일 후 다시 보기
-        Assert.Equal(HttpStatusCode.Redirect, later.StatusCode);
-        var third = await Login("cheolsu");
-        Assert.Equal(HttpStatusCode.OK, (await third.GetAsync("/jamsil-kids")).StatusCode);   // 다른 기기에서도 숨김
-        _time.Now = _time.Now.AddDays(6);
-        Assert.Equal(HttpStatusCode.OK, (await (await Login("cheolsu")).GetAsync("/jamsil-kids")).StatusCode);   // 6일 뒤: 아직
-        _time.Now = _time.Now.AddDays(2);
-        Assert.True(GoesToWelcome(await (await Login("cheolsu")).GetAsync("/jamsil-kids")));  // 8일 뒤: 다시 나옴
+        var page = await a.GetStringAsync("/jamsil-kids/welcome");
+        Assert.DoesNotContain("1주일 후 다시 보기", page);                                      // 사람마다 고르는 것은 없다(부서 전체 스위치만)
+        Assert.DoesNotContain("다시 보지 않기", page);
+        Assert.Equal(HttpStatusCode.BadRequest, (await PostWelcome(a, "Later")).StatusCode);   // 없앤 동작
 
-        var never = await Login("cheolsu");
-        await PostWelcome(never, "Never");                                                    // 다시 보지 않기
-        _time.Now = _time.Now.AddDays(400);
-        var again = await Login("cheolsu");
-        var home = await again.GetAsync("/jamsil-kids");
-        Assert.Equal(HttpStatusCode.OK, home.StatusCode);
-        Assert.Contains("href=\"/jamsil-kids/welcome\"", await home.Content.ReadAsStringAsync());   // ☰ 메뉴에서는 언제든 다시 본다
+        using (var raw = InMemoryDb.Raw(_db)) { raw.TenantIntros.Single(i => i.TenantId == _kids.Id).IsActive = false; raw.SaveChanges(); }   // 부서 스위치를 끄면
+        Assert.Equal(HttpStatusCode.OK, (await a.GetAsync("/jamsil-kids")).StatusCode);       // 누구에게나 부서 홈이 바로 열린다
+        using (var raw = InMemoryDb.Raw(_db)) { raw.TenantIntros.Single(i => i.TenantId == _kids.Id).IsActive = true; raw.SaveChanges(); }
+    }
 
-        var b = await Member("younghee", _kids.Id, Roles.Participant);                        // 다른 계정은 영향 없음
-        Assert.True(GoesToWelcome(await b.GetAsync("/jamsil-kids")));
-        using var raw = InMemoryDb.Raw(_db);
-        Assert.Single(raw.TenantIntroSeens);                                                  // 계정 한 명 = 한 줄(부서 격리 키)
-        Assert.Equal(_kids.Id, raw.TenantIntroSeens.Single().TenantId);
+    /// <summary>마지막으로 본 부서 쿠키(cb_dept)를 들고, 필요하면 Referer 도 달고 요청한다.</summary>
+    private static Task<HttpResponseMessage> GetWith(HttpClient c, string url, string? cookieSlug, string? from = null)
+    {
+        var req = new HttpRequestMessage(HttpMethod.Get, url);
+        if (cookieSlug is not null) req.Headers.Add("Cookie", $"cb_dept={cookieSlug}");
+        if (from is not null) req.Headers.Referrer = new Uri("http://localhost" + from);
+        return c.SendAsync(req);
+    }
+
+    [Fact]   // R-372 — 앱은 언제나 `/` 로 열린다: `/` 가 마지막으로 본 부서의 소개 화면이 켜져 있는지 DB 로 보고 웰컴으로 보낸다(앱 재설치 필요 없음)
+    public async Task R372_루트는_마지막_부서의_웰컴이_켜져_있으면_웰컴으로_보낸다()
+    {
+        // 웰컴이 켜진 부서를 마지막으로 본 손님: 앱 아이콘(Referer 없음)으로 열면 웰컴
+        Assert.True(GoesToWelcome(await GetWith(NewClient(), "/", "jamsil-kids")));
+        // 웰컴이 없는 부서 · 쿠키 없음: 그대로 첫 화면
+        Assert.Equal(HttpStatusCode.OK, (await GetWith(NewClient(), "/", "jamsil-infant")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await NewClient().GetAsync("/")).StatusCode);
+        // 사이트 안에서 「처음 화면」으로 온 것 · ?home=1 은 첫 화면을 보여 준다
+        Assert.Equal(HttpStatusCode.OK, (await GetWith(NewClient(), "/", "jamsil-kids", "/jamsil-kids/bulletin")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await GetWith(NewClient(), "/?home=1", "jamsil-kids")).StatusCode);
+        // 하나뿐인 부서를 가진 로그인한 사람: 쿠키 없이도
+        var kid = await Member("cheolsu", _kids.Id, Roles.Participant);
+        var kr = await kid.GetAsync("/");
+        Assert.True(GoesToWelcome(kr), $"{(int)kr.StatusCode} {kr.Headers.Location}");
+        // 부서가 웰컴을 끄면 같은 앱 · 같은 쿠키로 첫 화면(DB 를 매번 본다)
+        using (var raw = InMemoryDb.Raw(_db)) { raw.TenantIntros.Single(i => i.TenantId == _kids.Id).IsActive = false; raw.SaveChanges(); }
+        Assert.Equal(HttpStatusCode.OK, (await GetWith(NewClient(), "/", "jamsil-kids")).StatusCode);
+        using (var raw = InMemoryDb.Raw(_db)) { raw.TenantIntros.Single(i => i.TenantId == _kids.Id).IsActive = true; raw.SaveChanges(); }
+        // 웰컴 화면을 보면 마지막 부서로 기억한다
+        var seen = await NewClient().GetAsync("/jamsil-kids/welcome");
+        Assert.Contains(seen.Headers.GetValues("Set-Cookie"), v => v.StartsWith("cb_dept=jamsil-kids"));
     }
 
     private static async Task<HttpResponseMessage> Save(HttpClient c, string slug, string title, string body, byte[]? photo = null, string photoName = "사진.png", bool removePhoto = false)

@@ -1,4 +1,5 @@
 ﻿using ChallengeBible.Domain.Time;
+using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
@@ -15,7 +16,7 @@ namespace ChallengeBible.Web.Pages;
 public class IndexModel(AccountService accounts, TenantClock clock, LandingService landing,
     TenantResolver tenants, TenantContext tenant,
     FamilyTeamService teams, FamilyJoinService familyJoin, RuleService rules, HomeService home, ChallengeCardService cards,
-    GiftOrderService gifts) : PageModel, ITitled
+    GiftOrderService gifts, IntroService intro) : PageModel, ITitled
 {
     public string Title => "";
     /// <summary>맨 아래 © 연도: 부서가 없는 화면이라 한국 시간 기준 올해(하드코딩 안 함).</summary>
@@ -64,6 +65,9 @@ public class IndexModel(AccountService accounts, TenantClock clock, LandingServi
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
+        // 앱은 언제나 `/` 로 열린다(2026-11-25 사용자 설계). 밖에서 들어올 때(앱 아이콘 · 주소창 · 즐겨찾기 = Referer 없음)는
+        // 마지막으로 본(또는 하나뿐인) 부서의 소개 화면(웰컴)이 켜져 있으면 그리로 보낸다. 사이트 안에서 「처음 화면」으로 온 것은 그대로 보여 준다.
+        if (!Welcome.IndexModel.IsSameOrigin(Request) && Request.Query["home"] != "1" && await WelcomeTargetAsync(ct) is { } to) return Redirect(to);
         // 공용 자료는 부서 영역 없는 상태에서 먼저 읽는다(부서를 정하면 공용 콘텐츠가 가려진다).
         Data = await landing.GetAsync(ct);
         if (User.UserName() is { } id)
@@ -85,6 +89,23 @@ public class IndexModel(AccountService accounts, TenantClock clock, LandingServi
             }
         }
         return Page();
+    }
+
+    /// <summary>`/` 에서 웰컴으로 보낼 주소. 로그인한 사람은 하나뿐인 부서(여럿이면 마지막으로 본 부서가 내 소속일 때), 손님은 마지막으로 본 부서.
+    /// 그 부서의 소개 화면이 켜져 있을 때만(DB 를 매번 본다 — 부서가 웰컴을 켜거나 꺼도 앱을 다시 설치할 필요가 없다).</summary>
+    private async Task<string?> WelcomeTargetAsync(CancellationToken ct)
+    {
+        string? slug = null;
+        var last = LastDept.Get(Request);
+        if (User.UserName() is { } id)
+        {
+            var mine = (await accounts.MyMembershipsAsync(id, ct)).Where(m => m.Status == MembershipStatus.Approved && m.TenantActive && !m.IsLobby).Select(m => m.Slug).ToList();
+            slug = mine.Count == 1 ? mine[0] : mine.Contains(last ?? "") ? last : null;
+        }
+        else slug = last;
+        // 손님은 소속이 없어 NotMember 로 나오지만 부서는 정해진다 — 소개 화면은 누구나 보는 화면이라 NotFound 만 거른다
+        if (slug is null || await tenants.ResolveAsync(HttpContext, slug) == TenantResolution.NotFound || tenant.IsLobby) return null;
+        return await intro.ShowAsync(ct) ? $"/{slug}/welcome" : null;
     }
 
     /// <summary>

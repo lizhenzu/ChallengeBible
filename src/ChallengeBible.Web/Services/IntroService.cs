@@ -31,36 +31,9 @@ public sealed class IntroService(IAppDb db, TenantContext tenant, TimeProvider t
         return await ctx.TenantIntros.AsNoTracking().SingleOrDefaultAsync(i => includeHidden || i.IsActive, ct);
     }
 
-    /// <summary>들어올 때 소개 화면을 먼저 보여 줄까: 줄이 켜져 있고, 손님이거나 이 계정이 「다시 보지 않기」 · 「1주일 후」를 고른 게 아닐 때.</summary>
-    public async Task<bool> ShouldShowAsync(string? userName, CancellationToken ct = default)
-    {
-        if (await GetAsync(ct: ct) is null) return false;
-        if (userName is null) return true;
-        await using var ctx = db.Create();
-        var seen = await ctx.TenantIntroSeens.AsNoTracking().SingleOrDefaultAsync(s => s.UserName == userName, ct);
-        if (seen is null) return true;
-        if (seen.Never) return false;
-        return seen.HideUntilUtc is not { } until || until <= time.GetUtcNow().UtcDateTime;
-    }
-
-    /// <summary>「1주일 후 다시 보기」: 오늘부터 7일 뒤까지 숨긴다(이전에 「다시 보지 않기」였어도 이 선택이 이긴다).</summary>
-    public Task LaterAsync(string userName, CancellationToken ct = default) =>
-        Remember(userName, s => (s.HideUntilUtc, s.Never) = (time.GetUtcNow().UtcDateTime.AddDays(LaterDays), false), ct);
-
-    /// <summary>「다시 보지 않기」: 계정이 바뀌기 전까지 소개 화면이 먼저 나오지 않는다(☰ 메뉴에서는 언제든 본다).</summary>
-    public Task NeverAsync(string userName, CancellationToken ct = default) =>
-        Remember(userName, s => (s.HideUntilUtc, s.Never) = (null, true), ct);
-
-    private async Task Remember(string userName, Action<TenantIntroSeen> set, CancellationToken ct)
-    {
-        if (tenant.IsLobby || await GetAsync(ct: ct) is null) return;
-        await using var ctx = db.Create();
-        var s = await ctx.TenantIntroSeens.SingleOrDefaultAsync(x => x.UserName == userName, ct);
-        if (s is null) { s = new TenantIntroSeen { TenantId = tenant.Current.Id, UserName = userName }; ctx.TenantIntroSeens.Add(s); }
-        set(s);
-        s.UpdatedUtc = time.GetUtcNow().UtcDateTime;
-        await ctx.SaveChangesAsync(ct);
-    }
+    /// <summary>들어올 때 소개 화면(웰컴)을 먼저 보여 줄까: 이 부서의 소개 줄이 켜져 있으면 누구에게나(2026-11-25 사용자 — 「1주일 후 · 다시 보지 않기」는 없앴다.
+    /// 켜고 끄는 것은 부서 전체의 스위치(관리 › 소개 화면 「사용」)가 정한다).</summary>
+    public async Task<bool> ShowAsync(CancellationToken ct = default) => await GetAsync(ct: ct) is not null;
 
     /// <summary>글 · 사진 고치기(부서 관리자만). 줄이 없는 부서는 KeyNotFoundException(= 소개 화면이 없는 부서).
     /// 사진은 내용으로 종류를 확인한다(JPG · PNG, 5MB까지).</summary>

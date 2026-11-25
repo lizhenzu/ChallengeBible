@@ -34,10 +34,15 @@ public class IndexModel(IntroService intro, WorshipService worship, BulletinServ
     /// <summary>로그인한 사람만 「1주일 후 다시 보기」 · 「다시 보지 않기」(계정 기준).</summary>
     public bool Member => User.UserName() is not null;
 
+    /// <summary>같은 사이트 안에서 온 요청인가(Referer 가 이 사이트). 앱 아이콘 · 주소창 · 즐겨찾기는 Referer 가 없다.</summary>
+    public static bool IsSameOrigin(HttpRequest r) =>
+        Uri.TryCreate(r.Headers.Referer.ToString(), UriKind.Absolute, out var from) && from.Authority.Equals(r.Host.Value, StringComparison.OrdinalIgnoreCase);
+
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (tenant.IsLobby || await intro.GetAsync(ct: ct) is not { } item) return Redirect($"/{tenant.Current.Slug}?intro=0");
         Item = item;
+        LastDept.Set(HttpContext, tenant.Current.Slug);   // 마지막으로 본 부서 기억(앱을 열면 `/` 가 여기로 보낸다)
         Worship = await worship.ListAsync(ct: ct);
         LatestBulletin = await bulletins.LatestDateAsync(ct);
         return Page();
@@ -45,16 +50,4 @@ public class IndexModel(IntroService intro, WorshipService worship, BulletinServ
 
     /// <summary>「도전!!! 성경말씀으로 가기」: 소개 화면에서 온 요청이라 부서 홈이 다시 보내지 않는다(기억하는 것은 없다).</summary>
     public IActionResult OnGetGo() => Redirect($"/{tenant.Current.Slug}");
-
-    public async Task<IActionResult> OnPostLaterAsync(CancellationToken ct)
-    {
-        if (User.UserName() is { } me) await intro.LaterAsync(me, ct);
-        return Redirect($"/{tenant.Current.Slug}");
-    }
-
-    public async Task<IActionResult> OnPostNeverAsync(CancellationToken ct)
-    {
-        if (User.UserName() is { } me) await intro.NeverAsync(me, ct);
-        return Redirect($"/{tenant.Current.Slug}");
-    }
 }

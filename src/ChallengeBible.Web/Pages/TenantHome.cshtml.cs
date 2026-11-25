@@ -72,10 +72,11 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (TodayScreen && !tenant.IsLobby) return Redirect($"/{tenant.Current.Slug}");
+        if (!tenant.IsLobby) LastDept.Set(HttpContext, tenant.Current.Slug);   // 마지막으로 본 부서 기억(앱을 열면 `/` 가 이 부서로 보낸다, 2026-11-25)
         // 부서 소개 화면(ADR 0140): 소개 줄이 있는 부서(유년부)는 **밖에서 들어올 때** 먼저 보여 준다(그 부서 화면들 사이를 오갈 때는 안 끼어든다).
-        // 계정이 「1주일 후」 · 「다시 보지 않기」를 골랐으면 건너뛴다. 손님은 계정이 없어 들어올 때마다.
+        // (2026-11-25) 「1주일 후 · 다시 보지 않기」는 없앴다 — 소개 화면이 켜져 있으면 누구나 밖에서 들어올 때마다.
         if (!tenant.IsLobby && !TodayScreen && !Welcome.IndexModel.IsFromSameDept(Request, tenant.Current.Slug)
-            && await intro.ShouldShowAsync(User.UserName(), ct))
+            && await intro.ShowAsync(ct))
             return Redirect($"/{tenant.Current.Slug}/welcome");
         if (User.UserId() is null)
         {

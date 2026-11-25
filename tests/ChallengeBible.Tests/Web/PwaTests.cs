@@ -72,7 +72,7 @@ public class PwaTests : IClassFixture<WebApplicationFactory<Program>>
             Assert.Contains("rel=\"apple-touch-icon\" href=\"/icons/apple-touch-icon.png\"", html);
             Assert.Contains("href=\"/icons/favicon.svg\"", html);
         }
-        Assert.Contains("property=\"og:title\" content=\"도전!!!성경말씀\"", await c.GetStringAsync("/"));
+        Assert.Contains("property=\"og:title\" content=\"도전!!!성경말씀\"", await _app.CreateClient().GetStringAsync("/"));   // 새 클라이언트(쿠키 없음) — 웰컴을 본 뒤의 `/` 는 웰컴으로 간다(2026-11-25)
     }
 
     [Fact]

@@ -97,14 +97,6 @@
         </div>
     </div>
 
-    @if (Model.Member)
-    {
-        <form class="wl-later" method="post" asp-route-slug="@slug">
-            <button type="submit" asp-page-handler="Later">1주일 후 다시 보기</button>
-            <button type="submit" asp-page-handler="Never">다시 보지 않기</button>
-        </form>
-    }
-
     <footer class="wl-footer">
         <p>@(addr ?? Model.Tenant.Current.Name)</p>
     </footer>
