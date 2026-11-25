@@ -337,8 +337,9 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("class=\"vb-date\"", root);
 
         var dept = await c.GetStringAsync("/jamsil-kids");
-        Assert.Contains("class=\"hpill\"", dept);
-        Assert.Contains("class=\"vb-today\"", dept);
+        Assert.Contains("class=\"vb-dc\"", dept);                          // 오른쪽 위: 날짜 + 편지 동그라미(2026-11-25 사용자)
+        Assert.Contains("class=\"vb-hi\"", dept);                          // 인사말 「안녕하세요. 000님,」
+        Assert.DoesNotContain("class=\"vb-today\"", dept);
         Assert.DoesNotContain("class=\"vb-date\"", dept);
         Assert.DoesNotContain("<small>대한예수교장로회</small>", dept);       // 부서 홈 머리줄은 소속 이름 하나
         Assert.DoesNotContain("잠실새내교회 홈페이지", dept);      // ☰ 메뉴에는 교회 홈페이지 링크 없음(2026-11-25 사용자 "필요 없다, 다 지워줘")

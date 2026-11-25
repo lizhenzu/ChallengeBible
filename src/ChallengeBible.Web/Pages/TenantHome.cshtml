@@ -75,16 +75,10 @@ else
                     }
                     else
                     {
-                        <span class="hpill">
-                            <partial name="_MailBadge" />
-                            <span class="sp" aria-hidden="true"></span>
-                            <a class="hmx-me" href="/account" aria-label="내 계정 · @Ui.Nim(User.DisplayName())">
-                                @if (Model.MyPhoto is { } ph)
-                                {
-                                    <span class="av"><img src="/account/photo?handler=img&amp;v=@ph" alt="" /></span>
-                                }
-                                <b>@Ui.Nim(User.DisplayName())</b>
-                            </a>
+                        @* 오른쪽 위(2026-11-25 사용자): 날짜(월 일 · 요일) + 검은 동그라미(편지 = 쪽지). 내 계정은 ☰ 맨 아래 프로필 *@
+                        <span class="vb-dc">
+                            <time class="vb-dd" datetime="@d.Today.ToString("yyyy-MM-dd")">@d.Today.ToString("M월 d일", ko)<small>@d.Today.ToString("dddd", ko)</small></time>
+                            <span class="vb-circ"><partial name="_MailBadge" /></span>
                         </span>
                     }
                 </div>
@@ -92,11 +86,18 @@ else
 
             <div class="vb-hero-row">
                 <div class="vb-body">
-                    <time class="vb-today" datetime="@d.Today.ToString("yyyy-MM-dd")">@d.Today.ToString("M월 d일 dddd", ko)</time>   @* 날짜는 머리줄에서 본문 위로(기준표 5판) *@
+                    @if (Model.Guest)
+                    {
+                        <time class="vb-today" datetime="@d.Today.ToString("yyyy-MM-dd")">@d.Today.ToString("M월 d일 dddd", ko)</time>   @* 날짜는 머리줄에서 본문 위로(기준표 5판) *@
+                    }
                     <h1 class="brand-title">
                         <span class="bt-1">도전<span class="bt-ex"><i class="e1">!</i><i class="e2">!</i><i class="e3">!</i></span></span>
                         <span class="bt-2">성경말씀</span>
                     </h1>
+                    @if (!Model.Guest)
+                    {
+                        <p class="vb-hi">안녕하세요.<br />@(Ui.Nim(User.DisplayName()) + ",")</p>
+                    }
                     <p class="vb-tag">@(lobby ? "먼저 미션으로 시작해 보세요." : "하루 5분, 말씀과 함께 자라요.")</p>
                 </div>
                 @* 나의 포인트 링(2026-11-23 사용자 확정 B안 · ADR 0136): 「도전 성경말씀」 오른쪽 빈자리. 누르면 「나의 도전」 화면. *@
