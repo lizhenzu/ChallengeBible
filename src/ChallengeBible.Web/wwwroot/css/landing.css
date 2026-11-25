@@ -23,7 +23,7 @@
 /* 부서 홈(2026-11-23 사용자): 태그라인과 검색 상자 사이 구분선 없음 · 검색 상자 위아래 여백 같게 */
 .vb-dept .vb-hero { border-bottom: 0; }
 .vb-dept .vb-hero-in { padding-bottom: 0; }
-.vb-clover { position: absolute; right: -70px; top: -50px; width: 230px; opacity: .06; filter: grayscale(1); pointer-events: none; }
+.vb-clover { position: absolute; right: -70px; top: -50px; width: 230px; opacity: .04; filter: grayscale(1); pointer-events: none; }
 .vb-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .vb-top-r { display: flex; align-items: center; gap: 10px; }
 .vb .church small { display: block; font-size: 12px; color: var(--ink-3); line-height: 1.3; }
@@ -40,13 +40,13 @@
 .vb .hmx-me b { font-size: 13.5px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .vb-body { margin-top: 34px; }
-.brand-title { font-weight: 900; letter-spacing: -.04em; line-height: 1.08; color: var(--ink); font-size: 44px; }
+.brand-title { font-weight: 900; letter-spacing: -.04em; line-height: 1.08; color: var(--ink); font-size: 33px; }   /* 44 → 33px(0.75배, 2026-11-25 사용자) */
 .brand-title .bt-1, .brand-title .bt-2 { display: block; }
 .brand-title .bt-ex i { font-style: normal; margin-left: .02em; }
 .brand-title .e1 { color: #22b35e; }
 .brand-title .e2 { color: #3b7cf0; }
 .brand-title .e3 { color: #e8458f; }   /* 주황 → 분홍(2026-11-25 사용자): 초록 · 파랑 · 분홍 */
-.vb-tag { margin-top: 16px !important; font-size: 15px; color: var(--ink-2); line-height: 1.55; }
+.vb-tag { margin-top: 6px !important; font-size: 14px; color: var(--ink-2); line-height: 1.55; }
 .vb-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
 .vb-pills span { font-size: 12px; font-weight: 800; padding: 6px 11px; border-radius: 999px; color: #fff; }
 .vb-pills .pp1 { background: var(--p1); } .vb-pills .pp2 { background: var(--p2); }
@@ -106,8 +106,8 @@
   .vb-hero-in { padding: 28px 40px 64px; }
   .vb-clover { right: -60px; top: -40px; width: 360px; }
   .vb-body { margin-top: 64px; }
-  .brand-title { font-size: 72px; }
-  .vb-tag { font-size: 18px; }
+  .brand-title { font-size: 54px; }
+  .vb-tag { font-size: 16px; }
   .vb-main { padding: 56px 40px 40px; }
   .vb .hmx-search { margin-bottom: 56px; }   /* 넓은 화면도 검색 상자 위 · 아래 여백을 .vb-main padding-top 과 같게 */
   .vb-sec-h h2 { font-size: 28px; }
@@ -220,8 +220,8 @@
 .vb-pts .names .now { font-weight: 900; color: #17663a; }
 /* 2026-11-23 사용자: 검색 상자 위 · 아래 여백을 같게 — 위는 .vb-main 의 padding-top(30/56)이라 아래도 같은 값 */
 .vb .hmx-search { margin: 0 0 30px; border-color: var(--line); background: var(--soft); }
-.vb .hmx-search button { background: var(--ink); }
-.vb .hmx-search button:active { background: #000; }
+.vb .hmx-search button { background: #2f6fe4; }   /* 검색 = 성경통독 파랑(2026-11-25 사용자) */
+.vb .hmx-search button:active { background: #2358c4; }
 .vb .hmx-links a { color: var(--ink-2); }
 /* 가족팀(2026-11-23 사용자 · ADR 0132 시안 `메인-가족팀-아래-단독시안.html`) — 초대 배너 · 우리 팀 카드 · 만들기 유도.
    첫 화면(`/`)은 landing.css 만 읽으므로 모노 톤 정의를 여기에 둔다(부서 홈은 home.css 와 겹쳐도 이 값이 이긴다). */
@@ -298,7 +298,7 @@
 
 /* 홈 상단 포인트 링(2026-11-23 사용자 확정 B안 · ADR 0136 · 시안 docs/design/시안/나의도전-확정-A링히어로-이번주추가.html)
    「도전 성경말씀」 오른쪽 빈자리. 링 안에 포인트와 지금 성장 단계, 누르면 「나의 도전」 화면. */
-.vb-hero-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.vb-hero-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .vb-hero-row .vb-body { margin-top: 34px; min-width: 0; }
 .vb-ring { display: inline-grid; justify-items: center; gap: 5px; flex: none; margin-top: 22px; border-radius: 50%; }
 .vb-ring .ring { position: relative; display: block; }
@@ -500,10 +500,18 @@
 
 /* 첫 화면 오른쪽 위 날짜 + 동그라미 · 인사말(2026-11-25 사용자 시안 첫화면-날짜-인사말) */
 .vb-dc { display: flex; align-items: center; gap: 10px; }
-.vb-dd { font-size: 12.5px; font-weight: 700; color: #56565c; text-align: right; line-height: 1.3; white-space: nowrap; }
+.vb-dd { font-size: 12px; font-weight: 700; color: #56565c; text-align: right; line-height: 1.3; white-space: nowrap; }
 .vb-dd small { display: block; font-size: 12px; font-weight: 600; color: #8e8e94; }
 .vb-circ { display: inline-grid; flex: none; }
-.vb-circ .mailb, .vb-circ-a { width: 44px; height: 44px; border-radius: 50%; background: #1d1d1f; color: #fff; display: grid; place-items: center; }
-.vb-circ .mailb svg, .vb-circ-a svg { color: #fff; }
-.vb-circ .mailb i { top: 2px; right: 2px; }
-.vb-hi { margin: 14px 0 0; font-size: 20px; line-height: 1.4; font-weight: 800; letter-spacing: -.02em; }
+.vb-circ .mailb, .vb-circ-a { width: 40px; height: 40px; border-radius: 50%; background: #fff; color: #1d1d1f; box-shadow: inset 0 0 0 1px #e3e6eb; display: grid; place-items: center; }   /* 흰 바탕 + 얇은 테두리 + 검은 편지(2026-11-25 사용자) */
+.vb-circ .mailb svg, .vb-circ-a svg { color: #1d1d1f; }
+.vb-circ .mailb i { top: 0; right: 0; }
+.vb-hi { margin: 14px 0 0; font-size: 18px; line-height: 1.4; font-weight: 700; letter-spacing: -.02em; }
+
+/* 포인트 링 점수 글자: 네 자리 21px · 다섯 자리 19px(링 92px 안에 들어오게, 2026-11-25 사용자 시안) */
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts.d4 { font-size: 21px; }
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts.d5 { font-size: 19px; }
+@media (min-width: 720px) {
+  :is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts.d4 { font-size: 30px; }
+  :is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts.d5 { font-size: 26px; }
+}

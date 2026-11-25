@@ -20,6 +20,8 @@
     var da = len.ToString("0.#", inv);
     var doff = off.ToString("0.#", inv);
     var px = $"{size}px";
+    var nd = Model.Points.ToString("N0").Count(char.IsDigit);   // 점수가 네 자리 · 다섯 자리면 글자를 줄여 링 안에 들어오게(2026-11-25 사용자 시안)
+    var dcls = nd >= 5 ? " d5" : nd == 4 ? " d4" : "";
 }
 @if (Model.Href is { } href)
 {
@@ -30,7 +32,7 @@
                 <circle class="rb-arc" cx="@c" cy="@c" r="@rs" stroke-width="@sw" stroke-dasharray="@da" stroke-dashoffset="@doff" />
             </svg>
             <span class="rb-in">
-                <b class="rb-pts num">@Model.Points.ToString("N0")<i>점</i></b>
+                <b class="rb-pts num@(dcls)">@Model.Points.ToString("N0")<i>점</i></b>
                 <span class="rb-stg">@Model.Growth.Emoji @Model.Growth.Name</span>
             </span>
         </span>
@@ -45,7 +47,7 @@ else
                 <circle class="rb-arc" cx="@c" cy="@c" r="@rs" stroke-width="@sw" stroke-dasharray="@da" stroke-dashoffset="@doff" />
             </svg>
             <span class="rb-in">
-                <b class="rb-pts num">@Model.Points.ToString("N0")<i>점</i></b>
+                <b class="rb-pts num@(dcls)">@Model.Points.ToString("N0")<i>점</i></b>
                 <span class="rb-stg">@Model.Growth.Emoji @Model.Growth.Name</span>
             </span>
         </span>
