@@ -69,7 +69,7 @@
 .bdc { border: 1.5px solid var(--rule); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 12px; background: var(--bg); min-width: 0; scroll-margin-top: 80px; }
 .bdc.today { border-color: #F59E0B; background: #FFFBEB; }
 .bdc-d { display: flex; align-items: baseline; gap: 8px; }
-.bdc-d b { font-size: 22px; font-weight: 900; color: var(--accent-tx, var(--accent)); }
+.bdc-d b { font-size: 22px; font-weight: 900; color: var(--accent); }
 .bdc.today .bdc-d b { color: #B45309; }
 .bdc-d span { font-size: 14px; font-weight: 700; color: var(--dim); }
 .bdc-me { display: flex; gap: 12px; align-items: center; min-width: 0; }

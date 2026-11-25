@@ -166,7 +166,7 @@
 .hm .wl-top .wrap { max-width: 480px; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; padding-block: 8px; }
 .hm .wl-org { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
 .hm .wl-org small { font-size: 12px; color: var(--dim); }
-.hm .wl-org b { font-size: 20px; font-weight: 900; color: var(--accent-tx, var(--accent)); }
+.hm .wl-org b { font-size: 20px; font-weight: 900; color: var(--accent); }
 .hm .wl-today { text-align: right; font-size: 13px; color: var(--dim); white-space: nowrap; }
 .hm .wl-today b { font-size: 17px; font-weight: 800; color: var(--fg); }
 .hm .wl-hi .wrap { max-width: 480px; padding-block: 18px 30px; }
@@ -195,7 +195,7 @@
 .hm .wl-btn { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 54px; padding: 0 18px; border-radius: 14px; font-size: 16px; font-weight: 800; }
 .hm .wl .wl-btn.wl-p { background: var(--accent); color: var(--on-accent); }
 .hm .wl .wl-btn.wl-s { margin-top: 10px; background: var(--bg); color: var(--accent-tx, var(--accent)); border: 1px solid var(--sky-rule); }
-.hm .wl-org .church { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; font-size: 20px; font-weight: 900; letter-spacing: -.01em; color: var(--accent-tx, var(--accent)); white-space: nowrap; }
+.hm .wl-org .church { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; font-size: 20px; font-weight: 900; letter-spacing: -.01em; color: var(--accent); white-space: nowrap; }
 .hm .wl-org .church svg { width: 13px; height: 13px; flex: none; margin-top: -6px; }
 .hm .wl-keep { margin: 12px 0 0; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--dim); }
 .hm .wl-keep svg { flex: none; margin-top: 3px; color: var(--okc); }
@@ -386,7 +386,7 @@
 .hm .hj-dept > a { min-width: 0; text-align: center; padding: 8px 0; border-radius: 10px; -webkit-tap-highlight-color: transparent; }
 .hm .hj-dept > a[href]:active { background: var(--soft); }
 .hm .hj-dept .b { --c: var(--hj-blue); } .hm .hj-dept .pn { --c: var(--hj-purple); } .hm .hj-dept .m { --c: var(--hj-mint); }
-.hm .hj-dept b { display: block; font-size: 24px; font-weight: 900; color: var(--c-tx, var(--c)); }
+.hm .hj-dept b { display: block; font-size: 24px; font-weight: 900; color: var(--c); }
 .hm .hj-dept b u { text-decoration: none; margin-left: 2px; font-size: 12.5px; color: var(--dim); }
 .hm .hj-dept small { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; color: var(--dim); }
 .hm .hj-mini small { display: block; font-size: 12.5px; font-weight: 700; color: var(--dim); }
@@ -438,7 +438,7 @@
 .hm .hj-sr .sx .ph { background: #FAF9F6; }
 .hm .hj-sr .kw a, .hm .hj-sr .tg b, .hm .tpCard .tpMore { background: #F7F5F1; color: #5B5346; }
 .hm .hj-hi .hj-roles .ad { background: #4A5568; }
-.hm .hj-dept b { color: #2A2F3A; }
+.hm .hj-dept b { color: var(--c); }
 /* 성장: 단계 띠 대신 오른쪽 "○○까지 N점"(유년부 홈과 같은 구성, 2026-11-17 사용자) */
 .hm .hj-gtx em { margin-top: 8px; color: var(--fg); }
 .hm .hj-gside { flex: none; align-self: stretch; display: flex; flex-direction: column; justify-content: center; min-width: 96px; margin-left: 4px; padding-left: 16px; border-left: 1px solid var(--rule); }

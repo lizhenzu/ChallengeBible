@@ -141,7 +141,7 @@ body:has(.mbody) .toast { bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 .okpop h2 { margin: 4px 0 0; font-size: 21px; font-weight: 900; color: #111827; word-break: keep-all; }
 .okpop .pill { display: inline-block; margin-top: 10px; padding: 4px 14px; border-radius: 99px; background: #EAF2FD; color: #1f55c0; font-weight: 900; font-size: 15px; }
 .okpop .tot { margin-top: 16px; padding-top: 14px; border-top: 1px solid #EEF0F3; font-size: 13px; color: #6B7280; }
-.okpop .tot b { display: block; margin-top: 2px; font-size: 34px; font-weight: 300; color: #1f55c0; font-variant-numeric: tabular-nums; }
+.okpop .tot b { display: block; margin-top: 2px; font-size: 34px; font-weight: 300; color: #2F80ED; font-variant-numeric: tabular-nums; }
 .okpop .tot b u { text-decoration: none; font-size: 15px; color: #6B7280; margin-left: 2px; }
 .okpop-close { width: 100%; margin-top: 16px; min-height: 50px; border: 0; border-radius: 14px; background: #2F80ED; color: #fff; font: inherit; font-size: 16px; font-weight: 900; cursor: pointer; }
 .okpop-close:focus-visible { outline: 3px solid #93B9F2; outline-offset: 2px; }

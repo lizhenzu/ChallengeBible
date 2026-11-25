@@ -26,7 +26,7 @@
 .p365-tog { margin-top: 8px; font-size: 13px; color: var(--p-dim2); } .p365-tog b { color: var(--p-tx); }
 .p365-ps { margin-top: 22px; padding: 16px; border-radius: 16px; background: var(--p-mark); }
 .p365-ps .t { font-size: 13px; font-weight: 800; color: var(--p-tx); } .p365-ps .t.sm { margin-top: 14px; } .p365-ps .t small { font-weight: 500; color: var(--p-dim2); margin-left: 4px; }
-.p365-ps .big { margin-top: 6px; } .p365-ps .big b { font-size: 30px; font-weight: 300; color: var(--p-acc-tx, var(--p-acc)); } .p365-ps .big span { font-size: 13px; color: var(--p-dim2); margin-left: 4px; }
+.p365-ps .big { margin-top: 6px; } .p365-ps .big b { font-size: 30px; font-weight: 300; color: var(--p-acc); } .p365-ps .big span { font-size: 13px; color: var(--p-dim2); margin-left: 4px; }
 .p365-ps .bar { height: 6px; border-radius: 99px; background: #fff; margin-top: 6px; overflow: hidden; } .p365-ps .bar i { display: block; height: 100%; background: var(--p-acc); }
 .p365-ps .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
 .p365-ps .tiles div { background: #fff; border-radius: 12px; padding: 10px 4px; text-align: center; }

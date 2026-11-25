@@ -43,9 +43,9 @@
 .brand-title { font-weight: 900; letter-spacing: -.04em; line-height: 1.08; color: var(--ink); font-size: 44px; }
 .brand-title .bt-1, .brand-title .bt-2 { display: block; }
 .brand-title .bt-ex i { font-style: normal; margin-left: .02em; }
-.brand-title .e1 { color: #167a41; }
-.brand-title .e2 { color: #1f55c0; }
-.brand-title .e3 { color: #b8500d; }
+.brand-title .e1 { color: #22b35e; }
+.brand-title .e2 { color: #3b7cf0; }
+.brand-title .e3 { color: #f07a22; }
 .vb-tag { margin-top: 16px !important; font-size: 15px; color: var(--ink-2); line-height: 1.55; }
 .vb-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
 .vb-pills span { font-size: 12px; font-weight: 800; padding: 6px 11px; border-radius: 999px; color: #fff; }
@@ -62,11 +62,11 @@
 .vb-sec-h p { font-size: 13px; color: var(--ink-3); }
 .vb-list { margin-top: 14px; display: grid; grid-template-columns: 1fr; border-top: 2px solid var(--ink); }
 .vb-item { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--line); }
-.vb-no { font-size: 24px; font-weight: 900; color: var(--c-tx, var(--c)); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.vb-no { font-size: 24px; font-weight: 900; color: var(--c); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
 .vb-t small { display: block; font-size: 12px; font-weight: 700; color: var(--ink-3); }
 .vb-t b { display: block; font-size: 18px; font-weight: 900; letter-spacing: -.03em; }
 .vb-t p { font-size: 13px; color: var(--ink-2); margin-top: 4px !important; line-height: 1.5; text-wrap: pretty; }
-.vb-go { width: 40px; height: 40px; border-radius: 50%; background: var(--s); color: var(--c-tx, var(--c)); display: grid; place-items: center; }
+.vb-go { width: 40px; height: 40px; border-radius: 50%; background: var(--s); color: var(--c); display: grid; place-items: center; }
 
 /* 3. 말씀 + 현황 */
 .vb-row { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 30px; align-items: start; }
