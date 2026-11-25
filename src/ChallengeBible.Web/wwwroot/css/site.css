@@ -4943,3 +4943,6 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 /* 글자 크기 도구 「가− 100% 가+」: 눈에 보이는 크기는 그대로, 누르는 칸만 위아래로 44px 까지(공통 3, 2026-11-25) */
 .fs button { position: relative; }
 .fs button::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+
+/* 미션 홈 카드 모서리 10px 시험(2026-11-25 사용자 "여기만 10으로 해보고 결정"). 미션 홈(a.hM 가 있는 화면)에만 걸린다 */
+body:has(a.hM) .gk-card, body:has(a.hM) a.hM, body:has(a.hM) .hFam, body:has(a.hM) .hNote { border-radius: 10px; }
