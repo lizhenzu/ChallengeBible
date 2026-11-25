@@ -497,3 +497,13 @@
 [style*="--c: var(--p2)"] { --c-tx: var(--p2-tx); }
 [style*="--c: var(--p3)"] { --c-tx: var(--p3-tx); }
 [style*="--c: var(--p4)"] { --c-tx: var(--p4-tx); }
+
+/* 첫 화면 오른쪽 위 날짜 + 동그라미 · 인사말(2026-11-25 사용자 시안 첫화면-날짜-인사말) */
+.vb-dc { display: flex; align-items: center; gap: 10px; }
+.vb-dd { font-size: 12.5px; font-weight: 700; color: #56565c; text-align: right; line-height: 1.3; white-space: nowrap; }
+.vb-dd small { display: block; font-size: 12px; font-weight: 600; color: #8e8e94; }
+.vb-circ { display: inline-grid; flex: none; }
+.vb-circ .mailb, .vb-circ-a { width: 44px; height: 44px; border-radius: 50%; background: #1d1d1f; color: #fff; display: grid; place-items: center; }
+.vb-circ .mailb svg, .vb-circ-a svg { color: #fff; }
+.vb-circ .mailb i { top: 2px; right: 2px; }
+.vb-hi { margin: 14px 0 0; font-size: 20px; line-height: 1.4; font-weight: 800; letter-spacing: -.02em; }

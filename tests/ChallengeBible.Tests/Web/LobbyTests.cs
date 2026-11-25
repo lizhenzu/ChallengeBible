@@ -229,7 +229,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         var req = InMemoryDb.SeedMembership(_db, _kids.Id, me, MembershipStatus.Requested, Roles.Guardian);
         await AdminIn(_kids).ApproveAsync(admin.UserName!, req.Id, null);
         var landing = await c.GetStringAsync("/");   // 2026-11-23 사용자: 자동으로 넘기지 않고 첫 화면에 머문다
-        Assert.Contains("class=\"hmx-me\"", landing);                       // 머리말 「000님」
+        Assert.Contains("class=\"vb-hi\"", landing);                         // 인사말 「안녕하세요. 000님,」(2026-11-25)
         Assert.Contains("href=\"/jamsil-kids\"", landing);                  // 진짜 부서 바로가기
         Assert.Contains("class=\"pdrawer tdr2\"", landing);                 // ☰ 는 그 부서의 기존 메뉴판 그대로
     }

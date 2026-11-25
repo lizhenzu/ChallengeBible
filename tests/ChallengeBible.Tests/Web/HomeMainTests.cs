@@ -330,10 +330,10 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var (c, _) = await Member("cheolsu", Roles.Participant);
         var root = await c.GetStringAsync("/");
         Assert.Contains("<small>대한예수교장로회</small>", root);            // 이단이 많아 첫 화면에는 교단 문구를 둔다(2026-11-24 사용자)
-        Assert.Contains("class=\"hpill\"", root);
-        Assert.Contains("class=\"mailb\"", root);                           // 알약 안의 편지
-        Assert.Contains("<a class=\"hmx-me\" href=\"/account\"", root);     // 알약 안의 이름(누르면 내 계정)
-        Assert.Contains("class=\"vb-today\"", root);
+        Assert.Contains("class=\"vb-dc\"", root);                           // 오른쪽 위: 날짜 + 검은 동그라미(2026-11-25 사용자)
+        Assert.Contains("class=\"mailb\"", root);                           // 동그라미 안의 편지(누르면 쪽지)
+        Assert.Contains("class=\"vb-hi\"", root);                           // 인사말 「안녕하세요. 000님,」
+        Assert.DoesNotContain("class=\"vb-today\"", root);                  // 제목 위 날짜는 지움
         Assert.DoesNotContain("class=\"vb-date\"", root);
 
         var dept = await c.GetStringAsync("/jamsil-kids");

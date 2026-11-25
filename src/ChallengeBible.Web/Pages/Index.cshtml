@@ -46,33 +46,31 @@
                 </a>
             </div>
             <div class="vb-top-r">
-                @if (Model.Me is { } me)
-                {
-                    @* 머리줄 표준(2026-11-24 확정 · 기준표 5판): 「쪽지 | 이름님」 한 덩어리 알약 *@
-                    <span class="hpill">
-                        <partial name="_MailBadge" />
-                        <span class="sp" aria-hidden="true"></span>
-                        <a class="hmx-me" href="/account" aria-label="내 계정 · @Ui.Nim(me.Name)">
-                            <b>@Ui.Nim(me.Name)</b>
+                @* 오른쪽 위(2026-11-25 사용자): 날짜(월 일 · 요일) + 검은 동그라미. 로그인하면 편지(쪽지), 손님은 사람(로그인). 내 계정은 ☰ 맨 아래 프로필 *@
+                <span class="vb-dc">
+                    <time class="vb-dd" datetime="@d.Today.ToString("yyyy-MM-dd")">@d.Today.ToString("M월 d일", ko)<small>@d.Today.ToString("dddd", ko)</small></time>
+                    @if (Model.Me is not null)
+                    {
+                        <span class="vb-circ"><partial name="_MailBadge" /></span>
+                    }
+                    else
+                    {
+                        <a class="vb-circ vb-circ-a" href="/account/login" aria-label="로그인" title="로그인">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.6 4.1-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/></svg>
                         </a>
-                    </span>
-                }
-                else
-                {
-                    <a class="person-btn" href="/account/login" aria-label="로그인" title="로그인">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.6 4.1-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/></svg>
-                    </a>
-                }
+                    }
+                </span>
             </div>
         </div>
 
         <div class="vb-hero-row">
             <div class="vb-body">
-                <time class="vb-today" datetime="@d.Today.ToString("yyyy-MM-dd")">@d.Today.ToString("M월 d일 dddd", ko)</time>   @* 날짜는 머리줄에서 본문 위로(기준표 5판) *@
                 <h1 class="brand-title">
                     <span class="bt-1">도전<span class="bt-ex"><i class="e1">!</i><i class="e2">!</i><i class="e3">!</i></span></span>
                     <span class="bt-2">성경말씀</span>
                 </h1>
+                @* 인사말(2026-11-25 사용자): 「안녕하세요. / 이름님,」 — 손님은 「안녕하세요.」만 *@
+                <p class="vb-hi">안녕하세요.@if (Model.Me is { } gme) { <br />@(Ui.Nim(gme.Name) + ",") }</p>
                 <p class="vb-tag">4가지 도전, 하나의 말씀.<br />하루 5분, 말씀과 함께 자라요.</p>
             </div>
             @* 나의 포인트 링(2026-11-23 사용자 확정 B안 · ADR 0136): 「도전 성경말씀」 오른쪽 빈자리. *@
