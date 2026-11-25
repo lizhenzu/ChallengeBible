@@ -4946,3 +4946,7 @@ h1 .pc-total { margin-left: 6px; font-size: 14px; font-weight: 700; color: var(-
 
 /* 미션 홈 카드 모서리 10px 시험(2026-11-25 사용자 "여기만 10으로 해보고 결정"). 미션 홈(a.hM 가 있는 화면)에만 걸린다 */
 body:has(a.hM) .gk-card, body:has(a.hM) a.hM, body:has(a.hM) .hFam, body:has(a.hM) .hNote { border-radius: 10px; }
+
+/* 내 계정 화면 모서리 10px 통일(기준표 25판, 2026-11-25) — 입력 칸 · 버튼은 다른 화면과 같이 쓰는 CSS 라서 내 계정(.ma-card 가 있는 화면)에만 건다 */
+body:has(.ma-card) .ma-card, body:has(.ma-card) .in, body:has(.ma-card) .sel, body:has(.ma-card) .btn,
+body:has(.ma-card) .ma-depts li, body:has(.ma-card) .lv-warn { border-radius: 10px; }
