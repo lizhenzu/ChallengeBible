@@ -49,12 +49,12 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         var html = await Page();
         Assert.Contains("<small>대한예수교장로회</small>", html);
         Assert.Contains("href=\"https://www.saenae.org/\" target=\"_blank\" rel=\"noopener\"", html);
-        Assert.Contains("<time class=\"vb-dd\" datetime=\"2027-01-05\">", html);   // 날짜(월 일 · 요일)는 오른쪽 위 동그라미 옆(2026-11-25 사용자)
-        Assert.DoesNotContain("class=\"vb-today\"", html);
-        Assert.Contains("<p class=\"vb-hi\">안녕하세요.</p>", html);   // 손님은 인사말만
+        Assert.Contains("<time class=\"vb-today\" datetime=\"2027-01-05\">", html);   // 손님: 날짜는 제목 위 그대로(2026-11-25 사용자 — 날짜 · 편지 동그라미 · 인사말은 로그인한 사람에게만)
+        Assert.DoesNotContain("class=\"vb-dd\"", html);
+        Assert.DoesNotContain("class=\"vb-hi\"", html);
         Assert.DoesNotContain("class=\"vb-date\"", html);
         Assert.Contains("1월 5일", html);
-        Assert.Contains("<a class=\"vb-circ vb-circ-a\" href=\"/account/login\" aria-label=\"로그인\" title=\"로그인\">", html);   // 로그인은 우측 사람 아이콘 하나
+        Assert.Contains("<a class=\"person-btn\" href=\"/account/login\" aria-label=\"로그인\" title=\"로그인\">", html);   // 로그인은 우측 사람 아이콘 하나
         Assert.DoesNotContain("data-pnav-open", html);     // 로그인 전에는 ☰ 가 없다(2026-11-25 사용자)
         Assert.DoesNotContain("id=\"pnav\"", html);
     }
@@ -104,7 +104,7 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Contains("<b>성경통독</b>", html);
         Assert.Contains("<b>성경필사</b>", html);
         Assert.Contains("<b>365축복기도</b>", html);
-        Assert.Contains("<a class=\"vb-circ vb-circ-a\" href=\"/account/login\"", html);   // 로그인은 사람 아이콘 하나
+        Assert.Contains("<a class=\"person-btn\" href=\"/account/login\"", html);   // 로그인은 사람 아이콘 하나
         Assert.DoesNotContain("class=\"lp-login\"", html);                          // 큰 로그인 카드는 없앴다
         Assert.Contains("<a class=\"vb-item\" href=\"/account/login\"", html);      // 미션 칸도 로그인
         Assert.DoesNotContain("관리자 로그인", html);                    // 2026-11-24 사용자: 첫 화면 맨 아래 「관리자 · 부서 대표 학생 로그인」 상자를 지우고
