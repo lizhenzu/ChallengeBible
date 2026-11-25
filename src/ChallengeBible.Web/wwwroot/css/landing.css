@@ -46,7 +46,7 @@
 .brand-title .e1 { color: #22b35e; }
 .brand-title .e2 { color: #3b7cf0; }
 .brand-title .e3 { color: #e8458f; }   /* 주황 → 분홍(2026-11-25 사용자): 초록 · 파랑 · 분홍 */
-.vb-tag { margin-top: 12px !important; font-size: 14px; color: var(--ink-2); line-height: 1.55; }
+.vb-tag { margin-top: 10px !important; font-size: 14px; color: var(--ink-2); line-height: 1.55; }
 .vb-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
 .vb-pills span { font-size: 12px; font-weight: 800; padding: 6px 11px; border-radius: 999px; color: #fff; }
 .vb-pills .pp1 { background: var(--p1); } .vb-pills .pp2 { background: var(--p2); }
@@ -506,7 +506,10 @@
 .vb-circ .mailb, .vb-circ-a { width: 40px; height: 40px; border-radius: 50%; background: #fff; color: #1d1d1f; box-shadow: inset 0 0 0 1px #e3e6eb; display: grid; place-items: center; }   /* 흰 바탕 + 얇은 테두리 + 검은 편지(2026-11-25 사용자) */
 .vb-circ .mailb svg, .vb-circ-a svg { color: #1d1d1f; }
 .vb-circ .mailb i { top: 0; right: 0; }
-.vb-body .vb-hi { margin: 24px 0 0 !important; font-size: 18px; line-height: 1.4; font-weight: 700; letter-spacing: -.02em; }
+.vb-body .vb-hi { margin: 0 0 26px !important; line-height: 1.25; font-weight: 400; }   /* B안: 제목 위 두 줄 인사말(2026-11-25 사용자) */
+.vb-hi .g { display: block; font-size: 15px; font-weight: 500; color: #8e8e94; letter-spacing: -.01em; }
+.vb-hi b { font-size: 19px; font-weight: 900; color: #1d1d1f; letter-spacing: -.04em; }
+.vb-hi small { margin-left: 2px; font-size: 14px; font-weight: 500; color: #8e8e94; }
 
 /* 포인트 링 점수 글자: 네 자리 21px · 다섯 자리 19px(링 92px 안에 들어오게, 2026-11-25 사용자 시안) */
 :is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts.d4 { font-size: 21px; }
@@ -517,4 +520,4 @@
 }
 
 /* 제목 · 인사말 · 한 줄 설명 간격(2026-11-25 사용자 "너무 붙어 있다" → 사진 찍어 UX 검사): 제목과 인사말 24px(PC 32px) · 인사말과 설명 12px(PC 14px) — 인사말 + 설명이 한 묶음 */
-@media (min-width: 720px) { .vb-body .vb-hi { margin-top: 32px !important; font-size: 22px; } .vb-tag { margin-top: 14px !important; } }
+@media (min-width: 720px) { .vb-body .vb-hi { margin: 0 0 32px !important; } .vb-hi .g { font-size: 17px; } .vb-hi b { font-size: 24px; } .vb-hi small { font-size: 16px; } .vb-tag { margin-top: 14px !important; } }
