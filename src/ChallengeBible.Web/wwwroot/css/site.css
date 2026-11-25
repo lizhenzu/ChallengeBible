@@ -114,7 +114,7 @@ main.admin h1 { font-size: 22px; }
 .tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .search { flex: 1 1 220px; min-width: 0; min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 15px; }
 .sel { min-height: 44px; padding: 0 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 14px; }
-.btn.sm { min-height: 44px; padding: 0 16px; font-size: 14px; border-radius: 12px; }
+.btn.sm { min-height: 44px; padding: 0 16px; font-size: 14px; border-radius: 10px; }
 .btn.d { border: 1px solid color-mix(in srgb, var(--bad) 40%, var(--line)); background: var(--bg); color: var(--bad); }
 .btn.dd { background: var(--bad); color: #fff; }
 .list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 18px; overflow: hidden; }
@@ -4950,3 +4950,11 @@ body:has(a.hM) .gk-card, body:has(a.hM) a.hM, body:has(a.hM) .hFam, body:has(a.h
 /* 내 계정 화면 모서리 10px 통일(기준표 25판, 2026-11-25) — 입력 칸 · 버튼은 다른 화면과 같이 쓰는 CSS 라서 내 계정(.ma-card 가 있는 화면)에만 건다 */
 body:has(.ma-card) .ma-card, body:has(.ma-card) .in, body:has(.ma-card) .sel, body:has(.ma-card) .btn,
 body:has(.ma-card) .ma-depts li, body:has(.ma-card) .lv-warn { border-radius: 10px; }
+
+/* 관리 · 플랫폼 화면 모서리 10px 통일(기준표 26판, 2026-11-25 사용자 "시안 없이 계속 진행"). 상자 · 칸 · 버튼 · 입력만 — 알약(99px) · 동그라미(50%) · 앱 아이콘 · 부서 홈 미리보기(br-*) 는 그대로 */
+:is(body:has(.pb-adm), body:has(.pb-plat)) :is(.btn, .in, .sel, .search, select, textarea, input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"]),
+  [class$="-card"], [class*="-card "], .rs-it, .stg-note, .note, .gd-note, .ck, .td, .go-r, .c10, .c10-sum, .pa-res, .pa-det, .rs-grp, .p3c, .stg-link, .stg-now,
+  .awd-log, .wsa-row, .mv, .rost-menu, .tnd-box, .pc-wait, .td-card, .why, .imp, .pr-seg, .ar-box, .ru-box, .wk-day, .al, .when, .sn-impact, .sn-now, .mv-ask, .gd-set-go,
+  .hot, .empty-box, .ft-mem, .ft-team, .stack.card,
+  .ar-kpis > *, .p3k > *, .stg-years > *, .ft-stats > *, .awd-stats > *, .facts > *, .ar-sum > *, .gd-tabs > *) { border-radius: 10px !important; }
+.pb .pb-b { border-radius: 10px; }
