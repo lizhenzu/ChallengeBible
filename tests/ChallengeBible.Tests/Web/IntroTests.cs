@@ -142,7 +142,7 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Contains("href=\"/jamsil-kids/album\"", page);
         Assert.Contains("href=\"/jamsil-kids/welcome?handler=Go\"", page);
         Assert.Contains("class=\"wl-icon-btn\" href=\"/account/login\"", page);        // 손님: 사람 아이콘(누르면 로그인, 2026-11-25)
-        Assert.DoesNotContain("/jamsil-kids/office", page);                               // 행정업무 버튼은 교사 · 관리자에게만
+        Assert.Contains("<a class=\"wl-admin\" href=\"/account/login?returnUrl=%2Fjamsil-kids%2Foffice\">", page);   // 손님에게도 행정업무 버튼 — 누르면 로그인(2026-11-25 사용자)
         Assert.DoesNotContain("내 정보", page);
         Assert.DoesNotContain("1주일 후 다시 보기", page);                                   // 손님: 기억할 계정이 없다
         Assert.DoesNotContain("다시 보지 않기", page);
