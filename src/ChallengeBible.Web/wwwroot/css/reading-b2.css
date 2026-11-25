@@ -290,7 +290,7 @@ body:has(.rp[data-theme]) { background: var(--bg); }
 /* 검색 화면 검색칸도 부서 홈과 같은 모양(2026-11-22 사용자 "양쪽 모양세 똑같이") */
 .srch .rp-sform { height: 50px; margin-top: 12px; border: 1px solid #e3e6ea; border-radius: 12px; background: #f6f7f9; overflow: hidden; }
 .srch .rp-sform input { min-height: 0; height: 100%; padding: 0 16px; font-size: 16px; color: #222; }
-.srch .rp-sform input::placeholder { color: #9aa0aa; }
+.srch .rp-sform input::placeholder { color: #6e6e75; }
 .srch .rp-sform button { min-width: 84px; padding: 0 16px; border: 0; border-radius: 0 12px 12px 0; background: #5b8def; color: #fff; font-size: 15px; font-weight: 800; }
 .srch .rp-sform button:active { background: #4b7fe0; }
 .srch .rp-sform:focus-within { outline: 2px solid var(--ring, rgba(30, 58, 138, .45)); outline-offset: 2px; }

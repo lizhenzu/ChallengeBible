@@ -1,5 +1,5 @@
 ﻿/* 자녀를 위한 365 기도(ADR 0106, 확정 시안 365기도) — 유년부 Prayer365 밝은 버전과 같은 모양 */
-.p365 { --p-tx: #111827; --p-dim: #9CA3AF; --p-dim2: #6B7280; --p-rule: #EEF0F3; --p-mark: #F4F6F9; --p-acc: #2F80ED; --p-ok: #15803D; --p-okbg: #EAF7EF; --p-warn: #B4531F; --p-warnbg: #FBEFE7;
+.p365 { --p-tx: #111827; --p-dim: #6e6e75; --p-dim2: #6B7280; --p-rule: #EEF0F3; --p-mark: #F4F6F9; --p-acc: #2F80ED; --p-ok: #15803D; --p-okbg: #EAF7EF; --p-warn: #B4531F; --p-warnbg: #FBEFE7;
   max-width: 760px; margin: 0 auto; padding: 0 18px 48px; color: #374151; }
 .p365-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 0 12px; font-size: 13px; color: var(--p-dim); }
 .p365-bar a { color: #374151; font-weight: 700; text-decoration: none; } .p365-bar i { font-style: normal; margin: 0 6px; color: #D1D5DB; }

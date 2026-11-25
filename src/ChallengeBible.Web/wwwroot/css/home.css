@@ -530,7 +530,7 @@
 .hm .wi-k { font-size: 11.5px; font-weight: 800; color: #2B59C3; }
 .hm .wi-t { font-size: 15.5px; font-weight: 900; margin-top: 3px; color: #111827; }
 .hm .wi-p { font-size: 12.5px; color: #4B5563; margin-top: 2px; }
-.hm .wi-a { font-size: 11.5px; color: #9CA3AF; margin-top: 1px; display: flex; align-items: center; gap: 6px; }
+.hm .wi-a { font-size: 11.5px; color: #6e6e75; margin-top: 1px; display: flex; align-items: center; gap: 6px; }
 .hm .wi-copy { width: 22px; height: 22px; border-radius: 50%; border: 0; background: #F3F4F6; font-size: 11px; cursor: pointer; color: #4B5563; }
 .hm .wi-bt { flex: none; display: grid; place-items: center; text-align: center; background: #F97316; color: #fff; border-radius: 12px; padding: 8px 12px; text-decoration: none; }   /* 작고 평평하게(그림자 없음) */
 .hm .wi-bt b { font-size: 14px; color: #fff; }
@@ -576,7 +576,7 @@
 .bdh-got .bdh-bar i { height: 5px; border-radius: 9px; background: #E5E7EB; }
 .bdh-got .bdh-bar i.on { background: #16A34A; }
 .bdh-got .bdh-m > small { display: block; margin-top: 5px; font-size: 12px; color: #6B7280; }
-.bdh-got .bdh-ar { font-size: 22px; color: #9CA3AF; }
+.bdh-got .bdh-ar { font-size: 22px; color: #6e6e75; }
 .hm .hj-card.bdh-late b { display: block; font-size: 15px; font-weight: 800; color: #111827; }
 .hm .hj-card.bdh-late small { display: block; margin-top: 3px; font-size: 13px; color: #6B7280; }
 
@@ -604,7 +604,7 @@
 .hmx-logo p { margin: 8px 0 0; font-size: 13.5px; font-weight: 500; color: #3b4a7d; letter-spacing: .02em; }
 .hmx-search { display: flex; align-items: stretch; gap: 0; height: 50px; margin: 16px 0 2px; border: 1px solid #e3e6ea; border-radius: 12px; background: #f6f7f9; overflow: hidden; }
 .hmx-search input { flex: 1; min-width: 0; border: 0; padding: 0 16px; background: transparent; font: inherit; font-size: 14.5px; color: #222; outline: 0; border-radius: 12px 0 0 12px; }
-.hmx-search input::placeholder { color: #9aa0aa; }
+.hmx-search input::placeholder { color: #6e6e75; }
 .hmx-search button { flex: none; min-width: 84px; border: 0; background: #5b8def; color: #fff; font-size: 15px; font-weight: 800; padding: 0 16px; cursor: pointer; border-radius: 0 12px 12px 0; }
 .hmx-search button:active { background: #4b7fe0; }
 .hmx-search:focus-within { outline: 2px solid var(--ring); outline-offset: 2px; }
@@ -621,19 +621,19 @@
 .hmx-vs p { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.7; color: #222; }
 .hmx-vs .ref { color: #3b4a7d; font-weight: 700; }
 .hmx-ch { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.hmx-more { display: inline-flex; align-items: center; gap: 3px; padding: 6px 11px; border: 1px solid #d8dbe2; border-radius: 999px; background: #fff; font-size: 11.5px; color: #8a8f99; }
+.hmx-more { display: inline-flex; align-items: center; gap: 3px; padding: 6px 11px; border: 1px solid #d8dbe2; border-radius: 999px; background: #fff; font-size: 11.5px; color: #6e6e75; }
 .hmx-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 14px; }
 .hmx-stat { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0 4px; text-align: center; min-width: 0; }
 .hmx-stat + .hmx-stat { border-left: 1px solid #e5e8ee; }
-.hmx-stat .lb { display: flex; align-items: center; gap: 3px; font-size: 10px; color: #8a8f99; white-space: nowrap; }
+.hmx-stat .lb { display: flex; align-items: center; gap: 3px; font-size: 10px; color: #6e6e75; white-space: nowrap; }
 .hmx-stat .lb svg { color: #3b4a7d; }
 .hmx-stat .vl { font-size: 15.5px; font-weight: 700; color: #3b4a7d; white-space: nowrap; }
 .hmx-stats.detail { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 14px; padding-top: 12px; border-top: 1px solid #e5e8ee; }
 .hmx-guest { display: grid; gap: 4px; margin-top: 14px; padding: 14px; background: #fff; border: 1px solid #e6e9ef; border-radius: 12px; text-align: center; }
 .hmx-guest b { font-size: 13.5px; font-weight: 900; }
-.hmx-guest span { font-size: 11.5px; color: #8a8f99; }
+.hmx-guest span { font-size: 11.5px; color: #6e6e75; }
 .hmx-guest a { justify-self: center; margin-top: 6px; min-height: 40px; padding: 0 18px; display: inline-flex; align-items: center; border-radius: 10px; background: #1e3a8a; color: #fff; font-size: 13.5px; font-weight: 800; }
-.hmx-links { display: flex; justify-content: center; gap: 14px; margin-top: 20px; font-size: 12.5px; color: #8a8f99; }
+.hmx-links { display: flex; justify-content: center; gap: 14px; margin-top: 20px; font-size: 12.5px; color: #6e6e75; }
 .hmx-links a { color: #3b4a7d; text-decoration: underline; text-underline-offset: 3px; }
 @media (min-width: 720px) { .hmx-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); padding-inline: 10px; } }
 @media (max-width: 480px) { .hmx-search input { font-size: 16px; } }   /* iOS 확대 방지 */
@@ -661,7 +661,7 @@
 .hmx-fam .tx { flex: 1; min-width: 0; }
 .hmx-fam .tx b { display: block; font-size: 15px; font-weight: 900; }
 .hmx-fam .tx b i { font-style: normal; color: #1e3a8a; font-weight: 900; }
-.hmx-fam .tx small { display: block; margin-top: 3px; font-size: 12px; color: #8a8f99; }
+.hmx-fam .tx small { display: block; margin-top: 3px; font-size: 12px; color: #6e6e75; }
 .hmx-fam .avs { display: inline-flex; margin-left: 5px; vertical-align: -4px; }
 .hmx-fam .avs i { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 1px solid #e3e6ea; margin-left: -5px; display: inline-grid; place-items: center; font-size: 8px; font-style: normal; color: #5b6470; }
 .hmx-fam .avs i:first-child { margin-left: 0; }
@@ -673,7 +673,7 @@
 .hmx-make .hd { display: flex; align-items: flex-start; gap: 11px; }
 .hmx-make .em { width: 42px; height: 42px; border-radius: 12px; background: #eef4fe; display: grid; place-items: center; flex: none; font-size: 21px; }
 .hmx-make b { display: block; font-size: 15px; font-weight: 900; line-height: 1.4; }
-.hmx-make small { display: block; margin-top: 4px; font-size: 12.5px; color: #8a8f99; line-height: 1.55; }
+.hmx-make small { display: block; margin-top: 4px; font-size: 12.5px; color: #6e6e75; line-height: 1.55; }
 .hmx-make .row { display: flex; gap: 8px; margin-top: 14px; }
 .hmx-make .go, .hmx-make .alt { flex: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 12px; border-radius: 11px; font-size: 13.5px; font-weight: 800; }
 .hmx-make .go { background: #1e3a8a; color: #fff; }

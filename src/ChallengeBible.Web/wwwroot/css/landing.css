@@ -1,6 +1,6 @@
 ﻿/* 첫 화면 시안 B(모노 톤) — design_handoff_home_b. 차콜 · 옅은 회색 · 흰색 + 클로버 4색은 프로그램 포인트로만. */
 .vb {
-  --ink: #1d1d1f; --ink-2: #56565c; --ink-3: #8e8e94;
+  --ink: #1d1d1f; --ink-2: #56565c; --ink-3: #6e6e75;
   --line: #e7e7ea; --track: #ededef; --paper: #fff; --soft: #f4f4f5;
   --p1: #1f9d55; --s1: #e8f6ee;
   --p2: #2f6fe4; --s2: #eaf1fd;

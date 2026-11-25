@@ -2,7 +2,7 @@
    참조(읽기만): YuYunBu Views/DailyMission4/Word · Quiz · Pray · Recite.cshtml 의 <style> + Partials(_DateChip · _Dm2Nav · _FontSizeCtl) + css/mission3/bone.css.
    site.css 다음에 읽어 같은 이름의 규칙을 덮어쓴다. 미션 네 화면(.mbody 가 있는 화면)에만 걸린다. */
 body:has(.mbody) {
-  --bg: #FFFFFF; --fg: #111827; --dim: #9CA3AF; --dim2: #6B7280; --rule: #EEF0F3; --line: #EEF0F3; --soft: #F4F6F9;
+  --bg: #FFFFFF; --fg: #111827; --dim: #6e6e75; --dim2: #6B7280; --rule: #EEF0F3; --line: #EEF0F3; --soft: #F4F6F9;
   --accent: #2F80ED; --accent-bg: #EAF2FD; --no: #7FA3DB; --green: #16A34A; --green-no: #6FBF8B; --pickbg: #EAF7EF; --pickbg-press: #DDF1E4;
   --ok-bg: #EAF7EF; --bad: #E5484D; --bad-bg: #FDEEF0;
   background: #FFFFFF; color: #374151; color-scheme: light;
@@ -39,7 +39,7 @@ body:has(.mbody) .mbody .wrap { padding-block: 26px 0; }
 body:has(.mbody) .sec { padding: 18px 0 16px; border-top: 1px solid #EEF0F3; gap: 8px; }
 body:has(.mbody) .sec h2 { font-size: calc(16px * var(--fs)); font-weight: 800; color: #111827; gap: 10px; }
 body:has(.mbody) .sec h2 .n { font-size: 17px; font-weight: 900; letter-spacing: .02em; }
-body:has(.mbody) .sec h2 small { font-size: 11.5px; font-weight: 600; color: #9CA3AF; }
+body:has(.mbody) .sec h2 small { font-size: 11.5px; font-weight: 600; color: #6e6e75; }
 body:has(.mbody) .sec.done h2 small, body:has(.mbody) .sec h2 small.ok { color: #16A34A; font-weight: 800; }
 body:has(.mbody) .sec h2 small.warn { color: #E5484D; font-weight: 800; }
 body:has(.mbody) .mbody .empty { margin-top: 0; padding: 26px 0; color: #6B7280; font-size: 14px; border-top: 1px solid #EEF0F3; border-bottom: 1px solid #EEF0F3; }
@@ -58,7 +58,7 @@ body:has(.mbody) .pick[aria-pressed="true"] { background: #F4F6F9; }
 body:has(.mbody) .pick[aria-pressed="true"] b { color: #6B7280; }
 body:has(.mbody) .pick[aria-pressed="true"] .pt { color: #15803D; }
 body:has(.mbody) .pick:disabled:not([aria-pressed="true"]) { opacity: .5; }
-body:has(.mbody) .pnote { font-size: 12px; color: #9CA3AF; }
+body:has(.mbody) .pnote { font-size: 12px; color: #6e6e75; }
 
 /* 기도: 본문(접힘, 절 번호 흐린 파랑) · 기도문(크게, 이름은 연한 노랑 밑줄) */
 body:has(.mbody) .vlines { gap: 4px; padding-top: 4px; }
@@ -123,7 +123,7 @@ body:has(.mbody) .gls b { margin-bottom: 2px; font-size: 12px; color: #7FA3DB; l
 
 /* 아래 미션 탭 — 따라다니지 않고 맨 끝에, 흰 바탕 · 지금 화면은 파란 윗줄 · 끝낸 미션은 초록 글자 */
 body:has(.mbody) .mnav { position: static; max-width: 760px; margin: 24px auto 0; background: #FFFFFF; border-top: 1px solid #E5E7EB; }
-body:has(.mbody) .mnav a { min-height: 0; padding: 11px 2px 13px; color: #9CA3AF; }
+body:has(.mbody) .mnav a { min-height: 0; padding: 11px 2px 13px; color: #6e6e75; }
 body:has(.mbody) .mnav a[aria-current="page"]::before { top: -1px; left: 0; right: 0; height: 2px; border-radius: 0; background: #2F80ED; }
 body:has(.mbody) .mnav .L { font-size: 15px; font-weight: 800; }
 body:has(.mbody) .mnav .S { font-size: 11.5px; font-weight: 600; margin-top: 3px; color: #C4C9D2; }
@@ -155,7 +155,7 @@ body:has(.mbody) .toast { bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 
 /* 완료 취소(확정 시안 미션완료취소 ①, R-24): 오늘이면 완료 버튼을 다시 누를 수 있음 → 확인 창 */
 body:has(.mbody) .pick[aria-pressed="true"]:not(:disabled) { cursor: pointer; }
-body:has(.mbody) .uhint { margin: 0; font-size: 12px; color: #9CA3AF; }
+body:has(.mbody) .uhint { margin: 0; font-size: 12px; color: #6e6e75; }
 body:has(.mbody) .uhint[hidden] { display: none; }
 .okpop.undo { padding: 22px 20px 16px; }
 .okpop.undo h2 { margin: 0; font-size: 19px; }
