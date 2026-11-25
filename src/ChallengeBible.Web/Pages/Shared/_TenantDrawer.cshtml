@@ -57,8 +57,8 @@
 
             @if (!lobby && t.IsApproved)
             {
-                <h2 class="tdr2-g">생일</h2>
-                @DrawerUi.Line($"/{s}/birthdays", "cake", "생일자 보기", Cur($"/{s}/birthdays"))
+                <h2 class="tdr2-g">이벤트</h2>
+                @DrawerUi.Line($"/{s}/birthdays", "cake", "생일자", Cur($"/{s}/birthdays"))
                 @if (t.IsAdmin) { @DrawerUi.Line($"/{s}/admin/gifts", "gift", "선물 처리", Cur($"/{s}/admin/gifts"), badge: DrawerUi.Admin) }
             }
 

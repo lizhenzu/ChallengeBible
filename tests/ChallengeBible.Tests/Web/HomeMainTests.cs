@@ -295,7 +295,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     {
         // 2026-11-22 2차 확정: 프로그램 · 바로가기 그룹은 뺐다(부서 홈 아이콘 · 홈 카드로 간다).
         // 2026-11-25: 「섬김 · 교사」 그룹은 「행정업무」 한 줄(href=/office)로 합쳤다 — 순서: 행정업무 줄 → 생일 → 함께하기 → 관리
-        string[] Order(string home) => new[] { "<a class=\"tdr2-r\" href=\"/jamsil-kids/office\"", "<h2 class=\"tdr2-g\">생일</h2>", "<h2 class=\"tdr2-g\">함께하기</h2>", "<h2 class=\"tdr2-g\">관리</h2>" }
+        string[] Order(string home) => new[] { "<a class=\"tdr2-r\" href=\"/jamsil-kids/office\"", "<h2 class=\"tdr2-g\">이벤트</h2>", "<h2 class=\"tdr2-g\">함께하기</h2>", "<h2 class=\"tdr2-g\">관리</h2>" }
             .Select(g => home.IndexOf(g, StringComparison.Ordinal).ToString()).ToArray();
         var (admin, _) = await Member("eunhye", Roles.Teacher, Roles.TenantAdmin);
         var html = await admin.GetStringAsync("/jamsil-kids");
