@@ -1,0 +1,77 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"/><title>주보 화면 시안 A+C 혼합</title><style>
+:root{--ink:#1B1F24;--dim:#5B6470;--rule:#E3E6EA;--soft:#F5F6F8;--acc:#2B59C3;--accbg:#EAF0FB;--red:#E5342B;--sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:#e9ebef;color:var(--ink);word-break:keep-all;letter-spacing:-.01em}
+.top{background:#161c2b;color:#fff;font-size:13px;padding:11px 22px}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 18px 36px}
+h1{font-size:19px;font-weight:900}.lead{font-size:13px;color:var(--dim);line-height:1.7;margin:6px 0 18px}
+.legend{display:flex;gap:18px;font-size:12px;color:var(--dim);margin-bottom:16px;align-items:center}
+.legend i{display:inline-block;width:22px;height:12px;border:2px dashed var(--red);border-radius:3px;vertical-align:-2px;margin-right:6px}
+.cols{display:grid;grid-template-columns:repeat(3,360px);gap:28px;justify-content:center}
+.col h2{font-size:15px;font-weight:900;margin-bottom:2px}.col .sub{font-size:12px;color:var(--dim);line-height:1.6;margin-bottom:10px;min-height:38px}
+.phone{width:360px;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 20px 50px -34px #000;border:1px solid #d6dae0}
+.cap{font-size:11.5px;color:var(--dim);margin:12px 2px 6px;font-weight:700}
+.chg{outline:2px dashed var(--red);outline-offset:-2px;position:relative}
+.chg>b.n{position:absolute;top:-1px;left:-1px;background:var(--red);color:#fff;font-size:10.5px;font-weight:800;padding:1px 6px;border-radius:0 0 6px 0;z-index:3}
+/* 머리줄 */
+.bar{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 6px;border-bottom:1px solid var(--rule);background:#fff}
+.L{display:flex;align-items:center;gap:2px;min-width:0}
+.home{height:44px;padding:0 10px 0 6px;display:inline-flex;align-items:center;gap:5px;font-size:14px;font-weight:800;color:var(--acc)}
+.sep{color:#9aa0aa;font-size:13px}.cur{font-size:14px;font-weight:800;padding-left:2px}
+.ib{width:44px;height:44px;display:grid;place-items:center;border-radius:50%}
+.wbtn{height:38px;padding:0 14px;border-radius:999px;background:var(--acc);color:#fff;font-size:13px;font-weight:800;display:inline-flex;align-items:center;margin-right:4px}
+svg{display:block}
+/* 환영 */
+.kick{font-size:12px;font-weight:800;color:var(--acc)}
+.welA{padding:16px 20px 14px}.welA h3{font-size:22px;font-weight:900;line-height:1.3;margin:4px 0 6px}.welA p{font-size:13.5px;color:var(--dim);line-height:1.65}
+.stat{display:flex;gap:0;margin-top:12px;border-top:1px solid var(--rule);padding-top:10px}.stat div{flex:1;text-align:center;font-size:11.5px;color:#8a919b}.stat div+div{border-left:1px solid var(--rule)}.stat b{display:block;font-size:19px;font-weight:300;color:var(--ink);margin-top:2px}.stat .k b{color:var(--acc)}
+.welB{margin:14px 16px 0;background:var(--accbg);border-radius:14px;padding:14px 16px 14px;position:relative}
+.welB h3{font-size:16px;font-weight:900;margin-bottom:6px}.welB li{font-size:13px;line-height:1.7;color:#33415f;list-style:none;padding-left:16px;position:relative}.welB li:before{content:"✓";position:absolute;left:0;color:var(--acc);font-weight:900}
+.welB .x{position:absolute;top:6px;right:6px;width:36px;height:36px;display:grid;place-items:center;color:#6b7a99;font-size:16px}
+.welC{padding:12px 20px 10px;display:flex;align-items:center;gap:10px}.welC p{font-size:13px;color:var(--dim);line-height:1.5}.welC b{color:var(--ink)}
+.dot{width:34px;height:34px;border-radius:50%;background:var(--accbg);display:grid;place-items:center;flex:none}
+/* 날짜 */
+.date{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 10px}.date b{font-size:15px;font-weight:900}.date small{font-size:12px;color:var(--dim)}
+.badge{font-size:11px;font-weight:800;color:#fff;background:var(--acc);border-radius:99px;padding:2px 8px;margin-left:6px;vertical-align:1px}
+.chips{display:flex;gap:6px;padding:10px 20px;overflow:hidden;border-bottom:1px solid var(--rule);background:#fff}
+.chip{flex:none;height:38px;padding:0 14px;border-radius:999px;background:var(--soft);font-size:13px;font-weight:700;color:var(--dim);display:inline-flex;align-items:center}
+.chip.on{background:var(--acc);color:#fff}
+/* 주보 사진 흉내 */
+.pg{margin:0 0 6px;background:#fff;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);height:330px;padding:16px 18px;overflow:hidden;position:relative}
+.pg.full{margin:0 0 6px;border-left:0;border-right:0}
+.pg .t{font-size:15px;font-weight:900;color:#2b3a55;text-align:center;margin-bottom:8px}
+.pg .ln{height:7px;border-radius:3px;background:#dde2ea;margin:8px 0}.pg .ln.s{width:70%}.pg .ln.m{width:86%}
+.pg .bx{height:70px;border-radius:6px;background:#e7ecf5;margin:10px 0}
+.pg .tag{position:absolute;right:10px;bottom:8px;font-size:12px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);padding:2px 8px;border-radius:99px}
+.more{padding:14px 20px;text-align:center;font-size:12.5px;color:#8a919b}
+.past{padding:6px 20px 18px}.past h4{font-size:13px;font-weight:800;color:var(--dim);margin:6px 0 8px}
+.past a{display:flex;justify-content:space-between;align-items:center;min-height:44px;border-top:1px solid var(--rule);font-size:14px}.past a small{color:#8a919b}
+.dock{position:sticky;bottom:0;display:flex;gap:8px;padding:10px 16px;background:#fff;border-top:1px solid var(--rule)}
+.dock a{flex:1;height:44px;border-radius:11px;border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}.dock a.p{background:var(--acc);color:#fff;border-color:var(--acc)}
+.note{font-size:12px;line-height:1.7;color:#3a4350;margin-top:12px}.note b{color:var(--ink)}
+.rec{display:inline-block;background:#1f9d55;color:#fff;font-size:11px;font-weight:800;padding:1px 8px;border-radius:99px;margin-left:6px;vertical-align:2px}
+.strip{background:#fff;border-radius:12px;overflow:hidden;border:1px solid #d6dae0;width:360px}
+.cols2{display:grid;grid-template-columns:360px 360px;gap:36px;justify-content:center}.cols2 .note{max-width:360px}.chips .chip.on{background:var(--acc)}</style></head><body>
+<div class="top">시안(휴대폰 폭 360px) · 주보 화면 — A(환영 머리말) + C(날짜 칩 · 아래 고정바) 혼합 · 구현 전 · 빨간 점선 = 바뀌는 곳</div>
+<div class="wrap">
+<h1>A + C 혼합 — 환영 문구(A) 아래에 날짜 칩(C), 사진은 쭉, 아래에 고정바(C)</h1>
+<p class="lead">A의 「올라온 주보 · 이번 주」 숫자는 뺐습니다. 왼쪽은 처음 들어온 모습, 오른쪽은 날짜 칩 「11/15」를 눌러 지난 주보로 바꾼 모습입니다.</p>
+<div class="legend"><span><i></i>바뀌는 곳</span><span>번호 = 아래 설명</span></div>
+<div class="cols2" id="cols"></div>
+</div>
+<script>
+const pgs=(n,full,k)=>Array.from({length:n},(_,i)=>`<div class="pg full"><div class="t">${i==0?(k?'주 일 예 배 순 서':'주 일 예 배 순 서'):'교 회 소 식'}</div><div class="ln m"></div><div class="ln"></div><div class="ln s"></div><div class="bx"></div><div class="ln m"></div><div class="ln s"></div><div class="ln"></div><div class="tag">${i+1} / ${n}</div></div>`).join('');
+const person=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2B59C3" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>`;
+const hm=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2B59C3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>`;
+const barGuest=`<div class="bar chg"><b class="n">1</b><div class="L"><a class="home">${hm}홈</a><span class="sep">›</span><span class="cur">주보게시판</span></div><a class="ib">${person}</a></div>`;
+const barIn=`<div class="bar"><div class="L"><a class="home">${hm}홈</a><span class="sep">›</span><span class="cur">주보게시판</span></div><a class="wbtn">+ 주보 작성</a></div>`;
+const wel=`<div class="welA chg"><b class="n">2</b><div class="kick">잠실새내교회 유년부</div><h3>주보게시판에<br>오신 것을 환영합니다</h3><p>이번 주 예배 순서와 교회 소식이 담긴 주보예요. 아래로 내리며 한눈에 보세요.</p></div>`;
+const chips=on=>`<div class="chips chg"><b class="n">3</b>${['이번 주 11/22','11/15','11/8','11/1'].map((t,i)=>`<span class="chip ${i==on?'on':''}">${t}</span>`).join('')}</div>`;
+const dock=`<div class="dock chg"><b class="n">5</b><a>🏠 부서 홈</a><a class="p">↑ 맨 위로</a></div>`;
+const ph=(on,date,badge,n)=>`<div class="phone">${barGuest}${wel}${chips(on)}<div class="date"><b>${date}${badge?'<span class="badge">이번 주</span>':''}</b><small>사진 ${n}장</small></div><div class="chg"><b class="n">4</b>${pgs(n)}</div>${dock}</div>`;
+const notes='<b>1</b> 머리줄: 왼쪽 「🏠 홈 › 주보게시판」(뒤로가기 하나), 오른쪽 사람 아이콘(로그인).<br><b>2</b> A의 환영 문구 그대로. 숫자(총 주보 · 이번 주)는 삭제.<br><b>3</b> C의 날짜 칩. 누르면 그 주 주보로 바뀜(옆으로 밀기). 지금 보는 주는 파랑.<br><b>4</b> 사진이 화면 폭 가득, 아래로 쭉(새 탭 없음).<br><b>5</b> C의 아래 고정바: 「부서 홈」 · 「맨 위로」(칩이 위에 있어서 「지난 주보 보기」 대신 맨 위로).';
+document.getElementById('cols').innerHTML=
+ `<div class="col"><h2>처음 들어온 모습 (이번 주)</h2><div class="sub">&nbsp;</div>${ph(0,'11월 22일 주일',true,2)}</div>`+
+ `<div class="col"><h2>「11/15」 칩을 누른 모습 (지난 주보)</h2><div class="sub">&nbsp;</div>${ph(1,'11월 15일 주일',false,2)}<div class="cap">로그인(교사 · 관리자)한 머리줄</div><div class="strip">${barIn}</div></div>`;
+document.querySelector('.wrap').insertAdjacentHTML('beforeend','<div class="note" style="max-width:760px;margin:22px auto 0">'+notes+'</div>');
+</script></body></html>
