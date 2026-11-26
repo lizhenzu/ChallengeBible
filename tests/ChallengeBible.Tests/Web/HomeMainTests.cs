@@ -260,7 +260,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var html = await r.Content.ReadAsStringAsync();
         Assert.Contains("<span class=\"bt-2\">성경말씀</span>", html);
         Assert.Contains("class=\"vb-ring\"", html);                             // 손님에게도 포인트 링을 0점으로 보여 준다(2026-11-27 사용자)
-        Assert.DoesNotContain("나의 포인트", html);
+        Assert.Contains("나의 포인트 0점", html);                                   // 링의 안내 문구도 0점(2026-11-27 사용자)
         Assert.DoesNotContain("김철수", html);
         Assert.DoesNotContain("data-pnav-open", html);                          // ☰ 메뉴 없음
         Assert.DoesNotContain("class=\"mailb\"", html);                        // 로그인 전에는 쪽지함이 없다
