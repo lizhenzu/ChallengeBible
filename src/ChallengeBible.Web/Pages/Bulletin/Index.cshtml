@@ -2,6 +2,8 @@
 @model ChallengeBible.Web.Pages.Bulletin.IndexModel
 @using ChallengeBible.Web.Services
 @using System.Text.Json
+@using System.Text.Encodings.Web
+@using System.Text.Unicode
 @* 주보 보기(ADR 0117): 2026-11-27 사용자 새 퍼블리시본 「주보 서재 · 시안 A 책장」(A_bookshelf-1.html)으로 완전 교체.
    이번 주 책(3D) · 이어 읽기(이 폰에만 기록, localStorage) · 달별 책장 · 전체 화면 읽기. 올리기 · 고치기 · 지우기는 교사 · 관리자만.
    디자인에 있던 목차 칩 · 검색은 우리 데이터에 없어 뺐다(주보는 1년 52개 안쪽). 사진은 자르지 않고 읽기 화면에서 원본 비율로 본다. *@
@@ -129,7 +131,7 @@
         <button type="button" class="bk-icon-btn" data-bk-next aria-label="다음 쪽"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
     </div>
 </div>
-<script type="application/json" id="bk-data">@Html.Raw(JsonSerializer.Serialize(data))</script>
+<script type="application/json" id="bk-data">@Html.Raw(JsonSerializer.Serialize(data, new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.HangulSyllables, UnicodeRanges.HangulJamo, UnicodeRanges.HangulCompatibilityJamo) }))</script>
 </main>
 <script>
 (() => {
