@@ -168,7 +168,7 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
     {
         var (_, admin, id) = await Picked();
         var (other, _) = await Login("haneul", "문하늘", 50);
-        var home = await other.GetStringAsync("/kids");
+        var home = await other.GetStringAsync("/kids?go=1");
         Assert.DoesNotContain("누가 선물 받나요", home);                                  // 홈 카드는 2026-11-22 확정으로 뺐다(ADR 0127)
         var board = await other.GetStringAsync("/kids/gift-board");
         Assert.Contains("누가 선물 받나요", board);
