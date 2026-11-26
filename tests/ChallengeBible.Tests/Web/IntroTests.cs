@@ -151,7 +151,7 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         var mine = await kid.GetStringAsync("/jamsil-kids/welcome");
         Assert.Contains("class=\"wl-icon-btn\" href=\"/account\"", mine);                             // 로그인한 사람: 사진(없으면 이름 첫 글자)
         Assert.Matches("<b aria-hidden=\"true\">김</b>", mine);
-        Assert.DoesNotContain("/jamsil-kids/office", mine);                                  // 학생에게는 행정업무 버튼 없음                         // 사진이 없으면 「성」(이름 첫 글자)만
+        Assert.Contains("<a class=\"wl-admin\" href=\"/account/login?returnUrl=%2Fjamsil-kids%2Foffice\">", mine);   // 학생에게도 보인다 — 누르면 로그인(2026-11-26 사용자)                         // 사진이 없으면 「성」(이름 첫 글자)만
         Assert.DoesNotContain("내 정보", mine);
         Assert.DoesNotContain("wc2-av-guest", mine);
         Assert.DoesNotContain("1주일 후 다시 보기", mine);

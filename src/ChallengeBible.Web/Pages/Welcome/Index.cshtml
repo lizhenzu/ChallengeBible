@@ -17,8 +17,8 @@
     var meName = User.UserName();
     var meShow = User.DisplayName();
     var office = ChallengeBible.Web.Pages.Office.IndexModel.CanUse(Model.Tenant);
-    var officeShow = office || !Model.Member;   // 손님에게도 보인다 — 누르면 로그인(2026-11-25 사용자)
-    var officeHref = Model.Member ? $"/{slug}/office" : "/account/login?returnUrl=" + Uri.EscapeDataString($"/{slug}/office");
+    // 행정업무 줄은 누구에게나 보인다(2026-11-26 사용자): 교사 · 관리자는 바로 행정업무, 그 밖의 사람(손님 · 학생 · 학부모)은 누르면 로그인(교사 계정으로 바꿔 들어오게)
+    var officeHref = office ? $"/{slug}/office" : "/account/login?returnUrl=" + Uri.EscapeDataString($"/{slug}/office");
     var mePhoto = meName is null ? null : await Photos.FileOfAsync(meName);
     var ko = new System.Globalization.CultureInfo("ko-KR");
     var today = Model.Today.ToString("yyyy년 M월 d일 ", ko) + (Model.Today.DayOfWeek == DayOfWeek.Sunday ? "주일" : Model.Today.ToString("dddd", ko));
@@ -80,14 +80,11 @@
 
     @* 소개 글 · 예배 안내(시간 · 장소 · 지도)는 이 화면에서 잠시 뺐다 — 나중에 상세 설계(2026-11-24 사용자). 관리의 입력 칸 · 데이터는 그대로 있다. *@
 
-    <div class="wl-actions@(officeShow ? "" : " wl-actions--solo")">
-        @if (officeShow)
-        {
-            <a class="wl-admin" href="@officeHref">
-                <span><span class="wl-admin__kicker">ADMIN · 교사 전용</span><span class="wl-admin__label">행정업무</span></span>
-                <span class="wl-admin__go">@Html.Raw(ARROW)</span>
-            </a>
-        }
+    <div class="wl-actions">
+        <a class="wl-admin" href="@officeHref">
+            <span><span class="wl-admin__kicker">ADMIN · 교사 전용</span><span class="wl-admin__label">행정업무</span></span>
+            <span class="wl-admin__go">@Html.Raw(ARROW)</span>
+        </a>
         <div class="wl-install" data-wl-install>
             <a class="wl-install__btn" href="/install?back=@Uri.EscapeDataString($"/{slug}/welcome")" data-app-install>
                 <span class="wl-install__t1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6.2" y="2.6" width="11.6" height="18.8" rx="2.6"/><path d="M10.6 18.4h2.8"/><path d="M12 7.4v6.2M9.4 11l2.6 2.6L14.6 11"/></svg>앱으로 설치</span>
