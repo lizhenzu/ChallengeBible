@@ -323,3 +323,7 @@ body:has(.wl) { background: #F1F1F3; }
 /* 이미 설치한 앱으로 열었으면 설치 안내(버튼 + 「홈 화면에 추가하면…」)는 보이지 않는다(2026-11-25 사용자 "설치했는지 계속 보임") */
 @media (display-mode: standalone) { .wl .wl-install { display: none; } }
 .wl .wl-install[hidden] { display: none; }
+/* 설치 버튼: 문구를 버튼 안 두 줄로(2026-11-25 사용자 — 「앱으로 설치」 + 「바로가기로 열 수 있어요」) */
+.wl .wl-install__btn { flex-direction: column; gap: 2px; height: auto; min-height: 60px; padding: 10px 12px; }
+.wl .wl-install__t1 { display: flex; align-items: center; gap: var(--space-3); font-size: var(--fs-md); font-weight: 700; }
+.wl .wl-install__t2 { font-size: var(--fs-min); font-weight: 500; opacity: .92; }
