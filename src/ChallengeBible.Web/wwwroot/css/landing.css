@@ -535,3 +535,9 @@ html[data-install="installed"] .inst2 { display: none; }
   .vb-dept .vb-search-err { margin: -32px 0 40px; }
   .vb-foot2 { margin-top: 40px; }
 }
+
+/* 부서 홈 오른쪽 위 간격(2026-11-27 사용자 「사이 간격 5px」): 날짜 · 편지 · 집 글자와 아이콘 사이 눈에 보이는 간격을 5px 로. 누르는 칸은 세로 44px · 가로 25px(아이콘 20px + 양옆 2.5px) */
+.vb-dept .vb-dc { gap: 0; }
+.vb-dept .vb-dd { margin-right: 2.5px; }
+.vb-dept .vb-circ .mailb, .vb-dept .vb-circ-a { width: 25px; height: 44px; border-radius: 0; }
+.vb-dept .vb-dc > :last-child { margin-right: -2.5px; }   /* 맨 오른쪽 아이콘이 화면 여백(20px) 선에 닿게 */
