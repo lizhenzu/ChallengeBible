@@ -70,7 +70,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("<a class=\"vb-item\" href=\"/jamsil-kids/reading\"", home);           // 통독
         Assert.Contains("<a class=\"vb-item\" href=\"/jamsil-kids/copy\"", home);              // 필사
         Assert.DoesNotContain("href=\"/jamsil-kids/prayer365\"", home);                          // 학생에게는 365축복기도 없음(ADR 0106)
-        Assert.Contains("aria-label=\"오늘의 말씀\"", home);                                     // 말씀 카드
+        Assert.DoesNotContain("aria-label=\"오늘의 말씀\"", home);                              // 말씀 카드는 2026-11-26 사용자 요청으로 영구 삭제
         Assert.DoesNotContain("나의 도전 현황", home);                                   // 카드는 「나의 도전」 화면으로 옮겼다(ADR 0136)
         Assert.Contains("href=\"/jamsil-kids/challenge\"", home);                        // 홈 상단 포인트 링(ADR 0136)
         Assert.Contains("class=\"vb-ring\"", home);

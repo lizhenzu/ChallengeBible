@@ -327,3 +327,16 @@ body:has(.wl) { background: #F1F1F3; }
 .wl .wl-install__btn { flex-direction: column; gap: 2px; height: auto; min-height: 60px; padding: 10px 12px; }
 .wl .wl-install__t1 { display: flex; align-items: center; gap: var(--space-3); font-size: var(--fs-md); font-weight: 700; }
 .wl .wl-install__t2 { font-size: var(--fs-min); font-weight: 500; opacity: .92; }
+
+/* 한 줄 선물 알림(2026-11-26 사용자: 첫 화면 · 부서 홈에서 웰컴 하단으로). 부품 _GiftAlert 의 vb-galert 모양을 웰컴 안에서만 쓴다. */
+.wl .wl-gift { margin-top: var(--space-6); padding: 0 var(--gutter); }
+.wl .vb-galert { display: flex; align-items: center; gap: 11px; padding: 13px 14px; border: 1px solid #E3E6EA; border-radius: 18px; background: #fff; box-shadow: 0 6px 18px -14px rgba(0, 0, 0, .4); text-decoration: none; color: inherit; }
+.wl .vb-galert .ic { flex: none; width: 34px; height: 34px; border-radius: 11px; background: #EAF7EF; display: grid; place-items: center; font-size: 16px; }
+.wl .vb-galert .tx { min-width: 0; flex: 1; }
+.wl .vb-galert .tx > b { display: block; font-size: 13.5px; font-weight: 900; color: #1B1F24; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wl .vb-galert .tx > span { display: block; margin-top: 1px; font-size: 12px; font-weight: 700; color: var(--color-ink-3, #5B6470); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wl .vb-galert .tx .num { display: inline; }
+.wl .vb-galert .mdots { flex: none; display: flex; flex-direction: column; gap: 3px; width: 36px; }
+.wl .vb-galert .mdots u { height: 3px; border-radius: 99px; background: #E5E7EB; display: block; }
+.wl .vb-galert .mdots u.on { background: #7fc79d; }
+.wl .vb-galert .go { flex: none; font-size: 15px; font-weight: 900; color: #b9b9c0; }

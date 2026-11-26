@@ -4,7 +4,7 @@
 @using ChallengeBible.Web.Auth
 @using ChallengeBible.Web.Services
 @* 2026-11-23 사용자 확정(design_handoff_home_b): 부서 홈 = 시안 B 모노 톤.
-   머리말(☰ · 교회 · 날짜 · 쪽지 · 내 계정) → 로고 → 검색 → 네 가지 도전 목록 → 오늘의 말씀 + 나의 도전 현황 → 가족팀/임시 부서 안내 → 링크.
+   머리말(☰ · 교회 · 날짜 · 쪽지 · 내 계정) → 로고 → 검색 → 네 가지 도전 목록 → 가족팀/임시 부서 안내 → 링크.
    기능 카드(가족팀 · 임시 부서 1단계 안내 · 생일 · 쪽지)는 그대로 둔다. *@
 @{
     var d = Model.Data;
@@ -160,39 +160,6 @@ else
                 </a>
             }
         </nav>
-
-        <div class="vb-row">
-            @if (d.VerseText is { } vt)
-            {
-                <section class="vb-verse" id="vb-verse" aria-label="오늘의 말씀">
-                    <h3>오늘의 말씀</h3>
-                    <blockquote class="serif">“@vt”</blockquote>
-                    @if (d.VerseRef is { } vr)
-                    {
-                        <cite>@vr</cite>
-                    }
-                </section>
-            }
-            else if (d.WordTitle is not null)
-            {
-                <a class="vb-verse" href="/@slug/word-mission" aria-label="오늘의 말씀 — 미션 홈으로">
-                    <h3>오늘의 말씀</h3>
-                    <blockquote class="serif">@d.WordTitle</blockquote>
-                    @if (d.WordRange is { } wr)
-                    {
-                        <cite>@wr ›</cite>
-                    }
-                </a>
-            }
-
-        </div>
-
-        @* 「오늘의 말씀」 바로 아래 한 줄 선물 알림(2026-11-23 사용자 확정 B안 · ADR 0138).
-           홈은 한 줄만 — 이름 · 선물 이름은 누르면 가는 `/{slug}/gift-status` 에서 본다. *@
-        @if (!lobby)
-        {
-            <partial name="_GiftAlert" model="new GiftTargetCardVm(Model.GiftBoard, slug, Model.Guest, loginTo)" />
-        }
 
         @* 가족팀(2026-11-22 3차 확정): 초대 배너 → 우리 가족팀 카드 → 둘 다 없으면 만들기 유도. 현황 카드 아래. *@
         @if (!lobby && t.MissionEnabled && d.Rules.Features.FamilyTeam)

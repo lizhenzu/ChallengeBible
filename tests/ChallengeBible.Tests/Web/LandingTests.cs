@@ -29,17 +29,14 @@ public class LandingTests : IClassFixture<WebApplicationFactory<Program>>
     private Task<string> Page() => _app.CreateClient().GetStringAsync("/");
 
     [Fact]
-    public async Task 공용_말씀이_있으면_오늘의_말씀_카드와_암송_기도_칩이_보인다()
+    public async Task 공용_말씀이_있어도_오늘의_말씀_카드는_없다_영구_삭제()
     {
         ContentSeed.Word(_db, Jan5);
         ContentSeed.Verse(_db, 1);
         ContentSeed.Prayer(_db, Jan5);
         var html = await Page();
-        Assert.Contains("aria-label=\"오늘의 말씀\"", html);
-        Assert.Contains("창세기 24:1", html);
-        Assert.Contains("이번 주 암송", html);
-        Assert.Contains("(1/3 ~ 1/9)", html);                       // 날짜 범위는 한 덩어리
-        Assert.Contains("오늘의 기도 <b>신뢰</b>", html);
+        Assert.DoesNotContain("aria-label=\"오늘의 말씀\"", html);   // 2026-11-26 사용자: 오늘의 말씀 영구 삭제
+        Assert.DoesNotContain("이번 주 암송", html);
         Assert.Contains("© 2027 잠실새내 · 주일학교", html);
     }
 

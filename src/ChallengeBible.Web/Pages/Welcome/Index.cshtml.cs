@@ -13,7 +13,7 @@ namespace ChallengeBible.Web.Pages.Welcome;
 /// 줄(app.TenantIntro)이 있는 부서(유년부)에만 있다 — 없거나 꺼져 있으면 부서 홈으로. 누구나(손님 포함) 본다.
 /// 부서 홈(`/{slug}`)이 들어올 때 이쪽으로 먼저 보낸다(계정이 「1주일 후」 · 「다시 보지 않기」를 고르지 않았고, 이번 방문에서 「가기」를 누르지 않았다면).
 /// </summary>
-public class IndexModel(IntroService intro, WorshipService worship, BulletinService bulletins, TenantContext tenant, TimeProvider time) : PageModel, ITitled, IPublicTenantPage
+public class IndexModel(IntroService intro, WorshipService worship, BulletinService bulletins, GiftOrderService gifts, TenantContext tenant, TimeProvider time) : PageModel, ITitled, IPublicTenantPage
 {
     /// <summary>**이 부서 화면에서** 옮겨 온 요청인가(Referer 가 같은 주소의 `/{부서}` 또는 `/{부서}/…`).
     /// 부서 홈은 밖에서 들어올 때(주소창 · 즐겨찾기 · QR · 앱 아이콘 · 첫 화면 · 로그인 · 다른 사이트)만 소개 화면으로 보내고,
@@ -29,6 +29,8 @@ public class IndexModel(IntroService intro, WorshipService worship, BulletinServ
     public TenantIntro Item { get; private set; } = null!;
     public IReadOnlyList<WorshipSchedule> Worship { get; private set; } = [];
     public DateOnly? LatestBulletin { get; private set; }
+    /// <summary>한 줄 선물 알림(2026-11-26 사용자: 첫 화면 · 부서 홈에서 웰컴 하단으로 옮김). 이 부서 승인 회원에게만, 대상자가 있을 때.</summary>
+    public GiftTargetBoard? GiftBoard { get; private set; }
     /// <summary>오늘(부서 시간대) — 위쪽 날짜 줄(2026-11-24 새 퍼블리시본).</summary>
     public DateOnly Today => TenantClock.ToTenantDate(time.GetUtcNow(), tenant.Current.TimeZoneId);
     /// <summary>로그인한 사람만 「1주일 후 다시 보기」 · 「다시 보지 않기」(계정 기준).</summary>
@@ -45,6 +47,7 @@ public class IndexModel(IntroService intro, WorshipService worship, BulletinServ
         LastDept.Set(HttpContext, tenant.Current.Slug);   // 마지막으로 본 부서 기억(앱을 열면 `/` 가 여기로 보낸다)
         Worship = await worship.ListAsync(ct: ct);
         LatestBulletin = await bulletins.LatestDateAsync(ct);
+        if (tenant.IsApproved && !tenant.IsLobby) GiftBoard = await gifts.TargetBoardAsync(3, ct);
         return Page();
     }
 

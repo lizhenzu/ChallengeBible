@@ -2,6 +2,7 @@
 @model ChallengeBible.Web.Pages.Welcome.IndexModel
 @using ChallengeBible.Web.Services
 @using ChallengeBible.Web.Auth
+@using ChallengeBible.Web.Pages
 @inject ChallengeBible.Web.Services.PhotoService Photos
 @* 부서 소개(웰컴) 화면 — 2026-11-25 사용자 새 퍼블리시본 「JAMSIL KIDS · 유년부 주보 v2 — 홈」으로 완전 교체(ADR 0140 · 이전 틴트 카드판 대체). 행정업무(교사 · 관리자) 버튼은 /{부서}/office 로 연결. 아래는 이전 설명:  순백 바탕 · 헤어라인 · 검정 헤비 제목 · 컬러 번호 2열 표.
    현재 있는 기능만 연결: 내 정보(계정) · 대표 사진 · 날짜 · 제목 · 예배 줄 · 주보 · 앨범 · 도전!!! 성경말씀으로 가기 · 소개(글 + 예배 안내) · 앱 설치 ·
@@ -98,6 +99,11 @@
             </a>
         </div>
     </div>
+
+    @if (Model.GiftBoard is { Total: > 0 })
+    {
+        <div class="wl-gift"><partial name="_GiftAlert" model="new GiftTargetCardVm(Model.GiftBoard, slug, false, null)" /></div>
+    }
 
     <footer class="wl-footer">
         <p>@(addr ?? Model.Tenant.Current.Name)</p>
