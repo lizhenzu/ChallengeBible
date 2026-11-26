@@ -500,7 +500,10 @@
 
 /* ── 부서 홈 새 퍼블리시본(2026-11-27 사용자 「dojeon-home.html」) ──
    머리줄 ↔ 인사말 34 → 17px · 동그라미 44px · 설명 두 줄 · 검색 위 · 아래 24px · 맨 아래 의견 카드 · 설치 띠 · 주소 */
-.vb-dept .vb-circ .mailb, .vb-dept .vb-circ-a { width: 44px; height: 44px; }
+.vb-dept .vb-circ .mailb, .vb-dept .vb-circ-a { width: 44px; height: 44px; box-shadow: none; background: transparent; }   /* 편지 · 메인화면 동그라미 테두리 없앰(2026-11-27 사용자) */
+.vb-dept .church { display: block; padding: 9px 0 8px; text-decoration: none; }   /* 교회 이름 = 퍼블리시본: 위 12px 회색 · 아래 16px 파랑, 누르면 교회 홈페이지(새 창) */
+.vb-dept .church small { font-size: 12px; font-weight: 500; color: var(--ink-2); line-height: 1.35; }
+.vb-dept .church span { font-size: 16px; font-weight: 800; color: #1f55c0; letter-spacing: -.02em; line-height: 1.4; }
 .vb-dept .vb-circ-a { text-decoration: none; }
 .vb-dept .vb-hero-row { align-items: flex-start; }
 .vb-dept .vb-hero-row .vb-body { margin-top: 17px; }
