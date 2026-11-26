@@ -48,7 +48,9 @@ public partial class InstallTests : IClassFixture<WebApplicationFactory<Program>
         Assert.Contains("data-install=\"off\"", html);                     // 안내 자신은 다시 보내지 않는다(R-331)
         foreach (var v in new[] { "data-for=\"android desktop\"", "data-for=\"ios\"", "data-for=\"inapp\"", "data-for=\"desktop-other\"", "data-for=\"done\"" })
             Assert.Contains(v, html);
-        Assert.Contains("바탕화면에 설치하기", html);
+        Assert.Contains("바로가기 설치하기", html);                         // 안드로이드 · PC 버튼 문구를 하나로(2026-11-26 사용자)
+        Assert.Contains("바로가기 설치해요", html);
+        Assert.DoesNotContain("PC에 설치하세요", html);
         Assert.Contains("홈 화면에 추가", html);
         Assert.Contains("크롬으로 열기", html);
         Assert.Contains("이미 설치했어요", html);
