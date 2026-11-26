@@ -276,7 +276,7 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
 
     /// <summary>
     /// 로그인·가입 직후 보낼 곳(2026-11-23 사용자: 새 시안은 부서 홈 화면이다 — 로그인하면 곧장 그 부서 홈으로).
-    /// 1곳 → 그 부서 홈, 2곳 이상 → 부서 고르기, 0곳 → 참여 신청.
+    /// 1곳 → 첫 화면(`/`), 2곳 이상 → 부서 고르기, 0곳 → 참여 신청.
     /// </summary>
     public async Task<string> HomePathAsync(string userName, CancellationToken ct = default)
     {
@@ -284,7 +284,7 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
         return go.ApprovedCount switch
         {
             0 => "/join",
-            1 => "/" + go.OnlyTenantSlug,
+            1 => "/",   // 2026-11-26 사용자: 로그인한 뒤에도 앱 아이콘으로 열 때와 같은 첫 화면(홈이 아니라)
             _ => "/account/tenants",
         };
     }

@@ -100,7 +100,7 @@ public partial class DeptStudentLoginTests : IClassFixture<WebApplicationFactory
         var tok = TokenRx().Match(page).Groups[1].Value;
         var ok = await c.PostAsync(url, new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = tok, ["Password"] = "1234" }));
         Assert.Equal(HttpStatusCode.Redirect, ok.StatusCode);
-        Assert.Equal("/jamsil-kids", ok.Headers.Location!.OriginalString);
+        Assert.Equal("/", ok.Headers.Location!.OriginalString);   // 로그인한 뒤 = 첫 화면(2026-11-26 사용자)
 
         foreach (var slug in new[] { "jamsil-infant", "jamsil-adult", "nowhere" })
             Assert.Equal(HttpStatusCode.NotFound, (await Client().GetAsync("/account/student-login/" + slug)).StatusCode);

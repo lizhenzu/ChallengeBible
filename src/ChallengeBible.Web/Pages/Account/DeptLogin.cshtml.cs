@@ -45,6 +45,6 @@ public class DeptLoginModel(AccountService accounts, AdminLoginLimiter limiter, 
         if (r.MustChangePassword) return RedirectToPage("/Account/ChangePassword");
         TempData[LoginModel.TodoCheckKey] = "1";   // 오늘 할 일(ADR 0100, R-309)
         TempData[ChallengeBible.Web.Pages.TenantHomeModel.MsgBandKey] = "1";   // 새 쪽지 띠 한 번(ADR 0112)
-        return LocalRedirect("/" + Dept.Slug);
+        return LocalRedirect("/");   // 2026-11-26 사용자: 로그인한 뒤 화면 = 앱 아이콘으로 여는 첫 화면(☰ 에서 부서 관리로 간다)
     }
 }

@@ -88,7 +88,7 @@ public partial class DeptAdminLoginTests : IClassFixture<WebApplicationFactory<P
 
         var ok = await Post(c, "/account/dept-login/jamsil-kids", "pw-1234");
         Assert.Equal(HttpStatusCode.Redirect, ok.StatusCode);
-        Assert.Equal("/jamsil-kids", ok.Headers.Location!.OriginalString);
+        Assert.Equal("/", ok.Headers.Location!.OriginalString);   // 로그인한 뒤 = 첫 화면(2026-11-26 사용자)
     }
 
     [Fact]
