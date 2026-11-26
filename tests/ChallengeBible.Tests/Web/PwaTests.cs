@@ -25,6 +25,25 @@ public class PwaTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
+    public async Task 시작_화면은_클로버와_삼색_점뿐이고_글자가_없다()
+    {
+        var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var res = await c.GetAsync("/splash.html");
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        var html = await res.Content.ReadAsStringAsync();
+        Assert.Contains("/icons/clover.svg", html);
+        Assert.Contains("#22b35e", html);
+        Assert.Contains("#3b7cf0", html);
+        Assert.Contains("#e8458f", html);
+        Assert.Contains("location.replace('/?s=1')", html);
+        Assert.DoesNotContain("<p", html);   // 글자 메시지 없음
+
+        var sw = await (await c.GetAsync("/sw.js")).Content.ReadAsStringAsync();
+        Assert.Contains("/splash.html", sw);
+        Assert.Contains("!req.referrer", sw);   // 앱을 막 열 때만
+    }
+
+    [Fact]
     public async Task 서비스_워커와_오프라인_화면은_로그인_없이_열린다()
     {
         var c = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });

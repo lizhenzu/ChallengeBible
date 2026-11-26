@@ -1,11 +1,12 @@
 // 서비스 워커(PWA, 확정 시안: 오프라인). 주소 맨 앞(/)에 두어 모든 부서 화면을 맡는다.
 // 저장하는 것: 오프라인 화면과 화면 모양(/css · /js · 부서 아이콘)뿐. 화면(HTML) · API 응답은 저장하지 않는다 —
 // 점수 · 이름 같은 개인 내용이 가족이 함께 쓰는 휴대폰에 남지 않게. 미션 버튼(POST)은 손대지 않는다(나중에 모아 보내기 없음).
-const VERSION = 'cb-v2';   // v2: 네잎 아이콘(0114)
+const VERSION = 'cb-v3';   // v3: 시작 화면(클로버 + 점)
 const OFFLINE = '/offline.html';
+const SPLASH = '/splash.html';
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.add(new Request(OFFLINE, { cache: 'reload' }))).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll([new Request(OFFLINE, { cache: 'reload' }), new Request(SPLASH, { cache: 'reload' }), new Request('/icons/clover.svg', { cache: 'reload' })])).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
@@ -24,6 +25,11 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(req.url);
 
   // 화면: 언제나 서버에서. 연결이 없을 때만 오프라인 화면
+  // 바탕화면 아이콘으로 앱을 막 열 때(이전 화면 없음, 주소 /)는 저장해 둔 시작 화면(클로버 + 점)을 바로 보여 주고, 그 화면이 진짜 첫 화면을 불러온다
+  if (req.mode === 'navigate' && url.pathname === '/' && !url.search && !req.referrer) {
+    e.respondWith(caches.match(SPLASH).then((hit) => hit ?? fetch(req).catch(() => caches.match(OFFLINE))));
+    return;
+  }
   if (req.mode === 'navigate') {
     e.respondWith(fetch(req).catch(() => caches.match(OFFLINE)));
     return;
