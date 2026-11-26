@@ -32,8 +32,7 @@
                         <b>@b.Date.ToString("yyyy년 M월 d일") @Day(b.Date)@if (b.Id == latestId) { <span class="jb-badge">이번 주</span> }</b>
                         <small>@(string.Join(" · ", new[] { photos.Count > 0 ? $"사진 {photos.Count}장" : null, pdfs.Count > 0 ? $"PDF {pdfs.Count}개" : null }.OfType<string>()))</small>
                     </div>
-                    @if (b.Title is { } tt) { <h2 id="jbT@(b.Id)" class="jb-in">@tt</h2> } else { <h2 id="jbT@(b.Id)" class="sr-only">@b.Date.ToString("M월 d일") 주보</h2> }
-                    @if (b.Body is { } body) { <p class="jb-body jb-in">@body</p> }
+                    <h2 id="jbT@(b.Id)" class="sr-only">@b.Date.ToString("M월 d일") 주보</h2>   @* 제목 · 내용은 보는 화면에서 숨긴다(2026-11-26 사용자, 올리는 화면 · 저장 값은 그대로) *@
                     <div class="jb-gal jb-in">
                         @foreach (var (f, i) in photos.Select((f, i) => (f, i)))
                         {
@@ -60,6 +59,6 @@
             }
         </div>
     }
-    <div class="jb-dock"><div class="jb-in"><a class="jb-btn" href="/@slug">홈으로</a><button type="button" class="jb-btn p" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">↑ 맨 위로</button></div></div>
+    <div class="jb-end"><div class="jb-in"><a class="jb-btn" href="/@slug">홈으로</a><button type="button" class="jb-btn p" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">↑ 맨 위로</button></div></div>
 </main>
 @if (Model.FocusId is int fid) { <script>document.getElementById('b@(fid)')?.scrollIntoView();</script> }

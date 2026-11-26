@@ -65,10 +65,10 @@
 .jb-vw .jb-cur h2 { margin: 0 auto 4px; font-size: 17px; }
 .jb-vw .jb-body { margin-block: 0 8px; }
 .jb-vw .jb-gal { gap: 18px; padding-block: 4px 12px; }
-.jb-vw .jb-img { margin: 0; background: #fff; border-radius: 8px; border: 1px solid #cfd5de; overflow: visible; box-shadow: 0 1px 0 #fff inset, 0 3px 0 -1px #f4f6f9, 0 4px 0 -1px #cfd5de, 0 8px 0 -3px #f4f6f9, 0 9px 0 -3px #cfd5de, 0 16px 22px -10px rgba(20, 30, 50, .35); }
+.jb-vw .jb-img { margin: 0; background: #fff; border-radius: 8px; border: 1px solid #cfd5de; overflow: visible; box-shadow: 0 1px 0 #fff inset, 0 2px 4px rgba(20, 30, 50, .08), 0 14px 24px -12px rgba(20, 30, 50, .35); }
 .jb-vw .jb-img img { border-radius: 7px; }
 .jb-pdfs { display: flex; flex-direction: column; gap: 8px; padding-block: 10px; }
 .jb-vw .jb-edit { padding-block: 10px; }
-.jb-dock { position: sticky; bottom: 0; z-index: 5; margin-top: 12px; background: var(--bg); border-top: 1px solid var(--rule); padding-block: 10px calc(10px + env(safe-area-inset-bottom, 0px)); }
-.jb-dock .jb-in { display: flex; gap: 8px; }
-.jb-dock .jb-btn { flex: 1; justify-content: center; text-decoration: none; cursor: pointer; }
+.jb-end { margin-top: 0; background: var(--bg); border-top: 1px solid var(--rule); padding-block: 14px calc(18px + env(safe-area-inset-bottom, 0px)); }   /* 따라다니지 않고 맨 아래에 한 번(2026-11-26 사용자) */
+.jb-end .jb-in { display: flex; gap: 8px; }
+.jb-end .jb-btn { flex: 1; justify-content: center; text-decoration: none; cursor: pointer; }

@@ -105,7 +105,8 @@ public partial class BulletinTests : IClassFixture<WebApplicationFactory<Program
 
         Assert.DoesNotContain("주보 보기", await guest.GetStringAsync("/jamsil-kids"));   // 홈 카드는 2026-11-22 확정으로 뺐다(ADR 0127)
         var page = await guest.GetStringAsync("/jamsil-kids/bulletin");   // 로그인 안 해도 본다
-        Assert.Contains("추수감사주일", page);
+        Assert.Contains("2027년 1월 10일", page);
+        Assert.DoesNotContain("추수감사주일", page);   // 제목 · 내용은 보는 화면에서 숨긴다(2026-11-26 사용자, 올리는 화면 값은 그대로)
         Assert.Contains("교회주보.pdf", page);
         Assert.DoesNotContain("class=\"pb-act\"", page);
         Assert.Contains("환영합니다", page);
@@ -126,7 +127,8 @@ public partial class BulletinTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("class=\"pb-act\"", page);   // 「+ 주보 작성」 버튼(+ 는 HTML 로 바뀌어 찍혀서 클래스로 확인)
         Assert.DoesNotContain("aria-label=\"로그인\"", page);
         Assert.Contains("주보게시판", page);
-        Assert.Contains("홈으로", page);   // 아래 고정바
+        Assert.Contains("홈으로", page);   // 맨 아래 바(따라다니지 않음)
+        Assert.DoesNotContain("jb-dock", page);
         Assert.DoesNotContain("target=\"_blank\"", Regex.Match(page, "<figure.*?</figure>", RegexOptions.Singleline).Value);   // 사진은 새 탭 없이 쭉
     }
 
@@ -145,9 +147,9 @@ public partial class BulletinTests : IClassFixture<WebApplicationFactory<Program
         var page = await _app.CreateClient().GetStringAsync("/jamsil-kids/bulletin");
         Assert.DoesNotContain("jb-chip", page);   // 날짜 칩으로 옮겨 다니지 않는다(2026-11-26 사용자)
         Assert.DoesNotContain("다른부서주보", page);   // 다른 부서 주보는 안 보인다
-        var a = page.IndexOf("추수감사주일", StringComparison.Ordinal);
-        var b = page.IndexOf("새해 첫 주일", StringComparison.Ordinal);
-        var c = page.IndexOf("송구영신", StringComparison.Ordinal);
+        var a = page.IndexOf("2027년 1월 10일", StringComparison.Ordinal);
+        var b = page.IndexOf("2027년 1월 3일", StringComparison.Ordinal);
+        var c = page.IndexOf("2026년 12월 27일", StringComparison.Ordinal);
         Assert.True(a > 0 && a < b && b < c);   // 최근 → 오래된 순으로 한 화면에
         Assert.Single(Regex.Matches(page, "jb-badge"));   // 「이번 주」 표시는 맨 위 하나만
     }
