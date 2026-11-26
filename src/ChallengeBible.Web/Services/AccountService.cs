@@ -280,11 +280,12 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
     /// </summary>
     public async Task<string> HomePathAsync(string userName, CancellationToken ct = default)
     {
-        var go = await WhereToGoAsync(userName, ct);
-        return go.ApprovedCount switch
+        var approved = (await MyMembershipsAsync(userName, ct)).Where(m => m.Status == MembershipStatus.Approved && m.TenantActive).ToList();
+        return approved.Count switch
         {
             0 => "/join",
-            1 => "/",   // 2026-11-26 사용자: 로그인한 뒤에도 앱 아이콘으로 열 때와 같은 첫 화면(홈이 아니라)
+            // 2026-11-26 사용자: 로그인한 뒤에도 앱 아이콘으로 열 때와 같은 첫 화면(홈이 아니라). 임시 부서(처음 오신 분)만 가입 안내가 있는 그 홈으로
+            1 => approved[0].IsLobby ? "/" + approved[0].Slug : "/",
             _ => "/account/tenants",
         };
     }
