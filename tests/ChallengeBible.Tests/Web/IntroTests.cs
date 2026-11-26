@@ -288,24 +288,24 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
     public async Task 얇은_머리말에_소스_글자가_찍히지_않는다()
     {
         var kid = await Member("cheolsu", _kids.Id, Roles.Participant);
-        foreach (var url in new[] { "/jamsil-kids/bulletin", "/jamsil-kids/admin/intro" })   // 둘 다 얇은 머리말(_Top)을 쓴다(뒤쪽은 권한이 없어 막힌 화면)
+        foreach (var url in new[] { "/jamsil-kids/album", "/jamsil-kids/admin/intro" })   // 둘 다 얇은 머리말(_Top)을 쓴다(뒤쪽은 권한이 없어 막힌 화면)
         {
             var r = await kid.GetAsync(url);
             var html = r.StatusCode == HttpStatusCode.Redirect ? await (await kid.GetAsync(r.Headers.Location!.ToString())).Content.ReadAsStringAsync() : await r.Content.ReadAsStringAsync();
             Assert.DoesNotContain("@if", html);
             Assert.DoesNotContain("ImpersonatorId", html);
         }
-        Assert.Contains("class=\"hb\"", await kid.GetStringAsync("/jamsil-kids/bulletin"));   // 머리줄 오른쪽은 이동 버튼(이름 알약은 부서 홈 · 첫 화면에만)
+        Assert.Contains("class=\"hb\"", await kid.GetStringAsync("/jamsil-kids/album"));   // 머리줄 오른쪽은 이동 버튼(이름 알약은 부서 홈 · 첫 화면에만)
     }
 
     [Fact]   // 머리줄 ② 얇은 머리말(2026-11-24 확정 · 기준표 5판): 부서 안 = ☰ + 부서 › 화면 + 알약 · 밖 = ‹ 뒤로 · 「도전!!! 성경말씀」 글자 없음 · 로그아웃은 ☰ 메뉴로
     public async Task 얇은_머리말은_부서_안에서는_메뉴와_경로이고_밖에서는_뒤로_가기이다()
     {
         var kid = await Member("cheolsu", _kids.Id, Roles.Participant);
-        var bul = await kid.GetStringAsync("/jamsil-kids/bulletin");
+        var bul = await kid.GetStringAsync("/jamsil-kids/album");   // 주보 보기는 2026-11-26 부터 「홈 › 주보게시판」 자체 머리줄(BulletinTests)이라 사진첩으로 본다
         Assert.Contains("data-pnav-open", bul);                                   // ☰ 메뉴가 새로 생김
         Assert.DoesNotContain("class=\"par\"", bul);                            // 부서 이름(유년부 ›)은 머리줄에서 뺐다(2026-11-24 사용자)
-        Assert.Contains("class=\"cur\">주보</b>", bul);                           // 현재 화면
+        Assert.Contains("class=\"cur\">사진첩</b>", bul);                           // 현재 화면
         Assert.Contains("class=\"hb\" href=\"/jamsil-kids\">", bul);                // 오른쪽은 「홈으로」 이동 버튼(알약은 부서 홈 · 첫 화면에만, 기준표 6판)
         Assert.Contains("홈으로</a>", bul);
         Assert.DoesNotContain("class=\"hpill\"", bul);

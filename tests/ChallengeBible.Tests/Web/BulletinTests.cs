@@ -107,7 +107,7 @@ public partial class BulletinTests : IClassFixture<WebApplicationFactory<Program
         var page = await guest.GetStringAsync("/jamsil-kids/bulletin");   // 로그인 안 해도 본다
         Assert.Contains("추수감사주일", page);
         Assert.Contains("교회주보.pdf", page);
-        Assert.DoesNotContain("+ 주보 작성", page);
+        Assert.DoesNotContain("class=\"pb-act\"", page);
         Assert.Contains("환영합니다", page);
         Assert.Contains("aria-label=\"로그인\"", page);   // 손님 머리줄 오른쪽 = 사람 아이콘
         int fileId;
@@ -123,7 +123,7 @@ public partial class BulletinTests : IClassFixture<WebApplicationFactory<Program
         var teacher = await Member("sunmi2", _kids.Id, Roles.Teacher);
         await Upload(teacher, "jamsil-kids", ("앞면.jpg", Jpg));
         var page = await teacher.GetStringAsync("/jamsil-kids/bulletin");
-        Assert.Contains("+ 주보 작성", page);
+        Assert.Contains("class=\"pb-act\"", page);   // 「+ 주보 작성」 버튼(+ 는 HTML 로 바뀌어 찍혀서 클래스로 확인)
         Assert.DoesNotContain("aria-label=\"로그인\"", page);
         Assert.Contains("주보게시판", page);
         Assert.Contains("홈으로", page);   // 아래 고정바
