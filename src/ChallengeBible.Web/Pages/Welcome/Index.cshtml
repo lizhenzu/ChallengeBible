@@ -17,8 +17,11 @@
     var meName = User.UserName();
     var meShow = User.DisplayName();
     var office = ChallengeBible.Web.Pages.Office.IndexModel.CanUse(Model.Tenant);
-    // 행정업무 줄은 누구에게나 보인다(2026-11-26 사용자): 교사 · 관리자는 바로 행정업무, 그 밖의 사람(손님 · 학생 · 학부모)은 누르면 로그인(교사 계정으로 바꿔 들어오게)
+    // 행정업무 줄(2026-11-26 사용자): 로그인 전에는 누구에게나 보이고(누르면 로그인 → 교사 · 관리자는 들어가고 나머지는 「권한이 없어요」), 로그인한 뒤에는 교사 · 관리자에게만 보인다
+    var officeShow = office || !Model.Member;
     var officeHref = office ? $"/{slug}/office" : "/account/login?returnUrl=" + Uri.EscapeDataString($"/{slug}/office");
+    // 「도전!!!성경말씀」 칸: 로그인 전에는 로그인 창을 거쳐(인증된 상태로) 부서 홈으로 — ?go=1 은 부서 홈이 웰컴으로 되돌려 보내지 않게 하는 표시
+    var missionHref = Model.Member ? $"/{slug}/welcome?handler=Go" : "/account/login?returnUrl=" + Uri.EscapeDataString($"/{slug}?go=1");
     var mePhoto = meName is null ? null : await Photos.FileOfAsync(meName);
     var ko = new System.Globalization.CultureInfo("ko-KR");
     var today = Model.Today.ToString("yyyy년 M월 d일 ", ko) + (Model.Today.DayOfWeek == DayOfWeek.Sunday ? "주일" : Model.Today.ToString("dddd", ko));
@@ -73,18 +76,21 @@
         <a class="wl-tile wl-tile--1" data-id="bulletin" href="/@slug/bulletin"><span class="wl-tile__row"><span class="wl-tile__num">01</span><span class="wl-tile__go">@Html.Raw(ARROW)</span></span><span class="wl-tile__label">이번 주 주보</span></a>
         <a class="wl-tile wl-tile--2" data-id="word" href="/@slug/word"><span class="wl-tile__row"><span class="wl-tile__num">02</span><span class="wl-tile__go">@Html.Raw(ARROW)</span></span><span class="wl-tile__label">이번 주 말씀</span></a>
         <a class="wl-tile wl-tile--3" data-id="rules" href="/@slug/album"><span class="wl-tile__row"><span class="wl-tile__num">03</span><span class="wl-tile__go">@Html.Raw(ARROW)</span></span><span class="wl-tile__label">@dept 앨범</span></a>
-        <a class="wl-tile wl-tile--4" data-id="mission" href="/@slug/welcome?handler=Go"><span class="wl-tile__row"><span class="wl-tile__num">04</span><span class="wl-tile__go">@Html.Raw(ARROW)</span></span><span class="wl-tile__label">도전!!!성경말씀</span></a>
+        <a class="wl-tile wl-tile--4" data-id="mission" href="@missionHref"><span class="wl-tile__row"><span class="wl-tile__num">04</span><span class="wl-tile__go">@Html.Raw(ARROW)</span></span><span class="wl-tile__label">도전!!!성경말씀</span></a>
         <div class="wl-tile wl-tile--5 wl-tile--off" data-id="family"><span class="wl-tile__row"><span class="wl-tile__num">05</span><span class="wl-tile__go">@Html.Raw(ARROW)</span></span><span class="wl-tile__label">부모님과 함께하는 미션북</span></div>
         <div class="wl-tile wl-tile--6 wl-tile--off" data-id="about"><span class="wl-tile__row"><span class="wl-tile__num">06</span><span class="wl-tile__go">@Html.Raw(ARROW)</span></span><span class="wl-tile__label">@dept 소개</span></div>
     </nav>
 
     @* 소개 글 · 예배 안내(시간 · 장소 · 지도)는 이 화면에서 잠시 뺐다 — 나중에 상세 설계(2026-11-24 사용자). 관리의 입력 칸 · 데이터는 그대로 있다. *@
 
-    <div class="wl-actions">
-        <a class="wl-admin" href="@officeHref">
-            <span><span class="wl-admin__kicker">ADMIN · 교사 전용</span><span class="wl-admin__label">행정업무</span></span>
-            <span class="wl-admin__go">@Html.Raw(ARROW)</span>
-        </a>
+    <div class="wl-actions@(officeShow ? "" : " wl-actions--solo")">
+        @if (officeShow)
+        {
+            <a class="wl-admin" href="@officeHref">
+                <span><span class="wl-admin__kicker">ADMIN · 교사 전용</span><span class="wl-admin__label">행정업무</span></span>
+                <span class="wl-admin__go">@Html.Raw(ARROW)</span>
+            </a>
+        }
         <div class="wl-install" data-wl-install>
             <a class="wl-install__btn" href="/install?back=@Uri.EscapeDataString($"/{slug}/welcome")" data-app-install>
                 <span class="wl-install__t1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6.2" y="2.6" width="11.6" height="18.8" rx="2.6"/><path d="M10.6 18.4h2.8"/><path d="M12 7.4v6.2M9.4 11l2.6 2.6L14.6 11"/></svg>앱으로 설치</span>

@@ -363,3 +363,10 @@ body:has(.office) { background: #fafafa; }
   .office .of-top { flex-wrap: wrap; }
   .office .of-tabs { order: 3; flex: 1 1 100%; flex-wrap: wrap; margin-top: 10px; }
 }
+
+/* 권한 없음 안내(2026-11-26): 교사 · 관리자가 아닌 사람이 행정업무를 열었을 때 */
+.office .of-deny { padding: 96px 20px 48px; text-align: center; }
+.office .of-deny h1 { font-size: 24px; font-weight: 900; letter-spacing: -.04em; }
+.office .of-deny p { margin-top: 10px; font-size: 14px; color: var(--ink-2); }
+.office .of-deny-btn { display: flex; align-items: center; justify-content: center; min-height: 48px; margin: 28px auto 0; max-width: 320px; border-radius: 10px; background: var(--ink); color: #fff; font-size: 15px; font-weight: 800; }
+.office .of-deny-sub { display: flex; align-items: center; justify-content: center; min-height: 44px; margin: 6px auto 0; font-size: 14px; font-weight: 700; color: var(--ink-2); }

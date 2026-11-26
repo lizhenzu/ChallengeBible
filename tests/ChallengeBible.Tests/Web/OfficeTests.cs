@@ -51,7 +51,9 @@ public partial class OfficeTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task 학생은_행정업무를_못_연다()
     {
         var c = await Login("kid");
-        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/kids/office")).StatusCode);
+        var r = await c.GetAsync("/kids/office");
+        Assert.Equal(HttpStatusCode.Forbidden, r.StatusCode);                       // 「권한이 없어요」(2026-11-26 사용자 — 찾을 수 없음 아님)
+        Assert.Contains("권한이 없어요", await r.Content.ReadAsStringAsync());
     }
 
     [Fact]

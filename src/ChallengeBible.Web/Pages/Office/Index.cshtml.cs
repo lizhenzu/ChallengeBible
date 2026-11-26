@@ -23,6 +23,8 @@ public class IndexModel(TenantContext tenant, TodoService todo, MemberAdminServi
     public string Title => "행정업무";
     public string Slug => tenant.Current.Slug;
     public TenantContext Tenant => tenant;
+    /// <summary>로그인했지만 교사 · 관리자가 아니라 볼 수 없다(2026-11-26 사용자 — 「찾을 수 없음」 대신 「권한이 없어요」 안내).</summary>
+    public bool Denied { get; private set; }
     public IReadOnlyList<OfficeItem> Items { get; private set; } = [];
     public IReadOnlyList<OfficeChip> Chips { get; private set; } = [];
     public int TodoCount { get; private set; }
@@ -35,7 +37,8 @@ public class IndexModel(TenantContext tenant, TodoService todo, MemberAdminServi
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        if (!CanUse(tenant)) return NotFound();
+        if (tenant.IsLobby) return NotFound();
+        if (!CanUse(tenant)) { Denied = true; Response.StatusCode = StatusCodes.Status403Forbidden; return Page(); }
         var s = Slug;
         Today = TenantClock.ToTenantDate(time.GetUtcNow(), tenant.Current.TimeZoneId);
 

@@ -140,7 +140,7 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Contains("class=\"wl-grid\"", page);   // 안내 6칸(2026-11-25 새 퍼블리시본)
         Assert.Contains("href=\"/jamsil-kids/bulletin\"", page);
         Assert.Contains("href=\"/jamsil-kids/album\"", page);
-        Assert.Contains("href=\"/jamsil-kids/welcome?handler=Go\"", page);
+        Assert.Contains("href=\"/account/login?returnUrl=%2Fjamsil-kids%3Fgo%3D1\"", page);   // 손님의 「도전!!!성경말씀」: 로그인 창을 거쳐 인증된 상태로(2026-11-26)
         Assert.Contains("class=\"wl-icon-btn\" href=\"/account/login\"", page);        // 손님: 사람 아이콘(누르면 로그인, 2026-11-25)
         Assert.Contains("<a class=\"wl-admin\" href=\"/account/login?returnUrl=%2Fjamsil-kids%2Foffice\">", page);   // 손님에게도 행정업무 버튼 — 누르면 로그인(2026-11-25 사용자)
         Assert.DoesNotContain("내 정보", page);
@@ -151,7 +151,8 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         var mine = await kid.GetStringAsync("/jamsil-kids/welcome");
         Assert.Contains("class=\"wl-icon-btn\" href=\"/account\"", mine);                             // 로그인한 사람: 사진(없으면 이름 첫 글자)
         Assert.Matches("<b aria-hidden=\"true\">김</b>", mine);
-        Assert.Contains("<a class=\"wl-admin\" href=\"/account/login?returnUrl=%2Fjamsil-kids%2Foffice\">", mine);   // 학생에게도 보인다 — 누르면 로그인(2026-11-26 사용자)                         // 사진이 없으면 「성」(이름 첫 글자)만
+        Assert.DoesNotContain("/jamsil-kids/office", mine);                                  // 로그인한 학생에게는 행정업무 줄이 안 보인다(2026-11-26)
+        Assert.Contains("href=\"/jamsil-kids/welcome?handler=Go\"", mine);                      // 로그인한 사람의 「도전!!!성경말씀」은 바로 간다                         // 사진이 없으면 「성」(이름 첫 글자)만
         Assert.DoesNotContain("내 정보", mine);
         Assert.DoesNotContain("wc2-av-guest", mine);
         Assert.DoesNotContain("1주일 후 다시 보기", mine);
@@ -176,6 +177,7 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.True(GoesToWelcome(await a.GetAsync("/jamsil-kids")));                         // 두 번째 방문(주소창 · 즐겨찾기)에도 나온다
         Assert.True(GoesToWelcome(await FromPage(a, "/jamsil-kids", "/account/login")));      // 첫 화면 · 로그인에서 들어와도 나온다(그 부서 화면이 아니다)
         Assert.True(GoesToWelcome(await NewClient().GetAsync("/jamsil-kids")));               // 손님도 들어올 때마다
+        Assert.Equal(HttpStatusCode.OK, (await FromPage(a, "/jamsil-kids?go=1", "/account/login")).StatusCode);   // 웰컴에서 「도전!!!성경말씀」 → 로그인 → 부서 홈(?go=1): 웰컴으로 되돌려 보내지 않는다(2026-11-26)
 
         var page = await a.GetStringAsync("/jamsil-kids/welcome");
         Assert.DoesNotContain("1주일 후 다시 보기", page);                                      // 사람마다 고르는 것은 없다(부서 전체 스위치만)
