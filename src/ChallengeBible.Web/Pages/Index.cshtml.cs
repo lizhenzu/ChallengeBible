@@ -72,6 +72,8 @@ public class IndexModel(AccountService accounts, TenantClock clock, LandingServi
         {
             var go = await accounts.WhereToGoAsync(id, ct);
             if (go.ApprovedCount == 0 && User.IsPlatformAdmin()) return Redirect("/platform");
+            // 2026-11-27 사용자: 바탕화면 아이콘으로 열 때도 로그인한 뒤와 같은 화면 = 부서 홈(새 퍼블리시본). 부서가 하나뿐인 사람은 그 홈으로(?home=1 은 이 첫 화면)
+            if (go.ApprovedCount == 1 && go.OnlyTenantSlug is { } only && Request.Query["home"] != "1") return Redirect("/" + only);
             Me = new(User.DisplayName(), go.ApprovedCount, go.OnlyTenantSlug);
             // ☰ 는 "기존 햄버거 메뉴 그대로"(2026-11-23 사용자) — 부서가 하나면 그 부서 메뉴판을 쓴다.
             if (go.ApprovedCount == 1 && go.OnlyTenantSlug is { } slug

@@ -45,6 +45,6 @@ public class StudentLoginModel(AccountService accounts, AdminLoginLimiter limite
         await CurrentUser.SignInAsync(HttpContext, signed);
         if (r.MustChangePassword) return RedirectToPage("/Account/ChangePassword");
         TempData[ChallengeBible.Web.Pages.TenantHomeModel.MsgBandKey] = "1";   // 새 쪽지 띠 한 번(ADR 0112)
-        return LocalRedirect("/");   // 2026-11-26 사용자: 로그인한 뒤 화면 = 앱 아이콘으로 여는 첫 화면
+        return LocalRedirect("/" + Dept.Slug);   // 2026-11-27 사용자: 로그인한 뒤 = 부서 홈(바탕화면 아이콘으로 열 때와 같은 화면)
     }
 }

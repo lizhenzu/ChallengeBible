@@ -85,7 +85,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("aria-label=\"예배 안내\"", home);
         Assert.DoesNotContain("누가 선물 받나요", home);
         Assert.DoesNotContain("가족팀 초대가 왔어요", home);
-        Assert.DoesNotContain("개선사항 · 불편사항 접수", home);
+        Assert.Contains("개선사항 · 불편사항 접수", home);                                    // 맨 아래 의견 접수 카드(2026-11-27 새 퍼블리시본)
         Assert.DoesNotContain("나의 점수</small>", home);
         Assert.DoesNotContain("class=\"hj-card", home);
         Assert.DoesNotContain("class=\"dz-card", home);
@@ -313,6 +313,20 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("href=\"/jamsil-kids/family-team\"", await kid.GetStringAsync("/jamsil-kids"));   // 가족팀은 메뉴로 이동
     }
 
+    [Fact]   // R-372 — 손님의 부서 홈: 인사말 · 포인트 링 · 편지 없이 사람 아이콘(로그인), 검색과 4가지 도전은 로그인 창으로
+    public async Task R372_손님의_부서_홈은_사람_아이콘이고_검색과_도전은_로그인으로_간다()
+    {
+        var anon = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var home = await anon.GetStringAsync("/jamsil-kids");
+        Assert.DoesNotContain("class=\"vb-hi\"", home);                         // 「이은혜님」 인사말 없음
+        Assert.DoesNotContain("class=\"vb-ring\"", home);                       // 포인트 링 없음
+        Assert.DoesNotContain("class=\"mailb\"", home);                         // 편지 아이콘 없음
+        Assert.Contains("class=\"vb-circ-a\" href=\"/account/login", home);     // 사람 아이콘 = 로그인
+        Assert.Contains("data-guest", home);                                     // 검색은 로그인 창으로(스크립트)
+        Assert.Contains("href=\"/account/login?returnUrl=%2Fjamsil-kids%2Fword-mission\"", home);   // 4가지 도전도 로그인 창으로
+        Assert.Contains("4가지 도전, 하나의 말씀.", home);                          // 설명 두 줄
+    }
+
     [Fact]   // ADR 0136 — 첫 화면(/) 상단에도 포인트 링
     public async Task 첫화면_상단에_포인트_링이_보이고_나의_도전으로_간다()
     {
@@ -345,8 +359,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("<small>대한예수교장로회</small>", dept);              // 부서 홈 왼쪽 위도 첫 화면과 같은 「대한예수교장로회 / 잠실새내교회」(2026-11-26 사용자)
         Assert.DoesNotContain("잠실새내교회 홈페이지", dept);      // ☰ 메뉴에는 교회 홈페이지 링크 없음(2026-11-25 사용자 "필요 없다, 다 지워줘")
         Assert.DoesNotContain("href=\"https://www.saenae.org/\"", dept);
-        Assert.Contains("class=\"vb-footrow\"", dept);                         // 맨 아래 문구는 첫 화면과 같은 모양(가운데 · 앱으로 설치)
-        Assert.Contains("href=\"/install\">앱으로 설치</a>", dept);
+        Assert.Contains("class=\"vb-foot2\"", dept);                         // 맨 아래 문구는 첫 화면과 같은 모양(가운데 · 앱으로 설치)
+        Assert.Contains("href=\"/install\">설치</a>", dept);
         Assert.DoesNotContain("class=\"foot-copy\"", dept);
     }
 }

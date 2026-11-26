@@ -498,8 +498,36 @@
 /* 제목 · 인사말 · 한 줄 설명 간격(2026-11-25 사용자 "너무 붙어 있다" → 사진 찍어 UX 검사): 제목과 인사말 24px(PC 32px) · 인사말과 설명 12px(PC 14px) — 인사말 + 설명이 한 묶음 */
 @media (min-width: 720px) { .vb-body .vb-hi { margin: 0 0 16px !important; } .vb-hi .g { font-size: 17px; } .vb-hi b { font-size: 24px; } .vb-hi small { font-size: 16px; } .vb-tag { margin-top: 14px !important; } }
 
-/* 홈 맨 아래 「메인화면으로」(2026-11-26 사용자): 메인화면은 자동으로 열리지 않고 이 버튼으로만 간다. 누르는 칸 52px */
-.vb-main-go { margin-top: 28px; }
-.vb-main-go .wrap { max-width: 760px; }
-.vb-main-go a { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 52px; border: 1px solid var(--line, #E3E6EA); border-radius: 14px; background: #fff; color: var(--ink, #1B1F24); font-size: 15px; font-weight: 800; text-decoration: none; }
-
+/* ── 부서 홈 새 퍼블리시본(2026-11-27 사용자 「dojeon-home.html」) ──
+   머리줄 ↔ 인사말 34 → 17px · 동그라미 44px · 설명 두 줄 · 검색 위 · 아래 24px · 맨 아래 의견 카드 · 설치 띠 · 주소 */
+.vb-dept .vb-circ .mailb, .vb-dept .vb-circ-a { width: 44px; height: 44px; }
+.vb-dept .vb-circ-a { text-decoration: none; }
+.vb-dept .vb-hero-row { align-items: flex-start; }
+.vb-dept .vb-hero-row .vb-body { margin-top: 17px; }
+.vb-dept .vb-hero-row .vb-ring { margin-top: 41px; margin-right: 6px; }
+.vb-dept .vb-tag { margin-top: 14px !important; }
+.vb-dept .vb-main { padding: 24px 20px 50px; }
+.vb-dept .vb-main .hmx-search { margin: 0 0 24px; }
+.vb-dept .vb-search-err { margin: -16px 0 24px; font-size: 12.5px; font-weight: 600; color: #b42318; }
+.vb-dept .vb-search-err[hidden] { display: none; }
+.vb-dept .vb-go { width: 44px; height: 44px; }
+.vb-foot2 { display: flex; flex-direction: column; gap: 18px; margin-top: 28px; }
+.fb2 { display: flex; align-items: center; gap: 13px; min-height: 56px; padding: 9px 14px 9px 10px; border-radius: 10px; background: #fff; border: 1px solid #d6d6db; color: inherit; text-decoration: none; }
+.fb2 .ic { width: 38px; height: 38px; flex: none; border-radius: 10px; background: #fdf0e6; color: #b8500d; display: grid; place-items: center; }
+.fb2 .tx, .inst2 .tx { flex: 1; min-width: 0; }
+.fb2 b, .inst2 b { display: block; font-size: 14px; font-weight: 800; line-height: 1.35; letter-spacing: -.02em; }
+.fb2 small, .inst2 small { display: block; font-size: 12px; font-weight: 500; line-height: 1.4; color: #6e6e75; }
+.fb2 .ar { flex: none; color: #6e6e75; }
+.inst2 { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 10px 10px 14px; border-radius: 10px; background: #f4f4f5; }
+.inst2 a { flex: none; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: 10px; background: #1d1d1f; color: #fff; font-size: 13.5px; font-weight: 800; text-decoration: none; }
+@media (display-mode: standalone) { .inst2 { display: none; } }
+html[data-install="installed"] .inst2 { display: none; }
+.addr2 { margin: 0; font-size: 12.5px; color: #56565c; text-align: center; }
+@media (min-width: 720px) {
+  .vb-dept .vb-hero-row .vb-body { margin-top: 32px; }
+  .vb-dept .vb-hero-row .vb-ring { margin-top: 35px; margin-right: 40px; }
+  .vb-dept .vb-main { padding: 40px 40px 50px; }
+  .vb-dept .vb-main .hmx-search { margin: 0 0 40px; }
+  .vb-dept .vb-search-err { margin: -32px 0 40px; }
+  .vb-foot2 { margin-top: 40px; }
+}

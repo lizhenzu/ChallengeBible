@@ -207,7 +207,9 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Equal(HttpStatusCode.OK, (await GetWith(NewClient(), "/", "jamsil-kids")).StatusCode);   // 예전 쿠키가 남아 있어도 첫 화면
         Assert.Equal(HttpStatusCode.OK, (await NewClient().GetAsync("/")).StatusCode);
         var kid = await Member("cheolsu", _kids.Id, Roles.Participant);
-        Assert.Equal(HttpStatusCode.OK, (await kid.GetAsync("/")).StatusCode);                          // 하나뿐인 부서를 가진 사람도
+        var fwd = await kid.GetAsync("/");                                                              // 하나뿐인 부서를 가진 사람은 부서 홈으로(2026-11-27 사용자: 아이콘 = 로그인한 뒤와 같은 화면)
+        Assert.Equal(HttpStatusCode.Redirect, fwd.StatusCode);
+        Assert.Equal("/jamsil-kids", fwd.Headers.Location!.OriginalString);
         var seen = await NewClient().GetAsync("/jamsil-kids/welcome");
         Assert.False(seen.Headers.TryGetValues("Set-Cookie", out var ck) && ck.Any(v => v.StartsWith("cb_dept")));   // 마지막 부서를 기억하지 않는다
     }
