@@ -113,7 +113,7 @@ else
 
         @if (t.ReadingEnabled)
         {
-            <form class="hmx-search" method="get" action="@($"/{slug}/reading/search")" role="search" data-hsearch@(Model.Guest ? " data-guest" : "")>
+            <form class="hmx-search" method="get" action="@($"/{slug}/reading/search")" role="search" data-hsearch data-guest="@(Model.Guest ? "true" : "false")">
                 <input type="search" name="q" maxlength="50" placeholder="성경에서 단어 검색" aria-label="성경에서 단어 검색" />
                 <button type="submit">검색</button>
             </form>
@@ -273,7 +273,7 @@ else
         f.addEventListener('submit', (e) => {
             const q = f.querySelector('input').value.trim();
             if (!q) { e.preventDefault(); if (err) err.hidden = false; f.querySelector('input').focus(); f.style.borderColor = '#b42318'; return; }
-            if (f.hasAttribute('data-guest')) { e.preventDefault(); location.href = '/account/login?returnUrl=' + encodeURIComponent(f.getAttribute('action') + '?q=' + encodeURIComponent(q)); }
+            if (f.dataset.guest === 'true') { e.preventDefault(); location.href = '/account/login?returnUrl=' + encodeURIComponent(f.getAttribute('action') + '?q=' + encodeURIComponent(q)); }
         });
     })();
 </script>

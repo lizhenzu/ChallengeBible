@@ -324,7 +324,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("href=\"/account/login?returnUrl=%2Fjamsil-kids%2Fchallenge\"", home);   // 누르면 로그인
         Assert.DoesNotContain("class=\"mailb\"", home);                         // 편지 아이콘 없음
         Assert.Contains("class=\"vb-circ-a\" href=\"/account/login", home);     // 사람 아이콘 = 로그인
-        Assert.Contains("data-guest", home);                                     // 검색은 로그인 창으로(스크립트)
+        Assert.Contains("data-guest=\"true\"", home);                                     // 검색은 로그인 창으로(스크립트)
         Assert.Contains("href=\"/account/login?returnUrl=%2Fjamsil-kids%2Fword-mission\"", home);   // 4가지 도전도 로그인 창으로
         Assert.Contains("4가지 도전, 하나의 말씀.", home);                          // 설명 두 줄
     }
