@@ -54,6 +54,8 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     public PointRing? Ring { get; private set; }
     /// <summary>선물 대상자와 상태 카드(2026-11-23 사용자 확정 C안 · ADR 0134). 승인 소속 · 임시 부서 아님일 때만 채운다.</summary>
     public GiftTargetBoard? GiftBoard { get; private set; }
+    /// <summary>이 부서에 메인화면(웰컴)이 켜져 있나 — 홈 맨 아래 「메인화면으로」 버튼.</summary>
+    public bool MainOn { get; private set; }
 
     /// <summary>생일 팝업 "다음에 할래요" — 내일 · 3일 · 5일 뒤(R-346).</summary>
     public async Task<IActionResult> OnPostSnoozeBirthdayAsync(int days, CancellationToken ct)
@@ -72,12 +74,8 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (TodayScreen && !tenant.IsLobby) return Redirect($"/{tenant.Current.Slug}");
-        if (!tenant.IsLobby) LastDept.Set(HttpContext, tenant.Current.Slug);   // 마지막으로 본 부서 기억(앱을 열면 `/` 가 이 부서로 보낸다, 2026-11-25)
-        // 부서 소개 화면(ADR 0140): 소개 줄이 있는 부서(유년부)는 **밖에서 들어올 때** 먼저 보여 준다(그 부서 화면들 사이를 오갈 때는 안 끼어든다).
-        // (2026-11-25) 「1주일 후 · 다시 보지 않기」는 없앴다 — 소개 화면이 켜져 있으면 누구나 밖에서 들어올 때마다.
-        if (!tenant.IsLobby && !TodayScreen && Request.Query["go"] != "1" && !Welcome.IndexModel.IsFromSameDept(Request, tenant.Current.Slug)
-            && await intro.ShowAsync(ct))
-            return Redirect($"/{tenant.Current.Slug}/welcome");
+        // 메인화면(웰컴)으로 자동으로 보내지 않는다(2026-11-26 사용자). 메인화면이 켜진 부서는 맨 아래 「메인화면으로」 버튼이 있다.
+        MainOn = !tenant.IsLobby && !TodayScreen && await intro.ShowAsync(ct);
         if (User.UserId() is null)
         {
             if (tenant.IsLobby || TodayScreen) return Redirect("/account/login?returnUrl=" + Uri.EscapeDataString(Request.Path + Request.QueryString));

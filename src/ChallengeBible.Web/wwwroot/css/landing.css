@@ -497,3 +497,9 @@
 
 /* 제목 · 인사말 · 한 줄 설명 간격(2026-11-25 사용자 "너무 붙어 있다" → 사진 찍어 UX 검사): 제목과 인사말 24px(PC 32px) · 인사말과 설명 12px(PC 14px) — 인사말 + 설명이 한 묶음 */
 @media (min-width: 720px) { .vb-body .vb-hi { margin: 0 0 16px !important; } .vb-hi .g { font-size: 17px; } .vb-hi b { font-size: 24px; } .vb-hi small { font-size: 16px; } .vb-tag { margin-top: 14px !important; } }
+
+/* 홈 맨 아래 「메인화면으로」(2026-11-26 사용자): 메인화면은 자동으로 열리지 않고 이 버튼으로만 간다. 누르는 칸 52px */
+.vb-main-go { margin-top: 28px; }
+.vb-main-go .wrap { max-width: 760px; }
+.vb-main-go a { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 52px; border: 1px solid var(--line, #E3E6EA); border-radius: 14px; background: #fff; color: var(--ink, #1B1F24); font-size: 15px; font-weight: 800; text-decoration: none; }
+

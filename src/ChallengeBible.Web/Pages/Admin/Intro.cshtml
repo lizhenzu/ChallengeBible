@@ -12,7 +12,7 @@
 <main class="admin gut w760"><div class="wrap wsa">
     <h1>소개 화면</h1>
     <p class="ar-lead">부서에 처음 들어온 사람에게 먼저 보이는 화면이에요. 제목 · 소개 글 · 대표 사진을 고치면 바로 보여요. 예배 시간 · 장소는 「예배 안내」에서 고쳐요.</p>
-    @if (Model.Ok == "save") { <p class="okmsg" role="status">저장했어요 · <a href="/@slug/welcome">소개 화면 보기</a></p> }
+    @if (Model.Ok == "save") { <p class="okmsg" role="status">저장했어요 · <a href="/@slug/welcome">메인화면 보기</a></p> }
     <form method="post" asp-page-handler="Save" asp-route-slug="@slug" enctype="multipart/form-data" class="wsa-row" data-photo="wide" data-photo-ratio="1.7778" data-photo-size="1280" data-photo-defer novalidate>
         <div class="wsa-g">
             <label class="w">제목<input class="in" name="title" maxlength="60" value="@(mine?.Title ?? it.Title)" />@if (Err("Title") is { } e1) { <span class="hint bad">@e1</span> }</label>

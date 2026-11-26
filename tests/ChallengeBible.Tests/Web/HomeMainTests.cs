@@ -91,7 +91,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("class=\"dz-card", home);
 
         Assert.Contains("href=\"/jamsil-kids/feedback\"", home);                                // 의견은 작은 링크로
-        Assert.Contains("data-pnav-open", home);                                                // ☰
+        Assert.DoesNotContain("data-pnav-open", home);                                          // 홈 왼쪽 위 ☰ 는 삭제(2026-11-26 사용자, 나중에 다시 검토)
+        Assert.Contains("<small>대한예수교장로회</small><span>잠실새내교회</span>", home);               // 왼쪽 위 문구는 첫 화면과 같다
         Assert.Contains("class=\"mailb\" href=\"/messages\"", home);                          // 우측 편지 = 받은 쪽지
         Assert.DoesNotContain("<a class=\"hmx-ico\" href=\"/jamsil-kids/reading/search\"", home);   // 우측 검색 아이콘은 뺐다(검색은 아래 입력+버튼)
         Assert.Contains("class=\"tdr2-prof\"", home);   // 로그아웃 줄은 ☰ 에서 뺐다(내 계정 화면에서, 2026-11-25)

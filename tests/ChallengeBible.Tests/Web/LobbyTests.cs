@@ -190,7 +190,7 @@ public partial class LobbyTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.DoesNotContain("<div class=\"acct\">", kidsHome);                       // 맨 아래 계정 줄은 지웠다 — 왼쪽 위 ☰ 와 같아서(2026-11-15)
         Assert.Contains("<span class=\"foot\">© 2027 잠실새내 · 주일학교</span>", kidsHome);   // 첫 화면과 같은 모양(가운데 · 앱으로 설치, 2026-11-24 사용자)
         Assert.DoesNotContain("부서 바꾸기", kidsHome);                                    // 일반 부서 홈 맨 아래에 "부서 바꾸기"는 없다(2026-11-05)
-        Assert.Contains("data-pnav-open", kidsHome);
+        Assert.DoesNotContain("data-pnav-open", kidsHome);   // 홈 왼쪽 위 ☰ 는 삭제(2026-11-26 사용자)
         // ☰ 메뉴판(2026-11-22 깔끔판): 프로그램 · 바로가기 묶음, 내 계정은 바닥에
         Assert.DoesNotContain("<h2 class=\"tdr2-g\">프로그램</h2>", kidsHome);   // 2026-11-22 2차: 프로그램·바로가기 그룹 제거
         Assert.DoesNotContain("<h2 class=\"tdr2-g\">바로가기</h2>", kidsHome);

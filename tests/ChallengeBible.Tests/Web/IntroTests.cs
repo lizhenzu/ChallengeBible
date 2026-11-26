@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
@@ -164,20 +164,21 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Contains("ADMIN · 교사 전용", adm);
     }
 
-    [Fact]   // R-370 — 소개 화면이 켜져 있으면 밖에서 들어올 때마다 먼저(2026-11-25: 「1주일 후 · 다시 보지 않기」는 없앴다). 「가기」는 이번 방문만
-    public async Task R370_소개_화면이_켜져_있으면_밖에서_들어올_때마다_먼저_보인다()
+    [Fact]   // R-370 — 메인화면은 자동으로 끼어들지 않는다(2026-11-26 사용자). 홈 맨 아래 「메인화면으로」 버튼으로만 가고, 「도전!!!성경말씀」 칸은 홈으로 간다
+    public async Task R370_메인화면은_자동으로_열리지_않고_홈_맨_아래_버튼으로만_간다()
     {
         var a = await Member("cheolsu", _kids.Id, Roles.Participant);
-        Assert.True(GoesToWelcome(await a.GetAsync("/jamsil-kids")));                         // 처음
+        foreach (var c in new[] { a, NewClient() })                                            // 로그인한 사람도 손님도
+        {
+            Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/jamsil-kids")).StatusCode);   // 주소창 · 즐겨찾기로 와도 홈이 바로 열린다
+            Assert.Equal(HttpStatusCode.OK, (await FromPage(c, "/jamsil-kids", "/account/login")).StatusCode);
+        }
+        var home = await a.GetStringAsync("/jamsil-kids");
+        Assert.Contains("href=\"/jamsil-kids/welcome\"", home);                                // 홈 맨 아래 「메인화면으로」
+        Assert.Contains("메인화면으로", home);
 
-        var go = await a.GetAsync("/jamsil-kids/welcome?handler=Go");                         // 「성경말씀으로 가기」
+        var go = await a.GetAsync("/jamsil-kids/welcome?handler=Go");                         // 메인화면의 「성경말씀으로 가기」
         Assert.Equal("/jamsil-kids", go.Headers.Location?.ToString());
-        Assert.Equal(HttpStatusCode.OK, (await FromPage(a, "/jamsil-kids", "/jamsil-kids/welcome")).StatusCode);     // 소개 화면에서 온 요청은 되돌려 보내지 않는다
-        Assert.Equal(HttpStatusCode.OK, (await FromPage(a, "/jamsil-kids", "/jamsil-kids/bulletin")).StatusCode);    // 주보 · 사진첩 등 그 부서 화면에서 「부서 홈」으로 와도 되돌려 보내지 않는다
-        Assert.True(GoesToWelcome(await a.GetAsync("/jamsil-kids")));                         // 두 번째 방문(주소창 · 즐겨찾기)에도 나온다
-        Assert.True(GoesToWelcome(await FromPage(a, "/jamsil-kids", "/account/login")));      // 첫 화면 · 로그인에서 들어와도 나온다(그 부서 화면이 아니다)
-        Assert.True(GoesToWelcome(await NewClient().GetAsync("/jamsil-kids")));               // 손님도 들어올 때마다
-        Assert.Equal(HttpStatusCode.OK, (await FromPage(a, "/jamsil-kids?go=1", "/account/login")).StatusCode);   // 웰컴에서 「도전!!!성경말씀」 → 로그인 → 부서 홈(?go=1): 웰컴으로 되돌려 보내지 않는다(2026-11-26)
 
         var page = await a.GetStringAsync("/jamsil-kids/welcome");
         Assert.DoesNotContain("1주일 후 다시 보기", page);                                      // 사람마다 고르는 것은 없다(부서 전체 스위치만)
@@ -185,7 +186,7 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Equal(HttpStatusCode.BadRequest, (await PostWelcome(a, "Later")).StatusCode);   // 없앤 동작
 
         using (var raw = InMemoryDb.Raw(_db)) { raw.TenantIntros.Single(i => i.TenantId == _kids.Id).IsActive = false; raw.SaveChanges(); }   // 부서 스위치를 끄면
-        Assert.Equal(HttpStatusCode.OK, (await a.GetAsync("/jamsil-kids")).StatusCode);       // 누구에게나 부서 홈이 바로 열린다
+        Assert.DoesNotContain("메인화면으로", await a.GetStringAsync("/jamsil-kids"));          // 홈에 버튼도 없다
         using (var raw = InMemoryDb.Raw(_db)) { raw.TenantIntros.Single(i => i.TenantId == _kids.Id).IsActive = true; raw.SaveChanges(); }
     }
 
@@ -198,28 +199,15 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         return c.SendAsync(req);
     }
 
-    [Fact]   // R-372 — 앱은 언제나 `/` 로 열린다: `/` 가 마지막으로 본 부서의 소개 화면이 켜져 있는지 DB 로 보고 웰컴으로 보낸다(앱 재설치 필요 없음)
-    public async Task R372_루트는_마지막_부서의_웰컴이_켜져_있으면_웰컴으로_보낸다()
+    [Fact]   // R-372 — 앱 아이콘은 언제나 `/`(첫 화면)로 열리고, 메인화면으로 보내는 로직 · 마지막 부서 쿠키는 없다(2026-11-26 사용자)
+    public async Task R372_루트는_메인화면으로_보내지_않고_마지막_부서도_기억하지_않는다()
     {
-        // 웰컴이 켜진 부서를 마지막으로 본 손님: 앱 아이콘(Referer 없음)으로 열면 웰컴
-        Assert.True(GoesToWelcome(await GetWith(NewClient(), "/", "jamsil-kids")));
-        // 웰컴이 없는 부서 · 쿠키 없음: 그대로 첫 화면
-        Assert.Equal(HttpStatusCode.OK, (await GetWith(NewClient(), "/", "jamsil-infant")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await GetWith(NewClient(), "/", "jamsil-kids")).StatusCode);   // 예전 쿠키가 남아 있어도 첫 화면
         Assert.Equal(HttpStatusCode.OK, (await NewClient().GetAsync("/")).StatusCode);
-        // 사이트 안에서 「처음 화면」으로 온 것 · ?home=1 은 첫 화면을 보여 준다
-        Assert.Equal(HttpStatusCode.OK, (await GetWith(NewClient(), "/", "jamsil-kids", "/jamsil-kids/bulletin")).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await GetWith(NewClient(), "/?home=1", "jamsil-kids")).StatusCode);
-        // 하나뿐인 부서를 가진 로그인한 사람: 쿠키 없이도
         var kid = await Member("cheolsu", _kids.Id, Roles.Participant);
-        var kr = await kid.GetAsync("/");
-        Assert.True(GoesToWelcome(kr), $"{(int)kr.StatusCode} {kr.Headers.Location}");
-        // 부서가 웰컴을 끄면 같은 앱 · 같은 쿠키로 첫 화면(DB 를 매번 본다)
-        using (var raw = InMemoryDb.Raw(_db)) { raw.TenantIntros.Single(i => i.TenantId == _kids.Id).IsActive = false; raw.SaveChanges(); }
-        Assert.Equal(HttpStatusCode.OK, (await GetWith(NewClient(), "/", "jamsil-kids")).StatusCode);
-        using (var raw = InMemoryDb.Raw(_db)) { raw.TenantIntros.Single(i => i.TenantId == _kids.Id).IsActive = true; raw.SaveChanges(); }
-        // 웰컴 화면을 보면 마지막 부서로 기억한다
+        Assert.Equal(HttpStatusCode.OK, (await kid.GetAsync("/")).StatusCode);                          // 하나뿐인 부서를 가진 사람도
         var seen = await NewClient().GetAsync("/jamsil-kids/welcome");
-        Assert.Contains(seen.Headers.GetValues("Set-Cookie"), v => v.StartsWith("cb_dept=jamsil-kids"));
+        Assert.False(seen.Headers.TryGetValues("Set-Cookie", out var ck) && ck.Any(v => v.StartsWith("cb_dept")));   // 마지막 부서를 기억하지 않는다
     }
 
     private static async Task<HttpResponseMessage> Save(HttpClient c, string slug, string title, string body, byte[]? photo = null, string photoName = "사진.png", bool removePhoto = false)
