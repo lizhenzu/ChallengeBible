@@ -259,7 +259,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal(System.Net.HttpStatusCode.OK, r.StatusCode);              // 로그인으로 보내지 않는다
         var html = await r.Content.ReadAsStringAsync();
         Assert.Contains("<span class=\"bt-2\">성경말씀</span>", html);
-        Assert.DoesNotContain("class=\"vb-ring\"", html);                      // 손님에게는 포인트 링이 없다
+        Assert.Contains("class=\"vb-ring\"", html);                             // 손님에게도 포인트 링을 0점으로 보여 준다(2026-11-27 사용자)
         Assert.DoesNotContain("나의 포인트", html);
         Assert.DoesNotContain("김철수", html);
         Assert.DoesNotContain("data-pnav-open", html);                          // ☰ 메뉴 없음
@@ -333,7 +333,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     public async Task 첫화면_상단에_포인트_링이_보이고_나의_도전으로_간다()
     {
         var (c, _) = await Member("cheolsu", Roles.Participant);
-        var root = await c.GetStringAsync("/");
+        var root = await c.GetStringAsync("/?home=1");
         Assert.Contains("class=\"vb-ring\"", root);                          // 첫 화면 상단 포인트 링
         Assert.Contains("href=\"/jamsil-kids/challenge\"", root);            // 누르면 「나의 도전」
         Assert.Contains("<span class=\"rb-stg\">", root);   // site.css .stg 와 겹치지 않게 rb- 접두사                       // 링 안 성장 단계
@@ -345,7 +345,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     public async Task 머리줄은_한_덩어리_알약이고_날짜는_본문_위이며_첫_화면은_교단_문구가_남는다()
     {
         var (c, _) = await Member("cheolsu", Roles.Participant);
-        var root = await c.GetStringAsync("/");
+        var root = await c.GetStringAsync("/?home=1");
         Assert.Contains("<small>대한예수교장로회</small>", root);            // 이단이 많아 첫 화면에는 교단 문구를 둔다(2026-11-24 사용자)
         Assert.Contains("class=\"vb-dc\"", root);                           // 오른쪽 위: 날짜 + 검은 동그라미(2026-11-25 사용자)
         Assert.Contains("class=\"mailb\"", root);                           // 동그라미 안의 편지(누르면 쪽지)
