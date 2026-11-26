@@ -39,6 +39,15 @@ public sealed class BulletinService(IAppDb db, TenantContext tenant, TimeProvide
             files.Count(f => f.BulletinId == b.Id && f.ContentType != "application/pdf"), files.Count(f => f.BulletinId == b.Id && f.ContentType == "application/pdf"))).ToList();
     }
 
+    /// <summary>모든 주보를 파일과 함께, 날짜 최근 순(주보 보기 화면은 1년 52개 안쪽이라 한 번에 아래로 쭉 보여 준다, 2026-11-26 사용자).</summary>
+    public async Task<IReadOnlyList<BulletinView>> ListAllAsync(CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var rows = await ctx.Bulletins.AsNoTracking().OrderByDescending(b => b.Date).ThenByDescending(b => b.Id).ToListAsync(ct);
+        var files = (await ctx.BulletinFiles.AsNoTracking().OrderBy(f => f.SortOrder).ThenBy(f => f.Id).ToListAsync(ct)).ToLookup(f => f.BulletinId);
+        return rows.Select(b => new BulletinView(b, files[b.Id].ToList())).ToList();
+    }
+
     /// <summary>가장 최근 주보 날짜(부서 홈 [주보 보기] 버튼). 없으면 null.</summary>
     public async Task<DateOnly?> LatestDateAsync(CancellationToken ct = default)
     {

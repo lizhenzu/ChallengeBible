@@ -131,6 +131,28 @@ public partial class BulletinTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
+    public async Task R338_주보는_날짜_칩_없이_모두_최근_순으로_아래로_쭉_나열된다()
+    {
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.Bulletins.AddRange(
+                new Bulletin { TenantId = _kids.Id, Date = new DateOnly(2027, 1, 3), Title = "새해 첫 주일" },
+                new Bulletin { TenantId = _kids.Id, Date = new DateOnly(2027, 1, 10), Title = "추수감사주일" },
+                new Bulletin { TenantId = _kids.Id, Date = new DateOnly(2026, 12, 27), Title = "송구영신" },
+                new Bulletin { TenantId = _infant.Id, Date = new DateOnly(2027, 1, 17), Title = "다른부서주보" });
+            raw.SaveChanges();
+        }
+        var page = await _app.CreateClient().GetStringAsync("/jamsil-kids/bulletin");
+        Assert.DoesNotContain("jb-chip", page);   // 날짜 칩으로 옮겨 다니지 않는다(2026-11-26 사용자)
+        Assert.DoesNotContain("다른부서주보", page);   // 다른 부서 주보는 안 보인다
+        var a = page.IndexOf("추수감사주일", StringComparison.Ordinal);
+        var b = page.IndexOf("새해 첫 주일", StringComparison.Ordinal);
+        var c = page.IndexOf("송구영신", StringComparison.Ordinal);
+        Assert.True(a > 0 && a < b && b < c);   // 최근 → 오래된 순으로 한 화면에
+        Assert.Single(Regex.Matches(page, "jb-badge"));   // 「이번 주」 표시는 맨 위 하나만
+    }
+
+    [Fact]
     public async Task R338_다른_부서_주소로는_주보도_파일도_안_열린다()
     {
         var teacher = await Member("sunmi", _kids.Id, Roles.Teacher);

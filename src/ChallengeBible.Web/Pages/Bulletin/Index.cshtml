@@ -4,64 +4,62 @@
 @* 주보 보기(ADR 0117): 2026-11-26 확정 시안 주보-새시안2(A+C 혼합) — 환영 문구 + 날짜 칩 + 사진을 폭 가득 아래로 쭉 + 아래 고정바. 올리기 · 고치기 · 지우기는 교사 · 관리자만 *@
 @{
     var slug = Model.Tenant.Current.Slug;
-    var dept = PlatformTodayService.ShortDept(Model.Tenant.Current.Name);
-    var b = Model.Item;
     var deptFull = Model.Tenant.Current.Name;
-    var latestId = Model.Rows.Count > 0 ? Model.Rows[0].Id : 0;
-    var photos = b?.Files.Where(f => !BulletinService.IsPdf(f)).ToList() ?? [];
-    var pdfs = b?.Files.Where(BulletinService.IsPdf).ToList() ?? [];
+    var latestId = Model.All.Count > 0 ? Model.All[0].Item.Id : 0;
     string Size(long n) => n >= 1024 * 1024 ? $"{n / 1024.0 / 1024:0.0}MB" : $"{Math.Max(1, n / 1024)}KB";
-    string Chip(BulletinRow r) => (r.Id == latestId ? "이번 주 " : "") + r.Date.ToString("M/d");
     string Day(DateOnly d) => d.DayOfWeek == DayOfWeek.Sunday ? "주일" : d.ToString("dddd", new System.Globalization.CultureInfo("ko-KR"));
+    ViewData["PbHomeL"] = true; ViewData["PbTitle"] = "주보게시판"; if (Model.CanEdit) { ViewData["PbAction"] = new[] { "+ 주보 작성", $"/{slug}/bulletin/edit" }; }
 }
-@{ ViewData["PbHomeL"] = true; ViewData["PbTitle"] = "주보게시판"; if (Model.CanEdit) { ViewData["PbAction"] = new[] { "+ 주보 작성", $"/{slug}/bulletin/edit" }; } }
 <partial name="_Top" />
 <link rel="stylesheet" href="~/css/bulletin.css" asp-append-version="true" />
 <main class="w760 jb-vw">
     <section class="jb-wel jb-in"><div class="kick">@deptFull</div><h1>주보게시판에<br />오신 것을 환영합니다</h1><p>이번 주 예배 순서와 교회 소식이 담긴 주보예요. 아래로 내리며 한눈에 보세요.</p></section>
     @if (Model.Msg is { } m) { <p class="ok-box jb-in" role="status">@m</p> }
-    @if (b is null)
+    @if (Model.All.Count == 0)
     {
         <p class="jb-empty">아직 올린 주보가 없어요.</p>
     }
     else
     {
-        <nav class="jb-chips jb-in" aria-label="주보 날짜 고르기">
-            @foreach (var r in Model.Rows)
+        <div class="jb-list2">
+            @foreach (var v in Model.All)
             {
-                <a class="jb-chip" href="/@slug/bulletin?id=@r.Id" aria-current="@(r.Id == b.Item.Id ? "page" : null)">@Chip(r)</a>
-            }
-        </nav>
-        <article class="jb-cur" aria-labelledby="jbT">
-            <div class="jb-date jb-in">
-                <b>@b.Item.Date.ToString("M월 d일") @Day(b.Item.Date)@if (b.Item.Id == latestId) { <span class="jb-badge">이번 주</span> }</b>
-                <small>@(string.Join(" · ", new[] { photos.Count > 0 ? $"사진 {photos.Count}장" : null, pdfs.Count > 0 ? $"PDF {pdfs.Count}개" : null }.OfType<string>()))</small>
-            </div>
-            @if (b.Item.Title is { } tt) { <h2 id="jbT" class="jb-in">@tt</h2> } else { <h2 id="jbT" class="sr-only">@b.Item.Date.ToString("M월 d일") 주보</h2> }
-            @if (b.Item.Body is { } body) { <p class="jb-body jb-in">@body</p> }
-            <div class="jb-gal">
-                @foreach (var (f, i) in photos.Select((f, i) => (f, i)))
-                {
-                    <figure class="jb-img"><img src="/@slug/bulletin/file/@f.Id" alt="@f.FileName" loading="@(i == 0 ? "eager" : "lazy")" />@if (photos.Count > 1) { <i>@(i + 1) / @photos.Count</i> }</figure>
-                }
-            </div>
-            @if (pdfs.Count > 0)
-            {
-                <div class="jb-pdfs jb-in">
-                    @foreach (var f in pdfs)
+                var b = v.Item;
+                var photos = v.Files.Where(f => !BulletinService.IsPdf(f)).ToList();
+                var pdfs = v.Files.Where(BulletinService.IsPdf).ToList();
+                <article class="jb-cur" id="b@(b.Id)" aria-labelledby="jbT@(b.Id)">
+                    <div class="jb-date jb-in">
+                        <b>@b.Date.ToString("yyyy년 M월 d일") @Day(b.Date)@if (b.Id == latestId) { <span class="jb-badge">이번 주</span> }</b>
+                        <small>@(string.Join(" · ", new[] { photos.Count > 0 ? $"사진 {photos.Count}장" : null, pdfs.Count > 0 ? $"PDF {pdfs.Count}개" : null }.OfType<string>()))</small>
+                    </div>
+                    @if (b.Title is { } tt) { <h2 id="jbT@(b.Id)" class="jb-in">@tt</h2> } else { <h2 id="jbT@(b.Id)" class="sr-only">@b.Date.ToString("M월 d일") 주보</h2> }
+                    @if (b.Body is { } body) { <p class="jb-body jb-in">@body</p> }
+                    <div class="jb-gal jb-in">
+                        @foreach (var (f, i) in photos.Select((f, i) => (f, i)))
+                        {
+                            <figure class="jb-img"><img src="/@slug/bulletin/file/@f.Id" alt="@f.FileName" loading="@(b.Id == latestId && i == 0 ? "eager" : "lazy")" />@if (photos.Count > 1) { <i>@(i + 1) / @photos.Count</i> }</figure>
+                        }
+                    </div>
+                    @if (pdfs.Count > 0)
                     {
-                        <a class="jb-pdf" href="/@slug/bulletin/file/@f.Id" target="_blank" rel="noopener"><em>PDF</em><span>@f.FileName</span><small>@Size(f.Size)</small></a>
+                        <div class="jb-pdfs jb-in">
+                            @foreach (var f in pdfs)
+                            {
+                                <a class="jb-pdf" href="/@slug/bulletin/file/@f.Id" target="_blank" rel="noopener"><em>PDF</em><span>@f.FileName</span><small>@Size(f.Size)</small></a>
+                            }
+                        </div>
                     }
-                </div>
+                    @if (Model.CanEdit)
+                    {
+                        <div class="jb-edit jb-in">
+                            <a class="jb-btn" href="/@slug/bulletin/edit/@b.Id">고치기</a>
+                            <form method="post" asp-page-handler="Delete" asp-route-slug="@slug" onsubmit="return confirm('이 주보를 지울까요? 파일도 함께 지워져요.')"><input type="hidden" name="id" value="@b.Id" /><button type="submit" class="jb-btn">지우기</button></form>
+                        </div>
+                    }
+                </article>
             }
-            @if (Model.CanEdit)
-            {
-                <div class="jb-edit jb-in">
-                    <a class="jb-btn" href="/@slug/bulletin/edit/@b.Item.Id">고치기</a>
-                    <form method="post" asp-page-handler="Delete" asp-route-slug="@slug" onsubmit="return confirm('이 주보를 지울까요? 파일도 함께 지워져요.')"><input type="hidden" name="id" value="@b.Item.Id" /><button type="submit" class="jb-btn">지우기</button></form>
-                </div>
-            }
-        </article>
+        </div>
     }
     <div class="jb-dock"><div class="jb-in"><a class="jb-btn" href="/@slug">홈으로</a><button type="button" class="jb-btn p" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">↑ 맨 위로</button></div></div>
 </main>
+@if (Model.FocusId is int fid) { <script>document.getElementById('b@(fid)')?.scrollIntoView();</script> }
