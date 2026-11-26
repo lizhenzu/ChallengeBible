@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"/><title>주보 시안 3 — 아래로 쭉 나열 + 액자 입체 테두리</title><style>
+:root{--ink:#1B1F24;--dim:#5B6470;--rule:#E3E6EA;--acc:#2B59C3;--red:#E5342B;--sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:var(--sans);background:#e9ebef;color:var(--ink);word-break:keep-all;letter-spacing:-.01em}
+.top{background:#161c2b;color:#fff;font-size:13px;padding:11px 22px}.wrap{max-width:1240px;margin:0 auto;padding:20px 18px 36px}
+h1{font-size:19px;font-weight:900}.lead{font-size:13px;color:var(--dim);line-height:1.7;margin:6px 0 16px}
+.legend{font-size:12px;color:var(--dim);margin-bottom:14px}.legend i{display:inline-block;width:22px;height:12px;border:2px dashed var(--red);border-radius:3px;vertical-align:-2px;margin-right:6px}
+.cols{display:grid;grid-template-columns:repeat(3,360px);gap:28px;justify-content:center}.col h2{font-size:15px;font-weight:900}.col .sub{font-size:12px;color:var(--dim);line-height:1.6;margin:2px 0 10px;min-height:38px}
+.phone{width:360px;background:#fff;border-radius:18px;overflow:hidden;border:1px solid #d6dae0;box-shadow:0 20px 50px -34px #000}
+.bar{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 6px;border-bottom:1px solid var(--rule);background:#fff}
+.home{height:44px;padding:0 6px;display:inline-flex;align-items:center;gap:5px;font-size:14px;font-weight:800;color:var(--acc)}.sep{color:#9aa0aa;font-size:13px}.cur{font-size:14px;font-weight:800;padding-left:4px}
+.L{display:flex;align-items:center}.ib{width:44px;height:44px;display:grid;place-items:center}
+.wel{padding:16px 20px 14px}.kick{font-size:12px;font-weight:800;color:var(--acc)}.wel h3{font-size:22px;font-weight:900;line-height:1.3;margin:4px 0 6px}.wel p{font-size:13.5px;color:var(--dim);line-height:1.65}
+.list{background:#EEF0F4;padding:6px 0 14px}
+.item{padding:14px 18px 6px}.date{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.date b{font-size:15px;font-weight:900}.date small{font-size:12px;color:var(--dim)}
+.badge{font-size:11px;font-weight:800;color:#fff;background:var(--acc);border-radius:99px;padding:2px 8px;margin-left:6px;vertical-align:1px}
+.fr{margin-bottom:14px;position:relative}.pg{background:#fff;height:250px;padding:14px 16px;overflow:hidden;position:relative}
+.pg .t{font-size:14px;font-weight:900;color:#2b3a55;text-align:center;margin-bottom:6px}.pg .ln{height:7px;border-radius:3px;background:#dde2ea;margin:8px 0}.pg .s{width:70%}.pg .m{width:86%}.pg .bx{height:64px;border-radius:6px;background:#e7ecf5;margin:10px 0}
+.tag{position:absolute;right:8px;bottom:8px;font-size:11.5px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);padding:2px 8px;border-radius:99px;z-index:2}
+/* A 액자(나무 · 입체) */
+.fA{padding:11px;border-radius:5px;background:linear-gradient(145deg,#f3e4c4 0%,#d9b97c 45%,#b98f4e 100%);box-shadow:0 1px 0 #fff6 inset,0 -2px 3px #6b4a1b66 inset,0 14px 22px -10px rgba(40,25,5,.55),0 4px 6px -2px rgba(40,25,5,.35)}
+.fA .pg{box-shadow:0 0 0 1px #7a5a2a66,inset 0 3px 8px rgba(0,0,0,.28),inset 0 0 0 1px #0002}
+/* B 흰 매트 + 부드러운 그림자 */
+.fB{padding:10px;background:#fff;border-radius:4px;box-shadow:0 0 0 1px #d9dde3,0 2px 4px rgba(20,30,50,.10),0 10px 22px -6px rgba(20,30,50,.30),0 22px 36px -16px rgba(20,30,50,.28)}
+.fB .pg{box-shadow:inset 0 0 0 1px #e6e9ee,inset 0 2px 6px rgba(20,30,50,.12)}
+/* C 종이가 떠 있는 느낌(테두리 얇게 + 겹침 그림자) */
+.fC{background:#fff;border-radius:8px;border:1px solid #cfd5de;box-shadow:0 1px 0 #fff inset,0 3px 0 -1px #f4f6f9,0 4px 0 -1px #cfd5de,0 8px 0 -3px #f4f6f9,0 9px 0 -3px #cfd5de,0 16px 22px -10px rgba(20,30,50,.35)}
+.fC .pg{border-radius:7px}
+.chg{outline:2px dashed var(--red);outline-offset:3px;position:relative}.n{position:absolute;top:-10px;left:-4px;background:var(--red);color:#fff;font-size:10.5px;font-weight:800;padding:1px 6px;border-radius:5px;z-index:5}
+.dock{display:flex;gap:8px;padding:10px 16px;background:#fff;border-top:1px solid var(--rule)}.dock a{flex:1;height:44px;border-radius:11px;border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}.dock a.p{background:var(--acc);color:#fff;border-color:var(--acc)}
+.more{text-align:center;font-size:12px;color:#8a919b;padding:2px 0 10px}
+.note{font-size:12.5px;line-height:1.75;margin:22px auto 0;max-width:760px;color:#3a4350}.note b{color:var(--ink)}
+.rec{display:inline-block;background:#1f9d55;color:#fff;font-size:11px;font-weight:800;padding:1px 8px;border-radius:99px;margin-left:6px;vertical-align:2px}
+svg{display:block}
+</style></head><body>
+<div class="top">시안(휴대폰 폭 360px) · 주보 화면 3차 — 날짜 칩 없이 아래로 쭉 나열 + 사진 액자 입체 테두리 · 구현 전 · 빨간 점선 = 바뀌는 곳</div>
+<div class="wrap"><h1>주보는 1년 52개 이하 — 칩으로 옮기지 않고 최신부터 아래로 계속 이어 보기 · 각 주보는 액자처럼 입체로</h1>
+<p class="lead">환영 문구 · 머리줄은 지난 시안 그대로. 바뀌는 곳: ① 날짜 칩 삭제 → 주보마다 날짜 제목을 달고 아래로 계속 나열 ② 사진마다 액자 테두리 + 그림자(3가지 중 고르기).</p>
+<div class="legend"><span><i></i>바뀌는 곳</span></div><div class="cols" id="cols"></div>
+<div class="note"><b>1</b> 날짜 칩 삭제. 주보마다 「11월 22일 주일 [이번 주] · 사진 2장」 제목을 달고 최신 → 오래된 순으로 쭉 이어짐.<br><b>2</b> 사진 한 장 = 액자 하나. 여러 장이면 액자가 위아래로 이어짐(자르지 않고 원본 비율).<br><b>3</b> 52개를 한꺼번에 불러오면 느리니, 사진은 내려갈수록 불러옴(앞 4주만 먼저). 화면에는 똑같이 보임.<br><b>4</b> 아래 고정바 「홈으로」 · 「↑ 맨 위로」는 그대로(주보가 길어져서 맨 위로가 더 쓸모 있음).</div></div>
+<script>
+const home='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2B59C3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>';
+const person='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2B59C3" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>';
+const pg=(t,i,n)=>`<div class="pg"><div class="t">${t}</div><div class="ln m"></div><div class="ln"></div><div class="ln s"></div><div class="bx"></div><div class="ln m"></div><div class="ln s"></div><div class="tag">${i} / ${n}</div></div>`;
+const phone=(c)=>`<div class="phone"><div class="bar"><div class="L"><a class="home">${home}홈</a><span class="sep">›</span><span class="cur">주보게시판</span></div><a class="ib">${person}</a></div>
+<div class="wel"><div class="kick">잠실새내교회 유년부</div><h3>주보게시판에<br>오신 것을 환영합니다</h3><p>이번 주 예배 순서와 교회 소식이 담긴 주보예요. 아래로 내리며 한눈에 보세요.</p></div>
+<div class="list"><div class="item"><div class="date chg"><span class="n">1</span><b>11월 22일 주일<span class="badge">이번 주</span></b><small>사진 2장</small></div>
+<div class="fr ${c} chg"><span class="n">2</span>${pg('주일 예배 순서',1,2)}</div><div class="fr ${c}">${pg('교회 소식',2,2)}</div></div>
+<div class="item"><div class="date"><b>11월 15일 주일</b><small>사진 2장</small></div><div class="fr ${c}">${pg('주일 예배 순서',1,2)}</div></div><div class="more">↓ 계속 이어져요</div></div>
+<div class="dock"><a>홈으로</a><a class="p">↑ 맨 위로</a></div></div>`;
+const cols=[['A · 나무 액자(입체감 가장 큼)','따뜻한 나무 테두리 + 안쪽 눌린 그림자 + 바닥 그림자. 진짜 액자처럼.','fA'],['B · 흰 매트 액자 <span class="rec">추천</span>','흰 여백(매트) + 겹친 부드러운 그림자. 깔끔하고 글씨 사진이 가장 잘 보임.','fB'],['C · 떠 있는 종이','얇은 테두리 + 아래로 겹친 종이 느낌. 가장 가벼움.','fC']];
+document.getElementById('cols').innerHTML=cols.map(c=>`<div class="col"><h2>${c[0]}</h2><div class="sub">${c[1]}</div>${phone(c[2])}</div>`).join('');
+</script></body></html>
