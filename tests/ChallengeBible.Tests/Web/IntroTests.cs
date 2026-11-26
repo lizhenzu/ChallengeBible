@@ -105,7 +105,8 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
     public async Task R368_소개_화면은_유년부_전용이고_다른_부서에는_없다()
     {
         var guest = NewClient();
-        Assert.True(GoesToWelcome(await guest.GetAsync("/jamsil-kids")));                     // 유년부: 손님도 들어오면 먼저 소개 화면
+        Assert.Equal(HttpStatusCode.OK, (await guest.GetAsync("/jamsil-kids")).StatusCode);   // 유년부: 홈이 바로 열린다(자동 이동 없음, 2026-11-26)
+        Assert.Contains("메인화면으로", await guest.GetStringAsync("/jamsil-kids"));          // 맨 아래 버튼으로 메인화면에 간다
 
         var home = await guest.GetAsync("/jamsil-infant");                                    // 다른 부서: 소개 없이 홈
         Assert.Equal(HttpStatusCode.OK, home.StatusCode);
@@ -113,6 +114,7 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Equal(HttpStatusCode.Redirect, w.StatusCode);
         Assert.Equal("/jamsil-infant?intro=0", w.Headers.Location?.ToString());
         Assert.DoesNotContain("환영해요", await guest.GetStringAsync("/jamsil-infant"));
+        Assert.DoesNotContain("메인화면으로", await guest.GetStringAsync("/jamsil-infant"));   // 메인화면이 없는 부서는 버튼도 없다
 
         var infantMember = await Member("mina", _infant.Id, Roles.Participant);
         Assert.Equal(HttpStatusCode.OK, (await infantMember.GetAsync("/jamsil-infant")).StatusCode);
