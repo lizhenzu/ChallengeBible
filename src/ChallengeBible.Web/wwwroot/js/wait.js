@@ -21,9 +21,8 @@
     // 파일을 받는 주소는 이동이 아니라 카드를 띄우지 않는다
     const isFile = (u) => /(export|download|handler=(export|download))/i.test(u.pathname + u.search);
 
-    const RING = '<span class="ring%LATE%" aria-hidden="true"><svg viewBox="0 0 48 48" width="48" height="48">'
-        + '<circle class="ring-track" cx="24" cy="24" r="20" fill="none" stroke-width="3"/>'
-        + '<circle class="ring-arc" cx="24" cy="24" r="20" fill="none" stroke-width="3" stroke-linecap="round" stroke-dasharray="31.4 94.2"/></svg></span>';
+    // 네잎클로버 + 점 세 개(초록 · 파랑 · 분홍 = 「도전!!!」 삼색)가 하나씩 차례로 깜빡인다(2026-11-26 사용자 시안 「대기카드-클로버-점」)
+    const MARK = '<span class="mark" aria-hidden="true"><img class="cl" src="/icons/clover.svg" alt="" width="64" height="64"/><span class="dots"><i></i><i></i><i></i></span></span>';
     const ERR = '<span class="err" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">'
         + '<path d="M12 7.5v6.2"/><circle cx="12" cy="17.2" r="1.15" fill="currentColor" stroke="none"/></svg></span>';
 
@@ -60,12 +59,12 @@
     };
 
     const showLoad = (title, msg) => {
-        card.innerHTML = RING.replace('%LATE%', '') + '<p class="card-title">' + esc(title) + '</p><p class="card-msg">' + esc(msg) + '</p>';
+        card.innerHTML = MARK + '<p class="card-title">' + esc(title) + '</p><p class="card-msg">' + esc(msg) + '</p>';
         wait.classList.add('on');
     };
     const showLate = (title) => {
         const secs = () => Math.max(1, Math.round((Date.now() - started) / 1000));
-        card.innerHTML = RING.replace('%LATE%', ' is-late') + '<p class="card-title">' + esc(title) + '</p><p class="card-msg">' + LATE
+        card.innerHTML = MARK + '<p class="card-title">' + esc(title) + '</p><p class="card-msg">' + LATE
             + '</p><p class="card-meta"><span data-sec>' + secs() + '</span>초 지났어요</p>';
         const meta = card.querySelector('[data-sec]');
         ticker = setInterval(() => { if (meta) meta.textContent = String(secs()); }, 1000);

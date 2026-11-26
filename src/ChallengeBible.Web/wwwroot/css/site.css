@@ -1823,12 +1823,13 @@ body:has(main.w760) .top .wrap, body:has(main.w760) .admintop .wrap.hd, body:has
 .wcard .card-title { margin: 16px 0 0; font-size: 16px; font-weight: 900; letter-spacing: -.03em; }
 .wcard .card-msg { margin: 6px 0 0; font-size: 13px; line-height: 1.5; color: var(--dim); }
 .wcard .card-meta { margin: 12px 0 0; font-size: 12px; font-weight: 800; color: #ea6a1c; font-variant-numeric: tabular-nums; }
-.wcard .ring { display: block; width: 48px; height: 48px; flex: none; }
-.wcard .ring svg { display: block; animation: wspin 1s linear infinite; }
-.wcard .ring-track { stroke: color-mix(in srgb, var(--fg) 10%, transparent); }
-.wcard .ring-arc { stroke: var(--accent); }
-.wcard .ring.is-late svg { animation: wspin 1s linear infinite, wsoft 1.6s ease-in-out infinite; }
-.wcard .ring.is-late .ring-arc { stroke: #ea6a1c; }
+.wcard .mark { display: flex; flex-direction: column; align-items: center; }
+.wcard .cl { display: block; width: 64px; height: 64px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0, 0, 0, .08); }
+.wcard .dots { display: flex; align-items: center; gap: 9px; height: 14px; margin-top: 14px; }
+.wcard .dots i { display: block; width: 10px; height: 10px; border-radius: 50%; opacity: .22; animation: wblink 1.2s ease-in-out infinite; }
+.wcard .dots i:nth-child(1) { background: #22b35e; }
+.wcard .dots i:nth-child(2) { background: #3b7cf0; animation-delay: .4s; }
+.wcard .dots i:nth-child(3) { background: #e8458f; animation-delay: .8s; }
 .wcard .err { width: 48px; height: 48px; border-radius: 50%; background: #fdeceb; color: #c8453f; display: grid; place-items: center; flex: none; }
 .wcard .btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; margin-top: 20px; border-radius: 10px; background: #1d1d1f; color: #fff; font-size: 14px; font-weight: 800; letter-spacing: -.02em; }
 .wcard .btn:hover { background: #333336; }
@@ -1836,9 +1837,8 @@ body:has(main.w760) .top .wrap, body:has(main.w760) .admintop .wrap.hd, body:has
 @media (min-width: 720px) { .wcard .card { width: 300px; } .wcard .card-title { font-size: 17px; } .wcard .btn { font-size: 15px; } }
 @keyframes wdim { from { opacity: 0; } }
 @keyframes wrise { from { opacity: 0; transform: translateY(8px) scale(.985); } }
-@keyframes wspin { to { transform: rotate(360deg); } }
-@keyframes wsoft { 0%, 100% { opacity: 1; } 50% { opacity: .62; } }
-@media (prefers-reduced-motion: reduce) { .wcard .ring svg { animation-duration: 2.4s; } .wcard .ring.is-late svg { animation: wspin 2.4s linear infinite; } .wcard.on, .wcard .card { animation-duration: 1ms; } }
+@keyframes wblink { 0%, 100% { opacity: .22; transform: none; } 12%, 30% { opacity: 1; transform: scale(1.35); } 45% { opacity: .22; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .wcard .dots i { animation: none; opacity: .7; } .wcard.on, .wcard .card { animation-duration: 1ms; } }
 
 /* 가족이 꾸리는 가족팀(ADR 0083, 확정 시안 family-team-self). 입구는 미션 홈 맨 아래 */
 .hFam { display: flex; align-items: center; gap: 12px; margin: 18px 0 4px; padding: 14px; border-radius: 16px; border: 1px solid var(--rule); background: var(--bg); color: var(--fg); text-decoration: none; }
