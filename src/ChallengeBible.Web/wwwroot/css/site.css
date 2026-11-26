@@ -4966,3 +4966,9 @@ body:has(.ma-card) .ma-depts li, body:has(.ma-card) .lv-warn { border-radius: 10
 .tdr2-office .tdr2-sub { letter-spacing: .04em; font-size: 12px; font-weight: 700; }
 .tdr2-office .tdr2-r[aria-current="page"] { background: #EEF1F5; color: #334155; }
 .tdr2-office .tdr2-r[aria-current="page"] .tdr2-i { color: #475569; }
+
+/* 주보 보기 머리줄(2026-11-26 확정 시안 주보-새시안2): 왼쪽 「🏠 홈 › 현재」, 오른쪽 사람 아이콘(손님) · 「+ 주보 작성」(올리는 사람) */
+.pb .ph { gap: 5px; padding-right: 4px; font-weight: 800; color: var(--accent-tx, var(--accent)); }
+.pb .ph svg { flex: none; }
+.pb .pb-login { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: var(--accent-tx, var(--accent)); text-decoration: none; }
+.pb .pb-act { min-height: 40px; padding: 0 14px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--accent); color: var(--on-accent, #fff); font-size: 13px; font-weight: 800; text-decoration: none; white-space: nowrap; }

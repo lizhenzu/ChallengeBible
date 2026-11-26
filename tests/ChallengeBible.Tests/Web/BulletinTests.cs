@@ -107,12 +107,27 @@ public partial class BulletinTests : IClassFixture<WebApplicationFactory<Program
         var page = await guest.GetStringAsync("/jamsil-kids/bulletin");   // 로그인 안 해도 본다
         Assert.Contains("추수감사주일", page);
         Assert.Contains("교회주보.pdf", page);
-        Assert.DoesNotContain("+ 주보 올리기", page);
+        Assert.DoesNotContain("+ 주보 작성", page);
+        Assert.Contains("환영합니다", page);
+        Assert.Contains("aria-label=\"로그인\"", page);   // 손님 머리줄 오른쪽 = 사람 아이콘
         int fileId;
         using (var raw = InMemoryDb.Raw(_db)) fileId = raw.BulletinFiles.Single(f => f.ContentType == "application/pdf").Id;
         var file = await guest.GetAsync($"/jamsil-kids/bulletin/file/{fileId}");
         Assert.Equal(HttpStatusCode.OK, file.StatusCode);
         Assert.Equal("application/pdf", file.Content.Headers.ContentType!.MediaType);
+    }
+
+    [Fact]
+    public async Task R338_주보_보기_머리줄은_홈_주보게시판_손님은_아이콘_교사는_주보작성()
+    {
+        var teacher = await Member("sunmi2", _kids.Id, Roles.Teacher);
+        await Upload(teacher, "jamsil-kids", ("앞면.jpg", Jpg));
+        var page = await teacher.GetStringAsync("/jamsil-kids/bulletin");
+        Assert.Contains("+ 주보 작성", page);
+        Assert.DoesNotContain("aria-label=\"로그인\"", page);
+        Assert.Contains("주보게시판", page);
+        Assert.Contains("홈으로", page);   // 아래 고정바
+        Assert.DoesNotContain("target=\"_blank\"", Regex.Match(page, "<figure.*?</figure>", RegexOptions.Singleline).Value);   // 사진은 새 탭 없이 쭉
     }
 
     [Fact]
