@@ -81,6 +81,8 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
             if (tenant.IsLobby || TodayScreen) return Redirect("/account/login?returnUrl=" + Uri.EscapeDataString(Request.Path + Request.QueryString));
             Guest = true;
             Data = GuestView(await home.GetAsync(ct));
+            // 2026-11-27 사용자: 손님에게도 포인트 링을 「0점 · 첫 단계」로 보여 준다(누르면 로그인 창)
+            Ring = ChallengeCardService.RingOf(Data, tenant.Current.Slug) is { } gr ? gr with { Href = "/account/login?returnUrl=" + Uri.EscapeDataString($"/{tenant.Current.Slug}/challenge") } : null;
             return Page();
         }
 

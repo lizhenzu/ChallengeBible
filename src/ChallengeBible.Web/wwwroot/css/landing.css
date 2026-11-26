@@ -518,6 +518,7 @@
 .fb2 b, .inst2 b { display: block; font-size: 14px; font-weight: 800; line-height: 1.35; letter-spacing: -.02em; }
 .fb2 small, .inst2 small { display: block; font-size: 12px; font-weight: 500; line-height: 1.4; color: #6e6e75; }
 .fb2 .ar { flex: none; color: #6e6e75; }
+.inst2[hidden] { display: none; }
 .inst2 { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 10px 10px 14px; border-radius: 10px; background: #f4f4f5; }
 .inst2 a { flex: none; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: 10px; background: #1d1d1f; color: #fff; font-size: 13.5px; font-weight: 800; text-decoration: none; }
 @media (display-mode: standalone) { .inst2 { display: none; } }

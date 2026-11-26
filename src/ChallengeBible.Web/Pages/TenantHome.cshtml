@@ -277,3 +277,11 @@ else
         });
     })();
 </script>
+<script>
+    // 설치띠(2026-11-27 사용자): 설치를 마친 폰이면 브라우저로 열어도 숨긴다(설치 안내 화면이 localStorage cb-install 에 남기는 기록) · 앱으로 설치되는 순간에도
+    (() => {
+        const bar = document.querySelector('.inst2'); if (!bar) return;
+        try { if (JSON.parse(localStorage.getItem('cb-install') || '{}').s === 'done') bar.hidden = true; } catch { /* 무시 */ }
+        addEventListener('appinstalled', () => { bar.hidden = true; });
+    })();
+</script>

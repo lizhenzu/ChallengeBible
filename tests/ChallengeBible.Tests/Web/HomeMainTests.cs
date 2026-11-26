@@ -319,7 +319,9 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var anon = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var home = await anon.GetStringAsync("/jamsil-kids");
         Assert.DoesNotContain("class=\"vb-hi\"", home);                         // 「이은혜님」 인사말 없음
-        Assert.DoesNotContain("class=\"vb-ring\"", home);                       // 포인트 링 없음
+        Assert.Contains("class=\"vb-ring\"", home);                              // 포인트 링은 「0점 · 첫 단계」로(2026-11-27 사용자)
+        Assert.Contains("0<i>점</i>", home);
+        Assert.Contains("href=\"/account/login?returnUrl=%2Fjamsil-kids%2Fchallenge\"", home);   // 누르면 로그인
         Assert.DoesNotContain("class=\"mailb\"", home);                         // 편지 아이콘 없음
         Assert.Contains("class=\"vb-circ-a\" href=\"/account/login", home);     // 사람 아이콘 = 로그인
         Assert.Contains("data-guest", home);                                     // 검색은 로그인 창으로(스크립트)
