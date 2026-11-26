@@ -4,7 +4,7 @@
 @using ChallengeBible.Web.Auth
 @using ChallengeBible.Web.Pages
 @inject ChallengeBible.Web.Services.PhotoService Photos
-@* 부서 소개(웰컴) 화면 — 2026-11-25 사용자 새 퍼블리시본 「JAMSIL KIDS · 유년부 주보 v2 — 홈」으로 완전 교체(ADR 0140 · 이전 틴트 카드판 대체). 2026-11-26 사용자 새 퍼블리시본(jamsil-kids-home.html)으로 다시 완전 교체: 교사행정업무는 표 맨 아래 한 줄, 챙길 선물 카드, 앱 설치. 행정업무(교사 · 관리자) 버튼은 /{부서}/office 로 연결. 아래는 이전 설명:  순백 바탕 · 헤어라인 · 검정 헤비 제목 · 컬러 번호 2열 표.
+@* 부서 소개(웰컴) 화면 — 2026-11-25 사용자 새 퍼블리시본 「JAMSIL KIDS · 유년부 주보 v2 — 홈」으로 완전 교체(ADR 0140 · 이전 틴트 카드판 대체). 2026-11-26 사용자 새 퍼블리시본(jamsil-kids-home.html)으로 다시 완전 교체, 2026-11-27 하단(선물 카드 · 개선사항 접수 · 설치 띠)은 새 퍼블리시본(welcome.html)으로 교체: 교사행정업무는 표 맨 아래 한 줄, 챙길 선물 카드, 앱 설치. 행정업무(교사 · 관리자) 버튼은 /{부서}/office 로 연결. 아래는 이전 설명:  순백 바탕 · 헤어라인 · 검정 헤비 제목 · 컬러 번호 2열 표.
    현재 있는 기능만 연결: 내 정보(계정) · 대표 사진 · 날짜 · 제목 · 예배 줄 · 주보 · 앨범 · 도전!!! 성경말씀으로 가기 · 소개(글 + 예배 안내) · 앱 설치 ·
    (로그인한 사람만) 1주일 후 다시 보기 · 다시 보지 않기. 퍼블리시본의 「이번 주 말씀」 · 「미션북」 칸은 아직 없는 기능이라 연결하지 않았다. *@
 @{
@@ -113,12 +113,17 @@
         </div>
     }
 
-    <div class="wl-actions">
-        <div class="wl-install" data-wl-install>
-            <a class="wl-install__btn" href="/install?back=@Uri.EscapeDataString($"/{slug}/welcome")" data-app-install>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6.2" y="2.6" width="11.6" height="18.8" rx="2.6"/><path d="M10.6 18.4h2.8"/><path d="M12 7.4v6.2M9.4 11l2.6 2.6L14.6 11"/></svg>
-                <span class="wl-install__text"><span class="wl-install__title">앱으로 설치</span><span class="wl-install__sub">바로가기로 열 수 있어요</span></span>
-            </a>
+    @* 하단 카드 2종(2026-11-27 새 퍼블리시본): 개선사항 접수(흰 카드) + 홈 화면 바로가기(회색 띠 + 설치 버튼). 설치를 마친 폰 · 앱으로 열면 띠는 숨긴다 *@
+    <div class="wl-vb-foot">
+        <a class="wl-fb" href="/@slug/feedback">
+            <span class="wl-fb__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/></svg></span>
+            <span class="wl-tx2"><b>개선사항 · 불편사항 접수</b><small>불편했던 점이나 아이디어를 남겨 주세요</small></span>
+            <svg class="wl-fb__ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </a>
+        <div class="wl-inst" data-wl-install>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7.5v6.5M9.5 11.5 12 14l2.5-2.5M10.5 18.5h3"/></svg>
+            <span class="wl-tx2"><b>홈 화면에 바로가기를 만들어요</b><small>앱처럼 한 번에 열 수 있어요</small></span>
+            <a class="wl-inst__bt" href="/install?back=@Uri.EscapeDataString($"/{slug}/welcome")" data-app-install>설치</a>
         </div>
     </div>
 

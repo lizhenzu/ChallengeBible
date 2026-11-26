@@ -140,6 +140,10 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.DoesNotContain("href=\"/jamsil-kids/word-mission\"", page);                    // 05 · 06 은 눌러도 반응 없음
         Assert.DoesNotContain("href=\"#about\"", page);
         Assert.Contains("class=\"wl-grid\"", page);   // 안내 6칸(2026-11-25 새 퍼블리시본)
+        Assert.Contains("class=\"wl-vb-foot\"", page);                                         // 하단 카드 2종(2026-11-27 새 퍼블리시본)
+        Assert.Contains("href=\"/jamsil-kids/feedback\"", page);                                // 개선사항 · 불편사항 접수
+        Assert.Contains("홈 화면에 바로가기를 만들어요", page);
+        Assert.Contains("href=\"/install?back=%2Fjamsil-kids%2Fwelcome\"", page);               // 설치 띠의 「설치」
         Assert.Contains("href=\"/jamsil-kids/bulletin\"", page);
         Assert.Contains("href=\"/jamsil-kids/album\"", page);
         Assert.Contains("href=\"/account/login?returnUrl=%2Fjamsil-kids%3Fgo%3D1\"", page);   // 손님의 「도전!!!성경말씀」: 로그인 창을 거쳐 인증된 상태로(2026-11-26)
