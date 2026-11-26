@@ -109,7 +109,7 @@ public partial class BulletinTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("추수감사주일", page);   // 제목 · 내용은 보는 화면에서 숨긴다(2026-11-26 사용자, 올리는 화면 값은 그대로)
         Assert.Contains("교회주보.pdf", page);
         Assert.DoesNotContain("class=\"pb-act\"", page);
-        Assert.Contains("환영합니다", page);
+        Assert.Contains("주보 서재", page);                                   // 책장 서재(2026-11-27 새 퍼블리시본)
         Assert.Contains("aria-label=\"로그인\"", page);   // 손님 머리줄 오른쪽 = 사람 아이콘
         int fileId;
         using (var raw = InMemoryDb.Raw(_db)) fileId = raw.BulletinFiles.Single(f => f.ContentType == "application/pdf").Id;
@@ -124,12 +124,13 @@ public partial class BulletinTests : IClassFixture<WebApplicationFactory<Program
         var teacher = await Member("sunmi2", _kids.Id, Roles.Teacher);
         await Upload(teacher, "jamsil-kids", ("앞면.jpg", Jpg));
         var page = await teacher.GetStringAsync("/jamsil-kids/bulletin");
-        Assert.Contains("class=\"pb-act\"", page);   // 「+ 주보 작성」 버튼(+ 는 HTML 로 바뀌어 찍혀서 클래스로 확인)
+        Assert.Contains("href=\"/jamsil-kids/bulletin/edit\"", page);          // 「+ 새 주보」(교사 · 관리자만)
+        Assert.Contains("+ 새 주보", page);
         Assert.DoesNotContain("aria-label=\"로그인\"", page);
-        Assert.Contains("주보게시판", page);
-        Assert.Contains("홈으로", page);   // 맨 아래 바(따라다니지 않음)
-        Assert.DoesNotContain("jb-dock", page);
-        Assert.DoesNotContain("target=\"_blank\"", Regex.Match(page, "<figure.*?</figure>", RegexOptions.Singleline).Value);   // 사진은 새 탭 없이 쭉
+        Assert.Contains("주보 서재", page);
+        Assert.Contains("aria-label=\"홈으로\"", page);                          // 왼쪽 위 뒤로(홈)
+        Assert.Contains("data-bk-menu", page);                                  // 읽기 화면 ⋯ 메뉴(고치기 · 지우기)
+        Assert.Contains("data-bk-delform", page);
     }
 
     [Fact]
@@ -151,7 +152,7 @@ public partial class BulletinTests : IClassFixture<WebApplicationFactory<Program
         var b = page.IndexOf("2027년 1월 3일", StringComparison.Ordinal);
         var c = page.IndexOf("2026년 12월 27일", StringComparison.Ordinal);
         Assert.True(a > 0 && a < b && b < c);   // 최근 → 오래된 순으로 한 화면에
-        Assert.Single(Regex.Matches(page, "jb-badge"));   // 「이번 주」 표시는 맨 위 하나만
+        Assert.Single(Regex.Matches(page, "class=\"bk-badge\""));   // 「이번 주」 표시는 맨 위 한 권만
     }
 
     [Fact]
