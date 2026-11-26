@@ -195,10 +195,11 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
 
         Assert.DoesNotContain("vb-galert", await other.GetStringAsync("/kids?go=1"));   // 부서 홈에서는 뺐다
         var home = await other.GetStringAsync("/kids/welcome");
-        Assert.Contains("class=\"vb-galert\"", home);                        // 한 줄 알림
+        Assert.Contains("class=\"wl-gift\"", home);                          // 챙길 선물 카드(2026-11-26 새 디자인)
         Assert.Contains("href=\"/kids/gift-status\"", home);                 // 누르면 새 화면
-        Assert.Contains("선물 <span class=\"num\">1</span>명", home);
-        Assert.Contains("받았어요 <span class=\"num\">0</span>명", home);
+        Assert.Contains("신청자</em><strong><b>1</b>명", home);                // 신청자 → 준비중 → 구매완료
+        Assert.Contains("준비중</em><strong><b>1</b>명", home);
+        Assert.Contains("구매완료</em><strong><b>0</b>명", home);
         Assert.DoesNotContain("안예빛", home);                               // 홈에서는 이름을 꺼내지 않는다
         Assert.DoesNotContain("골랐어요", home);                             // 3단계 눈금은 상세에서
         Assert.DoesNotContain("6,000", home);                                // 가격은 없다(R-297)
@@ -230,7 +231,7 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
     {
         var (other, _) = await Login("haneul", "문하늘", 50);
         var home = await other.GetStringAsync("/kids/welcome");
-        Assert.DoesNotContain("vb-galert", home);                            // 대상이 없으면 한 줄도 없다
+        Assert.DoesNotContain("wl-gift", home);                              // 대상이 없으면 회원에게는 카드가 없다
         Assert.DoesNotContain("선물 대상자와 상태", home);
 
         var detail = await other.GetStringAsync("/kids/gift-status");
@@ -238,6 +239,7 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
 
         var anon = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var guest = await anon.GetStringAsync("/kids/welcome");
-        Assert.DoesNotContain("vb-galert", guest);                           // 웰컴은 손님에게 선물 알림을 보이지 않는다(2026-11-26)
+        Assert.Contains("wl-gift wl-is-locked", guest);                      // 손님에게는 자물쇠 카드(누르면 로그인, 2026-11-26 새 디자인)
+        Assert.Contains("챙길 선물 (로그인 필요)", guest);
     }
 }

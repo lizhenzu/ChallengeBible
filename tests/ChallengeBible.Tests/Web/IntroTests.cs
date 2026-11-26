@@ -144,7 +144,7 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Contains("href=\"/jamsil-kids/album\"", page);
         Assert.Contains("href=\"/account/login?returnUrl=%2Fjamsil-kids%3Fgo%3D1\"", page);   // 손님의 「도전!!!성경말씀」: 로그인 창을 거쳐 인증된 상태로(2026-11-26)
         Assert.Contains("class=\"wl-icon-btn\" href=\"/account/login\"", page);        // 손님: 사람 아이콘(누르면 로그인, 2026-11-25)
-        Assert.Contains("<a class=\"wl-admin\" href=\"/account/login?returnUrl=%2Fjamsil-kids%2Foffice\">", page);   // 손님에게도 행정업무 버튼 — 누르면 로그인(2026-11-25 사용자)
+        Assert.Contains("wl-tile-wide wl-tile--t wl-is-locked\" href=\"/account/login?returnUrl=%2Fjamsil-kids%2Foffice\"", page);   // 손님에게도 행정업무 버튼 — 누르면 로그인(2026-11-25 사용자)
         Assert.DoesNotContain("내 정보", page);
         Assert.DoesNotContain("1주일 후 다시 보기", page);                                   // 사람마다 고르는 것은 없다(2026-11-25)
         Assert.DoesNotContain("다시 보지 않기", page);
@@ -162,8 +162,8 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
 
         var admin = await Member("eunhye", _kids.Id, Roles.TenantAdmin);
         var adm = await admin.GetStringAsync("/jamsil-kids/welcome");
-        Assert.Contains("<a class=\"wl-admin\" href=\"/jamsil-kids/office\">", adm);                // 행정업무 버튼(교사 · 관리자, 2026-11-25)
-        Assert.Contains("ADMIN · 교사 전용", adm);
+        Assert.Contains("<a class=\"wl-tile-wide wl-tile--t\" href=\"/jamsil-kids/office\"", adm);                // 행정업무 버튼(교사 · 관리자, 2026-11-25)
+        Assert.Contains("교사행정업무", adm);                                                         // 표 맨 아래 한 줄(2026-11-26 새 디자인)
     }
 
     [Fact]   // R-370 — 메인화면은 자동으로 끼어들지 않는다(2026-11-26 사용자). 홈 맨 아래 「메인화면으로」 버튼으로만 가고, 「도전!!!성경말씀」 칸은 홈으로 간다
