@@ -57,16 +57,17 @@ public partial class OfficeTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task 관리자는_여섯_가지가_번호_순서로_보이고_도전_성경말씀_링크가_있다()
+    public async Task 관리자는_일곱_가지가_번호_순서로_보이고_도전_성경말씀_링크가_있다()
     {
         var html = await (await Login("admin")).GetStringAsync("/kids/office");
         Assert.Contains("<h1>행정업무</h1>", html);
-        foreach (var (no, label) in new[] { ("01", "오늘 할 일"), ("02", "출석"), ("03", "교적부"), ("04", "인명 검색"), ("05", "생일자 관리"), ("06", "명부 관리") })
+        foreach (var (no, label) in new[] { ("01", "오늘 할 일"), ("02", "생일자 관리"), ("03", "출석 관리"), ("04", "주보 관리"), ("05", "교적부"), ("06", "인명 검색"), ("07", "명부 관리") })
             Assert.Contains($"<span class=\"of-no\">{no}</span>{label}", html);
+        Assert.Contains("href=\"/kids/bulletin\"", html);
         Assert.Contains("href=\"/kids/todo\"", html);
         Assert.Contains("href=\"/kids/admin/members\"", html);
         Assert.Contains("class=\"of-brand\" href=\"/kids\"", html);   // 맨 아래 「도전!!! 성경말씀」(부서 홈)
-        Assert.Contains("<a class=\"of-back\" href=\"/kids\">", html);
+        Assert.Contains("<a class=\"of-back\" href=\"/kids/welcome\">", html);   // 맨 위 「메인화면」
         Assert.Contains("1월 5일", html);
     }
 
@@ -76,7 +77,7 @@ public partial class OfficeTests : IClassFixture<WebApplicationFactory<Program>>
         var html = await (await Login("teacher")).GetStringAsync("/kids/office");
         Assert.Contains("<h1>행정업무</h1>", html);
         Assert.Contains("<span class=\"of-no\">01</span>", html);
-        Assert.DoesNotContain("<span class=\"of-no\">07</span>", html);   // 번호는 보이는 일만 센다(최대 여섯)
+        Assert.DoesNotContain("<span class=\"of-no\">08</span>", html);   // 번호는 보이는 일만 센다(최대 일곱)
         Assert.Contains("href=\"/kids/birthdays\"", html);
     }
 }

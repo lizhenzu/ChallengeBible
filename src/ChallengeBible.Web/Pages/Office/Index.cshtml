@@ -3,7 +3,7 @@
 @using ChallengeBible.Web.Services
 @using ChallengeBible.Web.Auth
 @* 행정업무 메인(2026-11-25 사용자 시안 「행정업무 HTML」): 도전!!! 성경말씀과 따로. 교사 · 관리자가 이 사람이 볼 수 있는 일만 본다.
-   폰: 맨 위 「홈으로」 · 날짜 · 이름 첫 글자 / PC(720px~): 위쪽에 항목 탭이 같이 보인다. *@
+   2026-11-27 사용자 새 퍼블리시본으로 완전 교체: 맨 위 「메인화면」 · 날짜 · 이름 첫 글자, 번호 카드, 맨 아래 「도전!!! 성경말씀」. *@
 @{
     var ko = new System.Globalization.CultureInfo("ko-KR");
     var s = Model.Slug;
@@ -32,21 +32,10 @@ else
 <header class="of-head">
   <div class="of-wrap">
     <div class="of-top">
-      <a class="of-back" href="/@s">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
-        홈으로
+      <a class="of-back" href="/@s/welcome">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5L12 4l8 6.5"/><path d="M6 9v10a1 1 0 0 0 1 1h3.5v-5.5h3V20H17a1 1 0 0 0 1-1V9"/></svg>
+        메인화면
       </a>
-
-      <nav class="of-tabs" aria-label="행정업무 메뉴">
-        @foreach (var it in Model.Items)
-        {
-            <a class="of-tab" href="@it.Href" style="--c:@it.Color; --s:@it.Soft">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">@Html.Raw(it.Icon)</svg>
-              @it.Label
-            </a>
-        }
-      </nav>
-
       <div class="of-top-right">
         <time class="of-date" datetime="@Model.Today.ToString("yyyy-MM-dd")">@Model.Today.ToString("M월 d일", ko) <small>@Model.Today.ToString("dddd", ko)</small></time>
         <a class="of-avatar" href="/account" title="내 계정" aria-label="내 계정">@Model.Initial</a>
@@ -54,63 +43,27 @@ else
     </div>
 
     <p class="of-cap"><i></i>교사 · 관리자 화면</p>
-
-    <div class="of-hi">
-      <h1>행정업무</h1>
-      @if (Model.HasTodo)
-      {
-          <div class="of-side">
-            <span>오늘 남은 일</span>
-            <b class="num">@Model.TodoCount<small>건</small></b>
-          </div>
-      }
-    </div>
-
+    <h1>행정업무</h1>
     <p class="of-sub">잠실새내교회 주일학교 · <b>@dept</b> 담당</p>
-
-    @if (Model.Chips.Count > 0)
-    {
-        <div class="of-chips">
-          @foreach (var c in Model.Chips)
-          {
-              <span class="of-chip" style="--c:@c.Color; --s:@c.Soft; --k:@c.Dark"><i></i>@c.Label<b>@c.Count</b></span>
-          }
-        </div>
-    }
   </div>
 </header>
 
 <main class="of-main">
   <div class="of-wrap">
-    <div class="of-sec-h">
-      <h2>관리 메뉴</h2>
-      <span>@(Model.Items.Count)개</span>
-    </div>
-
-    <div class="of-list">
+    <nav class="of-list" aria-label="관리 메뉴">
       @foreach (var it in Model.Items)
       {
           <a class="of-row" href="@it.Href" style="--c:@it.Color; --s:@it.Soft">
-            <span class="of-ic">
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">@Html.Raw(it.Icon)</svg>
-            </span>
-            <span class="of-t">
-              <b><span class="of-no">@it.No</span>@it.Label@if (it.Badge is not null) { <span class="of-badge">@it.Badge</span> }</b>
-              <p>@it.Desc</p>
-            </span>
-            <span class="of-go">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-            </span>
+            <span class="of-name"><span class="of-no">@it.No</span>@it.Label@if (it.Badge is not null) { <span class="of-badge">@it.Badge</span> }</span>
+            <span class="of-go"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
           </a>
       }
-    </div>
+    </nav>
 
     <a class="of-brand" href="/@s">
-      <b>도전<i style="color:#22b35e">!</i><i style="color:#3b7cf0">!</i><i style="color:#e8458f">!</i> 성경말씀</b>
-      <p>주일학교 성경말씀 홈으로 이동</p>
+      <b>도전<i style="color:#22b35e">!</i><i style="color:#3b7cf0">!</i><i style="color:#f07a22">!</i> 성경말씀</b>
+      <span>「4가지 도전」 홈으로 이동</span>
     </a>
-
-    <div class="of-foot">교사 · 관리자 전용 화면</div>
   </div>
 </main>
 </div>
