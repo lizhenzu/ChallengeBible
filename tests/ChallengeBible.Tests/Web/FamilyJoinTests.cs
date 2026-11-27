@@ -651,14 +651,10 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Contains("이미 초대를 보냈어요", again);
         Assert.Contains("가족 초대하기", again);
 
-        // 부서 홈 아래 초대 배너(2026-11-22 3차) — ☰ 메뉴도 그대로
+        // 부서 홈의 초대 배너는 2026-11-27 사용자 결정으로 뺐다 — 성경미션 화면으로 옮길 예정(시안 확정 뒤)
         var other = await LoggedIn("other@example.com");
         var home = await other.GetStringAsync("/jamsil-kids");
-        Assert.Contains("가족팀 초대가 왔어요", home);
-        Assert.Contains("김민호님이 웃음폭탄네로 초대했어요", home);
-        Assert.Contains("초대 확인하기", home);
-        Assert.Contains("다음에 할래요", home);
-        Assert.Contains("href=\"/jamsil-kids/family-team\"", home);
+        Assert.DoesNotContain("가족팀 초대가 왔어요", home);
         var missionHome = await other.GetStringAsync("/jamsil-kids/word-mission");
         Assert.DoesNotContain("초대가 왔어요", missionHome);
         Assert.Contains("우리 가족팀 만들기", missionHome);
@@ -689,15 +685,14 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         await DadInvites("other");
         var c = await LoggedIn("other@example.com");
         var home = await c.GetStringAsync("/jamsil-kids");
-        Assert.Contains("가족팀 초대가 왔어요", home);
+        Assert.DoesNotContain("가족팀 초대가 왔어요", home);   // 홈의 초대 배너는 뺐다(2026-11-27) — 「다음에 할래요」 처리 자체는 아래 서비스 시험이 확인한다
 
-        var tok = TokenRx().Match(home).Groups[1].Value;
+        var tok = TokenRx().Match(await c.GetStringAsync("/jamsil-kids/family-team")).Groups[1].Value;   // 홈에는 폼이 없으니 다른 화면의 토큰을 쓴다
         var r = await c.PostAsync("/jamsil-kids?handler=SnoozeInvites", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = tok }));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
 
         var after = await c.GetStringAsync("/jamsil-kids");
         Assert.DoesNotContain("가족팀 초대가 왔어요", after);
-        Assert.Contains("가족팀 · 친구팀을 만들어 보세요", after);   // 초대는 숨고 만들기 카드
     }
 
     [Fact]

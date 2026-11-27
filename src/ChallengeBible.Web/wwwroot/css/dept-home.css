@@ -1,0 +1,167 @@
+/* 부서 홈(/{부서}) — 2026-11-27 사용자 새 퍼블리시본(dojeon-home.html)으로 완전 교체. 시안 CSS 를 그대로 옮기고 모든 규칙을 .dh 아래로 가둔다
+   (첫 화면 /, 나의 도전과 서로 영향 없음). 시안에 없는 쪽지 배지만 아래 맨 끝에 더했다. */
+
+/* ── 1. 디자인 값(모두 여기서만 바꾼다) ───────────────────────── */
+.dh {
+  /* 모노 톤 */
+  --ink: #1d1d1f;      /* 기본 글자 · 차콜 버튼 */
+  --ink-2: #56565c;    /* 보조 글자 */
+  --ink-3: #6e6e75;    /* 흐린 글자(흰 바탕 5:1) */
+  --ink-4: #8e8e94;    /* 인사말 · 요일(큰 글자에만) */
+  --line: #e7e7ea;     /* 가는 선 · 검색 상자 테두리 */
+  --line-2: #d6d6db;   /* 카드 테두리 */
+  --line-3: #e3e6eb;   /* 동그라미 버튼 테두리 */
+  --track: #ededef;    /* 포인트 링 바탕 */
+  --paper: #ffffff;
+  --soft: #f4f4f5;     /* 옅은 회색 바탕 */
+
+  /* 클로버 4색(프로그램 포인트로만) */
+  --p1: #1f9d55; --s1: #e8f6ee;   /* 성경미션 */
+  --p2: #2f6fe4; --s2: #eaf1fd;   /* 성경통독 · 검색 버튼 */
+  --p3: #ea6a1c; --s3: #fdf0e6;   /* 성경필사 */
+  --p4: #dc3f8a; --s4: #fcebf3;   /* 365축복기도 */
+  --p3-tx: #b8500d;               /* 주황을 글자·선으로 쓸 때 */
+  --church: #1f55c0;              /* 교회 이름 파랑 */
+  --hl: #ffe066;                  /* 이름 형광펜 노랑 */
+  --home-tx: #1f55c0;             /* 「메인 화면으로 가기」 아이콘 */
+  --ring-tx: #17663a; --ring-tx2: #3f7a58; --ring-stg: #167a41;
+  --ex1: #22b35e; --ex2: #3b7cf0; --ex3: #e8458f;   /* 제목 느낌표 3색 */
+
+  /* 크기 · 간격(프로젝트 규칙) */
+  --gut: 20px;        /* 좌우 여백 */
+  --r: 10px;          /* 카드 · 버튼 모서리 */
+  --tap: 44px;        /* 누르는 칸 최소 */
+  --max: 760px;       /* 컴퓨터 화면 폭 */
+
+  --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+}
+
+/* ── 2. 기본 ─────────────────────────────────────────────── */
+.dh, .dh * { box-sizing: border-box; }
+body:has(.dh) { margin: 0; background: #fff; }
+body:has(.dh) { color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.6; letter-spacing: -.01em; -webkit-font-smoothing: antialiased; }
+.dh a { color: inherit; text-decoration: none; }
+.dh h1, .dh h2, .dh p { margin: 0; }
+.dh button, .dh input { font-family: inherit; color: inherit; }
+.dh :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.dh .dh-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+.dh { max-width: var(--max); margin: 0 auto; font-family: var(--sans); color: var(--ink); font-size: 15px; line-height: 1.6; letter-spacing: -.01em; -webkit-font-smoothing: antialiased; }
+.dh :where(h1, h2, p, b, span, small, a, i, time, label, input, button) { font-family: inherit; }
+
+/* ── 3. 머리줄 ───────────────────────────────────────────── */
+.dh .dh-hero { padding: 18px var(--gut) 0; }
+.dh .dh-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.dh .dh-church { display: block; padding: 9px 0 8px; }
+.dh .dh-church small { display: block; font-size: 12px; font-weight: 500; color: var(--ink-2); line-height: 1.35; }
+.dh .dh-church span { display: block; font-size: 16px; font-weight: 800; color: var(--church); letter-spacing: -.02em; line-height: 1.4; }
+.dh .dh-top-r { display: flex; align-items: center; gap: 0; }   /* 홈 → 쪽지 → 날짜. 44px 칸끼리 맞붙여 겹치지 않게 */
+.dh .dh-dd { margin-left: 4px; font-size: 12px; font-weight: 700; color: var(--ink-2); text-align: right; line-height: 1.3; white-space: nowrap; }
+.dh .dh-dd small { display: block; font-size: 12px; font-weight: 600; color: var(--ink-3); }
+.dh .dh-circ { width: var(--tap); height: var(--tap); flex: none; border-radius: 50%; background: transparent; color: var(--ink); display: grid; place-items: center; }   /* 테두리 없음 */
+
+/* ── 4. 제목 + 포인트 링 ─────────────────────────────────── */
+.dh .dh-hero-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.dh .dh-body { margin-top: 17px; min-width: 0; }   /* 머리줄 ↔ 인사말 34 → 17px(2026-11-27 사용자: 반으로) */
+.dh .dh-hi { margin: 0 0 14px; line-height: 1.25; }
+.dh .dh-hi .dh-g { display: block; font-size: 15px; font-weight: 500; color: var(--ink-4); }
+.dh .dh-hi .dh-me { display: inline-flex; align-items: center; min-height: var(--tap); margin: -12px 0; }
+.dh .dh-hi b { font-size: 19px; font-weight: 900; letter-spacing: -.04em; padding: 0 2px; background: linear-gradient(transparent 56%, var(--hl) 56%, var(--hl) 94%, transparent 94%); }   /* 이름 형광펜 */
+.dh .dh-hi .dh-me svg { margin-left: 2px; color: var(--ink-2); }
+.dh .dh-hi small { margin-left: 2px; font-size: 14px; font-weight: 500; color: var(--ink-4); }
+.dh .dh-title { font-size: 33px; font-weight: 900; letter-spacing: -.04em; line-height: 1.08; }
+.dh .dh-title span { display: block; }
+.dh .dh-title i { font-style: normal; margin-left: .02em; }
+.dh .dh-title .dh-e1 { color: var(--ex1); } .dh .dh-title .dh-e2 { color: var(--ex2); } .dh .dh-title .dh-e3 { color: var(--ex3); }
+.dh .dh-tag { margin-top: 14px; font-size: 14px; color: var(--ink-2); line-height: 1.55; }
+
+.dh .dh-ring { flex: none; margin-top: 41px; margin-right: 6px; border-radius: 50%; }
+.dh .dh-ring .dh-rg { position: relative; display: block; width: 112px; height: 112px; }
+.dh .dh-ring svg { display: block; width: 100%; height: 100%; transform: rotate(-90deg); }
+.dh .dh-ring .dh-trk { stroke: var(--track); fill: none; }
+.dh .dh-ring .dh-arc { stroke: var(--p1); fill: none; stroke-linecap: round; transition: stroke-dashoffset .8s ease-out; }
+.dh .dh-ring .dh-in { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1px; text-align: center; }
+.dh .dh-ring .dh-pts { font-size: 23px; font-weight: 900; letter-spacing: -.045em; line-height: 1.1; color: var(--ring-tx); font-variant-numeric: tabular-nums; }
+.dh .dh-ring .dh-pts i { font-style: normal; margin-left: 1px; font-size: 12px; font-weight: 800; color: var(--ring-tx2); }
+.dh .dh-ring .dh-stg { font-size: 12px; font-weight: 800; color: var(--ring-stg); white-space: nowrap; }
+
+/* ── 5. 검색 상자(위 · 아래 여백 같게 24px) ─────────────────── */
+.dh .dh-search { display: flex; align-items: stretch; margin-top: 24px; height: 48px; border: 1px solid var(--line); border-radius: var(--r); background: var(--soft); overflow: hidden; }
+.dh .dh-search input { flex: 1; min-width: 0; padding: 0 16px; border: 0; background: transparent; font-size: 14px; outline: none; }
+.dh .dh-search input::placeholder { color: var(--ink-3); }
+.dh .dh-search button { flex: none; width: 72px; border: 0; background: var(--p2); color: #fff; font-size: 14px; font-weight: 800; cursor: pointer; }
+.dh .dh-search:focus-within { border-color: var(--p2); }
+.dh .dh-search-err { margin-top: 8px; font-size: 12.5px; font-weight: 600; color: #b42318; }
+
+/* ── 6. 4가지 도전 ───────────────────────────────────────── */
+.dh .dh-main { padding: 24px var(--gut) 50px; }
+.dh .dh-sec-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.dh .dh-sec-h h2 { font-size: 21px; font-weight: 900; letter-spacing: -.035em; }
+.dh .dh-sec-h p { font-size: 13px; color: var(--ink-3); }
+.dh .dh-list { margin-top: 14px; border-top: 2px solid var(--ink); }
+.dh .dh-item { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+.dh .dh-no { font-size: 24px; font-weight: 900; color: var(--c); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.dh .dh-t small { display: block; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.dh .dh-t b { display: block; font-size: 18px; font-weight: 900; letter-spacing: -.03em; }
+.dh .dh-t span { display: block; margin-top: 4px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.dh .dh-go { width: var(--tap); height: var(--tap); border-radius: 50%; background: var(--s); color: var(--c); display: grid; place-items: center; }
+.dh .dh-k1 { --c: var(--p1); --s: var(--s1); } .dh .dh-k2 { --c: var(--p2); --s: var(--s2); }
+.dh .dh-k3 { --c: var(--p3); --s: var(--s3); } .dh .dh-k4 { --c: var(--p4); --s: var(--s4); }
+
+/* ── 7. 하단: 의견 접수 · 설치 띠 · 주소 ──────────────────── */
+.dh .dh-foot { display: flex; flex-direction: column; gap: 18px; margin-top: 28px; }
+.dh .dh-fb { display: flex; align-items: center; gap: 2px;   /* 아이콘 칸 38 안 여백 9 + 2 = 눈에 보이는 거리 약 11px */ min-height: 56px; padding: 9px 14px 9px 10px; border-radius: var(--r); background: var(--paper); border: 1px solid var(--line-2); }
+.dh .dh-fb .dh-ic { width: 38px; height: 38px; flex: none; color: var(--p3-tx); display: grid; place-items: center; }   /* 아이콘 바탕 없음 */
+.dh .dh-fb.dh-homec .dh-ic { color: var(--home-tx); }
+.dh .dh-fb .dh-tx b { font-size: 17px; letter-spacing: -.02em; }
+.dh .dh-fb .dh-tx, .dh .dh-inst .dh-tx { flex: 1; min-width: 0; }
+.dh .dh-fb b, .dh .dh-inst b { display: block; font-size: 14px; font-weight: 800; line-height: 1.35; letter-spacing: -.02em; }
+.dh .dh-fb small, .dh .dh-inst small { display: block; font-size: 12px; font-weight: 500; line-height: 1.4; color: var(--ink-3); }
+.dh .dh-fb .dh-ar { flex: none; color: var(--ink-3); }
+.dh .dh-inst { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 10px 10px 14px; border-radius: var(--r); background: var(--soft); }
+.dh .dh-inst a { flex: none; display: inline-flex; align-items: center; justify-content: center; min-height: var(--tap); padding: 0 16px; border-radius: var(--r); background: var(--ink); color: #fff; font-size: 13.5px; font-weight: 800; }
+/* 앱으로 설치된 상태(standalone)에서는 설치 띠를 숨긴다 */
+@media (display-mode: standalone) { .dh .dh-inst { display: none; } }
+html[data-install="installed"] .dh .dh-inst { display: none; }
+.dh .dh-addr { font-size: 12.5px; color: var(--ink-2); text-align: center; }
+
+/* ── 8. 컴퓨터(760px) ───────────────────────────────────── */
+@media (min-width: 720px) {
+  .dh .dh-hero { padding: 28px 40px 0; }
+  .dh .dh-body { margin-top: 32px; }
+  .dh .dh-title { font-size: 54px; }
+  .dh .dh-tag { font-size: 16px; }
+  .dh .dh-ring { margin-top: 35px; margin-right: 40px; }
+  .dh .dh-ring .dh-rg { width: 168px; height: 168px; }
+  .dh .dh-ring .dh-pts { font-size: 34px; } .dh .dh-ring .dh-pts i { font-size: 14px; } .dh .dh-ring .dh-stg { font-size: 13.5px; }
+  .dh .dh-search { margin-top: 40px; height: 52px; }
+  .dh .dh-main { padding: 40px 40px 50px; }
+  .dh .dh-sec-h h2 { font-size: 28px; }
+  .dh .dh-item { grid-template-columns: 56px 1fr auto; padding: 24px 0; }
+  .dh .dh-no { font-size: 30px; }
+  .dh .dh-t b { font-size: 21px; }
+  .dh .dh-foot { margin-top: 40px; }
+}
+
+/* ── 10. 움직임 ─────────────────────────────────────────────
+   순서 ① 화면 열림 0ms: 히어로 글자 묶음이 아래 → 위 0.45s
+        ② 120ms 뒤: 포인트 링이 0.45s 커지며 나타남
+        ③ 링 호(arc)는 점수만큼 0.8s 동안 채워짐(transition, 점수 바뀔 때도 같음)
+   움직임 줄이기 설정이면 모두 끈다. */
+@keyframes dh-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes dh-pop { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }
+.dh .dh-body { animation: dh-rise .45s ease-out both; }
+.dh .dh-ring { animation: dh-pop .45s ease-out .12s both; }
+@media (prefers-reduced-motion: reduce) { .dh .dh-body, .dh .dh-ring { animation: none; } .dh .dh-ring .dh-arc { transition: none; } }
+
+/* 쪽지 배지(시안은 단순 링크 — 안 읽은 쪽지 수 배지는 우리 기능이라 같은 44px 동그라미 안에 얹는다) */
+.dh .dh-circ .mailb { position: relative; width: 100%; height: 100%; border-radius: 50%; background: transparent; box-shadow: none; color: var(--ink); display: grid; place-items: center; }
+.dh .dh-circ .mailb i { top: 3px; right: 1px; }
+
+/* 점수가 네 자리 · 다섯 자리면 링 안에 들어오게 글자를 줄인다(시안은 0 · 65점 예만 있어 우리가 더함) */
+.dh .dh-ring .dh-pts.d4 { font-size: 21px; }
+.dh .dh-ring .dh-pts.d5 { font-size: 19px; }
+@media (min-width: 720px) {
+  .dh .dh-ring .dh-pts.d4 { font-size: 30px; }
+  .dh .dh-ring .dh-pts.d5 { font-size: 26px; }
+}

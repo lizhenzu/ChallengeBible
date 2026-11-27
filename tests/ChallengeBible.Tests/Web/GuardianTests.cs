@@ -159,7 +159,7 @@ public partial class GuardianTests : IClassFixture<WebApplicationFactory<Program
         var html = await c.GetStringAsync("/jamsil-kids/guardian");
         Assert.Contains("김철수", html);
         Assert.Contains("오늘은 아직 미션을 하지 않았어요", html);
-        Assert.Contains("자녀 미션 보기", await c.GetStringAsync("/jamsil-kids"));
+        Assert.DoesNotContain("자녀 미션 보기", await c.GetStringAsync("/jamsil-kids"));   // 홈에서는 뺐다(2026-11-27 사용자) — 성경미션 화면으로 옮긴다
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync($"/jamsil-kids/guardian?child={otherPid}")).StatusCode);   // R-132
 
         var kid = await LoggedIn("cheolsu");

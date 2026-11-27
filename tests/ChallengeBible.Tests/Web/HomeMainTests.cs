@@ -60,20 +60,20 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var (c, _) = await Member("cheolsu", Roles.Participant);
         var home = await c.GetStringAsync("/jamsil-kids");
 
-        Assert.Contains("<span class=\"bt-1\">도전<span class=\"bt-ex\">", home);   // 로고(느낌표 3색)
-        Assert.Contains("<span class=\"bt-2\">성경말씀</span>", home);
+        Assert.Contains("<span>도전<i class=\"dh-e1\">!</i><i class=\"dh-e2\">!</i><i class=\"dh-e3\">!</i></span>", home);   // 로고(느낌표 3색)
+        Assert.Contains("<span>성경말씀</span>", home);
         Assert.Contains("하루 5분, 말씀과 함께 자라요.", home);                          // 태그라인
-        Assert.Contains("<form class=\"hmx-search\" method=\"get\" action=\"/jamsil-kids/reading/search\"", home);   // 검색
+        Assert.Contains("<form class=\"dh-search\" method=\"get\" action=\"/jamsil-kids/reading/search\"", home);   // 검색
         Assert.Contains("name=\"q\"", home);
         Assert.Contains("<button type=\"submit\">검색</button>", home);
-        Assert.Contains("<a class=\"vb-item\" href=\"/jamsil-kids/word-mission\"", home);      // 프로그램 목록 중 미션
-        Assert.Contains("<a class=\"vb-item\" href=\"/jamsil-kids/reading\"", home);           // 통독
-        Assert.Contains("<a class=\"vb-item\" href=\"/jamsil-kids/copy\"", home);              // 필사
+        Assert.Contains("<a class=\"dh-item dh-k1\" href=\"/jamsil-kids/word-mission\"", home);      // 프로그램 목록 중 미션
+        Assert.Contains("<a class=\"dh-item dh-k2\" href=\"/jamsil-kids/reading\"", home);           // 통독
+        Assert.Contains("<a class=\"dh-item dh-k3\" href=\"/jamsil-kids/copy\"", home);              // 필사
         Assert.DoesNotContain("href=\"/jamsil-kids/prayer365\"", home);                          // 학생에게는 365축복기도 없음(ADR 0106)
         Assert.DoesNotContain("aria-label=\"오늘의 말씀\"", home);                              // 말씀 카드는 2026-11-26 사용자 요청으로 영구 삭제
         Assert.DoesNotContain("나의 도전 현황", home);                                   // 카드는 「나의 도전」 화면으로 옮겼다(ADR 0136)
         Assert.Contains("href=\"/jamsil-kids/challenge\"", home);                        // 홈 상단 포인트 링(ADR 0136)
-        Assert.Contains("class=\"vb-ring\"", home);
+        Assert.Contains("class=\"dh-ring\"", home);
         var ch = await c.GetStringAsync("/jamsil-kids/challenge");
         Assert.Contains("나의 도전", ch);
         Assert.Contains(">오늘 미션<", ch);
@@ -114,7 +114,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     {
         var (c, _) = await Member("eunhye", Roles.Teacher, Roles.TenantAdmin);
         var home = await c.GetStringAsync("/jamsil-kids");
-        Assert.Contains("<a class=\"vb-item\" href=\"/jamsil-kids/prayer365\"", home);
+        Assert.Contains("<a class=\"dh-item dh-k4\" href=\"/jamsil-kids/prayer365\"", home);
         Assert.Contains("<h2 class=\"tdr2-g\">관리</h2>", home);
         Assert.Contains("class=\"tdr2-r\" href=\"/jamsil-kids/admin\"", home);
         Assert.Contains("<em class=\"tdr2-k\">관리</em>", home);
@@ -233,18 +233,16 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
-    public async Task 가족팀도_초대도_없으면_만들기_카드가_보인다()
+    public async Task 가족팀_만들기_카드는_홈이_아니라_성경미션_화면에_있다()
     {
         var (kid, _) = await Member("cheolsu", Roles.Participant);
         var home = await kid.GetStringAsync("/jamsil-kids");
-        Assert.Contains("가족팀 · 친구팀을 만들어 보세요", home);
-        Assert.Contains(">가족팀 만들기</a>", home);
-        Assert.Contains(">친구팀 만들기</a>", home);        // 학생
+        Assert.DoesNotContain("가족팀 · 친구팀을 만들어 보세요", home);   // 가족팀 카드는 홈에서 뺐다(2026-11-27 사용자) — 성경미션 화면(/word-mission)으로 옮긴다
+        Assert.Contains("우리 가족팀 만들기", await kid.GetStringAsync("/jamsil-kids/word-mission"));
 
         var (mom, _) = await Member("mom", Roles.Guardian);
         var mh = await mom.GetStringAsync("/jamsil-kids");
-        Assert.Contains(">가족팀 만들기</a>", mh);
-        Assert.DoesNotContain(">친구팀 만들기</a>", mh);   // 학부모에게는 친구팀 없음
+        Assert.DoesNotContain("가족팀 · 친구팀을 만들어 보세요", mh);
 
         var (teacher, _) = await Member("teacher", Roles.Teacher);
         Assert.DoesNotContain("가족팀 · 친구팀을 만들어 보세요", await teacher.GetStringAsync("/jamsil-kids"));   // 교사는 가족팀 대상 아님
@@ -258,8 +256,8 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var r = await anon.GetAsync("/jamsil-kids");
         Assert.Equal(System.Net.HttpStatusCode.OK, r.StatusCode);              // 로그인으로 보내지 않는다
         var html = await r.Content.ReadAsStringAsync();
-        Assert.Contains("<span class=\"bt-2\">성경말씀</span>", html);
-        Assert.Contains("class=\"vb-ring\"", html);                             // 손님에게도 포인트 링을 0점으로 보여 준다(2026-11-27 사용자)
+        Assert.Contains("<span>성경말씀</span>", html);
+        Assert.Contains("class=\"dh-ring\"", html);                             // 손님에게도 포인트 링을 0점으로 보여 준다(2026-11-27 사용자)
         Assert.Contains("나의 포인트 0점", html);                                   // 링의 안내 문구도 0점(2026-11-27 사용자)
         Assert.DoesNotContain("김철수", html);
         Assert.DoesNotContain("data-pnav-open", html);                          // ☰ 메뉴 없음
@@ -318,12 +316,12 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
     {
         var anon = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var home = await anon.GetStringAsync("/jamsil-kids");
-        Assert.DoesNotContain("class=\"vb-hi\"", home);                         // 「이은혜님」 인사말 없음
-        Assert.Contains("class=\"vb-ring\"", home);                              // 포인트 링은 「0점 · 첫 단계」로(2026-11-27 사용자)
+        Assert.DoesNotContain("class=\"dh-hi\"", home);                         // 「이은혜님」 인사말 없음
+        Assert.Contains("class=\"dh-ring\"", home);                              // 포인트 링은 「0점 · 첫 단계」로(2026-11-27 사용자)
         Assert.Contains("0<i>점</i>", home);
         Assert.Contains("href=\"/account/login?returnUrl=%2Fjamsil-kids%2Fchallenge\"", home);   // 누르면 로그인
         Assert.DoesNotContain("class=\"mailb\"", home);                         // 편지 아이콘 없음
-        Assert.Contains("class=\"vb-circ-a\" href=\"/account/login", home);     // 사람 아이콘 = 로그인
+        Assert.Contains("class=\"dh-circ\" href=\"/account/login", home);     // 사람 아이콘 = 로그인
         Assert.Contains("data-guest=\"true\"", home);                                     // 검색은 로그인 창으로(스크립트)
         Assert.Contains("href=\"/account/login?returnUrl=%2Fjamsil-kids%2Fword-mission\"", home);   // 4가지 도전도 로그인 창으로
         Assert.Contains("4가지 도전, 하나의 말씀.", home);                          // 설명 두 줄
@@ -354,13 +352,13 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain("class=\"vb-date\"", root);
 
         var dept = await c.GetStringAsync("/jamsil-kids");
-        Assert.Contains("class=\"vb-dc\"", dept);                          // 오른쪽 위: 날짜 + 편지 동그라미(2026-11-25 사용자)
-        Assert.Contains("class=\"vb-hi\"", dept);                          // 인사말 「안녕하세요. 000님,」
+        Assert.Contains("class=\"dh-top-r\"", dept);                          // 오른쪽 위: 날짜 + 편지 동그라미(2026-11-25 사용자)
+        Assert.Contains("class=\"dh-hi\"", dept);                          // 인사말 「안녕하세요. 000님,」
         Assert.DoesNotContain("class=\"vb-today\"", dept);
         Assert.DoesNotContain("class=\"vb-date\"", dept);
         Assert.Contains("<small>대한예수교장로회</small>", dept);              // 부서 홈 왼쪽 위도 첫 화면과 같은 「대한예수교장로회 / 잠실새내교회」(2026-11-26 사용자)
         Assert.Contains("href=\"https://www.saenae.org/\" target=\"_blank\" rel=\"noopener\"", dept);   // 교회 이름은 퍼블리시본처럼 교회 홈페이지(새 창) 링크(2026-11-27 사용자)
-        Assert.Contains("class=\"vb-foot2\"", dept);                         // 맨 아래 문구는 첫 화면과 같은 모양(가운데 · 앱으로 설치)
+        Assert.Contains("class=\"dh-foot\"", dept);                         // 맨 아래 문구는 첫 화면과 같은 모양(가운데 · 앱으로 설치)
         Assert.Contains("href=\"/install\">설치</a>", dept);
         Assert.DoesNotContain("class=\"foot-copy\"", dept);
     }
