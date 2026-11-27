@@ -1,0 +1,73 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"/><title>메인화면 모든 부서 시안</title><style>
+:root{--ink:#1D1D1F;--ink2:#56565C;--ink3:#6E6E73;--line:#E7E7EA;--red:#E5342B;--sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:var(--sans);background:#e9ebef;color:var(--ink);word-break:keep-all;letter-spacing:-.01em}
+.top{background:#161c2b;color:#fff;font-size:13px;padding:11px 22px}.wrap{max-width:1500px;margin:0 auto;padding:18px 16px 30px}
+h1{font-size:18px;font-weight:900}.lead{font-size:12.5px;color:var(--ink2);line-height:1.7;margin:5px 0 14px}
+.legend{font-size:12px;color:var(--ink2);margin-bottom:12px}.legend i{display:inline-block;width:22px;height:12px;border:2px dashed var(--red);border-radius:3px;vertical-align:-2px;margin-right:6px}
+.cols{display:grid;grid-template-columns:repeat(4,340px);gap:20px;justify-content:center}.col h2{font-size:14px;font-weight:900}.col .sub{font-size:11.5px;color:var(--ink2);line-height:1.55;margin:2px 0 8px;min-height:34px}
+.phone{width:340px;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #d6dae0;box-shadow:0 16px 40px -30px #000;padding-bottom:16px}
+.note{font-size:11.5px;line-height:1.7;margin-top:10px;color:#3a4350}.note b{color:var(--ink)}
+.chg{outline:2px dashed var(--red);outline-offset:-2px;position:relative}.n{position:absolute;top:-1px;left:-1px;background:var(--red);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:0 0 6px 0;z-index:3}
+/* 메인화면 */
+.bar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px}.bar small{display:block;font-size:11px;color:var(--ink3)}.bar b{font-size:14px;color:#2F6FE4}
+.ib{width:36px;height:36px;border-radius:9px;background:#F1F1F3;display:grid;place-items:center;font-size:13px}
+.hero{margin:4px 18px 0;padding:5px;border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.08),0 6px 20px rgba(0,0,0,.14);aspect-ratio:16/9}.hero div{width:100%;height:100%;border-radius:6px;background:#F4F4F6;display:grid;place-items:center;font-size:12px;color:var(--ink3);font-weight:600}
+.tb{padding:16px 18px 6px}.kk{font-size:11px;color:var(--ink3);margin-bottom:8px}.tt{font-size:22px;font-weight:900;letter-spacing:-.05em}.bd{display:flex;gap:5px;margin-top:10px}.bd span{height:24px;padding:0 10px;border-radius:99px;color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center}
+.sh{padding:6px 18px 0;font-size:13px;font-weight:800}
+.grid{display:grid;grid-template-columns:1fr 1fr;margin:8px 18px 0;border-top:1px solid var(--ink)}
+.tile{padding:12px 10px 12px 0;border-bottom:1px solid var(--line);min-height:70px}.tile:nth-child(even){padding-left:12px;padding-right:0;border-left:1px solid var(--line)}
+.tr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.tn{font-size:16px;font-weight:800}.tg{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10px}
+.tl{font-size:13.5px;font-weight:700;line-height:1.35}.off{opacity:.42}.prep{display:inline-block;margin-top:4px;font-size:10.5px;font-weight:800;color:#6E6E73;background:#EDEDEF;border-radius:99px;padding:1px 8px}
+.c1{color:#1F9D55}.c2{color:#2F6FE4}.c3{color:#E8681F}.c4{color:#E04088}.c5{color:#0E8FA0}
+/* 일반 화면 */
+.hd{display:flex;align-items:center;gap:6px;padding:12px 14px;border-bottom:1px solid var(--line);font-size:13px}.hd b{font-weight:800}.hd .sp{color:#9aa0aa}
+.pg{padding:16px 18px}.pg h3{font-size:18px;font-weight:900;letter-spacing:-.03em}.pg p.d{font-size:12px;color:var(--ink3);margin:3px 0 12px}
+.fl{margin-top:12px}.fl label{display:block;font-size:12px;font-weight:800;color:var(--ink2);margin-bottom:5px}.in{border:1px solid #d9dde3;border-radius:10px;padding:11px 12px;font-size:14px;background:#fff;color:#1d1d1f}.ta{height:130px;color:#8e8e94;line-height:1.6}
+.btn{margin-top:14px;height:48px;border-radius:10px;background:#2B59C3;color:#fff;font-weight:800;display:grid;place-items:center;font-size:14px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--line);font-size:13px}.row small{color:var(--ink3)}.row a{font-weight:800;color:#2B59C3;font-size:12.5px}
+.body{font-size:14px;line-height:1.85;color:#333;margin-top:12px}.pill{display:inline-block;font-size:11.5px;font-weight:800;color:#fff;background:#D12F7A;border-radius:99px;padding:2px 10px}
+.abt .hero{margin:14px 18px 0}
+</style></head><body>
+<div class="top">시안(휴대폰 폭) · 메인화면을 모든 부서에 — 부서마다 직접 입력 · 구현 전 · 빨간 점선 = 바뀌는 곳 · ADR 0142</div>
+<div class="wrap"><h1>메인화면을 모든 부서에 — 칸마다 「준비중」, 부서 관리자가 이번 주 말씀과 소개 글을 직접 입력</h1>
+<p class="lead">예시는 <b>초등부</b>(유년부가 아닌 부서)입니다. 주보는 1주일 넘게 새 파일이 없고, 앨범은 사진이 없고, 소개 글은 비어 있고, 이번 주 말씀만 있는 모습입니다.</p>
+<div class="legend"><i></i>바뀌는 곳</div><div class="cols">
+
+<div class="col"><h2>① 메인화면 (초등부 · 손님)</h2><div class="sub">준비 안 된 칸은 흐리게 + 「준비중」, 누를 수 없음. 미션북 칸은 유년부만이라 숨김.</div>
+<div class="phone"><div class="bar"><div><small>대한예수교장로회</small><b>잠실새내교회</b></div><div class="ib">👤</div></div>
+<div class="hero"><div>단체사진이 아직 없어요</div></div>
+<div class="tb"><div class="kk">2026년 11월 29일 주일</div><div class="tt">잠실새내교회 초등부</div><div class="bd"><span style="background:#D12F7A">잠실새내교회 초등부</span><span style="background:#7A4BD0">주일 오전 11:30</span></div></div>
+<div class="sh">오늘의 안내</div>
+<div class="grid">
+<div class="tile off chg"><b class="n">1</b><div class="tr"><span class="tn c1">01</span></div><div class="tl">이번 주 주보</div><span class="prep">준비중</span></div>
+<div class="tile"><div class="tr"><span class="tn c2">02</span><span class="tg" style="background:#E8EFFC">→</span></div><div class="tl">이번 주 말씀</div></div>
+<div class="tile off chg"><b class="n">2</b><div class="tr"><span class="tn c3">03</span></div><div class="tl">초등부 앨범</div><span class="prep">준비중</span></div>
+<div class="tile"><div class="tr"><span class="tn c4">04</span><span class="tg" style="background:#FBE9F1">🔒</span></div><div class="tl">도전!!!성경말씀</div></div>
+<div class="tile off chg"><b class="n">3</b><div class="tr"><span class="tn c5">05</span></div><div class="tl">초등부 소개</div><span class="prep">준비중</span></div>
+</div></div>
+<div class="note"><b>1</b> 주보: 가장 최근 주보에서 7일 넘음(또는 없음) → 준비중<br><b>2</b> 앨범: 볼 수 있는 사진 0장 → 준비중<br><b>3</b> 소개: 소개 글 없음 → 준비중. <b>미션북 칸 삭제</b>(유년부만) → 번호가 05로 이어짐<br>말씀은 7일 안에 새 말씀이 있어 정상 표시</div></div>
+
+<div class="col"><h2>② 이번 주 말씀 입력 (부서 관리자)</h2><div class="sub">주일 날짜 · 말씀 제목 · 설교 내용 세 칸. 입력한 날이 아니라 전한 주일을 고름.</div>
+<div class="phone"><div class="hd"><b>‹ 부서 관리</b><span class="sp">›</span><span>이번 주 말씀</span></div>
+<div class="pg chg" style="margin:0"><b class="n">4</b><h3>이번 주 말씀 올리기</h3><p class="d">부서 관리자만 올리고 고칠 수 있어요. 누구나 볼 수 있어요.</p>
+<div class="fl"><label>언제 주일 설교인가요?</label><div class="in">2026년 11월 29일 (주일) ⌄</div></div>
+<div class="fl"><label>말씀 제목</label><div class="in">예수님과 함께 걷는 길</div></div>
+<div class="fl"><label>설교 내용</label><div class="in ta">오늘 설교 내용을 적어 주세요…</div></div>
+<div class="btn">저장</div>
+<div style="margin-top:18px;font-size:12px;font-weight:800;color:var(--ink3)">지난 말씀</div>
+<div class="row"><span>11월 22일 주일<br><small>은혜의 길</small></span><a>고치기</a></div><div class="row"><span>11월 15일 주일<br><small>감사의 마음</small></span><a>고치기</a></div></div></div>
+<div class="note"><b>4</b> 새 화면(/부서/admin/weekly-word). 날짜는 일요일만 고를 수 있음. 같은 주일을 다시 올리면 고침. 지우기는 「고치기」 안에</div></div>
+
+<div class="col"><h2>③ 이번 주 말씀 보기 (누구나)</h2><div class="sub">메인화면 02번을 누르면 가장 최근 말씀이 열림.</div>
+<div class="phone"><div class="hd"><b>‹ 메인</b><span class="sp">›</span><span>이번 주 말씀</span></div>
+<div class="pg chg" style="margin:0"><b class="n">5</b><span class="pill">11월 29일 주일 설교</span><h3 style="margin-top:10px;font-size:22px">예수님과 함께 걷는 길</h3>
+<div class="body">오늘 말씀은 예수님이 제자들과 함께 길을 걸으신 이야기입니다.<br><br>우리도 날마다 예수님과 함께 걷는 아이들이 되면 좋겠습니다. 이번 주에는 가족과 함께 한 구절을 외워 보아요.<br><br>(부서 관리자가 입력한 설교 내용이 이렇게 그대로 보입니다)</div></div></div>
+<div class="note"><b>5</b> 새 화면(/부서/weekly-word). 가장 최근 말씀 한 건. 7일이 지나면 메인화면 칸이 준비중이 되어 이 화면에 못 들어옴</div></div>
+
+<div class="col"><h2>④ 부서 소개 보기 (누구나)</h2><div class="sub">메인화면 「○○부 소개」 칸을 누르면 소개 글만 보여 줌(예배 안내 없음).</div>
+<div class="phone abt"><div class="hd"><b>‹ 메인</b><span class="sp">›</span><span>초등부 소개</span></div>
+<div class="hero"><div>대표 사진</div></div>
+<div class="pg chg" style="margin:0"><b class="n">6</b><h3>잠실새내교회 초등부</h3><div class="body">초등부는 1~6학년 어린이들이 함께 예배하고 말씀을 배우는 곳이에요. 매주 주일 오전 11시 30분에 만나요.<br><br>(부서 관리자가 「소개 글」 칸에 입력한 내용이 이렇게 보입니다)</div></div></div>
+<div class="note"><b>6</b> 새 화면(/부서/about). 소개 글은 기존 관리 화면(/부서/admin/intro)에서 입력. 글이 없으면 메인화면 칸이 준비중</div></div>
+
+</div></div></body></html>
