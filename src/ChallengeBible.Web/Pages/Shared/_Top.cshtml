@@ -34,7 +34,7 @@
     // 주보 보기(2026-11-26 사용자): 왼쪽 「홈 › 현재」(☰ 없음), 오른쪽 = 손님은 사람 아이콘(로그인), 올릴 수 있는 사람은 PbAction 버튼(예: + 주보 작성)
     var homeL = ViewData["PbHomeL"] as bool? == true && inDept;
     var act = ViewData["PbAction"] as string[];
-    var homeHref = ViewData["PbHomeHref"] as string ?? (inDept ? $"/{Ten.Current.Slug}" : "/");   // 왼쪽 첫 칸 주소(기본 홈, 메인화면에서 열리는 화면은 메인)
+    var firstHref = ViewData["PbHomeHref"] as string ?? (inDept ? $"/{Ten.Current.Slug}" : "/");   // 왼쪽 첫 칸 주소(기본 홈, 메인화면에서 열리는 화면은 메인)
     var homeLbl = ViewData["PbHomeLabel"] as string ?? "홈";
     // 행정업무 화면(오늘 할 일 · 출석 · 교적부 · 인명 검색 · 생일자) 은 부서 공통 ☰ 대신 행정업무 ☰(2026-11-25 사용자)
     var officeMenu = page is "/Todo/Index" or "/ClassBook/Index" or "/ClassBook/Class" or "/People/Index" or "/Birthdays/Index" or "/Attendance/Index" or "/Attendance/More" or "/Attendance/ClassCheck";
@@ -43,7 +43,7 @@
     <span class="pb-l">
         @if (homeL)
         {
-            <a class="par ph" href="@homeHref"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg>@homeLbl</a><span class="sep" aria-hidden="true">›</span>
+            <a class="par ph" href="@firstHref"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg>@homeLbl</a><span class="sep" aria-hidden="true">›</span>
             @if (!string.IsNullOrEmpty(title)) { <b class="cur">@title</b> }
         }
         else if (b2)

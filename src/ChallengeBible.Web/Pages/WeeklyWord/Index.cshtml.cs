@@ -4,6 +4,7 @@ using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using WeeklyWordRow = ChallengeBible.Infrastructure.Data.WeeklyWord;
 
 namespace ChallengeBible.Web.Pages.WeeklyWord;
 
@@ -13,7 +14,7 @@ public class IndexModel(WeeklyWordService words, TenantContext tenant, TimeProvi
 {
     public string Title => "이번 주 말씀";
     public TenantContext Tenant => tenant;
-    public Infrastructure.Data.WeeklyWord? Item { get; private set; }
+    public WeeklyWordRow? Item { get; private set; }
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {

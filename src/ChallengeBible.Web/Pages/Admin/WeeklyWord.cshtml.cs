@@ -5,6 +5,7 @@ using ChallengeBible.Web.Services;
 using ChallengeBible.Web.Tenancy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using WeeklyWordRow = ChallengeBible.Infrastructure.Data.WeeklyWord;
 
 namespace ChallengeBible.Web.Pages.Admin;
 
@@ -14,7 +15,7 @@ public class WeeklyWordModel(WeeklyWordService words, TenantContext tenant, Time
 {
     public string Title => "이번 주 말씀";
     public TenantContext Tenant => tenant;
-    public IReadOnlyList<Infrastructure.Data.WeeklyWord> Rows { get; private set; } = [];
+    public IReadOnlyList<WeeklyWordRow> Rows { get; private set; } = [];
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }
     public FieldErrors Errors { get; private set; } = new();
     /// <summary>폼에 채울 값(고치기 · 오류로 되돌아온 값 · 처음엔 가장 가까운 지난 주일).</summary>
