@@ -332,8 +332,8 @@ body:has(.wl) { background: #F1F1F3; }
 .wl .wl-icon-btn b { font-size: 15px; font-weight: 800; color: var(--color-ink); }
 .wl a.wl-hero__empty { color: var(--color-ink-3); }
 .wl .wl-inst__bt { color: #FFFFFF; }
-/* (옛: 제목 한 줄 고정 — 새 디자인으로 두 줄 허용) */
-.wl .wl-title { white-space: normal; text-wrap: balance; }   /* 새 디자인: 길면 두 줄로 고르게(사용자 2026-11-27, 한 줄 고정 해제) */
+/* 제목 한 줄 고정: 새 디자인 교체 때 두 줄로 풀었다가 사용자가 다시 한 줄로(2026-11-27) */
+.wl .wl-title { white-space: nowrap; overflow: hidden; text-wrap: nowrap; }   /* 제목은 한 줄(2026-11-27 사용자 "한 줄로 해줘"): 줄바꿈 없이 글자 크기를 줄여 맞춘다(아래 스크립트, 최소 18px) */
 .wl .wl-inst[hidden] { display: none; }
 /* 제목 「예수님과 함께 걷는 유년부」 위 · 아래 여백 +5px(2026-11-27 사용자): 날짜 ↔ 제목 12 → 17px, 제목 ↔ 배지 14 → 19px */
 .wl .wl-kicker { margin-bottom: var(--space-4); }

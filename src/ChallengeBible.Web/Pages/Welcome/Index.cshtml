@@ -160,5 +160,13 @@
         if (done) box.hidden = true;
         addEventListener('appinstalled', () => { box.hidden = true; });
     })();
-    // (제목 한 줄 맞춤 스크립트는 뺐다 — 새 디자인은 긴 제목을 두 줄로 고르게 나눈다, 2026-11-27)
+    // 제목 한 줄 맞춤: 넘치면 글자 크기를 1px 씩 줄인다(최소 18px). 화면 폭이 바뀌면 다시 맞춘다.
+    (() => {
+        const t = document.querySelector('.wl-title');
+        if (!t) return;
+        const fit = () => { t.style.fontSize = ''; let s = parseFloat(getComputedStyle(t).fontSize); while (t.scrollWidth > t.clientWidth && s > 18) { s -= 1; t.style.fontSize = s + 'px'; } };
+        fit();
+        addEventListener('resize', fit);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+    })();
 </script>
