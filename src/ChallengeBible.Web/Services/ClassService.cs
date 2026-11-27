@@ -139,6 +139,16 @@ public sealed class ClassService(IAppDb db, PeopleService people, TenantContext 
             .GroupBy(m => m.PersonId).ToDictionary(g => g.Key, g => g.First().ClassId);
     }
 
+    /// <summary>이번 학기 반 이름: 사람 번호 → (정규 반 이름, 선생님인지). 새친구반은 빼고 정규 반만(참여자 화면 「0학년1반」 · 「0학년1반 담당」).</summary>
+    public async Task<Dictionary<int, (string Class, bool Teacher)>> PersonClassNamesAsync(CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var term = await TermAsync(ctx, ct);
+        var real = await ctx.Classes.AsNoTracking().Where(c => c.TermId == term && !c.IsNewcomer).ToDictionaryAsync(c => c.Id, c => c.Name, ct);
+        return (await ctx.ClassMembers.AsNoTracking().Where(m => m.TermId == term && real.Keys.Contains(m.ClassId)).OrderBy(m => m.Id).Select(m => new { m.PersonId, m.ClassId, m.IsTeacher }).ToListAsync(ct))
+            .GroupBy(m => m.PersonId).ToDictionary(g => g.Key, g => (real[g.First().ClassId], g.First().IsTeacher));
+    }
+
     private DateOnly Today => TenantClock.ToTenantDate(time.GetUtcNow(), tenant.Current.TimeZoneId);
 
     /// <summary>관리 중인 새친구(사람 번호 → 출석 수). 새친구는 새친구반과 실제 반(또는 미배정반) 양쪽에 보인다(반별 학생 이동 6).</summary>
