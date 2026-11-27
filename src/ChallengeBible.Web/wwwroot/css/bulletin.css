@@ -81,7 +81,6 @@ body:has(.bk) { background: #F7F1E7; }
 .bk-page {max-width:var(--w-phone);margin:0 auto;padding:4px var(--pad-x) 48px}
 @media (min-width:720px) {
   .bk-page {max-width:var(--w-desk)}
-  .bk-appbar-in {max-width:var(--w-desk)}
   .bk {--book-w:112px}
 }
 .bk-btn {display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--tap);padding:0 18px;border-radius:var(--radius);background:var(--c-primary);color:var(--c-primary-ink);font-weight:700;font-size:var(--fs-16)}
@@ -228,3 +227,6 @@ body:has(.bk) { background: #F7F1E7; }
 .bk-avatar::after {content:"";position:absolute;right:-1px;bottom:-1px;width:10px;height:10px;border-radius:50%;background:var(--c-ok);border:2px solid var(--c-bg)}
 .bk-add {width:34px;height:34px;border-radius:50%;background:#C4521F;color:#fff;display:grid;place-items:center}
 .bk-add svg {width:18px;height:18px}
+@media (min-width:720px) {
+  .bk-appbar-in {max-width:var(--w-desk)}   /* 컴퓨터: 본문(.bk-page)과 같은 760px — 기본 규칙보다 뒤에 둬야 먹는다(2026-11-27 사용자 캡처) */
+}
