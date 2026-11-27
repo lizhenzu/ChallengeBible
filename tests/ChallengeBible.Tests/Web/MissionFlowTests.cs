@@ -443,7 +443,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         foreach (var m in new[] { "word", "quiz", "prayer", "recite" })   // 확정 시안 미션탭(2026-11-16)
         {
             var html = await c.GetStringAsync($"/jamsil-kids/{m}");
-            Assert.Contains("<a href=\"/jamsil-kids/word-mission\" class=\"hm\" data-nav=\"home\"><span class=\"L\">미션 홈</span>", html);
+            Assert.Contains("<a href=\"/jamsil-kids/word-mission\" class=\"hm\" data-nav=\"home\"><span class=\"L\">미션홈</span>", html);
             Assert.Contains($"aria-current=\"page\" data-nav=\"{m}\"", html);
         }
         var css = await c.GetStringAsync("/css/site.css");
@@ -497,6 +497,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         var word = await c.GetStringAsync("/jamsil-kids/word");
         Assert.Contains("<span class=\"k\">오늘의 말씀</span><i class=\"ksep\" aria-hidden=\"true\"></i><span class=\"kd\">1월 5일 (화)</span>", word);
         Assert.DoesNotContain("class=\"cal\"", word);                        // 옛 날짜 쪽지(2026.11 / 5 / 화요일)
+        Assert.Matches(@"<a class=""hb"" href=""/"">\s*<svg[^>]*>.*?</svg>홈으로</a>", word.Replace("\n", ""));   // 오른쪽 위 「⌂ 홈으로」 → 첫 화면(/)(2026-11-27)
         Assert.Contains("data-fs=\"-1\"", word);
         Assert.Matches(@"/css/mission-mint\.[a-z0-9]+\.css", word);   // 민트 스타일
         var quiz = await c.GetStringAsync("/jamsil-kids/quiz");

@@ -9,7 +9,7 @@
     var shortTitle = Model.Label.Contains("퀴즈") ? "퀴즈" : Model.Label.Contains("기도") ? "기도" : Model.Label.Contains("암송") ? "암송" : "말씀";
     ViewData["PbTitle"] = shortTitle;
     ViewData["PbParent"] = new[] { "성경미션", p.Link("word-mission") };
-    ViewData["PbButton"] = new[] { "미션홈", p.Link("word-mission") };
+    ViewData["PbButton"] = new[] { "홈으로", "/" };   // 2026-11-27 시안: 오른쪽 「⌂ 홈으로」 → 첫 화면(/)
 }
 <partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): 글자 크기 도구는 아래 제목 줄로 옮김: ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <div class="mhead gut mm"><div class="wrap">

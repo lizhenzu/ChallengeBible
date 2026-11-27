@@ -86,7 +86,7 @@ body:has(.mbody) .pick:disabled:not([aria-pressed="true"]) { opacity: .5; box-sh
 body:has(.mbody) .pick:focus-visible, body:has(.mbody) .qgo:focus-visible { outline: 2px solid #095C4E; outline-offset: 2px; }
 body:has(.mbody) .pnote { margin: 12px 0 0; text-align: center; font-size: 12px; color: #3F665D; }
 body:has(.mbody) .sec.done .pnote { color: #0D7A68; font-weight: 700; }
-body:has(.mbody) .uhint { margin: 8px 0 0; font-size: 12px; color: #5F6F6B; }
+body:has(.mbody) .uhint { margin: 8px 0 0; text-align: center; font-size: 12px; color: #5F6F6B; }   /* 「잘못 눌렀으면 완료 버튼을…」 가운데(2026-11-27) */
 
 /* ── 퀴즈: 보기 4개(번호 민트) · 답 제출하기 ── */
 body:has(.mbody) .qbg, body:has(.mbody) .qq { margin: 12px 0 0; font-size: calc(15px * var(--fs)); line-height: 1.75; font-weight: 400; color: #12302A; }
