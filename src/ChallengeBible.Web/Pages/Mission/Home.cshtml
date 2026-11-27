@@ -272,7 +272,7 @@ else if (fam is { PendingTeam: { } pend })
                     var cls = string.Join(" ", new[] { s is { Complete: true } ? "all" : null, day == d.Today ? "today" : null, day > d.Today ? "f" : null, day == Model.Day && day != d.Today ? "cur" : null, day.DayOfWeek == DayOfWeek.Sunday ? "sun" : null }.Where(x => x is not null));
                     var label = day > d.Today ? "미리 보기 · 보기만 가능" : s is null ? "기록 없음" : $"{s.Total}점";
                     @* 오늘 이후 날짜도 눌러서 미리 볼 수 있다(보기만, 2026-11-04) *@
-                    <a class="mh-c @cls" href="@Model.HomeUrl(day, Model.FirstOfMonth)" aria-label="@day.ToString("M월 d일") @label"><span class="num">@day.Day</span><span class="mh-cp num">@(s is null ? "–" : s.Total.ToString())</span></a>
+                    <a class="mh-c @cls" href="@Model.HomeUrl(day, Model.FirstOfMonth)" aria-label="@day.ToString("M월 d일") @label"><span class="num">@day.Day</span><span class="mh-cp num@(s is null ? " dash" : "")">@(s is null ? "–" : s.Total.ToString())</span></a>
                 }
             }
         </div>
