@@ -320,7 +320,8 @@ public sealed class MissionService(IAppDb db, RequestScope scope, TenantContext 
             int Sum(Mission m) => day.Where(a => MissionItemCodes.Parse(a.MissionItem).Mission() == m).Sum(a => a.Points);
             bool Has(Mission m) => day.Any(a => MissionItemCodes.Parse(a.MissionItem).Mission() == m);
             var ws = Week.Of(d, Rules.WeekStart).Start;
-            var recited = weekStarts.Contains(ws) && reciteWeeks.Contains(ws);
+            // 그 주에 암송 말씀이 없으면 암송은 할 수 없으니 「네 가지」에서 뺀다(미션 홈의 「오늘 네 가지 모두 했어요」와 같은 기준: 있는 미션을 모두 했는가)
+            var recited = !weekStarts.Contains(ws) || reciteWeeks.Contains(ws);
             list.Add(new DayScore(d, Sum(Mission.Word), Sum(Mission.Prayer), Sum(Mission.Quiz), Sum(Mission.Recite),
                 Has(Mission.Word) && Has(Mission.Prayer) && Has(Mission.Quiz) && recited));
         }

@@ -356,6 +356,19 @@ public class MissionServiceTests
     }
 
     [Fact]
+    public async Task R72_암송_말씀이_없는_주는_암송을_뺀_세_미션만_하면_완주일이다()
+    {
+        var jan4 = new DateOnly(2027, 1, 4);
+        ContentSeed.Word(_db, jan4); ContentSeed.Prayer(_db, jan4);
+        var q4 = ContentSeed.ChoiceQuiz(_db, jan4);   // 이 주에는 암송 말씀이 없다
+        var s = Svc();
+        await s.PressAsync(_pid, MissionItem.WordMe, jan4);
+        await s.PressAsync(_pid, MissionItem.PrayerMe, jan4);
+        await s.AnswerQuizAsync(_pid, jan4, q4.CorrectChoiceId, null);
+        Assert.True((await s.MonthAsync(_pid, 2027, 1)).Single(x => x.Date == jan4).Complete);   // 할 수 있는 미션을 모두 했다
+    }
+
+    [Fact]
     public async Task R72_R73_완주일은_네_미션을_모두_한_날_이번_달은_오늘까지()
     {
         var jan4 = new DateOnly(2027, 1, 4);
