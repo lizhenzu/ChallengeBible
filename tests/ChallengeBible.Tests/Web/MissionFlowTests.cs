@@ -498,7 +498,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("<span class=\"k\">오늘의 말씀</span><i class=\"ksep\" aria-hidden=\"true\"></i><span class=\"kd\">1월 5일 (화)</span>", word);
         Assert.DoesNotContain("class=\"cal\"", word);                        // 옛 날짜 쪽지(2026.11 / 5 / 화요일)
         Assert.Contains("data-fs=\"-1\"", word);
-        Assert.Contains("href=\"/css/mission-mint.css", word.Replace("mission-mint.css?v", "mission-mint.css"));   // 민트 스타일
+        Assert.Matches(@"/css/mission-mint\.[a-z0-9]+\.css", word);   // 민트 스타일
         var quiz = await c.GetStringAsync("/jamsil-kids/quiz");
         Assert.Contains("<span class=\"k\">오늘의 퀴즈</span>", quiz);
         Assert.Contains("id=\"qnote\"", quiz);                               // 「답을 먼저 골라 주세요」 안내
