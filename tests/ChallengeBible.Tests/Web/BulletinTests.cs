@@ -127,6 +127,7 @@ public partial class BulletinTests : IClassFixture<WebApplicationFactory<Program
         var page = await teacher.GetStringAsync("/jamsil-kids/bulletin");
         Assert.Contains("href=\"/jamsil-kids/bulletin/edit\"", page);          // 「+ 새 주보」(교사 · 관리자만)
         Assert.Contains("aria-label=\"새 주보 올리기\"", page);                  // 주황 ＋(교사 · 관리자만)
+        Assert.Contains("class=\"bk-tap bk-me\"", page);                          // ＋ 오른쪽에 내 정보 동그라미도 함께(사용자 2026-11-27)
         Assert.DoesNotContain("class=\"bk-tap bk-login\"", page);
         Assert.Contains("주보 서재", page);
         Assert.Contains("메인화면", page);                                       // 왼쪽 위 = 집 + 메인화면

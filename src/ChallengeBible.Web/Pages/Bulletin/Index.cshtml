@@ -37,14 +37,15 @@
         {
             <a class="bk-tap bk-new" href="/@slug/bulletin/edit" aria-label="새 주보 올리기"><span class="bk-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></a>
         }
-        else if (User.UserName() is null)
+        @if (User.UserName() is null)
         {
             <a class="bk-tap bk-login" href="/account/login?returnUrl=@Uri.EscapeDataString($"/{slug}/bulletin")"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>로그인</a>
         }
         else
         {
+            @* 내 정보 동그라미: 선생님 · 관리자도 ＋ 오른쪽에 함께 보인다(사용자 2026-11-27) *@
             var nm = User.DisplayName();
-            <a class="bk-tap" href="/account" aria-label="내 정보"><span class="bk-avatar">@(nm.Length > 0 ? nm[..1] : "나")</span></a>
+            <a class="bk-tap bk-me" href="/account" aria-label="내 정보"><span class="bk-avatar">@(nm.Length > 0 ? nm[..1] : "나")</span></a>
         }
     </div>
 </div></header>
