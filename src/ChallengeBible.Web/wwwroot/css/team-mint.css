@@ -1,0 +1,127 @@
+/* 팀 화면(/{부서}/family-team) — 2026-11-27 사용자 민트 시안(TeamB 팀보기 · TeamOthers 다른 팀 랭킹).
+   .tv = 새 팀보기 · 다른 팀 랭킹(.mh 바탕은 mission-home.css), 아래쪽은 예전 화면(관리 · 만들기 · 찾기 · 합류 · 초대)을 같은 민트 톤으로 맞춘 것.
+   색: 배경 #F3F8F7 · 포인트 #0D7A68 · 연민트 #E3F3EE · 글자 #12302A / #3F665D. 모서리 5px. */
+.mh.tv { background: #F3F8F7; }
+.mh .tv-body { flex: 1; box-sizing: border-box; padding: 0 18px 16px; }
+.mh .tv-sep { opacity: .6; margin: 0 -2px; }
+.mh .mh-menu b { font-weight: 900; }
+.mh .tv-ok { margin: 12px 0 0; padding: 11px 14px; border-radius: 5px; background: #D6F0EA; color: #0D7A68; font-size: 13.5px; font-weight: 700; }
+.mh .tv-err { margin: 12px 0 0; padding: 11px 14px; border-radius: 5px; background: #FDEEF0; color: #B42318; font-size: 13.5px; }
+
+/* 팀 요약 */
+.tv-sum { padding: 18px 0 4px; }
+.tv-chip { display: inline-block; font-size: 12px; font-weight: 700; color: #0D7A68; background: #DDF2EC; border-radius: 5px; padding: 4px 10px; }
+.tv-sum-r { display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px; gap: 10px; }
+.tv-sum h1 { font-size: 22px; font-weight: 900; letter-spacing: -.4px; min-width: 0; word-break: break-all; }
+.tv-sum-r span { flex: none; font-size: 13px; color: #3F665D; }
+.tv-sum-r span b { color: #0D7A68; }
+.tv-pts { margin-top: 2px; color: #0D7A68; }
+.tv-pts span { font-size: 30px; font-weight: 500; }
+.tv-pts small { font-size: 13px; margin-left: 3px; color: #3F665D; }
+
+/* 카드 */
+.tv-card { display: block; background: #fff; border-radius: 5px; padding: 16px; margin-top: 10px; }
+.tv-card h2 { font-size: 16px; font-weight: 900; }
+.tv-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.tv-h span { font-size: 12px; color: #3F665D; }
+.tv-gh { display: flex; align-items: center; gap: 8px; }
+.tv-gift { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; padding: 12px; background: #E3F3EE; border-radius: 5px; }
+.tv-gift > div { min-width: 0; }
+.tv-gift b { display: block; font-size: 14px; font-weight: 900; }
+.tv-gift small { display: block; font-size: 12px; color: #3F665D; margin-top: 2px; }
+.mh .tv-btn { min-height: 44px; display: inline-flex; align-items: center; flex-shrink: 0; padding: 0 14px; border-radius: 5px; font-size: 13px; font-weight: 900; color: #fff; background: #0D7A68; border: 1.5px solid #0D7A68; }
+
+/* 멤버별 기록 · 응원하기 */
+.tv-list { margin-top: 6px; }
+.tv-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #EEF2F1; }
+.tv-row:last-child { border-bottom: 0; }
+.tv-ava { position: relative; width: 48px; height: 48px; border-radius: 50%; overflow: hidden; box-sizing: border-box; background: #B9DDD4; display: flex; align-items: flex-end; justify-content: center; flex-shrink: 0; border: 1.5px dashed #7FBFB0; }
+.tv-ava.on { border: 2.5px solid #0D7A68; }
+.tv-ava img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.tv-ava svg { margin-bottom: -2px; }
+.tv-m { flex: 1; min-width: 0; }
+.tv-m1 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.tv-m .n { font-size: 15px; font-weight: 900; }
+.tv-m .n i { font-style: normal; font-size: 12px; font-weight: 700; color: #0D7A68; }
+.tv-m .n em { font-style: normal; margin-left: 4px; font-size: 11px; font-weight: 700; color: #0D7A68; background: #DDF2EC; border-radius: 5px; padding: 1px 6px; }
+.tv-m1 b { flex: none; font-size: 15px; font-weight: 700; color: #0D7A68; }
+.tv-m2 { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; gap: 8px; }
+.tv-m2 small, .tv-m > small { font-size: 12px; color: #3F665D; }
+.tv-wk { display: flex; gap: 5px; }
+.tv-wk span { width: 22px; height: 22px; border-radius: 50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; background: #E3EAE8; color: #7A8985; }
+.tv-wk span.on { background: #0D7A68; color: #fff; }
+.tv-wk span.today { outline: 2px solid #9FD3C6; outline-offset: 1px; }
+.tv-row form { margin: 0; flex: none; }
+.tv-cheer { min-height: 44px; border-radius: 5px; font-size: 13px; font-weight: 700; cursor: pointer; padding: 0 14px; box-sizing: border-box; background: #0D7A68; color: #fff; border: 1.5px solid #0D7A68; font-family: inherit; }
+.tv-cheer.sent, .tv-cheer:disabled { background: #fff; color: #3F665D; border: 1.5px solid #CFE8E1; cursor: default; }
+.tv-note { margin: 10px 0 0; font-size: 12px; color: #3F665D; text-align: center; }
+.tv-note.l { text-align: left; color: #5F6F6B; }
+
+/* 우리 팀 선물함 */
+.tv-sum3 { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 12px; background: #E3F3EE; border-radius: 5px; }
+.tv-sum3 > div { padding: 12px 4px; text-align: center; }
+.tv-sum3 > div + div { border-left: 1px solid #CFE8E1; }
+.tv-sum3 span { display: block; font-size: 12px; color: #3F665D; }
+.tv-sum3 b { display: block; margin-top: 2px; font-size: 16px; font-weight: 900; color: #0D7A68; }
+.tv-tabs { display: flex; margin-top: 14px; border-bottom: 1.5px solid #E3EAE8; }
+.tv-tabs button { flex: 1; min-height: 44px; border: 0; background: transparent; font-size: 14px; font-weight: 700; color: #5F6F6B; border-bottom: 3px solid transparent; margin-bottom: -1.5px; cursor: pointer; font-family: inherit; }
+.tv-tabs button[aria-selected="true"] { color: #0D7A68; font-weight: 900; border-bottom-color: #0D7A68; }
+.tv-g { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #EEF2F1; }
+.tv-g .ic { width: 44px; height: 44px; border-radius: 5px; background: #E3F3EE; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.tv-g > div { flex: 1; min-width: 0; }
+.tv-g b { display: block; font-size: 15px; font-weight: 700; }
+.tv-g small { display: block; font-size: 12px; color: #3F665D; margin-top: 2px; }
+.tv-g i { font-style: normal; font-size: 13px; font-weight: 700; color: #0D7A68; flex: none; }
+.tv-empty { margin: 0; padding: 22px 0 10px; text-align: center; font-size: 13px; color: #3F665D; }
+
+/* 줄(다른 팀 보기 · 초대 · 관리) */
+.mh .tv-link { width: 100%; min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid #EEF2F1; font-size: 15px; font-weight: 700; color: #12302A; padding: 0 2px; box-sizing: border-box; }
+.tv-card > .tv-link { border-bottom: 0; }
+.tv-links .tv-link:last-child { border-bottom: 0; }
+.tv-link span { flex: 1; min-width: 0; }
+.tv-link small { font-size: 12px; font-weight: 500; color: #3F665D; margin-left: 4px; }
+.tv-link i { font-style: normal; font-size: 18px; color: #3F665D; }
+.tv-card > .tv-link i { color: #0D7A68; }
+.mh .tv-link.out span { color: #B3402A; }
+.tv-badge { font-style: normal; min-width: 20px; padding: 0 6px; border-radius: 99px; background: #0D7A68; color: #fff; font-size: 11px; font-weight: 700; text-align: center; }
+
+/* 다른 팀 랭킹 */
+.mh .tv-back { display: flex; align-items: center; gap: 4px; min-height: 44px; margin-top: 6px; color: #12302A; font-size: 14px; font-weight: 700; }
+.tv-h1 { font-size: 22px; font-weight: 900; letter-spacing: -.4px; }
+.tv-sub { margin: 4px 0 0; font-size: 13px; color: #3F665D; }
+.tv-sort { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+.tv-sort span { font-size: 12px; font-weight: 700; color: #3F665D; margin-right: 2px; }
+.mh .tv-sort a { display: inline-flex; align-items: center; height: 40px; padding: 0 14px; border-radius: 5px; font-size: 13px; font-weight: 700; border: 1.5px solid #B4DFD4; background: #fff; color: #3F665D; }
+.mh .tv-sort a[aria-current="true"] { border-color: #0D7A68; background: #0D7A68; color: #fff; }
+.tv-mine { margin-top: 12px; padding: 12px 14px; border-radius: 5px; background: #E3F3EE; border: 1.5px solid #0D7A68; display: flex; align-items: center; gap: 12px; }
+.tv-mine .rk { width: 34px; font-size: 16px; font-weight: 900; color: #0D7A68; }
+.tv-mine .nm { flex: 1; font-size: 14px; font-weight: 900; min-width: 0; word-break: break-all; }
+.tv-mine .nm i { font-style: normal; font-size: 12px; font-weight: 700; color: #0D7A68; }
+.tv-mine .pt { font-size: 14px; font-weight: 900; color: #0D7A68; }
+.tv-table { margin-top: 10px; background: #fff; border-radius: 5px; padding: 4px 14px; }
+.tv-trow { display: grid; grid-template-columns: 34px 1fr 74px 70px; gap: 8px; align-items: center; min-height: 52px; border-bottom: 1px solid #EEF2F1; }
+.tv-trow:last-child { border-bottom: 0; }
+.tv-trow.head { min-height: 0; padding: 12px 0; border-bottom: 1.5px solid #E3EAE8; font-size: 12px; font-weight: 700; color: #3F665D; }
+.tv-trow .r { text-align: right; }
+.tv-trow .rk { font-size: 14px; font-weight: 900; color: #5F6F6B; }
+.tv-trow .rk.top { color: #0D7A68; }
+.tv-trow .nm { font-size: 14px; font-weight: 700; min-width: 0; word-break: break-all; }
+.tv-trow .lt { font-size: 12px; color: #3F665D; }
+.tv-trow .pt { font-size: 14px; font-weight: 700; color: #0D7A68; }
+
+/* ── 예전 화면(관리 · 만들기 · 찾기 · 합류 · 초대)을 같은 민트 톤으로 ── */
+body:has(main.fmt) {
+  --accent: #0D7A68; --accent-tx: #0D7A68; --accent-bg: #E3F3EE; --on-accent: #FFFFFF; background: #F3F8F7;
+  font-family: 'Noto Sans KR', system-ui, sans-serif;
+}
+body:has(main.fmt) .fmt-btn, body:has(main.fmt) .fmt-search input, body:has(main.fmt) .fmt-search button, body:has(main.fmt) .fmt-in,
+body:has(main.fmt) .fmt-team, body:has(main.fmt) .fmt-card, body:has(main.fmt) .fmt-hero, body:has(main.fmt) .fmt-rq, body:has(main.fmt) .fmt-sent,
+body:has(main.fmt) .fmt-pick, body:has(main.fmt) .fmt-who span, body:has(main.fmt) .fmt-sent button { border-radius: 5px; }
+body:has(main.fmt) .fmt-team, body:has(main.fmt) .fmt-card, body:has(main.fmt) .fmt-sent { background: #FFFFFF; border: 0; }
+body:has(main.fmt) .fmt-hero { background: #E3F3EE; }
+body:has(main.fmt) .fmt-prog i { background: #14A38B; }
+body:has(main.fmt) .fmt-chips > span, body:has(main.fmt) .fmt-ex span { border-radius: 5px; background: #E3F3EE; color: #0D7A68; }
+body:has(main.fmt) .fmt-mem u { background: #E3F3EE; }
+body:has(main.fmt) .fmt-search input { border-color: #B4DFD4; }
+body:has(main.fmt) .fmt-pick:has(input:checked) { background: #E3F3EE; border-color: #0D7A68; color: #0D7A68; }
+body:has(main.fmt) .fmt-who input:checked + span { background: #E3F3EE; box-shadow: inset 0 0 0 2px #0D7A68; color: #0D7A68; }

@@ -1,4 +1,4 @@
-﻿@page "/{slug}/family-team"
+﻿@page "/{slug}/family-team/{view:regex(^(manage|others)$)?}"
 @model FamilyTeamModel
 @using System.Globalization
 @using ChallengeBible.Infrastructure.Data
@@ -12,7 +12,14 @@
     var inv = CultureInfo.InvariantCulture;
     var kq = Model.Friend ? "Kind=friend&" : "";
 }
-@{ ViewData["PbTitle"] = "가족팀"; ViewData["PbParent"] = new[] { "성경미션", home }; ViewData["PbButton"] = new[] { "미션홈", home }; }
+@* 2026-11-27 사용자 민트 시안(TeamB · TeamOthers): 팀이 있으면 `/family-team` = 팀보기, `/family-team/others` = 다른 팀 랭킹,
+   `/family-team/manage` = 예전 화면(방장 넘기기 · 내보내기 · 가입 승인 · 이름 바꾸기 · 나가기). 팀이 없으면 같은 주소에서 만들기 · 찾기 · 합류(예전 화면). *@
+@if (Model.ShowMine) { <partial name="_TeamMine" model="Model" /> }
+else if (Model.ShowOthers) { <partial name="_TeamOthers" model="Model" /> }
+else
+{
+<link rel="stylesheet" href="~/css/team-mint.css" asp-append-version="true" />
+    ViewData["PbTitle"] = Model.View == "manage" ? "팀 관리" : "가족팀"; ViewData["PbParent"] = new[] { "성경미션", home }; ViewData["PbButton"] = new[] { "미션홈", home };
 <partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <main class="gut fmt"><div class="wrap">
     @if (Model.Notice is not null) { <div class="fmt-joined" role="status"><span aria-hidden="true">🎉</span><div>@(Model.Notice)에 들어갔어요</div></div> }
@@ -73,7 +80,7 @@
         </section>
         @if (m.Locked) { <div class="fmt-lock" role="note">🔒 <span>선물을 받은 팀이에요. 누구도 팀을 나가거나 내보낼 수 없고, 새 구성원도 들어올 수 없어요.</span></div> }
         <details class="fmt-ask"><summary>이름 바꾸기</summary>
-            <form method="post" asp-page-handler="Rename" asp-route-slug="@Model.Slug" class="fmt-inline">
+            <form method="post" asp-page-handler="Rename" asp-route-slug="@Model.Slug" class="fmt-inline" id="rename">
                 <input class="fmt-in" name="name" value="@m.RawName" maxlength="50" placeholder="비우면 학생 이름 + 가족" aria-label="팀 이름" />
                 <button type="submit" class="fmt-btn sm">저장</button>
             </form>
@@ -159,7 +166,7 @@
         else
         {
             <details class="fmt-ask leave"><summary>팀 나가기</summary>
-                <form method="post" asp-page-handler="Leave" asp-route-slug="@Model.Slug">
+                <form method="post" asp-page-handler="Leave" asp-route-slug="@Model.Slug" id="leave">
                     <span>@(m.Members.Count == 1 ? "마지막 구성원이에요. 나가면 팀이 사라져요." : "내 점수는 그대로이고 팀 점수에서만 빠져요. 다른 팀에 가려면 나온 뒤 신청해요.")</span>
                     <button type="submit" class="fmt-btn sm no">나가기</button>
                 </form>
@@ -307,3 +314,4 @@
         show();
     });
 </script>
+}

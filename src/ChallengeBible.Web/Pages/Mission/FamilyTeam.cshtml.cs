@@ -10,11 +10,13 @@ namespace ChallengeBible.Web.Pages.Mission;
 /// `/{slug}/family-team` 가족이 스스로 꾸리는 가족팀(확정 시안: family-team-self, ADR 0083, R-204 ~ R-210). 이 부서 승인 소속원.
 /// 팀이 있으면 "우리 가족팀" · 가족 초대(`?Add=true`, 시안 family-invite, ADR 0084), 없으면 받은 초대 · 찾기 · 새 팀(`?New=true`) · 합류 신청(`?Join=팀`). 기본 규칙 스위치가 꺼졌거나 임시 부서면 404. JS 없이 폼마다 서버가 다시 그린다.
 /// </summary>
-public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant, TeamGiftService teamGifts) : PageModel, ITitled
+public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant, TeamGiftService teamGifts, FamilyTeamService teams, TeamCheerService cheers) : PageModel, ITitled
 {
     /// <summary>팀 선물 카드(확정 시안 가족팀-선물고르기 ①, 가족팀 화면 위).</summary>
     public IReadOnlyList<TeamGiftView> TeamGifts { get; private set; } = [];
-    public string Title => "우리 가족팀";
+    public string Title => View == "others" ? "다른 팀 랭킹" : "팀보기";
+    /// <summary>주소의 뒤쪽: manage = 팀 관리(예전 화면: 방장 넘기기 · 내보내기 · 가입 승인 · 이름 바꾸기 · 나가기), others = 다른 팀 랭킹. 없으면 팀이 있을 때 팀보기.</summary>
+    [FromRoute(Name = "view")] public string? View { get; set; }
     public string Slug => tenant.Current.Slug;
 
     [BindProperty(SupportsGet = true)] public string? Q { get; set; }
@@ -25,6 +27,38 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant, TeamG
     /// <summary>찾기 · 만들기에서 고른 팀 종류: "friend" 면 친구팀(0093).</summary>
     [BindProperty(SupportsGet = true)] public string? Kind { get; set; }
     public bool Friend => Kind == "friend";
+
+    // ── 팀보기(2026-11-27 민트 시안 TeamB · TeamOthers) ──
+    public bool ShowMine => State.Mine is not null && View is null && !Add && !New && Join is null && Board is not null;
+    public bool ShowOthers => View == "others" && Board is not null;
+    public TeamBoard? Board { get; private set; }
+    /// <summary>오늘 내가 응원을 보낸 팀원(계정).</summary>
+    public IReadOnlySet<string> CheeredToday { get; private set; } = new HashSet<string>();
+    /// <summary>우리 팀 선물함: 받은 선물.</summary>
+    public IReadOnlyList<TeamReceived> Received { get; private set; } = [];
+    /// <summary>다른 팀 랭킹 정렬: s = score(기본) · date · name, o = asc · desc.</summary>
+    [BindProperty(SupportsGet = true, Name = "s")] public string Sort { get; set; } = "score";
+    [BindProperty(SupportsGet = true, Name = "o")] public string? Order { get; set; }
+    public string SortKey => Sort is "date" or "name" ? Sort : "score";
+    /// <summary>점수 · 수행날짜는 기본 내림(높은 · 최근 먼저), 팀명은 기본 오름(가나다).</summary>
+    public bool Asc => Order is "asc" or "desc" ? Order == "asc" : SortKey == "name";
+    public FamilyRanking? Ranking { get; private set; }
+    public IReadOnlyList<FamilyRankTeam> Others { get; private set; } = [];
+    public FamilyRankTeam? MyRank { get; private set; }
+    public static string SortName(string key) => key switch { "date" => "수행날짜순", "name" => "팀명순", _ => "점수순" };
+    public string SortUrl(string key)
+    {
+        var asc = key == SortKey ? !Asc : key == "name";
+        var parts = new List<string>();
+        if (key != "score") parts.Add($"s={key}");
+        if (asc != (key == "name")) parts.Add($"o={(asc ? "asc" : "desc")}");
+        return $"/{Slug}/family-team/others" + (parts.Count == 0 ? "" : "?" + string.Join("&", parts));
+    }
+    /// <summary>선물 날짜(부서 시간대) 「11월 25일」.</summary>
+    public string When(DateTime? utc) => utc is { } u
+        ? ChallengeBible.Domain.Time.TenantClock.ToTenantDate(new DateTimeOffset(DateTime.SpecifyKind(u, DateTimeKind.Utc)), tenant.Current.TimeZoneId).ToString("M월 d일") : "";
+    public TenantContext Tenant => tenant;
+    public static string LastText(DateOnly? last, DateOnly today) => last is not { } d ? "–" : d == today ? "오늘" : d == today.AddDays(-1) ? "어제" : d.ToString("M월 d일");
 
     public FamilyState State { get; private set; } = null!;
     /// <summary>들어감 알림(R-224): 이번에 한 번 보이고 지워진다.</summary>
@@ -58,6 +92,9 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant, TeamG
         "invitecancelled" => "초대를 취소했어요",
         "inviteaccepted" => "팀에 합류했어요",
         "inviterejected" => "초대를 거절했어요",
+        "cheered" => "응원을 보냈어요",
+        "cheerdone" => "그 팀원은 오늘 이미 미션을 했어요",
+        "cheersent" => "오늘은 이미 응원을 보냈어요",
         _ => "",
     };
 
@@ -119,11 +156,26 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant, TeamG
     public Task<IActionResult> OnPostInviteAcceptAsync(int invite, string? relation, CancellationToken ct) => Act(join.AcceptInviteAsync(invite, relation ?? "", ct), "inviteaccepted", ct);
     public Task<IActionResult> OnPostInviteRejectAsync(int invite, CancellationToken ct) => Act(join.RejectInviteAsync(invite, ct), "inviterejected", ct);
 
+    /// <summary>응원하기: 오늘 아직 안 한 팀원에게 쪽지 한 통(하루 한 번).</summary>
+    public async Task<IActionResult> OnPostCheerAsync(string? target, CancellationToken ct)
+    {
+        var r = await cheers.SendAsync(target, ct);
+        if (r == CheerResult.NoTeam) return NotFound();
+        var ok = r switch { CheerResult.Ok => "cheered", CheerResult.AlreadyDone => "cheerdone", CheerResult.AlreadySent => "cheersent", _ => "cheerdone" };
+        return RedirectToPage(new { slug = Slug, Ok = ok });
+    }
+
     private async Task<IActionResult> Act(Task<FamilyError> work, string ok, CancellationToken ct)
     {
         var e = await work;
         if (e == FamilyError.Disabled) return NotFound();
-        if (e == FamilyError.None) return RedirectToPage(new { slug = Slug, Ok = ok, Kind = State is null && Friend ? Kind : null });
+        if (e == FamilyError.None)
+        {
+            var rv = new Microsoft.AspNetCore.Routing.RouteValueDictionary { ["slug"] = Slug, ["Ok"] = ok };
+            if (View == "manage") rv["view"] = "manage";   // 팀 관리 화면에서 한 일은 그 화면으로 돌아간다
+            if (State is null && Friend) rv["Kind"] = Kind;
+            return RedirectToPage(null, rv);
+        }
         Error = FamilyTeamService.Message(e);
         return await ShowAsync(ct);
     }
@@ -142,6 +194,29 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant, TeamG
             if (Join is int id) JoinTeam = await join.TeamAsync(id, ct);
         }
         else if (Add) Candidates = await join.CandidatesAsync(Q, ct);
+        if (State.Mine is not null && (View is null || View == "others") && !Add && !New && Join is null)
+        {
+            Board = await teams.BoardAsync(ct);
+            if (Board is not null)
+            {
+                CheeredToday = await cheers.SentTodayAsync(ct);
+                Received = await teamGifts.ReceivedAsync(ct);
+                if (View == "others")
+                {
+                    Ranking = await teams.RankingAsync(ct);
+                    MyRank = Ranking.Teams.FirstOrDefault(x => x.Mine);
+                    var ko = StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false);
+                    var list = Ranking.Teams.Where(x => !x.Mine);
+                    Others = SortKey switch
+                    {
+                        "date" => (Asc ? list.OrderBy(x => x.Last ?? DateOnly.MinValue) : list.OrderByDescending(x => x.Last ?? DateOnly.MinValue)).ThenBy(x => x.Name, ko).ToList(),
+                        "name" => (Asc ? list.OrderBy(x => x.Name, ko) : list.OrderByDescending(x => x.Name, ko)).ToList(),
+                        _ => (Asc ? list.OrderBy(x => x.Points) : list.OrderByDescending(x => x.Points)).ThenBy(x => x.Name, ko).ToList(),
+                    };
+                }
+            }
+        }
+        if (View == "others" && Board is null) return Redirect($"/{Slug}/family-team");
         return Page();
     }
 }

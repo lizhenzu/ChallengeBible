@@ -89,6 +89,49 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         return id;
     }
 
+    [Fact]   // 팀보기(2026-11-27 사용자 민트 시안 TeamB · TeamOthers)
+    public async Task 팀보기는_내_팀만_보이고_응원은_하루_한_번이며_다른_팀_랭킹은_따로_본다()
+    {
+        await DadAndKid();
+        Assert.Equal(FamilyError.None, await As("mom").CreateAsync("햇살가족", FamilyRelation.Mother));
+        var dad = await LoggedIn("dad@example.com");
+        var page = await dad.GetStringAsync("/jamsil-kids/family-team");
+        Assert.Contains("<b>팀보기</b>", page);
+        Assert.Contains("웃음폭탄네", page);
+        Assert.Contains("팀 랭킹 <b>1위</b>", page);
+        Assert.Contains("멤버별 기록", page);
+        Assert.Contains("연속 0일", page);
+        Assert.Contains("우리 팀 선물함", page);
+        Assert.Contains("href=\"/jamsil-kids/family-team/others\"", page);
+        Assert.Contains("href=\"/jamsil-kids/family-team/manage\"", page);        // 팀 관리
+        Assert.DoesNotContain("햇살가족", page);                                       // 다른 팀은 별도 화면
+        Assert.Contains("마지막 수행 1월 3일", page);                                    // 응원하기: 오늘 아직 안 한 팀원(철수)
+
+        // 응원: 쪽지 한 통, 같은 사람에게 하루에 한 번
+        var kidAccount = _p["cheolsu"].UserName;
+        var r = await Post(dad, page, "Cheer", ("target", kidAccount));
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+        var after = await dad.GetStringAsync(r.Headers.Location!.OriginalString);
+        Assert.Contains("응원을 보냈어요", after);
+        Assert.Contains("응원 보냈어요 ✓", after);
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(1, raw.Messages.Count(m => m.RecipientUserName == kidAccount && m.Body == TeamCheerService.Body));
+        var r2 = await Post(dad, after, "Cheer", ("target", kidAccount));
+        Assert.Contains("오늘은 이미 응원을 보냈어요", await dad.GetStringAsync(r2.Headers.Location!.OriginalString));
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(1, raw.Messages.Count(m => m.RecipientUserName == kidAccount && m.Body == TeamCheerService.Body));
+        var self = await Post(dad, after, "Cheer", ("target", _p["dad"].UserName));   // 나에게는 보내지 않는다
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(0, raw.Messages.Count(m => m.RecipientUserName == _p["dad"].UserName && m.Body == TeamCheerService.Body));
+
+        // 다른 팀 랭킹: 우리 팀(순위)은 맨 위, 정렬 · 방향
+        var others = await dad.GetStringAsync("/jamsil-kids/family-team/others");
+        Assert.Contains("다른 팀 랭킹", others);
+        Assert.Contains("햇살가족", others);
+        Assert.Contains("우리 팀", others);
+        Assert.Contains("점수순 ↓", others);
+        Assert.Contains("href=\"/jamsil-kids/family-team/others?o=asc\"", others);   // 같은 정렬을 다시 누르면 반대
+        Assert.Contains("팀명순", await dad.GetStringAsync("/jamsil-kids/family-team/others?s=name"));
+        Assert.Contains("수행날짜순 ↓", await dad.GetStringAsync("/jamsil-kids/family-team/others?s=date"));
+    }
+
     [Fact]   // 팀 초대 · 참여하기(2026-11-27 민트 시안)
     public async Task 초대_화면에서_참여하면_팀에_합류하고_다음에_할게요는_오늘_숨긴다()
     {
@@ -472,13 +515,13 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
 
         // 입구에 숫자, 팀 화면에서 수락
         Assert.Contains("기다리는 신청 1건", await dad.GetStringAsync("/jamsil-kids/word-mission"));
-        mine = await dad.GetStringAsync("/jamsil-kids/family-team");
+        mine = await dad.GetStringAsync("/jamsil-kids/family-team/manage");   // 가입 신청 승인은 팀 관리 화면(2026-11-27 민트 시안: 팀보기와 나눔)
         Assert.Contains("학생으로 신청", mine);
         int request;
         using (var raw = InMemoryDb.Raw(_db)) request = raw.FamilyRequests.Single().Id;
         r = await Post(dad, mine, "Accept", ("request", request.ToString()));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
-        var after = await kid.GetStringAsync("/jamsil-kids/family-team");
+        var after = await kid.GetStringAsync("/jamsil-kids/family-team/manage");
         Assert.Contains("구성원 2명", after);
         Assert.Contains("800", after);   // 500 + 300
 
@@ -669,8 +712,8 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         var page = await dad.GetStringAsync("/jamsil-kids/family-team?New=true");
         var r = await Post(dad, page, "Create", ("name", "웃음폭탄네"), ("relation", FamilyRelation.Father));
         var mine = await dad.GetStringAsync(r.Headers.Location!.OriginalString);
-        Assert.Contains("href=\"/jamsil-kids/family-team?Add=true\"", mine);
-        Assert.Contains("가족 초대하기", mine);
+        Assert.Contains("href=\"/jamsil-kids/family-team?Add=true\"", mine);   // 팀보기의 「팀원 초대하기 ›」 → 이름으로 찾기 화면
+        Assert.Contains("팀원 초대하기", mine);
 
         var add = await dad.GetStringAsync("/jamsil-kids/family-team?Add=true&Q=%ED%95%98%EB%8A%98");
         Assert.Contains("문<mark>하늘</mark>", add);
@@ -679,7 +722,7 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
         mine = await dad.GetStringAsync(r.Headers.Location!.OriginalString);
         Assert.Contains("초대를 보냈어요", mine);
-        Assert.Contains("학생으로 초대 · 수락을 기다리는 중", mine);
+        Assert.Contains("학생으로 초대 · 수락을 기다리는 중", await dad.GetStringAsync("/jamsil-kids/family-team/manage"));   // 보낸 초대는 팀 관리 화면
 
         // 잘못 보내면 초대 화면에 이유가 나온다
         r = await Post(dad, add, "Invite", ("participant", _p["other"].Pid.ToString()), ("relation", FamilyRelation.Student), ("Q", "하늘"));
@@ -705,15 +748,15 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
         var after = await other.GetStringAsync(r.Headers.Location!.OriginalString);
         Assert.Contains("팀에 합류했어요", after);
-        Assert.Contains("구성원 2명", after);
+        Assert.Contains("구성원 2명", await other.GetStringAsync("/jamsil-kids/family-team/manage"));   // 구성원 수는 팀 관리 화면
 
         // 보낸 초대가 사라지고 입구도 팀 점수로 바뀐다
-        Assert.DoesNotContain("보낸 초대", await dad.GetStringAsync("/jamsil-kids/family-team"));
+        Assert.DoesNotContain("보낸 초대", await dad.GetStringAsync("/jamsil-kids/family-team/manage"));
         var joined = await other.GetStringAsync("/jamsil-kids");
         Assert.DoesNotContain("가족팀 초대가 왔어요", joined);
         Assert.DoesNotContain("우리 가족팀", joined);                              // 팀에 들어와도 홈 카드는 없다(2026-11-23 · ADR 0139)
         Assert.DoesNotContain("가족팀 · 친구팀을 만들어 보세요", joined);            // 팀이 있으니 만들기 유도도 없다
-        Assert.Contains("구성원 2명", await other.GetStringAsync("/jamsil-kids/family-team"));
+        Assert.Contains("구성원 2명", await other.GetStringAsync("/jamsil-kids/family-team/manage"));
     }
 
     [Fact]

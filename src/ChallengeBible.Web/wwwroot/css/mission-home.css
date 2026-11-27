@@ -147,8 +147,8 @@ html:has(.mh) { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hid
 .mh-team { margin: 24px 16px 0; background: #D6F0EA; border-radius: 5px; padding: 18px 18px 20px; color: #12302A; display: flex; flex-direction: column; gap: 14px; }
 .mh-team-h { display: flex; justify-content: space-between; align-items: center; }
 .mh-team-chip { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: #0D7A68; border-radius: 999px; padding: 7px 12px 7px 10px; font-size: 13px; font-weight: 700; }
-.mh .mh-team-h a { color: #3F665D; font-size: 13px; padding: 10px 0 10px 8px; }
-.mh-team-h a em { font-style: normal; margin-left: 6px; display: inline-block; min-width: 18px; padding: 0 5px; border-radius: 99px; background: #0D7A68; color: #fff; font-size: 11px; font-weight: 700; text-align: center; }
+.mh a.mh-team { display: flex; text-decoration: none; }   /* 카드 전체가 팀보기로 가는 링크(2026-11-27 시안) */
+.mh-team-badge { font-style: normal; padding: 3px 10px; border-radius: 999px; background: #0D7A68; color: #fff; font-size: 11px; font-weight: 700; }
 .mh-team-n { font-size: 14px; color: #3F665D; }
 .mh-team-s { display: flex; align-items: baseline; gap: 8px; margin-top: 2px; }
 .mh-team-s span { font-size: 38px; font-weight: 900; letter-spacing: -1px; }

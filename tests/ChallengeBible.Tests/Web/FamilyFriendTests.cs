@@ -293,8 +293,8 @@ public partial class FamilyFriendTests : IClassFixture<WebApplicationFactory<Pro
             ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["name"] = "말씀 단짝",
         }));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
-        var mine = await kid.GetStringAsync(r.Headers.Location!.OriginalString);
-        Assert.Contains("친구팀을 만들었어요", mine);
+        Assert.Contains("친구팀을 만들었어요", await kid.GetStringAsync(r.Headers.Location!.OriginalString));   // 팀보기에 안내
+        var mine = await kid.GetStringAsync("/jamsil-kids/family-team/manage");   // 방장 · 초대 등은 팀 관리 화면
         Assert.Matches("class=\"fmt-type\">[^<]* 친구팀<", mine);   // 이모지는 문자 코드로 나온다
         Assert.Matches("class=\"fmt-crown\">[^<]* 방장<", mine);
         Assert.Contains("친구 초대하기", mine);
@@ -303,7 +303,7 @@ public partial class FamilyFriendTests : IClassFixture<WebApplicationFactory<Pro
         Assert.Equal(FamilyError.None, await As("cheolsu").AcceptAsync((await Mine("cheolsu")).Requests.Single().RequestId));
         var friend = await LoggedIn("haneul@example.com");
         Assert.Contains("말씀 단짝에 들어갔어요", await friend.GetStringAsync("/jamsil-kids/family-team"));
-        var again = await friend.GetStringAsync("/jamsil-kids/family-team");
+        var again = await friend.GetStringAsync("/jamsil-kids/family-team/manage");
         Assert.DoesNotContain("들어갔어요", again);
         Assert.Contains("자리가 다 찼어요", again);
         Assert.DoesNotContain("handler=Kick", again);   // 방장이 아니면 내보내기가 없다

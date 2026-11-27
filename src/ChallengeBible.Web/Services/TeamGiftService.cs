@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
+public sealed record TeamReceived(string Name, int Stage, DateTime? DeliveredUtc);
+
 /// <summary>내 팀 선물 한 건(미션 홈 카드 · 고르기 화면). Stage = 넘은 단계 점수, PickedBy = 마지막으로 고른 사람 이름.</summary>
 public sealed record TeamGiftView(long Id, bool Friend, int Stage, string State, DateOnly? OpenUntil, int? ItemId, string? ItemName, bool HasImage,
     string? PickedBy, DateTime? PickedUtc, DateTime? PurchasedUtc, int MaxAmount, int? TeamId)
@@ -90,6 +92,20 @@ public sealed class TeamGiftService(IAppDb db, RequestScope scope, TenantContext
         var t = await (from m in ctx.FamilyMembers join f in ctx.FamilyTeams on m.FamilyTeamId equals f.Id
                        where m.UserName == user && m.IsActive && f.IsActive select new { f.Id, f.TeamType }).FirstOrDefaultAsync(ct);
         return t is null ? null : (t.Id, t.TeamType == TeamTypes.Friend);
+    }
+
+
+    /// <summary>팀 선물함의 「받은 선물」(2026-11-27 시안): 우리 팀이 받은(Delivered) 선물, 최근 받은 것 먼저. 가족 = 내 팀의 것, 친구 = 내 몫.</summary>
+    public async Task<IReadOnlyList<TeamReceived>> ReceivedAsync(CancellationToken ct = default)
+    {
+        if (!tenant.Has(Roles.Participant) || scope.UserName is not { } user) return [];
+        await using var ctx = db.Create();
+        var team = await MyTeamAsync(ctx, user, ct);
+        if (team is null) return [];
+        var (teamId, friend) = team.Value;
+        var list = await ctx.Gifts.AsNoTracking().Where(g => g.State == GiftStates.Delivered && g.FamilyTeamId == teamId && (friend ? g.Kind == GiftKinds.Friend && g.UserName == user : g.Kind == GiftKinds.Family))
+            .OrderByDescending(g => g.DeliveredUtc).ToListAsync(ct);
+        return list.Select(g => new TeamReceived(g.ItemName ?? "선물", StageOf(g.SourceKey), g.DeliveredUtc)).ToList();
     }
 
     /// <summary>내가 볼 팀 선물(올해, 받기 전 + 기한 지남): 가족 = 내 팀의 선물, 친구 = 내 몫.</summary>

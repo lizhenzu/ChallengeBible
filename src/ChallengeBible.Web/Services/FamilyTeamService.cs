@@ -54,6 +54,10 @@ public sealed record FamilyHome(string Name, int Year, int Total, int TodayPoint
 public sealed record FamilyCelebration(string Team, int Points, string Emoji, string Message, string Kind, int Total, int? Next,
     IReadOnlyList<FamilyCelebrationMember> Members, string? By = null);
 public sealed record FamilyCelebrationMember(string Name, int Points);
+/// <summary>팀보기 멤버 한 줄(2026-11-27 민트 시안 TeamB): 최근 7일 수행 점(Week[6] = 오늘) · 연속 수행일 · 마지막 수행일 · 오늘 했나 · 사진.</summary>
+public sealed record TeamMemberBoard(string UserName, string Name, string Relation, int Points, IReadOnlyList<bool> Week, int Streak, DateOnly? LastDay, bool TodayDone, bool Me, bool HasPhoto);
+/// <summary>팀보기 위쪽 자료. Days = 최근 7일 날짜(오래된 날 먼저, 마지막 = 오늘).</summary>
+public sealed record TeamBoard(int TeamId, string Name, bool Friend, int Total, int? NextStage, int Rank, DateOnly Today, IReadOnlyList<DateOnly> Days, IReadOnlyList<TeamMemberBoard> Members);
 /// <summary>순위 "가족팀" 탭의 팀 카드(R-94). Last = 구성원 중 가장 최근 점수일.</summary>
 public sealed record FamilyRankTeam(int Rank, string Name, int Points, DateOnly? Last, int? NextStage, bool Mine,
     IReadOnlyList<(string Name, string Relation, int Points, bool TodayDone, bool Me)> Members)
@@ -461,6 +465,43 @@ public sealed class FamilyTeamService(IAppDb db, RequestScope scope, TenantConte
         return new FamilyHome(DisplayName(mine.Team.Name, members.Select(m => (m.Name, m.Relation)).ToList()), today.Year, total,
             members.Sum(m => m.Today), members.Count(m => m.Today > 0), Next(stages, total), prev, members)
         { Stages = chips, Cheer = cheer, Friend = mine.Team.TeamType == TeamTypes.Friend, Rank = rank, Today = today };
+    }
+
+
+    /// <summary>
+    /// 팀보기(2026-11-27 민트 시안 TeamB): 내가 든 팀의 요약 · 멤버별 최근 7일 · 연속 수행일. 팀이 없거나 스위치가 꺼지면 null.
+    /// 멤버는 나부터, 그다음 시즌 점수 높은 순. 「연속」은 오늘부터(오늘 아직이면 어제부터) 하루도 빠지지 않고 점수를 받은 날 수.
+    /// </summary>
+    public async Task<TeamBoard?> BoardAsync(CancellationToken ct = default)
+    {
+        var (r, today) = await RulesAsync(ct);
+        if (!r.Features.FamilyTeam || scope.UserName is not { } myPid) return null;
+        await using var ctx = db.Create();
+        var stages = await StagesAsync(ctx, r, today.Year, ct);
+        var (teams, season, todayPts, lastDays) = await LoadTeamsAsync(ctx, today, ct);
+        var mine = teams.FirstOrDefault(t => t.Members.Any(m => m.Pid == myPid));
+        if (mine.Team is null) return null;
+        var pids = mine.Members.Select(m => m.Pid).ToList();
+        var from = today.AddDays(-60);
+        var acts = (await ctx.MissionActivities.AsNoTracking().Where(a => pids.Contains(a.UserName) && a.MissionDate >= from && a.MissionDate <= today && a.Points > 0)
+            .Select(a => new { a.UserName, a.MissionDate }).Distinct().ToListAsync(ct)).GroupBy(a => a.UserName).ToDictionary(g => g.Key, g => g.Select(a => a.MissionDate).ToHashSet());
+        var photos = (await ctx.UserSettings.AsNoTracking().Where(s => pids.Contains(s.UserName) && s.PhotoPath != null).Select(s => s.UserName).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var days = Enumerable.Range(0, 7).Select(i => today.AddDays(i - 6)).ToList();
+        var rows = mine.Members.Select(m =>
+        {
+            var set = acts.GetValueOrDefault(m.Pid) ?? [];
+            var streak = 0;
+            for (var d = set.Contains(today) ? today : today.AddDays(-1); set.Contains(d); d = d.AddDays(-1)) streak++;
+            return new TeamMemberBoard(m.Pid, m.Name, m.M.Relation, season.GetValueOrDefault(m.Pid), days.Select(set.Contains).ToList(), streak,
+                lastDays.TryGetValue(m.Pid, out var ld) ? ld : null, todayPts.GetValueOrDefault(m.Pid) > 0, m.Pid == myPid, photos.Contains(m.Pid));
+        }).OrderByDescending(x => x.Me).ThenByDescending(x => x.Points).ToList();
+        var total = rows.Sum(x => x.Points);
+        var ko = StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false);
+        var order = teams.Select(x => (x.Team.Id, Name: DisplayName(x.Team.Name, x.Members.Select(m => (m.Name, m.M.Relation)).ToList()), Pts: x.Members.Sum(m => season.GetValueOrDefault(m.Pid))))
+            .OrderByDescending(x => x.Pts).ThenBy(x => x.Name, ko).ToList();
+        var friend = mine.Team.TeamType == TeamTypes.Friend;
+        return new TeamBoard(mine.Team.Id, DisplayName(mine.Team.Name, rows.Select(x => (x.Name, x.Relation)).ToList(), friend), friend, total, Next(stages, total),
+            order.FindIndex(x => x.Id == mine.Team.Id) + 1, today, days, rows);
     }
 
     /// <summary>켜진 가족 단계(점수순)와 팀 합계로 넘었는지.</summary>
