@@ -31,6 +31,7 @@
 <link rel="stylesheet" href="~/css/welcome.css" asp-append-version="true" />
 @{
     const string ARROW = "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4.6 12h14.2\"/><path d=\"M13.2 6.2 19 12l-5.8 5.8\"/></svg>";
+    const string CLOCK = "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"8.6\"/><path d=\"M12 7.4V12l3 2\"/></svg>";
     const string LOCK = "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"5\" y=\"10.5\" width=\"14\" height=\"10\" rx=\"2.2\"/><path d=\"M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5\"/></svg>";
 }
 <div class="wl">
@@ -73,7 +74,6 @@
         </div>
     </div>
 
-    <div class="wl-sec-head"><h2>오늘의 안내</h2></div>
     <nav class="wl-grid" aria-label="오늘의 안내">
         @* 칸 목록(ADR 0142): 준비가 안 된 칸은 흐리게 + 「준비중」, 누를 수 없다. 미션북은 부서 스위치가 켜진 부서(처음엔 유년부)에만 있다. 번호는 보이는 칸 순서대로 *@
         @{
@@ -96,7 +96,7 @@
             }
             else
             {
-                <div class="@cls wl-tile--off" data-id="@t.Id"><span class="wl-tile__row"><span class="wl-tile__num">@n</span></span><span class="wl-tile__label">@t.Label</span>@if (!t.NoLabel) { <span class="wl-prep">준비중</span> }</div>
+                <div class="@cls wl-tile--off" data-id="@t.Id" role="link" aria-disabled="true" aria-label="@(t.Label)@(t.NoLabel ? "" : " (준비중)")"><span class="wl-tile__row"><span class="wl-tile__num">@n</span><span class="wl-tile__go">@Html.Raw(ARROW)</span></span><span class="wl-tile__label">@t.Label</span>@if (!t.NoLabel) { <span class="wl-soon" aria-hidden="true"><span>@Html.Raw(CLOCK)준비중</span></span> }</div>
             }
         }
         @* 교사행정업무: 표 전체 폭 한 줄 — 교사 · 관리자는 화살표, 로그인 전에는 자물쇠(누르면 로그인), 그 밖의 회원에게는 보이지 않는다 *@
@@ -160,13 +160,5 @@
         if (done) box.hidden = true;
         addEventListener('appinstalled', () => { box.hidden = true; });
     })();
-    // 제목 한 줄 맞춤: 넘치면 글자 크기를 1px 씩 줄인다(최소 18px). 화면 폭이 바뀌면 다시 맞춘다.
-    (() => {
-        const t = document.querySelector('.wl-title');
-        if (!t) return;
-        const fit = () => { t.style.fontSize = ''; let s = parseFloat(getComputedStyle(t).fontSize); while (t.scrollWidth > t.clientWidth && s > 18) { s -= 1; t.style.fontSize = s + 'px'; } };
-        fit();
-        addEventListener('resize', fit);
-        if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
-    })();
+    // (제목 한 줄 맞춤 스크립트는 뺐다 — 새 디자인은 긴 제목을 두 줄로 고르게 나눈다, 2026-11-27)
 </script>

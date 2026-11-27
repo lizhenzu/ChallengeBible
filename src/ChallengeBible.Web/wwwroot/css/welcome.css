@@ -61,6 +61,7 @@ body:has(.wl) { background: #F1F1F3; }
 
   
   --radius:          10px;      
+  --radius-card:     5px;       /* 새 디자인(2026-11-27): 카드 · 사진 · 선물 · 의견 · 설치 모서리 */
   --radius-pill:     999px;     
   --tap:             44px;      
   --container:       390px;     
@@ -127,16 +128,16 @@ body:has(.wl) { background: #F1F1F3; }
   padding: 5px;
   aspect-ratio: 16 / 9;
   background: var(--color-bg);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
   box-shadow: 0 1px 2px rgba(29,29,31,.08), 0 6px 20px rgba(29,29,31,.14);
 }
 .wl .wl-hero img {
   display: block; width: 100%; height: 100%;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: 3px;
 }
 .wl .wl-hero__empty {
-  width: 100%; height: 100%; border-radius: 6px;
+  width: 100%; height: 100%; border-radius: 3px;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-3);
   background: var(--color-wash);
   color: var(--color-ink-3);
@@ -161,23 +162,20 @@ body:has(.wl) { background: #F1F1F3; }
 .wl .wl-badge svg { width: 14px; height: 14px; }
 .wl .wl-badge--1 { background: var(--color-badge-1); }
 .wl .wl-badge--2 { background: var(--color-badge-2); }
-.wl .wl-sec-head { padding: 0 var(--gutter); margin-top: var(--space-2); }
-.wl .wl-sec-head h2 { margin: 0; font-size: var(--fs-md); font-weight: 780; letter-spacing: -.036em; }
 .wl .wl-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;                          /* 카드 사이 4px(새 디자인) */
   margin: 10px var(--gutter) 0;
-  border-top: 1px solid var(--color-rule);
 }
 .wl .wl-tile {
   display: flex; flex-direction: column;
   min-height: var(--tap);
-  padding: 15px 0 16px;
-  border-bottom: 1px solid var(--color-line);
+  padding: 14px 14px 16px;
+  border-radius: var(--radius-card);
+  background: var(--cbg);            /* 카드 바탕 = 카드별 연한 색 */
   animation: wlk-card-in var(--dur-card) var(--ease-out) both;
 }
-.wl .wl-tile:nth-child(odd) { padding-right: 14px; }
-.wl .wl-tile:nth-child(even) { padding-left: 14px; border-left: 1px solid var(--color-line); }
 .wl .wl-tile:nth-child(1) { animation-delay: calc(var(--stagger) * 1); }
 .wl .wl-tile:nth-child(2) { animation-delay: calc(var(--stagger) * 2); }
 .wl .wl-tile:nth-child(3) { animation-delay: calc(var(--stagger) * 3); }
@@ -190,7 +188,7 @@ body:has(.wl) { background: #F1F1F3; }
   width: 26px; height: 26px; flex: none;
   display: grid; place-items: center;
   border-radius: 50%;              
-  background: var(--cbg); color: var(--c);
+  background: var(--color-bg); color: var(--c);   /* 흰 동그라미 — 색 바탕 위에서 보이게 */
   transition: transform .2s var(--ease-out);
 }
 .wl .wl-tile__go svg { width: 13px; height: 13px; }
@@ -209,7 +207,7 @@ body:has(.wl) { background: #F1F1F3; }
   min-height: 60px;
   margin-top: 10px;
   padding: 14px 14px 15px 16px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
   background: var(--color-teacher-bg);   
   animation: wlk-card-in var(--dur-card) var(--ease-out) both;
   animation-delay: calc(var(--stagger) * 7);   
@@ -223,7 +221,7 @@ body:has(.wl) { background: #F1F1F3; }
   display: block;
   padding: var(--space-3) 13px var(--space-3) 15px;   
   border: 1px solid var(--color-gift-line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
   background: var(--color-gift-bg);
 }
 .wl .wl-gift__top { display: flex; align-items: center; gap: var(--space-4); }
@@ -273,7 +271,7 @@ body:has(.wl) { background: #F1F1F3; }
 .wl .wl-fb {
   display: flex; align-items: center; gap: 13px;
   min-height: 56px; padding: 9px 14px 9px 10px;
-  border: 1px solid var(--color-line-2); border-radius: var(--radius);
+  border: 1px solid var(--color-line-2); border-radius: var(--radius-card);
   background: var(--color-bg);
 }
 .wl .wl-fb:hover { background: #FAFAFB; }
@@ -283,7 +281,7 @@ body:has(.wl) { background: #F1F1F3; }
 .wl .wl-inst {
   display: flex; align-items: center; gap: var(--space-4);
   min-height: 56px; padding: 10px 10px 10px 14px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
   background: var(--color-wash);
 }
 .wl .wl-inst > svg { width: 22px; height: 22px; flex: none; }
@@ -316,11 +314,7 @@ body:has(.wl) { background: #F1F1F3; }
   .wl .wl-intro { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: var(--space-7); padding: 0 var(--gutter); }
   .wl .wl-intro .wl-hero { margin: 0; }
   .wl .wl-intro .wl-titleblock { padding: 0; }
-  .wl .wl-sec-head { margin-top: var(--space-8); }
   .wl .wl-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .wl .wl-tile:nth-child(odd),
-.wl .wl-tile:nth-child(even) { padding-left: 14px; padding-right: 14px; border-left: 1px solid var(--color-line); }
-  .wl .wl-tile:nth-child(3n+1) { padding-left: 0; border-left: 0; }
   .wl .wl-fb,
 .wl .wl-inst { min-height: 64px; }
   .wl .wl-tx2 b { font-size: 15px; }
@@ -333,18 +327,21 @@ body:has(.wl) { background: #F1F1F3; }
 }
 
 /* 이 부서 화면에서 더한 것(2026-11-27): 아직 없는 기능 칸 · 내 정보 동그라미 · 제목 한 줄 · 설치한 폰에서는 설치 띠 숨김 */
-.wl .wl-tile--off { opacity: .45; }
+.wl .wl-tile--off { position: relative; cursor: not-allowed; }
 .wl .wl-icon-btn img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
 .wl .wl-icon-btn b { font-size: 15px; font-weight: 800; color: var(--color-ink); }
 .wl a.wl-hero__empty { color: var(--color-ink-3); }
 .wl .wl-inst__bt { color: #FFFFFF; }
-/* 제목은 한 줄(2026-11-25 사용자 "2줄이다. 한 줄로"): 줄바꿈 없이 글자 크기를 줄여 맞춘다(아래 스크립트, 최소 18px) */
-.wl .wl-title { white-space: nowrap; overflow: hidden; text-wrap: nowrap; }
+/* (옛: 제목 한 줄 고정 — 새 디자인으로 두 줄 허용) */
+.wl .wl-title { white-space: normal; text-wrap: balance; }   /* 새 디자인: 길면 두 줄로 고르게(사용자 2026-11-27, 한 줄 고정 해제) */
 .wl .wl-inst[hidden] { display: none; }
 /* 제목 「예수님과 함께 걷는 유년부」 위 · 아래 여백 +5px(2026-11-27 사용자): 날짜 ↔ 제목 12 → 17px, 제목 ↔ 배지 14 → 19px */
-.wl .wl-kicker { margin-bottom: 17px; }
-.wl .wl-badges { margin-top: 19px; }
+.wl .wl-kicker { margin-bottom: var(--space-4); }
+.wl .wl-badges { margin-top: 14px; }   /* 새 디자인 간격 */
 
-/* 준비중(ADR 0142): 준비가 안 된 칸은 흐리게 + 「준비중」 알약, 누를 수 없다 */
-.wl .wl-prep { display: inline-block; margin-top: 6px; padding: 1px 8px; border-radius: 99px; background: #EDEDEF; color: var(--color-ink-2); font-size: var(--fs-min); font-weight: 700; }
+/* 준비중(ADR 0142, 새 디자인 2026-11-27): 카드 위에 흰 막 + 검은 알약 「⏱ 준비중」, 누를 수 없다 */
+.wl .wl-soon { position: absolute; inset: 0; display: grid; place-items: center; border-radius: inherit; background: rgba(255,255,255,.68); }
+.wl .wl-soon span { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 12px; border-radius: var(--radius-pill); background: var(--color-ink); color: #FFFFFF; font-size: var(--fs-min); font-weight: 700; }
+.wl .wl-soon svg { width: 13px; height: 13px; }
 .wl .wl-tile--off .wl-tile__label { text-wrap: balance; }
+.wl .wl-tile--off .wl-tile__go { transform: none; }
