@@ -11,23 +11,10 @@
 <link rel="stylesheet" href="~/css/gift-mint.css" asp-append-version="true" />
 <div class="gk-pg mint">
     <div class="gk-bar"><a href="/@slug/word-mission">← 미션 홈</a><span class="num">@Model.Today.ToString("yyyy.MM.dd ddd", CultureInfo.InvariantCulture).ToUpperInvariant()</span></div>
-    @* 단계별 선물 목록(2026-11-27 사용자): 단계 칩 대신 「골라 둔 가족 선물 n/N」 한 줄을 누르면 단계마다 고른 · 안 고른 선물이 펼쳐진다. *@
     @{
         var allG = Model.Others.Append(g).OrderBy(x => x.Stage).ToList();
         var pickedN = allG.Count(x => x.State is "Picked" or "Purchased");
         var openN = allG.Count(x => x.State == "Open");
-    }
-    @if (allG.Count > 1)
-    {
-        <details class="gk-stl">
-            <summary>골라 둔 @(g.Friend ? "친구팀" : "가족") 선물 <b class="num">@pickedN/@allG.Count</b></summary>
-            <ul>
-                @foreach (var o in allG)
-                {
-                    <li><a href="/@Model.Slug/gifts/team/@o.Id" aria-current="@(o.Id == g.Id ? "true" : null)"><span class="num">@o.Stage.ToString("N0")점</span><i>@(o.State == "Open" ? "고르기" : o.State == "Expired" ? "기한 지남" : o.ItemName ?? "골랐어요")</i></a></li>
-                }
-            </ul>
-        </details>
     }
     @if (Model.MsgText is { } msg) { <p class="gk-msg" role="status">@msg</p> }
 
@@ -70,6 +57,19 @@
             @if (g.State == "Picked") { <a class="gk-btn gk-plain" href="/@slug/gifts/team/@g.Id?change=true">다른 선물로 바꾸기</a> }
             <p class="gk-hint">@(g.Friend ? "선생님이 사기 전까지는 다른 선물로 바꿀 수 있어요." : "선생님이 사기 전까지는 가족 누구나 다른 선물로 바꿀 수 있어요.") 받으면 팀이 잠겨서 구성원을 넣거나 뺄 수 없어요.</p>
         </div>
+    }
+    @* 단계별 선물이 둘 이상일 때만: 다른 단계의 선물로 가는 길(제목 아래 「골라 둔 n/N」 줄은 2026-11-27 시안에서 삭제 — 요약 칸과 겹침) *@
+    @if (allG.Count > 1)
+    {
+        <details class="gk-stl">
+            <summary>다른 단계 선물 보기</summary>
+            <ul>
+                @foreach (var o in allG)
+                {
+                    <li><a href="/@Model.Slug/gifts/team/@o.Id" aria-current="@(o.Id == g.Id ? "true" : null)"><span class="num">@o.Stage.ToString("N0")점</span><i>@(o.State == "Open" ? "고르기" : o.State == "Expired" ? "기한 지남" : o.ItemName ?? "골랐어요")</i></a></li>
+                }
+            </ul>
+        </details>
     }
 </div>
 <script src="~/js/gift.js" asp-append-version="true" defer></script>

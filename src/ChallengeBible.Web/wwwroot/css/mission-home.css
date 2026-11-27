@@ -129,16 +129,17 @@ html:has(.mh) { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hid
 .mh-prog { height: 6px; background: #D4E6E1; border-radius: 999px; margin: 10px 0 14px; overflow: hidden; }
 .mh-prog i { display: block; height: 100%; background: #0D7A68; border-radius: 999px; }
 .mh-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.mh .mh-m { text-align: left; border-radius: 5px; padding: 14px; min-height: 118px; display: flex; flex-direction: column; align-items: flex-start; color: #12302A; background: #fff; box-shadow: 0 1px 0 #DCE8E5; }
-.mh .mh-m.ok { background: #DDF2EC; box-shadow: none; }
+.mh .mh-m { text-align: left; border-radius: 5px; padding: 14px; min-height: 118px; display: flex; flex-direction: column; align-items: flex-start; background: #0D7A68; color: #fff; border: 1.5px solid #0D7A68; }
+.mh .mh-m.ok { background: #E3F3EE; color: #12302A; border-color: #9FD3C6; }
 .mh .mh-m.off { opacity: .55; }
 .mh-m-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-.mh-dot { width: 28px; height: 28px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; background: #DDF2EC; color: #0D7A68; }
+.mh-dot { width: 28px; height: 28px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; background: #fff; color: #0D7A68; }
 .mh .mh-m.ok .mh-dot { background: #0D7A68; color: #fff; }
-.mh-pill { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; color: #fff; background: #0D7A68; }
+.mh-pill { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; color: #0D7A68; background: #fff; }
 .mh-pill.ok { color: #0D7A68; background: #fff; }
 .mh-m b { font-size: 17px; font-weight: 700; margin-top: 14px; }
-.mh-sub { display: block; font-size: 12px; color: #3F665D; margin-top: 2px; line-height: 1.5; }
+.mh-sub { display: block; font-size: 12px; color: rgba(255,255,255,.88); margin-top: 2px; line-height: 1.5; }
+.mh .mh-m.ok .mh-sub { color: #3F665D; }
 .mh-sub span { display: block; }
 .mh-pts { font-size: 12px; font-weight: 700; margin-top: auto; padding-top: 8px; }
 
@@ -163,10 +164,11 @@ html:has(.mh) { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hid
 .mh-team-row { display: flex; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
 .mh-team-row.few { justify-content: flex-start; gap: 14px; }
 .mh-tm { display: flex; flex-direction: column; align-items: center; gap: 1px; width: 72px; text-align: center; line-height: 1.35; }
-.mh-av { width: 46px; height: 46px; border-radius: 23px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; margin-bottom: 5px; background: transparent; color: #3F665D; border: 2px dashed #7FBFB0; }
-.mh-av.on { background: #14A38B; color: #0B2A24; border: 0; }
+.mh-av { position: relative; width: 54px; height: 54px; border-radius: 27px; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; overflow: hidden; background: #DDF2EC; border: 2px dashed #7FBFB0; opacity: .85; }
+.mh-av.on { border: 3px solid #0D7A68; opacity: 1; }
+.mh-av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .mh-tm-n { font-size: 12px; font-weight: 700; max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mh-tm-r { font-size: 11px; font-weight: 700; color: #0D7A68; background: #fff; border-radius: 999px; padding: 1px 7px; margin: 2px 0; }
+.mh-tm-r { font-size: 11px; font-weight: 700; color: #0D7A68; margin: 2px 0; }
 .mh-tm-p { font-size: 12px; }
 .mh-tm-d { font-size: 11px; color: #3F665D; }
 
@@ -234,7 +236,7 @@ html:has(.mh) { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hid
 
 /* 선물함(GiftBox) */
 .gb-bar { display: flex; align-items: center; gap: 6px; padding: 14px 12px 8px; }
-.gb .gb-back { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+.gb .gb-back { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; margin-right: -11px; }   /* 화살표 ↔ 제목 간격 17 → 6px(터치 칸은 그대로 44px, 2026-11-27 시안) */
 .gb-bar h1 { font-size: 19px; font-weight: 700; }
 .gb-sum { margin: 4px 16px 0; background: #D6F0EA; border-radius: 5px; padding: 18px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center; }
 .gb-sum span { display: block; font-size: 12px; color: #3F665D; }

@@ -49,8 +49,7 @@
     var team = Model.Team;
     var noTeam = fam is not null && team is null && fam.PendingTeam is null && Model.FamilyCanJoin;
     string NameOf(string? n) => Ui.NameOnly(n);
-    string Initial(string n) => n.Length <= 2 ? n : n[^2..];
-    string Last(DateOnly? ld, DateOnly today) => ld is not { } x ? "–" : x == today ? "오늘" : x == today.AddDays(-1) ? "어제" : x.ToString("M월 d일", ko);
+        string Last(DateOnly? ld, DateOnly today) => ld is not { } x ? "–" : x == today ? "오늘" : x == today.AddDays(-1) ? "어제" : x.ToString("M월 d일", ko);
     var cellRows = Model.Cells().Chunk(7).Where(w => w.Any(x => x.Month == Model.FirstOfMonth.Month)).ToList();
 }
 <link rel="stylesheet" href="~/css/mission-home.css" asp-append-version="true" />
@@ -201,7 +200,7 @@ else if (fam is { PendingTeam: { } pend })
             <a class="mh-m@(done ? " ok" : "")@(dim ? " off" : "")" href="@Model.Link(c.Key)">
                 <span class="mh-m-top">
                     <span class="mh-dot">@c.No</span>
-                    @if (done) { <span class="mh-pill ok">완료</span> }
+                    @if (done) { <span class="mh-pill ok">완료 ✓</span> }
                     else if (live) { <span class="mh-pill">@c.Go ›</span> }
                 </span>
                 <b>@c.Label</b>
@@ -239,7 +238,7 @@ else if (fam is { PendingTeam: { } pend })
                 @foreach (var m in team.Members)
                 {
                     <div class="mh-tm">
-                        <span class="mh-av@(m.Today > 0 ? " on" : "")">@Initial(m.Name)</span>
+                        <span class="mh-av@(m.Today > 0 ? " on" : "")">@if (m.PhotoUser is { } pu) { <img src="/@slug/photo/@Uri.EscapeDataString(pu)" alt="" loading="lazy" onerror="this.remove()" /> }<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0D7A68" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="9" r="4"/><path d="M4.5 21c1.1-4.2 4-6.2 7.5-6.2s6.4 2 7.5 6.2"/></svg></span>
                         <span class="mh-tm-n">@m.Name</span>
                         <span class="mh-tm-r">@(friend ? "친구" : FamilyTeamService.RelationLabel(m.Relation))</span>
                         <span class="mh-tm-p num">@m.Season.ToString("N0")점</span>
