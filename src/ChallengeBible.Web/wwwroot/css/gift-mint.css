@@ -2,7 +2,7 @@
    색: 배경 #F3F8F7 · 포인트 #0D7A68 · 연민트 #D6F0EA · 글자 #12302A / #3F665D · 가족 선물 주황 #C2570C / #FFF4E8. 모서리 5px. */
 body:has(.gk-pg.mint) { background: #F3F8F7; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; }
 body:has(.gk-pg.mint)::-webkit-scrollbar { display: none; width: 0; height: 0; }
-.gk-pg.mint { font-family: 'Noto Sans KR', system-ui, sans-serif; color: #12302A; padding: 6px 16px 40px; letter-spacing: -.01em; }
+.gk-pg.mint { font-family: 'Noto Sans KR', system-ui, sans-serif; color: #12302A; padding: 6px 16px 40px; line-height: normal; }
 .gk-pg.mint .gk-bar { padding: 4px 0 6px; margin-bottom: 14px; border-bottom: 1px solid #E3EAE8; }
 .gk-pg.mint .gk-bar a { display: inline-flex; align-items: center; min-height: 44px; color: #12302A; font-weight: 700; }
 .gk-pg.mint .gk-bar span { color: #3F665D; }
