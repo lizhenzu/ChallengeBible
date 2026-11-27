@@ -409,7 +409,8 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         var dad = await LoggedIn("dad@example.com");
         var home = await dad.GetStringAsync("/jamsil-kids/word-mission");
         Assert.Contains("href=\"/jamsil-kids/family-team\"", home);
-        Assert.Contains("우리 가족팀 만들기", home);
+        Assert.Contains("가족·친구팀을 구성해 보세요", home);   // 팀이 없으면 만들기 안내 카드(2026-11-27 민트 시안)
+        Assert.Contains(">가족팀 만들기</a>", home);
 
         // 만들기
         var page = await dad.GetStringAsync("/jamsil-kids/family-team?New=true");
@@ -651,13 +652,15 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Contains("이미 초대를 보냈어요", again);
         Assert.Contains("가족 초대하기", again);
 
-        // 부서 홈의 초대 배너는 2026-11-27 사용자 결정으로 뺐다 — 성경미션 화면으로 옮길 예정(시안 확정 뒤)
+        // 초대 배너는 부서 홈이 아니라 성경미션 홈 맨 위에 있다(2026-11-27 사용자 · 민트 시안)
         var other = await LoggedIn("other@example.com");
         var home = await other.GetStringAsync("/jamsil-kids");
         Assert.DoesNotContain("가족팀 초대가 왔어요", home);
         var missionHome = await other.GetStringAsync("/jamsil-kids/word-mission");
-        Assert.DoesNotContain("초대가 왔어요", missionHome);
-        Assert.Contains("우리 가족팀 만들기", missionHome);
+        Assert.Contains("가족팀 초대가 왔어요", missionHome);
+        Assert.Contains("김민호님이 함께하자고 초대했어요", missionHome);
+        Assert.Contains("href=\"/jamsil-kids/family-team\"", missionHome);
+        Assert.Contains("가족·친구팀을 구성해 보세요", missionHome);
         var got = await other.GetStringAsync("/jamsil-kids/family-team");
         Assert.Contains("김민호님이 학생으로 초대했어요", got);
         Assert.Contains("handler=InviteReject", got);
@@ -684,15 +687,16 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         await DadAndKid();
         await DadInvites("other");
         var c = await LoggedIn("other@example.com");
-        var home = await c.GetStringAsync("/jamsil-kids");
-        Assert.DoesNotContain("가족팀 초대가 왔어요", home);   // 홈의 초대 배너는 뺐다(2026-11-27) — 「다음에 할래요」 처리 자체는 아래 서비스 시험이 확인한다
+        Assert.DoesNotContain("가족팀 초대가 왔어요", await c.GetStringAsync("/jamsil-kids"));   // 부서 홈에서는 뺐다(2026-11-27)
+        Assert.Contains("가족팀 초대가 왔어요", await c.GetStringAsync("/jamsil-kids/word-mission"));   // 성경미션 홈 맨 위 배너
 
         var tok = TokenRx().Match(await c.GetStringAsync("/jamsil-kids/family-team")).Groups[1].Value;   // 홈에는 폼이 없으니 다른 화면의 토큰을 쓴다
         var r = await c.PostAsync("/jamsil-kids?handler=SnoozeInvites", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = tok }));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
 
-        var after = await c.GetStringAsync("/jamsil-kids");
-        Assert.DoesNotContain("가족팀 초대가 왔어요", after);
+        var after = await c.GetStringAsync("/jamsil-kids/word-mission");
+        Assert.DoesNotContain("가족팀 초대가 왔어요", after);   // 오늘은 숨는다
+        Assert.Contains("가족·친구팀을 구성해 보세요", after);   // 초대는 숨고 만들기 카드
     }
 
     [Fact]

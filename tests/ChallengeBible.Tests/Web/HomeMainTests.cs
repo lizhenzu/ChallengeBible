@@ -238,7 +238,7 @@ public partial class HomeMainTests : IClassFixture<WebApplicationFactory<Program
         var (kid, _) = await Member("cheolsu", Roles.Participant);
         var home = await kid.GetStringAsync("/jamsil-kids");
         Assert.DoesNotContain("가족팀 · 친구팀을 만들어 보세요", home);   // 가족팀 카드는 홈에서 뺐다(2026-11-27 사용자) — 성경미션 화면(/word-mission)으로 옮긴다
-        Assert.Contains("우리 가족팀 만들기", await kid.GetStringAsync("/jamsil-kids/word-mission"));
+        Assert.Contains("가족·친구팀을 구성해 보세요", await kid.GetStringAsync("/jamsil-kids/word-mission"));
 
         var (mom, _) = await Member("mom", Roles.Guardian);
         var mh = await mom.GetStringAsync("/jamsil-kids");

@@ -30,7 +30,7 @@ public sealed record FamilyBoard(bool Enabled, int Year, IReadOnlyList<FamilyTea
 }
 
 /// <summary>홈 "우리 가족팀" 칸의 구성원 한 줄. TodayMissions = 오늘 한 미션 수(0 ~ 4, 암송은 이번 주).</summary>
-public sealed record FamilyHomeMember(string Name, string Relation, int Season, int Today, int TodayMissions, bool Me);
+public sealed record FamilyHomeMember(string Name, string Relation, int Season, int Today, int TodayMissions, bool Me, DateOnly? LastDay = null);   // LastDay = 마지막으로 점수를 받은 날(미션홈 팀 카드 「마지막 수행일」)
 /// <summary>가족 단계 하나(기본 규칙). On = 이번 시즌 팀 합계가 넘음.</summary>
 public sealed record FamilyStageChip(int Points, string Emoji, string Message, FamilyMilestoneKind Kind, bool On);
 /// <summary>NextStage = 다음 가족 축하 점수(모든 단계를 넘었으면 null). Cheer = 홈 축하 카드(숨기지 않은 가장 높은 넘은 단계, R-97).</summary>
@@ -38,6 +38,11 @@ public sealed record FamilyHome(string Name, int Year, int Total, int TodayPoint
     IReadOnlyList<FamilyHomeMember> Members)
 {
     public IReadOnlyList<FamilyStageChip> Stages { get; init; } = [];
+    /// <summary>친구팀이면 true(미션홈 팀 카드 글자 「가족 랭킹」 · 「친구 랭킹」).</summary>
+    public bool Friend { get; init; }
+    /// <summary>이번 시즌 팀 점수 순위(점수 같으면 이름순 — 순위 화면과 같은 순서).</summary>
+    public int Rank { get; init; }
+    public DateOnly Today { get; init; }
     public FamilyStageChip? Cheer { get; init; }
     public DateOnly? CheerDate { get; init; }
 }
@@ -422,7 +427,7 @@ public sealed class FamilyTeamService(IAppDb db, RequestScope scope, TenantConte
         if (!r.Features.FamilyTeam || scope.UserName is not { } myPid) return null;
         await using var ctx = db.Create();
         var stages = await StagesAsync(ctx, r, today.Year, ct);
-        var (teams, season, todayPts, _) = await LoadTeamsAsync(ctx, today, ct);
+        var (teams, season, todayPts, lastDays) = await LoadTeamsAsync(ctx, today, ct);
         var mine = teams.FirstOrDefault(t => t.Members.Any(m => m.Pid == myPid));
         if (mine.Team is null) return null;
 
@@ -434,7 +439,7 @@ public sealed class FamilyTeamService(IAppDb db, RequestScope scope, TenantConte
             .Select(a => (a.UserName, a.MissionDate, Mission: MissionItemCodes.Parse(a.MissionItem).Mission())).ToList();
         int Done(string pid) => acts.Where(a => a.UserName == pid && (a.MissionDate == today || a.Mission == Mission.Recite)).Select(a => a.Mission).Distinct().Count();
 
-        var members = mine.Members.Select(m => new FamilyHomeMember(m.Name, m.M.Relation, season.GetValueOrDefault(m.Pid), todayPts.GetValueOrDefault(m.Pid), Done(m.Pid), m.Pid == myPid)).ToList();
+        var members = mine.Members.Select(m => new FamilyHomeMember(m.Name, m.M.Relation, season.GetValueOrDefault(m.Pid), todayPts.GetValueOrDefault(m.Pid), Done(m.Pid), m.Pid == myPid, lastDays.TryGetValue(m.Pid, out var ld) ? ld : null)).ToList();
         var total = members.Sum(m => m.Season);   // R-92
         var prev = stages.Where(s => s.Points <= total).Select(s => s.Points).DefaultIfEmpty(0).Max();
 
@@ -444,9 +449,13 @@ public sealed class FamilyTeamService(IAppDb db, RequestScope scope, TenantConte
             .Where(cfgIds.ContainsKey).Select(id => cfgIds[id]).ToHashSet();
         var chips = Chips(stages, total);
         var cheer = chips.Where(c => c.On && !hidden.Contains(c.Points)).OrderByDescending(c => c.Points).FirstOrDefault();
+        var ko = StringComparer.Create(new System.Globalization.CultureInfo("ko-KR"), false);
+        var order = teams.Select(x => (x.Team.Id, Name: DisplayName(x.Team.Name, x.Members.Select(m => (m.Name, m.M.Relation)).ToList()), Pts: x.Members.Sum(m => season.GetValueOrDefault(m.Pid))))
+            .OrderByDescending(x => x.Pts).ThenBy(x => x.Name, ko).ToList();
+        var rank = order.FindIndex(x => x.Id == mine.Team.Id) + 1;
         return new FamilyHome(DisplayName(mine.Team.Name, members.Select(m => (m.Name, m.Relation)).ToList()), today.Year, total,
             members.Sum(m => m.Today), members.Count(m => m.Today > 0), Next(stages, total), prev, members)
-        { Stages = chips, Cheer = cheer };
+        { Stages = chips, Cheer = cheer, Friend = mine.Team.TeamType == TeamTypes.Friend, Rank = rank, Today = today };
     }
 
     /// <summary>켜진 가족 단계(점수순)와 팀 합계로 넘었는지.</summary>

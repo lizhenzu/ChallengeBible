@@ -15,7 +15,7 @@ public sealed record PickSection(MissionPageBase Page, string No, string Title, 
 /// <summary>_MissionNav 모델.</summary>
 public sealed record MissionNav(MissionPageBase Page, string Current);
 
-public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoinService family, PersonalGiftService gifts, TeamGiftService teamGifts, BirthdayGiftService birthdays, NewcomerGiftService newcomers, ReadingGiftService readings) : MissionPageBase(missions, tenant)
+public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoinService family, PersonalGiftService gifts, TeamGiftService teamGifts, BirthdayGiftService birthdays, NewcomerGiftService newcomers, ReadingGiftService readings, FamilyTeamService teams) : MissionPageBase(missions, tenant)
 {
     /// <summary>가족팀 · 친구팀 선물 카드(확정 시안 가족팀-선물고르기 ①).</summary>
     public IReadOnlyList<TeamGiftView> TeamGifts { get; private set; } = [];
@@ -37,9 +37,28 @@ public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoin
     public IReadOnlySet<DateOnly> CompleteDates { get; private set; } = new HashSet<DateOnly>();
     public int Streak { get; private set; }
 
+    /// <summary>우리 가족 · 친구팀 카드(시안 민트 홈): 내가 든 팀. 없으면 null.</summary>
+    public FamilyHome? Team { get; private set; }
+    /// <summary>팀이 없을 때 맨 위 「가족팀 초대가 왔어요」 배너 — 오늘 「다음에 할래요」를 누른 초대는 뺀다(R-212).</summary>
+    public IReadOnlyList<FamilyReceivedInvite> Invites { get; private set; } = [];
+    /// <summary>가족팀에 들어갈 수 있는 역할인지(교사 · 임원 제외). 팀 없을 때 홍보 카드 판단.</summary>
+    public bool FamilyCanJoin { get; private set; }
+    /// <summary>친구팀을 만들 수 있는 학생인지(홍보 카드 「친구팀 만들기」).</summary>
+    public bool FamilyIsStudent { get; private set; }
+    /// <summary>학부모 — 「자녀 미션 보기」 카드(홈에서 옮겨 옴, 2026-11-27).</summary>
+    public bool IsGuardian => Tenant.Has(ChallengeBible.Infrastructure.Data.Roles.Guardian);
+
     protected override async Task LoadMoreAsync(CancellationToken ct)
     {
         Family = await family.EntryAsync(ct);
+        if (UserName is not null && Family is not null)
+        {
+            Team = await teams.MyFamilyAsync(ct);
+            var kind = UserRole.KindOf(Tenant.RoleCode);
+            FamilyCanJoin = UserRole.CanJoinFamily(kind);
+            FamilyIsStudent = kind == UserRoleKind.Student;
+            if (Team is null) Invites = (await family.StateAsync(ct)).Invites.Where(i => !i.SnoozedToday).ToList();
+        }
         Gift = UserName is null ? null : await gifts.WalletAsync(ct);
         if (UserName is not null)
         {

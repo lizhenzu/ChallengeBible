@@ -493,21 +493,23 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     [Fact]
     public async Task 미션_홈은_옛_모양으로_남은_미션과_달력을_보여준다()
     {
-        // 확정 시안 미션홈-옛모양(ADR 0069): 환영 → 인사 → 나의 기록 → 최근 7일 → 네 칸 숫자 → 미션 카드 4장 → 이달 달력 → 맨 끝 메뉴 줄
+        // 2026-11-27 민트 시안: 환영 카드 → 나의 기록(링 · 최근 7일) → 오늘의 미션 2×2 → 이달 달력 → 하단 탭
         var c = await Member("cheolsu", Roles.Participant);
         var html = await c.GetStringAsync("/jamsil-kids/word-mission");
-        Assert.Contains("김철수님, 안녕하세요", html);
+        Assert.Contains("김철수님,<br>안녕하세요", html);
         Assert.Contains("\"거룩한 습관 만들기\" 프로그램에 오심을 환영해요.", html);
         Assert.Contains("올해 총 포인트", html);
         Assert.Contains("네 가지 다 한 날", html);
-        Assert.DoesNotContain("오늘 네 가지 모두 했어요", html);        // 다 했을 때만 도장 칸
-        Assert.Contains("class=\"hM w next\"", html);                    // 말씀이 다음 할 것(파란 테두리), 기도 · 암송은 콘텐츠 없음
-        Assert.Contains("class=\"hM q\"", html);
-        Assert.Contains("class=\"hM pr none\"", html);
+        Assert.DoesNotContain("오늘 네 가지 모두 했어요", html);        // 축하 카드는 뺐다 — 「n / 4 완료」 막대로 대신(2026-11-27)
+        Assert.DoesNotContain("이어온 날", html);                       // 네 칸 숫자 · 하루 최대는 뺐다(2026-11-27)
+        Assert.Contains("<b>0</b> / 2 완료", html);                      // 말씀 · 퀴즈만 있는 날
+        Assert.Contains("<span class=\"mh-pill\">읽기 ›</span>", html);   // 할 수 있는 미션만 알약
+        Assert.Contains("<span class=\"mh-pill\">풀기 ›</span>", html);
+        Assert.Contains("class=\"mh-m off\"", html);                    // 콘텐츠 없는 기도 · 암송은 알약 없이 흐리게
         // 날짜를 눌러 그날 미션을 본다(오늘 이전 날짜는 ?date= 링크), 최근 7일 막대도 같은 링크
         Assert.Contains("?date=2027-01-04", html);
-        Assert.Contains("class=\"hCalG\"", html);
-        Assert.Contains("class=\"hTab\"", html);                          // 아래 메뉴 줄은 페이지 안(따라다니지 않음)
-        Assert.Contains("우리 가족팀 만들기", html);                     // 맨 아래 가족팀 입구(0083 — 0069 에서 뺐던 "우리 가족"을 입구로 되살림)
+        Assert.Contains("class=\"mh-cal-g\"", html);
+        Assert.Contains("class=\"mh-tab\"", html);                          // 아래 탭은 페이지 안(따라다니지 않음)
+        Assert.Contains("가족·친구팀을 구성해 보세요", html);              // 팀이 없으면 만들기 안내 카드(0083)
     }
 }
