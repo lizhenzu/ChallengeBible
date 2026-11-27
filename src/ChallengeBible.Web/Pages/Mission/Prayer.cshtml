@@ -2,7 +2,7 @@
 @model PrayerModel
 @using ChallengeBible.Web.Auth
 @{ var d = Model.Data!; var p = d.Prayer; }
-@await Html.PartialAsync("_MissionHead", new MissionHead(Model, "오늘의 성품기도", p is null ? "오늘은 기도가 없어요" : p.Trait, p?.Range, p?.TraitEn))
+@await Html.PartialAsync("_MissionHead", new MissionHead(Model, "오늘의 기도", p is null ? "오늘은 기도가 없어요" : p.Trait, p?.Range, p?.TraitEn))
 <main class="mbody gut" data-slug="@Model.Slug" data-date="@Model.Day.ToString("yyyy-MM-dd")"><div class="wrap">
     @if (p is null)
     {

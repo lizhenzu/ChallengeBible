@@ -5,7 +5,7 @@
     var d = Model.Data!; var v = d.Recite;
     var hasLesson = v is not null && (v.LessonNo is not null || v.Summary is not null || v.Point is not null || v.Apply is not null);
     var pickNo = v is null ? "01" : (hasLesson ? "03" : "02");
-    var label = "이번 주 암송";   // 2026-11-27 민트 시안: 구분 이름 | 주간 날짜
+    var label = "오늘의 암송";   // 2026-11-27 민트 시안: 구분 이름 | 주간 날짜(이름은 사용자 요청으로 「오늘의 암송」)
     var weekText = v is null ? null : $"{v.Start.ToString("M월 d일")} ~ {v.End.ToString("d일")}";
 }
 @await Html.PartialAsync("_MissionHead", new MissionHead(Model, label, v?.Title ?? "이번 주 암송 말씀이 없어요", v?.Range, null, weekText))

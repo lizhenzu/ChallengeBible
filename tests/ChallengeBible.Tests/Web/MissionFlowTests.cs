@@ -458,7 +458,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         var c = await Member("cheolsu", Roles.Participant);
         var prayer = await c.GetStringAsync("/jamsil-kids/prayer");
         // 이 픽스처에는 기도 · 암송 콘텐츠가 없다: 머리말 이름과 빈 상태만 본다(구성은 화면 캡처로 비교)
-        Assert.Contains("오늘의 성품기도", prayer);
+        Assert.Contains("오늘의 기도", prayer);   // 2026-11-27 「오늘의 성품기도」 → 「오늘의 기도」
         Assert.Contains("이날은 기도가 없어요", prayer);
         var recite = await c.GetStringAsync("/jamsil-kids/recite");
         Assert.Contains("이번 주는 암송 말씀이 없어요", recite);
