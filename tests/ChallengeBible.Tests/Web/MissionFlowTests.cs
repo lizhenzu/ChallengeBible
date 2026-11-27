@@ -507,6 +507,16 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.DoesNotContain("답 제출하기 <em", quiz);                         // 화살표 없는 버튼 글자
     }
 
+    [Fact]   // 하단 탭의 「팀보기」는 팀에 들지 않는 교사에게도 보인다(2026-11-27: 어떤 계정에서는 안 보이던 문제)
+    public async Task 하단_탭_팀보기는_교사에게도_보인다()
+    {
+        var teacher = await Member("tabt1", Roles.Teacher);
+        var html = await teacher.GetStringAsync("/jamsil-kids/word-mission");
+        Assert.Matches(@"<nav class=""mh-tab""[\s\S]*href=""/jamsil-kids/family-team""[\s\S]*팀보기", html);
+        var kid = await Member("tabk1", Roles.Participant);
+        Assert.Matches(@"<nav class=""mh-tab""[\s\S]*href=""/jamsil-kids/family-team""[\s\S]*팀보기", await kid.GetStringAsync("/jamsil-kids/word-mission"));
+    }
+
     [Fact]
     public async Task 미션_홈은_옛_모양으로_남은_미션과_달력을_보여준다()
     {
