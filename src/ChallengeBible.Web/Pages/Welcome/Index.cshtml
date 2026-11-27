@@ -4,7 +4,7 @@
 @using ChallengeBible.Web.Auth
 @using ChallengeBible.Web.Pages
 @inject ChallengeBible.Web.Services.PhotoService Photos
-@* 부서 소개(웰컴) 화면 — 2026-11-25 사용자 새 퍼블리시본 「JAMSIL KIDS · 유년부 주보 v2 — 홈」으로 완전 교체(ADR 0140 · 이전 틴트 카드판 대체). 2026-11-26 사용자 새 퍼블리시본(jamsil-kids-home.html)으로 다시 완전 교체, 2026-11-27 하단(선물 카드 · 개선사항 접수 · 설치 띠)은 새 퍼블리시본(welcome.html)으로 교체: 교사행정업무는 표 맨 아래 한 줄, 챙길 선물 카드, 앱 설치. 행정업무(교사 · 관리자) 버튼은 /{부서}/office 로 연결. 아래는 이전 설명:  순백 바탕 · 헤어라인 · 검정 헤비 제목 · 컬러 번호 2열 표.
+@* 부서 소개(웰컴) 화면 — 2026-11-25 사용자 새 퍼블리시본 「JAMSIL KIDS · 유년부 주보 v2 — 홈」으로 완전 교체(ADR 0140 · 이전 틴트 카드판 대체). 2026-11-26 사용자 새 퍼블리시본(jamsil-kids-home.html)으로 다시 완전 교체, 2026-11-27 하단(선물 카드 · 개선사항 접수 · 설치 띠)은 새 퍼블리시본(welcome.html)으로 교체, 2026-11-27 모든 부서 · 칸마다 준비중(ADR 0142): 교사행정업무는 표 맨 아래 한 줄, 챙길 선물 카드, 앱 설치. 행정업무(교사 · 관리자) 버튼은 /{부서}/office 로 연결. 아래는 이전 설명:  순백 바탕 · 헤어라인 · 검정 헤비 제목 · 컬러 번호 2열 표.
    현재 있는 기능만 연결: 내 정보(계정) · 대표 사진 · 날짜 · 제목 · 예배 줄 · 주보 · 앨범 · 도전!!! 성경말씀으로 가기 · 소개(글 + 예배 안내) · 앱 설치 ·
    (로그인한 사람만) 1주일 후 다시 보기 · 다시 보지 않기. 퍼블리시본의 「이번 주 말씀」 · 「미션북」 칸은 아직 없는 기능이라 연결하지 않았다. *@
 @{
@@ -75,13 +75,30 @@
 
     <div class="wl-sec-head"><h2>오늘의 안내</h2></div>
     <nav class="wl-grid" aria-label="오늘의 안내">
-        <a class="wl-tile wl-tile--1" data-id="bulletin" href="/@slug/bulletin"><span class="wl-tile__row"><span class="wl-tile__num">01</span><span class="wl-tile__go">@Html.Raw(ARROW)</span></span><span class="wl-tile__label">이번 주 주보</span></a>
-        <a class="wl-tile wl-tile--2" data-id="word" href="/@slug/word"><span class="wl-tile__row"><span class="wl-tile__num">02</span><span class="wl-tile__go">@Html.Raw(ARROW)</span></span><span class="wl-tile__label">이번 주 말씀</span></a>
-        <a class="wl-tile wl-tile--3" data-id="rules" href="/@slug/album"><span class="wl-tile__row"><span class="wl-tile__num">03</span><span class="wl-tile__go">@Html.Raw(ARROW)</span></span><span class="wl-tile__label">@dept 앨범</span></a>
-        @* 04 도전!!!성경말씀: 로그인 전에는 자물쇠(누르면 로그인), 로그인하면 화살표 — 홈으로 간다 *@
-        <a class="wl-tile wl-tile--4@(Model.Member ? "" : " wl-is-locked")" data-id="mission" href="@missionHref"@(Model.Member ? Html.Raw("") : Html.Raw(" aria-label=\"도전!!!성경말씀 (로그인 필요)\""))><span class="wl-tile__row"><span class="wl-tile__num">04</span><span class="wl-tile__go">@Html.Raw(Model.Member ? ARROW : LOCK)</span></span><span class="wl-tile__label">도전!!!성경말씀</span></a>
-        <div class="wl-tile wl-tile--5 wl-tile--off" data-id="family"><span class="wl-tile__row"><span class="wl-tile__num">05</span><span class="wl-tile__go">@Html.Raw(ARROW)</span></span><span class="wl-tile__label">부모님과 함께하는 미션북</span></div>
-        <div class="wl-tile wl-tile--6 wl-tile--off" data-id="about"><span class="wl-tile__row"><span class="wl-tile__num">06</span><span class="wl-tile__go">@Html.Raw(ARROW)</span></span><span class="wl-tile__label">@dept 소개</span></div>
+        @* 칸 목록(ADR 0142): 준비가 안 된 칸은 흐리게 + 「준비중」, 누를 수 없다. 미션북은 부서 스위치가 켜진 부서(처음엔 유년부)에만 있다. 번호는 보이는 칸 순서대로 *@
+        @{
+            var tiles = new List<(string Id, string Label, string? Href, bool Ready, bool Locked, bool NoLabel)>
+            {
+                ("bulletin", "이번 주 주보", $"/{slug}/bulletin", Model.BulletinReady, false, false),
+                ("word", "이번 주 말씀", $"/{slug}/weekly-word", Model.WordReady, false, false),
+                ("album", $"{dept} 앨범", $"/{slug}/album", Model.AlbumReady, false, false),
+                ("mission", "도전!!!성경말씀", missionHref, true, !Model.Member, false),
+            };
+            if (Model.MissionBookOn) tiles.Add(("family", "부모님과 함께하는 미션북", null, false, false, true));
+            tiles.Add(("about", $"{dept} 소개", $"/{slug}/about", Model.AboutReady, false, false));
+        }
+        @for (var ti = 0; ti < tiles.Count; ti++)
+        {
+            var t = tiles[ti]; var n = (ti + 1).ToString("00"); var cls = $"wl-tile wl-tile--{ti + 1}";
+            if (t.Ready && t.Href is not null)
+            {
+                <a class="@cls@(t.Locked ? " wl-is-locked" : "")" data-id="@t.Id" href="@t.Href"@(t.Locked ? Html.Raw(" aria-label=\"" + System.Net.WebUtility.HtmlEncode(t.Label) + " (로그인 필요)\"") : Html.Raw(""))><span class="wl-tile__row"><span class="wl-tile__num">@n</span><span class="wl-tile__go">@Html.Raw(t.Locked ? LOCK : ARROW)</span></span><span class="wl-tile__label">@t.Label</span></a>
+            }
+            else
+            {
+                <div class="@cls wl-tile--off" data-id="@t.Id"><span class="wl-tile__row"><span class="wl-tile__num">@n</span></span><span class="wl-tile__label">@t.Label</span>@if (!t.NoLabel) { <span class="wl-prep">준비중</span> }</div>
+            }
+        }
         @* 교사행정업무: 표 전체 폭 한 줄 — 교사 · 관리자는 화살표, 로그인 전에는 자물쇠(누르면 로그인), 그 밖의 회원에게는 보이지 않는다 *@
         @if (officeShow)
         {

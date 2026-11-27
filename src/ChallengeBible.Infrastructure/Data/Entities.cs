@@ -24,6 +24,8 @@ public sealed class Tenant
     public bool ReadingEnabled { get; set; }
     /// <summary>도전!!!성경필사(ADR 0099): 세 번째 프로그램. 기본 켬(2026-11-16 사용자 "무조건 on, 만일을 위해 off 는 둔다").</summary>
     public bool CopyEnabled { get; set; } = true;
+    /// <summary>「부모님과 함께하는 미션북」 칸을 메인화면에 보일지(ADR 0142, 2026-11-27 사용자 「유년부만 보이고 다른 부서는 숨김」). 기본 끔 — 마이그레이션이 유년부만 켠다. 기능이 아직 없어 켜져 있어도 흐리게 · 안 눌린다.</summary>
+    public bool MissionBookEnabled { get; set; }
     public bool ReadingBoardPublic { get; set; } = true;
     /// <summary>참여 신청 화면의 부서 목록에 보이기(0059). 기본 꺼짐 — 꺼져도 부서 주소 · 코드로는 신청할 수 있다.</summary>
     public bool JoinListed { get; set; }

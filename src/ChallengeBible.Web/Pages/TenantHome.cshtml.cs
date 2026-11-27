@@ -75,7 +75,7 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
     {
         if (TodayScreen && !tenant.IsLobby) return Redirect($"/{tenant.Current.Slug}");
         // 메인화면(웰컴)으로 자동으로 보내지 않는다(2026-11-26 사용자). 메인화면이 켜진 부서는 맨 아래 「메인화면으로」 버튼이 있다.
-        MainOn = !tenant.IsLobby && !TodayScreen && await intro.ShowAsync(ct);
+        MainOn = !tenant.IsLobby && !TodayScreen;   // ADR 0142: 메인화면은 모든 부서에 있다
         if (User.UserId() is null)
         {
             if (tenant.IsLobby || TodayScreen) return Redirect("/account/login?returnUrl=" + Uri.EscapeDataString(Request.Path + Request.QueryString));

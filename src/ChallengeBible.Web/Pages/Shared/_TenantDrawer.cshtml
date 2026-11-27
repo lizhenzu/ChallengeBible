@@ -65,7 +65,7 @@
             <h2 class="tdr2-g">함께하기</h2>
             @DrawerUi.Line("/messages", "msg", "단체쪽지", Cur("/messages"))
             @if (!lobby) { @DrawerUi.Line($"/{s}/album", "photo", "사진첩", Cur($"/{s}/album")) }
-            @if (!lobby && await Intro.GetAsync() is not null) { @DrawerUi.Line($"/{s}/welcome", "home", "메인화면", Cur($"/{s}/welcome")) }
+            @if (!lobby) { @DrawerUi.Line($"/{s}/welcome", "home", "메인화면", Cur($"/{s}/welcome")) }
             @if (!lobby && c.MissionEnabled && await FamilyTeams.EnabledAsync()) { @DrawerUi.Line($"/{s}/family-team", "family", "가족팀", Cur($"/{s}/family-team")) }
 
             @if (!lobby && t.IsAdmin)

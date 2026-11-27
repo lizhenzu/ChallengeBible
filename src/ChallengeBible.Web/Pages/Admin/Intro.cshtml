@@ -20,7 +20,6 @@
             <label class="w">대표 사진 <small data-photo-note>JPG · PNG. 고르면 가로 16 : 9 틀에 맞춰 끌어서 자르고, [저장] 때 함께 올라가요</small><input class="in" type="file" name="photo" accept="image/jpeg,image/png" />@if (Err("Photo") is { } e3) { <span class="hint bad">@e3</span> }</label>
             <div class="w" data-photo-preview>@if (it.PhotoStoredName is not null) { <img src="/@slug/welcome/photo?v=@it.UpdatedUtc.Ticks" alt="지금 대표 사진" style="max-width:260px;display:block" /> }</div>
             @if (it.PhotoStoredName is not null) { <label class="ck"><input type="checkbox" name="removePhoto" value="true" />대표 사진 빼기</label> }
-            <label class="ck w"><input type="checkbox" name="active" value="true" checked="@(mine?.Active ?? it.IsActive)" /><span>소개 화면 보이기 <small class="ph-muted" style="display:block;font-weight:400">끄면 처음 들어온 사람에게도 나오지 않아요</small></span></label>
         </div>
         <div class="wsa-acts">
             <button type="submit" class="btn p sm">저장</button>

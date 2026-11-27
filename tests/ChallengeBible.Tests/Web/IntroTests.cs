@@ -44,6 +44,7 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         using var raw = InMemoryDb.Raw(_db);
         raw.TenantIntros.Add(new TenantIntro { TenantId = _kids.Id, Title = "유년부에 오신 것을 환영해요", Body = "말씀 안에서 자라 가는 유년부예요.", IsActive = true, UpdatedUtc = _time.Now.UtcDateTime });
         raw.WorshipSchedules.Add(new WorshipSchedule { TenantId = _kids.Id, SortOrder = 1, DayOfWeek = 0, StartTime = new TimeOnly(10, 0), Place = "비전센터 믿음홀(3F)", Address = "서울특별시 송파구 석촌호수로 102", IsActive = true });
+        raw.Tenants.Single(t => t.Id == _kids.Id).MissionBookEnabled = true;   // 마이그레이션이 유년부만 켠다(ADR 0142)
         raw.SaveChanges();
     }
 
@@ -101,28 +102,20 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         return await c.PostAsync($"/jamsil-kids/welcome?handler={handler}", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = token }));
     }
 
-    [Fact]   // R-368 — 소개 줄이 있는 부서(유년부)만. 다른 부서는 그대로 홈이 열리고 소개 화면 주소는 홈으로 돌려보낸다
-    public async Task R368_소개_화면은_유년부_전용이고_다른_부서에는_없다()
+    [Fact]   // R-373 — 메인화면은 모든 부서에 있다(ADR 0142). 줄이 없는 부서는 부서 이름 · 칸은 준비중, 미션북 칸은 켠 부서(유년부)에만
+    public async Task R373_메인화면은_모든_부서에_있고_미션북은_유년부에만_보인다()
     {
         var guest = NewClient();
-        Assert.Equal(HttpStatusCode.OK, (await guest.GetAsync("/jamsil-kids")).StatusCode);   // 유년부: 홈이 바로 열린다(자동 이동 없음, 2026-11-26)
-        Assert.Contains("메인화면으로", await guest.GetStringAsync("/jamsil-kids"));          // 맨 아래 버튼으로 메인화면에 간다
-
-        var home = await guest.GetAsync("/jamsil-infant");                                    // 다른 부서: 소개 없이 홈
-        Assert.Equal(HttpStatusCode.OK, home.StatusCode);
-        var w = await guest.GetAsync("/jamsil-infant/welcome");
-        Assert.Equal(HttpStatusCode.Redirect, w.StatusCode);
-        Assert.Equal("/jamsil-infant?intro=0", w.Headers.Location?.ToString());
-        Assert.DoesNotContain("환영해요", await guest.GetStringAsync("/jamsil-infant"));
-        Assert.DoesNotContain("메인화면으로", await guest.GetStringAsync("/jamsil-infant"));   // 메인화면이 없는 부서는 버튼도 없다
-
-        var infantMember = await Member("mina", _infant.Id, Roles.Participant);
-        Assert.Equal(HttpStatusCode.OK, (await infantMember.GetAsync("/jamsil-infant")).StatusCode);
-
-        using var raw = InMemoryDb.Raw(_db);
-        raw.TenantIntros.Single(i => i.TenantId == _kids.Id).IsActive = false;               // 꺼 두면 유년부도 소개 없이 홈
-        raw.SaveChanges();
-        Assert.Equal(HttpStatusCode.OK, (await guest.GetAsync("/jamsil-kids")).StatusCode);
+        var kids = await guest.GetStringAsync("/jamsil-kids/welcome");
+        Assert.Contains("부모님과 함께하는 미션북", kids);                                      // 유년부: 켜져 있다
+        var w = await guest.GetAsync("/jamsil-infant/welcome");                               // 다른 부서도 열린다(소개 줄이 없어도)
+        Assert.Equal(HttpStatusCode.OK, w.StatusCode);
+        var infant = await w.Content.ReadAsStringAsync();
+        Assert.Contains(_infant.Name, infant);                                                // 글이 없으면 부서 이름
+        Assert.DoesNotContain("부모님과 함께하는 미션북", infant);                              // 미션북 칸은 숨김
+        Assert.Contains("준비중", infant);                                                    // 주보 · 말씀 · 앨범 · 소개 모두 준비중
+        Assert.Contains("메인화면으로 이동", await guest.GetStringAsync("/jamsil-infant"));     // 홈의 메인화면(집) 동그라미도 모든 부서
+        Assert.Equal(HttpStatusCode.NotFound, (await guest.GetAsync("/jamsil-infant/welcome/photo")).StatusCode);   // 사진이 없으면 404
     }
 
     [Fact]   // R-369 — 화면 구성: 글 · 예배 안내 · 주보 · 사진첩 · 성경말씀으로 가기. 손님에게는 「다시 보기」 버튼이 없다
@@ -144,8 +137,8 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Contains("href=\"/jamsil-kids/feedback\"", page);                                // 개선사항 · 불편사항 접수
         Assert.Contains("홈 화면에 바로가기를 만들어요", page);
         Assert.Contains("href=\"/install?back=%2Fjamsil-kids%2Fwelcome\"", page);               // 설치 띠의 「설치」
-        Assert.Contains("href=\"/jamsil-kids/bulletin\"", page);
-        Assert.Contains("href=\"/jamsil-kids/album\"", page);
+        Assert.Contains("data-id=\"bulletin\"", page);                                         // 칸 목록(준비중이면 눌리지 않아 주소 대신 칸 이름으로 확인)
+        Assert.Contains("data-id=\"album\"", page);
         Assert.Contains("href=\"/account/login?returnUrl=%2Fjamsil-kids%3Fgo%3D1\"", page);   // 손님의 「도전!!!성경말씀」: 로그인 창을 거쳐 인증된 상태로(2026-11-26)
         Assert.Contains("class=\"wl-icon-btn\" href=\"/account/login\"", page);        // 손님: 사람 아이콘(누르면 로그인, 2026-11-25)
         Assert.Contains("wl-tile-wide wl-tile--t wl-is-locked\" href=\"/account/login?returnUrl=%2Fjamsil-kids%2Foffice\"", page);   // 손님에게도 행정업무 버튼 — 누르면 로그인(2026-11-25 사용자)
@@ -191,9 +184,6 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.DoesNotContain("다시 보지 않기", page);
         Assert.Equal(HttpStatusCode.BadRequest, (await PostWelcome(a, "Later")).StatusCode);   // 없앤 동작
 
-        using (var raw = InMemoryDb.Raw(_db)) { raw.TenantIntros.Single(i => i.TenantId == _kids.Id).IsActive = false; raw.SaveChanges(); }   // 부서 스위치를 끄면
-        Assert.DoesNotContain("메인화면으로", await a.GetStringAsync("/jamsil-kids"));          // 홈에 버튼도 없다
-        using (var raw = InMemoryDb.Raw(_db)) { raw.TenantIntros.Single(i => i.TenantId == _kids.Id).IsActive = true; raw.SaveChanges(); }
     }
 
     /// <summary>마지막으로 본 부서 쿠키(cb_dept)를 들고, 필요하면 Referer 도 달고 요청한다.</summary>
@@ -274,10 +264,10 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         var teacher = await Member("sunmi", _kids.Id, Roles.Teacher);                          // 교사는 못 고친다
         Assert.NotEqual(HttpStatusCode.OK, (await teacher.GetAsync("/jamsil-kids/admin/intro")).StatusCode);
 
-        var infantAdmin = await Member("mina", _infant.Id, Roles.Teacher, Roles.TenantAdmin); // 다른 부서 관리자: 줄이 없으니 화면도 없다
-        Assert.Equal(HttpStatusCode.NotFound, (await infantAdmin.GetAsync("/jamsil-infant/admin/intro")).StatusCode);
+        var infantAdmin = await Member("mina", _infant.Id, Roles.Teacher, Roles.TenantAdmin); // 다른 부서 관리자도 자기 부서 소개 화면을 입력한다(ADR 0142)
+        Assert.Equal(HttpStatusCode.OK, (await infantAdmin.GetAsync("/jamsil-infant/admin/intro")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await infantAdmin.GetAsync("/jamsil-infant/welcome/photo")).StatusCode);
-        Assert.DoesNotContain("소개 화면", await infantAdmin.GetStringAsync("/jamsil-infant/admin"));   // 관리 메뉴에도 없다
+        Assert.Contains("소개 화면", await infantAdmin.GetStringAsync("/jamsil-infant/admin"));   // 관리 메뉴에도 있다
     }
 
     [Fact]   // 버그 수정(2026-11-24 사용자 신고) — 로그인한 사람의 얇은 머리말(주보 · 막힌 화면 등)에 「@if (User…」 소스가 글자로 찍히던 문제
@@ -318,5 +308,93 @@ public partial class IntroTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.DoesNotContain("class=\"brand\"", login);
         Assert.DoesNotContain("data-pnav-open", login);
         Assert.Contains("href=\"/account/login\">로그인</a>", await guest.GetStringAsync("/account/signup"));
+    }
+
+    private static string Sunday(DateOnly d) => d.AddDays(-(int)d.DayOfWeek).ToString("yyyy-MM-dd");
+    private async Task<HttpResponseMessage> PostWord(HttpClient c, string slug, string date, string title, string body)
+    {
+        var html = await c.GetStringAsync($"/{slug}/admin/weekly-word");
+        return await c.PostAsync($"/{slug}/admin/weekly-word?handler=Save", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = TokenRx().Match(html).Groups[1].Value, ["date"] = date, ["title"] = title, ["body"] = body,
+        }));
+    }
+
+    [Fact]   // R-374 — 부서 관리자가 주일 날짜 · 제목 · 설교 내용을 올리고 누구나 본다. 7일 안이면 메인화면 칸이 켜진다
+    public async Task R374_부서_관리자가_이번_주_말씀을_올리면_누구나_보고_메인화면_칸이_켜진다()
+    {
+        var admin = await Member("eunhye", _kids.Id, Roles.TenantAdmin);
+        var r = await PostWord(admin, "jamsil-kids", "2027-01-03", "예수님과 함께 걷는 길", "오늘 말씀은 길을 걸으신 이야기예요.\n함께 걸어요.");
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            var w = raw.WeeklyWords.Single();
+            Assert.Equal((_kids.Id, new DateOnly(2027, 1, 3), "예수님과 함께 걷는 길"), (w.TenantId, w.SundayDate, w.Title));
+        }
+        var guest = NewClient();
+        var view = await guest.GetStringAsync("/jamsil-kids/weekly-word");
+        Assert.Contains("예수님과 함께 걷는 길", view);
+        Assert.Contains("오늘 말씀은 길을 걸으신 이야기예요.", view);
+        Assert.Contains("1월 3일 주일 설교", view);
+        Assert.Contains("data-id=\"word\" href=\"/jamsil-kids/weekly-word\"", await guest.GetStringAsync("/jamsil-kids/welcome"));   // 칸이 켜진다
+        Assert.Contains("준비중", await guest.GetStringAsync("/jamsil-infant/weekly-word"));   // 다른 부서 것은 안 보인다
+        var again = await PostWord(admin, "jamsil-kids", "2027-01-03", "고친 제목", "고친 내용");   // 같은 주일은 고친다
+        Assert.Equal(HttpStatusCode.Redirect, again.StatusCode);
+        using var raw2 = InMemoryDb.Raw(_db);
+        Assert.Equal("고친 제목", raw2.WeeklyWords.Single().Title);
+    }
+
+    [Fact]   // R-374 — 일요일이 아니거나 비어 있으면 막고, 교사는 못 올린다
+    public async Task R374_주일이_아니거나_비어_있으면_막고_교사는_못_올린다()
+    {
+        var admin = await Member("eunhye", _kids.Id, Roles.TenantAdmin);
+        var mon = await PostWord(admin, "jamsil-kids", "2027-01-04", "제목", "내용");
+        Assert.Equal(HttpStatusCode.OK, mon.StatusCode);
+        Assert.Contains("주일(일요일)을 골라 주세요.", await mon.Content.ReadAsStringAsync());
+        var empty = await PostWord(admin, "jamsil-kids", "2027-01-03", "", "");
+        var html = await empty.Content.ReadAsStringAsync();
+        Assert.Contains("말씀 제목을 넣어 주세요.", html);
+        Assert.Contains("설교 내용을 넣어 주세요.", html);
+        using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.WeeklyWords);
+
+        var teacher = await Member("sunmi", _kids.Id, Roles.Teacher);
+        Assert.NotEqual(HttpStatusCode.OK, (await teacher.GetAsync("/jamsil-kids/admin/weekly-word")).StatusCode);
+    }
+
+    [Fact]   // R-375 — 가장 최근 말씀의 주일에서 7일이 지나면 준비중(칸이 꺼지고 보기 화면도 준비중)
+    public async Task R375_말씀이_7일_넘게_새로_없으면_준비중이다()
+    {
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.WeeklyWords.Add(new WeeklyWord { TenantId = _kids.Id, SundayDate = new DateOnly(2026, 12, 27), Title = "지난 말씀", Body = "지난 내용", CreatedUtc = DateTime.UtcNow, UpdatedUtc = DateTime.UtcNow });   // 오늘(1/5)에서 9일 전
+            raw.SaveChanges();
+        }
+        var guest = NewClient();
+        var welcome = await guest.GetStringAsync("/jamsil-kids/welcome");
+        Assert.DoesNotContain("href=\"/jamsil-kids/weekly-word\"", welcome);
+        var view = await guest.GetStringAsync("/jamsil-kids/weekly-word");
+        Assert.Contains("준비중", view);
+        Assert.DoesNotContain("지난 말씀", view);
+    }
+
+    [Fact]   // R-375 · R-377 — 주보는 최근 7일 안에 있어야 켜지고, 소개 글이 있으면 소개 칸이 켜져 소개 화면에 글만 나온다
+    public async Task R375_주보와_소개의_준비중_규칙과_소개_화면()
+    {
+        var guest = NewClient();
+        var before = await guest.GetStringAsync("/jamsil-infant/welcome");
+        Assert.DoesNotContain("href=\"/jamsil-infant/bulletin\"", before);                  // 주보가 없으면 준비중
+        Assert.Contains("소개는 준비중이에요.", await guest.GetStringAsync("/jamsil-infant/about"));
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.Bulletins.Add(new Bulletin { TenantId = _infant.Id, Date = new DateOnly(2027, 1, 3), Title = "주보" });          // 2일 전: 켜진다
+            raw.TenantIntros.Add(new TenantIntro { TenantId = _infant.Id, Title = "초등부", Body = "초등부 소개 글이에요.", IsActive = true, UpdatedUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        var after = await guest.GetStringAsync("/jamsil-infant/welcome");
+        Assert.Contains("data-id=\"bulletin\" href=\"/jamsil-infant/bulletin\"", after);
+        Assert.Contains("data-id=\"about\" href=\"/jamsil-infant/about\"", after);
+        var about = await guest.GetStringAsync("/jamsil-infant/about");
+        Assert.Contains("초등부 소개 글이에요.", about);
+        Assert.DoesNotContain("예배", about);                                                // 예배 안내는 이 화면에 없다
     }
 }

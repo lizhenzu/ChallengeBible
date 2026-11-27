@@ -3763,6 +3763,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(100)");
 
+                    b.Property<bool>("MissionBookEnabled")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("MissionEnabled")
                         .HasColumnType("bit");
 
@@ -4121,6 +4124,41 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.WeeklyWord", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("SundayDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("UpdatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("TenantId", "SundayDate");
+
+                    b.ToTable("WeeklyWord", "app");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.WorshipSchedule", b =>
@@ -4875,6 +4913,15 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .HasConstraintName("FK_WeeklyVerse_Tenant");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.WeeklyWord", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.WorshipSchedule", b =>

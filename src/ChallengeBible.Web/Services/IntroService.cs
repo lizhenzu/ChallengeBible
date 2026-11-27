@@ -28,12 +28,12 @@ public sealed class IntroService(IAppDb db, TenantContext tenant, TimeProvider t
     {
         if (tenant.IsLobby) return null;
         await using var ctx = db.Create();
-        return await ctx.TenantIntros.AsNoTracking().SingleOrDefaultAsync(i => includeHidden || i.IsActive, ct);
+        return await ctx.TenantIntros.AsNoTracking().SingleOrDefaultAsync(ct);   // 2026-11-27(ADR 0142): 보이기 켬/끔은 없앴다 — 줄이 있으면 그대로
     }
 
     /// <summary>들어올 때 소개 화면(웰컴)을 먼저 보여 줄까: 이 부서의 소개 줄이 켜져 있으면 누구에게나(2026-11-25 사용자 — 「1주일 후 · 다시 보지 않기」는 없앴다.
     /// 켜고 끄는 것은 부서 전체의 스위치(관리 › 소개 화면 「사용」)가 정한다).</summary>
-    public async Task<bool> ShowAsync(CancellationToken ct = default) => await GetAsync(ct: ct) is not null;
+    public Task<bool> ShowAsync(CancellationToken ct = default) => Task.FromResult(!tenant.IsLobby);   // 2026-11-27(ADR 0142): 메인화면은 임시 부서 말고 모든 부서에 있다
 
     /// <summary>글 · 사진 고치기(부서 관리자만). 줄이 없는 부서는 KeyNotFoundException(= 소개 화면이 없는 부서).
     /// 사진은 내용으로 종류를 확인한다(JPG · PNG, 5MB까지).</summary>
@@ -62,8 +62,13 @@ public sealed class IntroService(IAppDb db, TenantContext tenant, TimeProvider t
         if (!errors.Ok) return errors;
 
         await using var ctx = db.Create();
-        var row = await ctx.TenantIntros.SingleOrDefaultAsync(ct) ?? throw new KeyNotFoundException();
         var now = time.GetUtcNow().UtcDateTime;
+        var row = await ctx.TenantIntros.SingleOrDefaultAsync(ct);
+        if (row is null)   // 줄이 없는 부서는 처음 저장할 때 만든다(ADR 0142)
+        {
+            row = new TenantIntro { TenantId = tenant.Current.Id, Title = title!, UpdatedUtc = now };
+            ctx.TenantIntros.Add(row);
+        }
         string? oldPhoto = null;
         if (bytes is not null && kind is { } k)
         {
@@ -78,9 +83,9 @@ public sealed class IntroService(IAppDb db, TenantContext tenant, TimeProvider t
             oldPhoto = row.PhotoStoredName;
             (row.PhotoStoredName, row.PhotoContentType) = (null, null);
         }
-        (row.Title, row.Body, row.IsActive, row.UpdatedUtc, row.UpdatedByUserName) = (title!, body, input.Active, now, actor);
+        (row.Title, row.Body, row.IsActive, row.UpdatedUtc, row.UpdatedByUserName) = (title!, body, true, now, actor);
         ctx.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorUserName = actor, Action = LogAction, TenantId = tenant.Current.Id,
-            Detail = $"제목 \"{title}\" · {(input.Active ? "켬" : "끔")} · 사진 {(bytes is not null ? "바꿈" : input.RemovePhoto ? "뺌" : "그대로")}" });
+            Detail = $"제목 \"{title}\" · 사진 {(bytes is not null ? "바꿈" : input.RemovePhoto ? "뺌" : "그대로")}" });
         await ctx.SaveChangesAsync(ct);
         if (oldPhoto is not null) { var p = Path.Combine(Dir, oldPhoto); if (File.Exists(p)) File.Delete(p); }
         return errors;

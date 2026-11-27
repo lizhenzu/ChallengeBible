@@ -344,3 +344,7 @@ body:has(.wl) { background: #F1F1F3; }
 /* 제목 「예수님과 함께 걷는 유년부」 위 · 아래 여백 +5px(2026-11-27 사용자): 날짜 ↔ 제목 12 → 17px, 제목 ↔ 배지 14 → 19px */
 .wl .wl-kicker { margin-bottom: 17px; }
 .wl .wl-badges { margin-top: 19px; }
+
+/* 준비중(ADR 0142): 준비가 안 된 칸은 흐리게 + 「준비중」 알약, 누를 수 없다 */
+.wl .wl-prep { display: inline-block; margin-top: 6px; padding: 1px 8px; border-radius: 99px; background: #EDEDEF; color: var(--color-ink-2); font-size: var(--fs-min); font-weight: 700; }
+.wl .wl-tile--off .wl-tile__label { text-wrap: balance; }

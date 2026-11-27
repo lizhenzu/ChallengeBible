@@ -28,7 +28,7 @@ public class TenantModel(PlatformTenantService platform) : PageModel, ITitled
     /// <summary>저장 결과 → 돌아갈 탭.</summary>
     public static string TabOf(string ok) => ok switch
     {
-        "saved" or "code" or "listed" or "unlisted" => "prog",
+        "saved" or "code" or "listed" or "unlisted" or "missionbook-on" or "missionbook-off" => "prog",
         "admin" => "admin",
         "suspended" or "resumed" => "ops",
         _ => "info",

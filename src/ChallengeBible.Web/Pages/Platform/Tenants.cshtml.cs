@@ -109,6 +109,12 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
         return Back(id, listed ? "listed" : "unlisted");
     }
 
+    public async Task<IActionResult> OnPostMissionBookAsync(int id, bool on, CancellationToken ct)
+    {
+        await platform.SetMissionBookAsync(Me, id, on, ct);
+        return Back(id, on ? "missionbook-on" : "missionbook-off");
+    }
+
     public async Task<IActionResult> OnPostStatusAsync(int id, string status, CancellationToken ct)
     {
         await platform.SetStatusAsync(Me, id, status, ct);

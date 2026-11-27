@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace ChallengeBible.Web.Pages.Admin;
 
 /// <summary>`/{slug}/admin/intro` 부서 소개 화면 고치기(ADR 0140, R-369): 제목 · 소개 글 · 대표 사진. 부서 관리자만.
-/// 소개 줄이 없는 부서(유년부 말고 모든 부서)는 404 — 관리자가 스스로 소개 화면을 만들 수 없다.</summary>
+/// 2026-11-27(ADR 0142): 모든 부서가 직접 입력한다 — 줄이 없으면 처음 저장할 때 만든다.</summary>
 [TenantRoles(Roles.TenantAdmin)]
 public class IntroModel(IntroService intro, TenantContext tenant) : PageModel, ITitled
 {
@@ -21,8 +21,7 @@ public class IntroModel(IntroService intro, TenantContext tenant) : PageModel, I
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        if (await intro.GetAsync(includeHidden: true, ct) is not { } row) return NotFound();
-        Item = row;
+        Item = await intro.GetAsync(includeHidden: true, ct) ?? new TenantIntro { TenantId = tenant.Current.Id, Title = tenant.Current.Name };   // 줄이 없으면 처음 저장할 때 만든다(ADR 0142)
         return Page();
     }
 
@@ -36,7 +35,7 @@ public class IntroModel(IntroService intro, TenantContext tenant) : PageModel, I
             (Errors, Last) = (errors, input);
         }
         catch (KeyNotFoundException) { return NotFound(); }
-        Item = (await intro.GetAsync(includeHidden: true, ct))!;
+        Item = await intro.GetAsync(includeHidden: true, ct) ?? new TenantIntro { TenantId = tenant.Current.Id, Title = tenant.Current.Name };
         return Page();
     }
 }

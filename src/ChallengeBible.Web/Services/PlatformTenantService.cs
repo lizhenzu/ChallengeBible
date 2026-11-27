@@ -11,6 +11,8 @@ public sealed record TenantRow(int Id, string Name, string Slug, string JoinCode
     public bool JoinListed { get; init; }
     /// <summary>도전!!!성경필사를 켰는가(ADR 0099).</summary>
     public bool CopyEnabled { get; init; }
+    /// <summary>메인화면의 「부모님과 함께하는 미션북」 칸 보이기(ADR 0142).</summary>
+    public bool MissionBookEnabled { get; init; }
 }
 
 public sealed record NewTenant(string Name, string Slug, string TimeZoneId, string ThemeColor, bool Mission, bool Reading, string? AdminEmail, bool Copy = true);
@@ -61,7 +63,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
             .Select(a => new { a.TenantId, a.Id, DisplayName = AppUser.FullName(a.LastName, a.FirstName), a.Email }).ToList();
         return tenants.Select(t => new TenantRow(t.Id, t.Name, t.Slug, t.JoinCode.Trim(), t.ThemeColor, t.MissionEnabled, t.ReadingEnabled, t.Status,
                 counts.GetValueOrDefault(t.Id),
-                admins.Where(a => a.TenantId == t.Id).Select(a => (a.Id, a.DisplayName, a.Email)).ToList(), t.CreatedUtc, t.TimeZoneId) { JoinListed = t.JoinListed, CopyEnabled = t.CopyEnabled })
+                admins.Where(a => a.TenantId == t.Id).Select(a => (a.Id, a.DisplayName, a.Email)).ToList(), t.CreatedUtc, t.TimeZoneId) { JoinListed = t.JoinListed, CopyEnabled = t.CopyEnabled, MissionBookEnabled = t.MissionBookEnabled })
             .ToList();
     }
 
@@ -153,6 +155,15 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         (t.MissionEnabled, t.ReadingEnabled, t.CopyEnabled) = (mission, reading, c);
         await ctx.SaveChangesAsync(ct);
         return null;
+    }
+
+    /// <summary>메인화면의 「부모님과 함께하는 미션북」 칸 보이기 켜기 · 끄기(ADR 0142, 처음엔 유년부만).</summary>
+    public async Task SetMissionBookAsync(string actor, int tenantId, bool on, CancellationToken ct = default)
+    {
+        await using var ctx = await OpenAsync(actor, ct);
+        var t = await ctx.Tenants.SingleAsync(x => x.Id == tenantId, ct);
+        t.MissionBookEnabled = on;
+        await ctx.SaveChangesAsync(ct);
     }
 
     /// <summary>참여 신청 화면의 부서 목록에 보이기 켜기 · 끄기(0059).</summary>
