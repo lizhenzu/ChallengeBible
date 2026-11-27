@@ -3,8 +3,8 @@
 @* 미션 화면 위쪽: 홈으로 · 미션홈 / 글자 크기 → 오늘의 ○○ · 달력 배지 · 제목 · 범위.
    모양은 옛 사이트 DailyMission4 "밝은 흰색 버전" 그대로(mission-old.css, 모든 부서) *@
 @* 옛 사이트처럼 Gothic A1 글꼴 파일은 불러오지 않는다(없으면 맑은 고딕으로 보임) — 날짜 쪽지 숫자용 Inter 만 *@
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500&display=swap">
 <link rel="stylesheet" href="~/css/mission-old.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/mission-mint.css" asp-append-version="true" />
 @{
     var shortTitle = Model.Label.Contains("퀴즈") ? "퀴즈" : Model.Label.Contains("기도") ? "기도" : Model.Label.Contains("암송") ? "암송" : "말씀";
     ViewData["PbTitle"] = shortTitle;
@@ -12,17 +12,14 @@
     ViewData["PbButton"] = new[] { "미션홈", p.Link("word-mission") };
 }
 <partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): 글자 크기 도구는 아래 제목 줄로 옮김: ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
-<div class="mhead gut"><div class="wrap">
-    <div class="krow"><div class="k">@Model.Label</div>
+<div class="mhead gut mm"><div class="wrap">
+    @* 2026-11-27 민트 시안: 한 줄 「구분 이름 | 날짜」 + 오른쪽 글자 크기. 예전 날짜 쪽지(2026.11 / 27 / 금요일)는 없앴다. *@
+    <div class="krow"><div class="kl"><span class="k">@Model.Label</span><i class="ksep" aria-hidden="true"></i><span class="kd">@(Model.DateText ?? p.Day.ToString("M월 d일 (ddd)", ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko))</span></div>
     <div class="fs" role="group" aria-label="글자 크기">
-        <button type="button" data-fs="-1" aria-label="글자 작게">가−</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
+        <button type="button" data-fs="-1" aria-label="글자 작게">가-</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
     </div></div>
-    <div class="ttl">
-        <div class="cal" aria-label="@p.Day.ToString("yyyy년 M월 d일 dddd", ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko)">
-            <div class="m num">@p.Day.ToString("yyyy.MM")</div><div class="d num">@p.Day.ToString("dd")</div><div class="w @(dow == DayOfWeek.Sunday ? "sun" : dow == DayOfWeek.Saturday ? "sat" : "")">@p.Day.ToString("dddd", ChallengeBible.Web.Pages.Mission.MissionPageBase.Ko)</div>
-        </div>
-        <div><h1>@Model.Title@if (Model.TitleEn is not null) { <span class="en"> (@Model.TitleEn)</span> }</h1>@if (Model.Ref is not null) { <div class="ref">@Model.Ref</div> }</div>
-    </div>
+    <h1>@Model.Title@if (Model.TitleEn is not null) { <span class="en"> (@Model.TitleEn)</span> }</h1>
+    @if (Model.Ref is not null) { <div class="ref">@Model.Ref</div> }
     @await Html.PartialAsync("_DayCard", p)   @* R-75 *@
     @* 참여자가 다른 날을 볼 때 "보기만" 안내는 주황 카드에 들어 있어 또 쓰지 않는다 *@
     @if (!p.CanAct && !(p.UserName is not null && !p.IsToday && p.Data!.Window is ChallengeBible.Domain.Missions.WindowResult.Future or ChallengeBible.Domain.Missions.WindowResult.TooOld))

@@ -1,0 +1,150 @@
+/* 말씀 · 퀴즈 · 기도 · 암송 화면 — 2026-11-27 사용자 새 시안(민트)으로 교체. mission-old.css 다음에 읽어 같은 이름의 규칙을 덮어쓴다(.mbody 가 있는 화면만).
+   기능 · 점수 규칙 · 데이터는 그대로, 디자인만 바꾼다. 바탕 흰색 · 포인트 민트 #0D7A68 · 진한 민트 #095C4E · 연민트 #E3F3EE · 옅은 테두리 #9FD3C6 · 본문 #12302A · 보조 #3F665D.
+   모서리 5px · 글꼴 Noto Sans KR · 스크롤바 숨김(스크롤은 유지) · 터치 칸 44px 이상. */
+body:has(.mbody) {
+  --accent: #0D7A68; --accent-tx: #0D7A68; --accent-bg: #E3F3EE; --no: #0D7A68; --no-tx: #0D7A68;
+  --green: #0D7A68; --green-tx: #0D7A68; --green-no: #0D7A68; --green-no-tx: #0D7A68; --pickbg: #E3F3EE; --pickbg-press: #D6EDE6; --ok-bg: #E3F3EE;
+  background: #FFFFFF; color: #12302A; scrollbar-width: none; -ms-overflow-style: none; overflow-x: hidden;
+  font-family: 'Noto Sans KR', system-ui, sans-serif;
+}
+html:has(.mbody) { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hidden; }
+html:has(.mbody)::-webkit-scrollbar, body:has(.mbody)::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+/* ── 상단 바(☰ 성경미션 › 말씀 · ⌂ 미션홈): 흰 배경 + 아래 1px ── */
+body:has(.mbody) .top.pb { background: #FFFFFF; border-bottom: 1px solid #E3EAE8; box-shadow: none; }
+body:has(.mbody) .pb .par { font-size: 15px; font-weight: 500; color: #12302A; }
+body:has(.mbody) .pb .sep { color: #12302A; opacity: .6; }
+body:has(.mbody) .pb .cur { font-size: 15px; font-weight: 900; color: #12302A; }
+body:has(.mbody) .pb .hb { color: #12302A; font-size: 14px; font-weight: 700; }
+
+/* ── 상단 영역: 「구분 이름 | 날짜」 + 글자 크기, 제목 24px, 구절 범위 민트 굵은 글씨 ── */
+body:has(.mbody) .mhead.mm { padding-top: 16px; padding-bottom: 18px; border-bottom: 1px solid #E3EAE8; background: #FFFFFF; }
+body:has(.mbody) .mhead.mm .wrap { padding-block: 0; }
+body:has(.mbody) .mhead .krow { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 0; }
+body:has(.mbody) .mhead .kl { display: inline-flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; font-weight: 700; color: #3F665D; }
+body:has(.mbody) .mhead .kl .k { margin-top: 0; font-size: 13px; font-weight: 700; letter-spacing: 0; color: #0D7A68; white-space: nowrap; }
+body:has(.mbody) .mhead .ksep { width: 1px; height: 12px; background: #B4DFD4; flex: none; }
+body:has(.mbody) .mhead .kd { white-space: nowrap; }
+body:has(.mbody) .mhead h1 { margin: 10px 0 0; font-size: 24px; font-weight: 900; letter-spacing: -.5px; line-height: 1.3; color: #12302A; }
+body:has(.mbody) .mhead h1 .en { font-size: 15px; font-weight: 700; color: #3F665D; letter-spacing: 0; }
+body:has(.mbody) .mhead .ref { margin-top: 6px; padding: 0; background: none; font-size: 14px; font-weight: 700; color: #0D7A68; }
+/* 글자 크기 버튼: 연민트 배경 · 테두리 없음 · 가운데 %의 양옆에만 얇은 세로선 · 높이 44px(80 ~ 130%, mission.js) */
+body:has(.mbody) .mhead .fs { --rr: 5px; margin: 0; padding: 0; display: flex; align-items: center; border-radius: 5px; overflow: hidden; background: #E3F3EE; }
+body:has(.mbody) .mhead .fs button { height: 44px; min-width: 44px; padding: 0; border: 0; border-radius: 0; background: transparent; font-size: 13px; font-weight: 900; color: #0D7A68; cursor: pointer; }
+body:has(.mbody) .mhead .fs .pct { min-width: 40px; height: auto; padding: 0 6px; font-size: 12px; font-weight: 700; line-height: 22px; color: #3F665D; border-left: 1px solid #7FBFB0; border-right: 1px solid #7FBFB0; border-radius: 0; }
+body:has(.mbody) .mhead .fs button::after { display: none; }
+body:has(.mbody) .note-day, body:has(.mbody) .note-block { margin-top: 14px; border-radius: 5px; padding: 10px 12px; background: #F3F8F7; color: #3F665D; font-size: 12.5px; }
+body:has(.mbody) .note-day a { color: #0D7A68; }
+
+/* ── 구역: 01 · 02 · 03(번호 민트) · 아래 옅은 줄 ── */
+body:has(.mbody) .mbody .wrap { padding-block: 0; }
+body:has(.mbody) .sec { padding: 20px 0; border-top: 0; border-bottom: 1px solid #E3EAE8; gap: 0; }
+body:has(.mbody) .mbody .wrap > .sec:last-child { border-bottom: 0; }
+body:has(.mbody) .sec h2 { margin: 0; font-size: 16px; font-weight: 900; color: #12302A; gap: 8px; align-items: baseline; }
+body:has(.mbody) .sec h2 .n { font-size: 15px; font-weight: 900; letter-spacing: 0; color: #0D7A68; }
+body:has(.mbody) .sec h2 small, body:has(.mbody) .sec.done h2 small, body:has(.mbody) .sec h2 small.ok { font-size: 12px; font-weight: 700; color: #3F665D; }
+body:has(.mbody) .sec.done h2 small, body:has(.mbody) .sec h2 small.ok { color: #0D7A68; }
+body:has(.mbody) .sec h2 small.warn { color: #B42318; }
+body:has(.mbody) .mbody .empty { padding: 26px 0; color: #3F665D; border-top: 0; border-bottom: 1px solid #E3EAE8; }
+body:has(.mbody) .story { margin: 12px 0 0; font-size: calc(15px * var(--fs)); line-height: 1.75; color: #12302A; }
+body:has(.mbody) .more { display: block; margin: 10px auto 0; padding: 0 12px; min-height: 44px; border: 0; background: transparent; font-size: 13px; font-weight: 700; color: #0D7A68; cursor: pointer; }
+body:has(.mbody) .wlnk { margin-top: 12px; font-size: calc(15px * var(--fs)); font-weight: 700; color: #0D7A68; border-bottom-color: #0D7A68; }
+
+/* 성경 본문 상자(말씀 02 · 기도 본문 · 암송 외울 구절): 연한 바탕 + 옅은 테두리 · 절 번호 민트 */
+.wvbox { margin: 12px 0 0; border-radius: 5px; background: #F3F8F7; padding: 12px 14px 2px; box-shadow: none; border: 1.5px solid #CFE8E1; }
+.wvbox .ref { font-size: 12px; font-weight: 700; color: #0D7A68; }
+.wvbox p { margin: 6px 0 0; font-size: calc(16px * var(--fs, 1)); line-height: 1.8; font-weight: 400; color: #12302A; word-break: keep-all; }
+.wvbox p i { margin-right: 4px; vertical-align: baseline; font-size: 12px; font-weight: 700; color: #0D7A68; }
+.wvbox .more { margin: 0; padding: 0 2px; min-height: 44px; display: flex; align-items: center; justify-content: flex-end; font-size: 13px; font-weight: 700; color: #0D7A68; }
+body:has(.mbody) .vlines { margin-top: 12px; padding: 12px 14px; gap: 4px; border-radius: 5px; background: #F3F8F7; border: 1.5px solid #CFE8E1; }
+body:has(.mbody) .vlines[hidden] { display: none; }
+body:has(.mbody) .vlines p { font-size: calc(16px * var(--fs)); line-height: 1.8; color: #12302A; }
+body:has(.mbody) .vlines .num { color: #0D7A68; font-weight: 700; }
+body:has(.mbody) .rdmore { color: #0D7A68; font-size: 13px; font-weight: 700; }
+body:has(.mbody) .rverse, body:has(.mbody) .story.big { margin-top: 12px; padding: 12px 14px; border-radius: 5px; background: #F3F8F7; border: 1.5px solid #CFE8E1; }
+body:has(.mbody) .rverse p { font-size: calc(16px * var(--fs)); line-height: 1.8; color: #12302A; }
+body:has(.mbody) .rverse i { color: #0D7A68; font-weight: 700; }
+body:has(.mbody) .story.big { font-size: calc(16px * var(--fs)); line-height: 1.8; }
+body:has(.mbody) .gls { margin-top: 12px; }
+body:has(.mbody) .gls p { border-left: 3px solid #CFE8E1; color: #12302A; font-size: calc(15px * var(--fs)); line-height: 1.75; }
+body:has(.mbody) .gls b { color: #0D7A68; }
+/* 기도문: 이름 부분 민트 굵게 · 아멘 오른쪽 */
+body:has(.mbody) .story.pray { margin-top: 12px; font-size: calc(15px * var(--fs)); line-height: 1.75; font-weight: 400; color: #12302A; }
+body:has(.mbody) .story.pray + .story.pray { margin-top: 14px; }
+body:has(.mbody) .story .nm { color: #0D7A68; font-weight: 900; background: none; padding: 0; }
+body:has(.mbody) .story .amen { text-align: right; font-weight: 700; }
+
+/* ── 확정 버튼 스타일(말씀 · 기도 · 암송 선택 버튼): 안 누름 = 연민트 + 오른쪽 아래 옅은 그림자, 누름 = 진한 민트 + 안쪽 그림자 ── */
+body:has(.mbody) .picks { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+body:has(.mbody) .pick { width: 100%; min-height: 52px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 14px; border-radius: 5px; border: 1.5px solid #9FD3C6; background: #E3F3EE; color: #12302A; text-align: left; cursor: pointer;
+  box-shadow: 2px 2px 3px rgba(13, 122, 104, .22), 4px 4px 8px rgba(13, 122, 104, .1); }
+body:has(.mbody) .pick b { font-size: calc(15px * var(--fs)); font-weight: 700; color: inherit; white-space: normal; }
+body:has(.mbody) .pick .pt { flex: none; font-size: 13px; font-weight: 700; color: inherit; }
+body:has(.mbody) .pick[aria-pressed="true"] { background: #0D7A68; border-color: #0D7A68; color: #FFFFFF; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .22); }
+body:has(.mbody) .pick[aria-pressed="true"] b, body:has(.mbody) .pick[aria-pressed="true"] .pt { color: #FFFFFF; }
+body:has(.mbody) .pick:disabled:not([aria-pressed="true"]) { opacity: .5; box-shadow: none; }
+body:has(.mbody) .pick:focus-visible, body:has(.mbody) .qgo:focus-visible { outline: 2px solid #095C4E; outline-offset: 2px; }
+body:has(.mbody) .pnote { margin: 12px 0 0; text-align: center; font-size: 12px; color: #3F665D; }
+body:has(.mbody) .sec.done .pnote { color: #0D7A68; font-weight: 700; }
+body:has(.mbody) .uhint { margin: 8px 0 0; font-size: 12px; color: #5F6F6B; }
+
+/* ── 퀴즈: 보기 4개(번호 민트) · 답 제출하기 ── */
+body:has(.mbody) .qbg, body:has(.mbody) .qq { margin: 12px 0 0; font-size: calc(15px * var(--fs)); line-height: 1.75; font-weight: 400; color: #12302A; }
+body:has(.mbody) .qopts { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+body:has(.mbody) .qopt { width: 100%; min-height: 52px; box-sizing: border-box; display: flex; align-items: center; gap: 6px; padding: 0 16px; border-radius: 5px; border: 1px solid #D6EDE6; background: #E3F3EE; box-shadow: none; cursor: pointer; }
+body:has(.mbody) .qopt i { width: 26px; flex: none; font-size: 14px; font-weight: 900; font-style: normal; color: #0D7A68; }
+body:has(.mbody) .qopt .t { font-size: calc(15px * var(--fs)); font-weight: 700; color: #12302A; }
+body:has(.mbody) .qopt.sel { background: #0D7A68; border: 1.5px solid #0D7A68; box-shadow: none; }
+body:has(.mbody) .qopt.sel .t, body:has(.mbody) .qopt.sel i { color: #FFFFFF; }
+body:has(.mbody) .qopt.ans { background: #E3F3EE; border: 1.5px solid #0D7A68; }
+body:has(.mbody) .qopt.ans .t, body:has(.mbody) .qopt.ans i, body:has(.mbody) .qopt.ans small { color: #095C4E; }
+body:has(.mbody) .qopt.bad { background: #FDEEF0; border: 1px solid #F3C4C4; }
+body:has(.mbody) .qopt.bad .t, body:has(.mbody) .qopt.bad i, body:has(.mbody) .qopt.bad small { color: #B42318; }
+body:has(.mbody) .qopt.dim { opacity: .55; }
+body:has(.mbody) .qtext { margin-top: 14px; min-height: 52px; padding: 0 16px; border: 1px solid #D6EDE6; border-radius: 5px; background: #E3F3EE; font-size: 16px; color: #12302A; }
+body:has(.mbody) .qtext:focus { background: #FFFFFF; box-shadow: inset 0 0 0 2px #0D7A68; outline: 0; }
+body:has(.mbody) .qhint { border-radius: 5px; background: #F3F8F7; color: #12302A; }
+body:has(.mbody) .msg { margin: 10px 0 0; text-align: center; font-size: 12.5px; color: #3F665D; }
+body:has(.mbody) .msg.ok { color: #0D7A68; font-weight: 700; }
+body:has(.mbody) .msg.bad { color: #B42318; }
+/* 답 제출하기: 고르기 전 = 연한 면 · 회색 글자 · 옅은 음영 / 고른 뒤 = 진한 민트 · 흰 글자 · 오른쪽 아래 음영 */
+body:has(.mbody) .qgo { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 52px; margin-top: 20px; padding: 0; border-radius: 5px; font-size: 16px; font-weight: 900; text-decoration: none;
+  border: 1.5px solid #0D7A68; background: #0D7A68; color: #FFFFFF; cursor: pointer; box-shadow: 2px 2px 3px rgba(13, 122, 104, .3), 4px 4px 8px rgba(13, 122, 104, .14); }
+body:has(.mbody) .qgo:disabled { border: 1.5px solid #CFE8E1; background: #F3F8F7; color: #9AAFA9; cursor: default; opacity: 1; box-shadow: 2px 2px 3px rgba(13, 122, 104, .14), 4px 4px 8px rgba(13, 122, 104, .06); }
+body:has(.mbody) .qgo em { font-style: normal; font-size: 16px; }
+body:has(.mbody) .qnote { margin: 10px 0 0; text-align: center; font-size: 12px; color: #3F665D; }
+body:has(.mbody) .qnote[hidden] { display: none; }
+
+/* ── 아래 탭(말씀 · 퀴즈 · 기도 · 암송 · 미션 홈): 화면 아래 고정, 윗선 3px — 지금 탭 민트 · 나머지 투명 ── */
+body:has(.mbody) .mnav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; max-width: none; margin: 0; padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)); background: #FFFFFF; border-top: 1px solid #E3EAE8; }   /* 화면 아래 고정 */
+body:has(.mbody) { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+body:has(.mbody) .mnav a { flex: 1; min-height: 56px; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: #12302A; border-top: 3px solid transparent; margin-top: -1px; }
+body:has(.mbody) .mnav a[aria-current="page"] { border-top-color: #0D7A68; }
+body:has(.mbody) .mnav a[aria-current="page"]::before { display: none; }
+body:has(.mbody) .mnav .L, body:has(.mbody) .mnav a.dn .L, body:has(.mbody) .mnav a.hm .L, body:has(.mbody) .mnav a[aria-current="page"] .L { font-size: 15px; font-weight: 700; color: #12302A; }
+body:has(.mbody) .mnav .S { margin-top: 0; font-size: 12px; font-weight: 700; color: #5F6F6B; opacity: 1; }
+body:has(.mbody) .mnav a[aria-current="page"] .S, body:has(.mbody) .mnav a[aria-current="page"] .S:not(.done), body:has(.mbody) .mnav a.dn .S.done, body:has(.mbody) .mnav .S.done { color: #0D7A68; font-weight: 700; opacity: 1; }
+body:has(.mbody) .mnav a.hm .S { color: #5F6F6B; }
+body:has(.mbody) .toast { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+
+/* ── 미션 완료 안내 창(말씀 완료 팝업 · 퀴즈 · 기도 · 암송 같은 모양, 10초 뒤 저절로 닫힘 — mission.js okPopup) ── */
+.okpop-bg { background: rgba(18, 48, 42, .55); }
+.okpop { width: min(380px, 92vw); padding: 28px 22px 18px; border-radius: 5px; box-shadow: none; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #12302A; }
+.okpop .seal { width: 84px; height: 84px; border: 3px solid #0D7A68; background: #E3F3EE; color: #0D7A68; font-size: 16px; font-weight: 900; line-height: 1.25; transform: none; }
+.okpop .what { margin-top: 14px; font-size: 12px; color: #3F665D; }
+.okpop h2 { margin: 4px 0 0; font-size: 20px; font-weight: 900; color: #12302A; }
+.okpop .pill { margin-top: 10px; padding: 5px 14px; border-radius: 5px; background: #DDF2EC; color: #0D7A68; font-size: 14px; font-weight: 900; }
+.okpop .tot { margin-top: 18px; padding-top: 14px; border-top: 1px solid #E3EAE8; font-size: 12px; color: #3F665D; }
+.okpop .tot b { margin-top: 4px; font-size: 34px; font-weight: 500; color: #0D7A68; }
+.okpop .tot b u { margin-left: 3px; font-size: 14px; color: #3F665D; }
+.okpop-close { min-height: 52px; border-radius: 5px; }
+.okpop .okpop-close { margin-top: 18px; background: #4FA391; }   /* 남은 부분은 옅은 민트 */
+.okpop .okpop-close i { background: #0D7A68; }                     /* 진한 민트가 10초 동안 오른쪽에서 왼쪽으로 줄어든다 */
+.okpop .okpop-close span { text-shadow: none; color: #FFFFFF; font-size: 16px; font-weight: 900; }
+.okpop-close:focus-visible { outline: 3px solid #095C4E; outline-offset: 2px; }
+.okpop .cd { margin-top: 10px; font-size: 12px; color: #5F6F6B; }
+.okpop.undo { padding: 22px 20px 16px; }
+.okpop.undo p b { color: #B42318; }
+.okpop.undo .bt button { min-height: 48px; border-radius: 5px; border: 1px solid #CFE8E1; background: #F3F8F7; color: #12302A; }
+.okpop.undo .bt button.no { background: #B42318; border-color: #B42318; color: #fff; }
+.okpop.undo .bt button:focus-visible { outline: 3px solid #095C4E; }

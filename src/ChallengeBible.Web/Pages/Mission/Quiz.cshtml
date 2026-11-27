@@ -73,8 +73,9 @@
             <p class="msg @(s.Solved ? "ok" : "")" id="qmsg" role="status">@(s.Solved ? $"정답! +{pts}점" : finished ? $"오늘은 {s.MaxAttempts}번 도전했어요. 내일 새 퀴즈에 도전해요" : "")</p>
             <button type="button" class="qgo" id="qgo" disabled>
                 @if (finished) { @(s.Solved ? "정답을 맞혔어요" : $"오늘은 {s.MaxAttempts}번 도전했어요") <em aria-hidden="true">✓</em> }
-                else { <text>답 제출하기 <em aria-hidden="true">→</em></text> }
+                else { <text>답 제출하기</text> }
             </button>
+            @if (!finished) { <p class="qnote" id="qnote">@(Model.CanAct ? "답을 먼저 골라 주세요" : "")</p> }
         </section>
         <section class="sec done" id="explain" @(finished && q.Explanation is not null ? "" : "hidden")>
             <h2><span class="n">@N()</span>해설 <small id="resTag" class="@(s.Solved ? "ok" : "warn")">@(s.Solved ? $"정답 +{pts}점" : "점수 없음")</small></h2>

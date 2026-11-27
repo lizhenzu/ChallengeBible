@@ -374,6 +374,8 @@
     const refresh = () => {
       quiz.querySelectorAll('.qopt').forEach((l) => l.classList.toggle('sel', !!l.querySelector('input:checked')));
       go.disabled = quiz.dataset.finished === '1' || (text ? text.disabled || !text.value.trim() : !picked());
+      const note = document.getElementById('qnote');   // 2026-11-27 민트 시안: 답을 먼저 골라 주세요 → 고른 답을 확인하고 제출해 주세요
+      if (note) { note.hidden = quiz.dataset.finished === '1'; note.textContent = go.disabled ? '답을 먼저 골라 주세요' : '고른 답을 확인하고 제출해 주세요'; }
     };
     const finish = (json, solved) => {
       quiz.dataset.finished = '1';
@@ -430,21 +432,24 @@
   }
 
   // 글자 크기: − 5%씩, + 10%씩, 각 5번(75% ~ 150%), 가운데 = 100% (R-167). 이 기기에 기억.
-  const steps = [75, 80, 85, 90, 95, 100, 110, 120, 130, 140, 150];
+  // 2026-11-27 민트 시안(말씀 · 퀴즈 · 기도 · 암송): 80% ~ 130% 10%씩, 가운데 100%. 통독 · 필사는 예전 단계(75 ~ 150%) 그대로.
+  const mint = !!document.querySelector('.mhead.mm');
+  const steps = mint ? [80, 90, 100, 110, 120, 130] : [75, 80, 85, 90, 95, 100, 110, 120, 130, 140, 150];
+  const mid = mint ? 2 : 5, top = steps.length - 1;
   // 성경통독은 기본 크기가 작아져(--rs, ADR 0089) 따로 기억한다. 전에 고른 크기는 보이는 크기가 비슷하게 옮긴다(그대로 100% 였으면 새 100%).
   const reading = getComputedStyle(document.documentElement).getPropertyValue('--rs').trim();
-  const fsKey = reading ? 'cb.fs.rd' : 'cb.fs';
-  const clampStep = (n) => (Number.isNaN(n) ? 5 : Math.max(0, Math.min(10, n)));
+  const fsKey = mint ? 'cb.fs.mm' : reading ? 'cb.fs.rd' : 'cb.fs';
+  const clampStep = (n) => (Number.isNaN(n) ? mid : Math.max(0, Math.min(top, n)));
   const carried = (old) => {
     if (old === 5) return 5;
     const want = steps[old] / Number(reading);
     return steps.reduce((best, s, k) => (Math.abs(s - want) < Math.abs(steps[best] - want) ? k : best), 0);
   };
-  let i = 5;
+  let i = mid;
   try {
     const saved = localStorage.getItem(fsKey);
     if (saved !== null) i = clampStep(Number(saved));
-    else if (reading) i = carried(clampStep(Number(localStorage.getItem('cb.fs') ?? 5)));
+    else if (reading && !mint) i = carried(clampStep(Number(localStorage.getItem('cb.fs') ?? 5)));
   } catch { /* 저장 못 해도 화면은 된다 */ }
   const pct = document.querySelector('.fs .pct');
   const apply = () => {
@@ -454,7 +459,7 @@
   };
   document.querySelectorAll('.fs button').forEach((b) => b.addEventListener('click', () => {
     const v = Number(b.dataset.fs);
-    i = v === 0 ? 5 : Math.max(0, Math.min(10, i + v));
+    i = v === 0 ? mid : Math.max(0, Math.min(top, i + v));
     apply();
   }));
   apply();

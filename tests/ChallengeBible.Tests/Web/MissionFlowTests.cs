@@ -490,6 +490,22 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("기회 2번", html);
     }
 
+    [Fact]   // 2026-11-27 민트 시안: 상단은 「구분 이름 | 날짜」 한 줄 + 글자 크기, 날짜 쪽지는 없다
+    public async Task 민트_시안_상단은_구분_이름과_날짜_한_줄이고_날짜_박스는_없다()
+    {
+        var c = await Member("mint1", Roles.Participant);
+        var word = await c.GetStringAsync("/jamsil-kids/word");
+        Assert.Contains("<span class=\"k\">오늘의 말씀</span><i class=\"ksep\" aria-hidden=\"true\"></i><span class=\"kd\">1월 5일 (화)</span>", word);
+        Assert.DoesNotContain("class=\"cal\"", word);                        // 옛 날짜 쪽지(2026.11 / 5 / 화요일)
+        Assert.Contains("data-fs=\"-1\"", word);
+        Assert.Contains("href=\"/css/mission-mint.css", word.Replace("mission-mint.css?v", "mission-mint.css"));   // 민트 스타일
+        var quiz = await c.GetStringAsync("/jamsil-kids/quiz");
+        Assert.Contains("<span class=\"k\">오늘의 퀴즈</span>", quiz);
+        Assert.Contains("id=\"qnote\"", quiz);                               // 「답을 먼저 골라 주세요」 안내
+        Assert.Contains("답을 먼저 골라 주세요", quiz);
+        Assert.DoesNotContain("답 제출하기 <em", quiz);                         // 화살표 없는 버튼 글자
+    }
+
     [Fact]
     public async Task 미션_홈은_옛_모양으로_남은_미션과_달력을_보여준다()
     {
