@@ -147,7 +147,7 @@ public partial class ReadingFontTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
-    public async Task R218_말씀_미션은_크기와_저장이_그대로다()
+    public async Task R218_말씀_미션은_민트_시안_크기_단계를_따로_저장한다()
     {
         if (!EdgePage.Available) return;
         var c = await Kid();
@@ -158,8 +158,9 @@ public partial class ReadingFontTests : IClassFixture<WebApplicationFactory<Prog
             var pill = document.createElement('a'); pills.appendChild(pill); wrap.appendChild(pills);
             eq('mission keeps corner', getComputedStyle(pill).borderTopLeftRadius, '99px');
             eq('no scale', rs, '');
-            eq('label', q('.fs .pct').textContent, '85%');
-            eq('saved', stored('cb.fs'), '2');
+            eq('label', q('.fs .pct').textContent, '100%');   // 민트 시안(2026-11-27): 말씀 · 퀴즈 · 기도 · 암송은 80~130% 새 단계, 예전 저장 값(cb.fs)은 쓰지 않는다
+            eq('saved', stored('cb.fs.mm'), '2');
+            eq('old key untouched', stored('cb.fs'), '2');
             eq('reading key untouched', stored('cb.fs.rd'), null);
             eq('body size', getComputedStyle(document.body).fontSize, '15px');
             """));
