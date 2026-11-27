@@ -9,7 +9,7 @@ namespace ChallengeBible.Web.Pages.Mission;
 /// `/{slug}/gifts/team/{id}` 가족팀 · 친구팀 선물 고르기(확정 시안 가족팀-선물고르기 ② ~ ④, R-291). 내 팀 선물만.
 /// 금액 · 가격은 보이지 않는다(사용자 질문 1 → ③). 고른 뒤에는 누가 골랐는지 · [다른 선물로 바꾸기](구매 전까지 구성원 누구나).
 /// </summary>
-public class TeamGiftModel(TeamGiftService gifts, FamilyTeamService teams, TenantContext tenant) : PageModel, ITitled
+public class TeamGiftModel(TeamGiftService gifts, FamilyTeamService teams, TenantContext tenant, TimeProvider time) : PageModel, ITitled
 {
     public string Title => Gift?.Friend == true ? "친구팀 선물 고르기" : "가족 선물 고르기";
     public string Slug => tenant.Current.Slug;
@@ -21,6 +21,9 @@ public class TeamGiftModel(TeamGiftService gifts, FamilyTeamService teams, Tenan
     public IReadOnlyList<string> Members { get; private set; } = [];
     /// <summary>같은 팀의 다른 선물(여러 단계를 넘었을 때): 아직 안 고른 것 · 고른 것.</summary>
     public IReadOnlyList<TeamGiftView> Others { get; private set; } = [];
+    /// <summary>이번 시즌 팀 점수(요약 「팀 점수」) · 오늘(맨 위 오른쪽 날짜).</summary>
+    public int TeamPoints { get; private set; }
+    public DateOnly Today => ChallengeBible.Domain.Time.TenantClock.ToTenantDate(time.GetUtcNow(), tenant.Current.TimeZoneId);
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
@@ -32,6 +35,7 @@ public class TeamGiftModel(TeamGiftService gifts, FamilyTeamService teams, Tenan
         Others = mine.Where(g => g.Id != Id && g.State is "Open" or "Picked" or "Purchased").OrderBy(g => g.Stage).ToList();
         if (Gift.State == "Open" || (Change && Gift.State == "Picked")) Items = await gifts.ItemsAsync(Gift.MaxAmount, ct);
         Members = Gift.TeamId is int tid ? await teams.MemberNamesAsync(tid, ct) : [];
+        TeamPoints = (await teams.MyFamilyAsync(ct))?.Total ?? 0;
         return Page();
     }
 

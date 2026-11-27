@@ -1,0 +1,73 @@
+@page "/{slug}/family-invite/{id:int}"
+@model FamilyInviteModel
+@using ChallengeBible.Web.Services
+@* 팀 초대 · 참여하기(2026-11-27 사용자 민트 시안): 초대한 사람 · 팀 이름 · 팀 종류 → 팀원 수 · 팀 점수 · 팀원 → [참여하기] [다음에 할게요].
+   참여하면 「○○에 참여했어요」 → 홈(성경미션 홈). 「팀은 한 곳만 참여할 수 있어요」. *@
+@{
+    var slug = Model.Slug;
+    var inv = Model.Invite;
+    var label = inv is null ? "팀" : Model.Label(inv.Friend);
+    string Initial(string n) => n.Length <= 2 ? n : n[^2..];
+}
+<link rel="stylesheet" href="~/css/mission-home.css" asp-append-version="true" />
+<div class="mh mi">
+<header class="mi-bar">
+    <a class="mi-back" href="/@slug/word-mission" aria-label="뒤로"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#12302A" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <h1>@label 초대</h1>
+</header>
+
+@if (Model.Step == "joined")
+{
+    <section class="mi-done">
+        <div class="mi-check"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <h2>@(Model.JoinedTeam)에 참여했어요</h2>
+        <p>이제 팀원들과 함께 오늘의 미션을 시작해 보세요.</p>
+    </section>
+    <div class="mi-act"><a class="mi-p" href="/@slug/word-mission">홈으로 가기</a></div>
+}
+else if (Model.Step == "later")
+{
+    <section class="mi-done">
+        <h2 class="plain">초대를 나중에 볼게요</h2>
+        <p>오늘은 숨기고 내일 다시 알려 드려요. 팀 보기에서 언제든 확인할 수 있어요.</p>
+    </section>
+    <div class="mi-act"><a class="mi-s" href="/@slug/word-mission">홈으로 가기</a></div>
+}
+else if (inv is not null)
+{
+    <section class="mi-card mi-top">
+        <div class="mi-mail"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0D7A68" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+        <p class="mi-by"><b>@inv.InvitedBy</b>님이 초대했어요</p>
+        <h2>@inv.TeamName</h2>
+        <span class="mi-chip">@label</span>
+    </section>
+
+    <section class="mi-card">
+        <div class="mi-two">
+            <div><div class="k">팀원</div><div class="v num">@inv.Members.Count<small>명</small></div></div>
+            <div><div class="k">팀 점수</div><div class="v num">@inv.Points.ToString("N0")<small>점</small></div></div>
+        </div>
+        <div class="mi-hr"></div>
+        <div class="mi-mh">함께하는 팀원</div>
+        <div class="mi-members">
+            @foreach (var m in inv.Members)
+            {
+                <div class="mi-m"><span class="mi-av">@Initial(m.Name)</span><span class="n">@m.Name</span><span class="r">@(inv.Friend ? "친구" : FamilyTeamService.RelationLabel(m.Relation))</span></div>
+            }
+        </div>
+    </section>
+
+    @if (Model.Error is { } err) { <p class="mh-note">@err</p> }
+    <div class="mi-fill"></div>
+    <div class="mi-act">
+        <p>팀은 한 곳만 참여할 수 있어요</p>
+        <form method="post" asp-page-handler="Accept" asp-route-id="@inv.InviteId">
+            <input type="hidden" name="relation" value="@inv.Relation" />
+            <button type="submit" class="mi-p">참여하기</button>
+        </form>
+        <form method="post" asp-page-handler="Later" asp-route-id="@inv.InviteId">
+            <button type="submit" class="mi-t">다음에 할게요</button>
+        </form>
+    </div>
+}
+</div>

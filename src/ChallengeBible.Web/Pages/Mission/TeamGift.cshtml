@@ -8,8 +8,9 @@
     var who = g.Friend ? "친구팀 선물" : "가족 선물";
     var picking = Model.Items.Count > 0 || g.State == "Open" || (Model.Change && g.State == "Picked");
 }
-<div class="gk-pg">
-    <div class="gk-bar"><a href="/@slug/word-mission">← 미션 홈</a></div>
+<link rel="stylesheet" href="~/css/gift-mint.css" asp-append-version="true" />
+<div class="gk-pg mint">
+    <div class="gk-bar"><a href="/@slug/word-mission">← 미션 홈</a><span class="num">@Model.Today.ToString("yyyy.MM.dd ddd", CultureInfo.InvariantCulture).ToUpperInvariant()</span></div>
     @if (Model.Others.Count > 0)
     {
         <nav class="gk-seg gk-stages" aria-label="팀 선물">
@@ -30,7 +31,11 @@
     {
         <h1>@(g.Friend ? "친구팀 선물 고르기" : "가족 선물 고르기")</h1>
         <p class="gk-sub">@(g.Friend ? "친구팀" : "우리 가족") @g.Stage.ToString("N0")점 달성 선물@(g.OpenUntil is { } u ? $" · {u:M월 d일}까지" : "")@(Model.Others.Count(o => o.State == "Open") is > 0 and var n ? $" · 이것 말고 {n}개 더 골라요" : "")</p>
-        <div class="gk-mine"><span>@(g.Friend ? "내가 받을 선물을 골라요" : "가족이 함께 받을 선물을 골라요")</span></div>
+        var allG = Model.Others.Append(g).ToList();
+        var pickedN = allG.Count(x => x.State is "Picked" or "Purchased");
+        var openN = allG.Count(x => x.State == "Open");
+        <div class="gk-mine"><span>@(g.Friend ? "내가 받을 선물을 골라요" : "가족이 함께 받을 선물을 골라요")</span><em class="num">골라 둔 @(g.Friend ? "친구팀" : "가족") 선물 @pickedN/@allG.Count</em></div>
+        <div class="gk-sum3"><div><span>팀 점수</span><b class="num">@Model.TeamPoints.ToString("N0")</b></div><div><span>고른 선물</span><b class="num">@pickedN</b></div><div class="on"><span>남은 선택</span><b class="num">@openN</b></div></div>
         @if (Model.Members.Count > 0) { <div class="gk-mem">@foreach (var m in Model.Members) { <span>@m</span> }</div> }
         @if (Model.Items.Count == 0) { <p class="gk-note">지금 고를 수 있는 선물이 없어요. 선생님께 말씀해 주세요.</p> }
         <form method="post" class="gk-grid" data-gk-pick>

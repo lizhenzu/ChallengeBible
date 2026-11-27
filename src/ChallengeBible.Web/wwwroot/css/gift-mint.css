@@ -1,0 +1,50 @@
+/* 선물 고르기(/gifts · /gifts/team/{id}) 민트 시안 — 2026-11-27 사용자. .gk-pg.mint · .gk-dim.mint 안에서만 바뀐다(생일 선물 등 다른 화면은 그대로).
+   색: 배경 #F3F8F7 · 포인트 #0D7A68 · 연민트 #D6F0EA · 글자 #12302A / #3F665D · 가족 선물 주황 #C2570C / #FFF4E8. 모서리 5px. */
+body:has(.gk-pg.mint) { background: #F3F8F7; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; }
+body:has(.gk-pg.mint)::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.gk-pg.mint { font-family: 'Noto Sans KR', system-ui, sans-serif; color: #12302A; padding: 6px 16px 40px; letter-spacing: -.01em; }
+.gk-pg.mint .gk-bar { padding: 4px 0 6px; margin-bottom: 14px; border-bottom: 1px solid #E3EAE8; }
+.gk-pg.mint .gk-bar a { display: inline-flex; align-items: center; min-height: 44px; color: #12302A; font-weight: 700; }
+.gk-pg.mint .gk-bar span { color: #3F665D; }
+.gk-pg.mint h1 { font-size: 19px; font-weight: 700; }
+.gk-pg.mint .gk-sub { color: #3F665D; font-size: 13px; }
+.gk-pg.mint .gk-msg { border-radius: 5px; background: #D6F0EA; color: #0D7A68; }
+.gk-pg.mint .gk-note { border-radius: 5px; background: #fff; color: #3F665D; }
+.gk-pg.mint .gk-mine { border-bottom: 1px solid #E3EAE8; }
+.gk-pg.mint .gk-mine span { color: #3F665D; }
+.gk-pg.mint .gk-mine b { color: #0D7A68; font-weight: 900; font-size: 34px; }
+.gk-pg.mint .gk-mine b u { color: #3F665D; }
+.gk-pg.mint .gk-mine em { font-style: normal; font-size: 12px; font-weight: 700; color: #C2570C; }
+.gk-pg.mint .gk-sum3 { background: #D6F0EA; border-radius: 5px; padding: 14px 6px; margin: 6px 0 14px; }
+.gk-pg.mint .gk-sum3 span { color: #3F665D; }
+.gk-pg.mint .gk-sum3 b { color: #12302A; font-weight: 900; font-size: 17px; }
+.gk-pg.mint .gk-sum3 div.on b { color: #0D7A68; }
+.gk-pg.mint .gk-seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; padding: 4px; margin-bottom: 14px; background: #E3EFEC; border-radius: 5px; }
+.gk-pg.mint .gk-seg a { display: flex; align-items: center; justify-content: center; min-height: 44px; border: 0; border-radius: 5px; background: transparent; color: #3F665D; font-size: 14px; font-weight: 700; }
+.gk-pg.mint .gk-seg a[aria-current] { background: #fff; color: #0D7A68; }
+.gk-pg.mint .gk-seg.gk-stages { display: flex; flex-wrap: wrap; gap: 4px; }
+.gk-pg.mint .gk-seg.gk-stages a { flex: 1 1 auto; padding: 0 10px; }
+.gk-pg.mint .gk-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 10px; }
+.gk-pg.mint .gk-it .gk-pic { border-radius: 5px; background: #DDF2EC; }
+.gk-pg.mint .gk-it .gk-nm { color: #12302A; }
+.gk-pg.mint .gk-it .gk-pt { color: #0D7A68; }
+.gk-pg.mint .gk-it.gk-lock .gk-nm, .gk-pg.mint .gk-it.gk-lock .gk-pt { color: #7A8F8A; }
+.gk-pg.mint .gk-mem span { border-radius: 5px; background: #fff; color: #3F665D; }
+.gk-pg.mint .gk-done .gk-pic.gk-big, .gk-pg.mint .gk-pic.big { border-radius: 5px; }
+.gk-pg.mint .gk-st { color: #0D7A68; }
+.gk-pg.mint .gk-steps li.gk-on i { background: #0D7A68; border-color: #0D7A68; }
+.gk-pg.mint .gk-btn, .gk-dim.mint .gk-btn { border-radius: 5px; }
+.gk-pg.mint .gk-btn.gk-pri, .gk-dim.mint .gk-btn.gk-pri { background: #0D7A68; }
+.gk-pg.mint .gk-btn.gk-pur, .gk-dim.mint .gk-btn.gk-pur { background: #C2570C; }
+.gk-pg.mint .gk-btn.gk-plain { border-color: #D4E6E1; color: #3F665D; border-radius: 5px; }
+.gk-pg.mint .gk-btn.gk-ghost { color: #3F665D; }
+
+/* 확인 창(화면 정가운데) */
+.gk-dim.mint .gk-sheet, .gk-dim.mint .gk-pop { border-radius: 5px; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #12302A; }
+.gk-dim.mint .gk-sheet .gk-pic { border-radius: 5px; background: #DDF2EC; }
+.gk-dim.mint .gk-need { color: #0D7A68; font-weight: 900; }
+.gk-dim.mint .gk-need[style] { color: #C2570C !important; }
+.gk-dim.mint .gk-kind { font-style: normal; font-size: 12px; font-weight: 700; color: #0D7A68; background: #DDF2EC; border-radius: 5px; padding: 2px 8px; margin-right: 4px; }
+.gk-dim.mint .gk-desc, .gk-dim.mint .gk-sn { color: #3F665D; }
+.gk-dim.mint .gk-sheet .gk-row2 .gk-btn.gk-ghost { background: #E3EFEC; color: #3F665D; }
+.gk-pg.mint .gk-pic { background: #DDF2EC; }

@@ -89,6 +89,41 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         return id;
     }
 
+    [Fact]   // 팀 초대 · 참여하기(2026-11-27 민트 시안)
+    public async Task 초대_화면에서_참여하면_팀에_합류하고_다음에_할게요는_오늘_숨긴다()
+    {
+        await DadAndKid();
+        await DadInvites("other");
+        var inv = (await As("other").StateAsync()).Invites.Single();
+        var c = await LoggedIn("other@example.com");
+        var page = await c.GetStringAsync($"/jamsil-kids/family-invite/{inv.InviteId}");
+        Assert.Contains("<h1>가족팀 초대</h1>", page);
+        Assert.Contains("<b>김민호</b>님이 초대했어요", page);
+        Assert.Contains("웃음폭탄네", page);
+        Assert.Contains("함께하는 팀원", page);
+        Assert.Contains("팀은 한 곳만 참여할 수 있어요", page);
+        Assert.Contains(">참여하기</button>", page);
+        Assert.Contains(">다음에 할게요</button>", page);
+
+        // 다음에 할게요 → 「나중에 볼게요」 → 홈 배너는 오늘 숨는다
+        var tok = TokenRx().Match(page).Groups[1].Value;
+        var later = await c.PostAsync($"/jamsil-kids/family-invite/{inv.InviteId}?handler=Later", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = tok }));
+        Assert.Equal(HttpStatusCode.Redirect, later.StatusCode);
+        Assert.Contains("초대를 나중에 볼게요", await c.GetStringAsync(later.Headers.Location!.OriginalString));
+        Assert.DoesNotContain("가족팀 초대가 왔어요", await c.GetStringAsync("/jamsil-kids/word-mission"));
+
+        // 참여하기 → 「참여했어요」 → 팀 카드
+        var again = await c.GetStringAsync($"/jamsil-kids/family-invite/{inv.InviteId}");
+        var tok2 = TokenRx().Match(again).Groups[1].Value;
+        var join = await c.PostAsync($"/jamsil-kids/family-invite/{inv.InviteId}?handler=Accept", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = tok2, ["relation"] = inv.Relation }));
+        Assert.Equal(HttpStatusCode.Redirect, join.StatusCode);
+        var done = await c.GetStringAsync(join.Headers.Location!.OriginalString);
+        Assert.Contains("웃음폭탄네에 참여했어요", done);
+        Assert.Contains("홈으로 가기", done);
+        Assert.NotNull((await As("other").StateAsync()).Mine);
+        Assert.Contains("우리 가족팀", await c.GetStringAsync("/jamsil-kids/word-mission"));
+    }
+
     [Fact]
     public async Task R204_참여자는_승인_없이_만들고_바로_첫_구성원이_된다()
     {

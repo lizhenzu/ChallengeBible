@@ -23,7 +23,11 @@ public sealed record FamilyPending(int RequestId, int TeamId, string TeamName, s
 /// <summary>우리 팀이 보내고 수락을 기다리는 초대(R-211).</summary>
 public sealed record FamilySentInvite(int InviteId, string Name, string Relation);
 /// <summary>내가 받은 초대(R-212). Relation = 초대한 사람이 고른 역할(처음 골라 둘 값). SnoozedToday = 오늘 "다음에 할래요"를 눌러 부서 홈 배너에서 숨김.</summary>
-public sealed record FamilyReceivedInvite(int InviteId, string TeamName, string InvitedBy, string Relation, IReadOnlyList<FamilySearchMember> Members, bool SnoozedToday, bool Friend = false);
+public sealed record FamilyReceivedInvite(int InviteId, string TeamName, string InvitedBy, string Relation, IReadOnlyList<FamilySearchMember> Members, bool SnoozedToday, bool Friend = false)
+{
+    /// <summary>이번 시즌 팀 점수(초대 화면 「팀 점수」).</summary>
+    public int Points { get; init; }
+}
 /// <summary>초대할 수 있는 사람(R-211). 이름만 보인다.</summary>
 public sealed record FamilyCandidate(string UserName, string Name);
 /// <summary>IsStudent = 친구팀을 만들고 들어갈 수 있다(R-221).</summary>
@@ -156,7 +160,7 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
                 var friend = IsFriend(t.Team);
                 var ms = t.Members.Select(m => new FamilySearchMember(m.Name, m.M.Relation, m.Pid == t.Team.CreatorUserName)).ToList();
                 invites.Add(new FamilyReceivedInvite(row.Id, FamilyTeamService.DisplayName(t.Team.Name, ms.Select(m => (m.Name, m.Relation)).ToList(), friend), by.GetValueOrDefault(row.FromUserName, row.FromUserName), FamilyRelation.FromKey(row.RelationKey), ms,
-                    snoozedAt is { } at && TenantClock.ToTenantDate(new DateTimeOffset(DateTime.SpecifyKind(at, DateTimeKind.Utc)), tenant.Current.TimeZoneId) == today && row.CreatedAt <= at, friend));
+                    snoozedAt is { } at && TenantClock.ToTenantDate(new DateTimeOffset(DateTime.SpecifyKind(at, DateTimeKind.Utc)), tenant.Current.TimeZoneId) == today && row.CreatedAt <= at, friend) { Points = t.Members.Sum(m => season.GetValueOrDefault(m.Pid)) });
             }
         }
 

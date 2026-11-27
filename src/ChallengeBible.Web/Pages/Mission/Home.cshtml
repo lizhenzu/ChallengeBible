@@ -72,7 +72,7 @@
 @if (Model.Invites.Count > 0)
 {
     var inv = Model.Invites[0];
-    <a class="mh-inv" href="/@slug/family-team">
+    <a class="mh-inv" href="/@slug/family-invite/@inv.InviteId">
         <span class="mh-inv-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>
         <span class="mh-inv-t"><b>@(inv.Friend ? "친구팀" : "가족팀") 초대가 왔어요</b><small>@(Model.Invites.Count > 1 ? $"{Ui.Nim(inv.InvitedBy)} 외 {Model.Invites.Count - 1}팀에서 초대했어요" : $"{Ui.Nim(inv.InvitedBy)}이 함께하자고 초대했어요")</small></span>
         <span class="mh-inv-go">확인 ›</span>
@@ -281,7 +281,7 @@ else if (fam is { PendingTeam: { } pend })
 
 <nav class="mh-tab" aria-label="주 메뉴">
     <a href="/@slug/word-mission" aria-current="page"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>홈</a>
-    <a href="/@slug/gifts"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 12h18M12 8v13M12 8c-1.5-3-5-4-5-1.5S10 8 12 8zM12 8c1.5-3 5-4 5-1.5S14 8 12 8z"/></svg>선물함</a>
+    <a href="/@slug/gift-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 12h18M12 8v13M12 8c-1.5-3-5-4-5-1.5S10 8 12 8zM12 8c1.5-3 5-4 5-1.5S14 8 12 8z"/></svg>선물함</a>
     @if (fam is not null)   @* 가족팀을 끈 부서에는 팀보기 탭이 없다 *@
     {
         <a href="/@slug/family-team"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M15.5 14.6c2.8-.3 5 1.4 6 4.4"/></svg>팀보기</a>

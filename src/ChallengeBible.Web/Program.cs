@@ -83,6 +83,7 @@ builder.Services.AddScoped<OpsService>();
 builder.Services.AddScoped<GiftCatalogService>();
 builder.Services.AddScoped<DeptGiftService>();   // 부서 선물 설정(ADR 0094)   // 선물 상품 관리(ADR 0094 A)
 builder.Services.AddScoped<PersonalGiftService>();   // 개인 선물 고르기(ADR 0094 B)
+builder.Services.AddScoped<GiftBoxService>();   // 선물함(2026-11-27 민트 시안)
 builder.Services.AddScoped<TeamGiftService>();   // 가족팀 · 친구팀 선물(ADR 0094 F)
 builder.Services.AddScoped<GiftOrderService>();   // 선물 구매 · 전달 처리 · 부서 카드(ADR 0094 G)
 builder.Services.AddScoped<QuizAiPromptService>();   // 퀴즈 출제 AI 프롬프트(유년부 그대로)

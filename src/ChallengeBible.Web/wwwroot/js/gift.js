@@ -6,9 +6,10 @@
     const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const n = (v) => Number(v).toLocaleString('ko-KR');
 
+    const mint = !!document.querySelector('.gk-pg.mint');   // 민트 시안(2026-11-27) 선물 화면의 창
     const open = (cls, html, onOk) => {
         const bg = document.createElement('div');
-        bg.className = 'gk-dim ' + cls;
+        bg.className = 'gk-dim ' + cls + (mint ? ' mint' : '');
         bg.innerHTML = html;
         document.body.appendChild(bg);
         const close = () => bg.remove();
@@ -45,12 +46,12 @@
             }
             open('gk-bottom', `<section class="gk-sheet" role="dialog" aria-modal="true" aria-labelledby="gkT">
                 <div class="gk-top"><span class="gk-pic">${d.img ? `<img src="${esc(d.img)}" alt="" onerror="this.remove()">` : ''}</span>
-                  <div><h2 id="gkT">${esc(d.name)}</h2><div class="gk-need">${n(d.need)}점</div></div></div>
+                  <div><h2 id="gkT">${esc(d.name)}</h2><div class="gk-need">${mint ? `<i class="gk-kind">내 선물</i> ` : ''}${n(d.need)}점</div></div></div>
                 ${d.desc ? `<p class="gk-desc">${esc(d.desc)}</p>` : ''}
-                <div class="gk-calc"><div><span>지금 점수</span><span>${n(d.now)}점</span></div>
+                ${mint ? `<p class="gk-sn" style="padding:10px 0;border-top:1px solid #E3EAE8;border-bottom:1px solid #E3EAE8">고르면 쓸 수 있는 점수에서 ${n(d.need)}점이 빠져요.</p>` : `<div class="gk-calc"><div><span>지금 점수</span><span>${n(d.now)}점</span></div>
                   <div><span>이 선물</span><span>− ${n(d.need)}점</span></div>
                   <div class="gk-sum"><span>고른 뒤 남는 점수</span><span>${n(d.left)}점</span></div></div>
-                <p class="gk-sn">남은 점수는 그대로 모여요. 이 선물을 받으면 다음 선물을 고를 수 있어요.</p>
+                <p class="gk-sn">남은 점수는 그대로 모여요. 이 선물을 받으면 다음 선물을 고를 수 있어요.</p>`}
                 <div class="gk-row2"><button type="button" class="gk-btn gk-ghost" data-close>닫기</button><button type="button" class="gk-btn gk-pri" data-ok>이 선물로 할게요</button></div>
               </section>`, () => { sure = true; pick.requestSubmit(b); });
         });
