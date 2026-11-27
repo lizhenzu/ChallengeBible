@@ -78,9 +78,10 @@ body:has(.bk) { background: #F7F1E7; }
 .bk, :where(.bk) * {box-sizing:border-box;margin:0;padding:0}
 .bk {font-family:var(--font);font-size:var(--fs-16);color:var(--c-text);background:var(--c-bg);line-height:1.5;-webkit-font-smoothing:antialiased}
 :where(.bk) button {font:inherit;color:inherit;background:none;border:0;cursor:pointer}
-.bk-page {max-width:var(--w-phone);margin:0 auto;padding:12px var(--pad-x) 48px}
+.bk-page {max-width:var(--w-phone);margin:0 auto;padding:4px var(--pad-x) 48px}
 @media (min-width:720px) {
   .bk-page {max-width:var(--w-desk)}
+  .bk-appbar-in {max-width:var(--w-desk)}
   .bk {--book-w:112px}
 }
 .bk-btn {display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--tap);padding:0 18px;border-radius:var(--radius);background:var(--c-primary);color:var(--c-primary-ink);font-weight:700;font-size:var(--fs-16)}
@@ -212,3 +213,18 @@ body:has(.bk) { background: #F7F1E7; }
 .bk-resume[hidden] { display: none; }
 .bk-read-mark[hidden] { display: none; }
 .bk-book-cover, .bk-resume-cover { display: block; }
+
+/* 새 퍼블리시본 앱바(2026-11-27, 사용자 "따라다니게는 하지마"): 집 + 메인화면 · 가운데 제목 · 오른쪽 로그인 / 새 주보 / 내 정보. 위에 붙지 않고 같이 스크롤된다 */
+.bk-appbar {background:var(--c-bg);border-bottom:1px solid var(--c-line);padding:4px 0}
+.bk-appbar-in {max-width:var(--w-phone);margin:0 auto;display:grid;grid-template-columns:112px minmax(0,1fr) 112px;align-items:center;min-height:56px;padding:0 8px}
+.bk-to-main {display:flex;align-items:center;gap:2px;min-height:var(--tap);padding:0 6px;font-size:var(--fs-14);font-weight:700;color:var(--c-text);text-decoration:none;border-radius:var(--radius)}
+.bk-to-main svg {width:20px;height:20px}
+.bk-appbar .bk-title {text-align:center;font-size:var(--fs-18);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0}
+.bk-right {display:flex;justify-content:flex-end;align-items:center;gap:2px}
+.bk-tap {min-width:var(--tap);min-height:var(--tap);display:grid;place-items:center;border-radius:var(--radius);color:var(--c-text);text-decoration:none}
+.bk-login {display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:var(--fs-12);font-weight:700;line-height:1.2}
+.bk-login svg {width:22px;height:22px}
+.bk-avatar {position:relative;width:34px;height:34px;border-radius:50%;background:#2F8F86;color:#fff;display:grid;place-items:center;font-size:var(--fs-14);font-weight:800}
+.bk-avatar::after {content:"";position:absolute;right:-1px;bottom:-1px;width:10px;height:10px;border-radius:50%;background:var(--c-ok);border:2px solid var(--c-bg)}
+.bk-add {width:34px;height:34px;border-radius:50%;background:#C4521F;color:#fff;display:grid;place-items:center}
+.bk-add svg {width:18px;height:18px}

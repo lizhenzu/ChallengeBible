@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
@@ -110,7 +110,8 @@ public partial class BulletinTests : IClassFixture<WebApplicationFactory<Program
         Assert.Contains("교회주보.pdf", page);
         Assert.DoesNotContain("class=\"pb-act\"", page);
         Assert.Contains("주보 서재", page);                                   // 책장 서재(2026-11-27 새 퍼블리시본)
-        Assert.Contains("aria-label=\"로그인\"", page);   // 손님 머리줄 오른쪽 = 사람 아이콘
+        Assert.Contains("class=\"bk-tap bk-login\"", page);   // 손님 앱바 오른쪽 = 사람 아이콘 + 「로그인」(새 퍼블리시본 앱바, 2026-11-27)
+        Assert.Contains("href=\"/jamsil-kids/welcome\"", page);   // 왼쪽 = 집 + 「메인화면」
         int fileId;
         using (var raw = InMemoryDb.Raw(_db)) fileId = raw.BulletinFiles.Single(f => f.ContentType == "application/pdf").Id;
         var file = await guest.GetAsync($"/jamsil-kids/bulletin/file/{fileId}");
@@ -125,10 +126,10 @@ public partial class BulletinTests : IClassFixture<WebApplicationFactory<Program
         await Upload(teacher, "jamsil-kids", ("앞면.jpg", Jpg));
         var page = await teacher.GetStringAsync("/jamsil-kids/bulletin");
         Assert.Contains("href=\"/jamsil-kids/bulletin/edit\"", page);          // 「+ 새 주보」(교사 · 관리자만)
-        Assert.Contains("+ 새 주보", page);
-        Assert.DoesNotContain("aria-label=\"로그인\"", page);
+        Assert.Contains("aria-label=\"새 주보 올리기\"", page);                  // 주황 ＋(교사 · 관리자만)
+        Assert.DoesNotContain("class=\"bk-tap bk-login\"", page);
         Assert.Contains("주보 서재", page);
-        Assert.Contains("aria-label=\"홈으로\"", page);                          // 왼쪽 위 뒤로(홈)
+        Assert.Contains("메인화면", page);                                       // 왼쪽 위 = 집 + 메인화면
         Assert.Contains("data-bk-menu", page);                                  // 읽기 화면 ⋯ 메뉴(고치기 · 지우기)
         Assert.Contains("data-bk-delform", page);
     }

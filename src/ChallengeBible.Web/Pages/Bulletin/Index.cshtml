@@ -29,23 +29,26 @@
 }
 <link rel="stylesheet" href="~/css/bulletin.css" asp-append-version="true" />
 <main class="bk" data-bk data-slug="@slug"@(Model.FocusId is int fid ? Html.Raw($" data-focus=\"{fid}\"") : Html.Raw(""))>
+<header class="bk-appbar"><div class="bk-appbar-in">
+    <a class="bk-to-main" href="/@slug/welcome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v9h-5v-6h-6v6H4z"/></svg>메인화면</a>
+    <h1 class="bk-title">주보 서재</h1>
+    <div class="bk-right">
+        @if (Model.CanEdit)
+        {
+            <a class="bk-tap bk-new" href="/@slug/bulletin/edit" aria-label="새 주보 올리기"><span class="bk-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></a>
+        }
+        else if (User.UserName() is null)
+        {
+            <a class="bk-tap bk-login" href="/account/login?returnUrl=@Uri.EscapeDataString($"/{slug}/bulletin")"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>로그인</a>
+        }
+        else
+        {
+            var nm = User.DisplayName();
+            <a class="bk-tap" href="/account" aria-label="내 정보"><span class="bk-avatar">@(nm.Length > 0 ? nm[..1] : "나")</span></a>
+        }
+    </div>
+</div></header>
 <div class="bk-page">
-    <header class="bk-top">
-        <div class="bk-top-left">
-            <a class="bk-icon-btn" href="/@slug" aria-label="홈으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
-            <div><p class="bk-eyebrow">@Model.Tenant.Current.Name</p><h1>주보 서재</h1></div>
-        </div>
-        <div class="bk-top-actions">
-            @if (Model.CanEdit)
-            {
-                <a class="bk-btn bk-btn-sm bk-new" href="/@slug/bulletin/edit">+ 새 주보</a>
-            }
-            else if (User.UserName() is null)
-            {
-                <a class="bk-icon-btn bk-login" href="/account/login?returnUrl=@Uri.EscapeDataString($"/{slug}/bulletin")" aria-label="로그인"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></a>
-            }
-        </div>
-    </header>
 
     @if (Model.Msg is { } m) { <p class="bk-msg" role="status">@m</p> }
 
