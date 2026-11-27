@@ -1,4 +1,4 @@
-@page "/{slug}/ranking"
+﻿@page "/{slug}/ranking"
 @model RankingModel
 @using ChallengeBible.Web.Services
 @* 확정 시안: 말씀-순위-단독시안 — 개인 · 가족팀 탭. 개인: 숫자 상자 → TOP 3 → 구분 · 찾기 · 정렬 → 목록(R-80 ~ R-84). 가족팀: 숫자 상자 → 찾기 · 정렬 → 팀 카드(가계도, R-92 · R-94) *@
@@ -9,12 +9,10 @@
     var top = d.Rows.Take(3).ToList();
     var inv = System.Globalization.CultureInfo.InvariantCulture;
 }
-<header class="mtop gut"><div class="wrap">
-    <nav class="crumb"><a href="/@slug">홈으로</a> · <a href="/@slug/word-mission">미션홈</a></nav>
-    <span class="date num">@d.Year</span>
-</div></header>
+@{ ViewData["PbTitle"] = "순위"; ViewData["PbParent"] = new[] { "성경미션", $"/{slug}/word-mission" }; ViewData["PbButton"] = new[] { "미션홈", $"/{slug}/word-mission" }; }
+<partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <main class="mbody gut"><div class="wrap rkp">
-    <div class="k">도전!!!성경말씀</div>
+    <div class="k">도전!!!성경미션</div>
     <h1>순위</h1>
     <div class="sub num">@(d.Year) 시즌 · 목표 @(d.Target.ToString("N0"))점 · @d.Today.ToString("M월 d일", ko) 기준</div>
 

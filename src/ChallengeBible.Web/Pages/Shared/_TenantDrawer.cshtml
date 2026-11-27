@@ -1,0 +1,89 @@
+﻿@model (ChallengeBible.Web.Tenancy.TenantContext Tenant, string? Photo)
+@using ChallengeBible.Web.Auth
+@inject ChallengeBible.Web.Services.IntroService Intro
+@inject ChallengeBible.Web.Services.FamilyTeamService FamilyTeams
+@inject ChallengeBible.Web.Services.PhotoService Photos
+@using ChallengeBible.Web.Services
+@* 부서 화면 ☰ 메뉴판. 2026-11-22 사용자 확정(ADR 0127, 시안 메뉴-깔끔):
+   흰 바탕 · 도전!!! 성경말씀 + GROW IN THE WORD · 파란 선 아이콘 · 제목만(설명 없음) · 그룹 라벨.
+   여는 버튼은 data-pnav-open, 동작은 platform-nav.js.
+   프로그램 · 바로가기 그룹은 2026-11-22 2차 확정으로 뺐다 — 프로그램은 부서 홈 아이콘, 오늘의 말씀·나의 기록은 홈 카드로 간다. *@
+@{
+    var t = Model.Tenant;
+    var c = t.Current;
+    var s = c.Slug;
+    var here = (Context.Request.Path.Value ?? "").TrimEnd('/');
+    var lobby = t.IsLobby;
+    var teacher = !lobby && t.IsApproved && UserRole.KindOf(t.RoleCode) == UserRoleKind.Teacher;
+    var imp = User.ImpersonatorId() is not null;
+    var back = Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString);
+    var meName = User.UserName();
+    var mePhoto = meName is null ? null : await Photos.FileOfAsync(meName);
+    var meSub = User.IsPlatformAdmin() ? "플랫폼 관리자" : lobby ? "처음 오신 분" : PlatformTodayService.ShortDept(c.Name) + " · " + (t.IsAdmin ? "관리자" : UserRole.LabelOf(UserRole.KindOf(t.RoleCode)));
+    bool Cur(string href) => here.Equals(href.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
+}
+<div class="pdrawer tdr2" id="pnav" hidden>
+    <div class="pd-dim" data-pnav-close></div>
+    <aside class="pd-panel" tabindex="-1" role="dialog" aria-modal="true" aria-label="메뉴">
+        <div class="tdr2-hd">
+            <div>
+                <div class="tdr2-ttl">도전!!! <span>성경말씀</span></div>
+                <div class="tdr2-sub">GROW IN THE WORD</div>
+            </div>
+            <button type="button" class="tdr2-x" aria-label="메뉴 닫기" data-pnav-close>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
+            </button>
+        </div>
+
+        @if (imp)
+        {
+            <p class="tdr2-imp">@Ui.Nim(User.DisplayName() ?? "")으로 보는 중 @Html.Raw(DrawerUi.Ga)</p>
+        }
+
+        <nav class="tdr2-nav" aria-label="메뉴">
+            @DrawerUi.Line($"/{s}", "home", "홈으로", Cur($"/{s}"))
+
+            @if (imp)
+            {
+                <h2 class="tdr2-g">가장 중</h2>
+                @DrawerUi.Line($"/account/impersonate/switch?back={back}", "people", "사람 바꾸기", false, attr: "data-imp-switch")
+                <form method="post" action="/account/impersonate/stop" class="tdr2-back">@Html.AntiForgeryToken()
+                    <button type="submit" class="tdr2-r"><i class="tdr2-i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></i><span>복귀</span></button>
+                </form>
+            }
+
+            @* 교사 · 관리자의 일(오늘 할 일 · 출석 · 교적부 · 인명 검색 · 명부)은 「행정업무」 화면 한 줄로(2026-11-25 사용자) *@
+            @if (ChallengeBible.Web.Pages.Office.IndexModel.CanUse(t)) { @DrawerUi.Line($"/{s}/office", "att", "행정업무", Cur($"/{s}/office")) }
+
+            @if (!lobby && t.IsApproved)
+            {
+                <h2 class="tdr2-g">이벤트</h2>
+                @DrawerUi.Line($"/{s}/birthdays", "cake", "생일자", Cur($"/{s}/birthdays"))
+                @if (t.IsAdmin) { @DrawerUi.Line($"/{s}/admin/gifts", "gift", "선물 처리", Cur($"/{s}/admin/gifts"), badge: DrawerUi.Admin) }
+            }
+
+            <h2 class="tdr2-g">함께하기</h2>
+            @DrawerUi.Line("/messages", "msg", "단체쪽지", Cur("/messages"))
+            @if (!lobby) { @DrawerUi.Line($"/{s}/album", "photo", "사진첩", Cur($"/{s}/album")) }
+            @if (!lobby) { @DrawerUi.Line($"/{s}/welcome", "home", "메인화면", Cur($"/{s}/welcome")) }
+            @if (!lobby && c.MissionEnabled && await FamilyTeams.EnabledAsync()) { @DrawerUi.Line($"/{s}/family-team", "family", "가족팀", Cur($"/{s}/family-team")) }
+
+            @if (!lobby && t.IsAdmin)
+            {
+                <h2 class="tdr2-g">관리</h2>
+                @DrawerUi.Line($"/{s}/admin", "gear", "부서 관리", Cur($"/{s}/admin"), badge: DrawerUi.Admin)
+            }
+
+            @if (lobby || User.IsPlatformAdmin())
+            {
+                <h2 class="tdr2-g">다른 곳</h2>
+                @if (lobby) { @DrawerUi.Line("/join", "join", "내 부서 참여", Cur("/join")) }
+                @if (User.IsPlatformAdmin()) { @DrawerUi.Line("/platform", "platform", "플랫폼", Cur("/platform")) }
+            }
+        </nav>
+
+        @Html.AntiForgeryToken()   @* 로그아웃 줄을 뺀 뒤에도 화면 스크립트가 쓰는 요청 확인 값은 여기서 계속 낸다 *@
+        <div class="tdr2-prof">@DrawerUi.Me(User.DisplayName(), mePhoto, meSub, imp)</div>
+    </aside>
+</div>
+<script src="~/js/platform-nav.js" asp-append-version="true" defer></script>

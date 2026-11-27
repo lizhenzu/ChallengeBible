@@ -1,0 +1,23 @@
+@page "/{slug}/admin/members/new"
+@model ChallengeBible.Web.Pages.Admin.PersonAddModel
+@using ChallengeBible.Web.Services
+@* 사람 추가(2026-11-21 확정 시안 사람관리-쪼개기): 명부에 올리기 — 가입하지 않은 사람 · 새친구도 *@
+@{ var slug = Model.Tenant.Current.Slug; }
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut w760"><div class="wrap pd">
+    <a class="pd-back" href="/@slug/admin/members">‹ @(Model.Tenant.IsAdmin ? "사람 관리" : "명부")</a>
+    <h1>사람 추가</h1>
+    @if (Model.Error is { } err) { <p class="err" role="alert">@err</p> }
+    <form method="post" class="pp-form pd-form">
+        <label>이름<input class="in" name="name" maxlength="50" required /></label>
+        <label>생일 (연도 없이)@PersonUi.Days(null, null)</label>
+        <label>연락처<input class="in" name="phone1" maxlength="20" inputmode="tel" /></label>
+        <label>연락처 2 (선택 · 부모님 번호 등)<input class="in" name="phone2" maxlength="20" inputmode="tel" /></label>
+        <label>역할<select class="sel" name="roleCode">
+            @foreach (var (code, name) in Model.RoleCodes) { <option value="@code.Trim()" selected="@(code.Trim() == UserRole.StudentCode)">@name</option> }
+            <option value="">학부모</option>
+        </select></label>
+        <p class="hint">가입하지 않은 사람 · 새친구도 올려요. 나중에 가입하면 전화 · 생일로 본인 확인을 해서 이 줄과 이어져요.</p>
+        <div class="pd-foot"><a class="btn s" href="/@slug/admin/members">취소</a><button type="submit" class="btn p">올리기</button></div>
+    </form>
+</div></main>

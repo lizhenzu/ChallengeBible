@@ -1,0 +1,62 @@
+﻿@page "/{slug}/todo"
+@model ChallengeBible.Web.Pages.Todo.IndexModel
+@inject ChallengeBible.Web.Services.PhotoService Photos
+@using ChallengeBible.Web.Auth
+@* 확정 시안 오늘할일 ① · ②(2026-11-16): [홈으로] · 인사 · 안 보기 → 선물 → 승인 → 출석 → 생일. 급한 것(3일 넘게 아무도 안 삼)이 맨 위 *@
+@{
+    var b = Model.Board;
+    var sections = new (string Key, string Title)[] { ("gift", "선물"), ("approve", "승인"), ("attendance", "출석"), ("birthday", "생일") };
+}
+<link rel="stylesheet" href="~/css/todo.css" asp-append-version="true" />
+<div class="tdo">
+<header class="td-top gut"><div class="wrap">
+    @* 2026-11-20 사용자: ☰ 메뉴 + 한 줄 "도전!!!성경말씀 > 오늘 할 일" *@
+    <button type="button" class="pmenu-btn td-menu" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
+    </button>
+    <div class="t td-one"><a class="td-brand" href="/@Model.Slug/office">행정업무</a><span class="td-sep" aria-hidden="true">&gt;</span><b>오늘 할 일</b></div>
+    <a class="td-home" href="/@Model.Slug">홈으로</a>
+</div></header>
+@{ var tdPhoto = await Photos.FileOfAsync(User.UserName() ?? ""); }
+@if (ChallengeBible.Web.Pages.Office.IndexModel.CanUse(Model.Tenant)) { <partial name="_OfficeDrawer" model="(Model.Tenant, tdPhoto)" /> } else { <partial name="_TenantDrawer" model="(Model.Tenant, tdPhoto)" /> }
+<main class="gut"><div class="wrap td-main" data-td>
+    @Html.AntiForgeryToken()
+    @if (Model.Msg is { } m) { <p class="td-msg" role="status">@m</p> }
+    <div class="td-hello"><h1>할 일 @(b.Items.Count + Model.Leaves.Count)개</h1></div>
+    @if (b.Items.Count > 0)
+    {
+        <form method="post" asp-page-handler="Snooze" class="td-snooze">
+            <small>@(b.SnoozedUntil is { } su ? $"{su:M월 d일}까지 자동으로 열지 않아요" : "로그인할 때 자동으로 열지 않기")</small>
+            <div class="td-chips"><button name="days" value="1">오늘 안 보기</button><button name="days" value="3">3일</button><button name="days" value="5">5일</button><button name="days" value="30">한 달</button></div>
+        </form>
+    }
+    else if (Model.Leaves.Count == 0) { <div class="td-empty">할 일이 없어요</div> }
+    <partial name="_LeaveCards" model="Model.Leaves" />
+
+    @foreach (var (key, title) in sections)
+    {
+        var list = b.Items.Where(i => i.Section == key).ToList();
+        if (list.Count == 0) { continue; }
+        <div class="td-sec"><b>@title</b></div>
+        @foreach (var i in list)
+        {
+            <div class="td-card @(i.Tone == "late" ? "urgent" : "")">
+                <div class="td-row td-noic"><div class="what"><b>@i.Title</b>@if (i.Why is null && i.Text is { } tx) { <span>@tx</span> }</div></div>
+                @if (i.Info.Count > 0) { <dl class="td-kv">@foreach (var (k, v) in i.Info) { <dt>@k</dt><dd>@v</dd> }</dl> }
+                @if (i.Steps.Count > 0) { <partial name="_Timeline" model="i.Steps" /> }
+                @if (i.ShareId is long sid)
+                {
+                    @if (i.Why is { } w) { <p class="td-why">@w</p> }
+                    @* 2026-11-22 사용자: "그냥 카톡으로만" — 노란 [카톡으로 보내기] 하나(선물 처리 · 생일 목록과 같은 버튼). 휴대폰은 공유 창, 안 되면 복사 *@
+                    <div class="td-share" data-td-share="@sid">
+                        <button type="button" class="btn go-kakao" data-share="send">💬 카톡으로 문자 보내기</button>
+                        <p class="td-toast" role="status" hidden></p>
+                    </div>
+                }
+                @if (i.Href is { } h) { <div class="td-btns"><a class="btn @(i.ShareId is null ? "p" : "s")" href="@h">@i.HrefLabel</a></div> }
+            </div>
+        }
+    }
+</div></main>
+</div>
+<script src="~/js/todo-share.js" asp-append-version="true" defer></script>

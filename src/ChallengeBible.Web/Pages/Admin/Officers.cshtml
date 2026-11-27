@@ -1,0 +1,51 @@
+@page "/{slug}/admin/officers"
+@model ChallengeBible.Web.Pages.Admin.OfficersModel
+@using ChallengeBible.Web.Services
+@* 임원 및 기타(2026-11-21 확정 시안 역할-담임-시안2 ②): 임원 직책 칸(중복 · 빈 자리 경고) · 봉사 · 기타 · 새친구. 바꾸기는 바닥 창(staff.js) *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var b = Model.Board;
+    // 칸 한 줄(임원 · 봉사 · 기타 · 새친구 모두 같은 모양, 2026-11-21 사용자). 사람이 많으면 다섯 명 + "외 N명"
+    void Slot(StaffSlot o, bool officer)
+    {
+        var names = o.People.Count <= 5 ? string.Join(" · ", o.People.Select(p => p.Name)) : string.Join(" · ", o.People.Take(5).Select(p => p.Name)) + $" 외 {o.People.Count - 5}명";
+        <button type="button" class="st-slot @(o.Duplicate ? "warn" : "") @(o.Empty ? "empty" : "")" data-act="slot" data-code="@o.Code">
+            <span class="r">@o.Label</span>
+            <span class="n">@(o.Empty ? "비어 있어요" : names)
+                @if (o.Duplicate) { <small>⚠ @(o.Label)이(가) @(o.People.Count)명이에요 — 한 분만 두려면 눌러서 바꾸세요</small> }
+                else if (o.MakesAdmin && !o.Empty) { <small>부서 관리자</small> }
+                else if (!officer && o.People.Count > 1) { <small>@(o.People.Count)명</small> }</span>
+            <span class="e">@(o.Empty ? "+ 정하기" : "바꾸기")</span>
+        </button>
+    }
+    var data = System.Text.Json.JsonSerializer.Serialize(new
+    {
+        slots = b.Officers.Concat(b.Helpers).Concat(b.Others).Select(s => new { c = s.Code, l = s.Label, one = s.Single, adm = s.MakesAdmin }),
+        helpers = b.Helpers.Select(s => s.Code),
+        choices = b.Choices.Select(c => new { c = c.Code, l = c.Label }),
+        people = b.People.Select(p => new { id = p.PersonId, n = p.Name, c = p.RoleCode, l = p.RoleLabel, a = p.IsAdmin, lk = p.Locked, ph = p.Phone }),
+    });
+}
+<link rel="stylesheet" href="~/css/staff.css" asp-append-version="true" />
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut stf" data-stf="officers" data-base="/@slug/admin/officers"><div class="wrap">
+    <h1>임원 및 기타</h1>
+    <nav class="st-seg" aria-label="교사 · 임원 및 기타"><a href="/@slug/admin/teachers">교사</a><a href="/@slug/admin/officers" aria-current="page">임원 및 기타</a></nav>
+    @if (Model.Msg is { } m) { <p class="st-msg @(Model.Bad ? "bad" : "")" role="status">@m</p> }
+    <div class="st-sum"><span>임원<b>@b.Officers.Sum(o => o.People.Count)</b></span><span>봉사<b>@b.Helpers.Sum(o => o.People.Count)</b></span><span>기타 · 새친구<b>@b.Others.Sum(o => o.People.Count)</b></span>@if (b.Warnings > 0) { <span class="w">확인할 것<b>@b.Warnings</b></span> }</div>
+
+    <div class="st-sec"><b>임원</b><small>누르면 바꾸기</small></div>
+    @foreach (var o in b.Officers) { Slot(o, true); }
+
+    <div class="st-sec"><b>봉사</b><small>누르면 바꾸기</small></div>
+    @foreach (var o in b.Helpers) { Slot(o, false); }
+
+    <div class="st-sec"><b>기타 · 새친구</b><small>누르면 바꾸기</small></div>
+    @foreach (var o in b.Others) { Slot(o, false); }
+    <p class="st-foot">담임 정하기는 <a href="/@slug/admin/teachers">교사</a>에서, 사람 정보(생일 · 연락처 · 계정)는 <a href="/@slug/admin/members">소속 관리</a>에서 해요. 어떤 역할이 관리자가 되는지는 플랫폼의 부서 관리자 규칙을 따라요.</p>
+</div>
+@Html.AntiForgeryToken()
+<div class="st-dim" hidden data-sheet><section class="st-sheet" role="dialog" aria-modal="true" aria-labelledby="stTitle"><div class="st-top"><h2 id="stTitle"></h2><button type="button" class="st-x" data-close>닫기</button></div><div class="st-body" data-body></div></section></div>
+</main>
+<script type="application/json" id="stData">@Html.Raw(data.Replace("</", "<\\/"))</script>
+<script src="~/js/staff.js" asp-append-version="true" defer></script>

@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Authentication;
@@ -45,7 +45,7 @@ public static class CurrentUser
         };
         if (account.IsPlatformAdmin) claims.Add(new(PlatformAdminClaim, "1"));
         if (impersonator is { } imp) claims.Add(new(ImpersonatorClaim, imp));
-        else if (account.MustChangePassword) claims.Add(new(MustChangePasswordClaim, "1"));
+        if (account.MustChangePassword) claims.Add(new(MustChangePasswordClaim, "1"));
         return SignInAsync(http, claims);
     }
 

@@ -23,7 +23,13 @@ public sealed class RuleService(IAppDb db, IMemoryCache cache, Tenancy.TenantCon
     public static RuleVersion Initial { get; } = new(RuleSet.Default.Version, DateOnly.MinValue, RuleSet.Default, null, null);
 
     public static string ToJson(RuleSet r) => JsonSerializer.Serialize(r, Json);
-    public static RuleSet FromJson(string json) => JsonSerializer.Deserialize<RuleSet>(json, Json)!;
+    /// <summary>저장된 규칙 JSON 을 읽는다. 성장 단계(R-190)의 이모지는 화면 꾸밈이라 단계 이름이 같으면 항상 코드 기본값을 쓴다
+    /// (예전 버전에 저장된 🌰 같은 옛 모양이 남지 않게 · 2026-11-23 사용자 "씨앗 아이콘이 색에 안 맞다" → ☘️). 단계 이름 · 끝 점수는 저장된 값 그대로.</summary>
+    public static RuleSet FromJson(string json)
+    {
+        var r = JsonSerializer.Deserialize<RuleSet>(json, Json)!;
+        return r with { GrowthStages = [.. r.GrowthStages.Select(g => RuleSet.DefaultGrowth.FirstOrDefault(d => d.Name == g.Name) is { } d ? g with { Emoji = d.Emoji } : g)] };
+    }
 
     public static void Forget(IMemoryCache cache) => cache.Remove(CacheKey);
 

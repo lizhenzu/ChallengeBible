@@ -1,0 +1,55 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>초기화 회원 내보내기 시안</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#111827;--dim:#6B7280;--mute:#9CA3AF;--line:#EEF0F3;--soft:#F4F6F9;--blue:#2B5BC6;--bl:#EAF0FC;--red:#C0392B;--rl:#FDECEA;--org:#B4531F}
+*{box-sizing:border-box}body{margin:0;padding:28px 24px;background:#E8ECF3;font-family:'Noto Sans KR',sans-serif;color:var(--ink)}
+.row{display:flex;gap:24px;align-items:flex-start}.col{width:390px;flex:none}
+.lab{margin:0 0 2px;font-size:16px;font-weight:800}.sub{margin:0 0 10px;font-size:12.5px;color:var(--dim)}
+.ph{background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06);padding-bottom:18px}
+.top{display:flex;align-items:center;gap:10px;padding:13px 14px;border-bottom:1px solid var(--line);font-size:12.5px}.top i{font-style:normal;font-size:17px}.top b{color:var(--blue)}.top .h{margin-left:auto;color:var(--blue);font-weight:700}
+.wr{padding:14px}h1{margin:0;font-size:19px;font-weight:900}h2{margin:18px 0 6px;font-size:15px;font-weight:800}.p{margin:4px 0 0;font-size:12.5px;color:var(--dim);line-height:1.6}
+.rs{margin-top:12px;border:1px solid #E3E8F0;border-radius:14px;padding:12px;font-size:12.5px;color:var(--dim)}
+.btnr{margin-top:10px;display:block;padding:12px;border-radius:12px;background:var(--red);color:#fff;text-align:center;font-weight:800;font-size:14px}
+.srch{margin-top:8px;height:40px;border-radius:99px;background:var(--soft);display:flex;align-items:center;padding:0 14px;font-size:13px;color:var(--mute)}
+.chips{display:flex;gap:6px;margin-top:8px}.chips span{padding:6px 11px;border-radius:99px;background:var(--soft);font-size:12px;color:var(--dim)}.chips .on{background:var(--ink);color:#fff;font-weight:700}
+.all{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12.5px;color:var(--dim)}.all b{color:var(--ink)}
+.u{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.u:last-child{border:0}
+.cb{width:22px;height:22px;border-radius:6px;border:2px solid #CBD2DC;flex:none;display:grid;place-items:center;font-size:14px;color:#fff}.cb.on{background:var(--blue);border-color:var(--blue)}
+.u .n{flex:1;min-width:0}.u .n b{font-size:14px}.u .n small{display:block;font-size:11.5px;color:var(--dim);margin-top:1px}
+.tg{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--bl);color:var(--blue)}.tg.lk{background:#EEF0F3;color:var(--dim)}
+.u.lock{opacity:.6}
+.bar{position:sticky;margin-top:12px;padding:12px;border-radius:14px;background:var(--bl);display:flex;justify-content:space-between;align-items:center;font-size:13px}.bar b{color:var(--blue)}
+.btn{padding:10px 14px;border-radius:12px;background:var(--blue);color:#fff;font-weight:800;font-size:13px}
+.res{margin-top:10px;border-radius:12px;background:#0F172A;color:#CBD5E1;font:11px/1.6 monospace;padding:10px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.warn{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--rl);font-size:12px;line-height:1.6;color:#8E2A20}
+.note{margin-top:12px;padding:12px 14px;border-radius:14px;background:#FFF8E6;font-size:12px;line-height:1.7;color:#7C5A10}
+</style></head><body><div class="row">
+<div class="col"><p class="lab">① 완전 초기화 화면 — 맨 아래에 새 구역</p><p class="sub">초기화 버튼 아래에 "회원 내보내기"</p>
+<div class="ph"><div class="top"><i>☰</i><b>도전!!!</b>성경말씀 › <strong>완전 초기화</strong><span class="h">홈으로</span></div><div class="wr">
+<h1>완전 초기화</h1><p class="p">지울 것을 고르고 RESET 을 입력해요. 되돌릴 수 없어요.</p>
+<div class="rs">☑ 미션 · 퀴즈 · 출석 …<br>☑ 가짜 계정 · 명부<br>☑ <b>직접 가입한 회원(관리자 제외)</b> <span style="color:var(--org)">새로</span></div>
+<span class="btnr">완전 초기화</span>
+<h2>회원 내보내기 (복원용 SQL)</h2>
+<p class="p">초기화 전에 남기고 싶은 회원을 골라 SQL 파일로 받아 두세요. 관리자는 목록에 없어요(항상 남아요).</p>
+<div class="srch">🔍 이름 · 아이디 · 부서로 찾기</div>
+<div class="chips"><span class="on">직접 가입 12</span><span>가짜 계정 87</span></div>
+<div class="all"><span><b>3명</b> 선택</span><span>전체 선택 · 해제</span></div>
+<div class="u"><span class="cb on">✓</span><span class="n"><b>김부국</b><small>edutopia57 · 장년부 · 11/18 가입</small></span><span class="tg">학생</span></div>
+<div class="u"><span class="cb on">✓</span><span class="n"><b>김종인</b><small>jthtch21 · 초등부 · 11/18 가입</small></span><span class="tg">교사</span></div>
+<div class="u"><span class="cb on">✓</span><span class="n"><b>홍채은</b><small>… · 유년부 · 11/20 가입</small></span><span class="tg">학생</span></div>
+<div class="u"><span class="cb"></span><span class="n"><b>박소율</b><small>… · 유년부 · 11/20 가입</small></span><span class="tg">학생</span></div>
+<div class="u lock"><span class="cb"></span><span class="n"><b>(부서 관리자 · 목록 제외)</b><small>항상 남아요</small></span><span class="tg lk">관리자</span></div>
+<div class="bar"><span><b>3명</b> 선택</span><span class="btn">복원용 SQL 만들기</span></div></div></div></div>
+
+<div class="col"><p class="lab">② 만들기를 누르면</p><p class="sub">그 자리에서 SQL 이 만들어지고 파일로 받기</p>
+<div class="ph"><div class="top"><i>☰</i><b>도전!!!</b>성경말씀 › <strong>완전 초기화</strong><span class="h">홈으로</span></div><div class="wr">
+<h2 style="margin-top:0">복원용 SQL 준비됐어요</h2>
+<p class="p">김부국 · 김종인 · 홍채은 (3명) · INSERT 38줄</p>
+<div class="res">INSERT INTO [Identity].[User] ([Id], [UserName], …</div>
+<div class="res" style="margin-top:4px">INSERT INTO dbo.DeptRoleUserAssoc ([TenantId], …</div>
+<div class="res" style="margin-top:4px">INSERT INTO app.Person ([TenantId], [Id], [Name], …</div>
+<div style="display:flex;gap:8px;margin-top:12px"><span class="btn" style="flex:1;text-align:center">파일로 받기 (.sql)</span><span class="btn" style="flex:1;text-align:center;background:var(--soft);color:var(--ink)">복사</span></div>
+<div class="warn"><b>꼭 지켜 주세요</b><br>· 이 파일에는 비밀번호 해시 · 연락처가 들어 있어요. Git · 메신저에 올리지 마세요.<br>· 파일을 받아 열어 본 뒤에 초기화하세요. 미션 · 출석 · 선물 기록은 복원되지 않아요.</div>
+<p class="p" style="margin-top:10px">※ 만들기 기록(누가 · 언제 · 몇 명)은 남기고, SQL 내용은 서버에 저장하지 않아요.</p></div></div>
+<div class="note"><b>정리</b><br>· 목록: 직접 가입한 회원(기본) · 가짜 계정(탭), 이름 · 아이디 · 부서 검색<br>· 관리자(플랫폼 · 부서)는 목록에 없음 — 항상 남음(R-315)<br>· 플랫폼 관리자만 볼 수 있음<br>· 초기화 체크 칸에 "직접 가입한 회원 지우기"를 새로 추가(기본 꺼짐)</div></div>
+</div></body></html>

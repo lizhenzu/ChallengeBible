@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -54,11 +54,11 @@ public partial class AdminLoginTests : IClassFixture<WebApplicationFactory<Progr
     }
 
     [Fact]
-    public async Task 첫_화면에서_비밀번호만으로_플랫폼_관리자가_들어가고_아이디는_보이지_않는다()
+    public async Task 로그인_화면에서_비밀번호만으로_플랫폼_관리자가_들어가고_아이디는_보이지_않는다()
     {
         await SeedSuperAdmin(platformAdmin: true);
         var c = Client();
-        Assert.Contains("href=\"/account/admin-login\"", await c.GetStringAsync("/"));
+        Assert.Contains("href=\"/account/admin-login\"", await c.GetStringAsync("/account/login"));   // 2026-11-24 사용자: 첫 화면 맨 아래 상자는 지우고 로그인 화면에만
         var page = await c.GetStringAsync("/account/admin-login");
         Assert.DoesNotContain("superadmin", page);
 
@@ -66,6 +66,17 @@ public partial class AdminLoginTests : IClassFixture<WebApplicationFactory<Progr
         var ok = await Login(c, "1234");
         Assert.Equal(HttpStatusCode.Redirect, ok.StatusCode);
         Assert.Equal("/platform", ok.Headers.Location!.OriginalString);
+    }
+
+    [Fact]
+    public async Task R309_관리자_로그인도_내_할_일이_있으면_할_일_화면으로_한_번()
+    {
+        await SeedSuperAdmin(platformAdmin: true);
+        InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");   // 관리자가 없는 부서 = 플랫폼 관리자 할 일
+        var c = Client();
+        await Login(c, "1234");
+        Assert.Equal("/platform/todo", (await c.GetAsync("/platform")).Headers.Location!.OriginalString);
+        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/platform")).StatusCode);   // 두 번째부터는 플랫폼 홈
     }
 
     [Fact]

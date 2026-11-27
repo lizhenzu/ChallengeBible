@@ -1,4 +1,4 @@
-using ChallengeBible.Domain.Rules;
+﻿using ChallengeBible.Domain.Rules;
 using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Tenancy;
@@ -141,6 +141,7 @@ public sealed class DeptGiftService(IAppDb db, TenantContext tenant, RuleService
             return n;
         }
         var cap = Num("PersonalCap", input.PersonalCap, MaxCredits);
+        if (cap is int cv && cv > r.PersonalCap) errors["PersonalCap"] = $"상한은 {r.PersonalCap:N0} 크레딧까지예요(부서는 낮게만 정해요).";   // ADR 0104
         var nMin = Num("NewcomerMin", input.NewcomerMin, MaxAmount); var nMax = Num("NewcomerMax", input.NewcomerMax, MaxAmount);
         var iMin = Num("InviteMin", input.InviteMin, MaxAmount); var iMax = Num("InviteMax", input.InviteMax, MaxAmount);
         var bMin = Num("BirthdayMin", input.BirthdayMin, MaxAmount); var bMax = Num("BirthdayMax", input.BirthdayMax, MaxAmount);

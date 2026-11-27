@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -73,10 +73,11 @@ public class ContentModel(ContentAdminService content, TimeProvider time) : Page
     public int TodayNo => IsRecite ? Domain.Time.Week.Of(Today, DayOfWeek.Sunday).NumberInYear : Today.Day;
 
     /// <summary>편집 화면 "목록"으로: 고른 줄 자리로 돌아간다.</summary>
-    public string ListLink => BySlot ? $"{SlotLink(null)}#n-{No}" : $"{Link()}#d-{Date:yyyy-MM-dd}";
 
     public string? PrevLink => Neighbor(-1);
     public string? NextLink => Neighbor(1);
+    /// <summary>앞 · 뒤 버튼 글(날짜 띠 시안 A, 2026-11-17): "2일" · "4주".</summary>
+    public string NeighborLabel(int step) => BySlot ? $"{(No ?? 0) + step}{SlotUnit}" : Date is { } d ? $"{d.AddDays(step).Day}일" : "";
 
     private string? Neighbor(int step)
     {

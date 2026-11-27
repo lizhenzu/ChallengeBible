@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Domain.Rules;
 using ChallengeBible.Domain.Time;
@@ -258,9 +258,9 @@ public partial class FamilyTeamTests : IClassFixture<WebApplicationFactory<Progr
         var kid = await LoggedIn("cheolsu@example.com");
         Assert.StartsWith("/account/denied", (await kid.GetAsync("/jamsil-kids/admin/teams")).Headers.Location!.PathAndQuery);
         var home = await kid.GetStringAsync("/jamsil-kids");
-        Assert.Contains("우리 가족팀", home);
-        Assert.Contains("철수네", home);
-        Assert.Contains("href=\"/jamsil-kids/family-team\"", home);
+        Assert.DoesNotContain("우리 가족팀", home);                       // 2026-11-23: 홈 카드 뺐다(ADR 0139)
+        Assert.Contains("href=\"/jamsil-kids/family-team\"", home);      // ☰ > 함께하기 > 가족팀
+        Assert.Contains("철수네", await kid.GetStringAsync("/jamsil-kids/family-team"));
         var rank = await kid.GetStringAsync("/jamsil-kids/ranking?t=team");
         Assert.Contains("우리 가족", rank);
         Assert.Contains("철수네", rank);

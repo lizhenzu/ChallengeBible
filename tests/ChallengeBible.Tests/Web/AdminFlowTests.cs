@@ -88,7 +88,7 @@ public partial class AdminFlowTests : IClassFixture<WebApplicationFactory<Progra
         Assert.Contains("오늘 참여", html);
         Assert.Contains("최근 7일", html);
         Assert.Contains("오늘 아직 안 한 친구", html);
-        Assert.Contains("aria-current=\"page\">관리 홈", html);   // 관리 메뉴의 첫 칸
+        Assert.Matches("aria-current=\"page\"><i [^>]*>.*?</i><span class=\"tdr2-t\"><b>관리 홈", html);   // ☰ 지금 화면(새 메뉴판, 2026-11-18)   // 관리 메뉴의 첫 칸
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public partial class AdminFlowTests : IClassFixture<WebApplicationFactory<Progra
         var (kid, kidId) = await SignedUp("cheolsu", "김철수");
         var m = InMemoryDb.SeedMembership(_db, _kids.Id, kidId, MembershipStatus.Requested, Roles.Participant);
 
-        var list = await admin.GetStringAsync("/jamsil-kids/admin/members");
+        var list = await admin.GetStringAsync("/jamsil-kids/admin/members?Tab=Requested");
         Assert.Contains("김철수", list);
         Assert.Contains("학생 희망", list);
 
@@ -113,8 +113,9 @@ public partial class AdminFlowTests : IClassFixture<WebApplicationFactory<Progra
         Assert.Equal(HttpStatusCode.Redirect, approve.StatusCode);
         Assert.Contains("Ok=approve", approve.Headers.Location!.OriginalString);
 
-        var home = await kid.GetAsync("/");
-        Assert.Equal("/jamsil-kids", home.Headers.Location!.OriginalString);
-        Assert.Contains("<b><em class=\"hj-dname\">유년부</em>에 오심을 환영해요</b>", await kid.GetStringAsync("/jamsil-kids"));   // 교회 이름은 머리말에만(2026-11-03), 부서 이름은 주황(2026-11-05)
+        var home = await kid.GetAsync("/?home=1");
+        Assert.Equal(HttpStatusCode.OK, home.StatusCode);                                          // 2026-11-23 사용자: 첫 화면에 머문다
+        Assert.Contains("class=\"vb-hi\"", await home.Content.ReadAsStringAsync());                  // 인사말 「안녕하세요. 000님,」(2026-11-25)
+        Assert.Contains("<span class=\"bt-2\">성경말씀</span>", await kid.GetStringAsync("/jamsil-kids"));   // 2026-11-23 시안 B 부서 홈
     }
 }

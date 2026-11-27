@@ -1,231 +1,543 @@
-/* 로그인 전 첫 화면(확정 시안 로그인전-첫화면-v2, 0061). 시안의 스타일을 .ld 아래로 옮긴 것 — 공통 부품(.btn .note .steps 등)과 겹치지 않게. 그라데이션 없음 */
-.ld { --bg: #FFFFFF; --soft: #F5F6F8; --fg: #1B1F24; --dim: #5B6470; --rule: #E3E6EA;
-    --accent: #2B59C3; --accent-soft: #E8EEFA; --on-accent: #FFFFFF;
-    --sky: #EAF4FF; --sky-rule: #CFE3FA; --sun: #FFF4D6; --sun-fg: #A66A00;
-    --rd: #2F7D55; --rd-soft: #E3F1E9; --rd-bar: #CBE5D6;
-    --word: #3D5A96; --quiz: #9A6638; --pray: #6E5A9A; --rec: #3F7A5A;
-    --word-bg: #EEF3FC; --quiz-bg: #FCF4EC; --pray-bg: #F4F1FA; --rec-bg: #EEF6F1;
-    --sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
-    --serif: "Noto Serif KR", "Nanum Myeongjo", "Batang", serif; }
-@media not all { /* dark off R-265 */
-  .ld { --bg: #14171B; --soft: #1B1F25; --fg: #E8EAED; --dim: #A3AAB4; --rule: #2C323A;
-    --accent: #7FA2F2; --accent-soft: #22304A; --on-accent: #0E1013;
-    --sky: #172235; --sky-rule: #263852; --sun: #2E2614; --sun-fg: #F2C063;
-    --rd: #7CC49C; --rd-soft: #1B2A22; --rd-bar: #274034;
-    --word: #A9BDE8; --quiz: #E3B58A; --pray: #C3B3E6; --rec: #9AD0B2;
-    --word-bg: #1C2433; --quiz-bg: #2A2119; --pray-bg: #241F2E; --rec-bg: #1B2A22; color-scheme: dark }
+﻿/* 첫 화면 시안 B(모노 톤) — design_handoff_home_b. 차콜 · 옅은 회색 · 흰색 + 클로버 4색은 프로그램 포인트로만. */
+.vb {
+  --ink: #1d1d1f; --ink-2: #56565c; --ink-3: #6e6e75;
+  --line: #e7e7ea; --track: #ededef; --paper: #fff; --soft: #f4f4f5;
+  --p1: #1f9d55; --s1: #e8f6ee;
+  --p2: #2f6fe4; --s2: #eaf1fd;
+  --p3: #ea6a1c; --s3: #fdf0e6;
+  --p4: #dc3f8a; --s4: #fcebf3;
+  --p1-tx: #167a41; --p2-tx: #1f55c0; --p3-tx: #b8500d; --p4-tx: #b02a6a;   /* 글자로 쓸 때의 진한 4색(공통 3 · 색 글자) */
+  background: var(--paper); color: var(--ink); min-height: 100vh;
+  letter-spacing: -.01em; -webkit-font-smoothing: antialiased;
 }
-/* 한글은 단어(띄어쓰기) 단위로만 줄을 바꾼다. 아주 긴 한 덩어리만 예외로 꺾는다 */
-.ld { background: var(--bg); color: var(--fg); font-family: var(--sans); overflow-x: hidden; word-break: keep-all; overflow-wrap: anywhere; }
-.ld [hidden] { display: none !important; }
-.ld a { color: inherit; text-decoration: none; }
-.ld button { font-family: inherit; color: inherit; cursor: pointer; }
-.ld a:focus-visible, .ld button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-.ld .num { font-variant-numeric: tabular-nums; }
-.ld .nw { white-space: nowrap; }
-.ld .gut { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
-.ld .wrap { max-width: 1080px; margin: 0 auto; }
-.ld .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .2em; color: var(--accent); }
-.ld h2 { margin: 6px 0 0; font-size: 26px; font-weight: 900; line-height: 1.35; letter-spacing: -.02em; word-break: keep-all; }
-.ld .lead { margin: 10px 0 0; color: var(--dim); font-size: 15px; word-break: keep-all; }
-.ld .blk .wrap { padding-block: 56px; }
-.ld .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; padding: 0 22px; border-radius: 14px; font-size: 16px; font-weight: 700; white-space: nowrap; }
-.ld .btn.p { background: var(--accent); color: var(--on-accent); }
-.ld .btn.s { background: var(--bg); border: 1px solid var(--sky-rule); color: var(--fg); }
-.ld .btn.b { background: var(--accent); color: var(--on-accent); }
-.ld .btn.o { border: 1px solid var(--rule); }
-/* 머리말: 교단 · 교회 이름(왼쪽, 교회 홈페이지 링크)과 오늘 날짜(오른쪽). 아래 첫 장면과 같은 하늘색 바탕(별도 흰 띠 없음), 메뉴 버튼 없음 */
-.ld header.ld-top { position: relative; z-index: 5; background: var(--sky); color: var(--fg); }
-.ld header.ld-top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; padding-block: 8px; }
-.ld .org { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.25; }
-.ld .org small { font-size: 12px; font-weight: 500; color: var(--dim); }
-.ld .church { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; font-size: 20px; font-weight: 900; letter-spacing: -.01em; color: var(--accent); white-space: nowrap; }
-.ld .church svg { width: 13px; height: 13px; flex: none; margin-top: -6px; }
-.ld .today { flex: none; text-align: right; font-size: 13px; color: var(--dim); white-space: nowrap; }
-.ld .today b { font-size: 17px; font-weight: 800; color: var(--fg); margin: 0 1px; }
-.ld .today small { font-size: 13px; }
-.ld /* 첫 장면 */
-  .hero { position: relative; overflow: hidden; color: var(--fg); background: var(--sky); }
-.ld .hero .wrap { position: relative; padding-block: 28px 90px; display: grid; gap: 36px; }
-.ld .hero h1 { margin: 12px 0 0; font-family: var(--serif); font-size: 40px; font-weight: 900; line-height: 1.3; letter-spacing: -.02em; word-break: keep-all; }
-.ld .hero h1 em { font-style: normal; color: var(--accent); }
-.ld .hero .sub { margin: 14px 0 0; font-size: 16px; color: var(--dim); word-break: keep-all; max-width: 520px; }
-.ld .brands { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px; }
-.ld .brands span { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; background: var(--bg); border: 1px solid var(--sky-rule); font-size: 13px; font-weight: 700; }
-.ld .brands i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
-.ld .brands span.r i { background: var(--rd); }
-.ld .cta { margin-top: 24px; display: grid; gap: 10px; }
-.ld .hero .hint-in { margin: 12px 0 0; font-size: 13px; color: var(--dim); }
-.ld .shots { position: relative; height: 360px; margin: 0 -4px; }
-.ld .ph { position: absolute; width: 214px; border-radius: 26px; padding: 12px 12px 14px; background: var(--bg); color: var(--fg); border: 1px solid var(--sky-rule); box-shadow: 0 20px 40px -24px rgba(43,89,195,.45); }
-.ld .ph.a { left: 2%; top: 50px; transform: rotate(-5deg); }
-.ld .ph.b { right: 2%; top: 30px; transform: rotate(4deg); }
-.ld .ph .bar { display: flex; justify-content: space-between; font-size: 10px; color: var(--dim); }
-.ld .ph .t { margin-top: 6px; font-size: 13px; font-weight: 900; color: var(--accent); }
-.ld .ph .rw { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
-.ld .ph .rw b { font-size: 22px; font-weight: 300; }
-.ld .ph .tiles { margin-top: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
-.ld .ph .tiles span { border-radius: 9px; padding: 6px; font-size: 11px; font-weight: 900; }
-.ld .ph .tiles small { display: block; font-size: 9.5px; font-weight: 500; }
-.ld .ph .t2 { color: var(--rd); }
-.ld .ph .vs { margin-top: 8px; font-family: var(--serif); font-size: 11.5px; line-height: 1.7; }
-.ld .ph .vs sup { font-family: var(--sans); font-size: 9px; color: var(--rd); margin-right: 3px; }
-.ld .ph .vs .ck { color: var(--rd); font-family: var(--sans); font-weight: 900; margin-left: 3px; }
-.ld .ph .pg { height: 5px; border-radius: 3px; background: var(--rd-bar); margin-top: 10px; overflow: hidden; }
-.ld .ph .pg i { display: block; width: 46%; height: 5px; background: var(--rd); }
-.ld .float { position: absolute; z-index: 2; padding: 8px 12px; border-radius: 14px; background: var(--bg); color: var(--fg); border: 1px solid var(--sky-rule); font-size: 12.5px; font-weight: 700; box-shadow: 0 10px 20px -12px rgba(43,89,195,.4); display: flex; align-items: center; gap: 6px; }
-.ld .float b { color: var(--accent); }
-.ld .float.f1 { left: 4%; top: 0; }
-.ld .float.f2 { left: 0; bottom: 0; }
-.ld .float.f2 b { color: var(--rd); }
-.ld .float.f3 { right: 0; bottom: 20px; }
-.ld .float.f3 b { color: var(--sun-fg); }
-.ld .float { animation: bob 5s ease-in-out infinite; }
-.ld .float.f2 { animation-delay: -1.6s; }
-.ld .float.f3 { animation-delay: -3.2s; }
-@keyframes bob { 50% { transform: translateY(-6px); } }
-@media (prefers-reduced-motion: reduce) {
-  .ld .float { animation: none; }
-}
-.ld /* 오늘의 말씀: 종이 카드 */
-  .word .wrap { position: relative; z-index: 2; margin-top: -56px; padding-block: 0 8px; }
-.ld .paper { position: relative; border-radius: 26px; background: var(--bg); color: var(--fg); padding: 30px 24px 24px; border: 1px solid var(--sky-rule); box-shadow: 0 20px 40px -28px rgba(43,89,195,.45); }
-.ld .paper .k { font-size: 12px; font-weight: 700; letter-spacing: .2em; color: var(--accent); }
-.ld .paper .q { position: absolute; right: 18px; top: -6px; font-family: var(--serif); font-size: 110px; line-height: 1; color: var(--accent); opacity: .18; }
-.ld .paper blockquote { margin: 12px 0 0; font-family: var(--serif); font-size: 23px; font-weight: 700; line-height: 1.75; word-break: keep-all; }
-.ld .paper cite { display: block; margin-top: 10px; font-style: normal; font-size: 13px; color: var(--dim); }
-.ld .paper .side { margin-top: 20px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.ld .paper .side div { border-top: 1px solid var(--rule); padding-top: 10px; }
-.ld .paper .side small { font-size: 12px; color: var(--dim); }
-.ld .paper .side b { display: block; font-size: 15px; margin-top: 2px; }
-.ld /* 하루 네 가지 */
-  .tabs { margin-top: 22px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.ld .tabs button { border: 0; border-radius: 16px; padding: 12px 4px 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 14px; font-weight: 900; background: var(--soft); color: var(--dim); transition: transform .15s; }
-.ld .tabs button svg { width: 26px; height: 26px; }
-.ld .tabs button[aria-selected="true"] { transform: translateY(-3px); }
-.ld .tabs .w[aria-selected="true"] { background: var(--word-bg); color: var(--word); box-shadow: 0 0 0 2px currentColor inset; }
-.ld .tabs .q[aria-selected="true"] { background: var(--quiz-bg); color: var(--quiz); box-shadow: 0 0 0 2px currentColor inset; }
-.ld .tabs .pr[aria-selected="true"] { background: var(--pray-bg); color: var(--pray); box-shadow: 0 0 0 2px currentColor inset; }
-.ld .tabs .rc[aria-selected="true"] { background: var(--rec-bg); color: var(--rec); box-shadow: 0 0 0 2px currentColor inset; }
-.ld .pane { margin-top: 12px; border-radius: 22px; padding: 22px 20px; display: grid; gap: 14px; }
-.ld .pane.w { background: var(--word-bg); }
-.ld .pane.q { background: var(--quiz-bg); }
-.ld .pane.pr { background: var(--pray-bg); }
-.ld .pane.rc { background: var(--rec-bg); }
-.ld .pane h3 { margin: 0; font-size: 20px; font-weight: 900; }
-.ld .pane.w h3 { color: var(--word); }
-.ld .pane.q h3 { color: var(--quiz); }
-.ld .pane.pr h3 { color: var(--pray); }
-.ld .pane.rc h3 { color: var(--rec); }
-.ld .pane p { margin: 0; color: var(--dim); word-break: keep-all; }
-.ld .pane ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
-.ld .pane li { display: flex; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--bg); font-size: 14px; }
-.ld .pane li b { flex: none; font-size: 13px; }
-.ld .pane.w li b { color: var(--word); }
-.ld .pane.q li b { color: var(--quiz); }
-.ld .pane.pr li b { color: var(--pray); }
-.ld .pane.rc li b { color: var(--rec); }
-.ld .day { margin-top: 14px; display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 18px; border: 1px solid var(--rule); }
-.ld .day b { flex: none; white-space: nowrap; font-size: 26px; font-weight: 300; color: var(--accent); }
-.ld .day span { font-size: 14px; color: var(--dim); word-break: keep-all; }
-.ld /* 성경 1, .ld 189장 지도 */
-  .rdb { background: var(--rd-soft); }
-.ld .rdb .eyebrow { color: var(--rd); }
-.ld .map { margin-top: 22px; display: grid; gap: 14px; }
-.ld .map .row { display: block; }   /* 공통 .row(flex)를 되돌린다 */
-.ld .map .row small { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
-.ld .strip { display: flex; gap: 2px; height: 34px; }
-.ld .strip i { display: block; border-radius: 4px; background: var(--bg); min-width: 2px; position: relative; }
-.ld .strip i.done { background: var(--rd); }
-.ld .strip i.half { background: var(--rd-bar); overflow: hidden; }
-.ld .strip i.half::before { content: ""; position: absolute; inset: 0 54% 0 0; background: var(--rd); }
-.ld .map .key { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--dim); }
-.ld .map .key i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: -1px; margin-right: 4px; }
-.ld .feat2 { margin-top: 22px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.ld .feat2 div { background: var(--bg); border-radius: 16px; padding: 14px; }
-.ld .feat2 b { display: block; font-size: 17px; color: var(--rd); }
-.ld .feat2 small { font-size: 13px; color: var(--dim); word-break: keep-all; }
-.ld /* 가족이 함께 */
-  .fam { margin-top: 22px; border-radius: 24px; background: var(--accent-soft); padding: 22px 20px; display: grid; gap: 16px; }
-.ld .fam .tot small { font-size: 13px; color: var(--dim); }
-.ld .fam .tot b { display: block; font-size: 52px; font-weight: 300; line-height: 1.05; color: var(--accent); }
-.ld .fam .tot b i { font-style: normal; font-size: 17px; color: var(--dim); }
-.ld .fam ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
-.ld .fam li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: var(--bg); }
-.ld .fam .av { width: 38px; height: 38px; flex: none; border-radius: 50%; display: grid; place-content: center; font-weight: 900; background: var(--accent-soft); color: var(--accent); }
-.ld .fam li span { flex: 1; font-size: 14px; }
-.ld .fam li span small { display: block; font-size: 12px; color: var(--dim); }
-.ld .fam li em { font-style: normal; font-size: 18px; font-weight: 300; }
-.ld /* 지금 함께하는 사람들 */
-  .stats { margin-top: 22px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.ld .stats div { border-radius: 18px; padding: 16px; background: var(--soft); }
-.ld .stats b { display: block; font-size: 34px; font-weight: 300; line-height: 1.15; }
-.ld .stats b i { font-style: normal; font-size: 14px; color: var(--dim); margin-left: 2px; }
-.ld .stats small { font-size: 13px; color: var(--dim); }
-.ld .week { margin-top: 14px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); align-items: end; gap: 8px; height: 150px; padding: 14px 14px 10px; border: 1px solid var(--rule); border-radius: 18px; }
-.ld .week div { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%; font-size: 11px; color: var(--dim); }
-.ld .week i { display: block; width: 100%; max-width: 30px; border-radius: 6px 6px 3px 3px; background: var(--accent-soft); }
-.ld .week .t i { background: var(--accent); }
-.ld .week .t { color: var(--accent); font-weight: 900; }
-.ld .week span { font-size: 11px; font-weight: 700; color: var(--fg); }
-.ld .fine { margin: 10px 0 0; font-size: 12.5px; color: var(--dim); }
-.ld /* 세 단계 */
-  .steps { margin: 22px 0 0; padding: 0; list-style: none; display: grid; gap: 0; counter-reset: s; }
-.ld .steps li { position: relative; display: flex; gap: 16px; padding-bottom: 22px; counter-increment: s; }
-.ld .steps li::before { content: counter(s); flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-content: center; background: var(--accent); color: var(--on-accent); font-weight: 900; z-index: 1; }
-.ld .steps li:not(:last-child)::after { content: ""; position: absolute; left: 19px; top: 40px; bottom: 0; width: 2px; background: var(--rule); }
-.ld .steps b { display: block; font-size: 17px; padding-top: 7px; }
-.ld .steps span { font-size: 14px; color: var(--dim); word-break: keep-all; }
-.ld /* 마지막 권유 */
-  .end { color: var(--fg); background: var(--sky); }
-.ld .end .wrap { padding-block: 60px 24px; text-align: center; }
-.ld .end h2 { font-family: var(--serif); font-size: 28px; }
-.ld .end p { margin: 10px auto 0; color: var(--dim); max-width: 440px; word-break: keep-all; }
-.ld .end .cta { max-width: 420px; margin: 24px auto 0; }
-.ld footer.ld-foot { background: var(--sky); color: var(--dim); }
-.ld footer.ld-foot .wrap { padding-block: 0 calc(28px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; text-align: center; }
-.ld .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; white-space: nowrap; }
-/* 좁은 휴대폰(≤ 420px): 머리말에서 연도는 빼고 월 · 일 · 요일만 */
-@media (max-width: 420px) {
-  .ld .today .dt-yr { display: none; }
-}
-/* 아주 좁은 휴대폰(≤ 380px): 글자 · 그림을 줄여 겹치거나 넘치지 않게 */
+.vb *, .vb *::before, .vb *::after { box-sizing: border-box; }
+.vb a { color: inherit; text-decoration: none; }
+.vb h1, .vb h2, .vb h3, .vb p, .vb blockquote { margin: 0; }
+.vb .num { font-variant-numeric: tabular-nums; }
+.vb .serif { font-family: "Noto Serif KR", serif; letter-spacing: -.02em; }
+.vb .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* 1. 히어로 */
+.vb-hero { position: relative; overflow: hidden; background: var(--paper); border-bottom: 1px solid var(--line); }
+.vb-hero-in { position: relative; max-width: 1120px; margin: 0 auto; padding: 18px 20px 34px; }
+/* 부서 홈(2026-11-23 사용자): 태그라인과 검색 상자 사이 구분선 없음 · 검색 상자 위아래 여백 같게 */
+.vb-dept .vb-hero { border-bottom: 0; }
+.vb-dept .vb-hero-in { padding-bottom: 0; }
+.vb-clover { position: absolute; right: -70px; top: -50px; width: 230px; opacity: .04; filter: grayscale(1); pointer-events: none; }
+.vb-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.vb-top-r { display: flex; align-items: center; gap: 10px; }
+.vb .church small { display: block; font-size: 12px; color: var(--ink-3); line-height: 1.3; }
+.vb .church span { display: block; font-size: 15px; font-weight: 800; color: var(--ink); letter-spacing: -.02em; }
+.vb-date { font-size: 12.5px; font-weight: 700; color: var(--ink-2); text-align: right; line-height: 1.3; white-space: nowrap; }
+.vb-date small { display: block; font-size: 12px; font-weight: 600; color: var(--ink-3); }
+.person-btn { width: 40px; height: 40px; flex: none; border-radius: 50%; background: #fff; border: 1px solid var(--line); display: inline-grid; place-items: center; color: var(--ink); }
+.person-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* 로그인한 사람: 머리말 「000님」 (2026-11-23 사용자) */
+.vb .hmx-me { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; max-width: 156px; padding: 0 10px 0 5px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); }
+.vb .hmx-me:not(:has(.av)) { padding: 0 13px; }   /* 사진이 없으면 「이」 동그라미 없이 이름만(2026-11-23 사용자: 공간 부족) */
+.vb .hmx-me .av { width: 30px; height: 30px; flex: none; border-radius: 50%; background: #ededef; color: var(--ink); font-size: 12px; font-weight: 900; display: grid; place-items: center; overflow: hidden; }
+.vb .hmx-me .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vb .hmx-me b { font-size: 13.5px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.vb-body { margin-top: 34px; }
+.brand-title { font-weight: 900; letter-spacing: -.04em; line-height: 1.08; color: var(--ink); font-size: 33px; }   /* 44 → 33px(0.75배, 2026-11-25 사용자) */
+.brand-title .bt-1, .brand-title .bt-2 { display: block; }
+.brand-title .bt-ex i { font-style: normal; margin-left: .02em; }
+.brand-title .e1 { color: #22b35e; }
+.brand-title .e2 { color: #3b7cf0; }
+.brand-title .e3 { color: #e8458f; }   /* 주황 → 분홍(2026-11-25 사용자): 초록 · 파랑 · 분홍 */
+.vb-tag { margin-top: 10px !important; font-size: 14px; color: var(--ink-2); line-height: 1.55; }
+.vb-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
+.vb-pills span { font-size: 12px; font-weight: 800; padding: 6px 11px; border-radius: 999px; color: #fff; }
+.vb-pills .pp1 { background: var(--p1); } .vb-pills .pp2 { background: var(--p2); }
+.vb-pills .pp3 { background: var(--p3); } .vb-pills .pp4 { background: var(--p4); }
+
+/* 로그인한 사람: 부서 바로가기 */
+.vb-go-pill { display: flex; align-items: center; justify-content: center; gap: 5px; width: max-content; max-width: 100%; margin: 14px auto 0; padding: 9px 14px; border-radius: 999px; background: #fff; border: 1px solid var(--line); color: var(--ink); font-size: 12.5px; font-weight: 800; }
+
+/* 2. 네 가지 도전 */
+.vb-main { max-width: 1120px; margin: 0 auto; padding: 30px 20px 26px; }
+.vb-sec-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.vb-sec-h h2 { font-size: 21px; font-weight: 900; letter-spacing: -.035em; }
+.vb-sec-h p { font-size: 13px; color: var(--ink-3); }
+.vb-list { margin-top: 14px; display: grid; grid-template-columns: 1fr; border-top: 2px solid var(--ink); }
+.vb-item { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+.vb-no { font-size: 24px; font-weight: 900; color: var(--c); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.vb-t small { display: block; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.vb-t b { display: block; font-size: 18px; font-weight: 900; letter-spacing: -.03em; }
+.vb-t p { font-size: 13px; color: var(--ink-2); margin-top: 4px !important; line-height: 1.5; text-wrap: pretty; }
+.vb-go { width: 40px; height: 40px; border-radius: 50%; background: var(--s); color: var(--c); display: grid; place-items: center; }
+
+/* 3. 말씀 + 현황 */
+.vb-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 18px; padding-top: 14px; border-top: 1px dashed #d6d6db; font-size: 12.5px; color: var(--ink-2); }
+.vb-meta b { color: var(--ink); font-weight: 800; }
+.vb-meta .nw { white-space: nowrap; }
+
+.vb-stat { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 20px; padding: 22px 20px; }
+.vb-stat h3 { font-size: 12.5px; font-weight: 800; color: var(--ink-3); }
+.vb-big { font-size: 46px; font-weight: 900; letter-spacing: -.045em; color: var(--ink); margin-top: 12px !important; line-height: 1; }
+.vb-big small { font-size: .4em; margin-left: 4px; letter-spacing: 0; }
+.vb-three { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 20px; background: var(--soft); border-radius: 14px; padding: 14px 0; }
+.vb-three div { text-align: center; padding: 0 6px; }
+.vb-three div + div { border-left: 1px solid #e3e3e7; }
+.vb-three b { display: block; font-size: 22px; font-weight: 900; letter-spacing: -.03em; color: var(--ink); }
+.vb-three b small { font-size: 12px; font-weight: 700; margin-left: 1px; color: var(--ink-2); }
+.vb-three span { display: block; font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.vb-week { margin-top: 14px; font-size: 12.5px; color: var(--ink-3); }
+.vb-week b { color: var(--ink-2); font-weight: 800; }
+
+/* 4. 푸터 */
+.vb-foot { margin-top: 26px; }
+/* 2026-11-24 사용자: 「© 잠실새내 · 주일학교」를 가운데로 — 3칸(빈칸 · 문구 · 앱으로 설치), 아주 좁은 화면은 위아래로 가운데 */
+.vb-footrow { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding-top: 12px; }   /* 2026-11-24 사용자: 위 가는 줄(hr) 삭제 */
+.vb-footrow .foot { grid-column: 2; font-size: 12px; color: var(--ink-3); text-align: center; white-space: nowrap; }
+.vb-footrow a { grid-column: 3; justify-self: end; font-size: 12.5px; font-weight: 700; color: var(--ink-2); white-space: nowrap; }
 @media (max-width: 380px) {
-  .ld .gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-  .ld .hero h1 { font-size: 34px; }
-  .ld .church { font-size: 18px; }
-  .ld .today b { font-size: 15px; }
-  .ld h2 { font-size: 23px; }
-  .ld .end h2 { font-size: 25px; }
-  .ld .shots { height: 330px; margin: 0; }
-  .ld .ph { width: 146px; padding: 9px 9px 11px; border-radius: 20px; }
-  .ld .ph.a { left: 0; top: 54px; }
-  .ld .ph.b { right: 0; top: 34px; }
-  .ld .ph .rw svg { width: 40px; height: 40px; }
-  .ld .ph .rw b { font-size: 18px; }
-  .ld .ph .tiles span { padding: 4px 5px; font-size: 10px; }
-  .ld .ph .tiles small { font-size: 8.5px; }
-  .ld .ph .vs { font-size: 10.5px; line-height: 1.6; }
-  .ld .paper { padding: 26px 18px 20px; }
-  .ld .paper blockquote { font-size: 20px; }
-  .ld .stats b { font-size: 30px; }
-  .ld .fam .tot b { font-size: 44px; }
-  .ld .week { gap: 4px; padding-inline: 8px; }
+  .vb-footrow { grid-template-columns: 1fr; justify-items: center; gap: 6px; }
+  .vb-footrow .foot, .vb-footrow a { grid-column: 1; justify-self: center; }
 }
-@media (min-width: 900px) {
-  .ld h2 { font-size: 32px; }
-  .ld .hero .wrap { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; padding-block: 48px 120px; }
-  .ld .hero h1 { font-size: 54px; }
-  .ld .cta { grid-auto-flow: column; justify-content: start; }
-  .ld .end .cta { grid-auto-flow: row; justify-content: stretch; }
-  .ld .shots { height: 420px; }
-  .ld .ph { width: 250px; }
-  .ld .paper { padding: 40px 44px 32px; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); column-gap: 40px; align-items: end; }
-  .ld .paper blockquote { font-size: 28px; }
-  .ld .paper .side { grid-template-columns: 1fr; margin-top: 0; }
-  .ld .pane { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: center; }
-  .ld .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
-  .ld .fam { margin-top: 0; }
-  .ld .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .ld .feat2 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+@media (min-width: 720px) {
+  .vb-hero-in { padding: 28px 40px 64px; }
+  .vb-clover { right: -60px; top: -40px; width: 360px; }
+  .vb-body { margin-top: 64px; }
+  .brand-title { font-size: 54px; }
+  .vb-tag { font-size: 16px; }
+  .vb-main { padding: 56px 40px 40px; }
+  .vb .hmx-search { margin-bottom: 56px; }   /* 넓은 화면도 검색 상자 위 · 아래 여백을 .vb-main padding-top 과 같게 */
+  .vb-sec-h h2 { font-size: 28px; }
+  .vb-list { margin-top: 22px; grid-template-columns: 1fr 1fr; column-gap: 40px; }
+  .vb-item { grid-template-columns: 56px 1fr auto; padding: 24px 0; }
+  .vb-no { font-size: 30px; }
+  .vb-t b { font-size: 21px; }
+  .vb-stat { padding: 30px 32px; }
+  .vb-big { font-size: 60px; }
+  .vb-foot { margin-top: 40px; }
 }
+@media (max-width: 380px) {
+  .vb-date { display: none; }
+  .vb .hmx-me:has(.av) b { display: none; }
+  .vb .hmx-me:has(.av) { padding: 0 5px; }
+}
+
+/* ☰ 메뉴 (design_handoff_home_b(1)) — 부서 하나인 사람은 기존 부서 메뉴판, 그 밖에는 이 손님용 메뉴판 */
+.vb-top-l { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.vb-burger { width: 44px; height: 44px; flex: none; margin-left: -8px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+.vb-burger:hover { background: #e7e7ea; }
+.vb-burger:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.vb-dr .pd-panel { width: min(216px, 84vw); padding: 18px 18px 24px; display: flex; flex-direction: column; }
+.vb-dr-prof { margin: auto -18px -24px; padding: 8px 18px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); }   /* 프로필(로그인) 카드는 맨 아래(2026-11-25 ☰ 표준 개정) */
+.vb-dr-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.vb-dr-x { width: 36px; height: 36px; flex: none; border: 0; border-radius: 10px; background: transparent; color: var(--ink-3); display: grid; place-items: center; cursor: pointer; }
+.vb-dr-x:hover { background: #f4f4f5; }
+.vb-dr-login { display: flex; align-items: center; gap: 12px; margin-top: 0; padding: 12px 0; border-radius: 10px; background: transparent; color: var(--ink); }
+.vb-dr-login > span:nth-child(2) { flex: 1; min-width: 0; }
+.vb-dr-login b { display: block; font-size: 15px; font-weight: 800; }
+.vb-dr-login small { display: block; margin-top: 1px; font-size: 12px; color: var(--ink-3); }
+.vb-dr-cap { margin-top: 22px !important; padding: 0 4px; font-size: 12px; font-weight: 800; color: var(--ink-3); }
+.vb-dr-list { display: grid; margin-top: 6px; }
+.vb-dr-list a { display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 4px; border-radius: 10px; font-size: 15px; font-weight: 700; color: var(--ink); }
+.vb-dr-list a:hover { background: #f4f4f5; }
+.vb-dr-list.plain a { height: 42px; font-size: 14.5px; font-weight: 600; color: var(--ink-2); }
+.vb-dr-ic { width: 32px; height: 32px; flex: none; border-radius: 9px; background: var(--s, #f4f4f5); color: var(--c, var(--ink)); display: grid; place-items: center; }
+
+/* 부서 홈(같은 시안) — 현황 카드 머리 · 손님 안내 · 검색/가족팀/임시 부서 안내는 모노 톤으로 */
+.vb-stat-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.vb-more { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.vb-guest { margin-top: 14px; padding: 14px; border-radius: 14px; background: var(--soft); }
+.vb-guest b { display: block; font-size: 14px; font-weight: 800; }
+.vb-guest span { display: block; margin-top: 2px; font-size: 12px; color: var(--ink-3); }
+.vb-guest a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; margin-top: 10px; padding: 0 16px; border-radius: 10px; background: var(--ink); color: #fff; font-size: 13.5px; font-weight: 800; }
+
+/* 나의 도전 현황 통합 카드(2026-11-23 사용자 확정 · ADR 0133 · 시안 docs/design/시안/홈-나의도전-통합카드-단독시안.html)
+   체크 표시 없이 바탕색+글자색으로 완료/대기중을 나타낸다. 완료=초록 바탕·흰 글자, 대기중=옅은 초록 바탕·초록 글자. */
+.vb-chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 14px; }
+.vb-chip { display: grid; justify-items: center; gap: 3px; padding: 11px 2px; border-radius: 12px; text-align: center; }
+.vb-chip b { font-size: 12px; font-weight: 800; }
+.vb-chip span { font-size: 12px; font-weight: 700; letter-spacing: 0; }
+.vb-chip.ok { background: var(--p1); }
+.vb-chip.ok b { color: #fff; }
+.vb-chip.ok span { color: rgba(255, 255, 255, .85); }
+.vb-chip.k-word { --c: var(--p1); --c-tx: var(--p1-tx); --s: var(--s1); } .vb-chip.k-quiz { --c: var(--p2); --c-tx: var(--p2-tx); --s: var(--s2); }
+.vb-chip.k-prayer { --c: var(--p4); --c-tx: var(--p4-tx); --s: var(--s4); } .vb-chip.k-recite { --c: var(--p3); --c-tx: var(--p3-tx); --s: var(--s3); }
+.vb-chip.ok { background: var(--c, var(--p1)); }
+.vb-chip.wait { background: var(--s, var(--s1)); }
+.vb-chip.wait b { color: var(--c, #5f8a71); }
+.vb-chip.wait span { color: var(--c, #7ba48c); opacity: .8; }
+.vb-chip.none { background: #fafafb; box-shadow: inset 0 0 0 1px var(--line); }
+.vb-chip.none b { color: #c2c2c8; }
+.vb-chip.none span { color: #c9c9cf; }
+.vb-chipsum { margin-top: 10px; font-size: 12px; color: var(--ink-3); }
+.vb-chipsum b { color: var(--ink-2); font-weight: 800; }
+
+.vb-prog { display: grid; gap: 14px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+.vb-prog a.p { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 8px; color: inherit; }
+.vb-prog .nm { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; color: var(--ink); }
+.vb-prog .nm i { width: 6px; height: 6px; flex: none; border-radius: 2px; display: block; }
+.vb-prog .pc { font-size: 14px; font-weight: 900; color: var(--ink); }
+.vb-prog .pc small { margin-left: 3px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.vb-prog .bar { grid-column: 1 / -1; height: 6px; margin-top: 7px; border-radius: 99px; background: var(--track); overflow: hidden; }
+.vb-prog .bar i { display: block; height: 100%; border-radius: 99px; }
+.vb-prog .sub { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.vb-prog .sub .go { font-size: 12px; font-weight: 900; color: var(--ink); }
+.vb-prog .pc.none { font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.vb .c-reading { background: var(--p2); }
+.vb .c-copy { background: var(--p3); }
+.vb .c-prayer { background: var(--p4); }
+
+.vb-deptnum { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 16px; padding: 14px 0; border-radius: 14px; background: var(--soft); }
+.vb-deptnum div { text-align: center; padding: 0 6px; }
+.vb-deptnum div + div { border-left: 1px solid #e3e3e7; }
+.vb-deptnum b { display: block; font-size: 22px; font-weight: 900; letter-spacing: -.03em; color: var(--ink); }
+.vb-deptnum b small { margin-left: 1px; font-size: 12px; font-weight: 700; color: var(--ink-2); }
+.vb-deptnum span { display: block; margin-top: 2px; font-size: 12px; color: var(--ink-3); }
+
+/* 나의 포인트 띠(2026-11-23 사용자 확정 B안 · ADR 0135 · 시안 docs/design/시안/홈-포인트강조-B-성장단계-단독시안.html)
+   카드 맨 위에서 포인트를 가장 크게. 오른쪽에 「성장 N단계 · 이름」과 다음 단계까지 남은 점수, 아래에 단계 눈금. */
+.vb-pts { margin-top: 14px; padding: 14px 15px 13px; border-radius: 15px; background: var(--s1); }
+.vb-pts .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.vb-pts .lb { display: block; font-size: 12px; font-weight: 800; color: #167a41; }
+.vb-pts .v { display: flex; align-items: baseline; gap: 4px; margin-top: 1px; }
+.vb-pts .v b { font-size: 30px; font-weight: 900; letter-spacing: -.04em; line-height: 1.05; color: #17663a; }
+.vb-pts .v > span { font-size: 13px; font-weight: 800; color: #3f7a58; }
+.vb-pts .right { flex: none; text-align: right; }
+.vb-pts .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px; background: #fff; font-size: 12px; font-weight: 900; color: #17663a; white-space: nowrap; }
+.vb-pts .badge i { font-style: normal; }
+.vb-pts .right small { display: block; margin-top: 4px; font-size: 12px; font-weight: 700; line-height: 1.4; color: #167a41; }
+.vb-pts .right small b { font-weight: 900; color: #17663a; }
+.vb-pts .steps { display: flex; gap: 5px; margin-top: 11px; }
+.vb-pts .steps u { flex: 1; height: 5px; border-radius: 99px; background: #d6e9dd; display: block; }
+.vb-pts .steps u.on { background: var(--p1); }
+.vb-pts .names { display: flex; justify-content: space-between; margin-top: 5px; font-size: 12px; font-weight: 700; color: #167a41; }
+.vb-pts .names .past { color: #167a41; }
+.vb-pts .names .now { font-weight: 900; color: #17663a; }
+/* 2026-11-23 사용자: 검색 상자 위 · 아래 여백을 같게 — 위는 .vb-main 의 padding-top(30/56)이라 아래도 같은 값 */
+.vb .hmx-search { margin: 0 0 30px; border-color: var(--line); background: var(--soft); }
+.vb .hmx-search button { background: #2f6fe4; }   /* 검색 = 성경통독 파랑(2026-11-25 사용자) */
+.vb .hmx-search button:active { background: #2358c4; }
+.vb .hmx-links a { color: var(--ink-2); }
+/* 가족팀(2026-11-23 사용자 · ADR 0132 시안 `메인-가족팀-아래-단독시안.html`) — 초대 배너 · 우리 팀 카드 · 만들기 유도.
+   첫 화면(`/`)은 landing.css 만 읽으므로 모노 톤 정의를 여기에 둔다(부서 홈은 home.css 와 겹쳐도 이 값이 이긴다). */
+.vb .hmx-inv { display: block; margin-top: 18px; padding: 16px 16px 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--soft); }
+.vb .hmx-inv .hd { display: flex; align-items: flex-start; gap: 11px; }
+.vb .hmx-inv .em { width: 38px; height: 38px; flex: none; border-radius: 11px; background: #fff; display: grid; place-items: center; font-size: 19px; }
+.vb .hmx-inv b { display: block; font-size: 15px; font-weight: 900; color: var(--ink); }
+.vb .hmx-inv small { display: block; margin-top: 3px; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); }
+.vb .hmx-inv .cnt { margin-left: auto; flex: none; font-size: 12px; color: var(--ink-3); }
+.vb .hmx-inv .row { display: flex; align-items: center; gap: 10px; margin-top: 13px; }
+.vb .hmx-inv .row form { margin: 0; display: inline-flex; }
+.vb .hmx-inv .go { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: 11px; background: var(--ink); color: #fff; font-size: 13.5px; font-weight: 800; }
+.vb .hmx-inv .later { border: 0; background: none; padding: 6px 0; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--ink-3); cursor: pointer; }
+
+.vb .hmx-fam { display: flex; align-items: center; gap: 13px; margin-top: 18px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--soft); color: inherit; text-decoration: none; }
+.vb .hmx-fam .em { width: 44px; height: 44px; flex: none; border-radius: 13px; background: #fff; border: 1px solid var(--line); display: grid; place-items: center; font-size: 22px; }
+.vb .hmx-fam .tx { flex: 1; min-width: 0; }
+.vb .hmx-fam .tx b { display: block; font-size: 15px; font-weight: 900; color: var(--ink); }
+.vb .hmx-fam .tx b i { font-style: normal; color: var(--ink); font-weight: 900; }
+.vb .hmx-fam .tx small { display: block; margin-top: 3px; font-size: 12px; color: var(--ink-3); }
+.vb .hmx-fam .avs { display: inline-flex; margin-left: 5px; vertical-align: -4px; }
+.vb .hmx-fam .avs i { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 1px solid var(--line); margin-left: -5px; display: inline-grid; place-items: center; font-size: 12px; font-style: normal; color: var(--ink-2); }
+.vb .hmx-fam .avs i:first-child { margin-left: 0; }
+.vb .hmx-fam .bar { display: block; height: 6px; border-radius: 99px; background: var(--track); margin-top: 9px; overflow: hidden; }
+.vb .hmx-fam .bar i { display: block; height: 100%; border-radius: 99px; background: var(--ink); }
+.vb .hmx-fam .ar { flex: none; color: var(--ink-3); font-size: 20px; }
+
+.vb .hmx-make { display: block; margin-top: 18px; padding: 18px 16px 16px; border: 1px dashed #d6d6db; border-radius: 16px; background: var(--paper); }
+.vb .hmx-make .hd { display: flex; align-items: flex-start; gap: 11px; }
+.vb .hmx-make .em { width: 42px; height: 42px; flex: none; border-radius: 12px; background: var(--soft); display: grid; place-items: center; font-size: 21px; }
+.vb .hmx-make b { display: block; font-size: 15px; font-weight: 900; line-height: 1.4; color: var(--ink); }
+.vb .hmx-make small { display: block; margin-top: 4px; font-size: 12.5px; line-height: 1.55; color: var(--ink-3); }
+.vb .hmx-make .row { display: flex; gap: 8px; margin-top: 14px; }
+.vb .hmx-make .go, .vb .hmx-make .alt { flex: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 12px; border-radius: 11px; font-size: 13.5px; font-weight: 800; }
+.vb .hmx-make .go { background: var(--ink); color: #fff; }
+.vb .hmx-make .alt { background: var(--paper); border: 1px solid #d6d6db; color: var(--ink-2); }
+.vb .lb-ban { display: grid; gap: 10px; margin-top: 18px; padding: 14px; border-radius: 16px; }
+.vb .lb-ban.lb-go { background: var(--soft); border: 1px solid var(--line); }
+.vb .lb-ban.lb-wait { background: #fffbeb; border: 1px solid #fde68a; }
+.vb .lb-ban p { margin: 0; font-size: 13.5px; font-weight: 500; line-height: 1.55; color: var(--ink-2); }
+.vb .lb-ban p b { display: block; margin-bottom: 2px; font-size: 15.5px; font-weight: 900; color: var(--ink); }
+.vb .lb-ban .lb-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 11px; font-size: 14px; font-weight: 800; }
+.vb .lb-ban .lb-btn.p { background: var(--ink); color: #fff; }
+.vb .lb-ban .lb-btn.s { background: #fff; border: 1px solid var(--line); color: var(--ink-2); }
+
+/* 선물 대상자와 상태 카드(2026-11-23 사용자 확정 C안 · ADR 0134 · 시안 docs/design/시안/홈-선물대상자-상태카드-단독시안.html)
+   사람마다 한 칸, 안에 3단계 눈금(골랐어요 → 샀어요 → 받았어요). 가격 없음(R-297). 완료는 옅은 초록 바탕. */
+.vb-gifts { margin-top: 12px; }
+.vb-giftlist { display: grid; gap: 8px; margin-top: 14px; }
+.vb-gift { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 11px; padding: 12px 12px 11px; border-radius: 14px; background: var(--soft); }
+.vb-gift.done { background: var(--s1); }
+.vb-gift .pic { width: 38px; height: 38px; flex: none; border-radius: 10px; background: #fff; display: grid; place-items: center; font-size: 15px; overflow: hidden; }
+.vb-gift .pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vb-gift .t { min-width: 0; }
+.vb-gift .hd { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.vb-gift .hd b { font-size: 13.5px; font-weight: 900; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vb-gift .t small { display: block; margin-top: 2px; font-size: 12px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vb-gift .st { flex: none; padding: 3px 8px; border-radius: 99px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.vb-gift .st.s1 { background: #fafafb; color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--line); }
+.vb-gift .st.s2 { background: var(--s1); color: #2f7a51; }
+.vb-gift .st.s3 { background: var(--p1); color: #fff; }
+.vb-gift .k { display: inline-block; margin-right: 4px; padding: 1px 6px; border-radius: 99px; font-size: 12px; font-weight: 800; background: #f1f1f3; color: var(--ink-2); vertical-align: 1px; }
+.vb-gift .k-b { background: var(--s3); color: var(--p3); }
+.vb-gift .k-f { background: var(--s1); color: #2f7a51; }
+.vb-gift .k-r { background: var(--s2); color: var(--p2); }
+.vb-gift .dots { display: flex; align-items: center; gap: 4px; margin-top: 7px; }
+.vb-gift .dots u { flex: 1; height: 4px; border-radius: 99px; background: #fff; display: block; }
+.vb-gift .dots u.on { background: var(--p1); }
+.vb-gift .lbl { display: flex; justify-content: space-between; margin-top: 4px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.vb-giftfoot { display: flex; justify-content: center; margin-top: 10px; padding-top: 11px; border-top: 1px solid var(--line); font-size: 12px; font-weight: 800; color: var(--ink-2); }
+.vb-gift-empty { margin-top: 14px; padding: 18px 14px; border-radius: 14px; background: var(--soft); text-align: center; }
+.vb-gift-empty b { display: block; font-size: 13px; font-weight: 800; color: var(--ink); }
+.vb-gift-empty span { display: block; margin-top: 3px; font-size: 12px; color: var(--ink-3); }
+
+/* 홈 상단 포인트 링(2026-11-23 사용자 확정 B안 · ADR 0136 · 시안 docs/design/시안/나의도전-확정-A링히어로-이번주추가.html)
+   「도전 성경말씀」 오른쪽 빈자리. 링 안에 포인트와 지금 성장 단계, 누르면 「나의 도전」 화면. */
+.vb-hero-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.vb-hero-row .vb-body { margin-top: 34px; min-width: 0; }
+.vb-ring { display: inline-grid; justify-items: center; gap: 5px; flex: none; margin-top: 22px; border-radius: 50%; }
+.vb-ring .ring { position: relative; display: block; }
+.vb-ring svg { display: block; transform: rotate(-90deg); }
+.vb-ring .rb-track { stroke: var(--track); fill: none; stroke-linecap: round; }
+.vb-ring .rb-arc { stroke: var(--p1); fill: none; stroke-linecap: round; }
+/* rb- 접두사: site.css 의 .in(입력칸 · 흰 바탕 · 테두리) · .stg 와 겹치지 않게 */
+.vb-ring .rb-in { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1px; text-align: center; background: none; border: 0; padding: 0; min-height: 0; }
+.vb-ring .rb-pts { font-size: 18px; font-weight: 900; letter-spacing: -.045em; line-height: 1.1; color: #17663a; }
+.vb-ring .rb-pts i { font-style: normal; margin-left: 1px; font-size: 12px; font-weight: 800; color: #3f7a58; }
+.vb-ring .rb-stg { display: block; margin-top: 1px; font-size: 12px; font-weight: 800; color: #167a41; white-space: nowrap; }
+.vb-ring.lg .rb-pts { font-size: 31px; }
+.vb-ring.lg .rb-pts i { font-size: 12px; margin-left: 2px; }
+.vb-ring.lg .rb-stg { font-size: 12px; font-weight: 900; color: var(--p1); }
+.vb-ring:hover .rb-arc { stroke: #17824a; }
+@media (max-width: 380px) { .vb-ring { margin-top: 16px; } }
+
+/* 「나의 도전」 화면(ADR 0136) — A안 링 히어로 + B안 「이번 주」 막대 */
+.vb-ch { background: var(--paper); }
+.vb-ch-main { max-width: 720px; margin: 0 auto; padding: 16px 18px 34px; display: grid; gap: 13px; }
+.vb-ch-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.vb-ch-back { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 800; color: var(--ink-2); }
+.vb-ch-date { font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.vb-ch-hd h1 { font-size: 25px; font-weight: 900; letter-spacing: -.04em; line-height: 1.25; }
+.vb-ch-hd p { margin-top: 5px; font-size: 12px; font-weight: 600; color: var(--ink-3); }
+.vb-ch-hero { display: grid; justify-items: center; gap: 10px; padding: 18px 15px 15px; border: 1px solid var(--line); border-radius: 20px; background: linear-gradient(180deg, #f4fbf7, #fff); }
+.vb-ch-hero .vb-ring { margin-top: 0; }
+.vb-ch-next { font-size: 12.5px; font-weight: 700; color: #167a41; }
+.vb-ch-next b { font-weight: 900; color: #17663a; }
+.vb-ch-steps, .vb-ch-names { width: 100%; }
+.vb-ch-steps { display: flex; gap: 5px; margin-top: 2px; }
+.vb-ch-steps u { flex: 1; height: 5px; border-radius: 99px; background: #d6e9dd; display: block; }
+.vb-ch-steps u.on { background: var(--p1); }
+.vb-ch-names { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; text-align: center; margin-top: -4px; font-size: 12px; font-weight: 700; color: #167a41; }
+.vb-ch-names .past { color: #167a41; }
+.vb-ch-names .now { font-weight: 900; color: #17663a; }
+.vb-ch-card { border: 1px solid var(--line); border-radius: 20px; padding: 17px 15px; }
+.vb-ch-cardh { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.vb-ch-cardh h2 { font-size: 12.5px; font-weight: 800; color: var(--ink-3); }
+.vb-ch-cardh span { font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.vb-ch-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; align-items: end; height: 66px; margin-top: 13px; }
+.vb-ch-week div { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; height: 100%; }
+/* 막대 높이 = (칸 높이 − 요일 글자 줄) × --h/100. 예전엔 height: N% 를 격자 칸 안에서 써서 0px 로 계산돼 막대가 하나도 안 그려졌다(2026-11-24 사용자 신고) */
+.vb-ch-week i { display: block; flex: none; width: 100%; height: calc((100% - 18px) * var(--h, 0) / 100); border-radius: 5px 5px 2px 2px; background: #dcefe4; }
+.vb-ch-week i.on { background: var(--p1); }
+.vb-ch-week span { font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.vb-ch .vb-chips { margin-top: 12px; }
+.vb-ch .vb-prog { margin-top: 12px; padding-top: 0; border-top: 0; }
+.vb-ch .vb-deptnum { margin-top: 0; }
+
+/* ── 「오늘의 말씀」 아래 한 줄 선물 알림 + 상세(2026-11-23 사용자 확정 B안 · ADR 0138)
+   시안 docs/design/시안/선물알림-오늘의말씀아래-3안.html B안. 홈에서는 한 줄만 — 이름 · 선물 이름은 상세에서.
+   클래스는 vb- 접두사 + ga/gs 로 좁혀 site.css 의 .in · .stg · .sum 같은 일반 이름과 부딪히지 않게 한다. */
+/* 자식 선택자(>)로만 — 예전 `.tx span` 은 글자 안의 <span class="num"> 까지 block 으로 만들어
+   「선물 / 2 / 명」처럼 한 줄이 세 줄로 쪼개졌다(2026-11-23 버그). */
+
+/* 상세 `/{slug}/gift-status` */
+.vb-gs-sum { border: 1px solid var(--line); border-radius: 18px; padding: 15px 16px; }
+.vb-gs-sum .hd { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 800; color: var(--ink-3); }
+.vb-gs-sum .hd b { font-size: 12px; color: var(--ink); }
+.vb-gs-sum .bar { display: flex; gap: 5px; margin-top: 11px; }
+.vb-gs-sum .bar u { flex: 1; height: 7px; border-radius: 99px; background: var(--track); display: block; }
+.vb-gs-sum .bar u.on { background: var(--p1); }
+.vb-gs-sum .leg { display: flex; justify-content: space-between; margin-top: 7px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.vb-gs-sum .leg b { color: var(--ink-2); font-weight: 900; }
+.vb-gs-card { border: 1px solid var(--line); border-radius: 20px; padding: 17px 15px; }
+.vb-gs-list { display: grid; gap: 10px; margin-top: 13px; }
+.vb-gs-row { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 13px; padding: 14px 14px 13px; border-radius: 18px; background: var(--soft); }
+.vb-gs-row.done { background: var(--s1); }
+.vb-gs-row .pic { width: 56px; height: 56px; flex: none; border-radius: 15px; background: #fff; display: grid; place-items: center; font-size: 24px; overflow: hidden; }
+.vb-gs-row .pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vb-gs-row .t { min-width: 0; }
+.vb-gs-row .hd { display: flex; align-items: center; justify-content: space-between; gap: 9px; }
+.vb-gs-row .hd b { font-size: 19px; font-weight: 900; letter-spacing: -.03em; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vb-gs-row .st { flex: none; padding: 5px 12px; border-radius: 99px; font-size: 12px; font-weight: 900; white-space: nowrap; background: #fff; color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--line); }
+.vb-gs-row .st.s2 { background: #fff; color: #2f7a51; box-shadow: inset 0 0 0 1px #cfe8db; }
+.vb-gs-row .st.s3 { background: var(--p1); color: #fff; box-shadow: none; }
+.vb-gs-row .k { display: flex; align-items: center; gap: 6px; min-width: 0; margin-top: 9px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.vb-gs-row .k em { flex: none; font-style: normal; font-size: 12px; font-weight: 800; padding: 3px 9px; border-radius: 99px; background: #fff; color: var(--ink-2); }
+.vb-gs-row .k em.k-b { background: var(--s3); color: var(--p3); }
+.vb-gs-row .k em.k-f { background: var(--s1); color: #2f7a51; }
+.vb-gs-row .k em.k-r { background: var(--s2); color: var(--p2); }
+.vb-gs-row .k span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vb-gs-row .dots { display: flex; gap: 6px; margin-top: 12px; }
+.vb-gs-row .dots u { flex: 1; height: 6px; border-radius: 99px; background: #fff; display: block; }
+.vb-gs-row.done .dots u { background: #cfe8db; }
+.vb-gs-row .dots u.on { background: var(--p1); }
+.vb-gs-row .lbl { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.vb-gs-note { margin: 0; font-size: 12px; font-weight: 600; color: var(--ink-3); text-align: center; }
+
+/* ── 첫 화면(/) 균형 정리(2026-11-23 사용자 확정 · 시안 docs/design/시안/첫화면-링-비교-*.png 1안) ──
+   ① 히어로 아래 가는 줄 삭제 · 「4가지 도전」을 위로  ② 포인트 링 크게 · 문구 덩어리 옆 세로 가운데  ③ 알약은 링 줄 아래 */
+.vb-landing .vb-hero { border-bottom: 0; }
+.vb-landing .vb-hero-in { padding-bottom: 14px; }
+.vb-landing .vb-main { padding-top: 22px; }
+.vb-landing .vb-pills { margin-top: 18px; }
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring { margin-top: 58px; margin-right: 6px; }
+.vb-dept .vb-hero-row .vb-ring { margin-top: 46px; }
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .ring { width: 112px !important; height: 112px !important; }
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring svg { width: 100%; height: 100%; }
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts { font-size: 23px; }
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts i { font-size: 12px; }
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-stg { font-size: 12px; }
+@media (min-width: 720px) {
+  .vb-landing .vb-hero-in { padding-bottom: 24px; }
+  .vb-landing .vb-main { padding-top: 40px; }
+  :is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring { margin-top: 94px; margin-right: 110px; }
+  .vb-landing .vb-hero-row .vb-ring { margin-top: 67px; }   /* 제목+문구 두 줄 덩어리(약 218px)의 세로 가운데 */
+  .vb-dept .vb-hero-row .vb-ring { margin-top: 53px; }      /* 문구가 한 줄뿐인 부서 홈(약 190px) */
+  :is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .ring { width: 168px !important; height: 168px !important; }
+  :is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts { font-size: 34px; }
+  :is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts i { font-size: 14px; }
+  :is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-stg { font-size: 13.5px; }
+}
+
+/* ── 첫 화면(/) 균형 정리 2차(2026-11-23 사용자 "추천" · 시안 docs/design/시안/첫화면-균형-비교-*.png A안) ──
+   ① 통계 카드가 없을 때(로그인) 「오늘의 말씀」을 전체 폭으로 — 오른쪽 빈칸 없앰  ② 선물 눈금은 가늘고 옅게
+   ③ 네잎 무늬는 머리말(날짜 · 이름) 뒤가 아니라 히어로 오른쪽 아래로  ④ 말씀 문장은 단어 중간에서 줄바꿈하지 않음 */
+.vb-landing .vb-clover { top: auto; bottom: -70px; right: -40px; width: 230px; }
+@media (min-width: 720px) {
+  .vb-landing .vb-clover { bottom: -90px; right: -30px; width: 340px; }
+}
+/* 링이 있을 때(로그인)는 네잎 무늬가 링 뒤에 겹치지 않게: 데스크톱은 링 오른쪽 바깥으로, 휴대폰은 자리가 없어 숨김 */
+.vb-landing .vb-hero:has(.vb-ring) .vb-clover { display: none; }
+@media (min-width: 720px) {
+  .vb-landing .vb-hero:has(.vb-ring) .vb-clover { display: block; bottom: -70px; right: -150px; width: 300px; }
+}
+
+/* 「나의 도전」 정리(2026-11-24 사용자 확정 · 시안 나의도전-정리): 링은 홈(168)보다 크게 — 휴대폰 190 · 데스크톱 210 */
+.vb-ch-hero .vb-ring .ring { width: 190px !important; height: 190px !important; }
+.vb-ch-hero .vb-ring svg { width: 100%; height: 100%; }
+.vb-ch-hero .vb-ring.lg .rb-pts { font-size: 40px; }
+.vb-ch-hero .vb-ring.lg .rb-pts i { font-size: 15px; }
+.vb-ch-hero .vb-ring.lg .rb-stg { font-size: 14px; }
+@media (min-width: 720px) {
+  .vb-ch-hero .vb-ring .ring { width: 210px !important; height: 210px !important; }
+  .vb-ch-hero .vb-ring.lg .rb-pts { font-size: 44px; }
+}
+/* 「오늘 미션」 제목 줄 오른쪽 「들어가기 ›」(2026-11-24 사용자 A안 · 시안 나의도전-미션들어가기) */
+.vb-ch-cardh .rt { display: flex; align-items: baseline; gap: 10px; }
+.vb-ch-cardh .go { font-size: 12px; font-weight: 900; color: var(--ink); }
+/* 「나의 도전」 남은 점검(2026-11-24 사용자 "추천"): ① 이번 주 기록이 하나도 없으면 막대 영역을 낮춰 빈 공백을 줄인다 ② 작은 회색 글자는 이 화면 안에서만 한 단계 진하게(#8e8e94 → #6e6e75, 흰 바탕 대비 3.3 → 5:1) */
+.vb-ch-week.empty { height: 38px; }
+.vb.vb-ch { --ink-3: #6e6e75; }
+
+/* ── 머리줄 표준(2026-11-24 확정 · 기준표 5판 · 시안 머리줄-홈계열-비교) ──
+   오른쪽은 「쪽지 | 이름님」 한 덩어리 알약, 날짜는 머리줄에서 본문 제목 위로. 첫 화면은 「대한예수교장로회」 문구를 그대로 둔다. */
+.vb-top-r { gap: 0; }
+.vb .hpill { display: inline-flex; align-items: center; height: 40px; border: 1px solid #e3e6eb; border-radius: 999px; padding: 0 13px 0 4px; background: #fff; }
+.vb .hpill .mailb { width: 34px; height: 34px; border-radius: 50%; background: transparent; color: var(--ink); }
+.vb .hpill .mailb i { top: 0; right: -4px; }
+.vb .hpill .sp { width: 1px; height: 16px; flex: none; background: #e3e6eb; margin: 0 8px 0 2px; }
+.vb .hpill .hmx-me { min-height: 0; padding: 0; border: 0; background: transparent; max-width: none; }
+.vb .hpill .hmx-me:not(:has(.av)) { padding: 0; }
+.vb .hpill .hmx-me:has(.av) { padding: 0; }
+.vb-today { display: block; margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--ink-3); }
+.vb .church > span:only-child { font-size: 15px; font-weight: 800; color: var(--ink); letter-spacing: -.02em; }
+/* 머리줄 간격 약간 줄이기(2026-11-24 사용자): ☰ ↔ 그 오른쪽 이름 10 → 4px. 오른쪽 알약은 건드리지 않는다(사용자 "알약은 그대로") */
+.vb-top-l { gap: 4px; }
+/* ☰ ↔ 오른쪽 이름 간격을 지금의 절반으로(2026-11-24 사용자): 14 → 7px. 누르는 칸 크기는 그대로(음수 오른쪽 여백) */
+.vb-burger { margin-right: -7px; }
+/* ☰ 막대 왼쪽 끝 = 좌우 여백 20px 선(날짜 · 제목 글자와 같은 선) — 누르는 칸은 44px(2026-11-24 사용자 · 기준표 8판). 막대 간격은 그대로 */
+.vb-burger { margin-left: -15.3px; margin-right: -9px; }
+/* 부서 홈 맨 아래(2026-11-24 사용자): 첫 화면 맨 아래와 같은 모양 — 위 여백 없이 .vb-foot 이 간격을 갖는다 */
+.vb-dept .vb-bottom { padding-top: 0; padding-bottom: 26px; }
+
+/* 첫 화면: 현황 카드를 지운 뒤 위·아래 여백을 1/3로(2026-11-24 사용자) */
+.vb-landing .vb-foot { margin-top: 20px; }
+.vb-landing .vb-main { padding-bottom: 9px; }
+
+/* 부서 홈: 「의견 보내기」 ↔ © 사이 13px, 맨 아래 9px(2026-11-24 사용자 "13으로") */
+.vb-dept main.vb-main { padding-bottom: 0; }
+.vb-dept .vb-bottom { padding-bottom: 9px; }
+.vb-dept .vb-foot { margin-top: 0; }
+.vb-dept .vb-footrow { padding-top: 12px; }
+
+/* 쪽에서 직접 정한 --c: var(--pN)(Razor 인라인)도 같은 글자색을 쓰게 */
+[style*="--c: var(--p1)"] { --c-tx: var(--p1-tx); }
+[style*="--c: var(--p2)"] { --c-tx: var(--p2-tx); }
+[style*="--c: var(--p3)"] { --c-tx: var(--p3-tx); }
+[style*="--c: var(--p4)"] { --c-tx: var(--p4-tx); }
+
+/* 첫 화면 오른쪽 위 날짜 + 동그라미 · 인사말(2026-11-25 사용자 시안 첫화면-날짜-인사말) */
+.vb-dc { display: flex; align-items: center; gap: 10px; }
+.vb-dd { font-size: 12px; font-weight: 700; color: #56565c; text-align: right; line-height: 1.3; white-space: nowrap; }
+.vb-dd small { display: block; font-size: 12px; font-weight: 600; color: #8e8e94; }
+.vb-circ { display: inline-grid; flex: none; }
+.vb-circ .mailb, .vb-circ-a { width: 40px; height: 40px; border-radius: 50%; background: #fff; color: #1d1d1f; box-shadow: inset 0 0 0 1px #e3e6eb; display: grid; place-items: center; }   /* 흰 바탕 + 얇은 테두리 + 검은 편지(2026-11-25 사용자) */
+.vb-circ .mailb svg, .vb-circ-a svg { color: #1d1d1f; }
+.vb-circ .mailb i { top: 0; right: 0; }
+.vb-body .vb-hi { margin: 0 0 13px !important; line-height: 1.25; font-weight: 400; }   /* B안: 제목 위 두 줄 인사말(2026-11-25 사용자) */
+.vb-hi .g { display: block; font-size: 15px; font-weight: 500; color: #8e8e94; letter-spacing: -.01em; }
+.vb-hi b { font-size: 19px; font-weight: 900; color: #1d1d1f; letter-spacing: -.04em; }
+.vb-hi small { margin-left: 2px; font-size: 14px; font-weight: 500; color: #8e8e94; }
+
+/* 포인트 링 점수 글자: 네 자리 21px · 다섯 자리 19px(링 92px 안에 들어오게, 2026-11-25 사용자 시안) */
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts.d4 { font-size: 21px; }
+:is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts.d5 { font-size: 19px; }
+@media (min-width: 720px) {
+  :is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts.d4 { font-size: 30px; }
+  :is(.vb-landing, .vb-dept) .vb-hero-row .vb-ring .rb-pts.d5 { font-size: 26px; }
+}
+
+/* 제목 · 인사말 · 한 줄 설명 간격(2026-11-25 사용자 "너무 붙어 있다" → 사진 찍어 UX 검사): 제목과 인사말 24px(PC 32px) · 인사말과 설명 12px(PC 14px) — 인사말 + 설명이 한 묶음 */
+@media (min-width: 720px) { .vb-body .vb-hi { margin: 0 0 16px !important; } .vb-hi .g { font-size: 17px; } .vb-hi b { font-size: 24px; } .vb-hi small { font-size: 16px; } .vb-tag { margin-top: 14px !important; } }
+
+/* ── 부서 홈 새 퍼블리시본(2026-11-27 사용자 「dojeon-home.html」) ──
+   머리줄 ↔ 인사말 34 → 17px · 동그라미 44px · 설명 두 줄 · 검색 위 · 아래 24px · 맨 아래 의견 카드 · 설치 띠 · 주소 */
+.vb-dept .vb-circ .mailb, .vb-dept .vb-circ-a { width: 44px; height: 44px; box-shadow: none; background: transparent; }   /* 편지 · 메인화면 동그라미 테두리 없앰(2026-11-27 사용자) */
+.vb-dept .church { display: block; padding: 9px 0 8px; text-decoration: none; }   /* 교회 이름 = 퍼블리시본: 위 12px 회색 · 아래 16px 파랑, 누르면 교회 홈페이지(새 창) */
+.vb-dept .church small { font-size: 12px; font-weight: 500; color: var(--ink-2); line-height: 1.35; }
+.vb-dept .church span { font-size: 16px; font-weight: 800; color: #1f55c0; letter-spacing: -.02em; line-height: 1.4; }
+.vb-dept .vb-circ-a { text-decoration: none; }
+.vb-dept .vb-hero-row { align-items: flex-start; }
+.vb-dept .vb-hero-row .vb-body { margin-top: 17px; }
+.vb-dept .vb-hero-row .vb-ring { margin-top: 41px; margin-right: 6px; }
+.vb-dept .vb-tag { margin-top: 14px !important; }
+.vb-dept .vb-main { padding: 24px 20px 50px; }
+.vb-dept .vb-main .hmx-search { margin: 0 0 24px; }
+.vb-dept .vb-search-err { margin: -16px 0 24px; font-size: 12.5px; font-weight: 600; color: #b42318; }
+.vb-dept .vb-search-err[hidden] { display: none; }
+.vb-dept .vb-go { width: 44px; height: 44px; }
+.vb-foot2 { display: flex; flex-direction: column; gap: 18px; margin-top: 28px; }
+.fb2 { display: flex; align-items: center; gap: 13px; min-height: 56px; padding: 9px 14px 9px 10px; border-radius: 10px; background: #fff; border: 1px solid #d6d6db; color: inherit; text-decoration: none; }
+.fb2 .ic { width: 38px; height: 38px; flex: none; border-radius: 10px; background: #fdf0e6; color: #b8500d; display: grid; place-items: center; }
+.fb2 .tx, .inst2 .tx { flex: 1; min-width: 0; }
+.fb2 b, .inst2 b { display: block; font-size: 14px; font-weight: 800; line-height: 1.35; letter-spacing: -.02em; }
+.fb2 small, .inst2 small { display: block; font-size: 12px; font-weight: 500; line-height: 1.4; color: #6e6e75; }
+.fb2 .ar { flex: none; color: #6e6e75; }
+.inst2[hidden] { display: none; }
+.inst2 { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 10px 10px 14px; border-radius: 10px; background: #f4f4f5; }
+.inst2 a { flex: none; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: 10px; background: #1d1d1f; color: #fff; font-size: 13.5px; font-weight: 800; text-decoration: none; }
+@media (display-mode: standalone) { .inst2 { display: none; } }
+html[data-install="installed"] .inst2 { display: none; }
+.addr2 { margin: 0; font-size: 12.5px; color: #56565c; text-align: center; }
+@media (min-width: 720px) {
+  .vb-dept .vb-hero-row .vb-body { margin-top: 32px; }
+  .vb-dept .vb-hero-row .vb-ring { margin-top: 35px; margin-right: 40px; }
+  .vb-dept .vb-main { padding: 40px 40px 50px; }
+  .vb-dept .vb-main .hmx-search { margin: 0 0 40px; }
+  .vb-dept .vb-search-err { margin: -32px 0 40px; }
+  .vb-foot2 { margin-top: 40px; }
+}
+
+/* 부서 홈 오른쪽 위 간격(2026-11-27 사용자 「사이 간격 5px」): 날짜 · 편지 · 집 글자와 아이콘 사이 눈에 보이는 간격을 5px 로. 누르는 칸은 세로 44px · 가로 25px(아이콘 20px + 양옆 2.5px) */
+.vb-dept .vb-dc { gap: 0; }
+.vb-dept .vb-dd { margin-right: 2.5px; }
+.vb-dept .vb-circ .mailb, .vb-dept .vb-circ-a { width: 25px; height: 44px; border-radius: 0; }
+.vb-dept .vb-dc > :last-child { margin-right: -2.5px; }   /* 맨 오른쪽 아이콘이 화면 여백(20px) 선에 닿게 */

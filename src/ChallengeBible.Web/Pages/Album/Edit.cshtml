@@ -1,0 +1,40 @@
+@page "/{slug}/album/edit/{id:int?}"
+@model ChallengeBible.Web.Pages.Album.EditModel
+@using ChallengeBible.Web.Services
+@using ChallengeBible.Infrastructure.Data
+@* 앨범 만들기 · 고치기 · 지우기(ADR 0118): 부서 관리자. 지울 때 앨범 이름과 사진 수를 보이고 확인 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var editing = Model.Item is not null;
+}
+<partial name="_Top" />
+<link rel="stylesheet" href="~/css/album.css" asp-append-version="true" />
+<main class="gut w760 al-pg"><div class="wrap">
+    <a class="al-back" href="/@slug/album@(editing ? $"/{Model.Item!.Album.Id}" : "")">‹ @(editing ? "앨범" : "사진첩")</a>
+    <h1>@Model.Title</h1>
+    @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }
+    <form method="post" class="al-form">
+        <label class="al-f">앨범 이름<input class="in" name="title" maxlength="100" value="@Model.TitleText" placeholder="예: 여름성경학교" required /></label>
+        <label class="al-f">촬영일 <small>비워도 돼요</small><input class="in" type="date" name="eventDate" value="@Model.EventDate?.ToString("yyyy-MM-dd")" /></label>
+        <label class="al-f">설명 <small>비워도 돼요</small><textarea class="in" name="description" maxlength="2000" rows="3">@Model.Description</textarea></label>
+        <fieldset class="al-f"><legend>누가 볼 수 있나요</legend>
+            @foreach (var v in AlbumVisibility.All)
+            {
+                <label class="al-radio"><input type="radio" name="visibility" value="@v" checked="@(Model.Visibility == v)" /><span>@AlbumService.VisibilityLabel(v)</span></label>
+            }
+            <small>아이 사진이 많으면 "부서 사람만"을 골라 주세요.</small>
+        </fieldset>
+        <label class="al-check"><input type="checkbox" name="allowDownload" value="true" checked="@Model.AllowDownload" /><span>볼 수 있는 사람이 내려받을 수 있어요</span></label>
+        <button type="submit" class="al-btn p big">@(editing ? "저장" : "앨범 만들기")</button>
+    </form>
+    @if (editing)
+    {
+        var a = Model.Item!.Album;
+        <form method="post" asp-page-handler="Delete" asp-route-slug="@slug" class="al-danger" data-al-confirm="「@a.Title」 앨범과 사진 @(Model.Item.Photos.Count)장을 모두 지울까요? 되돌릴 수 없어요.">
+            <input type="hidden" name="id" value="@a.Id" />
+            <p>앨범을 지우면 안의 사진 @(Model.Item.Photos.Count)장도 함께 지워져요.</p>
+            <button type="submit" class="al-btn d">앨범 지우기</button>
+        </form>
+    }
+</div></main>
+<script>document.querySelectorAll('[data-al-confirm]').forEach(f => f.addEventListener('submit', e => { if (!confirm(f.dataset.alConfirm)) e.preventDefault(); }));</script>

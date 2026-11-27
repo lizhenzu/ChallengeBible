@@ -1,0 +1,110 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="file:///home/user/ChallengeBible/src/ChallengeBible.Web/wwwroot/css/site.css">
+<style>
+body{background:#E9ECF2;margin:0;font-family:inherit}
+.boards{display:flex;gap:24px;padding:24px;align-items:flex-start;flex-wrap:wrap}
+.ph{width:390px;background:var(--bg);border-radius:22px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.cap{font-size:13px;font-weight:800;color:#555;padding:10px 14px;background:#F4F5F8;border-bottom:1px solid var(--rule)}
+.hd{display:flex;align-items:center;gap:10px;padding:0 16px;min-height:58px;border-bottom:1px solid var(--rule)}
+.hd .t{flex:1;display:flex;gap:6px;align-items:baseline;white-space:nowrap}.hd .t span{font-size:13px;font-weight:700;color:var(--dim)}.hd .t em{font-style:normal;font-weight:900;color:var(--accent)}.hd .t b{font-size:16px}
+.hd .home{font-weight:800;color:var(--accent);font-size:14px}
+.bd{padding:16px;display:flex;flex-direction:column;gap:12px}
+.bd h1{margin:0;font-size:21px}.bd h1 small{font-size:13px;color:var(--dim);margin-left:6px}
+.tb{display:flex;gap:6px;padding:4px;border-radius:14px;background:var(--soft)}
+.tb a{flex:1;text-align:center;min-height:38px;line-height:38px;border-radius:10px;font-size:13.5px;font-weight:800;color:var(--dim)}
+.tb a.on{background:var(--bg);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.chipz{display:flex;gap:6px;flex-wrap:wrap}.chipz a{padding:6px 12px;border-radius:999px;border:1px solid var(--line);font-size:13px;font-weight:800;color:var(--dim)}.chipz a.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.bsec{display:flex;justify-content:space-between;font-size:13px;font-weight:900;color:var(--fg);margin-top:4px}.bsec span:last-child{color:var(--dim);font-weight:700}
+.bc{display:flex;gap:12px;align-items:center;border:1.5px solid var(--rule);border-radius:16px;padding:12px 14px}
+.bc.today{border-color:#F59E0B;background:#FFFBEB}
+.dd{flex:none;width:52px;text-align:center}.dd b{display:block;font-size:17px;font-weight:900}.dd small{font-size:11.5px;color:var(--dim)}
+.bc.today .dd b{color:#B45309}
+.who{flex:1;min-width:0}.who b{font-size:16px;font-weight:900}.who em{margin-left:6px;font-style:normal;font-size:12.5px;font-weight:800;color:var(--accent)}.who small{display:block;font-size:12.5px;color:var(--dim);margin-top:2px}
+.gs{flex:none;font-size:11.5px;font-weight:800;padding:3px 8px;border-radius:999px}
+.g0{background:#F3F4F6;color:#6B7280}.g1{background:#FEF3C7;color:#92400E}.g2{background:#E0E7FF;color:#3730A3}.g3{background:#DCFCE7;color:#166534}
+.mine{font-size:10.5px;font-weight:900;color:#fff;background:var(--accent);border-radius:6px;padding:1px 5px;margin-left:4px;vertical-align:2px}
+.go{font-size:13px;font-weight:800;color:var(--accent);text-align:right}
+.mo{display:flex;gap:4px;overflow:hidden}.mo a{flex:none;padding:6px 9px;border-radius:9px;font-size:12.5px;font-weight:800;color:var(--dim);background:var(--soft)}.mo a.on{background:var(--accent);color:var(--on-accent)}
+.vw{display:flex;gap:6px}.vw a{padding:6px 12px;border-radius:9px;border:1px solid var(--line);font-size:12.5px;font-weight:800}.vw a.on{background:var(--fg);color:var(--bg)}
+.bk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;font-size:11px}
+.bk .hh{text-align:center;color:var(--dim);font-weight:800;padding:2px 0}
+.bk .cc{min-width:0;overflow:hidden;min-height:50px;border-radius:8px;background:var(--soft);padding:3px;display:flex;flex-direction:column;gap:2px}
+.bk .cc i{font-style:normal;font-weight:800;color:var(--dim)}.bk .cc.x{background:none}
+.bk .cc u{text-decoration:none;font-size:10px;font-weight:800;background:var(--accent-bg);color:var(--accent);border-radius:4px;padding:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk .cc.td{outline:2px solid #F59E0B}.bk .cc.sel{background:#FFF7E6}
+.yr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ym{border:1.5px solid var(--rule);border-radius:14px;padding:10px 12px}.ym.on{border-color:var(--accent);background:var(--accent-bg)}
+.ym h3{margin:0 0 4px;font-size:14px;display:flex;justify-content:space-between}.ym h3 small{color:var(--accent);font-weight:900}
+.ym p{margin:0;font-size:12px;color:var(--dim);line-height:1.6}
+.nb{display:flex;gap:8px;align-items:center;border:1.5px solid var(--rule);border-radius:14px;padding:10px 12px}
+.nb .who{flex:1}.nb select{min-height:36px;border:1px solid var(--line);border-radius:9px;padding:0 6px;font-size:13px;background:var(--bg)}
+.nb button{min-height:36px;padding:0 12px;border-radius:9px;border:0;background:var(--accent);color:var(--on-accent);font-weight:800}
+.btnp{align-self:flex-start;padding:8px 14px;border-radius:10px;border:1px solid var(--line);font-weight:800;font-size:13px}
+.adm{border:1.5px solid var(--rule);border-radius:16px;padding:14px;display:flex;gap:12px;align-items:center}
+.adm .n{font-size:26px;font-weight:900;color:#B45309}.adm b{display:block;font-size:15px}.adm small{color:var(--dim);font-size:12.5px}
+.drw{border:1.5px solid var(--rule);border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:center}
+.drw i{width:36px;height:36px;border-radius:10px;background:#FEF3C7;display:grid;place-items:center;font-style:normal}
+.drw b{display:block;font-size:15px}.drw small{color:var(--dim);font-size:12.5px}
+.note{font-size:12px;color:#8A4B00;background:#FFF7E6;border-radius:12px;padding:10px 12px;line-height:1.6}
+</style></head><body><div class="boards">
+
+<!-- ① 다가오는 생일 -->
+<div class="ph"><div class="cap">① 다가오는 생일(기본 탭)</div>
+<div class="hd"><span>☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>생일</b></div><span class="home">부서 홈으로</span></div>
+<div class="bd">
+ <h1>생일 <small>명부 213명 · 생일 있음 198명</small></h1>
+ <div class="tb"><a class="on">다가오는</a><a>월별</a><a>연간</a><a>생일 없음 15</a></div>
+ <div class="chipz"><a>7일</a><a>14일</a><a class="on">30일</a><a>60일</a></div>
+ <div class="bsec"><span>🎂 오늘</span><span>11월 20일 · 1명</span></div>
+ <div class="bc today"><div class="dd"><b>오늘</b><small>11/20</small></div><div class="who"><b>김하늘</b><em>2학년 3반</em><span class="mine">내 반</span><small>학생</small></div><span class="gs g1">선물 고르는 중</span></div>
+ <div class="bsec"><span>이번 주</span><span>2명</span></div>
+ <div class="bc"><div class="dd"><b>D-2</b><small>11/22 (일)</small></div><div class="who"><b>이바다</b><em>1학년 1반</em><small>학생</small></div><span class="gs g2">선물 골랐음</span></div>
+ <div class="bc"><div class="dd"><b>D-5</b><small>11/25 (수)</small></div><div class="who"><b>박선생</b><em>1반 담임</em><small>교사</small></div><span class="gs g0">선물 없음</span></div>
+ <div class="bsec"><span>30일 안</span><span>6명</span></div>
+ <div class="bc"><div class="dd"><b>D-12</b><small>12/2 (수)</small></div><div class="who"><b>최별</b><em>2학년 1반</em><small>학생 · 가입 안 함</small></div><span class="gs g3">전달함</span></div>
+ <div class="go">선물 사기 · 전하기는 관리 › 선물 처리 →</div>
+ <p class="note">교사 · 관리자만. 담임은 내 반 아이가 같은 날 안에서 먼저. 선물은 상태만 보이고, 처리는 기존 선물 처리 화면에서(겹치지 않게).</p>
+</div></div>
+
+<!-- ② 월별 -->
+<div class="ph"><div class="cap">② 월별 — 달력 · 명단</div>
+<div class="hd"><span>☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>생일</b></div><span class="home">부서 홈으로</span></div>
+<div class="bd">
+ <div class="tb"><a>다가오는</a><a class="on">월별</a><a>연간</a><a>생일 없음 15</a></div>
+ <div class="mo"><a>9월</a><a>10월</a><a class="on">11월 · 14</a><a>12월</a><a>1월</a><a>2월</a></div>
+ <div class="vw"><a class="on">달력</a><a>명단</a></div>
+ <div class="bk">
+  <div class="hh">일</div><div class="hh">월</div><div class="hh">화</div><div class="hh">수</div><div class="hh">목</div><div class="hh">금</div><div class="hh">토</div>
+  <div class="cc x"></div><div class="cc x"></div><div class="cc x"></div><div class="cc x"></div><div class="cc x"></div><div class="cc x"></div><div class="cc"><i>1</i></div>
+  <div class="cc"><i>2</i><u>정우리</u></div><div class="cc"><i>3</i></div><div class="cc"><i>4</i></div><div class="cc"><i>5</i><u>한솔</u></div><div class="cc"><i>6</i></div><div class="cc"><i>7</i></div><div class="cc"><i>8</i></div>
+  <div class="cc"><i>9</i></div><div class="cc"><i>10</i><u>윤가람</u><u>+1</u></div><div class="cc"><i>11</i></div><div class="cc"><i>12</i></div><div class="cc"><i>13</i></div><div class="cc"><i>14</i><u>서나래</u></div><div class="cc"><i>15</i></div>
+  <div class="cc"><i>16</i></div><div class="cc"><i>17</i></div><div class="cc"><i>18</i></div><div class="cc"><i>19</i></div><div class="cc td sel"><i>20</i><u>김하늘</u></div><div class="cc"><i>21</i></div><div class="cc"><i>22</i><u>이바다</u></div>
+  <div class="cc"><i>23</i></div><div class="cc"><i>24</i></div><div class="cc"><i>25</i><u>박선생</u></div><div class="cc"><i>26</i></div><div class="cc"><i>27</i></div><div class="cc"><i>28</i><u>강산</u></div><div class="cc"><i>29</i></div>
+  <div class="cc"><i>30</i><u>조은비</u></div>
+ </div>
+ <div class="bsec"><span>11월 20일(오늘)</span><span>1명</span></div>
+ <div class="bc today"><div class="dd"><b>20일</b><small>오늘</small></div><div class="who"><b>김하늘</b><em>2학년 3반</em><small>학생</small></div><span class="gs g1">고르는 중</span></div>
+ <p class="note">날짜를 누르면 그날 명단. [명단] 을 누르면 이 달 전체를 날짜순 카드로. 넓은 화면에서는 달력 칸에 이름이 더 많이.</p>
+</div></div>
+
+<!-- ③ 연간 · ④ 생일 없음 · 들어가는 곳 -->
+<div class="ph"><div class="cap">③ 연간 · ④ 생일 없음 · 들어가는 곳</div>
+<div class="hd"><span>☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>생일</b></div><span class="home">부서 홈으로</span></div>
+<div class="bd">
+ <div class="tb"><a>다가오는</a><a>월별</a><a class="on">연간</a><a>생일 없음 15</a></div>
+ <div class="yr">
+  <div class="ym"><h3>1월 <small>18</small></h3><p>강하늘 · 김바다 · 이솔 · 박빛 …</p></div>
+  <div class="ym"><h3>2월 <small>12</small></h3><p>정우리 · 한결 · 윤슬 …</p></div>
+  <div class="ym on"><h3>11월 <small>14</small></h3><p>정우리 · 한솔 · 윤가람 · 서나래 …</p></div>
+  <div class="ym"><h3>12월 <small>16</small></h3><p>최별 · 조은 · 강산 …</p></div>
+ </div>
+ <a class="btnp">🖨 인쇄(A4 한 장)</a>
+ <div class="tb" style="margin-top:6px"><a>다가오는</a><a>월별</a><a>연간</a><a class="on">생일 없음 15</a></div>
+ <div class="nb"><div class="who"><b>오하린</b><em>1학년 2반</em></div><select><option>월</option></select><select><option>일</option></select><button>저장</button></div>
+ <div class="nb"><div class="who"><b>문채원</b><em>새친구반</em></div><select><option>월</option></select><select><option>일</option></select><button>저장</button></div>
+ <div class="cap" style="margin:6px -16px 0;border-top:1px solid var(--rule)">들어가는 곳</div>
+ <div class="drw"><i>🎂</i><div><b>생일</b><small>다가오는 생일 · 월별 · 연간</small></div></div>
+ <div class="adm"><span class="n">8</span><div><b>다가오는 생일</b><small>30일 안 · 오늘 1명 · 관리 홈 칸 →</small></div></div>
+ <p class="note">☰ "섬김 · 교사" 묶음에 [생일], 관리 홈에 "다가오는 생일 N명" 칸. 학생 · 학부모에게는 없음.</p>
+</div></div>
+</div></body></html>

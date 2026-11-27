@@ -1,0 +1,88 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>교적부 시안</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}body{margin:0;padding:28px 20px 36px;background:#E8ECF3;font-family:'Noto Sans KR',sans-serif;color:#374151}
+.row{display:flex;gap:18px;align-items:flex-start}.col{width:330px;flex:none}
+.lab{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:14px;font-weight:700;color:#374151}
+.lab b{display:inline-grid;place-items:center;width:22px;height:22px;border:1.5px solid #374151;border-radius:50%;font-size:12px}
+.ph{background:#fff;border-radius:24px;overflow:hidden;height:800px;box-shadow:0 2px 10px rgba(0,0,0,.06);position:relative}
+.note{margin-top:12px;padding:12px 14px;border-radius:14px;background:#FFF8E6;font-size:12.5px;line-height:1.6;color:#7C5A10}
+.hd{display:flex;align-items:center;gap:8px;padding:13px 14px;border-bottom:1px solid #EEF0F4}.hd .m{font-size:19px;color:#111827}
+.hd .t{flex:1;display:flex;gap:5px;align-items:baseline;white-space:nowrap}.hd .t span{font-size:11.5px;font-weight:700;color:#6B7280}.hd .t em{font-style:normal;font-weight:900;color:#1F7A55}.hd .t b{font-size:15px;font-weight:800;color:#111827}.hd .h{font-size:12px;font-weight:800;color:#1F7A55}
+.pn{padding:4px 12px}.g{margin:12px 4px 4px;font-size:12px;font-weight:800;color:#1F7A55}
+.it{display:flex;gap:9px;align-items:center;padding:7px 4px;border-radius:10px}.it i{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-style:normal;font-size:16px;flex:none;background:#F1F5F9}
+.it b{font-size:14px;color:#111827}.it small{display:block;font-size:11.5px;color:#6B7280}.k{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:99px;background:#FFEDD5;color:#C2410C;font-size:10.5px;font-weight:900}
+.new{background:#FFF7E6;outline:2px dashed #F59E0B}
+.bx{padding:0 14px}h1{margin:14px 0 2px;font-size:22px;color:#111827}h1 small{font-size:13px;font-weight:700;color:#9CA3AF;margin-left:6px}
+.st{display:flex;gap:16px;margin:8px 0 0;font-size:12.5px;color:#6B7280}.st b{margin-left:4px;color:#111827;font-size:15px}.st .lo b{color:#B4531F}
+.sr{margin-top:12px;display:flex;gap:8px}.sr span{flex:1;padding:12px 16px;border-radius:999px;background:#F4F6F9;font-size:14px;color:#9CA3AF}.sr em{font-style:normal;padding:12px 16px;border-radius:999px;background:#1F7A55;color:#fff;font-weight:800;font-size:13px}
+.last{margin-top:10px;padding:10px 14px;border-radius:12px;background:#E6F2EC;font-size:12.5px;color:#1F7A55;font-weight:700;display:flex;justify-content:space-between}
+.bt{display:flex;justify-content:space-between;margin:18px 0 6px;font-size:14px;font-weight:800;color:#111827}.bt span{font-size:12px;font-weight:500;color:#9CA3AF}
+.cls{display:flex;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid #EEF0F3}.cls .nm{width:62px;font-size:16px;font-weight:800;color:#111827}
+.cls .tc{flex:1;font-size:13px;color:#374151}.cls .tc small{display:block;color:#9CA3AF;font-size:11.5px}.cls .tc.no{color:#B4531F}
+.cls .n{font-size:18px;font-weight:800;color:#111827}.cls .n small{font-size:11px;color:#9CA3AF;font-weight:500}.cls .tel{padding:5px 11px;border-radius:999px;background:#E6F2EC;color:#1F7A55;font-size:11.5px;font-weight:800}
+.dn{display:flex;align-items:center;justify-content:space-between;margin-top:12px}.dn h1{margin:0}.dn a{font-size:22px;color:#1F7A55;font-weight:800}.dn .off{color:#D1D5DB}
+.tch{margin-top:10px;padding:10px 12px;border-radius:12px;background:#F4F6F9;font-size:13px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.tch b{color:#111827}.tch i{font-style:normal;padding:3px 10px;border-radius:99px;background:#E6F2EC;color:#1F7A55;font-weight:800;font-size:11.5px}
+.seg{display:flex;gap:5px;margin-top:10px}.seg span{flex:1;text-align:center;font-size:12px;padding:7px 2px;border-radius:999px;background:#F4F6F9;color:#6B7280}.seg span.on{background:#1F7A55;color:#fff;font-weight:800}
+.kid{padding:13px 0;border-bottom:1px solid #EEF0F3}.kT{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.kT .no{font-size:12px;color:#9CA3AF;width:16px}.kT b{font-size:16px;color:#111827}
+.tg{font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:999px;background:#F4F6F9;color:#6B7280}.tg.bd{background:#FBEFE7;color:#B4531F}
+.kv{margin:6px 0 0 23px;display:grid;grid-template-columns:44px 1fr;gap:2px 8px;font-size:12.5px}.kv dt{color:#9CA3AF}.kv dd{margin:0;color:#111827}.kv dd.no{color:#D1D5DB}
+.kv a{margin-left:5px;padding:0 8px;border-radius:999px;background:#E6F2EC;color:#1F7A55;font-size:10.5px;font-weight:700}
+.kF{display:flex;justify-content:space-between;align-items:center;margin:8px 0 0 23px}.kF .ms{font-size:11.5px;font-weight:700;color:#B4531F}.kF .ms.ok{color:#1F7A55}.kF .ed{padding:6px 14px;border-radius:999px;background:#F4F6F9;font-size:12px;font-weight:700;color:#6B7280}
+.scr{position:absolute;inset:0;background:rgba(17,24,39,.45)}.sh{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;padding:10px 16px 18px}
+.grab{width:40px;height:4px;border-radius:99px;background:#E5E7EB;margin:0 auto 10px}.shh b{font-size:18px;color:#111827;display:block}.shh small{font-size:12px;color:#9CA3AF}
+.f{margin-top:10px}.f label{display:block;font-size:12px;font-weight:700;color:#6B7280;margin-bottom:4px}.f div{padding:11px 14px;border-radius:12px;background:#F4F6F9;font-size:14px;color:#111827}
+.bd3{display:flex;gap:6px}.bd3 div{flex:1;text-align:center}
+.shf{display:flex;justify-content:space-between;align-items:center;margin-top:12px}.shf .save{padding:11px 26px;border-radius:999px;background:#1F7A55;color:#fff;font-weight:800;font-size:13.5px}
+</style></head><body><div class="row">
+
+<div class="col"><p class="lab"><b>1</b>부서 ☰ — "섬김 · 교사"에 교적부</p><div class="ph"><div class="pn">
+ <div class="g">섬김 · 교사</div>
+ <div class="it"><i>✅</i><div><b>오늘 할 일</b><small>승인 · 선물 · 생일 챙기기</small></div></div>
+ <div class="it"><i>📋</i><div><b>출석</b><small>주일 출석 체크 · 보고서</small></div></div>
+ <div class="it new"><i>📖</i><div><b>교적부</b><small>반별 아이 정보 보기</small></div></div>
+ <div class="it"><i>🔍</i><div><b>인명 검색</b><small>이름 · 아이디로 찾기 · 전화 · 문자 · 쪽지</small></div></div>
+ <div class="it"><i>⚙️</i><div><b>부서 관리<span class="k">관리</span></b><small>소속 · 반 · 부서 · 반 이동 · 설정</small></div></div>
+ <div class="g">생일</div><div class="it"><i>🎂</i><div><b>생일자 보기</b><small>다가오는 생일 · 월별 · 연간</small></div></div>
+</div></div><div class="note">교사 · 관리자 모두. 인명 검색(이름으로 찾기)과 따로: 교적부는 반별로 훑어보기.</div></div>
+
+<div class="col"><p class="lab"><b>2</b>교적부 처음 — 모든 반</p><div class="ph">
+ <div class="hd"><span class="m">☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>교적부</b></div><span class="h">홈으로</span></div>
+ <div class="bx"><h1>교적부<small>2027</small></h1>
+  <div class="st"><span>학생<b>46</b></span><span>반<b>5</b></span><span class="lo">담임 미배정<b>1</b></span></div>
+  <div class="sr"><span>아이 이름으로 찾기 (전체 반)</span><em>찾기</em></div>
+  <div class="last"><span>마지막으로 본 반</span><span>믿음반 →</span></div>
+  <div class="bt"><b>새친구반</b><span>학생 4명</span></div>
+  <div class="cls"><span class="nm">새친구</span><span class="tc">윤동호 선생님<small>010-2222-3333</small></span><span class="n">4<small>명</small></span><span class="tel">전화</span></div>
+  <div class="bt"><b>반</b><span>4개 반 · 학생 42명</span></div>
+  <div class="cls"><span class="nm">믿음반</span><span class="tc">박선생 선생님<small>010-1111-2222</small></span><span class="n">12<small>명</small></span><span class="tel">전화</span></div>
+  <div class="cls"><span class="nm">소망반</span><span class="tc">이선생 선생님<small>010-3333-4444</small></span><span class="n">11<small>명</small></span><span class="tel">전화</span></div>
+  <div class="cls"><span class="nm">사랑반</span><span class="tc no">담임 미배정</span><span class="n">10<small>명</small></span></div>
+  <div class="cls"><span class="nm">기쁨반</span><span class="tc">최선생 선생님<small>010-5555-6666</small></span><span class="n">9<small>명</small></span><span class="tel">전화</span></div>
+ </div></div><div class="note">반을 누르면 그 반 교적. 이름으로 찾으면 그 아이가 있는 반의 카드로 바로 이동. 반 이름은 우리 반 이름 그대로(학년 묶음 없음).</div></div>
+
+<div class="col"><p class="lab"><b>3</b>반 교적 — 아이 카드</p><div class="ph">
+ <div class="hd"><span class="m">☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>교적부</b></div><span class="h">홈으로</span></div>
+ <div class="bx"><div class="dn"><a>‹</a><h1>믿음반<small>교적</small></h1><a>›</a></div>
+  <div class="st"><span>학생<b>12</b></span><span>11월 생일<b>2</b></span><span class="lo">정보 빠짐<b>3</b></span></div>
+  <div class="tch"><b>박선생 선생님</b><span>010-1111-2222</span><i>전화</i><i>문자</i></div>
+  <div class="sr"><span>이 반에서 이름 찾기 (초성 가능)</span></div>
+  <div class="seg"><span class="on">전체 12</span><span>정보 빠짐 3</span><span>11월 생일 2</span></div>
+  <div class="kid"><div class="kT"><span class="no">1</span><b>김하준</b><span class="tg bd">이번 달 생일</span></div>
+   <dl class="kv"><dt>생일</dt><dd>11월 28일</dd><dt>전화</dt><dd>010-1234-5678<a>전화</a><a>문자</a></dd><dt>전화 2</dt><dd>010-8765-4321<a>전화</a><a>문자</a></dd></dl>
+   <div class="kF"><span class="ms ok">정보 모두 있음</span><span class="ed">정보 수정</span></div></div>
+  <div class="kid"><div class="kT"><span class="no">2</span><b>이바다</b></div>
+   <dl class="kv"><dt>생일</dt><dd class="no">—</dd><dt>전화</dt><dd class="no">—</dd><dt>전화 2</dt><dd>010-2468-1357<a>전화</a><a>문자</a></dd></dl>
+   <div class="kF"><span class="ms">빠진 정보 · 생일</span><span class="ed">정보 수정</span></div></div>
+ </div></div><div class="note">초성(ㅂㅈㅇ) 검색 · 전체 / 정보 빠짐 / ○월 생일. 이전 · 다음 반 넘김. 빠진 정보는 생일 · 전화(둘 중 하나).</div></div>
+
+<div class="col"><p class="lab"><b>4</b>[정보 수정] — 아래에서 올라오는 창</p><div class="ph">
+ <div class="hd"><span class="m">☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>교적부</b></div><span class="h">홈으로</span></div>
+ <div class="scr"></div><div class="sh"><div class="grab"></div>
+  <div class="shh"><b>이바다</b><small>믿음반 · 교적 정보 수정</small></div>
+  <div class="f"><label>생일 (월 · 일)</label><div class="bd3" style="display:flex;gap:6px;padding:0;background:none"><div>11 월</div><div>7 일</div></div></div>
+  <div class="f"><label>전화</label><div>010-0000-0000</div></div>
+  <div class="f"><label>전화 2</label><div>010-2468-1357</div></div>
+  <div class="shf"><span style="font-size:12px;color:#9CA3AF">월 1~12 · 일은 그 달 날짜까지</span><span class="save">저장</span></div></div>
+</div><div class="note">생일 · 전화 · 전화 2 만 고쳐요(지금 명부 수정과 같은 규칙, 이름 · 성별 · 학교 · 주소는 없음). 저장하면 그 카드로 돌아와 "저장했어요" 알림.</div></div>
+</div></body></html>

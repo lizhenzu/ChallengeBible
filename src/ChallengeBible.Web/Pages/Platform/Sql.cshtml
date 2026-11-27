@@ -1,0 +1,61 @@
+﻿@page "/platform/sql"
+@model ChallengeBible.Web.Pages.Platform.SqlModel
+@using ChallengeBible.Web.Services
+@* SQL 실행(ADR 0107, 확정 시안 SQL실행 2026-11-17): 자주 쓰는 쿼리 · 시험 실행(되돌림)/저장(SAVE) · 결과 표 · 최근 실행 *@
+@{
+    var tz = TimeZoneInfo.FindSystemTimeZoneById(ResetService.Zone);
+    string Local(DateTime utc) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), tz).ToString("M/d HH:mm");
+    string Mode(string d) => d.StartsWith("save:") ? "저장" : d.StartsWith("error:") ? "오류" : "시험";
+    string Body(string d) { var i = d.IndexOf(": ", StringComparison.Ordinal); var s = i < 0 ? d : d[(i + 2)..]; s = s.ReplaceLineEndings(" "); return s.Length > 60 ? s[..60] + "…" : s; }
+}
+<partial name="_PlatformTop" />
+<main class="admin gut w760"><form method="post" class="wrap sq" data-sql>   @* 머리말과 같은 760px(R-270, 2026-11-18 사용자) *@
+    <h1>SQL 실행</h1>
+    <p class="sq-warn" role="note">모든 부서를 한 번에 봐요. 기본은 <b>시험 실행</b>(끝나면 되돌림)이에요. 관리자 계정 · 권한 · 소속이 바뀌면 저장하지 않고 되돌려요.</p>
+    <div class="sq-pre" aria-label="자주 쓰는 쿼리">
+        @foreach (var p in SqlConsoleService.Presets)
+        {
+            <button type="button" data-sql-preset="@p.Sql">@p.Label</button>
+        }
+    </div>
+    <div class="sq-qh"><label for="sq-q">SQL</label><button type="button" class="sq-clear" data-sql-clear>✕ 지우기</button></div>   @* 2026-11-18 사용자: 클리어 버튼 *@
+    <textarea id="sq-q" name="query" spellcheck="false" autocapitalize="off" autocomplete="off" data-sql-q>@Model.Sql</textarea>
+    <fieldset class="sq-mode"><legend class="sr-only">실행 방식</legend>
+        <label><input type="radio" name="mode" value="test" @(Model.Save ? null : "checked") /> 시험 실행(되돌림)</label>
+        <label class="d"><input type="radio" name="mode" value="save" @(Model.Save ? "checked" : null) /> 저장</label>
+    </fieldset>
+    <label class="sq-conf" data-sql-conf>저장할 때만: 확인 글자 <input name="confirm" placeholder="@SqlConsoleService.ConfirmWord" autocomplete="off" autocapitalize="characters" /></label>
+    <button type="submit" class="sq-run">실행</button>
+
+    @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }
+    @if (Model.Result is { } r)
+    {
+        <section class="sq-res" role="status" aria-label="결과">
+            <p class="@(r.Ok ? (r.Saved ? "sq-saved" : "sq-ok") : "sq-err")">@r.Message</p>
+            @for (var ti = 0; ti < r.Tables.Count; ti++)
+            {
+                var t = r.Tables[ti];
+                <div class="sq-st"><span>결과 @(ti + 1) · @t.Rows.Count.ToString("N0")줄</span>@if (ti == 0) { <span>@((r.Ms / 1000.0).ToString("0.00"))초</span> }</div>
+                <div class="sq-tbl"><table>
+                    <thead><tr>@foreach (var c in t.Columns) { <th scope="col">@c</th> }</tr></thead>
+                    <tbody>@foreach (var row in t.Rows) { <tr>@foreach (var v in row) { <td class="@(v == "NULL" ? "nul" : null)">@v</td> }</tr> }</tbody>
+                </table></div>
+            }
+            @if (r.Truncated) { <p class="sq-note">표마다 처음 @SqlConsoleService.MaxRows.ToString("N0")줄까지만 보여요.</p> }
+            @if (r.Tables.Count == 0) { <div class="sq-st"><span>표 없음</span><span>@((r.Ms / 1000.0).ToString("0.00"))초</span></div> }
+            @if (r.Notes.Count > 0)
+            {
+                <div class="sq-st"><span>메시지</span></div>
+                <pre class="sq-msg">@string.Join("\n", r.Notes)</pre>
+            }
+        </section>
+    }
+
+    @if (Model.History.Count > 0)
+    {
+        <section class="sq-hist" aria-labelledby="sq-h"><h2 id="sq-h">최근 실행</h2>
+            <ul>@foreach (var h in Model.History) { <li><b>@Local(h.AtUtc)</b> @Mode(h.Detail) · <span>@h.Actor</span> · <code>@Body(h.Detail)</code></li> }</ul>
+        </section>
+    }
+</form></main>
+<script src="~/js/sql.js" asp-append-version="true"></script>

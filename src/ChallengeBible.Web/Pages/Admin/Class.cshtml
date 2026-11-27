@@ -34,7 +34,7 @@
     </div>
 
     <section class="cd-card" aria-labelledby="tT">
-        <h2 id="tT">@(c.IsNewcomer ? "새친구반 담당" : "담임 선생님") <small>@(c.IsNewcomer ? "교사 · 임원 · 관리자" : "교사만") · 한 반만</small></h2>
+        <h2 id="tT">@(c.IsNewcomer ? "새친구반 담당" : "담임 선생님") <small>@(c.IsNewcomer ? "교사 · 임원 · 관리자" : "교사만") · 한 반만 · <a href="/@slug/admin/teachers">모든 반 담임 보기 →</a></small></h2>
         @if (d.Teachers.Count == 0) { <p class="cd-empty">아직 @(c.IsNewcomer ? "담당이" : "담임이") 없어요. 아래에서 정해 주세요.</p> }
         else
         {

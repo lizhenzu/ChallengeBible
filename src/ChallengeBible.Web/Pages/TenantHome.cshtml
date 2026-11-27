@@ -3,296 +3,285 @@
 @using ChallengeBible.Infrastructure.Data
 @using ChallengeBible.Web.Auth
 @using ChallengeBible.Web.Services
-@* 확정 시안: 홈메인-단독시안(0044) — 머리말(부서 ▼ · 날짜) → 인사 → 오늘의 말씀 띠 → 프로그램 두 장 → 우리 가족팀 → 이번 주 나의 기록 → 우리 부서 → 계정 줄.
-   확정 8가지: 관리 버튼(머리말) · 보호자 카드 · 가족 부서 안내 유지, 참여자가 아니면 보기만, 꺼진 프로그램은 숨김, 부서 ▼ = 부서 고르기 화면, 계정 줄은 3개, 말씀 없는 날은 띠 숨김 *@
+@* 2026-11-23 사용자 확정(design_handoff_home_b): 부서 홈 = 시안 B 모노 톤.
+   머리말(☰ · 교회 · 날짜 · 쪽지 · 내 계정) → 로고 → 검색 → 네 가지 도전 목록 → 가족팀/임시 부서 안내 → 링크.
+   기능 카드(가족팀 · 임시 부서 1단계 안내 · 생일 · 쪽지)는 그대로 둔다. *@
 @{
     var d = Model.Data;
     var t = Model.Tenant.Current;
     var slug = t.Slug;
     var ko = new System.Globalization.CultureInfo("ko-KR");
-    var inv = System.Globalization.CultureInfo.InvariantCulture;
-    const double C = 238.8;   // 고리 둘레(r = 38)
-    string Dash(double pct) => $"{(C * Math.Clamp(pct, 0, 100) / 100).ToString("0.#", inv)} {C.ToString("0.#", inv)}";
-    var has = d.Missions.Where(m => m.Has).ToList();
-    var done = has.Count(m => m.Done);
-    var left = has.Where(m => !m.Done).ToList();
-    var rd = d.Reading;
     var lobby = Model.Tenant.IsLobby;
     var intro = lobby && !Model.TodayScreen;
-    // 받침에 맞는 "로 / 으로"(받침 없음 · ㄹ 받침 = 로)
-    // 씨앗 단계 그림: 🌰(밤) 대신 완두콩 꼬투리(2026-11-03 사용자 확정 E). 새 이모지는 기기마다 □ 로 깨지므로 그림으로 그린다
-    static Microsoft.AspNetCore.Html.IHtmlContent Ico(string e) => e == "🌰"
-        ? new Microsoft.AspNetCore.Html.HtmlString("<svg class=\"pea\" viewBox=\"0 0 40 40\"><path d=\"M4 26C10 12 26 8 36 12c-2 12-16 20-30 17z\" fill=\"#6CC04A\"/><path d=\"M7 26c8-1 18-6 26-12\" stroke=\"#4E9A33\" stroke-width=\"1.5\" fill=\"none\"/><circle cx=\"13\" cy=\"23\" r=\"3.6\" fill=\"#A6E07A\"/><circle cx=\"20\" cy=\"20\" r=\"3.8\" fill=\"#A6E07A\"/><circle cx=\"27\" cy=\"16.5\" r=\"3.6\" fill=\"#A6E07A\"/><path d=\"M34 12c1-3 3-4 5-4\" stroke=\"#4E9A33\" stroke-width=\"1.8\" fill=\"none\" stroke-linecap=\"round\"/></svg>")
-        : new Microsoft.AspNetCore.Html.HtmlString(System.Net.WebUtility.HtmlEncode(e));
-    static string Ro(string w) { var c = w.Length == 0 ? 'a' : w[^1]; var j = c is >= '가' and <= '힣' ? (c - '가') % 28 : 0; return j == 0 || j == 8 ? "로" : "으로"; }   // 0068: 임시 부서 `/{slug}` = 1단계(부서 안 고름) · 2단계(승인 기다림), 윗부분만
+    string Go(string path) => Model.Guest ? "/account/login?returnUrl=" + Uri.EscapeDataString(path) : path;   // 2026-11-27 사용자: 로그인 안 했으면 누르면 로그인 창으로
+    var loginTo = "/account/login?returnUrl=" + Uri.EscapeDataString(HttpContext.Request.Path + HttpContext.Request.QueryString);
+    static string Ro(string w) { var c = w.Length == 0 ? 'a' : w[^1]; var j = c is >= '가' and <= '힣' ? (c - '가') % 28 : 0; return j == 0 || j == 8 ? "로" : "으로"; }
 }
+<link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
-<div class="hm sky@(lobby ? " lobby" : "")">
-@* 하늘색 머리말(0064 · 0068, 확정 시안: 임시부서-홈-두단계). 일반 부서 홈도 임시 부서 미션 화면(/welcome/today)과 같은 모양(2026-10-31 사용자):
-   머리말 → (임시 부서) 1 · 2단계 윗부분만 또는 "← 처음 화면" / (일반 부서) 부서 이름 · 관리 줄 → 흰 말씀 카드 → 아랫부분 *@
-    <div class="wl@(intro ? "" : " wl-wide")">
+<div class="@(intro ? "hm hmx sky" : "vb vb-dept")@(lobby ? " lobby" : "")">
+
+@if (intro)
+{
+    <div class="wl">
         <header class="wl-top gut"><div class="wrap">
-            @* 확정 2026-11-15 사용자: 왼쪽 위 ☰ → 내 계정 · 출석 · 관리 · 플랫폼 · 로그아웃(맨 아래 계정 줄과 같은 조건). 플랫폼 메뉴와 같은 메뉴판(platform-nav.js) *@
             <button type="button" class="pmenu-btn hm-menu" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
             </button>
             <div class="wl-org"><small>대한예수교장로회</small><a class="church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)">잠실새내교회<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a></div>
-            <span class="wl-today"><span class="dt-yr">@d.Today.ToString("yyyy년", ko) </span><b>@d.Today.ToString("M월 d일", ko)</b> @d.Today.ToString("dddd", ko)</span>
+            <span class="wl-today"><b>@d.Today.ToString("M월 d일", ko)</b> @d.Today.ToString("dddd", ko)</span>
+            <partial name="_MailBadge" />
         </div></header>
-        @if (intro)
-        {
-            var step2 = Model.Waiting.Count > 0;
-            <section class="wl-hi gut" aria-labelledby="wlHi"><div class="wrap">
-                <div class="wl-k">환영해요</div>
-                <h1 id="wlHi">@(User.DisplayName())님,<br>반가워요!</h1>
-                <p class="wl-sub">@(step2 ? "신청을 보냈어요. 관리자가 승인하면 그 부서로 옮겨 가요." : "먼저 내가 참여할 부서를 신청해요.")</p>
-                <div class="wl-card">
-                    <h2>시작까지 3단계</h2>
-                    <ol class="wl-steps">
-                        <li class="wl-done"><span class="wl-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>
-                            <div class="wl-tx"><b>가입 <span class="wl-tag wl-done">완료</span></b><span>이름 · 이메일만 받았어요</span></div></li>
-                        @if (!step2)
+        <section class="wl-hi gut" aria-labelledby="wlHi"><div class="wrap">
+            <div class="wl-k">환영해요</div>
+            <h1 id="wlHi">@Ui.Nim(User.DisplayName()),<br>반가워요!</h1>
+            <p class="wl-sub">먼저 내가 참여할 부서를 골라요.</p>
+            <div class="wl-card">
+                <h2>시작까지 2단계</h2>
+                <ol class="wl-steps">
+                    <li class="wl-done"><span class="wl-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>
+                        <div class="wl-tx"><b>가입 <span class="wl-tag wl-done">완료</span></b><span>이름 · 이메일 · 비밀번호만 있으면 돼요</span></div></li>
+                    <li class="wl-now"><span class="wl-ic" aria-hidden="true">2</span>
+                        <div class="wl-tx"><b>내 부서 참여 <span class="wl-tag wl-now">지금 할 일</span></b><span>목록에서 내 부서를 고르면 바로 시작해요</span></div></li>
+                </ol>
+                <a class="wl-btn wl-p" href="/join">내 부서 참여 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+                <a class="wl-btn wl-s" href="/@slug/today">먼저 미션 해 보기 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+                <p class="wl-keep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>여기서 한 미션 기록 · 점수는 부서로 그대로 옮겨져요.</p>
+            </div>
+        </div></section>
+    </div>
+}
+else
+{
+    <header class="vb-hero">
+        <img class="vb-clover" src="~/icons/clover.svg" alt="" aria-hidden="true" />
+        <div class="vb-hero-in">
+            <div class="vb-top">
+                <div class="vb-top-l">
+                    @* 2026-11-26 사용자: 홈 왼쪽 위 ☰ 는 삭제(나중에 다시 검토 — docs/design/보류-햄버거메뉴-검토.md). 왼쪽 위 문구는 첫 화면과 같은 「대한예수교장로회 / 잠실새내교회」 *@
+                    @* 머리줄 표준(2026-11-24 확정 · 기준표 5판): 왼쪽은 ☰ + 소속 이름 하나(교회 홈페이지 링크는 ☰ 메뉴에서도 뺌, 2026-11-25) *@
+                    <a class="church" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)"><small>대한예수교장로회</small><span>잠실새내교회</span></a>
+                </div>
+                <div class="vb-top-r">
+                    @* 오른쪽 위(2026-11-27 사용자 새 퍼블리시본): 날짜 + 동그라미들. 로그인한 사람 = 편지(쪽지) · 로그인 안 한 사람 = 사람 아이콘(로그인). 메인화면이 켜진 부서는 맨 오른쪽에 메인화면 동그라미 *@
+                    <span class="vb-dc">
+                        <time class="vb-dd" datetime="@d.Today.ToString("yyyy-MM-dd")">@d.Today.ToString("M월 d일", ko)<small>@d.Today.ToString("dddd", ko)</small></time>
+                        @if (Model.Guest)
                         {
-                            <li class="wl-now"><span class="wl-ic" aria-hidden="true">2</span>
-                                <div class="wl-tx"><b>내 부서 참여 <span class="wl-tag wl-now">지금 할 일</span></b><span>목록에서 내 부서를 골라 신청해요</span></div></li>
-                            <li class="wl-later"><span class="wl-ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
-                                <div class="wl-tx"><b>관리자 승인 <span class="wl-tag wl-later">다음 단계</span></b><span>승인되면 그 부서로 바로 옮겨 가요</span></div></li>
+                            <a class="vb-circ-a" href="@loginTo" aria-label="로그인" title="로그인">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+                            </a>
                         }
                         else
                         {
-                            <li class="wl-done"><span class="wl-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>
-                                <div class="wl-tx"><b>참여 신청 <span class="wl-tag wl-done">완료</span></b><span>@(string.Join(" · ", Model.Waiting))</span></div></li>
-                            <li class="wl-wait"><span class="wl-ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
-                                <div class="wl-tx"><b>관리자 승인 <span class="wl-tag wl-wait">기다리는 중</span></b><span>승인되면 그 부서로 바로 옮겨 가요</span></div></li>
+                            <span class="vb-circ"><partial name="_MailBadge" /></span>
                         }
-                    </ol>
-                    @if (!step2)
-                    {
-                        <a class="wl-btn wl-p" href="/join">내 부서 참여 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-                        <a class="wl-btn wl-s" href="/@slug/today">먼저 미션 해 보기 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-                    }
-                    else
-                    {
-                        <a class="wl-btn wl-p" href="/@slug/today">미션 수행하러 가기 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-                        <a class="wl-btn wl-s" href="/join">신청 보기 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
-                    }
-                    <p class="wl-keep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>여기서 한 미션 기록 · 점수는 부서로 그대로 옮겨져요.</p>
+                        @if (Model.MainOn)
+                        {
+                            <a class="vb-circ-a" href="/@slug/welcome" aria-label="메인화면으로 이동">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg>
+                            </a>
+                        }
+                    </span>
                 </div>
-            </div></section>
-        }
-        else if (lobby)
-        {
-            <nav class="wl-back gut" aria-label="돌아가기"><div class="wrap">
-                <a href="/@slug">← 처음 화면</a>@if (Model.Waiting.Count > 0) { <span class="pill">승인 기다리는 중</span> }
-            </div></nav>
-        }
-        @* 일반 부서: 부서 이름 줄은 지웠다(2026-11-03 사용자). 부서가 둘 이상이면 내 계정 > "부서 고르기 →" *@
-    </div>
+            </div>
 
-@if (!intro)
-{
-@* 0076 확정 시안(hk.png): 말씀 한 줄 띠 → 인사 카드(나의 점수 성장) → 말씀 찾기 → 성경말씀 카드 → 성경통독 카드 → 가족팀 · 우리 부서 *@
-<main class="gut hj"><div class="wrap">
-    @* 맨 위 말씀 한 줄 띠는 지웠다(2026-11-03 사용자) *@
-
-    @{ var name = User.DisplayName(); }
-    <section class="hj-card hj-hi" aria-labelledby="hiT">
-        <div class="hj-hi-top">
-            <div>
-                <small>안녕하세요</small>
-                <h1 id="hiT">@name <u>님</u></h1>
-                @* 역할 칩(R-275, 확정 시안 C 2026-11-14): 역할 + 반(담임 · 새친구반 담당) *@
-                @if (Model.RoleChips.Count > 0)
-                {
-                    <span class="hj-roles">@foreach (var chip in Model.RoleChips)
+            <div class="vb-hero-row">
+                <div class="vb-body">
+                    @* 인사말(2026-11-25 사용자 B안): 제목 위 두 줄 — 「안녕하세요」 작게 · 이름 조금 크게 + 「님」 작게. 로그인한 사람에게만 *@
+                    @if (!Model.Guest)
                     {
-                        <i class="@chip.Kind">@chip.Text</i>
-                    }</span>
+                        <p class="vb-hi"><span class="g">안녕하세요</span><b>@Ui.NameOnly(User.DisplayName())</b><small>님</small></p>
+                    }
+                    <h1 class="brand-title">
+                        <span class="bt-1">도전<span class="bt-ex"><i class="e1">!</i><i class="e2">!</i><i class="e3">!</i></span></span>
+                        <span class="bt-2">성경말씀</span>
+                    </h1>
+                    <p class="vb-tag">@if (lobby) { <text>먼저 미션으로 시작해 보세요.</text> } else { <text>4가지 도전, 하나의 말씀.<br>하루 5분, 말씀과 함께 자라요.</text> }</p>
+                </div>
+                @* 나의 포인트 링(2026-11-23 사용자 확정 B안 · ADR 0136): 「도전 성경말씀」 오른쪽 빈자리. 누르면 「나의 도전」 화면. *@
+                @if (Model.Ring is { } ring)
+                {
+                    ViewData["RingSize"] = 92;
+                    <partial name="_PointRing" model="ring" />
                 }
-                @* 교회 이름은 머리말에 있으니 부서 이름만(2026-11-03 사용자): "잠실새내교회 유년부" → "유년부" *@
-                @* 부서 이름만 조금 크게 · 주황 + 옅은 밑줄(확정 시안 홈-부서이름색 ①, 2026-11-05) *@
-                @{ var deptName = lobby ? null : t.Name.StartsWith("잠실새내교회 ") ? t.Name["잠실새내교회 ".Length..] : t.Name; }
-                <p>@if (deptName is null) { <b>도전!!! 성경말씀에 오심을 환영해요</b> } else { <b><em class="hj-dname">@deptName</em>에 오심을 환영해요</b> }
-                    <span>@(d.Today.DayOfWeek == DayOfWeek.Sunday || d.Today.DayOfWeek == DayOfWeek.Monday ? "새 한 주가 시작됐어요." : "오늘도 반가워요.")</span>
-                    <span>오늘 말씀부터 읽어 볼까요?</span></p>
             </div>
-            @* 0078: 누르면 내 사진 화면(올리기 · 바꾸기 · 지우기). 사진이 없으면 이름 첫 글자 *@
-            <a class="hj-av" href="/account" aria-label="내 계정">@if (Model.MyPhoto is { } ph)
-                { <img src="/account/photo?handler=img&amp;v=@ph" alt="" /> } else { <span aria-hidden="true">@(name.Length > 0 ? name[..1] : "?")</span> }</a>
         </div>
-        @if (d.Growth is { } g)
+    </header>
+
+    <main class="vb-main">
+
+        @if (t.ReadingEnabled)
         {
-            var stages = d.Rules.GrowthStages;
-            var cur = stages[g.Stage];
-            const double G = 188.5;   // 성장 고리 둘레(r = 30)
-            <a class="hj-grow" href="/@slug/points" aria-label="나의 점수 성장일지">
-                <span class="hj-ring g" aria-hidden="true">
-                    <svg width="76" height="76" viewBox="0 0 76 76"><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-green-l)" stroke-width="8" /><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-green)" stroke-width="8" stroke-linecap="round" stroke-dasharray="@((G * g.Percent / 100).ToString("0.#", inv)) @G.ToString("0.#", inv)" transform="rotate(-90 38 38)" /></svg>
-                    <span><i>@Ico(cur.Emoji)</i>@cur.Name @(g.Percent)%</span>
-                </span>
-                <span class="hj-gtx"><small>나의 점수</small><b class="num">@d.SeasonPoints.ToString("N0")<u>점</u></b>
-                    <em>@(g.Done ? $"{cur.Name}까지 모두 자랐어요" : $"{cur.Name}{Ro(cur.Name)} 자라는 중")</em></span>
-                @* 오른쪽 "○○까지 N점"은 지웠다(2026-11-03 사용자) *@
-            </a>
-            <ol class="hj-stg" aria-label="성장 단계">
-                @for (var i = 0; i < stages.Count; i++)
-                {
-                    var s = stages[i];
-                    var state = i < g.Stage || g.Done ? "d" : i == g.Stage ? "c" : "";
-                    if (i > 0) { <li class="ln @(i <= g.Stage || g.Done ? "d" : "")" aria-hidden="true"></li> }
-                    <li class="st @state" aria-current="@(state == "c" ? "step" : "false")"><span aria-hidden="true">@Ico(s.Emoji)</span><small>@s.Name</small></li>
-                }
-            </ol>
-            <a class="hj-more" href="/@slug/points">@if (d.Streak > 0) { <span>🔥 @(d.Streak)일째 이어 하는 중 · </span> }<b>성장일지 ›</b></a>
+            <form class="hmx-search" method="get" action="@($"/{slug}/reading/search")" role="search" data-hsearch data-guest="@(Model.Guest ? "true" : "false")">
+                <input type="search" name="q" maxlength="50" placeholder="성경에서 단어 검색" aria-label="성경에서 단어 검색" />
+                <button type="submit">검색</button>
+            </form>
+            <p class="vb-search-err" data-hsearch-err hidden>찾을 단어를 한 글자 이상 넣어 주세요.</p>
         }
-    </section>
 
-    @* 받은 가족팀 초대(확정 시안 home-invite, ADR 0084 · R-212): 말씀 찾기 바로 위. 수락 · 거절은 가족팀 화면에서 *@
-    @if (Model.Invites.Count > 0)
-    {
-        var first = Model.Invites[0];
-        <section class="hj-card hj-inv" aria-label="가족팀 초대">
-            <div class="h"><span class="ic" aria-hidden="true">💌</span>
-                <span class="tx"><b>가족팀 초대가 왔어요!</b>
-                    <small>@(Model.Invites.Count > 1 ? $"{first.TeamName} 외 {Model.Invites.Count - 1}팀에서 초대했어요" : $"{first.InvitedBy}님이 {first.TeamName}{Ro(first.TeamName)} 초대했어요")</small></span></div>
-            <div class="ivrow">
-                <a class="ivgo" href="/@slug/family-team">초대 확인하기 ›</a>
-                <form method="post" asp-page-handler="SnoozeInvites" asp-route-slug="@slug"><button type="submit" class="ivlater">다음에 할래요</button></form>
-            </div>
-        </section>
-    }
+        <div class="vb-sec-h">
+            <h2>4가지 도전</h2>
+            <p>어느 것부터 해도 좋아요</p>
+        </div>
 
-    @if (t.ReadingEnabled)
-    {
-        <section class="hj-card hj-sr" aria-label="말씀 찾기">
-            <div class="tg"><b>📖 말씀 찾기</b><span>궁금한 단어 하나로 성경 전체를 찾아봐요</span></div>
-            @* 홈에서는 입력받지 않고 누르면 검색 화면으로(2026-11-03 사용자) *@
-            <a class="sx" href="/@slug/reading/search" aria-label="말씀 찾기 화면으로"><span class="ph"><i aria-hidden="true">🔍</i><em>예) 사랑, 믿음, 소망, 예수… 어떤 말씀이든 찾아봐요</em></span><span class="bt">검색</span></a>
-            <div class="kw">@foreach (var k in new[] { "두려워하지 말라", "은혜", "평안", "기도" }) { <a href="/@slug/reading/search?q=@Uri.EscapeDataString(k)">@k</a> }</div>
-        </section>
-    }
-
-    @if (t.MissionEnabled)
-    {
-        const double C2 = 188.5;
-        var pctToday = has.Count == 0 ? 0 : done * 100.0 / has.Count;
-        <section class="hj-card hj-pg m" aria-labelledby="pmT">
-            <h2 id="pmT"><a href="/@slug/word-mission">🎯 도전!!! 성경말씀</a>@if (d.Participant) { <b class="num">@d.SeasonPoints.ToString("N0")<u>P</u></b> }</h2>
-            <div class="hj-row">
-                <span class="hj-ring o" role="img" aria-label="오늘 미션 @(has.Count)개 중 @(done)개 완료">
-                    <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-org-l)" stroke-width="8" /><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-org)" stroke-width="8" stroke-linecap="round" stroke-dasharray="@((C2 * pctToday / 100).ToString("0.#", inv)) @C2.ToString("0.#", inv)" transform="rotate(-90 38 38)" /></svg>
-                    <span><b class="num">@done/@has.Count</b>오늘 미션</span>
-                </span>
-                @* 오늘의 말씀 칸 → 미션홈(2026-11-03 사용자) *@
-                <a class="hj-box o" href="/@slug/word-mission">
-                    <small>오늘의 말씀</small>
-                    @if (d.WordTitle is not null) { <b>@d.WordTitle</b><span>@d.WordRange ›</span> }
-                    else { <b>오늘은 말씀이 없어요</b><span>내일 다시 만나요</span> }
+        <nav class="vb-list" aria-label="프로그램 바로가기">
+            @if (t.MissionEnabled)
+            {
+                <a class="vb-item" href="@Go($"/{slug}/word-mission")" style="--c: var(--p1); --s: var(--s1);">
+                    <span class="vb-no">01</span>
+                    <span class="vb-t"><small>도전!!!</small><b>성경미션</b><p>매일 하나씩 주어지는 말씀 미션을 풀어요</p></span>
+                    <span class="vb-go"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
                 </a>
-            </div>
-            <div class="hj-m4">
-                @foreach (var m in d.Missions)
-                {
-                    @* 대기 중인 미션은 모두 같은 주황(2026-11-03 사용자) — 예전엔 다음 하나만 주황 *@
-                    var cls = !m.Has ? "no" : m.Done ? "ok" : d.Participant ? "cur" : "";
-                    <a class="@cls" href="/@slug/@m.Key">@m.Label<small>@(!d.Participant && m.Has ? "보기만" : m.Done || !m.Has ? m.State : m.State + " ›")</small></a>
-                }
-            </div>
-            @if (d.Participant && d.SeasonDay > 0)
-            {
-                var fp = Math.Clamp(d.FullDays * 100.0 / d.SeasonDay, 0, 100);
-                <div class="hj-bar o" aria-hidden="true"><i style="width:@fp.ToString("0.#", inv)%"></i></div>
-                <div class="hj-bl"><span>올해 네 가지 다 한 날 @(d.FullDays)일 / @(d.SeasonDay)일</span><b>@((int)fp)%</b></div>
             }
-            @* "● 오늘 N명 참여 중" 줄은 지웠다(2026-11-03 사용자) — 아래 "우리 부서 오늘 참여"에 같은 숫자 *@
-        </section>
-    }
-
-    @if (t.ReadingEnabled)
-    {
-        <section class="hj-card hj-pg r" aria-labelledby="prT">
-            <h2 id="prT"><a href="/@slug/reading">📖 도전!!! 성경통독</a>@if (rd is not null) { <small>@(rd.RoundNo)독째@(rd.TodayChapters > 0 ? $" · 오늘 {rd.TodayChapters}장" : "")</small> }</h2>
-            @if (rd is null)
+            @if (t.ReadingEnabled)
             {
-                <a class="hj-box r wide" href="/@slug/reading"><small>아직 시작 전이에요</small><b>통독 시작하기 →</b><span>창세기 1장부터 내 속도로 읽어요 · 점수는 없어요</span></a>
+                <a class="vb-item" href="@Go($"/{slug}/reading")" style="--c: var(--p2); --s: var(--s2);">
+                    <span class="vb-no">02</span>
+                    <span class="vb-t"><small>도전!!!</small><b>성경통독</b><p>계획표를 따라 하루 몇 장씩, 끝까지 읽어요</p></span>
+                    <span class="vb-go"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                </a>
+            }
+            @if (t.CopyEnabled)
+            {
+                <a class="vb-item" href="@Go($"/{slug}/copy")" style="--c: var(--p3); --s: var(--s3);">
+                    <span class="vb-no">03</span>
+                    <span class="vb-t"><small>도전!!!</small><b>성경필사</b><p>말씀을 한 절씩 따라 쓰며 마음에 새겨요</p></span>
+                    <span class="vb-go"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                </a>
+            }
+            @if (Model.PrayerVisible)
+            {
+                <a class="vb-item" href="@Go($"/{slug}/prayer365")" style="--c: var(--p4); --s: var(--s4);">
+                    <span class="vb-no">04</span>
+                    <span class="vb-t"><small>자녀를 위한</small><b>365축복기도</b><p>매일 한 가지 주제로 자녀를 위해 기도해요</p></span>
+                    <span class="vb-go"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                </a>
+            }
+        </nav>
+
+        @* 가족팀(2026-11-22 3차 확정): 초대 배너 → 우리 가족팀 카드 → 둘 다 없으면 만들기 유도. 현황 카드 아래. *@
+        @if (!lobby && t.MissionEnabled && d.Rules.Features.FamilyTeam)
+        {
+            if (Model.Invites.Count > 0)
+            {
+                var first = Model.Invites[0];
+                <section class="hmx-inv" aria-label="가족팀 초대">
+                    <div class="hd">
+                        <span class="em" aria-hidden="true">💌</span>
+                        <div><b>가족팀 초대가 왔어요!</b>
+                            <small>@(Model.Invites.Count > 1 ? $"{first.TeamName} 외 {Model.Invites.Count - 1}팀에서 초대했어요" : $"{Ui.Nim(first.InvitedBy)}이 {first.TeamName}{Ro(first.TeamName)} 초대했어요")</small>
+                        </div>
+                        <span class="cnt num">@(Model.Invites.Count)개</span>
+                    </div>
+                    <div class="row">
+                        <a class="go" href="/@slug/family-team">초대 확인하기</a>
+                        <form method="post" asp-page-handler="SnoozeInvites" asp-route-slug="@slug"><button type="submit" class="later">다음에 할래요</button></form>
+                    </div>
+                </section>
+            }
+            else if (Model.Family is null && Model.FamilyCanJoin)
+            {
+                <section class="hmx-make" aria-label="가족팀 · 친구팀 만들기">
+                    <div class="hd">
+                        <span class="em" aria-hidden="true">👨‍👩‍👧</span>
+                        <div><b>가족팀 · 친구팀을 만들어 보세요</b><small>함께 하면 점수가 모여요. 부모님·형제, 친구와 팀을 이뤄요.</small></div>
+                    </div>
+                    <div class="row">
+                        <a class="go" href="/@slug/family-team">가족팀 만들기</a>
+                        @if (Model.FamilyIsStudent) { <a class="alt" href="/@slug/family-team">친구팀 만들기</a> }
+                    </div>
+                </section>
+            }
+        }
+
+        @if (lobby)
+        {
+            if (Model.Waiting.Count == 0)
+            {
+                <section class="lb-ban lb-go" aria-labelledby="lbT">
+                    <p><b id="lbT">아직 내 부서가 없어요</b>내 부서에 참여 신청하면 선생님이 승인해요. 지금 한 미션 · 점수는 그 부서로 옮겨져요.</p>
+                    <a class="lb-btn p" href="/join">내 부서 참여 신청하기 →</a>
+                </section>
             }
             else
             {
-                var pct = ReadingSummary.Percent(rd.ReadChapters, ReadingSummary.Total);
-                var book = rd.Books.First(b => b.BookId == rd.Resume.BookId);
-                <div class="hj-row">
-                    <span class="hj-ring b" role="img" aria-label="전체 진도 @(pct.ToString("0.0"))%">
-                        <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-blue-l)" stroke-width="8" /><circle cx="38" cy="38" r="30" fill="none" stroke="var(--hj-blue)" stroke-width="8" stroke-linecap="round" stroke-dasharray="@((188.5 * Math.Max(pct, rd.ReadChapters > 0 ? 1 : 0) / 100).ToString("0.#", inv)) 188.5" transform="rotate(-90 38 38)" /></svg>
-                        <span><b class="num">@pct.ToString("0.0")</b>%</span>
-                    </span>
-                    <a class="hj-box r" href="/@slug/reading/read/@rd.Resume.BookId/@rd.Resume.Chapter">
-                        <small>이어 읽을 곳</small><b>@book.Name</b><span>@(rd.Resume.Chapter)@(book.BookId == 19 ? "편" : "장") @(rd.Resume.Verse)절 ›</span>
-                    </a>
-                </div>
-                <div class="hj-n3">
-                    <div class="r"><b class="num">@rd.ReadChapters.ToString("N0")</b><small>읽은 장</small></div>
-                    <div class="l"><b class="num">@((ReadingSummary.Total - rd.ReadChapters).ToString("N0"))</b><small>남은 장</small></div>
-                    <div class="t"><b class="num">@ReadingSummary.Total.ToString("N0")</b><small>전체</small></div>
-                </div>
+                var depts = string.Join(" · ", Model.Waiting.Select(w => w.StartsWith("잠실새내교회 ") ? w["잠실새내교회 ".Length..] : w));
+                <section class="lb-ban lb-wait" aria-labelledby="lbT">
+                    <p><b id="lbT"><span class="lb-pill">승인 기다리는 중</span>@depts</b>선생님이 승인하면 바로 @depts@(Ro(depts)) 바뀌어요. 그동안 여기서 미션을 계속해요.</p>
+                    <a class="lb-btn s" href="/join">신청 확인 · 바꾸기 →</a>
+                </section>
             }
-        </section>
-    }
+        }
 
-    @if (t.MissionEnabled && Model.IsGuardian)
-    {
-        <a class="notice" href="/@slug/guardian"><b>자녀 미션 보기</b><span>연결된 자녀의 오늘 미션 · 점수 →</span></a>
-    }
-
-    @if (Model.Family is { } f)
-    {
-        var span = (f.NextStage ?? f.Total) - f.PrevStage;
-        var fpct = f.NextStage is null ? 100 : span <= 0 ? 0 : Math.Clamp((f.Total - f.PrevStage) * 100.0 / span, 1, 100);
-        <a class="hj-card hj-line" href="/@slug/family-team">
-            <span class="ic y" aria-hidden="true">👨‍👩‍👧</span>
-            <span class="tx"><b>우리 가족팀 · <span class="num">@f.Total.ToString("N0")</span>점</b>
-                <small>@f.Name · @(f.NextStage is { } n ? $"다음 가족 축하까지 {n - f.Total:N0}점" : "모든 가족 단계를 넘었어요")</small>
-                <span class="pb" aria-hidden="true"><i style="width:@fpct.ToString("0.#", inv)%"></i></span></span>
-            <span class="ar" aria-hidden="true">›</span>
-        </a>
-    }
-    @if (d.Dept is { } dp && t.MissionEnabled)
-    {
-        @* 2026-11-07(ADR 0085, 시안 dept-roster): 카드 하나를 선으로 셋 — 전체(파랑) · 참여자(보라) · 오늘 참여(초록). "우리 부서" · "나는 오늘" 은 뺐다 *@
-        @* 칸마다 따로 누르게(눌렀을 때 그 칸만 반짝, 2026-11-03) — 전체 · 참여자는 명단으로, 오늘 참여는 순위를 쓰는 부서만 링크 *@
-        var rk = d.Rules.Features.Ranking ? $"/{slug}/ranking" : null;
-        <div class="hj-card hj-dept">
-            <a class="b" href="/@slug/roster"><b class="num">@dp.Members<u>명</u></b><small>전체</small></a><i aria-hidden="true"></i>
-            <a class="pn" href="/@slug/roster?t=participant"><b class="num">@dp.Participants<u>명</u></b><small>참여자</small></a><i aria-hidden="true"></i>
-            <a class="m" href="@rk"><b class="num">@dp.TodayPeople<u>명</u></b><small>오늘 참여</small></a>
+        @* 맨 아래(2026-11-27 사용자 새 퍼블리시본): 의견 접수 카드 · 설치 띠 · 주소 *@
+        <div class="vb-foot2">
+            @if (Model.IsGuardian)
+            {
+                <a class="fb2" href="/@slug/guardian">
+                    <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.4-3.6 3.2-5.6 7-5.6s6.6 2 7 5.6"/></svg></span>
+                    <span class="tx"><b>자녀 미션 보기</b><small>자녀의 미션 기록을 볼 수 있어요</small></span>
+                    <svg class="ar" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                </a>
+            }
+            <a class="fb2" href="/@slug/feedback">
+                <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/></svg></span>
+                <span class="tx"><b>개선사항 · 불편사항 접수</b><small>불편했던 점이나 아이디어를 남겨 주세요</small></span>
+                <svg class="ar" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+            </a>
+            <div class="inst2">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7.5v6.5M9.5 11.5 12 14l2.5-2.5M10.5 18.5h3"/></svg>
+                <span class="tx"><b>홈 화면에 바로가기를 만들어요</b><small>앱처럼 한 번에 열 수 있어요</small></span>
+                <a href="/install">설치</a>
+            </div>
+            <p class="addr2">서울특별시 송파구 석촌호수로 102</p>
         </div>
-    }
-</div></main>
+    </main>
 }
 
-<div class="pdrawer" id="pnav" hidden>
-    <div class="pd-dim" data-pnav-close></div>
-    <aside class="pd-panel" tabindex="-1" role="dialog" aria-modal="true" aria-label="메뉴">
-        <div class="pd-top">
-            <span><b><em>도전!!!</em></b> <small class="pd-dept">@Model.Tenant.Tenant?.Name</small></span>
-            <button type="button" class="pd-x" aria-label="메뉴 닫기" data-pnav-close>✕</button>
+@if (Model.BirthdayPopup is { } bp)
+{
+    <div class="bdh-pop" data-bdh-pop role="dialog" aria-modal="true" aria-labelledby="bdhT">
+        <div class="bdh-box">
+            <div class="bdh-em" aria-hidden="true">🎂🎁</div>
+            <h2 id="bdhT">@(bp.Name.Length > 0 ? bp.Name : User.Identity?.Name)님, 생일 축하해요!</h2>
+            <p>@bp.Birthday.ToString("M월 d일") 생일 선물을 골라 주세요.@if (bp.OpenUntil is { } pu) { <br />@($"{pu:M월 d일}까지 고를 수 있어요.") }</p>
+            <a class="bdh-pick" href="/@t.Slug/gifts/birthday/@bp.Id">선물 고르러 가기</a>
+            <form method="post" asp-page-handler="SnoozeBirthday" asp-route-slug="@slug" class="bdh-later">
+                <small>다음에 할래요</small>
+                <div><button type="submit" name="days" value="1">내일 다시</button><button type="submit" name="days" value="3">3일 뒤</button><button type="submit" name="days" value="5">5일 뒤</button></div>
+            </form>
         </div>
-        <nav aria-label="메뉴">
-            <a href="/account">내 계정</a>
-            @if (Model.Tenant.IsLobby) { <a href="/join">내 부서 참여</a> }
-            @if (!Model.Tenant.IsLobby && Model.Tenant.IsStaff) { <a href="/@slug/attendance">출석</a> }
-            @if (Model.Tenant.IsAdmin) { <a href="/@slug/admin">관리</a> }
-            else if (!Model.Tenant.IsLobby && Model.Tenant.IsApproved && ChallengeBible.Web.Services.UserRole.KindOf(Model.Tenant.RoleCode) == ChallengeBible.Web.Services.UserRoleKind.Teacher) { <a href="/@slug/admin/members">명부</a> }
-            @if (User.IsPlatformAdmin()) { <a href="/platform">플랫폼</a> }
-        </nav>
-        <div class="pd-foot">
-            <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit">로그아웃</button></form>
-        </div>
-    </aside>
-</div>
-<script src="~/js/platform-nav.js" asp-append-version="true" defer></script>
+    </div>
+}
+@if (!Model.Guest) { <partial name="_MsgPopup" model="(Model.NewMessages, Model.NewList, '/' + slug)" /> }
 
-<footer class="gut"><div class="wrap">
-    @* 맨 아래 계정 줄(출석 · 관리 · 플랫폼 · 로그아웃)은 지웠다 — 왼쪽 위 ☰ 메뉴와 같아서(2026-11-15 사용자) *@
-    <p class="foot-copy">© @d.Today.Year 잠실새내 · 주일학교</p>
-</div></footer>
+@if (!Model.Guest) { <partial name="_TenantDrawer" model="(Model.Tenant, Model.MyPhoto)" /> }
+
+@if (intro)
+{
+    <footer class="gut"><div class="wrap">
+        <p class="foot-copy">© @d.Today.Year 잠실새내 · 주일학교</p>
+    </div></footer>
+}
 </div>
+<script>
+    // 검색(2026-11-27 사용자): 단어 없이 누르면 막고 안내, 로그인 안 했으면 로그인 창으로(로그인한 뒤 검색 결과로 돌아온다)
+    (() => {
+        const f = document.querySelector('[data-hsearch]'); if (!f) return;
+        const err = document.querySelector('[data-hsearch-err]');
+        f.addEventListener('submit', (e) => {
+            const q = f.querySelector('input').value.trim();
+            if (!q) { e.preventDefault(); if (err) err.hidden = false; f.querySelector('input').focus(); f.style.borderColor = '#b42318'; return; }
+            if (f.dataset.guest === 'true') { e.preventDefault(); location.href = '/account/login?returnUrl=' + encodeURIComponent(f.getAttribute('action') + '?q=' + encodeURIComponent(q)); }
+        });
+    })();
+</script>
+<script>
+    // 설치띠(2026-11-27 사용자): 설치를 마친 폰이면 브라우저로 열어도 숨긴다(설치 안내 화면이 localStorage cb-install 에 남기는 기록) · 앱으로 설치되는 순간에도
+    (() => {
+        const bar = document.querySelector('.inst2'); if (!bar) return;
+        try { if (JSON.parse(localStorage.getItem('cb-install') || '{}').s === 'done') bar.hidden = true; } catch { /* 무시 */ }
+        addEventListener('appinstalled', () => { bar.hidden = true; });
+    })();
+</script>

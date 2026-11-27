@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,17 +6,21 @@ namespace ChallengeBible.Web.Services;
 
 public sealed record JoinTarget(int TenantId, string Name, bool MissionEnabled, bool ReadingEnabled)
 {
+    /// <summary>성경필사(ADR 0099) — 신청 카드에 세 프로그램 모두 보인다(2026-11-17).</summary>
+    public bool CopyEnabled { get; init; }
     public string ThemeColor { get; init; } = "blue";
+    public string Slug { get; init; } = "";
 }
 
-public enum JoinError { None, NotFound, AlreadyMember, NoRole, BadRole }
+public enum JoinError { None, NotFound, AlreadyMember, NoRole, BadRole, AdminNotStudent }
 
 /// <summary>
-/// 목록에서 부서를 고르거나(0059) 참여 코드로 부서를 찾아 참여 신청을 한다(0045, 0048). 신청은 "신청" 상태 소속을 만들고,
-/// 부서 관리자가 승인하면 그때 쓸 수 있다(R-130). 역할은 학생 · 교사 · 학부모 · 기타 중 하나만 묻는다(유년부와 같다).
+/// 목록에서 부서를 고르거나(0059) 참여 코드로 부서를 찾아 참여한다(0045, 0048). 2026-11-20 사용자 "승인 제약 없애고 자유롭게 가입":
+/// 승인 없이 바로 그 부서 소속이 되고(신청 줄은 "승인됨"으로 남김), 부서 관리자 · 플랫폼 관리자에게 알림 쪽지가 간다(R-340).
+/// 역할은 학생 · 교사 · 학부모 · 기타 중 하나만 묻는다(유년부와 같다).
 /// 임시 부서(0064)는 신청 대상이 아니다(목록 · 코드 · 번호 모두에서 뺌) — 가입하면 저절로 들어간다.
 /// </summary>
-public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time)
+public sealed class JoinService(IAppDb db, ISystemDb systemDb, RequestScope scope, TimeProvider time)
 {
         public static string NormalizeCode(string code) =>
         new string((code ?? "").Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
@@ -29,7 +33,7 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
         await using var ctx = db.Create();
         return await ctx.Tenants
             .Where(t => t.JoinCode == c && t.Status == TenantStatus.Active && !t.IsLobby)
-            .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor })
+            .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor, CopyEnabled = t.CopyEnabled, Slug = t.Slug })
             .SingleOrDefaultAsync(ct);
     }
 
@@ -37,33 +41,33 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
     public async Task<List<JoinTarget>> ListedAsync(CancellationToken ct = default)
     {
         await using var ctx = db.Create();
-        return await ctx.Tenants
+        return (await ctx.Tenants
             .Where(t => t.JoinListed && t.Status == TenantStatus.Active && !t.IsLobby)
-            .OrderBy(t => t.Name)
-            .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor })
-            .ToListAsync(ct);
+            .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { ThemeColor = t.ThemeColor, CopyEnabled = t.CopyEnabled, Slug = t.Slug })
+            .ToListAsync(ct))
+            .OrderBy(t => DeptOrder.Key(t.Name)).ThenBy(t => t.Name, StringComparer.Ordinal).ToList();   // 나이순 영아부 → … → 고등부(2026-11-17 사용자)
     }
 
     /// <summary>
     /// 목록에서 고른 부서로 신청(0059). 목록에 없는 부서는 그 부서의 코드를 함께 받아야 한다
     /// (부서 주소 · 코드로 찾은 경우) — Id 만 바꿔 숨긴 부서에 신청하지 못하게.
     /// </summary>
-    public async Task<(JoinError Error, int? ApplicationId)> ApplyAsync(string userName, int tenantId, string? code, string roleKind, CancellationToken ct = default)
+    public async Task<(JoinError Error, int? ApplicationId)> ApplyAsync(string userName, int tenantId, string? code, string roleKind, CancellationToken ct = default, int bMonth = 0, int bDay = 0)
     {
         var c = NormalizeCode(code ?? "");
         JoinTarget? target;
         await using (var ctx = db.Create())
             target = await ctx.Tenants
                 .Where(t => t.Id == tenantId && t.Status == TenantStatus.Active && !t.IsLobby && (t.JoinListed || t.JoinCode == c))
-                .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled))
+                .Select(t => new JoinTarget(t.Id, t.Name, t.MissionEnabled, t.ReadingEnabled) { CopyEnabled = t.CopyEnabled, Slug = t.Slug })
                 .SingleOrDefaultAsync(ct);
-        return await ApplyToAsync(userName, target, roleKind, ct);
+        return await ApplyToAsync(userName, target, roleKind, ct, bMonth, bDay);
     }
 
-    public async Task<(JoinError Error, int? ApplicationId)> ApplyAsync(string userName, string code, string roleKind, CancellationToken ct = default) =>
-        await ApplyToAsync(userName, await LookupAsync(code, ct), roleKind, ct);
+    public async Task<(JoinError Error, int? ApplicationId)> ApplyAsync(string userName, string code, string roleKind, CancellationToken ct = default, int bMonth = 0, int bDay = 0) =>
+        await ApplyToAsync(userName, await LookupAsync(code, ct), roleKind, ct, bMonth, bDay);
 
-    private async Task<(JoinError Error, int? ApplicationId)> ApplyToAsync(string userName, JoinTarget? target, string roleKind, CancellationToken ct)
+    private async Task<(JoinError Error, int? ApplicationId)> ApplyToAsync(string userName, JoinTarget? target, string roleKind, CancellationToken ct, int bMonth = 0, int bDay = 0)
     {
         if (string.IsNullOrEmpty(roleKind)) return (JoinError.NoRole, null);
         if (!SignupRoleKind.All.Contains(roleKind)) return (JoinError.BadRole, null);
@@ -78,14 +82,32 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
         if (await ctx.DeptRoles.IgnoreQueryFilters().AnyAsync(d => d.UserId == user.Id && !lobbies.Contains(d.TenantId), ct)
             || await ctx.SignupApplications.IgnoreQueryFilters().AnyAsync(a => a.UserName == userName && a.Status == SignupStatus.Pending, ct))
             return (JoinError.AlreadyMember, null);
+        // R-365: 관리자 계정은 학생으로 가입할 수 없다(신청 줄도 만들지 않는다)
+        if (DeptMembership.StudentLike(UserRole.CodeForKind(roleKind)) && await DeptMembership.IsAdminAccountAsync(ctx, user.Id, ct))
+            return (JoinError.AdminNotStudent, null);
 
         var a = new SignupApplication
         {
             TenantId = target.TenantId, UserId = user.Id, UserName = userName, FullName = user.DisplayName,
             RoleKind = roleKind, InsertDT = time.GetUtcNow().UtcDateTime,
         };
+        // 생일(선택): 맞는 월 · 일일 때만 남긴다(2월 29일 허용). 승인 때 명부 후보 순서에만 쓴다
+        if (bMonth is >= 1 and <= 12 && bDay >= 1 && bDay <= DateTime.DaysInMonth(2024, bMonth)) (a.BMonth, a.BDay) = (bMonth, bDay);
+        // 승인 없이 바로 소속(2026-11-20): 신청 줄은 "승인됨"으로 남기고, 명부 줄을 만들어 잇는다(역할 = 고른 종류의 기본 역할 코드)
+        var now = time.GetUtcNow().UtcDateTime;
+        (a.Status, a.DecidedDT, a.DecidedBy) = (SignupStatus.Approved, now, "auto");
         ctx.SignupApplications.Add(a);
         await ctx.SaveChangesAsync(ct);
+        await using (var sys = systemDb.Create(userName))
+        {
+            var account = await sys.Users.SingleAsync(u => u.Id == user.Id, ct);
+            await DeptMembership.PlaceAsync(sys, account, target.TenantId, UserRole.CodeForKind(roleKind), now, ct, actor: userName);
+            if (a.BMonth > 0 && await sys.People.SingleOrDefaultAsync(p => p.TenantId == target.TenantId && p.UserId == user.Id, ct) is { BirthMonth: null } person)
+            {
+                (person.BirthMonth, person.BirthDay) = ((byte)a.BMonth, (byte)a.BDay);
+                await sys.SaveChangesAsync(ct);
+            }
+        }
         return (JoinError.None, a.Id);
     }
 
@@ -107,6 +129,7 @@ public sealed class JoinService(IAppDb db, RequestScope scope, TimeProvider time
         JoinError.AlreadyMember => "이미 이 부서에 신청했거나 들어가 있어요.",
         JoinError.NoRole => "하나는 골라 주세요.",
         JoinError.BadRole => "역할을 다시 골라 주세요.",
+        JoinError.AdminNotStudent => DeptMembership.AdminNotStudentMessage,
         _ => "",
     };
 }

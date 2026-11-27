@@ -1,4 +1,4 @@
-using ChallengeBible.Web.Pages.Mission;
+﻿using ChallengeBible.Web.Pages.Mission;
 using ChallengeBible.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,9 +26,18 @@ public class GiftLinkModel(BirthdayGiftService gifts) : PageModel, ITitled
     {
         var g = await gifts.ByTokenAsync(Token, ct);
         if (g is null) return Page();   // 없는 링크 · 새 링크로 막힌 링크: "열 수 없는 링크예요"
+        await gifts.MarkViewedAsync(Token, ct);   // 생일 카드 "부모님이 열어 봄"(ADR 0122)
         var items = g.State == "Open" || (Change && g.State == "Picked") ? await gifts.ItemsByTokenAsync(g, ct) : [];
-        View = new BirthdayPickView(g, items, Change, $"/gift/{Token}", BirthdayGiftModel.MsgText(Msg), Link: true);
+        View = new BirthdayPickView(g, items, Change, $"/gift/{Token}", BirthdayGiftModel.MsgText(Msg), Link: true, Late: g.State == "Picked" && await gifts.LateAsync(g, ct));
         return Page();
+    }
+
+    /// <summary>[선물 취소](R-347).</summary>
+    public async Task<IActionResult> OnPostCancelAsync(CancellationToken ct)
+    {
+        var e = await gifts.CancelByTokenAsync(Token, ct);
+        if (e != TeamPickError.NotFound) Msg = e == TeamPickError.None ? "cancelled" : "closed";
+        return Redirect($"/gift/{Token}");
     }
 
     public async Task<IActionResult> OnPostAsync(int item, CancellationToken ct)

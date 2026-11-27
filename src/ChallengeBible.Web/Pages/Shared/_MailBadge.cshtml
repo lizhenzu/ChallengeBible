@@ -1,0 +1,7 @@
+@inject ChallengeBible.Web.Services.MessageService Msg
+@* 머리말 ✉ 안 읽은 쪽지 수(확정 시안 쪽지 ①, ADR 0112) *@
+@if (User.UserName() is { } me)
+{
+    var n = await Msg.UnreadAsync(me);
+    <a class="mailb" href="/messages" aria-label="쪽지@(n > 0 ? $" · 안 읽은 쪽지 {n}개" : "")"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>@if (n > 0) { <i class="num">@(n > 99 ? "99+" : n)</i> }</a>
+}

@@ -1,0 +1,69 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#E9ECF1;font-family:"Noto Sans KR",sans-serif;color:#111827}
+.row{display:flex;gap:24px;justify-content:center;padding:16px;flex-wrap:wrap}
+.col{width:390px}.h{font:900 17px "Noto Sans KR";margin:6px 0 4px}.d{font-size:12.5px;color:#4B5563;margin:0 0 10px;line-height:1.5}
+.cap{font-size:12px;font-weight:800;color:#6B7280;margin:12px 0 4px}
+.ph{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.1)}
+.pg{padding:14px 16px;font-size:13px;color:#9CA3AF;border-bottom:1px solid #E5E7EB;height:46px}
+nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:10px 8px 12px}
+nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;color:inherit}
+.L{font-size:14.5px;font-weight:900}.S{font-size:11.5px;font-weight:700;margin-top:2px}
+/* 1 알약 */
+.o1 a{border-radius:14px;border:1.5px solid #E5E7EB;padding:9px 0 8px;background:#fff}
+.o1 a .S{color:#9CA3AF}
+.o1 a.ok{background:#EAF7EF;border-color:#BFE6CC}.o1 a.ok .L{color:#15803D}.o1 a.ok .S{color:#16A34A}
+.o1 a.here{border:2px solid #2F80ED;background:#EFF6FF}.o1 a.here .L{color:#1D4ED8}.o1 a.here .S{color:#2F80ED}
+.o1 a.here.ok{border-color:#16A34A;background:#DCF5E5}.o1 a.here.ok .L{color:#15803D}
+.o1 a.hm{border:0;background:#2F80ED;color:#fff}.o1 a.hm .S{color:#DBEAFE}
+/* 2 동그라미 */
+.o2 nav{gap:0}
+.o2 i{width:34px;height:34px;border-radius:50%;border:2.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;font-size:15px;color:#9CA3AF;margin-bottom:4px;background:#fff}
+.o2 a .S{color:#9CA3AF}
+.o2 a.ok i{background:#16A34A;border-color:#16A34A;color:#fff}.o2 a.ok .S{color:#16A34A}
+.o2 a.here i{border-color:#2F80ED;color:#2F80ED;box-shadow:0 0 0 4px #DBEAFE}.o2 a.here .L{color:#1D4ED8}.o2 a.here .S{color:#2F80ED}
+.o2 a.here.ok i{background:#16A34A;border-color:#16A34A;color:#fff;box-shadow:0 0 0 4px #CDEFD9}.o2 a.here.ok .L{color:#15803D}
+.o2 a.hm i{border-color:#2F80ED;background:#2F80ED;color:#fff}.o2 a.hm .L{color:#2F80ED}
+.o2 .line{position:relative}
+/* 3 진행 막대 + 타일 */
+.o3 .bar{display:grid;grid-template-columns:repeat(4,1fr) 1fr;gap:6px;padding:10px 8px 0}
+.o3 .bar b{height:6px;border-radius:99px;background:#E5E7EB}.o3 .bar b.ok{background:#22C55E}.o3 .bar span{font-size:11px;font-weight:800;color:#16A34A;text-align:center;line-height:6px}
+.o3 a{position:relative;border-radius:12px;padding:9px 0 8px}
+.o3 a .S{color:#6B7280}
+.o3 a.ok .L{color:#9CA3AF}.o3 a.ok .S{color:#16A34A}
+.o3 a.ok::after{content:"✓";position:absolute;top:2px;right:8px;width:16px;height:16px;border-radius:50%;background:#22C55E;color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.o3 a.here{background:#111827;color:#fff}.o3 a.here .S{color:#93C5FD}
+.o3 a.here.ok{background:#15803D}.o3 a.here.ok .L{color:#fff}.o3 a.here.ok .S{color:#DCFCE7}
+.o3 a.hm .L{color:#2F80ED}
+.now{font-size:12px;color:#6B7280;padding:0 16px 10px}
+</style></head><body>
+<div class="row">
+
+<div class="col o1"><div class="h">① 알약 칩</div><p class="d">미션마다 둥근 칩. 안 한 것 = 흰 칩 · 한 것 = 초록 칩 · 지금 화면 = 파란 테두리. 미션 홈은 파란 버튼.</p>
+<p class="cap">기도 하기 전 (말씀 완료)</p>
+<div class="ph"><div class="pg">… 기도 화면 …</div><nav>
+<a class="ok"><span class="L">말씀</span><span class="S">✓ 완료</span></a><a><span class="L">퀴즈</span><span class="S">아직</span></a><a class="here"><span class="L">기도</span><span class="S">진행중</span></a><a><span class="L">암송</span><span class="S">아직</span></a><a class="hm"><span class="L">미션 홈</span><span class="S">돌아가기</span></a></nav></div>
+<p class="cap">기도 한 뒤</p>
+<div class="ph"><div class="pg">… 기도 화면 …</div><nav>
+<a class="ok"><span class="L">말씀</span><span class="S">✓ 완료</span></a><a><span class="L">퀴즈</span><span class="S">아직</span></a><a class="here ok"><span class="L">기도</span><span class="S">✓ 완료</span></a><a><span class="L">암송</span><span class="S">아직</span></a><a class="hm"><span class="L">미션 홈</span><span class="S">돌아가기</span></a></nav></div>
+</div>
+
+<div class="col o2"><div class="h">② 동그라미 도장</div><p class="d">이름 위에 동그라미. 안 한 것 = 빈 동그라미(번호) · 한 것 = 초록 ✓ 도장 · 지금 화면 = 파란 동그라미에 빛. 도장 모으는 느낌.</p>
+<p class="cap">기도 하기 전 (말씀 완료)</p>
+<div class="ph"><div class="pg">… 기도 화면 …</div><nav>
+<a class="ok"><i>✓</i><span class="L">말씀</span><span class="S">완료</span></a><a><i>2</i><span class="L">퀴즈</span><span class="S">아직</span></a><a class="here"><i>3</i><span class="L">기도</span><span class="S">진행중</span></a><a><i>4</i><span class="L">암송</span><span class="S">아직</span></a><a class="hm"><i>⌂</i><span class="L">미션 홈</span><span class="S">돌아가기</span></a></nav></div>
+<p class="cap">기도 한 뒤</p>
+<div class="ph"><div class="pg">… 기도 화면 …</div><nav>
+<a class="ok"><i>✓</i><span class="L">말씀</span><span class="S">완료</span></a><a><i>2</i><span class="L">퀴즈</span><span class="S">아직</span></a><a class="here ok"><i>✓</i><span class="L">기도</span><span class="S">완료</span></a><a><i>4</i><span class="L">암송</span><span class="S">아직</span></a><a class="hm"><i>⌂</i><span class="L">미션 홈</span><span class="S">돌아가기</span></a></nav></div>
+</div>
+
+<div class="col o3"><div class="h">③ 진행 막대 + 타일</div><p class="d">위에 오늘 진행 막대(4칸 중 한 만큼 초록). 지금 화면 = 진한 타일(다 하면 초록 타일) · 한 것 = 흐린 이름 + 초록 ✓ 배지.</p>
+<p class="cap">기도 하기 전 (말씀 완료)</p>
+<div class="ph"><div class="pg">… 기도 화면 …</div><div class="bar"><b class="ok"></b><b></b><b></b><b></b><span>1/4</span></div><nav>
+<a class="ok"><span class="L">말씀</span><span class="S">완료</span></a><a><span class="L">퀴즈</span><span class="S">아직</span></a><a class="here"><span class="L">기도</span><span class="S">진행중</span></a><a><span class="L">암송</span><span class="S">아직</span></a><a class="hm"><span class="L">미션 홈</span><span class="S">돌아가기</span></a></nav></div>
+<p class="cap">기도 한 뒤</p>
+<div class="ph"><div class="pg">… 기도 화면 …</div><div class="bar"><b class="ok"></b><b></b><b class="ok"></b><b></b><span>2/4</span></div><nav>
+<a class="ok"><span class="L">말씀</span><span class="S">완료</span></a><a><span class="L">퀴즈</span><span class="S">아직</span></a><a class="here ok"><span class="L">기도</span><span class="S">✓ 완료</span></a><a><span class="L">암송</span><span class="S">아직</span></a><a class="hm"><span class="L">미션 홈</span><span class="S">돌아가기</span></a></nav></div>
+</div>
+</div></body></html>

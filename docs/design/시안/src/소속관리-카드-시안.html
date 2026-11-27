@@ -1,0 +1,53 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="file:///home/user/ChallengeBible/src/ChallengeBible.Web/wwwroot/css/site.css">
+<style>
+body{background:var(--bg);margin:0}
+.hd{display:flex;align-items:center;gap:12px;padding:0 16px;min-height:62px;border-bottom:1px solid var(--rule)}
+.hd .ttl{flex:1;display:flex;gap:6px;align-items:baseline;white-space:nowrap}
+.hd .ttl span{font-size:13px;font-weight:700;color:var(--dim)} .hd .ttl em{font-style:normal;font-weight:900;color:var(--accent)} .hd .ttl b{font-size:16px}
+.hd .home{font-weight:800;color:var(--accent);font-size:15px}
+.wrapx{max-width:760px;margin:0 auto;padding:18px 16px 40px;display:flex;flex-direction:column;gap:14px}
+h1{margin:0;font-size:22px} h1 small{font-size:14px;color:var(--dim);font-weight:700;margin-left:6px}
+.mksr{display:flex;gap:8px} .mksr .mkbx{flex:1;position:relative;min-width:0}
+.mksr input{width:100%;box-sizing:border-box;min-height:48px;border:1px solid var(--line);border-radius:14px;padding:0 14px 0 40px;font-size:16px}
+.mksr .mkbx i{position:absolute;left:14px;top:13px;font-style:normal;opacity:.6}
+.mksr select{flex:none;height:48px;min-height:48px;border:1px solid var(--line);border-radius:14px;padding:0 10px;font-size:15px;background:var(--bg)}
+.hint{margin:-6px 0 0;font-size:12.5px;color:var(--dim)}
+.acts{display:flex;gap:8px;align-items:stretch}
+.acts a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:12px;font-weight:800;font-size:15px;text-decoration:none}
+.acts .p{background:var(--accent);color:var(--on-accent)} .acts .s{border:1px solid var(--line);color:var(--fg);background:var(--bg)}
+.n{font-size:13px;color:var(--dim)}
+.cards{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+@media(min-width:640px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pc{border:1.5px solid var(--rule);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
+.pc .top{display:flex;gap:12px;align-items:center}
+.pc .av{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--accent-bg);color:var(--accent);font-weight:900}
+.pc .nm{flex:1;min-width:0} .pc .nm b{display:inline;font-size:18px;font-weight:900} .pc .nm .mkcl{margin-left:6px;font-size:13px;font-weight:800;color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px} .chips span{font-size:12px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--dim)}
+.chips .st{background:#E7F6EE;color:#1F7A4D} .chips .ok{background:#E8F0FE;color:#2A5BD7} .chips .adm{background:#FEF3C7;color:#92400E} .chips .no{background:#F3F4F6;color:#6B7280}
+.pc dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;font-size:14.5px;padding:10px 12px;border-radius:12px;background:var(--soft)}
+.pc dt{color:var(--dim);font-weight:700} .pc dd{margin:0;overflow-wrap:anywhere} .pc dd a{color:var(--accent);font-weight:700;text-decoration:none}
+.pc .ft{display:flex;gap:8px} .pc .ft a{flex:1;text-align:center;min-height:40px;line-height:40px;border-radius:10px;border:1px solid var(--line);font-weight:800;font-size:14px;color:var(--fg);text-decoration:none}
+.pc .ft a.go{color:var(--accent)}
+.note{font-size:12.5px;color:#92400E;background:#FFF7E6;border-radius:12px;padding:10px 12px;line-height:1.6}
+</style></head><body>
+<div class="hd"><span style="font-size:22px">☰</span><div class="ttl"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>소속 관리</b></div><span class="home">부서 홈으로</span></div>
+<div class="wrapx">
+ <h1>소속 관리 <small>명부 213명</small></h1>
+ <div class="mksr"><div class="mkbx"><i>🔍</i><input value="김하" aria-label="찾기"></div><select><option>모든 역할</option></select></div>
+ <p class="hint">두 글자부터 입력을 멈추면 바로 찾아요 · 이름 · 연락처 · 계정 아이디</p>
+ <div class="acts"><a class="p">+ 명부에 올리기</a><a class="s">부서 옮기기</a></div>
+ <p class="n">찾은 사람 3명</p>
+ <div class="cards">
+  <article class="pc"><div class="top"><span class="av">하늘</span><div class="nm"><b>김하늘</b><span class="mkcl">2학년 3반</span><div class="chips"><span class="st">학생</span><span class="ok">가입</span></div></div></div>
+   <dl><dt>생일</dt><dd>12월 11일</dd><dt>연락처</dt><dd><a>010-1234-5678</a></dd><dt>연락처 2</dt><dd><a>010-8765-4321</a> <small>(보호자)</small></dd><dt>계정</dt><dd>haneul.kim</dd></dl>
+   <div class="ft"><a class="go">자세히 →</a><a>고치기</a></div></article>
+  <article class="pc"><div class="top"><span class="av">하람</span><div class="nm"><b>김하람</b><span class="mkcl">1학년 1반</span><div class="chips"><span class="st">학생</span><span class="no">가입 안 함</span></div></div></div>
+   <dl><dt>생일</dt><dd>3월 2일</dd><dt>연락처</dt><dd><a>010-2222-3333</a></dd><dt>계정</dt><dd>없음</dd></dl>
+   <div class="ft"><a>고치기</a><a>계정과 연결</a></div></article>
+  <article class="pc"><div class="top"><span class="av">하나</span><div class="nm"><b>김하나</b><span class="mkcl">1반 담임</span><div class="chips"><span>교사</span><span class="adm">관리자</span><span class="ok">가입</span></div></div></div>
+   <dl><dt>생일</dt><dd>없음</dd><dt>연락처</dt><dd><a>010-5555-6666</a></dd><dt>계정</dt><dd>hana.kim</dd></dl>
+   <div class="ft"><a class="go">자세히 →</a><a>고치기</a></div></article>
+ </div>
+ <p class="note">바뀌는 것 ① [진급 보내기] → [부서 옮기기] ② 두 버튼 같은 높이 · 한 줄 ③ 사람마다 카드(휴대폰 1칸 · 컴퓨터 2칸), 연락처는 누르면 전화 ④⑤ [찾기] 없이 두 글자부터 입력을 멈추면 자동으로 찾기 ⑥ "참여 신청 · 명부" 탭 없앰(남은 신청이 있을 때만 위에 알림)</p>
+</div></body></html>

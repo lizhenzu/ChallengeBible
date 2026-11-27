@@ -1,0 +1,43 @@
+@page "/test-tools/data"
+@model ChallengeBible.Web.Pages.TestTools.DataModel
+@using ChallengeBible.Web.Services
+@* 가짜 데이터 넣기(ADR 0095 · 0102, 확정 시안 가짜데이터넣기 2026-11-16): 플랫폼 관리자만. 지우기는 완전 초기화 *@
+<partial name="_PlatformTop" />
+<main class="admin gut tt w760"><div class="wrap">
+    <div>
+        <h1>가짜 데이터 넣기 <small class="tt-tag">임시</small></h1>
+        <p class="lead">부서마다 이미 있는 반에 가짜 아이 · 담임을 만들어 넣어요. 가짜 계정 비밀번호는 모두 @TestToolsService.Password 이에요.</p>
+    </div>
+    <section class="tt-box" aria-labelledby="ttData">
+        <h2 id="ttData">넣을 것 <small>지금 가짜 계정 @(Model.FakeAccounts.ToString("N0"))개</small></h2>
+        <ul class="tt-list">
+            <li><b>반 아이</b> 부서마다 40명(계정 · 명부 · 반 배정, 반마다 고루) · <b>담임</b> 반마다 1명(최대 10)</li>
+            <li><b>학부모</b> 부서마다 10명(가족팀 아이와 보호자 연결)</li>
+            <li><b>생일</b> 이번 달 · 다음 달 · 기간 경계 고루 · <b>출석</b> 올해 주일 · <b>미션 점수</b> · <b>통독</b> · <b>가족팀 · 친구팀</b></li>
+            <li>반이 없는 부서는 건너뛰어요. 부서 · 반 · 관리자는 바꾸지 않아요.</li>
+        </ul>
+        <form method="post" class="tt-run">
+            <b>가짜 데이터 넣기</b>
+            <label class="tt-confirm"><span>확인 글자</span><input class="in" name="confirm" autocomplete="off" placeholder="@TestToolsService.ConfirmWord" aria-label="실행 확인 글자 @TestToolsService.ConfirmWord" /></label>
+            <button class="btn p" type="submit">넣기</button>
+        </form>
+        <p class="tt-note">지울 때는 플랫폼 ☰ › 도구 › <a href="/platform/reset">완전 초기화</a> · 넣은 뒤 들어가 보기는 <a href="/test-tools/login">상황별 로그인</a></p>
+        @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
+        @if (Model.Result is { } r)
+        {
+            <div class="tt-result" role="status">
+                <h3>가짜 데이터 넣기 <small>@(r.Ms / 1000.0)초</small></h3>
+                @if (!r.Ok) { <p class="err">실패 — 아무것도 바뀌지 않았어요. @r.Error</p> }
+                else { <p class="ok">저장했어요.</p> }
+                @foreach (var t in r.Tables)
+                {
+                    <div class="ops-tbl"><table>
+                        <thead><tr>@foreach (var c in t.Columns) { <th scope="col">@c</th> }</tr></thead>
+                        <tbody>@foreach (var row in t.Rows) { <tr>@foreach (var v in row) { <td>@v</td> }</tr> }</tbody>
+                    </table></div>
+                }
+            </div>
+        }
+    </section>
+    <p class="tt-warn" role="note">시험이 끝나면 이 화면은 숨겨요(설정 <code>TestTools:Enabled</code>). 실제 사용자가 생기기 전까지만 써 주세요.</p>
+</div></main>

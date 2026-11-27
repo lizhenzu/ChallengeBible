@@ -1,4 +1,4 @@
-using ChallengeBible.Domain.Rules;
+﻿using ChallengeBible.Domain.Rules;
 using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -15,18 +15,22 @@ public sealed record PickedGift(long Id, string State, int? ItemId, string Name,
     DateTime PickedUtc, DateTime? PurchasedUtc, DateTime? DeliveredUtc);
 
 /// <summary>
-/// 개인 선물 지갑(R-280 ~ R-285). 학생만 고른다. YearPoints = 그해 1월 1일부터 모은 점수, Available = 아직 안 쓴 점수,
-/// Usable = 상한에서 자른 점수(아이에게 보이는 "쓸 수 있는 점수"). Active = 받기 전인 선물(있으면 다음 선물을 못 고름, 정한 것 8).
+/// 개인 선물 지갑(R-280 ~ R-285, ADR 0104). 학생만 고른다. YearPoints = 그해 1월 1일부터 모은 점수(누적), Spent = 선물에 쓴 점수,
+/// Usable = 쓸 수 있는 점수 = min(누적, 한 해 상한 점수) − 쓴 점수. Active = 받기 전인 선물(있으면 다음 선물을 못 고름, 정한 것 8).
+/// Cheapest = 이 부서에서 가장 싼 선물의 필요한 점수, CanCount = 지금 고를 수 있는 선물 수(받기 전 선물이 없을 때만 셈).
 /// </summary>
-public sealed record GiftWallet(bool Student, int Year, DateOnly Today, int YearPoints, int Available, int Usable, int CapPoints,
-    bool FirstBonus, PickedGift? Active, GiftRules Rules)
+public sealed record GiftWallet(bool Student, int Year, DateOnly Today, int YearPoints, int Spent, int Usable, int CapPoints,
+    PickedGift? Active, GiftRules Rules, int? Cheapest = null, int CanCount = 0)
 {
     public int Step => Rules.StepPoints;
-    public bool CanPick => Student && Active is null && Usable >= Step;
-    public bool AtCap => Student && Available >= CapPoints && CapPoints > 0;
+    /// <summary>아직 안 쓴 점수(상한과 상관없이 누적 − 쓴 점수).</summary>
+    public int Available => Math.Max(0, YearPoints - Spent);
+    public bool CanPick => Student && Active is null && CanCount > 0;
+    /// <summary>그해 상한 점수를 넘게 모았다("올해는 2,000점까지 선물에 써요").</summary>
+    public bool AtCap => Student && CapPoints > 0 && YearPoints > CapPoints;
     public bool December => Today.Month == 12;
-    /// <summary>처음 단계까지 남은 점수(가. 100점이 안 됐을 때).</summary>
-    public int ToFirst => Math.Max(0, Step - Available);
+    /// <summary>가장 싼 선물까지 더 모아야 할 점수(고를 수 있으면 0, 선물이 없으면 0).</summary>
+    public int ToNext => Cheapest is int c ? Math.Max(0, c - Usable) : 0;
 }
 
 public enum PickResult { Ok, NotStudent, NotFound, NotEnough, AlreadyPicked, Busy }
@@ -62,10 +66,9 @@ public sealed class PersonalGiftService(IAppDb db, RequestScope scope, TenantCon
         var points = await acts.SumAsync(a => (int?)a.Points, ct) ?? 0;
         var uses = await ctx.GiftPointUses.AsNoTracking().Where(u => u.UserName == user && u.Year == year && (reset == null || u.CreatedUtc > reset)).ToListAsync(ct);
         var spent = uses.Sum(u => u.PointsUsed + u.PointsBurned);
-        var bonus = !uses.Any(u => u.FirstBonus);
-        var cap = await ctx.GiftSettings.Select(s => s.PersonalCap).SingleOrDefaultAsync(ct) ?? r.PersonalCap;
-        var capPoints = GiftMath.CapPoints(cap, r, bonus);
-        var available = Math.Max(0, points - spent);
+        var cap = Math.Min(await ctx.GiftSettings.Select(s => s.PersonalCap).SingleOrDefaultAsync(ct) ?? r.PersonalCap, r.PersonalCap);   // 부서는 규칙보다 낮게만(ADR 0104)
+        var capPoints = GiftMath.CapPoints(cap, r);
+        var usable = Math.Max(0, Math.Min(points, capPoints) - spent);
         var active = await ctx.Gifts.AsNoTracking()
             .Where(g => g.Kind == GiftKinds.Personal && g.UserName == user && g.Year == year && (g.State == GiftStates.Picked || g.State == GiftStates.Purchased))
             .OrderByDescending(g => g.Id).FirstOrDefaultAsync(ct);
@@ -76,7 +79,10 @@ public sealed class PersonalGiftService(IAppDb db, RequestScope scope, TenantCon
             picked = new PickedGift(active.Id, active.State, active.GiftItemId, active.ItemName ?? "", active.ItemHasImage == true,
                 use?.PointsUsed ?? active.PointsUsed ?? 0, use?.PointsBurned ?? active.PointsBurned ?? 0, active.PickedUtc ?? active.CreatedUtc, active.PurchasedUtc, active.DeliveredUtc);
         }
-        return new GiftWallet(IsStudent, today.Year, today, points, available, Math.Min(available, capPoints), capPoints, bonus, picked, r);
+        var w = new GiftWallet(IsStudent, today.Year, today, points, spent, usable, capPoints, picked, r);
+        if (!IsStudent) return w;
+        var items = await ItemsAsync(ctx, w, ct);
+        return w with { Cheapest = items.Count == 0 ? null : items.Min(i => i.Need), CanCount = picked is null ? items.Count(i => i.Need <= usable) : 0 };
     }
 
     /// <summary>이 부서 아이에게 보이는 선물(R-276): 공통 − 숨김 + 부서 상품, 판매 중만. 필요한 점수 낮은 순. 상한보다 비싼 것은 뺀다.</summary>
@@ -96,7 +102,7 @@ public sealed class PersonalGiftService(IAppDb db, RequestScope scope, TenantCon
         return items.Select(i =>
             {
                 var credits = GiftMath.CreditsForPrice(i.Price, rates);
-                return new PickItem(i.Id, i.Name, i.Description, i.HasImage, i.UpdatedUtc, GiftMath.NeedPoints(credits, w.Rules, w.FirstBonus), credits, i.Price);
+                return new PickItem(i.Id, i.Name, i.Description, i.HasImage, i.UpdatedUtc, GiftMath.PointsFor(credits, w.Rules), credits, i.Price);
             })
             .Where(i => i.Need > 0 && i.Need <= w.CapPoints)
             .OrderBy(i => i.Need).ThenBy(i => i.Name).ToList();
@@ -128,7 +134,7 @@ public sealed class PersonalGiftService(IAppDb db, RequestScope scope, TenantCon
         try
         {
             await ctx.SaveChangesAsync(ct);
-            ctx.GiftPointUses.Add(new GiftPointUse { TenantId = T, UserName = user, Year = year, GiftId = gift.Id, PointsUsed = item.Need, PointsBurned = burned, FirstBonus = w.FirstBonus, CreatedUtc = now });
+            ctx.GiftPointUses.Add(new GiftPointUse { TenantId = T, UserName = user, Year = year, GiftId = gift.Id, PointsUsed = item.Need, PointsBurned = burned, FirstBonus = false, CreatedUtc = now });   // 처음 보너스는 없앴다(ADR 0104)
             ctx.GiftLogs.Add(new GiftLog { TenantId = T, GiftId = gift.Id, Action = GiftActions.Pick, ActorUserName = user, AtUtc = now, ItemName = item.Name, ItemPrice = item.Price,
                 Detail = $"points {item.Need}, credits {item.Credits}" });
             await ctx.SaveChangesAsync(ct);

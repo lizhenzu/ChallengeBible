@@ -1,0 +1,39 @@
+﻿@page "/messages/{id:long}"
+@model ChallengeBible.Web.Pages.Messages.ReadModel
+@using ChallengeBible.Web.Services
+@{
+    var r = Model.Row;
+    var tz = TimeZoneInfo.FindSystemTimeZoneById("Asia/Seoul");
+    var at = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(r.SentUtc, DateTimeKind.Utc), tz);
+    var av = r.System ? "알림" : r.Anonymous ? "익명" : r.Who == MessageService.PlatformName || (Model.Mine && r.Broadcast) ? "관리" : r.Who.Length > 1 ? r.Who[1..Math.Min(3, r.Who.Length)] : r.Who;
+}
+@if (Model.HasDept) { <partial name="_GenTop" model="(Model.Tenant, Model.Title)" /> } else { <partial name="_Top" /> }   @* 2026-11-21 사용자: ☰ 메뉴 머리말(R-360) *@
+<link rel="stylesheet" href="~/css/messages.css" asp-append-version="true" />
+<main class="gut msg"><div class="wrap">
+    <a class="ms-back" href="/messages@(Model.Mine ? "?box=sent" : "")">← @(Model.Mine ? "보낸 쪽지" : "받은 쪽지")</a>
+    <article class="ms-view">
+        <div class="hd"><span class="av @(r.System || r.Anonymous || av == "관리" ? "sys" : null)">@av</span>
+            <b>@(Model.Mine ? (r.Broadcast ? $"받는 사람: {r.Target}" : $"받는 사람: {r.Who}") : r.Who)@if (r.Broadcast) { <span class="bc">단체</span> }</b>
+            <small>@(r.Broadcast && !Model.Mine ? $"{r.Target}에 보냄" : r.Where ?? (r.Anonymous ? "" : "")) @(r.Feedback ? (r.Anonymous ? "· 개선 · 익명" : "· 개선") : "") · @at.ToString("M월 d일 HH:mm")</small></div>
+        <div class="body">@r.Body</div>
+        @if (Model.Mine && !r.Broadcast) { <p class="ms-st">@(r.Read ? "상대가 읽었어요." : "아직 읽지 않았어요.")</p> }
+        @if (r.Anonymous && !Model.Mine) { <p class="ms-st">익명 쪽지라 답장할 수 없어요.</p> }
+        @if (r.Broadcast && Model.Mine && r.Canceled) { <p class="ms-gone">보내기를 취소했어요 · 모든 사람의 쪽지함에서 사라졌어요</p> }
+        @* 버튼은 오른쪽 정렬(2026-11-21 사용자, 확정 시안 쪽지읽기-취소): [지우기]는 "나만 삭제", 단체쪽지를 보낸 사람은 [보내기 취소]를 더한다 *@
+        <div class="ms-acts">
+            @if (!Model.Mine && r.ReplyTo is not null) { <a class="btn p" href="/messages/write?reply=@r.Id">답장</a> }
+            @if (Model.Mine && r.Broadcast && !r.Canceled) { <a class="btn x" href="/messages/@r.Id?ask=cancel">보내기 취소</a> }
+            <form method="post" action="/messages?handler=Delete" asp-antiforgery="true"><input type="hidden" name="id" value="@r.Id" /><input type="hidden" name="box" value="@(Model.Mine ? "sent" : "in")" /><button type="submit" class="btn s">나만 삭제</button></form>
+        </div>
+        @if (Model.AskCancel)
+        {
+            <div class="ms-cf" role="alertdialog" aria-label="보내기 취소 확인">
+                <p>이 단체쪽지를 취소할까요?<br /><b>모든 사람의 쪽지함에서 사라져요.</b> 이미 온 답장은 남아요.</p>
+                <div class="r">
+                    <a class="btn s" href="/messages/@r.Id">아니요</a>
+                    <form method="post" action="/messages?handler=Cancel" asp-antiforgery="true"><input type="hidden" name="id" value="@r.Id" /><button type="submit" class="btn dd">취소하기</button></form>
+                </div>
+            </div>
+        }
+    </article>
+</div></main>

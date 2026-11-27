@@ -1,4 +1,4 @@
-@page "/{slug}/points"
+﻿@page "/{slug}/points"
 @model PointsModel
 @{
     var ko = MissionPageBase.Ko;
@@ -6,12 +6,11 @@
     var monthTotal = Model.Days.Sum(d => d.Total);
     var doneDays = Model.Days.Count(d => d.Total > 0);
 }
-<header class="mtop gut"><div class="wrap">
-    <nav class="crumb"><a href="/@slug">홈으로</a> · <a href="/@slug/word-mission">미션홈</a></nav>
-    <span class="date">@Model.Today.ToString("M월 d일 dddd", ko)</span>
-</div></header>
+@{ ViewData["PbTitle"] = "내 점수"; ViewData["PbParent"] = new[] { "성경미션", $"/{slug}/word-mission" }; ViewData["PbButton"] = new[] { "미션홈", $"/{slug}/word-mission" }; }
+<partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <main class="mbody gut"><div class="wrap">
     <div class="pthead">
+        <p class="mdate">@Model.Today.ToString("M월 d일 dddd", ko)</p>
         <h1>내 점수</h1>
         <div class="score"><div><small>올해 점수</small><b class="num">@Model.SeasonPoints.ToString("N0")<u>점</u></b></div>
             <div><small>@(Model.First.Month)월 · @(doneDays)일 했어요</small><b class="num">@monthTotal<u>점</u></b></div></div>

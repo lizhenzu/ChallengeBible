@@ -75,9 +75,12 @@ public partial class MemberDetailTests : IClassFixture<WebApplicationFactory<Pro
     {
         var (admin, kid, _) = await Setup();
         var list = await admin.GetStringAsync("/jamsil-kids/admin/members?Tab=Approved");
-        Assert.Contains($"href=\"/jamsil-kids/admin/members/{kid.Id}\"", list);
-        Assert.Contains("class=\"row-more\"", list);                                       // 펼치지 않아도 보이는 "자세히 →"
-        Assert.Contains("href=\"/jamsil-kids/admin\">관리</a>", await admin.GetStringAsync("/jamsil-kids"));   // 부서 홈 → 관리 홈
+        // 2026-11-21 사람 관리 쪼개기: 목록 줄 → 사람 상세(/p/번호) → [계정 자세히 →]
+        var details = new List<string>();
+        foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(list, "href=\"(/jamsil-kids/admin/members/p/\\d+)\""))
+            details.Add(await admin.GetStringAsync(m.Groups[1].Value));
+        Assert.Contains(details, d => d.Contains($"href=\"/jamsil-kids/admin/members/{kid.Id}\""));
+        Assert.Contains("class=\"tdr2-r\" href=\"/jamsil-kids/admin\"", await admin.GetStringAsync("/jamsil-kids"));   // 부서 홈 → 관리 홈
         var html = await admin.GetStringAsync($"/jamsil-kids/admin/members/{kid.Id}");
         Assert.Contains("<h1>김철수</h1>", html);
         Assert.Contains("cheolsu@example.com", html);

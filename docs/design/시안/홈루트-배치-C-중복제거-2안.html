@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>C안 수정 — 오늘의 도전 ↔ 성경미션 중복 제거</title>
+<style>
+  :root{--ink:#1d1d1f;--ink-2:#56565c;--ink-3:#8e8e94;--line:#e7e7ea;--paper:#fff;--soft:#f4f4f5;
+    --p1:#1f9d55;--s1:#e8f6ee;--p2:#2f6fe4;--s2:#eaf1fd;--p3:#ea6a1c;--s3:#fdf0e6;--p4:#dc3f8a;--s4:#fcebf3;
+    --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:#e9ebef;color:var(--ink);word-break:keep-all;letter-spacing:-.01em}
+  a{color:inherit;text-decoration:none}.num{font-variant-numeric:tabular-nums}
+  .mockbar{position:fixed;left:0;top:0;right:0;z-index:90;height:36px;background:#161c2b;color:#fff;font-size:12.5px;display:flex;align-items:center}
+  .mockbar .in{width:100%;max-width:1420px;margin:0 auto;padding:0 20px;display:flex;justify-content:space-between;gap:10px}
+  .mockbar b{font-weight:800}.mockbar span{opacity:.7}
+  .stageWrap{display:flex;gap:30px;align-items:flex-start;padding:60px 20px 50px;flex-wrap:wrap;justify-content:center}
+  .col{width:396px;max-width:100%;background:#fff;border-radius:8px;padding:18px 18px 24px;box-shadow:0 30px 70px -50px rgba(0,0,0,.55)}
+  .cap{margin:0 0 12px;font-size:13.5px;font-weight:900;line-height:1.45}
+  .cap b{color:#17663a}
+  .cap small{display:block;margin-top:5px;font-size:11.5px;font-weight:600;line-height:1.65;color:#5b6470}
+  .card{border:1px solid var(--line);border-radius:20px;padding:18px 16px}
+  .card + .card{margin-top:14px}
+  .hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .hd h3{font-size:13px;font-weight:800;color:var(--ink-3)}
+  .more{font-size:12px;font-weight:700;color:var(--ink-3)}
+  .chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:12px}
+  .chip{display:grid;justify-items:center;gap:3px;padding:11px 2px;border-radius:12px;text-align:center}
+  .chip b{font-size:11.5px;font-weight:800}.chip span{font-size:9.5px;font-weight:700}
+  .chip.ok{background:var(--p1)}.chip.ok b{color:#fff}.chip.ok span{color:rgba(255,255,255,.78)}
+  .chip.wait{background:var(--s1)}.chip.wait b{color:#5f8a71}.chip.wait span{color:#7ba48c}
+  .chip.none{box-shadow:inset 0 0 0 1px var(--line)}.chip.none b{color:#b9b9bf}.chip.none span{color:#c8c8cd}
+  .chipsum{margin-top:9px;font-size:12px;color:var(--ink-3)}.chipsum b{color:var(--ink-2);font-weight:800}
+  .bigbtn{display:grid;place-items:center;margin-top:12px;min-height:44px;border-radius:12px;background:var(--p1);color:#fff;font-size:12.5px;font-weight:900}
+  .tiles{display:grid;gap:8px;margin-top:12px}
+  .tile{display:grid;grid-template-columns:22px minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center;gap:3px 9px;padding:12px 12px 11px;border-radius:13px}
+  .tile .dot{grid-row:1 / span 2;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:900;color:#fff}
+  .tile .nm{font-size:12.5px;font-weight:800}
+  .tile .pc{font-size:12px;font-weight:900;color:var(--ink)}
+  .tile .pc small{margin-left:1px;font-size:9.5px;font-weight:700;color:var(--ink-3)}
+  .tile .pc.none{font-size:10.5px;font-weight:700;color:var(--ink-3)}
+  .tile .bar{grid-column:2 / -1;height:4px;border-radius:99px;background:#fff;overflow:hidden}
+  .tile .bar i{display:block;height:100%;border-radius:99px}
+  .t-r{background:var(--s2)}.t-r .dot{background:var(--p2)}.t-r .bar i{background:var(--p2)}
+  .t-c{background:var(--s3)}.t-c .dot{background:var(--p3)}.t-c .bar i{background:var(--p3)}
+  .t-p{background:var(--s4)}.t-p .dot{background:var(--p4)}.t-p .bar i{background:var(--p4)}
+  .rec{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;margin-top:14px;padding:13px 14px;border:1px solid var(--line);border-radius:15px}
+  .rec .l1{display:flex;align-items:baseline;gap:5px}
+  .rec .l1 em{font-style:normal;font-size:12px}
+  .rec .l1 b{font-size:20px;font-weight:900;letter-spacing:-.03em;color:#17663a}
+  .rec .l1 span{font-size:11px;font-weight:800;color:#3f7a58}
+  .rec .l2{margin-top:2px;font-size:10.5px;font-weight:700;color:var(--ink-3)}
+  .rec .ar{font-size:15px;font-weight:900;color:#c3c3c9}
+  .note{margin-top:12px;padding:10px 12px;border-radius:10px;background:#f7f8fa;font-size:10.5px;font-weight:600;line-height:1.6;color:#6b7280}
+  .note b{color:#374151}
+  .bad{color:#c0392b;font-weight:800}
+</style></head><body>
+<div class="mockbar"><div class="in"><b>홈 루트 · C안 수정 — 「오늘의 도전」 ↔ 「성경미션」 중복 제거</b><span>2026-11-23</span></div></div>
+<div class="stageWrap">
+  <div class="col" id="colC2">
+    <p class="cap">C-2안 · <b>성경미션 타일 삭제</b>
+      <small>「오늘의 도전」이 곧 성경미션 입구입니다(머리 「성경미션 ›」). 프로그램 타일은 통독 · 필사 · 기도365 <b>3개만</b> — 1/3 진행이 두 번 나오지 않습니다.</small>
+    </p>
+
+    <section class="card">
+      <div class="hd"><h3>오늘의 도전</h3><a class="more" href="#">성경미션 ›</a></div>
+      <div class="chips">
+        <div class="chip ok"><b>말씀</b><span>완료</span></div>
+        <div class="chip wait"><b>퀴즈</b><span>대기중</span></div>
+        <div class="chip wait"><b>기도</b><span>대기중</span></div>
+        <div class="chip none"><b>암송</b><span>—</span></div>
+      </div>
+      <p class="chipsum">오늘 미션 <b class="num">1/3</b> · 이번 주 <b class="num">5회</b></p>
+      <a class="bigbtn" href="#">퀴즈 풀고 3점 받기</a>
+    </section>
+
+    <section class="card">
+      <div class="hd"><h3>다른 도전</h3><span class="more">3개</span></div>
+      <div class="tiles">
+        <a class="tile t-r" href="#"><span class="dot">02</span><span class="nm">성경통독</span><span class="pc num">34.7<small>%</small></span><span class="bar" aria-hidden="true"><i style="width:34.7%"></i></span></a>
+        <a class="tile t-c" href="#"><span class="dot">03</span><span class="nm">성경필사</span><span class="pc num">12.3<small>%</small></span><span class="bar" aria-hidden="true"><i style="width:12.3%"></i></span></a>
+        <a class="tile t-p" href="#"><span class="dot">04</span><span class="nm">기도365</span><span class="pc none">시작 전</span><span class="bar" aria-hidden="true"><i style="width:0%"></i></span></a>
+      </div>
+    </section>
+
+    <a class="rec" href="#">
+      <span>
+        <span class="l1"><em aria-hidden="true">🌿</em><b class="num">1,050</b><span>점 · 나무</span></span>
+        <span class="l2">통독 34.7% · 필사 12.3% · 선물 2명 준비 중</span>
+      </span>
+      <span class="ar" aria-hidden="true">›</span>
+    </a>
+    <p class="note">※ 미션을 끈 부서에서는 「오늘의 도전」 카드가 사라지고 타일이 <b>01 · 02 · 03</b>으로 다시 매겨집니다.</p>
+  </div>
+  <div class="col" id="colC3">
+    <p class="cap">C-3안 · <b>성경미션 타일 안으로 통합</b>
+      <small>「오늘의 도전」 카드를 없애고, 성경미션 타일을 펼친 모양(4칸 + 버튼). 카드가 2장 → 1장으로 줄어 스크롤이 가장 짧습니다.</small>
+    </p>
+
+    <section class="card">
+      <div class="hd"><h3>도전 프로그램</h3><span class="more">4개</span></div>
+      <div class="tiles">
+        <div class="tile t-m" style="display:block;background:var(--s1);padding:14px 13px 13px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <span style="display:flex;align-items:center;gap:8px"><span class="dot" style="position:static">01</span><span class="nm">성경미션</span></span>
+            <span class="pc num" style="color:#17663a">1/3</span>
+          </div>
+          <div class="chips" style="margin-top:10px">
+            <div class="chip ok"><b>말씀</b><span>완료</span></div>
+            <div class="chip wait" style="background:#fff"><b>퀴즈</b><span>대기중</span></div>
+            <div class="chip wait" style="background:#fff"><b>기도</b><span>대기중</span></div>
+            <div class="chip none" style="background:#fff"><b>암송</b><span>—</span></div>
+          </div>
+          <a class="bigbtn" href="#" style="min-height:40px;margin-top:10px">퀴즈 풀고 3점 받기</a>
+        </div>
+        <a class="tile t-r" href="#"><span class="dot">02</span><span class="nm">성경통독</span><span class="pc num">34.7<small>%</small></span><span class="bar" aria-hidden="true"><i style="width:34.7%"></i></span></a>
+        <a class="tile t-c" href="#"><span class="dot">03</span><span class="nm">성경필사</span><span class="pc num">12.3<small>%</small></span><span class="bar" aria-hidden="true"><i style="width:12.3%"></i></span></a>
+        <a class="tile t-p" href="#"><span class="dot">04</span><span class="nm">기도365</span><span class="pc none">시작 전</span><span class="bar" aria-hidden="true"><i style="width:0%"></i></span></a>
+      </div>
+    </section>
+
+    <a class="rec" href="#">
+      <span>
+        <span class="l1"><em aria-hidden="true">🌿</em><b class="num">1,050</b><span>점 · 나무</span></span>
+        <span class="l2">통독 34.7% · 필사 12.3% · 선물 2명 준비 중</span>
+      </span>
+      <span class="ar" aria-hidden="true">›</span>
+    </a>
+    <p class="note">미션 칸이 타일 안으로 들어가 <b>진행 숫자가 한 곳에만</b> 나옵니다.</p>
+  </div>
+</div>
+</body></html>

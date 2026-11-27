@@ -21,8 +21,9 @@ public sealed record FakeDept(int TenantId, string Name, string Slug, IReadOnlyL
 
 /// <summary>
 /// 임시 시험 도구(ADR 0095, 2026-11-14 사용자 요청 — 선물 시스템 시험용). 설정 `TestTools:Enabled` 가 true 일 때만 열린다(끄면 화면이 없는 것처럼 404).
-/// 가짜 데이터 넣기 · 지우기는 플랫폼 관리자만(시스템 연결, 시작마다 DB 로 다시 확인) — SQL 은 tools/sql/gen-fake-seed.py 가 만든 TestTools/*.sql.
-/// 상황별 로그인은 가짜 계정(이메일 @fake-seed.test)에만, 비밀번호 1234 로 일반 로그인과 같은 길(AccountService.LoginAsync)을 탄다.
+/// 가짜 데이터 넣기(/test-tools/data)는 플랫폼 관리자만(시스템 연결, 시작마다 DB 로 다시 확인) — SQL 은 tools/sql/gen-fake-seed.py 가 만든 TestTools/fake-create.sql.
+/// 지우기는 완전 초기화(ADR 0102)가 한다.
+/// 상황별 로그인(/test-tools/login)은 가짜 계정(이메일 @fake-seed.test)에만, 비밀번호 1234 로 일반 로그인과 같은 길(AccountService.LoginAsync)을 탄다.
 /// </summary>
 public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, TimeProvider time)
 {
@@ -30,7 +31,6 @@ public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, 
     public const string Password = "1234";
     public const string ConfirmWord = "FAKE";
     public const string CreateAction = "FakeDataCreate";
-    public const string DeleteAction = "FakeDataDelete";
 
     public bool Enabled => config.GetValue<bool>("TestTools:Enabled");
 
@@ -39,37 +39,38 @@ public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, 
     /// <summary>상황 목록(gen-fake-seed.py 의 틀과 같아야 한다). 생일은 월/일, 점수는 올해 미션 점수.</summary>
     public static readonly IReadOnlyList<FakeScenario> Scenarios =
     [
-        new("admin", "관리 · 선생님", "부서 관리자(부장)", "직분 부장 + 관리자 권한 · 새친구반 담당 · 400점"),
+        new("admin", "관리 · 선생님", "부서 관리자(어드민)", "역할 어드민 · 새친구반 담당 · 400점"),
         new("t01", "관리 · 선생님", "선생님 1반", "통독 1독(12일 전) · 생일 11/18 · 점수 0"),
         new("t02", "관리 · 선생님", "선생님 2반", "50점 · 생일 12/2(어른이라 생일 선물 없음)"),
         new("t07", "관리 · 선생님", "선생님 7반", "1,200점 · 100점마다 박수(선물 없음)"),
         new("t10", "관리 · 선생님", "선생님 10반", "1,500점"),
 
-        new("s01", "개인 점수 · 크레딧", "3,100점", "상한 30,000 크레딧 넘음 · 통독 3독(3일 전) · 생일 11/1"),
-        new("s03", "개인 점수 · 크레딧", "2,600점", "크레딧 딱 30,000 · 친구팀 5,100 · 생일 11/10"),
-        new("s04", "개인 점수 · 크레딧", "2,590점", "29,000 크레딧(상한 바로 아래) · 통독 99% · 생일 11/13"),
-        new("s14", "개인 점수 · 크레딧", "1,000점", "14,000 크레딧 · 새친구 데려옴 · 생일 12/14"),
-        new("s15", "개인 점수 · 크레딧", "990점", "13,000 크레딧 · 통독 2독(20일 전) · 생일 11/21"),
-        new("s21", "개인 점수 · 크레딧", "500점", "3주 결석 · 새친구 데려옴"),
-        new("s27", "개인 점수 · 크레딧", "199점", "5,000 크레딧 + 자투리 99점"),
-        new("s31", "개인 점수 · 크레딧", "100점 딱", "처음 5,000 크레딧"),
-        new("s32", "개인 점수 · 크레딧", "99점", "크레딧 없음(1점 모자람)"),
-        new("s37", "개인 점수 · 크레딧", "10점", "크레딧 없음 · 가족팀 600"),
-        new("s38", "개인 점수 · 크레딧", "0점", "미션 안 함 · 미배정반"),
+        // 선물 점수(ADR 0104): 1점 = 15 크레딧, 처음 보너스 없음, 한 해 2,000점(30,000)까지. 창 = 사용 가능 크게 + 올해 모은 · 쓴 · 사용 가능
+        new("s01", "선물 점수", "2,350점 · 받은 선물 600점", "상한 넘음 → 쓸 수 있는 1,400점 · \"올해는 2,000점까지\""),
+        new("s03", "선물 점수", "2,000점 딱", "상한 딱 · 쓸 수 있는 2,000점"),
+        new("s04", "선물 점수", "1,877점", "1년 매일 한 만큼 · 통독 99%"),
+        new("s05", "선물 점수", "734점 · 받은 선물 667점", "67점 남음 → 창: 고를 수 있으면 개수, 없으면 구경하기"),
+        new("s07", "선물 점수", "700점 · 고른 선물(받기 전)", "창: 내 선물 보기 · 300점 남음"),
+        new("s12", "선물 점수", "1,111점", "1,000점 선물 고르면 111점 남음"),
+        new("s09", "선물 점수", "300점", "300점 아래 선물이 있으면 고름, 없으면 몇 점 더"),
+        new("s10", "선물 점수", "60점", "가장 싼 선물(1,000원 = 67점) 바로 아래"),
+        new("s31", "선물 점수", "100점 딱", "첫 창(100점) · 1,500 크레딧"),
+        new("s32", "선물 점수", "99점", "아직 창 안 뜸"),
+        new("s38", "선물 점수", "0점", "미션 안 함 · 미배정반"),
 
-        new("s05", "생일", "생일 11/14", "2,500점 · 친구팀 5,100(1,000 선물 받음)"),
+        new("s05", "생일", "생일 11/14", "734점 · 친구팀 2,734(1,000 선물 받음)"),
         new("s02", "생일", "생일 11/5(지남)", "2,750점 · 가족팀 10,050"),
         new("s06", "생일", "생일 11/15", "2,300점 · 가족팀 10,050"),
         new("s16", "생일", "생일 11/19", "생일 선물 기간 밖(7일 전 넘음) · 890점"),
         new("s08", "생일", "생일 11/28", "생일 선물 기간 안 · 가족팀 7,100"),
-        new("s09", "생일", "생일 12/1", "생일 선물 기간 안 · 친구팀 2,950"),
+        new("s09", "생일", "생일 12/1", "생일 선물 기간 안 · 친구팀 1,411"),
         new("s13", "생일", "생일 12/10", "기간 안 · 통독 1독(10일 전)"),
         new("s17", "생일", "생일 12/15", "기간 밖(30일 전 넘음) · 가족팀 2,050"),
         new("s19", "생일", "생일 없음", "명부에 생일 없음 · 친구팀 1,000 · 통독 10%"),
 
         new("s07", "성경통독", "2독 완료(5일 전)", "완독 선물 2독 · 생일 11/20 · 새친구 데려옴"),
         new("s22", "성경통독", "1독 완료(40일 전)", "완독 선물 기한(30일) 지남 → 다시 열기"),
-        new("s12", "성경통독", "읽는 중 50%", "친구팀 2,950 · 1,250점"),
+        new("s12", "성경통독", "읽는 중 50%", "친구팀 1,411 · 1,111점"),
         new("s29", "성경통독", "읽는 중 75%", "150점"),
         new("s33", "성경통독", "읽는 중 1장", "95점"),
         new("p02", "성경통독", "학부모 1독 완료(15일 전)", "어른 완독은 박수만 · 가족팀 1,050"),
@@ -84,24 +85,25 @@ public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, 
         new("p08", "가족팀 · 친구팀", "가족팀 10,050점(엄마)", "최고 단계 넘음 · 1,000 선물 받음"),
         new("s24", "가족팀 · 친구팀", "친구팀 880점", "1,000 전"),
         new("s23", "가족팀 · 친구팀", "친구팀 1,000점 딱", "단계 경계"),
-        new("s09", "가족팀 · 친구팀", "친구팀 2,950점", "3,000 바로 아래"),
-        new("s03", "가족팀 · 친구팀", "친구팀 5,100점", "1,000 선물 받음(팀 잠금)"),
+        new("s09", "가족팀 · 친구팀", "친구팀 1,411점", "1,000 넘음"),
+        new("s03", "가족팀 · 친구팀", "친구팀 2,734점", "1,000 선물 받음(팀 잠금)"),
     ];
 
     // ── 가짜 데이터 넣기 · 지우기 ──
 
     /// <summary>
-    /// 가짜 데이터 넣기(create) · 지우기(delete). commit = false 면 시험 실행(끝에 되돌림). 플랫폼 관리자만.
-    /// 넣기는 플랫폼 관리자(SuperAdmin) 계정만 남기고 모든 계정 · 기록을 지운 뒤 넣는다.
+    /// 가짜 데이터 넣기. commit = false 면 끝에 되돌린다(화면은 늘 저장). 플랫폼 관리자만.
+    /// 아무것도 지우지 않고, 부서마다 이미 있는 반에 가짜 아이 · 담임 · 학부모(계정 · 명부 · 반 배정)를 만들어 상황별 데이터를 더한다(ADR 0102).
+    /// 지우기는 따로 없다 — 완전 초기화(/platform/reset)가 지운다. 반 · 관리자(Admin · SuperAdmin) 계정은 건드리지 않는다(CLAUDE.md).
     /// </summary>
-    public async Task<FakeRunResult> RunAsync(string actor, bool create, bool commit, CancellationToken ct = default)
+    public async Task<FakeRunResult> RunAsync(string actor, bool commit, CancellationToken ct = default)
     {
         if (!Enabled) throw new InvalidOperationException("시험 도구가 꺼져 있어요.");
         await using var ctx = systemDb.Create(actor);
         if (!await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct)) throw new UnauthorizedAccessException("플랫폼 관리자만 할 수 있어요.");
         if (!ctx.Database.IsRelational()) return new(false, false, "시험용 메모리 DB 에서는 SQL 을 실행하지 않아요.", [], 0);
 
-        var sql = Script(create ? "fake-create.sql" : "fake-delete.sql");
+        var sql = Script("fake-create.sql");
         var today = TenantClock.ToTenantDate(time.GetUtcNow(), PlatformHomeService.PlatformTimeZone);
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var tables = new List<ResultTable>();
@@ -134,7 +136,7 @@ public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, 
 
         if (commit)
         {
-            ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = create ? CreateAction : DeleteAction, Detail = "시험 도구(/test-tools)" });
+            ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, Action = CreateAction, Detail = "시험 도구(/test-tools/data)" });
             await ctx.SaveChangesAsync(ct);
         }
         return new(true, commit, null, tables, sw.ElapsedMilliseconds);
@@ -157,52 +159,6 @@ public sealed class TestToolsService(ISystemDb systemDb, IConfiguration config, 
         using var s = asm.GetManifestResourceStream(name)!;
         using var r = new StreamReader(s);
         return r.ReadToEnd();
-    }
-
-    // ── 관리자 없는 부서에 시험 관리자(2026-11-15 사용자 "부서 관리자 없는 부서의 관리자 만들고 비번 1234, 버튼으로 로그인") ──
-
-    private static readonly Microsoft.AspNetCore.Identity.PasswordHasher<AppUser> Hasher = new();
-
-    /// <summary>
-    /// 부서 관리자(Identity Admin + 그 부서 소속)가 없는 부서마다 시험 관리자를 만든다: 아이디 = 부서주소-admin, 이메일 = 아이디@fake-seed.test, 비밀번호 1234,
-    /// 이름 = 부서 이름의 마지막 낱말 + " 관리자", 교사로 소속 + 명부. 가짜 계정 규칙과 같아 상황별 로그인 버튼에 저절로 나온다. 플랫폼 관리자만. 만든 (부서, 아이디)를 돌려준다.
-    /// </summary>
-    public async Task<IReadOnlyList<(string Dept, string UserName)>> CreateMissingAdminsAsync(string actor, CancellationToken ct = default)
-    {
-        await using var ctx = systemDb.Create(actor);
-        if (!await AccountService.IsActivePlatformAdminAsync(ctx, actor, ct)) throw new UnauthorizedAccessException();
-        var adminRole = await ctx.IdentityRoleRows.SingleAsync(r => r.Name == IdentityRoles.Admin, ct);
-        var basic = await ctx.IdentityRoleRows.Where(r => r.Name == IdentityRoles.Basic).Select(r => r.Id).FirstOrDefaultAsync(ct);
-        var admins = ctx.UserRoles.Where(r => r.RoleId == adminRole.Id).Select(r => r.UserId);
-        var lacking = await ctx.Tenants.Where(t => !t.IsLobby && t.Status == TenantStatus.Active && !ctx.DeptRoles.Any(d => d.TenantId == t.Id && admins.Contains(d.UserId!)))
-            .OrderBy(t => t.Id).ToListAsync(ct);
-        var now = time.GetUtcNow().UtcDateTime;
-        var made = new List<(string, string)>();
-        foreach (var t in lacking)
-        {
-            var userName = $"{t.Slug.ToLowerInvariant()}-admin";
-            var user = await ctx.Users.SingleOrDefaultAsync(u => u.NormalizedUserName == AppUser.Normalize(userName), ct);
-            if (user is null)
-            {
-                var email = userName + EmailDomain;
-                user = new AppUser
-                {
-                    UserName = userName, NormalizedUserName = AppUser.Normalize(userName), Email = email, NormalizedEmail = AppUser.Normalize(email),
-                    FirstName = $"{t.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? t.Name} 관리자", LastName = "",
-                    SecurityStamp = Guid.NewGuid().ToString("N"), ConcurrencyStamp = Guid.NewGuid().ToString(), LockoutEnabled = true, InsertDT = now,
-                };
-                user.PasswordHash = Hasher.HashPassword(user, Password);
-                ctx.Users.Add(user);
-                if (basic is not null) ctx.UserRoles.Add(new AppUserRole { UserId = user.Id, RoleId = basic });
-                await ctx.SaveChangesAsync(ct);
-            }
-            await DeptMembership.PlaceAsync(ctx, user, t.Id, Web.Services.UserRole.TeacherCode, now, ct, actor: actor);
-            if (!await ctx.UserRoles.AnyAsync(r => r.UserId == user.Id && r.RoleId == adminRole.Id, ct)) ctx.UserRoles.Add(new AppUserRole { UserId = user.Id, RoleId = adminRole.Id });
-            ctx.AuditLogs.Add(new AuditLog { OccurredUtc = now, ActorUserName = actor, Action = "TestAdminCreate", TenantId = t.Id, Detail = userName });
-            await ctx.SaveChangesAsync(ct);
-            made.Add((t.Name, userName));
-        }
-        return made;
     }
 
     // ── 상황별 로그인 ──

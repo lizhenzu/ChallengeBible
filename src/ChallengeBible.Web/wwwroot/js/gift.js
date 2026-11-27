@@ -1,5 +1,5 @@
-// 개인 선물(확정 시안 2판 말씀-선물고르기, ADR 0094 B · 정한 것 8, R-285).
-// ① 미션 홈: 100점 단위를 새로 넘었을 때 창 한 번(이 기기에 마지막으로 본 단계를 적어 둔다).
+﻿// 개인 선물(확정 시안 2판 말씀-선물고르기, ADR 0094 B · 정한 것 8, R-285).
+// ① 미션 홈: 올해 모은 점수가 100점 단위를 새로 넘었을 때 창 한 번(이 기기에 마지막으로 본 단계를 적어 둔다). 확정 시안 선물점수-15크레딧(ADR 0104).
 // ③ → ④ 고르기 화면: 선물을 누르면 확인 창(남는 점수 — 모두 남는다, 정한 것 9), [이 선물로 할게요]에서 보낸다. 스크립트가 없으면 바로 보낸다.
 // ⑤ 선물 취소도 확인 창을 거친다.
 (() => {
@@ -79,15 +79,23 @@
         try { seen = localStorage.getItem(d.key); } catch { }
         if (step >= 1 && (seen === null || Number(seen) < step)) {
             try { localStorage.setItem(d.key, String(step)); } catch { }
-            const pts = step * Number(d.unit);
+            // 확정 시안 선물점수-15크레딧(ADR 0104): 큰 숫자 = 쓸 수 있는 점수, 아래 올해 모은 · 쓴 · 사용 가능. 학생이 아니면 올해 모은 점수만
+            const sum = `<div class="gk-sum3"><div><span>올해 모은</span><b>${n(d.year)}</b></div><div><span>쓴</span><b>${n(d.spent)}</b></div><div class="on"><span>사용 가능</span><b>${n(d.usable)}</b></div></div>`
+                + (Number(d.cap) > 0 ? `<p class="gk-capn">올해는 ${n(d.cap)}점까지 선물에 써요</p>` : '');
+            const later = '<button type="button" class="gk-btn gk-ghost" data-close>나중에 할게요</button>';
             const body = d.kind === 'pick'
-                ? `<h2 id="gkT">선물을 고를 수 있어요</h2><p>지금 고르거나, 더 모아서<br>더 큰 선물을 골라도 돼요.</p>
-                   <a class="gk-btn gk-pri" href="${esc(d.href)}" data-ok>선물 보러 가기</a><button type="button" class="gk-btn gk-ghost" data-close>나중에 할게요</button>`
+                ? `${sum}<h2 id="gkT">선물을 고를 수 있어요</h2><p>지금 고르거나, 더 모아서<br>더 큰 선물을 골라도 돼요.</p>
+                   <a class="gk-btn gk-pri" href="${esc(d.href)}" data-ok>선택 가능 선물 보러 가기<small>(${n(d.count)}개)</small></a>${later}`
+                : d.kind === 'near'
+                ? `${sum}<h2 id="gkT">${n(d.need)}점 더 모으면 선물을 골라요</h2><p>가장 가까운 선물까지 ${n(d.need)}점 남았어요.<br>미리 구경해 볼까요?</p>
+                   <a class="gk-btn gk-pri" href="${esc(d.href)}?all=true" data-ok>선물 구경하기</a>${later}`
                 : d.kind === 'wait'
-                ? `<h2 id="gkT">잘하고 있어요</h2><p>고른 선물을 받으면<br>모은 점수로 다음 선물을 골라요.</p><button type="button" class="gk-btn gk-pri" data-close>확인</button>`
+                ? `${sum}<h2 id="gkT">잘하고 있어요</h2><p>고른 선물을 받으면<br>다음 선물을 골라요.</p><a class="gk-btn gk-pri" href="${esc(d.href)}" data-ok>내 선물 보기</a>${later}`
                 : `<h2 id="gkT">잘하고 있어요</h2><p>꾸준히 함께해 줘서 고마워요.</p><button type="button" class="gk-btn gk-pri" data-close>확인</button>`;
-            open('', `<section class="gk-pop" role="dialog" aria-modal="true" aria-labelledby="gkT">
-                <div class="gk-k">올해 모은 점수</div><div class="gk-big">${n(pts)}<u>점</u></div>${body}</section>`, null);
+            const big = d.kind === 'clap'
+                ? `<div class="gk-k">올해 모은 점수</div><div class="gk-big">${n(step * Number(d.unit))}<u>점</u></div>`
+                : `<div class="gk-k">선물에 쓸 수 있는 점수</div><div class="gk-big">${n(d.usable)}<u>점</u></div>`;
+            open('', `<section class="gk-pop" role="dialog" aria-modal="true" aria-labelledby="gkT">${big}${body}</section>`, null);
         }
     }
 })();

@@ -1,11 +1,12 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
-public sealed record SignUpInput(string DisplayName, string Email, string Password, string PasswordConfirm);
+/// <summary>가입 값. 전화번호 · 생일(연도 없이)은 본인이 넣고 싶을 때만(선택, ADR 0119) — 명부와 이어 줄 때 쓴다.</summary>
+public sealed record SignUpInput(string DisplayName, string Email, string Password, string PasswordConfirm, string? Phone = null, int BMonth = 0, int BDay = 0);
 
 /// <summary>칸 이름 → 오류 문구. 비어 있으면 성공.</summary>
 public sealed class FieldErrors : Dictionary<string, string>
@@ -48,6 +49,10 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
         if (email.Length > 254 || !EmailRule().IsMatch(email)) errors["Email"] = "이메일 주소를 확인해 주세요. 예: name@example.com";
         if ((input.Password ?? "").Length < MinPassword) errors["Password"] = $"비밀번호는 {MinPassword}자 이상으로 정해 주세요.";
         else if (input.Password != input.PasswordConfirm) errors["PasswordConfirm"] = "비밀번호가 서로 달라요.";
+        var phone = PhoneDigits(input.Phone);
+        if (phone is { Length: > 0 } && phone.Length is < 9 or > 11) errors["Phone"] = "전화번호를 확인해 주세요. 예: 010-1234-5678 (안 넣어도 돼요)";
+        var (bm, bd) = (input.BMonth, input.BDay);
+        if ((bm == 0) != (bd == 0) || bm is < 0 or > 12 || (bm > 0 && (bd < 1 || bd > DateTime.DaysInMonth(2000, bm)))) errors["Birth"] = "생일은 월과 일을 함께 골라 주세요. (안 넣어도 돼요)";
         if (!errors.Ok) return (null, errors);
 
         var userName = UserNameFromEmail(email);
@@ -70,7 +75,9 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
             UserName = userName, NormalizedUserName = normalized, Email = email, NormalizedEmail = normalizedEmail,
             FirstName = name, LastName = "", SecurityStamp = Guid.NewGuid().ToString("N"), ConcurrencyStamp = Guid.NewGuid().ToString(),
             LockoutEnabled = true, InsertDT = time.GetUtcNow().UtcDateTime,
+            PhoneNumber = phone is { Length: > 0 } ? FormatPhone(phone) : null,
         };
+        if (bm > 0) ctx.UserSettings.Add(new UserSetting { UserName = userName, BirthMonth = (byte)bm, BirthDay = (byte)bd });
         account.PasswordHash = Hasher.HashPassword(account, input.Password!);
         ctx.Users.Add(account);
         var basic = await ctx.IdentityRoleRows.AsNoTracking().Where(r => r.Name == IdentityRoles.Basic).Select(r => r.Id).FirstOrDefaultAsync(ct);
@@ -86,6 +93,22 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
         }
         return (account, errors);
     }
+
+    /// <summary>전화번호의 숫자만. 비어 있으면 null.</summary>
+    public static string? PhoneDigits(string? phone)
+    {
+        var d = new string((phone ?? "").Where(char.IsAsciiDigit).ToArray());
+        return d.Length == 0 ? null : d;
+    }
+
+    /// <summary>숫자만 → 010-1234-5678 모양(명부와 같은 모양).</summary>
+    public static string FormatPhone(string digits) => digits.Length switch
+    {
+        11 => $"{digits[..3]}-{digits[3..7]}-{digits[7..]}",
+        10 when digits.StartsWith("02") => $"02-{digits[2..6]}-{digits[6..]}",
+        10 => $"{digits[..3]}-{digits[3..6]}-{digits[6..]}",
+        _ => digits,
+    };
 
     /// <summary>로그인 칸 하나에 아이디 또는 이메일(유년부와 같다). 이메일 모양이면 이메일로 아이디를 찾는다.</summary>
     public async Task<LoginResult> LoginAsync(string login, string password, CancellationToken ct = default)
@@ -236,7 +259,7 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
         var approved = await (from d in ctx.DeptRoles.IgnoreQueryFilters()
                               where d.UserId == userId
                               join t in ctx.Tenants on d.TenantId equals t.Id
-                              select new MyMembership(d.Id, t.Id, t.Slug, t.Name, MembershipStatus.Approved, t.Status == TenantStatus.Active, t.MissionEnabled, t.ReadingEnabled, d.InsertDT, t.IsLobby)).ToListAsync(ct);
+                              select new MyMembership(d.Id, t.Id, t.Slug, t.Name, MembershipStatus.Approved, t.Status == TenantStatus.Active, t.MissionEnabled, t.ReadingEnabled, d.InsertDT, t.IsLobby) { RoleCode = d.RoleCode }).ToListAsync(ct);
         var pending = await (from a in ctx.SignupApplications.IgnoreQueryFilters()
                              where a.UserName == userName && a.Status != SignupStatus.Approved
                              join t in ctx.Tenants on a.TenantId equals t.Id
@@ -250,7 +273,27 @@ public sealed partial class AccountService(IAppDb db, TimeProvider time)
             .Where(m => m.Status == MembershipStatus.Approved && m.TenantActive).ToList();
         return new(approved.Count, approved.Count == 1 ? approved[0].Slug : null);
     }
+
+    /// <summary>
+    /// 로그인·가입 직후 보낼 곳(2026-11-23 사용자: 새 시안은 부서 홈 화면이다 — 로그인하면 곧장 그 부서 홈으로).
+    /// 1곳 → 그 부서 홈, 2곳 이상 → 부서 고르기, 0곳 → 참여 신청.
+    /// </summary>
+    public async Task<string> HomePathAsync(string userName, CancellationToken ct = default)
+    {
+        var approved = (await MyMembershipsAsync(userName, ct)).Where(m => m.Status == MembershipStatus.Approved && m.TenantActive).ToList();
+        return approved.Count switch
+        {
+            0 => "/join",
+            // 2026-11-27 사용자: 로그인한 뒤 = 바탕화면 아이콘으로 열 때와 같은 부서 홈(`/` 도 하나뿐인 사람은 그 홈으로 보낸다)
+            1 => "/" + approved[0].Slug,
+            _ => "/account/tenants",
+        };
+    }
 }
 
 public sealed record MyMembership(int MembershipId, int TenantId, string Slug, string TenantName, string Status,
-    bool TenantActive, bool MissionEnabled, bool ReadingEnabled, DateTime RequestedUtc, bool IsLobby = false);
+    bool TenantActive, bool MissionEnabled, bool ReadingEnabled, DateTime RequestedUtc, bool IsLobby = false)
+{
+    /// <summary>소속(승인)일 때 그 부서의 역할 코드(T1001 학생 …). 신청 줄은 null.</summary>
+    public string? RoleCode { get; init; }
+}

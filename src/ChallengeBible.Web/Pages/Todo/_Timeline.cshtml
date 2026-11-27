@@ -1,0 +1,14 @@
+@model IReadOnlyList<ChallengeBible.Web.Services.TimelineStep>
+@inject ChallengeBible.Web.Tenancy.TenantContext Tenant
+@* 진행 타임라인(확정 시안 할일타임라인): ● 끝남 · ○ 지금 차례 · 빨강 밀림 · 회색 아직. 단계마다 시각 · 사람 *@
+@{
+    var tz = TimeZoneInfo.FindSystemTimeZoneById(Tenant.Current.TimeZoneId);
+    var full = ViewData["full"] is true;
+    string When(DateTime u) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(u, DateTimeKind.Utc), tz).ToString(full ? "M/d HH:mm" : "M/d");
+}
+<ol class="td-tl@(full ? " full" : "")" aria-label="진행">
+    @foreach (var s in Model)
+    {
+        <li class="@s.State"><i aria-hidden="true"></i><b>@s.Label</b>@if (s.AtUtc is { } at) { <small> · @When(at)</small> }@if (s.Who is { } w) { <small> · @w</small> }</li>
+    }
+</ol>

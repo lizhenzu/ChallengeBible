@@ -445,7 +445,7 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
     public async Task 관리자는_새친구를_등록하고_출석부에서_저장하고_학생은_들어오지_못한다()
     {
         var a = await Member("admin", Roles.TenantAdmin);
-        Assert.Contains("href=\"/jamsil-kids/attendance\"", await a.GetStringAsync("/jamsil-kids"));
+        Assert.Contains("href=\"/jamsil-kids/attendance\"", await a.GetStringAsync("/jamsil-kids/office"));   // 출석은 행정업무 화면에(2026-11-25)
         var form = await a.GetStringAsync("/jamsil-kids/attendance/newcomers/new");
         var r = await a.PostAsync("/jamsil-kids/attendance/newcomers/new", new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -531,11 +531,14 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
 
         var t = await Member("teacher", Roles.Teacher);
         Assert.Contains("아직 맡은 반이 없어요", await t.GetStringAsync("/jamsil-kids/attendance"));
+        Assert.Contains("주일출석관리", await a.GetStringAsync("/jamsil-kids/attendance"));             // 관리자는 출석 전용 ☰ 메뉴(하단 탭 없음, 2026-11-24)
+        Assert.DoesNotContain("class=\"attTabs\"", await a.GetStringAsync("/jamsil-kids/attendance"));
+        Assert.DoesNotContain("주일출석관리", await t.GetStringAsync("/jamsil-kids/attendance"));          // 반 담임은 부서 ☰ 메뉴(출석 메뉴에 담길 것이 「오늘」 하나뿐)
 
         // 더보기(유년부 "더보기"와 같은 모양): 관리자에게만 관리자 메뉴, 맡은 반 없는 교사는 못 들어온다
         var more = await a.GetStringAsync("/jamsil-kids/attendance/more");
         Assert.Contains("교사 · 반 배정", more);
-        Assert.Contains("href=\"/jamsil-kids/attendance/more\"", await a.GetStringAsync("/jamsil-kids/attendance"));
+        Assert.Contains("href=\"/jamsil-kids/attendance/report\"", await a.GetStringAsync("/jamsil-kids/attendance"));
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/more")).StatusCode);
 
         // 돌봄(유년부 "돌봄"과 같은 모양): 관리자만, 탭에 돌봄, 기준 고르기
@@ -635,7 +638,7 @@ public partial class AttendanceFlowTests : IClassFixture<WebApplicationFactory<P
         Assert.Contains("이번 달 출석 요약", stats);
         Assert.Matches("/jamsil-kids/attendance/stats/detail\\?year=2020&(amp;)?month=1\"", stats);
         var detail = await a.GetStringAsync("/jamsil-kids/attendance/stats/detail?year=2020&month=1");
-        Assert.Equal(4, Regex.Matches(detail, "<circle ").Count);                  // 2020년 1월 주일 4번
+        Assert.Equal(4, Regex.Matches(detail[detail.IndexOf("<main", StringComparison.Ordinal)..], "<circle ").Count);                  // 2020년 1월 주일 4번
         Assert.Contains("반별 출석 합계", detail);
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/stats")).StatusCode);
         Assert.Equal(HttpStatusCode.Redirect, (await t.GetAsync("/jamsil-kids/attendance/stats/detail")).StatusCode);

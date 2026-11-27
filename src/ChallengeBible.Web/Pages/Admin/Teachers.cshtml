@@ -1,0 +1,57 @@
+@page "/{slug}/admin/teachers"
+@model ChallengeBible.Web.Pages.Admin.TeachersModel
+@using ChallengeBible.Web.Services
+@* 교사(2026-11-21 확정 시안 역할-담임-시안2 ①): 반별 담임 · 부담임 + 반이 없는 교사. 바꾸기는 바닥 창(staff.js). 이름은 st- 접두어 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var b = Model.Board;
+    var regular = b.Classes.Count(c => !c.IsNewcomer);
+    var noTeacher = b.Classes.Count(c => c.Teachers.Count == 0);
+    var teacherCount = b.People.Count(p => p.Kind == UserRoleKind.Teacher);
+    var data = System.Text.Json.JsonSerializer.Serialize(new
+    {
+        classes = b.Classes.Select(c => new { id = c.Id, n = c.Name, nc = c.IsNewcomer }),
+        people = b.People.Select(p => new { id = p.PersonId, n = p.Name, l = p.RoleLabel, k = (int)p.Kind, a = p.IsAdmin, ph = p.Phone, c = p.ClassId, t = p.Teacher }),
+    });
+}
+<link rel="stylesheet" href="~/css/staff.css" asp-append-version="true" />
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut stf" data-stf="teachers" data-base="/@slug/admin/teachers"><div class="wrap">
+    <h1>교사</h1>
+    <nav class="st-seg" aria-label="교사 · 임원 및 기타"><a href="/@slug/admin/teachers" aria-current="page">교사</a><a href="/@slug/admin/officers">임원 및 기타</a></nav>
+    @if (Model.Msg is { } m) { <p class="st-msg @(Model.Bad ? "bad" : "")" role="status">@m</p> }
+    <div class="st-sum"><span>교사<b>@teacherCount</b></span><span>반<b>@regular</b></span>@if (noTeacher > 0) { <span class="w">담임 없는 반<b>@noTeacher</b></span> }</div>
+
+    <div class="st-sec"><b>반별 담임</b><small>이름을 누르면 바꾸기 · 다른 반으로 · 빼기</small></div>
+    @foreach (var c in b.Classes)
+    {
+        <div class="st-cls">
+            <b>@c.Name</b>
+            <div class="st-chips">
+                @for (var i = 0; i < c.Teachers.Count; i++)
+                {
+                    var t = c.Teachers[i];
+                    var lbl = c.IsNewcomer ? "담당" : i == 0 ? "담임" : "부담임";
+                    <button type="button" class="st-chip on" data-act="chip" data-cid="@c.Id" data-pid="@t.PersonId">@lbl @t.Name</button>
+                }
+                @if (c.Teachers.Count == 0) { <span class="st-chip no">@(c.IsNewcomer ? "담당이" : "담임이") 없어요</span> }
+                <button type="button" class="st-chip add" data-act="add" data-cid="@c.Id">+ @(c.Teachers.Count == 0 ? "정하기" : "추가")</button>
+            </div>
+        </div>
+    }
+    @if (b.Classes.Count == 0) { <p class="st-none">반이 없어요. <a href="/@slug/admin/classes">반 만들기 →</a></p> }
+
+    <div class="st-sec"><b>반이 없는 교사</b><small>@(b.NoClass.Count)명</small></div>
+    @foreach (var p in b.NoClass)
+    {
+        <div class="st-pr"><span class="st-av" aria-hidden="true">@(p.Name.Length > 0 ? p.Name[..1] : "?")</span><span class="n"><b>@p.Name</b><small>@p.RoleLabel@(p.Phone is { } ph ? " · " + ph : "")</small></span>
+            <button type="button" class="st-link" data-act="pick" data-pid="@p.PersonId">반 정하기</button></div>
+    }
+    @if (b.NoClass.Count == 0) { <p class="st-none">모든 교사가 반에 있어요.</p> }
+    <p class="st-foot">반 만들기 · 학생 배정은 <a href="/@slug/admin/classes">반</a>에서, 역할 바꾸기는 <a href="/@slug/admin/officers">임원 및 기타</a>에서 해요.</p>
+</div>
+@Html.AntiForgeryToken()
+<div class="st-dim" hidden data-sheet><section class="st-sheet" role="dialog" aria-modal="true" aria-labelledby="stTitle"><div class="st-top"><h2 id="stTitle"></h2><button type="button" class="st-x" data-close>닫기</button></div><div class="st-body" data-body></div></section></div>
+</main>
+<script type="application/json" id="stData">@Html.Raw(data.Replace("</", "<\\/"))</script>
+<script src="~/js/staff.js" asp-append-version="true" defer></script>

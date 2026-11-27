@@ -1,0 +1,68 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800;900&display=swap">
+<link rel="stylesheet" href="../../../src/ChallengeBible.Web/wwwroot/css/site.css">
+<style>
+body{background:#E9ECF1;font-family:"Noto Sans KR",sans-serif}
+.board{display:grid;grid-template-columns:repeat(3,380px);gap:24px;padding:28px;justify-content:center}
+.cap{grid-column:1/-1;margin:8px 0 -8px;font:800 15px/1.4 "Noto Sans KR";color:#374151}
+.cap small{display:block;font-weight:500;color:#6B7280;font-size:12.5px}
+.col{display:flex;flex-direction:column;gap:10px}
+.lbl{font:800 13px "Noto Sans KR";color:#7C3AED}
+.gk-pop{position:static;width:380px;box-shadow:0 10px 30px rgba(0,0,0,.15)}
+.sum3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0 12px;padding:10px 6px;border-radius:12px;background:#F5F7FA}
+.sum3 div{display:flex;flex-direction:column;align-items:center;gap:2px}
+.sum3 span{font-size:11.5px;color:#6B7280}.sum3 b{font-size:15px;font-weight:800;color:#111827}
+.sum3 div.on b{color:#2F80ED}
+.capn{margin:-4px 0 10px;font-size:12.5px;color:#B45309;font-weight:700}
+.gk-pop h2{margin:6px 0 4px}
+.gk-pop p{margin:0 0 14px}
+.gk-btn small{margin-left:4px;font-weight:500;opacity:.9}
+.home{width:380px;background:#fff;border-radius:18px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.gk-card .sm3{display:block;margin-top:4px;font-size:12px;color:#6B7280}
+.pg{width:380px;background:#fff;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.pg .gk-pg{padding:16px}
+</style></head><body>
+<div class="board">
+<p class="cap">① 100점을 넘을 때 뜨는 창 — 세 가지 경우<small>큰 숫자 = 사용 가능 · 그 아래 누적 · 사용 · 사용 가능 · 크레딧 · 가격은 안 보임</small></p>
+
+<div class="col"><span class="lbl">A. 고를 수 있는 선물이 있음</span>
+<section class="gk-pop"><div class="gk-k">선물에 쓸 수 있는 점수</div><div class="gk-big">300<u>점</u></div>
+<div class="sum3"><div><span>올해 모은</span><b>800</b></div><div><span>쓴</span><b>500</b></div><div class="on"><span>사용 가능</span><b>300</b></div></div>
+<h2>선물을 고를 수 있어요</h2><p>지금 고르거나, 더 모아서<br>더 큰 선물을 골라도 돼요.</p>
+<a class="gk-btn gk-pri">선택 가능 선물 보러 가기<small>(12개)</small></a><button class="gk-btn gk-ghost">나중에 할게요</button></section></div>
+
+<div class="col"><span class="lbl">B. 고를 수 있는 선물이 없음</span>
+<section class="gk-pop"><div class="gk-k">선물에 쓸 수 있는 점수</div><div class="gk-big">300<u>점</u></div>
+<div class="sum3"><div><span>올해 모은</span><b>800</b></div><div><span>쓴</span><b>500</b></div><div class="on"><span>사용 가능</span><b>300</b></div></div>
+<h2>40점 더 모으면 선물을 골라요</h2><p>가장 가까운 선물까지 40점 남았어요.<br>미리 구경해 볼까요?</p>
+<a class="gk-btn gk-pri">선물 구경하기</a><button class="gk-btn gk-ghost">나중에 할게요</button></section></div>
+
+<div class="col"><span class="lbl">C. 받기 전 선물이 있음</span>
+<section class="gk-pop"><div class="gk-k">선물에 쓸 수 있는 점수</div><div class="gk-big">300<u>점</u></div>
+<div class="sum3"><div><span>올해 모은</span><b>800</b></div><div><span>쓴</span><b>500</b></div><div class="on"><span>사용 가능</span><b>300</b></div></div>
+<h2>잘하고 있어요</h2><p>고른 선물을 받으면<br>다음 선물을 골라요.</p>
+<a class="gk-btn gk-pri">내 선물 보기</a><button class="gk-btn gk-ghost">나중에 할게요</button></section></div>
+
+<p class="cap">② 한 해 상한(2,000점)을 넘었을 때 · ③ 미션 홈 카드 · ④ 선물 고르기 화면 위쪽</p>
+<div class="col"><span class="lbl">② 상한을 넘음 (올해 2,350점 모음)</span>
+<section class="gk-pop"><div class="gk-k">선물에 쓸 수 있는 점수</div><div class="gk-big">1,400<u>점</u></div>
+<div class="sum3"><div><span>올해 모은</span><b>2,350</b></div><div><span>쓴</span><b>600</b></div><div class="on"><span>사용 가능</span><b>1,400</b></div></div>
+<p class="capn">올해는 2,000점까지 선물에 써요</p>
+<h2>선물을 고를 수 있어요</h2><p>지금 고르거나, 더 모아서<br>더 큰 선물을 골라도 돼요.</p>
+<a class="gk-btn gk-pri">선택 가능 선물 보러 가기<small>(31개)</small></a><button class="gk-btn gk-ghost">나중에 할게요</button></section></div>
+
+<div class="col"><span class="lbl">③ 미션 홈 "내 선물" 카드</span>
+<div class="home">
+<a class="gk-card gk-can"><span class="gk-m"><span class="gk-k">내 선물 · 쓸 수 있는 점수</span><b class="num">300점</b><span class="sm3">올해 모은 800 · 쓴 500</span></span><span class="gk-go">선물 고르기</span></a>
+<div style="height:10px"></div>
+<a class="gk-card"><span class="gk-m"><span class="gk-k">내 선물 · 쓸 수 있는 점수</span><b class="num" style="color:#111827">300점</b><span class="sm3">40점 더 모으면 선물을 골라요</span></span><span class="gk-ar">›</span></a>
+</div></div>
+
+<div class="col"><span class="lbl">④ 선물 고르기 화면</span>
+<div class="pg"><div class="gk-pg">
+<h1>선물 고르기</h1><p class="gk-sub">한 번에 하나씩 골라요 · 12월 31일까지</p>
+<div class="gk-mine" style="margin-top:12px"><span>쓸 수 있는 점수</span><b class="num">300<u>점</u></b></div>
+<div class="sum3"><div><span>올해 모은</span><b>800</b></div><div><span>쓴</span><b>500</b></div><div class="on"><span>사용 가능</span><b>300</b></div></div>
+<nav class="gk-seg"><a aria-current="true">고를 수 있는 것 <span class="num">12</span></a><a>전체 <span class="num">58</span></a></nav>
+</div></div></div>
+</div></body></html>

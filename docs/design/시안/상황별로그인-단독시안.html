@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<link rel="stylesheet" href="../../../src/ChallengeBible.Web/wwwroot/css/site.css">
+<style>
+.rs-grp{border:1px solid var(--rule);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.rs-grp h2{margin:0;font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rs-grp h2 label{font-size:13px;font-weight:700;color:var(--dim);display:flex;gap:6px;align-items:center}
+.rs-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.rs-list{grid-template-columns:minmax(0,1fr)}}
+.rs-it{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--soft);min-width:0;font-size:14.5px}
+.rs-it input{width:20px;height:20px;flex:none;accent-color:var(--bad,#C0392B)}
+.rs-it span{flex:1;min-width:0}
+.rs-it b.num{font-size:14px;color:var(--fg)}
+.rs-it.lock{background:transparent;border:1px dashed var(--rule);color:var(--dim)}
+.rs-it.lock i{font-style:normal;font-size:12px;padding:2px 8px;border-radius:99px;background:var(--soft)}
+.rs-it.off{opacity:.55}
+.rs-note{margin:0;font-size:13px;color:var(--dim)}
+.rs-go{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:14px 16px;border-radius:16px;background:var(--bad-bg,#FDECEA)}
+.rs-go label{display:flex;flex-direction:column;gap:4px;font-size:13px;flex:1;min-width:180px}
+.rs-go .btn{background:var(--bad,#C0392B);color:#fff;border:0}
+.rs-sum{margin:0;font-weight:800;font-size:14px}
+.cap{font:700 12px/1 sans-serif;color:#7A3EE8;margin:0}
+</style></head><body>
+<header class="admintop ptop gut"><div class="wrap wide hd">
+<button type="button" class="pmenu-btn" aria-label="메뉴"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h12"/></svg></button>
+<div class="t pt-title"><small><em>도전!!!</em> 플랫폼</small><b>상황별 로그인</b></div><a class="home-txt" href="#">홈으로</a></div></header>
+<main class="admin gut tt"><div class="wrap">
+<div><h1>상황별 로그인 <small class="tt-tag">임시</small></h1>
+<p class="lead">가짜 데이터로 만든 계정으로 바로 들어가요. 오늘 할 일이 있으면 로그인처럼 할 일 화면으로 가요. [복귀]로 돌아와요.</p></div>
+<section class="tt-box">
+<nav class="tt-depts"><a class="tt-chip on" href="#">초등부</a><a class="tt-chip" href="#">유년부</a><a class="tt-chip" href="#">중등부</a><a class="tt-chip" href="#">고등부</a></nav>
+<h3 class="tt-g">관리 · 교사</h3>
+<div class="tt-grid">
+<button class="tt-btn"><b>부서 관리자</b><span>선물 · 신청 · 사람 관리</span><small>관리영 · chodeung-admin</small></button>
+<button class="tt-btn"><b>담임</b><span>1반 · 출석 · 반 생일</span><small>김교사 · chodeung-t01</small></button>
+<button class="tt-btn"><b>담임</b><span>2반</span><small>이교사 · chodeung-t02</small></button></div>
+<h3 class="tt-g">학생</h3>
+<div class="tt-grid">
+<button class="tt-btn"><b>생일 20일 뒤</b><span>선물 고르기</span><small>박하늘 · chodeung-s05</small></button>
+<button class="tt-btn"><b>점수 많음</b><span>미션 꾸준히</span><small>최별 · chodeung-s01</small></button>
+<button class="tt-btn"><b>새친구</b><span>4번째 출석</span><small>윤다온 · chodeung-s12</small></button></div>
+<h3 class="tt-g">학부모</h3>
+<div class="tt-grid"><button class="tt-btn"><b>학부모</b><span>아이 2명</span><small>정부모 · chodeung-p01</small></button></div>
+</section>
+</div></main></body></html>

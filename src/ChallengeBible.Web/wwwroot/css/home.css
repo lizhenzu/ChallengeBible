@@ -14,7 +14,7 @@
   --word-bg: #1C2433; --quiz-bg: #2A2119; --pray-bg: #241F2E; --rec-bg: #1B2A22; } }
 
 .hm .wrap { max-width: 1080px; margin: 0 auto; }
-.hm .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .18em; color: var(--accent); }
+.hm .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .18em; color: var(--accent-tx, var(--accent)); }
 .hm h2 { margin: 4px 0 0; font-size: 22px; font-weight: 900; line-height: 1.4; }
 .hm .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
@@ -22,10 +22,10 @@
 .hm-top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); }
 .hm-top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; border-bottom: 1px solid var(--rule); }
 .hm .tenant { min-height: 44px; font-size: 16px; font-weight: 700; color: var(--dim); display: flex; align-items: center; gap: 6px; min-width: 0; }
-.hm .tenant span { font-size: 10px; }
+.hm .tenant span { font-size: 12px; }
 .hm-top .r { display: flex; align-items: center; gap: 12px; flex: none; }
 .hm .date { font-size: 13px; letter-spacing: .14em; color: var(--dim); }
-.hm .adm { min-height: 36px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 10px; border: 1px solid var(--rule); font-size: 13px; font-weight: 700; color: var(--dim); }
+.hm .adm { min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 10px; border: 1px solid var(--rule); font-size: 13px; font-weight: 700; color: var(--dim); }
 
 /* 임시 부서 띠(0064, 확정 시안: 임시부서-내부서찾기 ㄱ안): 노란 띠 + 파란 "내 부서 찾기" */
 .hm { --fb-bg: #FFF4D6; --fb-rule: #F3DFA8; --fb-ink: #5A3B00; --fb-dim: #6B5320; }
@@ -36,14 +36,14 @@
 .hm .fbx b { font-size: 16px; color: var(--fb-ink); }
 .hm .fbx span { font-size: 13.5px; color: var(--fb-dim); line-height: 1.6; word-break: keep-all; }
 .hm .fbx .go { flex: none; min-height: 46px; padding: 0 18px; border-radius: 12px; background: var(--accent); color: var(--on-accent); font-weight: 800; display: inline-flex; align-items: center; }
-.hm .fbx .go.s { background: var(--bg); color: var(--accent); border: 1px solid var(--rule); }
+.hm .fbx .go.s { background: var(--bg); color: var(--accent-tx, var(--accent)); border: 1px solid var(--rule); }
 
 /* 인사 */
 .hm .hello { background: linear-gradient(180deg, var(--bg) 0, var(--hero) 100%); }
 .hm .hello .wrap { padding-block: 30px; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 18px; }
 .hm .hello h1 { margin: 6px 0 0; font-size: 32px; font-weight: 900; line-height: 1.25; letter-spacing: -.02em; word-break: keep-all; }
 .hm .hello p { margin: 8px 0 0; color: var(--dim); font-size: 16px; }
-.hm .hello p b { color: var(--accent); }
+.hm .hello p b { color: var(--accent-tx, var(--accent)); }
 .hm .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .hm .chips span { padding: 8px 12px; border-radius: 12px; background: var(--bg); border: 1px solid var(--rule); font-size: 13px; }
 .hm .chips b { font-size: 16px; margin-right: 2px; }
@@ -74,14 +74,14 @@
 .hm .p.r { background: var(--rd-soft); }
 .hm .p .hd { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
 .hm .p .nm { font-size: 24px; font-weight: 900; letter-spacing: -.01em; }
-.hm .p.m .nm { color: var(--accent); } .hm .p.r .nm { color: var(--rd); }
+.hm .p.m .nm { color: var(--accent-tx, var(--accent)); } .hm .p.r .nm { color: var(--rd); }
 .hm .p .what { font-size: 13px; color: var(--dim); }
 .hm .badge { flex: none; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px; background: var(--bg); }
-.hm .p.m .badge { color: var(--accent); } .hm .p.r .badge { color: var(--rd); }
+.hm .p.m .badge { color: var(--accent-tx, var(--accent)); } .hm .p.r .badge { color: var(--rd); }
 .hm .p .now { display: flex; align-items: center; gap: 18px; }
 .hm .ring { position: relative; width: 92px; height: 92px; flex: none; }
 .hm .ring span { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; font-weight: 900; font-size: 20px; }
-.hm .ring small { display: block; font-size: 11px; font-weight: 500; color: var(--dim); }
+.hm .ring small { display: block; font-size: 12px; font-weight: 500; color: var(--dim); }
 .hm .now .txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .hm .now .txt b { font-size: 17px; }
 .hm .now .txt span { font-size: 13px; color: var(--dim); }
@@ -89,7 +89,7 @@
 .hm .now .txt .big i { font-style: normal; font-size: 14px; color: var(--dim); }
 .hm .mis4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .hm .mis4 span { border-radius: 12px; padding: 10px 6px; text-align: center; font-size: 13px; font-weight: 900; }
-.hm .mis4 small { display: block; font-size: 11px; font-weight: 500; }
+.hm .mis4 small { display: block; font-size: 12px; font-weight: 500; }
 .hm .mis4 .word { background: var(--word-bg); color: var(--word); }
 .hm .mis4 .quiz { background: var(--quiz-bg); color: var(--quiz); }
 .hm .mis4 .prayer { background: var(--pray-bg); color: var(--pray); }
@@ -107,7 +107,7 @@
 .hm .go.nx { gap: 10px; min-height: 68px; padding: 14px 12px 14px 18px; }
 .hm .go.nx .t { min-width: 0; display: flex; flex-direction: column; gap: 4px; line-height: 1.35; font-weight: 800; }
 .hm .go.nx .t small { font-size: 12px; font-weight: 700; opacity: .8; }
-.hm .go.nx .pill { flex: none; padding: 7px 12px; border-radius: 8px; background: var(--bg); color: var(--accent); font-size: 14px; font-weight: 900; white-space: nowrap; }
+.hm .go.nx .pill { flex: none; padding: 7px 12px; border-radius: 8px; background: var(--bg); color: var(--accent-tx, var(--accent)); font-size: 14px; font-weight: 900; white-space: nowrap; }
 /* 미션 카드: 아무 데나 = 미션 홈(덮개), 아래 버튼 = 이어서 하기(덮개 위) */
 .hm .p.m, .hm .p.r { position: relative; }
 /* 통독 카드: 아무 데나 = 통독 홈(덮개), "이어 읽기" 칸 = 그 장 읽기(덮개 위) */
@@ -121,10 +121,10 @@
 .hm .wk table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .hm .wk th, .hm .wk td { text-align: center; padding: 6px 0; font-size: 12px; }
 .hm .wk th { color: var(--dim); font-weight: 500; }
-.hm .wk th.t { color: var(--accent); font-weight: 900; }
+.hm .wk th.t { color: var(--accent-tx, var(--accent)); font-weight: 900; }
 .hm .wk tbody th, .hm .wk thead th:first-child { text-align: left; width: 50px; }
 .hm .dot { display: inline-grid; place-content: center; width: 30px; height: 30px; border-radius: 50%; font-size: 12px; font-weight: 700; }
-.hm .dot.mp { background: var(--accent-soft); color: var(--accent); }
+.hm .dot.mp { background: var(--accent-soft); color: var(--accent-tx, var(--accent)); }
 .hm .dot.mp.all { background: var(--accent); color: var(--on-accent); }
 .hm .dot.rp { background: var(--rd-soft); color: var(--rd); }
 .hm .dot.e { background: var(--soft); color: var(--dim); font-weight: 400; }
@@ -145,7 +145,7 @@
 .hm .dept b i { font-style: normal; font-size: 14px; color: var(--dim); }
 .hm .dept small { font-size: 13px; color: var(--dim); }
 .hm .links { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
-.hm .links a { min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--rule); display: inline-flex; align-items: center; font-size: 14px; }
+.hm .links a { min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--rule); display: inline-flex; align-items: center; font-size: 14px; }
 
 /* 우리 가족팀: 모양은 site.css 의 fh-* 를 쓴다 */
 .hm .fh h2 { font-size: 22px; }
@@ -155,9 +155,9 @@
 .hm footer .wrap { padding-block: 22px calc(30px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; font-size: 14px; color: var(--dim); }
 .hm footer .acct { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 20px; }
 .hm footer .foot-copy { margin: 0; font-size: 12.5px; color: var(--dim); }   /* 이름이 .copy 면 site.css 의 상자(테두리 · 배경)가 붙는다(사용자 2026-11-15) */
-.hm footer a { min-height: 32px; display: inline-flex; align-items: center; }
+.hm footer a { min-height: 44px; display: inline-flex; align-items: center; }
 .hm footer form { margin: 0; }
-.hm footer button { border: 0; background: none; padding: 0; min-height: 32px; font-size: 14px; color: var(--dim); }
+.hm footer button { border: 0; background: none; padding: 0; min-height: 44px; font-size: 14px; color: var(--dim); }
 
 /* 임시 부서 홈 두 단계(0068, 확정 시안: 임시부서-홈-두단계). 하늘색 머리말 → 1 · 2단계 윗부분만 / 미션 화면(← 처음 화면 + 아랫부분). 일반 부서 홈도 같은 모양(.sky, 2026-10-31 사용자) */
 .hm.sky { --sky: #EAF4FF; --sky-rule: #CFE3FA; --okc: #2F7D55; --ok-soft: #E3F1E9; --wait: #A66A00; --wait-soft: #FFF4D6; --acc-soft: #E8EEFA; }
@@ -170,7 +170,7 @@
 .hm .wl-today { text-align: right; font-size: 13px; color: var(--dim); white-space: nowrap; }
 .hm .wl-today b { font-size: 17px; font-weight: 800; color: var(--fg); }
 .hm .wl-hi .wrap { max-width: 480px; padding-block: 18px 30px; }
-.hm .wl-k { font-size: 12px; font-weight: 700; letter-spacing: .2em; color: var(--accent); }
+.hm .wl-k { font-size: 12px; font-weight: 700; letter-spacing: .2em; color: var(--accent-tx, var(--accent)); }
 .hm .wl .wl-hi h1 { margin: 6px 0 0; font-size: 30px; line-height: 1.3; font-weight: 900; letter-spacing: -.02em; }
 .hm .wl-hi p.wl-sub { margin: 8px 0 0; color: var(--dim); font-size: 15px; }
 .hm .wl-card { margin-top: 18px; background: var(--bg); border: 1px solid var(--sky-rule); border-radius: 22px; padding: 18px 18px 20px; box-shadow: 0 16px 32px -26px rgba(43,89,195,.5); }
@@ -189,18 +189,18 @@
 .hm .wl-tx span { display: block; font-size: 13px; color: var(--dim); }
 .hm .wl-tag { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 800; }
 .hm .wl-tag.wl-done { background: var(--ok-soft); color: var(--okc); }
-.hm .wl-tag.wl-now { background: var(--acc-soft); color: var(--accent); }
+.hm .wl-tag.wl-now { background: var(--acc-soft); color: var(--accent-tx, var(--accent)); }
 .hm .wl-tag.wl-wait { background: var(--wait-soft); color: var(--wait); }
 .hm .wl-tag.wl-later { background: var(--soft); color: var(--dim); }
 .hm .wl-btn { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 54px; padding: 0 18px; border-radius: 14px; font-size: 16px; font-weight: 800; }
 .hm .wl .wl-btn.wl-p { background: var(--accent); color: var(--on-accent); }
-.hm .wl .wl-btn.wl-s { margin-top: 10px; background: var(--bg); color: var(--accent); border: 1px solid var(--sky-rule); }
-.hm .wl-org .church { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; font-size: 20px; font-weight: 900; letter-spacing: -.01em; color: var(--accent); white-space: nowrap; }
+.hm .wl .wl-btn.wl-s { margin-top: 10px; background: var(--bg); color: var(--accent-tx, var(--accent)); border: 1px solid var(--sky-rule); }
+.hm .wl-org .church { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; font-size: 20px; font-weight: 900; letter-spacing: -.01em; color: var(--accent); white-space: nowrap; }
 .hm .wl-org .church svg { width: 13px; height: 13px; flex: none; margin-top: -6px; }
 .hm .wl-keep { margin: 12px 0 0; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--dim); }
 .hm .wl-keep svg { flex: none; margin-top: 3px; color: var(--okc); }
 .hm .wl-back .wrap { max-width: 480px; padding-block: 2px 14px; }
-.hm .wl-back a { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--accent); }
+.hm .wl-back a { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--accent-tx, var(--accent)); }
 .hm .wl-back .pill { margin-left: 8px; display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; background: var(--wait-soft); color: var(--wait); font-size: 12.5px; font-weight: 800; }
 /* 미션 화면(/today): 아래 카드(말씀 · 미션 · 통독)가 넓게 펼쳐지므로 머리말 · "← 처음 화면"도 같은 폭에 맞춘다(데스크톱에서 좌우 가장자리가 어긋나던 것) */
 .hm .wl-wide .wl-top .wrap, .hm .wl-wide .wl-back .wrap { max-width: 980px; }   /* 본문(main.hj) 폭과 같게 — 플랫폼 화면(980px)과 같은 폭(2026-11-15 사용자) */
@@ -209,14 +209,14 @@
 /* 일반 부서: "← 처음 화면" 자리에 부서 이름 · 관리 */
 .hm .wl-dept .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .hm .wl-dept .tenant { color: var(--fg); font-weight: 800; }
-.hm .wl-dept a.tenant { color: var(--accent); }
-.hm .wl-dept .adm { min-height: 36px; background: var(--bg); border-color: var(--sky-rule); }
+.hm .wl-dept a.tenant { color: var(--accent-tx, var(--accent)); }
+.hm .wl-dept .adm { min-height: 44px; background: var(--bg); border-color: var(--sky-rule); }
 /* 미션 화면의 오늘의 말씀: 남색 띠 → 흰 말씀 카드(첫 화면과 같은 모양) */
 .hm.sky .verse { background: transparent; color: var(--fg); padding-top: 22px; }
 .hm.sky .verse .wrap { position: relative; background: var(--bg); border: 1px solid var(--rule); border-radius: 22px; padding: 24px 20px 20px; box-shadow: 0 18px 34px -28px rgba(43,89,195,.45); }
 .hm.sky .verse .wrap { grid-template-columns: minmax(0, 1fr); }   /* 오른쪽 칸이 없어 한 줄로 넓게(데스크톱) */
 .hm.sky .verse cite.ref { text-align: right; font-weight: 700; }
-.hm.sky .verse .k { color: var(--accent); }
+.hm.sky .verse .k { color: var(--accent-tx, var(--accent)); }
 .hm.sky .verse blockquote { font-size: 20px; font-weight: 700; }
 .hm.sky .verse cite, .hm.sky .verse .side small { color: var(--dim); }
 .hm.sky .verse .side div { border-top-color: var(--rule); }
@@ -272,10 +272,11 @@
 .hm .hj-hi .hj-roles { display: flex; flex-wrap: wrap; gap: 6px; margin: -2px 0 10px; }
 .hm .hj-hi .hj-roles i { font-style: normal; padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 800; line-height: 1.3; max-width: 100%; overflow-wrap: anywhere; }
 .hm .hj-hi .hj-roles .ad { background: #1F2A44; color: #FFFFFF; }
-.hm .hj-hi .hj-roles .st, .hm .hj-hi .hj-roles .nc { background: #EAF0FB; color: #2B59C3; }
-.hm .hj-hi .hj-roles .te { background: #EAF7EF; color: #16A34A; }
+.hm .hj-hi .hj-roles .pf { background: #B4231B; color: #FFFFFF; }
+.hm .hj-hi .hj-roles .st,.hm .hj-hi .hj-roles .nc { background: #EAF0FB; color: #2B59C3; }
+.hm .hj-hi .hj-roles .te { background: #EAF7EF; color: #167a41; }
 .hm .hj-hi .hj-roles .of { background: #F1EAFB; color: #7A3FC2; }
-.hm .hj-hi .hj-roles .pa { background: #FFF1E2; color: #C2610C; }
+.hm .hj-hi .hj-roles .pa { background: #FFF1E2; color: #b8500d; }
 .hm .hj-hi .hj-roles .et { background: #F5F6F8; color: #5B6470; }
 .hm .hj-hi .hj-roles .cl { background: #F5F6F8; color: #1B1F24; border: 1px solid #E3E6EA; }
 .hm .hj-av { position: relative; flex: none; width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; font-size: 34px; font-weight: 900; color: var(--hj-blue); background: linear-gradient(135deg, var(--hj-blue-l), var(--hj-org-l)); border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--rule); }
@@ -284,7 +285,7 @@
 .hm .hj-av .cam { position: absolute; right: -2px; bottom: -2px; width: 28px; height: 28px; border-radius: 50%; background: var(--hj-blue); border: 2px solid var(--bg); display: grid; place-items: center; font-style: normal; font-size: 13px; line-height: 1; }
 .hm .hj-ring { position: relative; flex: none; width: 76px; height: 76px; }
 .hm .hj-ring svg { display: block; }
-.hm .hj-ring > span { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; font-size: 11px; font-weight: 700; color: var(--dim); line-height: 1.2; }
+.hm .hj-ring > span { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; font-size: 12px; font-weight: 700; color: var(--dim); line-height: 1.2; }
 .hm .hj-ring b { display: block; font-size: 18px; font-weight: 900; color: var(--fg); }
 /* 원 세 개(성장 · 오늘 미션 · 통독)는 같은 크기로 조금 크게(2026-11-03 사용자) — viewBox 라 그림은 저절로 커진다 */
 .hm .hj-ring { width: 104px; height: 104px; }
@@ -306,7 +307,7 @@
 .hm .hj-gnx { text-align: right; }
 .hm .hj-stg { list-style: none; margin: 12px 0 0; padding: 10px 12px; display: flex; align-items: center; border-radius: 14px; background: var(--hj-green-l); }
 .hm .hj-stg .st { text-align: center; font-size: 20px; opacity: .45; }
-.hm .hj-stg .st small { display: block; font-size: 11px; font-weight: 800; color: var(--dim); }
+.hm .hj-stg .st small { display: block; font-size: 12px; font-weight: 800; color: var(--dim); }
 .hm .hj-stg .st.d { opacity: 1; }
 .hm .hj-stg .st.c { opacity: 1; transform: scale(1.2); }
 .hm .hj-stg .st.c small { color: var(--hj-green); }
@@ -335,7 +336,7 @@
 .hm .hj-pg h2 small { font-size: 12px; color: var(--dim); font-weight: 600; }
 .hm .hj-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
 .hm .hj-box { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; border-radius: 14px; padding: 11px 13px; }
-.hm .hj-box small { font-size: 11.5px; font-weight: 700; }
+.hm .hj-box small { font-size: 12px; font-weight: 700; }
 .hm .hj-box b { font-size: 16px; font-weight: 900; }
 .hm .hj-box span { font-size: 12.5px; color: var(--dim); }
 /* 테두리(2026-11-03 B안): 제 색을 조금 진하게 섞은 1.5px */
@@ -346,20 +347,20 @@
 .hm .hj-box.wide { margin-top: 12px; }
 .hm .hj-m4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
 .hm .hj-m4 a { border-radius: 12px; padding: 9px 2px; text-align: center; font-size: 14px; font-weight: 900; background: var(--soft); color: var(--dim); }
-.hm .hj-m4 small { display: block; font-size: 11px; font-weight: 600; }
+.hm .hj-m4 small { display: block; font-size: 12px; font-weight: 600; }
 /* 테두리는 칸마다 제 색을 옅게(2026-11-03 A안) */
 .hm .hj .hj-m4 a { box-shadow: inset 0 0 0 1.5px var(--rule); }
 .hm .hj .hj-m4 .ok { background: var(--hj-mint-l); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--hj-mint) 24%, var(--bg)); }
 .hm .hj .hj-m4 .cur { background: var(--hj-org-l); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--hj-org) 24%, var(--bg)); }
 /* 미션 이름은 진한 글자, 상태만 색(2026-11-03): 완료 초록 · 지금 주황 · 대기 중 회색 */
 .hm .hj .hj-m4 a { color: var(--fg); }
-.hm .hj-m4 small { margin-top: 2px; font-size: 11.5px; font-weight: 700; color: var(--dim); }
+.hm .hj-m4 small { margin-top: 2px; font-size: 12px; font-weight: 700; color: var(--dim); }
 .hm .hj .hj-m4 .ok small { color: var(--hj-mint); }
 .hm .hj .hj-m4 .cur small { color: var(--hj-org); }
 .hm .hj-m4 .no { opacity: .5; }
 .hm .hj-bar { height: 8px; border-radius: 9px; background: var(--soft); margin-top: 14px; overflow: hidden; }
 .hm .hj-bar i { display: block; height: 100%; border-radius: 9px; background: linear-gradient(90deg, color-mix(in srgb, var(--hj-org) 60%, #fff), var(--hj-org)); }
-.hm .hj-bl { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--dim); margin-top: 4px; }
+.hm .hj-bl { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); margin-top: 4px; }
 .hm .hj-bl b { color: var(--hj-org); }
 .hm .hj-n3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
 /* 색 칸(2026-11-03 G안 = E의 칸 + F의 숫자): 읽은 장 파랑 · 남은 장 노랑 · 전체 회색, 숫자도 같은 색, 이름은 회색 */
@@ -395,3 +396,287 @@
 /* 부서 홈 왼쪽 위 ☰(2026-11-15 사용자) */
 .hm .wl-top .wrap > .hm-menu { order: -1; margin-right: -2px; }
 .hm .wl-top .wrap .wl-org { flex: 1; }
+
+/* 성경필사 카드(확정 시안 홈-필사카드 2026-11-16): 성경말씀 · 성경통독 카드와 같은 모양, 필사 테마 갈색(copy.css --bc-acc 와 같은 값) */
+.hm .hj { --hj-copy: #7A4E2D; --hj-copy-l: #F3EBE3; --hj-copy2: #A0703F; --hj-copy2-l: #F7F0E7; }
+.hm .hj-pg.c h2 { color: var(--hj-copy); }
+.hm .hj-box.c { background: var(--hj-copy-l); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--hj-copy) 24%, var(--bg)); }
+.hm .hj-box.c small { color: var(--hj-copy); }
+.hm .hj-n3 .c { --n3: var(--hj-copy); --n3-l: var(--hj-copy-l); }
+.hm .hj-n3 .c2 { --n3: var(--hj-copy2); --n3-l: var(--hj-copy2-l); }
+
+/* 홈 카드 구분(확정 시안 홈-카드구분 A, 2026-11-17 사용자 "카드별 영역이 잘 구분이 안 간다"): 연한 회색 바탕 · 흰 카드 · 그림자 · 카드 사이를 조금 더 */
+.hm main.hj { background: #EEF1F5; }
+.hm main.hj .wrap { gap: 16px; }
+.hm .hj-card:not(.hj-inv) { border: 1px solid #DCE1E8; border-radius: 16px; box-shadow: 0 2px 8px rgba(15, 23, 42, .07); }
+
+/* 임시 부서 미션 화면 위 안내 카드(확정 시안 임시부서-상단버튼 A, 2026-11-17) */
+.hm .lb-ban { display: grid; gap: 10px; padding: 14px; border-radius: 16px; }
+.hm .lb-ban.lb-go { background: #EFF6FF; border: 1px solid #BFDBFE; }
+.hm .lb-ban.lb-wait { background: #FFFBEB; border: 1px solid #FDE68A; }
+.hm .lb-ban p { margin: 0; font-size: 13.5px; font-weight: 500; line-height: 1.55; color: #374151; }
+.hm .lb-ban p b { display: block; margin-bottom: 2px; font-size: 15.5px; font-weight: 900; color: #111827; }
+.hm .lb-pill { display: inline-block; margin-right: 6px; padding: 2px 8px; border-radius: 99px; background: #F59E0B; color: #fff; font-size: 12px; font-weight: 800; vertical-align: 2px; }
+.hm .lb-btn { display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 12px; font-size: 15px; font-weight: 900; text-decoration: none; }
+.hm .lb-btn.p { background: #2563EB; color: #fff; }
+.hm .lb-btn.s { background: #fff; border: 1px solid #CBD5E1; color: #1F2937; }
+
+/* ── 홈 색 재구성(2026-11-17 사용자 확정 시안 A + 모서리 5px · 간격 6px · 좌우 6px · 카드 안 버튼 연하게) — 틀(순서 · 크기 · 내용)은 그대로 ── */
+.hm.sky, .hm .wl.wl-wide, .hm main.hj { background: #fff; }   /* 부서 홈 바깥 틀만(_MissionNav 의 a.hm 과 겹치지 않게) */
+.hm .hj { --hj-org: #E07B39; --hj-org-l: #FEF8F2; --hj-blue: #3A6FD8; --hj-blue-l: #F4F7FD; --hj-green: #3C9D62; --hj-green-l: #EDF6F0; --hj-mint: #2E9A74; --hj-mint-l: #F0F8F4;
+          --hj-purple: #7A62D0; --hj-copy: #8B5E3C; --hj-copy-l: #FAF6F1; --hj-copy2: #A57A52; --hj-copy2-l: #FAF6F1; --hj-sun-l: #FBF4E4; --hj-n3-l: #B7791F; --hj-sx-btn: #5E8DE8; }
+.hm main.hj.gut { padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); }   /* 좌우 = 카드 사이 10px */
+.hm main.hj .wrap { gap: 10px; }
+.hm .hj-card:not(.hj-inv) { border-radius: 5px; padding: 18px 16px; }
+.hm .hcCard { border-radius: 5px; }
+.hm .hj-box.o, .hm .hj-box.r, .hm .hj-box.c { box-shadow: none; }
+.hm .hj-box.o { background: #FEF8F2; } .hm .hj-box.r { background: #F4F7FD; } .hm .hj-box.c { background: #FAF6F1; }
+.hm .hj .hj-m4 a { background: #FBFAF7; box-shadow: none; }
+.hm .hj .hj-m4 .ok { background: var(--hj-mint-l); box-shadow: none; }
+.hm .hj .hj-m4 .cur { background: #FEF8F2; box-shadow: inset 0 0 0 1.5px #F7D9C0; }
+.hm .hj-n3 div { background: #FBFAF8; box-shadow: none; }
+.hm .hj-sr .sx .ph { background: #FAF9F6; }
+.hm .hj-sr .kw a, .hm .hj-sr .tg b, .hm .tpCard .tpMore { background: #F7F5F1; color: #5B5346; }
+.hm .hj-hi .hj-roles .ad { background: #4A5568; }
+.hm .hj-dept b { color: var(--c); }
+/* 성장: 단계 띠 대신 오른쪽 "○○까지 N점"(유년부 홈과 같은 구성, 2026-11-17 사용자) */
+.hm .hj-gtx em { margin-top: 8px; color: var(--fg); }
+.hm .hj-gside { flex: none; align-self: stretch; display: flex; flex-direction: column; justify-content: center; min-width: 96px; margin-left: 4px; padding-left: 16px; border-left: 1px solid var(--rule); }
+.hm .hj-gside small { font-size: 12px; font-weight: 700; color: var(--dim); }
+.hm .hj-gside b { font-size: 22px; font-weight: 900; line-height: 1.2; }
+.hm .hj-gside b u { text-decoration: none; margin-left: 1px; font-size: 13px; font-weight: 600; color: var(--dim); }
+.hm .hj-more { margin-top: 6px; }
+.hm .hj-more b { color: var(--hj-blue); }
+@media (min-width: 600px) { .hm .hj-gtx, .hm .hj-gside { flex: 1 1 0; } .hm .hj-gside { padding-left: 24px; } }
+
+/* 흰 바탕 · 카드 입체(테두리 색 · 아래 받침 선 · 안쪽 빛과 음영 · 세 겹 그림자) · 여백 10px(2026-11-17 사용자 "약간 약하게"로 확정) */
+.hm .hj-card:not(.hj-inv), .hm .hcCard {
+  border: 1px solid #D5DDE9; border-bottom: 2px solid #BFCADB; border-right-color: #CBD4E1;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 60%, #F6F8FC 100%);
+  box-shadow: inset 0 2px 0 #FFFFFF, inset 0 -5px 10px -8px rgba(40, 60, 100, .14), 0 1px 2px rgba(20, 35, 70, .10), 0 6px 12px rgba(20, 35, 70, .10), 0 14px 26px -14px rgba(20, 35, 70, .22); }
+.hm footer { border-top: 0; }   /* 맨 아래 가로줄 지움(2026-11-17) */
+.hm .wl-top .wrap > .wl-today { margin-right: -2px; }   /* 날짜 ↔ 편지 봉투 간격 좁게 — 글자가 봉투 상자에 닿지 않게 6px(2026-11-18) */
+/* 휴대폰 홈 위쪽 줄이기(2026-11-17 사용자 "상단이 답답해 보임") */
+@media (max-width: 480px) {
+  .hm .wl-top .wrap { min-height: 52px; padding-block: 4px; gap: 8px; }
+  .hm .wl-top .wrap > .mailb { margin-right: -8px; }   /* 날짜 · 봉투를 오른쪽 끝으로 */
+  .hm .wl-org .church { font-size: 17px; min-height: 44px; }
+  .hm .wl-org small { font-size: 12px; }
+  .hm .hj-card.hj-hi { padding: 16px 14px 14px; }
+  .hm .hj-hi h1 { font-size: 23px; margin: 0 0 6px; }
+  .hm .hj-hi .hj-hi-top > div > small { font-size: 12px; }
+  .hm .hj-hi .hj-roles i { font-size: 12px; padding: 3px 8px; }
+  .hm .hj-hi p { font-size: 13.5px; }
+  .hm .hj-hi p span { font-size: 12.5px; }
+  .hm .hj-av { width: 56px; height: 56px; font-size: 22px; }
+  .hm .hj-grow { gap: 12px; margin-top: 12px; padding-top: 12px; }
+  .hm .hj-ring { width: 80px; height: 80px; }
+  .hm .hj-ring > span { font-size: 12px; }
+  .hm .hj-ring.g i .pea { width: 30px; height: 30px; }
+  .hm .hj-gtx { min-width: 0; }
+  .hm .hj-gtx b { font-size: 22px; }
+  .hm .hj-gtx em { margin-top: 4px; font-size: 12.5px; white-space: nowrap; }
+  .hm .hj-gside { min-width: 0; padding-left: 12px; }
+  .hm .hj-gside b { font-size: 19px; }
+  .hm .hj-sr .tg { flex-wrap: nowrap; min-width: 0; }
+  .hm .hj-sr .tg b { flex: none; white-space: nowrap; }
+  .hm .hj-sr .tg span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+/* 그림자 연하게(테두리는 그대로) · 맨 아래 여백 좁게 · 말씀 찾기 줄 테두리 없앰(2026-11-17 사용자) */
+.hm .hj-card:not(.hj-inv), .hm .hcCard { box-shadow: inset 0 2px 0 #FFFFFF, 0 1px 2px rgba(20, 35, 70, .06), 0 4px 10px -4px rgba(20, 35, 70, .10); }
+.hm main.hj .wrap { padding-bottom: 12px; }
+.hm footer .wrap { padding-block: 6px calc(12px + env(safe-area-inset-bottom, 0px)); }
+.hm .hj-sr .tg { display: flex; border: 0; border-radius: 0; }   /* site.css 의 공통 .tg(테두리 상자)가 붙지 않게 */
+.hm .hj-sr .tg b { background: #EEF4FE; color: #2F6BE0; box-shadow: inset 0 0 0 1px #D6E4FB; border-radius: 8px; }
+/* 잘 안 보이던 글자(2026-11-18 사용자): 휴대폰 성장 원 안 "씨앗 75%"가 테두리에 겹침 → 원 안에는 그림 · % 만(단계 이름은 옆 "○○으로 자라는 중"). 원 테두리는 조금 가늘게 */
+.hm .hj-ring.g > span em.nm { font-style: normal; }
+.hm .hj-ring circle { stroke-width: 6; }
+@media (max-width: 480px) {
+  .hm .hj-ring.g > span em.nm { display: none; }
+  .hm .hj-ring.g i .pea { width: 26px; height: 26px; }
+}
+/* 누가 선물 받나요 — 부서 홈 카드(2026-11-18) */
+.hm .gb-home { margin: 0; padding: 18px 16px; }
+.hm .gb-home h2 { margin: 0 0 4px; font-size: 16px; }
+/* 로그인 안 한 사람의 부서 홈 둘러보기(2026-11-18 확정 시안 부서홈-둘러보기, R-336) */
+.hm .gs-login { margin-left: 8px; padding: 7px 13px; border-radius: 99px; background: #2B59C3; color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; white-space: nowrap; }
+.hm .gs-hi { display: grid; gap: 10px; }
+.hm .gs-hi small { color: #6B7280; font-weight: 700; }
+.hm .gs-hi h1 { font-size: 22px; margin: 0; line-height: 1.35; }
+.hm .gs-hi p { margin: 0; color: #4B5563; font-size: 14px; line-height: 1.6; }
+.hm .gs-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+.hm .gs-acts a { text-align: center; padding: 13px; border-radius: 14px; font-weight: 900; text-decoration: none; }
+.hm .gs-acts a.p { background: #2B59C3; color: #fff; }
+.hm .gs-acts a.s { background: #EEF3FC; color: #2B59C3; }
+.hm .gs-ring { flex: none; width: 76px; height: 76px; border-radius: 50%; background: #F3F4F6; display: grid; place-items: center; text-align: center; font-size: 12px; line-height: 1.3; color: #6B7280; font-weight: 700; }
+.hm .gs-m4 a { background: #F8FAFC !important; border: 1px solid #E5E7EB !important; color: #374151 !important; box-shadow: none !important; }
+.hm .gs-m4 a small { color: #6B7280 !important; }
+.hm .gs-dept span { display: flex; flex-direction: column; align-items: center; }
+.hm .gs-hi .hj-dname { --dept: #D9730D; --dept-mark: #FFE7CC; font-style: normal; font-size: 1.1em; font-weight: 900; color: var(--dept); padding: 0 2px; border-radius: 4px; background: linear-gradient(transparent 62%, var(--dept-mark) 62%); }
+/* 둘러보기 = 로그인 화면과 같은 모양(2026-11-18 확정 시안 둘러보기-같은모양) */
+.hm .gs-band { display: flex; align-items: center; gap: 8px; background: #EEF3FC; border: 1px solid #C7D7F5; border-radius: 14px; padding: 10px 12px; font-size: 13px; color: #1E3A8A; }
+.hm .gs-band span { flex: 1; min-width: 0; }
+.hm .gs-band small { display: block; color: #4B5563; font-size: 12px; }
+.hm .gs-band a { padding: 8px 12px; border-radius: 10px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.hm .gs-band a.p { background: #2B59C3; color: #fff; }
+.hm .gs-band a.s { background: #fff; color: #2B59C3; border: 1px solid #C7D7F5; }
+.hm .gb-home .gs-hide { margin: 6px 0 0; color: #6B7280; font-size: 13.5px; }
+/* 부서 홈 예배 안내 카드(ADR 0116, 확정 시안 예배안내) */
+.hm .wi { display: grid; gap: 10px; }
+.hm .hj-card.wi { background: #fff; border: 1px solid #E5E7EB; border-radius: 12px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(20, 35, 70, .06); }   /* 유년부처럼 흰 바탕 · 연한 테두리 · 좁은 여백(2026-11-20 사용자) */
+.hm .wi-row { display: flex; align-items: center; gap: 10px; }
+.hm .wi-row + .wi-row { border-top: 1px solid #EEF0F4; padding-top: 10px; }
+.hm .wi-tx { flex: 1; min-width: 0; }
+.hm .wi-k { font-size: 12px; font-weight: 800; color: #2B59C3; }
+.hm .wi-t { font-size: 15.5px; font-weight: 900; margin-top: 3px; color: #111827; }
+.hm .wi-p { font-size: 12.5px; color: #4B5563; margin-top: 2px; }
+.hm .wi-a { font-size: 12px; color: #6e6e75; margin-top: 1px; display: flex; align-items: center; gap: 6px; }
+.hm .wi-copy { width: 22px; height: 22px; border-radius: 50%; border: 0; background: #F3F4F6; font-size: 12px; cursor: pointer; color: #4B5563; }
+.hm .wi-bt { flex: none; display: grid; place-items: center; text-align: center; background: #F97316; color: #fff; border-radius: 12px; padding: 8px 12px; text-decoration: none; }   /* 작고 평평하게(그림자 없음) */
+.hm .wi-bt b { font-size: 14px; color: #fff; }
+.hm .wi-bt small { font-size: 12px; color: #fff; opacity: .92; margin-top: 2px; }
+/* 부서 홈 사진첩 카드(ADR 0118, 확정 시안 사진첩 ①) */
+.hm .hj-card.hal { background: #fff; border: 1px solid #E5E7EB; border-radius: 12px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(20, 35, 70, .06); }
+.hm .hal-t { display: flex; justify-content: space-between; align-items: baseline; }
+.hm .hal-t b { font-size: 15px; }
+.hm .hal-t a { font-size: 12.5px; font-weight: 800; color: #2B59C3; text-decoration: none; }
+.hm .hal-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
+.hm .hal-a { position: relative; display: block; text-decoration: none; }
+.hm .hal-cv { display: block; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: #EEF1F7; }
+.hm .hal-cv img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hm .hal-n { position: absolute; left: 6px; right: 6px; bottom: 5px; font-size: 12px; font-weight: 800; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, .7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 생일 선물 카드 · 팝업(ADR 0123, R-346, 확정 시안 생일선물-부서홈-팝업) — bdh- 접두어(다른 화면 이름과 겹치지 않게) */
+.bdh-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; margin: 0; padding: 16px; border-radius: 16px;
+  border: 1px solid #F9C9DE; background: linear-gradient(100deg, #FDEEF5, #FEF6EC); color: #111827; text-decoration: none; }
+.bdh-card .bdh-ic { font-size: 30px; line-height: 1; }
+.bdh-card .bdh-m { min-width: 0; }
+.bdh-card .bdh-m b { display: block; font-size: 16px; font-weight: 800; }
+.bdh-card .bdh-m small { display: block; margin-top: 3px; font-size: 13px; font-weight: 700; color: #9D174D; }
+.bdh-card .bdh-go { padding: 9px 14px; border-radius: 12px; background: #DB2777; color: #fff; font-size: 14px; font-weight: 800; white-space: nowrap; }
+.bdh-pop { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; background: rgba(17, 24, 39, .5); }
+.bdh-box { width: min(100%, 380px); padding: 24px 18px 18px; border-radius: 22px; background: #fff; text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, .25); }
+.bdh-box .bdh-em { font-size: 52px; line-height: 1.1; letter-spacing: 6px; }
+.bdh-box h2 { margin: 10px 0 6px; font-size: 21px; font-weight: 800; color: #111827; word-break: keep-all; }
+.bdh-box p { margin: 0 0 16px; font-size: 14.5px; line-height: 1.6; color: #4B5563; word-break: keep-all; }
+.bdh-box .bdh-pick { display: block; padding: 14px; border-radius: 14px; background: #DB2777; color: #fff; font-size: 17px; font-weight: 800; text-decoration: none; }
+.bdh-later { margin: 14px 0 0; }
+.bdh-later small { display: block; margin-bottom: 8px; font-size: 13.5px; color: #6B7280; }
+.bdh-later div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.bdh-later button { padding: 11px 4px; border: 1px solid #D1D5DB; border-radius: 12px; background: #fff; color: #111827; font-size: 14.5px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+/* 고른 생일 선물 카드(2026-11-20 확정 시안 고른선물 ①): hj-card 테두리 그대로 */
+.hm .hj-card.bdh-got { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 14px; align-items: center; color: #111827; text-decoration: none; }
+.bdh-got .bdh-pic { position: relative; width: 72px; height: 72px; border-radius: 14px; overflow: hidden; display: grid; place-items: center; font-size: 34px; background: linear-gradient(135deg, #FDE7F1, #FEF3E2); }
+.bdh-got .bdh-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #fff; }
+.bdh-got .bdh-m { min-width: 0; }
+.bdh-got .bdh-k { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 12.5px; font-weight: 800; color: #9D174D; }
+.bdh-got .bdh-k i { font-style: normal; padding: 2px 8px; border-radius: 99px; background: #DCFCE7; color: #167a41; font-size: 12px; }
+.bdh-got .bdh-m > b { display: block; margin-top: 3px; font-size: 17px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bdh-got .bdh-bar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin-top: 8px; }
+.bdh-got .bdh-bar i { height: 5px; border-radius: 9px; background: #E5E7EB; }
+.bdh-got .bdh-bar i.on { background: #16A34A; }
+.bdh-got .bdh-m > small { display: block; margin-top: 5px; font-size: 12px; color: #6B7280; }
+.bdh-got .bdh-ar { font-size: 22px; color: #6e6e75; }
+.hm .hj-card.bdh-late b { display: block; font-size: 15px; font-weight: 800; color: #111827; }
+.hm .hj-card.bdh-late small { display: block; margin-top: 3px; font-size: 13px; color: #6B7280; }
+
+/* 부서 홈 dodan 화면(2026-11-22 사용자 확정, ADR 0127) — 머리말 · 로고 · 검색 · 프로그램 4칸 · 말씀 · 현황 */
+.hm.hmx { background: #fff; color: #222; }
+.hm.hmx .wrap { max-width: 760px; display: block; padding: 6px 0 30px; }
+.hmx-wrap { padding: 6px 0 30px; }
+.hmx-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 52px; }
+.hmx-ico { width: 40px; height: 40px; display: grid; place-items: center; border: 0; padding: 0; background: transparent; border-radius: 10px; color: #222; }
+.hmx-ico svg { stroke: currentColor; }
+.hmx-act { display: flex; align-items: center; gap: 2px; }
+.hmx-prof img { width: 27px; height: 27px; border-radius: 50%; object-fit: cover; display: block; }
+/* 머리말 내 계정: 프로필 + "000님" (2026-11-23 사용자) */
+.hmx-me { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; max-width: 156px; padding: 0 10px 0 5px; border: 1px solid #e3e6ea; border-radius: 999px; background: #fff; color: #222; text-decoration: none; }
+.hmx-me .av { width: 30px; height: 30px; flex: none; border-radius: 50%; background: #e8edf9; color: #1e3a8a; font-size: 12px; font-weight: 900; display: grid; place-items: center; overflow: hidden; }
+.hmx-me .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hmx-me b { font-size: 13.5px; font-weight: 800; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hmx-me:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.hmx-act .mailb { width: 40px; height: 40px; border-radius: 10px; background: transparent; color: #222; }
+.hmx-act .mailb i { top: 2px; right: 2px; box-shadow: 0 0 0 2px #fff; }
+.hmx-login { min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; border-radius: 11px; background: #1e3a8a; color: #fff; font-size: 14px; font-weight: 800; }
+.hmx-logo { text-align: center; padding: 8px 0 2px; }
+.hmx-logo h1 { margin: 0; font-size: 32px; font-weight: 900; color: #1e3a8a; letter-spacing: .5px; line-height: 1.25; word-break: keep-all; }
+.hmx-logo h1 span { color: #1f55c0; }
+.hmx-logo p { margin: 8px 0 0; font-size: 13.5px; font-weight: 500; color: #3b4a7d; letter-spacing: .02em; }
+.hmx-search { display: flex; align-items: stretch; gap: 0; height: 50px; margin: 16px 0 2px; border: 1px solid #e3e6ea; border-radius: 12px; background: #f6f7f9; overflow: hidden; }
+.hmx-search input { flex: 1; min-width: 0; border: 0; padding: 0 16px; background: transparent; font: inherit; font-size: 14.5px; color: #222; outline: 0; border-radius: 12px 0 0 12px; }
+.hmx-search input::placeholder { color: #6e6e75; }
+.hmx-search button { flex: none; min-width: 84px; border: 0; background: #5b8def; color: #fff; font-size: 15px; font-weight: 800; padding: 0 16px; cursor: pointer; border-radius: 0 12px 12px 0; }
+.hmx-search button:active { background: #4b7fe0; }
+.hmx-search:focus-within { outline: 2px solid var(--ring); outline-offset: 2px; }
+.hmx-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 14px; padding: 22px 30px 4px; }
+.hmx-item { display: flex; flex-direction: column; align-items: center; gap: 9px; min-width: 0; }
+.hmx-tile { width: 72px; height: 72px; border-radius: 18px; background: #fff; border: 1px solid #eceef2; box-shadow: 0 2px 8px rgba(30, 58, 138, .07); display: grid; place-items: center; }
+.hmx-item > span:last-child { font-size: 13px; font-weight: 500; color: #222; text-align: center; line-height: 1.35; }
+.hmx-card { display: block; margin-top: 18px; padding: 18px; background: #f6f7f9; border: 1px solid #eceef2; border-radius: 14px; }
+.hmx-card h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16.5px; font-weight: 900; color: #222; }
+.hmx-card h2:before { content: ""; width: 4px; height: 16px; border-radius: 2px; background: #1e3a8a; flex: none; }
+.hmx-vs { display: flex; align-items: flex-start; gap: 14px; margin-top: 12px; }
+.hmx-vs svg { flex: none; margin-top: 1px; }
+.hmx-vs.solo { display: block; margin-top: 10px; padding-left: 12px; }   /* 아이콘 없이 글만(첫 화면) — 제목 글자와 왼쪽 선 맞춤 */
+.hmx-vs p { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.7; color: #222; }
+.hmx-vs .ref { color: #3b4a7d; font-weight: 700; }
+.hmx-ch { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.hmx-more { display: inline-flex; align-items: center; gap: 3px; padding: 6px 11px; border: 1px solid #d8dbe2; border-radius: 999px; background: #fff; font-size: 12px; color: #6e6e75; }
+.hmx-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 14px; }
+.hmx-stat { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0 4px; text-align: center; min-width: 0; }
+.hmx-stat + .hmx-stat { border-left: 1px solid #e5e8ee; }
+.hmx-stat .lb { display: flex; align-items: center; gap: 3px; font-size: 12px; color: #6e6e75; white-space: nowrap; }
+.hmx-stat .lb svg { color: #3b4a7d; }
+.hmx-stat .vl { font-size: 15.5px; font-weight: 700; color: #3b4a7d; white-space: nowrap; }
+.hmx-stats.detail { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 14px; padding-top: 12px; border-top: 1px solid #e5e8ee; }
+.hmx-guest { display: grid; gap: 4px; margin-top: 14px; padding: 14px; background: #fff; border: 1px solid #e6e9ef; border-radius: 12px; text-align: center; }
+.hmx-guest b { font-size: 13.5px; font-weight: 900; }
+.hmx-guest span { font-size: 12px; color: #6e6e75; }
+.hmx-guest a { justify-self: center; margin-top: 6px; min-height: 44px; padding: 0 18px; display: inline-flex; align-items: center; border-radius: 10px; background: #1e3a8a; color: #fff; font-size: 13.5px; font-weight: 800; }
+.hmx-links { display: flex; justify-content: center; gap: 14px; margin-top: 20px; font-size: 12.5px; color: #6e6e75; }
+.hmx-links a { color: #3b4a7d; text-decoration: underline; text-underline-offset: 3px; }
+@media (min-width: 720px) { .hmx-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); padding-inline: 10px; } }
+@media (max-width: 480px) { .hmx-search input { font-size: 16px; } }   /* iOS 확대 방지 */
+@media (max-width: 380px) {
+  .hmx-logo h1 { font-size: 27px; }
+  .hmx-grid { padding-inline: 16px; }
+  .hmx-tile { width: 64px; height: 64px; }
+}
+
+
+/* 가족팀 — 초대 배너 · 우리 가족팀 · 만들기 유도 (2026-11-22 3차) */
+.hmx-inv { margin-top: 18px; padding: 16px 16px 14px; border: 1px solid #d6e2f8; border-radius: 14px; background: #eef4fe; }
+.hmx-inv .hd { display: flex; align-items: flex-start; gap: 11px; }
+.hmx-inv .em { width: 38px; height: 38px; border-radius: 11px; background: #fff; display: grid; place-items: center; flex: none; font-size: 19px; }
+.hmx-inv b { display: block; font-size: 15px; font-weight: 900; color: #1e3a8a; }
+.hmx-inv small { display: block; margin-top: 3px; font-size: 12.5px; color: #4a5a7d; line-height: 1.5; }
+.hmx-inv .cnt { margin-left: auto; font-size: 12px; color: #5b6b8c; flex: none; }
+.hmx-inv .row { display: flex; align-items: center; gap: 10px; margin-top: 13px; }
+.hmx-inv .row form { margin: 0; display: inline-flex; }
+.hmx-inv .go { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: 11px; background: #1e3a8a; color: #fff; font-size: 13.5px; font-weight: 800; }
+.hmx-inv .later { border: 0; background: none; padding: 6px 0; font: inherit; font-size: 12.5px; font-weight: 700; color: #5b6b8c; cursor: pointer; }
+
+.hmx-fam { display: flex; align-items: center; gap: 13px; margin-top: 18px; padding: 16px; border: 1px solid #eceef2; border-radius: 14px; background: #f6f7f9; color: inherit; text-decoration: none; }
+.hmx-fam .em { width: 44px; height: 44px; border-radius: 13px; background: #fff; border: 1px solid #eceef2; display: grid; place-items: center; flex: none; font-size: 22px; }
+.hmx-fam .tx { flex: 1; min-width: 0; }
+.hmx-fam .tx b { display: block; font-size: 15px; font-weight: 900; }
+.hmx-fam .tx b i { font-style: normal; color: #1e3a8a; font-weight: 900; }
+.hmx-fam .tx small { display: block; margin-top: 3px; font-size: 12px; color: #6e6e75; }
+.hmx-fam .avs { display: inline-flex; margin-left: 5px; vertical-align: -4px; }
+.hmx-fam .avs i { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 1px solid #e3e6ea; margin-left: -5px; display: inline-grid; place-items: center; font-size: 12px; font-style: normal; color: #5b6470; }
+.hmx-fam .avs i:first-child { margin-left: 0; }
+.hmx-fam .bar { display: block; height: 6px; border-radius: 99px; background: #e3e8f0; margin-top: 9px; overflow: hidden; }
+.hmx-fam .bar i { display: block; height: 100%; border-radius: 99px; background: #5b8def; }
+.hmx-fam .ar { flex: none; color: #b3bcc9; font-size: 20px; }
+
+.hmx-make { margin-top: 18px; padding: 18px 16px 16px; border: 1px dashed #c9d6ea; border-radius: 14px; background: #fff; }
+.hmx-make .hd { display: flex; align-items: flex-start; gap: 11px; }
+.hmx-make .em { width: 42px; height: 42px; border-radius: 12px; background: #eef4fe; display: grid; place-items: center; flex: none; font-size: 21px; }
+.hmx-make b { display: block; font-size: 15px; font-weight: 900; line-height: 1.4; }
+.hmx-make small { display: block; margin-top: 4px; font-size: 12.5px; color: #6e6e75; line-height: 1.55; }
+.hmx-make .row { display: flex; gap: 8px; margin-top: 14px; }
+.hmx-make .go, .hmx-make .alt { flex: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 12px; border-radius: 11px; font-size: 13.5px; font-weight: 800; }
+.hmx-make .go { background: #1e3a8a; color: #fff; }
+.hmx-make .alt { background: #fff; border: 1px solid #c9d6ea; color: #3b4a7d; }
+
+@media (max-width: 380px) { .hmx-me:has(.av) { padding: 0 5px; } .hmx-me:has(.av) b { display: none; } }   /* 사진 동그라미가 없으면 이름을 숨기지 않는다 — 안 그러면 빈 테두리만 남는다(2026-11-24 사용자 신고) */

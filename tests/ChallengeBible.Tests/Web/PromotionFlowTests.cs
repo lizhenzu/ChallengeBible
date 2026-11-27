@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -59,18 +59,22 @@ public partial class PromotionFlowTests : IClassFixture<WebApplicationFactory<Pr
         // 보내기: 고르고 → 부서 확인(이름만) → 보내기
         var members = "/jamsil-kids/admin/members?Tab=Approved";
         var html = await kidsAdmin.GetStringAsync(members);
-        Assert.Contains("진급 보내기", html);
+        Assert.Contains("부서 옮기기", html);   // 2026-11-20 사용자: [진급 보내기] → [부서 옮기기]
         var token = TokenRx().Match(html).Groups[1].Value;
         var check = await Post(kidsAdmin, "/jamsil-kids/admin/members?handler=PromoteCheck&Tab=Approved", token, ("pick", kid.Id.ToString()), ("code", "jselem"));
         var checkHtml = await check.Content.ReadAsStringAsync();
         Assert.Contains("받는 부서: jamsil-elem 부서", checkHtml);
-        Assert.Contains("1명 진급 요청 보내기", checkHtml);
+        Assert.Contains("1명 옮기기 요청 보내기", checkHtml);
         var sent = await Post(kidsAdmin, "/jamsil-kids/admin/members?handler=Promote&Tab=Approved", token, ("pick", kid.Id.ToString()), ("code", "JSELEM"));
         Assert.Equal("/jamsil-kids/admin/promotions?Tab=out&Ok=sent", sent.Headers.Location!.OriginalString);
         Assert.Contains("기다리는 중", await kidsAdmin.GetStringAsync("/jamsil-kids/admin/promotions?Tab=out"));
 
         // 받는 부서: 메뉴 숫자 · 관리 홈 카드 · 받은 요청
-        Assert.Contains("받은 진급 요청", await elemAdmin.GetStringAsync("/jamsil-elem/admin"));
+        Assert.Contains("받은 이동 요청", await elemAdmin.GetStringAsync("/jamsil-elem/admin"));   // 2026-11-21 "진급" → "부서 · 반 이동"
+        var mv = await elemAdmin.GetStringAsync("/jamsil-elem/admin/promotions");
+        Assert.Contains("<h1>부서 · 반 이동</h1>", mv);
+        Assert.Contains("href=\"/jamsil-elem/admin/classes/move\"", mv);   // [이동하기]
+        Assert.Contains("<b>부서 · 반 이동", System.Net.WebUtility.HtmlDecode(await elemAdmin.GetStringAsync("/jamsil-elem/admin")));   // 관리 ☰ 메뉴 이름
         var inbox = await elemAdmin.GetStringAsync("/jamsil-elem/admin/promotions");
         Assert.Contains("cheolsu@example.com", inbox);
         Assert.Contains("기다리는 요청 1건", inbox);

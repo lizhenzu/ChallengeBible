@@ -1,0 +1,31 @@
+@page "/{slug}/admin/members/p/{pid:int}/edit"
+@model ChallengeBible.Web.Pages.Admin.PersonEditModel
+@using ChallengeBible.Web.Services
+@* 고치기(2026-11-21 확정 시안 사람관리-쪼개기 ③): 저장 하나, 취소 하나. 저장하면 상세로 *@
+@{
+    var r = Model.Row!;
+    var slug = Model.Tenant.Current.Slug;
+    var detail = $"/{slug}/admin/members/p/{r.PersonId}";
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut w760"><div class="wrap pd">
+    <a class="pd-back" href="@detail">‹ @r.Name</a>
+    <h1>@r.Name 고치기</h1>
+    @if (Model.Error is { } err) { <p class="err" role="alert">@err</p> }
+    <form method="post" class="pp-form pd-form">
+        @if (!r.Linked) { <label>이름<input class="in" name="name" value="@r.Name" maxlength="50" required /></label> }
+        else { <p class="hint">가입한 사람이에요. 이름은 본인 계정에서 바꿔요.</p> }
+        <label>생일 (연도 없이)@PersonUi.Days(r.BirthMonth, r.BirthDay)</label>
+        <label>연락처<input class="in" name="phone1" value="@r.Phone1" maxlength="20" inputmode="tel" /></label>
+        <label>연락처 2 (선택 · 부모님 번호 등)<input class="in" name="phone2" value="@r.Phone2" maxlength="20" inputmode="tel" /></label>
+        @if ((!r.Linked || Model.IsAdmin) && r.RoleCode?.Trim() != UserRole.AdminCode)
+        {
+            <label>역할<select class="sel" name="roleCode">
+                @foreach (var (code, name) in Model.RoleCodes) { <option value="@code.Trim()" selected="@(r.RoleCode?.Trim() == code.Trim())">@name</option> }
+                <option value="" selected="@(string.IsNullOrEmpty(r.RoleCode))">학부모</option>
+            </select></label>
+        }
+        @if (!r.Linked) { <p class="hint">아직 가입하지 않았어요. 가입하면 전화 · 생일로 본인 확인을 해서 이 줄과 이어져요.</p> }
+        <div class="pd-foot"><a class="btn s" href="@detail">취소</a><button type="submit" class="btn p">저장</button></div>
+    </form>
+</div></main>

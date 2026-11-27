@@ -58,9 +58,11 @@ public partial class PlatformFlowTests : IClassFixture<WebApplicationFactory<Pro
         Assert.StartsWith("/account/denied", (await (await LoggedIn("cheolsu", platformAdmin: false)).GetAsync("/platform")).Headers.Location!.PathAndQuery);
         var kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");                 // 관리자 없는 부서
         var c = await LoggedIn("operator", platformAdmin: true);
+        Assert.Equal("/platform/todo", (await c.GetAsync("/platform")).Headers.Location!.OriginalString);   // 로그인 직후 내 할 일(관리자 없는 부서)이 있으면 할 일 화면으로(R-309), 한 번만
         var home = await c.GetStringAsync("/platform");
-        Assert.Contains("aria-current=\"page\">플랫폼 홈", home);
-        Assert.Contains("<a class=\"home-txt\" href=\"/\">홈으로</a>", home);   // 머리말 오른쪽 위 글자 "홈으로"(2026-11-15 사용자)
+        Assert.Matches("aria-current=\"page\"><i [^>]*>.*?</i><span class=\"tdr2-t\"><b>플랫폼 홈", home);   // ☰ 지금 화면(새 메뉴판, 2026-11-18)
+        Assert.Contains("class=\"hb\" href=\"/\">", home);   // 머리말 오른쪽: 검정 이동 버튼 「홈으로」(첫 화면으로, 기준표 8판)
+        Assert.Contains("class=\"cur\">플랫폼</b>", home);
         Assert.Contains("운영 중인 부서", home);
         Assert.Contains(kids.Name, home);
         Assert.Contains("관리자가 없는 부서", home);
@@ -110,7 +112,7 @@ public partial class PlatformFlowTests : IClassFixture<WebApplicationFactory<Pro
         var c = await LoggedIn("operator", platformAdmin: true);
         async Task<bool> Press()
         {
-            var page = await c.GetStringAsync($"/platform/tenants?Open={t.Id}");
+            var page = await c.GetStringAsync($"/platform/tenants/{t.Id}?tab=prog");   // 부서 화면 · 프로그램 · 참여 탭(2026-11-18)
             var r = await c.PostAsync("/platform/tenants?handler=Listed", new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value,
@@ -131,8 +133,10 @@ public partial class PlatformFlowTests : IClassFixture<WebApplicationFactory<Pro
     {
         var t = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
         var c = await LoggedIn("operator", platformAdmin: true);
-        var page = await c.GetStringAsync($"/platform/tenants?Open={t.Id}");
+        Assert.Equal($"/platform/tenants/{t.Id}", (await c.GetAsync($"/platform/tenants?Open={t.Id}")).Headers.Location!.OriginalString);   // 예전 주소 → 부서 화면
+        var page = await c.GetStringAsync($"/platform/tenants/{t.Id}");
         Assert.Contains("handler=Info", page);
+        Assert.Contains("aria-current=\"page\">기본 정보", page);
 
         var r = await c.PostAsync("/platform/tenants?handler=Info", new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -147,5 +151,26 @@ public partial class PlatformFlowTests : IClassFixture<WebApplicationFactory<Pro
         using var raw = InMemoryDb.Raw(_db);
         var saved = raw.Tenants.Single();
         Assert.Equal(("잠실새내교회 초등부", "America/New_York", "violet", "jamsil-kids"), (saved.Name, saved.TimeZoneId, saved.ThemeColor, saved.Slug));
+    }
+
+    [Fact]
+    public async Task 부서_화면은_탭으로_나뉘고_저장_오류는_그_탭에_보인다()   // 2026-11-18 확정 시안 플랫폼부서-화면분리
+    {
+        var t = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
+        var c = await LoggedIn("operator", platformAdmin: true);
+        var list = await c.GetStringAsync("/platform/tenants");
+        Assert.Contains($"href=\"/platform/tenants/{t.Id}\"", list);       // 목록은 펼치지 않고 부서 화면으로
+        Assert.DoesNotContain("handler=Info", list);
+        foreach (var tab in new[] { "prog", "admin", "ops" })
+            Assert.Contains($"aria-current=\"page\">{TabLabel(tab)}", await c.GetStringAsync($"/platform/tenants/{t.Id}?tab={tab}"));
+        var page = await c.GetStringAsync($"/platform/tenants/{t.Id}?tab=prog");
+        var r = await c.PostAsync("/platform/tenants?handler=Programs", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["id"] = t.Id.ToString(), ["tab"] = "prog",   // 프로그램을 하나도 안 고름
+        }));
+        Assert.Equal($"/platform/tenants/{t.Id}?tab=prog", r.Headers.Location!.OriginalString);
+        Assert.Contains("class=\"err\"", await c.GetStringAsync(r.Headers.Location!.OriginalString));
+        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/platform/tenants/99999")).StatusCode);
+        static string TabLabel(string k) => ChallengeBible.Web.Pages.Platform.TenantModel.Tabs.Single(x => x.Key == k).Label;
     }
 }

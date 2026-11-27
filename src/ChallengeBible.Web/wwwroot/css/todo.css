@@ -1,0 +1,113 @@
+﻿/* 오늘 할 일(ADR 0100, 확정 시안 오늘할일). 색은 사이트 토큰(--accent · --ok · --bad …)을 쓴다 */
+.tdo { min-height: 100vh; background: var(--bg); }   /* 이름 .td 는 관리 홈 칸이 이미 쓴다 */
+.td-top { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--rule); }
+.td-top .wrap { max-width: 760px; display: flex; align-items: center; gap: 10px; min-height: 60px; }
+.td-top .t { flex: 1; min-width: 0; line-height: 1.25; }
+.td-top .t small { display: block; font-size: 12px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.td-top .t small em { font-style: normal; font-weight: 900; color: var(--accent-tx, var(--accent)); }
+.td-top .t b { font-size: 16px; font-weight: 800; }
+.td-home { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 99px; background: var(--accent); color: var(--on-accent, #fff); font-size: 14px; font-weight: 800; text-decoration: none; }
+.td-main { max-width: 760px; padding-block: 14px 40px; display: flex; flex-direction: column; gap: 12px; }
+.td-msg { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--ok-bg); color: var(--ok-tx, var(--ok)); font-weight: 700; font-size: 14px; }
+.td-hello h1 { margin: 0; font-size: 22px; }
+.td-hello p { margin: 4px 0 0; color: var(--dim); font-size: 13.5px; }
+.td-snooze { margin: 0; background: var(--soft); border-radius: 14px; padding: 10px 12px; }
+.td-snooze small { display: block; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+.td-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.td-chips button { min-height: 44px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 13px; font-weight: 700; cursor: pointer; }
+.td-empty { text-align: center; padding: 30px 10px; color: var(--dim); font-size: 15px; }
+.td-sec { display: flex; flex-wrap: wrap; gap: 2px 10px; justify-content: space-between; align-items: baseline; margin: 6px 2px -4px; font-size: 12.5px; font-weight: 800; color: var(--dim); }
+.td-sec b { color: var(--fg); font-size: 15px; }
+.td-card { border: 1px solid var(--rule); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.td-card.urgent { border-color: color-mix(in srgb, var(--bad) 35%, var(--rule)); background: color-mix(in srgb, var(--bad-bg) 40%, var(--bg)); }
+.td-row { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 8px; align-items: start; }
+.td-row .ic { font-size: 20px; line-height: 1.2; }
+.td-row .what b { font-size: 15px; display: block; overflow-wrap: anywhere; }
+.td-row .what span { display: block; font-size: 12.5px; color: var(--dim); margin-top: 2px; line-height: 1.45; }
+.td-row .what .who { display: inline-block; font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: var(--accent-bg); color: var(--accent-tx, var(--accent)); margin-top: 4px; }
+.td-row .what .who.done { background: var(--ok-bg); color: var(--ok-tx, var(--ok)); }
+.td-row .what .who.late { background: var(--bad-bg); color: var(--bad); }
+.td-btns { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+.td-btns form { margin: 0; }
+.td-btns .btn { min-height: 44px; padding: 0 12px; border-radius: 11px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; text-decoration: none; cursor: pointer; }
+.td-btns .btn.p { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
+.td-btns .btn.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
+.td-dept { border: 1px solid var(--rule); border-radius: 14px; padding: 10px 12px; }
+.td-dept h3 { margin: 0 0 6px; font-size: 15px; display: flex; justify-content: space-between; }
+.td-dept h3 span { font-size: 12px; color: var(--bad); font-weight: 800; }
+.td-dept ul { margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.85; }
+.td-dept li span { color: var(--dim); }
+.td-note { font-size: 12px; color: var(--dim); line-height: 1.5; background: var(--soft); border-radius: 10px; padding: 8px 10px; margin: 0; }
+.td-rule { width: 100%; border-collapse: collapse; font-size: 13px; }
+.td-rule th { white-space: nowrap; font-size: 12px; color: var(--dim); font-weight: 700; padding: 6px 2px; border-bottom: 1px solid var(--rule); text-align: center; }
+.td-rule th:first-child, .td-rule td:first-child { text-align: left; }
+.td-rule td { padding: 8px 2px; border-bottom: 1px solid var(--rule); text-align: center; }
+.td-rule td:first-child { font-weight: 700; }
+.td-rule label { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; cursor: pointer; }
+.td-rule label span { display: none; }
+.td-rule input { width: 22px; height: 22px; margin: 0; accent-color: var(--accent); }
+/* 휴대폰(확정 시안 할일규칙-휴대폰, 2026-11-16): 할 일마다 카드 하나, 역할은 이름 붙은 칩 */
+@media (max-width: 599px) {
+  .td-rule, .td-rule tbody { display: block; }
+  .td-rule thead { display: none; }
+  .td-rule tr { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--rule); border-radius: 14px; }
+  .td-rule td { padding: 0; border: 0; }
+  .td-rule td:first-child { flex-basis: 100%; font-size: 15px; margin-bottom: 4px; }
+  .td-rule label { min-height: 44px; min-width: 0; gap: 6px; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; font-weight: 700; color: var(--dim); background: var(--bg); }
+  .td-rule label span { display: inline; }
+  .td-rule input { width: 18px; height: 18px; }
+  .td-rule label:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); color: var(--accent-tx, var(--accent)); }
+  .td-rule label:has(input:disabled) { opacity: .6; cursor: default; }
+}
+.td-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.td-seg label { text-align: center; padding: 10px 0; font-size: 13px; font-weight: 800; color: var(--dim); cursor: pointer; }
+.td-seg input { position: absolute; opacity: 0; }
+.td-seg label:has(input:checked) { background: var(--accent); color: var(--on-accent, #fff); }
+/* 할 일 카드 타임라인 · 선물 처리 화면(확정 시안 할일타임라인, 2026-11-16) */
+.td-kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; margin: 0; font-size: 13px; background: var(--soft); border-radius: 10px; padding: 8px 10px; }
+.td-kv dt { color: var(--dim); }
+.td-kv dd { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+.td-tl { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.td-tl li { position: relative; padding: 0 0 10px 22px; font-size: 12.5px; line-height: 1.4; }
+.td-tl li::before { content: ""; position: absolute; left: 5px; top: 13px; bottom: -1px; width: 2px; background: var(--rule); }
+.td-tl li:last-child::before { display: none; }
+.td-tl li i { position: absolute; left: 0; top: 2px; width: 12px; height: 12px; border-radius: 99px; background: var(--bg); border: 2px solid var(--line); }
+.td-tl li.d i { background: var(--ok); border-color: var(--ok); }
+.td-tl li.now i { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+.td-tl li.late i { border-color: var(--bad); box-shadow: 0 0 0 3px var(--bad-bg); }
+.td-tl li b { font-weight: 800; }
+.td-tl li.now b { color: var(--accent-tx, var(--accent)); }
+.td-tl li.late b { color: var(--bad); }
+.td-tl li.todo { color: var(--dim); }
+.td-tl li.todo b { font-weight: 600; }
+.td-tl li small { color: var(--dim); }
+.td-tl.full li { font-size: 13.5px; padding-bottom: 14px; }
+.td-work h1 { margin: 0; font-size: 19px; overflow-wrap: anywhere; }
+.td-why { margin: 0; font-size: 13.5px; color: var(--dim); line-height: 1.55; background: var(--accent-bg); border-radius: 12px; padding: 10px 12px; }
+.td-lbl { font-size: 12.5px; font-weight: 800; color: var(--dim); margin: 4px 2px -4px; }
+.td-acts { display: grid; gap: 8px; }
+.td-acts form { margin: 0; }
+.td-acts .btn { width: 100%; min-height: 50px; border-radius: 12px; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; text-decoration: none; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+.td-acts .btn.p { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
+.td-acts .btn.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
+.td-row.td-noic { grid-template-columns: minmax(0, 1fr); }
+
+/* 선물 안내글 보내기(확정 시안 생일링크-부모안내 ①) */
+.td-share { display: grid; gap: 8px; margin-top: 10px; }
+.td-share .btn { width: 100%; min-height: 46px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; font-size: 14.5px; font-weight: 900; cursor: pointer; }
+.td-share .btn.p { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
+.td-share .btn.go-kakao { background: #FEE500; border-color: #FEE500; color: #191919; }   /* 카카오 노란색(2026-11-22 사용자) — 위 .td-share .btn 흰색을 덮는다 */
+.td-toast { margin: 0; padding: 10px 12px; border-radius: 12px; background: #111827; color: #fff; font-size: 13px; font-weight: 700; }
+.td-toast[hidden] { display: none; }
+.td-prev summary { cursor: pointer; font-size: 12.5px; color: #6B7280; }
+.td-prev pre { margin: 6px 0 0; padding: 10px; border: 1px dashed #CBD5E1; border-radius: 12px; background: #F9FAFB; font: 12.5px/1.6 inherit; font-family: inherit; white-space: pre-wrap; word-break: break-all; }
+.td-top .td-menu { margin-left: -10px; }
+.td-top .t.td-one { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; overflow: hidden; }
+.td-top .td-one .td-brand { flex: none; font-size: 13px; font-weight: 700; color: var(--dim); }
+.td-top .td-one .td-brand em { font-style: normal; font-weight: 900; color: var(--accent-tx, var(--accent)); }
+.td-top .td-one .td-sep { flex: none; font-size: 13px; color: var(--dim); }
+.td-top .td-one b { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 16px; font-weight: 800; }
+.td-hello h1 small { margin-left: 6px; font-size: 13px; font-weight: 700; color: var(--dim); }
+/* 쪼갠 화면으로 가는 한 줄(2026-11-21) */
+.td-go { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--card, #fff); color: var(--fg); font-size: 15px; text-decoration: none; }
+.td-go span { color: var(--accent-tx, var(--accent)); font-size: 20px; }

@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -102,6 +102,8 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Post("quiz/attempts", new { date = jan[4], choiceId = Wrong(jan[4]) });
 
         await Save(kid, "/jamsil-kids", "05-부서홈");
+        await Save(app.CreateClient(), "/jamsil-kids", "05g-부서홈-둘러보기");   // 로그인 안 한 사람(R-336, 2026-11-18 확정 시안)
+        await Save(kid, "/jamsil-kids/feedback", "05k-개선불편-접수");
         await Save(kid, "/jamsil-kids/word-mission", "06-미션홈");
         await Save(kid, "/jamsil-kids/word-mission?date=2027-01-08", "06b-미션홈-미래날짜");   // 오늘 이후는 보기만 가능해요(2026-11-04)
         await Save(kid, "/jamsil-kids/word-mission?date=2027-01-04", "06c-미션홈-지난날-할수있음");   // 주황 카드 ②(확정 시안 미션홈-다른날카드)
@@ -201,7 +203,49 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(kid, "/jamsil-kids/recite", "10-암송");
         await Save(kid, "/jamsil-kids/points", "11-내점수");
         await Save(kid, "/jamsil-kids/ranking", "11c-순위");
+        await Save(admin, "/jamsil-kids", "05m-부서홈-관리자");   // ☰ 메뉴판 섬김 그룹(확정 시안 부서메뉴)
+        await Save(admin, "/jamsil-kids/challenge", "05z-나의도전");   // 「나의 도전」 화면 점검(ADR 0136)
+        await Save(admin, "/", "01b-첫화면-로그인");   // 첫 화면 균형 정리(링 크게 · 가는 줄 삭제 · 이름 칩)
         await Save(admin, "/jamsil-kids/admin", "11b-관리홈");
+        await Save(admin, "/jamsil-kids/admin/worship", "12w-관리-예배안내-빈");   // 예배 안내(ADR 0116, R-337)
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            raw.WorshipSchedules.Add(new WorshipSchedule { TenantId = kids.Id, SortOrder = 1, DayOfWeek = 0, StartTime = new TimeOnly(10, 0), Place = "비전센터 믿음홀(3F)", Address = "서울특별시 송파구 석촌호수로 102", IsActive = true });
+            raw.SaveChanges();
+        }
+        await Save(admin, "/jamsil-kids/admin/worship", "12w2-관리-예배안내");
+        await Save(admin, "/jamsil-kids", "05w-부서홈-예배안내");
+        await Save(app.CreateClient(), "/jamsil-kids", "05w2-부서홈-예배안내-손님");
+        // 부서 소개 화면(ADR 0140): 소개 줄은 이 캡처 동안만 둔다(있으면 부서 홈이 소개 화면으로 먼저 보내므로 다른 캡처가 달라진다)
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            raw.TenantIntros.Add(new TenantIntro { TenantId = kids.Id, Title = "유년부에 오신 것을 환영해요", Body = "말씀 안에서 함께 예배하고, 기도하고, 자라 가는 유년부예요. 매주 주일, 친구들과 만나요.", IsActive = true, UpdatedUtc = new DateTime(2027, 1, 5, 0, 0, 0, DateTimeKind.Utc) });
+            raw.SaveChanges();
+        }
+        await Save(app.CreateClient(), "/jamsil-kids/welcome", "05x-유년부-소개-손님");
+        await Save(admin, "/jamsil-kids/welcome", "05x2-유년부-소개-회원");
+        await Save(admin, "/jamsil-kids/admin/intro", "12x-관리-소개화면");
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            raw.TenantIntros.RemoveRange(raw.TenantIntros);
+            raw.SaveChanges();
+        }
+        await Save(admin, "/jamsil-kids/bulletin/edit", "05j-주보-올리기");   // 부서 주보(ADR 0117)
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            var jb = new Bulletin { TenantId = kids.Id, Date = new DateOnly(2027, 1, 10), Title = "추수감사주일", Body = "오늘은 추수감사주일이에요.\n예배 후 반별로 감사 카드를 써요." };
+            var old1 = new Bulletin { TenantId = kids.Id, Date = new DateOnly(2027, 1, 3), Title = "새해 첫 주일" };
+            raw.Bulletins.AddRange(jb, old1);
+            raw.SaveChanges();
+            raw.BulletinFiles.AddRange(
+                new BulletinFile { TenantId = kids.Id, BulletinId = jb.Id, FileName = "주보_앞면.jpg", StoredName = "x1.jpg", ContentType = "image/jpeg", Size = 2_100_000, SortOrder = 1 },
+                new BulletinFile { TenantId = kids.Id, BulletinId = jb.Id, FileName = "주보_뒷면.jpg", StoredName = "x2.jpg", ContentType = "image/jpeg", Size = 1_800_000, SortOrder = 2 },
+                new BulletinFile { TenantId = kids.Id, BulletinId = jb.Id, FileName = "1월10일_교회주보.pdf", StoredName = "x3.pdf", ContentType = "application/pdf", Size = 1_200_000, SortOrder = 3 },
+                new BulletinFile { TenantId = kids.Id, BulletinId = old1.Id, FileName = "새해.pdf", StoredName = "x4.pdf", ContentType = "application/pdf", Size = 900_000, SortOrder = 1 });
+            raw.SaveChanges();
+        }
+        await Save(app.CreateClient(), "/jamsil-kids", "05j2-부서홈-주보버튼");
+        await Save(admin, "/jamsil-kids/bulletin", "05j3-주보-보기");
         await Save(admin, "/jamsil-kids/admin/members", "12-소속관리");
         // 이름 · 색: 초록 · "유년부 말씀 챌린지"로 바꾼 뒤 모습(바꾼 기록 1건), 찍고 나서 기본값으로 되돌린다
         void Brand(string? name, string? shortName, string color)
@@ -343,6 +387,16 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
             teamId = team.Id;
         }
         await Save(admin, $"/jamsil-kids/admin/teams?Open={teamId}", "12i-관리-가족팀");
+        long hitGift;
+        using (var raw = InMemoryDb.Raw(db))   // 확정 시안 관리-선물카드: 생일 선물 고르는 중 여러 건, 하나는 할 일에서 옴
+        {
+            foreach (var (n, d) in new[] { (1, 21), (2, 24), (3, 26), (4, 28) })
+                raw.Gifts.Add(new Gift { TenantId = kids.Id, Kind = GiftKinds.Birthday, Year = 2027, UserName = km.UserName, SourceKey = $"B{n}", MaxAmount = 5000,
+                    State = GiftStates.Open, OpenUntil = new DateOnly(2027, 1, d), CreatedUtc = new DateTime(2027, 1, 1) });
+            raw.SaveChanges();
+            hitGift = raw.Gifts.Where(g => g.SourceKey == "B1").Select(g => g.Id).Single();
+        }
+        await Save(admin, $"/jamsil-kids/admin/gifts?s=pick&hit={hitGift}", "12i2-관리-선물처리-카드");
         await Save(admin, "/jamsil-kids/admin/teams/stages", "12j-관리-시상기준-기본값");
         await Save(admin, "/jamsil-kids/admin/teams/stages?Y=2028", "12j2-관리-시상기준-내년");
         int locked;
@@ -453,9 +507,17 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         {
             ["__RequestVerificationToken"] = TokenRx().Match(lh).Groups[1].Value, ["Email"] = "operator@example.com", ["Password"] = "1234",
         }));
+        await op.GetAsync("/platform");   // 로그인 직후 한 번은 오늘 할 일로 갈 수 있다(R-309)
         await Save(op, "/platform", "13a-플랫폼홈");
+        await Save(op, "/platform/today?k=mission", "13a2-플랫폼-오늘현황");   // R-334(2026-11-18 확정 시안)
         await Save(op, "/platform/tenants", "13-플랫폼부서");
+        foreach (var (u, n) in new[] { ("/platform/todo", "13e-플랫폼-할일"), ("/platform/admin-rule", "13f-플랫폼-관리자규칙"), ("/platform/reset", "13g-플랫폼-완전초기화"),
+                     ("/platform/quiz-ai-prompt", "13h-플랫폼-AI프롬프트"), ("/platform/roster-upload", "13i-플랫폼-명단올리기") })
+            await Save(op, u, n);   // 머리말 · 내용 폭 760px(2026-11-18)
+        await Save(op, $"/platform/tenants/{kids.Id}", "13c-플랫폼-부서화면-기본");      // 2026-11-18 확정 시안 플랫폼부서-화면분리
+        await Save(op, $"/platform/tenants/{kids.Id}?tab=prog", "13c2-플랫폼-부서화면-프로그램");
         await Save(op, "/platform/accounts?q=" + Uri.EscapeDataString("김"), "13b-플랫폼-계정찾기");
+        await Save(op, $"/platform/accounts?q=cheolsu&id={Acc("cheolsu")}&askMove=true", "13b2-플랫폼-부서바로옮기기");   // R-333(2026-11-18 확정 시안)
         // 가장(확정 시안 플랫폼-가장): 들어가기 확인 → 다른 운영자 창에서 이은혜(유년부 관리자)로 들어간 관리 홈(맨 위 보라 띠)
         var askImp = $"/platform/accounts?q=eunhye&id={Acc("eunhye")}&askImp=true";
         await Save(op, askImp, "13d-플랫폼-가장확인");
@@ -473,8 +535,50 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Save(op, "/platform/rules", "13c-플랫폼-기본규칙");
         await Save(op, "/platform/content/word?month=2027-01&date=2027-01-05", "14-공용콘텐츠-말씀");
         await Save(op, "/platform/content/quiz?month=2027-01&date=2027-01-05", "15-공용콘텐츠-퀴즈");
+        await Save(op, "/platform/content/word?month=2027-01", "15b-공용콘텐츠-말씀-날짜안고름");
+        await Save(op, "/platform/content/recite?no=3", "15c-공용콘텐츠-암송");
 
         await Save(op, "/platform/ops?d=0", "15c-플랫폼-운영점검", x => x.Replace("<li><details>", "<li><details open>"));
+
+        // 선물 점수(확정 시안 선물점수-15크레딧, ADR 0104): 올해 734점 · 받은 선물 667점 → 67점, 상품 1,000원(67점) · 6,000원(400점) · 15,000원(1,000점)
+        using (var raw = InMemoryDb.Raw(db))
+        {
+            raw.MissionActivities.Add(new MissionActivity { TenantId = kids.Id, UserName = km.UserName, MissionDate = new DateOnly(2027, 1, 2), MissionItem = "Word.Me", Points = 734 - raw.MissionActivities.Where(a => a.UserName == km.UserName).Sum(a => a.Points), PerformedAt = DateTime.UtcNow });
+            foreach (var (nm, pr) in new[] { ("스프링 노트", 1000), ("24색 색연필 세트", 6000), ("캐릭터 책가방", 15000) })
+                raw.GiftItems.Add(new GiftItem { Name = nm, Price = pr, CoupangUrl = "https://www.coupang.com/vp/products/1", Status = GiftItemStatus.Active });
+            var pg = new Gift { TenantId = kids.Id, Kind = GiftKinds.Personal, Year = 2027, UserName = km.UserName, SourceKey = "P2027-1", State = GiftStates.Delivered, MaxAmount = 9900, ItemName = "보드게임", ItemPrice = 9900, PointsUsed = 667, CreatedUtc = DateTime.UtcNow };
+            raw.Gifts.Add(pg); raw.SaveChanges();
+            raw.GiftPointUses.Add(new GiftPointUse { TenantId = kids.Id, UserName = km.UserName, Year = 2027, GiftId = pg.Id, PointsUsed = 667, CreatedUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        await Save(kid, "/jamsil-kids/word-mission", "30-선물점수-미션홈");
+        await Save(kid, "/jamsil-kids/gifts?all=true", "31-선물점수-고르기");
+        using (var raw = InMemoryDb.Raw(db))   // 확정 시안 홈-필사카드: 요한복음 3장 1 ~ 2절을 오늘 씀
+        {
+            foreach (short v in new short[] { 1, 2 })
+                raw.CopyVerses.Add(new CopyVerse { UserName = km.UserName, BookId = 43, Chapter = 3, Verse = v, Translation = "KRV", WrittenAt = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        await Save(kid, "/jamsil-kids", "32-부서홈-필사카드");
+        await Save(kid, "/jamsil-kids/copy", "33-필사홈");
+        await Save(kid, "/jamsil-kids/copy/books?t=nt&b=43", "34-필사-장고르기");
+        await Save(kid, "/jamsil-kids/copy/write/43/3", "35-필사-쓰기");
+        using (var raw = InMemoryDb.Raw(db))   // 확정 시안 365축복기도: 관리자(교사)가 지난 며칠 기도함 · 오늘도
+        {
+            foreach (var d in new[] { 1, 2, 3, 5 }) raw.Prayer365Logs.Add(new Prayer365Log { TenantId = kids.Id, UserName = Acc("eunhye"), PrayDate = new DateOnly(2027, 1, d), MonthDay = $"01{d:00}", PrayedUtc = DateTime.UtcNow });
+            raw.SaveChanges();
+        }
+        await Save(admin, "/jamsil-kids/prayer365", "36-365축복기도");
+        await Save(admin, "/jamsil-kids", "36b-부서홈-365축복기도카드");
+        await Save(admin, "/jamsil-kids/admin/prayer365", "37-365축복기도-참여자");
+        await Save(op, "/platform/prayer365", "38-플랫폼-365축복기도문");
+        await Save(op, "/platform/prayer365-stats", "39-플랫폼-365축복기도통계");
+        await Save(op, "/platform/prayer365/edit?md=1218", "39b-플랫폼-365축복기도문-고치기");
+        await Save(op, "/platform/content/word/check", "39c-플랫폼-말씀입력");
+        await Save(op, "/platform/content/quiz/check", "39d-플랫폼-퀴즈출제");
+        await Save(op, "/platform/gifts", "39e-플랫폼-선물상품");
+        await Save(op, "/platform/gift-cost", "39f-플랫폼-선물비용");
+        await Save(op, "/platform/sql", "40-플랫폼-SQL실행");
     }
 
     private static async Task Save(HttpClient c, string url, string name, Func<string, string>? tweak = null)
@@ -494,11 +598,11 @@ public partial class ScreenDump(WebApplicationFactory<Program> factory) : IClass
         await Write(await r.Content.ReadAsStringAsync(), name);
     }
 
-    private static async Task Write(string html, string name)
+    internal static async Task Write(string html, string name)
     {
         var dir = Environment.GetEnvironmentVariable("CB_SCREENS_DIR")!;
         // 배포 때는 파일 이름에 지문이 붙는다(/css/site.css?v=…) — 화면이 쓰는 스타일 파일(site · reading)을 그대로 안에 넣는다
-        foreach (var name2 in new[] { "site", "reading-b2", "reading", "home", "landing", "mission-old" })
+        foreach (var name2 in new[] { "site", "reading-b2", "reading", "home", "landing", "mission-old", "todo", "messages", "copy", "prayer365", "bulletin", "welcome", "deptlogin" })
         {
             var css = await File.ReadAllTextAsync(Path.Combine(FindWeb(), "wwwroot", "css", name2 + ".css"));
             html = Regex.Replace(html, $"<link rel=\"stylesheet\" href=\"/css/{name2}[^\"]*\\.css[^\"]*\" />", _ => $"<style>{css}</style>");

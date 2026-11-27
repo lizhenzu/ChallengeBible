@@ -119,7 +119,7 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
         }
         var op1 = await Login("operator@example.com", "1234");
         var page = await op1.GetStringAsync("/platform/accounts?q=" + Uri.EscapeDataString("박지은"));
-        Assert.Contains("aria-current=\"page\">계정 찾기", page);
+        Assert.Matches("aria-current=\"page\"><i [^>]*>.*?</i><span class=\"tdr2-t\"><b>계정 찾기", page);   // ☰ 지금 화면(새 메뉴판, 2026-11-18)
         Assert.Contains("관리자예요", page);                                       // 첫 결과(부서 관리자) 자세히
         var r = await op1.PostAsync($"/platform/accounts?handler=ResetPassword&q=x&id={_jieun}", new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -169,5 +169,36 @@ public partial class PlatformAccountTests : IClassFixture<WebApplicationFactory<
         }
         var c = await Login("cheolsu@example.com", "1234");
         Assert.StartsWith("/account/denied", (await c.GetAsync("/platform/accounts?q=a")).Headers.Location!.PathAndQuery);
+    }
+
+    [Fact]   // R-333
+    public async Task R333_부서_바로_옮기기는_승인_없이_옮기고_관리자와_대기_부서는_막는다()
+    {
+        var lobby = InMemoryDb.SeedTenant(_db, "welcome", "WELCOM");
+        using (var raw = InMemoryDb.Raw(_db)) { raw.Tenants.Single(t => t.Id == lobby.Id).IsLobby = true; raw.SaveChanges(); }
+
+        var opts = await Service().MoveOptionsAsync(_op, _kid);
+        Assert.Equal(_kids.Id, opts.FromId);
+        Assert.Null(opts.Blocked);
+        Assert.DoesNotContain(opts.Targets, t => t.Id == _kids.Id || t.Id == lobby.Id);   // 지금 부서 · 대기 부서는 목록에 없음
+        Assert.Contains(opts.Targets, t => t.Id == _pre.Id);
+
+        Assert.NotNull((await Service().MoveDeptAsync(_op, _kid, lobby.Id, PlatformAccountService.KeepRole)).Error);   // 대기 부서로는 안 됨
+        Assert.NotNull((await Service().MoveDeptAsync(_op, _kid, _kids.Id, PlatformAccountService.KeepRole)).Error);   // 같은 부서
+        Assert.NotNull((await Service().MoveDeptAsync(_op, _jieun, _kids.Id, PlatformAccountService.KeepRole)).Error); // 부서 관리자는 옮기지 않음(R-315)
+        Assert.NotNull((await Service().MoveOptionsAsync(_op, _jieun)).Blocked);
+        Assert.NotNull((await Service().MoveDeptAsync(_op, _kid, _pre.Id, UserRole.AdminCode)).Error);               // 어드민 역할은 부서에서
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => Service().MoveDeptAsync(_kid, _kid, _pre.Id, PlatformAccountService.KeepRole));   // 플랫폼 관리자만
+
+        var (error, _) = await Service().MoveDeptAsync(_op, _kid, _pre.Id, PlatformAccountService.KeepRole);
+        Assert.Null(error);
+        using var check = InMemoryDb.Raw(_db);
+        var uid = check.Users.Single(u => u.UserName == _kid).Id;
+        var row = Assert.Single(check.DeptRoles.Where(d => d.UserId == uid));
+        Assert.Equal((_pre.Id, "T1001"), (row.TenantId, row.RoleCode));                    // 받는 부서 승인 없이 · 역할 그대로
+        Assert.Single(check.People.Where(p => p.UserId == uid && p.TenantId == _pre.Id));   // 명부도 따라감
+        var log = Assert.Single(check.AuditLogs.Where(l => l.Action == PlatformAccountService.MoveDeptAction));
+        Assert.StartsWith($"account={_kid} ", log.Detail);
+        Assert.Contains("부서 바로 옮기기", PlatformHomeService.LogText(log.Action, log.Detail));
     }
 }

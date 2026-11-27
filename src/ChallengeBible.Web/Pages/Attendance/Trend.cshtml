@@ -21,9 +21,10 @@
 }
 @* 위쪽은 확정 시안 A(사용자 2026-11-13, R-266): 주일 3칸(오늘 화면과 같음) · 파란 요약 카드 · 3주 막대 *@
 @{ var prevD = sunday.AddDays(-7); var nextD = sunday.AddDays(7); var nextOk = nextD <= now.ThisSunday; var inv = CultureInfo.InvariantCulture; }
+@{ ViewData["PbDrawer"] = "att"; ViewData["PbTitle"] = "최근 현황"; ViewData["PbParent"] = new[] { "출석", $"/{slug}/attendance" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
+<partial name="_Top" view-data="ViewData" />
 <div class="yb ybt ybda">
     <header class="sh">
-        <div class="hdTop"><a href="/@slug/attendance/more">더보기</a><a href="/@slug">홈으로</a></div>
         <h1 class="daT">최근 전체 출석현황</h1>
         <p class="daSub">주일 4번 출석률 · 지난주와 비교</p>
         <div class="daWk">
@@ -92,4 +93,3 @@
         <div class="ft"><span>총원은 지금 반 편성 기준 · 출석률 = 출석 ÷ 총원</span></div>
     </main>
 </div>
-<partial name="_AttTabs" model='(slug, "more", true)' />

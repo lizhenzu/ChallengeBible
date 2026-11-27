@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>부서 메뉴 · 깔끔 시안 — 도전!!! 성경말씀</title>
+<style>
+  :root{
+    --navy:#1e3a8a; --navy-soft:#3b4a7d; --blue:#2563eb; --accent:#0179dc;
+    --ink:#222; --grey:#8a8f99; --line:#d8dbe2; --line-soft:#eceef2;
+    --card:#f6f7f9; --bg:#fff; --ring:rgba(37,99,235,.45);
+    --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:#e9ebef;color:var(--ink);display:flex;justify-content:center;min-height:100vh;word-break:keep-all}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:8px}
+  .mockbar{position:fixed;left:0;top:0;right:0;z-index:90;height:36px;background:#161c2b;color:#fff;font-size:12.5px;display:flex;align-items:center}
+  .mockbar .in{width:100%;max-width:1000px;margin:0 auto;padding:0 20px;display:flex;justify-content:space-between;gap:10px}
+  .mockbar b{font-weight:800}.mockbar span{opacity:.7}
+
+  .stage{display:flex;gap:28px;align-items:flex-start;padding:64px 20px 40px;flex-wrap:wrap;justify-content:center}
+  .side{max-width:290px;padding-top:6px}
+  .side h1{font-size:20px;font-weight:900;letter-spacing:-.01em}
+  .side p{margin-top:8px;font-size:13px;line-height:1.65;color:#5b6470}
+  .toggle{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px;margin-top:16px}
+  .toggle button{padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:800;color:#5b6470}
+  .toggle button.on{background:var(--navy);color:#fff}
+  .side ul{margin:14px 0 0;padding-left:16px;font-size:12px;line-height:1.8;color:#5b6470}
+
+  .phone{position:relative;width:420px;max-width:100%;height:720px;background:#fff;overflow:hidden;border-radius:2px;box-shadow:0 30px 70px -50px rgba(0,0,0,.5)}
+  /* 뒤 화면(축소 표현) */
+  .home{padding:18px 20px}
+  .hb{display:flex;justify-content:space-between;align-items:center;color:#3b4a7d}
+  .hb svg{stroke:#3b4a7d}
+  .hl{text-align:center;padding:18px 0 4px}
+  .hl b{display:block;font-size:26px;font-weight:900;color:var(--navy);letter-spacing:.3px}
+  .hl b span{color:var(--accent)}
+  .hl small{display:block;margin-top:6px;font-size:11.5px;color:#3b4a7d}
+  .hs{display:flex;justify-content:space-between;align-items:center;margin-top:14px;border:2px solid var(--navy);border-radius:999px;padding:11px 16px;font-size:13px;color:#9aa0aa}
+  .hgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;padding:0 28px}
+  .hgrid div{display:flex;flex-direction:column;align-items:center;gap:7px}
+  .hgrid i{width:62px;height:62px;border:1px solid var(--line-soft);border-radius:16px;display:grid;place-items:center}
+  .hgrid span{font-size:11.5px;color:#222;text-align:center;line-height:1.3}
+  .hcard{margin:16px 20px 0;background:var(--card);border:1px solid var(--line-soft);border-radius:14px;padding:16px}
+  .hcard b{display:block;font-size:13px;font-weight:900}
+  .hcard p{margin-top:8px;font-size:12px;color:#5b6470;line-height:1.6}
+  .dim{position:absolute;inset:0;background:rgba(17,24,39,.45)}
+
+  /* 메뉴판 */
+  .drawer{position:absolute;inset:0 auto 0 0;width:300px;max-width:88%;background:#fff;display:flex;flex-direction:column;box-shadow:12px 0 40px -20px rgba(0,0,0,.35)}
+  .dr-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:22px 18px 18px 22px;border-bottom:1px solid var(--line-soft)}
+  .dr-hd .ttl{font-size:19px;font-weight:900;color:var(--navy);letter-spacing:.2px;line-height:1.25}
+  .dr-hd .ttl span{color:var(--accent)}
+  .dr-hd .sub{margin-top:4px;font-size:9.5px;font-weight:700;letter-spacing:.18em;color:#8a8f99}
+  .dr-x{width:34px;height:34px;display:grid;place-items:center;flex:none;margin-top:-4px;color:#222}
+  .dr-x svg{stroke:#222}
+  .dr-nav{flex:1;overflow-y:auto;padding:10px 0 16px}
+  .dr-nav h2{padding:22px 22px 8px;font-size:11px;font-weight:800;color:#9aa0aa;letter-spacing:.02em}
+  .dr-row{display:flex;align-items:center;gap:13px;min-height:48px;padding:0 22px;font-size:15px;font-weight:700;color:#222}
+  .dr-row svg{flex:none;stroke:var(--blue)}
+  .dr-row:hover{background:#f6f8fb}
+  .dr-row.home{font-weight:900}
+  .dr-row .sq{width:22px;height:22px;border-radius:6px;background:var(--blue);display:grid;place-items:center;flex:none}
+  .dr-row .sq svg{stroke:#fff}
+  .dr-row small{margin-left:auto;font-size:10px;font-weight:800;color:#9aa0aa;letter-spacing:.02em}
+  .dr-row .count{margin-left:auto;min-width:20px;border-radius:99px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;text-align:center;padding:1px 6px}
+  .dr-row .adminb{margin-left:6px;font-size:9.5px;font-weight:800;color:#2563eb;background:#eaf1fe;border-radius:999px;padding:2px 6px}
+  .dr-ft{border-top:1px solid var(--line-soft);padding:12px 18px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:#8a8f99}
+  .dr-ft a{font-weight:700;color:#5b6470}
+  .dr-ft .out{font-weight:800;color:#2563eb}
+  .hide{display:none}
+
+  .notes{background:#161c2b;color:#d7dbe1;padding:26px 20px 40px}
+  .notes .in{max-width:900px;margin:0 auto}
+  .notes h2{margin:0 0 10px;font-size:13px;letter-spacing:.16em;color:#8fa3c7}
+  .notes ul{margin:0;padding-left:18px;font-size:13px;line-height:1.8}
+  .notes li b{color:#fff}
+  @media (max-width:760px){ .stage{padding-top:52px} .side{max-width:420px;width:100%} }
+</style>
+</head>
+<body>
+<div class="mockbar"><div class="in"><b>부서 메뉴 · 깔끔 시안</b><span>UX 제안 목업 · 실제 동작 아님 · 2026-11-22</span></div></div>
+
+<div class="stage">
+  <aside class="side">
+    <h1>☰ 메뉴, 첨부 이미지처럼</h1>
+    <p>색 타일 · 한 줄 설명을 걷어내고, 파란 선 아이콘 + 제목 + 그룹 라벨만 남겼습니다. 흰 바탕에 얇은 구분선 하나.</p>
+    <div class="toggle">
+      <button type="button" class="on" data-view="user">일반 참여자</button>
+      <button type="button" data-view="admin">교사 · 관리자</button>
+    </div>
+    <ul>
+      <li>아이콘: 22px 파란 선(#2563EB)</li>
+      <li>글자: 15px / 그룹 라벨 11px 회색</li>
+      <li>줄 높이 48px, 좌우 여백 22px</li>
+      <li>관리 항목에만 작은 "관리" 딱지</li>
+    </ul>
+  </aside>
+
+  <div class="phone">
+    <div class="home" aria-hidden="true">
+      <div class="hb">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        <div style="display:flex;gap:10px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </div>
+      </div>
+      <div class="hl"><b>도전!!! <span>성경말씀</span></b><small>하루 5분, 말씀과 함께 자라요.</small></div>
+      <div class="hs"><span>성경에서 단어 검색</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
+      <div class="hgrid">
+        <div><i><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V7.5z"/><path d="M14 3v4.5h4.5"/><path d="M9 13.5l2 2 4-4.5"/><path d="M8 18h8"/></svg></i><span>도전!!!<br>성경미션</span></div>
+        <div><i><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H14l3.5 3.5V19.5A1.5 1.5 0 0 1 16 21H6.5A1.5 1.5 0 0 1 5 19.5z"/><path d="M14 3v3.5h3.5"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/></svg></i><span>도전!!!<br>성경통독</span></div>
+        <div><i><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 4.5l3 3L9 18l-4 1 1-4z"/><path d="M14.5 6.5l3 3"/><path d="M4 21h16"/></svg></i><span>도전!!!<br>성경필사</span></div>
+        <div><i><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b4a7d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.9c0 5.4-7.5 10-7.5 10z"/><path d="M12 10.5v4M10 12.5h4"/></svg></i><span>자녀를 위한<br>기도365</span></div>
+      </div>
+      <div class="hcard"><b>오늘의 말씀</b><p>“여호와는 나의 목자시니 내게 부족함이 없으리로다” (시편 23:1)</p></div>
+    </div>
+
+    <div class="dim" aria-hidden="true"></div>
+
+    <aside class="drawer" role="dialog" aria-modal="true" aria-label="메뉴">
+      <div class="dr-hd">
+        <div>
+          <div class="ttl">도전!!! <span>성경말씀</span></div>
+          <div class="sub">GROW IN THE WORD</div>
+        </div>
+        <button class="dr-x" type="button" aria-label="메뉴 닫기">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="M5 5l14 14M19 5 5 19"/></svg>
+        </button>
+      </div>
+
+      <nav class="dr-nav">
+        <a class="dr-row home" href="#">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 3.2 2.8 11h2.6v8.6c0 .7.5 1.2 1.2 1.2h3.6v-5.6h3.6v5.6h3.6c.7 0 1.2-.5 1.2-1.2V11h2.6z"/></svg>
+          홈
+        </a>
+
+        <h2>프로그램</h2>
+        <a class="dr-row" href="#">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>
+          도전!!!성경미션
+        </a>
+        <a class="dr-row" href="#">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.2 5 7.6 4.5 5 4.5v13c2.6 0 5.2.5 7 2 1.8-1.5 4.4-2 7-2v-13c-2.6 0-5.2.5-7 2z"/><path d="M12 6.5v13"/></svg>
+          도전!!!성경통독
+        </a>
+        <a class="dr-row" href="#">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 4l3.5 3.5L8.5 19 4 20l1-4.5z"/><path d="M14.5 6l3.5 3.5"/></svg>
+          도전!!!성경필사
+        </a>
+        <a class="dr-row" href="#">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.9c0 5.4-7.5 10-7.5 10z"/><path d="M12 10.5v4M10 12.5h4"/></svg>
+          자녀를 위한 기도365
+        </a>
+
+        <h2>바로가기</h2>
+        <a class="dr-row" href="#">
+          <span class="sq"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg></span>
+          오늘의 말씀
+        </a>
+        <a class="dr-row" href="#">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-6M22 20H2"/></svg>
+          나의 기록
+        </a>
+
+        <div class="admin-only hide">
+          <h2>섬김 · 교사</h2>
+          <a class="dr-row" href="#">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/></svg>
+            오늘 할 일
+          </a>
+          <a class="dr-row" href="#">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/><path d="m9 16 2 2 4-4"/></svg>
+            출석
+          </a>
+          <a class="dr-row" href="#">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5A2.5 2.5 0 0 1 6.5 19H20v3H6.5A2.5 2.5 0 0 1 4 21.5z"/></svg>
+            교적부 <small>교사</small>
+          </a>
+          <a class="dr-row" href="#">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+            인명 검색
+          </a>
+
+          <h2>생일</h2>
+          <a class="dr-row" href="#">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V12a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9"/><path d="M4 16c2 0 2-1.5 4-1.5s2 1.5 4 1.5 2-1.5 4-1.5 2 1.5 4 1.5"/><path d="M3 21h18M12 10V7"/></svg>
+            생일자 보기
+          </a>
+          <a class="dr-row" href="#">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18"/><path d="M12 8S10 3 7.5 4.5 9 8 12 8zM12 8s2-5 4.5-3.5S15 8 12 8z"/></svg>
+            선물 처리 <span class="adminb">관리</span>
+          </a>
+
+          <h2>함께하기</h2>
+          <a class="dr-row" href="#">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H8l-4 4z"/></svg>
+            단체쪽지
+            <span class="count">3</span>
+          </a>
+          <a class="dr-row" href="#">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-8 8"/></svg>
+            사진첩
+          </a>
+
+          <h2>관리</h2>
+          <a class="dr-row" href="#">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>
+            부서 관리 <span class="adminb">관리</span>
+          </a>
+          <h2>다른 곳</h2>
+          <a class="dr-row" href="#">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+            플랫폼
+          </a>
+        </div>
+      </nav>
+
+      <div class="dr-ft">
+        <a href="#">앱 설치</a>
+        <a href="#">내 계정</a>
+        <button type="button" class="out">로그아웃</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<section class="notes">
+  <div class="in">
+    <h2>이 시안이 바꾼 것</h2>
+    <ul>
+      <li><b>군더더기 제거</b> — 색 타일 아이콘 · 한 줄 설명을 빼고 파란 선 아이콘과 제목만. 첨부 이미지와 같은 결.</li>
+      <li><b>머리</b> — 도전!!! 성경말씀 + GROW IN THE WORD, 오른쪽 ✕, 아래 얇은 선.</li>
+      <li><b>그룹</b> — 프로그램 / 바로가기 / (역할별) 섬김 · 교사 / 생일 / 함께하기 / 관리 / 다른 곳.</li>
+      <li><b>유지한 기능</b> — 관리자 딱지, 새 쪽지 수, 앱 설치 ↔ 내 계정, 로그아웃.</li>
+      <li><b>확인 필요</b> — 첨부의 "나의 여정"은 실제 화면이 없어 "나의 기록"(/points)으로 두었습니다.</li>
+    </ul>
+  </div>
+</section>
+
+<script>
+  var btns = document.querySelectorAll('.toggle button');
+  var admin = document.querySelector('.admin-only');
+  btns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      btns.forEach(function (x) { x.classList.toggle('on', x === b); });
+      admin.classList.toggle('hide', b.dataset.view !== 'admin');
+    });
+  });
+</script>
+</body>
+</html>

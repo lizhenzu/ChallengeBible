@@ -1,0 +1,49 @@
+@page "/{slug}/admin/weekly-word"
+@model ChallengeBible.Web.Pages.Admin.WeeklyWordModel
+@using ChallengeBible.Web.Services
+@* 이번 주 말씀 입력(ADR 0142, R-374, 2026-11-27): 주일 날짜 · 말씀 제목 · 설교 내용. 날짜는 입력한 날이 아니라 전한 주일. 같은 주일은 한 건 *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+    string? Err(string f) => Model.Errors.GetValueOrDefault(f);
+}
+<partial name="_AdminTop" model="Model.Tenant" />
+<main class="admin gut w760"><div class="wrap wsa">
+    <h1>이번 주 말씀</h1>
+    <p class="ar-lead">부서 관리자만 올리고 고칠 수 있어요. 메인화면의 「이번 주 말씀」으로 누구나 볼 수 있고, 주일에서 7일이 지나면 「준비중」으로 바뀌어요.</p>
+    @if (Model.Ok == "save") { <p class="okmsg" role="status">저장했어요 · <a href="/@slug/weekly-word">말씀 보기</a></p> }
+    @if (Model.Ok == "delete") { <p class="okmsg" role="status">지웠어요.</p> }
+    <form method="post" asp-page-handler="Save" asp-route-slug="@slug" class="wsa-row" novalidate>
+        <div class="wsa-g">
+            <label class="w">언제 주일 설교인가요?
+                <select class="in" name="date">
+                    @foreach (var d in Model.Sundays)
+                    {
+                        <option value="@d.ToString("yyyy-MM-dd")" selected="@(d == Model.SelectedDate)">@d.ToString("yyyy년 M월 d일", ko) (주일)</option>
+                    }
+                </select>
+                @if (Err("SundayDate") is { } e0) { <span class="hint bad">@e0</span> }
+            </label>
+            <label class="w">말씀 제목<input class="in" name="title" maxlength="60" value="@Model.FormTitle" />@if (Err("Title") is { } e1) { <span class="hint bad">@e1</span> }</label>
+            <label class="w">설교 내용 <small>줄바꿈은 그대로 보여요(4000자까지)</small><textarea class="in" name="body" rows="10" maxlength="4000">@Model.FormBody</textarea>@if (Err("Body") is { } e2) { <span class="hint bad">@e2</span> }</label>
+        </div>
+        <div class="wsa-acts"><button type="submit" class="btn p sm">저장</button></div>
+    </form>
+    <h2 style="margin-top:28px;font-size:15px">지난 말씀</h2>
+    @if (Model.Rows.Count == 0) { <p class="ph-muted">아직 올린 말씀이 없어요.</p> }
+    else
+    {
+        <ul style="list-style:none;margin:8px 0 0;padding:0">
+            @foreach (var r in Model.Rows)
+            {
+                <li style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--rule)">
+                    <span><b>@r.SundayDate.ToString("yyyy년 M월 d일", ko) 주일</b><br /><small class="ph-muted">@r.Title</small></span>
+                    <span style="display:flex;gap:6px;align-items:center">
+                        <a class="btn s sm" href="/@slug/admin/weekly-word?d=@r.SundayDate.ToString("yyyy-MM-dd")">고치기</a>
+                        <form method="post" asp-page-handler="Delete" asp-route-slug="@slug" onsubmit="return confirm('이 말씀을 지울까요?')" style="margin:0"><input type="hidden" name="date" value="@r.SundayDate.ToString("yyyy-MM-dd")" /><button type="submit" class="btn s sm">지우기</button></form>
+                    </span>
+                </li>
+            }
+        </ul>
+    }
+</div></main>

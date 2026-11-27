@@ -1,0 +1,63 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>가장 · 최종 칩 시안</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; background: #F2F4F7; color: #1B1F24; }
+.top { max-width: 420px; margin: 0 auto; padding: 16px; font-size: 14px; color: #5B6470; line-height: 1.6; }
+.top b { color: #1B1F24; }
+.cap { max-width: 420px; margin: 18px auto 6px; padding: 0 16px; font-weight: 800; font-size: 14px; }
+.phone { max-width: 420px; margin: 0 auto 8px; background: #fff; border-radius: 18px; overflow: hidden; border: 1px solid #E3E6EA; }
+.hd { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #EEF0F3; }
+.hd .burger { width: 26px; height: 18px; border-top: 3px solid #1B1F24; border-bottom: 3px solid #1B1F24; position: relative; }
+.hd .burger::after { content: ""; position: absolute; left: 0; right: 0; top: 4.5px; border-top: 3px solid #1B1F24; }
+.hd .ch { font-size: 12px; color: #5B6470; } .hd .ch b { display: block; font-size: 19px; color: #1E7A4C; }
+.card { margin: 14px; padding: 18px; border: 1px solid #E3E6EA; border-radius: 16px; }
+.card small { color: #5B6470; } .card h1 { margin: 4px 0 10px; font-size: 26px; }
+.card h1 u { text-decoration: none; font-size: 16px; color: #5B6470; font-weight: 600; }
+.card h1 .ga { font-size: 15px; color: #7B3FA6; font-weight: 800; margin-left: 2px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips i { font-style: normal; padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 800; }
+.st { background: #EAF0FB; color: #2B59C3; } .cl { background: #F5F6F8; color: #1B1F24; border: 1px solid #E3E6EA; } .ad { background: #1F2A44; color: #fff; }
+.card p { margin: 12px 0 0; font-weight: 800; } .card p em { font-style: normal; color: #E8710A; }
+.nob { margin: 0 14px 14px; padding: 10px 12px; border-radius: 10px; background: #F5F6F8; color: #5B6470; font-size: 13px; }
+.dr { padding: 16px; }
+.dr .me { display: flex; gap: 12px; align-items: center; padding-bottom: 14px; border-bottom: 1px solid #EEF0F3; }
+.dr .av { width: 44px; height: 44px; border-radius: 50%; background: #EAF0FB; color: #2B59C3; display: grid; place-content: center; font-weight: 800; }
+.dr .me b { font-size: 17px; } .dr .me .ga { color: #7B3FA6; font-size: 14px; font-weight: 800; } .dr .me small { display: block; color: #5B6470; font-size: 13px; }
+.dr h2 { font-size: 12px; color: #5B6470; margin: 14px 0 6px; letter-spacing: .02em; }
+.row { display: flex; align-items: center; gap: 10px; padding: 11px 10px; border-radius: 12px; font-weight: 800; font-size: 15px; }
+.row small { display: block; font-weight: 500; font-size: 12px; color: #5B6470; }
+.row .ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-content: center; font-size: 17px; }
+.imp { background: #F4EEFA; } .imp .ic { background: #E6D9F5; }
+.back { background: #7B3FA6; color: #fff; } .back small { color: #EBDDF7; } .back .ic { background: #9257BE; }
+.dim { color: #9AA1AA; font-size: 14px; padding: 6px 10px; }
+</style></head><body>
+<div class="top"><b>가장 · 최종 칩 시안</b><br>
+가장 중에는 그 사람이 직접 로그인한 것과 똑같이 보입니다. 이름 뒤에만 <b style="color:#7B3FA6">(가)</b>. 맨 아래 보라 띠는 없애고, [사람 바꾸기] · [복귀]는 ☰ 메뉴 맨 위로. 칩은 최종 상태 하나(부서 관리자는 "○○부 관리자").</div>
+
+<div class="cap">① 학생으로 가장 — 부서 홈 인사 카드</div>
+<div class="phone">
+  <div class="hd"><div class="burger"></div><div class="ch">대한예수교장로회<b>잠실새내교회</b></div></div>
+  <div class="card"><small>안녕하세요</small><h1>김가나 <u>님</u><span class="ga">(가)</span></h1>
+    <div class="chips"><i class="st">학생</i><i class="cl">1학년 1반</i></div>
+    <p><em>유년부</em>에 오심을 환영해요</p></div>
+  <div class="nob">화면 맨 아래 보라 띠 없음 — 진짜 김가나가 로그인한 화면과 같음</div>
+</div>
+
+<div class="cap">② 부서 관리자로 가장 — 칩은 "영아부 관리자" 하나</div>
+<div class="phone">
+  <div class="card"><small>안녕하세요</small><h1>관리영 <u>님</u><span class="ga">(가)</span></h1>
+    <div class="chips"><i class="ad">영아부 관리자</i></div>
+    <p><em>영아부</em>에 오심을 환영해요</p></div>
+</div>
+
+<div class="cap">③ 가장 중 ☰ 메뉴 — 맨 위에 [사람 바꾸기] · [복귀]</div>
+<div class="phone"><div class="dr">
+  <div class="me"><div class="av">가나</div><div><b>김가나</b> <span class="ga">(가)</span><small>잠실새내교회 유년부 · 학생</small></div></div>
+  <h2>가장 중</h2>
+  <div class="row imp"><span class="ic">🔁</span><div>사람 바꾸기<small>로그아웃 없이 다른 계정으로</small></div></div>
+  <div class="row back"><span class="ic">↩</span><div>복귀<small>플랫폼 관리자로 돌아가기</small></div></div>
+  <h2>생일</h2>
+  <div class="row"><span class="ic" style="background:#FFF1E2">🎂</span><div>생일자 보기<small>다가오는 생일 · 월별 · 연간</small></div></div>
+  <div class="dim">… (그 사람의 메뉴 그대로)</div>
+</div></div>
+</body></html>

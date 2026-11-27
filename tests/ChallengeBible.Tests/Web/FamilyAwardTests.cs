@@ -237,7 +237,7 @@ public partial class FamilyAwardTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("1월 4일에 넘음", page);
         Assert.DoesNotContain("선물 줬어요", page);   // 선물 처리로 하나로(ADR 0094 F)
         Assert.Contains("href=\"/jamsil-kids/admin/gifts?s=pick\"", page);
-        Assert.Contains("aria-current=\"page\">가족팀", page);
+        Assert.Matches("aria-current=\"page\"><i [^>]*>.*?</i><span class=\"tdr2-t\"><b>가족팀", page);   // ☰ 지금 화면(새 메뉴판, 2026-11-18)
         await c.PostAsync("/jamsil-kids/admin/teams/awards?handler=Give", new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value, ["team"] = a.ToString(), ["stage"] = "1000",

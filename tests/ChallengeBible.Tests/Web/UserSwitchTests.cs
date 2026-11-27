@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -77,13 +77,19 @@ public partial class UserSwitchTests : IClassFixture<WebApplicationFactory<Progr
         return c;
     }
 
-    private static string Who(string html) => Regex.Match(html, "<b>가장 중</b> · (.+?)님으로").Groups[1].Value;
+    /// <summary>가장 중인 사람: 부서 홈 인사 카드 이름(뒤에 (가), R-366 — 보라 띠는 없앴다).</summary>
+    private static string Who(string html)
+    {
+        var m = Regex.Match(html, "class=\"tdr2-imp\">([^<]+)으로 보는 중").Groups[1].Value;
+        return m.EndsWith("님") ? m[..^1] : m;
+    }
 
     [Fact]
     public async Task 가장_중이_아니면_바꾸기_화면은_없다()
     {
         var c = await Login("operator@example.com");
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/account/impersonate/switch")).StatusCode);
+        await c.GetAsync("/platform");   // 로그인 직후 한 번은 오늘 할 일로 갈 수 있다(R-309)
         Assert.DoesNotContain("data-imp-switch", await c.GetStringAsync("/platform"));
         var kid = await Login("sion@example.com");
         Assert.Equal(HttpStatusCode.NotFound, (await kid.GetAsync("/account/impersonate/switch")).StatusCode);
@@ -192,4 +198,25 @@ public partial class UserSwitchTests : IClassFixture<WebApplicationFactory<Progr
     [InlineData("//evil.example", "jamsil-kids", "/jamsil-kids")]
     [InlineData(null, null, "/")]
     public void 바꾼_뒤_갈_곳(string? back, string? slug, string next) => Assert.Equal(next, UserSwitchService.Next(back, slug));
+
+    [Fact]
+    public void 가장_중_볼_수_없는_화면이면_그_부서_홈으로()
+    {
+        Assert.Equal("/jamsil-kids", ChallengeBible.Web.Pages.Account.DeniedModel.Home("/jamsil-kids/admin/members"));
+        Assert.Null(ChallengeBible.Web.Pages.Account.DeniedModel.Home("/platform/reset"));
+        Assert.Null(ChallengeBible.Web.Pages.Account.DeniedModel.Home("//evil.example.com/x"));
+        Assert.Null(ChallengeBible.Web.Pages.Account.DeniedModel.Home(null));
+    }
+
+    [Fact]
+    public async Task 가장_중_학생으로_바꾼_뒤_관리_화면은_막힌_화면_대신_부서_홈()
+    {
+        var c = await AsJieun();
+        var r = await c.GetAsync("/account/denied?ReturnUrl=%2Fjamsil-kids%2Fadmin%2Fmembers");
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+        Assert.Equal("/jamsil-kids", r.Headers.Location!.OriginalString);
+        var plain = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });   // 가장이 아니면 그대로
+        var pr = await plain.GetAsync("/account/denied?ReturnUrl=%2Fjamsil-kids%2Fadmin");
+        Assert.NotEqual("/jamsil-kids", pr.Headers.Location?.OriginalString);
+    }
 }

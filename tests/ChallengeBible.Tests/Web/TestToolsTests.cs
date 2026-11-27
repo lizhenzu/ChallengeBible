@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ChallengeBible.Tests.Web;
 
-/// <summary>임시 시험 도구 /test-tools(ADR 0095): 설정으로 숨김, 넣기 · 지우기는 플랫폼 관리자만, 상황별 로그인은 가짜 계정(비밀번호 1234)만.</summary>
+/// <summary>임시 시험 도구(ADR 0095 · 0102): 설정으로 숨김, /test-tools/data 가짜 데이터 넣기는 플랫폼 관리자만, /test-tools/login 상황별 로그인은 가짜 계정(비밀번호 1234)만.</summary>
 public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;
@@ -52,7 +52,7 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
 
     private static async Task<HttpResponseMessage> Post(HttpClient c, string url, Dictionary<string, string> form)
     {
-        var tok = TokenRx().Match(await c.GetStringAsync("/test-tools")).Groups[1].Value;
+        var tok = TokenRx().Match(await c.GetStringAsync("/test-tools/login")).Groups[1].Value;
         form["__RequestVerificationToken"] = tok;
         return await c.PostAsync(url, new FormUrlEncodedContent(form));
     }
@@ -74,23 +74,41 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
         var app = App(enabled: false);
         var c = Client(app);
         await Login(c, "superadmin");
-        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/test-tools")).StatusCode);
+        foreach (var url in new[] { "/test-tools", "/test-tools/data", "/test-tools/login" })
+            Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync(url)).StatusCode);
+        await c.GetAsync("/platform");   // 로그인 직후 한 번은 오늘 할 일로 갈 수 있다(R-309)
         Assert.DoesNotContain("/test-tools", await c.GetStringAsync("/platform"));
     }
 
     [Fact]
-    public async Task 플랫폼_관리자는_넣기_지우기와_상황별_로그인_버튼을_보고_메뉴에도_있다()
+    public async Task 플랫폼_관리자는_넣기와_상황별_로그인을_따로_보고_메뉴에도_둘_다_있다()
     {
         var t = InMemoryDb.SeedTenant(_db, "yb", "YB0001");
         Seed("superadmin", "boss@example.com", platformAdmin: true);
         Seed("yb-s01", "yb-s01" + TestToolsService.EmailDomain, tenantId: t.Id);
         var c = Client(App(enabled: true));
         await Login(c, "superadmin");
-        Assert.Contains("/test-tools", await c.GetStringAsync("/platform"));
-        var page = await c.GetStringAsync("/test-tools");
-        Assert.Contains("가짜 데이터 넣기", page);
-        Assert.Contains("value=\"yb-s01\"", page);
-        Assert.Contains("3,100점", page);   // s01 상황 이름
+        await c.GetAsync("/platform");
+        var menu = await c.GetStringAsync("/platform");
+        Assert.Contains("href=\"/test-tools/data\"", menu);
+        Assert.Contains("href=\"/test-tools/login\"", menu);
+        var old = await c.GetAsync("/test-tools");   // 옛 주소는 넣기로
+        Assert.Equal("/test-tools/data", old.Headers.Location!.OriginalString);
+
+        var data = await c.GetStringAsync("/test-tools/data");
+        Assert.Contains("가짜 데이터 넣기", data);
+        Assert.Contains("href=\"/platform/reset\"", data);   // 지우기는 완전 초기화로
+        Assert.DoesNotContain("지우기</button>", data);
+        Assert.DoesNotContain("value=\"yb-s01\"", data);    // 로그인 버튼은 따로
+        Assert.DoesNotContain("케이스별 시험", data);
+
+        var login = await c.GetStringAsync("/test-tools/login");
+        Assert.Contains("value=\"yb-s01\"", login);
+        Assert.Contains("gut tt w760\"", login);   // 머리말과 같은 760px(R-270, 2026-11-18)
+        Assert.Contains("gut tt w760\"", data);
+        Assert.Contains("2,350점 · 받은 선물 600점", login);   // s01 상황 이름(ADR 0104)
+        Assert.DoesNotContain("넣기</button>", login);
+        Assert.DoesNotContain("시험 관리자 만들기", login);   // 관리자는 지울 수 없어 만들지 않는다(2026-11-16)
     }
 
     [Fact]
@@ -103,17 +121,18 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
         var c = Client(App(enabled: true));
         await Login(c, "superadmin");
 
-        var r = await Post(c, "/test-tools?handler=Login", new() { ["user"] = "yb-s01" });
+        var r = await Post(c, "/test-tools/login", new() { ["user"] = "yb-s01" });
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
         Assert.Equal("/", r.Headers.Location!.OriginalString);
 
-        // 이제 가짜 계정: 화면은 보이지만 데이터 칸은 없고, 다른 가짜 계정으로 바꿀 수 있다
-        var page = await c.GetStringAsync("/test-tools");
-        Assert.DoesNotContain("가짜 데이터 넣기", page);
+        // 이제 가짜 계정: 로그인 화면은 보이지만 넣기 화면은 없고, 다른 가짜 계정으로 바꿀 수 있다
+        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/test-tools/data")).StatusCode);
+        Assert.Equal("/test-tools/login", (await c.GetAsync("/test-tools")).Headers.Location!.OriginalString);
+        var page = await c.GetStringAsync("/test-tools/login");
         Assert.Contains("value=\"yb-s05\"", page);
-        var run = await Post(c, "/test-tools?handler=Run", new() { ["kind"] = "create", ["mode"] = "test" });
+        var run = await Post(c, "/test-tools/data", new() { ["confirm"] = "FAKE" });
         Assert.NotEqual(HttpStatusCode.OK, run.StatusCode);
-        Assert.Equal(HttpStatusCode.Redirect, (await Post(c, "/test-tools?handler=Login", new() { ["user"] = "yb-s05" })).StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, (await Post(c, "/test-tools/login", new() { ["user"] = "yb-s05" })).StatusCode);
     }
 
     [Fact]
@@ -131,13 +150,13 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
         }
         var c = Client(App(enabled: true));
         await Login(c, "superadmin");
-        var r = await Post(c, "/test-tools?handler=Login", new() { ["user"] = "yb-admin" });   // 플랫폼 관리자: 가장이라 비밀번호를 보지 않는다
+        var r = await Post(c, "/test-tools/login", new() { ["user"] = "yb-admin" });   // 플랫폼 관리자: 가장이라 비밀번호를 보지 않는다
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
-        Assert.Contains("yb-admin이름", await c.GetStringAsync("/test-tools"));
+        Assert.Contains("yb-admin이름", await c.GetStringAsync("/test-tools/login"));
 
         var kid = Client(App(enabled: true));                                                  // 가짜 계정이 누르면 비밀번호 1234 로 확인 → 못 들어간다
         await Login(kid, "yb-s01");
-        Assert.Equal(HttpStatusCode.NotFound, (await Post(kid, "/test-tools?handler=Login", new() { ["user"] = "yb-admin" })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await Post(kid, "/test-tools/login", new() { ["user"] = "yb-admin" })).StatusCode);
     }
 
     [Fact]
@@ -147,8 +166,8 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
         Seed("real", "real@example.com");
         var c = Client(App(enabled: true));
         await Login(c, "superadmin");
-        Assert.Equal(HttpStatusCode.NotFound, (await Post(c, "/test-tools?handler=Login", new() { ["user"] = "real" })).StatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, (await Post(c, "/test-tools?handler=Login", new() { ["user"] = "superadmin" })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await Post(c, "/test-tools/login", new() { ["user"] = "real" })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await Post(c, "/test-tools/login", new() { ["user"] = "superadmin" })).StatusCode);
     }
 
     [Fact]
@@ -156,32 +175,36 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
     {
         Seed("real", "real@example.com");
         var app = App(enabled: true);
-        var anon = await Client(app).GetAsync("/test-tools");
-        Assert.Equal(HttpStatusCode.Redirect, anon.StatusCode);
-        Assert.Contains("/account/login", anon.Headers.Location!.OriginalString);
+        foreach (var url in new[] { "/test-tools", "/test-tools/data", "/test-tools/login" })
+        {
+            var anon = await Client(app).GetAsync(url);
+            Assert.Equal(HttpStatusCode.Redirect, anon.StatusCode);
+            Assert.Contains("/account/login", anon.Headers.Location!.OriginalString);
+        }
         var c = Client(app);
         await Login(c, "real");
-        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/test-tools")).StatusCode);
+        foreach (var url in new[] { "/test-tools", "/test-tools/data", "/test-tools/login" })
+            Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync(url)).StatusCode);
     }
 
     [Fact]
-    public async Task 진짜_실행은_확인_글자가_있어야_하고_메모리_DB_에서는_SQL_을_돌리지_않는다()
+    public async Task 실행은_확인_글자가_있어야_하고_메모리_DB_에서는_SQL_을_돌리지_않는다()
     {
         Seed("superadmin", "boss@example.com", platformAdmin: true);
         var c = Client(App(enabled: true));
         await Login(c, "superadmin");
-        var noWord = await (await Post(c, "/test-tools?handler=Run", new() { ["kind"] = "create", ["mode"] = "real", ["confirm"] = "" })).Content.ReadAsStringAsync();
+        var noWord = await (await Post(c, "/test-tools/data", new() { ["confirm"] = "" })).Content.ReadAsStringAsync();
         Assert.Contains("FAKE 를 써야 해요", noWord);
-        var test = await (await Post(c, "/test-tools?handler=Run", new() { ["kind"] = "delete", ["mode"] = "test" })).Content.ReadAsStringAsync();
-        Assert.Contains("메모리 DB 에서는 SQL 을 실행하지 않아요", test);
+        var page = await (await Post(c, "/test-tools/data", new() { ["confirm"] = "FAKE" })).Content.ReadAsStringAsync();
+        Assert.Contains("메모리 DB 에서는 SQL 을 실행하지 않아요", page);
         using var raw = InMemoryDb.Raw(_db);
-        Assert.Empty(raw.AuditLogs.Where(a => a.Action == TestToolsService.CreateAction || a.Action == TestToolsService.DeleteAction));
+        Assert.Empty(raw.AuditLogs.Where(a => a.Action == TestToolsService.CreateAction));
     }
 
     [Fact]
     public void 앱에_넣은_SQL_은_매개변수로_저장_여부와_날짜를_받고_SQL_Studio_에서_막히는_문장이_없다()
     {
-        foreach (var file in new[] { "fake-create.sql", "fake-delete.sql" })
+        foreach (var file in new[] { "fake-create.sql" })
         {
             var sql = TestToolsService.Script(file);
             Assert.Contains("DECLARE @Commit bit = @pCommit;", sql);
@@ -190,7 +213,27 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
             Assert.DoesNotContain("SECURITY POLICY", sql);
             Assert.All(sql, ch => Assert.True(ch < 128, "ASCII 만"));
         }
-        Assert.Contains("DELETE FROM [Identity].[User] WHERE Id NOT IN (SELECT UserId FROM #Keep);", TestToolsService.Script("fake-create.sql"));
+    }
+
+    [Fact]
+    public void 넣기는_아무것도_지우지_않고_이미_있는_반에_새_명부_줄과_반_배정을_만든다()
+    {
+        var create = TestToolsService.Script("fake-create.sql");
+        Assert.DoesNotContain("DELETE FROM [Identity]", create);
+        Assert.DoesNotContain("DELETE FROM app.", create);
+        Assert.DoesNotContain("DELETE FROM dbo.", create);
+        Assert.DoesNotContain("INSERT app.Class ", create);           // 반은 만들지 않는다(이미 있는 반에만)
+        Assert.DoesNotContain("UPDATE x SET UserId", create);         // 이미 있는 명부 줄은 건드리지 않는다
+        Assert.Contains("INSERT app.Person (TenantId, Name, RoleCode, BirthMonth, BirthDay, UserId, CreatedUtc, CreatedByUserName)", create);
+        Assert.Contains("INSERT app.ClassMember (TenantId, TermId, ClassId, PersonId, IsTeacher, CreatedUtc)", create);
+        Assert.Contains("c.IsNewcomer = 0", create);                  // 새친구반에는 넣지 않는다
+        Assert.Contains("N'ADMIN', N'SUPERADMIN'", create);           // 이미 넣었는지 볼 때 관리자 계정은 뺀다
+        Assert.Throws<InvalidOperationException>(() => TestToolsService.Script("fake-delete.sql"));   // 지우기는 완전 초기화(ADR 0102)
+        // 선물 점수 시험(ADR 0104): 받은 · 고른 개인 선물과 쓴 점수를 함께 넣는다
+        Assert.Contains("INSERT app.Gift (TenantId, Kind, Year, UserName, SourceKey", create);
+        Assert.Contains("INSERT app.GiftPointUse (TenantId, UserName, Year, GiftId, PointsUsed, PointsBurned, FirstBonus, CreatedUtc)", create);
+        Assert.Contains("N'FAKE-P-'", create);
+        Assert.Contains("CASE WHEN t.Kind = 'T' THEN n.Name + CAST(0x", create);   // 가짜 선생님 이름 뒤에 " 선생님"(2026-11-17)
     }
 
     [Fact]
@@ -201,38 +244,5 @@ public partial class TestToolsTests : IClassFixture<WebApplicationFactory<Progra
         for (var i = 1; i <= 40; i++) codes.Add($"s{i:00}");
         Assert.All(TestToolsService.Scenarios, s => Assert.Contains(s.Code, codes));
         Assert.Equal(TestToolsService.Scenarios.Count, TestToolsService.Scenarios.Select(s => s.Code + s.Label).Distinct().Count());
-    }
-
-    [Fact]
-    public async Task 관리자_없는_부서에만_시험_관리자를_만들고_비밀번호_1234_로그인_버튼이_생긴다()
-    {
-        var kids = InMemoryDb.SeedTenant(_db, "jamsil-kids", "JSKIDS");
-        var infant = InMemoryDb.SeedTenant(_db, "jamsil-infant", "JSINFA");
-        Seed("superadmin", "boss@example.com", platformAdmin: true);
-        var kidsAdmin = Seed("jamsil-kids-admin", "jamsil-kids-admin@fake-seed.test", tenantId: kids.Id, roleCode: "T1005");
-        InMemoryDb.AddRole(_db, kidsAdmin.Id, IdentityRoles.Admin);
-        var app = App(enabled: true);
-        var c = Client(app);
-        await Login(c, "superadmin");
-        Assert.Contains("관리자 없는 부서에 시험 관리자 만들기", await c.GetStringAsync("/test-tools"));
-
-        var body = await (await Post(c, "/test-tools?handler=Admins", [])).Content.ReadAsStringAsync();
-        Assert.Contains("관리자 1명을 만들었어요(비밀번호 1234)", body);
-        using (var raw = InMemoryDb.Raw(_db))
-        {
-            var u = raw.Users.Single(x => x.UserName == "jamsil-infant-admin");
-            Assert.Equal("jamsil-infant-admin@fake-seed.test", u.Email);
-            var admin = raw.IdentityRoleRows.Single(r => r.Name == IdentityRoles.Admin).Id;
-            Assert.Contains(raw.UserRoles, r => r.UserId == u.Id && r.RoleId == admin);
-            Assert.Equal("T1002", raw.DeptRoles.Single(d => d.UserId == u.Id && d.TenantId == infant.Id).RoleCode);
-            Assert.Single(raw.People.Where(p => p.UserId == u.Id && p.TenantId == infant.Id));
-            Assert.DoesNotContain(raw.Users, x => x.UserName == "jamsil-kids-admin" && x.Id != kidsAdmin.Id);   // 이미 있는 부서는 그대로
-        }
-        Assert.Contains("관리자가 없는 부서가 없어요.", await (await Post(c, "/test-tools?handler=Admins", [])).Content.ReadAsStringAsync());
-        Assert.Contains("jamsil-infant-admin", await c.GetStringAsync($"/test-tools?t={infant.Id}"));   // 상황별 로그인 버튼
-
-        var c2 = Client(app);
-        await Login(c2, "jamsil-infant-admin");   // 비밀번호 1234
-        Assert.Equal(HttpStatusCode.OK, (await c2.GetAsync("/jamsil-infant/admin")).StatusCode);
     }
 }

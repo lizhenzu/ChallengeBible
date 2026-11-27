@@ -1,0 +1,29 @@
+@page "/platform/admin-rule"
+@model ChallengeBible.Web.Pages.Platform.AdminRuleModel
+@* 확정 시안 할일이동-역할업무 ③(2026-11-16): 역할 체크(어드민 고정) + 업무 체크 → 저장하면 모든 부서에 바로 적용. 사람마다 관리자를 켜지 않는다 *@
+<partial name="_PlatformTop" />
+<main class="admin gut w760"><div class="wrap ar-main">
+    <h1>부서 관리자 규칙</h1>
+    @if (Model.Msg is { } m) { <p class="ar-msg" role="status">@m</p> }
+    <p class="ar-lead">체크한 <b>역할</b>이거나 체크한 <b>업무</b>를 맡은 사람은 그 부서에서 바로 부서 관리자가 돼요. 사람마다 관리자를 켜지 않아요.</p>
+    <form method="post" class="ar-main" style="padding:0">
+        <div class="ar-g">역할 <small>한 사람에 하나</small></div>
+        <div class="ar-box" role="group" aria-label="부서 관리자가 되는 역할">
+            @foreach (var r in Model.View.Roles)
+            {
+                <label class="ar-row@(r.Fixed ? " fix" : "")"><input type="checkbox" name="code" value="@r.Code" checked="@r.On" disabled="@r.Fixed" /><span class="nm">@r.Name</span><span class="ct">@(r.Fixed ? "늘 관리자 · " : "")@(r.People)명</span></label>
+            }
+        </div>
+        <div class="ar-g" id="duties">업무 <small>한 사람에 여러 개</small></div>
+        <div class="ar-box" role="group" aria-label="부서 관리자가 되는 업무">
+            @foreach (var d in Model.View.Duties)
+            {
+                <label class="ar-row"><input type="checkbox" name="duty" value="@d.Code" checked="@d.On" /><span class="nm">@d.Name</span><span class="ct">@(d.People)명</span></label>
+            }
+        </div>
+        <div class="ar-sum"><div><small>규칙으로 관리자</small><b>@(Model.View.ByRule)명</b></div><div><small>그 밖의 관리자(어드민 등)</small><b>@(Model.View.Manual)명</b></div></div>
+        <p class="ar-warn">체크를 풀면 그 역할 · 업무라서 관리자였던 사람만 빠져요. 어드민 역할과 계정은 그대로예요.</p>
+        <button class="btn p" type="submit">저장 · 바로 적용</button>
+    </form>
+    <form method="post" asp-page-handler="Duty" class="ar-add"><input class="in" name="name" maxlength="30" placeholder="새 업무 이름(예: 찬양 담당)" aria-label="새 업무 이름" /><button class="btn s" type="submit">업무 추가</button></form>
+</div></main>

@@ -1,0 +1,8 @@
+﻿@model (ChallengeBible.Web.Tenancy.TenantContext Tenant, string Title)
+@* 일반 ☰ 메뉴판을 쓰는 부서 화면의 머리줄(쪽지 · 명단 · 교적부 · 생일 · 선물 처리 등). 2026-11-24 머리줄 표준(기준표 6판)으로: 공통 부품 _Top 이 그린다.
+   주소에 부서가 없는 화면(쪽지)도 마지막 부서로 ☰ + 「부서 › 화면」 + 「부서 홈」(PbDept). *@
+@{
+    ViewData["PbTitle"] = Model.Title;
+    ViewData["PbDept"] = true;
+}
+<partial name="_Top" view-data="ViewData" />

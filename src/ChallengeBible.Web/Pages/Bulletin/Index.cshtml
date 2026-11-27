@@ -1,0 +1,223 @@
+@page "/{slug}/bulletin"
+@model ChallengeBible.Web.Pages.Bulletin.IndexModel
+@using ChallengeBible.Web.Services
+@using System.Text.Json
+@using System.Text.Encodings.Web
+@using System.Text.Unicode
+@* 주보 보기(ADR 0117): 2026-11-27 사용자 새 퍼블리시본 「주보 서재 · 시안 A 책장」(A_bookshelf-1.html)으로 완전 교체.
+   이번 주 책(3D) · 이어 읽기(이 폰에만 기록, localStorage) · 달별 책장 · 전체 화면 읽기. 올리기 · 고치기 · 지우기는 교사 · 관리자만.
+   디자인에 있던 목차 칩 · 검색은 우리 데이터에 없어 뺐다(주보는 1년 52개 안쪽). 사진은 자르지 않고 읽기 화면에서 원본 비율로 본다. *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var dept = PlatformTodayService.ShortDept(Model.Tenant.Current.Name);
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+    string Day(DateOnly d) => d.DayOfWeek == DayOfWeek.Sunday ? "주일" : d.ToString("dddd", ko);
+    var all = Model.All;
+    var latest = all.Count > 0 ? all[0] : null;
+    string File(int id) => $"/{slug}/bulletin/file/{id}";
+    string Size(long n) => n >= 1024 * 1024 ? $"{n / 1024.0 / 1024:0.0}MB" : $"{Math.Max(1, n / 1024)}KB";
+    var data = all.Select(v => new
+    {
+        id = v.Item.Id,
+        label = v.Item.Date.ToString("yyyy년 M월 d일", ko) + " " + Day(v.Item.Date) + " 주보",
+        mdy = v.Item.Date.ToString("M월 d일", ko),
+        md = v.Item.Date.ToString("M.dd", ko),
+        pages = v.Files.Where(f => !BulletinService.IsPdf(f)).Select(f => File(f.Id)).ToList(),
+        pdfs = v.Files.Where(BulletinService.IsPdf).Select(f => new { name = f.FileName, url = File(f.Id), size = Size(f.Size) }).ToList(),
+    }).ToList();
+    var months = all.GroupBy(v => (v.Item.Date.Year, v.Item.Date.Month)).ToList();
+}
+<link rel="stylesheet" href="~/css/bulletin.css" asp-append-version="true" />
+<main class="bk" data-bk data-slug="@slug"@(Model.FocusId is int fid ? Html.Raw($" data-focus=\"{fid}\"") : Html.Raw(""))>
+<div class="bk-page">
+    <header class="bk-top">
+        <div class="bk-top-left">
+            <a class="bk-icon-btn" href="/@slug" aria-label="홈으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+            <div><p class="bk-eyebrow">@Model.Tenant.Current.Name</p><h1>주보 서재</h1></div>
+        </div>
+        <div class="bk-top-actions">
+            @if (Model.CanEdit)
+            {
+                <a class="bk-btn bk-btn-sm bk-new" href="/@slug/bulletin/edit">+ 새 주보</a>
+            }
+            else if (User.UserName() is null)
+            {
+                <a class="bk-icon-btn bk-login" href="/account/login?returnUrl=@Uri.EscapeDataString($"/{slug}/bulletin")" aria-label="로그인"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></a>
+            }
+        </div>
+    </header>
+
+    @if (Model.Msg is { } m) { <p class="bk-msg" role="status">@m</p> }
+
+    @if (latest is null)
+    {
+        <div class="bk-empty">
+            <svg width="72" height="56" viewBox="0 0 72 56" fill="none" aria-hidden="true"><rect x="8" y="10" width="16" height="34" rx="3" fill="#E8DFD1"/><rect x="28" y="4" width="16" height="40" rx="3" fill="#F0E8DB" stroke="#E8DFD1" stroke-dasharray="3 3"/><rect x="48" y="14" width="16" height="30" rx="3" fill="#E8DFD1"/><rect x="0" y="44" width="72" height="8" rx="2" fill="#D9B48A"/></svg>
+            <p>아직 올린 주보가 없어요.<br>주일에 새 주보가 올라와요.</p>
+        </div>
+    }
+    else
+    {
+        var lp = latest.Files.Where(f => !BulletinService.IsPdf(f)).ToList();
+        var pdfN = latest.Files.Count(BulletinService.IsPdf);
+        <section class="bk-hero" aria-label="이번 주 주보">
+            <button type="button" class="bk-book3d" data-bk-open="@latest.Item.Id" aria-label="@latest.Item.Date.ToString("M월 d일", ko) 주보 펼치기">
+                @if (lp.Count > 0) { <img src="@File(lp[0].Id)" alt="" /> } else { <span class="bk-pdfcover">PDF</span> }
+            </button>
+            <div class="bk-hero-info">
+                <span class="bk-badge">이번 주</span>
+                <h2>@latest.Item.Date.ToString("M월 d일", ko)<br />@Day(latest.Item.Date) 주보</h2>
+                <p class="bk-sub">@(lp.Count > 0 ? $"사진 {lp.Count}장" : "PDF 주보")@(lp.Count > 0 && pdfN > 0 ? $" · PDF {pdfN}개" : "")</p>
+                <button type="button" class="bk-btn" data-bk-open="@latest.Item.Id">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 6c-2-1.5-5-2-8-1.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-13c-3-.5-6 0-8 1.5zM12 6v13"/></svg>
+                    펼쳐 읽기
+                </button>
+            </div>
+        </section>
+
+        @* 이어 읽기: 이 폰의 읽은 기록으로 채운다(없으면 숨김) *@
+        <button type="button" class="bk-resume" data-bk-resume hidden>
+            <span class="bk-resume-cover" data-bk-resume-cover></span>
+            <span class="bk-resume-text"><strong>주보 이어 읽기</strong><span data-bk-resume-text></span><span class="bk-bar"><i data-bk-resume-bar></i></span></span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        @foreach (var g in months)
+        {
+            <section class="bk-shelf" aria-label="@(g.Key.Month)월 주보">
+                <div class="bk-shelf-head"><h3>@(g.Key.Month)월@(g.Key.Year != DateTime.UtcNow.Year ? $" ({g.Key.Year})" : "")</h3><span>@(g.Count())권</span></div>
+                <div class="bk-shelf-row">
+                    @foreach (var v in g)
+                    {
+                        var ph = v.Files.Where(f => !BulletinService.IsPdf(f)).ToList();
+                        <button type="button" class="bk-book" data-bk-open="@v.Item.Id" data-bk-book="@v.Item.Id" aria-label="@v.Item.Date.ToString("M월 d일", ko) 주보 펼치기">
+                            <span class="bk-book-cover">
+                                @if (ph.Count > 0) { <img src="@File(ph[0].Id)" alt="" loading="lazy" /> } else { <span class="bk-pdfcover">PDF</span> }
+                                @if (v.Item.Id == latest.Item.Id) { <span class="bk-ribbon"></span> }
+                                <span class="bk-read-mark" data-bk-read hidden><svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" aria-hidden="true"><path d="M2.5 6.5l2.2 2.2 4.8-5"/></svg></span>
+                                <span class="bk-book-date">@v.Item.Date.ToString("M.dd", ko)</span>
+                            </span>
+                        </button>
+                    }
+                </div>
+                <div class="bk-plank"></div>
+            </section>
+        }
+    }
+</div>
+
+@* 읽기 화면: 책을 누르면 전체 화면으로 열린다 *@
+<div class="bk-reader" id="bk-reader" role="dialog" aria-modal="true" aria-label="주보 읽기" hidden>
+    <div class="bk-reader-bar">
+        <button type="button" class="bk-icon-btn" data-bk-close aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <div class="bk-reader-title"><strong data-bk-title></strong><span data-bk-now></span></div>
+        @if (Model.CanEdit)
+        {
+            <button type="button" class="bk-icon-btn" data-bk-menu aria-label="더 보기"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+        }
+        else { <span class="bk-icon-btn" aria-hidden="true"></span> }
+    </div>
+    @if (Model.CanEdit)
+    {
+        <div class="bk-menu" data-bk-menu-box hidden>
+            <a class="bk-menu-item" href="#" data-bk-edit>고치기</a>
+            <form method="post" asp-page-handler="Delete" asp-route-slug="@slug" data-bk-delform><input type="hidden" name="id" value="" data-bk-delid /><button type="submit" class="bk-menu-item bk-danger">지우기</button></form>
+        </div>
+    }
+    <div class="bk-pages" data-bk-pages></div>
+    <div class="bk-reader-foot">
+        <button type="button" class="bk-icon-btn" data-bk-prev aria-label="앞 쪽"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="bk-thumbs" data-bk-thumbs></div>
+        <button type="button" class="bk-icon-btn" data-bk-next aria-label="다음 쪽"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+</div>
+<script type="application/json" id="bk-data">@Html.Raw(JsonSerializer.Serialize(data, new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.HangulSyllables, UnicodeRanges.HangulJamo, UnicodeRanges.HangulCompatibilityJamo) }))</script>
+</main>
+<script>
+(() => {
+    const root = document.querySelector('[data-bk]'); if (!root) return;
+    const slug = root.dataset.slug;
+    let data = []; try { data = JSON.parse(document.getElementById('bk-data').textContent); } catch { /* 무시 */ }
+    const byId = new Map(data.map(d => [d.id, d]));
+    const KEY = 'cb-bulletin-read:' + slug;   // 이 폰에만 기록(로그인 없이): { 주보번호: { p: 마지막으로 본 쪽(0부터), t: 전체 쪽 수, ts: 시각 } }
+    const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch { return {}; } };
+    const save = (m) => { try { localStorage.setItem(KEY, JSON.stringify(m)); } catch { /* 저장 못 해도 읽기는 된다 */ } };
+    const reader = document.getElementById('bk-reader');
+    const pages = reader.querySelector('[data-bk-pages]'), thumbs = reader.querySelector('[data-bk-thumbs]');
+    const now = reader.querySelector('[data-bk-now]'), title = reader.querySelector('[data-bk-title]');
+    const prev = reader.querySelector('[data-bk-prev]'), next = reader.querySelector('[data-bk-next]');
+    const menuBox = reader.querySelector('[data-bk-menu-box]');
+    let cur = null, total = 0, thumbEls = [];
+    const idx = () => Math.round(pages.scrollLeft / Math.max(1, pages.clientWidth));
+    const go = (i) => pages.scrollTo({ left: Math.max(0, Math.min(total - 1, i)) * pages.clientWidth, behavior: 'smooth' });
+
+    function mark() {   // 읽은 책 체크 · 이어 읽기 카드
+        const m = load();
+        document.querySelectorAll('[data-bk-book]').forEach(b => {
+            const r = m[b.dataset.bkBook]; const ok = r && r.t > 0 && r.p >= r.t - 1;
+            const el = b.querySelector('[data-bk-read]'); if (el) el.hidden = !ok;
+        });
+        const box = document.querySelector('[data-bk-resume]'); if (!box) return;
+        const open = Object.entries(m).filter(([id, r]) => byId.has(+id) && r.t > 1 && r.p < r.t - 1).sort((a, b) => b[1].ts - a[1].ts)[0];
+        if (!open) { box.hidden = true; return; }
+        const d = byId.get(+open[0]), r = open[1];
+        box.hidden = false; box.dataset.bkOpen = d.id; box.dataset.bkPage = r.p;
+        box.querySelector('[data-bk-resume-cover]').innerHTML = d.pages[0] ? '<img src="' + d.pages[0] + '" alt="" />' : '';
+        box.querySelector('[data-bk-resume-text]').textContent = d.mdy + ' · ' + r.t + '쪽 중 ' + (r.p + 1) + '쪽까지 읽었어요';
+        box.querySelector('[data-bk-resume-bar]').style.width = Math.round((r.p + 1) / r.t * 100) + '%';
+    }
+
+    function openReader(id, page) {
+        const d = byId.get(id); if (!d) return;
+        cur = d; total = Math.max(1, d.pages.length + (d.pdfs.length && !d.pages.length ? 1 : 0));
+        title.textContent = d.label;
+        pages.innerHTML = ''; thumbs.innerHTML = ''; thumbEls = [];
+        if (d.pages.length) {
+            d.pages.forEach((u, i) => {
+                const s = document.createElement('div'); s.className = 'bk-sheet';
+                const p = document.createElement('div'); p.className = 'bk-sheet-paper';
+                const im = document.createElement('img'); im.src = u; im.alt = d.mdy + ' 주보 ' + (i + 1) + '쪽'; if (i > 1) im.loading = 'lazy';
+                p.appendChild(im); s.appendChild(p); pages.appendChild(s);
+                const t = document.createElement('button'); t.type = 'button'; t.className = 'bk-thumb'; t.setAttribute('aria-label', (i + 1) + '쪽');
+                const ti = document.createElement('img'); ti.src = u; ti.alt = ''; ti.loading = 'lazy'; t.appendChild(ti);
+                t.onclick = () => go(i); thumbs.appendChild(t); thumbEls.push(t);
+            });
+        } else {
+            const s = document.createElement('div'); s.className = 'bk-sheet'; s.innerHTML = '<div class="bk-sheet-paper bk-pdfonly">PDF 주보예요. 아래를 눌러 열어 주세요.</div>'; pages.appendChild(s);
+        }
+        if (d.pdfs.length) {
+            const box = document.createElement('div'); box.className = 'bk-pdfs';
+            d.pdfs.forEach(f => { const a = document.createElement('a'); a.href = f.url; a.target = '_blank'; a.rel = 'noopener'; a.innerHTML = '<em>PDF</em><span></span><small></small>'; a.children[1].textContent = f.name; a.children[2].textContent = f.size; box.appendChild(a); });
+            thumbs.appendChild(box);
+        }
+        const ed = reader.querySelector('[data-bk-edit]'); if (ed) ed.href = '/' + slug + '/bulletin/edit/' + d.id;
+        const di = reader.querySelector('[data-bk-delid]'); if (di) di.value = d.id;
+        if (menuBox) menuBox.hidden = true;
+        reader.hidden = false; reader.classList.add('bk-is-open'); document.body.style.overflow = 'hidden';
+        pages.scrollLeft = 0;
+        if (page > 0) requestAnimationFrame(() => pages.scrollTo({ left: page * pages.clientWidth }));
+        update();
+        reader.querySelector('[data-bk-close]').focus();
+    }
+    function update() {
+        if (!cur) return;
+        const i = Math.min(total - 1, Math.max(0, idx()));
+        now.textContent = (i + 1) + ' / ' + total + '쪽';
+        thumbEls.forEach((t, j) => t.setAttribute('aria-current', j === i ? 'true' : 'false'));
+        prev.disabled = i === 0; next.disabled = i >= total - 1;
+        const m = load(); const old = m[cur.id];
+        m[cur.id] = { p: Math.max(i, old && old.p < old.t ? old.p : 0), t: total, ts: Date.now() }; save(m);
+    }
+    function closeReader() { reader.classList.remove('bk-is-open'); reader.hidden = true; document.body.style.overflow = ''; cur = null; mark(); }
+
+    document.querySelectorAll('[data-bk-open]').forEach(el => el.addEventListener('click', () => openReader(+el.dataset.bkOpen, +(el.dataset.bkPage || 0))));
+    reader.querySelector('[data-bk-close]').addEventListener('click', closeReader);
+    pages.addEventListener('scroll', update, { passive: true });
+    prev.addEventListener('click', () => go(idx() - 1)); next.addEventListener('click', () => go(idx() + 1));
+    addEventListener('keydown', (e) => { if (reader.hidden) return; if (e.key === 'Escape') closeReader(); else if (e.key === 'ArrowLeft') go(idx() - 1); else if (e.key === 'ArrowRight') go(idx() + 1); });
+    const mb = reader.querySelector('[data-bk-menu]'); if (mb) mb.addEventListener('click', () => { menuBox.hidden = !menuBox.hidden; });
+    const df = reader.querySelector('[data-bk-delform]'); if (df) df.addEventListener('submit', (e) => { if (!confirm('이 주보를 지울까요? 파일도 함께 지워져요.')) e.preventDefault(); });
+    mark();
+    if (root.dataset.focus) openReader(+root.dataset.focus, 0);   // 올리기 · 고치기 뒤에는 그 주보가 바로 열린다
+})();
+</script>

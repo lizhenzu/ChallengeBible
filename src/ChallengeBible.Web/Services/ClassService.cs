@@ -13,6 +13,12 @@ public sealed record MoveTarget(int TenantId, string Name);
 public sealed record ClassDetail(SchoolClass Class, List<ClassPerson> Teachers, List<ClassPerson> Students,
     List<ClassPerson> TeacherCandidates, List<ClassPerson> StudentCandidates);
 
+/// <summary>교사 화면(2026-11-21 확정 시안 역할-담임-시안2 ①) 사람 한 명. Kind = UserRole 종류, ClassId = 지금 들어 있는 반(없으면 null), Teacher = 그 반 선생님인가.</summary>
+public sealed record BoardPerson(int PersonId, string Name, string RoleLabel, UserRoleKind Kind, bool IsAdmin, string? Phone, int? ClassId, bool Teacher);
+/// <summary>반 하나와 선생님들(먼저 넣은 순 — 첫째가 담임, 다음은 부담임).</summary>
+public sealed record BoardClass(int Id, string Name, bool IsNewcomer, IReadOnlyList<BoardPerson> Teachers);
+public sealed record TeacherBoard(IReadOnlyList<BoardClass> Classes, IReadOnlyList<BoardPerson> NoClass, IReadOnlyList<BoardPerson> People);
+
 public enum ClassError { None, NotFound, NoName, DupName, NotEligible, InOtherClass, Fixed }
 
 /// <summary>
@@ -64,6 +70,73 @@ public sealed class ClassService(IAppDb db, PeopleService people, TenantContext 
             .Select(c => new ClassRow(c.Id, c.Name, c.IsNewcomer,
                 members.Where(m => m.ClassId == c.Id && m.IsTeacher).Select(m => names.GetValueOrDefault(m.PersonId, "?")).ToList(),
                 c.IsNewcomer ? newcomers : members.Count(m => m.ClassId == c.Id && !m.IsTeacher))).ToList();
+    }
+
+    /// <summary>
+    /// 교사 화면(2026-11-21 사용자 "교사와 교사 외로 나누기", 확정 시안 역할-담임-시안2 ①): 반별 선생님(먼저 넣은 순) · 반이 없는 교사 ·
+    /// 바닥 창에서 고를 사람들(학생 · 새친구 · 탈퇴한 줄은 뺀다).
+    /// </summary>
+    public async Task<TeacherBoard> TeacherBoardAsync(CancellationToken ct = default)
+    {
+        var rows = await ClassesAsync(ct);   // 반 순서(새친구반 먼저 · 이름 순)
+        await using var ctx = db.Create();
+        var term = await TermAsync(ctx, ct);
+        var members = await ctx.ClassMembers.AsNoTracking().Where(m => m.TermId == term).OrderBy(m => m.Id).ToListAsync(ct);
+        var roster = (await people.RosterAsync(null, null, ct)).Where(r => r.LeftOn is null).ToList();
+        var byId = roster.ToDictionary(r => r.PersonId);
+        BoardPerson B(RosterRow r)
+        {
+            var m = members.FirstOrDefault(x => x.PersonId == r.PersonId);
+            return new BoardPerson(r.PersonId, r.Name, r.RoleLabel, UserRole.KindOf(r.RoleCode), r.IsAdmin, r.Phone1 ?? r.Phone2, m?.ClassId, m?.IsTeacher ?? false);
+        }
+        var classes = rows.Select(c => new BoardClass(c.Id, c.Name, c.IsNewcomer,
+            members.Where(m => m.ClassId == c.Id && m.IsTeacher && byId.ContainsKey(m.PersonId)).Select(m => B(byId[m.PersonId])).ToList())).ToList();
+        var placed = members.Select(m => m.PersonId).ToHashSet();
+        var noClass = roster.Where(r => UserRole.KindOf(r.RoleCode) == UserRoleKind.Teacher && !placed.Contains(r.PersonId)).Select(B).ToList();
+        var pool = roster.Where(r => !IsStudent(r)).Select(B).ToList();
+        return new TeacherBoard(classes, noClass, pool);
+    }
+
+    /// <summary>담임 교체(2026-11-21 사용자): 이 반에서 한 선생님을 빼고 다른 사람을 같은 반 선생님으로. 넣기가 안 되면 원래대로 되돌린다.</summary>
+    public async Task<ClassError> ReplaceTeacherAsync(int classId, int oldPersonId, int newPersonId, CancellationToken ct = default)
+    {
+        if (oldPersonId == newPersonId) return ClassError.None;
+        var e = await RemoveAsync(classId, oldPersonId, ct);
+        if (e != ClassError.None) return e;
+        e = await AddAsync(classId, [newPersonId], teacher: true, ct);
+        if (e != ClassError.None) await AddAsync(classId, [oldPersonId], teacher: true, ct);
+        return e;
+    }
+
+    /// <summary>선생님을 다른 반으로(빼고 넣기). 넣기가 안 되면 원래 반에 다시 넣는다.</summary>
+    public async Task<ClassError> MoveTeacherAsync(int fromClassId, int toClassId, int personId, CancellationToken ct = default)
+    {
+        if (fromClassId == toClassId) return ClassError.None;
+        var e = await RemoveAsync(fromClassId, personId, ct);
+        if (e != ClassError.None) return e;
+        e = await AddAsync(toClassId, [personId], teacher: true, ct);
+        if (e != ClassError.None) await AddAsync(fromClassId, [personId], teacher: true, ct);
+        return e;
+    }
+
+    /// <summary>반마다 선생님(이름 · 연락처 1) — 교적부 반 목록(R-361). 반 번호 → 선생님들.</summary>
+    public async Task<Dictionary<int, List<(string Name, string? Phone)>>> TeachersByClassAsync(CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var term = await TermAsync(ctx, ct);
+        var teachers = await ctx.ClassMembers.AsNoTracking().Where(m => m.TermId == term && m.IsTeacher).OrderBy(m => m.Id).Select(m => new { m.ClassId, m.PersonId }).ToListAsync(ct);
+        var roster = (await people.RosterAsync(null, null, ct)).ToDictionary(r => r.PersonId);
+        return teachers.GroupBy(t => t.ClassId).ToDictionary(g => g.Key, g => g.Select(t => roster.TryGetValue(t.PersonId, out var r) ? (r.Name, r.Phone1 ?? r.Phone2) : ("?", (string?)null)).ToList());
+    }
+
+    /// <summary>정규 반에 든 학생(사람 번호 → 반 번호) — 교적부 이름 찾기(R-361). 새친구반은 빼고 실제 반만.</summary>
+    public async Task<Dictionary<int, int>> StudentClassAsync(CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var term = await TermAsync(ctx, ct);
+        var real = await ctx.Classes.AsNoTracking().Where(c => c.TermId == term && !c.IsNewcomer).Select(c => c.Id).ToListAsync(ct);
+        return (await ctx.ClassMembers.AsNoTracking().Where(m => m.TermId == term && !m.IsTeacher && real.Contains(m.ClassId)).Select(m => new { m.PersonId, m.ClassId }).ToListAsync(ct))
+            .GroupBy(m => m.PersonId).ToDictionary(g => g.Key, g => g.First().ClassId);
     }
 
     private DateOnly Today => TenantClock.ToTenantDate(time.GetUtcNow(), tenant.Current.TimeZoneId);

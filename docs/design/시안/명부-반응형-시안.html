@@ -1,0 +1,72 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#E9ECF1;font-family:"Noto Sans KR",sans-serif;color:#111827}
+.row{display:flex;gap:24px;justify-content:center;padding:16px;flex-wrap:wrap;align-items:flex-start}
+.h{font:900 16px "Noto Sans KR";margin:6px 0 4px}.d{font-size:12.5px;color:#4B5563;margin:0 0 8px;line-height:1.5}
+.ph{width:375px;background:#F6F7F9;border-radius:22px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.top{background:#fff;padding:12px 16px;border-bottom:1px solid #E5E7EB}.top small{display:block;font-size:12px;color:#6B7280}.top b{font-size:17px;font-weight:900}
+.w{padding:12px}
+.seg{display:inline-flex;background:#EEF0F3;border-radius:12px;padding:4px;gap:4px;font-size:14px;font-weight:800}.seg span{padding:7px 14px;border-radius:9px;color:#4B5563}.seg span.on{background:#fff;color:#111827;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.tools{display:grid;grid-template-columns:1fr auto;gap:8px;margin:10px 0}
+.in{height:44px;border:1px solid #CBD5E1;border-radius:12px;background:#fff;display:flex;align-items:center;padding:0 12px;font-size:15px}
+.sel{height:44px;border:1px solid #CBD5E1;border-radius:12px;background:#fff;display:flex;align-items:center;padding:0 12px;font-size:14px;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 16px;border-radius:12px;font-weight:900;font-size:14.5px}
+.g{background:#1E7A55;color:#fff}.s{background:#fff;border:1px solid #CBD5E1}
+.acts{display:flex;gap:8px;margin-bottom:10px}
+.cnt{font-size:13px;color:#6B7280;margin:4px 2px 8px}
+/* 새 카드 */
+.card{background:#fff;border:1px solid #DCE1E8;border-radius:16px;padding:12px 14px;margin-bottom:8px;display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:4px 12px;align-items:center}
+.av{grid-row:span 2;width:44px;height:44px;border-radius:50%;background:#E8F3EE;color:#1E7A55;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px}
+.nm{font-size:16.5px;font-weight:900;display:flex;align-items:center;gap:6px;min-width:0}.nm em{font-style:normal;font-size:12.5px;font-weight:700;color:#6B7280}
+.chips{display:flex;flex-wrap:wrap;gap:4px;min-width:0}
+.c{font-size:12px;font-weight:800;padding:2px 8px;border-radius:99px;background:#F3F4F6;color:#374151}
+.c.t{background:#EEF2FF;color:#4338CA}.c.st{background:#ECFDF5;color:#047857}.c.ok{background:#EAF7EF;color:#15803D}.c.no{background:#FEF3C7;color:#92400E}.c.adm{background:#FCE7F3;color:#9D174D}
+.more{grid-row:span 2;font-size:13.5px;font-weight:800;color:#1E7A55;white-space:nowrap}
+.sub{grid-column:2/4;font-size:12.5px;color:#4B5563;line-height:1.5;overflow-wrap:anywhere}
+.chk{width:22px;height:22px;border:2px solid #9CA3AF;border-radius:6px}
+/* 지금(대략) */
+.old .card{grid-template-columns:28px 52px minmax(0,1fr) auto 16px}
+.old .av{grid-row:auto;background:#F3F4F6;color:#4B5563;font-size:14px;line-height:1.1;text-align:center}
+.old .nm{font-size:17px}.old .x{font-size:14px;color:#6B7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 데스크톱 */
+.desk{width:980px;background:#fff;border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.12);overflow:hidden}
+.desk .top{display:flex;justify-content:space-between;align-items:center}
+.dw{padding:16px 20px}
+.dtools{display:grid;grid-template-columns:1fr 160px auto auto;gap:8px;margin:12px 0}
+table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;font-size:12.5px;color:#6B7280;font-weight:800;padding:8px 10px;border-bottom:1px solid #E5E7EB;background:#F9FAFB}
+td{padding:10px;border-bottom:1px solid #F1F3F6;vertical-align:middle}td b{font-weight:900}
+.dav{display:inline-flex;width:32px;height:32px;border-radius:50%;background:#E8F3EE;color:#1E7A55;align-items:center;justify-content:center;font-weight:900;font-size:12.5px;margin-right:8px;vertical-align:middle}
+.id{font-size:12.5px;color:#6B7280}
+</style></head><body>
+<div class="row">
+<div><div class="h">지금</div><p class="d">계정 아이디가 잘림 · 동그라미 글자 넘침 · "자세히"와 이름이 붙음 · 회색 글자 연함</p>
+<div class="ph old"><div class="top"><small>잠실새내교회 영아부 · 관리</small><b>도전!!! 소속 관리</b></div><div class="w">
+<div class="card"><span class="chk"></span><span class="av">진찬<br>선생님</span><div><div class="nm">조진찬 선생님</div><div class="x">교사 · 가입 jamsil-in…</div></div><span class="more">자세히 →</span><span>›</span></div>
+<div class="card"><span class="chk"></span><span class="av">진혁</span><div><div class="nm">강진혁</div><div class="x">학생 · 가입 jamsil-in…</div></div><span class="more">자세히 →</span><span>›</span></div>
+</div></div></div>
+
+<div><div class="h">새 시안 · 휴대폰</div><p class="d">한 사람 = 카드 한 장. 이름 옆 반 · 칩(역할 · 가입 여부 · 관리자) · 아래 줄에 생일 · 연락처 · 계정 아이디를 줄바꿈해 다 보이게. 진급은 [진급 보내기]를 눌렀을 때만 체크칸.</p>
+<div class="ph"><div class="top"><small>잠실새내교회 영아부 · 관리</small><b>도전!!! 소속 관리</b></div><div class="w">
+<div class="seg"><span>참여 신청 0</span><span class="on">명부 57</span></div>
+<div class="tools"><span class="in">조진찬</span><span class="btn s">찾기</span><span class="sel">모든 역할 ▾</span><span></span></div>
+<div class="acts"><span class="btn g">+ 명부에 올리기</span><span class="btn s">진급 보내기</span></div>
+<div class="cnt">찾은 사람 2명</div>
+<div class="card"><span class="av">진찬</span><div class="nm">조진찬 선생님 <em>1반 담임</em></div><span class="more">자세히 ›</span><div class="chips"><span class="c t">교사</span><span class="c ok">가입</span></div><div class="sub">생일 3월 12일 · 010-1234-5678 · 계정 jamsil-infant-t07@fake-seed.test</div></div>
+<div class="card"><span class="av">진찬</span><div class="nm">조진찬 <em>2반</em></div><span class="more">자세히 ›</span><div class="chips"><span class="c st">학생</span><span class="c no">가입 안 함</span></div><div class="sub">생일 2월 3일 · 연락처 없음</div></div>
+<div class="card"><span class="av">관리</span><div class="nm">관리영</div><span class="more">자세히 ›</span><div class="chips"><span class="c t">교사</span><span class="c adm">관리자</span><span class="c ok">가입</span></div><div class="sub">생일 없음 · 계정 jamsil-infant-admin</div></div>
+</div></div></div>
+</div>
+
+<div class="row">
+<div><div class="h">새 시안 · 데스크톱(넓은 화면)</div><p class="d">넓으면 표로: 이름 · 역할 · 반 · 생일 · 연락처 · 계정 · 자세히. 글자는 진하게, 잘리지 않게(계정은 줄바꿈).</p>
+<div class="desk"><div class="top"><div><small>잠실새내교회 영아부 · 관리</small><b>도전!!! 소속 관리</b></div><span style="color:#1E7A55;font-weight:800">부서 홈으로</span></div><div class="dw">
+<div class="seg"><span>참여 신청 0</span><span class="on">명부 57</span></div>
+<div class="dtools"><span class="in">이름으로 찾기</span><span class="sel">모든 역할 ▾</span><span class="btn s">찾기</span><span class="btn g">+ 명부에 올리기</span></div>
+<table><tr><th>이름</th><th>역할</th><th>반</th><th>생일</th><th>연락처</th><th>계정</th><th></th></tr>
+<tr><td><span class="dav">진찬</span><b>조진찬 선생님</b></td><td><span class="c t">교사</span></td><td>1반 담임</td><td>3월 12일</td><td>010-1234-5678</td><td><span class="c ok">가입</span> <span class="id">jamsil-infant-t07</span></td><td style="color:#1E7A55;font-weight:800">자세히 ›</td></tr>
+<tr><td><span class="dav">진찬</span><b>조진찬</b></td><td><span class="c st">학생</span></td><td>2반</td><td>2월 3일</td><td>—</td><td><span class="c no">가입 안 함</span></td><td style="color:#1E7A55;font-weight:800">자세히 ›</td></tr>
+<tr><td><span class="dav">관리</span><b>관리영</b></td><td><span class="c t">교사</span> <span class="c adm">관리자</span></td><td>—</td><td>—</td><td>—</td><td><span class="c ok">가입</span> <span class="id">jamsil-infant-admin</span></td><td style="color:#1E7A55;font-weight:800">자세히 ›</td></tr>
+</table></div></div></div>
+</div>
+</body></html>

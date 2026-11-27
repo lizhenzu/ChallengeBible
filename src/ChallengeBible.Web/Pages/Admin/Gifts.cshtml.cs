@@ -1,4 +1,4 @@
-using ChallengeBible.Domain.Rules;
+﻿using ChallengeBible.Domain.Rules;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
@@ -13,9 +13,19 @@ namespace ChallengeBible.Web.Pages.Admin;
 /// ③ 금액 · 점수(R-280 · R-283 · R-286 · R-288 · R-289) ④ 총비용 · 엑셀(확정 시안 선물-총비용, R-294). 부서 관리자만, 임시 부서는 없음.
 /// </summary>
 [TenantRoles(Roles.TenantAdmin)]
-public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftOrderService orders, TeamGiftService teamGifts, GiftCostService cost, BirthdayGiftService birthdays, NewcomerGiftService newcomers, ReadingGiftService readings, TenantContext tenant) : PageModel, ITitled
+public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftOrderService orders, TeamGiftService teamGifts, GiftCostService cost, BirthdayGiftService birthdays, NewcomerGiftService newcomers, ReadingGiftService readings, TenantContext tenant, CopyGiftService copies) : PageModel, ITitled
 {
-    public string Title => "선물";
+    public string Title => Tab switch { "list" => "공통 상품", "ours" => "부서 상품", "money" => "금액 · 점수", "cost" => "총비용", _ => "선물 처리" };
+
+    /// <summary>
+    /// 선물 설정 화면 4개(2026-11-21 사용자, 확정 시안 선물분리): `/admin/gifts/common` · `/ours` · `/money` · `/cost` — 관리 ☰ "선물 설정".
+    /// `/admin/gifts` 는 선물 처리만(일반 ☰ "생일" 묶음). 예전 `?t=list` 같은 주소는 새 주소로 보낸다.
+    /// </summary>
+    [FromRoute(Name = "view")] public string? View { get; set; }
+    public static string? ViewOf(string? tab) => tab switch { "list" => "common", "ours" => "ours", "money" => "money", "cost" => "cost", _ => null };
+    private static string? TabOf(string? view) => view switch { "common" => "list", "ours" => "ours", "money" => "money", "cost" => "cost", _ => null };
+    /// <summary>선물 처리면 일반 ☰ 머리말, 설정 화면이면 관리 ☰ 머리말.</summary>
+    public bool OrdersView => Tab == "orders";
     public TenantContext Tenant => tenant;
 
     [BindProperty(SupportsGet = true, Name = "t")] public string? Tab { get; set; }
@@ -31,8 +41,12 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
     [BindProperty(SupportsGet = true, Name = "link")] public long? LinkId { get; set; }
     /// <summary>[새 링크]로 방금 바꾼 링크(팝업에 "예전 링크는 막혔어요").</summary>
     [BindProperty(SupportsGet = true, Name = "new")] public bool LinkFresh { get; set; }
+    /// <summary>링크 팝업의 부모님 안내글(확정 시안 생일링크-부모안내 ②).</summary>
+    public string? ShareText { get; private set; }
     /// <summary>[전도한 아이 고르기] 팝업: 새친구 명부 번호 · 찾는 이름.</summary>
     [BindProperty(SupportsGet = true, Name = "pick")] public int? PickId { get; set; }
+    /// <summary>오늘 할 일에서 [선물 처리로 이동]으로 온 건(그 줄을 강조, 2026-11-16).</summary>
+    [BindProperty(SupportsGet = true, Name = "hit")] public long? Hit { get; set; }
     [BindProperty(SupportsGet = true, Name = "q2")] public string? PickQ { get; set; }
     public IReadOnlyList<InvitePending> Pending { get; private set; } = [];
     public InvitePending? PickFor { get; private set; }
@@ -61,7 +75,12 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (tenant.IsLobby) return NotFound();
-        Tab = Tab is "list" or "ours" or "money" or "cost" ? Tab : "orders";   // 처음은 선물 처리(확정 시안 관리-선물처리)
+        if (View is null && ViewOf(Tab) is { } moved)   // 예전 주소 → 새 화면(저장해 둔 링크가 깨지지 않게)
+        {
+            var qs = string.Join("&", Request.Query.Where(k => k.Key != "t").Select(k => $"{k.Key}={Uri.EscapeDataString(k.Value.ToString())}"));
+            return Redirect($"/{Slug}/admin/gifts/{moved}" + (qs.Length > 0 ? "?" + qs : ""));
+        }
+        Tab = TabOf(View) ?? "orders";   // 선물 처리 · 설정 화면은 주소로 정한다
         Message = Ok switch
         {
             "money" => "저장했어요. 앞으로 생기는 선물부터 적용돼요.", "shared" => "공통에 올렸어요. 이제 모든 부서에 보여요.",
@@ -70,6 +89,7 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
             "bad" => "이미 바뀐 선물이에요. 목록을 다시 확인해 주세요.", "lastyear" => "지난해 선물은 되돌릴 수 없어요.", _ => null,
         };
         await LoadAsync(fillMoney: true, ct);
+        if (LinkId is long lid && await birthdays.ShareAsync(Me, lid, ct) is { } sh) ShareText = BirthdayGiftService.ShareText(sh.View, LinkUrl(sh.Token), sh.Linked);
         return Page();
     }
 
@@ -82,6 +102,7 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
             await birthdays.EnsureAsync(ct);   // 생일 선물 생김 · 기한 지남(ADR 0094 D)
             await newcomers.EnsureAsync(ct);   // 새친구 · 전도 선물 생김(ADR 0094 C, 정한 것 15)
             await readings.EnsureAsync(ct);   // 완독 선물 생김 · 기한 지남(ADR 0094 E, 정한 것 16)
+            await copies.EnsureAsync(ct);   // 필사 완필 선물 생김 · 기한 지남(ADR 0099)
             Step = Step is GiftOrderService.Pick or GiftOrderService.Give or GiftOrderService.Done or GiftOrderService.Cancel ? Step : GiftOrderService.Buy;
             OrderCounts = await orders.CountsAsync(ct);
             Orders = await orders.ListAsync(Step, ct: ct);
@@ -146,19 +167,11 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
     }
 
     /// <summary>생일 선물 [링크 복사](없으면 만듦) · [새 링크](옛 링크는 막힘, R-287).</summary>
-    public async Task<IActionResult> OnPostLinkAsync(long id, bool fresh, CancellationToken ct)
+    public async Task<IActionResult> OnPostLinkAsync(long id, CancellationToken ct)
     {
         if (tenant.IsLobby) return NotFound();
-        var token = await birthdays.LinkAsync(Me, id, fresh, ct);
-        return Redirect($"/{Slug}/admin/gifts?s={Step ?? GiftOrderService.Pick}" + (token is null ? "&ok=bad" : $"&link={id}" + (fresh ? "&new=true" : "")) + $"#g{id}");
-    }
-
-    /// <summary>생일 선물 [건너뛰기] · 건너뛴 것 [되돌리기](R-288).</summary>
-    public async Task<IActionResult> OnPostSkipAsync(long id, bool skip, CancellationToken ct)
-    {
-        if (tenant.IsLobby) return NotFound();
-        var ok = await birthdays.SkipAsync(Me, id, skip, ct);
-        return Redirect($"/{Slug}/admin/gifts?s={(skip ? GiftOrderService.Pick : GiftOrderService.Cancel)}&ok={(ok ? (skip ? "skip" : "unskip") : "bad")}");
+        var token = await birthdays.LinkAsync(Me, id, false, ct);
+        return Redirect($"/{Slug}/admin/gifts?s={Step ?? GiftOrderService.Pick}" + (token is null ? "&ok=bad" : $"&link={id}" + "") + $"#g{id}");
     }
 
     /// <summary>전도한 아이 고르기 [이 아이에게 선물].</summary>
@@ -169,15 +182,7 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
         return Redirect($"/{Slug}/admin/gifts?s={GiftOrderService.Pick}&ok={(ok ? "assign" : "bad")}");
     }
 
-    /// <summary>전도한 아이를 정하지 않고 [건너뛰기].</summary>
-    public async Task<IActionResult> OnPostSkipPendingAsync(int newcomer, CancellationToken ct)
-    {
-        if (tenant.IsLobby) return NotFound();
-        var ok = await newcomers.SkipPendingAsync(Me, newcomer, ct);
-        return Redirect($"/{Slug}/admin/gifts?s={GiftOrderService.Pick}&ok={(ok ? "skip" : "bad")}");
-    }
-
-    public static string LinkTitle(string kind) => kind switch { GiftKinds.Newcomer => "새친구 선물", GiftKinds.Invite => "전도 선물", GiftKinds.Reading => "완독 선물", _ => "생일 선물" };
+    public static string LinkTitle(string kind) => kind switch { GiftKinds.Newcomer => "새친구 선물", GiftKinds.Invite => "전도 선물", GiftKinds.Reading => "완독 선물", GiftKinds.Copy => "완필 선물", _ => "생일 선물" };
     /// <summary>받침이 있으면 "을", 없으면 "를"(고성윤을 · 김하나를).</summary>
     public static string Obj(string name) => name.Length > 0 && name[^1] is >= '가' and <= '힣' && (name[^1] - '가') % 28 != 0 ? name + "을" : name + "를";
     public string LinkUrl(string token) => $"{Request.Scheme}://{Request.Host}/gift/{token}";
@@ -186,7 +191,7 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
     public async Task<IActionResult> OnPostHideAsync(int id, bool hide, CancellationToken ct)
     {
         if (tenant.IsLobby || !await gifts.SetHiddenAsync(Me, id, hide, ct)) return NotFound();
-        return Redirect($"/{Slug}/admin/gifts?t=list&v={Uri.EscapeDataString(Show ?? "all")}&q={Uri.EscapeDataString(Q ?? "")}&p={Band}#g{id}");
+        return Redirect($"/{Slug}/admin/gifts/common?v={Uri.EscapeDataString(Show ?? "all")}&q={Uri.EscapeDataString(Q ?? "")}&p={Band}#g{id}");
     }
 
     /// <summary>② 공통에 올리기(R-277, 승인 없이 바로).</summary>
@@ -194,26 +199,26 @@ public class GiftsModel(DeptGiftService gifts, GiftCatalogService catalog, GiftO
     {
         if (tenant.IsLobby) return NotFound();
         var r = await catalog.ShareAsync(GiftEditor.Dept(Me, tenant.Current.Id), id, ct);
-        return r == GiftItemError.None ? Redirect($"/{Slug}/admin/gifts?t=ours&ok=shared") : NotFound();
+        return r == GiftItemError.None ? Redirect($"/{Slug}/admin/gifts/ours?ok=shared") : NotFound();
     }
 
     /// <summary>③ 금액 · 점수 저장. 틀린 칸이 있으면 아무것도 저장하지 않고 쓴 값을 그대로 보인다.</summary>
     public async Task<IActionResult> OnPostMoneyAsync(CancellationToken ct)
     {
         if (tenant.IsLobby) return NotFound();
-        Tab = "money";
+        Tab = "money"; View = "money";
         Errors = await gifts.SaveMoneyAsync(Me, Money, ct);
-        if (Errors.Count == 0) return Redirect($"/{Slug}/admin/gifts?t=money&ok=money");
+        if (Errors.Count == 0) return Redirect($"/{Slug}/admin/gifts/money?ok=money");
         await LoadAsync(fillMoney: false, ct);
         return Page();
     }
 
     public string Err(string k) => Errors.GetValueOrDefault(k) ?? "";
-    public string Url(string? v = null, int? n = null) => $"/{Slug}/admin/gifts?t=list&v={v ?? Show}&q={Uri.EscapeDataString(Q ?? "")}&p={Band}&n={n ?? GiftCatalogService.PageSize}";
+    public string Url(string? v = null, int? n = null) => $"/{Slug}/admin/gifts/common?v={v ?? Show}&q={Uri.EscapeDataString(Q ?? "")}&p={Band}&n={n ?? GiftCatalogService.PageSize}";
     public static string Img(DeptGiftRow r) => r.HasImage ? $"/images/AwardItem/{r.Id}.jpg?v={r.UpdatedUtc.Ticks}" : "";
     public static string N(int n) => n.ToString("N0");
     public GiftCostPeriodView CostPeriodView => new(Cost!.Period, $"/{Slug}/admin/gifts", new Dictionary<string, string?> { ["t"] = "cost" });
     public string CostLabel => "받은 선물 금액 합계";
     public string Local(DateTime utc) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), TimeZoneInfo.FindSystemTimeZoneById(tenant.Current.TimeZoneId)).ToString("M.d");
-    public string CostUrl(string? per = null, int? n = null) => $"/{Slug}/admin/gifts?t=cost&per={per ?? Cost?.Period.Key}&from={From}&to={To}" + (n is int k ? $"&n={k}" : "");
+    public string CostUrl(string? per = null, int? n = null) => $"/{Slug}/admin/gifts/cost?per={per ?? Cost?.Period.Key}&from={From}&to={To}" + (n is int k ? $"&n={k}" : "");
 }

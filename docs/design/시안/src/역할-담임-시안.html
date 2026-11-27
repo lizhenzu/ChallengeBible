@@ -1,0 +1,79 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>역할 · 담임 메뉴 시안</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#111827;--dim:#6B7280;--mute:#9CA3AF;--line:#EEF0F3;--soft:#F4F6F9;--blue:#2B5BC6;--bl:#EAF0FC;--org:#B4531F;--ol:#FBEFE7;--red:#C0392B;--rl:#FDECEA;--grn:#1F7A55;--gl:#E6F4EC}
+*{box-sizing:border-box}body{margin:0;padding:28px 24px;background:#E8ECF3;font-family:'Noto Sans KR',sans-serif;color:var(--ink)}
+.row{display:flex;gap:22px;align-items:flex-start}.col{width:370px;flex:none}
+.lab{margin:0 0 2px;font-size:16px;font-weight:800}.sub{margin:0 0 10px;font-size:12.5px;color:var(--dim)}
+.ph{background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06);padding-bottom:16px}
+.top{display:flex;align-items:center;gap:10px;padding:13px 14px;border-bottom:1px solid var(--line);font-size:12.5px}.top i{font-style:normal;font-size:17px}.top b{color:var(--blue)}.top .h{margin-left:auto;color:var(--blue);font-weight:700}
+.wr{padding:14px}h1{margin:0;font-size:19px;font-weight:900}.p{margin:4px 0 0;font-size:12px;color:var(--dim);line-height:1.6}
+.sec{margin:16px 0 6px;font-size:13px;font-weight:800;display:flex;justify-content:space-between;align-items:baseline}.sec small{font-size:11px;color:var(--mute);font-weight:500}
+.slot{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #E3E8F0;border-radius:14px;margin-bottom:8px}
+.slot .r{width:40px;font-size:13px;font-weight:900;color:var(--blue);flex:none}
+.slot .n{flex:1;min-width:0;font-size:13.5px;font-weight:700}.slot .n small{display:block;font-weight:400;font-size:11px;color:var(--dim)}
+.slot .e{font-size:11.5px;font-weight:800;color:var(--blue);padding:5px 10px;border-radius:99px;background:var(--bl);flex:none}
+.slot.warn{border-color:#F1C9C3;background:#FFFBFA}.slot.warn .r{color:var(--red)}
+.slot.empty{border-style:dashed;background:#FAFBFD}.slot.empty .n{color:var(--mute);font-weight:500}
+.tg{display:inline-block;padding:1px 8px;border-radius:99px;font-size:10.5px;font-weight:800;background:var(--rl);color:var(--red);margin-left:6px}
+.tg.g{background:var(--gl);color:var(--grn)}.tg.b{background:var(--bl);color:var(--blue)}
+.cls{padding:10px 12px;border:1px solid #E3E8F0;border-radius:14px;margin-bottom:8px}.cls b{font-size:13.5px}.cls .t{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:5px 10px;border-radius:99px;background:var(--soft);font-size:12px;font-weight:700}.chip.on{background:var(--bl);color:var(--blue)}.chip.add{background:#fff;border:1px dashed #BFC8D8;color:var(--blue)}.chip.no{color:var(--org);background:var(--ol)}
+.tabs{display:flex;gap:6px;margin-top:12px;overflow:hidden}.tabs span{padding:7px 13px;border-radius:99px;background:var(--soft);font-size:12.5px;color:var(--dim);white-space:nowrap}.tabs .on{background:var(--ink);color:#fff;font-weight:700}
+.srch{margin-top:10px;height:40px;border-radius:99px;background:var(--soft);display:flex;align-items:center;padding:0 14px;font-size:13px;color:var(--mute)}
+.pr{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.pr:last-child{border:0}
+.av{width:34px;height:34px;border-radius:50%;background:var(--bl);color:var(--blue);display:grid;place-items:center;font-size:12px;font-weight:800;flex:none}
+.pr .n{flex:1;min-width:0;font-size:13.5px;font-weight:700}.pr .n small{display:block;font-weight:400;font-size:11px;color:var(--dim)}
+.sel{padding:6px 10px;border-radius:10px;background:var(--soft);font-size:12px;font-weight:700;min-width:62px;text-align:center}.sel.ch{background:#FFF6DD;box-shadow:inset 0 0 0 1.5px #F0CF7A}
+.bar{margin-top:12px;padding:11px 12px;border-radius:14px;background:var(--bl);display:flex;justify-content:space-between;align-items:center;font-size:13px}.btn{padding:9px 14px;border-radius:12px;background:var(--blue);color:#fff;font-weight:800;font-size:13px}
+.sheet{margin:14px -14px -14px;padding:14px;border-top:1px solid var(--line);background:#fff;box-shadow:0 -8px 20px rgba(0,0,0,.08);border-radius:18px 18px 0 0}
+.sheet h3{margin:0;font-size:15px}.opt{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.note{margin-top:12px;padding:12px 14px;border-radius:14px;background:#FFF8E6;font-size:12px;line-height:1.7;color:#7C5A10}.note b{color:#5A3E06}
+.rec{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:99px;background:var(--bl);color:var(--blue);font-size:10.5px;font-weight:800}
+</style></head><body><div class="row">
+
+<div class="col"><p class="lab">A. 조직도형 <span class="rec">추천</span></p><p class="sub">직책 칸 + 반별 담임을 한 화면에서</p>
+<div class="ph"><div class="top"><i>☰</i><b>도전!!!</b>성경말씀 › <strong>임원 · 담임</strong><span class="h">부서 홈으로</span></div><div class="wr">
+<h1>임원 · 담임</h1><p class="p">칸을 누르면 그 자리 사람을 정하거나 바꿔요.</p>
+<div class="sec">임원 <small>지도 · 부장 · 부감 · 서기 · 회계 · 교장</small></div>
+<div class="slot warn"><span class="r">부장</span><span class="n">유민종 · 정유민<small>⚠ 부장이 2명이에요 — 한 분만 두려면 눌러서 바꾸세요</small></span><span class="e">바꾸기</span></div>
+<div class="slot"><span class="r">부감</span><span class="n">김은경<small>관리자</small></span><span class="e">바꾸기</span></div>
+<div class="slot"><span class="r">서기</span><span class="n">이서기<small>관리자</small></span><span class="e">바꾸기</span></div>
+<div class="slot empty"><span class="r">회계</span><span class="n">비어 있어요</span><span class="e">+ 정하기</span></div>
+<div class="slot"><span class="r">지도</span><span class="n">박지도 · 최지도</span><span class="e">바꾸기</span></div>
+<div class="sec">담임 <small>반마다 담임 · 부담임</small></div>
+<div class="cls"><b>1학년 1반</b><div class="t"><span class="chip on">담임 최선생</span><span class="chip on">부담임 한선생</span><span class="chip add">+ 추가</span></div></div>
+<div class="cls"><b>1학년 2반</b><div class="t"><span class="chip no">담임이 없어요</span><span class="chip add">+ 정하기</span></div></div>
+<div class="cls"><b>2학년 1반</b><div class="t"><span class="chip on">담임 강선생</span><span class="chip add">+ 추가</span></div></div>
+<div class="sec">봉사 <small>보조 · 율동 · 촬영 · 영상 · 반주 · 스텝</small></div>
+<div class="cls"><div class="t"><span class="chip on">영상 · 오영상</span><span class="chip on">반주 · 정반주</span><span class="chip add">+ 추가</span></div></div>
+</div></div>
+<div class="note"><b>좋은 점</b> 임원 · 담임 · 봉사가 한눈에, 빈 자리 · 중복(부장 2명)이 바로 보임. 누르면 바닥 창(오른쪽 ②)으로 바꿔요.</div></div>
+
+<div class="col"><p class="lab">A-② 칸을 눌렀을 때</p><p class="sub">바닥에서 올라오는 창</p>
+<div class="ph"><div class="top"><i>☰</i><b>도전!!!</b>성경말씀 › <strong>임원 · 담임</strong><span class="h">부서 홈으로</span></div><div class="wr" style="opacity:.45"><h1>임원 · 담임</h1><div class="slot warn" style="margin-top:12px"><span class="r">부장</span><span class="n">유민종 · 정유민</span></div></div>
+<div class="wr" style="padding-top:0"><div class="sheet"><h3>부장 — 누구로 할까요?</h3>
+<div class="p">지금 부장: 유민종 · 정유민</div>
+<div class="srch">🔍 이름으로 찾기</div>
+<div class="pr"><span class="av">유</span><span class="n">유민종<small>부장 · 관리자</small></span><span class="sel">부장 유지</span></div>
+<div class="pr"><span class="av">정</span><span class="n">정유민<small>부장 · 관리자</small></span><span class="sel ch">부감으로 ▾</span></div>
+<div class="pr"><span class="av">김</span><span class="n">김하늘<small>교사</small></span><span class="sel">부장으로</span></div>
+<div class="bar"><span>정유민 → <b>부감</b></span><span class="btn">바꾸기</span></div></div></div></div>
+<div class="note"><b>한 번에</b> 이름 옆 선택으로 역할을 바로 바꾸고, 아래 [바꾸기]로 확정(한 번 더 묻기 · 관리자 영향 안내).</div></div>
+
+<div class="col"><p class="lab">B. 목록 편집형</p><p class="sub">사람 목록에서 역할 · 담임반을 한 줄로</p>
+<div class="ph"><div class="top"><i>☰</i><b>도전!!!</b>성경말씀 › <strong>임원 · 담임</strong><span class="h">부서 홈으로</span></div><div class="wr">
+<h1>임원 · 담임</h1>
+<div class="tabs"><span class="on">임원 6</span><span>담임 14</span><span>봉사 7</span><span>전체 27</span></div>
+<div class="srch">🔍 이름으로 찾기</div>
+<div class="p" style="margin-top:8px">⚠ 부장 2명 · 회계 없음</div>
+<div class="pr"><span class="av">유</span><span class="n">유민종<small>010-4729-6832</small></span><span class="sel">부장 ▾</span><span class="sel">1-1반 ▾</span></div>
+<div class="pr"><span class="av">정</span><span class="n">정유민<small>010-3258-6954</small></span><span class="sel ch">부감 ▾</span><span class="sel">— ▾</span></div>
+<div class="pr"><span class="av">김</span><span class="n">김은경<small>010-1111-2222</small></span><span class="sel">부감 ▾</span><span class="sel">2-1반 ▾</span></div>
+<div class="pr"><span class="av">이</span><span class="n">이서기<small>010-3333-4444</small></span><span class="sel">서기 ▾</span><span class="sel">— ▾</span></div>
+<div class="pr"><span class="av">박</span><span class="n">박지도<small>010-5555-6666</small></span><span class="sel">지도 ▾</span><span class="sel">— ▾</span></div>
+<div class="bar"><span><b>1</b>건 바뀜</span><span class="btn">저장</span></div>
+</div></div>
+<div class="note"><b>좋은 점</b> 한 줄에서 역할과 담임반을 같이 고침, 바뀐 줄은 노랗게 표시, 아래 [저장] 한 번. 많이 바꿀 때 빠름. 단점: 빈 자리 · 조직 모양은 안 보임.</div></div>
+
+</div></body></html>

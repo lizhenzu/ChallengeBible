@@ -78,11 +78,11 @@ public partial class BrandingTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
-    public void 아이콘_글자는_짧은_이름_앞_2자()
+    public void 카톡_미리보기_제목은_앱_이름_뒤에_부서_이름()
     {
-        Assert.Equal("도전", BrandingService.IconText("도전성경"));
-        Assert.Equal("유년", BrandingService.IconText("!유년부"));
-        Assert.Equal("도전", BrandingService.IconText("!!!"));
+        Assert.Equal("도전!!!성경말씀 · 유년부", BrandingService.OgTitle("도전!!!성경말씀", "유년부"));
+        Assert.Equal("유년부 말씀 챌린지", BrandingService.OgTitle("유년부 말씀 챌린지", "유년부"));   // 이미 들어 있으면 그대로
+        Assert.Equal("도전!!!성경말씀", BrandingService.OgTitle("도전!!!성경말씀", null));         // 부서 밖 화면
     }
 
     // ---- 화면 흐름 ----
@@ -130,6 +130,8 @@ public partial class BrandingTests : IClassFixture<WebApplicationFactory<Program
         var page = await admin.GetStringAsync("/jamsil-kids/admin/branding");
         Assert.Contains("href=\"/jamsil-kids/admin/branding\"", page);                 // 관리 메뉴 "이름 · 색"
         Assert.Contains("아직 바꾼 기록이 없어요", page);
+        Assert.Contains("class=\"br-same\"", page);                                  // 바탕화면 이름은 모든 부서가 같다(ADR 0115, 2026-11-18)
+        Assert.DoesNotContain("id=\"AppShortName\"", page);                          // 짧은 이름 칸은 뺐다(값은 숨겨 그대로 보냄)
         var r = await admin.PostAsync("/jamsil-kids/admin/branding", new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["__RequestVerificationToken"] = TokenRx().Match(page).Groups[1].Value,
@@ -143,7 +145,9 @@ public partial class BrandingTests : IClassFixture<WebApplicationFactory<Program
         var home = await admin.GetStringAsync("/jamsil-kids");
         Assert.Contains("data-color=\"violet\"", home);
         Assert.Contains("유년부 말씀 챌린지</title>", home);                              // 부서 화면 제목은 부서 이름(0038)
-        Assert.Contains("rel=\"manifest\" href=\"/jamsil-kids/manifest.webmanifest\"", home);
+        Assert.Contains("rel=\"manifest\" href=\"/manifest.webmanifest\"", home);         // 설치 앱은 하나(0115 · R-332)
+        Assert.Contains("class=\"tdr2-prof\"", home);                                    // ☰ 맨 아래 프로필 카드(앱 설치 · 로그아웃 줄은 2026-11-25 삭제)
+        Assert.DoesNotContain("data-install=\"off\"", home);                               // 부서 화면은 설치 안내로 보낼 수 있음(R-331)
         Assert.Contains("name=\"theme-color\" content=\"#6A4BB5\"", home);
         var reading = await admin.GetStringAsync("/jamsil-kids/reading");
         Assert.Contains("data-color=\"blue\"", reading);                                  // 통독 화면은 파랑 그대로
@@ -179,9 +183,14 @@ public partial class BrandingTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal("/jamsil-kids/", j.GetProperty("start_url").GetString());
         Assert.Equal("/jamsil-kids/", j.GetProperty("scope").GetString());
         Assert.Equal("#1F7A5C", j.GetProperty("theme_color").GetString());
-        var icon = await anon.GetStringAsync("/jamsil-kids/icon.svg");
-        Assert.Contains("fill=\"#1F7A5C\"", icon);
-        Assert.Contains(">유년<", icon);
+        // 아이콘은 부서 색과 상관없이 모두 같은 네잎(0114) — 예전 부서 아이콘 주소는 네잎으로 보낸다
+        var icon = await anon.GetAsync("/jamsil-kids/icon.svg");
+        Assert.Equal(HttpStatusCode.Redirect, icon.StatusCode);
+        Assert.Equal(BrandingService.IconSvg, icon.Headers.Location!.OriginalString);
+        var icons = j.GetProperty("icons").EnumerateArray().Select(x => x.GetProperty("src").GetString()).ToList();
+        Assert.Equal(new[] { BrandingService.Icon192, BrandingService.Icon512, BrandingService.IconMaskable, BrandingService.IconSvg }, icons);
+        Assert.Contains(j.GetProperty("icons").EnumerateArray(), x => x.GetProperty("purpose").GetString() == "maskable");
+        Assert.Equal("#FFFFFF", j.GetProperty("background_color").GetString());   // 안드로이드 로딩 화면 바탕
         Assert.Equal(HttpStatusCode.NotFound, (await anon.GetAsync("/no-such/manifest.webmanifest")).StatusCode);
 
         var elem = JsonDocument.Parse(await anon.GetStringAsync("/jamsil-elem/manifest.webmanifest")).RootElement;

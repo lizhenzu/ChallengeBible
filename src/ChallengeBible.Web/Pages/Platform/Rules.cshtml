@@ -1,4 +1,4 @@
-@page "/platform/rules"
+﻿@page "/platform/rules"
 @model ChallengeBible.Web.Pages.Platform.RulesModel
 @using ChallengeBible.Domain.Rules
 @using ChallengeBible.Web.Pages.Platform
@@ -12,12 +12,12 @@
     string Changed(bool c) => c ? " changed" : "";
 }
 <partial name="_PlatformTop" />
-<main class="admin gut"><div class="wrap wide pr">
+<main class="admin gut w760"><div class="wrap wide pr">
     <h1>기본 규칙</h1>
     <div class="pr-ver">
         <b class="v">v@(Model.AppliedNo)</b><span>지금 적용 중@(Model.AppliedNo > 1 ? $" · {Model.Versions.Single(v => v.VersionNo == Model.AppliedNo).EffectiveFrom.ToString("yyyy년 M월 d일", ko)}부터" : " · 처음 값")</span>
         @if (latest.VersionNo != Model.AppliedNo) { <span class="soon">v@(latest.VersionNo)은 @latest.EffectiveFrom.ToString("M월 d일", ko)부터 적용돼요</span> }
-        <span>· 이 값을 쓰는 성경말씀 부서 <b class="num">@(Model.MissionTenants)곳</b> (1차는 모든 부서가 기본 규칙을 써요. 부서별 바꾸기는 2차)</span>
+        <span>· 이 값을 쓰는 성경미션 부서 <b class="num">@(Model.MissionTenants)곳</b> (1차는 모든 부서가 기본 규칙을 써요. 부서별 바꾸기는 2차)</span>
     </div>
     @if (Model.Ok is { } ok) { <p class="okmsg" role="status">@(ok)로 저장했어요 · 적용 시작일부터 미션 점수에 쓰여요. 이미 쌓인 점수는 그대로예요.</p> }
 
@@ -123,7 +123,7 @@
             </ul>
         </section>
 
-        <div class="pr-save gut"><div class="wrap wide">
+        <div class="pr-save gut"><div class="wrap">   @* 아래 고정 저장 띠도 760px(2026-11-18) *@
             <div class="sum" role="status">
                 @if (Model.Errors.Count > 0) { <span class="bad">@string.Join(" ", Model.Errors)</span> }
                 else if (Model.Changes.Count > 0) { <text>바뀐 값 <b class="num">@(Model.Changes.Count)개</b> · @string.Join(", ", Model.Changes)</text> }

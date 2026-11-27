@@ -1,0 +1,97 @@
+﻿@page "/platform/reset"
+@model ChallengeBible.Web.Pages.Platform.ResetModel
+@using ChallengeBible.Web.Services
+@* 완전 초기화(ADR 0102, 확정 시안 완전초기화 2026-11-16): 지울 것 체크(기본 모두) · 절대 안 지움(잠금) · 확인 글자 RESET *@
+@{
+    var s = Model.Status!;
+    var tz = TimeZoneInfo.FindSystemTimeZoneById(ResetService.Zone);
+    string Local(DateTime utc) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), tz).ToString("yyyy.M.d HH:mm");
+    bool On(string key) => Model.Picked is null ? !ResetService.OffByDefault(key) : Model.Picked.Contains(key);   // 직접 가입한 회원 지우기는 기본 꺼짐
+}
+<partial name="_PlatformTop" />
+<main class="admin gut w760"><form method="post" class="wrap rs" data-reset>
+    <h1>완전 초기화</h1>
+    <p class="lead">체크한 것을 모든 부서에서 지워요. 체크를 빼면 남겨요. 관리자(플랫폼 · 부서)는 언제나 남아요. 직접 가입한 회원은 <b>"직접 가입한 회원 계정"</b>을 체크할 때만 지워요 — 그 전에 아래 <a href="#rs-export">회원 내보내기</a>로 받아 두세요. <b>되돌릴 수 없어요.</b></p>
+    @if (Model.Result is { } r) { <p class="ok-box" role="status">초기화했어요 · @ResetService.Describe(r)건을 지웠어요.</p> }
+
+    @foreach (var g in s.Items.GroupBy(i => i.Group))
+    {
+        <section class="rs-grp" aria-labelledby="rs-@g.First().Key">
+            <h2 id="rs-@g.First().Key">@g.Key <label><input type="checkbox" data-rs-all="@g.Key" @(g.All(i => On(i.Key)) ? "checked" : null) /> 모두</label></h2>
+            @if (g.Key == ResetService.Records) { <p class="rs-note" data-rs-forced hidden>사람(계정 · 명부)을 지우면 그 사람의 기록이 남을 수 없어서 기록도 함께 지워요.</p> }
+            <div class="rs-list">
+                @foreach (var i in g)
+                {
+                    <label class="rs-it"><input type="checkbox" name="pick" value="@i.Key" data-rs-group="@g.Key" @(On(i.Key) ? "checked" : null) /><span>@i.Label</span><b class="num">@i.Count.ToString("N0")</b></label>
+                }
+            </div>
+        </section>
+    }
+
+    <section class="rs-grp" aria-labelledby="rs-keep">
+        <h2 id="rs-keep">절대 안 지워요</h2>
+        <div class="rs-list">
+            @foreach (var k in new[] { "플랫폼 관리자 계정", "부서 관리자 계정 · 소속 · 명부 줄", "부서", "반(이름 · 학년 · 새친구반)", "상품 · 설정 · 콘텐츠" })
+            {
+                <div class="rs-it lock"><span>@k</span><i>잠금</i></div>
+            }
+        </div>
+    </section>
+
+    <div class="rs-go">
+        <p class="rs-sum" data-rs-sum>@s.Items.Count(i => On(i.Key))개 중 @s.Items.Count(i => On(i.Key))개를 지워요</p>
+        @if (Model.Error is { } e2) { <p class="err" role="alert">@e2</p> }   @* 2026-11-21: 위에만 있으면 못 보고 지나쳐서 버튼 바로 위에도 *@
+        <label><span>확인 칸에 <b>@ResetService.ConfirmWord</b> 를 써 주세요 <small>(영문 대문자 · 한글 자판이면 ㄱㄷㄴㄷㅅ 으로 들어가요)</small></span><input class="in" name="confirm" autocomplete="off" autocapitalize="characters" spellcheck="false" lang="en" inputmode="latin" placeholder="@ResetService.ConfirmWord" /></label>
+        <button type="submit" class="btn">초기화</button>
+    </div>
+
+    @if (s.History.Count > 0)
+    {
+        <h2 class="rs-h">초기화 기록</h2>
+        <ul class="rs-log">
+            @foreach (var h in s.History)
+            {
+                <li><span class="num">@Local(h.AtUtc)</span> · <span>@h.Actor</span> · <span class="num">@ResetService.Describe(h.Detail)</span></li>
+            }
+        </ul>
+    }
+</form>
+<div class="wrap rs mx" id="rs-export">
+    <h2 class="rs-h">회원 내보내기 <small>복원용 SQL</small></h2>
+    <p class="lead">초기화 전에 남기고 싶은 회원을 체크해 SQL 로 받아 두세요. 나중에 그 SQL 을 실행하면 계정 · 소속 · 명부 · 반 배정이 돌아와요(미션 · 출석 · 선물 기록은 안 돌아와요). 관리자는 목록에 없어요 — 언제나 남아요.</p>
+    @if (Model.Export is { } x)
+    {
+        <section class="mx-done" aria-live="polite">
+            <h3>복원용 SQL 준비됐어요</h3>
+            <p>@string.Join(" · ", x.Names) (@(x.Names.Count)명) · INSERT @(x.Inserts)줄</p>
+            <textarea class="mx-sql" readonly rows="8" data-mx-sql spellcheck="false">@x.Sql</textarea>
+            <div class="mx-btns"><button type="button" class="btn p" data-mx-save data-name="@($"member-restore-{DateTime.UtcNow.AddHours(9):yyyyMMdd-HHmm}.sql")">파일로 받기 (.sql)</button><button type="button" class="btn" data-mx-copy>복사</button></div>
+            <p class="mx-warn"><b>꼭 지켜 주세요</b> · 이 파일에는 비밀번호 해시 · 연락처가 들어 있어요. Git · 메신저에 올리지 마세요. 파일을 받아 열어 본 뒤에 초기화하세요.</p>
+        </section>
+    }
+    @if (Model.ExportError is { } xe) { <p class="err" role="alert">@xe</p> }
+    <form method="post" asp-page-handler="Export" data-mx>
+        <div class="mx-tools">
+            <input class="in" type="search" placeholder="이름 · 아이디 · 부서로 찾기" aria-label="회원 찾기" data-mx-q />
+            <div class="mx-tabs" role="tablist">
+                <button type="button" class="on" data-mx-tab="real">직접 가입 @Model.Members.Count(m => !m.Fake)</button>
+                <button type="button" data-mx-tab="fake">가짜 계정 @Model.Members.Count(m => m.Fake)</button>
+            </div>
+            <div class="mx-all"><span><b data-mx-n>0</b>명 선택</span><span><button type="button" data-mx-all="1">보이는 사람 모두 선택</button> · <button type="button" data-mx-all="0">해제</button></span></div>
+        </div>
+        <div class="mx-list">
+            @foreach (var m in Model.Members)
+            {
+                <label class="mx-u" data-mx-kind="@(m.Fake ? "fake" : "real")" data-mx-text="@($"{m.Name} {m.UserName} {m.Depts}".ToLowerInvariant())" @(m.Fake ? "hidden" : null)>
+                    <input type="checkbox" name="member" value="@m.UserName" @(Model.ExportPicked.Contains(m.UserName) ? "checked" : null) />
+                    <span class="n"><b>@(m.Name.Length > 0 ? m.Name : m.UserName)</b><small>@m.UserName@(m.Depts.Length > 0 ? " · " + m.Depts : "") · @m.JoinedUtc.AddHours(9).ToString("M/d") 가입</small></span>
+                    @if (m.Role.Length > 0) { <span class="tg">@m.Role</span> }
+                </label>
+            }
+            @if (Model.Members.Count == 0) { <p class="rs-note">관리자 말고는 계정이 없어요.</p> }
+            <p class="rs-note" data-mx-none hidden>찾는 회원이 없어요.</p>
+        </div>
+        <div class="mx-bar"><span><b data-mx-n>0</b>명 선택</span><button type="submit" class="btn p">복원용 SQL 만들기</button></div>
+    </form>
+</div></main>
+<script src="~/js/reset.js" asp-append-version="true"></script>

@@ -1,0 +1,102 @@
+﻿@page "/{slug}/copy"
+@model ChallengeBible.Web.Pages.Copy.IndexModel
+@using ChallengeBible.Infrastructure.Data
+@* 확정 시안 필사-통독틀(2026-11-16, ADR 0105): 성경통독 대시보드와 같은 틀 · 배치 — 왼쪽 내 진도 · 연속 · 최근 쓴 곳 · 완필 선물 · 필사 진도 / 오른쪽 이어 쓰기 · 최근 8주 / 아래 책별 진도(확정 시안 필사-통독흐름 ①) *@
+@{
+    var d = Model.Data;
+    var resume = d.Resume;
+    var resumeDone = d.Recent.FirstOrDefault(r => r.BookId == resume.BookId && r.Chapter == resume.Chapter);
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var daily = d.Daily ?? new Dictionary<DateOnly, int>();
+    var gridStart = d.Today.AddDays(-(int)d.Today.DayOfWeek - 49);
+    var maxDay = Math.Max(1, daily.Count == 0 ? 1 : daily.Values.Max());
+    string Unit(byte book) => book == 19 ? "편" : "장";
+}
+<link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/reading-b2.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/copy.css" asp-append-version="true" />
+<div class="rp b2 bc">
+@{ var nav = ((ChallengeBible.Web.Pages.Copy.CopyPageBase)Model, "home", "대시보드", (string?)null); }
+<partial name="_CopyNav" model="nav" />
+<div class="b2main"><div class="b2b">
+    @if (Model.MyGifts.Count > 0) { <div class="gk-rdwrap">@await Html.PartialAsync("/Pages/Mission/_BirthdayGiftCard.cshtml", (Model.Slug, Model.MyGifts))</div> }   @* 완필 선물(R-307) *@
+    <div class="g2">
+        <section aria-label="나의 성경 필사">
+            <div class="k">나의 성경 필사</div>
+            <div class="ring">
+                <div class="c" style="--p:@d.All.ToString("0.0", inv)" role="img" aria-label="진도율 @(CopyPageBaseHelpers.P(d.All))%"><span class="num">@(CopyPageBaseHelpers.P(d.All))%</span></div>
+                <div><b class="num">@d.Done.ToString("N0") / @d.Total.ToString("N0")절</b>
+                    <small class="num">구약 @d.OldDone.ToString("N0") / @d.OldTotal.ToString("N0")절<br>신약 @d.NewDone.ToString("N0") / @d.NewTotal.ToString("N0")절</small></div>
+            </div>
+            <div class="cells">
+                <div><b class="num">@d.Streak</b>일 연속</div>
+                <div><b class="num">@d.Days</b>일 씀</div>
+                <div><b class="num">@d.TodayDone</b>오늘 쓴 절</div>
+            </div>
+            @if (d.Streak > 0) { <div class="streak">@(d.Streak)일째 이어 쓰고 있어요 · 오늘도 이어 가요</div> }
+        </section>
+        <section aria-label="이어 쓰기">
+            <a class="cta" href="@Model.WriteUrl(resume.BookId, resume.Chapter, resume.Verse)">
+                <div>
+                    <div class="kk">@(d.Done == 0 ? "필사 시작" : "이어 쓰기")</div>
+                    <div class="t">@resume.Name @(resume.Chapter)@Unit(resume.BookId) @(resume.Verse)절</div>
+                    <small class="num">@(resumeDone is { } rd ? $"{rd.Verses}절 중 {rd.Done}절 씀" : "본문을 보고 한 절씩 따라 써요")</small>
+                </div>
+                <em aria-hidden="true">→</em>
+            </a>
+        </section>
+    </div>
+
+    <div class="g2">
+        <div>
+            @if (d.Recent.Count > 0)
+            {
+                <div class="lbl">최근 쓴 곳</div>
+                @foreach (var r in d.Recent)
+                {
+                    <a class="bar2 bc-recent" href="@Model.WriteUrl(r.BookId, r.Chapter)"><span>@r.Name @(r.Chapter)@Unit(r.BookId)</span><b class="num">@(r.On == d.Today ? "오늘" : r.On.ToString("M'/'d")) · @(r.Done >= r.Verses ? "다 씀" : $"{r.Done}절")</b></a>
+                }
+            }
+
+            <div class="lbl">완필 선물</div>
+            <div class="vod"><p>신약이나 구약을 다 쓰면 선물을 받아요</p><small>지금 신약 @(CopyPageBaseHelpers.P(d.New))% · 구약 @(CopyPageBaseHelpers.P(d.Old))%</small></div>
+
+            <div class="lbl">필사 진도</div>
+            @foreach (var (label, done, total, pct) in new[] { ("전체", d.Done, d.Total, d.All), ("구약", d.OldDone, d.OldTotal, d.Old), ("신약", d.NewDone, d.NewTotal, d.New) })
+            {
+                <div class="bar2"><span>@label</span><b class="num">@done.ToString("N0") / @total.ToString("N0") · @(CopyPageBaseHelpers.P(pct))%</b></div>
+                <div class="pg @(label == "전체" ? "all" : "")"><i style="width:@(pct.ToString("0.#", inv))%"></i></div>
+            }
+        </div>
+        <div>
+            <div class="lbl">최근 8주<small>@d.Today.ToString("M'/'d") 오늘</small></div>
+            <div class="dow">@foreach (var w in new[] { "일", "월", "화", "수", "목", "금", "토" }) { <span>@w</span> }</div>
+            <div class="heat" role="img" aria-label="최근 8주 쓴 날">
+                @for (var i = 0; i < 56; i++)
+                {
+                    var day = gridStart.AddDays(i);
+                    var n = daily.GetValueOrDefault(day);
+                    var lv = day > d.Today ? "f" : n == 0 ? "" : n * 3 <= maxDay ? "l1" : n * 3 <= maxDay * 2 ? "l2" : "l3";
+                    <span class="@lv@(day == d.Today ? " t" : "")" title="@day.ToString("M'/'d") @(n)절">@(day > d.Today ? "" : day.Day.ToString())</span>
+                }
+            </div>
+            <div class="legend">적음<i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i>많음</div>
+        </div>
+    </div>
+
+    @{ var ntTab = Model.Tab == "nt"; }
+    <div class="lbl">책별 진도<a href="/@Model.Slug/copy/books?t=@(ntTab ? "nt" : "ot")">@(ntTab ? "신약" : "구약") 쓰기 →</a></div>
+    <nav class="seg" style="margin:0 0 10px" aria-label="구약 · 신약">
+        <a href="?Tab=ot" aria-current="@(!ntTab ? "true" : "false")">구약 39권</a>
+        <a href="?Tab=nt" aria-current="@(ntTab ? "true" : "false")">신약 27권</a>
+    </nav>
+    <div class="books">
+        @foreach (var b in Model.Books.Where(x => x.New == ntTab))
+        {
+            <a href="/@Model.Slug/copy/books?t=@(b.New ? "nt" : "ot")&b=@(b.BookId)#b@(b.BookId)" class="@(b.DoneChapters >= b.Chapters ? "dn" : "")" title="@b.Name @b.DoneChapters/@b.Chapters">
+                @b.Name<small class="num">@b.DoneChapters/@b.Chapters</small>@if (b.Done > 0) { <i style="width:@(Math.Max(1, b.Done * 100 / Math.Max(1, b.Verses)))%"></i> }
+            </a>
+        }
+    </div>
+</div></div>
+</div>

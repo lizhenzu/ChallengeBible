@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -74,27 +74,35 @@ public partial class DeptGiftTests : IClassFixture<WebApplicationFactory<Program
         var pen = Item("볼펜");
         Item("노트");
         var c = await Admin("kidsadmin", _kids);
-        Assert.Contains("href=\"/kids/admin/gifts\"", await c.GetStringAsync("/kids/admin"));   // 관리 메뉴 "선물"
-        var tabs = await c.GetStringAsync("/kids/admin/gifts");
-        Assert.Contains(">공통 상품</a>", tabs);
-        Assert.Contains(">부서 상품</a>", tabs);
-        Assert.Contains(">선물 처리</a>", tabs);   // 처음 탭은 선물 처리(확정 시안 관리-선물처리)
-        var page = await c.GetStringAsync("/kids/admin/gifts?t=list");
+        var home = await c.GetStringAsync("/kids");
+        Assert.Contains("href=\"/kids/admin/gifts\"", home);   // 일반 ☰ "생일" 묶음 "선물 처리"(2026-11-21, 확정 시안 선물분리)
+        Assert.Contains(">선물 처리</span><em class=\"tdr2-k\"", home);   // "관리" 딱지
+        var adm = await c.GetStringAsync("/kids/admin/members");   // 관리 ☰ "선물 설정" 4화면
+        foreach (var v in new[] { "common", "ours", "money", "cost" }) Assert.Contains($"href=\"/kids/admin/gifts/{v}\"", adm);
+        Assert.DoesNotContain("href=\"/kids/admin/gifts\"", adm);   // 선물 처리는 관리 메뉴에 없다
+        var orders = await c.GetStringAsync("/kids/admin/gifts");
+        Assert.Contains("<h1>선물 처리</h1>", orders);
+        Assert.Contains(">선택 전<u", orders);   // 2026-11-21 "고르는 중" → "선택 전"
+        Assert.DoesNotContain(">공통 상품</a>", orders);   // 탭 없음 — 설정은 각자 화면
+        Assert.Contains("href=\"/kids/admin/gifts/common\"", orders);   // 아래 "선물 설정" 바로가기
+        var old = await c.GetAsync("/kids/admin/gifts?t=list&q=펜");   // 예전 주소 → 새 화면
+        Assert.Equal("/kids/admin/gifts/common?q=%ED%8E%9C", old.Headers.Location!.OriginalString);
+        var page = await c.GetStringAsync("/kids/admin/gifts/common");
         Assert.Contains("볼펜", page);
         Assert.Contains("aria-checked=\"true\"", page);
 
-        var r = await Post(c, "/kids/admin/gifts?t=list", "/kids/admin/gifts?handler=Hide", new() { ["id"] = pen.ToString(), ["hide"] = "true" });
+        var r = await Post(c, "/kids/admin/gifts/common", "/kids/admin/gifts?handler=Hide", new() { ["id"] = pen.ToString(), ["hide"] = "true" });
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal((_kids.Id, pen), raw.GiftItemsHidden.Select(h => ValueTuple.Create(h.TenantId, h.GiftItemId)).Single());
-        var hidden = await c.GetStringAsync("/kids/admin/gifts?t=list&v=hidden");
+        var hidden = await c.GetStringAsync("/kids/admin/gifts/common?v=hidden");
         Assert.Contains("볼펜", hidden);
         Assert.DoesNotContain("노트", hidden);
-        Assert.DoesNotContain("볼펜", await c.GetStringAsync("/kids/admin/gifts?t=list&v=shown"));
+        Assert.DoesNotContain("볼펜", await c.GetStringAsync("/kids/admin/gifts/common?v=shown"));
 
         var e = await Admin("elemadmin", _elem);
-        Assert.Contains("볼펜", await e.GetStringAsync("/elem/admin/gifts?t=list&v=shown"));   // 다른 부서는 그대로 보인다
+        Assert.Contains("볼펜", await e.GetStringAsync("/elem/admin/gifts/common?v=shown"));   // 다른 부서는 그대로 보인다
 
-        await Post(c, "/kids/admin/gifts?t=list", "/kids/admin/gifts?handler=Hide", new() { ["id"] = pen.ToString(), ["hide"] = "false" });
+        await Post(c, "/kids/admin/gifts/common", "/kids/admin/gifts?handler=Hide", new() { ["id"] = pen.ToString(), ["hide"] = "false" });
         using var raw2 = InMemoryDb.Raw(_db);
         Assert.Empty(raw2.GiftItemsHidden);
     }
@@ -108,15 +116,15 @@ public partial class DeptGiftTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal(HttpStatusCode.Redirect, add.StatusCode);
         int id;
         using (var raw = InMemoryDb.Raw(_db)) { var i = raw.GiftItems.Single(); Assert.Equal((int?)_kids.Id, i.TenantId); id = i.Id; }
-        Assert.Contains("찬양 DVD", await c.GetStringAsync("/kids/admin/gifts?t=ours"));
-        Assert.DoesNotContain("찬양 DVD", await c.GetStringAsync("/kids/admin/gifts?t=list"));   // "공통 상품" 탭에는 공통만(2026-11-14 사용자: 탭 이름 공통 상품 · 부서 상품)
-        Assert.DoesNotContain("찬양 DVD", await e.GetStringAsync("/elem/admin/gifts?t=list"));   // 다른 부서에는 안 보인다
+        Assert.Contains("찬양 DVD", await c.GetStringAsync("/kids/admin/gifts/ours"));
+        Assert.DoesNotContain("찬양 DVD", await c.GetStringAsync("/kids/admin/gifts/common"));   // "공통 상품" 탭에는 공통만(2026-11-14 사용자: 탭 이름 공통 상품 · 부서 상품)
+        Assert.DoesNotContain("찬양 DVD", await e.GetStringAsync("/elem/admin/gifts/common"));   // 다른 부서에는 안 보인다
         Assert.Equal(HttpStatusCode.NotFound, (await e.GetAsync($"/elem/admin/gifts/edit/{id}")).StatusCode);
 
-        var share = await Post(c, "/kids/admin/gifts?t=ours", "/kids/admin/gifts?handler=Share", new() { ["id"] = id.ToString() });
+        var share = await Post(c, "/kids/admin/gifts/ours", "/kids/admin/gifts?handler=Share", new() { ["id"] = id.ToString() });
         Assert.Equal(HttpStatusCode.Redirect, share.StatusCode);
         using (var raw = InMemoryDb.Raw(_db)) Assert.Equal(((int?)null, (int?)_kids.Id), raw.GiftItems.Where(x => x.Id == id).Select(x => ValueTuple.Create(x.TenantId, x.SharedByTenantId)).Single());
-        Assert.Contains("찬양 DVD", await e.GetStringAsync("/elem/admin/gifts?t=list"));        // 이제 모든 부서
+        Assert.Contains("찬양 DVD", await e.GetStringAsync("/elem/admin/gifts/common"));        // 이제 모든 부서
         Assert.Equal(HttpStatusCode.NotFound, (await e.GetAsync($"/elem/admin/gifts/edit/{id}")).StatusCode);   // 고치는 건 올린 부서 · 플랫폼만
 
         // 올린 부서는 고칠 수 있지만, 내리기 · 지우기는 플랫폼만
@@ -134,28 +142,29 @@ public partial class DeptGiftTests : IClassFixture<WebApplicationFactory<Program
     {
         var theirs = Item("초등부 팔찌", _elem.Id);
         var c = await Admin("kidsadmin", _kids);
-        Assert.Equal(HttpStatusCode.NotFound, (await Post(c, "/kids/admin/gifts?t=money", "/kids/admin/gifts?handler=Share", new() { ["id"] = theirs.ToString() })).StatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, (await Post(c, "/kids/admin/gifts?t=money", "/kids/admin/gifts?handler=Hide", new() { ["id"] = theirs.ToString(), ["hide"] = "true" })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await Post(c, "/kids/admin/gifts/money", "/kids/admin/gifts?handler=Share", new() { ["id"] = theirs.ToString() })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await Post(c, "/kids/admin/gifts/money", "/kids/admin/gifts?handler=Hide", new() { ["id"] = theirs.ToString(), ["hide"] = "true" })).StatusCode);
     }
 
     [Fact]
     public async Task 금액_점수는_빈_칸이면_공통_기본값이고_틀린_칸이_있으면_아무것도_저장하지_않는다()
     {
         var c = await Admin("kidsadmin", _kids);
-        var page = await c.GetStringAsync("/kids/admin/gifts?t=money");
+        var page = await c.GetStringAsync("/kids/admin/gifts/money");
         Assert.Contains("placeholder=\"30,000\"", page);   // 상한 기본값(R-280)
         Assert.Contains("placeholder=\"15,000\"", page);   // 새친구 최대(R-286)
         Assert.Contains("placeholder=\"20,000\"", page);   // 3독부터(R-289)
 
-        var bad = await Post(c, "/kids/admin/gifts?t=money", "/kids/admin/gifts?t=money&handler=Money", new()
+        var bad = await Post(c, "/kids/admin/gifts/money", "/kids/admin/gifts/money?handler=Money", new()
         {
-            ["Money.PersonalCap"] = "20,000", ["Money.BirthdayMin"] = "9,000",             // 최대(기본 5,000)보다 큼
+            ["Money.PersonalCap"] = "40,000", ["Money.BirthdayMin"] = "9,000",             // 상한은 30,000 까지(ADR 0104) · 최대(기본 5,000)보다 큼
             ["Money.RateCredits"] = "1500", ["Money.RateAmounts"] = "2000",                // 1,000 단위 아님
         });
         Assert.Equal(HttpStatusCode.OK, bad.StatusCode);
         var html = await bad.Content.ReadAsStringAsync();
         Assert.Contains("최대 금액이 최소 금액보다 작아요", html);
         Assert.Contains("크레딧은 1,000 단위로 써 주세요", html);
+        Assert.Contains("상한은 30,000 크레딧까지예요", html);
         using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.GiftSettings);
 
         var form = new FormUrlEncodedContent(
@@ -165,14 +174,14 @@ public partial class DeptGiftTests : IClassFixture<WebApplicationFactory<Program
             new("Money.RateCredits", "10,000"), new("Money.RateAmounts", "12,000"), new("Money.RateCredits", ""), new("Money.RateAmounts", ""),
             new("Money.Reading", ""), new("Money.Reading", "18,000"), new("Money.Reading", ""),
         ]);
-        var ok = await c.PostAsync("/kids/admin/gifts?t=money&handler=Money", form);
+        var ok = await c.PostAsync("/kids/admin/gifts/money?handler=Money", form);
         Assert.Equal(HttpStatusCode.Redirect, ok.StatusCode);
         using var raw2 = InMemoryDb.Raw(_db);
         var s = raw2.GiftSettings.Single();
         Assert.Equal((_kids.Id, (int?)20000, (int?)10000, (int?)null), (s.TenantId, s.PersonalCap, s.InviteMax, s.NewcomerMax));
         Assert.Equal((10000, 12000), raw2.GiftCreditRates.Select(r => ValueTuple.Create(r.Credits, r.Amount)).Single());
         Assert.Equal((2, 18000), raw2.GiftReadingAmounts.Select(r => ValueTuple.Create(r.RoundNo, r.Amount)).Single());
-        Assert.Contains("value=\"20,000\"", await c.GetStringAsync("/kids/admin/gifts?t=money"));
+        Assert.Contains("value=\"20,000\"", await c.GetStringAsync("/kids/admin/gifts/money"));
     }
 
     [Fact]
@@ -192,8 +201,8 @@ public partial class DeptGiftTests : IClassFixture<WebApplicationFactory<Program
             Assert.Equal([2000, 2001], made.Select(x => x.Id));
             Assert.All(made, x => Assert.Equal(((int?)null, (int?)_kids.Id), (x.TenantId, x.SharedByTenantId)));
         }
-        Assert.Contains("성경 팔찌", await e.GetStringAsync("/elem/admin/gifts?t=list"));   // 다른 부서에도 공통 상품으로
-        Assert.Contains("성경 팔찌", await c.GetStringAsync("/kids/admin/gifts?t=ours"));   // 올린 부서는 부서 상품 탭에서 고친다
+        Assert.Contains("성경 팔찌", await e.GetStringAsync("/elem/admin/gifts/common"));   // 다른 부서에도 공통 상품으로
+        Assert.Contains("성경 팔찌", await c.GetStringAsync("/kids/admin/gifts/ours"));   // 올린 부서는 부서 상품 탭에서 고친다
 
         // 체크하지 않으면 부서 상품
         form.Remove("common"); form["Input.Name"] = "우리만 스티커";

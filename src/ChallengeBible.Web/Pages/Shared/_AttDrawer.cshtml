@@ -1,0 +1,49 @@
+@model (ChallengeBible.Web.Tenancy.TenantContext Tenant, bool Admin, int Care)
+@using ChallengeBible.Web.Pages
+@using ChallengeBible.Web.Services
+@using ChallengeBible.Web.Auth
+@inject ChallengeBible.Web.Services.PhotoService Photos
+@* 출석 화면 ☰ 메뉴판(2026-11-24 사용자 확정 시안 출석-햄버거-메뉴): 하단 탭 대신. 제목 「주일출석관리」.
+   관리자 · 새친구반 담당에게만(반 담임은 부서 ☰ 메뉴). 여는 버튼은 data-pnav-open, 동작은 platform-nav.js. *@
+@{
+    var t = Model.Tenant;
+    var s = t.Current.Slug;
+    var here = (Context.Request.Path.Value ?? "").TrimEnd('/');
+    var back = Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString);
+    var meName = User.UserName();
+    var mePhoto = meName is null ? null : await Photos.FileOfAsync(meName);
+    var meSub = PlatformTodayService.ShortDept(t.Current.Name) + " · " + (Model.Admin ? "관리자" : UserRole.LabelOf(UserRole.KindOf(t.RoleCode)));
+    bool Cur(string href) => here.Equals(href.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
+}
+<div class="pdrawer tdr2" id="pnav" hidden>
+    <div class="pd-dim" data-pnav-close></div>
+    <aside class="pd-panel" tabindex="-1" role="dialog" aria-modal="true" aria-label="출석 메뉴">
+        <div class="tdr2-hd">
+            <div>
+                <div class="tdr2-ttl">주일출석관리</div>
+            </div>
+            <button type="button" class="tdr2-x" aria-label="메뉴 닫기" data-pnav-close>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
+            </button>
+        </div>
+        <nav class="tdr2-nav" aria-label="출석 메뉴">
+            @DrawerUi.Line($"/{s}/attendance", "todo", "오늘", Cur($"/{s}/attendance"))
+            @DrawerUi.Line($"/{s}/attendance/newcomers", "join", "새친구", Cur($"/{s}/attendance/newcomers"))
+            @if (Model.Admin)
+            {
+                @DrawerUi.Line($"/{s}/attendance/care", "pray", "돌봄", Cur($"/{s}/attendance/care"), badge: Model.Care > 0 ? Model.Care.ToString() : null)
+                <h2 class="tdr2-g">더보기</h2>
+                @DrawerUi.Line($"/{s}/attendance/report", "rules", "주일 출석 보고서", Cur($"/{s}/attendance/report"))
+                @DrawerUi.Line($"/{s}/attendance/trend", "pulse", "최근 출석현황(4주)", Cur($"/{s}/attendance/trend"))
+                @DrawerUi.Line($"/{s}/attendance/rank", "chart", "아이별 출석 등수", Cur($"/{s}/attendance/rank"))
+                @DrawerUi.Line($"/{s}/attendance/matrix", "common", "아이별 주별 출석표", Cur($"/{s}/attendance/matrix"))
+                @DrawerUi.Line($"/{s}/admin/classes", "cls", "교사 · 반 배정", Cur($"/{s}/admin/classes"))
+            }
+            <h2 class="tdr2-g">다른 곳</h2>
+            @DrawerUi.Line($"/{s}", "home", "홈으로", false)
+        </nav>
+        @Html.AntiForgeryToken()   @* 로그아웃 줄을 뺀 뒤에도 화면 스크립트가 쓰는 요청 확인 값은 여기서 계속 낸다 *@
+        <div class="tdr2-prof">@DrawerUi.Me(User.DisplayName(), mePhoto, meSub)</div>
+    </aside>
+</div>
+<script src="~/js/platform-nav.js" asp-append-version="true" defer></script>

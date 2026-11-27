@@ -23,6 +23,67 @@ namespace ChallengeBible.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Album", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AllowDownload")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("CoverPhotoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateOnly?>("EventDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UpdatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "EventDate");
+
+                    b.ToTable("Album", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_Album_Visibility", "[Visibility] IN ('Public', 'Login', 'Dept', 'Admin')");
+                        });
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AppRole", b =>
                 {
                     b.Property<string>("Id")
@@ -1086,6 +1147,95 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("BibleVerse", "app");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Bulletin", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Body")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("CreatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UpdatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "Date");
+
+                    b.ToTable("Bulletin", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BulletinFile", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BulletinId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StoredName")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(60)");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "BulletinId");
+
+                    b.ToTable("BulletinFile", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterMedia", b =>
                 {
                     b.Property<int>("Id")
@@ -1244,6 +1394,39 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasName("PK_CodeData");
 
                     b.ToTable("CodeData", "dbo");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.CopyVerse", b =>
+                {
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<byte>("BookId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<short>("Chapter")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("Verse")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("Translation")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<DateTime>("WrittenAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("UserName", "BookId", "Chapter", "Verse")
+                        .HasName("PK_CopyVerse");
+
+                    b.HasIndex("UserName", "WrittenAt")
+                        .HasDatabaseName("IX_CopyVerse_User_WrittenAt");
+
+                    b.ToTable("CopyVerse", "app");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.DailyPrayer", b =>
@@ -1631,6 +1814,47 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasDatabaseName("IX_DeptRoleUserAssoc_UserId");
 
                     b.ToTable("DeptRoleUserAssoc", "dbo");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Duty", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Key");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Duty_Name");
+
+                    b.ToTable("Duty", "app");
+
+                    b.HasData(
+                        new
+                        {
+                            Key = "Gift",
+                            CreatedUtc = new DateTime(2026, 11, 16, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsAdmin = true,
+                            Name = "선물 담당",
+                            SortOrder = 1
+                        });
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.FamilyMember", b =>
@@ -2429,6 +2653,181 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("GuardianLink", "app");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.LeaveRequest", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("RequestedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("RoleCode")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("UserName")
+                        .IsUnique();
+
+                    b.ToTable("LeaveRequest", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MemberTag", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Tag")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("CreatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("TenantId", "UserId", "Tag");
+
+                    b.ToTable("MemberTag", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Message", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("CanceledUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<DateTime?>("ReadUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<bool>("RecipientDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RecipientUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<long?>("ReplyToId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("SenderDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SenderLabel")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("SenderTenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SenderUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("SentUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Kind", "SentUtc");
+
+                    b.HasIndex("RecipientUserName", "SentUtc");
+
+                    b.HasIndex("SenderUserName", "SentUtc");
+
+                    b.ToTable("Message", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MessageReceipt", b =>
+                {
+                    b.Property<long>("MessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("DeletedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime?>("ReadUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("MessageId", "UserName");
+
+                    b.HasIndex("UserName");
+
+                    b.ToTable("MessageReceipt", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MessageTarget", b =>
+                {
+                    b.Property<long>("MessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("MessageId", "TenantId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("MessageTarget", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MissionActivity", b =>
                 {
                     b.Property<int>("TenantId")
@@ -2514,6 +2913,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasPrecision(3)
                         .HasColumnType("datetime2(3)");
 
+                    b.Property<DateOnly?>("LeftOn")
+                        .HasColumnType("date");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -2575,6 +2977,76 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.ToTable("Person", "app");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Photo", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AlbumId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Hash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StoredName")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(60)");
+
+                    b.Property<string>("ThumbName")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(60)");
+
+                    b.Property<string>("UploadedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("UploadedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "AlbumId", "Hash");
+
+                    b.ToTable("Photo", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.PlatformRuleSetVersion", b =>
                 {
                     b.Property<int>("Id")
@@ -2613,6 +3085,116 @@ namespace ChallengeBible.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("CK_PlatformRuleSetVersion_Values", "ISJSON([Values]) = 1");
                         });
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Prayer365", b =>
+                {
+                    b.Property<string>("MonthDay")
+                        .HasMaxLength(4)
+                        .IsUnicode(false)
+                        .HasColumnType("char(4)")
+                        .IsFixedLength();
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Fixes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsReviewed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSample")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("VerseRef")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("VerseText")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("MonthDay");
+
+                    b.ToTable("Prayer365", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Prayer365Log", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("MonthDay")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .IsUnicode(false)
+                        .HasColumnType("char(4)")
+                        .IsFixedLength();
+
+                    b.Property<DateOnly>("PrayDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("PrayedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "PrayDate");
+
+                    b.HasIndex("UserName", "PrayDate")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Prayer365Log_User_Day");
+
+                    b.ToTable("Prayer365Log", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Prayer365View", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("ViewDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("MonthDay")
+                        .HasMaxLength(4)
+                        .IsUnicode(false)
+                        .HasColumnType("char(4)")
+                        .IsFixedLength();
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "ViewDate", "MonthDay");
+
+                    b.ToTable("Prayer365View", "app");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.PromotionRequest", b =>
@@ -3157,6 +3739,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasMaxLength(12)
                         .HasColumnType("nvarchar(12)");
 
+                    b.Property<bool>("CopyEnabled")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("CreatedUtc")
                         .HasColumnType("datetime2(3)");
 
@@ -3177,6 +3762,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .IsUnicode(false)
                         .HasColumnType("varchar(100)");
+
+                    b.Property<bool>("MissionBookEnabled")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("MissionEnabled")
                         .HasColumnType("bit");
@@ -3240,12 +3828,77 @@ namespace ChallengeBible.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("CK_Tenant_JoinCode", "JoinCode NOT LIKE '%[^A-Z0-9]%' COLLATE Latin1_General_BIN");
 
-                            t.HasCheckConstraint("CK_Tenant_Program", "MissionEnabled = 1 OR ReadingEnabled = 1");
+                            t.HasCheckConstraint("CK_Tenant_Program", "MissionEnabled = 1 OR ReadingEnabled = 1 OR CopyEnabled = 1");
 
                             t.HasCheckConstraint("CK_Tenant_Slug", "LEN(Slug) >= 2 AND Slug NOT LIKE '%[^a-z0-9-]%'");
 
                             t.HasCheckConstraint("CK_Tenant_Status", "Status IN ('Active','Suspended')");
                         });
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantIntro", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Body")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PhotoContentType")
+                        .HasMaxLength(30)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("PhotoStoredName")
+                        .HasMaxLength(60)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(60)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("UpdatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("TenantId");
+
+                    b.ToTable("TenantIntro", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantIntroSeen", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("HideUntilUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<bool>("Never")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("TenantId", "UserName");
+
+                    b.ToTable("TenantIntroSeen", "app");
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantSeason", b =>
@@ -3276,11 +3929,61 @@ namespace ChallengeBible.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TodoRule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Roles")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int?>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpdatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Kind")
+                        .IsUnique()
+                        .HasDatabaseName("UX_TodoRule_Tenant_Kind")
+                        .HasFilter("[TenantId] IS NOT NULL");
+
+                    b.ToTable("TodoRule", "app");
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.UserSetting", b =>
                 {
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<byte?>("BirthDay")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte?>("BirthMonth")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateOnly?>("BirthdayPopupSnoozedUntil")
+                        .HasColumnType("date");
 
                     b.Property<DateTime?>("FamilyInvitesSnoozedAt")
                         .HasColumnType("datetime2");
@@ -3304,6 +4007,9 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
+
+                    b.Property<DateOnly?>("TodoSnoozedUntil")
+                        .HasColumnType("date");
 
                     b.HasKey("UserName")
                         .HasName("PK_UserSetting");
@@ -3420,6 +4126,100 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.WeeklyWord", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("SundayDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("UpdatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("TenantId", "SundayDate");
+
+                    b.ToTable("WeeklyWord", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.WorshipSchedule", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateOnly?>("BulletinDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("BulletinUrl")
+                        .HasMaxLength(500)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<byte>("DayOfWeek")
+                        .HasColumnType("tinyint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Place")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time(0)");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("UpdatedByUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasPrecision(3)
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "SortOrder");
+
+                    b.ToTable("WorshipSchedule", "app");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
                 {
                     b.Property<int>("Id")
@@ -3438,6 +4238,15 @@ namespace ChallengeBible.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DataProtectionKey", "app");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Album", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.AppRoleClaim", b =>
@@ -3541,6 +4350,24 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_BibleVerse_Translation");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Bulletin", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.BulletinFile", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Bulletin", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "BulletinId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.ChapterMedia", b =>
@@ -3828,6 +4655,48 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasConstraintName("FK_GuardianLink_Tenant");
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.LeaveRequest", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MemberTag", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MessageReceipt", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Message", null)
+                        .WithMany()
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MessageTarget", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Message", null)
+                        .WithMany()
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.MissionActivity", b =>
                 {
                     b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
@@ -3839,6 +4708,33 @@ namespace ChallengeBible.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Person", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Photo", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Album", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "AlbumId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Prayer365Log", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.Prayer365View", b =>
                 {
                     b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
                         .WithMany()
@@ -3952,6 +4848,24 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantIntro", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantIntroSeen", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TenantSeason", b =>
                 {
                     b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
@@ -3960,6 +4874,14 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_TenantSeason_Tenant");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.TodoRule", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.UserSetting", b =>
@@ -3991,6 +4913,24 @@ namespace ChallengeBible.Infrastructure.Migrations
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .HasConstraintName("FK_WeeklyVerse_Tenant");
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.WeeklyWord", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChallengeBible.Infrastructure.Data.WorshipSchedule", b =>
+                {
+                    b.HasOne("ChallengeBible.Infrastructure.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ChallengeBible.Infrastructure.Data.DailyQuiz", b =>

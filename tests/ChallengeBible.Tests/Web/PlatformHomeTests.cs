@@ -87,4 +87,57 @@ public class PlatformHomeTests
     {
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => Service().GetAsync(_admin));
     }
+
+    // ── 오늘 현황(플랫폼 홈 숫자 → 목록, R-334) ──
+
+    private PlatformTodayService Today() => new(new InMemorySystemDb(_db), new TenantClock(_time));
+
+    [Fact]
+    public async Task R334_오늘_현황_목록의_수는_플랫폼_홈_숫자와_같다()
+    {
+        var h = await Service().GetAsync(_op);
+        var m = await Today().GetAsync(_op, PlatformTodayService.Missions, null, null);
+        Assert.Equal(h.TodayParticipants, m.Missions.Count);
+        var row = Assert.Single(m.Missions);
+        Assert.Equal(("김철수", 2), (row.Name, row.Done.Count));                 // 말씀 · 기도
+        Assert.Contains(ChallengeBible.Domain.Rules.Mission.Prayer, row.Done);
+        Assert.Contains(m.DeptChips, c => c.Id == _kids.Id && c.Count == 1);
+
+        var r = await Today().GetAsync(_op, PlatformTodayService.Reads, null, null);
+        Assert.Equal(h.TodayReaders, r.Reads.Count);
+        Assert.Equal(("창세기 1~2장", 2), (r.Reads[0].Where, r.Reads[0].Chapters));
+
+        var a = await Today().GetAsync(_op, PlatformTodayService.Accounts, null, null);   // 기본: 이번 주 새로
+        Assert.Equal(h.NewAccounts, a.AccountRows.Count);
+        Assert.Equal(h.Accounts, (await Today().GetAsync(_op, PlatformTodayService.Accounts, null, "all")).AccountRows.Count);
+        Assert.All((await Today().GetAsync(_op, PlatformTodayService.Accounts, null, "none")).AccountRows, x => Assert.Null(x.Depts));
+
+        var d = await Today().GetAsync(_op, PlatformTodayService.Depts, null, null);
+        Assert.Equal(h.ActiveTenants, d.Depts.Count(x => !x.Suspended));
+        Assert.Contains("이은혜", d.Depts.Single(x => x.Id == _kids.Id).Admins);
+
+        Assert.Empty((await Today().GetAsync(_op, PlatformTodayService.Missions, _elem.Id, null)).Missions);   // 부서로 좁히기
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => Today().GetAsync(_admin, PlatformTodayService.Missions, null, null));   // 플랫폼 관리자만
+    }
+
+    [Fact]
+    public void 읽은_곳은_책마다_이어진_장을_묶는다()
+    {
+        Assert.Equal("창세기 1~3 · 5장 · 출애굽기 2장", PlatformTodayService.Where([(1, 1), (1, 2), (1, 3), (1, 5), (2, 2), (1, 2)]));
+    }
+
+    [Fact]
+    public async Task 부서별_오늘_표는_나이순이다()   // 2026-11-18 사용자
+    {
+        InMemoryDb.SeedTenant(_db, "jamsil-high", "JSHIGH");
+        InMemoryDb.SeedTenant(_db, "jamsil-infant", "JSINFA");
+        using (var raw = InMemoryDb.Raw(_db))
+        {
+            raw.Tenants.Single(t => t.Slug == "jamsil-high").Name = "잠실새내교회 고등부";
+            raw.Tenants.Single(t => t.Slug == "jamsil-infant").Name = "잠실새내교회 영아부";
+            raw.SaveChanges();
+        }
+        var names = (await Service().GetAsync(_op)).Tenants.Select(t => t.Name).ToList();
+        Assert.True(names.IndexOf("잠실새내교회 영아부") < names.IndexOf("잠실새내교회 고등부"));
+    }
 }

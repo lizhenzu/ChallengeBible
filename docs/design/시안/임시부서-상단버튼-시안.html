@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#E9ECF1;font-family:"Noto Sans KR",sans-serif;color:#111827}
+.row{display:flex;gap:22px;justify-content:center;padding:16px;flex-wrap:wrap}.col{width:360px}
+.h{font:900 17px "Noto Sans KR";margin:6px 0 4px}.d{font-size:12.5px;color:#4B5563;margin:0 0 8px;line-height:1.5;min-height:56px}
+.cap{font-size:12px;font-weight:800;color:#6B7280;margin:12px 0 4px}
+.ph{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.1)}
+.hd{display:flex;align-items:center;gap:12px;padding:14px 16px 12px}.hd i{font-style:normal;font-size:22px}.hd small{display:block;font-size:11.5px;color:#6B7280}.hd b{font-size:20px;font-weight:900;color:#2563EB}.hd em{margin-left:auto;font-style:normal;font-size:13px;font-weight:800}
+.gray{background:#EEF1F5;padding:14px 12px 4px}
+.card{background:#fff;border:1px solid #DCE1E8;border-radius:16px;padding:14px;box-shadow:0 2px 8px rgba(15,23,42,.07);font-size:13px;color:#9CA3AF;height:70px}
+/* A 배너 카드 */
+.ban{border-radius:16px;padding:14px;margin-bottom:12px;display:grid;gap:10px}
+.ban.go{background:#EFF6FF;border:1px solid #BFDBFE}.ban.wait{background:#FFFBEB;border:1px solid #FDE68A}
+.ban p{margin:0;font-size:13px;line-height:1.55;color:#374151}.ban p b{display:block;font-size:15px;color:#111827;margin-bottom:2px}
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;height:46px;border-radius:12px;font-weight:900;font-size:15px}
+.p{background:#2563EB;color:#fff}.s{background:#fff;border:1px solid #CBD5E1;color:#1F2937}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;background:#F59E0B;color:#fff;font-size:11.5px;font-weight:800;margin-right:4px}
+/* B 한 줄 띠 */
+.strip{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:14px;margin-bottom:12px;font-size:13px}
+.strip.go{background:#2563EB;color:#fff}.strip.wait{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E}
+.strip span{flex:1;font-weight:700;line-height:1.4}.strip a{flex:none;padding:8px 12px;border-radius:10px;font-weight:900}
+.strip.go a{background:#fff;color:#1D4ED8}.strip.wait a{background:#F59E0B;color:#fff}
+</style></head><body><div class="row">
+
+<div class="col"><div class="h">지금</div><p class="d">"← 처음 화면" — 어디로 가는지, 무엇을 해야 하는지 알기 어려움(부서 선택까지 두 번)</p>
+<p class="cap">신청 전</p>
+<div class="ph"><div class="hd"><i>☰</i><div><small>대한예수교장로회</small><b>잠실새내교회 ↗</b></div><em>11월 17일</em></div>
+<div style="padding:6px 16px 14px;color:#2563EB;font-weight:900">← 처음 화면</div><div class="gray"><div class="card">안녕하세요 · 나의 점수 …</div></div></div>
+</div>
+
+<div class="col"><div class="h">A 안내 카드 (추천)</div><p class="d">맨 위에 할 일을 알려 주는 카드. 신청 전 = 파란 카드 [내 부서 참여 신청하기] · 신청 후 = 노란 카드 "승인 기다리는 중" + [신청 확인]</p>
+<p class="cap">신청 전</p>
+<div class="ph"><div class="hd"><i>☰</i><div><small>대한예수교장로회</small><b>잠실새내교회 ↗</b></div><em>11월 17일</em></div>
+<div class="gray"><div class="ban go"><p><b>아직 내 부서가 없어요</b>내 부서에 참여 신청하면 선생님이 승인해요. 지금 한 미션 · 점수는 그 부서로 옮겨져요.</p><span class="btn p">내 부서 참여 신청하기 →</span></div><div class="card">안녕하세요 · 나의 점수 …</div></div></div>
+<p class="cap">신청 후(승인 전)</p>
+<div class="ph"><div class="hd"><i>☰</i><div><small>대한예수교장로회</small><b>잠실새내교회 ↗</b></div><em>11월 17일</em></div>
+<div class="gray"><div class="ban wait"><p><b><span class="pill">승인 기다리는 중</span>유년부</b>선생님이 승인하면 바로 유년부로 바뀌어요. 그동안 여기서 미션을 계속해요.</p><span class="btn s">신청 확인 · 바꾸기 →</span></div><div class="card">안녕하세요 · 나의 점수 …</div></div></div>
+</div>
+
+<div class="col"><div class="h">B 한 줄 띠</div><p class="d">자리를 적게 쓰는 한 줄. 신청 전 = 파란 띠 [참여 신청] · 신청 후 = 노란 띠 "유년부 승인 기다리는 중" [신청 확인]</p>
+<p class="cap">신청 전</p>
+<div class="ph"><div class="hd"><i>☰</i><div><small>대한예수교장로회</small><b>잠실새내교회 ↗</b></div><em>11월 17일</em></div>
+<div class="gray"><div class="strip go"><span>아직 내 부서가 없어요</span><a>내 부서 참여 신청 →</a></div><div class="card">안녕하세요 · 나의 점수 …</div></div></div>
+<p class="cap">신청 후(승인 전)</p>
+<div class="ph"><div class="hd"><i>☰</i><div><small>대한예수교장로회</small><b>잠실새내교회 ↗</b></div><em>11월 17일</em></div>
+<div class="gray"><div class="strip wait"><span>유년부 승인 기다리는 중</span><a>신청 확인 →</a></div><div class="card">안녕하세요 · 나의 점수 …</div></div></div>
+</div>
+</div></body></html>

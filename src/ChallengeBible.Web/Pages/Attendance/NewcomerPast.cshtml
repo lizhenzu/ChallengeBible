@@ -5,6 +5,8 @@
     var slug = Model.Tenant.Current.Slug;
     var nowMonth = Model.NowMonth;
 }
+@{ ViewData["PbDrawer"] = "att"; ViewData["PbTitle"] = "기존 출석 변경"; ViewData["PbParent"] = new[] { "새친구", $"/{slug}/attendance/newcomers" }; ViewData["PbButton"] = new[] { "출석홈", $"/{slug}/attendance" }; }
+<partial name="_Top" view-data="ViewData" />
 <main class="att gut attw"><div class="wrap">
     @if (Model.D is { } d)
     {

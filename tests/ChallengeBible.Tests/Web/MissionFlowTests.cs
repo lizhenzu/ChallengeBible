@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -208,9 +208,9 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("나의 성경 통독 · <a href=\"/jamsil-kids/reading/rounds\" title=\"회차 기록\">1회차", dash);   // 회차 기록으로 가는 길
         Assert.Contains("이어 읽기", dash);
         Assert.Contains("<div class=\"t\">창세기 1장</div>", dash);                     // 옛 Bible2 배치(0071): 이어 읽기 큰 칸
-        Assert.Contains("class=\"b2it on\" aria-current=\"page\">대시보드</a>", dash);   // 왼쪽 목차
+        Assert.Matches("aria-current=\"page\"><i class=\"tdr2-i\"[^>]*>(?:(?!</a>)[\\s\\S])*<span>대시보드</span></a>", dash);   // 왼쪽 목차
         var list = await c.GetStringAsync("/jamsil-kids/reading/list?t=ot&b=1");
-        Assert.Contains("aria-current=\"page\">구약 읽기</a>", list);                    // 옛 Bible2 List 배치(0071): 목차에서 구약 읽기
+        Assert.Matches("aria-current=\"page\"><i class=\"tdr2-i\"[^>]*>(?:(?!</a>)[\\s\\S])*<span>구약 읽기</span></a>", list);                    // 옛 Bible2 List 배치(0071): 목차에서 구약 읽기
         Assert.Contains("읽기 시작 1장 →", list);                                       // 누른 책 아래 장 번호 칸
         var read = await c.GetStringAsync("/jamsil-kids/reading/read/1/24");
         Assert.Contains("KRV 1:24:9", read);
@@ -434,6 +434,22 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("<div class=\"ref\">창세기 24장</div>", html);   // 본문이 있으면 첫 구절 + 더 보기(2026-11-03)
         Assert.Contains("<i class=\"num\">1</i>", html);
         Assert.Contains("<a class=\"more\" href=\"/jamsil-kids/read?from=word\">더 보기 →</a>", html);
+    }
+
+    [Fact]
+    public async Task 네_미션_화면_아래_탭에는_미션_홈_칸이_있고_다_한_미션은_dn_으로_초록()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        foreach (var m in new[] { "word", "quiz", "prayer", "recite" })   // 확정 시안 미션탭(2026-11-16)
+        {
+            var html = await c.GetStringAsync($"/jamsil-kids/{m}");
+            Assert.Contains("<a href=\"/jamsil-kids/word-mission\" class=\"hm\" data-nav=\"home\"><span class=\"L\">미션 홈</span>", html);
+            Assert.Contains($"aria-current=\"page\" data-nav=\"{m}\"", html);
+        }
+        var css = await c.GetStringAsync("/css/site.css");
+        Assert.Contains(".mnav { grid-template-columns: repeat(5, minmax(0, 1fr)); }", css);
+        Assert.Contains(".mnav a.dn .L { color: #167a41; opacity: 1; }", css);   // 확정 시안 미션탭-완료글자 2: 한 미션 = 이름 초록
+        Assert.Contains(".mnav a.dn .S.done { color: #167a41; font-weight: 700; opacity: .6; }", css);   // ✓ 완료 = 초록 약간 흐리게
     }
 
     [Fact]

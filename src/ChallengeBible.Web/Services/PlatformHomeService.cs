@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using ChallengeBible.Domain.Rules;
 using ChallengeBible.Domain.Time;
 using ChallengeBible.Infrastructure.Data;
@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace ChallengeBible.Web.Services;
 
 public sealed record PlatformTenantToday(int Id, string Name, string Slug, string ThemeColor, bool Mission, bool Suspended,
-    int TodayParticipants, int Participants, int Readers, int Pending);
+    int TodayParticipants, int Participants, int Readers, int Pending, string? AdminUser = null);
 public sealed record PlatformTodo(string Kind, int Count, string Title, string Text, string Href);
 public sealed record PlatformLog(DateTime OccurredUtc, string Actor, string? Tenant, string Text);
 public sealed record PlatformHome(DateTime NowLocal, int ActiveTenants, int SuspendedTenants, int Accounts, int NewAccounts,
@@ -37,7 +37,9 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
         var tz = TimeZoneInfo.FindSystemTimeZoneById(PlatformTimeZone);
         var nowLocal = TimeZoneInfo.ConvertTime(nowUtc, tz).DateTime;
 
-        var tenants = await ctx.Tenants.AsNoTracking().OrderBy(t => t.Name).ToListAsync(ct);
+        // 부서별 오늘 표: 나이순(처음 오신 분 → 영아부 → … → 장년부, 2026-11-18 사용자) — 플랫폼 › 부서 카드와 같은 순서
+        var tenants = (await ctx.Tenants.AsNoTracking().ToListAsync(ct))
+            .OrderBy(t => DeptOrder.AgeLastKey(t.Name)).ThenBy(t => t.Name, StringComparer.Ordinal).ToList();
         var active = tenants.Where(t => t.Status == TenantStatus.Active).ToList();
         var accounts = await ctx.Users.CountAsync(ct);
         var weekAgo = nowUtc.UtcDateTime.AddDays(-7);
@@ -64,8 +66,14 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
         var requested = await ctx.SignupApplications.Where(a => a.Status == SignupStatus.Pending).Select(a => new { a.TenantId, RequestedUtc = a.InsertDT }).ToListAsync(ct);
         var pendingBy = requested.GroupBy(m => m.TenantId).ToDictionary(g => g.Key, g => g.Count());
 
+        // 부서 이름을 누르면 그 부서 관리자로 가장(2026-11-18 사용자): 부서마다 관리자 한 명 — "부서주소-admin" 계정이 있으면 그것, 없으면 먼저 들어온 관리자
+        var adminIdsAll = await DeptMembership.AdminIdsAsync(ctx, ct);
+        var adminRows = await (from d in ctx.DeptRoles join u in ctx.Users on d.UserId equals u.Id where adminIdsAll.Contains(u.Id) orderby d.Id
+                               select new { d.TenantId, UserName = u.UserName! }).ToListAsync(ct);
+        string? AdminOf(Tenant t) => adminRows.Where(a => a.TenantId == t.Id).Select(a => a.UserName)
+            .OrderBy(n => n.Equals($"{t.Slug}-admin", StringComparison.OrdinalIgnoreCase) ? 0 : 1).FirstOrDefault();
         var rows = tenants.Select(t => new PlatformTenantToday(t.Id, t.Name, t.Slug, t.ThemeColor, t.MissionEnabled, t.Status != TenantStatus.Active,
-            todayBy.GetValueOrDefault(t.Id), participants.GetValueOrDefault(t.Id), readersBy.GetValueOrDefault(t.Id), pendingBy.GetValueOrDefault(t.Id))).ToList();
+            todayBy.GetValueOrDefault(t.Id), participants.GetValueOrDefault(t.Id), readersBy.GetValueOrDefault(t.Id), pendingBy.GetValueOrDefault(t.Id), AdminOf(t))).ToList();
 
         // 챙길 일(0건이면 숨김)
         var todos = new List<PlatformTodo>();
@@ -87,7 +95,7 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
             todos.Add(new("c", drafts.Count, "공개 전 공용 초안", string.Join(" · ", drafts.Take(3)) + (drafts.Count > 3 ? $" 외 {drafts.Count - 3}건" : ""), "/platform/content"));
         var adminIds = await DeptMembership.AdminIdsAsync(ctx, ct);
         var admins = await ctx.DeptRoles.Where(d => adminIds.Contains(d.UserId!)).Select(d => d.TenantId).Distinct().ToListAsync(ct);
-        var noAdmin = active.Where(t => !admins.Contains(t.Id)).ToList();
+        var noAdmin = active.Where(t => !t.IsLobby && !admins.Contains(t.Id)).ToList();   // 임시 부서(처음 오신 분)는 관리자가 없어도 된다(2026-11-16 사용자)
         if (noAdmin.Count > 0)
             todos.Add(new("b", noAdmin.Count, "관리자가 없는 부서", string.Join(" · ", noAdmin.Take(2).Select(t => t.Name)) + (noAdmin.Count > 2 ? $" 외 {noAdmin.Count - 2}곳" : ""), "/platform/tenants"));
         var oldBefore = nowUtc.UtcDateTime.AddDays(-OldRequestDays);
@@ -117,6 +125,7 @@ public sealed class PlatformHomeService(ISystemDb systemDb, TenantClock clock)
         BrandingService.LogAction or SeasonService.LogAction => detail ?? "",
         PlatformAccountService.ResetPasswordAction => $"임시 비밀번호 발급 · {Target(detail)}",
         PlatformAccountService.ResetMarksAction => $"성경 읽음 · 책갈피 초기화 · {Target(detail)}",
+        PlatformAccountService.MoveDeptAction => $"부서 바로 옮기기 · {Target(detail)}",
         _ => detail is null ? action : $"{action} · {detail}",
     };
 

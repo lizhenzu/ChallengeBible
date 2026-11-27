@@ -4,5 +4,6 @@
 
 - 개념 명세: [docs/concept](docs/concept/00_README.md)
 - 설계 결정(ADR): [docs/design](docs/design/README.md)
+- 로컬 개발: .NET SDK 9.0.318 (`global.json`), `dotnet tool restore` → `dotnet build`
 
 원본: 잠실새내교회 유년부 사이트(YunYunBu2025)의 "도전 성경말씀" 기능 — 개념만 가져와 새로 설계한다.

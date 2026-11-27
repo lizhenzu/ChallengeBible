@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#E9ECF1;font-family:"Noto Sans KR",sans-serif;color:#1B1F24}
+.ph{width:390px;margin:24px auto;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.top{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #E5E7EB}.top .t small{display:block;font-size:12px;color:#6B7280}.top .t b{font-size:16px;font-weight:800}
+.w{padding:14px 16px 24px;display:grid;gap:12px}
+.warn{padding:10px 12px;border-radius:12px;background:#FEF3C7;color:#92400E;font-size:12.5px;font-weight:700;line-height:1.5}
+.qs{display:flex;gap:6px;overflow-x:auto}.qs span{flex:none;padding:6px 10px;border-radius:99px;border:1px solid #E5E7EB;font-size:12.5px;font-weight:700;background:#F9FAFB}
+textarea{width:100%;height:150px;border:1px solid #CBD5E1;border-radius:12px;padding:10px;font:13px/1.5 ui-monospace,Consolas,monospace;background:#0F172A;color:#E2E8F0}
+.mode{display:grid;grid-template-columns:1fr 1fr;gap:6px}.mode label{display:flex;gap:6px;align-items:center;justify-content:center;padding:10px;border-radius:12px;border:1px solid #E5E7EB;font-size:13.5px;font-weight:800}
+.mode label.on{border:2px solid #2563EB;background:#EFF6FF;color:#1D4ED8}.mode label.d{color:#B91C1C}
+.conf{display:flex;gap:8px;align-items:center;font-size:12.5px;color:#6B7280}.conf input{flex:1;height:38px;border:1px solid #E5E7EB;border-radius:10px;padding:0 10px}
+.run{height:48px;border:0;border-radius:12px;background:#2563EB;color:#fff;font:inherit;font-size:15px;font-weight:900}
+.res{display:grid;gap:8px}.st{display:flex;justify-content:space-between;font-size:12.5px;color:#6B7280}.ok{padding:8px 10px;border-radius:10px;background:#EAF7EF;color:#15803D;font-size:12.5px;font-weight:800}
+.tb{overflow-x:auto;border:1px solid #E5E7EB;border-radius:12px}table{border-collapse:collapse;font-size:12px;min-width:100%}th{background:#F3F4F6;text-align:left;padding:6px 8px;white-space:nowrap}td{padding:6px 8px;border-top:1px solid #F1F3F6;white-space:nowrap}
+.hist{font-size:12px;color:#6B7280}.hist b{color:#1B1F24}
+.cap{text-align:center;font:800 14px "Noto Sans KR";color:#374151;margin:16px 0 -8px}
+</style></head><body>
+<p class="cap">SQL 실행(플랫폼 관리자 · 휴대폰)</p>
+<div class="ph"><div class="top"><span>☰</span><div class="t"><small>도전!!! 플랫폼 · 도구</small><b>SQL 실행</b></div></div>
+<div class="w">
+<div class="warn">모든 부서를 한 번에 봐요. 기본은 <b>시험 실행</b>(끝나면 되돌림)이에요. 관리자 계정 · 권한 · 소속이 바뀌면 저장하지 않고 되돌려요.</div>
+<div class="qs"><span>부서별 소속</span><span>할 일이 뜨는 이유</span><span>가짜 계정 수</span><span>오늘 365 기도</span></div>
+<textarea>SELECT t.Slug, COUNT(*) AS 소속
+FROM dbo.DeptRoleUserAssoc d
+JOIN app.Tenant t ON t.Id = d.TenantId
+GROUP BY t.Slug;</textarea>
+<div class="mode"><label class="on">● 시험 실행(되돌림)</label><label class="d">○ 저장</label></div>
+<div class="conf">저장할 때만: 확인 글자 <input placeholder="SAVE" /></div>
+<button class="run">실행</button>
+<div class="res"><div class="ok">시험 실행 · 되돌렸어요 (바뀐 것 없음)</div>
+<div class="st"><span>결과 1 · 4줄</span><span>0.12초</span></div>
+<div class="tb"><table><tr><th>Slug</th><th>소속</th></tr><tr><td>jamsil-infant</td><td>58</td></tr><tr><td>jamsil-kids</td><td>61</td></tr><tr><td>jamsil-elementary</td><td>63</td></tr><tr><td>jamsil-high</td><td>12</td></tr></table></div>
+<div class="st"><span>메시지</span><span>(4 rows affected)</span></div>
+</div>
+<div class="hist">최근 실행 · <b>11/17 08:52</b> 시험 · SELECT t.Slug, COUNT(*)…</div>
+</div></div>
+</body></html>

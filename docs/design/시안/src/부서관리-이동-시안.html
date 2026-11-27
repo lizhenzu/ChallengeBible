@@ -1,0 +1,55 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>부서 관리 · 이동 시안</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}body{margin:0;padding:28px 22px 36px;background:#E8ECF3;font-family:'Noto Sans KR',sans-serif;color:#111827}
+.row{display:flex;gap:22px;align-items:flex-start}.col{width:360px;flex:none}
+.lab{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:14.5px;font-weight:700;color:#374151}
+.lab b{display:inline-grid;place-items:center;width:22px;height:22px;border:1.5px solid #374151;border-radius:50%;font-size:12px}
+.ph{background:#fff;border-radius:24px;overflow:hidden;height:760px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.note{margin-top:12px;padding:12px 14px;border-radius:14px;background:#FFF8E6;font-size:12.5px;line-height:1.6;color:#7C5A10}
+.pn{padding:14px 12px}.g{margin:12px 4px 4px;font-size:12px;font-weight:800;color:#1F7A55}
+.it{display:flex;gap:9px;align-items:center;padding:7px 4px;border-radius:10px}
+.it i{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-style:normal;font-size:17px;flex:none;background:#F1F5F9}
+.it b{font-size:14.5px}.it small{display:block;font-size:12px;color:#6B7280}
+.k{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:99px;background:#FFEDD5;color:#C2410C;font-size:10.5px;font-weight:900;vertical-align:2px}
+.c{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:5px;border-radius:99px;background:#DC2626;color:#fff;font-size:11px;font-weight:800;vertical-align:2px}
+.new{background:#FFF7E6;outline:2px dashed #F59E0B}.dim{opacity:.55}
+.hd{display:flex;align-items:center;gap:8px;padding:14px;border-bottom:1px solid #EEF0F4}.hd .m{font-size:20px}
+.hd .t{flex:1;display:flex;gap:5px;align-items:baseline;white-space:nowrap}.hd .t span{font-size:12px;font-weight:700;color:#6B7280}.hd .t em{font-style:normal;font-weight:900;color:#1F7A55}.hd .t b{font-size:15px;font-weight:800}
+.hd .h{font-size:12.5px;font-weight:800;color:#1F7A55}
+.h1{margin:14px 14px 2px;font-size:20px;font-weight:900}.lead{margin:0 14px;font-size:12.5px;color:#6B7280}
+.go{margin:14px;padding:14px;border-radius:14px;background:#1F7A55;color:#fff;font-weight:800;font-size:15px;display:flex;justify-content:space-between}
+.go small{display:block;font-weight:500;font-size:12px;opacity:.85}
+.tabs{display:flex;gap:6px;padding:0 14px}.tabs span{padding:7px 11px;border-radius:99px;border:1px solid #E5E7EB;font-size:12.5px;font-weight:700}
+.tabs span.on{background:#111827;color:#fff;border-color:#111827}.tabs em{font-style:normal;color:#DC2626;margin-left:3px}
+.card{margin:10px 14px;padding:12px;border:1px solid #E5E7EB;border-radius:14px;font-size:13px}.card b{font-size:15px}.card .sm{color:#6B7280;font-size:12px;margin-top:2px}
+.bt{display:inline-block;margin:8px 6px 0 0;padding:6px 12px;border-radius:10px;font-weight:800;font-size:12.5px;border:1px solid #D1D5DB}.bt.p{background:#1F7A55;color:#fff;border-color:#1F7A55}
+.st{display:flex;gap:6px;margin:12px 14px}.st span{flex:1;text-align:center;padding:8px 2px;border-radius:10px;background:#F1F5F9;font-size:11.5px;font-weight:700;color:#6B7280}.st span.on{background:#E6F2EC;color:#1F7A55}
+</style></head><body><div class="row">
+<div class="col"><p class="lab"><b>1</b>부서 ☰ — "관리" → "부서 관리"</p><div class="ph"><div class="pn">
+ <div class="g">섬김 · 교사</div>
+ <div class="it"><i>✅</i><div><b>오늘 할 일</b><small>승인 · 선물 · 생일 챙기기</small></div></div>
+ <div class="it"><i>📋</i><div><b>출석</b><small>주일 출석 체크 · 보고서</small></div></div>
+ <div class="it new"><i>⚙️</i><div><b>부서 관리<span class="k">관리</span></b><small>소속 · 반 · 부서 · 반 이동 · 설정</small></div></div>
+</div></div><div class="note">이름 "관리" → <b>부서 관리</b>, 아이콘은 톱니바퀴 ⚙️로 바꿔요. 들어가면 관리 ☰(관리 홈)이에요.</div></div>
+
+<div class="col"><p class="lab"><b>2</b>관리 ☰ — "진급" → "부서 · 반 이동"</p><div class="ph"><div class="pn">
+ <div class="it"><i>🏠</i><div><b>관리 홈</b><small>오늘 챙길 일 · 숫자</small></div></div>
+ <div class="g">사람</div>
+ <div class="it"><i>👥</i><div><b>소속 관리</b><small>승인 · 역할 · 명부</small></div></div>
+ <div class="it"><i>▦</i><div><b>반</b><small>반 만들기 · 배정</small></div></div>
+ <div class="it new"><i>🔀</i><div><b>부서 · 반 이동<span class="c">2</span></b><small>받은 요청 · 이동하기 · 보낸 기록</small></div></div>
+ <div class="it"><i>👤</i><div><b>탈퇴 신청</b><small>기다리는 탈퇴 · 승인 · 반려</small></div></div>
+ <div class="g">선물 설정</div>
+ <div class="it dim"><i>🛍️</i><div><b>공통 상품</b><small>…</small></div></div>
+</div></div><div class="note">"진급"이 <b>부서 · 반 이동</b>으로 바뀌어요. 숫자 뱃지(받은 요청)는 그대로. 주소는 그대로 <code>/admin/promotions</code>.</div></div>
+
+<div class="col"><p class="lab"><b>3</b>부서 · 반 이동 — 한 화면</p><div class="ph">
+ <div class="hd"><span class="m">☰</span><div class="t"><span><em>도전!!!</em>성경말씀</span><span>&gt;</span><b>부서 · 반 이동</b></div><span class="h">부서 홈으로</span></div>
+ <div class="h1">부서 · 반 이동</div><p class="lead">아이를 다른 반 · 다른 부서로 옮기고, 다른 부서가 보낸 아이를 받아요.</p>
+ <div class="go"><span>🔀 이동하기<small>반 → 아이 → 보낼 곳(다른 반 · 다른 부서) → 확인</small></span><span>›</span></div>
+ <div class="tabs"><span class="on">받은 요청<em>2</em></span><span>보낸 요청 1</span><span>처리한 요청</span></div>
+ <div class="card"><b>김하늘</b><div class="sm">유년부에서 보냄 · 11월 20일</div><span class="bt p">승인하고 받기</span><span class="bt">거절</span></div>
+ <div class="card"><b>이바다</b><div class="sm">유년부에서 보냄 · 11월 20일</div><span class="bt p">승인하고 받기</span><span class="bt">거절</span></div>
+</div><div class="note">맨 위 <b>[이동하기]</b>는 지금의 반 이동 4단계(반 화면 안에 있던 것)를 열어요. 그 아래는 지금 진급 화면 그대로(받은 · 보낸 · 처리한 요청). 반 화면의 [반 이동]도 그대로 남아요.</div></div>
+</div></body></html>

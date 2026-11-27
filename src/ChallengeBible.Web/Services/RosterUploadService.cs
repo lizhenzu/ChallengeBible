@@ -19,7 +19,8 @@ public sealed record RosterIssue(string Sheet, int Row, string Message);
 public sealed record RosterPlan(int TenantId, string TenantName, string FileName, IReadOnlyList<RosterLine> Students, IReadOnlyList<RosterLine> Teachers,
     IReadOnlyList<RosterIssue> Issues, int DropPeople, int DropMembers, int DropAttendance, IReadOnlyList<string> Kept);
 
-public sealed record RosterResult(int Students, int Teachers, int Updated, int DroppedPeople, int DroppedAttendance);
+/// <summary>KeptForGifts = 새 명단에 없지만 고른 · 산 · 준 선물이 있어 남긴 명부 줄("명단에서 빠진 아이", R-322).</summary>
+public sealed record RosterResult(int Students, int Teachers, int Updated, int DroppedPeople, int DroppedAttendance, int KeptForGifts = 0);
 
 /// <summary>
 /// 명단 올리기(ADR 0097, 확정 시안 명단올리기 · 반편성-업로드-템플릿, 2026-11-15 사용자): 플랫폼 관리자가 부서마다 엑셀 하나(파일 이름 = 부서)를 올린다.
@@ -289,6 +290,9 @@ public sealed partial class RosterUploadService(ISystemDb systemDb, TimeProvider
         }
     }
 
+    /// <summary>명단을 다시 올려도 지우지 않는 선물 상태: 고름 · 삼 · 줌.</summary>
+    private static readonly string[] Kept = [GiftStates.Picked, GiftStates.Purchased, GiftStates.Delivered];
+
     private static async Task DeleteAsync<T>(AppDbContext ctx, IQueryable<T> q, CancellationToken ct) where T : class
     {
         if (ctx.Database.IsRelational()) await q.ExecuteDeleteAsync(ct);
@@ -306,15 +310,25 @@ public sealed partial class RosterUploadService(ISystemDb systemDb, TimeProvider
         var tid = plan.TenantId;
         var now = time.GetUtcNow().UtcDateTime;
 
-        var dropIds = await ctx.People.Where(p => p.TenantId == tid && p.UserId == null).Select(p => p.Id).ToListAsync(ct);
-        var attendance = await ctx.AttendanceChecks.CountAsync(a => a.TenantId == tid && dropIds.Contains(a.PersonId), ct);
+        var allIds = await ctx.People.Where(p => p.TenantId == tid && p.UserId == null).Select(p => p.Id).ToListAsync(ct);
+        var attendance = await ctx.AttendanceChecks.CountAsync(a => a.TenantId == tid && allIds.Contains(a.PersonId), ct);
+        // 선물이 있는 명부 줄은 바로 지우지 않는다(ADR 0109, R-322): 새 명단에 같은 이름(한 명)이 있으면 그 줄을 그대로 다시 쓰고(선물 · 링크가 이어짐),
+        // 없으면 고른 · 산 · 준 선물이 있는 줄만 "명단에서 빠진 아이"로 남긴다(반 없음). 아직 안 고른 선물은 다음에 새로 생긴다
+        var giftHolders = (await ctx.Gifts.Where(g => g.TenantId == tid && g.PersonId != null && allIds.Contains(g.PersonId.Value)).Select(g => g.PersonId!.Value).Distinct().ToListAsync(ct)).ToHashSet();
+        var lineKeys = plan.Students.Concat(plan.Teachers).GroupBy(l => PeopleService.Key(l.Name)).ToDictionary(g => g.Key, g => g.Count());
+        var holders = await ctx.People.Where(p => giftHolders.Contains(p.Id)).ToListAsync(ct);
+        var reuse = holders.GroupBy(p => PeopleService.Key(p.Name)).Where(g => g.Count() == 1 && lineKeys.GetValueOrDefault(g.Key) == 1).ToDictionary(g => g.Key, g => g.Single());
+        var protectedIds = (await ctx.Gifts.Where(g => g.TenantId == tid && g.PersonId != null && giftHolders.Contains(g.PersonId.Value) && Kept.Contains(g.State))
+            .Select(g => g.PersonId!.Value).Distinct().ToListAsync(ct)).ToHashSet();
+        var keepIds = reuse.Values.Select(p => p.Id).Concat(protectedIds).ToHashSet();
+        var dropIds = allIds.Where(id => !keepIds.Contains(id)).ToList();
         var gifts = ctx.Gifts.Where(g => g.TenantId == tid && g.PersonId != null && dropIds.Contains(g.PersonId.Value)).Select(g => g.Id);
         await DeleteAsync(ctx, ctx.GiftLogs.Where(l => l.TenantId == tid && gifts.Contains(l.GiftId)), ct);
         await DeleteAsync(ctx, ctx.GiftPointUses.Where(u => u.TenantId == tid && gifts.Contains(u.GiftId)), ct);
         await DeleteAsync(ctx, ctx.Gifts.Where(g => g.TenantId == tid && gifts.Contains(g.Id)), ct);
-        await DeleteAsync(ctx, ctx.AttendanceChecks.Where(a => a.TenantId == tid && dropIds.Contains(a.PersonId)), ct);
+        await DeleteAsync(ctx, ctx.AttendanceChecks.Where(a => a.TenantId == tid && allIds.Contains(a.PersonId)), ct);
         await DeleteAsync(ctx, ctx.ClassMembers.Where(m => m.TenantId == tid), ct);
-        await DeleteAsync(ctx, ctx.SignupApplications.Where(s => s.TenantId == tid && dropIds.Contains(s.PersonId)), ct);
+        await DeleteAsync(ctx, ctx.SignupApplications.Where(s => s.TenantId == tid && allIds.Contains(s.PersonId)), ct);
         await DeleteAsync(ctx, ctx.People.Where(p => p.TenantId == tid && dropIds.Contains(p.Id)), ct);
 
         // 반 묶음 · 새친구반(없으면 만든다, ClassService 와 같다)
@@ -342,6 +356,16 @@ public sealed partial class RosterUploadService(ISystemDb systemDb, TimeProvider
         foreach (var (line, isStudent) in plan.Students.Select(l => (l, true)).Concat(plan.Teachers.Select(l => (l, false))))
         {
             int? classId = line.Class is { } cn && classIds.TryGetValue(cn, out var id) ? id : null;
+            var role = isStudent
+                ? (line.Class == ClassService.NewcomerName ? ClassService.NewcomerCode : UserRole.StudentCode)
+                : (line.Officer is { } o && officerCodes.TryGetValue(o, out var oc) ? oc : UserRole.TeacherCode);
+            if (reuse.Remove(PeopleService.Key(line.Name), out var again))   // 선물이 있는 줄(R-322): 새로 만들지 않고 이 줄을 그대로 — 엑셀 값으로 고친다
+            {
+                (again.Name, again.RoleCode, again.BirthMonth, again.BirthDay, again.Phone1, again.Phone2) = (line.Name, role, line.BirthMonth, line.BirthDay, line.Phone1, line.Phone2);
+                pending.Add((again, classId, !isStudent));
+                if (isStudent) students++; else teachers++;
+                continue;
+            }
             var same = linked.FirstOrDefault(p => p.Name == line.Name);
             if (same is not null)   // 계정 있는 명부 줄(관리자 등): 지우지 않고 빈 칸이 아닌 것만 고친다
             {
@@ -352,9 +376,6 @@ public sealed partial class RosterUploadService(ISystemDb systemDb, TimeProvider
                 updated++;
                 continue;
             }
-            var role = isStudent
-                ? (line.Class == ClassService.NewcomerName ? ClassService.NewcomerCode : UserRole.StudentCode)
-                : (line.Officer is { } o && officerCodes.TryGetValue(o, out var oc) ? oc : UserRole.TeacherCode);
             var person = new Person
             {
                 TenantId = tid, Name = line.Name, RoleCode = role, BirthMonth = line.BirthMonth, BirthDay = line.BirthDay,
@@ -369,7 +390,7 @@ public sealed partial class RosterUploadService(ISystemDb systemDb, TimeProvider
             if (classId is int cid && placed.Add(p.Id))   // 한 사람은 한 반에만(R-232)
                 ctx.ClassMembers.Add(new ClassMember { TenantId = tid, TermId = term.Id, ClassId = cid, PersonId = p.Id, IsTeacher = teacher, CreatedUtc = now });
 
-        var result = new RosterResult(students, teachers, updated, dropIds.Count, attendance);
+        var result = new RosterResult(students, teachers, updated, dropIds.Count, attendance, protectedIds.Count(id => !reuse.Values.Any(r => r.Id == id) && !pending.Any(x => x.P.Id == id)));
         ctx.AuditLogs.Add(new AuditLog
         {
             OccurredUtc = now, ActorUserName = actor, TenantId = tid, Action = Action,

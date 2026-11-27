@@ -1,0 +1,28 @@
+﻿@page "/platform/depttodostatus"
+@model ChallengeBible.Web.Pages.Platform.DeptTodoStatusModel
+@using ChallengeBible.Web.Services
+@* 부서 현황(2026-11-21 사용자: 오늘 할 일에서 쪼갬): 보기만, 밀림 = 3일 넘게 아무도 안 산 선물. 처리는 부서 사람이 해요 *@
+<link rel="stylesheet" href="~/css/todo.css" asp-append-version="true" />
+<partial name="_PlatformTop" />
+<main class="admin gut w760"><div class="wrap td-main">
+    <div class="td-hello"><h1>부서 현황 <small>보기만</small></h1></div>
+    @foreach (var d in Model.Depts)
+    {
+        <div class="td-dept"><h3>@d.Name @if (d.Late > 0) { <span>밀림 @d.Late</span> }</h3>
+            @if (!d.Any) { <ul><li><span>밀린 일 없음 ✓</span></li></ul> }
+            else
+            {
+                <ul>
+                    @if (d.Buy > 0) { <li>🎁 사 주세요 @d.Buy@(d.Late > 0 ? $" · {d.Late}건은 {TodoService.LateDays}일 넘음" : "")</li> }
+                    @if (d.Give > 0) { <li>🎁 전해 주세요 @d.Give</li> }
+                    @if (d.Picking > 0) { <li>🔔 선물 대상 @d.Picking <span>· 고르는 중</span></li> }
+                    @if (d.Signups + d.Promotions > 0) { <li>✋ 승인 @d.Signups · 🎓 진급 @d.Promotions</li> }
+                    @if (d.Classes is int c) { <li>📋 출석 @d.ClassesDone/@(c)반@(d.ClassesDone == c ? " ✓" : "")</li> }
+                </ul>
+            }
+        </div>
+    }
+    <p class="td-note">밀림 = @(TodoService.LateDays)일 넘게 아무도 사지 않은 선물. 처리는 부서 사람이 해요.</p>
+
+    <a class="td-go" href="/platform/todo"><b>‹ 오늘 할 일로</b></a>
+</div></main>

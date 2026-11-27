@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ChallengeBible.Tests.Web;
 
-/// <summary>페이지 이동 대기 카드(ADR 0082): 공통 레이아웃에서 불러오고, 페이지별 문구를 담는다.</summary>
+/// <summary>대기 카드(ADR 0082 · 2026-11-25 시안 「페이지 이동 대기」): 공통 레이아웃에서 불러온다. 링크 0.2초 뒤 이동 · 로딩 → 지연 → 오류 · 큰 동작(읽음 표시 · 사진 올리기)에서도 쓴다.</summary>
 public class WaitCardTests(WebApplicationFactory<Program> app) : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly string _db = InMemoryDb.NewName();
@@ -43,23 +43,28 @@ public class WaitCardTests(WebApplicationFactory<Program> app) : IClassFixture<W
     }
 
     [Theory]
-    [InlineData("잠시만 기다려 주세요")]
-    [InlineData("말씀을 펼치고 있어요")]
-    [InlineData("퀴즈를 준비하고 있어요")]
-    [InlineData("기도 시간을 준비하고 있어요")]
-    [InlineData("암송 구절을 꺼내고 있어요")]
-    [InlineData("오늘의 미션을 불러오고 있어요")]
-    [InlineData("달력을 넘기고 있어요")]
-    [InlineData("점수를 모으고 있어요")]
-    [InlineData("성경을 펼치고 있어요")]
-    [InlineData("통독 기록을 찾고 있어요")]
-    [InlineData("내 정보를 확인하고 있어요")]
+    [InlineData("이동 중입니다")]
+    [InlineData("기다려 주세요")]
+    [InlineData("평소보다 조금 오래 걸리고 있어요")]
+    [InlineData("이동하지 못했어요")]
+    [InlineData("다시 시도")]
+    [InlineData("홈으로 돌아가기")]
     [InlineData("저장하고 있어요")]
-    [InlineData("이동하고 있어요")]
     public async Task Script_has_message(string message)
     {
         var js = await Client().GetStringAsync("/js/wait.js");
         Assert.Contains(message, js);
+    }
+
+    [Fact]
+    public async Task 링크_이동은_0점2초만_늦추고_폼은_늦추지_않는다()
+    {
+        // 2026-11-25 사용자: 0.6초 지연을 0.2초로 — 카드는 그대로 띄운다(시안 「페이지 이동 대기」)
+        var js = await Client().GetStringAsync("/js/wait.js");
+        Assert.Contains("LINK_HOLD_MS = 200", js);
+        Assert.Contains("addEventListener('click'", js);
+        Assert.Contains("addEventListener('submit'", js);
+        Assert.Contains("setTimeout(() => location.assign(url), LINK_HOLD_MS)", js);   // 폼에는 이 늦춤이 없다(submit 처리기는 start 만)
     }
 
     [Fact]
@@ -69,6 +74,6 @@ public class WaitCardTests(WebApplicationFactory<Program> app) : IClassFixture<W
         var photo = await c.GetStringAsync("/js/photo.js");
         Assert.Contains("사진을 올리고 있어요", photo);   // 2026-11-14 사용자: 사진 등록 때 진행 상태 · 대기 카드
         Assert.Contains("upload.onprogress", photo);
-        Assert.Contains("show: (message) => start(message, true)", await c.GetStringAsync("/js/wait.js"));
+        Assert.Contains("show: (message) => start(message, { keep: true })", await c.GetStringAsync("/js/wait.js"));
     }
 }

@@ -7,30 +7,62 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace ChallengeBible.Web.Pages;
 
-/// <summary>`/{slug}` 부서 홈 메인(확정 시안: 홈메인, 0044). 부서 결정 · 소속 검사는 TenantPageFilter 가 한다.</summary>
+/// <summary>
+/// `/{slug}` 부서 홈 메인. 2026-11-22 사용자 확정(ADR 0127): dodan 시안 화면 하나로 교체 —
+/// 머리말 · 로고 · 검색 · 프로그램 4칸 · 오늘의 말씀 · 나의 도전 현황만 둔다.
+/// 부서 결정 · 소속 검사는 TenantPageFilter 가 한다.
+/// </summary>
 public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, FamilyJoinService familyJoin, HomeService home, AccountService accounts,
-    PhotoService photos) : PageModel, ITitled
+    PhotoService photos, TodoService todo, Prayer365Service prayer365, MessageService msgs,
+    BirthdayGiftService birthdays, GiftOrderService gifts, IntroService intro) : PageModel, ITitled
 {
+    /// <summary>로그인이 남기는 표식. 새 쪽지 팝업을 로그인 직후 한 번 띄우는 데 쓴다(ADR 0112).</summary>
+    public const string MsgBandKey = "msg-band";
+
+    public int NewMessages { get; private set; }
+    /// <summary>팝업에 보일 새 쪽지(최근 3개).</summary>
+    public IReadOnlyList<MsgRow> NewList { get; private set; } = [];
     /// <summary>내 사진 파일 이름(0078) — 없으면 이름 첫 글자.</summary>
     public string? MyPhoto { get; private set; }
     public string Title => "";
     public TenantContext Tenant => tenant;
-    /// <summary>"우리 가족팀" 칸(확정 시안 홈메인) — 내가 든 활성 가족팀이 없으면 null.</summary>
-    public FamilyHome? Family { get; private set; }
-    /// <summary>받은 가족팀 초대(확정 시안 home-invite, R-212) — 말씀 찾기 위 배너. 팀이 있거나 오늘 "다음에 할래요"를 눌렀으면 비어 있다.</summary>
-    public IReadOnlyList<FamilyReceivedInvite> Invites { get; private set; } = [];
-    /// <summary>온가족 한 줄(확정 시안 온가족 "부서 홈 칸", R-177) — 온가족이 없으면 null.</summary>
+    /// <summary>학부모 — 홈 맨 아래 "자녀 미션 보기" 작은 링크(2026-11-22 확정).</summary>
     public bool IsGuardian => tenant.Has(Roles.Guardian);
+    /// <summary>우리 가족팀 카드 — 내가 든 팀이 없으면 null(2026-11-22 3차: 홈 아래에 다시).</summary>
+    public FamilyHome? Family { get; private set; }
+    /// <summary>받은 가족팀 초대 — 오늘 "다음에 할래요"를 누른 것은 뺀다(R-212).</summary>
+    public IReadOnlyList<FamilyReceivedInvite> Invites { get; private set; } = [];
+    /// <summary>친구팀을 만들 수 있는 학생인지(빈 상태 카드의 친구팀 버튼).</summary>
+    public bool FamilyIsStudent { get; private set; }
+    /// <summary>가족팀에 들어갈 수 있는 역할인지(교사·임원 제외). 빈 상태 만들기 카드 판단.</summary>
+    public bool FamilyCanJoin { get; private set; }
     public HomeView Data { get; private set; } = null!;
-    /// <summary>인사 카드 이름 아래 역할 칩(R-275, 확정 시안 C).</summary>
-    public IReadOnlyList<RoleChip> RoleChips { get; private set; } = [];
-    /// <summary>승인된 소속이 둘 이상이면 머리말 "부서 ▼" → 부서 고르기(확정 6).</summary>
-    public bool ManyTenants { get; private set; }
-    /// <summary>임시 부서(0064, R-172)에서 승인을 기다리는 내 신청의 부서 이름. 비어 있으면 "내 부서 찾기" 띠.</summary>
+    /// <summary>임시 부서(0064)에서 승인을 기다리는 내 신청의 부서 이름.</summary>
     public IReadOnlyList<string> Waiting { get; private set; } = [];
-    /// <summary>`/{slug}/today` — 임시 부서의 "미션 화면"(0068). 임시 부서 `/{slug}` 는 1 · 2단계(윗부분만)이고 미션은 여기서 한다.</summary>
+    /// <summary>`/{slug}/today` — 임시 부서의 "미션 화면".</summary>
     [FromRoute(Name = "view")] public string? Screen { get; set; }
     public bool TodayScreen => Screen == "today";
+    /// <summary>로그인 안 한 사람의 둘러보기(R-336).</summary>
+    public bool Guest { get; private set; }
+    /// <summary>생일 30일 전이 되면 생기는 선물(ADR 0123) — 팝업 판단에만 쓴다. 홈 카드는 2026-11-22 제거.</summary>
+    public IReadOnlyList<BirthdayGiftView> Birthdays { get; private set; } = [];
+    /// <summary>홈을 열면 띄우는 "생일 축하해요!" 팝업 — 띄울 때가 아니면 null(R-346).</summary>
+    public BirthdayGiftView? BirthdayPopup { get; private set; }
+    /// <summary>365축복기도는 학생 · 새친구에게 보이지 않는다(ADR 0106). 홈에서는 아이콘 노출만 판단한다.</summary>
+    public bool PrayerVisible { get; private set; }
+    /// <summary>홈 상단 포인트 링(2026-11-23 사용자 확정 B안 · ADR 0136): 누르면 `/{slug}/challenge`. 참여자만.</summary>
+    public PointRing? Ring { get; private set; }
+    /// <summary>선물 대상자와 상태 카드(2026-11-23 사용자 확정 C안 · ADR 0134). 승인 소속 · 임시 부서 아님일 때만 채운다.</summary>
+    public GiftTargetBoard? GiftBoard { get; private set; }
+    /// <summary>이 부서에 메인화면(웰컴)이 켜져 있나 — 홈 맨 아래 「메인화면으로」 버튼.</summary>
+    public bool MainOn { get; private set; }
+
+    /// <summary>생일 팝업 "다음에 할래요" — 내일 · 3일 · 5일 뒤(R-346).</summary>
+    public async Task<IActionResult> OnPostSnoozeBirthdayAsync(int days, CancellationToken ct)
+    {
+        await birthdays.SnoozePopupAsync(days, ct);
+        return Redirect($"/{tenant.Current.Slug}");
+    }
 
     /// <summary>초대 배너 "다음에 할래요"(R-212): 오늘은 숨기고 내일 다시 보인다.</summary>
     public async Task<IActionResult> OnPostSnoozeInvitesAsync(CancellationToken ct)
@@ -41,17 +73,71 @@ public class TenantHomeModel(TenantContext tenant, FamilyTeamService teams, Fami
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        if (TodayScreen && !tenant.IsLobby) return Redirect($"/{tenant.Current.Slug}");   // 일반 부서 홈은 한 화면 그대로
+        if (TodayScreen && !tenant.IsLobby) return Redirect($"/{tenant.Current.Slug}");
+        // 메인화면(웰컴)으로 자동으로 보내지 않는다(2026-11-26 사용자). 메인화면이 켜진 부서는 맨 아래 「메인화면으로」 버튼이 있다.
+        MainOn = !tenant.IsLobby && !TodayScreen;   // ADR 0142: 메인화면은 모든 부서에 있다
+        if (User.UserId() is null)
+        {
+            if (tenant.IsLobby || TodayScreen) return Redirect("/account/login?returnUrl=" + Uri.EscapeDataString(Request.Path + Request.QueryString));
+            Guest = true;
+            Data = GuestView(await home.GetAsync(ct));
+            // 2026-11-27 사용자: 손님에게도 포인트 링을 「0점 · 첫 단계」로 보여 준다(누르면 로그인 창)
+            Ring = ChallengeCardService.RingOf(Data, tenant.Current.Slug) is { } gr ? gr with { Href = "/account/login?returnUrl=" + Uri.EscapeDataString($"/{tenant.Current.Slug}/challenge") } : null;
+            return Page();
+        }
+
+        if (TempData.Remove(ChallengeBible.Web.Pages.Account.LoginModel.TodoCheckKey) && await todo.ShouldRedirectAsync(ct))
+            return Redirect($"/{tenant.Current.Slug}/todo");
+
         var me = User.UserName()!;
+        var afterLogin = TempData.Remove(MsgBandKey);
+        (var popN, NewList) = await MsgPopup.DecideAsync(HttpContext, msgs, me, afterLogin, ct);
+        if (afterLogin || popN > 0) NewMessages = popN > 0 ? popN : await msgs.UnreadAsync(me, ct);
         MyPhoto = await photos.FileOfAsync(me, ct);
-        if (tenant.Current.MissionEnabled) Family = await teams.MyFamilyAsync(ct);
-        if (tenant.Current.MissionEnabled && Family is null) Invites = (await familyJoin.StateAsync(ct)).Invites.Where(i => !i.SnoozedToday).ToList();
+
+        if (tenant.Current.MissionEnabled)
+        {
+            Family = await teams.MyFamilyAsync(ct);
+            var kind = UserRole.KindOf(tenant.RoleCode);
+            FamilyIsStudent = kind == UserRoleKind.Student;
+            FamilyCanJoin = UserRole.CanJoinFamily(kind);
+            if (Family is null)
+            {
+                var fam = await familyJoin.StateAsync(ct);
+                Invites = fam.Invites.Where(i => !i.SnoozedToday).ToList();
+            }
+        }
+
         Data = await home.GetAsync(ct);
-        RoleChips = await home.RoleChipsAsync(User.UserId()!, ct);
-        ManyTenants = (await accounts.WhereToGoAsync(me, ct)).ApprovedCount > 1;
+
+        if (!tenant.IsLobby && tenant.Has(Roles.Participant))
+        {
+            await birthdays.EnsureAsync(ct);
+            Birthdays = (await birthdays.MineAsync(ct)).Where(g => g.Kind == GiftKinds.Birthday).ToList();
+            if (NewList.Count == 0) BirthdayPopup = await birthdays.PopupAsync(Birthdays, ct);
+        }
+
+        PrayerVisible = prayer365.CanSee(User.IsPlatformAdmin());
+        Ring = Guest ? null : ChallengeCardService.RingOf(Data, tenant.Current.Slug);
+        if (tenant.IsApproved && !tenant.IsLobby) GiftBoard = await gifts.TargetBoardAsync(3, ct);
+
         if (tenant.IsLobby)
             Waiting = (await accounts.MyMembershipsAsync(me, ct))
                 .Where(m => m.Status == MembershipStatus.Requested && m.TenantActive).Select(m => m.TenantName).ToList();
         return Page();
     }
+
+    /// <summary>둘러보기 화면 값(R-336): 오늘 콘텐츠 · 부서 사람 수는 그대로, 내 점수 · 진도 · 미션은 0 · "대기 중".</summary>
+    public static HomeView GuestView(HomeView v) => new()
+    {
+        Today = v.Today, SeasonYear = v.SeasonYear, SeasonDay = v.SeasonDay, Participant = true, SeasonPoints = 0, Streak = 0, FullDays = 0, DayPoints = 0,
+        NextMilestone = MissionService.NextMilestone(v.Rules, 0), Rules = v.Rules,
+        VerseText = v.VerseText, VerseRef = v.VerseRef, WordRange = v.WordRange, WordTitle = v.WordTitle,
+        Growth = ChallengeBible.Domain.Points.PointMath.GrowthOf(0, v.Rules.GrowthStages),
+        ReciteRange = v.ReciteRange, ReciteStart = v.ReciteStart, ReciteEnd = v.ReciteEnd, PrayerTrait = v.PrayerTrait, PrayerRange = v.PrayerRange,
+        Missions = v.Missions.Select(m => m with { Done = false, State = m.Has ? "대기 중" : m.State }).ToList(),
+        NextMission = v.Missions.FirstOrDefault(m => m.Has) is { } n ? n with { Done = false, State = "대기 중" } : null,
+        Reading = null, ResumeText = null, Week = v.Week.Select(w => w with { MissionPoints = 0, AllFour = false, Chapters = 0 }).ToList(),
+        Dept = v.Dept,
+    };
 }

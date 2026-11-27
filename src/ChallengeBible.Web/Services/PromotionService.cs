@@ -12,7 +12,7 @@ public sealed record PromotionTarget(int TenantId, string Name, string ThemeColo
 
 public enum PromotionError
 {
-    None, NotFound, TargetNotFound, SameTenant, NotParticipant, Pending, BadState, NoRole, BadRole, AlreadyMember, TooMany, TeamLocked,
+    None, NotFound, TargetNotFound, SameTenant, NotParticipant, Pending, BadState, NoRole, BadRole, AlreadyMember, TooMany, TeamLocked, AdminNotStudent,
 }
 
 /// <summary>
@@ -128,6 +128,7 @@ public sealed class PromotionService(IAppDb db, TenantContext tenant, TimeProvid
         PromotionError.NoRole => "역할을 하나는 골라 주세요.",
         PromotionError.BadRole => "역할을 다시 골라 주세요.",
         PromotionError.TeamLocked => "시상 기록이 있는 팀에 있어 옮길 수 없어요.",
+        PromotionError.AdminNotStudent => DeptMembership.AdminNotStudentMessage,
         PromotionError.AlreadyMember => "이미 이 부서 소속이에요. 이 요청은 거절해 주세요.",
         PromotionError.TooMany => "잠시 뒤에 다시 해 주세요.",
         _ => "",

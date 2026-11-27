@@ -1,10 +1,10 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeBible.Web.Services;
 
 /// <summary>내 계정 화면의 부서 한 줄: 승인된 소속 · 내 역할 · 가족과 함께하는 부서인지.</summary>
-public sealed record MyDept(int TenantId, string Name, string Slug, string ThemeColor, IReadOnlyList<string> Roles);
+public sealed record MyDept(int TenantId, string Name, string Slug, string ThemeColor, IReadOnlyList<string> Roles, bool IsLobby = false);
 
 /// <summary>
 /// 내 계정(확정 시안: 내계정). 역할 표는 영역마다 막혀 있어(RLS) 여러 부서의 내 역할을 보려면 시스템 연결로 읽는다 —
@@ -21,9 +21,9 @@ public sealed class MyAccountService(ISystemDb systemDb)
                           join t in sys.Tenants on d.TenantId equals t.Id
                           where d.UserId == user.Id && t.Status == TenantStatus.Active
                           orderby t.Name
-                          select new { t.Id, t.Name, t.Slug, t.ThemeColor, d.RoleCode }).ToListAsync(ct);
+                          select new { t.Id, t.Name, t.Slug, t.ThemeColor, d.RoleCode, t.IsLobby }).ToListAsync(ct);
         var deptAdmin = await (from ur in sys.UserRoles join r in sys.IdentityRoleRows on ur.RoleId equals r.Id where ur.UserId == user.Id && r.Name == IdentityRoles.Admin select ur).AnyAsync(ct);
-        return rows.Select(r => new MyDept(r.Id, r.Name, r.Slug, r.ThemeColor, UserRole.ScreenRoles(r.RoleCode, deptAdmin).ToList())).ToList();
+        return rows.Select(r => new MyDept(r.Id, r.Name, r.Slug, r.ThemeColor, UserRole.ScreenRoles(r.RoleCode, deptAdmin).ToList(), r.IsLobby)).ToList();
     }
 
     /// <summary>내 명부 줄(0093, R-226): 본인은 생일 · 연락처를 직접 넣고 고친다. 일반 부서에 들어가지 않았으면 null.</summary>

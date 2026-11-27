@@ -22,6 +22,8 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
     [BindProperty] public string ThemeColor { get; set; } = "blue";
     [BindProperty] public bool Mission { get; set; } = true;
     [BindProperty] public bool Reading { get; set; } = true;
+    /// <summary>도전!!!성경필사(ADR 0099): 기본 켬.</summary>
+    [BindProperty] public bool Copy { get; set; } = true;
     [BindProperty] public string? AdminEmail { get; set; }
 
     public List<TenantRow> Rows { get; private set; } = [];
@@ -48,11 +50,19 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
         _ => "",
     };
 
-    public async Task OnGetAsync(CancellationToken ct) => await LoadAsync(ct);
+    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
+    {
+        if (Open is int id) return Redirect(TenantModel.Url(id, null, Ok));   // 예전 주소(?Open=) → 부서 화면
+        await LoadAsync(ct);
+        return Page();
+    }
+
+    /// <summary>저장한 뒤 그 부서 화면의 알맞은 탭으로(2026-11-18 확정 시안 플랫폼부서-화면분리).</summary>
+    private RedirectResult Back(int id, string ok) => Redirect(TenantModel.Url(id, TenantModel.TabOf(ok), ok));
 
     public async Task<IActionResult> OnPostCreateAsync(CancellationToken ct)
     {
-        var (t, errors) = await platform.CreateAsync(Me, new NewTenant(Name, Slug, TimeZoneId, ThemeColor, Mission, Reading, AdminEmail), ct);
+        var (t, errors) = await platform.CreateAsync(Me, new NewTenant(Name, Slug, TimeZoneId, ThemeColor, Mission, Reading, AdminEmail, Copy), ct);
         if (t is null)
         {
             CreateErrors = errors;
@@ -60,57 +70,61 @@ public class TenantsModel(PlatformTenantService platform) : PageModel, ITitled
             await LoadAsync(ct);
             return Page();
         }
-        return RedirectToPage(new { Open = t.Id, Ok = "created" });
+        return Back(t.Id, "created");
     }
 
     public async Task<IActionResult> OnPostInfoAsync(int id, string name, string timeZoneId, string themeColor, CancellationToken ct)
     {
         var errors = await platform.UpdateInfoAsync(Me, id, name, timeZoneId, themeColor, ct);
-        return errors.Ok ? RedirectToPage(new { Open = id, Ok = "info" }) : await RowFail(id, string.Join(" ", errors.Values), ct);
+        return errors.Ok ? Back(id, "info") : await RowFail(id, string.Join(" ", errors.Values), ct);
     }
 
-    public async Task<IActionResult> OnPostProgramsAsync(int id, bool mission, bool reading, CancellationToken ct)
+    public async Task<IActionResult> OnPostProgramsAsync(int id, bool mission, bool reading, bool copy, CancellationToken ct)
     {
-        var err = await platform.SetProgramsAsync(Me, id, mission, reading, ct);
-        return err is null ? RedirectToPage(new { Open = id, Ok = "saved" }) : await RowFail(id, err, ct);
+        var err = await platform.SetProgramsAsync(Me, id, mission, reading, ct, copy);
+        return err is null ? Back(id, "saved") : await RowFail(id, err, ct);
     }
 
     public async Task<IActionResult> OnPostCodeAsync(int id, CancellationToken ct)
     {
         await platform.RegenerateCodeAsync(Me, id, ct);
-        return RedirectToPage(new { Open = id, Ok = "code" });
+        return Back(id, "code");
     }
 
     public async Task<IActionResult> OnPostAddAdminAsync(int id, string email, CancellationToken ct)
     {
         var err = await platform.AddAdminAsync(Me, id, email, ct);
-        return err is null ? RedirectToPage(new { Open = id, Ok = "admin" }) : await RowFail(id, err, ct);
+        return err is null ? Back(id, "admin") : await RowFail(id, err, ct);
     }
 
     public async Task<IActionResult> OnPostRemoveAdminAsync(int id, string userName, CancellationToken ct)
     {
         await platform.RemoveAdminAsync(Me, id, userName, ct);
-        return RedirectToPage(new { Open = id, Ok = "admin" });
+        return Back(id, "admin");
     }
 
     public async Task<IActionResult> OnPostListedAsync(int id, bool listed, CancellationToken ct)
     {
         await platform.SetJoinListedAsync(Me, id, listed, ct);
-        return RedirectToPage(new { Open = id, Ok = listed ? "listed" : "unlisted" });
+        return Back(id, listed ? "listed" : "unlisted");
+    }
+
+    public async Task<IActionResult> OnPostMissionBookAsync(int id, bool on, CancellationToken ct)
+    {
+        await platform.SetMissionBookAsync(Me, id, on, ct);
+        return Back(id, on ? "missionbook-on" : "missionbook-off");
     }
 
     public async Task<IActionResult> OnPostStatusAsync(int id, string status, CancellationToken ct)
     {
         await platform.SetStatusAsync(Me, id, status, ct);
-        return RedirectToPage(new { Open = id, Ok = status == TenantStatus.Suspended ? "suspended" : "resumed" });
+        return Back(id, status == TenantStatus.Suspended ? "suspended" : "resumed");
     }
 
-    private async Task<IActionResult> RowFail(int id, string error, CancellationToken ct)
+    private Task<IActionResult> RowFail(int id, string error, CancellationToken ct)
     {
-        Open = id;
-        RowError = error;
-        await LoadAsync(ct);
-        return Page();
+        TempData[TenantModel.ErrKey] = error;   // 부서 화면에서 한 번 보인다
+        return Task.FromResult<IActionResult>(Redirect(TenantModel.Url(id, Request.Form["tab"].FirstOrDefault(), null)));
     }
 
     private async Task LoadAsync(CancellationToken ct)

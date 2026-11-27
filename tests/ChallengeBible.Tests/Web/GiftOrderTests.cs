@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -30,6 +30,7 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
             s.AddSingleton<TimeProvider>(FixedTime.SeoulMorning());
         }));
         _kids = InMemoryDb.SeedTenant(_db, "kids", "KIDS01");
+        using (var rawIntro = InMemoryDb.Raw(_db)) { rawIntro.TenantIntros.Add(new TenantIntro { TenantId = _kids.Id, Title = "환영", Body = "소개", IsActive = true, UpdatedUtc = DateTime.UtcNow }); rawIntro.SaveChanges(); }   // 선물 알림은 웰컴(소개 화면) 하단에 있다
     }
 
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
@@ -74,11 +75,11 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
         return await c.PostAsync(url, new FormUrlEncodedContent(form));
     }
 
-    /// <summary>학생 안예빛(340점)이 색연필(6,000원 = 200점)을 고른 상태.</summary>
+    /// <summary>학생 안예빛(700점)이 색연필(6,000원 = 400점, ADR 0104)을 고른 상태.</summary>
     private async Task<(HttpClient Kid, HttpClient Admin, long Gift)> Picked()
     {
         var pens = Item("24색 색연필 세트", 6000);
-        var (kid, _) = await Login("yebit", "안예빛", 340);
+        var (kid, _) = await Login("yebit", "안예빛", 700);
         await Post(kid, "/kids/gifts?all=true", "/kids/gifts?handler=Pick", new() { ["item"] = pens.ToString() });
         var (admin, _) = await Login("kidsadmin", "박지은", admin: true);
         using var raw = InMemoryDb.Raw(_db);
@@ -108,7 +109,9 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
 
         await Post(admin, "/kids/admin/gifts?s=give", "/kids/admin/gifts?handler=Move", new() { ["id"] = id.ToString(), ["act"] = "Deliver", ["s"] = "give" });
         Assert.Equal(GiftStates.Delivered, GiftState(_db, id));
-        Assert.Contains("선물 고르기", await kid.GetStringAsync("/kids/word-mission"));   // 받았으니 다음 선물을 고른다(정한 것 8)
+        var home = await kid.GetStringAsync("/kids/word-mission");   // 받았으니 다음 선물을 고를 차례(정한 것 8)
+        Assert.DoesNotContain("gk-card gk-got", home);
+        Assert.Contains("100점 더 모으면 선물을 골라요", home);   // 700 − 400 = 300점, 가장 싼 선물 400점까지 100점(ADR 0104)
         using var raw = InMemoryDb.Raw(_db);
         Assert.Equal(["Pick", "Purchase", "Deliver"], raw.GiftLogs.OrderBy(l => l.Id).Select(l => l.Action).ToArray());
     }
@@ -138,7 +141,7 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
         Assert.Equal($"{page}?ok=cancel", r.Headers.Location!.OriginalString);
         Assert.Equal(GiftStates.Cancelled, GiftState(_db, id));
         using (var raw = InMemoryDb.Raw(_db)) Assert.Empty(raw.GiftPointUses);
-        Assert.Contains("340", await kid.GetStringAsync("/kids/gifts"));
+        Assert.Contains("700", await kid.GetStringAsync("/kids/gifts"));
     }
 
     [Fact]
@@ -147,7 +150,7 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
         var (_, admin, id) = await Picked();
         var page = await admin.GetStringAsync($"/kids/admin/gifts/{id}");
         Assert.Contains("안예빛", page);
-        Assert.Contains("6,000원 · 200점", page);
+        Assert.Contains("6,000원 · 400점", page);
         Assert.Contains("<b>안예빛</b> · 골랐어요", page);
         Assert.Contains("쿠팡에서 보기", page);
     }
@@ -165,20 +168,78 @@ public partial class GiftOrderTests : IClassFixture<WebApplicationFactory<Progra
     {
         var (_, admin, id) = await Picked();
         var (other, _) = await Login("haneul", "문하늘", 50);
-        var home = await other.GetStringAsync("/kids/word-mission");
-        Assert.Contains("누가 선물 받나요", home);
-        Assert.Contains("안예빛", home);
-        Assert.Contains("24색 색연필 세트 · 개인 선물", home);
-        Assert.Contains(">골랐어요<", home);
-        Assert.DoesNotContain("6,000", home);
+        var home = await other.GetStringAsync("/kids?go=1");
+        Assert.DoesNotContain("누가 선물 받나요", home);                                  // 홈 카드는 2026-11-22 확정으로 뺐다(ADR 0127)
+        var board = await other.GetStringAsync("/kids/gift-board");
+        Assert.Contains("누가 선물 받나요", board);
+        Assert.Contains("안예빛", board);
+        Assert.Contains("24색 색연필 세트 · 개인 선물", board);
+        Assert.Contains(">골랐어요<", board);
+        Assert.DoesNotContain("6,000", board);
 
         var page = $"/kids/admin/gifts/{id}";
         await Post(admin, page, $"{page}?handler=Move", new() { ["act"] = "Purchase" });
         await Post(admin, page, $"{page}?handler=Move", new() { ["act"] = "Deliver" });
-        Assert.Contains(">받았어요<", await other.GetStringAsync("/kids/word-mission"));
+        Assert.Contains(">받았어요<", await other.GetStringAsync("/kids/gift-board"));
         Assert.Contains("안예빛", await other.GetStringAsync("/kids/gift-board"));
 
         using (var raw = InMemoryDb.Raw(_db)) { raw.Gifts.Single().DeliveredUtc = DateTime.UtcNow.AddYears(-1); raw.SaveChanges(); }
-        Assert.DoesNotContain("누가 선물 받나요", await other.GetStringAsync("/kids/word-mission"));
+        Assert.DoesNotContain("안예빛", await other.GetStringAsync("/kids/gift-board"));
+    }
+
+    [Fact]   // ADR 0138 · 2026-11-26 — 선물 알림은 웰컴 하단 한 줄(홈에서는 뺐다), 자세한 카드는 새 화면
+    public async Task 웰컴_선물_알림은_한_줄이고_누르면_상세_화면으로_간다()
+    {
+        var (_, admin, id) = await Picked();
+        var (other, _) = await Login("haneul", "문하늘", 50);
+
+        Assert.DoesNotContain("vb-galert", await other.GetStringAsync("/kids?go=1"));   // 부서 홈에서는 뺐다
+        var home = await other.GetStringAsync("/kids/welcome");
+        Assert.Contains("class=\"wl-gift\"", home);                          // 챙길 선물 카드(2026-11-26 새 디자인)
+        Assert.Contains("href=\"/kids/gift-status\"", home);                 // 누르면 새 화면
+        Assert.Contains("신청자</em><strong><b>1</b>명", home);                // 신청자 → 준비중 → 구매완료
+        Assert.Contains("준비중</em><strong><b>1</b>명", home);
+        Assert.Contains("구매완료</em><strong><b>0</b>명", home);
+        Assert.DoesNotContain("안예빛", home);                               // 홈에서는 이름을 꺼내지 않는다
+        Assert.DoesNotContain("골랐어요", home);                             // 3단계 눈금은 상세에서
+        Assert.DoesNotContain("6,000", home);                                // 가격은 없다(R-297)
+
+        var detail = await other.GetStringAsync("/kids/gift-status");
+        Assert.Contains("선물 대상자와 상태", detail);
+        Assert.Contains("class=\"vb-gs-row\"", detail);                     // 사람마다 한 칸
+        Assert.Contains("안예빛", detail);
+        Assert.Contains("24색 색연필 세트", detail);
+        Assert.Contains("골랐어요", detail);
+        Assert.Contains("샀어요", detail);
+        Assert.Contains("줬어요", detail);
+        Assert.DoesNotContain("6,000", detail);                             // 가격은 없다(R-297)
+
+        var page = $"/kids/admin/gifts/{id}";
+        await Post(admin, page, $"{page}?handler=Move", new() { ["act"] = "Purchase" });
+        var bought = await other.GetStringAsync("/kids/gift-status");
+        Assert.Contains("class=\"st s2\"", bought);                          // 샀어요 = 옅은 초록
+
+        await Post(admin, page, $"{page}?handler=Move", new() { ["act"] = "Deliver" });
+        var given = await other.GetStringAsync("/kids/gift-status");
+        Assert.Contains("class=\"st s3\"", given);                           // 받았어요 = 초록 바탕 · 흰 글자
+        Assert.Contains("class=\"vb-gs-row done\"", given);
+        Assert.Contains("role=\"list\"", given);
+    }
+
+    [Fact]   // ADR 0138 — 대상이 없으면 홈에 한 줄이 아예 없고, 손님에게는 로그인 안내
+    public async Task 웰컴_선물_알림은_대상이_없으면_그리지_않고_손님에게는_안_보인다()
+    {
+        var (other, _) = await Login("haneul", "문하늘", 50);
+        var home = await other.GetStringAsync("/kids/welcome");
+        Assert.DoesNotContain("wl-gift", home);                              // 대상이 없으면 회원에게는 카드가 없다
+        Assert.DoesNotContain("선물 대상자와 상태", home);
+
+        var detail = await other.GetStringAsync("/kids/gift-status");
+        Assert.Contains("아직 선물 대상자가 없어요", detail);                  // 상세는 빈 안내
+
+        var anon = _app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var guest = await anon.GetStringAsync("/kids/welcome");
+        Assert.Contains("wl-gift wl-is-locked", guest);                      // 손님에게는 자물쇠 카드(누르면 로그인, 2026-11-26 새 디자인)
+        Assert.Contains("챙길 선물 (로그인 필요)", guest);
     }
 }

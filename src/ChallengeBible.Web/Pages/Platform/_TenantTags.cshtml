@@ -1,0 +1,9 @@
+@model ChallengeBible.Web.Services.TenantRow
+@using ChallengeBible.Infrastructure.Data
+<span class="tn-tags">
+    @if (Model.MissionEnabled) { <span class="tn-t m">성경미션</span> }
+    @if (Model.ReadingEnabled) { <span class="tn-t r">성경통독</span> }
+    @if (Model.CopyEnabled) { <span class="tn-t c">성경필사</span> }
+    @if (Model.JoinListed) { <span class="tn-t l">신청 목록에 보임</span> }
+    <span class="tn-t @(Model.Status == TenantStatus.Active ? "a" : "s")">@(Model.Status == TenantStatus.Active ? "운영 중" : "정지")</span>
+</span>

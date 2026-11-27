@@ -1,8 +1,8 @@
-@page "/account/tenants"
+﻿@page "/account/tenants"
 @model ChallengeBible.Web.Pages.Account.TenantsModel
 @* 확정 시안: 부서고르기-단독시안 (1차 간단판) *@
 <partial name="_Top" />
-<main class="page gut"><div class="wrap">
+<main class="page gut w760"><div class="wrap">
     <div>
         <h1>어느 부서로 갈까요?</h1>
         <p class="sub">부서 <b class="num">@(Model.Approved.Count)곳</b>에 함께하고 있어요.</p>
@@ -12,7 +12,7 @@
         <a class="dept" href="/@m.Slug">
             <span class="mk">@Ui.DeptMark(m.TenantName)</span>
             <div><b>@m.TenantName</b>
-                <span class="tags">@if (m.MissionEnabled) { <span class="tag">성경말씀</span> }@if (m.ReadingEnabled) { <span class="tag">성경통독</span> }</span>
+                <span class="tags">@if (m.MissionEnabled) { <span class="tag">성경미션</span> }@if (m.ReadingEnabled) { <span class="tag">성경통독</span> }</span>
             </div>
             <span aria-hidden="true">→</span>
         </a>
@@ -21,5 +21,5 @@
     {
         <div class="box wait"><p><b>@w.TenantName</b> · 승인 기다리는 중</p></div>
     }
-    <a class="btn s" href="/join">+ 다른 부서 참여 신청</a>
+    @if (!Model.Approved.Any(m => !m.IsLobby)) { <a class="btn s" href="/join">+ 다른 부서 참여 신청</a> }   @* 정식 부서 소속이면 숨김(2026-11-18) *@
 </div></main>

@@ -1,4 +1,4 @@
-using ChallengeBible.Web.Auth;
+﻿using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -38,6 +38,8 @@ public class AdminLoginModel(AccountService accounts, AdminLoginLimiter limiter,
         }
         await CurrentUser.SignInAsync(HttpContext, signed);
         if (r.MustChangePassword) return RedirectToPage("/Account/ChangePassword");
+        TempData[LoginModel.TodoCheckKey] = "1";
+        TempData[ChallengeBible.Web.Pages.TenantHomeModel.MsgBandKey] = "1";   // 새 쪽지 띠 한 번(ADR 0112)   // 오늘 할 일(ADR 0100, R-309): 관리자 로그인도 할 일이 있으면 할 일 화면으로
         return LocalRedirect("/platform");
     }
 }

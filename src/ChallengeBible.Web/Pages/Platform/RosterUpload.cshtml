@@ -3,11 +3,11 @@
 @using ChallengeBible.Web.Services
 @* 명단 올리기(ADR 0097, 확정 시안 명단올리기 · 반편성-업로드-템플릿, 2026-11-15 사용자) *@
 <partial name="_PlatformTop" />
-<main class="admin gut"><div class="wrap ru">
+<main class="admin gut w760"><div class="wrap ru">
     <h1>명단 올리기</h1>
     @if (Model.Result is { } r)
     {
-        <p class="okmsg" role="status">@(RosterUploadService.ShortName(Model.ResultDept!))에 넣었어요 · 학생 @(r.Students)명 · 교사 @(r.Teachers)명@(r.Updated > 0 ? $" · 계정 있는 사람 {r.Updated}명 고침" : "") (지운 명단 @(r.DroppedPeople)명 · 출석 @(r.DroppedAttendance)건)</p>
+        <p class="okmsg" role="status">@(RosterUploadService.ShortName(Model.ResultDept!))에 넣었어요 · 학생 @(r.Students)명 · 교사 @(r.Teachers)명@(r.Updated > 0 ? $" · 계정 있는 사람 {r.Updated}명 고침" : "") (지운 명단 @(r.DroppedPeople)명 · 출석 @(r.DroppedAttendance)건)@(r.KeptForGifts > 0 ? $" · 새 명단에 없지만 선물을 고른 아이 {r.KeptForGifts}명은 남겼어요(선물 처리에서 확인)" : "")</p>
     }
     @if (Model.Error is { } e) { <p class="err" role="alert">@e</p> }
 

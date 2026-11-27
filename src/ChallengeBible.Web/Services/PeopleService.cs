@@ -1,4 +1,4 @@
-using ChallengeBible.Infrastructure.Data;
+﻿using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Web.Tenancy;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,15 +12,28 @@ public sealed record RosterRow(int PersonId, string Name, string? RoleCode, stri
     /// <summary>꼬리표 한 줄(이전 부서 · 반 · 담임 · 전화). 반 이동 전이면 null.</summary>
     public string? Prev { get; init; }
     public string Birthday => PeopleService.BirthdayText(BirthMonth, BirthDay);
+    /// <summary>지금 반(가장 최근 반 묶음) · 담임이면 "1반 담임"(확정 시안 명부-반응형).</summary>
+    public string? ClassText { get; init; }
+    /// <summary>탈퇴한 날(ADR 0119) — 명부에 "○월 ○일 탈퇴"로 보인다.</summary>
+    public DateOnly? LeftOn { get; init; }
 }
 
 /// <summary>명부에 넣고 고치는 값. 연결된 줄은 생일 · 연락처만 쓴다.</summary>
 public sealed record PersonInput(string? Name, string? RoleCode, int? BirthMonth, int? BirthDay, string? Phone1, string? Phone2);
 
 /// <summary>승인할 때 고르는 명부 후보(같은 이름, 연결 안 된 줄).</summary>
-public sealed record PersonCandidate(int PersonId, string Name, string Birthday, string? Phone1, DateTime CreatedUtc);
+public sealed record PersonCandidate(int PersonId, string Name, string Birthday, string? Phone1, DateTime CreatedUtc)
+{
+    public byte? BirthMonth { get; init; }
+    public byte? BirthDay { get; init; }
+    /// <summary>신청에 쓴 생일과 같은가(확정 시안 명부계정연결 ③).</summary>
+    public bool Same(int month, int day) => month > 0 && BirthMonth == month && BirthDay == day;
+}
 
-public enum PeopleError { None, NotFound, NoName, BadBirthday, BadPhone, Linked, NotLinked }
+/// <summary>명부 줄에 이을 수 있는 계정(확정 시안 명부계정연결 ②): 이 부서에 승인됐고 명부는 이름만 있는 빈 줄.</summary>
+public sealed record AccountCandidate(string UserId, string UserName, string Name, string RoleLabel, DateTime JoinedUtc);
+
+public enum PeopleError { None, NotFound, NoName, BadBirthday, BadPhone, Linked, NotLinked, NotBlank }
 
 /// <summary>
 /// 부서 명부(ADR 0093 사람 · 소속, R-226 ~ R-230). 사람과 계정을 나눈다: 명부 한 줄에 계정을 잇기만 하고 기록은 옮기지 않는다.
@@ -39,13 +52,21 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
         var linked = (await (from d in ctx.DeptRoles join u in ctx.Users on d.UserId equals u.Id
                              select new { d.Id, d.UserId, d.RoleCode, u.UserName, u.LastName, u.FirstName, u.Email }).ToListAsync(ct))
             .ToDictionary(x => x.UserId!);
+        var classes = (await (from m in ctx.ClassMembers join c in ctx.Classes on m.ClassId equals c.Id
+                              select new { m.PersonId, c.Name, m.IsTeacher, m.TermId }).ToListAsync(ct))
+            .GroupBy(x => x.PersonId).ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.TermId).First());
         var rows = people.Select(p =>
         {
             var m = p.UserId is null ? null : linked.GetValueOrDefault(p.UserId);
             var code = m is null ? p.RoleCode : m.RoleCode;
             var name = m is null ? p.Name : AppUser.FullName(m.LastName, m.FirstName);
             return new RosterRow(p.Id, name, code, Label(code, codes), p.BirthMonth, p.BirthDay, p.Phone1, p.Phone2,
-                m?.Id, m?.UserName, m?.Email, m is not null && adminIds.Contains(m.UserId!), p.CreatedUtc) { Prev = PrevText(p) };
+                m?.Id, m?.UserName, m?.Email, m is not null && adminIds.Contains(m.UserId!), p.CreatedUtc)
+            {
+                Prev = PrevText(p),
+                LeftOn = p.LeftOn,
+                ClassText = classes.TryGetValue(p.Id, out var cl) ? cl.Name + (cl.IsTeacher ? " 담임" : "") : null,
+            };
         }).ToList();
         if (!string.IsNullOrWhiteSpace(query))
         {
@@ -111,6 +132,30 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
         return PeopleError.None;
     }
 
+    /// <summary>계정이 없는 명부 줄의 역할만 바꾼다(임원 및 기타 화면). 계정이 있는 줄은 소속(DeptRoleUserAssoc)에서 바꾼다.</summary>
+    public async Task<PeopleError> SetRoleAsync(int id, string? roleCode, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var p = await ctx.People.SingleOrDefaultAsync(x => x.Id == id && x.LeftOn == null, ct);
+        if (p is null || p.UserId is not null) return PeopleError.NotFound;
+        p.RoleCode = Clean(roleCode);
+        await ctx.SaveChangesAsync(ct);
+        return PeopleError.None;
+    }
+
+    /// <summary>교적부에서 고치기(R-361): 생일 · 전화 · 전화 2 만 — 이름 · 역할 · 계정 연결은 건드리지 않는다. 탈퇴한 줄은 안 된다.</summary>
+    public async Task<PeopleError> UpdateContactAsync(int id, int? month, int? day, string? phone1, string? phone2, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var p = await ctx.People.SingleOrDefaultAsync(x => x.Id == id && x.LeftOn == null, ct);
+        if (p is null) return PeopleError.NotFound;
+        if (!Birthday(month, day, out var bm, out var bd)) return PeopleError.BadBirthday;
+        if (!Phone(phone1, out var p1) || !Phone(phone2, out var p2)) return PeopleError.BadPhone;
+        (p.BirthMonth, p.BirthDay, p.Phone1, p.Phone2) = (bm, bd, p1, p2);
+        await ctx.SaveChangesAsync(ct);
+        return PeopleError.None;
+    }
+
     /// <summary>명부에서 지우기(부서 관리자만, R-227). 계정과 연결된 줄은 지우지 않는다(먼저 연결을 푼다).</summary>
     public async Task<PeopleError> DeleteAsync(int id, CancellationToken ct = default)
     {
@@ -140,6 +185,7 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
         var userId = p.UserId;
         p.UserId = null;
         p.RoleCode = member?.RoleCode;
+        await BirthdayGiftService.FollowPersonAsync(ctx, p.Id, null, ct);   // 선물은 명부를 따라간다 — 옛 계정은 더 못 본다(R-322)
         await ctx.SaveChangesAsync(ct);
         if (member is not null)
         {
@@ -147,6 +193,68 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
                 CreatedUtc = time.GetUtcNow().UtcDateTime, CreatedByUserName = actor });
             await ctx.SaveChangesAsync(ct);
         }
+        return PeopleError.None;
+    }
+
+    // ── 명부에서 나중에 계정과 잇기(확정 시안 명부계정연결 ① ②, 2026-11-17 사용자) ──
+
+    /// <summary>계정의 명부 줄이 "빈 줄"인가: 생일 · 반 · 출석이 없다(승인 때 새 사람으로 올라간 줄).</summary>
+    private static async Task<HashSet<int>> FilledAsync(AppDbContext ctx, IReadOnlyCollection<int> ids, CancellationToken ct)
+    {
+        var inClass = await ctx.ClassMembers.Where(m => ids.Contains(m.PersonId)).Select(m => m.PersonId).ToListAsync(ct);
+        var attended = await ctx.AttendanceChecks.Where(a => ids.Contains(a.PersonId)).Select(a => a.PersonId).ToListAsync(ct);
+        var born = await ctx.People.Where(p => ids.Contains(p.Id) && p.BirthMonth != null).Select(p => p.Id).ToListAsync(ct);
+        return [.. inClass, .. attended, .. born];
+    }
+
+    /// <summary>이을 수 있는 계정: 이 부서에 승인된 계정 중 명부가 없거나 빈 줄인 사람. q 가 있으면 이름에 q 가 든 사람.</summary>
+    public async Task<List<AccountCandidate>> LinkableAccountsAsync(string? q = null, CancellationToken ct = default)
+    {
+        if (tenant.IsLobby) return [];
+        await using var ctx = db.Create();
+        var rows = await (from d in ctx.DeptRoles join u in ctx.Users on d.UserId equals u.Id
+                          select new { u.Id, u.UserName, u.LastName, u.FirstName, d.RoleCode, d.InsertDT }).ToListAsync(ct);
+        var ids = rows.Select(r => r.Id).ToList();
+        var mine = await ctx.People.Where(p => p.UserId != null && ids.Contains(p.UserId)).Select(p => new { p.Id, p.UserId }).ToListAsync(ct);
+        var filled = await FilledAsync(ctx, mine.Select(m => m.Id).ToList(), ct);
+        var blocked = mine.Where(m => filled.Contains(m.Id)).Select(m => m.UserId).ToHashSet();
+        var key = Key(q);
+        return rows.Where(r => !blocked.Contains(r.Id))
+            .Select(r => new AccountCandidate(r.Id, r.UserName!, AppUser.FullName(r.LastName, r.FirstName), UserRole.LabelOf(UserRole.KindOf(r.RoleCode)), r.InsertDT))
+            .Where(a => key.Length == 0 || Key(a.Name).Contains(key, StringComparison.Ordinal))
+            .OrderBy(a => a.Name, StringComparer.Ordinal).ToList();
+    }
+
+    /// <summary>
+    /// 명부 줄(가입 안 함)에 계정을 잇는다(부서 관리자만, R-324). 계정의 빈 명부 줄은 지우고, 그 줄의 선물 · 신청 번호는 이 줄로 옮긴다.
+    /// 계정이 이미 생일 · 반 · 출석이 있는 줄과 이어져 있으면 하지 않는다(먼저 연결 풀기). 선물의 계정 칸도 맞춘다(R-322).
+    /// </summary>
+    public async Task<PeopleError> LinkAccountAsync(string actor, int personId, string userId, CancellationToken ct = default)
+    {
+        await using var ctx = db.Create();
+        var p = await ctx.People.SingleOrDefaultAsync(x => x.Id == personId, ct);
+        if (p is null) return PeopleError.NotFound;
+        if (p.UserId is not null) return PeopleError.Linked;
+        var user = await (from d in ctx.DeptRoles join u in ctx.Users on d.UserId equals u.Id where u.Id == userId select u).FirstOrDefaultAsync(ct);
+        if (user is null) return PeopleError.NotFound;
+        var old = await ctx.People.SingleOrDefaultAsync(x => x.UserId == userId, ct);
+        if (old is not null)
+        {
+            if ((await FilledAsync(ctx, [old.Id], ct)).Count > 0) return PeopleError.NotBlank;
+            foreach (var g in await ctx.Gifts.Where(g => g.PersonId == old.Id).ToListAsync(ct)) g.PersonId = p.Id;
+            foreach (var a in await ctx.SignupApplications.Where(a => a.PersonId == old.Id).ToListAsync(ct)) a.PersonId = p.Id;
+            p.Phone1 ??= old.Phone1;
+            p.Phone2 ??= old.Phone2;
+            old.UserId = null;
+            await ctx.SaveChangesAsync(ct);
+            ctx.People.Remove(old);
+        }
+        p.UserId = userId;
+        p.RoleCode = null;   // 역할은 소속(계정)을 따른다(PlaceAsync 와 같음)
+        await ctx.SaveChangesAsync(ct);
+        await BirthdayGiftService.FollowPersonAsync(ctx, p.Id, user.UserName, ct);
+        ctx.AuditLogs.Add(new AuditLog { OccurredUtc = time.GetUtcNow().UtcDateTime, ActorUserName = actor, TenantId = tenant.Current.Id, Action = "PersonLinkAccount", Detail = $"person={p.Id};user={user.UserName};merged={old?.Id}" });
+        await ctx.SaveChangesAsync(ct);
         return PeopleError.None;
     }
 
@@ -158,7 +266,7 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
         await using var ctx = db.Create();
         var free = await ctx.People.AsNoTracking().Where(p => p.UserId == null).OrderBy(p => p.Id).ToListAsync(ct);
         return free.Where(p => keys.Contains(Key(p.Name))).GroupBy(p => Key(p.Name))
-            .ToDictionary(g => g.Key, g => g.Select(p => new PersonCandidate(p.Id, p.Name, BirthdayText(p.BirthMonth, p.BirthDay), p.Phone1, p.CreatedUtc)).ToList());
+            .ToDictionary(g => g.Key, g => g.Select(p => new PersonCandidate(p.Id, p.Name, BirthdayText(p.BirthMonth, p.BirthDay), p.Phone1, p.CreatedUtc) { BirthMonth = p.BirthMonth, BirthDay = p.BirthDay }).ToList());
     }
 
     public static string Key(string? name) => new string((name ?? "").Where(c => !char.IsWhiteSpace(c)).ToArray());
@@ -185,10 +293,15 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
             if (here is null)
             {
                 here = new Person { TenantId = target, Name = Cut(AppUser.FullName(user.LastName, user.FirstName)), CreatedUtc = now, CreatedByUserName = actor };
+                // 가입 때 본인이 넣은 전화 · 생일(선택, ADR 0119)을 새 명부 줄에
+                here.Phone1 = user.PhoneNumber is { Length: > 0 and <= 20 } ph ? ph : null;
+                var mine0 = await sys.UserSettings.AsNoTracking().Where(x => x.UserName == user.UserName).Select(x => new { x.BirthMonth, x.BirthDay }).FirstOrDefaultAsync(ct);
+                if (mine0 is { BirthMonth: > 0, BirthDay: > 0 }) (here.BirthMonth, here.BirthDay) = (mine0.BirthMonth, mine0.BirthDay);
                 sys.People.Add(here);
             }
             here.UserId = user.Id;
             here.RoleCode = null;
+            if (here.Id != 0) await BirthdayGiftService.FollowPersonAsync(sys, here.Id, user.UserName, ct);   // 이 줄의 받기 전 선물은 새 계정이 본다(R-322)
         }
         foreach (var o in old)
         {
@@ -282,6 +395,7 @@ public sealed class PeopleService(IAppDb db, TenantContext tenant, TimeProvider 
         PeopleError.BadPhone => "연락처는 숫자와 - 로 넣어 주세요(예: 010-1234-5678).",
         PeopleError.Linked => "가입한 사람과 연결된 줄은 지울 수 없어요.",
         PeopleError.NotLinked => "연결된 계정이 없어요.",
+        PeopleError.NotBlank => "이 계정은 이미 출석 · 생일 · 반이 있는 명부 줄과 이어져 있어요. 먼저 그 줄의 연결을 풀어 주세요.",
         _ => "",
     };
 

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ChallengeBible.Infrastructure.Data;
@@ -13,7 +13,7 @@ internal sealed class TenantConfig : IEntityTypeConfiguration<Tenant>
         e.ToTable("Tenant", t =>
         {
             t.HasCheckConstraint("CK_Tenant_Status", "Status IN ('Active','Suspended')");
-            t.HasCheckConstraint("CK_Tenant_Program", "MissionEnabled = 1 OR ReadingEnabled = 1");
+            t.HasCheckConstraint("CK_Tenant_Program", "MissionEnabled = 1 OR ReadingEnabled = 1 OR CopyEnabled = 1");
             t.HasCheckConstraint("CK_Tenant_Slug", "LEN(Slug) >= 2 AND Slug NOT LIKE '%[^a-z0-9-]%'");
             t.HasCheckConstraint("CK_Tenant_JoinCode", "JoinCode NOT LIKE '%[^A-Z0-9]%' COLLATE Latin1_General_BIN");
         });

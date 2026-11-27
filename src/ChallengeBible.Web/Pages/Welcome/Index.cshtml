@@ -1,0 +1,172 @@
+@page "/{slug}/welcome"
+@model ChallengeBible.Web.Pages.Welcome.IndexModel
+@using ChallengeBible.Web.Services
+@using ChallengeBible.Web.Auth
+@using ChallengeBible.Web.Pages
+@inject ChallengeBible.Web.Services.PhotoService Photos
+@* 부서 소개(웰컴) 화면 — 2026-11-25 사용자 새 퍼블리시본 「JAMSIL KIDS · 유년부 주보 v2 — 홈」으로 완전 교체(ADR 0140 · 이전 틴트 카드판 대체). 2026-11-26 사용자 새 퍼블리시본(jamsil-kids-home.html)으로 다시 완전 교체, 2026-11-27 하단(선물 카드 · 개선사항 접수 · 설치 띠)은 새 퍼블리시본(welcome.html)으로 교체, 2026-11-27 모든 부서 · 칸마다 준비중(ADR 0142): 교사행정업무는 표 맨 아래 한 줄, 챙길 선물 카드, 앱 설치. 행정업무(교사 · 관리자) 버튼은 /{부서}/office 로 연결. 아래는 이전 설명:  순백 바탕 · 헤어라인 · 검정 헤비 제목 · 컬러 번호 2열 표.
+   현재 있는 기능만 연결: 내 정보(계정) · 대표 사진 · 날짜 · 제목 · 예배 줄 · 주보 · 앨범 · 도전!!! 성경말씀으로 가기 · 소개(글 + 예배 안내) · 앱 설치 ·
+   (로그인한 사람만) 1주일 후 다시 보기 · 다시 보지 않기. 퍼블리시본의 「이번 주 말씀」 · 「미션북」 칸은 아직 없는 기능이라 연결하지 않았다. *@
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var dept = PlatformTodayService.ShortDept(Model.Tenant.Current.Name);
+    var it = Model.Item;
+    var first = Model.Worship.FirstOrDefault();
+    var addr = Model.Worship.Select(w => w.Address).FirstOrDefault(a => !string.IsNullOrWhiteSpace(a));
+    string Clock(TimeOnly t) => $"{(t.Hour < 12 ? "오전" : "오후")} {(t.Hour % 12 == 0 ? 12 : t.Hour % 12)}:{t.Minute:00}";
+    string Day(byte d) => d == 0 ? "주일" : new[] { "일", "월", "화", "수", "목", "금", "토" }[d] + "요일";
+    var meName = User.UserName();
+    var meShow = User.DisplayName();
+    var office = ChallengeBible.Web.Pages.Office.IndexModel.CanUse(Model.Tenant);
+    // 행정업무 줄(2026-11-26 사용자): 로그인 전에는 누구에게나 보이고(누르면 로그인 → 교사 · 관리자는 들어가고 나머지는 「권한이 없어요」), 로그인한 뒤에는 교사 · 관리자에게만 보인다
+    var officeShow = office || !Model.Member;
+    var officeHref = office ? $"/{slug}/office" : "/account/login?returnUrl=" + Uri.EscapeDataString($"/{slug}/office");
+    // 「도전!!!성경말씀」 칸: 로그인 전에는 로그인 창을 거쳐(인증된 상태로) 부서 홈으로 — ?go=1 은 부서 홈이 웰컴으로 되돌려 보내지 않게 하는 표시
+    var missionHref = Model.Member ? $"/{slug}/welcome?handler=Go" : "/account/login?returnUrl=" + Uri.EscapeDataString($"/{slug}?go=1");
+    var mePhoto = meName is null ? null : await Photos.FileOfAsync(meName);
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+    var today = Model.Today.ToString("yyyy년 M월 d일 ", ko) + (Model.Today.DayOfWeek == DayOfWeek.Sunday ? "주일" : Model.Today.ToString("dddd", ko));
+}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<link rel="stylesheet" href="~/css/welcome.css" asp-append-version="true" />
+@{
+    const string ARROW = "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4.6 12h14.2\"/><path d=\"M13.2 6.2 19 12l-5.8 5.8\"/></svg>";
+    const string LOCK = "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"5\" y=\"10.5\" width=\"14\" height=\"10\" rx=\"2.2\"/><path d=\"M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5\"/></svg>";
+}
+<div class="wl">
+<div class="wl-page">
+<main class="wl-screen">
+
+    <header class="wl-topbar">
+        <div class="wl-brand">
+            <span class="wl-brand__denom">대한예수교장로회</span>
+            <a class="wl-brand__name" href="https://www.saenae.org/" target="_blank" rel="noopener" aria-label="잠실새내교회 홈페이지 (새 창)">잠실새내교회</a>
+        </div>
+        @* 내 정보(2026-11-25 새 퍼블리시본): 로그인한 사람은 사진(없으면 이름 첫 글자) · 손님은 사람 아이콘 = 로그인 *@
+        @if (Model.Member)
+        {
+            <a class="wl-icon-btn" href="/account" aria-label="내 계정 (@Ui.Nim(meShow))">
+                @if (mePhoto is { } ph) { <img src="/account/photo?handler=img&amp;v=@ph" alt="" /> }
+                else if (meShow.Length > 0) { <b aria-hidden="true">@meShow[..1]</b> }
+                else { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.4" r="3.4"/><path d="M5.4 20.2c.5-3.3 3.2-5.4 6.6-5.4s6.1 2.1 6.6 5.4"/></svg> }
+            </a>
+        }
+        else
+        {
+            <a class="wl-icon-btn" href="/account/login" aria-label="로그인"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.4" r="3.4"/><path d="M5.4 20.2c.5-3.3 3.2-5.4 6.6-5.4s6.1 2.1 6.6 5.4"/></svg></a>
+        }
+    </header>
+
+    <div class="wl-intro">
+        <div class="wl-hero">
+            @if (it.PhotoStoredName is not null) { <img src="/@slug/welcome/photo?v=@it.UpdatedUtc.Ticks" alt="@dept 대표 사진" /> }
+            else if (Model.Tenant.IsAdmin) { <a class="wl-hero__empty" href="/@slug/admin/intro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2"/><circle cx="8.4" cy="9.6" r="1.5"/><path d="m20.4 15.6-4.6-4.6L6 20.4"/></svg>단체사진을 올려 주세요</a> }
+            else { <div class="wl-hero__empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2"/><circle cx="8.4" cy="9.6" r="1.5"/><path d="m20.4 15.6-4.6-4.6L6 20.4"/></svg>단체사진이 아직 없어요</div> }
+        </div>
+        <div class="wl-titleblock">
+            <p class="wl-kicker">@today</p>
+            <h1 class="wl-title">@it.Title</h1>
+            <div class="wl-badges">
+                <span class="wl-badge wl-badge--1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.6v3M10.6 4h2.8"/><path d="M12 5.8 6.4 9.9v10.5h11.2V9.9z"/><path d="M9.9 20.4v-4.8a2.1 2.1 0 0 1 4.2 0v4.8"/></svg>@Model.Tenant.Current.Name</span>
+                @if (first is not null) { <span class="wl-badge wl-badge--2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.4V12l3 2"/></svg>@Day(first.DayOfWeek) @Clock(first.StartTime)</span> }
+            </div>
+        </div>
+    </div>
+
+    <div class="wl-sec-head"><h2>오늘의 안내</h2></div>
+    <nav class="wl-grid" aria-label="오늘의 안내">
+        @* 칸 목록(ADR 0142): 준비가 안 된 칸은 흐리게 + 「준비중」, 누를 수 없다. 미션북은 부서 스위치가 켜진 부서(처음엔 유년부)에만 있다. 번호는 보이는 칸 순서대로 *@
+        @{
+            var tiles = new List<(string Id, string Label, string? Href, bool Ready, bool Locked, bool NoLabel)>
+            {
+                ("bulletin", "이번 주 주보", $"/{slug}/bulletin", Model.BulletinReady, false, false),
+                ("word", "이번 주 말씀", $"/{slug}/weekly-word", Model.WordReady, false, false),
+                ("album", $"{dept} 앨범", $"/{slug}/album", Model.AlbumReady, false, false),
+                ("mission", "도전!!!성경말씀", missionHref, true, !Model.Member, false),
+            };
+            if (Model.MissionBookOn) tiles.Add(("family", "부모님과 함께하는 미션북", null, false, false, true));
+            tiles.Add(("about", $"{dept} 소개", $"/{slug}/about", Model.AboutReady, false, false));
+        }
+        @for (var ti = 0; ti < tiles.Count; ti++)
+        {
+            var t = tiles[ti]; var n = (ti + 1).ToString("00"); var cls = $"wl-tile wl-tile--{ti + 1}";
+            if (t.Ready && t.Href is not null)
+            {
+                <a class="@cls@(t.Locked ? " wl-is-locked" : "")" data-id="@t.Id" href="@t.Href"@(t.Locked ? Html.Raw(" aria-label=\"" + System.Net.WebUtility.HtmlEncode(t.Label) + " (로그인 필요)\"") : Html.Raw(""))><span class="wl-tile__row"><span class="wl-tile__num">@n</span><span class="wl-tile__go">@Html.Raw(t.Locked ? LOCK : ARROW)</span></span><span class="wl-tile__label">@t.Label</span></a>
+            }
+            else
+            {
+                <div class="@cls wl-tile--off" data-id="@t.Id"><span class="wl-tile__row"><span class="wl-tile__num">@n</span></span><span class="wl-tile__label">@t.Label</span>@if (!t.NoLabel) { <span class="wl-prep">준비중</span> }</div>
+            }
+        }
+        @* 교사행정업무: 표 전체 폭 한 줄 — 교사 · 관리자는 화살표, 로그인 전에는 자물쇠(누르면 로그인), 그 밖의 회원에게는 보이지 않는다 *@
+        @if (officeShow)
+        {
+            <a class="wl-tile-wide wl-tile--t@(office ? "" : " wl-is-locked")" href="@officeHref"@(office ? Html.Raw("") : Html.Raw(" aria-label=\"교사행정업무 (로그인 필요)\""))><span class="wl-tile__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.4" y="7.2" width="17.2" height="12.2" rx="1.8"/><path d="M9 7.2V5.6a1.4 1.4 0 0 1 1.4-1.4h3.2A1.4 1.4 0 0 1 15 5.6v1.6"/><path d="M3.4 12.2h17.2"/></svg></span><span class="wl-tile__label">교사행정업무</span><span class="wl-tile__go">@Html.Raw(office ? ARROW : LOCK)</span></a>
+        }
+    </nav>
+
+    @* 챙길 선물(2026-11-26 새 디자인): 신청자 → 준비중 → 구매완료. 로그인 전에는 자물쇠(누르면 로그인), 부서 회원에게는 숫자 · 누르면 선물 현황. 대상자가 없으면 회원에게는 보이지 않는다 *@
+    @if (!Model.Member || Model.GiftBoard is { Total: > 0 })
+    {
+        var gb = Model.GiftBoard;
+        var gApplied = gb?.Total ?? 0;
+        var gPrep = gb?.Picked ?? 0;
+        var gBought = (gb?.Purchased ?? 0) + (gb?.Delivered ?? 0);
+        var giftHref = Model.Member ? $"/{slug}/gift-status" : "/account/login?returnUrl=" + Uri.EscapeDataString($"/{slug}/gift-status");
+        <div class="wl-gift-wrap">
+            <a class="wl-gift@(Model.Member ? "" : " wl-is-locked")@(Model.Member && gPrep == 0 ? " wl-gift--all-done" : "")" href="@giftHref" aria-label="챙길 선물@(Model.Member ? "" : " (로그인 필요)"): 신청자 @(gApplied)명, 준비중 @(gPrep)명, 구매완료 @(gBought)명">
+                <span class="wl-gift__top">
+                    <span class="wl-gift__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="8.5" width="17" height="4" rx="1"/><path d="M5 12.5v7a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5-1.5v-7"/><path d="M12 8.5V21"/><path d="M12 8.5c-1.6-3.6-5.4-4.1-5.4-1.7 0 1.5 2.4 1.7 5.4 1.7z"/><path d="M12 8.5c1.6-3.6 5.4-4.1 5.4-1.7 0 1.5-2.4 1.7-5.4 1.7z"/></svg></span>
+                    <span class="wl-gift__head"><span class="wl-gift__title">챙길 선물</span></span>
+                    @if (!Model.Member) { <span class="wl-gift__lock">@Html.Raw(LOCK)</span> }
+                </span>
+                <span class="wl-gift__steps">
+                    <span class="wl-gift__step wl-gift__step--applied"><i></i><em>신청자</em><strong><b>@gApplied</b>명</strong></span>
+                    <span class="wl-gift__step wl-gift__step--prep"><i></i><em>준비중</em><strong><b>@gPrep</b>명</strong></span>
+                    <span class="wl-gift__step wl-gift__step--bought"><i></i><em>구매완료</em><strong><b>@gBought</b>명</strong></span>
+                </span>
+            </a>
+        </div>
+    }
+
+    @* 하단 카드 2종(2026-11-27 새 퍼블리시본): 개선사항 접수(흰 카드) + 홈 화면 바로가기(회색 띠 + 설치 버튼). 설치를 마친 폰 · 앱으로 열면 띠는 숨긴다 *@
+    <div class="wl-vb-foot">
+        <a class="wl-fb" href="/@slug/feedback">
+            <span class="wl-fb__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/></svg></span>
+            <span class="wl-tx2"><b>개선사항 · 불편사항 접수</b><small>불편했던 점이나 아이디어를 남겨 주세요</small></span>
+            <svg class="wl-fb__ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </a>
+        <div class="wl-inst" data-wl-install>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7.5v6.5M9.5 11.5 12 14l2.5-2.5M10.5 18.5h3"/></svg>
+            <span class="wl-tx2"><b>홈 화면에 바로가기를 만들어요</b><small>앱처럼 한 번에 열 수 있어요</small></span>
+            <a class="wl-inst__bt" href="/install?back=@Uri.EscapeDataString($"/{slug}/welcome")" data-app-install>설치</a>
+        </div>
+    </div>
+
+    <footer class="wl-footer">
+        <p>@(addr ?? Model.Tenant.Current.Name)</p>
+    </footer>
+</main>
+</div>
+</div>
+<script>
+    // 이미 설치했으면(이 기기에서 설치 안내를 마쳤거나 앱으로 열었으면) 설치 안내를 숨긴다. 설치 화면(install.js)이 완료를 localStorage(cb-install)에 적어 둔다.
+    (() => {
+        const box = document.querySelector('[data-wl-install]');
+        if (!box) return;
+        let done = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+        try { done = done || JSON.parse(localStorage.getItem('cb-install') || '{}').s === 'done'; } catch { /* 무시 */ }
+        if (done) box.hidden = true;
+        addEventListener('appinstalled', () => { box.hidden = true; });
+    })();
+    // 제목 한 줄 맞춤: 넘치면 글자 크기를 1px 씩 줄인다(최소 18px). 화면 폭이 바뀌면 다시 맞춘다.
+    (() => {
+        const t = document.querySelector('.wl-title');
+        if (!t) return;
+        const fit = () => { t.style.fontSize = ''; let s = parseFloat(getComputedStyle(t).fontSize); while (t.scrollWidth > t.clientWidth && s > 18) { s -= 1; t.style.fontSize = s + 'px'; } };
+        fit();
+        addEventListener('resize', fit);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+    })();
+</script>

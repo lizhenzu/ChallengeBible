@@ -1,8 +1,9 @@
-@page "/{slug}/admin"
+﻿@page "/{slug}/admin"
 @model ChallengeBible.Web.Pages.Admin.IndexModel
 @using System.Globalization
 @using M = ChallengeBible.Domain.Rules.Mission
 @using ChallengeBible.Infrastructure.Data
+@inject ChallengeBible.Web.Services.BirthdayListService BirthdayList
 @* 확정 시안: 관리-홈 (할 일 → 오늘 참여 + 최근 7일 → 오늘 안 한 친구). 받은 진급 요청은 0건이면 숨긴다 *@
 @{
     var d = Model.Data;
@@ -31,7 +32,7 @@
                 }
                 @if (d.PromotionCount > 0)
                 {
-                    <a class="td b" href="/@slug/admin/promotions"><span class="n num">@d.PromotionCount</span><div><b>받은 진급 요청</b><span>@string.Join(" · ", d.Promotions)@(d.PromotionCount > d.Promotions.Count ? $" 외 {d.PromotionCount - d.Promotions.Count}명" : "")</span></div></a>
+                    <a class="td b" href="/@slug/admin/promotions"><span class="n num">@d.PromotionCount</span><div><b>받은 이동 요청</b><span>@string.Join(" · ", d.Promotions)@(d.PromotionCount > d.Promotions.Count ? $" 외 {d.PromotionCount - d.Promotions.Count}명" : "")</span></div></a>
                 }
                 @if (d.Empty is { } e)
                 {
@@ -41,6 +42,15 @@
                 }
             </div>
         </section>
+    }
+
+    @* 생일(ADR 0121, 확정 시안 생일-시안): 30일 안 다가오는 생일 수 · 오늘 → 생일 화면 *@
+    @if (!Model.Tenant.IsLobby)
+    {
+        var bb = await BirthdayList.BoardAsync(null);
+        var soon = ChallengeBible.Web.Services.BirthdayListService.Upcoming(bb, ChallengeBible.Web.Services.BirthdayListService.DefaultDays);
+        var todayN = soon.Count(r => r.DaysLeft == 0);
+        <a class="ah-card ah-bday span" href="/@slug/birthdays"><span class="n num">@soon.Count</span><span class="t"><b>다가오는 생일</b><small>30일 안@(todayN > 0 ? $" · 오늘 {todayN}명" : "")@(soon.Count > 0 ? " · " + string.Join(" · ", soon.Take(3).Select(r => r.Name)) + (soon.Count > 3 ? " …" : "") : "")</small></span><span class="go" aria-hidden="true">›</span></a>
     }
 
     <section class="ah-card" aria-labelledby="hToday">

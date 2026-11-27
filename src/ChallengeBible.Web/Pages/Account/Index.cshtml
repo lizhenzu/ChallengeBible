@@ -5,11 +5,9 @@
 @{
     string Short(string n) => n.Trim() is { Length: > 0 } t ? t[..1] : "?";   // 이름 첫 글자 한 자(홈 사진과 같게, 2026-11-15 — 긴 이름이 동그라미 밖으로 넘치지 않게)
 }
-<header class="top gut"><div class="wrap">
-    <a class="lnk" href="/">← 돌아가기</a>
-    <span class="who"><b>@Model.Name</b>님</span>
-</div></header>
-<main class="page gut ma"><div class="wrap">
+@{ ViewData["PbTitle"] = "내 계정"; }
+<partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
+<main class="page gut w760 ma"><div class="wrap">
     <h1>내 계정</h1>
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
 
@@ -78,7 +76,8 @@
         </ul>
         <div class="ma-links">
             @if (Model.Depts.Count > 1) { <a href="/account/tenants">부서 고르기 →</a> }
-            <a href="/join">다른 부서 참여 신청 →</a>
+            @* 한 사람 한 부서(ADR 0090): 정식 부서에 이미 소속이면 신청할 수 없어 링크를 숨긴다(2026-11-18 사용자) *@
+            @if (!Model.Depts.Any(d => !d.IsLobby)) { <a href="/join">다른 부서 참여 신청 →</a> }
         </div>
     </section>
 
@@ -109,4 +108,41 @@
     </section>
 
     <form method="post" action="/account/logout" asp-antiforgery="true"><button type="submit" class="btn d ma-out">로그아웃</button></form>
+
+    @* 확정 시안 가입연결-탈퇴 ④(2026-11-20): 탈퇴 신청 — 관리자 계정(플랫폼 · 부서)에는 없다 *@
+    @if (!Model.IsAdmin)
+    {
+        <section class="ma-card ma-leave" aria-labelledby="maLeave">
+            <h2 id="maLeave">탈퇴</h2>
+            @if (Model.LeavePending is { } at)
+            {
+                <div class="lv-wait" role="status"><b>탈퇴 신청 중</b>
+                    <p>· @ChallengeBible.Domain.Time.TenantClock.ToTenantDate(new DateTimeOffset(DateTime.SpecifyKind(at, DateTimeKind.Utc)), "Asia/Seoul").ToString("M/d") 신청 · 승인 기다리는 중</p>
+                    <small>승인 전까지 평소처럼 쓸 수 있어요.</small></div>
+                <form method="post" asp-page-handler="Stay"><button type="submit" class="btn s">탈퇴 취소</button></form>
+            }
+            else if (User.ImpersonatorId() is not null)
+            {
+                @* 가장 중(R-348, 2026-11-20 사용자): 비밀번호 · 확인 글자 · 승인 없이 바로 탈퇴 처리 — 한 번 더 물어보고 지운다 *@
+                <p class="lv-warn">가장 중이라 <b>비밀번호 · 승인 없이 바로</b> 탈퇴 처리해요. 계정과 모든 기록(미션 · 통독 · 필사 · 선물 · 쪽지 · 사진 · 출석 · 가족팀)이 지워지고 되돌릴 수 없어요.</p>
+                @if (Model.Errors.GetValueOrDefault("Leave") is { } le2) { <p class="hint bad" role="alert">@le2</p> }
+                <form method="post" asp-page-handler="LeaveNow" asp-antiforgery="true" onsubmit="return confirm('이 계정을 지금 바로 탈퇴 처리할까요? 되돌릴 수 없어요.');">
+                    <button type="submit" class="btn lv-go">탈퇴 처리(가장)</button>
+                </form>
+            }
+            else
+            {
+                <details class="ma-ed" open="@(Model.Open == "leave")">
+                    <summary class="btn s sm">탈퇴하기</summary>
+                    <form method="post" asp-page-handler="Leave" class="stack" novalidate>
+                        <p class="lv-warn">탈퇴를 신청하면 부서 관리자나 플랫폼 관리자가 승인한 뒤에 계정과 모든 기록(미션 · 통독 · 필사 · 선물 · 쪽지 · 사진 · 출석 · 가족팀)이 지워져요. 되돌릴 수 없어요.</p>
+                        <div class="f"><label for="lvpw">비밀번호</label><input class="in" id="lvpw" name="leavePw" type="password" autocomplete="current-password" /></div>
+                        <div class="f"><label for="lvw">확인 글자 <small>탈퇴 라고 써 주세요</small></label><input class="in" id="lvw" name="leaveWord" autocomplete="off" placeholder="탈퇴" /></div>
+                        @if (Model.Errors.GetValueOrDefault("Leave") is { } le) { <p class="hint bad" role="alert">@le</p> }
+                        <button type="submit" class="btn lv-go">탈퇴 신청</button>
+                    </form>
+                </details>
+            }
+        </section>
+    }
 </div></main>

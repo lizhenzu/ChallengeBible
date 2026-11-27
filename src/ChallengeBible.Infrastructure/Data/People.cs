@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ChallengeBible.Infrastructure.Data;
@@ -34,6 +34,8 @@ public sealed class Person : ITenantOwned
     public string? PrevClassName { get; set; }
     public string? PrevTeacherName { get; set; }
     public string? PrevTeacherPhone { get; set; }
+    /// <summary>탈퇴한 날(영역 날짜, ADR 0119). 탈퇴 승인 뒤 계정 · 기록은 지워지고 명부 줄만 이 날과 이름 · 역할로 남는다.</summary>
+    public DateOnly? LeftOn { get; set; }
 }
 
 /// <summary>주일 출석 한 줄(ADR 0093 출석): 있으면 출석, 취소하면 지운다(유년부와 같다). 명부 사람 번호로 저장한다.</summary>

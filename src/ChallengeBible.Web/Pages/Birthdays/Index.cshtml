@@ -1,0 +1,204 @@
+﻿@page "/{slug}/birthdays"
+@model ChallengeBible.Web.Pages.Birthdays.IndexModel
+@using ChallengeBible.Web.Services
+@* 확정 시안 생일-시안(2026-11-20): ① 다가오는(기본) ② 월별 달력 · 명단 ③ 연간 · 인쇄 ④ 생일 없음. 교사 · 관리자만, 선물은 상태만 *@
+@{
+    var b = Model.Board;
+    var ko = new System.Globalization.CultureInfo("ko-KR");
+    var slug = Model.Slug;
+    string U(string tab, int? days = null, int? m = null, string? v = null, int? d = null)
+    {
+        var q = new List<string> { "Tab=" + tab };
+        if (days is int x) q.Add("Days=" + x);
+        if (m is int y) q.Add("M=" + y);
+        if (v is not null) q.Add("V=" + v);
+        if (d is int z) q.Add("D=" + z);
+        return $"/{slug}/birthdays?" + string.Join("&", q);
+    }
+}
+<link rel="stylesheet" href="~/css/birthdays.css" asp-append-version="true" />
+<partial name="_GenTop" model="(Model.Tenant, Model.Title)" />   @* 2026-11-21 사용자(확정 시안 생일메뉴): 일반 ☰ 메뉴판 그대로 *@
+<main class="admin gut w760 bdy"><div class="wrap">
+    <h1 class="bdy-h">생일자 보기 @if (Model.Staff) { <small>명부 @(b.People)명 · 생일 있음 @(b.All.Count)명</small> }</h1>
+    @if (Model.Msg is { } msg) { <p class="bdy-toast" role="status">✓ @msg</p> }
+
+    <nav class="bdy-tabs" aria-label="생일 보기">
+        <a href="@U(IndexModel.Up)" aria-current="@(Model.Current == IndexModel.Up ? "page" : "false")">다가오는</a>
+        <a href="@U(IndexModel.MonthTab)" aria-current="@(Model.Current == IndexModel.MonthTab ? "page" : "false")">월별</a>
+        <a href="@U(IndexModel.YearTab)" aria-current="@(Model.Current == IndexModel.YearTab ? "page" : "false")">연간</a>
+        @if (Model.Staff) { <a href="@U(IndexModel.None)" aria-current="@(Model.Current == IndexModel.None ? "page" : "false")">생일 없음 <b class="num">@b.Missing.Count</b></a> }
+    </nav>
+
+    @if (Model.Current == IndexModel.Up)
+    {
+        var list = BirthdayListService.Upcoming(b, Model.Days);
+        <div class="bdy-chips">
+            @foreach (var d in BirthdayListService.DayChoices) { <a href="@U(IndexModel.Up, days: d)" aria-current="@(d == Model.Days ? "page" : "false")">@(d)일</a> }
+        </div>
+        var weekEnd = 6 - (int)b.Today.DayOfWeek;   // 이번 주 = 오늘부터 토요일까지
+        var groups = new (string Title, Func<BirthdayRow, bool> In)[]
+        {
+            ("🎂 오늘", r => r.DaysLeft == 0),
+            ("이번 주", r => r.DaysLeft > 0 && r.DaysLeft <= weekEnd),
+            ($"{Model.Days}일 안", r => r.DaysLeft > Math.Max(weekEnd, 0)),
+        };
+        @if (list.Count == 0) { <p class="bdy-empty">@(Model.Days)일 안에 생일인 사람이 없어요.</p> }
+        @foreach (var (title, isIn) in groups)
+        {
+            var rows = list.Where(isIn).ToList();
+            if (rows.Count == 0) { continue; }
+            <div class="bdy-sec"><b>@title</b><span>@(title.StartsWith("🎂") ? b.Today.ToString("M월 d일", ko) + " · " : "")@(rows.Count)명</span></div>
+            @foreach (var r in rows) { <partial name="_BirthdayCard" model="(r, false, Model)" /> }
+        }
+        @if (Model.Tenant.IsAdmin) { <a class="bdy-go" href="/@slug/admin/gifts">선물 사기 · 전하기는 선물 처리 →</a> }
+    }
+    else if (Model.Current == IndexModel.MonthTab)
+    {
+        var rows = BirthdayListService.Month(b, Model.M);
+        <div class="bdy-months">
+            @for (var i = 0; i < 12; i++)
+            {
+                var m = (b.Today.Month - 1 + i) % 12 + 1;
+                var n = b.All.Count(r => r.Month == m);
+                <a href="@U(IndexModel.MonthTab, m: m, v: Model.V)" aria-current="@(m == Model.M ? "page" : "false")">@(m)월 <small>@(n > 0 ? n.ToString() : "")</small></a>
+            }
+        </div>
+        <div class="bdy-view">
+            <a href="@U(IndexModel.MonthTab, m: Model.M, v: "cal")" aria-current="@(Model.CalendarView ? "page" : "false")">달력</a>
+            <a href="@U(IndexModel.MonthTab, m: Model.M, v: "list")" aria-current="@(!Model.CalendarView ? "page" : "false")">명단</a>
+            <span>@(Model.M)월 · @(rows.Count)명</span>
+        </div>
+        @if (Model.CalendarView)
+        {
+            var year = b.Today.Year;
+            var first = new DateOnly(year, Model.M, 1);
+            var lead = (int)first.DayOfWeek;
+            var daysIn = DateTime.DaysInMonth(year, Model.M);
+            <div class="bdy-cal" role="grid" aria-label="@(Model.M)월 달력">
+                @foreach (var w in new[] { "일", "월", "화", "수", "목", "금", "토" }) { <div class="h" role="columnheader">@w</div> }
+                @for (var i = 0; i < lead; i++) { <div class="c x"></div> }
+                @for (var day = 1; day <= daysIn; day++)
+                {
+                    var on = rows.Where(r => BirthdayListService.Occur(year, r.Month, r.Day).Day == day).ToList();
+                    var isToday = Model.M == b.Today.Month && day == b.Today.Day;
+                    <a class="c @(isToday ? "td" : "") @(day == Model.D ? "sel" : "") @(on.Count > 0 ? "has" : "")" href="@U(IndexModel.MonthTab, m: Model.M, v: "cal", d: day)#bdyDay" role="gridcell">
+                        <i>@day</i>
+                        @foreach (var r in on.Take(2)) { <u>@r.Name</u> }
+                        @if (on.Count > 2) { <u>+@(on.Count - 2)</u> }
+                    </a>
+                }
+            </div>
+            @if (Model.D is >= 1 and <= 31 && Model.D <= daysIn)
+            {
+                var dayRows = rows.Where(r => BirthdayListService.Occur(year, r.Month, r.Day).Day == Model.D).ToList();
+                var isToday = Model.M == b.Today.Month && Model.D == b.Today.Day;
+                <div class="bdy-sec" id="bdyDay"><b>@(Model.M)월 @(Model.D)일@(isToday ? "(오늘)" : "")</b><span>@(dayRows.Count)명</span></div>
+                @if (dayRows.Count == 0) { <p class="bdy-empty">이 날은 생일인 사람이 없어요.</p> }
+                @foreach (var r in dayRows) { <partial name="_BirthdayCard" model="(r, true, Model)" /> }
+            }
+            else { <p class="bdy-empty">날짜를 누르면 그날 명단이 나와요.</p> }
+        }
+        else
+        {
+            @if (rows.Count == 0) { <p class="bdy-empty">@(Model.M)월에는 생일인 사람이 없어요.</p> }
+            @foreach (var r in rows) { <partial name="_BirthdayCard" model="(r, true, Model)" /> }
+        }
+    }
+    else if (Model.Current == IndexModel.YearTab)
+    {
+        <div class="bdy-year">
+            @for (var m = 1; m <= 12; m++)
+            {
+                var rows = BirthdayListService.Month(b, m);
+                <a class="ym @(m == b.Today.Month ? "on" : "")" href="@U(IndexModel.MonthTab, m: m, v: "list")">
+                    <h3>@(m)월 <small>@(rows.Count)명</small></h3>
+                    <p>@(rows.Count == 0 ? "없음" : string.Join(" · ", rows.Select(r => $"{r.Name}({r.Day})")))</p>
+                </a>
+            }
+        </div>
+        <button type="button" class="btn s sm bdy-print" onclick="window.print()">🖨 인쇄(A4 한 장)</button>
+    }
+    else
+    {
+        <p class="bdy-hint">생일이 빈 사람이에요. 월 · 일을 골라 바로 넣어요(연도는 받지 않아요).</p>
+        @if (b.Missing.Count == 0) { <p class="bdy-empty">✓ 모두 생일이 있어요.</p> }
+        @foreach (var p in b.Missing)
+        {
+            <form method="post" asp-page-handler="Birthday" asp-route-slug="@slug" class="bdy-miss">
+                <input type="hidden" name="pid" value="@p.PersonId" />
+                <div class="who"><b>@p.Name</b>@if (p.ClassText is { } c) { <em>@c</em> }<small>@p.RoleLabel</small></div>
+                <select class="sel" name="month" aria-label="@(p.Name) 생일 월"><option value="">월</option>@for (var i = 1; i <= 12; i++) { <option value="@i">@(i)월</option> }</select>
+                <select class="sel" name="day" aria-label="@(p.Name) 생일 일"><option value="">일</option>@for (var i = 1; i <= 31; i++) { <option value="@i">@(i)일</option> }</select>
+                <button type="submit" class="btn p sm">저장</button>
+            </form>
+        }
+    }
+    @if (Model.PickGift is { } pgft)
+    {
+        @* 선물 고르기(확정 시안 선물고르기-팝업, 2026-11-20): 두꺼운 테두리 없이, 이미 고른 것만 "지금 고른 것". 누르면 그 자리에서 "이 선물로 할까요?" *@
+        <div class="go-modal" role="dialog" aria-modal="true" aria-labelledby="pickT" id="pick">
+            <form method="post" asp-antiforgery="true" action="@($"/{slug}/birthdays?handler=Pick&Tab={Model.Current}&Days={Model.Days}&M={Model.M}")" class="go-sheet bdy-pick" data-pick-form>
+                <div class="bdy-pick-hd"><div><b id="pickT">@pgft.Name @pgft.KindLabel 고르기</b><small>한도 @pgft.MaxAmount.ToString("N0")원 · 아이가 고르는 목록과 같아요. 누르면 바로 물어봐요.</small></div>
+                    <a class="bdy-x" href="@Model.Back()#g@(pgft.Id)" aria-label="닫기">✕</a></div>
+                <input type="hidden" name="gift" value="@pgft.Id" />
+                <input type="hidden" value="" data-pick-item />
+                @if (Model.PickItems.Count == 0) { <p class="bdy-empty">고를 수 있는 상품이 없어요. 관리 › 선물 › 상품을 확인해 주세요.</p> }
+                <div class="bdy-items">
+                    @foreach (var it in Model.PickItems)
+                    {
+                        var now = pgft.ItemId == it.Id;
+                        <button type="submit" name="item" value="@it.Id" class="bdy-item" data-pick="@it.Id" data-name="@it.Name" data-price="@it.Price.ToString("N0")원" data-img="@(it.HasImage ? $"/images/AwardItem/{it.Id}.jpg" : "")">
+                            <span class="pic">@if (it.HasImage) { <img src="/images/AwardItem/@(it.Id).jpg" alt="" loading="lazy" onerror="this.remove()" /> }@if (now) { <em>지금 고른 것</em> }</span>
+                            <b>@it.Name</b><small>@it.Price.ToString("N0")원</small></button>
+                    }
+                </div>
+            </form>
+            <div class="bdy-cf" data-pick-cf hidden>
+                <div class="bdy-cf-box" role="alertdialog" aria-modal="true" aria-labelledby="cfQ">
+                    <span class="pic" data-cf-pic></span><b data-cf-name></b><small data-cf-price></small>
+                    <h3 id="cfQ">이 선물로 할까요?</h3>
+                    <div class="bdy-cf-two"><button type="button" class="btn s" data-cf-no>다시 고를게요</button><button type="button" class="btn p" data-cf-yes>이 선물로 할게요</button></div>
+                </div>
+            </div>
+        </div>
+    }
+    @if (Model.Share is { } sh)
+    {
+        @* 링크 팝업 — 선물 처리 화면과 같다 *@
+        <div class="go-modal" role="dialog" aria-modal="true" aria-labelledby="linkT" data-go-modal>
+            <div class="go-sheet">
+                <b id="linkT">@sh.View.Name @sh.View.KindLabel 링크</b>
+                <input class="in num" readonly value="@sh.Url" aria-label="선물 링크" onclick="this.select()" />
+                <small>[카톡으로 보내기]를 누르면 휴대폰 공유 창에서 카톡을 골라 보내요(컴퓨터는 안내글이 복사돼요). 로그인 없이 열려요. 안내글에는 무엇을 하면 되는지 · 기한 · 링크가 함께 들어 있어요.</small>
+                <details class="go-prev"><summary>보낼 안내글 미리 보기</summary><pre>@sh.Text</pre></details>
+                <button type="button" class="btn go-kakao" data-share="@sh.Text">💬 카톡으로 보내기</button>
+                <div class="go-row2"><button type="button" class="btn s" data-copy="@sh.Url">링크만 복사</button><button type="button" class="btn p" data-copy="@sh.Text">안내글 복사</button></div>
+                <a class="btn s go-close" href="@Model.Back()#g@(sh.View.Id)">닫기</a>
+            </div>
+        </div>
+    }
+</div></main>
+<script src="~/js/share.js" asp-append-version="true" defer></script>
+<script>
+    // 선물 고르기: 누르면 그 자리에서 "이 선물로 할까요?"(JS 가 없으면 바로 고른다)
+    (() => {
+        const f = document.querySelector('[data-pick-form]'), cf = document.querySelector('[data-pick-cf]'); if (!f || !cf) return;
+        const hid = f.querySelector('[data-pick-item]');
+        f.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', e => {
+            e.preventDefault();
+            hid.value = b.dataset.pick;
+            cf.querySelector('[data-cf-name]').textContent = b.dataset.name;
+            cf.querySelector('[data-cf-price]').textContent = b.dataset.price;
+            const pic = cf.querySelector('[data-cf-pic]'); pic.innerHTML = b.dataset.img ? '<img alt="" src="' + b.dataset.img + '">' : '';
+            cf.hidden = false; cf.querySelector('[data-cf-yes]').focus();
+        }));
+        cf.querySelector('[data-cf-no]').addEventListener('click', () => { cf.hidden = true; hid.value = ''; });
+        cf.querySelector('[data-cf-yes]').addEventListener('click', () => { f.querySelectorAll('[data-pick]').forEach(x => x.removeAttribute('name')); hid.name = 'item'; f.submit(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && !cf.hidden) { cf.hidden = true; hid.value = ''; } });
+    })();
+    // 복사 버튼(선물 처리와 같다): 누르면 "복사했어요"
+    document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = '복사했어요'; b.classList.add('go-done'); }
+        catch { prompt('복사해 주세요', b.dataset.copy); }
+    }));
+</script>

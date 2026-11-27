@@ -1,0 +1,38 @@
+﻿@page "/platform/prayer365-stats"
+@model ChallengeBible.Web.Pages.Platform.Prayer365StatsModel
+@using ChallengeBible.Web.Services
+@* 확정 시안 365축복기도 ④(2026-11-16, ADR 0106): 오늘 · 이번 주 · 누적 · 평균 기도율 / 최근 30일 / 부서별 / 많이 읽힌 기도문 · 함께 기도가 많은 날 *@
+@{
+    var d = Model.Data;
+    var max = Math.Max(1, d.Days.Count == 0 ? 1 : d.Days.Max(x => x.People));
+    string[] wk = ["일", "월", "화", "수", "목", "금", "토"];
+}
+<link rel="stylesheet" href="~/css/prayer365.css" asp-append-version="true" />
+<partial name="_PlatformTop" />
+<main class="admin gut w760"><div class="wrap wide" style="display:grid;gap:14px">
+    <h1>365축복기도 통계</h1>
+    <div class="p3k">
+        <div><small>오늘 기도한 사람</small><b>@d.Today<u>명</u></b></div>
+        <div><small>이번 주</small><b>@d.Week<u>명</u></b></div>
+        <div><small>누적 참여자</small><b>@d.Total<u>명</u></b></div>
+        <div><small>평균 기도율</small><b>@d.AvgRate<u>%</u></b></div>
+    </div>
+    <section class="p3c"><h2>최근 30일 · 날마다 기도한 사람 <small>오늘 @(d.Today)명</small></h2>
+        <div class="p3bars" role="img" aria-label="최근 30일 날마다 기도한 사람">
+            @foreach (var (day, n) in d.Days) { <i class="@(day == d.Days[^1].Day ? "t" : "")" style="height:@(Math.Max(2, n * 100 / max))%" title="@day.ToString("M'/'d") @(n)명"></i> }
+        </div>
+    </section>
+    <div class="p3g2">
+        <section class="p3c"><h2>부서별 <small>쉬는 사람 = @(Prayer365Service.RestDays)일 넘게 안 함</small></h2>
+            <table class="p3t"><thead><tr><th>부서</th><th class="n">참여자</th><th class="n">오늘</th><th class="n">기도율</th><th class="n">쉬는 사람</th></tr></thead>
+                <tbody>@foreach (var r in d.Depts) { <tr><td>@r.Dept</td><td class="n">@r.Participants</td><td class="n">@r.Today</td><td class="n">@(r.Participants == 0 ? "–" : r.RatePct + "%")</td><td class="n">@r.Resting</td></tr> }</tbody></table>
+        </section>
+        <section class="p3c"><h2>많이 읽힌 기도문 <small>상위 5</small></h2>
+            @if (d.TopViewed.Count == 0) { <p style="color:var(--dim);font-size:13px">아직 없어요.</p> }
+            <ol class="p3rank">@foreach (var (md, title, n) in d.TopViewed) { <li><span>@Prayer365Service.Label(md) · @title</span><b>@n.ToString("N0")</b></li> }</ol>
+            <h2>함께 기도가 많은 날 <small>상위 5</small></h2>
+            @if (d.TopDays.Count == 0) { <p style="color:var(--dim);font-size:13px">아직 없어요.</p> }
+            <ol class="p3rank">@foreach (var (day, n) in d.TopDays) { <li><span>@($"{day:M월 d일}({wk[(int)day.DayOfWeek]})")</span><b>@(n)명</b></li> }</ol>
+        </section>
+    </div>
+</div></main>

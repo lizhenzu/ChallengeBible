@@ -1,0 +1,26 @@
+@page "/{slug}/about"
+@model ChallengeBible.Web.Pages.About.IndexModel
+@using ChallengeBible.Web.Services
+@{
+    var slug = Model.Tenant.Current.Slug;
+    var it = Model.Item;
+    var dept = PlatformTodayService.ShortDept(Model.Tenant.Current.Name);
+    ViewData["PbHomeL"] = true; ViewData["PbHomeHref"] = $"/{slug}/welcome"; ViewData["PbHomeLabel"] = "메인"; ViewData["PbTitle"] = dept + " 소개";
+}
+@* 부서 소개 보기(ADR 0142, 2026-11-27 사용자): 소개 글만. 글은 관리 › 소개 화면에서 입력 *@
+<partial name="_Top" />
+<main class="gut w760"><div class="wrap" style="padding-block:20px 48px">
+    @if (it is not null && it.PhotoStoredName is not null)
+    {
+        <img src="/@slug/welcome/photo?v=@it.UpdatedUtc.Ticks" alt="@dept 대표 사진" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;display:block" />
+    }
+    @if (it is null || string.IsNullOrWhiteSpace(it.Body))
+    {
+        <p style="text-align:center;padding:48px 0;color:var(--dim)">소개는 준비중이에요.</p>
+    }
+    else
+    {
+        <h1 style="margin:16px 0 0;font-size:24px;line-height:1.3;letter-spacing:-.03em">@it.Title</h1>
+        <div style="margin-top:14px;font-size:16px;line-height:1.85;white-space:pre-line;overflow-wrap:anywhere">@it.Body</div>
+    }
+</div></main>

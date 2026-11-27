@@ -6,13 +6,18 @@ namespace ChallengeBible.Web.Services;
 
 /// <summary>Id = 신청이면 SignupApplication.Id, 승인이면 DeptRoleUserAssoc.Id.</summary>
 public sealed record MemberRow(int Id, string UserName, string DisplayName, string Email, string Status,
-    string? RoleCode, string RoleLabel, bool IsAdmin, DateTime RequestedUtc);
+    string? RoleCode, string RoleLabel, bool IsAdmin, DateTime RequestedUtc)
+{
+    /// <summary>신청에 쓴 생일(선택, 0 = 안 씀) — 승인 때 명부 후보 순서(확정 시안 명부계정연결 ③).</summary>
+    public int BMonth { get; init; }
+    public int BDay { get; init; }
+}
 
 public sealed record MemberFilter(string Status, string? Query, string? Role);
 
 public enum MemberError
 {
-    None, NotFound, NoRole, BadState, SelfAdminRemove, TeamLocked,
+    None, NotFound, NoRole, BadState, SelfAdminRemove, TeamLocked, RuleAdmin, RuleOnly, AdminNotStudent,
 }
 
 /// <summary>
@@ -43,9 +48,9 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
             rows = (await (from a in ctx.SignupApplications
                            join u in ctx.Users on a.UserId equals u.Id
                            where a.Status == status
-                           select new { a.Id, a.UserName, a.FullName, u.Email, a.RoleKind, a.InsertDT }).ToListAsync(ct))
+                           select new { a.Id, a.UserName, a.FullName, u.Email, a.RoleKind, a.InsertDT, a.BMonth, a.BDay }).ToListAsync(ct))
                 .Select(x => new MemberRow(x.Id, x.UserName, x.FullName, x.Email ?? "", f.Status, UserRole.CodeForKind(x.RoleKind.Trim()),
-                    Label(UserRole.CodeForKind(x.RoleKind.Trim()), codes), false, x.InsertDT)).ToList();
+                    Label(UserRole.CodeForKind(x.RoleKind.Trim()), codes), false, x.InsertDT) { BMonth = x.BMonth, BDay = x.BDay }).ToList();
         }
         if (!string.IsNullOrWhiteSpace(f.Query))
         {
@@ -109,6 +114,7 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         var user = await sys.Users.SingleAsync(u => u.Id == a.UserId, ct);
         var (error, moved) = await DeptMembership.PlaceAsync(sys, user, me, Clean(roleCode), now, ct, personId, actor);
         if (error == MoveError.TeamLocked) return MemberError.TeamLocked;
+        if (error == MoveError.AdminNotStudent) return MemberError.AdminNotStudent;   // R-365
         a.Status = SignupStatus.Approved;
         a.DecidedDT = now;
         a.DecidedBy = actor;
@@ -144,29 +150,20 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         if (d is null) return MemberError.NotFound;
         var userName = await ctx.Users.Where(u => u.Id == d.UserId).Select(u => u.UserName).SingleAsync(ct);
         var code = Clean(roleCode);
+        if (DeptMembership.StudentLike(code) && await DeptMembership.IsAdminAccountAsync(ctx, d.UserId!, ct)) return MemberError.AdminNotStudent;   // R-365
         if (!await FamilyTeamService.FitTeamToRoleAsync(ctx, tenant.Current.Id, userName!, UserRole.KindOf(code), ct)) return MemberError.TeamLocked;
         d.RoleCode = code;
         d.UpdateDT = time.GetUtcNow().UtcDateTime;
         await ctx.SaveChangesAsync(ct);
+        await using (var sys = systemDb.Create(userName!)) await DeptAdminRuleService.SyncAsync(sys, [d.UserId!], ct);   // 부서 관리자 규칙
         return MemberError.None;
     }
 
-    /// <summary>이 부서의 관리자 지정 · 해제(Identity Admin 역할). 나 자신의 관리자 권한은 뺄 수 없다.</summary>
-    public async Task<MemberError> SetAdminAsync(string actor, int deptRoleId, bool admin, CancellationToken ct = default)
-    {
-        await using var ctx = db.Create();
-        var d = await ctx.DeptRoles.AsNoTracking().SingleOrDefaultAsync(x => x.Id == deptRoleId, ct);
-        if (d is null) return MemberError.NotFound;
-        var user = await ctx.Users.AsNoTracking().SingleAsync(u => u.Id == d.UserId, ct);
-        if (user.UserName == actor && !admin) return MemberError.SelfAdminRemove;
-        await using var sys = systemDb.Create(actor);
-        var role = await sys.IdentityRoleRows.SingleAsync(r => r.Name == IdentityRoles.Admin, ct);
-        var row = await sys.UserRoles.SingleOrDefaultAsync(r => r.UserId == user.Id && r.RoleId == role.Id, ct);
-        if (admin && row is null) sys.UserRoles.Add(new AppUserRole { UserId = user.Id, RoleId = role.Id });
-        else if (!admin && row is not null) sys.UserRoles.Remove(row);
-        await sys.SaveChangesAsync(ct);
-        return MemberError.None;
-    }
+    /// <summary>
+    /// 사람마다 관리자 지정 · 해제는 없다(2026-11-16 사용자 "권한은 역할 · 업무에"): 부서 관리자는 부서 관리자 규칙의 역할 · 업무로만 정해진다.
+    /// 예전 화면 · 요청이 와도 아무것도 바꾸지 않고 알림만 돌려준다.
+    /// </summary>
+    public Task<MemberError> SetAdminAsync(string actor, int deptRoleId, bool admin, CancellationToken ct = default) => Task.FromResult(MemberError.RuleOnly);
 
     private static string? Clean(string? code) => string.IsNullOrWhiteSpace(code) ? null : code.Trim();
 
@@ -225,7 +222,10 @@ public sealed class MemberAdminService(IAppDb db, ISystemDb systemDb, TenantCont
         MemberError.NoRole => "역할을 골라 주세요.",
         MemberError.BadState => "이미 처리됐어요. 화면을 새로 고쳐 주세요.",
         MemberError.SelfAdminRemove => "내 관리자 역할은 여기서 뺄 수 없어요.",
+        MemberError.RuleOnly => "부서 관리자는 사람마다 정하지 않아요. 지도 · 부장 · 부감 · 서기 · 어드민 역할이나 선물 담당 같은 관리자 업무를 맡으면 저절로 돼요.",
+        MemberError.RuleAdmin => "부서 관리자 규칙으로 관리자인 역할이에요. 역할을 바꾸거나 플랫폼의 부서 관리자 규칙을 바꿔 주세요.",
         MemberError.TeamLocked => "시상 기록이 있는 팀에 있어 바꿀 수 없어요.",
+        MemberError.AdminNotStudent => DeptMembership.AdminNotStudentMessage,
         _ => "",
     };
 }

@@ -1,0 +1,98 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#E9ECF1;font-family:"Noto Sans KR",sans-serif;color:#111827}
+.row{display:flex;gap:20px;justify-content:center;padding:16px;flex-wrap:wrap;align-items:flex-start}
+.col{width:340px}.h{font:900 15.5px "Noto Sans KR";margin:4px 0 4px}.d{font-size:12px;color:#4B5563;margin:0 0 8px;line-height:1.5;min-height:36px}
+.ph{background:#EEF1F5;border-radius:22px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.top{background:#fff;display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #E5E7EB}
+.top .t{flex:1}.top small{display:block;font-size:11.5px;color:#6B7280}.top b{font-size:16px;font-weight:900}
+.mail{position:relative;width:38px;height:38px;border-radius:12px;background:#F3F4F6;display:flex;align-items:center;justify-content:center;font-size:19px}
+.mail i{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:99px;background:#DC2626;color:#fff;font-size:11px;font-style:normal;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.w{padding:12px;display:grid;gap:10px}
+.card{background:#fff;border:1px solid #DCE1E8;border-radius:16px;padding:14px;box-shadow:0 2px 8px rgba(15,23,42,.06)}
+.gh{color:#9CA3AF;font-size:13px;height:56px}
+.band{background:#2563EB;color:#fff;border-radius:14px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:14px}.band span{background:#fff;color:#1D4ED8;border-radius:10px;padding:6px 10px;font-size:13px}
+.fb h3{margin:0 0 4px;font-size:16px}.fb p{margin:0 0 10px;font-size:12.5px;color:#4B5563;line-height:1.5}
+.ta{height:96px;border:1px solid #CBD5E1;border-radius:12px;padding:10px;font-size:13px;color:#9CA3AF;background:#fff}
+.cnt{text-align:right;font-size:11.5px;color:#9CA3AF;margin:4px 0 8px}
+.who{display:grid;grid-template-columns:1fr 1fr;gap:6px}.who span{height:44px;border:1px solid #D1D5DB;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13.5px;font-weight:800;background:#fff}.who span small{font-size:11px;font-weight:600;color:#6B7280}.who span.on{border:2px solid #2563EB;background:#EFF6FF;color:#1D4ED8}
+.tip{margin:8px 0 10px;padding:8px 10px;border-radius:10px;background:#FFFBEB;color:#92400E;font-size:12px;line-height:1.5}
+.btn{display:flex;align-items:center;justify-content:center;height:46px;border-radius:12px;font-weight:900;font-size:14.5px}.p{background:#2563EB;color:#fff}.s{background:#fff;border:1px solid #CBD5E1}
+.seg{display:inline-flex;background:#E5E7EB;border-radius:12px;padding:4px;gap:4px;font-size:13.5px;font-weight:800}.seg span{padding:7px 12px;border-radius:9px;color:#4B5563}.seg span.on{background:#fff;color:#111827}
+.seg em{font-style:normal;color:#DC2626}
+.m{background:#fff;border:1px solid #DCE1E8;border-radius:14px;padding:11px 12px;display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:2px 10px;align-items:center}
+.m .av{grid-row:span 2;width:36px;height:36px;border-radius:50%;background:#EEF2FF;color:#4338CA;font-size:12.5px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.m .av.sys{background:#FEF3C7;color:#92400E}
+.m b{font-size:14.5px;font-weight:900;min-width:0}.m b em{font-style:normal;font-size:11.5px;font-weight:700;color:#6B7280;margin-left:4px}
+.m small{font-size:11.5px;color:#6B7280;white-space:nowrap}
+.m p{grid-column:2/4;margin:0;font-size:12.5px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m.new{border:2px solid #93C5FD;background:#F8FBFF}.m.new b::after{content:"새";margin-left:6px;font-size:10.5px;padding:1px 6px;border-radius:99px;background:#DC2626;color:#fff;vertical-align:2px}
+.rd{font-size:11px;font-weight:800;padding:1px 7px;border-radius:99px}.rd.y{background:#EAF7EF;color:#15803D}.rd.n{background:#F3F4F6;color:#6B7280}
+.in{height:44px;border:1px solid #CBD5E1;border-radius:12px;background:#fff;display:flex;align-items:center;padding:0 12px;font-size:14px}
+.res{background:#fff;border:1px solid #DCE1E8;border-radius:12px;overflow:hidden}.res div{padding:9px 12px;border-top:1px solid #F1F3F6;font-size:14px;font-weight:800;display:flex;justify-content:space-between}.res div:first-child{border-top:0}.res div small{font-weight:600;color:#6B7280;font-size:12px}.res div.on{background:#EFF6FF}
+.to{display:flex;align-items:center;gap:8px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:8px 10px;font-size:13.5px;font-weight:800}.to small{font-weight:600;color:#4B5563}.to span{margin-left:auto;color:#2563EB;font-size:12.5px}
+.view .hd{display:grid;grid-template-columns:40px 1fr;gap:2px 10px;align-items:center;margin-bottom:10px}.view .hd .av{grid-row:span 2;width:40px;height:40px;border-radius:50%;background:#EEF2FF;color:#4338CA;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.view .hd b{font-size:15.5px}.view .hd small{font-size:12px;color:#6B7280}
+.body{font-size:14px;line-height:1.7;white-space:pre-line;padding:12px;background:#F9FAFB;border-radius:12px;margin-bottom:10px}
+.acts{display:grid;grid-template-columns:1fr 2fr;gap:8px}
+</style></head><body>
+<div class="row">
+
+<div class="col"><div class="h">① 부서 홈 — 머리말 ✉ · 새 쪽지 띠 · 맨 아래 접수대</div><p class="d">머리말 오른쪽 ✉ 안 읽은 수. 로그인 때 "새 쪽지" 띠 한 번. 맨 아래 개선 · 불편 접수대(superadmin 에게 쪽지).</p>
+<div class="ph"><div class="top"><span>☰</span><div class="t"><small>대한예수교장로회</small><b>잠실새내교회</b></div><span class="mail">✉<i>2</i></span></div><div class="w">
+<div class="band">새 쪽지 2개가 왔어요<span>쪽지함 보기</span></div>
+<div class="card gh">안녕하세요 · 나의 점수 …</div><div class="card gh">도전!!! 성경말씀 · 통독 · 필사 …</div>
+<div class="card fb"><h3>💬 개선 · 불편 접수대</h3><p>불편한 점이나 바라는 점을 플랫폼 관리자에게 쪽지로 보내요. 게시판처럼 다른 사람에게 보이지 않아요.</p>
+<div class="ta">예) 필사 화면 글자가 너무 작아요.</div><div class="cnt">0 / 1,000</div>
+<div class="who"><span class="on">실명으로<small>답장을 받아요</small></span><span>익명으로<small>부서만 알려져요</small></span></div>
+<div class="tip">플랫폼 관리자의 답변이 필요하면 <b>실명과 연락처를 함께</b> 보내 주세요.</div>
+<span class="btn p">플랫폼 관리자에게 보내기</span></div>
+</div></div></div>
+
+<div class="col"><div class="h">② 쪽지함 — 받은 쪽지</div><p class="d">새 쪽지는 파란 테두리 + "새". 보낸 사람 이름 · 부서 · 역할, 첫 줄 미리 보기. 위에 [쪽지 쓰기].</p>
+<div class="ph"><div class="top"><span>☰</span><div class="t"><small>도전!!!</small><b>쪽지</b></div><span class="mail">✉<i>2</i></span></div><div class="w">
+<div style="display:flex;justify-content:space-between;align-items:center"><div class="seg"><span class="on">받은 쪽지 <em>2</em></span><span>보낸 쪽지</span></div></div>
+<span class="btn p">✏️ 쪽지 쓰기</span>
+<div class="m new"><span class="av">은혜</span><b>이은혜<em>유년부 · 교사</em></b><small>09:12</small><p>이번 주일 성경 암송 준비물 챙겨 와요!</p></div>
+<div class="m new"><span class="av sys">관리</span><b>플랫폼 관리자<em>답장</em></b><small>어제</small><p>보내 주신 필사 글자 크기 의견 반영했어요. 감사해요.</p></div>
+<div class="m"><span class="av">철수</span><b>김철수<em>초등부 · 학생</em></b><small>11/15</small><p>선생님 감사합니다~</p></div>
+</div></div></div>
+
+<div class="col"><div class="h">③ 보낸 쪽지 — 읽음 표시</div><p class="d">상대가 읽었는지 "읽음 · 안 읽음". 익명 개선 쪽지는 "익명 · 답장 없음".</p>
+<div class="ph"><div class="top"><span>☰</span><div class="t"><small>도전!!!</small><b>쪽지</b></div><span class="mail">✉<i>2</i></span></div><div class="w">
+<div class="seg"><span>받은 쪽지 <em>2</em></span><span class="on">보낸 쪽지</span></div>
+<div class="m"><span class="av">은혜</span><b>이은혜<em>유년부 · 교사</em></b><span class="rd y">읽음</span><p>네 알겠습니다!</p></div>
+<div class="m"><span class="av sys">관리</span><b>플랫폼 관리자<em>개선 · 실명</em></b><span class="rd n">안 읽음</span><p>필사 화면 글자가 너무 작아요. 010-…</p></div>
+<div class="m"><span class="av sys">관리</span><b>플랫폼 관리자<em>개선 · 익명</em></b><span class="rd n">답장 없음</span><p>퀴즈가 너무 어려워요</p></div>
+</div></div></div>
+</div>
+
+<div class="row">
+<div class="col"><div class="h">④ 쪽지 쓰기 — 이름으로 찾기</div><p class="d">이름을 쓰면 이름 · 부서 · 역할만 보임(아이디 · 연락처 X). 고르면 받는 사람 칸에 들어감.</p>
+<div class="ph"><div class="top"><span>←</span><div class="t"><small>쪽지</small><b>쪽지 쓰기</b></div></div><div class="w">
+<div style="font-size:13px;font-weight:800">받는 사람</div>
+<div class="in">김</div>
+<div class="res"><div class="on">김철수<small>초등부 · 학생</small></div><div>김선생<small>유년부 · 교사</small></div><div>김하준<small>유년부 · 학생</small></div></div>
+<div class="to">받는 사람: 김철수 <small>초등부 · 학생</small><span>바꾸기</span></div>
+<div class="ta">내용을 써 주세요</div><div class="cnt">0 / 1,000</div>
+<span class="btn p">보내기</span>
+</div></div></div>
+
+<div class="col"><div class="h">⑤ 쪽지 읽기 — 답장 · 지우기</div><p class="d">열면 "읽음"이 돼요. [답장]은 받는 사람이 정해진 쓰기 화면. [지우기]는 내 쪽지함에서만.</p>
+<div class="ph"><div class="top"><span>←</span><div class="t"><small>받은 쪽지</small><b>이은혜</b></div></div><div class="w view">
+<div class="card"><div class="hd"><span class="av">은혜</span><b>이은혜</b><small>유년부 · 교사 · 11월 17일 09:12</small></div>
+<div class="body">철수야~ 이번 주일 성경 암송 준비물 챙겨 와요!
+요한복음 3장 16절이에요.</div>
+<div class="acts"><span class="btn s">지우기</span><span class="btn p">답장</span></div></div>
+</div></div></div>
+
+<div class="col"><div class="h">⑥ superadmin 받은 쪽지 — 개선 · 불편</div><p class="d">개선 쪽지에는 부서 칩. 익명이면 "익명 · 유년부"(이름 · 역할 없음, 답장 없음).</p>
+<div class="ph"><div class="top"><span>☰</span><div class="t"><small>도전!!! 플랫폼</small><b>쪽지</b></div><span class="mail">✉<i>5</i></span></div><div class="w">
+<div class="seg"><span class="on">받은 쪽지 <em>5</em></span><span>보낸 쪽지</span></div>
+<div class="m new"><span class="av sys">익명</span><b>익명<em>유년부 · 개선</em></b><small>10:02</small><p>퀴즈가 너무 어려워요</p></div>
+<div class="m new"><span class="av">진찬</span><b>조진찬<em>영아부 · 학생 · 개선</em></b><small>09:40</small><p>필사 화면 글자가 너무 작아요. 010-…</p></div>
+<div class="m"><span class="av">은혜</span><b>이은혜<em>유년부 · 교사</em></b><small>어제</small><p>365 기도 감사합니다</p></div>
+</div></div></div>
+</div>
+</body></html>

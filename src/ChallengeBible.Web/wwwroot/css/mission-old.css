@@ -1,14 +1,14 @@
-/* 말씀 · 퀴즈 · 기도 · 암송 화면 — 옛 사이트 DailyMission4 "밝은 흰색 버전" 모양 그대로(모든 부서, 2026-10-30 사용자).
+﻿/* 말씀 · 퀴즈 · 기도 · 암송 화면 — 옛 사이트 DailyMission4 "밝은 흰색 버전" 모양 그대로(모든 부서, 2026-10-30 사용자).
    참조(읽기만): YuYunBu Views/DailyMission4/Word · Quiz · Pray · Recite.cshtml 의 <style> + Partials(_DateChip · _Dm2Nav · _FontSizeCtl) + css/mission3/bone.css.
    site.css 다음에 읽어 같은 이름의 규칙을 덮어쓴다. 미션 네 화면(.mbody 가 있는 화면)에만 걸린다. */
 body:has(.mbody) {
-  --bg: #FFFFFF; --fg: #111827; --dim: #9CA3AF; --dim2: #6B7280; --rule: #EEF0F3; --line: #EEF0F3; --soft: #F4F6F9;
-  --accent: #2F80ED; --accent-bg: #EAF2FD; --no: #7FA3DB; --green: #16A34A; --green-no: #6FBF8B; --pickbg: #EAF7EF; --pickbg-press: #DDF1E4;
+  --bg: #FFFFFF; --fg: #111827; --dim: #6e6e75; --dim2: #6B7280; --rule: #EEF0F3; --line: #EEF0F3; --soft: #F4F6F9;
+  --accent: #2F80ED; --accent-tx: #1f55c0; --accent-bg: #EAF2FD; --no: #7FA3DB; --no-tx: #1f55c0; --green: #16A34A; --green-tx: #167a41; --green-no: #6FBF8B; --green-no-tx: #167a41; --pickbg: #EAF7EF; --pickbg-press: #DDF1E4;
   --ok-bg: #EAF7EF; --bad: #E5484D; --bad-bg: #FDEEF0;
   background: #FFFFFF; color: #374151; color-scheme: light;
   font-family: "Gothic A1", "Malgun Gothic", system-ui, sans-serif;
 }
-body:has(.mbody) .mtop .wrap, body:has(.mbody) .mhead .wrap, body:has(.mbody) .mbody .wrap { max-width: 680px; }
+body:has(.mbody) .mtop .wrap, body:has(.mbody) .mhead .wrap, body:has(.mbody) .mbody .wrap { max-width: 760px; }   /* 표준 760px(2026-11-18 사용자 "760으로 통일") */
 @media (min-width: 641px) { body:has(.mbody) .mtop, body:has(.mbody) .mhead, body:has(.mbody) .mbody { padding-left: 22px; padding-right: 22px; } }
 
 /* 맨 위: 홈으로 · 미션홈 (작은 회색 글자) / 글자 크기 둥근 알약(site.css .fs) */
@@ -20,51 +20,51 @@ body:has(.mbody) .fs button { color: #5C5F66; }
 
 /* 제목: 오늘의 ○○(파란 작은 글자) → 달력 쪽지 + 큰 제목 · 범위 */
 body:has(.mbody) .mhead .wrap { padding-block: 0; gap: 0; }
-body:has(.mbody) .mhead .k { margin-top: 18px; font-size: 12px; font-weight: 800; letter-spacing: .02em; color: #2F80ED; }
+body:has(.mbody) .mhead .k { margin-top: 18px; font-size: 12px; font-weight: 800; letter-spacing: .02em; color: #1f55c0; }
 body:has(.mbody) .mhead .ttl { margin-top: 10px; gap: 14px; align-items: flex-start; }
 body:has(.mbody) .cal { width: 60px; margin-top: 4px; border: 1px solid #E2E0DB; border-radius: 0; background: #fff; }
-body:has(.mbody) .cal .m { font-family: "Inter", system-ui, sans-serif; font-size: 10px; letter-spacing: .08em; background: #16181C; color: #F7F6F3; padding: 3px 0; }
+body:has(.mbody) .cal .m { font-family: "Inter", system-ui, sans-serif; font-size: 12px; letter-spacing: .08em; background: #16181C; color: #F7F6F3; padding: 3px 0; }
 body:has(.mbody) .cal .d { font-family: "Inter", system-ui, sans-serif; font-weight: 300; font-size: 26px; line-height: 1.1; padding-top: 3px; color: #16181C; }
-body:has(.mbody) .cal .w { font-size: 10.5px; font-weight: 600; color: #9A7B4F; padding-bottom: 5px; }
+body:has(.mbody) .cal .w { font-size: 12px; font-weight: 600; color: #b8500d; padding-bottom: 5px; }
 body:has(.mbody) .cal .w.sun { color: #B4531F; }
 body:has(.mbody) .cal .w.sat { color: #3B6EA8; }
 body:has(.mbody) .mhead h1 { margin: 0; font-size: calc(23px * var(--fs)); font-weight: 800; line-height: 1.35; letter-spacing: -.02em; color: #111827; }
 body:has(.mbody) .mhead h1 .en { font-weight: 600; color: #6B7280; }
 body:has(.mbody) .mhead .ref { font-size: calc(13px * var(--fs)); color: #6B7280; margin-top: 4px; }
 body:has(.mbody) .note-day, body:has(.mbody) .note-block { margin-top: 14px; border-radius: 0; padding: 10px 12px; background: #F3F7FD; color: #6B7280; font-weight: 400; font-size: 12.5px; }
-body:has(.mbody) .note-day a { color: #2F80ED; }
+body:has(.mbody) .note-day a { color: #1f55c0; }
 
 /* 01 · 02 · 03 칸 — 카드 · 테두리 없이 연한 회색 줄로만 */
 body:has(.mbody) .mbody .wrap { padding-block: 26px 0; }
 body:has(.mbody) .sec { padding: 18px 0 16px; border-top: 1px solid #EEF0F3; gap: 8px; }
 body:has(.mbody) .sec h2 { font-size: calc(16px * var(--fs)); font-weight: 800; color: #111827; gap: 10px; }
 body:has(.mbody) .sec h2 .n { font-size: 17px; font-weight: 900; letter-spacing: .02em; }
-body:has(.mbody) .sec h2 small { font-size: 11.5px; font-weight: 600; color: #9CA3AF; }
-body:has(.mbody) .sec.done h2 small, body:has(.mbody) .sec h2 small.ok { color: #16A34A; font-weight: 800; }
+body:has(.mbody) .sec h2 small { font-size: 12px; font-weight: 600; color: #6e6e75; }
+body:has(.mbody) .sec.done h2 small, body:has(.mbody) .sec h2 small.ok { color: #167a41; font-weight: 800; }
 body:has(.mbody) .sec h2 small.warn { color: #E5484D; font-weight: 800; }
 body:has(.mbody) .mbody .empty { margin-top: 0; padding: 26px 0; color: #6B7280; font-size: 14px; border-top: 1px solid #EEF0F3; border-bottom: 1px solid #EEF0F3; }
 
 /* 말씀: 오늘 이야기(앞 3줄 + 이야기 더 보기) · 성경 읽기(파란 밑줄 글자) */
 body:has(.mbody) .story { font-size: calc(15.5px * var(--fs)); line-height: 1.9; color: #374151; white-space: pre-line; }
-body:has(.mbody) .more { margin-top: -4px; padding: 4px 0; min-height: 0; font-size: 12.5px; font-weight: 700; color: #2F80ED; }
-body:has(.mbody) .wlnk { margin-top: 2px; font-size: calc(15.5px * var(--fs)); color: #2F80ED; border-bottom-color: #2F80ED; text-decoration: none; }
+body:has(.mbody) .more { margin-top: -4px; padding: 4px 0; min-height: 0; font-size: 12.5px; font-weight: 700; color: #1f55c0; }
+body:has(.mbody) .wlnk { margin-top: 2px; font-size: calc(15.5px * var(--fs)); color: #1f55c0; border-bottom-color: #2F80ED; text-decoration: none; }
 body:has(.mbody) .wlnk em { font-size: 17px; }
 
 /* 어떻게 읽었나요? · 누구를 위해 기도했나요? · 외웠나요? — 연한 초록 줄, 한 것은 회색 + "✓ 완료 +N점" */
 body:has(.mbody) .pick { min-height: 0; padding: 13px 14px; background: #EAF7EF; }
 body:has(.mbody) .pick b { font-size: calc(15.5px * var(--fs)); color: #1F2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-body:has(.mbody) .pick .pt { font-size: 12.5px; color: #2F80ED; }
+body:has(.mbody) .pick .pt { font-size: 12.5px; color: #1f55c0; }
 body:has(.mbody) .pick[aria-pressed="true"] { background: #F4F6F9; }
 body:has(.mbody) .pick[aria-pressed="true"] b { color: #6B7280; }
 body:has(.mbody) .pick[aria-pressed="true"] .pt { color: #15803D; }
 body:has(.mbody) .pick:disabled:not([aria-pressed="true"]) { opacity: .5; }
-body:has(.mbody) .pnote { font-size: 12px; color: #9CA3AF; }
+body:has(.mbody) .pnote { font-size: 12px; color: #6e6e75; }
 
 /* 기도: 본문(접힘, 절 번호 흐린 파랑) · 기도문(크게, 이름은 연한 노랑 밑줄) */
 body:has(.mbody) .vlines { gap: 4px; padding-top: 4px; }
 body:has(.mbody) .vlines p { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 6px; font-size: calc(14.5px * var(--fs)); line-height: 1.85; color: #6B7280; }
-body:has(.mbody) .vlines .num { margin: 0; padding-top: 4px; font-size: 11px; font-weight: 800; color: #7FA3DB; text-align: right; vertical-align: baseline; }
-body:has(.mbody) .rdmore { color: #2F80ED; font-size: 12.5px; }
+body:has(.mbody) .vlines .num { margin: 0; padding-top: 4px; font-size: 12px; font-weight: 800; color: #1f55c0; text-align: right; vertical-align: baseline; }
+body:has(.mbody) .rdmore { color: #1f55c0; font-size: 12.5px; }
 /* 기도문 · 암송 구절은 같은 글자(2026-11-03 사용자): 17px · 400 · 줄 간격 1.95 */
 body:has(.mbody) .story.pray { margin-top: 0; font-size: calc(17px * var(--fs)); line-height: 1.95; font-weight: 400; color: #1F2937; }
 body:has(.mbody) .story.pray + .story.pray { margin-top: 2px; }
@@ -72,11 +72,11 @@ body:has(.mbody) .story.pray + .story.pray { margin-top: 2px; }
 .story .half { display: block; height: 1em; height: .5lh; }
 /* 말씀 미션 02 성경 읽기: 첫 구절 + 더 보기(2026-11-03 확정 시안 wv.png) */
 /* 좌우 여백 줄임: 칸을 8씩 넓히고 번호는 글 안으로(2026-11-04 확정 시안 wv-margin.png 3안) */
-.wvbox { margin: 0 -8px; border-radius: 14px; background: #F7F9FC; padding: 14px 14px 12px; box-shadow: inset 0 0 0 1px #E6EAF0; }
-.wvbox .ref { font-size: 12px; font-weight: 800; color: #7FA3DB; }
+.wvbox { margin: 0; border-radius: 10px; background: #F7F9FC; padding: 14px 14px 12px; box-shadow: inset 0 0 0 1px #E6EAF0; }
+.wvbox .ref { font-size: 12px; font-weight: 800; color: #1f55c0; }
 .wvbox p { margin: 6px 0 0; font-size: calc(17px * var(--fs, 1)); line-height: 1.95; font-weight: 400; color: #1F2937; word-break: keep-all; }
-.wvbox p i { margin-right: 6px; vertical-align: 1px; font-style: normal; font-size: 12px; font-weight: 800; color: #7FA3DB; }
-.wvbox .more { margin-top: 6px; display: flex; justify-content: flex-end; font-size: 14px; font-weight: 800; color: #2F80ED; text-decoration: none; }
+.wvbox p i { margin-right: 6px; vertical-align: 1px; font-style: normal; font-size: 12px; font-weight: 800; color: #1f55c0; }
+.wvbox .more { margin-top: 6px; display: flex; justify-content: flex-end; font-size: 14px; font-weight: 800; color: #1f55c0; text-decoration: none; }
 .story .amen { display: block; text-align: right; }   /* 맨 끝 "아멘"은 다음 줄 오른쪽(2026-11-03) */
 body:has(.mbody) .story .nm { color: #1D5FBF; font-weight: 800; background: linear-gradient(transparent 62%, #FFF1BF 62%); padding: 0 2px; }
 /* ○○ 는 이 화면 글꼴(Gothic A1 · 휴대폰 기본)에서 작게 나와서, 예전처럼 Noto Sans KR 의 큰 동그라미로 */
@@ -89,57 +89,57 @@ body:has(.mbody) .qq { font-size: calc(17px * var(--fs)); line-height: 1.6; font
 body:has(.mbody) .qopts { margin-top: 4px; }
 body:has(.mbody) .qopt { background: #F4F6F9; box-shadow: none; }
 body:has(.mbody) .qopt:active { background: #E9EDF3; }
-body:has(.mbody) .qopt i { color: #7FA3DB; }
+body:has(.mbody) .qopt i { color: #1f55c0; }
 body:has(.mbody) .qopt .t { font-size: calc(15.5px * var(--fs)); color: #1F2937; }
-body:has(.mbody) .qopt .t small { font-size: 11.5px; }
+body:has(.mbody) .qopt .t small { font-size: 12px; }
 body:has(.mbody) .qopt.sel { background: #EAF2FD; box-shadow: none; }
 body:has(.mbody) .qopt.sel .t { color: #1D5FBF; }
-body:has(.mbody) .qopt.sel i { color: #2F80ED; }
+body:has(.mbody) .qopt.sel i { color: #1f55c0; }
 body:has(.mbody) .qopt.ans { background: #EAF7EF; }
 body:has(.mbody) .qopt.ans .t { color: #15803D; }
-body:has(.mbody) .qopt.ans i, body:has(.mbody) .qopt.ans small { color: #16A34A; }
+body:has(.mbody) .qopt.ans i, body:has(.mbody) .qopt.ans small { color: #167a41; }
 body:has(.mbody) .qopt.bad { background: #FDEEF0; }
 body:has(.mbody) .qopt.bad .t { color: #B42318; }
 body:has(.mbody) .qopt.bad i, body:has(.mbody) .qopt.bad small { color: #E5484D; }
-body:has(.mbody) .qtext { margin-top: 4px; min-height: 0; padding: 14px; border: 0; border-radius: 14px; background: #F4F6F9; font-size: 16px; color: #111827; }
+body:has(.mbody) .qtext { margin-top: 4px; min-height: 0; padding: 14px; border: 0; border-radius: 10px; background: #F4F6F9; font-size: 16px; color: #111827; }
 body:has(.mbody) .qtext:focus { background: #EAF2FD; box-shadow: inset 0 0 0 2px #2F80ED; outline: 0; }
-body:has(.mbody) .qhint { margin-top: -2px; padding: 10px 12px; border-radius: 12px; background: #F9FAFB; font-size: calc(14px * var(--fs)); line-height: 1.75; color: #374151; white-space: pre-line; word-break: keep-all; }
+body:has(.mbody) .qhint { margin-top: -2px; padding: 10px 12px; border-radius: 10px; background: #F9FAFB; font-size: calc(14px * var(--fs)); line-height: 1.75; color: #374151; white-space: pre-line; word-break: keep-all; }
 body:has(.mbody) .qhint[hidden] { display: none; }
 body:has(.mbody) .msg { font-size: 12.5px; color: #6B7280; }
 body:has(.mbody) .msg:empty { display: none; }
-body:has(.mbody) .msg.ok { color: #16A34A; }
-body:has(.mbody) .qgo { margin-top: 6px; min-height: 0; font-size: calc(15.5px * var(--fs)); color: #2F80ED; border-bottom-color: #2F80ED; }
+body:has(.mbody) .msg.ok { color: #167a41; }
+body:has(.mbody) .qgo { margin-top: 6px; min-height: 0; font-size: calc(15.5px * var(--fs)); color: #1f55c0; border-bottom-color: #2F80ED; }
 body:has(.mbody) .qgo em { font-size: 17px; }
 body:has(.mbody) .qgo:disabled { color: #C4C9D2; border-bottom-color: #E5E7EB; opacity: 1; }
 
 /* 암송: 외울 구절(가장 크고 진하게) · 공과 요점(접힘, 왼쪽 파란 선) */
 body:has(.mbody) .rverse { gap: 0; margin-top: 2px; }
 body:has(.mbody) .rverse p { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 6px; font-size: calc(17px * var(--fs)); line-height: 1.95; font-weight: 400; color: #1F2937; }
-body:has(.mbody) .rverse i { padding-top: 6px; font-size: 12px; font-weight: 800; color: #7FA3DB; text-align: right; }
+body:has(.mbody) .rverse i { padding-top: 6px; font-size: 12px; font-weight: 800; color: #1f55c0; text-align: right; }
 body:has(.mbody) .story.big { font-size: calc(17px * var(--fs)); line-height: 1.95; font-weight: 400; color: #1F2937; }
 body:has(.mbody) .gls { gap: 12px; }
 body:has(.mbody) .gls p { padding-left: 12px; border-left: 3px solid #D6E4FA; font-size: calc(15px * var(--fs)); line-height: 1.85; color: #374151; white-space: pre-line; }
-body:has(.mbody) .gls b { margin-bottom: 2px; font-size: 12px; color: #7FA3DB; letter-spacing: .02em; }
+body:has(.mbody) .gls b { margin-bottom: 2px; font-size: 12px; color: #1f55c0; letter-spacing: .02em; }
 
 /* 아래 미션 탭 — 따라다니지 않고 맨 끝에, 흰 바탕 · 지금 화면은 파란 윗줄 · 끝낸 미션은 초록 글자 */
-body:has(.mbody) .mnav { position: static; max-width: 680px; margin: 24px auto 0; background: #FFFFFF; border-top: 1px solid #E5E7EB; }
-body:has(.mbody) .mnav a { min-height: 0; padding: 11px 2px 13px; color: #9CA3AF; }
+body:has(.mbody) .mnav { position: static; max-width: 760px; margin: 24px auto 0; background: #FFFFFF; border-top: 1px solid #E5E7EB; }
+body:has(.mbody) .mnav a { min-height: 0; padding: 11px 2px 13px; color: #6e6e75; }
 body:has(.mbody) .mnav a[aria-current="page"]::before { top: -1px; left: 0; right: 0; height: 2px; border-radius: 0; background: #2F80ED; }
 body:has(.mbody) .mnav .L { font-size: 15px; font-weight: 800; }
-body:has(.mbody) .mnav .S { font-size: 11.5px; font-weight: 600; margin-top: 3px; color: #C4C9D2; }
-body:has(.mbody) .mnav .S.done { color: #6FBF8B; }
-body:has(.mbody) .mnav a.dn .L { color: #16A34A; }
+body:has(.mbody) .mnav .S { font-size: 12px; font-weight: 600; margin-top: 3px; color: #C4C9D2; }
+body:has(.mbody) .mnav .S.done { color: #167a41; }
+body:has(.mbody) .mnav a.dn .L { color: #167a41; }
 body:has(.mbody) .mnav a[aria-current="page"] .L { color: #111827; }
-body:has(.mbody) .mnav a[aria-current="page"] .S:not(.done) { color: #2F80ED; }
+body:has(.mbody) .mnav a[aria-current="page"] .S:not(.done) { color: #1f55c0; }
 body:has(.mbody) .toast { bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
 
 /* 미션 완료 안내 창 — 확정 시안 미션완료안내 ②안 "새 카드"(2026-10-31). 10초 뒤 저절로 닫힘(mission.js okPopup) */
 .okpop-bg { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, .45); }
 .okpop { width: min(380px, 92vw); padding: 26px 22px 18px; border-radius: 24px; background: #fff; box-shadow: 0 24px 60px rgba(15, 23, 42, .25); text-align: center; font-family: "Gothic A1", "Malgun Gothic", system-ui, sans-serif; }
-.okpop .seal { width: 76px; height: 76px; margin: 0 auto; border-radius: 50%; border: 3px solid #16A34A; background: #F0FAF3; color: #16A34A; display: grid; place-items: center; font-weight: 900; font-size: 15px; line-height: 1.15; transform: rotate(-8deg); }
+.okpop .seal { width: 76px; height: 76px; margin: 0 auto; border-radius: 50%; border: 3px solid #16A34A; background: #F0FAF3; color: #167a41; display: grid; place-items: center; font-weight: 900; font-size: 15px; line-height: 1.15; transform: rotate(-8deg); }
 .okpop .what { margin-top: 14px; font-size: 13px; color: #6B7280; }
 .okpop h2 { margin: 4px 0 0; font-size: 21px; font-weight: 900; color: #111827; word-break: keep-all; }
-.okpop .pill { display: inline-block; margin-top: 10px; padding: 4px 14px; border-radius: 99px; background: #EAF2FD; color: #2F80ED; font-weight: 900; font-size: 15px; }
+.okpop .pill { display: inline-block; margin-top: 10px; padding: 4px 14px; border-radius: 99px; background: #EAF2FD; color: #1f55c0; font-weight: 900; font-size: 15px; }
 .okpop .tot { margin-top: 16px; padding-top: 14px; border-top: 1px solid #EEF0F3; font-size: 13px; color: #6B7280; }
 .okpop .tot b { display: block; margin-top: 2px; font-size: 34px; font-weight: 300; color: #2F80ED; font-variant-numeric: tabular-nums; }
 .okpop .tot b u { text-decoration: none; font-size: 15px; color: #6B7280; margin-left: 2px; }
@@ -155,7 +155,7 @@ body:has(.mbody) .toast { bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 
 /* 완료 취소(확정 시안 미션완료취소 ①, R-24): 오늘이면 완료 버튼을 다시 누를 수 있음 → 확인 창 */
 body:has(.mbody) .pick[aria-pressed="true"]:not(:disabled) { cursor: pointer; }
-body:has(.mbody) .uhint { margin: 0; font-size: 12px; color: #9CA3AF; }
+body:has(.mbody) .uhint { margin: 0; font-size: 12px; color: #6e6e75; }
 body:has(.mbody) .uhint[hidden] { display: none; }
 .okpop.undo { padding: 22px 20px 16px; }
 .okpop.undo h2 { margin: 0; font-size: 19px; }
@@ -165,3 +165,21 @@ body:has(.mbody) .uhint[hidden] { display: none; }
 .okpop.undo .bt button { min-height: 48px; border-radius: 14px; border: 1px solid #E5E7EB; background: #F8FAFC; color: #374151; font: inherit; font-size: 15px; font-weight: 900; cursor: pointer; }
 .okpop.undo .bt button.no { background: #DC2626; border-color: #DC2626; color: #fff; }
 .okpop.undo .bt button:focus-visible { outline: 3px solid #93B9F2; outline-offset: 2px; }
+
+/* 미션 아래 탭(확정 시안 미션탭 2026-11-16): 안 한 미션 = 진하게, 한 미션 = 흐리게(예전과 반대), 5번째 칸 미션 홈 */
+body:has(.mbody) .mnav a { color: #111827; }
+body:has(.mbody) .mnav .S { color: #374151; }
+body:has(.mbody) .mnav a.dn .L { color: #167a41; }   /* 확정 시안 미션탭-완료글자 2 */
+body:has(.mbody) .mnav a.dn .S.done { color: #167a41; font-weight: 700; opacity: .6; }
+body:has(.mbody) .mnav a[aria-current="page"] .S:not(.done) { color: #1f55c0; }
+body:has(.mbody) .mnav a.hm .L { color: #1f55c0; }
+body:has(.mbody) .mnav a.hm .S { color: #6B7280; }
+/* 글자 크기 도구: 머리줄에서 제목 줄로 옮김(2026-11-24 머리줄 표준) — 작은 알약으로 */
+.mhead .krow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
+body:has(.mbody) .mhead .krow .k { margin-top: 0; }
+.mhead .fs { --rr: 10px; margin: 0 4px 0 0; }   /* 오른쪽 끝을 머리줄 이동 버튼 글자 끝(안쪽 여백 4px)에 맞춤 */   /* 알약 → 둥근 사각형(모서리 절반, 2026-11-24 사용자), 오른쪽 끝 */
+.mhead .fs button { border-radius: 7px; }
+.mhead .fs .pct { border-radius: 0; }   /* 가운데 100% 칸은 양옆 곧은 선(괄호처럼 둥글어지지 않게) */
+
+/* 카드 · 선택 칸 모서리 10px 통일(기준표 18판, 2026-11-25) — 말씀 · 퀴즈 · 기도 · 암송 화면 */
+body:has(.mbody) .pick, body:has(.mbody) .qopt { border-radius: 10px; }

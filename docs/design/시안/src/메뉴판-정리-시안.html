@@ -1,0 +1,71 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>메뉴판 정리 시안</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}body{margin:0;padding:28px 22px 36px;background:#E8ECF3;font-family:'Noto Sans KR',sans-serif;color:#111827}
+.row{display:flex;gap:24px;align-items:flex-start}.col{width:370px;flex:none}
+.lab{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:14.5px;font-weight:700;color:#374151}
+.lab b{display:inline-grid;place-items:center;width:22px;height:22px;border:1.5px solid #374151;border-radius:50%;font-size:12px}
+.ph{background:#fff;border-radius:24px;overflow:hidden;height:760px;box-shadow:0 2px 10px rgba(0,0,0,.06);position:relative}
+.note{margin-top:12px;padding:12px 14px;border-radius:14px;background:#FFF8E6;font-size:12.5px;line-height:1.6;color:#7C5A10}
+.hd{display:flex;gap:12px;align-items:center;padding:16px 14px;border-bottom:1px solid #EEF0F4}
+.av{width:56px;height:56px;border-radius:50%;background:#E6EDFB;display:grid;place-items:center;font-weight:900;color:#2F5FD0;font-size:20px;flex:none}
+.who{flex:1;min-width:0}.who b{display:block;font-size:17px}.who small{display:block;color:#6B7280;font-size:12.5px;line-height:1.4}
+.role{display:inline-block;margin-top:3px;padding:2px 9px;border-radius:99px;background:#FFEDD5;color:#C2410C;font-size:11.5px;font-weight:800}
+.role.s{background:#E6F2EC;color:#1F7A55}
+.go{display:inline-flex;margin-top:6px;padding:6px 11px;border-radius:99px;background:#EAF0FD;color:#2F5FD0;font-weight:800;font-size:12.5px}
+.x{width:38px;height:38px;border-radius:10px;background:#F1F5F9;display:grid;place-items:center;font-weight:900;align-self:flex-start}
+.pn{padding:4px 12px}.g{margin:12px 4px 4px;font-size:12px;font-weight:800;color:#2F5FD0}
+.it{display:flex;gap:9px;align-items:center;padding:7px 4px}
+.it i{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-style:normal;font-size:17px;flex:none;background:#F1F5F9}
+.it b{font-size:14.5px}.it small{display:block;font-size:12px;color:#6B7280}
+.k{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:99px;background:#FFEDD5;color:#C2410C;font-size:10.5px;font-weight:900;vertical-align:2px}
+.new{background:#FFF7E6;outline:2px dashed #F59E0B;border-radius:12px}
+.gone{opacity:.45;text-decoration:line-through}
+.ft{position:absolute;left:12px;right:12px;bottom:12px;display:flex;gap:8px}.ft span{flex:1;text-align:center;padding:12px;border-radius:12px;background:#EAF0FD;font-weight:800;font-size:14px}.ft span+span{background:#F1F5F9}
+</style></head><body><div class="row">
+
+<div class="col"><p class="lab"><b>1</b>지금</p><div class="ph">
+ <div class="hd"><div class="av">관</div><div class="who"><b>관리유님</b><small>잠실새내교회 유년부 · 부서 관…</small><span style="color:#2F5FD0;font-weight:800;font-size:13px">내 정보 · 사진 변경 ›</span></div><div class="x">✕</div></div>
+ <div class="pn">
+  <div class="g">함께하기</div>
+  <div class="it"><i>💬</i><div><b>쪽지</b><small>선생님 · 친구와 주고받기</small></div></div>
+  <div class="it"><i>🖼️</i><div><b>사진첩</b><small>부서 행사 사진</small></div></div>
+  <div class="g">생일</div>
+  <div class="it"><i>🎂</i><div><b>생일자 보기</b><small>다가오는 생일 · 월별 · 연간</small></div></div>
+  <div class="it"><i>🎁</i><div><b>선물 처리<span class="k">관리</span></b><small>선택 전 · 살 것 · 줄 것</small></div></div>
+  <div class="g">섬김 · 교사</div>
+  <div class="it"><i>✅</i><div><b>오늘 할 일</b><small>승인 · 선물 · 생일 챙기기</small></div></div>
+  <div class="it"><i>📋</i><div><b>출석</b><small>주일 출석 체크 · 보고서</small></div></div>
+  <div class="it"><i>⚙️</i><div><b>부서 관리<span class="k">관리</span></b><small>소속 · 반 · 부서 · 반 이동 · 설정</small></div></div>
+  <div class="g">내 정보</div>
+  <div class="it"><i>👤</i><div><b>내 계정</b><small>이름 · 비밀번호 · 가족</small></div></div>
+ </div><div class="ft"><span>📲 앱 설치</span><span>로그아웃</span></div>
+</div><div class="note">머리 안 "내 정보"와 맨 아래 "내 계정"이 겹치고, 소속 줄은 "부서 관…"으로 잘려요.</div></div>
+
+<div class="col"><p class="lab"><b>2</b>정리 후 — 부서 관리자</p><div class="ph">
+ <div class="hd new"><div class="av">관</div><div class="who"><b>관리유님</b><small>잠실새내교회 유년부</small><span class="role">부서 관리자</span><br><span class="go">내 계정 · 사진 변경 ›</span></div><div class="x">✕</div></div>
+ <div class="pn">
+  <div class="g">섬김 · 교사</div>
+  <div class="it"><i>✅</i><div><b>오늘 할 일</b><small>승인 · 선물 · 생일 챙기기</small></div></div>
+  <div class="it"><i>📋</i><div><b>출석</b><small>주일 출석 체크 · 보고서</small></div></div>
+  <div class="it"><i>⚙️</i><div><b>부서 관리<span class="k">관리</span></b><small>소속 · 반 · 부서 · 반 이동 · 설정</small></div></div>
+  <div class="g">생일</div>
+  <div class="it"><i>🎂</i><div><b>생일자 보기</b><small>다가오는 생일 · 월별 · 연간</small></div></div>
+  <div class="it"><i>🎁</i><div><b>선물 처리<span class="k">관리</span></b><small>선택 전 · 살 것 · 줄 것</small></div></div>
+  <div class="g new">함께하기</div>
+  <div class="it"><i>💬</i><div><b>쪽지</b><small>선생님 · 친구와 주고받기</small></div></div>
+  <div class="it"><i>🖼️</i><div><b>사진첩</b><small>부서 행사 사진</small></div></div>
+ </div><div class="ft"><span>📲 앱 설치</span><span>로그아웃</span></div>
+</div><div class="note">① 머리 한 곳 = 내 계정(아래 "내 정보" 묶음 없음) ② 소속 두 줄: 교회 · 부서 / 역할 딱지 ③ 순서 <b>섬김 · 교사 → 생일 → 함께하기</b>.</div></div>
+
+<div class="col"><p class="lab"><b>3</b>정리 후 — 학생</p><div class="ph">
+ <div class="hd new"><div class="av">홍</div><div class="who"><b>홍길동옛님</b><small>잠실새내교회 유년부</small><span class="role s">학생</span><br><span class="go">내 계정 · 사진 변경 ›</span></div><div class="x">✕</div></div>
+ <div class="pn">
+  <div class="g">생일</div>
+  <div class="it"><i>🎂</i><div><b>생일자 보기</b><small>다가오는 생일 · 월별 · 연간</small></div></div>
+  <div class="g">함께하기</div>
+  <div class="it"><i>💬</i><div><b>쪽지</b><small>선생님 · 친구와 주고받기</small></div></div>
+  <div class="it"><i>🖼️</i><div><b>사진첩</b><small>부서 행사 사진</small></div></div>
+ </div><div class="ft"><span>📲 앱 설치</span><span>로그아웃</span></div>
+</div><div class="note">학생 · 학부모는 "섬김 · 교사" 묶음이 없어서 <b>생일 → 함께하기</b>. 역할 딱지는 학생 초록, 관리자 주황.</div></div>
+</div></body></html>

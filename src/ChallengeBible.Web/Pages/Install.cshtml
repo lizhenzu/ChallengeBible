@@ -1,0 +1,65 @@
+@page "/install"
+@model ChallengeBible.Web.Pages.InstallModel
+@using ChallengeBible.Web.Services
+@* 앱 설치 안내(ADR 0115, 확정 시안 설치안내): 기기마다 한 덩어리만 보인다(install.js 가 data-v 로 고름). 스크립트가 안 돌면 안드로이드 안내 + 손으로 하는 법 *@
+<link rel="stylesheet" href="~/css/install.css" asp-append-version="true" />
+<main class="ins" data-install-page data-back="@Model.Back" data-v="android">
+<div class="ins-card">
+    <button type="button" class="ins-x" data-later aria-label="닫기 (나중에 할게요)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <img class="ins-ic" src="@BrandingService.IconSvg" alt="" width="76" height="76" />
+
+    <section data-for="android desktop">
+        <h1 class="ins-t">도전<i class="ex1">!</i><i class="ex2">!</i><i class="ex3">!</i> 성경말씀<br>바로가기 설치해요</h1>
+        <p class="ins-d" data-only="android">한 번만 설치하면 아이콘을 눌러<br>바로 오늘의 미션으로 가요.</p>
+        <p class="ins-d" data-only="desktop">한 번 설치하면 클릭 한 번으로 바로 열려요.</p>
+        <div class="ins-prev" data-only="desktop" aria-hidden="true">
+            <div class="tip">도전!!! 성경말씀</div>
+            <div class="bar"><i class="ph"></i><i class="ph"></i><i class="me"><img src="@BrandingService.IconSvg" alt="" width="26" height="26" /></i><i class="ph"></i><i class="ph"></i></div>
+        </div>
+        <p class="ins-cap" data-only="desktop">바탕화면 · 시작 메뉴 · 작업 표시줄에 아이콘이 생겨요</p>
+        <ul class="ins-ben">
+            <li><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></div><div><strong>앱처럼 전체 화면으로</strong><span>주소창 없이 말씀에만 집중해요</span></div></li>
+            <li><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg></div><div><strong>주소를 외울 필요 없어요</strong><span>아이콘 클릭 한 번이면 끝</span></div></li>
+        </ul>
+        <button type="button" class="ins-go" data-install><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>바로가기 설치하기</span></button>
+        <p class="ins-manual" data-manual hidden>브라우저 메뉴(<b>⋮</b> 또는 <b>≡</b>)를 열고 <b>홈 화면에 추가</b> 또는 <b>앱 설치</b>를 눌러 주세요. 메뉴에 없으면 이미 설치돼 있어요 — 아래 <b>이미 설치했어요</b>를 눌러 주세요.</p>
+    </section>
+
+    <section data-for="ios" hidden>
+        <h1 class="ins-t sm">아이폰은 이렇게<br>설치해요</h1>
+        <ol class="ins-steps">
+            <li><em>1</em><div>화면 아래 <kbd>공유 ⬆</kbd> 버튼을 눌러요<small>안 보이면 <kbd>···</kbd> 를 먼저 눌러요</small></div></li>
+            <li><em>2</em><div>목록을 내려 <kbd>➕ 홈 화면에 추가</kbd></div></li>
+            <li><em>3</em><div>오른쪽 위 <kbd>추가</kbd> 를 누르면 끝!</div></li>
+        </ol>
+        <p class="ins-arrow" aria-hidden="true">여기를 눌러요 ⬇</p>
+    </section>
+
+    <section data-for="desktop-other" hidden>
+        <h1 class="ins-t">도전<i class="ex1">!</i><i class="ex2">!</i><i class="ex3">!</i> 성경말씀<br>즐겨찾기에 추가해요</h1>
+        <p class="ins-d">이 브라우저는 설치를 지원하지 않아요.<br><kbd>Ctrl</kbd> + <kbd>D</kbd>(맥은 <kbd>⌘</kbd> + <kbd>D</kbd>)로 즐겨찾기에 넣거나,<br>크롬 · 엣지에서 열면 PC에 설치할 수 있어요.</p>
+    </section>
+
+    <section data-for="inapp" hidden>
+        <h1 class="ins-t sm">카톡 안에서는<br>설치가 안 돼요</h1>
+        <p class="ins-d">인터넷 앱으로 열어서 설치해 주세요.<br>버튼을 누르면 바로 열려요.</p>
+        <button type="button" class="ins-go blue" data-open-out><span data-only-os="android">🌐 크롬으로 열기</span><span data-only-os="ios">🌐 사파리로 열기</span></button>
+        <p class="ins-note">안 열리면 오른쪽 위나 아래의 <b>···</b> 메뉴에서 <b>다른 브라우저로 열기</b>를 눌러 주세요.</p>
+    </section>
+
+    <section data-for="done" hidden>
+        <div class="ins-check" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <h1 class="ins-t sm">설치가 끝났어요</h1>
+        <p class="ins-d">이제 바탕화면의 아이콘으로<br>언제든 바로 열 수 있어요</p>
+        <a class="ins-go" href="@Model.Back">지금 열기</a>
+        <a class="ins-ghost" href="@Model.Back">닫기</a>
+    </section>
+
+    <div class="ins-more" data-more>
+        <button type="button" data-done>이미 설치했어요</button>
+        <i class="dv" aria-hidden="true"></i>
+        <button type="button" data-later>나중에 할게요</button>
+    </div>
+</div>
+</main>
+<script src="~/js/install.js" asp-append-version="true" defer></script>

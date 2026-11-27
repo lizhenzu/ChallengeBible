@@ -1,4 +1,4 @@
-using ChallengeBible.Web.Auth;
+﻿using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -43,7 +43,9 @@ public class ImpersonateSwitchModel(UserSwitchService switcher, AccountService a
             return Page();
         }
         await CurrentUser.SignInAsync(HttpContext, await accounts.ToSignedInAsync(target, ct), admin);
-        return LocalRedirect(UserSwitchService.Next(Back, slug));
+        var next = UserSwitchService.Next(Back, slug);
+        if (next == "/" + slug) TempData[LoginModel.TodoCheckKey] = "1";   // 부서 홈으로 가면 로그인 직후처럼 할 일 화면으로(R-309, 2026-11-16 사용자)
+        return LocalRedirect(next);
     }
 
     public string Url(int? dept = null, string? role = null, string? q = null, int? n = null, bool frag = false)

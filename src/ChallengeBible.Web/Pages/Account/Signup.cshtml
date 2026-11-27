@@ -1,8 +1,8 @@
-@page "/account/signup"
+﻿@page "/account/signup"
 @model ChallengeBible.Web.Pages.Account.SignupModel
-@* 확정 시안: 회원가입-단독시안 (R-137 이름 · 이메일 · 비밀번호만) *@
+@* 확정 시안: 회원가입-단독시안 (R-137) + 가입연결-탈퇴-시안 ①(2026-11-20): 전화 · 생일은 "더 넣기"(선택) *@
 <partial name="_Top" />
-<main class="page gut"><div class="wrap">
+<main class="page gut w760"><div class="wrap">
     <div>
         <h1>반가워요, 함께해요</h1>
         <p class="sub">이름 · 이메일 · 비밀번호만 있으면 돼요.</p>
@@ -32,9 +32,26 @@
             <input class="in" id="pw2" asp-for="PasswordConfirm" type="password" autocomplete="new-password" placeholder="한 번 더 입력" aria-invalid="@(E("PasswordConfirm") is null ? "false" : "true")" />
             <p class="hint bad">@E("PasswordConfirm")</p>
         </div>
+        <fieldset class="su-more">
+            <legend><b>더 넣기</b> · 넣고 싶을 때만(필수 아님)</legend>
+            <div class="f">
+                <label for="ph">전화번호</label>
+                <input class="in" id="ph" asp-for="Phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="010-0000-0000" maxlength="20" aria-invalid="@(E("Phone") is null ? "false" : "true")" />
+                @if (E("Phone") is { } pe) { <p class="hint bad">@pe</p> }
+            </div>
+            <div class="f">
+                <label>생일 <small>연도 없이</small></label>
+                <div class="bd-two">
+                    <select class="sel" name="BMonth" aria-label="생일 월"><option value="0">월</option>@for (var m = 1; m <= 12; m++) { <option value="@m" selected="@(Model.BMonth == m)">@(m)월</option> }</select>
+                    <select class="sel" name="BDay" aria-label="생일 일"><option value="0">일</option>@for (var d = 1; d <= 31; d++) { <option value="@d" selected="@(Model.BDay == d)">@(d)일</option> }</select>
+                </div>
+                @if (E("Birth") is { } be) { <p class="hint bad">@be</p> }
+            </div>
+            <p class="hint">부서 명부에 같은 이름이 있으면 본인 확인에 써요.</p>
+        </fieldset>
         <button type="submit" class="btn p">가입하기</button>
     </form>
 
-    <div class="note"><b>전화번호 · 생일 · 주소는 받지 않아요.</b><br>비밀번호를 잊으면 부서 선생님이 새 임시 비밀번호를 만들어 줄 수 있어요.</div>
+    <div class="note"><b>주소는 받지 않아요.</b> 전화번호 · 생일은 넣고 싶을 때만 넣어요.<br>비밀번호를 잊으면 부서 선생님이 새 임시 비밀번호를 만들어 줄 수 있어요.</div>
     <div class="foot"><div>이미 계정이 있나요?<a href="/account/login">로그인</a></div></div>
 </div></main>

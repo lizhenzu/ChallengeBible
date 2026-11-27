@@ -1,5 +1,5 @@
-@model ChallengeBible.Web.Services.BirthdayPickView
-@* 생일 · 새친구 · 전도 선물 고르기 · 고른 뒤(확정 시안 생일-선물 ② · ③, 전도-선물 ④). 학생 화면과 로그인 없는 링크 화면이 함께 쓴다. 금액 · 가격 숨김, 이모지 없음 *@
+﻿@model ChallengeBible.Web.Services.BirthdayPickView
+@* 생일 · 새친구 · 전도 선물 고르기 · 고른 뒤(확정 시안 생일-선물 ② · ③, 전도-선물 ④). 학생 화면과 로그인 없는 링크 화면이 함께 쓴다. 금액 · 가격 숨김. 고른 뒤 화면은 2026-11-20 시안부터 이모지 씀 *@
 @{
     var g = Model.Gift;
     var picking = g.State == "Open" || (Model.Change && g.State == "Picked");
@@ -7,11 +7,23 @@
     var until = g.OpenUntil is { } u && g.State == "Open" ? $" · {u:M월 d일}까지 골라요" : "";
     var sub = bday ? $"{g.Birthday:M월 d일} 생일" + until
         : g.Kind == "Reading" ? $"{g.About} 완독" + until
+        : g.Kind == "Copy" ? $"{g.About} 완필" + until
         : g.Kind == "Invite" ? $"{ChallengeBible.Web.Pages.Admin.GiftsModel.Obj(g.About ?? "친구")} 데려와 줘서 고마워요" : "와 줘서 고마워요";
     var cheer = Model.Link ? "갖고 싶은 선물 하나를 골라 주세요" : bday ? "생일을 축하해요! 갖고 싶은 선물 하나를 골라요"
-        : g.Kind == "Reading" ? "성경을 다 읽었어요, 축하해요! 갖고 싶은 선물 하나를 골라요" : "고마워요! 갖고 싶은 선물 하나를 골라요";
+        : g.Kind == "Reading" ? "성경을 다 읽었어요, 축하해요! 갖고 싶은 선물 하나를 골라요"
+        : g.Kind == "Copy" ? $"{g.About} 필사를 다 썼어요, 축하해요! 갖고 싶은 선물 하나를 골라요" : "고마워요! 갖고 싶은 선물 하나를 골라요";
 }
 @if (Model.Msg is { } msg) { <p class="gk-msg" role="status">@msg</p> }
+@if (Model.Link && g.State != "Expired")
+{
+    @* 확정 시안 생일링크-부모안내 ③: 부모님 할 일 3단계 — 고르기 전 1 · 고른 뒤 모두 *@
+    var doneAll = !picking;
+    <ol class="gk-3" aria-label="부모님이 하실 일">
+        <li class="on"><i>1</i>선물 보기</li>
+        <li class="@(doneAll ? "on" : null)"><i>2</i>하나 누르기</li>
+        <li class="@(doneAll ? "on" : null)"><i>3</i>끝!<small>선생님이 준비</small></li>
+    </ol>
+}
 @if (g.State == "Expired")
 {
     <h1>@g.KindLabel</h1>
@@ -20,8 +32,10 @@
 else if (picking)
 {
     @if (!Model.Link) { <h1>@g.KindLabel 고르기</h1> }
-    @if (bday || g.Kind == "Reading" || !Model.Link) { <p class="gk-sub">@sub</p> }   @* 링크 화면의 새친구 · 전도는 위 큰 글에 이미 있다 *@
-    <div class="gk-mine gk-mine-b"><span>@cheer</span></div>
+    @if (!Model.Link) { <p class="gk-sub">@sub</p> }
+    @if (Model.Link && g.OpenUntil is { } due && g.State == "Open") { <div class="gk-due"><span>고르는 기한</span><b>@due.ToString("M월 d일")까지</b></div> }
+    @if (Model.Link) { <p class="gk-ask">아이와 함께 보고 마음에 드는 선물 <b>하나</b>를 눌러 주세요.</p> }
+    else { <div class="gk-mine gk-mine-b"><span>@cheer</span></div> }
     @if (Model.Items.Count == 0) { <p class="gk-note">지금 고를 수 있는 선물이 없어요. 선생님께 말씀해 주세요.</p> }
     <form method="post" class="gk-grid" data-gk-pick>
         @foreach (var i in Model.Items)
@@ -38,16 +52,53 @@ else if (picking)
 }
 else
 {
-    <div class="gk-done">
-        <div class="gk-pic big">@if (g.HasImage && g.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" onerror="this.remove()" /> }</div>
-        <h1>@g.ItemName</h1>
-        <div class="gk-st">@(g.State == "Purchased" ? "선생님이 준비했어요" : "준비 중이에요")</div>
-        <ul class="gk-steps">
-            <li class="gk-on"><i></i><span>골랐어요</span><span class="num">@g.PickedUtc?.ToString("M월 d일")</span></li>
-            <li class="@(g.PurchasedUtc is not null ? "gk-on" : "")"><i></i><span>선생님이 준비했어요</span><span class="num">@g.PurchasedUtc?.ToString("M월 d일")</span></li>
-            <li><i></i><span>선물을 받았어요</span><span></span></li>
-        </ul>
-        @if (g.State == "Picked") { <a class="gk-btn gk-plain" href="@Model.Self?change=true">다른 선물로 바꾸기</a> }
-        <p class="gk-hint">선생님이 사기 전까지는 다른 선물로 바꿀 수 있어요.</p>
+    @* 고른 뒤(2026-11-20 확정 시안 고른선물 ②): 분홍 머리 상자(종류 · 사진 · 이름 · 상태) → 가로 3단계 → 안내 상자 → [다른 선물로 바꾸기]. gkd- 접두어 *@
+    var step = g.State == "Delivered" ? 3 : g.PurchasedUtc is not null || g.State == "Purchased" ? 2 : 1;
+    <div class="gk-done gkd">
+        @if (Model.Link)
+        {
+            <div class="gk-fin"><span class="gk-ck" aria-hidden="true">✓</span><h2>다 됐어요</h2>
+                <p>@(g.State == "Purchased" ? "선생님이 선물을 준비했어요. 주일에 전해 드려요." : "부모님이 더 하실 일은 없어요.")<br />@(g.State == "Purchased" ? "부모님이 더 하실 일은 없어요." : "선생님이 준비해서 주일에 전해 드려요.")</p></div>
+        }
+        <div class="gkd-hero">
+            <span class="gkd-k">@(bday ? $"🎂 {g.Birthday:M월 d일} 생일 선물" : g.Kind == "Reading" ? $"📖 {g.About} 완독 선물" : g.Kind == "Copy" ? $"✍️ {g.About} 완필 선물" : $"🎁 {g.KindLabel}")</span>
+            <div class="gkd-pic"><span aria-hidden="true">🎁</span>@if (g.HasImage && g.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" onerror="this.remove()" /> }</div>
+            <h1>@g.ItemName</h1>
+            <span class="gkd-st">● @(step == 3 ? "받았어요" : step == 2 ? "선생님이 준비했어요" : "준비 중이에요")</span>
+        </div>
+        <ol class="gkd-flow" style="--gkd-p: @(step == 1 ? "0" : step == 2 ? ".5" : "1")">
+            <li class="gk-on"><i aria-hidden="true">✅</i><b>@(g.PickedByStaff is not null ? "선생님이 골라 주셨어요" : "골랐어요")</b><small class="num">@g.PickedUtc?.ToString("M월 d일")</small></li>
+            <li class="@(step >= 2 ? "gk-on" : "")"><i aria-hidden="true">🛍️</i><b>선생님이 준비</b><small class="num">@g.PurchasedUtc?.ToString("M월 d일")</small></li>
+            <li class="@(step >= 3 ? "gk-on" : "")"><i aria-hidden="true">🎁</i><b>@(Model.Link ? "아이가 받기" : "선물 받기")</b><small>주일에</small></li>
+        </ol>
+        <div class="gkd-info">
+            <div><span aria-hidden="true">👩‍🏫</span><span>선생님이 선물을 준비해서 <b>주일에 전해 줘요.</b><em>준비가 끝나면 위 단계에 표시돼요.</em></span></div>
+            @if (g.State == "Picked") { <div><span aria-hidden="true">🔁</span><span>선생님이 사기 전까지는 <b>바꾸거나 취소할 수 있어요.</b>@if (Model.Link) { <em>이 링크로 다시 들어와 바꾸면 돼요.</em> }</span></div> }
+        </div>
+        @if (g.State == "Picked")
+        {
+            <a class="gk-btn gk-plain gkd-btn" href="@Model.Self?change=true">다른 선물로 바꾸기</a>
+            @* 선물 취소(R-347, 2026-11-20 확정 시안 선물취소): 한 번 더 묻고 지운다. 스크립트가 없으면 바로 보내는 버튼 *@
+            <form method="post" action="@(Model.Self)?handler=Cancel" asp-antiforgery="true" class="gkc" data-gkc>
+                <button type="submit" class="gkc-open" data-gkc-open>선물 취소</button>
+                <div class="gkc-dim" data-gkc-dim hidden>
+                    <div class="gkc-box" role="dialog" aria-modal="true" aria-labelledby="gkcT">
+                        <div class="gkc-em" aria-hidden="true">🎁</div>
+                        <h2 id="gkcT">고른 선물을 취소할까요?</h2>
+                        <p><b>@g.ItemName</b>@(ChallengeBible.Web.Pages.Admin.GiftsModel.Obj(g.ItemName ?? "선물")[(g.ItemName ?? "선물").Length..]) 취소해요.<br />
+                            @if (Model.Late) { <text>기한이 지나서 <b>다시 고를 수 없어요.</b> 선생님께 말씀드려야 해요.</text> }
+                            else if (g.OpenUntil is { } cu) { <text>@cu.ToString("M월 d일")까지 다시 고를 수 있어요.</text> }
+                            else { <text>다시 고를 수 있어요.</text> }</p>
+                        <div class="gkc-two"><button type="button" data-gkc-no>아니요</button><button type="submit" class="gkc-yes">취소할게요</button></div>
+                    </div>
+                </div>
+            </form>
+            <script>
+                (() => { const f = document.querySelector('[data-gkc]'); if (!f) return; const d = f.querySelector('[data-gkc-dim]');
+                    f.querySelector('[data-gkc-open]').addEventListener('click', e => { e.preventDefault(); d.hidden = false; });
+                    f.querySelector('[data-gkc-no]').addEventListener('click', () => { d.hidden = true; });
+                    d.addEventListener('click', e => { if (e.target === d) d.hidden = true; }); })();
+            </script>
+        }
     </div>
 }

@@ -1,4 +1,4 @@
-using ChallengeBible.Web.Auth;
+﻿using ChallengeBible.Web.Auth;
 using ChallengeBible.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +16,8 @@ public class AccountsModel(PlatformAccountService accounts, ImpersonationService
     [BindProperty(SupportsGet = true)] public string? Q { get; set; }
     [BindProperty(SupportsGet = true)] public string? Id { get; set; }
     [BindProperty(SupportsGet = true)] public string? Ok { get; set; }
+    /// <summary>가장한 뒤 갈 곳(플랫폼 홈 부서 이름 → 그 부서 관리 홈, 2026-11-18). 이 사이트 안 주소만.</summary>
+    [BindProperty(SupportsGet = true)] public string? Go { get; set; }
 
     public List<AccountHit> Hits { get; private set; } = [];
     public AccountDetail? Detail { get; private set; }
@@ -27,9 +29,12 @@ public class AccountsModel(PlatformAccountService accounts, ImpersonationService
     public bool AskImp { get; private set; }
 
     public bool AskRename { get; private set; }
+    public DeptMoveOptions? Move { get; private set; }
+    public bool AskMove { get; private set; }
 
-    public async Task OnGetAsync(bool askMarks, bool askImp, bool askRename, CancellationToken ct)
+    public async Task OnGetAsync(bool askMarks, bool askImp, bool askRename, bool askMove, CancellationToken ct)
     {
+        AskMove = askMove;
         AskMarks = askMarks;
         AskRename = askRename;
         AskImp = askImp;
@@ -47,6 +52,8 @@ public class AccountsModel(PlatformAccountService accounts, ImpersonationService
             return Page();
         }
         await CurrentUser.SignInAsync(HttpContext, await signed.ToSignedInAsync(target, ct), Me);
+        if (SafeGo(Go) is { } go) return Redirect(go);   // 부서 관리 홈으로 바로
+        TempData[Account.LoginModel.TodoCheckKey] = "1";   // 가장도 로그인 직후처럼: 할 일이 있으면 할 일 화면으로(R-309, 2026-11-16 사용자)
         return Redirect("/");
     }
 
@@ -89,15 +96,39 @@ public class AccountsModel(PlatformAccountService accounts, ImpersonationService
         return RedirectToPage(new { Q = moved, Id = moved, Ok = "renamed" });
     }
 
+    /// <summary>[부서 바로 옮기기](2026-11-18 사용자 확정 시안): 받는 부서 승인 없이 옮긴다.</summary>
+    public async Task<IActionResult> OnPostMoveDeptAsync(int target, string? role, CancellationToken ct)
+    {
+        var (error, moved) = Id is { } id ? await accounts.MoveDeptAsync(Me, id, target, role, ct) : ("계정을 찾을 수 없어요.", 0);
+        if (error is not null)
+        {
+            AskMove = true;
+            Error = error;
+            await LoadAsync(ct);
+            return Page();
+        }
+        TempData["moved"] = moved;
+        return RedirectToPage(new { Q, Id, Ok = "moved" });
+    }
+
+    public string MoveUrl(string id) => Url(id) + "&askMove=true#move";
+
     private async Task LoadAsync(CancellationToken ct)
     {
         Hits = await accounts.SearchAsync(Me, Q, ct);
         var id = Id ?? (Hits.Count > 0 ? Hits[0].Id : null);
         Detail = id is { } x ? await accounts.DetailAsync(Me, x, ct) : null;
         Id = Detail?.Id;
+        Move = Detail is null ? null : await accounts.MoveOptionsAsync(Me, Detail.Id, ct);
     }
 
     public string ImpUrl(string id) => $"/platform/accounts?q={Uri.EscapeDataString(Q ?? "")}&id={Uri.EscapeDataString(id)}&askImp=true#imp";
+
+    /// <summary>플랫폼 홈 부서 이름 → 그 부서 관리자로 가장 확인 → 관리 홈.</summary>
+    public static string ImpToAdminUrl(string adminUser, string slug) =>
+        $"/platform/accounts?q={Uri.EscapeDataString(adminUser)}&id={Uri.EscapeDataString(adminUser)}&askImp=true&go={Uri.EscapeDataString($"/{slug}/admin")}#imp";
+
+    public static string? SafeGo(string? go) => go is { Length: > 1 } g && g[0] == '/' && !g.StartsWith("//") && !g.StartsWith("/\\") ? g : null;
 
     public string RenameUrl(string id) => Url(id) + "&askRename=true#rename";
 

@@ -1,0 +1,85 @@
+﻿@page "/{slug}/gift-status"
+@model ChallengeBible.Web.Pages.Mission.GiftStatusModel
+@using ChallengeBible.Web.Services
+@* 「선물 대상자와 상태」 상세(2026-11-23 사용자 확정 B안 · ADR 0138).
+   홈 「오늘의 말씀」 아래 한 줄 알림을 누르면 온다. 시안 docs/design/시안/선물알림-오늘의말씀아래-3안.html B안 상세.
+   사람마다 한 칸 — 이름 · 개인 배지 · 선물 이름 · 3칸 눈금 · 상태 알약. 가격 없음(R-297). *@
+@{
+    var slug = Model.Slug;
+    var ko = System.Globalization.CultureInfo.GetCultureInfo("ko-KR");
+    var b = Model.Board;
+    var rest = b is null ? 0 : Math.Max(0, b.Total - b.Delivered);
+}
+<link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
+@{ ViewData["PbTitle"] = "선물 대상자와 상태"; }
+<partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
+<div class="vb vb-ch vb-gs">
+<main class="vb-ch-main">
+    <div class="vb-ch-hd">
+        <time class="vb-ch-date" datetime="@Model.Today.ToString("yyyy-MM-dd")">@Model.Today.ToString("M월 d일", ko) @Model.Today.ToString("dddd", ko)</time>
+        <h1>선물 대상자와 상태</h1>
+        <p>@if (b is { Total: > 0 })
+           {
+               <text>이번 주 선물 <b class="num">@(b.Total)</b>명 · 받았어요 <b class="num">@(b.Delivered)</b>명</text>
+           }
+           else
+           {
+               <text>미션 · 생일 · 완독 선물이 생기면 여기에 보여요</text>
+           }</p>
+    </div>
+
+    @if (b is { Total: > 0 })
+    {
+        @* 진행 스트립 — 골랐어요 → 샀어요 → 줬어요(B안 상세) *@
+        <section class="vb-gs-sum" aria-label="이번 주 선물 진행">
+            <div class="hd"><span>이번 주 선물 진행</span><b class="num">@(b.Total)명 중 @(b.Delivered)명 완료</b></div>
+            <div class="bar" aria-hidden="true">
+                <u class="on"></u>
+                <u class="@(b.Delivered > 0 || b.Purchased > 0 ? "on" : "")"></u>
+                <u class="@(b.Delivered > 0 ? "on" : "")"></u>
+            </div>
+            <div class="leg">
+                <span>골랐어요 <b class="num">@b.Picked</b></span>
+                <span>샀어요 <b class="num">@b.Purchased</b></span>
+                <span>줬어요 <b class="num">@b.Delivered</b></span>
+            </div>
+        </section>
+    }
+
+    <section class="vb-gs-card" aria-labelledby="vbGsList">
+        <div class="vb-ch-cardh"><h2 id="vbGsList">선물 대상자와 상태</h2><span>최근 순</span></div>
+        @if (b is null || b.Total == 0)
+        {
+            <p class="vb-gift-empty"><b>아직 선물 대상자가 없어요</b><span>미션 · 생일 · 완독 선물이 생기면 여기에 보여요</span></p>
+        }
+        else
+        {
+            <div class="vb-gs-list" role="list" aria-label="선물 대상자">
+                @foreach (var r in b.Rows)
+                {
+                    <div class="vb-gs-row@(r.Step == 3 ? " done" : "")" role="listitem">
+                        <span class="pic" aria-hidden="true">@if (r.HasImage && r.ItemId is int iid) { <img src="/images/AwardItem/@(iid).jpg" alt="" loading="lazy" onerror="this.remove()" /> } else { <text>🎁</text> }</span>
+                        <span class="t">
+                            <span class="hd">
+                                <b>@r.Who</b>
+                                <span class="st s@(r.Step)">@r.StateText</span>
+                            </span>
+                            <span class="k"><em class="k-@r.KindTone">@r.KindText</em><span>@r.ItemName</span></span>
+                            <span class="dots" aria-hidden="true">
+                                <u class="on"></u><u class="@(r.Step >= 2 ? "on" : "")"></u><u class="@(r.Step >= 3 ? "on" : "")"></u>
+                            </span>
+                            <span class="lbl" aria-hidden="true"><span>골랐어요</span><span>샀어요</span><span>줬어요</span></span>
+                        </span>
+                    </div>
+                }
+            </div>
+            @if (b.Total > b.Rows.Count)
+            {
+                <a class="vb-giftfoot" href="/@slug/gift-board">선물 대상자 @(b.Total)명 전체 보기 ›</a>
+            }
+        }
+    </section>
+
+    <p class="vb-gs-note">받은 선물은 받은 지 30일까지 보여요. 점수 · 금액은 여기에 없어요.</p>
+</main>
+</div>

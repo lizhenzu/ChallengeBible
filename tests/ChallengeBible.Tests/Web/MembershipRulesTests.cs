@@ -215,20 +215,18 @@ public class MembershipRulesTests
     }
 
     [Fact]
-    public async Task 관리자_지정과_해제_내_관리자_역할은_뺄_수_없다()
+    public async Task 사람마다_관리자를_지정_해제하지_않는다_역할_업무로만()
     {
         var teacher = Person("sunmi", "최선미");
         var m = InMemoryDb.SeedMembership(_db, _kids.Id, teacher.UserName!, MembershipStatus.Approved, Roles.Teacher);
         var svc = Members(_kids);
 
-        Assert.Equal(MemberError.None, await svc.SetAdminAsync(_admin.UserName!, m.Id, true));
-        Assert.True((await svc.ListAsync(new MemberFilter(MembershipStatus.Approved, "선미", null))).Single().IsAdmin);
-        Assert.Equal(MemberError.None, await svc.SetAdminAsync(_admin.UserName!, m.Id, false));
+        Assert.Equal(MemberError.RuleOnly, await svc.SetAdminAsync(_admin.UserName!, m.Id, true));   // 찬양 담당 같은 사람을 실수로 관리자로 못 만든다
         Assert.False((await svc.ListAsync(new MemberFilter(MembershipStatus.Approved, "선미", null))).Single().IsAdmin);
-
         int mine;
         using (var raw = InMemoryDb.Raw(_db)) mine = raw.DeptRoles.Single(d => d.UserId == _admin.Id).Id;
-        Assert.Equal(MemberError.SelfAdminRemove, await svc.SetAdminAsync(_admin.UserName!, mine, false));
+        Assert.Equal(MemberError.RuleOnly, await svc.SetAdminAsync(_admin.UserName!, mine, false));
+        Assert.Contains(_admin.UserName!, (await svc.ListAsync(new MemberFilter(MembershipStatus.Approved, null, null))).Where(r => r.IsAdmin).Select(r => r.UserName));   // 관리자는 그대로
     }
 
     // ── 임시 부서 ──
@@ -279,7 +277,7 @@ public class MembershipRulesTests
 
     // ── 한 사람 한 부서 ──
 
-    private JoinService Join() => new(new InMemoryDb(_db, new RequestScope()), new RequestScope(), _time);
+    private JoinService Join() => new(new InMemoryDb(_db, new RequestScope()), new InMemorySystemDb(_db), new RequestScope(), _time);
 
     [Fact]
     public async Task 임시_부서_사람은_신청할_수_있고_진짜_부서_소속이나_기다리는_신청이_있으면_못_한다()
@@ -287,15 +285,15 @@ public class MembershipRulesTests
         var kid = Person("cheolsu", "김철수");
         InMemoryDb.SeedMembership(_db, _lobby.Id, kid.UserName!, MembershipStatus.Approved, Roles.Participant);
         var scope = new RequestScope();
-        var join = new JoinService(new InMemoryDb(_db, scope), scope, _time);
+        var join = new JoinService(new InMemoryDb(_db, scope), new InMemorySystemDb(_db), scope, _time);
         Assert.Equal(JoinError.None, (await join.ApplyAsync(kid.UserName!, "JSKIDS", SignupRoleKind.Student)).Error);
 
         var scope2 = new RequestScope();
-        var again = new JoinService(new InMemoryDb(_db, scope2), scope2, _time);
+        var again = new JoinService(new InMemoryDb(_db, scope2), new InMemorySystemDb(_db), scope2, _time);
         Assert.Equal(JoinError.AlreadyMember, (await again.ApplyAsync(kid.UserName!, "JSELEM", SignupRoleKind.Student)).Error);
 
         var scope3 = new RequestScope();
-        var admin = new JoinService(new InMemoryDb(_db, scope3), scope3, _time);
+        var admin = new JoinService(new InMemoryDb(_db, scope3), new InMemorySystemDb(_db), scope3, _time);
         Assert.Equal(JoinError.AlreadyMember, (await admin.ApplyAsync(_admin.UserName!, "JSELEM", SignupRoleKind.Teacher)).Error);
     }
 

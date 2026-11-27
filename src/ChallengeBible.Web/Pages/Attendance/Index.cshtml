@@ -6,10 +6,11 @@
     // 위쪽 글자: 유년부 › 관리자전용 › 출석부(R-271). 부서 이름은 마지막 낱말만("잠실새내교회 유년부" → "유년부")
     var dn = Model.Tenant.Current.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? Model.Tenant.Current.Name;
 }
+@{ ViewData["PbDrawer"] = "att"; ViewData["PbTitle"] = "출석"; }
+<partial name="_Top" view-data="ViewData" />
 <main class="att gut attw"><div class="wrap">@* attw: 데스크톱에서 유년부처럼 760px(R-270) *@
     @if (!Model.Scope.Any)
     {
-        <div class="top"><div class="crumb"><span><a href="/@slug">@dn</a> › 관리자전용 › 출석부</span><a href="/@slug">홈으로</a></div><h1>출석</h1></div>
         <p class="none">아직 맡은 반이 없어요. 부서 관리자가 반 선생님으로 넣으면 출석부가 보여요.</p>
     }
     else
@@ -19,7 +20,6 @@
         var pct = b.Total == 0 ? 0 : b.Present * 100 / b.Total;
         var done = b.Groups.Count(g => g.Kids.Any(k => k.Present));
         <div class="top">
-            <div class="crumb"><span><a href="/@slug">@dn</a> › @if (Model.Tenant.IsAdmin) { <a href="/@slug/admin">관리자전용</a> } else { <text>관리자전용</text> } › 출석부</span><a href="/@slug">홈으로</a></div>
             @{ var prevD = b.Sunday.AddDays(-7); var nextD = b.Sunday.AddDays(7); var nextOk = nextD <= b.ThisSunday; }
             <div class="nvB">
                 <div class="h"><h1>@b.Sunday.ToString("M월 d일") 주일</h1><span class="@(isThis ? "now" : "")">@(isThis ? "이번 주일" : "지난 주일 · 고치는 중")</span></div>
@@ -81,5 +81,4 @@
         <div class="toast hidden" id="toast" role="alert"></div>
     }
 </div></main>
-<partial name="_AttTabs" model='(slug, "a", Model.Scope.Newcomers)' />
 <script src="~/js/attendance.js" asp-append-version="true"></script>

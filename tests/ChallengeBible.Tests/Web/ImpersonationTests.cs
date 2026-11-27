@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using ChallengeBible.Infrastructure.Data;
 using ChallengeBible.Infrastructure.Tenancy;
@@ -73,10 +73,14 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
         var go = await Post(c, $"/platform/accounts?handler=Impersonate&q=jieun&id={_jieun}", $"/platform/accounts?q=jieun&id={_jieun}&askImp=true");
         Assert.Equal("/", go.Headers.Location!.OriginalString);
 
-        // 박지은 그대로: 부서 관리 화면이 열리고, 맨 위에 가장 중 띠, 플랫폼 화면은 막힘, 비밀번호 바꾸기로 끌려가지 않음
+        // 박지은 그대로(R-366): 그 사람이 로그인한 화면 + 이름 뒤 (가), 보라 띠 없음, ☰ 맨 위 [사람 바꾸기] · [복귀]. 플랫폼 화면은 막힘
         var home = await c.GetStringAsync("/jamsil-kids");
-        Assert.Contains("가장 중", home);
-        Assert.Contains("박지은님으로 보고 있어요", home);
+        Assert.Contains("박지은님으로 보는 중 " + ChallengeBible.Web.Pages.DrawerUi.Ga, home);
+        Assert.DoesNotContain("imp-bar", home);
+        Assert.Contains("<h2 class=\"tdr2-g\">가장 중</h2>", home);
+        Assert.Contains("action=\"/account/impersonate/stop\"", home);
+        Assert.Contains("data-imp-switch", home);
+        Assert.Contains("action=\"/account/impersonate/stop\"", await c.GetStringAsync("/jamsil-kids/admin"));   // 관리 ☰ 에도 복귀
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/jamsil-kids/admin")).StatusCode);
         Assert.NotEqual(HttpStatusCode.OK, (await c.GetAsync("/platform")).StatusCode);
 
@@ -87,9 +91,9 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
 
         // 복귀
         var back = await Post(c, "/account/impersonate/stop", "/jamsil-kids");
-        Assert.Equal($"/platform/accounts?id={_jieun}", back.Headers.Location!.OriginalString);
+        Assert.Equal("/platform", back.Headers.Location!.OriginalString);   // 복귀하면 늘 플랫폼 홈
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/platform")).StatusCode);
-        Assert.DoesNotContain("가장 중", await c.GetStringAsync("/platform"));
+        Assert.DoesNotContain("imp-ga", await c.GetStringAsync("/platform"));
 
         using var raw = InMemoryDb.Raw(_db);
         var logs = raw.AuditLogs.Where(l => l.Action.StartsWith("Impersonate")).OrderBy(l => l.Id).ToList();
@@ -133,5 +137,24 @@ public partial class ImpersonationTests : IClassFixture<WebApplicationFactory<Pr
         finally { AuditContext.Impersonator = null; }
         using var raw = InMemoryDb.Raw(_db);
         Assert.Equal([_op, null], raw.AuditLogs.OrderBy(l => l.Id).Select(l => l.ImpersonatorUserName).ToList());
+    }
+
+    [Fact]   // R-335
+    public async Task R335_플랫폼_홈_부서_이름을_누르면_그_부서_관리자로_확인_뒤_관리_홈으로_간다()
+    {
+        var c = await Login("operator@example.com");
+        await c.GetAsync("/platform");                                  // 로그인 직후 한 번은 할 일로 갈 수 있다
+        var home = await c.GetStringAsync("/platform");
+        var url = ChallengeBible.Web.Pages.Platform.AccountsModel.ImpToAdminUrl(_jieun, "jamsil-kids");
+        Assert.Contains(System.Net.WebUtility.HtmlEncode(url), home);   // 부서 이름 링크
+        var ask = await c.GetStringAsync(url.Split('#')[0]);
+        Assert.Contains("박지은님으로 들어갈까요?", ask);                     // 확인 한 번
+        Assert.Contains("go=%2Fjamsil-kids%2Fadmin", ask);
+        var go = await Post(c, $"/platform/accounts?handler=Impersonate&q={_jieun}&id={_jieun}&go=%2Fjamsil-kids%2Fadmin", url.Split('#')[0]);
+        Assert.Equal("/jamsil-kids/admin", go.Headers.Location!.OriginalString);
+        Assert.Contains("가장 중", await c.GetStringAsync("/jamsil-kids/admin"));
+
+        Assert.Null(ChallengeBible.Web.Pages.Platform.AccountsModel.SafeGo("https://evil.example.com"));   // 바깥 주소로는 안 감
+        Assert.Null(ChallengeBible.Web.Pages.Platform.AccountsModel.SafeGo("//evil.example.com"));
     }
 }

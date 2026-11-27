@@ -1,4 +1,4 @@
-@page "/{slug}/family-team"
+﻿@page "/{slug}/family-team"
 @model FamilyTeamModel
 @using System.Globalization
 @using ChallengeBible.Infrastructure.Data
@@ -12,6 +12,8 @@
     var inv = CultureInfo.InvariantCulture;
     var kq = Model.Friend ? "Kind=friend&" : "";
 }
+@{ ViewData["PbTitle"] = "가족팀"; ViewData["PbParent"] = new[] { "성경미션", home }; ViewData["PbButton"] = new[] { "미션홈", home }; }
+<partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <main class="gut fmt"><div class="wrap">
     @if (Model.Notice is not null) { <div class="fmt-joined" role="status"><span aria-hidden="true">🎉</span><div>@(Model.Notice)에 들어갔어요</div></div> }
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
@@ -20,7 +22,6 @@
 
     @if (s.UserName is null)
     {
-        <div class="fmt-bar"><a href="@home">‹ 미션 홈</a></div>
         <h1>우리 가족팀</h1>
         <p class="fmt-sub">가족팀은 이 부서의 참여자가 함께 꾸려요. 참여자가 되면 팀을 만들거나 합류할 수 있어요.</p>
     }
@@ -63,7 +64,6 @@
     }
     else if (s.Mine is { } m)
     {
-        <div class="fmt-bar"><a href="@home">‹ 미션 홈</a></div>
         <section class="fmt-hero" aria-label="우리 @(m.Friend ? "친구팀" : "가족팀")">
             <span class="fmt-type">@(m.Friend ? "🧒🧒 친구팀" : "👨‍👩‍👧 가족팀")</span>
             <div class="n">@m.Name</div>
@@ -118,7 +118,7 @@
                         <details class="fmt-ask out"><summary>내보내기</summary>
                             <form method="post" asp-page-handler="Kick" asp-route-slug="@Model.Slug">
                                 <input type="hidden" name="member" value="@x.MemberId" />
-                                <span>@(x.Name)님을 팀에서 내보낼까요? 점수는 지우지 않아요.</span>
+                                <span>@Ui.Nim(x.Name)을 팀에서 내보낼까요? 점수는 지우지 않아요.</span>
                                 <button type="submit" class="fmt-btn sm no">내보내기</button>
                             </form>
                         </details>
@@ -135,7 +135,7 @@
             {
                 <div class="fmt-sent">
                     <div class="m">@i.Name<small>@FamilyTeamModel.AsRelation(i.Relation) 초대 · 수락을 기다리는 중</small></div>
-                    <form method="post" asp-page-handler="InviteCancel" asp-route-slug="@Model.Slug"><input type="hidden" name="invite" value="@i.InviteId" /><button type="submit" aria-label="@(i.Name)님 초대 취소">취소</button></form>
+                    <form method="post" asp-page-handler="InviteCancel" asp-route-slug="@Model.Slug"><input type="hidden" name="invite" value="@i.InviteId" /><button type="submit" aria-label="@Ui.Nim(i.Name) 초대 취소">취소</button></form>
                 </div>
             }
         }
@@ -222,7 +222,6 @@
     }
     else
     {
-        <div class="fmt-bar"><a href="@home">‹ 미션 홈</a></div>
         <h1>@(s.IsStudent ? "팀 찾기" : "가족팀 찾기")</h1>
         <p class="fmt-sub">@(s.Invites.Count > 0 ? "받은 초대가 있어요." : s.IsStudent ? "가족팀이나 친구팀 중 하나에만 들어갈 수 있어요." : "가족의 이름이나 팀 이름으로 찾아 보세요.")</p>
         @if (s.IsStudent)
@@ -239,12 +238,12 @@
                 <div class="h">@i.TeamName@if (i.Friend) {<small> · 친구팀</small>}</div>
                 @if (i.Friend)
                 {
-                    <p>@(i.InvitedBy)님이 친구팀에 초대했어요.</p>
+                    <p>@Ui.Nim(i.InvitedBy)이 친구팀에 초대했어요.</p>
                     <div class="fmt-chips">@foreach (var x in i.Members) {<span>@x.Name</span>}</div>
                 }
                 else
                 {
-                    <p>@(i.InvitedBy)님이 @FamilyTeamModel.AsRelation(i.Relation) 초대했어요. 관계가 다르면 바꿔서 수락하세요.</p>
+                    <p>@Ui.Nim(i.InvitedBy)이 @FamilyTeamModel.AsRelation(i.Relation) 초대했어요. 관계가 다르면 바꿔서 수락하세요.</p>
                     <div class="fmt-chips">@foreach (var x in i.Members) {<span>@x.Name<b>@FamilyTeamService.RelationLabel(x.Relation)</b></span>}</div>
                     <div class="q">나는 누구인가요?</div>
                     <partial name="_FamilyWho" model="i.Relation" />

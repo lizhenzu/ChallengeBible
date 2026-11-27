@@ -9,9 +9,13 @@ public sealed record TenantRow(int Id, string Name, string Slug, string JoinCode
     string Status, int MemberCount, IReadOnlyList<(string UserName, string Name, string Email)> Admins, DateTime CreatedUtc, string TimeZoneId)
 {
     public bool JoinListed { get; init; }
+    /// <summary>도전!!!성경필사를 켰는가(ADR 0099).</summary>
+    public bool CopyEnabled { get; init; }
+    /// <summary>메인화면의 「부모님과 함께하는 미션북」 칸 보이기(ADR 0142).</summary>
+    public bool MissionBookEnabled { get; init; }
 }
 
-public sealed record NewTenant(string Name, string Slug, string TimeZoneId, string ThemeColor, bool Mission, bool Reading, string? AdminEmail);
+public sealed record NewTenant(string Name, string Slug, string TimeZoneId, string ThemeColor, bool Mission, bool Reading, string? AdminEmail, bool Copy = true);
 
 /// <summary>
 /// 플랫폼 관리자의 부서 관리(API 계약 4-5 · 5-4b): 만들기, 프로그램, 참여 코드, 부서 관리자, 정지.
@@ -22,7 +26,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
     public static readonly string[] ThemeColors = ["blue", "green", "red", "violet"];   // 0033 정해 둔 색
     public static readonly string[] TimeZones = ["Asia/Seoul", "America/Los_Angeles", "America/New_York"];
     /// <summary>주소로 쓰면 다른 화면과 겹치는 낱말.</summary>
-    public static readonly string[] ReservedSlugs = ["platform", "account", "join", "admin", "api", "css", "js", "lib", "error", "static", "profile"];   // profile = 얼굴 사진 폴더(0078)
+    public static readonly string[] ReservedSlugs = ["platform", "account", "join", "admin", "api", "css", "js", "lib", "error", "static", "profile", "install"];   // install = 앱 설치 안내(0115)   // profile = 얼굴 사진 폴더(0078)
     private const string CodeChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";   // 0 · O · 1 · I 빼고(0048)
 
     [GeneratedRegex("^[a-z0-9]+(-[a-z0-9]+)*$")]
@@ -47,7 +51,8 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
     public async Task<List<TenantRow>> ListAsync(string actor, CancellationToken ct = default)
     {
         await using var ctx = await OpenAsync(actor, ct);
-        var tenants = await ctx.Tenants.AsNoTracking().OrderBy(t => t.Name).ToListAsync(ct);
+        var tenants = (await ctx.Tenants.AsNoTracking().OrderBy(t => t.Name).ToListAsync(ct))
+            .OrderBy(t => DeptOrder.AgeLastKey(t.Name)).ThenBy(t => t.Name, StringComparer.Ordinal).ToList();   // 연령별, 고등부 맨 나중(2026-11-16 사용자)
         var counts = await ctx.DeptRoles
             .GroupBy(m => m.TenantId).Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N, ct);
         var adminIds = await DeptMembership.AdminIdsAsync(ctx, ct);
@@ -58,7 +63,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
             .Select(a => new { a.TenantId, a.Id, DisplayName = AppUser.FullName(a.LastName, a.FirstName), a.Email }).ToList();
         return tenants.Select(t => new TenantRow(t.Id, t.Name, t.Slug, t.JoinCode.Trim(), t.ThemeColor, t.MissionEnabled, t.ReadingEnabled, t.Status,
                 counts.GetValueOrDefault(t.Id),
-                admins.Where(a => a.TenantId == t.Id).Select(a => (a.Id, a.DisplayName, a.Email)).ToList(), t.CreatedUtc, t.TimeZoneId) { JoinListed = t.JoinListed })
+                admins.Where(a => a.TenantId == t.Id).Select(a => (a.Id, a.DisplayName, a.Email)).ToList(), t.CreatedUtc, t.TimeZoneId) { JoinListed = t.JoinListed, CopyEnabled = t.CopyEnabled, MissionBookEnabled = t.MissionBookEnabled })
             .ToList();
     }
 
@@ -71,7 +76,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         if (name.Length is 0 or > 100) errors["Name"] = "부서 이름을 1 ~ 100자로 써 주세요.";
         if (slug.Length is < 2 or > 40 || !SlugRule().IsMatch(slug)) errors["Slug"] = "영어 소문자 · 숫자 · 하이픈으로 2 ~ 40자를 써 주세요.";
         else if (ReservedSlugs.Contains(slug)) errors["Slug"] = "다른 화면 주소와 겹쳐요. 다른 주소를 써 주세요.";
-        if (!input.Mission && !input.Reading) errors["Programs"] = "프로그램을 하나는 골라 주세요(R-150).";
+        if (!input.Mission && !input.Reading && !input.Copy) errors["Programs"] = "프로그램을 하나는 골라 주세요(R-150).";
         if (!ThemeColors.Contains(input.ThemeColor)) errors["ThemeColor"] = "정해 둔 색 중에서 골라 주세요.";
         if (!TimeZones.Contains(input.TimeZoneId)) errors["TimeZoneId"] = "시간대를 골라 주세요.";
         return (name, slug, errors);
@@ -95,7 +100,7 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         var t = new Tenant
         {
             Name = name, Slug = slug, JoinCode = await UniqueCodeAsync(ctx, ct), TimeZoneId = input.TimeZoneId, ThemeColor = input.ThemeColor,
-            MissionEnabled = input.Mission, ReadingEnabled = input.Reading, CreatedUtc = time.GetUtcNow().UtcDateTime,
+            MissionEnabled = input.Mission, ReadingEnabled = input.Reading, CopyEnabled = input.Copy, JoinListed = true, CreatedUtc = time.GetUtcNow().UtcDateTime,
         };
         ctx.Tenants.Add(t);
         await ctx.SaveChangesAsync(ct);
@@ -141,14 +146,24 @@ public sealed partial class PlatformTenantService(ISystemDb systemDb, TimeProvid
         return errors;
     }
 
-    public async Task<string?> SetProgramsAsync(string actor, int tenantId, bool mission, bool reading, CancellationToken ct = default)
+    public async Task<string?> SetProgramsAsync(string actor, int tenantId, bool mission, bool reading, CancellationToken ct = default, bool? copy = null)
     {
-        if (!mission && !reading) return "프로그램을 하나는 켜 주세요(R-150).";
         await using var ctx = await OpenAsync(actor, ct);
         var t = await ctx.Tenants.SingleAsync(x => x.Id == tenantId, ct);
-        (t.MissionEnabled, t.ReadingEnabled) = (mission, reading);
+        var c = copy ?? t.CopyEnabled;   // 성경필사(ADR 0099): 넘기지 않으면 그대로
+        if (!mission && !reading && !c) return "프로그램을 하나는 켜 주세요(R-150).";
+        (t.MissionEnabled, t.ReadingEnabled, t.CopyEnabled) = (mission, reading, c);
         await ctx.SaveChangesAsync(ct);
         return null;
+    }
+
+    /// <summary>메인화면의 「부모님과 함께하는 미션북」 칸 보이기 켜기 · 끄기(ADR 0142, 처음엔 유년부만).</summary>
+    public async Task SetMissionBookAsync(string actor, int tenantId, bool on, CancellationToken ct = default)
+    {
+        await using var ctx = await OpenAsync(actor, ct);
+        var t = await ctx.Tenants.SingleAsync(x => x.Id == tenantId, ct);
+        t.MissionBookEnabled = on;
+        await ctx.SaveChangesAsync(ct);
     }
 
     /// <summary>참여 신청 화면의 부서 목록에 보이기 켜기 · 끄기(0059).</summary>

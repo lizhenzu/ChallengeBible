@@ -1,0 +1,46 @@
+@page "/test-tools/login"
+@model ChallengeBible.Web.Pages.TestTools.LoginModel
+@* 상황별 로그인(ADR 0095 · 0102, 확정 시안 상황별로그인 2026-11-16): 가짜 데이터로 만든 계정으로 바로 들어간다 *@
+@if (Model.IsAdmin) { <partial name="_PlatformTop" /> } else { <partial name="_Top" /> }
+<main class="@(Model.IsAdmin ? "admin " : "page ")gut tt w760"><div class="wrap">   @* 머리말(플랫폼 · 부서)과 같은 760px(R-270, 2026-11-18) *@
+    <div>
+        <h1>상황별 로그인 <small class="tt-tag">임시</small></h1>
+        <p class="lead">가짜 데이터로 만든 계정으로 바로 들어가요. 오늘 할 일이 있으면 로그인처럼 할 일 화면으로 가요.@(Model.IsAdmin ? " [복귀]로 돌아와요." : "")</p>
+    </div>
+    <section class="tt-box" aria-label="가짜 계정">
+        @if (Model.Depts.Count == 0)
+        {
+            <div class="empty-box">가짜 계정이 없어요. @if (Model.IsAdmin) { <a href="/test-tools/data">가짜 데이터를 먼저 넣어 주세요.</a> }</div>
+        }
+        else
+        {
+            <nav class="tt-depts" aria-label="부서">
+                @foreach (var d in Model.Depts)
+                {
+                    <a class="tt-chip @(d == Model.Dept ? "on" : "")" href="/test-tools/login?t=@d.TenantId" aria-current="@(d == Model.Dept ? "page" : null)">@d.Name.Replace("잠실새내교회", "").Trim()</a>
+                }
+            </nav>
+            @foreach (var g in Model.Dept!.Logins.GroupBy(l => l.Scenario.Group))
+            {
+                <h2 class="tt-g">@g.Key</h2>
+                <div class="tt-grid">
+                    @foreach (var l in g)
+                    {
+                        <form method="post">
+                            <input type="hidden" name="user" value="@l.UserName" />
+                            <button class="tt-btn" type="submit">
+                                <b>@l.Scenario.Label</b>
+                                <span>@l.Scenario.Detail</span>
+                                <small>@l.Name · @l.UserName</small>
+                            </button>
+                        </form>
+                    }
+                </div>
+            }
+        }
+    </section>
+    @if (!Model.IsAdmin)
+    {
+        <div class="foot"><div><a href="/account/admin-login">플랫폼 관리자로 다시 들어가기</a></div></div>
+    }
+</div></main>

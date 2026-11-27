@@ -1,0 +1,108 @@
+/* 교적부(R-361, 확정 시안 교적부) — 유년부 /ChurchRecord 와 같은 모양. 모든 이름은 rb- 접두어(site.css 와 겹치지 않게) */
+.rbk { color: #374151; }
+.rbk .wrap { max-width: 760px; padding-block: 14px 48px; }
+.rbk .rb-hide { display: none !important; }
+.rbk .rb-h { margin: 6px 0 2px; font-size: 22px; font-weight: 800; color: #111827; }
+.rbk .rb-h small { margin-left: 6px; font-size: 13px; font-weight: 700; color: #6e6e75; }
+.rbk .rb-st { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; font-size: 12.5px; color: #6B7280; }
+.rbk .rb-st b { margin-left: 4px; color: #111827; font-size: 15px; }
+.rbk .rb-st .lo b { color: #B4531F; }
+.rbk .rb-srch { margin-top: 12px; }
+.rbk .rb-srch input { width: 100%; height: 46px; padding: 0 18px 0 42px; border: 0; border-radius: 999px; font: inherit; font-size: 16px; color: #111827; outline: 0;
+  background: #F4F6F9 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 16px center / 17px; }
+.rbk .rb-srch input:focus, .rbk .rb-q input:focus { box-shadow: 0 0 0 2px #CFE0FA; }
+.rbk .rb-bt { display: flex; justify-content: space-between; align-items: baseline; margin: 18px 0 8px; font-size: 14px; font-weight: 800; color: #111827; }
+.rbk .rb-bt span, .rbk .rb-bt a { font-size: 12px; font-weight: 500; color: #6e6e75; text-decoration: none; }
+.rbk .rb-none { padding: 30px 0; text-align: center; font-size: 14px; color: #6e6e75; }
+.rbk .rb-hit { display: flex; align-items: center; gap: 10px; padding: 13px 0; border-bottom: 1px solid #EEF0F3; text-decoration: none; color: inherit; }
+.rbk .rb-hit b { flex: 1; font-size: 16px; color: #111827; }
+.rbk .rb-hit mark { background: #EAF2FD; color: #2B5FA8; border-radius: 4px; }
+.rbk .rb-hit span { font-size: 13px; color: #6B7280; }
+.rbk .rb-hit em { font-style: normal; color: #D1D5DB; }
+/* 학년 탭 · 반 카드(확정 시안 교적부-A) */
+.rbk .rb-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.rbk .rb-tabs button { padding: 7px 14px; border: 0; border-radius: 999px; background: #F4F6F9; color: #6B7280; font: inherit; font-size: 13px; cursor: pointer; }
+.rbk .rb-tabs button.on { background: #111827; color: #fff; font-weight: 700; }
+.rbk .rb-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 640px) { .rbk .rb-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.rbk .rb-card { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 11px 12px 10px; border: 1px solid #E3E8F0; border-radius: 14px; background: #fff; transition: border-color .15s, box-shadow .15s; }
+.rbk .rb-card:hover { border-color: #C9D6EC; box-shadow: 0 4px 12px -6px rgba(20, 35, 70, .25); }
+.rbk .rb-card.last { background: linear-gradient(180deg, #F5F9FF, #fff); border-color: #D6E2F7; }
+.rbk .rb-card .go { position: absolute; inset: 0; border-radius: inherit; z-index: 1; }
+.rbk .rb-card .go:focus-visible { outline: 2px solid var(--accent, #2B5BC6); outline-offset: 2px; }
+.rbk .rb-card .cn { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.rbk .rb-card .cn b { min-width: 0; font-size: 15.5px; font-weight: 800; color: #111827; overflow-wrap: anywhere; }
+.rbk .rb-card .cn em { flex: none; font-style: normal; font-size: 18px; font-weight: 900; color: #111827; }
+.rbk .rb-card .cn em small { margin-left: 1px; font-size: 12px; font-weight: 500; color: #6e6e75; }
+.rbk .rb-card .cno { padding-top: 6px; border-top: 1px solid #EEF0F3; font-size: 12px; font-weight: 700; color: #B4531F; }
+.rbk .rb-card .ct { display: grid; grid-template-columns: minmax(0, 1fr) 32px; gap: 0 6px; align-items: center; padding-top: 6px; border-top: 1px solid #EEF0F3; }
+.rbk .rb-card .ct + .ct { border-top: 0; padding-top: 2px; }
+.rbk .rb-card .tn { font-size: 12.5px; font-weight: 700; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rbk .rb-card .tp { grid-column: 1; font-size: 12px; color: #6B7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rbk .rb-card .ic { position: relative; z-index: 2; grid-row: 1 / span 2; grid-column: 2; width: 32px; height: 32px; border-radius: 50%; background: #EAF0FC; display: grid; place-items: center; }
+.rbk .rb-card .ic svg { width: 15px; height: 15px; fill: none; stroke: #2B5BC6; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.rbk .rb-card .nop .tp { color: #C4C8CF; }
+.rbk .rb-card .nop .ic { z-index: 0; background: #F4F6F9; }
+.rbk .rb-card .nop .ic svg { stroke: #D1D5DB; }
+.rbk .rb-ft { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 24px; padding: 14px 0 20px; border-top: 1px solid #EEF0F3; font-size: 12px; color: #6e6e75; }
+.rbk .rb-ft a { color: var(--accent, #1F7A55); font-weight: 700; text-decoration: none; }
+
+/* 반 교적 */
+.rbk .rb-dn { display: flex; align-items: center; justify-content: space-between; }
+.rbk .rb-dn .rb-h { margin: 0; }
+.rbk .rb-dn a { padding: 4px 10px; font-size: 24px; font-weight: 800; color: var(--accent, #1F7A55); text-decoration: none; }
+.rbk .rb-dn .off { padding: 4px 10px; font-size: 24px; color: #D1D5DB; }
+.rbk .rb-tch { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: #F4F6F9; font-size: 13px; }
+.rbk .rb-tch b { color: #111827; }
+.rbk .rb-tch .no { color: #B4531F; font-weight: 700; }
+.rbk .rb-tch a, .rbk .kv a { padding: 2px 10px; border-radius: 999px; background: color-mix(in srgb, var(--accent, #1F7A55) 12%, #fff); color: var(--accent, #1F7A55); font-size: 12px; font-weight: 800; text-decoration: none; }
+.rbk .rb-q input { width: 100%; height: 44px; margin-top: 10px; padding: 0 18px; border: 0; border-radius: 999px; background: #F4F6F9; font: inherit; font-size: 16px; color: #111827; outline: 0; }
+.rbk .rb-seg { display: flex; gap: 6px; margin-top: 10px; }
+.rbk .rb-seg button { flex: 1; padding: 8px 2px; border: 0; border-radius: 999px; background: #F4F6F9; color: #6B7280; font: inherit; font-size: 13px; cursor: pointer; }
+.rbk .rb-seg button.on { background: var(--accent, #1F7A55); color: #fff; font-weight: 800; }
+.rbk .rb-list { margin-top: 6px; display: grid; grid-template-columns: minmax(0, 1fr); }
+.rbk .rb-kid { padding: 14px 0; border-bottom: 1px solid #EEF0F3; scroll-margin-top: 80px; }
+.rbk .rb-kid.flash { background: #FFF8E1; transition: background .4s; }
+.rbk .kT { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+.rbk .kT .no { width: 18px; font-size: 12px; color: #6e6e75; }
+.rbk .kT b { font-size: 16px; font-weight: 800; color: #111827; cursor: pointer; }
+.rbk .tg { padding: 1px 9px; border-radius: 999px; background: #F4F6F9; color: #6B7280; font-size: 12px; font-weight: 700; }
+.rbk .tg.bd { background: #FBEFE7; color: #B4531F; }
+.rbk .kv { margin: 6px 0 0 25px; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 3px 8px; font-size: 13px; }
+.rbk .kv dt { color: #6e6e75; }
+.rbk .kv dd { margin: 0; color: #111827; overflow-wrap: anywhere; }
+.rbk .kv dd.no { color: #D1D5DB; }
+.rbk .kv a { margin-left: 5px; padding: 0 9px; }
+.rbk .kF { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 9px 0 0 25px; }
+.rbk .kF .ms { font-size: 12px; font-weight: 700; color: #B4531F; }
+.rbk .kF .ms.ok { color: var(--accent, #1F7A55); }
+.rbk .kF .ed { padding: 7px 15px; border: 0; border-radius: 999px; background: #F4F6F9; color: #6B7280; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.rbk .rb-nav2 { display: flex; justify-content: space-between; gap: 8px; margin-top: 20px; font-size: 13px; }
+.rbk .rb-nav2 a { color: var(--accent, #1F7A55); font-weight: 700; text-decoration: none; }
+
+/* 정보 수정 — 아래에서 올라옴 */
+.rbk .rb-scrim { position: fixed; inset: 0; z-index: 950; background: rgba(17, 24, 39, .45); opacity: 0; pointer-events: none; transition: opacity .18s; }
+.rbk .rb-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 960; max-width: 640px; margin: 0 auto; background: #fff; border-radius: 20px 20px 0 0;
+  padding: 10px 20px calc(18px + env(safe-area-inset-bottom)); transform: translateY(105%); transition: transform .22s ease; max-height: 92vh; overflow-y: auto; }
+.rb-open .rbk .rb-scrim { opacity: 1; pointer-events: auto; }
+.rb-open .rbk .rb-sheet { transform: none; }
+.rbk .rb-grab { width: 40px; height: 4px; border-radius: 999px; background: #E5E7EB; margin: 0 auto 12px; }
+.rbk .rb-shH { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.rbk .rb-shH b { font-size: 19px; font-weight: 800; color: #111827; }
+.rbk .rb-shH small { display: block; margin-top: 2px; font-size: 12.5px; color: #6e6e75; }
+.rbk .rb-shX { padding: 6px 14px; border: 0; border-radius: 999px; background: #F4F6F9; color: #6B7280; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.rbk .rb-f { margin-top: 12px; }
+.rbk .rb-f label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 700; color: #6B7280; }
+.rbk .rb-f input { width: 100%; height: 46px; padding: 0 14px; border: 0; border-radius: 12px; background: #F4F6F9; font: inherit; font-size: 16px; color: #111827; outline: 0; }
+.rbk .rb-f input:focus { box-shadow: 0 0 0 2px #CFE0FA; }
+.rbk .rb-f .bd2 { display: flex; gap: 8px; }
+.rbk .rb-f.err input { box-shadow: 0 0 0 2px #FCA5A5; }
+.rbk .rb-f .em { min-height: 16px; margin-top: 3px; font-size: 12px; color: #B4531F; }
+.rbk .rb-shF { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; }
+.rbk .rb-shErr { font-size: 12.5px; color: #B4531F; }
+.rbk .rb-save { height: 46px; padding: 0 28px; border: 0; border-radius: 999px; background: var(--accent, #1F7A55); color: #fff; font: inherit; font-size: 14.5px; font-weight: 800; cursor: pointer; }
+.rbk .rb-save:disabled { cursor: progress; opacity: .7; }
+.rbk .rb-toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 990; transform: translate(-50%, 12px); opacity: 0; pointer-events: none; max-width: calc(100% - 32px);
+  padding: 11px 20px; border-radius: 999px; background: #111827; color: #fff; font-size: 13.5px; transition: opacity .18s, transform .18s; }
+.rbk .rb-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.rbk .rb-toast.bad { background: #B4531F; }

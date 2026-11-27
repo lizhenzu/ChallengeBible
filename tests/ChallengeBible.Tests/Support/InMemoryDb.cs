@@ -110,6 +110,7 @@ public sealed class InMemoryDb(string name, RequestScope scope) : IAppDb
             CreatedUtc = new DateTime(2026, 11, 2, 0, 0, 0, DateTimeKind.Utc),
         };
         db.Tenants.Add(t);
+        if (!db.Duties.Any(d => d.Key == "Gift")) db.Duties.Add(new Duty { Key = "Gift", Name = "선물 담당", IsAdmin = true, SortOrder = 1 });   // 마이그레이션 HasData 와 같다
         db.SaveChanges();
         return t;
     }
