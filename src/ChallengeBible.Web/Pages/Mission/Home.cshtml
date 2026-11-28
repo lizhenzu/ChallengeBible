@@ -181,9 +181,9 @@
             var dim = !done && !live;
             <a class="mh-m@(done ? " ok" : "")@(dim ? " off" : "")" href="@Model.Link(c.Key)">
                 <span class="mh-m-top">
-                    <span class="mh-dot">@c.No</span>
-                    @if (done) { <span class="mh-pill ok">완료 ✓</span> }
-                    else if (live) { <span class="mh-pill">@c.Go ›</span> }
+                    <span class="mh-dot">@c.No.PadLeft(2, '0')</span>
+                    @if (done) { <span class="mh-stamp ok">완료</span> }
+                    else if (live) { <span class="mh-stamp">미완료</span> }   @* 2026-11-28 시안: 동그란 도장(46px · 약 -8도). 「읽기 ›」 같은 버튼 글자는 없앴다 *@
                 </span>
                 <b>@c.Label</b>
                 <span class="mh-sub"><span>@c.Sub1</span>@if (c.Sub2 is not null) { <span>@c.Sub2</span> }</span>

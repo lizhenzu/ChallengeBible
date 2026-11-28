@@ -135,6 +135,10 @@ html:has(.mh) { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hid
 .mh-m-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 .mh-dot { width: 28px; height: 28px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; background: #fff; color: #0D7A68; }
 .mh .mh-m.ok .mh-dot { background: #0D7A68; color: #fff; }
+.mh-stamp { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transform: rotate(-8deg); font-size: 12px; font-weight: 700; color: #fff; border: 2px dashed #fff; background: transparent; position: relative; }   /* 미완료 도장 */
+.mh-stamp.ok { background: #fff; color: #0D7A68; border: 2.5px solid #0D7A68; font-size: 13px; font-weight: 900; }   /* 완료 도장 */
+.mh-stamp.ok::after { content: ""; position: absolute; inset: 2px; border: 1px solid #BFE6DC; border-radius: 50%; }
+.mh .mh-m.ok .mh-dot { width: auto; height: auto; border-radius: 0; background: transparent; color: #5F9C90; font-size: 15px; font-weight: 700; }   /* 완료 카드: 번호는 원 없이 연한 글자 */
 .mh-pill { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; color: #0D7A68; background: #fff; }
 .mh-pill.ok { color: #0D7A68; background: #fff; }
 .mh-m b { font-size: 17px; font-weight: 700; margin-top: 14px; }

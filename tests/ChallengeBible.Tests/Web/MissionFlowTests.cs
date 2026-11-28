@@ -543,8 +543,9 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.DoesNotContain("오늘 네 가지 모두 했어요", html);        // 축하 카드는 뺐다 — 「n / 4 완료」 막대로 대신(2026-11-27)
         Assert.DoesNotContain("이어온 날", html);                       // 네 칸 숫자 · 하루 최대는 뺐다(2026-11-27)
         Assert.Contains("<b>0</b> / 2 완료", html);                      // 말씀 · 퀴즈만 있는 날
-        Assert.Contains("<span class=\"mh-pill\">읽기 ›</span>", html);   // 할 수 있는 미션만 알약
-        Assert.Contains("<span class=\"mh-pill\">풀기 ›</span>", html);
+        Assert.Contains("<span class=\"mh-stamp\">미완료</span>", html);   // 할 수 있는 미션은 동그란 「미완료」 도장(2026-11-28)
+        Assert.DoesNotContain("읽기 ›", html);
+        Assert.Contains("<span class=\"mh-dot\">01</span>", html);   // 번호는 두 자리
         Assert.Contains("class=\"mh-m off\"", html);                    // 콘텐츠 없는 기도 · 암송은 알약 없이 흐리게
         // 날짜를 눌러 그날 미션을 본다(오늘 이전 날짜는 ?date= 링크), 최근 7일 막대도 같은 링크
         Assert.Contains("?date=2027-01-04", html);

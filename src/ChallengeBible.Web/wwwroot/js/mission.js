@@ -314,7 +314,7 @@
     sec?.classList.toggle('done', on > 0);
     const st = sec?.querySelector('[data-pickstate]');
     if (st) st.textContent = on === 0 ? '눌러서 알려 주세요' : api === 'recite' ? '이번 주 완료' : on === all ? '모두 했어요' : '미션 완료';
-    navState(on > 0 ? '✓ 완료' : '진행중', on > 0);   // 이 화면 메뉴 칸: 안 했으면 "진행중"(_MissionNav)
+    navState(on > 0 ? '완료' : '진행중', on > 0);   // 이 화면 메뉴 칸: 안 했으면 "진행중"(_MissionNav)
     const hint = sec?.querySelector('[data-uhint]');
     if (hint) hint.hidden = on === 0;
   }
@@ -385,7 +385,7 @@
       if (ans) { ans.classList.remove('dim', 'bad'); ans.classList.add('ans', 'fixed'); tag(ans, solved ? '정답' : '정답은 이것'); }
       go.innerHTML = `${solved ? '정답을 맞혔어요' : `오늘은 ${max}번 도전했어요`} <em aria-hidden="true">✓</em>`;
       go.disabled = true;
-      navState(solved ? '✓ 완료' : '끝남', solved);
+      navState(solved ? '완료' : '끝남', solved);
       const ex = document.getElementById('explain');
       if (ex && json.explanation) {
         ex.querySelector('p').textContent = json.explanation;
