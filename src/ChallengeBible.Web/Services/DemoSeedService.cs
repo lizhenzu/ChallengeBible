@@ -53,7 +53,8 @@ public sealed class DemoSeedService(ISystemDb systemDb, TimeProvider time)
 
         var admin = await EnsureUserAsync(ctx, AdminUser, "데모 관리자", ct);
         var student = await EnsureUserAsync(ctx, StudentUser, Students[0].Name, ct);
-        if (!created && await ctx.DeptRoles.AnyAsync(d => d.TenantId == tenant.Id && d.UserId == admin.Id, ct)) return new(tenant, admin, student);   // 이미 만들었다
+        // 샘플 기록 · 팀은 마지막에 한 번에 저장한다 — 가족팀이 있으면 끝까지 만든 것(중간에 실패했으면 다시 이어서 만든다)
+        if (!created && await ctx.FamilyTeams.AnyAsync(f => f.TenantId == tenant.Id && f.Name == "하늘이네 가족", ct)) return new(tenant, admin, student);
 
         // 관리자: 교사 역할 + 부서 관리자 역할(실제 권한 그대로 — 우회 없음)
         await DeptMembership.PlaceAsync(ctx, admin, tenant.Id, UserRole.TeacherCode, now, ct);
@@ -79,11 +80,12 @@ public sealed class DemoSeedService(ISystemDb systemDb, TimeProvider time)
         return new(tenant, admin, student);
     }
 
+    /// <summary>참여 코드는 6글자 영문 대문자 · 숫자(DB 열 길이 6 · CHECK) — 일반 부서와 같은 방식으로 만든다.</summary>
     private static async Task<string> UniqueCodeAsync(AppDbContext ctx, CancellationToken ct)
     {
         for (var i = 0; i < 20; i++)
         {
-            var c = "DM" + RandomNumberGenerator.GetInt32(100000, 999999);
+            var c = PlatformTenantService.NewJoinCode();
             if (!await ctx.Tenants.AnyAsync(t => t.JoinCode == c, ct)) return c;
         }
         throw new InvalidOperationException("데모 참여 코드를 만들지 못했어요.");

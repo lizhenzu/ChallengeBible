@@ -69,6 +69,8 @@ public class DemoLoginTests : IClassFixture<WebApplicationFactory<Program>>
         using var raw = InMemoryDb.Raw(_db);
         Assert.Equal(10, raw.DeptRoles.Count(d => d.RoleCode == "T1001"));          // 가상 학생 10명(데모 사용자 포함)
         Assert.Equal(1, raw.Tenants.Count());                                       // 실제 영역은 건드리지 않고 데모 영역만
+        Assert.Equal(6, raw.Tenants.Single().JoinCode.Length);                      // 참여 코드는 6글자(DB 열 길이)
+        Assert.Matches("^[A-Z0-9]{6}$", raw.Tenants.Single().JoinCode);
         Assert.True(raw.MissionActivities.Count() > 50);                            // 다양한 샘플 기록
         var log = raw.AuditLogs.Single(a => a.Action == "DemoLogin");
         Assert.Equal("demo_user", log.ActorUserName);
