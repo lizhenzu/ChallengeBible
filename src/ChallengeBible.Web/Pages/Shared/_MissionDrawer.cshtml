@@ -16,12 +16,13 @@
     var imp = User.ImpersonatorId() is not null;
     bool Cur(string href) => here.Equals(href.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
 }
-<div class="pdrawer tdr2" id="pnav" hidden>
+<link rel="stylesheet" href="~/css/mission-drawer.css" asp-append-version="true" />
+<div class="pdrawer tdr2 mdr" id="pnav" hidden>
     <div class="pd-dim" data-pnav-close></div>
     <aside class="pd-panel" tabindex="-1" role="dialog" aria-modal="true" aria-label="성경미션 메뉴">
         <div class="tdr2-hd">
             <div>
-                <div class="tdr2-ttl">도전!!! <span>성경미션</span></div>
+                <div class="tdr2-ttl">도전!!! 성경미션</div>
                 <div class="tdr2-sub">GROW IN THE WORD</div>
             </div>
             <button type="button" class="tdr2-x" aria-label="메뉴 닫기" data-pnav-close>
@@ -35,29 +36,34 @@
         }
 
         <nav class="tdr2-nav" aria-label="메뉴">
-            @DrawerUi.Line($"/{s}", "home", "홈으로", false)
+            @DrawerUi.Line($"/{s}", "m-home", "홈으로", false)
+            @if (!t.IsLobby) { @DrawerUi.Line($"/{s}/welcome", "m-main", "메인화면", Cur($"/{s}/welcome")) }   @* 2026-11-28 시안 Menu: 「홈으로」 바로 아래(메인화면은 모든 부서에 있다, ADR 0142) *@
 
             <h2 class="tdr2-g">미션</h2>
-            @DrawerUi.Line($"/{s}/word-mission", "mission", "미션 홈", Cur($"/{s}/word-mission"))
-            @DrawerUi.Line($"/{s}/word", "word", "말씀", Cur($"/{s}/word"))
-            @DrawerUi.Line($"/{s}/quiz", "quiz", "퀴즈", Cur($"/{s}/quiz"))
-            @DrawerUi.Line($"/{s}/prayer", "pray", "기도", Cur($"/{s}/prayer"))
-            @DrawerUi.Line($"/{s}/recite", "recite", "암송", Cur($"/{s}/recite"))
+            @DrawerUi.Line($"/{s}/word-mission", "m-book", "미션 홈", Cur($"/{s}/word-mission"))
+            @DrawerUi.Line($"/{s}/word", "m-book", "말씀", Cur($"/{s}/word"))
+            @DrawerUi.Line($"/{s}/quiz", "m-quiz", "퀴즈", Cur($"/{s}/quiz"))
+            @DrawerUi.Line($"/{s}/prayer", "m-pray", "기도", Cur($"/{s}/prayer"))
+            @DrawerUi.Line($"/{s}/recite", "m-recite", "암송", Cur($"/{s}/recite"))
 
             <h2 class="tdr2-g">기록</h2>
-            @DrawerUi.Line($"/{s}/calendar", "season", "달력", Cur($"/{s}/calendar"))
-            @DrawerUi.Line($"/{s}/points", "chart", "내 점수", Cur($"/{s}/points"))
+            @DrawerUi.Line($"/{s}/calendar", "m-cal", "달력", Cur($"/{s}/calendar"))
+            @DrawerUi.Line($"/{s}/points", "m-score", "내 점수", Cur($"/{s}/points"))
             @DrawerUi.Line($"/{s}/ranking", "trophy", "순위", Cur($"/{s}/ranking"))
 
             @if (!t.IsLobby && c.MissionEnabled && await FamilyTeams.EnabledAsync())
             {
                 <h2 class="tdr2-g">함께</h2>
-                @DrawerUi.Line($"/{s}/family-team", "family", "가족팀", Cur($"/{s}/family-team"))
+                @DrawerUi.Line($"/{s}/family-team", "m-team", "가족팀", Cur($"/{s}/family-team"))
             }
         </nav>
 
         @Html.AntiForgeryToken()
-        <div class="tdr2-prof">@DrawerUi.Me(User.DisplayName(), mePhoto, meSub, imp)</div>
+        <a class="tdr2-prof mdr-me" href="/account" aria-label="내 계정">
+            <span class="mdr-av">@if (mePhoto is { } ph) { <img src="/account/photo?handler=img&amp;v=@ph" alt="" /> } else { <svg width="30" height="30" viewBox="0 0 24 24" fill="#7FBFB0" aria-hidden="true"><circle cx="12" cy="9" r="4.2"/><path d="M3.5 24c.6-5.2 4.2-8 8.5-8s7.9 2.8 8.5 8z"/></svg> }</span>
+            <span class="mdr-who"><b>@Ui.Nim(User.DisplayName() ?? "")@if (imp) { @Html.Raw(" " + DrawerUi.Ga) }</b><small>@meSub</small></span>
+            <span class="mdr-ar" aria-hidden="true">›</span>
+        </a>
     </aside>
 </div>
 <script src="~/js/platform-nav.js" asp-append-version="true" defer></script>

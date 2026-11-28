@@ -1,0 +1,25 @@
+/* 성경미션 ☰ 메뉴 — 민트 통일(2026-11-28 사용자 시안 Menu). 이름 · 순서 · 이동 경로는 그대로, 「메인화면」 한 줄만 추가.
+   민트 #0D7A68 · 진한 #095C4E · 연한 #E3F3EE · 모서리 5px · 항목 높이 45px · 닫기 44px. `.mdr` 아래에서만 바꾼다(통독 · 필사 · 부서 메뉴는 그대로). */
+.pdrawer.mdr .pd-dim { background: rgba(18, 48, 42, .45); }
+.pdrawer.mdr .pd-panel { width: min(300px, 86vw); background: #fff; box-shadow: 4px 0 16px rgba(9, 92, 78, .18); font-family: 'Noto Sans KR', system-ui, sans-serif; color: #12302A; }
+.mdr .tdr2-hd { align-items: center; padding: calc(14px + env(safe-area-inset-top, 0px)) 8px 12px 18px; border-bottom: 1px solid #E3EAE8; }
+.mdr .tdr2-ttl { font-size: 19px; font-weight: 900; color: #0D7A68; letter-spacing: -.3px; line-height: 1.25; }
+.mdr .tdr2-sub { margin-top: 2px; font-size: 10px; font-weight: 700; letter-spacing: 2px; color: #7A8985; }
+.mdr .tdr2-x { width: 44px; height: 44px; margin: 0; border-radius: 5px; color: #12302A; }
+.mdr .tdr2-imp { padding: 10px 18px 0; color: #5F6F6B; }
+.mdr .tdr2-nav { padding: 8px 10px 12px; scrollbar-width: none; }
+.mdr .tdr2-nav::-webkit-scrollbar { display: none; }
+.mdr .tdr2-r { min-height: 45px; gap: 14px; padding: 0 14px; border-radius: 5px; font-size: 16px; font-weight: 700; color: #12302A; margin-bottom: 2px; width: auto; }
+.mdr .tdr2-r:hover { background: #F3F8F7; }
+.mdr .tdr2-r[aria-current="page"] { background: #E3F3EE; color: #095C4E; font-weight: 900; }
+.mdr .tdr2-i { width: 22px; height: 22px; color: #0D7A68; }
+.mdr .tdr2-i svg { width: 22px; height: 22px; }
+.mdr .tdr2-g { padding: 16px 14px 6px; font-size: 12px; font-weight: 700; color: #5F6F6B; letter-spacing: .3px; }
+.mdr .tdr2-prof { margin: 0; padding: 12px 14px calc(16px + env(safe-area-inset-bottom, 0px)) 18px; border-top: 1px solid #E3EAE8; }
+.mdr .mdr-me { display: flex; align-items: center; gap: 12px; color: #12302A; text-decoration: none; min-height: 44px; }
+.mdr .mdr-av { width: 44px; height: 44px; border-radius: 50%; background: #D6F0EA; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.mdr .mdr-av img { width: 100%; height: 100%; object-fit: cover; }
+.mdr .mdr-who { flex: 1; min-width: 0; }
+.mdr .mdr-who b { display: block; font-size: 15px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mdr .mdr-who small { display: block; margin-top: 1px; font-size: 12px; color: #5F6F6B; }
+.mdr .mdr-ar { color: #7A8985; font-size: 18px; }

@@ -517,6 +517,19 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Matches(@"<nav class=""mh-tab""[\s\S]*href=""/jamsil-kids/family-team""[\s\S]*팀보기", await kid.GetStringAsync("/jamsil-kids/word-mission"));
     }
 
+    [Fact]   // 성경미션 ☰ 메뉴 민트 통일(2026-11-28 시안 Menu): 「메인화면」이 「홈으로」 바로 아래, 지금 화면은 강조
+    public async Task 성경미션_햄버거_메뉴는_메인화면이_홈으로_아래에_있고_현재_화면을_강조한다()
+    {
+        var c = await Member("mdr1", Roles.Participant);
+        var html = await c.GetStringAsync("/jamsil-kids/word-mission");
+        Assert.Contains("/css/mission-drawer", html);
+        Assert.Contains("class=\"pdrawer tdr2 mdr\"", html);
+        Assert.Matches(@"href=""/jamsil-kids""[\s\S]*홈으로[\s\S]*href=""/jamsil-kids/welcome""[\s\S]*메인화면[\s\S]*<h2 class=""tdr2-g"">미션</h2>", html);
+        Assert.Matches(@"<a class=""tdr2-r"" href=""/jamsil-kids/word-mission"" aria-current=""page"">[\s\S]*?미션 홈", html);   // 보고 있는 화면은 강조
+        Assert.Contains("class=\"tdr2-prof mdr-me\" href=\"/account\"", html);   // 맨 아래 프로필(사진 · 이름 · 소속 ›)
+        Assert.Contains("GROW IN THE WORD", html);
+    }
+
     [Fact]
     public async Task 미션_홈은_옛_모양으로_남은_미션과_달력을_보여준다()
     {
