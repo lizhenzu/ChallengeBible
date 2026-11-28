@@ -39,3 +39,8 @@
 .rc-stamp { position: absolute; top: 12px; right: 12px; width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transform: rotate(-8deg); background: #fff; color: #0D7A68; border: 2.5px solid #0D7A68; font-size: 13px; font-weight: 900; }
 .rc-stamp::after { content: ""; position: absolute; inset: 2px; border: 1px solid #BFE6DC; border-radius: 50%; }
 .rc-stamp[hidden] { display: none; }
+.rc .pick b { flex: none; color: inherit; font-size: 15px; font-weight: 700; }
+.rc .pick .pt, .rc .pick[aria-pressed="true"] .pt { color: inherit; }
+.rc .pick[aria-pressed="true"] b { color: #fff; }
+.rc .pick:hover { background: #E3F3EE; }
+.rc .pick[aria-pressed="true"]:hover { background: #0D7A68; }

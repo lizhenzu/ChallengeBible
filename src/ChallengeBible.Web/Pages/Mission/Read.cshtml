@@ -11,6 +11,8 @@
     (string Label, int Value)[] units = [("한 절", 1), ("3절", 3), ("5절", 5), ("전체", 0)];
     (string Label, string Value)[] trs = [("개역개정", BibleTranslation.Krv), ("현대인", BibleTranslation.Klb), ("NIV", BibleTranslation.Niv), ("모두", "ALL")];
 }
+<link rel="stylesheet" href="~/css/mission-old.css" asp-append-version="true" />   @* 점수 팝업 · 취소 확인 창의 모양(.okpop) *@
+<link rel="stylesheet" href="~/css/mission-mint.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/read-mint.css" asp-append-version="true" />
 @await Html.PartialAsync("_MissionSubBar", (Model.Slug, Model.Link(Model.BackPage), $"{Model.BackText} · 성경 읽기"))   @* ← 와 제목이 한 덩어리 · 오른쪽 「미션홈」 바로가기(2026-11-28 시안) *@
 <div class="brd rm">

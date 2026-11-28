@@ -535,11 +535,14 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     {
         var c = await Member("cheolsu", Roles.Participant);
         var html = await c.GetStringAsync("/jamsil-kids/word");
-        Assert.Contains("data-readcard", html);       // 말씀 미션에도 같은 카드
-        Assert.Contains("data-wordread", html);
-        Assert.Contains("이 페이지 읽음으로 표시", html);
-        Assert.Contains("data-item=\"Word.Parent\"", html);   // 「부모님께」는 처음부터 눌러도 된다(잠금 없음)
-        Assert.DoesNotContain("data-item=\"Word.Parent\" data-pt=\"1\" aria-pressed=\"false\" disabled", html);
+        Assert.DoesNotContain("data-readcard", html);   // 읽음 표시 카드는 성경 읽기 화면(/read?from=word)에만 — 말씀 미션은 예전 그대로(2026-11-28 사용자)
+        Assert.Contains("data-item=\"Word.Parent\"", html);
+        var read0 = await c.GetStringAsync("/jamsil-kids/read?from=word");
+        Assert.Contains("data-readcard", read0);
+        Assert.Contains("이 페이지 읽음으로 표시", read0);
+        Assert.Contains("data-item=\"Word.Parent\"", read0);   // 「부모님께」는 처음부터 눌러도 된다(잠금 없음)
+        Assert.DoesNotContain("data-item=\"Word.Parent\" data-pt=\"1\" aria-pressed=\"false\" disabled", read0);
+        Assert.Contains("/css/mission-mint", read0);   // 점수 팝업 모양(.okpop)
         var t = TokenRx().Match(html).Groups[1].Value;
         JsonElement J(HttpResponseMessage r) => JsonDocument.Parse(r.Content.ReadAsStringAsync().Result).RootElement;
 
@@ -553,7 +556,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Equal(1, all.GetProperty("pointsEarned").GetInt32());
         Assert.Equal(9, all.GetProperty("readCount").GetInt32());
         Assert.Contains("Word.Me", all.GetProperty("completedItems").EnumerateArray().Select(x => x.GetString()));
-        var done = await c.GetStringAsync("/jamsil-kids/word");
+        var done = await c.GetStringAsync("/jamsil-kids/read?from=word");
         Assert.Contains("다 읽었어요!", done);
         Assert.Contains("읽음 표시 완료", done);
         Assert.Contains("미션홈에도 반영돼요", done);
