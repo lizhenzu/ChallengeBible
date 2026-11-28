@@ -15,12 +15,25 @@
 <link rel="stylesheet" href="~/css/mission-mint.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/read-mint.css" asp-append-version="true" />
 @await Html.PartialAsync("_MissionSubBar", (Model.Slug, Model.Link(Model.BackPage), $"{Model.BackText} · 성경 읽기"))   @* ← 와 제목이 한 덩어리 · 오른쪽 「미션홈」 바로가기(2026-11-28 시안) *@
-<div class="rm-row">
-    <span class="rm-k"><b>@Model.Kicker</b>@if (Model.From == "word") { <i aria-hidden="true"></i><em>@Model.Day.ToString("M월 d일 (ddd)", MissionPageBase.Ko)</em> }</span>
-    <div class="fs brd-fs" role="group" aria-label="글자 크기">
-        <button type="button" data-fs="-1" aria-label="글자 작게">가-</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
+<section class="rm-hero" aria-label="오늘의 말씀">
+    <div class="rm-row">
+        <span class="rm-k"><b>@Model.Kicker</b>@if (Model.From == "word") { <i aria-hidden="true"></i><span>@Model.Day.ToString("M월 d일 (ddd)", MissionPageBase.Ko)</span> }</span>
+        <div class="fs brd-fs" role="group" aria-label="글자 크기">
+            <button type="button" data-fs="-1" aria-label="글자 작게">가-</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
+        </div>
     </div>
-</div>
+    @if (r is { IsValid: true })
+    {
+        <div class="rm-title"><h1>@r.Book</h1><span>@r.Tail</span></div>
+        @if (s.Total > 0)
+        {
+            <div class="rdprog brd-prog" data-total="@s.Total">
+                <p class="num"><span>@(s.Total)절 · <b><span data-readcount>@Model.ReadCount</span>절</b> 읽음</span><span data-readpct>@(Model.ReadPercent)%</span></p>
+                <div class="brd-bar" aria-hidden="true"><i data-readbar style="width:@(Model.ReadPercent)%"></i></div>
+            </div>
+        }
+    }
+</section>
 <div class="brd rm">
 <main class="brd-main" data-slug="@Model.Slug" data-date="@Model.Day.ToString("yyyy-MM-dd")" data-word="@(Model.From == "word" ? "1" : "0")">
     @if (r is null || !r.IsValid)
@@ -29,16 +42,10 @@
     }
     else if (s.Total == 0)
     {
-        <h1 class="brd-h">@r.Book<small>@r.Tail</small></h1>
         <p class="brd-empty">이 구절의 본문이 아직 없어요. 선생님께 알려 주세요.</p>
     }
     else
     {
-        <h1 class="brd-h">@r.Book<small>@r.Tail</small></h1>
-        <div class="rdprog brd-prog" data-total="@s.Total">
-            <p class="num"><span>@(s.Total)절 · <b data-readcount>@Model.ReadCount</b>절 읽음</span><span data-readpct>@(Model.ReadPercent)%</span></p>
-            <div class="brd-bar" aria-hidden="true"><i data-readbar style="width:@(Model.ReadPercent)%"></i></div>
-        </div>
         @* 도구 줄(통독 본문과 같은 모양, 확정 시안 보기설정 ㄴ안 — 이 화면은 장 번호판이 없어 [보기] [듣기]만, 처음엔 접힘) *@
         <div class="rnv" data-rnv>
             <div class="rnv-bar two">
@@ -103,19 +110,17 @@
 
         @await Html.PartialAsync("_ReadCard", ((MissionPageBase)Model, Model.Card))
     }
-    @* 하단 안내(2026-11-28 사용자 시안 「하단 안내 B」): 같은 기록이라는 안내 박스 + 이동 목록 3줄(터치 52px). 글자만 있던 작은 링크는 없앴다 *@
-    <section class="rf" aria-label="이동">
-        <div class="rf-box">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D7A68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg>
-            <div><b>@(Model.BackText)과 같은 기록이에요</b><p>여기서 읽음 표시를 해도, @(Model.BackText)에서 해도 함께 반영돼요.</p></div>
-        </div>
-        <nav class="rf-list" aria-label="이동">
-            <a href="@Model.Link(Model.BackPage)"><span>@(Model.BackText)으로 돌아가기</span><i aria-hidden="true">›</i></a>
-            <a href="@Model.Link("word-mission")"><span>미션홈으로 가기</span><i aria-hidden="true">›</i></a>
-            <a href="/"><span>홈으로 가기</span><i aria-hidden="true">›</i></a>
-        </nav>
-    </section>
 </main>
+</div>
+@* 하단 안내(2026-11-28 사용자 시안 「하단 안내 A」): 안내 한 줄 + 버튼 3개(홈으로 · 미션홈 · 말씀 미션으로) + 보조 문구. 터치 48px *@
+<div class="rf" aria-label="이동">
+    <div class="rf-note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0D7A68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg><span>읽음 표시는 @(Model.BackText)과 같은 기록이에요</span></div>
+    <div class="rf-btns">
+        <a class="lt" href="/"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>홈으로</a>
+        <a class="lt" href="@Model.Link("word-mission")"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6c-1.8-1.4-4-2-8-2v13c4 0 6.2.6 8 2 1.8-1.4 4-2 8-2V4c-4 0-6.2.6-8 2zM12 6v13"/></svg>미션홈</a>
+        <a class="dk" href="@Model.Link(Model.BackPage)">@(Model.BackText)으로</a>
+    </div>
+    <p class="rf-sub">어디서 눌러도 함께 반영돼요</p>
 </div>
 @Html.AntiForgeryToken()
 <p id="toast" class="toast" role="status" hidden></p>

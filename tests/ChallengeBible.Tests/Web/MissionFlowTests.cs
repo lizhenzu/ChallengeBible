@@ -371,7 +371,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         var c = await Member("cheolsu", Roles.Participant);
         var html = await c.GetStringAsync("/jamsil-kids/read?from=word");
         var token = TokenRx().Match(html).Groups[1].Value;
-        Assert.Contains("0</b>절 읽음", html);
+        Assert.Contains("data-readcount>0</span>절</b> 읽음", html);
 
         async Task<HttpStatusCode> Send(HttpMethod m, string url, object? body = null)
         {
@@ -386,15 +386,15 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Put, "/api/me/bible/bookmarks/1/24/2"));
         Assert.Equal(HttpStatusCode.NotFound, await Send(HttpMethod.Put, "/api/me/bible/read/1/24/99"));
         var after = await c.GetStringAsync("/jamsil-kids/read?from=word");
-        Assert.Contains("1</b>절 읽음", after);
+        Assert.Contains("data-readcount>1</span>절</b> 읽음", after);
         Assert.Contains("aria-pressed=\"true\" aria-label=\"1절 읽음\"", after);
         Assert.Contains("aria-pressed=\"true\" aria-label=\"2절 책갈피\"", after);
 
         Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Put, "/api/me/bible/read-range", new { book = 1, startChapter = 24, startVerse = 1, endChapter = 24, endVerse = 9 }));
-        Assert.Contains("9</b>절 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
+        Assert.Contains("data-readcount>9</span>절</b> 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
         Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Delete, "/api/me/bible/read-range?book=1&startChapter=24&startVerse=1&endChapter=24&endVerse=9"));
         Assert.Equal(HttpStatusCode.OK, await Send(HttpMethod.Delete, "/api/me/bible/read/1/24/1"));   // 이미 꺼진 것을 다시 꺼도 OK
-        Assert.Contains("0</b>절 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
+        Assert.Contains("data-readcount>0</span>절</b> 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
 
         // 위조 방지 토큰이 없으면 거절
         var bad = new HttpRequestMessage(HttpMethod.Put, "/api/me/bible/read/1/24/1");
@@ -562,17 +562,17 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("미션홈에도 반영돼요", done);
         Assert.Contains("class=\"mh-stamp ok\"", await c.GetStringAsync("/jamsil-kids/word-mission"));   // 미션홈 카드의 「완료」 도장
         var rd = await c.GetStringAsync("/jamsil-kids/read?from=word");
-        Assert.Contains("9</b>절 읽음", rd);                        // 성경 페이지도 같은 읽음 기록
+        Assert.Contains("data-readcount>9</span>절</b> 읽음", rd);                        // 성경 페이지도 같은 읽음 기록
         Assert.Contains("data-readcard", rd);
         Assert.Contains("class=\"sbar\"", rd);                      // 세부 화면 머리줄 · 말씀 미션 · 성경 읽기
         Assert.Contains("말씀 미션 · 성경 읽기", rd);
         Assert.Contains("<div class=\"rm-row\">", rd);                // 첫 줄: 오늘의 말씀 | 날짜 + 글자 크기(한 줄, 2026-11-28 시안)
-        Assert.Matches(@"<b>오늘의 말씀</b>\s*<i aria-hidden=""true""></i><em>", rd);
+        Assert.Matches(@"<b>오늘의 말씀</b>\s*<i aria-hidden=""true""></i><span>", rd);
         Assert.DoesNotContain("brd-k", rd);
-        Assert.Contains("말씀 미션과 같은 기록이에요", rd);                // 하단 안내 B: 안내 박스 + 이동 목록 3줄
-        Assert.Contains("<span>말씀 미션으로 돌아가기</span>", rd);
-        Assert.Contains("<span>미션홈으로 가기</span>", rd);
-        Assert.Contains("<a href=\"/\"><span>홈으로 가기</span>", rd);
+        Assert.Contains("읽음 표시는 말씀 미션과 같은 기록이에요", rd);   // 하단 안내 A(2026-11-28): 안내 한 줄 + 버튼 3개 + 보조 문구
+        Assert.Contains("class=\"rf-btns\"", rd);
+        Assert.Contains(">말씀 미션으로</a>", rd);
+        Assert.Contains("어디서 눌러도 함께 반영돼요", rd);
         Assert.DoesNotContain("brd-foot", rd);
 
         // 「부모님께 읽어드렸어요」는 직접 눌러 +1점(읽음은 그대로)
@@ -583,15 +583,15 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         var undo = J(await Api(c, t, "/api/jamsil-kids/missions/word/read", new { date = "2027-01-05", on = false }));
         Assert.Equal((-1, 0), (undo.GetProperty("pointsEarned").GetInt32(), undo.GetProperty("readCount").GetInt32()));
         Assert.Equal("Word.Parent", Assert.Single(undo.GetProperty("completedItems").EnumerateArray()).GetString());
-        Assert.Contains("0</b>절 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
+        Assert.Contains("data-readcount>0</span>절</b> 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
 
         // 「혼자 읽었어요」를 직접 누르면 오늘 범위 전체가 읽음, 취소하면 읽음도 풀린다
         var me = J(await Api(c, t, "/api/jamsil-kids/missions/word", new { date = "2027-01-05", items = new[] { "Word.Me" } }));
         Assert.Equal(9, me.GetProperty("readCount").GetInt32());
-        Assert.Contains("9</b>절 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
+        Assert.Contains("data-readcount>9</span>절</b> 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
         var off = J(await Api(c, t, "/api/jamsil-kids/missions/undo", new { date = "2027-01-05", item = "Word.Me" }));
         Assert.Equal(0, off.GetProperty("readCount").GetInt32());
-        Assert.Contains("0</b>절 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
+        Assert.Contains("data-readcount>0</span>절</b> 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
     }
 
     [Fact]

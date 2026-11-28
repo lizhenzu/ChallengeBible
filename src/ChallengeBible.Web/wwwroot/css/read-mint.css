@@ -9,42 +9,44 @@ body:has(.brd.rm) { background: #F3F8F7; }
 .brd.rm .vb.rd.on { background: #0D7A68; color: #fff; }
 .brd.rm .brd-pager a { min-height: 44px; display: inline-flex; align-items: center; }
 
-/* 하단 안내(2026-11-28 시안 B): 안내 박스 + 이동 목록 3줄. 높이는 최소값만 — 큰 글씨에서는 줄바꿈으로 늘어난다 */
-.brd.rm .rf { margin: 18px 0 8px; }
-.brd.rm .rf-box { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; background: #E3F3EE; border: 1px solid #CFE8E1; border-radius: 5px; }
-.brd.rm .rf-box svg { flex-shrink: 0; margin-top: 1px; }
-.brd.rm .rf-box b { display: block; font-size: 15px; font-weight: 900; color: #095C4E; overflow-wrap: anywhere; }
-.brd.rm .rf-box p { margin: 4px 0 0; font-size: 13px; line-height: 1.6; color: #3F665D; overflow-wrap: anywhere; }
-.brd.rm .rf-list { margin-top: 10px; background: #fff; border-radius: 5px; }
-.brd.rm .rf-list a { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 52px; padding: 8px 16px; font-size: 15px; font-weight: 700; color: #12302A; text-decoration: none; }
-.brd.rm .rf-list a + a { border-top: 1px solid #E3EAE8; }
-.brd.rm .rf-list a span { overflow-wrap: anywhere; }
-.brd.rm .rf-list i { font-style: normal; font-size: 20px; color: #0D7A68; flex-shrink: 0; }
-
-/* 2026-11-28 시안 「성경 읽기 · 민트」와 맞춤 */
-/* 첫 줄: 왼쪽 「오늘의 말씀 | 날짜」 · 오른쪽 글자 크기 — 한 줄, 세로 가운데. 흰 바탕 · 아래 1px #E3EAE8 · 위 7px 아래 5px · 좌우 18px */
-.rm-row { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; padding: 7px 18px 5px; background: #fff; border-bottom: 1px solid #E3EAE8; font-family: 'Noto Sans KR', system-ui, sans-serif; line-height: normal; }
-.rm-row, .rm-row * { box-sizing: border-box; }
-.rm-k { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; min-width: 0; }
+/* ── 2026-11-28 시안 「성경 읽기 · 민트」(BibleRead)와 픽셀 단위로 맞춤 ── */
+/* B. 오늘의 말씀 영역: 흰 바탕 · 아래 1px #E3EAE8 · padding 7 18 5 */
+.rm-hero { padding: 7px 18px 5px; background: #fff; border-bottom: 1px solid #E3EAE8; font-family: 'Noto Sans KR', system-ui, sans-serif; line-height: normal; color: #12302A; }
+.rm-hero, .rm-hero * { box-sizing: border-box; }
+.rm-row { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; }
+.rm-k { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #3F665D; min-width: 0; }
 .rm-k b { color: #0D7A68; font-weight: 700; }
 .rm-k i { width: 1px; height: 12px; background: #B4DFD4; flex-shrink: 0; }
-.rm-k em { font-style: normal; color: #3F665D; }
-.rm-row .fs { display: inline-flex; align-items: center; border-radius: 5px; overflow: hidden; background: #E3F3EE; }
-.rm-row .fs button { min-width: 44px; min-height: 44px; height: auto; padding: 0 8px; border: 0; background: transparent; color: #0D7A68; font-size: 13px; font-weight: 900; cursor: pointer; font-family: inherit; }
-.rm-row .fs button.pct { min-width: 52px; font-size: 12px; font-weight: 900; color: #3F665D; border-left: 1px solid #7FBFB0; border-right: 1px solid #7FBFB0; border-radius: 0; }
-/* 제목 줄: 「이사야」 28px 900 + 「41장 1~20절」 14px 900 #0D7A68, 같은 기준선 */
-.brd.rm .brd-h { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 8px; margin-top: 16px; font-size: calc(28px * var(--fs, 1)); font-weight: 900; letter-spacing: -.5px; }
-.brd.rm .brd-h small { margin: 0; font-size: 14px; font-weight: 900; color: #0D7A68; letter-spacing: 0; }
-/* 진행 문구 · 바 */
-.brd.rm .brd-prog p { font-size: 12px; color: #3F665D; }
-.brd.rm .brd-prog b { color: #0D7A68; font-weight: 900; }
-.brd.rm .brd-prog p > span:last-child { font-weight: 700; }
-.brd.rm .brd-bar { height: 8px; background: #E3F3EE; }
-.brd.rm .brd-bar i { background: #0D7A68; }
-/* 해설 카드: 둥근 흰 카드가 아니라 연한 민트 띠(왼쪽 4px #0D7A68) */
-.brd.rm .brd-ex { --x-tag: #0D7A68; --x-on: #fff; --x-rg: #3F665D; --x-bd: #3F665D; margin: 10px 0; padding: 14px 16px; background: #E3F3EE; border: 0; border-left: 4px solid #0D7A68; border-radius: 0; }
-.brd.rm .brd-ex .tag { padding: 2px 7px; border-radius: 5px; font-size: 11px; font-weight: 900; }
+/* 글자 크기 박스: #E3F3EE · radius 5 · 버튼 44px · 「100%」 칸만 좌우 1px #7FBFB0(선 높이 22px) */
+.rm-hero .fs { padding: 0; display: flex; align-items: center; border-radius: 5px; overflow: hidden; background: #E3F3EE; }
+.rm-hero .fs button { height: 44px; min-width: 44px; padding: 1px 6px; border: 0; border-radius: 0; background: transparent; color: #0D7A68; font-family: inherit; font-size: 13px; font-weight: 900; cursor: pointer; }
+.rm-hero .fs button.pct { box-sizing: content-box; position: relative; height: 22px; min-width: 40px; padding: 0; font-size: 12px; font-weight: 700; line-height: 22px; text-align: center; color: #3F665D; border-left: 1px solid #7FBFB0; border-right: 1px solid #7FBFB0; }
+.rm-hero .fs button.pct::before { content: ""; position: absolute; left: -1px; right: -1px; top: -11px; bottom: -11px; }   /* 눈에 보이는 선은 22px, 누르는 칸은 44px */
+/* 제목 줄(위 10px): 「이사야」 28px 900 -0.5px + 「41장 1~20절」 14px 700 #0D7A68, 같은 기준선, 간격 8px */
+.rm-title { display: flex; align-items: baseline; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.rm-title h1 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -.5px; color: #12302A; }
+.rm-title span { font-size: 14px; font-weight: 700; color: #0D7A68; }
+/* 진행 문구(위 8px) 12px #3F665D, 읽은 절 수만 굵게 #0D7A68 · 오른쪽 % 700 / 진행 바(위 6px) 8px 완전 둥글게 */
+.rm-hero .brd-prog p { margin: 8px 0 0; display: flex; justify-content: space-between; font-size: 12px; color: #3F665D; }
+.rm-hero .brd-prog b { color: #0D7A68; font-weight: 700; }
+.rm-hero .brd-prog p > span:last-child { font-weight: 700; }
+.rm-hero .brd-bar { height: 8px; margin-top: 6px; border-radius: 999px; background: #E3F3EE; overflow: hidden; }
+.rm-hero .brd-bar i { display: block; height: 100%; border-radius: 999px; background: #0D7A68; transition: width .3s; }
+/* C. 해설: 연한 민트 띠 — #E3F3EE · 왼쪽 4px #0D7A68 · padding 14 16 · 모서리 · 테두리 없음 */
+.brd.rm .brd-ex { --x-tag: #0D7A68; --x-on: #fff; --x-rg: #3F665D; --x-bd: #3F665D; margin: 0; padding: 14px 16px; background: #E3F3EE; border: 0; border-left: 4px solid #0D7A68; border-radius: 0; line-height: normal; }
+.brd.rm .brd-ex .hd { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin: 0; }
+.brd.rm .brd-ex .tag { padding: 2px 7px; border-radius: 5px; background: #0D7A68; color: #fff; font-size: 11px; font-weight: 900; }
 .brd.rm .brd-ex .rg { font-size: 12px; font-weight: 700; color: #3F665D; }
-.brd.rm .brd-ex strong { margin-top: 6px; font-size: calc(16px * var(--fs, 1)); font-weight: 900; color: #12302A; line-height: 1.5; }
-.brd.rm .brd-ex .bd { margin: 2px 0 0; font-size: calc(13px * var(--fs, 1)); color: #3F665D; line-height: 1.7; }
+.brd.rm .brd-ex strong { display: block; margin-top: 6px; font-size: 16px; font-weight: 900; color: #12302A; line-height: normal; }
+.brd.rm .brd-ex .bd { margin: 2px 0 0; font-size: 13px; color: #3F665D; line-height: normal; }
 .brd.rm .rnv-tb.yt { background: #E3F3EE; border-color: #9FD3C6; }   /* 듣기 버튼의 분홍도 민트로 */
+/* D. 맨 아래 안내(시안 A): 안내 한 줄 + 버튼 3개(1 : 1 : 1.3 · 간격 8 · 높이 48 · 13px 700) + 보조 문구 */
+.rf { margin: 0; padding: 20px 18px 24px; background: #F3F8F7; border-top: 1px solid #CFE8E1; font-family: 'Noto Sans KR', system-ui, sans-serif; line-height: normal; }
+.rf, .rf * { box-sizing: border-box; }
+.rf-note { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: #3F665D; line-height: 1.5; text-align: center; }
+.rf-note svg { flex-shrink: 0; }
+.rf-btns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.3fr); gap: 8px; margin-top: 14px; }
+.rf-btns a { box-sizing: content-box; min-height: 48px; padding: 0; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 5px; font-size: 13px; font-weight: 700; text-decoration: none; text-align: center; overflow-wrap: anywhere; }
+.rf-btns a.lt { background: #E3F3EE; border: 1.5px solid #9FD3C6; color: #095C4E; box-shadow: 2px 2px 3px rgba(13, 122, 104, .22), 4px 4px 8px rgba(13, 122, 104, .1); }
+.rf-btns a.dk { background: #0D7A68; border: 1.5px solid #0D7A68; color: #fff; box-shadow: 2px 2px 3px rgba(13, 122, 104, .3), 4px 4px 8px rgba(13, 122, 104, .12); }
+.rf-sub { margin: 10px 0 0; text-align: center; font-size: 12px; color: #5F6F6B; }
