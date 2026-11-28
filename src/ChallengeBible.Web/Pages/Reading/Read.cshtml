@@ -205,7 +205,7 @@
     /// <summary>절 본문 + 읽음 ✓ · 책갈피 ★ 두 동그라미. 시안처럼 글과 버튼 사이에 공백 글자가 끼지 않게 한 줄로 만든다.</summary>
     private Microsoft.AspNetCore.Html.IHtmlContent VerseInner(VerseLine line, bool read, bool star, bool multi)
     {
-        var e = System.Net.WebUtility.HtmlEncode;
+        string e(string text) => System.Net.WebUtility.HtmlEncode(text);
         var sb = new System.Text.StringBuilder();
         foreach (var code in Model.Shown)
         {
