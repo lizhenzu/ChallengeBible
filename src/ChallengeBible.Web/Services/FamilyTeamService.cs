@@ -284,10 +284,10 @@ public sealed class FamilyTeamService(IAppDb db, RequestScope scope, TenantConte
     }
 
     /// <summary>R-224: "○○팀에 들어갔어요" 알림 한 줄(다음에 들어오면 한 번 보이고 지워진다). 저장은 부르는 쪽에서.</summary>
-    internal static void AddNotice(AppDbContext ctx, int tenantId, string userName, FamilyTeam t, DateTime now)
+    internal static void AddNotice(AppDbContext ctx, int tenantId, string userName, FamilyTeam t, DateTime now, string kind = "JOINED")
     {
         var name = DisplayName(t.Name, [], t.TeamType == TeamTypes.Friend);
-        ctx.FamilyNotices.Add(new FamilyNotice { TenantId = tenantId, UserName = userName, FamilyTeamId = t.Id, TeamName = name, CreatedAt = now });
+        ctx.FamilyNotices.Add(new FamilyNotice { TenantId = tenantId, UserName = userName, FamilyTeamId = t.Id, TeamName = name, CreatedAt = now, Kind = kind });
     }
 
     /// <summary>R-221: 친구팀이 다 차면 남은 신청 · 초대를 지운다. 저장은 부르는 쪽에서.</summary>

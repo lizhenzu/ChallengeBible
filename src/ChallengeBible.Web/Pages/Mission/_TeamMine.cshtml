@@ -27,6 +27,7 @@
 </header>
 
 <div class="tv-body">
+@await Html.PartialAsync("_JoinBand", (Model.Band, slug, "team"))
 @if (Model.Notice is not null) { <p class="tv-ok" role="status">@(Model.Notice)에 들어갔어요</p> }
 @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="tv-ok" role="status">@Model.OkMessage</p> }
 @if (Model.Error is not null) { <p class="tv-err" role="alert">@Model.Error</p> }
@@ -35,6 +36,13 @@
     <span class="tv-chip">우리 @label</span>
     <div class="tv-sum-r"><h1>@b.Name</h1><span>팀 랭킹 <b>@(b.Rank)위</b></span></div>
     <div class="tv-pts"><span class="num">@b.Total.ToString("N0")</span><small>점@(b.NextStage is { } nx ? $" · 목표 {nx:N0}" : " · 모든 단계를 넘었어요")</small></div>
+</section>
+
+<section class="tv-card" aria-label="초대 · 구성원 관리">
+    <div class="tv-links">
+        @if (!s.Locked && !s.Full) { <a class="tv-link" href="/@slug/family-team?Add=true"><span>팀원 초대하기 <small>이름으로 찾아 초대</small></span><i aria-hidden="true">›</i></a> }
+        <a class="tv-link" href="/@slug/family-team/manage"><span>구성원 관리 <small>내보내기 · 방장 넘기기</small></span><i aria-hidden="true">›</i></a>
+    </div>
 </section>
 
 @if (open.Count > 0)
@@ -137,11 +145,9 @@
 </section>
 
 <section class="tv-card">
-    <h2>초대 · 관리</h2>
+    <h2>팀 설정</h2>
     <div class="tv-links">
-        @if (!s.Locked && !s.Full) { <a class="tv-link" href="/@slug/family-team?Add=true"><span>팀원 초대하기 <small>이름으로 찾아 초대</small></span><i aria-hidden="true">›</i></a> }
         <a class="tv-link" href="/@slug/family-team/manage#rename"><span>팀 이름 바꾸기</span><i aria-hidden="true">›</i></a>
-        <a class="tv-link" href="/@slug/family-team/manage"><span>팀 관리 <small>방장 넘기기 · 내보내기 · 가입 신청</small></span>@if (s.Requests.Count > 0) { <em class="tv-badge num" aria-label="기다리는 신청 @(s.Requests.Count)건">@s.Requests.Count</em> }<i aria-hidden="true">›</i></a>
         <a class="tv-link out" href="/@slug/family-team/manage#leave"><span>팀 나가기</span><i aria-hidden="true">›</i></a>
     </div>
     <p class="tv-note l">한 사람은 가족팀이나 친구팀 중 하나에만 들어갈 수 있어요.</p>

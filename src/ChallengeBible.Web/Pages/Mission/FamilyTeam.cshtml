@@ -19,13 +19,13 @@ else if (Model.ShowOthers) { <partial name="_TeamOthers" model="Model" /> }
 else
 {
 <link rel="stylesheet" href="~/css/team-mint.css" asp-append-version="true" />
-    ViewData["PbTitle"] = Model.View == "manage" ? "팀 관리" : "가족팀"; ViewData["PbParent"] = new[] { "성경미션", home }; ViewData["PbButton"] = new[] { "미션홈", home };
+    ViewData["PbTitle"] = Model.View == "manage" ? "구성원 관리" : "가족팀"; ViewData["PbParent"] = new[] { "성경미션", home }; ViewData["PbButton"] = new[] { "미션홈", home };
 <partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
 <main class="gut fmt"><div class="wrap">
     @if (Model.Notice is not null) { <div class="fmt-joined" role="status"><span aria-hidden="true">🎉</span><div>@(Model.Notice)에 들어갔어요</div></div> }
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
     @if (Model.Error is not null) { <p class="err" role="alert">@Model.Error</p> }
-    @if (Model.TeamGifts.Count > 0) { @await Html.PartialAsync("_TeamGiftCard", (Model.Slug, Model.TeamGifts)) }   @* 팀 선물(ADR 0094 F) *@
+    @if (s.Mine is not null) { @await Html.PartialAsync("_JoinBand", (Model.Band, Model.Slug, Model.View == "manage" ? "manage" : "team")) }   @* 맨 위 알림 띠(2026-11-28 시안) — 팀 선물 카드는 팀보기에만 둔다 *@
 
     @if (s.UserName is null)
     {
@@ -85,21 +85,6 @@ else
                 <button type="submit" class="fmt-btn sm">저장</button>
             </form>
         </details>
-
-        @if (m.Requests.Count > 0)
-        {
-            <h2>합류 신청 <i class="num">@m.Requests.Count</i></h2>
-            @foreach (var r in m.Requests)
-            {
-                <div class="fmt-rq">
-                    <div class="w">@r.Name<b>@FamilyTeamModel.AsRelation(r.Relation) 신청</b></div>
-                    <div class="a">
-                        <form method="post" asp-page-handler="Accept" asp-route-slug="@Model.Slug"><input type="hidden" name="request" value="@r.RequestId" /><button type="submit" class="fmt-btn sm">수락</button></form>
-                        <form method="post" asp-page-handler="Reject" asp-route-slug="@Model.Slug"><input type="hidden" name="request" value="@r.RequestId" /><button type="submit" class="fmt-btn sm line">거절</button></form>
-                    </div>
-                </div>
-            }
-        }
 
         <h2>@(m.Friend ? "친구" : "구성원") @(m.Members.Count)명</h2>
         <ul class="fmt-mem">

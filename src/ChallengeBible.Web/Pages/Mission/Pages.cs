@@ -41,6 +41,8 @@ public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoin
     public FamilyHome? Team { get; private set; }
     /// <summary>팀이 없을 때 맨 위 「가족팀 초대가 왔어요」 배너 — 오늘 「다음에 할래요」를 누른 초대는 뺀다(R-212).</summary>
     public IReadOnlyList<FamilyReceivedInvite> Invites { get; private set; } = [];
+    /// <summary>맨 위 알림 띠(합류 신청 · 받은 초대 · 신청 대기 · 결과) — 처리할 게 없으면 비어 있다(2026-11-28 시안 JoinA).</summary>
+    public JoinBand Band { get; private set; } = JoinBand.Empty;
     /// <summary>가족팀에 들어갈 수 있는 역할인지(교사 · 임원 제외). 팀 없을 때 홍보 카드 판단.</summary>
     public bool FamilyCanJoin { get; private set; }
     /// <summary>친구팀을 만들 수 있는 학생인지(홍보 카드 「친구팀 만들기」).</summary>
@@ -58,6 +60,7 @@ public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoin
             FamilyCanJoin = UserRole.CanJoinFamily(kind);
             FamilyIsStudent = kind == UserRoleKind.Student;
             if (Team is null) Invites = (await family.StateAsync(ct)).Invites.Where(i => !i.SnoozedToday).ToList();
+            Band = await family.BandAsync(ct);
         }
         Gift = UserName is null ? null : await gifts.WalletAsync(ct);
         if (UserName is not null)

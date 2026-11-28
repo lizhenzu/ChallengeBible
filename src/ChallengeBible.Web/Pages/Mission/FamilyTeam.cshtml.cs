@@ -61,6 +61,8 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant, TeamG
     public static string LastText(DateOnly? last, DateOnly today) => last is not { } d ? "–" : d == today ? "오늘" : d == today.AddDays(-1) ? "어제" : d.ToString("M월 d일");
 
     public FamilyState State { get; private set; } = null!;
+    /// <summary>맨 위 알림 띠(합류 신청 · 초대). 팀이 있을 때만 채운다(2026-11-28 시안).</summary>
+    public JoinBand Band { get; private set; } = JoinBand.Empty;
     /// <summary>들어감 알림(R-224): 이번에 한 번 보이고 지워진다.</summary>
     public string? Notice { get; private set; }
     public IReadOnlyList<FamilySearchHit> Hits { get; private set; } = [];
@@ -127,13 +129,20 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant, TeamG
 
     public Task<IActionResult> OnPostTransferAsync(int member, CancellationToken ct) => Act(join.TransferAsync(member, ct), "transferred", ct);
 
-    public Task<IActionResult> OnPostRequestAsync(int team, string? relation, CancellationToken ct)
+    public async Task<IActionResult> OnPostRequestAsync(int team, string? relation, CancellationToken ct)
     {
         Join = team;
-        return Act(join.RequestAsync(team, relation ?? "", ct), "requested", ct);
+        var e = await join.RequestAsync(team, relation ?? "", ct);
+        if (e == FamilyError.None) return Redirect($"/{Slug}/family-join/sent");   // 「신청을 보냈어요」 확인 화면(시안 JoinA9)
+        return await Act(Task.FromResult(e), "requested", ct);
     }
 
-    public Task<IActionResult> OnPostCancelAsync(CancellationToken ct) => Act(join.CancelAsync(ct), "cancelled", ct);
+    public async Task<IActionResult> OnPostCancelAsync(CancellationToken ct)
+    {
+        var e = await join.CancelAsync(ct);
+        if (e == FamilyError.None) return Redirect($"/{Slug}/family-join/result?k=cancel");   // 「신청을 취소했어요」(시안 JoinA12)
+        return await Act(Task.FromResult(e), "cancelled", ct);
+    }
     public Task<IActionResult> OnPostAcceptAsync(int request, CancellationToken ct) => Act(join.AcceptAsync(request, ct), "accepted", ct);
     public Task<IActionResult> OnPostRejectAsync(int request, CancellationToken ct) => Act(join.RejectAsync(request, ct), "rejected", ct);
     public async Task<IActionResult> OnPostLeaveAsync(CancellationToken ct)
@@ -186,6 +195,7 @@ public class FamilyTeamModel(FamilyJoinService join, TenantContext tenant, TeamG
         await teamGifts.EnsureAsync(ct);
         TeamGifts = await teamGifts.MineAsync(ct);
         if (!State.Enabled) return NotFound();
+        if (State.Mine is not null) Band = await join.BandAsync(ct);
         if (State.Mine is not null && HttpMethods.IsGet(Request.Method)) Notice = await join.TakeNoticeAsync(ct);
         if (State.Mine is null)
         {

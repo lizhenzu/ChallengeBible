@@ -19,7 +19,23 @@ public sealed record FamilyMine(int TeamId, string Name, string? RawName, int To
 {
     public bool Full => Friend && Members.Count >= FamilyTeamService.FriendCapacity;
 }
-public sealed record FamilyPending(int RequestId, int TeamId, string TeamName, string Relation, bool Friend = false);
+public sealed record FamilyPending(int RequestId, int TeamId, string TeamName, string Relation, bool Friend = false)
+{
+    /// <summary>신청한 때(UTC).</summary>
+    public DateTime CreatedAt { get; init; }
+}
+
+/// <summary>알림 띠(2026-11-28 시안 JoinA): 팀원이 받은 합류 신청 한 줄. Block = 지금은 수락할 수 없는 까닭.</summary>
+public enum JoinBlock { None, Locked, Full, OtherTeam }
+public sealed record JoinBandRequest(int RequestId, string Name, string Relation, string When, JoinBlock Block);
+/// <summary>신청자가 처음 보는 결과(합류 ACCEPTED · 거절 REJECTED). 결과 화면을 열면 지워진다.</summary>
+public sealed record JoinBandResult(string Kind, string TeamName);
+/// <summary>미션홈 · 팀보기 맨 위 알림 띠에 쓸 것 전부. 처리할 게 없으면 Any 가 false 라 띠가 없다.</summary>
+public sealed record JoinBand(IReadOnlyList<JoinBandRequest> Requests, IReadOnlyList<FamilyReceivedInvite> Invites, FamilyPending? Pending, string PendingDate, JoinBandResult? Result)
+{
+    public static readonly JoinBand Empty = new([], [], null, "", null);
+    public bool Any => Requests.Count > 0 || Invites.Count > 0 || Pending is not null || Result is not null;
+}
 /// <summary>우리 팀이 보내고 수락을 기다리는 초대(R-211).</summary>
 public sealed record FamilySentInvite(int InviteId, string Name, string Relation);
 /// <summary>내가 받은 초대(R-212). Relation = 초대한 사람이 고른 역할(처음 골라 둘 값). SnoozedToday = 오늘 "다음에 할래요"를 눌러 부서 홈 배너에서 숨김.</summary>
@@ -171,7 +187,7 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
             var target = all.FirstOrDefault(t => t.Team.Id == own.FamilyTeamId);
             var friend = target.Team is not null && IsFriend(target.Team);
             var name = target.Team is null ? "팀" : FamilyTeamService.DisplayName(target.Team.Name, target.Members.Select(m => (m.Name, m.M.Relation)).ToList(), friend);
-            pending = new FamilyPending(own.Id, own.FamilyTeamId, name, FamilyRelation.FromKey(own.RelationKey), friend);
+            pending = new FamilyPending(own.Id, own.FamilyTeamId, name, FamilyRelation.FromKey(own.RelationKey), friend) { CreatedAt = own.CreatedAt };
         }
         return new FamilyState(true, me.UserName, me.IsGuardian, mine, pending, invites, UserRole.CanJoinFriend(me.Kind));
     }
@@ -307,7 +323,7 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         var now = time.GetUtcNow().UtcDateTime;
         Seat(team!, person, IsFriend(team!) ? FamilyRelation.Student : FamilyRelation.FromKey(q.RelationKey), now);
         await DropInvitesToAsync(ctx, person, ct);   // R-213
-        FamilyTeamService.AddNotice(ctx, team!.TenantId, person, team, now);
+        FamilyTeamService.AddNotice(ctx, team!.TenantId, person, team, now, "ACCEPTED");   // 신청자 홈 띠 「합류했어요」
         await FamilyTeamService.ClearIfFullAsync(ctx, team, ct);
         return await SaveAsync(ctx, FamilyError.AlreadyInTeam, ct);
     }
@@ -331,15 +347,78 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
     internal static async Task DropPendingOfAsync(AppDbContext ctx, string userName, CancellationToken ct) =>
         ctx.FamilyRequests.RemoveRange(await ctx.FamilyRequests.Where(i => i.TargetUserName == userName).ToListAsync(ct));
 
-    public async Task<FamilyError> RejectAsync(int requestId, CancellationToken ct = default)
+    /// <summary>거절. notify 면 신청자에게 「합류하지 못했어요」 띠를 남긴다(사유는 보내지 않는다). 이미 다른 팀에 든 사람의 신청을 치울 때는 notify = false.</summary>
+    public async Task<FamilyError> RejectAsync(int requestId, CancellationToken ct = default) => await RejectAsync(requestId, true, ct);
+
+    public async Task<FamilyError> RejectAsync(int requestId, bool notify, CancellationToken ct = default)
     {
         if (!await EnabledAsync(ct)) return FamilyError.Disabled;
         await using var ctx = db.Create();
-        var (_, q, err) = await RequestOfMyTeamAsync(ctx, requestId, ct);
+        var (team, q, err) = await RequestOfMyTeamAsync(ctx, requestId, ct);
         if (err != FamilyError.None) return err;
         ctx.FamilyRequests.Remove(q!);
+        if (notify)
+        {
+            ctx.FamilyNotices.RemoveRange(await ctx.FamilyNotices.Where(n => n.UserName == q!.TargetUserName && (n.Kind == "ACCEPTED" || n.Kind == "REJECTED")).ToListAsync(ct));
+            FamilyTeamService.AddNotice(ctx, team!.TenantId, q!.TargetUserName, team, time.GetUtcNow().UtcDateTime, "REJECTED");
+        }
         await ctx.SaveChangesAsync(ct);
         return FamilyError.None;
+    }
+
+    /// <summary>신청자의 결과 띠(합류 · 거절)를 읽고 지운다(결과 화면을 열 때). 없으면 null.</summary>
+    public async Task<JoinBandResult?> TakeResultAsync(CancellationToken ct = default)
+    {
+        if (!await EnabledAsync(ct)) return null;
+        await using var ctx = db.Create();
+        if (await MeAsync(ctx, ct) is not { } me) return null;
+        var rows = await ctx.FamilyNotices.Where(n => n.UserName == me.UserName && (n.Kind == "ACCEPTED" || n.Kind == "REJECTED")).OrderByDescending(n => n.Id).ToListAsync(ct);
+        if (rows.Count == 0) return null;
+        ctx.FamilyNotices.RemoveRange(rows);
+        await ctx.SaveChangesAsync(ct);
+        return new JoinBandResult(rows[0].Kind, rows[0].TeamName);
+    }
+
+    /// <summary>「방금」 · 「3시간 전」 · 「어제」 · 「11월 25일」(영역 시간대).</summary>
+    public static string RelTime(DateTime createdUtc, DateTimeOffset now, string tz)
+    {
+        var at = new DateTimeOffset(DateTime.SpecifyKind(createdUtc, DateTimeKind.Utc));
+        var span = now - at;
+        if (span < TimeSpan.FromMinutes(1)) return "방금";
+        if (span < TimeSpan.FromHours(1)) return $"{(int)span.TotalMinutes}분 전";
+        var d = TenantClock.ToTenantDate(at, tz);
+        var today = TenantClock.ToTenantDate(now, tz);
+        if (d == today) return $"{(int)span.TotalHours}시간 전";
+        if (d == today.AddDays(-1)) return "어제";
+        return d.ToString("M월 d일");
+    }
+
+    /// <summary>미션홈 · 팀보기 맨 위 알림 띠에 쓸 것을 모은다(2026-11-28 시안 JoinA). 신청 · 초대 · 대기 · 결과.</summary>
+    public async Task<JoinBand> BandAsync(CancellationToken ct = default)
+    {
+        var s = await StateAsync(ct);
+        if (!s.Enabled || s.UserName is null) return JoinBand.Empty;
+        var now = time.GetUtcNow();
+        var tz = tenant.Current.TimeZoneId;
+        var reqs = new List<JoinBandRequest>();
+        JoinBandResult? result = null;
+        await using var ctx = db.Create();
+        if (s.Mine is { } m)
+        {
+            var rows = await ctx.FamilyRequests.AsNoTracking().Where(q => q.FamilyTeamId == m.TeamId && q.Kind == FamilyRequest.Join).OrderBy(q => q.Id).ToListAsync(ct);
+            var users = rows.Select(q => q.TargetUserName).ToList();
+            var names = await NamesAsync(ctx, users, ct);
+            var inTeam = (await ctx.FamilyMembers.AsNoTracking().Where(f => users.Contains(f.UserName) && f.IsActive).Select(f => f.UserName).ToListAsync(ct)).ToHashSet();
+            foreach (var q in rows)
+            {
+                var block = inTeam.Contains(q.TargetUserName) ? JoinBlock.OtherTeam : m.Locked ? JoinBlock.Locked : m.Full ? JoinBlock.Full : JoinBlock.None;
+                reqs.Add(new JoinBandRequest(q.Id, names.GetValueOrDefault(q.TargetUserName, q.TargetUserName), FamilyRelation.FromKey(q.RelationKey), RelTime(q.CreatedAt, now, tz), block));
+            }
+        }
+        var res = await ctx.FamilyNotices.AsNoTracking().Where(n => n.UserName == s.UserName && (n.Kind == "ACCEPTED" || n.Kind == "REJECTED")).OrderByDescending(n => n.Id).FirstOrDefaultAsync(ct);
+        if (res is not null) result = new JoinBandResult(res.Kind, res.TeamName);
+        var date = s.Pending is { } p ? TenantClock.ToTenantDate(new DateTimeOffset(DateTime.SpecifyKind(p.CreatedAt, DateTimeKind.Utc)), tz).ToString("M월 d일") : "";
+        return new JoinBand(reqs, s.Invites.Where(i => !i.SnoozedToday).ToList(), s.Pending, date, result);
     }
 
     private async Task<(FamilyTeam? Team, FamilyRequest? Request, FamilyError Error)> RequestOfMyTeamAsync(AppDbContext ctx, int requestId, CancellationToken ct)

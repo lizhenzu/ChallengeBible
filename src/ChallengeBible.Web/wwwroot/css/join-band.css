@@ -1,0 +1,66 @@
+/* 알림 띠(2026-11-28 시안 JoinA1 ~ A8) — 미션홈(.mh) · 팀보기(.tv) 맨 위. 민트 #0D7A68 · 카드 모서리 5px · 누르는 곳 44px 이상. */
+.jb-wrap { margin: 16px 16px 0; display: flex; flex-direction: column; gap: 10px; font-family: 'Noto Sans KR', system-ui, sans-serif; line-height: normal; color: #12302A; }
+.jb-wrap, .jb-wrap * { box-sizing: border-box; }
+.jb-wrap p { margin: 0; }
+.jb-wrap button { font-family: inherit; cursor: pointer; }
+.jb-wrap a { text-decoration: none; }
+.jb { border-radius: 5px; padding: 14px 14px 12px; }
+.jb-req, .jb-inv { background: #0D7A68; color: #fff; }
+.jb-h { display: flex; align-items: center; gap: 8px; padding: 0 2px 8px; }
+.jb-h b { font-size: 16px; font-weight: 900; }
+.jb-row { background: #fff; color: #12302A; border-radius: 5px; padding: 12px 14px; margin-bottom: 8px; }
+.jb-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.jb-who { min-width: 0; flex: 1 1 140px; }
+.jb-who b { font-size: 15px; font-weight: 900; }
+.jb-who small { font-size: 12px; font-weight: 700; color: #3F665D; margin-left: 6px; }
+.jb-who span { display: block; font-size: 12px; color: #5F6F6B; margin-top: 1px; }
+.jb-btns { display: flex; gap: 8px; flex-shrink: 0; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.jb-btns form { display: contents; }
+.jb-no summary { list-style: none; min-height: 44px; padding: 0 14px; border-radius: 5px; border: 1.5px solid #0D7A68; background: #fff; color: #0D7A68; font-size: 14px; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.jb-no summary::-webkit-details-marker { display: none; }
+.jb-no[open] summary { display: none; }
+.jb-no[open] { flex-basis: 100%; }
+.jb-ask { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: #3F665D; }
+.jb-ask div { display: flex; gap: 8px; }
+.jb-back { min-height: 44px; padding: 0 12px; border: 0; background: transparent; color: #3F665D; font-size: 13px; font-weight: 700; }
+.jb-rej { min-height: 44px; padding: 0 14px; border-radius: 5px; border: 1.5px solid #0D7A68; background: #E3F3EE; color: #095C4E; font-size: 13px; font-weight: 900; }
+.jb-acc, .jb-ok { min-height: 44px; padding: 0 18px; border-radius: 5px; border: 1.5px solid #0D7A68; background: #0D7A68; color: #fff; font-size: 14px; font-weight: 900; }
+.jb-acc:disabled { background: #F1F5F4; border-color: #CFE8E1; color: #7A8985; cursor: default; }
+.jb-state { font-size: 14px; font-weight: 700; color: #3F665D; }
+.jb-state.ok { font-weight: 900; color: #0D7A68; }
+.jb-note { margin-top: 10px !important; padding-top: 10px; border-top: 1px solid #EEF2F1; font-size: 13px; line-height: 1.5; color: #3F665D; }
+.jb-more { min-height: 44px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; }
+.jb-wrap .jb-more { color: #fff; }
+.jb-tip { font-size: 12px; color: #CFE8E1; padding: 0 2px; line-height: 1.5; }
+.jb-p { margin-top: 0; font-size: 15px; line-height: 1.5; }
+.jb-two { display: flex; gap: 8px; margin-top: 12px; }
+.jb-two form { display: contents; }
+.jb-l, .jb-g { flex: 1; min-height: 48px; border-radius: 5px; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.jb-l { border: 1.5px solid #fff; background: transparent; color: #fff; }
+.jb-wrap .jb-g { background: #fff; color: #0D7A68; font-size: 15px; font-weight: 900; }
+.jb-inv .jb-tip { margin-top: 8px; }
+.jb-wait { background: #E3F3EE; border: 1.5px solid #9FD3C6; color: #095C4E; padding: 16px; }
+.jb-wait .jb-h { padding: 0; }
+.jb-wait .jb-p { margin-top: 8px; font-size: 14px; line-height: 1.6; color: #12302A; }
+.jb-steps { display: flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 12px; font-weight: 700; color: #3F665D; justify-content: center; }
+.jb-wait .jb-steps { justify-content: flex-start; }
+.jb-steps i { width: 8px; height: 8px; border-radius: 50%; background: #9FD3C6; }
+.jb-steps i.on { background: #0D7A68; }
+.jb-steps s { width: 18px; height: 2px; background: #9FD3C6; }
+.jb-cx { margin-top: 8px; min-height: 44px; padding: 0; border: 0; background: transparent; color: #3F665D; font-size: 13px; font-weight: 900; text-decoration: underline; }
+.jb-res { display: block; background: #fff; border: 1.5px solid #9FD3C6; color: #12302A; padding: 12px 14px; }
+.jb-res .jb-h { padding: 0; min-height: 28px; justify-content: space-between; }
+.jb-res .jb-h b { font-size: 15px; }
+.jb-res .jb-h span { font-size: 13px; font-weight: 900; color: #0D7A68; }
+.jb-res.ok { background: #0D7A68; border-color: #0D7A68; color: #fff; }
+.jb-res.ok .jb-h span { color: #fff; }
+/* 신청 흐름 전체 화면(FamilyJoin) */
+.mi-check.off { background: #9FB8B1; }
+.mi-done .jb-steps { margin-top: 22px; font-size: 13px; }
+.mi-done .jb-steps i { width: 10px; height: 10px; }
+.mi-done .jb-steps s { width: 22px; }
+.jb-pts { margin-top: 20px; background: #E3F3EE; border-radius: 5px; padding: 12px 20px; font-size: 14px; color: #095C4E; }
+.jb-pts b { font-size: 18px; }
+.tv .jb-wrap { margin-left: 0; margin-right: 0; }
+.fmt .jb-wrap, main .jb-wrap { margin-left: 0; margin-right: 0; }
+.fmt .jb-wrap { margin-bottom: 14px; }

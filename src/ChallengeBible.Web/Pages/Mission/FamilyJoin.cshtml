@@ -1,0 +1,42 @@
+@page "/{slug}/family-join/{view:regex(^(sent|result)$)}"
+@model FamilyJoinModel
+@* 합류 신청 흐름 전체 화면(2026-11-28 시안 JoinA9 ~ A12): 신청 확인 · 합류 · 거절 · 취소. 모양은 팀 초대 완료 화면과 같다. *@
+@{
+    var slug = Model.Slug;
+    var (title, body, icon, cta, ctaHref, sub, subHref) = Model.Step switch
+    {
+        "sent" => ("신청을 보냈어요", $"{Model.TeamName} 팀원이 수락하면 바로 합류돼요. 팀원 누구나 수락할 수 있어요.", "M5 12.5l4.5 4.5L19 7.5", "홈으로 가기", $"/{slug}/word-mission", "다른 팀 찾아보기", $"/{slug}/family-team"),
+        "accepted" => ("합류했어요! 환영해요", $"{Model.TeamName}의 새 팀원이 되었어요. 이제 함께 읽고 선물도 함께 받아요.", "M5 12.5l4.5 4.5L19 7.5", "우리 팀 보러 가기", $"/{slug}/family-team", "홈으로", $"/{slug}/word-mission"),
+        "rejected" => ("이번에는 합류하지 못했어요", $"{Model.TeamName}이 신청을 받지 않았어요. 다른 팀을 찾거나 새 팀을 만들 수 있어요.", "M6 6l12 12M18 6L6 18", "다른 팀 찾기", $"/{slug}/family-team", "새 팀 만들기", $"/{slug}/family-team?New=true"),
+        _ => ("신청을 취소했어요", "언제든 다시 신청할 수 있어요.", "M6 12h12", "다시 신청하기", $"/{slug}/family-team", "홈으로", $"/{slug}/word-mission"),
+    };
+}
+<link rel="stylesheet" href="~/css/mission-home.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/join-band.css" asp-append-version="true" />
+<div class="mh mi">
+<header class="mi-bar">
+    <a class="mi-back" href="/@slug/word-mission" aria-label="뒤로"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#12302A" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <h1>팀 합류</h1>
+</header>
+<section class="mi-done">
+    <div class="mi-check@(Model.Step is "rejected" or "cancelled" ? " off" : "")"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="@icon"/></svg></div>
+    <h2>@title</h2>
+    <p>@body</p>
+    @if (Model.Step == "sent")
+    {
+        <div class="jb-steps"><i class="on"></i>신청함<s></s><i></i>팀원 확인<s></s><i></i>합류</div>
+    }
+    @if (Model.Step == "accepted")
+    {
+        <div class="jb-pts">우리 팀 점수 <b class="num">@Model.TeamPoints.ToString("N0")점</b> · 이제 함께 모아요</div>
+    }
+</section>
+<div class="mi-act">
+    <a class="mi-p" href="@ctaHref">@cta</a>
+    <a class="mi-s" href="@subHref">@sub</a>
+    @if (Model.Step == "sent")
+    {
+        <form method="post" asp-page-handler="Cancel"><button type="submit" class="mi-t">신청 취소</button></form>
+    }
+</div>
+</div>

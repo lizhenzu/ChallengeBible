@@ -11,7 +11,7 @@ namespace ChallengeBible.Web.Pages.Mission;
 /// </summary>
 public class TeamGiftModel(TeamGiftService gifts, FamilyTeamService teams, TenantContext tenant, TimeProvider time) : PageModel, ITitled
 {
-    public string Title => Gift?.Friend == true ? "친구팀 선물 고르기" : "가족 선물 고르기";
+    public string Title => Gift?.Friend == true ? "친구팀 선물 고르기" : "팀 선물 고르기";
     public string Slug => tenant.Current.Slug;
     [BindProperty(SupportsGet = true)] public long Id { get; set; }
     [BindProperty(SupportsGet = true)] public bool Change { get; set; }

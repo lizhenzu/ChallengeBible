@@ -1,0 +1,88 @@
+@using ChallengeBible.Infrastructure.Data
+@using ChallengeBible.Web.Services
+@model (JoinBand Band, string Slug, string Ret)
+@* 알림 띠 — 미션홈 · 팀보기 맨 위에만(2026-11-28 시안 JoinA1 ~ A8). 처리할 게 없으면 아무것도 그리지 않는다. 숫자 배지는 만들지 않는다.
+   수락 한 번(처리 중… → 합류했어요 ✓) · 거절은 한 번 더 확인 · 선물 받은 팀 / 가득 찬 친구팀은 거절만 · 이미 다른 팀에 든 사람은 「확인」으로 치움.
+   푸시 알림은 없다 — 앱을 열었을 때 이 띠로 알려 준다. *@
+@{
+    var b = Model.Band;
+    var slug = Model.Slug;
+    var manage = Model.Ret == "manage";
+    var shown = manage ? b.Requests : b.Requests.Take(3).ToList();
+    string Fmt(string rel) => FamilyTeamService.RelationLabel(rel) + (rel == FamilyRelation.Student ? "으로" : "로");
+}
+@if (b.Any)
+{
+<link rel="stylesheet" href="~/css/join-band.css" asp-append-version="true" />
+<div class="jb-wrap">
+@if (b.Requests.Count > 0)
+{
+    <section class="jb jb-req" aria-label="합류 신청">
+        <div class="jb-h"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="8" r="3.5"/><path d="M3 20c.8-3.5 3.4-5.5 7-5.5M18 12v6M15 15h6"/></svg><b>합류 신청이 @(b.Requests.Count)건 와 있어요</b></div>
+        @foreach (var r in shown)
+        {
+            <div class="jb-row" data-jb-row>
+                <div class="jb-top">
+                    <div class="jb-who"><b>@r.Name</b><small>@Fmt(r.Relation) 신청</small><span>@r.When</span></div>
+                    <div class="jb-btns" data-jb-btns>
+                        @if (r.Block == JoinBlock.OtherTeam)
+                        {
+                            <form method="post" asp-page="/Mission/FamilyJoin" asp-page-handler="Dismiss" asp-route-slug="@slug" asp-route-view="result"><input type="hidden" name="request" value="@r.RequestId" /><input type="hidden" name="ret" value="@Model.Ret" /><button type="submit" class="jb-ok">확인</button></form>
+                        }
+                        else
+                        {
+                            <details class="jb-no"><summary>거절</summary>
+                                <div class="jb-ask"><span>@(r.Name)님의 신청을 거절할까요?</span>
+                                    <div><button type="button" class="jb-back" data-jb-back>아니요</button>
+                                    <form method="post" asp-page="/Mission/FamilyJoin" asp-page-handler="Reject" asp-route-slug="@slug" asp-route-view="result"><input type="hidden" name="request" value="@r.RequestId" /><input type="hidden" name="ret" value="@Model.Ret" /><button type="submit" class="jb-rej">거절하기</button></form></div>
+                                </div>
+                            </details>
+                            @if (r.Block == JoinBlock.None)
+                            {
+                                <form method="post" asp-page="/Mission/FamilyJoin" asp-page-handler="Accept" asp-route-slug="@slug" asp-route-view="result" data-jb-accept><input type="hidden" name="request" value="@r.RequestId" /><input type="hidden" name="ret" value="@Model.Ret" /><button type="submit" class="jb-acc">수락</button></form>
+                            }
+                            else { <button type="button" class="jb-acc" disabled>수락</button> }
+                        }
+                    </div>
+                </div>
+                @if (r.Block == JoinBlock.Locked) { <p class="jb-note">선물을 받은 팀은 잠겨서 구성원을 바꿀 수 없어요. 신청은 거절만 할 수 있어요.</p> }
+                else if (r.Block == JoinBlock.Full) { <p class="jb-note">친구팀이 가득 찼어요. 친구팀은 학생 2명까지예요. @(r.Name)님의 신청은 수락할 수 없어요.</p> }
+                else if (r.Block == JoinBlock.OtherTeam) { <p class="jb-note">이미 다른 팀에 들어간 사람이에요. @(r.Name)님은 방금 다른 팀에 합류했어요. 이 신청은 자동으로 사라져요.</p> }
+            </div>
+        }
+        @if (!manage && b.Requests.Count >= 2) { <a class="jb-more" href="/@slug/family-team/manage">전체 신청 보기 ›</a> }
+        <p class="jb-tip">팀원 누구나 수락할 수 있어요. 한 번 수락하면 바로 합류해요.</p>
+    </section>
+}
+@if (b.Invites.Count > 0)
+{
+    var inv = b.Invites[0];
+    <section class="jb jb-inv" aria-label="받은 초대">
+        <div class="jb-h"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><b>초대가 왔어요</b></div>
+        <p class="jb-p"><b>@inv.InvitedBy</b>님이 <b>@inv.TeamName</b>(@(inv.Friend ? "친구팀" : "가족팀"))에 초대했어요.@if (b.Invites.Count > 1) { <text> 외 @(b.Invites.Count - 1)곳</text> }</p>
+        <div class="jb-two">
+            <form method="post" asp-page="/Mission/FamilyJoin" asp-page-handler="Later" asp-route-slug="@slug" asp-route-view="result"><input type="hidden" name="ret" value="@Model.Ret" /><button type="submit" class="jb-l">다음에 할게요</button></form>
+            <a class="jb-g" href="/@slug/family-invite/@inv.InviteId">참여하기</a>
+        </div>
+        <p class="jb-tip">「다음에 할게요」를 누르면 오늘 하루 숨겨요.</p>
+    </section>
+}
+@if (b.Pending is { } pend)
+{
+    <section class="jb jb-wait" aria-label="신청 대기">
+        <div class="jb-h"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b>수락을 기다리는 중이에요</b></div>
+        <p class="jb-p"><b>@pend.TeamName</b>에 @b.PendingDate 신청했어요.<br>팀원 누구든 수락하면 바로 합류돼요.</p>
+        <div class="jb-steps"><i class="on"></i>신청함<s></s><i></i>팀원 확인<s></s><i></i>합류</div>
+        <form method="post" asp-page="/Mission/FamilyJoin" asp-page-handler="Cancel" asp-route-slug="@slug" asp-route-view="result"><button type="submit" class="jb-cx">신청 취소</button></form>
+    </section>
+}
+@if (b.Result is { } res)
+{
+    var ok = res.Kind == "ACCEPTED";
+    <a class="jb jb-res@(ok ? " ok" : "")" href="/@slug/family-join/result">
+        <div class="jb-h"><b>@(ok ? "합류했어요! 환영해요" : "이번에는 합류하지 못했어요")</b><span>@(ok ? res.TeamName + " ›" : "확인 ›")</span></div>
+    </a>
+}
+</div>
+<script src="~/js/join-band.js" asp-append-version="true" defer></script>
+}

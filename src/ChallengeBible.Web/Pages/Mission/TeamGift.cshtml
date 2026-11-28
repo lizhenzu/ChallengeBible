@@ -5,7 +5,7 @@
 @{
     var g = Model.Gift!;
     var slug = Model.Slug;
-    var who = g.Friend ? "친구팀 선물" : "가족 선물";
+    var who = g.Friend ? "친구팀 선물" : "팀 선물";
     var picking = Model.Items.Count > 0 || g.State == "Open" || (Model.Change && g.State == "Picked");
 }
 <link rel="stylesheet" href="~/css/gift-mint.css" asp-append-version="true" />
@@ -25,9 +25,9 @@
     }
     else if (picking)
     {
-        <h1>@(g.Friend ? "친구팀 선물 고르기" : "가족 선물 고르기")</h1>
-        <p class="gk-sub">@(g.Friend ? "친구팀" : "우리 가족") @g.Stage.ToString("N0")점 달성 선물@(g.OpenUntil is { } u ? $" · {u:M월 d일}까지" : "")@(Model.Others.Count(o => o.State == "Open") is > 0 and var n ? $" · 이것 말고 {n}개 더 골라요" : "")</p>
-        <div class="gk-mine"><span>@(g.Friend ? "내가 받을 선물을 골라요" : "가족이 함께 받을 선물을 골라요")</span></div>
+        <h1>@(g.Friend ? "친구팀 선물 고르기" : "팀 선물 고르기")</h1>
+        <p class="gk-sub">@(g.Friend ? "친구팀" : "우리 팀") @g.Stage.ToString("N0")점 달성 선물@(g.OpenUntil is { } u ? $" · {u:M월 d일}까지" : "")@(Model.Others.Count(o => o.State == "Open") is > 0 and var n ? $" · 이것 말고 {n}개 더 골라요" : "")</p>
+        <div class="gk-mine"><span>@(g.Friend ? "내가 받을 선물을 골라요" : "팀이 함께 받을 선물을 골라요")</span></div>
         <div class="gk-sum3"><div><span>팀 점수</span><b class="num">@Model.TeamPoints.ToString("N0")</b></div><div><span>고른 선물</span><b class="num">@pickedN</b></div><div class="on"><span>남은 선택</span><b class="num">@openN</b></div></div>
         @if (Model.Members.Count > 0) { <div class="gk-mem">@foreach (var m in Model.Members) { <span>@m</span> }</div> }
         @if (Model.Items.Count == 0) { <p class="gk-note">지금 고를 수 있는 선물이 없어요. 선생님께 말씀해 주세요.</p> }
@@ -55,7 +55,7 @@
                 <li><i></i><span>선물을 받았어요</span><span></span></li>
             </ul>
             @if (g.State == "Picked") { <a class="gk-btn gk-plain" href="/@slug/gifts/team/@g.Id?change=true">다른 선물로 바꾸기</a> }
-            <p class="gk-hint">@(g.Friend ? "선생님이 사기 전까지는 다른 선물로 바꿀 수 있어요." : "선생님이 사기 전까지는 가족 누구나 다른 선물로 바꿀 수 있어요.") 받으면 팀이 잠겨서 구성원을 넣거나 뺄 수 없어요.</p>
+            <p class="gk-hint">@(g.Friend ? "선생님이 사기 전까지는 다른 선물로 바꿀 수 있어요." : "선생님이 사기 전까지는 팀원 누구나 다른 선물로 바꿀 수 있어요.") 받으면 팀이 잠겨서 구성원을 넣거나 뺄 수 없어요.</p>
         </div>
     }
     @* 단계별 선물이 둘 이상일 때만: 다른 단계의 선물로 가는 길(제목 아래 「골라 둔 n/N」 줄은 2026-11-27 시안에서 삭제 — 요약 칸과 겹침) *@
