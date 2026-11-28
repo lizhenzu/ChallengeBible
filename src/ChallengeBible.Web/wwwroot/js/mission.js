@@ -34,8 +34,8 @@
   const OK_SECONDS = 10;
   function okPopup(label, json, then) {
     const fmt = (n) => Number(n ?? 0).toLocaleString('ko-KR');
-    const mission = document.querySelector('.mnav a[aria-current="page"] .L')?.textContent.trim() || '미션';
-    const kind = document.querySelector('.mhead .k')?.textContent.trim() || '';
+    const mission = document.querySelector('.mnav a[aria-current="page"] .L')?.textContent.trim() || (main.dataset.word === '1' ? '말씀' : '미션');
+    const kind = document.querySelector('.mhead .k')?.textContent.trim() || (main.dataset.word === '1' ? '오늘의 말씀' : '');
     const dlg = document.createElement('div');
     dlg.className = 'okpop-bg';
     dlg.innerHTML = `<section class="okpop" role="dialog" aria-modal="true" aria-labelledby="okT">
@@ -192,6 +192,7 @@
       const pct = total === 0 ? 0 : Math.round(n * 100 / total);
       if (pctEl) pctEl.textContent = `${pct}%`;
       if (bar) bar.style.width = `${pct}%`;
+      cardRing(total, n);   // 읽음 표시 카드의 진행 링
     };
     const all = document.querySelector('[data-pageall]');
     const readBtns = () => [...verses.querySelectorAll('[data-mark="read"]')];
@@ -199,10 +200,21 @@
     const refreshAll = () => {
       if (!all) return;
       const n = readBtns().filter(isOn).length, done = n === readBtns().length;
-      all.classList.toggle('done', done);
-      all.querySelector('[data-megat]').textContent = done ? '이 페이지 다 읽었어요' : '이 페이지 읽음으로 표시';
-      all.querySelector('[data-megad]').textContent = done ? '다시 누르면 읽음이 취소돼요' : '넘기기만 해서는 읽음이 되지 않아요';
+      cardMark(done);   // 큰 버튼: 읽음 표시 완료 ✓ + [읽음 표시 취소]
       all.querySelector('[data-megac]').textContent = `이 페이지 읽은 절 ${n} / ${all.dataset.n}`;
+    };
+    // 「혼자 읽었어요」를 누르거나 취소하면 서버가 오늘 범위 전체의 읽음을 바꾼다 — 보이는 절 · 진도를 맞춘다
+    window.cbReadHooks = {
+      markAll(on) {
+        readBtns().forEach((x) => { if (isOn(x) !== on) setMark(x, on); });
+        const n = on ? total : 0;
+        if (count) count.textContent = String(n);
+        const pct = total === 0 ? 0 : Math.round(n * 100 / total);
+        if (pctEl) pctEl.textContent = `${pct}%`;
+        if (bar) bar.style.width = `${pct}%`;
+        cardRing(total, n);
+        refreshAll();
+      },
     };
     verses.addEventListener('click', async (e) => {
       const b = e.target.closest('button[data-mark]');
@@ -241,23 +253,31 @@
     all?.addEventListener('click', async () => {
       if (all.disabled) return;
       const on = !all.classList.contains('done');
+      if (!on && !all.dataset.cancelNow) return;   // 완료된 큰 버튼은 [읽음 표시 취소]로만 되돌린다
       const r = { book: Number(book), startChapter: Number(all.dataset.sc), startVerse: Number(all.dataset.sv), endChapter: Number(all.dataset.ec), endVerse: Number(all.dataset.ev) };
+      const viaMission = !reading && main.dataset.word === '1' && rcard?.querySelector('button.pick');   // 오늘 말씀으로 연 화면: 읽음 + 미션을 같이
+      if (!on && viaMission && !(await guardCancel())) return;
       const changing = readBtns().filter((x) => isOn(x) !== on);
       busy(all, true);
       changing.forEach((x) => busy(x, true));
-      const { ok, json } = await withCard(cardText(on), reading
-        ? call(on ? 'PUT' : 'DELETE', `/api/me/reading/verses/${r.book}/${r.startChapter}?from=${r.startVerse}&to=${r.endVerse}`)
-        : on
-          ? call('PUT', '/api/me/bible/read-range', r)
-          : call('DELETE', `/api/me/bible/read-range?book=${r.book}&startChapter=${r.startChapter}&startVerse=${r.startVerse}&endChapter=${r.endChapter}&endVerse=${r.endVerse}`));
+      let missionJson = null;
+      const { ok, json } = await withCard(cardText(on), viaMission
+        ? (async () => { missionJson = await missionRead(on, { book: r.book, startChapter: r.startChapter, startVerse: r.startVerse, endChapter: r.endChapter, endVerse: r.endVerse }); return { ok: !!missionJson, json: {} }; })()
+        : reading
+          ? call(on ? 'PUT' : 'DELETE', `/api/me/reading/verses/${r.book}/${r.startChapter}?from=${r.startVerse}&to=${r.endVerse}`)
+          : on
+            ? call('PUT', '/api/me/bible/read-range', r)
+            : call('DELETE', `/api/me/bible/read-range?book=${r.book}&startChapter=${r.startChapter}&startVerse=${r.startVerse}&endChapter=${r.endChapter}&endVerse=${r.endVerse}`));
       window.cbWait.hide();
       busy(all, false);
       changing.forEach((x) => busy(x, false));
-      if (!ok) { say('잠시 뒤에 다시 해 주세요.'); return; }
+      if (!ok) { if (!viaMission) say('잠시 뒤에 다시 해 주세요.'); return; }
       changing.forEach((x) => setMark(x, on));
       bump(on ? changing.length : -changing.length);
+      if (missionJson) cardRing(missionJson.readTotal, missionJson.readCount);   // 다른 쪽(페이지)에서 읽은 절까지 센 숫자
       refreshAll();
       afterReading(json);
+      if (missionJson) missionRead_done(on, missionJson);   // +1점 팝업
     });
   }
 
@@ -306,6 +326,110 @@
     });
   }
 
+  // 읽음 표시 카드(2026-11-28 사용자 시안 「읽음 표시 카드 B」): 말씀 미션 · 성경 읽기가 같은 카드, 같은 읽음 · 같은 미션 기록.
+  // 큰 버튼 = 페이지 전체 읽음 → 오늘 범위가 모두 읽히면 「혼자 읽었어요」 자동 +1점. 「부모님께」는 직접 눌러 +1점. 취소하면 읽음 · 점수가 함께 되돌아간다.
+  const rcard = document.querySelector('[data-readcard]');
+  const CIRC = 213.63;
+  const markBtn = () => rcard?.querySelector('[data-pageall],[data-wordread]');
+  const meBtn = () => rcard?.querySelector('button.pick[data-item="Word.Me"]');
+  function cardRing(total, read) {
+    if (!rcard || typeof total !== 'number') return;
+    const bar = rcard.querySelector('[data-rc-bar]');
+    const pct = total > 0 ? Math.min(1, read / total) : 0;
+    if (bar) bar.setAttribute('stroke-dashoffset', String(CIRC * (1 - pct)));
+    const complete = total > 0 && read >= total;
+    rcard.classList.toggle('all', complete);
+    const n = rcard.querySelector('[data-rc-n]'), of = rcard.querySelector('[data-rc-of]');
+    if (n) { n.textContent = complete ? '다 읽었어요!' : String(read); n.classList.toggle('small', complete); }
+    if (of) of.textContent = complete ? '' : `/ ${total}절`;
+  }
+  // 큰 버튼 · 취소 버튼의 모양(읽음 표시 완료 ✓ / 이 페이지 읽음으로 표시)
+  function cardMark(done) {
+    const b = markBtn();
+    if (!b) return;
+    b.classList.toggle('done', done);
+    b.setAttribute('aria-pressed', String(done));
+    const t = b.querySelector('[data-megat]'), em = b.querySelector('em');
+    if (t) t.textContent = done ? '읽음 표시 완료 ✓' : '이 페이지 읽음으로 표시';
+    if (em) em.textContent = done ? '✓' : '→';
+    const cx = rcard.querySelector('[data-rc-cancel]');
+    if (cx) cx.hidden = !done;
+  }
+  // 점수 · 도장 · 안내 · 2단계 표시를 지금 켜진 항목에 맞춘다
+  function cardPicks() {
+    if (!rcard) return;
+    const picks = [...rcard.querySelectorAll('button.pick')];
+    if (picks.length === 0) return;
+    const on = picks.filter((x) => x.getAttribute('aria-pressed') === 'true');
+    const total = picks.reduce((a, x) => a + Number(x.dataset.pt || 0), 0), earned = on.reduce((a, x) => a + Number(x.dataset.pt || 0), 0);
+    rcard.querySelector('[data-rc-stamp]')?.toggleAttribute('hidden', on.length === 0);
+    rcard.querySelector('[data-rc-step2]')?.classList.toggle('on', on.length > 0);
+    const note = rcard.querySelector('[data-rc-note]');
+    if (note) {
+      note.classList.toggle('ok', on.length > 0);
+      note.textContent = on.length === 0 ? `둘 중 하나만 눌러도 미션 완료예요 · 둘 다 하면 ${total}점` : `말씀 미션 완료 · ${earned}점을 모았어요 · 미션홈에도 반영돼요`;
+    }
+  }
+  function setPick(b, on) {
+    b.setAttribute('aria-pressed', String(on));
+    const pt = b.querySelector('.pt');
+    if (pt) pt.textContent = on ? (pt.textContent.startsWith('✓') ? pt.textContent : '✓ 완료 +' + pt.textContent) : pt.textContent.replace('✓ 완료 +', '');
+    const box = b.closest('.picks');
+    b.disabled = on ? box?.dataset.undo !== '1' : false;
+  }
+  // 「혼자 읽었어요」가 켜지고 꺼질 때 읽음 표시도 따라간다(서버가 이미 바꿨다 — 화면만 맞춘다)
+  function cardFollow(json, meOn) {
+    if (!rcard) return;
+    if (typeof json.readTotal === 'number') cardRing(json.readTotal, json.readCount);
+    const all = typeof json.readTotal === 'number' && json.readTotal > 0 && json.readCount >= json.readTotal;
+    window.cbReadHooks?.markAll(meOn ? true : all);
+    if (!window.cbReadHooks) cardMark(meOn || all);
+  }
+  async function guardCancel() {
+    const me = meBtn();
+    if (me && me.getAttribute('aria-pressed') === 'true') return confirmUndo(me.querySelector('b')?.textContent.trim() ?? '혼자 읽었어요', me.dataset.pt);
+    return true;
+  }
+  // 읽음 표시 / 취소 → 서버(읽음 + 미션). 범위가 없으면 오늘 말씀 범위 전체
+  async function missionRead(on, range) {
+    const { ok, json } = await post('word/read', { date, on, ...(range ?? {}) });
+    if (!ok || json.ok === false) { say(json.message ?? '잠시 뒤에 다시 해 주세요.'); return null; }
+    cardRing(json.readTotal, json.readCount);
+    const me = meBtn();
+    if (me) setPick(me, (json.completedItems ?? []).includes('Word.Me'));
+    const box = rcard?.querySelector('.picks');
+    if (box) pickState(box); else cardPicks();
+    return json;
+  }
+  function missionRead_done(on, json) {
+    if (on && json.pointsEarned > 0) after(json, '혼자 읽었어요');
+    else if (!on && json.message) say(json.message);
+  }
+  document.querySelector('[data-rc-cancel]')?.addEventListener('click', () => {
+    const b = markBtn();
+    if (!b) return;
+    b.dataset.cancelNow = '1';
+    b.click();
+    delete b.dataset.cancelNow;
+  });
+  // 말씀 미션 화면의 큰 버튼(오늘 말씀 범위 전체)
+  const wordBtn = document.querySelector('[data-wordread]');
+  wordBtn?.addEventListener('click', async () => {
+    const on = !wordBtn.classList.contains('done');
+    if (!on && !wordBtn.dataset.cancelNow) return;
+    if (!on && !(await guardCancel())) return;
+    wordBtn.disabled = true;
+    wordBtn.classList.add('wait');
+    const json = await missionRead(on, null);
+    wordBtn.disabled = false;
+    wordBtn.classList.remove('wait');
+    if (!json) return;
+    cardMark(json.readTotal > 0 && json.readCount >= json.readTotal);
+    const c = wordBtn.querySelector('[data-megac]');
+    if (c) c.textContent = `이 페이지 읽은 절 ${json.readCount} / ${json.readTotal}`;
+    missionRead_done(on, json);
+  });
+
   // 구역 번호 · 상태 글자 · 아래 메뉴 · 안내를 지금 켜진 항목 수에 맞춘다
   function pickState(box) {
     const api = box.dataset.api;
@@ -315,6 +439,7 @@
     const st = sec?.querySelector('[data-pickstate]');
     if (st) st.textContent = on === 0 ? '눌러서 알려 주세요' : api === 'recite' ? '이번 주 완료' : on === all ? '모두 했어요' : '미션 완료';
     navState(on > 0 ? '완료' : '진행중', on > 0);   // 이 화면 메뉴 칸: 안 했으면 "진행중"(_MissionNav)
+    cardPicks();
     const hint = sec?.querySelector('[data-uhint]');
     if (hint) hint.hidden = on === 0;
   }
@@ -330,6 +455,7 @@
     const pt = b.querySelector('.pt');
     if (pt) pt.textContent = pt.textContent.replace('✓ 완료 +', '');
     pickState(box);
+    if (b.dataset.item === 'Word.Me') cardFollow(json, false);   // 읽음 표시도 함께 되돌린다(2026-11-28)
     const season = document.querySelector('[data-season]');
     if (season && typeof json.seasonTotal === 'number') season.textContent = json.seasonTotal.toLocaleString('ko-KR');
     const day = document.querySelector('[data-daypoints]');
@@ -351,6 +477,7 @@
       if (pt && !pt.textContent.startsWith('✓')) pt.textContent = '✓ 완료 +' + pt.textContent;   // 옛 모양: "✓ 완료 +1점"
       if (box.dataset.undo === '1') b.disabled = false;   // 오늘이면 다시 눌러 취소(R-24)
       pickState(box);
+      if (b.dataset.item === 'Word.Me') cardFollow(json, true);   // 읽음 표시도 오늘 범위 전체가 된다(2026-11-28)
       after(json, b.querySelector('b')?.textContent.trim());
     } else {
       b.disabled = false;
@@ -433,7 +560,7 @@
 
   // 글자 크기: − 5%씩, + 10%씩, 각 5번(75% ~ 150%), 가운데 = 100% (R-167). 이 기기에 기억.
   // 2026-11-27 민트 시안(말씀 · 퀴즈 · 기도 · 암송): 80% ~ 130% 10%씩, 가운데 100%. 통독 · 필사는 예전 단계(75 ~ 150%) 그대로.
-  const mint = !!document.querySelector('.mhead.mm');
+  const mint = !!document.querySelector('.mhead.mm, .brd.rm');
   const steps = mint ? [80, 90, 100, 110, 120, 130] : [75, 80, 85, 90, 95, 100, 110, 120, 130, 140, 150];
   const mid = mint ? 2 : 5, top = steps.length - 1;
   // 성경통독은 기본 크기가 작아져(--rs, ADR 0089) 따로 기억한다. 전에 고른 크기는 보이는 크기가 비슷하게 옮긴다(그대로 100% 였으면 새 100%).

@@ -1,0 +1,69 @@
+@model (ChallengeBible.Web.Pages.Mission.MissionPageBase Page, ChallengeBible.Web.Pages.Mission.ReadCardInfo Info)
+@using ChallengeBible.Domain.Missions
+@* 읽음 표시 카드(2026-11-28 사용자 시안 「읽음 표시 카드 B」): 말씀 미션과 성경 읽기 화면이 같은 카드 · 같은 읽음 기록 · 같은 미션 기록을 쓴다.
+   ① 읽음 표시(진행 링 · 큰 버튼) → ② 읽은 방법(혼자 / 부모님 — 처음부터 켜져 있고 잠그지 않는다).
+   「이 페이지 읽음으로 표시」 → 오늘 범위가 모두 읽음이 되면 「혼자 읽었어요」가 자동으로 눌려 +1점. 「부모님께」는 직접 눌러 +1점. 취소하면 읽음 · 점수가 함께 되돌아간다. *@
+@{
+    var p = Model.Page; var c = Model.Info; var d = p.Data!;
+    var items = c.Mission || !c.PageMode ? d.Rules.Items.Where(i => i.Enabled && i.Item.Mission() == Mission.Word).ToList() : [];
+    var showPicks = c.Mission && items.Count > 0;
+    var nDone = items.Count(i => d.Done.Contains(i.Item));
+    var totalPts = items.Sum(i => i.Points);
+    var earned = items.Where(i => d.Done.Contains(i.Item)).Sum(i => i.Points);
+    var undo = items.Count > 0 && p.CanUndo(items[0].Item);
+    const double circ = 213.63;
+    var pct = c.Total == 0 ? 0 : Math.Min(1.0, (double)c.Read / c.Total);
+    var off = (circ * (1 - pct)).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+    var pageAll = c.PageAll;
+    var mark = c.PageMode ? "data-pageall" : "data-wordread";
+    var pt = c.PageMode ? c.PageTotal : c.Total;
+    var pr = c.PageMode ? c.PageRead : c.Read;
+}
+<link rel="stylesheet" href="~/css/read-card.css" asp-append-version="true" />
+<section class="rc@(c.All ? " all" : "")" data-readcard data-pickbox aria-label="읽음 표시">
+    @if (showPicks)
+    {
+        <span class="rc-stamp" data-rc-stamp hidden="@(nDone == 0)">완료</span>
+    }
+    <ol class="rc-steps" aria-label="단계">
+        <li class="on" data-rc-step1><i>1</i>읽음 표시</li>
+        @if (showPicks) { <li class="@(nDone > 0 ? "on" : "")" data-rc-step2><i>2</i>읽은 방법</li> }
+    </ol>
+    <div class="rc-top">
+        <div class="rc-ring" role="img" aria-label="읽은 절 @c.Read / @c.Total">
+            <svg width="88" height="88" viewBox="0 0 88 88" aria-hidden="true"><circle cx="44" cy="44" r="34" fill="none" stroke="#DDF2EC" stroke-width="9"/><circle data-rc-bar cx="44" cy="44" r="34" fill="none" stroke="#0D7A68" stroke-width="9" stroke-linecap="round" stroke-dasharray="@circ.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" stroke-dashoffset="@off" transform="rotate(-90 44 44)"/></svg>
+            <div class="rc-c"><b class="num@(c.All ? " small" : "")" data-rc-n>@(c.All ? "다 읽었어요!" : c.Read.ToString())</b><small data-rc-of>@(c.All ? "" : $"/ {c.Total}절")</small></div>
+        </div>
+        <p class="rc-t">@(c.Total == 0 ? "읽을 본문이 아직 없어요." : "읽고 나서 눌러 주세요. 넘기기만 해서는 읽음이 되지 않아요.")</p>
+    </div>
+    @if (c.Total > 0)
+    {
+        <button type="button" class="rc-mark@(pageAll ? " done" : "")" @mark data-sc="@c.Sc" data-sv="@c.Sv" data-ec="@c.Ec" data-ev="@c.Ev" data-n="@pt" data-book="@c.Book">
+            <span class="b">
+                <span class="t" data-megat>@(pageAll ? "읽음 표시 완료 ✓" : "이 페이지 읽음으로 표시")</span>
+                <span class="c num" data-megac>이 페이지 읽은 절 @pr / @pt</span>
+            </span>
+            <em aria-hidden="true">@(pageAll ? "✓" : "→")</em>
+        </button>
+        <button type="button" class="rc-cancel" data-rc-cancel hidden="@(!pageAll)">읽음 표시 취소</button>
+    }
+    @if (showPicks)
+    {
+        <h3 class="rc-h">어떻게 읽었나요? <small>눌러서 알려 주세요</small></h3>
+        <div class="picks rc-picks" data-api="word" data-undo="@(undo ? "1" : "0")">
+            @foreach (var item in items)
+            {
+                var done = d.Done.Contains(item.Item);
+                <button type="button" class="pick" data-item="@item.Item.Code()" data-pt="@item.Points" aria-pressed="@(done ? "true" : "false")" disabled="@(done ? !undo : !p.CanAct)">
+                    <b>@item.DisplayName</b><span class="pt">@(done ? "✓ 완료 +" : "")@(item.Points)점</span>
+                </button>
+            }
+        </div>
+        <p class="rc-note@(nDone > 0 ? " ok" : "")" data-rc-note data-total="@totalPts">@(nDone == 0 ? $"둘 중 하나만 눌러도 미션 완료예요 · 둘 다 하면 {totalPts}점" : $"말씀 미션 완료 · {earned}점을 모았어요 · 미션홈에도 반영돼요")</p>
+        @if (undo) { <p class="uhint" data-uhint hidden="@(nDone == 0)">잘못 눌렀으면 완료 버튼을 한 번 더 눌러 취소해요 (오늘만)</p> }
+    }
+    else if (!c.Mission && c.PageMode)
+    {
+        <p class="rc-note">읽음 표시는 점수와 상관없어요. 점수는 말씀 미션에서 받아요.</p>
+    }
+</section>

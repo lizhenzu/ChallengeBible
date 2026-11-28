@@ -530,6 +530,59 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("GROW IN THE WORD", html);
     }
 
+    [Fact]   // 읽음 표시 카드(2026-11-28 시안 B): 읽음 표시 → 「혼자 읽었어요」 자동 +1점 · 「부모님께」는 직접 +1점 · 취소하면 읽음 · 점수가 함께 되돌아간다
+    public async Task 읽음_표시_카드는_읽음과_미션을_같이_바꾼다()
+    {
+        var c = await Member("cheolsu", Roles.Participant);
+        var html = await c.GetStringAsync("/jamsil-kids/word");
+        Assert.Contains("data-readcard", html);       // 말씀 미션에도 같은 카드
+        Assert.Contains("data-wordread", html);
+        Assert.Contains("이 페이지 읽음으로 표시", html);
+        Assert.Contains("data-item=\"Word.Parent\"", html);   // 「부모님께」는 처음부터 눌러도 된다(잠금 없음)
+        Assert.DoesNotContain("data-item=\"Word.Parent\" data-pt=\"1\" aria-pressed=\"false\" disabled", html);
+        var t = TokenRx().Match(html).Groups[1].Value;
+        JsonElement J(HttpResponseMessage r) => JsonDocument.Parse(r.Content.ReadAsStringAsync().Result).RootElement;
+
+        // 앞쪽 절만 읽음 표시 → 범위가 다 차지 않았으니 점수 없음
+        var part = J(await Api(c, t, "/api/jamsil-kids/missions/word/read", new { date = "2027-01-05", on = true, book = 1, startChapter = 24, startVerse = 1, endChapter = 24, endVerse = 5 }));
+        Assert.Equal((0, 9, 5), (part.GetProperty("pointsEarned").GetInt32(), part.GetProperty("readTotal").GetInt32(), part.GetProperty("readCount").GetInt32()));
+        Assert.Empty(part.GetProperty("completedItems").EnumerateArray());
+
+        // 나머지 절까지 읽음 표시 → 범위가 모두 읽혀 「혼자 읽었어요」 자동 +1점
+        var all = J(await Api(c, t, "/api/jamsil-kids/missions/word/read", new { date = "2027-01-05", on = true, book = 1, startChapter = 24, startVerse = 6, endChapter = 24, endVerse = 9 }));
+        Assert.Equal(1, all.GetProperty("pointsEarned").GetInt32());
+        Assert.Equal(9, all.GetProperty("readCount").GetInt32());
+        Assert.Contains("Word.Me", all.GetProperty("completedItems").EnumerateArray().Select(x => x.GetString()));
+        var done = await c.GetStringAsync("/jamsil-kids/word");
+        Assert.Contains("다 읽었어요!", done);
+        Assert.Contains("읽음 표시 완료", done);
+        Assert.Contains("미션홈에도 반영돼요", done);
+        Assert.Contains("class=\"mh-stamp ok\"", await c.GetStringAsync("/jamsil-kids/word-mission"));   // 미션홈 카드의 「완료」 도장
+        var rd = await c.GetStringAsync("/jamsil-kids/read?from=word");
+        Assert.Contains("9</b>절 읽음", rd);                        // 성경 페이지도 같은 읽음 기록
+        Assert.Contains("data-readcard", rd);
+        Assert.Contains("class=\"sbar\"", rd);                      // 세부 화면 머리줄 · 말씀 미션 · 성경 읽기
+        Assert.Contains("말씀 미션 · 성경 읽기", rd);
+
+        // 「부모님께 읽어드렸어요」는 직접 눌러 +1점(읽음은 그대로)
+        var parent = J(await Api(c, t, "/api/jamsil-kids/missions/word", new { date = "2027-01-05", items = new[] { "Word.Parent" } }));
+        Assert.Equal((1, 2), (parent.GetProperty("pointsEarned").GetInt32(), parent.GetProperty("seasonTotal").GetInt32()));
+
+        // 읽음 표시 취소 → 읽음 · 「혼자 읽었어요」(-1점)이 되돌아가고 「부모님께」는 그대로
+        var undo = J(await Api(c, t, "/api/jamsil-kids/missions/word/read", new { date = "2027-01-05", on = false }));
+        Assert.Equal((-1, 0), (undo.GetProperty("pointsEarned").GetInt32(), undo.GetProperty("readCount").GetInt32()));
+        Assert.Equal("Word.Parent", Assert.Single(undo.GetProperty("completedItems").EnumerateArray()).GetString());
+        Assert.Contains("0</b>절 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
+
+        // 「혼자 읽었어요」를 직접 누르면 오늘 범위 전체가 읽음, 취소하면 읽음도 풀린다
+        var me = J(await Api(c, t, "/api/jamsil-kids/missions/word", new { date = "2027-01-05", items = new[] { "Word.Me" } }));
+        Assert.Equal(9, me.GetProperty("readCount").GetInt32());
+        Assert.Contains("9</b>절 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
+        var off = J(await Api(c, t, "/api/jamsil-kids/missions/undo", new { date = "2027-01-05", item = "Word.Me" }));
+        Assert.Equal(0, off.GetProperty("readCount").GetInt32());
+        Assert.Contains("0</b>절 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
+    }
+
     [Fact]
     public async Task 미션_홈은_옛_모양으로_남은_미션과_달력을_보여준다()
     {

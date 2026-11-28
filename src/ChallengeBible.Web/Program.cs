@@ -42,6 +42,7 @@ builder.Services.AddScoped<BibleImportService>();
 builder.Services.AddScoped<BibleTextService>();
 builder.Services.AddScoped<AdminHomeService>();
 builder.Services.AddScoped<BibleMarkService>();
+builder.Services.AddScoped<ReadCardService>();
 builder.Services.AddScoped<ReadingService>();
 builder.Services.AddScoped<BibleSearchService>();
 builder.Services.AddScoped<ReadingBoardService>();

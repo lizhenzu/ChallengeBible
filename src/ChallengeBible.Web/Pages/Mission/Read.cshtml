@@ -11,14 +11,15 @@
     (string Label, int Value)[] units = [("한 절", 1), ("3절", 3), ("5절", 5), ("전체", 0)];
     (string Label, string Value)[] trs = [("개역개정", BibleTranslation.Krv), ("현대인", BibleTranslation.Klb), ("NIV", BibleTranslation.Niv), ("모두", "ALL")];
 }
-<div class="brd">
-<header class="brd-top">
-    <nav class="brd-crumb"><a href="@Model.Link("word-mission")">미션홈</a><i aria-hidden="true">·</i><a href="@Model.Link(Model.BackPage)">@Model.BackText</a></nav>
+<link rel="stylesheet" href="~/css/read-mint.css" asp-append-version="true" />
+@await Html.PartialAsync("_MissionSubBar", (Model.Slug, Model.Link(Model.BackPage), $"{Model.BackText} · 성경 읽기"))   @* ← 와 제목이 한 덩어리 · 오른쪽 「미션홈」 바로가기(2026-11-28 시안) *@
+<div class="brd rm">
+<div class="rm-tools">
     <div class="fs brd-fs" role="group" aria-label="글자 크기">
-        <button type="button" data-fs="-1" aria-label="글자 작게">가−</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
+        <button type="button" data-fs="-1" aria-label="글자 작게">가-</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
     </div>
-</header>
-<main class="brd-main" data-slug="@Model.Slug">
+</div>
+<main class="brd-main" data-slug="@Model.Slug" data-date="@Model.Day.ToString("yyyy-MM-dd")" data-word="@(Model.From == "word" ? "1" : "0")">
     @if (r is null || !r.IsValid)
     {
         <p class="brd-empty">읽을 구절이 없어요.</p>
@@ -98,20 +99,9 @@
             </nav>
         }
 
-        var f = s.Lines[0];
-        var l = s.Lines[^1];
-        var pageRead = s.Lines.Count(x => Model.Marks.Read.Contains((x.Chapter, x.Verse)));
-        <button type="button" class="mega@(Model.PageAllRead ? " done" : "")" data-pageall data-sc="@f.Chapter" data-sv="@f.Verse" data-ec="@l.Chapter" data-ev="@l.Verse" data-n="@s.Lines.Count">
-            <span class="b">
-                <span class="t" data-megat>@(Model.PageAllRead ? "이 페이지 다 읽었어요" : "이 페이지 읽음으로 표시")</span>
-                <span class="d" data-megad>@(Model.PageAllRead ? "다시 누르면 읽음이 취소돼요" : "넘기기만 해서는 읽음이 되지 않아요")</span>
-                <span class="c num" data-megac>이 페이지 읽은 절 @pageRead / @s.Lines.Count</span>
-            </span>
-            <em aria-hidden="true">→</em>
-        </button>
-        <p class="brd-note">읽음 표시는 점수와 상관없어요. 점수는 @(Model.BackText)에서 받아요.</p>
+        @await Html.PartialAsync("_ReadCard", ((MissionPageBase)Model, Model.Card))
     }
-    <nav class="brd-foot"><a href="@Model.Link("word-mission")">미션 홈</a><a href="@Model.Link(Model.BackPage)">@Model.BackText</a><a href="/@Model.Slug">홈으로</a></nav>
+    
 </main>
 </div>
 @Html.AntiForgeryToken()

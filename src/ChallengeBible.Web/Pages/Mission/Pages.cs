@@ -120,17 +120,22 @@ public class HomeModel(MissionService missions, TenantContext tenant, FamilyJoin
     }
 }
 
-public class WordModel(MissionService missions, TenantContext tenant, BibleTextService bible) : MissionPageBase(missions, tenant)
+public class WordModel(MissionService missions, TenantContext tenant, BibleTextService bible, ReadCardService readCard) : MissionPageBase(missions, tenant)
 {
     public override string Title => "말씀 미션";
 
     /// <summary>02 성경 읽기에 먼저 보여 줄 첫 구절(개역개정, 2026-11-03 사용자). 본문이 없으면 null — "읽으러 가기" 버튼만.</summary>
     public VerseLine? FirstVerse { get; private set; }
 
+    /// <summary>읽음 표시 카드(2026-11-28): 오늘 말씀 범위의 읽은 절 수.</summary>
+    public ReadCardInfo Card { get; private set; } = new(0, 0, false);
+
     protected override async Task LoadMoreAsync(CancellationToken ct)
     {
         if (Data!.Word is not { } w) return;
         var r = w.Ref;
+        var st = await readCard.StateAsync(r, ct);
+        Card = new ReadCardInfo(st.Total, st.Read, UserName is not null);
         FirstVerse = (await bible.RangeAsync(r with { EndChapter = r.StartChapter, EndVerse = r.StartVerse }, [Infrastructure.Data.BibleTranslation.Krv], ct)).FirstOrDefault();
     }
 }

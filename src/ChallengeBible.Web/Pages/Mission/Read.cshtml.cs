@@ -73,6 +73,19 @@ public class ReadModel(MissionService missions, TenantContext tenant, BibleTextS
     public VerseMarks Marks { get; private set; } = new(new HashSet<(short, short)>(), new HashSet<(short, short)>());
     public int ReadCount => Marks.Read.Count;
     public int ReadPercent => Slice.Total == 0 ? 0 : (int)Math.Round(ReadCount * 100.0 / Slice.Total);
+    /// <summary>읽음 표시 카드 값(말씀 미션에서 열었으면 「혼자 / 부모님」 버튼도 함께).</summary>
+    public ReadCardInfo Card
+    {
+        get
+        {
+            var lines = Slice.Lines;
+            var f = lines.Count > 0 ? lines[0] : null; var l = lines.Count > 0 ? lines[^1] : null;
+            var pageRead = lines.Count(x => Marks.Read.Contains((x.Chapter, x.Verse)));
+            return new ReadCardInfo(Slice.Total, ReadCount, From == "word" && Data?.Word is not null && UserName is not null, true, lines.Count, pageRead,
+                Ref?.BookId ?? 0, f?.Chapter ?? 0, f?.Verse ?? 0, l?.Chapter ?? 0, l?.Verse ?? 0);
+        }
+    }
+
     public bool PageAllRead => Slice.Lines.Count > 0 && Slice.Lines.All(l => Marks.Read.Contains((l.Chapter, l.Verse)));
 
     /// <summary>같은 구절을 다른 설정으로 여는 주소(미션에서 온 `from` · `date` 는 그대로 둔다).</summary>

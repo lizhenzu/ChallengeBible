@@ -1,0 +1,19 @@
+/* 성경 읽기 화면 민트 재디자인(2026-11-28 사용자 시안 「성경 읽기 · 민트」). `.brd.rm` 안에서만 바꾼다(통독 · 필사 본문은 그대로).
+   머리줄은 세부 화면 머리줄(sub-bar.css), 글자 크기는 80~130%(mission.js). */
+body:has(.brd.rm) { background: #F3F8F7; }
+.brd.rm { --b-tx: #12302A; --b-ink: #12302A; --b-dim: #5F6F6B; --b-dim2: #3F665D; --b-rule: #E3EAE8; --b-acc: #0D7A68; --b-acc-tx: #095C4E; --b-accSoft: #E3F3EE; --b-grey: #E3EAE8; --b-no: #7FBFB0; --b-no-tx: #0D7A68; --b-ok: #095C4E; --b-okSoft: #E3F3EE;
+  font-family: 'Noto Sans KR', system-ui, sans-serif; line-height: normal; }
+.brd.rm .rm-tools { display: flex; justify-content: flex-end; padding: 10px 0 0; }
+.brd.rm .fs { display: inline-flex; align-items: center; border-radius: 5px; overflow: hidden; background: #E3F3EE; }
+.brd.rm .fs button { min-width: 44px; min-height: 44px; height: auto; padding: 0 8px; border: 0; background: transparent; color: #0D7A68; font-size: 13px; font-weight: 900; cursor: pointer; font-family: inherit; }
+.brd.rm .fs button.pct { min-width: 52px; font-size: 12px; font-weight: 700; color: #3F665D; border-left: 1px solid #7FBFB0; border-right: 1px solid #7FBFB0; }
+.brd.rm .brd-k { margin-top: 6px; color: #0D7A68; }
+.brd.rm .brd-h { font-size: calc(24px * var(--fs, 1)); letter-spacing: -.5px; }
+.brd.rm .brd-bar { height: 8px; background: #fff; }
+.brd.rm .brd-bar i { background: #0D7A68; }
+/* 절별 ✓ · ★ — 눈에 보이는 크기는 그대로, 누르는 칸은 44px 이상 */
+.brd.rm .vb { overflow: visible; }
+.brd.rm .vb::before { content: ""; position: absolute; inset: -9px; }
+.brd.rm .vb.rd.on { background: #0D7A68; color: #fff; }
+.brd.rm .brd-ex { border-radius: 5px; background: #fff; border: 1.5px solid #CFE8E1; }
+.brd.rm .brd-pager a { min-height: 44px; display: inline-flex; align-items: center; }

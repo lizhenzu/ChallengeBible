@@ -34,7 +34,7 @@
                 <a class="wlnk" href="@readUrl">@chapter 읽으러 가기 <em aria-hidden="true">→</em></a>
             }
         </section>
-        @await Html.PartialAsync("_PickSection", new PickSection(Model, "03", "어떻게 읽었나요?", Mission.Word, "word"))
+        @await Html.PartialAsync("_ReadCard", ((MissionPageBase)Model, Model.Card))   @* 03 읽음 표시 카드(2026-11-28 시안): 큰 버튼 + 혼자 / 부모님. 성경 읽기 화면과 같은 카드 *@
     }
 </div></main>
 @Html.AntiForgeryToken()

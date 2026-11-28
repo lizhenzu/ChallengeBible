@@ -10,11 +10,14 @@ public sealed record PressRequest(DateOnly Date, string[]? Items);
 public sealed record QuizRequest(DateOnly Date, int? ChoiceId, string? AnswerText);
 public sealed record DateRequest(DateOnly Date);
 public sealed record UndoRequest(DateOnly Date, string? Item);
+/// <summary>읽음 표시 카드의 「이 페이지 읽음으로 표시 / 취소」. 범위는 지금 화면의 페이지(없으면 오늘 말씀 범위 전체). On = 읽음 표시, false = 취소.</summary>
+public sealed record WordReadRequest(DateOnly Date, bool On, byte? Book, short? StartChapter, short? StartVerse, short? EndChapter, short? EndVerse);
 
 /// <summary>FamilyMilestone: 이 점수로 가족팀 합계가 처음 넘은 단계(R-96, 시안 가족축하 ①). 없으면 null.</summary>
 public sealed record MissionResponse(bool Ok, int PointsEarned, int SeasonTotal, IReadOnlyList<string> CompletedItems,
     IReadOnlyList<int> MilestonesReached, string Message, bool? IsCorrect = null, int? AttemptsLeft = null,
-    int? CorrectChoiceId = null, string? Explanation = null, FamilyCelebration? FamilyMilestone = null);
+    int? CorrectChoiceId = null, string? Explanation = null, FamilyCelebration? FamilyMilestone = null,
+    int? ReadTotal = null, int? ReadCount = null);
 
 /// <summary>
 /// 미션 버튼 동작 JSON API(API 계약 5-1, ADR 0034). 화면은 Razor Pages, 버튼은 이 API 를 부르고 화면 일부만 바꾼다.
@@ -26,8 +29,9 @@ public static class MissionApi
     {
         var g = app.MapGroup("/api/{slug}/missions").RequireAuthorization().AddEndpointFilter<ParticipantEndpointFilter>();
 
-        g.MapPost("/word", (PressRequest r, MissionService s, FamilyTeamService f, HttpContext h) => Press(r, Mission.Word, s, f, h));
-        g.MapPost("/prayer", (PressRequest r, MissionService s, FamilyTeamService f, HttpContext h) => Press(r, Mission.Prayer, s, f, h));
+        g.MapPost("/word", (PressRequest r, MissionService s, FamilyTeamService f, BibleMarkService m, ReadCardService rc, HttpContext h) => Press(r, Mission.Word, s, f, h, m, rc));
+        g.MapPost("/word/read", WordRead);
+        g.MapPost("/prayer", (PressRequest r, MissionService s, FamilyTeamService f, HttpContext h) => Press(r, Mission.Prayer, s, f, h, null, null));
 
         g.MapPost("/recite", async (DateRequest r, MissionService s, FamilyTeamService f, HttpContext h) =>
         {
@@ -38,7 +42,7 @@ public static class MissionApi
         });
 
         // 완료 취소(R-24, ADR 0070): 말씀 · 기도는 오늘, 암송은 이번 주. 퀴즈는 없음. 멱등(이미 취소됐으면 0점 성공)
-        g.MapPost("/undo", async (UndoRequest r, MissionService s, FamilyTeamService f, HttpContext h) =>
+        g.MapPost("/undo", async (UndoRequest r, MissionService s, FamilyTeamService f, BibleMarkService marks, ReadCardService rc, HttpContext h) =>
         {
             var pid = (string)h.Items[ParticipantEndpointFilter.ParticipantKey]!;
             if (r.Item is null || TryParse(r.Item) is not { } item || item == MissionItem.QuizCorrect)
@@ -46,9 +50,16 @@ public static class MissionApi
             var res = await s.UndoAsync(pid, item, r.Date, h.RequestAborted);
             if (!res.Ok) return Results.Ok(new MissionResponse(false, 0, res.SeasonPoints, [], [], res.Message));
             var day = await s.GetDayAsync(pid, r.Date, h.RequestAborted);
+            int? readTotal = null, readCount = null;
+            if (item == MissionItem.WordMe && day.Word is { } uw)
+            {
+                await marks.UnreadRangeAsync(uw.Ref, h.RequestAborted);   // 「혼자 읽었어요」를 취소하면 읽음 표시도 함께 되돌린다(2026-11-28)
+                var st = await rc.StateAsync(uw.Ref, h.RequestAborted);
+                readTotal = st.Total; readCount = st.Read;
+            }
             IReadOnlyList<string> done = item == MissionItem.Recite ? (day.RecitedThisWeek ? ["Recite"] : [])
                 : day.Done.Where(d => d.Mission() == item.Mission()).Select(d => d.Code()).ToList();
-            return Results.Ok(new MissionResponse(true, res.Added, day.SeasonPoints, done, [], res.Message));
+            return Results.Ok(new MissionResponse(true, res.Added, day.SeasonPoints, done, [], res.Message, ReadTotal: readTotal, ReadCount: readCount));
         });
 
         g.MapPost("/quiz/attempts", async (QuizRequest r, MissionService s, FamilyTeamService f, HttpContext h) =>
@@ -70,7 +81,7 @@ public static class MissionApi
     private static async Task<FamilyCelebration?> Family(FamilyTeamService f, string pid, int added, HttpContext h) =>
         added > 0 ? await f.CelebrationAsync(pid, added, h.RequestAborted) : null;
 
-    private static async Task<IResult> Press(PressRequest r, Mission mission, MissionService s, FamilyTeamService f, HttpContext h)
+    private static async Task<IResult> Press(PressRequest r, Mission mission, MissionService s, FamilyTeamService f, HttpContext h, BibleMarkService? marks, ReadCardService? rc)
     {
         var pid = (string)h.Items[ParticipantEndpointFilter.ParticipantKey]!;
         var items = (r.Items ?? []).Select(TryParse).ToList();
@@ -88,9 +99,61 @@ public static class MissionApi
             milestones.AddRange(last.NewMilestones);
         }
         var day = await s.GetDayAsync(pid, r.Date, h.RequestAborted);
+        int? readTotal = null, readCount = null;
+        if (mission == Mission.Word && marks is not null && rc is not null && day.Word is { } w && items.Any(i => i == MissionItem.WordMe))
+        {
+            await marks.ReadRangeAsync(w.Ref, h.RequestAborted);   // 「혼자 읽었어요」를 누르면 오늘 범위 전체가 읽음 표시된다(2026-11-28)
+            var st = await rc.StateAsync(w.Ref, h.RequestAborted);
+            readTotal = st.Total; readCount = st.Read;
+        }
         var done = day.Done.Where(d => d.Mission() == mission).Select(d => d.Code()).ToList();
         var msg = added > 0 ? $"+{added}점! 올해 총 {day.SeasonPoints:N0}점" : last!.Message;
-        return Results.Ok(new MissionResponse(true, added, day.SeasonPoints, done, milestones, msg, FamilyMilestone: await Family(f, pid, added, h)));
+        return Results.Ok(new MissionResponse(true, added, day.SeasonPoints, done, milestones, msg, FamilyMilestone: await Family(f, pid, added, h), ReadTotal: readTotal, ReadCount: readCount));
+    }
+
+    /// <summary>
+    /// 읽음 표시 카드의 큰 버튼(2026-11-28 사용자): 페이지 전체 절을 읽음 처리하고, 오늘 말씀 범위가 모두 읽음이 되면 「혼자 읽었어요」(+1점)가 자동으로 눌린다.
+    /// 취소하면 읽음이 풀리고 「혼자 읽었어요」도 함께 꺼진다(점수 -1, 「부모님께」는 그대로). 오늘 말씀이 아닌 날짜는 읽음만 바꾸고 점수는 건드리지 않는다.
+    /// </summary>
+    private static async Task<IResult> WordRead(WordReadRequest r, MissionService s, FamilyTeamService f, BibleMarkService marks, ReadCardService rc, HttpContext h)
+    {
+        var pid = (string)h.Items[ParticipantEndpointFilter.ParticipantKey]!;
+        var ct = h.RequestAborted;
+        var day = await s.GetDayAsync(pid, r.Date, ct);
+        if (day.Word is not { } w) return Results.Ok(new MissionResponse(false, 0, day.SeasonPoints, [], [], "이날은 말씀이 없어요."));
+        var range = r.Book is { } b && r.StartChapter is { } sc && r.StartVerse is { } sv && r.EndChapter is { } ec && r.EndVerse is { } ev
+            ? new BibleRef(b, sc, sv, ec, ev) : w.Ref;
+        if (!range.IsValid) return Results.BadRequest(new { code = "BadRange", message = "구절 범위를 확인해 주세요." });
+
+        var added = 0;
+        var milestones = new List<int>();
+        string message = "";
+        if (r.On)
+        {
+            await marks.ReadRangeAsync(range, ct);
+            var st0 = await rc.StateAsync(w.Ref, ct);
+            if (st0.Complete && !day.Done.Contains(MissionItem.WordMe))
+            {
+                var res = await s.PressAsync(pid, MissionItem.WordMe, r.Date, ct);
+                if (res.Ok) { added = res.Added; milestones.AddRange(res.NewMilestones); message = res.Added > 0 ? $"+{res.Added}점! 올해 총 {res.SeasonPoints:N0}점" : res.Message; }
+                else message = res.Message;
+            }
+        }
+        else
+        {
+            await marks.UnreadRangeAsync(range, ct);
+            if (day.Done.Contains(MissionItem.WordMe))
+            {
+                var res = await s.UndoAsync(pid, MissionItem.WordMe, r.Date, ct);
+                if (res.Ok) { added = res.Added; message = res.Message; }
+                else message = res.Message;
+            }
+        }
+        var fresh = await s.GetDayAsync(pid, r.Date, ct);
+        var st = await rc.StateAsync(w.Ref, ct);
+        var done = fresh.Done.Where(d => d.Mission() == Mission.Word).Select(d => d.Code()).ToList();
+        return Results.Ok(new MissionResponse(true, added, fresh.SeasonPoints, done, milestones, message,
+            FamilyMilestone: await Family(f, pid, Math.Max(0, added), h), ReadTotal: st.Total, ReadCount: st.Read));
     }
 
     private static string Msg(MissionResult r) => r.Ok && r.Added > 0 ? $"+{r.Added}점! 올해 총 {r.SeasonPoints:N0}점" : r.Message;
