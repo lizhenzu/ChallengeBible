@@ -3,91 +3,90 @@
 @using ChallengeBible.Web.Pages.Reading
 @using ChallengeBible.Web.Services
 @using ChallengeBible.Infrastructure.Data
-@* 확정 시안: 통독-옛Bible2-나머지화면 "목록"(0071) — 옛 Bible2 List 배치: 구약 · 신약 탭 → 전체 % → 책 칸 한 판 → 누른 책 아래 장 번호 칸(다 읽음 · 보던 곳 · 아직)
-   "읽으러 가기"면 장을 누르면 본문으로, "다 읽음 표시"면 눌러 바로 완료 · 해제(R-151, 종이 성경으로 읽은 사람) *@
+@* 확정 시안: 「구약 읽기 (책 펼침)」 360px(2026-11-28). 신약은 같은 화면에서 데이터와 색만 다르다. 값은 reading-home.css 의 .rl-* · .rh-*.
+   구약 · 신약 탭 → 요약 카드(링) → 책 4열 → 누른 책이 있는 줄 바로 아래에 가로 전체 패널(이어 읽기 · 장 6열 · 범례 · 이미 읽은 장 표시하기).
+   「이미 읽은 장 표시하기」는 기존 다 읽음 표시(?mode=mark, R-151): 장 칸을 눌러 바로 완료 · 해제 *@
 @{
     var d = Model.Data;
-    var ko = ReadingPageBase.Ko;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    ViewData["PbClass"] = "rhtop";
     var ot = Model.T == "ot";
     var read = ot ? d.OtRead : d.NtRead;
     var total = ot ? ReadingSummary.OtTotal : ReadingSummary.NtTotal;
     var pct = ReadingSummary.Percent(read, total);
+    var ringColor = ot ? "#3E7385" : "#B5732F";
+    var label = ot ? "구약" : "신약";
     var r = d.Resume;
+    var books = d.Books.Where(x => ReadingPageBase.TestamentOf(x.BookId) == Model.T).ToList();
+    // 펼친 책의 패널은 그 책이 있는 줄(4칸) 끝 바로 뒤에 끼운다. 이후 책들은 패널 아래로 이어진다
+    var selIdx = books.FindIndex(x => x.BookId == Model.B);
+    var panelAfter = selIdx < 0 ? -1 : Math.Min(books.Count - 1, selIdx - selIdx % 4 + 3);
 }
 <link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/reading-b2.css" asp-append-version="true" />
-<div class="rp b2">
+<link rel="stylesheet" href="~/css/reading-home.css" asp-append-version="true" />
+<div class="rp b2 rhp">
 @await Html.PartialAsync("_ReadingNav", new ReadingNav(Model, Model.T, ot ? "구약 읽기" : "신약 읽기"))
-<div class="b2main"><main class="b2b" data-reading-list>
-    <nav class="seg" aria-label="구약 · 신약">
-        <a href="@Model.ListUrl("ot")" aria-current="@(ot ? "true" : "false")">구약</a>
-        <a href="@Model.ListUrl("nt")" aria-current="@(!ot ? "true" : "false")">신약</a>
-    </nav>
-    <div class="lsum">
-        <div><div class="k" style="margin:0">@(ot ? "구약" : "신약") 전체</div><div class="big num">@(pct.ToString("0.0"))<small>%</small></div></div>
-        <div class="r num">@(read)장 읽음<br />@(total.ToString("N0"))장 중 · @(ot ? 39 : 27)권</div>
-    </div>
-    <div class="pg all"><i style="width:@(pct.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"></i></div>
+<div class="b2main"><main class="rh rl" data-reading-list>
+    <section class="rh-top">
+        <nav class="rh-tabs" aria-label="구약 · 신약">
+            <a href="@Model.ListUrl("ot")" aria-current="@(ot ? "true" : "false")">구약 39권</a>
+            <a href="@Model.ListUrl("nt")" aria-current="@(!ot ? "true" : "false")">신약 27권</a>
+        </nav>
 
-            <div class="books lbooks">
-                @foreach (var b in d.Books.Where(x => ReadingPageBase.TestamentOf(x.BookId) == Model.T))
-                {
-                    var open = Model.B == b.BookId;
-                    <a id="b@(b.BookId)" class="@(open ? "sel" : "")@(b.Done ? " dn" : "")" href="@(open ? Model.ListUrl(Model.T) : Model.ListUrl(Model.T, b.BookId, Model.MarkMode))" aria-expanded="@(open ? "true" : "false")">
-                        @b.Name<small class="num">@b.Read/@b.Total</small>@if (b.Read > 0) { <i style="width:@(b.Read * 100 / b.Total)%"></i> }
-                    </a>
-                    if (open)
-                    {
-                        var done = Model.DoneOf(b.BookId);
-                        var here = r.BookId == b.BookId ? r.Chapter : (short)0;
-                        var go = here > 0 ? here : (short)Math.Max(1, Enumerable.Range(1, b.Total).FirstOrDefault(c => !done.Contains((short)c)));
-                        <div class="rp-panel" data-book="@b.BookId">
-                            <div class="ph"><strong>@b.Name</strong><span class="num" data-panel-count>@done.Count / @(b.Total)장 · @(b.Total == 0 ? 0 : done.Count * 100 / b.Total)%</span></div>
-                            <div class="seg" role="group" aria-label="누르면">
-                                <a href="@Model.ListUrl(Model.T, b.BookId)" aria-current="@(!Model.MarkMode ? "true" : "false")">읽으러 가기</a>
-                                <a href="@Model.ListUrl(Model.T, b.BookId, mark: true)" aria-current="@(Model.MarkMode ? "true" : "false")">다 읽음 표시</a>
-                            </div>
-                            <p class="hint">@(Model.MarkMode ? "장을 누르면 다 읽음으로 표시하거나 취소해요. 종이 성경으로 읽었을 때 써요." : "장을 누르면 그 장 본문으로 가요.")</p>
-                            <div class="chs">
-                                @for (short c = 1; c <= b.Total; c++)
-                                {
-                                    var cls = (done.Contains(c) ? "done" : "") + (c == here ? " here" : "");
-                                    if (Model.MarkMode)
-                                    {
-                                        <button type="button" class="ch @cls" data-ch="@c" aria-pressed="@(done.Contains(c) ? "true" : "false")" aria-label="@(c)장 다 읽음">@c</button>
-                                    }
-                                    else
-                                    {
-                                        <a class="ch @cls" href="@Model.ReadUrl(b.BookId, c)" aria-label="@(c)장 읽기">@c</a>
-                                    }
-                                }
-                            </div>
-                            <div class="lg"><span><i class="done"></i>다 읽음</span><span><i class="here"></i>보던 곳</span><span><i></i>아직</span></div>
-                            <div class="acts">
-                                <a class="close" href="@Model.ListUrl(Model.T)">닫기</a>
-                                <a class="go" href="@Model.ReadUrl(b.BookId, go)">@(done.Count == 0 ? "읽기 시작" : "이어 읽기") @(go)@(b.BookId == 19 ? "편" : "장") →</a>
-                            </div>
-                        </div>
-                    }
-                }
+        <div class="rh-card rl-sum">
+            <div class="rh-ringbox">
+                <svg width="88" height="88" viewBox="0 0 88 88" role="img" aria-label="@label @(pct.ToString("0.0", inv))퍼센트"><g transform="rotate(-90 44 44)" fill="none" stroke-width="9" stroke-linecap="round"><circle cx="44" cy="44" r="35" stroke="#E3E8DC"></circle>@if (read > 0) { <circle cx="44" cy="44" r="35" stroke="@ringColor" stroke-dasharray="@((219.9 * pct / 100).ToString("0.0", inv)) 219.9"></circle> }</g></svg>
+                <div class="rh-pct">@(pct.ToString("0.0", inv))%</div>
             </div>
+            <div>
+                <div class="rl-k">@label 전체</div>
+                <div class="rl-n"><span>@read</span><span>장 읽음</span></div>
+                <div class="rl-t">@(total.ToString("N0", inv))장 중 · @(ot ? 39 : 27)권</div>
+            </div>
+        </div>
+
+        <div class="rh-books">
+            @for (var i = 0; i < books.Count; i++)
+            {
+                var b = books[i];
+                var open = Model.B == b.BookId;
+                <a id="b@(b.BookId)" class="@(open ? "sel" : "")" href="@(open ? Model.ListUrl(Model.T) : Model.ListUrl(Model.T, b.BookId, Model.MarkMode))" aria-expanded="@(open ? "true" : "false")" title="@b.Name @b.Read/@b.Total"><div class="n">@b.Name</div><div class="c">@b.Read/@b.Total</div></a>
+                if (i == panelAfter)
+                {
+                    var sb = books[selIdx];
+                    var done = Model.DoneOf(sb.BookId);
+                    var here = r.BookId == sb.BookId ? r.Chapter : (short)0;
+                    var go = here > 0 ? here : (short)Math.Max(1, Enumerable.Range(1, sb.Total).FirstOrDefault(c => !done.Contains((short)c)));
+                    var bp = sb.Total == 0 ? 0 : done.Count * 100 / sb.Total;
+                    <div class="rl-panel" data-book="@sb.BookId">
+                        <div class="rl-ph"><span class="rl-pn">@sb.Name</span><span data-panel-count>@done.Count / @(sb.Total)장 · @(bp)%</span></div>
+                        <div class="rl-bar"><div data-panel-bar style="width:@(bp)%"></div></div>
+                        <a class="rl-go" href="@Model.ReadUrl(sb.BookId, go)">@(done.Count == 0 ? "읽기 시작" : "이어 읽기") @(go)@(sb.BookId == 19 ? "편" : "장") <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16M13 5l7 7-7 7"></path></svg></a>
+                        <div class="rl-hint">@(Model.MarkMode ? "장을 누르면 다 읽음으로 표시하거나 취소해요. 종이 성경으로 읽었을 때 써요." : "다른 장을 읽으려면 숫자를 누르세요.")</div>
+                        <div class="rl-chs">
+                            @for (short c = 1; c <= sb.Total; c++)
+                            {
+                                var cls = (done.Contains(c) ? "done" : "") + (c == go ? " here" : "");
+                                if (Model.MarkMode)
+                                {
+                                    <button type="button" class="ch @cls" data-ch="@c" aria-pressed="@(done.Contains(c) ? "true" : "false")" aria-label="@(c)장 다 읽음">@c</button>
+                                }
+                                else
+                                {
+                                    <a class="ch @cls" href="@Model.ReadUrl(sb.BookId, c)" aria-label="@(c)장 읽기">@c</a>
+                                }
+                            }
+                        </div>
+                        <div class="rl-lg"><span><i style="background:#4B7A56"></i>읽음</span><span><i style="background:#F6D58E"></i>보던 곳</span><span><i style="background:#E4EADB"></i>아직</span></div>
+                        <a class="rl-mark" href="@Model.ListUrl(Model.T, sb.BookId, !Model.MarkMode)" aria-pressed="@(Model.MarkMode ? "true" : "false")"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A554C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>@(Model.MarkMode ? "표시 끝내기" : "이미 읽은 장 표시하기")</a>
+                    </div>
+                }
+            }
+        </div>
+    </section>
 </main></div>
 </div>
 @Html.AntiForgeryToken()
-<script>
-    // 옛 Bible2 List: 장 번호 칸은 누른 책이 있는 줄의 끝(맨 오른쪽 칸 뒤)에서 펼쳐진다 — 그 줄이 끊기지 않게 옮긴다
-    (() => {
-        const grid = document.querySelector('.lbooks'), panel = grid?.querySelector('.rp-panel');
-        const sel = grid?.querySelector('a.sel');
-        if (!panel || !sel) return;
-        const cells = [...grid.querySelectorAll(':scope > a')];
-        let last = sel;
-        for (let i = cells.indexOf(sel) + 1; i < cells.length; i++) {
-            if (cells[i].offsetTop !== sel.offsetTop) break;
-            last = cells[i];
-        }
-        last.after(panel);
-    })();
-</script>
 <p id="toast" class="toast" role="status" hidden></p>
 <script src="~/js/reading.js" asp-append-version="true"></script>

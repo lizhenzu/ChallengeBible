@@ -15,6 +15,10 @@ body:has(.rp.rhp[data-theme]) { background: #F4F7F0; }
 .rhtop .hb svg { width: 18px; height: 18px; stroke-width: 2.2; }
 .rhtop .pb-r { gap: 0; }
 
+/* 머리줄 ‹성경통독 › 현재 화면›(구약 · 신약 읽기): 「성경통독」 16/500 #5B665D · › 14px #8A948C(양옆 6px) · 현재 20/700 */
+.rhtop .par { min-height: 44px; font-size: 16px; font-weight: 500; color: #5B665D; }
+.rhtop .sep { display: flex; align-items: center; margin: 0 6px; color: #8A948C; }
+
 /* 공통 */
 .rh { box-sizing: content-box; max-width: 734px; margin: 0 auto; padding: 0 13px 40px; font-family: 'Noto Sans KR', sans-serif; line-height: normal; color: #1F2A22; }
 .rh *, .rh *::before, .rh *::after { box-sizing: border-box; }
@@ -99,6 +103,37 @@ body:has(.rp.rhp[data-theme]) { background: #F4F7F0; }
 .rh-tabs a { padding: 14px 0; text-align: center; background: #F4F7F0; color: #4A554C; font-size: 16px; font-weight: 500; }
 .rh-tabs a[aria-current="true"] { background: #4B7A56; color: #fff; font-weight: 700; }
 .rh-books { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
-.rh-books a { display: block; padding: 10px 7px 9px; border: 1px solid #D5DDCB; border-radius: 5px; background: #F8FAF5; }
-.rh-books .n { font-size: 13px; font-weight: 500; letter-spacing: -0.3px; }
-.rh-books .c { margin-top: 3px; font-size: 12px; color: #6B756D; }
+.rh-books > a { display: block; padding: 10px 7px 9px; border: 1px solid #D5DDCB; border-radius: 5px; background: #F8FAF5; }
+.rh-books > a .n { font-size: 13px; font-weight: 500; letter-spacing: -0.3px; }
+.rh-books > a .c { margin-top: 3px; font-size: 12px; color: #6B756D; }
+
+/* 구약 읽기 · 신약 읽기(/{slug}/reading/list) — 확정 시안 「구약 읽기 (책 펼침)」 360px */
+.rl .rh-tabs { margin-top: 0; }
+.rl-sum { display: flex; align-items: center; gap: 22px; margin-top: 12px; padding: 20px; }
+.rl-sum .rh-ringbox { flex-shrink: 0; }
+.rl-k { font-size: 14px; font-weight: 700; letter-spacing: 1px; color: #3F5A45; }
+.rl-n { display: flex; align-items: baseline; gap: 3px; margin-top: 6px; }
+.rl-n span:first-child { font-size: 28px; font-weight: 700; }
+.rl-n span:last-child { font-size: 14px; font-weight: 700; }
+.rl-t { margin-top: 4px; font-size: 13px; color: #5B665D; }
+.rl .rh-books { margin-top: 12px; }
+.rl .rh-books > a.sel { padding: 9px 6px 8px; border: 2px solid #4B7A56; background: #fff; }
+.rl .rh-books > a.sel .c { color: #2F5A3A; font-weight: 700; }
+.rl-panel { grid-column: 1 / -1; padding: 16px; background: #fff; border: 1px solid #4B7A56; border-radius: 5px; }
+.rl-ph { display: flex; justify-content: space-between; align-items: baseline; }
+.rl-pn { font-size: 20px; font-weight: 700; }
+.rl-ph span:last-child { font-size: 13px; color: #5B665D; }
+.rl-bar { height: 6px; margin-top: 12px; background: #E3E8DC; border-radius: 999px; }
+.rl-bar div { height: 100%; background: #4B7A56; border-radius: 999px; }
+.rl-panel .rl-go { display: flex; align-items: center; justify-content: center; gap: 6px; height: 48px; margin-top: 14px; border-radius: 8px; background: #4B7A56; color: #fff; font-size: 16px; font-weight: 700; }
+.rl-hint { margin-top: 14px; font-size: 13px; color: #5B665D; }
+.rl-chs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+.rl-panel .ch { position: relative; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 8px; background: #E4EADB; color: #5F7A64; font: inherit; font-size: 14px; cursor: pointer; }
+.rl-panel .ch.done { background: #4B7A56; color: #fff; font-weight: 700; }
+.rl-panel .ch.here { background: #F6D58E; color: #5A3B00; font-weight: 700; }
+.rl-panel .ch.wait { color: transparent; }
+.rl-panel .ch.wait::after { content: ""; position: absolute; inset: 25%; border: 2px solid rgba(0, 0, 0, .15); border-top-color: #1F2A22; border-radius: 50%; animation: rp-spin .8s linear infinite; }
+.rl-lg { display: flex; align-items: center; gap: 12px; margin-top: 14px; font-size: 13px; color: #5B665D; }
+.rl-lg span { display: flex; align-items: center; gap: 5px; }
+.rl-lg i { width: 14px; height: 14px; border-radius: 3px; }
+.rl-panel .rl-mark { display: flex; align-items: center; justify-content: center; gap: 6px; height: 44px; margin-top: 14px; border: 1px solid #CFD8C5; border-radius: 8px; background: #F4F7F0; color: #4A554C; font-size: 14px; font-weight: 700; }

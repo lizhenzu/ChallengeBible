@@ -211,7 +211,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Matches("aria-current=\"page\"><i class=\"tdr2-i\"[^>]*>(?:(?!</a>)[\\s\\S])*<span>대시보드</span></a>", dash);   // 왼쪽 목차
         var list = await c.GetStringAsync("/jamsil-kids/reading/list?t=ot&b=1");
         Assert.Matches("aria-current=\"page\"><i class=\"tdr2-i\"[^>]*>(?:(?!</a>)[\\s\\S])*<span>구약 읽기</span></a>", list);                    // 옛 Bible2 List 배치(0071): 목차에서 구약 읽기
-        Assert.Contains("읽기 시작 1장 →", list);                                       // 누른 책 아래 장 번호 칸
+        Assert.Contains("읽기 시작 1장", list);                                       // 누른 책 아래 장 번호 칸
         var read = await c.GetStringAsync("/jamsil-kids/reading/read/1/24");
         Assert.Contains("KRV 1:24:9", read);
         Assert.Contains("class=\"b2chs\"", read);             // 장 번호 줄(ADR 0057 · 0071)
