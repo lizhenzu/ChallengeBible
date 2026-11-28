@@ -1,0 +1,104 @@
+/* 성경통독 메인(/{slug}/reading) — 확정 시안 「현재 화면 (모바일 구현본)」 360px 의 값 그대로(2026-11-28).
+   배경 #F4F7F0 · 글자 #1F2A22 · Noto Sans KR · 좌우 여백 13px(머리줄 · 모든 섹션 · 카드 동일) · 카드 모서리 5px(탭만 8px).
+   넓은 화면은 내용 폭 760px(좌우 여백 13px 포함, R-270). 이 파일은 .rhp(통독 메인) 아래만 건드린다. */
+.rp.rhp[data-theme] { background: #F4F7F0; color: #1F2A22; }
+body:has(.rp.rhp[data-theme]) { background: #F4F7F0; }
+
+/* 1. 머리줄: 높이 60 · 아래 선 1px #DCE3D3 · ☰ 22px + 「성경통독」 20/700 · 홈 18px + 「홈으로」 16/700 */
+.top.pb.rhtop { padding: 0 13px; background: #F4F7F0; border: 0; box-shadow: none; line-height: normal; font-family: 'Noto Sans KR', sans-serif; color: #1F2A22; }
+.top.pb.rhtop .wrap.pbw { box-sizing: border-box; max-width: 734px; height: 60px; min-height: 60px; margin: 0 auto; padding: 0; gap: 0; border-bottom: 1px solid #DCE3D3; }
+.rhtop .pb-l { gap: 0; }
+.rhtop .pb-b { width: 44px; height: 44px; margin: 0 -1px 0 -11px; color: #1F2A22; }   /* 아이콘 22px 가 선에 닿고, 글자까지 10px */
+.rhtop .pb-b svg { width: 22px; height: 22px; stroke-width: 2.2; }
+.rhtop .cur { font-size: 20px; font-weight: 700; color: #1F2A22; }
+.rhtop .hb { min-height: 44px; padding: 0; gap: 5px; font-size: 16px; font-weight: 700; color: #1F2A22; }
+.rhtop .hb svg { width: 18px; height: 18px; stroke-width: 2.2; }
+.rhtop .pb-r { gap: 0; }
+
+/* 공통 */
+.rh { box-sizing: content-box; max-width: 734px; margin: 0 auto; padding: 0 13px 40px; font-family: 'Noto Sans KR', sans-serif; line-height: normal; color: #1F2A22; }
+.rh *, .rh *::before, .rh *::after { box-sizing: border-box; }
+.rh a { color: inherit; text-decoration: none; }
+.rh-h, .rh-h2 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: 1px; color: #3F5A45; }
+.rh-card { background: #fff; border: 1px solid #D5DDCB; border-radius: 5px; }
+
+/* 2 · 3. 제목 + 링 3개 */
+.rh-top { padding-top: 24px; }
+.rh-rings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin-top: 16px; padding: 22px 12px 20px; background: #fff; border: 1px solid #D5DDCB; border-radius: 5px; }
+.rh-ring { display: flex; flex-direction: column; align-items: center; }
+.rh-ringbox { position: relative; width: 88px; height: 88px; }
+.rh-ringbox svg { display: block; }
+.rh-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; }
+.rh-nm { margin-top: 10px; font-size: 14px; font-weight: 700; }
+.rh-ct { margin-top: 2px; font-size: 12px; color: #5B665D; }
+
+/* 4. 통독 히트맵 */
+.rh-map { margin-top: 12px; padding: 16px 16px 12px; }
+.rh-mt { display: flex; justify-content: space-between; align-items: baseline; }
+.rh-lg { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #5B665D; }
+.rh-lg span { display: flex; align-items: center; gap: 4px; }
+.rh-lg i { width: 12px; height: 12px; border-radius: 3px; }
+.rh-bar { position: relative; height: 24px; margin-top: 12px; }
+.rh-tk { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: #D9E2D2; }
+.rh-tk.b { background: #E6ECE0; }
+.rh-rd { position: absolute; top: 0; bottom: 0; min-width: 3px; border-radius: 2px; background: #4B7A56; }
+.rh-ax { position: relative; height: 20px; margin-top: 6px; font-size: 12px; color: #5B665D; }
+.rh-ax span { position: absolute; }
+
+/* 5. 연속 읽기 띠 */
+.rh-streak { margin-top: 12px; padding: 18px 20px; background: #4B7A56; color: #fff; border-radius: 5px; }
+.rh-sr { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.rh-sn { display: flex; align-items: baseline; gap: 6px; }
+.rh-sn b { font-size: 28px; font-weight: 700; }
+.rh-sn span { font-size: 14px; font-weight: 700; }
+.rh-sd { text-align: right; font-size: 13px; line-height: 1.5; opacity: .95; }
+.rh-wk { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-top: 14px; text-align: center; }
+.rh-wk > div { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.rh-wk > div > span { font-size: 12px; opacity: .9; }
+.rh-wk i { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-style: normal; background-clip: padding-box; border: 6px double; }
+.rh-wk .o { background-color: #D4E6CC; color: #2F5A3A; font-size: 13px; font-weight: 700; border-color: #fff; }
+.rh-wk .t { background-color: #F6D58E; color: #5A3B00; font-size: 12px; font-weight: 700; border-color: #fff; }
+.rh-wk .x { background-color: rgba(255, 255, 255, .14); color: rgba(255, 255, 255, .75); font-size: 13px; border-color: rgba(255, 255, 255, .55); }
+
+/* 6. 이어 읽기 */
+.rh-resume { display: block; margin-top: 10px; padding: 24px 22px 22px; background: #4B7A56; color: #fff !important; border-radius: 5px; }
+.rh-rk { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; letter-spacing: 1px; }
+.rh-rm { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.rh-rt { font-size: 28px; font-weight: 700; }
+.rh-rs { margin-top: 6px; font-size: 14px; opacity: .92; }
+.rh-go { flex-shrink: 0; width: 52px; height: 52px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; }
+.rh-rp { margin-top: 20px; }
+.rh-rtrk { height: 6px; background: rgba(255, 255, 255, .28); border-radius: 999px; }
+.rh-rtrk div { height: 100%; background: #fff; border-radius: 999px; }
+.rh-rl { display: flex; justify-content: space-between; margin-top: 8px; font-size: 13px; opacity: .92; }
+
+/* 7. 최근 4주 */
+.rh-cal { margin-top: 10px; }
+.rh-ct2 { display: flex; justify-content: space-between; align-items: baseline; }
+.rh-cd { font-size: 13px; color: #6B756D; }
+.rh-dow, .rh-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.rh-dow { margin-top: 14px; text-align: center; font-size: 13px; color: #5B665D; }
+.rh-grid { margin-top: 8px; }
+.rh-grid span { aspect-ratio: 1 / 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; background: #E4EADB; color: #5F7A64; }
+.rh-grid .su { color: #A0693C; }
+.rh-grid .sa { color: #4E7C8C; }
+.rh-grid .l1 { background: #C6D8BE; color: #1F2A22; }
+.rh-grid .l2 { background: #8DB087; color: #1F2A22; }
+.rh-grid .l3 { background: #4B7A56; color: #fff; }
+.rh-grid .f { background: none; }
+.rh-grid .t { border: 2px solid #1F2A22; font-weight: 700; color: #1F2A22; }
+.rh-grid .l3.t { color: #fff; }
+.rh-lgd { display: flex; justify-content: flex-end; align-items: center; gap: 5px; margin-top: 12px; font-size: 13px; color: #5B665D; }
+.rh-lgd i { width: 14px; height: 14px; border-radius: 3px; }
+
+/* 8. 책별 진도 */
+.rh-bk { margin-top: 36px; }
+.rh-bt { display: flex; justify-content: space-between; align-items: baseline; }
+.rh-bt a { font-size: 13px; color: #5B665D; }
+.rh-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 12px; border: 1px solid #CFD8C5; border-radius: 8px; overflow: hidden; }
+.rh-tabs a { padding: 14px 0; text-align: center; background: #F4F7F0; color: #4A554C; font-size: 16px; font-weight: 500; }
+.rh-tabs a[aria-current="true"] { background: #4B7A56; color: #fff; font-weight: 700; }
+.rh-books { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
+.rh-books a { display: block; padding: 10px 7px 9px; border: 1px solid #D5DDCB; border-radius: 5px; background: #F8FAF5; }
+.rh-books .n { font-size: 13px; font-weight: 500; letter-spacing: -0.3px; }
+.rh-books .c { margin-top: 3px; font-size: 12px; color: #6B756D; }

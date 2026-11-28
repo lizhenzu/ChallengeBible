@@ -2,116 +2,155 @@
 @model ChallengeBible.Web.Pages.Reading.IndexModel
 @using ChallengeBible.Web.Pages.Reading
 @using ChallengeBible.Web.Services
-@* 확정 시안: 통독-옛Bible2-대시보드(0071) — 옛 Bible2 Index 배치: [나의 성경 통독 | 이어 읽기] → [다음에 읽을 곳 · 오늘의 말씀 · 통독 진도 | 최근 8주] → 책별 진도.
-   색은 지금 통독 색. 점수 · 순위 없음(R-157) *@
+@* 확정 시안: 성경통독 메인 「현재 화면 (모바일 구현본)」 360px(2026-11-28). 값은 시안 그대로 — wwwroot/css/reading-home.css.
+   위에서 아래: 머리줄 · 나의 성경 통독(링 3 · 통독 히트맵 · 연속 읽기 띠) · 이어 읽기 · 최근 4주 · 책별 진도. 점수 · 순위 없음(R-157) *@
 @{
     var d = Model.Data;
-    var ko = ReadingPageBase.Ko;
     var inv = System.Globalization.CultureInfo.InvariantCulture;
-    var pct = ReadingSummary.Percent(d.ReadChapters, ReadingSummary.Total);
+    ViewData["PbClass"] = "rhtop";
+    string F(double v, string f = "0.##") => v.ToString(f, inv);
+    string Unit(byte book) => book == 19 ? "편" : "장";
+    string DayWord(DateOnly day) => day == d.Today ? "오늘" : day == d.Today.AddDays(-1) ? "어제" : day.ToString("M'/'d");
+
+    // 링 3개: 둘레 219.9 × 진도율
+    const double Circ = 219.9;
+    var rings = new[]
+    {
+        (Name: "전체", Color: "#4B7A56", Read: d.ReadChapters, Total: ReadingSummary.Total),
+        (Name: "구약", Color: "#3E7385", Read: d.OtRead, Total: ReadingSummary.OtTotal),
+        (Name: "신약", Color: "#B5732F", Read: d.NtRead, Total: ReadingSummary.NtTotal),
+    };
+
+    // 통독 히트맵: 10개 구간(장 수 비례) + 읽은 범위(1,189장 기준 %)
+    var tot = (double)ReadingSummary.Total;
+    int[] secs = [187, 249, 243, 183, 67, 89, 28, 87, 34, 22];
+    var ranges = d.ReadRanges ?? Array.Empty<(int Start, int Count)>();
+
+    // 연속 읽기 띠: 이번 주(일 ~ 토)
+    var weekStart = d.Today.AddDays(-(int)d.Today.DayOfWeek);
+    string[] dows = ["일", "월", "화", "수", "목", "금", "토"];
+
+    // 이어 읽기
     var r = d.Resume;
-    var gridStart = d.Today.AddDays(-(int)d.Today.DayOfWeek - 49);
+    var book = d.Books.First(b => b.BookId == r.BookId);
+    var bookPct = book.Total == 0 ? 0 : book.Read * 100 / book.Total;
+    var fresh = d.ReadChapters == 0 && r.VersesRead == 0;
+    string resumeSub = d.LastRead is { } lr
+        ? $"{DayWord(lr.Day)} {(lr.BookId == r.BookId ? "" : ReadingPageBase.BookName(lr.BookId) + " ")}{lr.Chapter}{Unit(lr.BookId)}까지 읽었어요"
+        : $"{r.Verse}절부터 · {r.VerseCount}절 중 {r.VersesRead}절 읽음";
+
+    // 최근 4주: 일요일 시작 4줄, 오늘 뒤는 빈 칸
+    var gridStart = d.Today.AddDays(-(int)d.Today.DayOfWeek - 21);
     var maxDay = Math.Max(1, d.Daily.Count == 0 ? 1 : d.Daily.Values.Max());
+
     var nt = Model.Tab == "nt";
     var books = d.Books.Where(b => b.Testament == (nt ? "NT" : "OT")).ToList();
-    string Unit(byte book) => book == 19 ? "편" : "장";
 }
 <link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/reading-b2.css" asp-append-version="true" />
-<div class="rp b2">
+<link rel="stylesheet" href="~/css/reading-home.css" asp-append-version="true" />
+<div class="rp b2 rhp">
 @await Html.PartialAsync("_ReadingNav", new ReadingNav(Model, "home", "대시보드"))
-<div class="b2main"><div class="b2b">
+<div class="b2main"><div class="rh">
     @if (Model.ReadingGifts.Count > 0) { <div class="gk-rdwrap">@await Html.PartialAsync("/Pages/Mission/_BirthdayGiftCard.cshtml", (Model.Slug, Model.ReadingGifts))</div> }   @* 완독 선물(ADR 0094 E, 확정 시안 완독-선물 ①) *@
-    <div class="g2">
-        <section aria-label="나의 성경 통독">
-            <div class="k">나의 성경 통독 · <a href="/@Model.Slug/reading/rounds" title="회차 기록">@(d.RoundNo)회차@(d.CompletedRounds > 0 ? $" · 완독 {d.CompletedRounds}번" : "")</a></div>
-            <div class="ring">
-                <div class="c" style="--p:@pct.ToString("0.0", inv)" role="img" aria-label="진도율 @(pct.ToString("0.0"))%"><span class="num">@(pct.ToString("0.0"))%</span></div>
-                <div><b class="num">@d.ReadChapters.ToString("N0") / @ReadingSummary.Total.ToString("N0")장</b>
-                    <small class="num">구약 @d.OtRead / @(ReadingSummary.OtTotal)장<br>신약 @d.NtRead / @(ReadingSummary.NtTotal)장</small></div>
-            </div>
-            <div class="cells">
-                <div><b class="num">@d.Streak</b>일 연속</div>
-                <div><b class="num">@d.DaysRead</b>일 읽음</div>
-                <div><b class="num">@d.Today.ToString("M'/'d")</b>@d.Today.ToString("dddd", ko)</div>
-            </div>
-            @if (d.Streak > 0) { <div class="streak">@(d.Streak)일째 이어 읽고 있어요 · 오늘도 이어 가요</div> }
-        </section>
-        <section aria-label="이어 읽기">
-            <a class="cta" href="@Model.ReadUrl(r.BookId, r.Chapter, r.Verse)">
-                <div>
-                    <div class="kk">@(d.ReadChapters == 0 && r.VersesRead == 0 ? "읽기 시작" : "이어 읽기")</div>
-                    <div class="t">@ReadingPageBase.BookName(r.BookId) @(r.Chapter)@Unit(r.BookId)</div>
-                    @if (Model.ResumeText is not null) { <p>“@Model.ResumeText”</p> }
-                    <small class="num">@(r.Verse)절부터 · @(r.VerseCount)절 중 @(r.VersesRead)절 읽음@(r.ViewedUtc is DateTime at ? " · " + TenantClockText(at) : "")</small>
+    <section class="rh-top" aria-label="나의 성경 통독">
+        <h1 class="rh-h">나의 성경 통독 · <a href="/@Model.Slug/reading/rounds" title="회차 기록">@(d.RoundNo)회차</a></h1>
+
+        <div class="rh-rings">
+            @foreach (var g in rings)
+            {
+                var p = ReadingSummary.Percent(g.Read, g.Total);
+                <div class="rh-ring">
+                    <div class="rh-ringbox">
+                        <svg width="88" height="88" viewBox="0 0 88 88" role="img" aria-label="@g.Name @(F(p, "0.0"))퍼센트"><g transform="rotate(-90 44 44)" fill="none" stroke-width="9" stroke-linecap="round"><circle cx="44" cy="44" r="35" stroke="#E3E8DC"></circle>@if (g.Read > 0) { <circle cx="44" cy="44" r="35" stroke="@g.Color" stroke-dasharray="@F(Circ * p / 100, "0.0") 219.9"></circle> }</g></svg>
+                        <div class="rh-pct">@(F(p, "0.0"))%</div>
+                    </div>
+                    <div class="rh-nm">@g.Name</div>
+                    <div class="rh-ct">@g.Read.ToString("N0", inv) / @g.Total.ToString("N0", inv)장</div>
                 </div>
-                <em aria-hidden="true">→</em>
-            </a>
-        </section>
-    </div>
-
-    <div class="g2">
-        <div>
-            <div class="lbl">다음에 읽을 곳</div>
-            @if (d.Next.Count > 0)
-            {
-                <div class="next">
-                    @foreach (var (book, ch) in d.Next) { <a href="@Model.ReadUrl(book, ch)">@ReadingPageBase.BookName(book)<small class="num">@(ch)@Unit(book)</small></a> }
-                </div>
-            }
-            else { <div class="empty"><b>성경 전체 통독을 마쳤어요</b>하나님의 말씀을 모두 읽으셨습니다</div> }
-
-            @if (Model.VerseText is not null)
-            {
-                <div class="lbl">오늘의 말씀</div>
-                <div class="vod"><p>@Model.VerseText</p><small>@Model.VerseRef</small></div>
-            }
-
-            <div class="lbl">통독 진도</div>
-            @foreach (var (label, read, total) in new[] { ("전체", d.ReadChapters, ReadingSummary.Total), ("구약", d.OtRead, ReadingSummary.OtTotal), ("신약", d.NtRead, ReadingSummary.NtTotal) })
-            {
-                var p = ReadingSummary.Percent(read, total);
-                <div class="bar2"><span>@label</span><b class="num">@read.ToString("N0") / @total.ToString("N0") · @(p.ToString("0.0"))%</b></div>
-                <div class="pg @(label == "전체" ? "all" : "")"><i style="width:@(p.ToString("0.#", inv))%"></i></div>
             }
         </div>
-        <div>
-            <div class="lbl">최근 8주<small>@d.Today.ToString("M'/'d") 오늘</small></div>
-            <div class="dow">@foreach (var w in new[] { "일", "월", "화", "수", "목", "금", "토" }) { <span>@w</span> }</div>
-            <div class="heat" role="img" aria-label="최근 8주 읽은 날">
-                @for (var i = 0; i < 56; i++)
+
+        <div class="rh-card rh-map">
+            <div class="rh-mt">
+                <span class="rh-h2">통독 히트맵</span>
+                <span class="rh-lg"><span><i style="background:#4B7A56"></i>읽음</span><span><i style="background:#D9E2D2"></i>안 읽음</span></span>
+            </div>
+            <div class="rh-bar" role="img" aria-label="성경 전체 읽은 범위">
+                @{ var acc = 0; }
+                @for (var i = 0; i < secs.Length; i++)
                 {
-                    var day = gridStart.AddDays(i);
-                    var n = d.Daily.GetValueOrDefault(day);
-                    var lv = day > d.Today ? "f" : n == 0 ? "" : n * 3 <= maxDay ? "l1" : n * 3 <= maxDay * 2 ? "l2" : "l3";
-                    <span class="@lv@(day == d.Today ? " t" : "")" title="@day.ToString("M'/'d") @(n)장">@(day > d.Today ? "" : day.Day.ToString())</span>
+                    <div class="rh-tk @(i % 2 == 1 ? "b" : "")" style="left:@(F(acc / tot * 100 + 0.15, "0.00"))%;width:@(F(secs[i] / tot * 100 - 0.3, "0.00"))%"></div>
+                    acc += secs[i];
+                }
+                @foreach (var (start, count) in ranges)
+                {
+                    <div class="rh-rd" style="left:@(F(start / tot * 100, "0.00"))%;width:@(F(count / tot * 100, "0.00"))%"></div>
                 }
             </div>
-            <div class="legend">적음<i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i>많음</div>
+            <div class="rh-ax"><span style="left:0">구약</span><span style="left:78.1%">신약</span></div>
         </div>
-    </div>
 
-    <div class="lbl">책별 진도<a href="@Model.ListUrl(nt ? "nt" : "ot")">@(nt ? "신약" : "구약") 목록 →</a></div>
-    <nav class="seg" style="margin:0 0 10px" aria-label="구약 · 신약">
-        <a href="?Tab=ot" aria-current="@(!nt ? "true" : "false")">구약 39권</a>
-        <a href="?Tab=nt" aria-current="@(nt ? "true" : "false")">신약 27권</a>
-    </nav>
-    <div class="books">
-        @foreach (var b in books)
-        {
-            <a href="@Model.ListUrl(ReadingPageBase.TestamentOf(b.BookId), b.BookId)" class="@(b.Done ? "dn" : "")" title="@b.Name @b.Read/@b.Total">
-                @b.Name<small class="num">@b.Read/@b.Total</small>@if (b.Read > 0) { <i style="width:@(b.Read * 100 / b.Total)%"></i> }
-            </a>
-        }
-    </div>
+        <div class="rh-streak">
+            <div class="rh-sr">
+                <div class="rh-sn"><b>@d.Streak</b><span>@(d.Streak > 0 ? "일 연속 읽는 중" : "일 연속")</span></div>
+                <div class="rh-sd">읽은 날 @(d.DaysRead)일<br>@d.Today.ToString("M'/'d") @d.Today.ToString("dddd", ReadingPageBase.Ko)</div>
+            </div>
+            <div class="rh-wk">
+                @for (var i = 0; i < 7; i++)
+                {
+                    var day = weekStart.AddDays(i);
+                    var cls = day == d.Today ? "t" : day < d.Today && d.Daily.GetValueOrDefault(day) > 0 ? "o" : "x";
+                    <div><span>@dows[i]</span><i class="@cls">@(day == d.Today ? "오늘" : day.Day.ToString())</i></div>
+                }
+            </div>
+        </div>
+    </section>
+
+    <a class="rh-resume" href="@Model.ReadUrl(r.BookId, r.Chapter, r.Verse)">
+        <div class="rh-rk"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>@(fresh ? "읽기 시작" : "이어 읽기")</div>
+        <div class="rh-rm">
+            <div>
+                <div class="rh-rt">@ReadingPageBase.BookName(r.BookId) @(r.Chapter)@Unit(r.BookId)</div>
+                <div class="rh-rs">@resumeSub</div>
+            </div>
+            <span class="rh-go"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2F5A3A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16M13 5l7 7-7 7"></path></svg></span>
+        </div>
+        <div class="rh-rp">
+            <div class="rh-rtrk"><div style="width:@(bookPct)%"></div></div>
+            <div class="rh-rl"><span>@ReadingPageBase.BookName(r.BookId) @book.Read / @(book.Total)@Unit(r.BookId)</span><span>@(bookPct)%</span></div>
+        </div>
+    </a>
+
+    <section class="rh-cal" aria-label="최근 4주">
+        <div class="rh-ct2"><span class="rh-h2">최근 4주</span><span class="rh-cd">@d.Today.ToString("M'/'d") 오늘</span></div>
+        <div class="rh-dow">@foreach (var w in dows) { <span>@w</span> }</div>
+        <div class="rh-grid" role="img" aria-label="최근 4주 읽은 날">
+            @for (var i = 0; i < 28; i++)
+            {
+                var day = gridStart.AddDays(i);
+                var n = d.Daily.GetValueOrDefault(day);
+                var lv = n == 0 ? "" : n * 3 <= maxDay ? "l1" : n * 3 <= maxDay * 2 ? "l2" : "l3";
+                var dw = i % 7 == 0 ? "su" : i % 7 == 6 ? "sa" : "";
+                if (day > d.Today) { <span class="f"></span> }
+                else { <span class="@dw @lv@(day == d.Today ? " t" : "")" title="@day.ToString("M'/'d") @(n)장">@day.Day</span> }
+            }
+        </div>
+        <div class="rh-lgd">적음<i style="background:#E4EADB"></i><i style="background:#C6D8BE"></i><i style="background:#8DB087"></i><i style="background:#4B7A56"></i>많음</div>
+    </section>
+
+    <section class="rh-bk" aria-label="책별 진도">
+        <div class="rh-bt"><span class="rh-h2">책별 진도</span><a href="@Model.ListUrl(nt ? "nt" : "ot")">@(nt ? "신약" : "구약") 목록 →</a></div>
+        <nav class="rh-tabs" aria-label="구약 · 신약">
+            <a href="?Tab=ot" aria-current="@(!nt ? "true" : "false")">구약 39권</a>
+            <a href="?Tab=nt" aria-current="@(nt ? "true" : "false")">신약 27권</a>
+        </nav>
+        <div class="rh-books">
+            @foreach (var b in books)
+            {
+                <a href="@Model.ListUrl(ReadingPageBase.TestamentOf(b.BookId), b.BookId)" title="@b.Name @b.Read/@b.Total"><div class="n">@b.Name</div><div class="c">@b.Read/@b.Total</div></a>
+            }
+        </div>
+    </section>
 </div></div>
 </div>
-@functions {
-    string TenantClockText(DateTime utc)
-    {
-        var tz = TimeZoneInfo.FindSystemTimeZoneById(Model.Tenant.Current.TimeZoneId);
-        var local = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), tz);
-        var day = DateOnly.FromDateTime(local);
-        return (day == Model.Data.Today ? "오늘" : day == Model.Data.Today.AddDays(-1) ? "어제" : local.ToString("M'/'d")) + " " + local.ToString("HH:mm");
-    }
-}

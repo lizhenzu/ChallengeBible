@@ -19,12 +19,36 @@ public sealed record RoundRow(int RoundNo, RoundState State, DateOnly Started, D
 }
 public enum RoundState { Reading, Completed, Closed }
 public sealed record ResumePoint(byte BookId, short Chapter, short Verse, int VerseCount, int VersesRead, DateTime? ViewedUtc);
+/// <summary>이 회차에서 가장 마지막에 끝낸 장과 그날(부서 시간대). 이어 읽기 카드의 "어제 11장까지 읽었어요".</summary>
+public sealed record LastReadPoint(byte BookId, short Chapter, DateOnly Day);
 public sealed record ReadingSummary(
     int RoundNo, int CompletedRounds, int ReadChapters, int OtRead, int NtRead,
     int TodayChapters, int Streak, int DaysRead, DateOnly Today,
     ResumePoint Resume, IReadOnlyList<(byte BookId, short Chapter)> Next,
-    IReadOnlyList<BookProgress> Books, IReadOnlyDictionary<DateOnly, int> Daily)
+    IReadOnlyList<BookProgress> Books, IReadOnlyDictionary<DateOnly, int> Daily,
+    IReadOnlyList<(int Start, int Count)>? ReadRanges = null, LastReadPoint? LastRead = null)
 {
+    private static readonly Dictionary<byte, int> Offsets = BuildOffsets();
+    private static Dictionary<byte, int> BuildOffsets()
+    {
+        var map = new Dictionary<byte, int>(); var acc = 0;
+        foreach (var b in BibleBooks.All().OrderBy(b => b.Id)) { map[b.Id] = acc; acc += b.ChapterCount; }
+        return map;
+    }
+
+    /// <summary>읽은 장을 성경 순서(0 ~ 1,188)로 펴서 이어진 구간 (시작, 장 수) 목록으로 묶는다. 책 경계도 이어 붙인다. 통독 히트맵 막대용.</summary>
+    public static IReadOnlyList<(int Start, int Count)> Ranges(IEnumerable<(byte BookId, short Chapter)> done)
+    {
+        var idx = done.Where(c => Offsets.ContainsKey(c.BookId)).Select(c => Offsets[c.BookId] + c.Chapter - 1).Distinct().OrderBy(i => i).ToList();
+        var list = new List<(int Start, int Count)>();
+        foreach (var i in idx)
+        {
+            if (list.Count > 0 && list[^1].Start + list[^1].Count == i) list[^1] = (list[^1].Start, list[^1].Count + 1);
+            else list.Add((i, 1));
+        }
+        return list;
+    }
+
     public static int Total => ReadingService.TotalChapters;
     public static int OtTotal => ReadingService.OtChapters;
     public static int NtTotal => ReadingService.TotalChapters - ReadingService.OtChapters;
@@ -255,8 +279,11 @@ public sealed class ReadingService(IAppDb db, RequestScope scope, TenantContext 
             .Where(x => x.Chapter > 0).Take(6).Select(x => (x.Book, x.Chapter)).ToList();
         if (next.Count == 0) next.Add((1, 1));
 
+        var lastRow = inRound.OrderByDescending(c => c.ReadAt).ThenByDescending(c => c.BookId).ThenByDescending(c => c.Chapter).FirstOrDefault();
+        var last = lastRow is null ? null : new LastReadPoint(lastRow.BookId, lastRow.Chapter, Local(lastRow.ReadAt));
         return new(round.RoundNo, completedRounds, inRound.Count, inRound.Count(c => c.BookId <= 39), inRound.Count(c => c.BookId >= 40),
-            dayCounts.GetValueOrDefault(today), streak, dayCounts.Count, today, resume, next, books, daily);
+            dayCounts.GetValueOrDefault(today), streak, dayCounts.Count, today, resume, next, books, daily,
+            ReadingSummary.Ranges(inRound.Select(c => (c.BookId, c.Chapter))), last);
     }
 
     private static short FirstUnread(byte book, IReadOnlySet<(byte, short)> done)

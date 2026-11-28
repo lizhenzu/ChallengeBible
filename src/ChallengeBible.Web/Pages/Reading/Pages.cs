@@ -38,17 +38,13 @@ public abstract class ReadingPageBase(ReadingService reading, TenantContext tena
     public static string TestamentOf(byte id) => id <= 39 ? "ot" : "nt";
 }
 
-/// <summary>`/{slug}/reading` 대시보드(R-155 · R-156 · R-161).</summary>
-public class IndexModel(ReadingService reading, TenantContext tenant, BibleTextService bible, MissionService missions, ReadingGiftService readingGifts, BirthdayGiftService linkGifts) : ReadingPageBase(reading, tenant)
+/// <summary>`/{slug}/reading` 대시보드(R-155 · R-156 · R-161). 확정 시안: 성경통독 메인 「현재 화면 (모바일 구현본)」 360px.</summary>
+public class IndexModel(ReadingService reading, TenantContext tenant, ReadingGiftService readingGifts, BirthdayGiftService linkGifts) : ReadingPageBase(reading, tenant)
 {
     public override string Title => "성경통독";
     public ReadingSummary Data { get; private set; } = null!;
     /// <summary>완독 선물 카드(확정 시안 완독-선물 ①, R-289): 이 부서 학생의 받기 전 완독 선물.</summary>
     public IReadOnlyList<BirthdayGiftView> ReadingGifts { get; private set; } = [];
-    public string? ResumeText { get; private set; }
-    /// <summary>오늘의 말씀(옛 Bible2 대시보드 칸, 0071): 그날 말씀의 첫 절. 없으면 칸을 숨긴다.</summary>
-    public string? VerseText { get; private set; }
-    public string? VerseRef { get; private set; }
     [BindProperty(SupportsGet = true)] public string Tab { get; set; } = "ot";
 
     protected override async Task<IActionResult> LoadAsync(CancellationToken ct)
@@ -58,15 +54,6 @@ public class IndexModel(ReadingService reading, TenantContext tenant, BibleTextS
         {
             await readingGifts.EnsureAsync(ct);   // 성경을 다 읽으면 완독 선물(ADR 0094 E)
             ReadingGifts = (await linkGifts.MineAsync(ct)).Where(g => g.Kind == "Reading").ToList();
-        }
-        var r = Data.Resume;
-        var lines = await bible.RangeAsync(new BibleRef(r.BookId, r.Chapter, r.Verse, r.Chapter, r.Verse), [BibleTranslation.Krv], ct);
-        ResumeText = lines.FirstOrDefault()?.Texts.GetValueOrDefault(BibleTranslation.Krv);
-        if ((await missions.GetDayAsync("", Data.Today, ct)).Word is { } w)
-        {
-            var first = new BibleRef(w.Ref.BookId, w.Ref.StartChapter, w.Ref.StartVerse, w.Ref.StartChapter, w.Ref.StartVerse);
-            VerseText = (await bible.RangeAsync(first, [BibleTranslation.Krv], ct)).FirstOrDefault()?.Texts.GetValueOrDefault(BibleTranslation.Krv);
-            VerseRef = $"{BookName(w.Ref.BookId)} {w.Ref.StartChapter}:{w.Ref.StartVerse}";
         }
         return Page();
     }

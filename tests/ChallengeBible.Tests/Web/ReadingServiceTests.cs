@@ -133,6 +133,19 @@ public class ReadingServiceTests
     }
 
     [Fact]
+    public void 통독_히트맵_읽은_장은_성경_순서의_이어진_구간으로_묶는다()
+    {
+        // 창세기 1~11장, 출애굽기 1장(창세기 50장 뒤가 아니므로 따로), 요한계시록 22장(마지막 = 1188)
+        var done = new List<(byte, short)>();
+        for (short c = 1; c <= 11; c++) done.Add((1, c));
+        done.Add((2, 1)); done.Add((66, 22));
+        Assert.Equal(new[] { (0, 11), (50, 1), (1188, 1) }, ReadingSummary.Ranges(done).ToArray());
+        // 책 경계도 이어 붙는다: 창세기 50장 + 출애굽기 1장 = 연속 2장
+        Assert.Equal(new[] { (49, 2) }, ReadingSummary.Ranges(new List<(byte, short)> { (1, 50), (2, 1) }).ToArray());
+        Assert.Empty(ReadingSummary.Ranges(new List<(byte, short)>()));
+    }
+
+    [Fact]
     public async Task R155_진도율은_소수_첫째_자리까지_구약_신약을_나눠_센다()
     {
         Assert.Equal(1.9, ReadingSummary.Percent(23, 1189));   // 1.934… → 1.9 (버림)

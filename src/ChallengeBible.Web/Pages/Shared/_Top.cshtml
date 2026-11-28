@@ -37,6 +37,7 @@
     var firstHref = ViewData["PbHomeHref"] as string ?? (inDept ? $"/{Ten.Current.Slug}" : "/");   // 왼쪽 첫 칸 주소(기본 홈, 메인화면에서 열리는 화면은 메인)
     var homeLbl = ViewData["PbHomeLabel"] as string ?? "홈";
     // 행정업무 화면(오늘 할 일 · 출석 · 교적부 · 인명 검색 · 생일자) 은 부서 공통 ☰ 대신 행정업무 ☰(2026-11-25 사용자)
+    var rh = ViewData["PbClass"] as string == "rhtop";   // 성경통독 메인(확정 시안 2026-11-28): ☰ · 홈 아이콘 모양이 시안 값
     var officeMenu = page is "/Todo/Index" or "/ClassBook/Index" or "/ClassBook/Class" or "/People/Index" or "/Birthdays/Index" or "/Attendance/Index" or "/Attendance/More" or "/Attendance/ClassCheck";
 }
 <header class="top gut pb@(ViewData["PbClass"] is string pbc ? " " + pbc : "")"><div class="wrap pbw">
@@ -49,7 +50,7 @@
         else if (b2)
         {
             <button type="button" class="pb-b pb-b2" aria-label="메뉴 열기" aria-controls="b2dr" data-b2open>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="@(rh ? "2.2" : "2")" stroke-linecap="round" aria-hidden="true"><path d="@(rh ? "M4 6h16M4 12h16M4 18h16" : "M4 7h16M4 12h16M4 17h16")"/></svg>
             </button>
             @if (parent is not null) { <a class="par" href="@parent[1]">@parent[0]</a><span class="sep" aria-hidden="true">›</span> }
             @if (!string.IsNullOrEmpty(title)) { <b class="cur">@title</b> }
@@ -85,7 +86,7 @@
         }
         else if (me is not null)
         {
-            <a class="hb" href="@btnHref"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg>@btnLabel</a>
+            <a class="hb" href="@btnHref"><svg width="@(rh ? 18 : 16)" height="@(rh ? 18 : 16)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="@(rh ? "M3 10.5 12 3l9 7.5" : "M3 11 12 3l9 8")"/><path d="@(rh ? "M5 9.5V21h14V9.5" : "M5 10v10h14V10")"/></svg>@btnLabel</a>
             @* 가장 중(R-366): ☰ 메뉴가 없는 화면은 여기 [복귀] *@
             @if (imp && !member) { <form method="post" action="/account/impersonate/stop" class="imp-top">@Html.AntiForgeryToken()<button type="submit" class="pb-imp">복귀</button></form> }
         }
