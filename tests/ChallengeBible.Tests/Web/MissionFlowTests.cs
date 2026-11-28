@@ -214,8 +214,8 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("읽기 시작 1장", list);                                       // 누른 책 아래 장 번호 칸
         var read = await c.GetStringAsync("/jamsil-kids/reading/read/1/24");
         Assert.Contains("KRV 1:24:9", read);
-        Assert.Contains("class=\"b2chs\"", read);             // 장 번호 줄(ADR 0057 · 0071)
-        Assert.Contains("data-donebanner role=\"status\" hidden>이 장을 다 읽었어요", read);   // 옛 Bible2: 다 읽으면 맨 위 띠(처음엔 숨김)
+        Assert.Contains("class=\"rv-cg\"", read);             // 장 선택 카드(확정 시안 2026-11-28)
+        Assert.Contains("class=\"rv-verses\"", read);          // 절 목록
         Assert.Contains("class=\"nx\" href=\"/jamsil-kids/reading/read/1/25\">창세기 25장", read);   // 이전 · 다음 장에 책 이름이 늘 붙는다
         Assert.Contains("data-api=\"reading\"", read);
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/jamsil-kids/reading/read/1/51")).StatusCode);
@@ -247,13 +247,12 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
-    public async Task 통독_본문_큰_버튼은_이_장_전체_읽음이고_오늘_읽은_절을_센다_0072()
+    public async Task 통독_본문_큰_버튼은_이_장_전체_읽음이다_0072()
     {
         var c = await Member("cheolsu", Roles.Participant);
         var read = await c.GetStringAsync("/jamsil-kids/reading/read/1/24");
         Assert.Contains("data-chapterall data-book=\"1\" data-chapter=\"24\" aria-pressed=\"false\"", read);
         Assert.Contains("이 장 읽음으로 표시", read);
-        Assert.Contains("오늘 읽은 절 0", read);
         Assert.DoesNotContain("data-pageall", read);                                    // 페이지 단위 버튼은 통독 본문에서 없어짐
 
         var token = TokenRx().Match(read).Groups[1].Value;
@@ -261,8 +260,6 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         read = await c.GetStringAsync("/jamsil-kids/reading/read/1/24");
         Assert.Contains("aria-pressed=\"true\"", read);
         Assert.Contains("이 장 읽음 표시를 취소할까요?", read);
-        Assert.Contains("오늘 읽은 절 9", read);                                         // 창세기 24장 시험 본문 9절이 오늘 읽음
-        Assert.Contains("data-donebanner role=\"status\" >이 장을 다 읽었어요", read);
     }
 
     [Fact]
@@ -357,7 +354,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.False((await Send(HttpMethod.Put, "/api/me/reading/verses/1/24?from=1&to=8")).GetProperty("chapterDone").GetBoolean());
         Assert.True((await Send(HttpMethod.Put, "/api/me/reading/verses/1/24/9")).GetProperty("chapterDone").GetBoolean());
         Assert.Contains("1 / 1,189장", await c.GetStringAsync("/jamsil-kids/reading"));
-        Assert.Contains("다 읽은 장", await c.GetStringAsync("/jamsil-kids/reading/read/1/24"));
+        Assert.Contains("이 장 읽음 표시를 취소할까요?", await c.GetStringAsync("/jamsil-kids/reading/read/1/24"));   // 다 읽은 장
         Assert.False((await Send(HttpMethod.Delete, "/api/me/reading/verses/1/24/9")).GetProperty("chapterDone").GetBoolean());
         Assert.Contains("0 / 1,189장", await c.GetStringAsync("/jamsil-kids/reading"));
         // 책 목록에서 바로 완료(R-151)

@@ -70,7 +70,7 @@ public partial class BookOverviewTests : IClassFixture<WebApplicationFactory<Pro
     {
         Seed(Genesis());
         var html = await (await Kid()).GetStringAsync("/jamsil-kids/reading/read/1/1");
-        Assert.Contains("<details class=\"bov\"  aria-label=\"창세기 개요\">", html);
+        Assert.Contains("<details class=\"rh-card rv-ov bov\" aria-label=\"창세기 개요\">", html);
         Assert.Contains("<dt>저자</dt>", html);
         Assert.Contains("<dd>모세</dd>", html);
         Assert.Contains("data-p=\"d\">상세본</button>", html);
@@ -85,7 +85,7 @@ public partial class BookOverviewTests : IClassFixture<WebApplicationFactory<Pro
     {
         Seed(Genesis());
         var html = await (await Kid()).GetStringAsync("/jamsil-kids/reading/read/1/24");
-        Assert.Contains("<details class=\"bov\"  aria-label=\"창세기 개요\">", html);
+        Assert.Contains("<details class=\"rh-card rv-ov bov\" aria-label=\"창세기 개요\">", html);
         Assert.Contains("<span>세상의 시작 이야기예요.</span>", html);                   // 첫 줄만
     }
 
@@ -94,8 +94,8 @@ public partial class BookOverviewTests : IClassFixture<WebApplicationFactory<Pro
     {
         Seed(new BibleBookOverview { BookId = 1 });
         var html = await (await Kid()).GetStringAsync("/jamsil-kids/reading/read/1/1");
-        Assert.DoesNotContain("class=\"bov\"", html);
-        Assert.DoesNotContain("class=\"bov\"", await (await Kid2()).GetStringAsync("/jamsil-kids/reading/read/2/1"));   // 표에 줄이 없는 책
+        Assert.DoesNotContain("rv-ov", html);
+        Assert.DoesNotContain("rv-ov", await (await Kid2()).GetStringAsync("/jamsil-kids/reading/read/2/1"));   // 표에 줄이 없는 책
     }
 
     private async Task<HttpClient> Kid2()
@@ -124,7 +124,7 @@ public partial class BookOverviewTests : IClassFixture<WebApplicationFactory<Pro
     {
         Seed(Genesis());
         var html = await (await Kid()).GetStringAsync("/jamsil-kids/read?from=word");
-        Assert.Contains("<details class=\"bov\"  aria-label=\"창세기 개요\">", html);    // 창세기 24장에서 시작 → 접힘
+        Assert.Contains("<details class=\"rh-card rv-ov bov\" aria-label=\"창세기 개요\">", html);    // 창세기 24장에서 시작 → 접힘
     }
 
     [Fact]

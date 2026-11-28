@@ -137,3 +137,91 @@ body:has(.rp.rhp[data-theme]) { background: #F4F7F0; }
 .rl-lg span { display: flex; align-items: center; gap: 5px; }
 .rl-lg i { width: 14px; height: 14px; border-radius: 3px; }
 .rl-panel .rl-mark { display: flex; align-items: center; justify-content: center; gap: 6px; height: 44px; margin-top: 14px; border: 1px solid #CFD8C5; border-radius: 8px; background: #F4F7F0; color: #4A554C; font-size: 14px; font-weight: 700; }
+
+/* 성경 읽기 본문(/{slug}/reading/read/…) — 확정 시안 「성경 읽기 본문 (새 테마)」 360px. 영역 사이 12px · 맨 아래 40px */
+.rh .rv-top { margin-top: 12px; padding: 20px 22px; background: #4B7A56; border: 0; color: #fff; }
+.rv-tk { font-size: 13px; font-weight: 700; letter-spacing: 1px; opacity: .92; }
+.rv-tt { margin-top: 10px; font-size: 28px; font-weight: 700; }
+.rv-bar { height: 6px; margin-top: 16px; background: rgba(255, 255, 255, .28); border-radius: 999px; }
+.rv-bar div { height: 100%; background: #fff; border-radius: 999px; }
+.rv-tl { display: flex; justify-content: space-between; margin-top: 8px; font-size: 13px; opacity: .92; }
+
+.rh .rv-chs { margin-top: 12px; padding: 16px; }
+.rv-cr { display: flex; justify-content: space-between; align-items: center; }
+.rv-cl { font-size: 14px; font-weight: 700; letter-spacing: 1px; color: #3F5A45; }
+.rv-cc { font-size: 13px; color: #5B665D; }
+.rv-cg { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
+.rv-cg a { aspect-ratio: 1 / 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; background: #E4EADB; color: #5F7A64; }
+.rv-cg a.done { background: #C6D8BE; color: #2F5A3A; }
+.rv-cg a.cur { background: #4B7A56; color: #fff; font-weight: 700; }
+
+.rh .rv-set { margin-top: 12px; padding: 0; }
+.rv-row { border-bottom: 1px solid #DCE3D3; }
+.rv-row:last-child { border-bottom: 0; }
+.rv-rh { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 52px; padding: 0 16px; border: 0; background: none; font: inherit; line-height: normal; color: inherit; text-align: left; cursor: pointer; }
+.rv-rh .k { font-size: 14px; font-weight: 700; letter-spacing: 1px; color: #3F5A45; }
+.rv-rh .v { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: #2F5A3A; }
+.rv-row.open .rv-rh .v { color: #5B665D; }
+.rv-row.open .rv-rh .v svg { transform: rotate(180deg); }
+.rv-rp { padding: 0 16px 16px; }
+.rv-rp[hidden] { display: none; }
+.rv-pills { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.rv-pills a { height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid #CFD8C5; border-radius: 8px; background: #F4F7F0; color: #4A554C; font-size: 14px; font-weight: 500; }
+.rv-pills a[aria-current="true"] { border-color: #4B7A56; background: #4B7A56; color: #fff; font-weight: 700; }
+.rv-media { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.rv-media button { display: block; min-width: 0; padding: 10px 8px; border: 1px solid #CFD8C5; border-radius: 8px; background: #F4F7F0; font: inherit; line-height: normal; color: inherit; text-align: left; cursor: pointer; }
+.rv-media .a { display: block; font-size: 13px; font-weight: 700; }
+.rv-media .b { display: block; margin-top: 2px; font-size: 13px; color: #5B665D; }
+
+/* 책 개요(접기식): 옛 .bov 안쪽(간략본 · 상세본)은 그대로 쓰고 카드 · 머리만 시안 값 */
+.rh .rv-ov.bov { --b-ink: #1F2A22; --b-dim: #5B665D; --b-dim2: #5B665D; --b-rule: #DCE3D3; --b-grey: #fff; margin: 12px 0 0; border: 1px solid #D5DDCB; border-radius: 5px; background: #fff; }
+.rh .rv-ov > summary { justify-content: space-between; gap: 10px; padding: 14px 16px; }
+.rh .rv-ov .tt { display: block; }
+.rh .rv-ov .tt b { display: block; font-size: 15px; font-weight: 700; color: #1F2A22; }
+.rh .rv-ov .tt span { display: block; margin-top: 3px; font-size: 13px; color: #5B665D; }
+
+.rv-fs { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+.rv-fs > span { font-size: 13px; color: #5B665D; }
+.rv .fs { display: flex; align-items: center; padding: 0; border: 1px solid #CFD8C5; border-radius: 8px; overflow: hidden; background: #fff; font-size: 14px; font-weight: 700; }
+.rv .fs button { min-width: 0; height: auto; padding: 8px 12px; border: 0; border-radius: 0; background: none; font: inherit; font-size: 14px; font-weight: 700; line-height: normal; color: inherit; cursor: pointer; }
+.rv .fs .pct { min-width: 0; height: auto; padding: 8px 10px; border-top: 0; border-bottom: 0; border-left: 1px solid #CFD8C5; border-right: 1px solid #CFD8C5; border-radius: 0; font-size: 13px; font-weight: 500; color: #5B665D; }
+
+.rv-ex { margin: 12px 0 0; padding: 12px 14px; background: #E9F0E3; border-left: 4px solid #4B7A56; border-radius: 5px; }
+.rv-ex .hd { display: flex; align-items: center; gap: 8px; }
+.rv-ex .tag { padding: 2px 7px; background: #4B7A56; border-radius: 4px; color: #fff; font-size: 12px; font-weight: 700; }
+.rv-ex .rg { font-size: 13px; font-weight: 700; color: #3F5A45; }
+.rv-ex .ti { margin-top: 8px; font-size: 15px; font-weight: 700; }
+.rv-ex .bd { margin-top: 4px; font-size: 13px; line-height: 1.5; color: #5B665D; }
+
+.rv-v { display: flex; gap: 10px; padding: 14px 0; border-bottom: 1px solid #DCE3D3; }
+.rv-v .rn { flex-shrink: 0; width: 20px; padding-top: 5px; font-size: 13px; font-weight: 700; color: #4B7A56; }
+.rv-v .rt { flex: 1; min-width: 0; font-size: calc(17px * var(--fs, 1)); line-height: 1.7; }
+.rv .rt { font-size: calc(17px * var(--fs, 1)); line-height: 1.7; }
+.rv-v .tl { display: block; }
+.rv-v .tl em { margin-right: 6px; font-style: normal; font-size: 13px; font-weight: 700; color: #4B7A56; }
+.rv-acts { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: middle; }
+.rv-b { position: relative; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: #E4EADB; color: #8A948C; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.rv-b.rd.on { background: #4B7A56; color: #fff; }
+.rv-b.st.on { background: #F6D58E; color: #5A3B00; }
+.rv-b.st.on svg { fill: currentColor; }
+.rv-b.wait svg { visibility: hidden; }
+.rv-b.wait::after { content: ""; position: absolute; inset: 7px; border: 2px solid rgba(0, 0, 0, .15); border-top-color: #1F2A22; border-radius: 50%; animation: rp-spin .8s linear infinite; }
+
+.rv-mega { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; margin-top: 20px; padding: 18px 20px; border: 0; border-radius: 5px; background: #4B7A56; color: #fff; font: inherit; line-height: normal; text-align: left; cursor: pointer; }
+.rv-mega .b { display: block; }
+.rv-mega .t { display: block; font-size: 16px; font-weight: 700; }
+.rv-mega .d { display: block; margin-top: 4px; font-size: 13px; opacity: .92; }
+.rv-mega em { display: flex; flex: none; font-style: normal; font-size: 18px; font-weight: 700; }
+.rv-mega.wait { opacity: .7; }
+.rv-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+.rv-nav a, .rv-btm a { display: flex; align-items: center; justify-content: center; height: 48px; border: 1px solid #CFD8C5; border-radius: 8px; background: #fff; font-size: 14px; font-weight: 700; color: #4A554C; }
+.rv-note { margin: 12px 0 0; font-size: 13px; line-height: 1.5; color: #5B665D; text-align: center; }
+@media (min-width: 560px) { .rv-br { display: none; } }
+.rv-btm { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
+.rv-btm a { height: 44px; font-weight: 500; }
+
+/* 시안에 없는 기존 기능(쪽 이동 · 본문 없음)은 같은 버튼 값으로 */
+.rv-pager { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 12px; font-size: 13px; color: #5B665D; }
+.rv-pager a, .rv-pager .off { display: flex; align-items: center; justify-content: center; min-width: 96px; height: 44px; border: 1px solid #CFD8C5; border-radius: 8px; background: #fff; font-size: 14px; font-weight: 700; color: #4A554C; }
+.rv-pager .off { opacity: .45; }
+.rv-empty { margin: 12px 0 0; font-size: 13px; color: #5B665D; text-align: center; }

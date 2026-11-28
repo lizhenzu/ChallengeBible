@@ -3,80 +3,144 @@
 @using ChallengeBible.Web.Pages.Reading
 @using ChallengeBible.Web.Services
 @using ChallengeBible.Infrastructure.Data
-@* 통독 본문 읽기(ADR 0057): 말씀-성경읽기-v2 모양 + 장 번호 줄. 절마다 ✓(회차 읽음, R-160) · ★(책갈피, R-112),
-   "이 페이지 읽음으로 표시"는 보이는 절, 넘기기만으로는 읽음이 아니다(0042). 모든 절이 읽음이면 장 자동 완료(R-162).
-   절 사이 해설 카드(R-118, ADR 0056 결정 7, 확정 시안: 통독-본문읽기-해설카드). 본문 위 책 개요 카드(R-116, ADR 0062, 확정 시안: 통독-본문읽기-책개요).
-   장 진도 아래 도구 줄([장] [보기] [듣기], 확정 시안: 통독-본문읽기-보기설정-3안 ㄴ안) — 듣기는 화면 안 재생 창(R-166, ADR 0063). 밝기는 다음 묶음 *@
+@* 확정 시안: 「성경 읽기 본문 (새 테마)」 360px(2026-11-28). 값은 reading-home.css 의 .rv-*(메인 · 구약 읽기와 같은 체계).
+   위에서 아래: 머리줄 → 초록 진행 카드 → 장 선택 → 읽기 설정(접기식 3줄) → 책 개요(접기식) → 글자 크기 → 해설 구간 · 절 목록 → 이 장 읽음으로 표시 → 이전 · 다음 장 → 안내 → 아래 버튼 3개.
+   절마다 ✓(회차 읽음, R-160) · ★(책갈피, R-112). 모든 절이 읽음이면 장 자동 완료(R-162). 점수 없음(R-157). 동작은 mission.js(.rv-verses · data-*). *@
 @{
     var v = Model.View;
     var s = Model.Slice;
     var multi = Model.Shown.Count > 1;
     var t = ReadingPageBase.TestamentOf(Model.Book);
+    var tName = t == "ot" ? "구약" : "신약";
     var name = ReadingPageBase.BookName(Model.Book);
     var prev = ReadingService.PrevChapter(Model.Book, Model.Chapter);
     var next = ReadingService.NextChapter(Model.Book, Model.Chapter);
     (string Label, int Value)[] units = [("한 절", 1), ("3절", 3), ("5절", 5), ("전체", 0)];
     (string Label, string Value)[] trs = [("개역개정", BibleTranslation.Krv), ("현대인", BibleTranslation.Klb), ("NIV", BibleTranslation.Niv), ("모두", "ALL")];
     var unit = Model.Book == 19 ? "편" : "장";
+    var title = $"{name} {Model.Chapter}{unit}";
+    var unitNow = units.First(u => u.Value == Model.Unit).Label;
+    var trNow = trs.FirstOrDefault(x => x.Value == Model.Tr).Label ?? "개역개정";
+    var notesN = Model.Media.Count(m => !m.Listen);
+    var mediaNow = notesN > 0 ? $"해설 {notesN}개" : "듣기";
+    string Un(byte b) => b == 19 ? "편" : "장";
+    ViewData["PbClass"] = "rhtop";
 }
 <link rel="stylesheet" href="~/css/reading.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/reading-b2.css" asp-append-version="true" />
-<div class="rp b2">
-@await Html.PartialAsync("_ReadingNav", new ReadingNav(Model, t, $"{name} {Model.Chapter}{unit}", NoTop: true))
-<div class="b2main brd b2r">
-@* 확정 시안: 통독-옛Bible2-본문읽기(0071) — 옛 Bible2 Read 배치: 파란 머리(☰ · 경로 · 글자 크기 | 구약 · 성경 통독 | 책 이름 + 큰 장 번호 | 절 진도)
-   → 장 번호 줄 → 설정 칸(읽기 단위 · 번역 · 듣기 해설) → 책 개요 → 절 목록 → 큰 완료 버튼 → 이전 · 다음 장 → 대시보드 · 목록 · 부서 홈 *@
+<link rel="stylesheet" href="~/css/reading-home.css" asp-append-version="true" />
+<div class="rp b2 rhp">
+@await Html.PartialAsync("_ReadingNav", new ReadingNav(Model, t, title, NoTop: true))
+<div class="b2main">
 @{
-    var vd = new ViewDataDictionary(ViewData) { ["PbDrawer"] = "b2", ["PbTitle"] = $"{name} {Model.Chapter}{unit}",
-        ["PbParent"] = new[] { t == "ot" ? "구약" : "신약", Model.ListUrl(t) }, ["PbButton"] = new[] { "통독홈", $"/{Model.Slug}/reading" } };
+    var vd = new ViewDataDictionary(ViewData) { ["PbDrawer"] = "b2", ["PbTitle"] = title,
+        ["PbParent"] = new[] { tName, Model.ListUrl(t) }, ["PbButton"] = new[] { "통독홈", $"/{Model.Slug}/reading" } };
 }
 <partial name="_Top" view-data="vd" />
-<header class="b2rh"><div class="b2ri">
-    <div class="hkrow"><div class="hk">@(t == "ot" ? "구약" : "신약") · 성경 통독 · @(v.RoundNo)회차</div>
-        <div class="fs" role="group" aria-label="글자 크기">
-            <button type="button" data-fs="-1" aria-label="글자 작게">가−</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
+<main class="rh rv" data-slug="@Model.Slug">
+    <div class="rh-card rv-top rdprog" data-total="@v.VerseCount">
+        <div class="rv-tk">@tName · 성경 통독 · @(v.RoundNo)회차</div>
+        <div class="rv-tt">@title</div>
+        <div class="rv-bar" aria-hidden="true"><div data-readbar style="width:@(Model.ReadPercent)%"></div></div>
+        <div class="rv-tl"><span>@(v.VerseCount)절 · <span data-readcount>@v.VersesRead.Count</span>절 읽음</span><span data-readpct>@(Model.ReadPercent)%</span></div>
+    </div>
+
+    <nav class="rh-card rv-chs" aria-label="장 선택">
+        <div class="rv-cr"><span class="rv-cl">장 선택</span><span class="rv-cc">@Model.Chapter / @(Model.ChapterCount)장</span></div>
+        <div class="rv-cg">
+            @for (short c = 1; c <= Model.ChapterCount; c++)
+            {
+                <a class="@(c == Model.Chapter ? "cur" : Model.DoneChapters.Contains(c) ? "done" : "")" href="@Model.ReadUrl(Model.Book, c)" aria-current="@(c == Model.Chapter ? "page" : "false")">@c</a>
+            }
         </div>
-    </div>
-    <h1 class="ht">@name<b class="num">@Model.Chapter</b><small>@unit</small></h1>
-    <div class="rdprog" data-total="@v.VerseCount">
-        <p class="num"><span>@(v.VerseCount)절 · <b data-readcount>@v.VersesRead.Count</b>절 읽음<span class="rd-done" data-chapterdone @(v.Done ? "" : "hidden")> · 다 읽은 장</span></span><span data-readpct>@(Model.ReadPercent)%</span></p>
-        <div class="bar" aria-hidden="true"><i data-readbar style="width:@(Model.ReadPercent)%"></i></div>
-    </div>
-</div></header>
-<main class="b2ri" data-slug="@Model.Slug">
-    <div class="b2done" data-donebanner role="status" @(v.Done ? "" : "hidden")>이 장을 다 읽었어요</div>   @* 옛 Bible2: 장을 다 읽으면 맨 위 띠 *@
-    <nav class="b2chs" aria-label="장 번호">
-        @for (short c = 1; c <= Model.ChapterCount; c++)
-        {
-            <a class="@(c == Model.Chapter ? "cur" : Model.DoneChapters.Contains(c) ? "done" : "")" href="@Model.ReadUrl(Model.Book, c)" aria-current="@(c == Model.Chapter ? "page" : "false")">@c</a>
-        }
     </nav>
-    <section class="b2sheet" aria-label="읽기 설정">
-        <div class="brd-lbl">읽기 단위</div>
-        <div class="brd-pills">@foreach (var (label, u) in units) { <a href="@Model.Url(unit: u)" aria-current="@(Model.Unit == u ? "true" : "false")">@label</a> }</div>
-        <div class="brd-lbl">번역</div>
-        <div class="brd-pills">@foreach (var (label, code) in trs) { <a href="@Model.Url(tr: code)" aria-current="@(Model.Tr == code ? "true" : "false")">@label</a> }</div>
-        @if (Model.Media.Count > 0) { <div class="brd-lbl">듣기 · 해설</div><partial name="_MediaBar" model="Model.Media" /> }
+
+    <section class="rh-card rv-set" aria-label="읽기 설정" data-rv-set>
+        <div class="rv-row">
+            <button type="button" class="rv-rh" aria-expanded="false" aria-controls="rvp-unit"><span class="k">읽기 단위</span><span class="v">@unitNow<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5B665D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></button>
+            <div class="rv-rp" id="rvp-unit" hidden><div class="rv-pills">@foreach (var (label, u) in units) { <a href="@Model.Url(unit: u)" aria-current="@(Model.Unit == u ? "true" : "false")">@label</a> }</div></div>
+        </div>
+        <div class="rv-row">
+            <button type="button" class="rv-rh" aria-expanded="false" aria-controls="rvp-tr"><span class="k">번역</span><span class="v">@trNow<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5B665D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></button>
+            <div class="rv-rp" id="rvp-tr" hidden><div class="rv-pills">@foreach (var (label, code) in trs) { <a href="@Model.Url(tr: code)" aria-current="@(Model.Tr == code ? "true" : "false")">@label</a> }</div></div>
+        </div>
+        @if (Model.Media.Count > 0)
+        {
+            <div class="rv-row">
+                <button type="button" class="rv-rh" aria-expanded="false" aria-controls="rvp-media"><span class="k">듣기 · 해설</span><span class="v">@mediaNow<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5B665D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></button>
+                <div class="rv-rp" id="rvp-media" hidden>
+                    <div class="rv-media" role="group" aria-label="듣기 · 영상">
+                        @foreach (var b in Model.Media)
+                        {
+                            <button type="button" data-yt="@b.VideoId" data-yt-title="@b.PlayerTitle" data-yt-icon="@b.Icon" data-yt-clips="@b.Clips"><span class="a">@b.Title</span><span class="b">@(b.ClipLines is { } lines ? string.Join(" · ", lines.Select(l => $"{l.Chapter} {l.Range}")) : b.Sub)</span></button>
+                        }
+                    </div>
+                    <div class="ytm" id="ytm" hidden role="dialog" aria-modal="true" aria-labelledby="ytmT">
+                        <div class="box">
+                            <div class="hd"><b id="ytmT"></b><button type="button" class="stop" data-yt-stop>⏹ 정지</button><button type="button" class="x" data-yt-close>✕ 닫기</button></div>
+                            <div class="fr" data-yt-host></div>
+                            <div class="ft"><span data-yt-status>▶ 재생 중</span><em>∞ 무한 반복</em></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
     </section>
 
-    @if (Model.Overview is { } ov) { <partial name="_BookOverview" model="ov" /> }
+    @if (Model.Overview is { } ov)
+    {
+        var both = ov.Brief.Count > 0 && ov.Detail.Count > 0;
+        var first = ov.Brief.Count > 0 ? "b" : "d";
+        <details class="rh-card rv-ov bov" aria-label="@ov.BookName 개요">
+            <summary>
+                <span class="tt"><b>@ov.BookName 개요</b>@if (ov.Line.Length > 0) { <span>@ov.Line</span> }</span>
+                <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5B665D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+            </summary>
+            <div class="bov-b">
+                @if (both)
+                {
+                    <div class="tabs" role="tablist" aria-label="개요 보기">
+                        <button type="button" role="tab" aria-selected="true" data-p="b">간략본</button>
+                        <button type="button" role="tab" aria-selected="false" data-p="d">상세본</button>
+                    </div>
+                }
+                @foreach (var (key, rows) in new[] { ("b", ov.Brief), ("d", ov.Detail) })
+                {
+                    if (rows.Count == 0) { continue; }
+                    <dl data-pane="@key" @(key == first ? "" : "hidden")>
+                        @foreach (var r in rows)
+                        {
+                            <dt>@r.Label</dt>
+                            if (r.Chips) { <dd class="kw">@foreach (var c in BookOverviewService.Chips(r.Text)) { <span>@c</span> }</dd> }
+                            else { <dd>@r.Text</dd> }
+                        }
+                    </dl>
+                }
+                <p class="src">책 개요는 모든 부서가 함께 봐요.</p>
+            </div>
+        </details>
+    }
+
+    <div class="rv-fs">
+        <span>본문 글자 크기</span>
+        <div class="fs" role="group" aria-label="글자 크기"><button type="button" data-fs="-1" aria-label="글자 작게">가−</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button></div>
+    </div>
 
     @if (s.Total == 0)
     {
-        <p class="brd-empty">이 장의 본문이 아직 없어요.</p>
+        <p class="rv-empty">이 장의 본문이 아직 없어요.</p>
     }
     else
     {
-        @* 옛 Bible2: 쪽 이동(‹ 이전 / 다음 ›)은 절 목록 위 *@
         @if (s.Pages > 1)
         {
-            <nav class="brd-pager" aria-label="쪽 이동">
+            <nav class="rv-pager" aria-label="쪽 이동">
                 @if (s.Page > 1) { <a href="@Model.Url(page: s.Page - 1)">◀ 이전</a> } else { <span class="off">◀ 이전</span> }
-                <span class="num">@(s.First)–@(s.Last)절 / @s.Total</span>
+                <span>@(s.First)–@(s.Last)절 / @s.Total</span>
                 @if (s.Page < s.Pages) { <a href="@Model.Url(page: s.Page + 1)">다음 ▶</a> } else { <span class="off">다음 ▶</span> }
             </nav>
         }
-        <div class="rdv brd-verses" data-book="@Model.Book" data-chapter="@Model.Chapter" data-api="reading">
+        <div class="rv-verses" data-book="@Model.Book" data-chapter="@Model.Chapter" data-api="reading">
             @foreach (var line in s.Lines)
             {
                 var read = v.VersesRead.Contains(line.Verse);
@@ -85,53 +149,72 @@
                 {
                     foreach (var n in notes)
                     {
-                        <aside class="brd-ex" aria-label="해설 @n.Range">
-                            <p class="hd"><span class="tag">해설</span><span class="rg">@n.Range</span></p>
-                            @if (n.Title is not null) { <strong>@n.Title</strong> }
-                            @if (n.Body is not null) { <p class="bd">@n.Body</p> }
+                        <aside class="rv-ex" aria-label="해설 @n.Range">
+                            <div class="hd"><span class="tag">해설</span><span class="rg">@n.Range</span></div>
+                            @if (n.Title is not null) { <div class="ti">@n.Title</div> }
+                            @if (n.Body is not null) { <div class="bd">@n.Body</div> }
                         </aside>
                     }
                 }
-                <div class="vr@(read ? " read" : "")@(star ? " bm" : "")" data-ch="@line.Chapter" data-v="@line.Verse">
-                    <span class="vn num">@line.Verse</span>
-                    <span class="vt">
-                        @foreach (var code in Model.Shown)
-                        {
-                            if (line.Texts.TryGetValue(code, out var tx))
-                            {
-                                if (multi) { <span class="tl"><em>@BibleTextService.Short(code)</em><span class="tx">@tx</span></span> }
-                                else { <span class="tx">@tx</span> }
-                            }
-                        }
-                        <span class="acts">
-                            <button type="button" class="vb rd@(read ? " on" : "")" data-mark="read" aria-pressed="@(read ? "true" : "false")" aria-label="@(line.Verse)절 읽음">✓</button>
-                            <button type="button" class="vb st@(star ? " on" : "")" data-mark="bookmark" aria-pressed="@(star ? "true" : "false")" aria-label="@(line.Verse)절 책갈피">★</button>
-                        </span>
-                    </span>
+                <div class="rv-v@(read ? " read" : "")@(star ? " bm" : "")" data-ch="@line.Chapter" data-v="@line.Verse">
+                    <span class="rn">@line.Verse</span>
+                    <div class="rt">@VerseInner(line, read, star, multi)</div>
                 </div>
             }
         </div>
 
-        @* 옛 Bible2 Read(ADR 0072): 큰 버튼 = 이 장 전체 읽음 표시 · 다시 누르면 취소. 안에 "오늘 읽은 절 N" *@
-        <button type="button" class="mega@(v.Done ? " done" : "")" data-chapterall data-book="@Model.Book" data-chapter="@Model.Chapter" aria-pressed="@(v.Done ? "true" : "false")">
+        <button type="button" class="rv-mega@(v.Done ? " done" : "")" data-chapterall data-book="@Model.Book" data-chapter="@Model.Chapter" aria-pressed="@(v.Done ? "true" : "false")">
             <span class="b">
                 <span class="t">@(v.Done ? "이 장 읽음 표시를 취소할까요?" : "이 장 읽음으로 표시")</span>
-                @if (!v.Done) { <span class="d">누르면 이 장의 모든 절이 읽음이 돼요</span> }
-                <span class="c num">오늘 읽은 절 @Model.TodayVerses</span>
+                <span class="d" @(v.Done ? "hidden" : "")>누르면 이 장의 모든 절이 읽음이 돼요</span>
             </span>
-            <em aria-hidden="true">@(v.Done ? "✓" : "→")</em>
+            <em aria-hidden="true">@if (v.Done) { <text>✓</text> } else { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M13 5l7 7-7 7"></path></svg> }</em>
         </button>
-        <nav class="brd-chnav" aria-label="장 이동">
-            @* 옛 Bible2: 책 이름이 늘 붙는다("← 창세기 23장" · "창세기 25장 →") *@
-            @if (prev is { } pv) { <a href="@Model.ReadUrl(pv.Book, pv.Chapter)">◀ @ReadingPageBase.BookName(pv.Book) @(pv.Chapter)@(pv.Book == 19 ? "편" : "장")</a> } else { <span></span> }
-            <a class="nx" href="@Model.ReadUrl(next.Book, next.Chapter)">@ReadingPageBase.BookName(next.Book) @(next.Chapter)@(next.Book == 19 ? "편" : "장") ▶</a>
+        <nav class="rv-nav" aria-label="장 이동">
+            @if (prev is { } pv) { <a href="@Model.ReadUrl(pv.Book, pv.Chapter)">◀ @ReadingPageBase.BookName(pv.Book) @(pv.Chapter)@Un(pv.Book)</a> } else { <span></span> }
+            <a class="nx" href="@Model.ReadUrl(next.Book, next.Chapter)">@ReadingPageBase.BookName(next.Book) @(next.Chapter)@Un(next.Book) ▶</a>
         </nav>
-        <p class="brd-note">통독에는 점수가 없어요. 장의 모든 절을 읽음으로 표시하면 그 장이 다 읽은 장이 돼요.</p>
+        <p class="rv-note">통독에는 점수가 없어요. 장의 모든 절을 읽음으로<br class="rv-br"> 표시하면 그 장이 다 읽은 장이 돼요.</p>
     }
-    <nav class="b2btm"><a href="/@Model.Slug/reading">대시보드</a><a href="@Model.ListUrl(t, Model.Book)">@(t == "ot" ? "구약" : "신약") 목록</a><a href="/@Model.Slug">부서 홈</a></nav>
+    <nav class="rv-btm"><a href="/@Model.Slug/reading">대시보드</a><a href="@Model.ListUrl(t, Model.Book)">@tName 목록</a><a href="/@Model.Slug">홈으로</a></nav>
 </main>
 </div>
 </div>
 @Html.AntiForgeryToken()
 <p id="toast" class="toast" role="status" hidden></p>
+<script>
+    // 읽기 설정: 한 번에 한 줄만 펼친다(다른 줄을 누르면 앞의 줄은 접힘). 처음엔 모두 접힘
+    (() => {
+        const rows = [...document.querySelectorAll('[data-rv-set] .rv-row')];
+        rows.forEach((row) => row.querySelector('.rv-rh').addEventListener('click', () => {
+            const open = row.querySelector('.rv-rh').getAttribute('aria-expanded') !== 'true';
+            rows.forEach((x) => {
+                const on = x === row && open;
+                x.querySelector('.rv-rh').setAttribute('aria-expanded', String(on));
+                x.querySelector('.rv-rp').hidden = !on;
+                x.classList.toggle('open', on);
+            });
+        }));
+    })();
+</script>
 <script src="~/js/mission.js" asp-append-version="true"></script>
+@functions {
+    private const string CheckSvg = "<svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12.5l4.5 4.5L19 7.5\"></path></svg>";
+    private const string StarSvg = "<svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z\"></path></svg>";
+
+    /// <summary>절 본문 + 읽음 ✓ · 책갈피 ★ 두 동그라미. 시안처럼 글과 버튼 사이에 공백 글자가 끼지 않게 한 줄로 만든다.</summary>
+    private Microsoft.AspNetCore.Html.IHtmlContent VerseInner(VerseLine line, bool read, bool star, bool multi)
+    {
+        var e = System.Net.WebUtility.HtmlEncode;
+        var sb = new System.Text.StringBuilder();
+        foreach (var code in Model.Shown)
+        {
+            if (!line.Texts.TryGetValue(code, out var tx)) continue;
+            sb.Append(multi ? $"<span class=\"tl\"><em>{e(BibleTextService.Short(code))}</em><span class=\"tx\">{e(tx)}</span></span>" : $"<span class=\"tx\">{e(tx)}</span>");
+        }
+        string P(bool on) => on ? "true" : "false";
+        sb.Append($"<span class=\"rv-acts\"><button type=\"button\" class=\"rv-b rd{(read ? " on" : "")}\" data-mark=\"read\" aria-pressed=\"{P(read)}\" aria-label=\"{line.Verse}절 읽음\">{CheckSvg}</button>"
+            + $"<button type=\"button\" class=\"rv-b st{(star ? " on" : "")}\" data-mark=\"bookmark\" aria-pressed=\"{P(star)}\" aria-label=\"{line.Verse}절 책갈피\">{StarSvg}</button></span>");
+        return new Microsoft.AspNetCore.Html.HtmlString(sb.ToString());
+    }
+}

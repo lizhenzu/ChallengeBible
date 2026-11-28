@@ -100,18 +100,17 @@ public partial class ReadingFontTests : IClassFixture<WebApplicationFactory<Prog
         return await EdgePage.RunAsync(page);
     }
 
-    private static readonly string[] ReadingCss = ["reading.css", "reading-b2.css"];
+    private static readonly string[] ReadingCss = ["reading.css", "reading-b2.css", "reading-home.css"];
     private const string ReadUrl = "/jamsil-kids/reading/read/1/1";
 
     [Fact]
-    public async Task R218_통독_글자가_모두_줄고_버튼은_그대로이며_기본이_100이다()
+    public async Task R218_통독_본문_글자_크기는_절_본문만_바꾸고_기본이_100이다()
     {
         if (!EdgePage.Available) return;
-        Assert.Equal("OK", await Run(await Kid(), ReadUrl, null, null, AllShrink + VerseGap + """
-            eq('reading verse gap', verseGap, '6px');
-            eq('pill corner', getComputedStyle(q('.brd-pills a')).borderTopLeftRadius, '5px');
-            var bar = document.createElement('div'); bar.className = 'bmd'; q('.b2r .b2sheet').appendChild(bar);   // 시험 자료에 영상이 없어 직접 만든다
-            eq('media bar has no extra top gap', getComputedStyle(bar).marginTop, '-2px');
+        // 확정 시안(2026-11-28): 통독 본문은 값이 고정 px 이고, 글자 크기(가−/가+)는 절 본문만 바꾼다
+        Assert.Equal("OK", await Run(await Kid(), ReadUrl, null, null, """
+            var rt = document.createElement('div'); rt.className = 'rt'; q('.rv').appendChild(rt);   // 시험 자료에 본문이 없어도 되게 직접 만든다
+            eq('verse 17px at 100%', parseFloat(getComputedStyle(rt).fontSize).toFixed(1), '17.0');
             eq('rs', rs, '.85');
             eq('label', q('.fs .pct').textContent, '100%');
             eq('fs', root.style.getPropertyValue('--fs'), '1');
@@ -119,11 +118,13 @@ public partial class ReadingFontTests : IClassFixture<WebApplicationFactory<Prog
             eq('mission key untouched', stored('cb.fs'), null);
             q('[data-fs="-1"]').click();
             eq('smaller', q('.fs .pct').textContent, '95%');
+            eq('verse smaller', parseFloat(getComputedStyle(rt).fontSize).toFixed(2), '16.15');
             eq('saved smaller', stored('cb.fs.rd'), '4');
             q('[data-fs="0"]').click();
             eq('reset', q('.fs .pct').textContent, '100%');
             q('[data-fs="1"]').click();
             eq('bigger', q('.fs .pct').textContent, '110%');
+            eq('verse bigger', parseFloat(getComputedStyle(rt).fontSize).toFixed(1), '18.7');
             """, ReadingCss));
     }
 

@@ -140,7 +140,7 @@
   }
 
   // 성경 읽기: 절 읽음 ✓ · 책갈피 ★ · 이 페이지 모두 읽음(R-112). 켜기 PUT · 끄기 DELETE(X-17), 점수와 무관(R-113)
-  const verses = document.querySelector('.rdv[data-book]');
+  const verses = document.querySelector('.rdv[data-book], .rv-verses[data-book]');
   if (verses) {
     const book = verses.dataset.book;
     // 통독 본문(data-api="reading")은 ✓ 를 회차 절 읽음(R-160)으로, 말씀 본문은 성경 읽음 표시(R-112)로 보낸다. ★ 는 둘 다 책갈피
@@ -165,7 +165,12 @@
         ca.classList.toggle('done', !!json.chapterDone);
         ca.querySelector('.t').textContent = json.chapterDone ? '이 장 읽음 표시를 취소할까요?' : '이 장 읽음으로 표시';
         ca.querySelector('.d')?.toggleAttribute('hidden', !!json.chapterDone);
-        ca.querySelector('em').textContent = json.chapterDone ? '✓' : '→';
+        const em = ca.querySelector('em');   // 통독 본문(새 시안)은 → 가 아이콘이라 켜기 전 모양을 기억해 둔다
+        if (em) {
+          if (json.chapterDone) { if (em.dataset.arrow === undefined) em.dataset.arrow = em.innerHTML; em.textContent = '✓'; }
+          else if (em.dataset.arrow !== undefined) em.innerHTML = em.dataset.arrow;
+          else em.textContent = '→';
+        }
       }
       if (json.roundCompleted) say(`성경을 다 읽었어요! ${json.newRoundNo}회차를 시작해요`);
       else if (json.chapterDone) say(`${chapter}장을 다 읽었어요`);

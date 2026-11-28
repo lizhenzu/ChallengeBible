@@ -65,13 +65,13 @@ public partial class ChapterMediaTests : IClassFixture<WebApplicationFactory<Pro
         var html = await (await Kid()).GetStringAsync("/jamsil-kids/reading/read/1/24");
         Assert.Contains("aria-label=\"듣기 · 영상\"", html);
         Assert.Contains("data-yt=\"dLv2ndgXrbo\" data-yt-title=\"창세기 24장 듣기\"", html);
-        Assert.Contains("<b>유튜브 듣기</b><small>창세기 24장 · 8:12</small>", html);   // 영상 길이(초 → 분:초)
+        Assert.Contains("<span class=\"a\">유튜브 듣기</span><span class=\"b\">창세기 24장 · 8:12</span>", html);   // 영상 길이(초 → 분:초)
         Assert.Contains("data-yt=\"jIcsdztsKBE\"", html);
         Assert.Contains("data-yt=\"cMKPbDZhToo\"", html);                               // 주소에서 영상 번호를 뽑음
-        Assert.Contains("<b>개요 해설 2</b>", html);
+        Assert.Contains("<span class=\"a\">개요 해설 2</span>", html);
         Assert.Contains("id=\"ytm\" hidden", html);                                     // 재생 창은 누르기 전엔 숨김
-        Assert.Contains("<div class=\"brd-lbl\">듣기 · 해설</div>", html);            // 옛 Bible2 Read 배치(0071): 설정 칸 안 "듣기 · 해설"
-        Assert.True(html.IndexOf("class=\"b2sheet\"") < html.IndexOf("class=\"bmd\""));   // 영상 버튼은 설정 칸 안
+        Assert.Contains("<span class=\"k\">듣기 · 해설</span>", html);                    // 확정 시안(2026-11-28): 읽기 설정 카드의 셋째 줄 "듣기 · 해설"
+        Assert.True(html.IndexOf("rv-set") < html.IndexOf("class=\"rv-media\""));       // 영상 버튼은 설정 카드 안
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public partial class ChapterMediaTests : IClassFixture<WebApplicationFactory<Pro
         Seed();
         var html = await (await Kid()).GetStringAsync("/jamsil-kids/reading/read/1/2");
         Assert.DoesNotContain("유튜브 듣기", html);
-        Assert.Contains("<b>개요 해설 1</b>", html);
+        Assert.Contains("<span class=\"a\">개요 해설 1</span>", html);
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public partial class ChapterMediaTests : IClassFixture<WebApplicationFactory<Pro
         Assert.DoesNotContain("class=\"bmd\"", html);
         Assert.DoesNotContain("id=\"ytm\"", html);
         Assert.DoesNotContain("듣기 · 해설", html);                                    // 듣기 칸도 없음
-        Assert.Contains("class=\"b2chs\"", html);                                     // 옛 Bible2 Read 배치(0071): 장 번호 줄 · 설정 칸은 늘 보임
+        Assert.Contains("class=\"rv-cg\"", html);                                     // 확정 시안: 장 선택 카드 · 설정 카드는 늘 보임
         Assert.Contains("class=\"cur\" href=\"/jamsil-kids/reading/read/1/24\" aria-current=\"page\">24</a>", html);
     }
 
