@@ -124,7 +124,7 @@ public partial class BookOverviewTests : IClassFixture<WebApplicationFactory<Pro
     {
         Seed(Genesis());
         var html = await (await Kid()).GetStringAsync("/jamsil-kids/read?from=word");
-        Assert.Contains("<details class=\"rh-card rv-ov bov\" aria-label=\"창세기 개요\">", html);    // 창세기 24장에서 시작 → 접힘
+        Assert.Contains("<details class=\"bov\"  aria-label=\"창세기 개요\">", html);    // 창세기 24장에서 시작 → 접힘(말씀 성경 읽기는 옛 카드 그대로)
     }
 
     [Fact]
