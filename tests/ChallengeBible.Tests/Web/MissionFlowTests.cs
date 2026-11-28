@@ -206,8 +206,8 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("href=\"/jamsil-kids/reading\"", await c.GetStringAsync("/jamsil-kids"));
         var dash = await c.GetStringAsync("/jamsil-kids/reading");
         Assert.Contains("나의 성경 통독 · <a href=\"/jamsil-kids/reading/rounds\" title=\"회차 기록\">1회차", dash);   // 회차 기록으로 가는 길
-        Assert.Contains("이어 읽기", dash);
-        Assert.Contains("<div class=\"t\">창세기 1장</div>", dash);                     // 옛 Bible2 배치(0071): 이어 읽기 큰 칸
+        Assert.Contains("읽기 시작", dash);                                             // 읽은 기록이 없으면 「이어 읽기」 대신 「읽기 시작」(확정 시안 2026-11-28)
+        Assert.Contains("<div class=\"rh-rt\">창세기 1장</div>", dash);                 // 이어 읽기 큰 칸
         Assert.Matches("aria-current=\"page\"><i class=\"tdr2-i\"[^>]*>(?:(?!</a>)[\\s\\S])*<span>대시보드</span></a>", dash);   // 왼쪽 목차
         var list = await c.GetStringAsync("/jamsil-kids/reading/list?t=ot&b=1");
         Assert.Matches("aria-current=\"page\"><i class=\"tdr2-i\"[^>]*>(?:(?!</a>)[\\s\\S])*<span>구약 읽기</span></a>", list);                    // 옛 Bible2 List 배치(0071): 목차에서 구약 읽기
