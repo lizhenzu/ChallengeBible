@@ -15,12 +15,13 @@
 <link rel="stylesheet" href="~/css/mission-mint.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/read-mint.css" asp-append-version="true" />
 @await Html.PartialAsync("_MissionSubBar", (Model.Slug, Model.Link(Model.BackPage), $"{Model.BackText} · 성경 읽기"))   @* ← 와 제목이 한 덩어리 · 오른쪽 「미션홈」 바로가기(2026-11-28 시안) *@
-<div class="brd rm">
-<div class="rm-tools">
+<div class="rm-row">
+    <span class="rm-k"><b>@Model.Kicker</b>@if (Model.From == "word") { <i aria-hidden="true"></i><em>@Model.Day.ToString("M월 d일 (ddd)", MissionPageBase.Ko)</em> }</span>
     <div class="fs brd-fs" role="group" aria-label="글자 크기">
         <button type="button" data-fs="-1" aria-label="글자 작게">가-</button><button type="button" data-fs="0" class="pct" aria-label="처음 크기로">100%</button><button type="button" data-fs="1" aria-label="글자 크게">가+</button>
     </div>
 </div>
+<div class="brd rm">
 <main class="brd-main" data-slug="@Model.Slug" data-date="@Model.Day.ToString("yyyy-MM-dd")" data-word="@(Model.From == "word" ? "1" : "0")">
     @if (r is null || !r.IsValid)
     {
@@ -33,7 +34,6 @@
     }
     else
     {
-        <div class="brd-k">@Model.Kicker@if (Model.From == "word") { <text> · @Model.Day.ToString("M월 d일 (ddd)", MissionPageBase.Ko)</text> }</div>
         <h1 class="brd-h">@r.Book<small>@r.Tail</small></h1>
         <div class="rdprog brd-prog" data-total="@s.Total">
             <p class="num"><span>@(s.Total)절 · <b data-readcount>@Model.ReadCount</b>절 읽음</span><span data-readpct>@(Model.ReadPercent)%</span></p>
@@ -66,7 +66,7 @@
                     foreach (var n in notes)
                     {
                         <aside class="brd-ex" aria-label="해설 @n.Range">
-                            <p class="hd"><span class="tag">해설</span><span class="rg">@n.Range</span></p>
+                            <p class="hd"><span class="tag">해설</span><span class="rg">@n.Range.Replace(" ~ ", " – ")</span></p>
                             @if (n.Title is not null) { <strong>@n.Title</strong> }
                             @if (n.Body is not null) { <p class="bd">@n.Body</p> }
                         </aside>

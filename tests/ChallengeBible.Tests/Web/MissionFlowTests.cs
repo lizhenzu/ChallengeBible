@@ -566,6 +566,9 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("data-readcard", rd);
         Assert.Contains("class=\"sbar\"", rd);                      // 세부 화면 머리줄 · 말씀 미션 · 성경 읽기
         Assert.Contains("말씀 미션 · 성경 읽기", rd);
+        Assert.Contains("<div class=\"rm-row\">", rd);                // 첫 줄: 오늘의 말씀 | 날짜 + 글자 크기(한 줄, 2026-11-28 시안)
+        Assert.Matches(@"<b>오늘의 말씀</b>\s*<i aria-hidden=""true""></i><em>", rd);
+        Assert.DoesNotContain("brd-k", rd);
         Assert.Contains("말씀 미션과 같은 기록이에요", rd);                // 하단 안내 B: 안내 박스 + 이동 목록 3줄
         Assert.Contains("<span>말씀 미션으로 돌아가기</span>", rd);
         Assert.Contains("<span>미션홈으로 가기</span>", rd);
