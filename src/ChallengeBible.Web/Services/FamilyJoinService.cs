@@ -282,6 +282,7 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         if (e != FamilyError.None) return e;
         if (await FamilyTeamService.HasAwardRecordAsync(ctx, tenant.Current.Id, t, ct)) return FamilyError.TeamLocked;
         if (IsFriend(t) && ActiveCount(t) >= FamilyTeamService.FriendCapacity) return FamilyError.FriendFull;
+        ctx.FamilyNotices.RemoveRange(await ctx.FamilyNotices.Where(n => n.UserName == me!.UserName && (n.Kind == "ACCEPTED" || n.Kind == "REJECTED" || n.Kind == "CANCELED")).ToListAsync(ct));   // 새 신청이면 지난 결과 띠는 지운다
         ctx.FamilyRequests.Add(new FamilyRequest { TenantId = tenant.Current.Id, FamilyTeamId = teamId, Kind = FamilyRequest.Join, TargetUserName = me!.UserName, FromUserName = me.UserName,
             RelationKey = FamilyRelation.ToKey(rel), CreatedAt = time.GetUtcNow().UtcDateTime });
         return await SaveAsync(ctx, FamilyError.HasPending, ct);
@@ -294,6 +295,10 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         var own = await ctx.FamilyRequests.SingleOrDefaultAsync(q => q.TargetUserName == me.UserName && q.Kind == FamilyRequest.Join, ct);
         if (own is null) return FamilyError.NotFound;
         ctx.FamilyRequests.Remove(own);
+        // 홈 맨 위 「신청을 취소했어요」 띠(2026-11-28 시안 JoinA15): [다시 신청하기] [확인] — 확인하거나 새로 신청하면 지워진다
+        ctx.FamilyNotices.RemoveRange(await ctx.FamilyNotices.Where(n => n.UserName == me.UserName && (n.Kind == "ACCEPTED" || n.Kind == "REJECTED" || n.Kind == "CANCELED")).ToListAsync(ct));
+        var team = await ctx.FamilyTeams.SingleOrDefaultAsync(t => t.Id == own.FamilyTeamId, ct);
+        if (team is not null) FamilyTeamService.AddNotice(ctx, team.TenantId, me.UserName, team, time.GetUtcNow().UtcDateTime, "CANCELED");
         await ctx.SaveChangesAsync(ct);
         return FamilyError.None;
     }
@@ -379,6 +384,17 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
         return new JoinBandResult(rows[0].Kind, rows[0].TeamName);
     }
 
+    /// <summary>결과 띠의 「확인」: 합류 · 거절 · 취소 띠를 모두 지운다.</summary>
+    public async Task<FamilyError> DismissResultAsync(CancellationToken ct = default)
+    {
+        if (!await EnabledAsync(ct)) return FamilyError.Disabled;
+        await using var ctx = db.Create();
+        if (await MeAsync(ctx, ct) is not { } me) return FamilyError.NotParticipant;
+        ctx.FamilyNotices.RemoveRange(await ctx.FamilyNotices.Where(n => n.UserName == me.UserName && (n.Kind == "ACCEPTED" || n.Kind == "REJECTED" || n.Kind == "CANCELED")).ToListAsync(ct));
+        await ctx.SaveChangesAsync(ct);
+        return FamilyError.None;
+    }
+
     /// <summary>「방금」 · 「3시간 전」 · 「어제」 · 「11월 25일」(영역 시간대).</summary>
     public static string RelTime(DateTime createdUtc, DateTimeOffset now, string tz)
     {
@@ -415,7 +431,7 @@ public sealed class FamilyJoinService(IAppDb db, ISystemDb systemDb, RequestScop
                 reqs.Add(new JoinBandRequest(q.Id, names.GetValueOrDefault(q.TargetUserName, q.TargetUserName), FamilyRelation.FromKey(q.RelationKey), RelTime(q.CreatedAt, now, tz), block));
             }
         }
-        var res = await ctx.FamilyNotices.AsNoTracking().Where(n => n.UserName == s.UserName && (n.Kind == "ACCEPTED" || n.Kind == "REJECTED")).OrderByDescending(n => n.Id).FirstOrDefaultAsync(ct);
+        var res = await ctx.FamilyNotices.AsNoTracking().Where(n => n.UserName == s.UserName && (n.Kind == "ACCEPTED" || n.Kind == "REJECTED" || n.Kind == "CANCELED")).OrderByDescending(n => n.Id).FirstOrDefaultAsync(ct);
         if (res is not null) result = new JoinBandResult(res.Kind, res.TeamName);
         var date = s.Pending is { } p ? TenantClock.ToTenantDate(new DateTimeOffset(DateTime.SpecifyKind(p.CreatedAt, DateTimeKind.Utc)), tz).ToString("M월 d일") : "";
         return new JoinBand(reqs, s.Invites.Where(i => !i.SnoozedToday).ToList(), s.Pending, date, result);

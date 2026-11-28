@@ -1,0 +1,9 @@
+@model (string Icon, string Title, string Body, string Button, string Href)
+@* 빈 상태 · 오류 공통 틀(2026-11-28 사용자 시안 Empty): 민트 원 아이콘 + 제목 + 안내 2줄 + 버튼 1개. 선물함 비었을 때 · 다른 팀 없음 · 불러오기 실패. *@
+<link rel="stylesheet" href="~/css/empty-state.css" asp-append-version="true" />
+<section class="es">
+    <div class="es-ic"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="@Model.Icon"/></svg></div>
+    <h2>@Model.Title</h2>
+    <p>@Model.Body</p>
+    <a class="es-btn" href="@Model.Href">@Model.Button</a>
+</section>

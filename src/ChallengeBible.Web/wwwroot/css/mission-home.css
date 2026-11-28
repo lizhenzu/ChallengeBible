@@ -14,8 +14,8 @@ html:has(.mh) { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hid
 
 /* 상단바 */
 .mh-bar { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px 4px 6px; border-bottom: 1px solid #E3EAE8; background: #fff; }
-.mh .mh-menu { height: 44px; border: 0; background: transparent; display: flex; align-items: center; gap: 8px; padding: 0 10px; color: #12302A; font-size: 15px; font-weight: 700; }
-.mh .mh-home { height: 44px; display: flex; align-items: center; gap: 5px; padding: 0 10px; color: #12302A; font-size: 14px; font-weight: 700; }
+.mh .mh-menu { min-height: 44px; border: 0; background: transparent; display: flex; align-items: center; gap: 8px; padding: 0 10px; color: #12302A; font-size: 15px; font-weight: 700; }
+.mh .mh-home { min-height: 44px; display: flex; align-items: center; gap: 5px; padding: 0 10px; color: #12302A; font-size: 14px; font-weight: 700; }
 
 /* 초대 배너(팀 없을 때) */
 .mh .mh-inv { margin: 12px 16px 0; background: #0D7A68; color: #fff; border-radius: 5px; padding: 14px; display: flex; align-items: center; gap: 12px; }
@@ -227,9 +227,9 @@ html:has(.mh) { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hid
 .mi-act { padding: 16px 16px 28px; display: flex; flex-direction: column; gap: 8px; background: #fff; border-top: 1px solid #E3EAE8; margin-top: auto; }
 .mi-act p { margin: 0 0 4px; font-size: 12px; color: #3F665D; text-align: center; }
 .mi-act form { display: contents; }
-.mh .mi-act .mi-p, .mi-act button.mi-p { height: 52px; border: 0; border-radius: 5px; background: #0D7A68; color: #fff; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-.mi-act .mi-t { height: 44px; border: 0; border-radius: 5px; background: transparent; color: #3F665D; font-size: 14px; font-weight: 500; }
-.mh .mi-act .mi-s { height: 52px; border-radius: 5px; background: #fff; border: 1.5px solid #0D7A68; color: #0D7A68; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.mh .mi-act .mi-p, .mi-act button.mi-p { min-height: 52px; border: 0; border-radius: 5px; background: #0D7A68; color: #fff; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.mi-act .mi-t { min-height: 44px; border: 0; border-radius: 5px; background: transparent; color: #3F665D; font-size: 14px; font-weight: 500; }
+.mh .mi-act .mi-s { min-height: 52px; border-radius: 5px; background: #fff; border: 1.5px solid #0D7A68; color: #0D7A68; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .mi-done { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
 .mi-check { width: 80px; height: 80px; border-radius: 40px; background: #14A38B; display: flex; align-items: center; justify-content: center; }
 .mi-done h2 { margin-top: 20px; font-size: 22px; font-weight: 900; }
@@ -240,7 +240,7 @@ html:has(.mh) { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hid
 .gb-bar { display: flex; align-items: center; gap: 6px; padding: 14px 12px 8px; }
 .gb .gb-back { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; margin-right: -11px; }   /* 화살표 ↔ 제목 간격 17 → 6px(터치 칸은 그대로 44px, 2026-11-27 시안) */
 .gb-bar h1 { font-size: 19px; font-weight: 700; }
-.gb-sum { margin: 4px 16px 0; background: #D6F0EA; border-radius: 5px; padding: 18px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center; }
+.gb-sum { margin: 14px 16px 0; background: #D6F0EA; border-radius: 5px; padding: 18px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center; }
 .gb-sum span { display: block; font-size: 12px; color: #3F665D; }
 .gb-sum b { display: block; font-size: 22px; font-weight: 900; margin-top: 2px; }
 .gb-sum small { font-size: 13px; font-weight: 500; }
@@ -252,15 +252,19 @@ html:has(.mh) { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hid
 .gb-pic { position: relative; width: 56px; height: 56px; border-radius: 5px; background: #DDF2EC; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .gb-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .gb-m { flex-grow: 1; min-width: 0; }
-.gb-n { display: flex; align-items: center; gap: 6px; }
-.gb-n b { font-size: 15px; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gb-n { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.gb-n b { font-size: 15px; font-weight: 700; min-width: 0; overflow-wrap: anywhere; }   /* 큰 글씨에서는 줄바꿈 */
 .gb-n i { font-style: normal; flex-shrink: 0; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 8px; }
-.gb-n i.req { color: #8A4B00; background: #FFF1E2; }
-.gb-n i.prep { color: #3F4BA8; background: #ECEEFC; }
-.gb-n i.got { color: #0D7A68; background: #DDF2EC; }
+.gb-n i.req { color: #3F665D; background: #E3F3EE; }   /* 신청 완료 = 연한 민트(2026-11-28: 남색 · 주황은 쓰지 않는다) */
+.gb-n i.prep { color: #095C4E; background: #CFE8E1; }   /* 준비 중 = 중간 민트 */
+.gb-n i.got { color: #fff; background: #0D7A68; }   /* 받음 = 진한 민트 + 흰 글자 */
 .gb-d { display: block; font-size: 13px; color: #3F665D; margin-top: 4px; }
 .gb-d b { color: #12302A; }
 
 /* 상단 막대의 「성경미션 › 현재 화면」(선물함 · 팀보기 · 참여자 공통) */
 .mh .tv-sep { opacity: .6; margin: 0 -2px; }
 .mh .mh-menu b { font-weight: 900; }
+
+/* 큰 글씨 설정 대응(2026-11-28): 글자는 줄바꿈, 버튼 · 줄은 최소 높이만 정해 내용에 따라 늘어난다. */
+.mh .mh-tab a { text-align: center; overflow-wrap: anywhere; }
+.mh .mh-note, .mh .tv-ok, .mh .tv-err { overflow-wrap: anywhere; }

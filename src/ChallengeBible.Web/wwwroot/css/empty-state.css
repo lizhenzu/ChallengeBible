@@ -1,0 +1,7 @@
+/* 빈 상태 · 오류 공통 틀(2026-11-28 시안 Empty) — 민트 원 + 제목 + 안내 + 버튼. 높이는 내용에 따라 늘어난다. */
+.es { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 48px 32px 56px; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #12302A; line-height: normal; }
+.es, .es * { box-sizing: border-box; }
+.es-ic { width: 84px; height: 84px; border-radius: 50%; background: #E3F3EE; border: 1.5px solid #9FD3C6; display: flex; align-items: center; justify-content: center; color: #0D7A68; flex-shrink: 0; }
+.es h2 { margin: 20px 0 0; font-size: 19px; font-weight: 900; letter-spacing: -.3px; overflow-wrap: anywhere; }
+.es p { margin: 8px 0 0; font-size: 14px; line-height: 1.7; color: #3F665D; white-space: pre-line; }
+.es-btn { margin-top: 22px; min-height: 48px; padding: 6px 28px; border-radius: 5px; background: #0D7A68; border: 1.5px solid #0D7A68; color: #fff !important; font-size: 15px; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; text-align: center; }

@@ -125,3 +125,4 @@ body:has(main.fmt) .fmt-mem u { background: #E3F3EE; }
 body:has(main.fmt) .fmt-search input { border-color: #B4DFD4; }
 body:has(main.fmt) .fmt-pick:has(input:checked) { background: #E3F3EE; border-color: #0D7A68; color: #0D7A68; }
 body:has(main.fmt) .fmt-who input:checked + span { background: #E3F3EE; box-shadow: inset 0 0 0 2px #0D7A68; color: #0D7A68; }
+.tv .tv-body > .tv-sub:first-child { margin-top: 16px; }

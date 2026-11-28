@@ -64,3 +64,13 @@
 .tv .jb-wrap { margin-left: 0; margin-right: 0; }
 .fmt .jb-wrap, main .jb-wrap { margin-left: 0; margin-right: 0; }
 .fmt .jb-wrap { margin-bottom: 14px; }
+/* 신청자 홈 결과 띠(거절 · 취소: 흰 카드 + 버튼 두 개) */
+.jb-res { padding: 14px; }
+.jb-res .jb-p { margin-top: 6px; font-size: 14px; line-height: 1.6; color: #12302A; }
+.jb-res.ok .jb-p { color: #E3F3EE; }
+.jb-res .jb-h { padding: 0; }
+.jb-res .jb-two { margin-top: 12px; }
+.jb-wrap .jb-g2 { flex: 1; min-height: 48px; border-radius: 5px; border: 1.5px solid #0D7A68; background: #0D7A68; color: #fff; font-size: 15px; font-weight: 900; display: flex; align-items: center; justify-content: center; text-align: center; }
+.jb-l2 { flex: 1; min-height: 48px; border-radius: 5px; border: 1.5px solid #0D7A68; background: #fff; color: #0D7A68; font-size: 15px; font-weight: 900; }
+.jb-res .jb-two form { display: flex; flex: 1; }
+.jb-res .jb-two form .jb-l2 { width: 100%; }

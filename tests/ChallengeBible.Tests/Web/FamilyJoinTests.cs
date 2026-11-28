@@ -141,7 +141,7 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         var inv = (await As("other").StateAsync()).Invites.Single();
         var c = await LoggedIn("other@example.com");
         var page = await c.GetStringAsync($"/jamsil-kids/family-invite/{inv.InviteId}");
-        Assert.Contains("<h1>가족팀 초대</h1>", page);
+        Assert.Contains("<b>가족팀 초대</b>", page);   // 세부 화면 머리줄(← 제목)
         Assert.Contains("<b>김민호</b>님이 초대했어요", page);
         Assert.Contains("웃음폭탄네", page);
         Assert.Contains("함께하는 팀원", page);
@@ -898,6 +898,61 @@ public partial class FamilyJoinTests : IClassFixture<WebApplicationFactory<Progr
         }
         Assert.Equal(JoinBlock.Full, (await As("cheolsu").BandAsync()).Requests.Single().Block);
         Assert.Equal(FamilyError.FriendFull, await As("cheolsu").AcceptAsync(rid));
+    }
+
+    [Fact]   // 2026-11-28: 주요 화면 = ☰ 머리줄 + 하단 탭, 세부 화면 = ← 제목 · 미션홈 바로가기, 하단 탭 없음
+    public async Task 주요_화면은_탭이_있고_세부_화면은_머리줄이_다르고_탭이_없다()
+    {
+        await DadAndKid();
+        var dad = await LoggedIn("dad@example.com");
+        foreach (var main in new[] { "/jamsil-kids/word-mission", "/jamsil-kids/gift-box", "/jamsil-kids/family-team", "/jamsil-kids/roster" })
+        {
+            var h = await dad.GetStringAsync(main);
+            Assert.Contains("class=\"mh-tab\"", h);
+            Assert.DoesNotContain("class=\"sbar\"", h);
+            Assert.Contains("class=\"mh-home\" href=\"/\"", h);   // 「홈으로」 = 첫 화면(/)
+        }
+        foreach (var sub in new[] { "/jamsil-kids/family-team/manage", "/jamsil-kids/family-team/others", "/jamsil-kids/family-team?Add=true" })
+        {
+            var h = await dad.GetStringAsync(sub);
+            Assert.DoesNotContain("class=\"mh-tab\"", h);
+            Assert.Contains("class=\"sbar\"", h);
+            Assert.Contains("class=\"sbar-book\" href=\"/jamsil-kids/word-mission\"", h);   // 「미션홈」 바로가기
+            Assert.Contains("class=\"sbar-back\" href=\"/jamsil-kids/family-team\"", h);
+        }
+        var team = await dad.GetStringAsync("/jamsil-kids/family-team");
+        Assert.True(team.IndexOf("class=\"tv-sum\"", StringComparison.Ordinal) < team.IndexOf("초대 · 구성원 관리", StringComparison.Ordinal));
+        Assert.Contains("팀원 초대하기", team);
+        Assert.Contains("구성원 관리", team);
+        Assert.DoesNotContain("팀 관리", team);
+        Assert.DoesNotContain("링크 복사", team);
+        Assert.Contains("미션홈으로", await (await LoggedIn("cheolsu@example.com")).GetStringAsync("/jamsil-kids/family-join/result?k=cancel"));
+    }
+
+    [Fact]   // 신청자 홈 결과 띠: 거절 [다른 팀 찾기][확인] · 취소 [다시 신청하기][확인]
+    public async Task 신청자_홈_결과_띠는_확인으로_숨기고_취소_띠도_남는다()
+    {
+        await DadAndKid();
+        Add(_kids, "ha6", "문하솔", Roles.Participant);
+        Assert.Equal(FamilyError.None, await As("ha6").RequestAsync(await TeamOf("dad"), FamilyRelation.Student));
+        var c = await LoggedIn("ha6@example.com");
+        var home = await c.GetStringAsync("/jamsil-kids/word-mission");
+        var cancel = await PostJoin(c, home, "Cancel");
+        Assert.Equal(HttpStatusCode.Redirect, cancel.StatusCode);
+        home = await c.GetStringAsync("/jamsil-kids/word-mission");
+        Assert.Contains("신청을 취소했어요", home);
+        Assert.Contains("다시 신청하기", home);
+        var ok = await PostJoin(c, home, "DismissResult", ("ret", "home"));
+        Assert.Equal(HttpStatusCode.Redirect, ok.StatusCode);
+        Assert.DoesNotContain("신청을 취소했어요", await c.GetStringAsync("/jamsil-kids/word-mission"));
+
+        Assert.Equal(FamilyError.None, await As("ha6").RequestAsync(await TeamOf("dad"), FamilyRelation.Student));
+        Assert.Equal(FamilyError.None, await As("dad").RejectAsync((await As("dad").BandAsync()).Requests.Single().RequestId));
+        home = await c.GetStringAsync("/jamsil-kids/word-mission");
+        Assert.Contains("이번에는 합류하지 못했어요", home);
+        Assert.Contains("다른 팀 찾기", home);
+        await PostJoin(c, home, "DismissResult", ("ret", "home"));
+        Assert.DoesNotContain("이번에는 합류하지 못했어요", await c.GetStringAsync("/jamsil-kids/word-mission"));
     }
 
     private FamilyJoinService AsTeacher()

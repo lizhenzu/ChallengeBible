@@ -55,6 +55,7 @@ public class FamilyJoinModel(FamilyJoinService join, TenantContext tenant) : Pag
     public async Task<IActionResult> OnPostRejectAsync(int request, string? ret, CancellationToken ct) => Done(await join.RejectAsync(request, ct), ret);
     /// <summary>이미 다른 팀에 든 사람의 신청을 치운다(「확인」). 거절 알림은 보내지 않는다.</summary>
     public async Task<IActionResult> OnPostDismissAsync(int request, string? ret, CancellationToken ct) => Done(await join.RejectAsync(request, false, ct), ret);
+    public async Task<IActionResult> OnPostDismissResultAsync(string? ret, CancellationToken ct) => Done(await join.DismissResultAsync(ct), ret);
     public async Task<IActionResult> OnPostLaterAsync(string? ret, CancellationToken ct) => Done(await join.SnoozeInvitesAsync(ct), ret);
 
     public async Task<IActionResult> OnPostCancelAsync(CancellationToken ct)

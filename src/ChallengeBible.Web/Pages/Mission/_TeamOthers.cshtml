@@ -10,10 +10,8 @@
 <link rel="stylesheet" href="~/css/mission-home.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/team-mint.css" asp-append-version="true" />
 <div class="mh tv">
-@await Html.PartialAsync("_MissionBar", (slug, true, "팀보기"))
+@await Html.PartialAsync("_MissionSubBar", (slug, $"/{slug}/family-team", "다른 팀 랭킹"))
 <div class="tv-body">
-    <a class="tv-back" href="/@slug/family-team"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>우리 팀 보기</a>
-    <h1 class="tv-h1">다른 팀 랭킹</h1>
     <p class="tv-sub">팀 이름, 마지막 수행일, 점수만 볼 수 있어요.</p>
 
     <div class="tv-sort">
@@ -30,6 +28,12 @@
         <div class="tv-mine"><span class="rk">@(my.Rank)위</span><span class="nm">@my.Name <i>우리 팀</i></span><span class="pt num">@my.Points.ToString("N0")점</span></div>
     }
 
+    @if (Model.Others.Count == 0)
+    {
+        @await Html.PartialAsync("_EmptyState", ("M9 8a3 3 0 1 0 0-.01M16 9a2.5 2.5 0 1 0 0-.01M3 20c.8-3.5 3.4-5.5 6-5.5s5.2 2 6 5.5", "다른 팀이 아직 없어요", "팀이 만들어지면 여기서\n팀 랭킹을 볼 수 있어요.", "우리 팀 보기", $"/{slug}/family-team"))
+    }
+    else
+    {
     <section class="tv-table">
         <div class="tv-trow head"><span>순위</span><span>팀 이름</span><span>마지막 수행</span><span class="r">점수</span></div>
         @foreach (var t in Model.Others)
@@ -41,9 +45,9 @@
                 <span class="r pt num">@t.Points.ToString("N0")점</span>
             </div>
         }
-        @if (Model.Others.Count == 0) { <p class="tv-empty">아직 다른 팀이 없어요</p> }
+        
     </section>
+    }
 </div>
-@await Html.PartialAsync("_MissionTab", (slug, "team"))
 </div>
-<partial name="_MissionDrawer" model="(Model.Tenant, (string?)null)" />
+

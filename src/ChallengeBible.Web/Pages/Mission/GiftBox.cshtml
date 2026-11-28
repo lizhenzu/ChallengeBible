@@ -41,11 +41,11 @@ else
                 </span>
             </div>
         }
-        @if (rows.Count == 0)
-        {
-            <p class="mh-note flat">@(Model.Got ? "아직 받은 선물이 없어요." : "신청한 선물이 없어요. 점수를 모으면 선물을 고를 수 있어요.")</p>
-        }
     </section>
+    @if (rows.Count == 0)
+    {
+        @await Html.PartialAsync("_EmptyState", ("M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z", Model.Got ? "아직 받은 선물이 없어요" : "아직 신청한 선물이 없어요", "점수를 모으면 선물을 고를 수 있어요.\n오늘의 미션부터 시작해 볼까요?", "미션 하러 가기", $"/{slug}/word-mission"))
+    }
 }
 
 @await Html.PartialAsync("_MissionTab", (slug, "gift"))

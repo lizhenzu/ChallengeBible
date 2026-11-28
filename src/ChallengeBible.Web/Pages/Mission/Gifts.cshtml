@@ -9,8 +9,8 @@
     string P(int v) => v.ToString("N0") + "점";
 }
 <link rel="stylesheet" href="~/css/gift-mint.css" asp-append-version="true" />
+@await Html.PartialAsync("_MissionSubBar", (slug, $"/{slug}/word-mission", "선물 고르기"))
 <div class="gk-pg mint">
-    <div class="gk-bar"><a href="/@slug/word-mission">← 미션 홈</a>@if (w is not null) { <span class="num">@w.Today.ToString("yyyy.MM.dd ddd", CultureInfo.InvariantCulture).ToUpperInvariant()</span> }</div>
     @if (Model.MsgText is { } msg) { <p class="gk-msg" role="status">@msg</p> }
 
     @if (w is null)

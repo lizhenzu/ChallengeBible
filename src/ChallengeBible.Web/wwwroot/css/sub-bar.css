@@ -1,0 +1,8 @@
+/* 세부 화면 머리줄(2026-11-28 사용자 시안): ← 제목(한 덩어리 44px+) · 오른쪽 「미션홈」 바로가기. 고정 높이 없이 최소 높이만 — 큰 글씨에서도 줄바꿈으로 늘어난다. */
+.sbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 8px 4px 2px; background: #fff; border-bottom: 1px solid #E3EAE8; font-family: 'Noto Sans KR', system-ui, sans-serif; line-height: normal; }
+.sbar, .sbar * { box-sizing: border-box; }
+.sbar a { text-decoration: none; color: #12302A; }
+.sbar-back { flex: 1 1 auto; min-width: 0; min-height: 44px; display: flex; align-items: center; gap: 4px; padding: 0 10px 0 10px; font-size: 16px; }
+.sbar-back b { font-weight: 900; overflow-wrap: anywhere; }
+.sbar-book { flex: 0 0 auto; min-height: 44px; display: inline-flex; align-items: center; gap: 5px; padding: 0 10px; font-size: 14px; font-weight: 700; color: #0D7A68 !important; }
+body:has(.sbar) { background: #F3F8F7; }

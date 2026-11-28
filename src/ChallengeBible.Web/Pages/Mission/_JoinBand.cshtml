@@ -78,10 +78,25 @@
 }
 @if (b.Result is { } res)
 {
-    var ok = res.Kind == "ACCEPTED";
-    <a class="jb jb-res@(ok ? " ok" : "")" href="/@slug/family-join/result">
-        <div class="jb-h"><b>@(ok ? "합류했어요! 환영해요" : "이번에는 합류하지 못했어요")</b><span>@(ok ? res.TeamName + " ›" : "확인 ›")</span></div>
-    </a>
+    if (res.Kind == "ACCEPTED")
+    {
+        <a class="jb jb-res ok" href="/@slug/family-join/result">
+            <div class="jb-h"><b>합류했어요! 환영해요</b><span>축하 보기 ›</span></div>
+            <p class="jb-p">@(res.TeamName)의 새 팀원이 되었어요. 이제 함께 읽고 선물도 함께 받아요.</p>
+        </a>
+    }
+    else
+    {
+        var rej = res.Kind == "REJECTED";
+        <section class="jb jb-res" aria-label="@(rej ? "합류 결과" : "신청 취소")">
+            <div class="jb-h"><b>@(rej ? "이번에는 합류하지 못했어요" : "신청을 취소했어요")</b></div>
+            <p class="jb-p">@(rej ? $"{res.TeamName}이 신청을 받지 않았어요. 다른 팀을 찾거나 새 팀을 만들 수 있어요." : "언제든 다시 신청할 수 있어요.")</p>
+            <div class="jb-two">
+                <a class="jb-g2" href="/@slug/family-team">@(rej ? "다른 팀 찾기" : "다시 신청하기")</a>
+                <form method="post" asp-page="/Mission/FamilyJoin" asp-page-handler="DismissResult" asp-route-slug="@slug" asp-route-view="result"><input type="hidden" name="ret" value="@Model.Ret" /><button type="submit" class="jb-l2">확인</button></form>
+            </div>
+        </section>
+    }
 }
 </div>
 <script src="~/js/join-band.js" asp-append-version="true" defer></script>

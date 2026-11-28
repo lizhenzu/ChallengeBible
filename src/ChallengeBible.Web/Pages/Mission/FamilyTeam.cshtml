@@ -21,7 +21,13 @@ else
 <link rel="stylesheet" href="~/css/team-mint.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/mission-home.css" asp-append-version="true" />
 <div class="mh tvo">
-@await Html.PartialAsync("_MissionBar", (Model.Slug, true, Model.View == "manage" ? "구성원 관리" : "팀보기"))   @* 선물함 · 참여자와 같은 머리줄(2026-11-28) *@
+@{
+    // 주요 화면(팀이 없을 때의 팀 찾기)은 ☰ 머리줄 + 하단 탭, 세부 화면(구성원 관리 · 초대 · 새 팀 · 합류 신청)은 ← 머리줄 · 탭 없음(2026-11-28 사용자)
+    var detail = Model.View == "manage" || Model.Add || Model.New || Model.Join is not null;
+    var subTitle = Model.View == "manage" ? "구성원 관리" : Model.Add ? (s.Mine?.Friend == true ? "친구 초대하기" : "팀원 초대하기") : Model.New ? (Model.Friend ? "새 친구팀 만들기" : "새 팀 만들기") : "합류 신청";
+}
+@if (detail) { @await Html.PartialAsync("_MissionSubBar", (Model.Slug, self, subTitle)) }
+else { @await Html.PartialAsync("_MissionBar", (Model.Slug, true, "팀보기")) }
 <main class="gut fmt"><div class="wrap">
     @if (Model.Notice is not null) { <div class="fmt-joined" role="status"><span aria-hidden="true">🎉</span><div>@(Model.Notice)에 들어갔어요</div></div> }
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
@@ -285,9 +291,9 @@ else
         }
     }
 </div></main>
-@await Html.PartialAsync("_MissionTab", (Model.Slug, "team"))
+@if (!detail) { @await Html.PartialAsync("_MissionTab", (Model.Slug, "team")) }
 </div>
-<partial name="_MissionDrawer" model="(Model.Tenant, (string?)null)" />
+@if (!detail) { <partial name="_MissionDrawer" model="(Model.Tenant, (string?)null)" /> }
 <script>
     // 고른 역할을 큰 버튼 글자에 넣는다("학생으로 합류 신청"). 스크립트가 없어도 버튼은 동작한다
     document.querySelectorAll('[data-fmt-form]').forEach((form) => {

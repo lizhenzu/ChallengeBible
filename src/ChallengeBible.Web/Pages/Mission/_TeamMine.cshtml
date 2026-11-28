@@ -20,7 +20,6 @@
 @await Html.PartialAsync("_MissionBar", (slug, true, "팀보기"))
 
 <div class="tv-body">
-@await Html.PartialAsync("_JoinBand", (Model.Band, slug, "team"))
 @if (Model.Notice is not null) { <p class="tv-ok" role="status">@(Model.Notice)에 들어갔어요</p> }
 @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="tv-ok" role="status">@Model.OkMessage</p> }
 @if (Model.Error is not null) { <p class="tv-err" role="alert">@Model.Error</p> }
@@ -31,12 +30,8 @@
     <div class="tv-pts"><span class="num">@b.Total.ToString("N0")</span><small>점@(b.NextStage is { } nx ? $" · 목표 {nx:N0}" : " · 모든 단계를 넘었어요")</small></div>
 </section>
 
-<section class="tv-card" aria-label="초대 · 구성원 관리">
-    <div class="tv-links">
-        @if (!s.Locked && !s.Full) { <a class="tv-link" href="/@slug/family-team?Add=true"><span>팀원 초대하기 <small>이름으로 찾아 초대</small></span><i aria-hidden="true">›</i></a> }
-        <a class="tv-link" href="/@slug/family-team/manage"><span>구성원 관리 <small>내보내기 · 방장 넘기기</small></span><i aria-hidden="true">›</i></a>
-    </div>
-</section>
+@await Html.PartialAsync("_JoinBand", (Model.Band, slug, "team"))
+
 
 @if (open.Count > 0)
 {
@@ -51,6 +46,13 @@
         </div>
     </section>
 }
+
+<section class="tv-card" aria-label="초대 · 구성원 관리">
+    <div class="tv-links">
+        @if (!s.Locked && !s.Full) { <a class="tv-link" href="/@slug/family-team?Add=true"><span>팀원 초대하기 <small>이름으로 찾아 초대</small></span><i aria-hidden="true">›</i></a> }
+        <a class="tv-link" href="/@slug/family-team/manage"><span>구성원 관리 <small>내보내기 · 방장 넘기기</small></span><i aria-hidden="true">›</i></a>
+    </div>
+</section>
 
 <section class="tv-card">
     <div class="tv-h"><h2>멤버별 기록</h2><span>최근 7일 · 연속 수행일</span></div>

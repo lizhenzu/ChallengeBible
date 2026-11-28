@@ -44,7 +44,7 @@
     var weekSum = Model.Week.Sum(w => w.Points);
 
     var member = Model.Tenant.IsApproved && !Model.Tenant.IsLobby;
-    var homeHref = member ? $"/{slug}" : "/";
+    var homeHref = "/";   // 「홈으로」 = 첫 화면(/)  2026-11-28
     var fam = Model.Family;
     var team = Model.Team;
     var noTeam = fam is not null && team is null && fam.PendingTeam is null && Model.FamilyCanJoin;

@@ -9,8 +9,8 @@
     var picking = Model.Items.Count > 0 || g.State == "Open" || (Model.Change && g.State == "Picked");
 }
 <link rel="stylesheet" href="~/css/gift-mint.css" asp-append-version="true" />
+@await Html.PartialAsync("_MissionSubBar", (slug, $"/{slug}/family-team", g.Friend ? "친구팀 선물 고르기" : "팀 선물 고르기"))
 <div class="gk-pg mint">
-    <div class="gk-bar"><a href="/@slug/word-mission">← 미션 홈</a><span class="num">@Model.Today.ToString("yyyy.MM.dd ddd", CultureInfo.InvariantCulture).ToUpperInvariant()</span></div>
     @{
         var allG = Model.Others.Append(g).OrderBy(x => x.Stage).ToList();
         var pickedN = allG.Count(x => x.State is "Picked" or "Purchased");
