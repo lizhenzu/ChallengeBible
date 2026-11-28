@@ -1,0 +1,14 @@
+@model (string Slug, bool Member, string? Current)
+@* 성경미션 상단 막대 — 미션홈 · 선물함 · 팀보기 · 참여자가 모두 같은 모양(2026-11-28 사용자): ☰ 성경미션 [› 현재 화면] … 홈으로. *@
+<header class="mh-bar">
+    @if (Model.Member)
+    {
+        <button type="button" class="mh-menu" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            <span>성경미션</span>@if (Model.Current is not null) { <span class="tv-sep" aria-hidden="true">›</span><b>@Model.Current</b> }
+        </button>
+    }
+    else { <span class="mh-menu"><span>성경미션</span>@if (Model.Current is not null) { <span class="tv-sep" aria-hidden="true">›</span><b>@Model.Current</b> }</span> }
+    <a class="mh-home" href="@(Model.Member ? $"/{Model.Slug}" : "/")">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>홈으로</a>
+</header>

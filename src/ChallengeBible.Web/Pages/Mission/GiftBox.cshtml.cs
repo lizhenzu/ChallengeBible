@@ -10,6 +10,7 @@ public class GiftBoxModel(GiftBoxService box, TenantContext tenant, TimeProvider
 {
     public string Title => "선물함";
     public string Slug => tenant.Current.Slug;
+    public TenantContext Tenant => tenant;
     public GiftBox? Box { get; private set; }
     /// <summary>탭: req(신청한 선물, 기본) · got(내가 받은 선물).</summary>
     [BindProperty(SupportsGet = true)] public string? Tab { get; set; }

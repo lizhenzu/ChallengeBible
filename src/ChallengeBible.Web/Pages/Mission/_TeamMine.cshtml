@@ -17,14 +17,7 @@
 <link rel="stylesheet" href="~/css/mission-home.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/team-mint.css" asp-append-version="true" />
 <div class="mh tv">
-<header class="mh-bar">
-    <button type="button" class="mh-menu" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        <span>성경미션</span><span class="tv-sep" aria-hidden="true">›</span><b>팀보기</b>
-    </button>
-    <a class="mh-home" href="/@slug">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>홈으로</a>
-</header>
+@await Html.PartialAsync("_MissionBar", (slug, true, "팀보기"))
 
 <div class="tv-body">
 @await Html.PartialAsync("_JoinBand", (Model.Band, slug, "team"))
@@ -154,12 +147,7 @@
 </section>
 </div>
 
-<nav class="mh-tab" aria-label="주 메뉴">
-    <a href="/@slug/word-mission"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>미션홈</a>
-    <a href="/@slug/gift-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 12h18M12 8v13M12 8c-1.5-3-5-4-5-1.5S10 8 12 8zM12 8c1.5-3 5-4 5-1.5S14 8 12 8z"/></svg>선물함</a>
-    <a href="/@slug/family-team" aria-current="page"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M15.5 14.6c2.8-.3 5 1.4 6 4.4"/></svg>팀보기</a>
-    <a href="/@slug/roster"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M3 19c.6-3 2.6-5 5-5s4.4 2 5 5M15 7h6M15 11h6M17 15h4"/></svg>참여자</a>
-</nav>
+@await Html.PartialAsync("_MissionTab", (slug, "team"))
 </div>
 <partial name="_MissionDrawer" model="(Model.Tenant, (string?)null)" />
 <script>

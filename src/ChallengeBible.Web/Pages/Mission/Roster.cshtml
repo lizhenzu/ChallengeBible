@@ -13,18 +13,7 @@
 <link rel="stylesheet" href="~/css/mission-home.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/participants.css" asp-append-version="true" />
 <div class="mh pt">
-<header class="mh-bar">
-    @if (member)
-    {
-        <button type="button" class="mh-menu" aria-label="메뉴 열기" aria-controls="pnav" aria-expanded="false" data-pnav-open>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-            <span>성경미션</span>
-        </button>
-    }
-    else { <span class="mh-menu"><span>성경미션</span></span> }
-    <a class="mh-home" href="@(member ? $"/{slug}" : "/")">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>홈으로</a>
-</header>
+@await Html.PartialAsync("_MissionBar", (slug, member, "참여자"))
 
 <div class="pt-in">
     <div class="pt-title">
@@ -89,5 +78,6 @@
         </section>
     }
 </div>
+@if (member) { @await Html.PartialAsync("_MissionTab", (slug, "roster")) }
 </div>
 @if (member) { <partial name="_MissionDrawer" model="(Model.Tenant, (string?)null)" /> }

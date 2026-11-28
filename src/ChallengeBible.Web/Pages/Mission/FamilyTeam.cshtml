@@ -19,8 +19,9 @@ else if (Model.ShowOthers) { <partial name="_TeamOthers" model="Model" /> }
 else
 {
 <link rel="stylesheet" href="~/css/team-mint.css" asp-append-version="true" />
-    ViewData["PbTitle"] = Model.View == "manage" ? "구성원 관리" : "가족팀"; ViewData["PbParent"] = new[] { "성경미션", home }; ViewData["PbButton"] = new[] { "미션홈", home };
-<partial name="_Top" view-data="ViewData" />   @* 머리줄 표준(기준표 6판): ☰ + 상위 › 현재 + 오른쪽 이동 버튼 *@
+<link rel="stylesheet" href="~/css/mission-home.css" asp-append-version="true" />
+<div class="mh tvo">
+@await Html.PartialAsync("_MissionBar", (Model.Slug, true, Model.View == "manage" ? "구성원 관리" : "팀보기"))   @* 선물함 · 참여자와 같은 머리줄(2026-11-28) *@
 <main class="gut fmt"><div class="wrap">
     @if (Model.Notice is not null) { <div class="fmt-joined" role="status"><span aria-hidden="true">🎉</span><div>@(Model.Notice)에 들어갔어요</div></div> }
     @if (!string.IsNullOrEmpty(Model.OkMessage)) { <p class="okmsg" role="status">@Model.OkMessage</p> }
@@ -284,6 +285,9 @@ else
         }
     }
 </div></main>
+@await Html.PartialAsync("_MissionTab", (Model.Slug, "team"))
+</div>
+<partial name="_MissionDrawer" model="(Model.Tenant, (string?)null)" />
 <script>
     // 고른 역할을 큰 버튼 글자에 넣는다("학생으로 합류 신청"). 스크립트가 없어도 버튼은 동작한다
     document.querySelectorAll('[data-fmt-form]').forEach((form) => {

@@ -260,3 +260,7 @@ html:has(.mh) { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hid
 .gb-n i.got { color: #0D7A68; background: #DDF2EC; }
 .gb-d { display: block; font-size: 13px; color: #3F665D; margin-top: 4px; }
 .gb-d b { color: #12302A; }
+
+/* 상단 막대의 「성경미션 › 현재 화면」(선물함 · 팀보기 · 참여자 공통) */
+.mh .tv-sep { opacity: .6; margin: 0 -2px; }
+.mh .mh-menu b { font-weight: 900; }

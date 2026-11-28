@@ -1,0 +1,18 @@
+@model (string Slug, string Active)
+@inject ChallengeBible.Web.Services.FamilyTeamService FamilyTeams
+@* 성경미션 하단 탭 — 미션홈 · 선물함 · 팀보기 · 참여자가 모두 같은 모양(2026-11-28 사용자). Active = home · gift · team · roster.
+   가족팀을 끈 부서에는 팀보기 탭이 없다(교사 · 임원처럼 팀에 들지 않는 사람에게도 탭은 보인다). *@
+@{
+    var slug = Model.Slug;
+    var teamOn = await FamilyTeams.EnabledAsync();
+    string Cur(string k) => Model.Active == k ? " aria-current=\"page\"" : "";
+}
+<nav class="mh-tab" aria-label="주 메뉴">
+    <a href="/@slug/word-mission" aria-current="@(Model.Active == "home" ? "page" : null)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>미션홈</a>
+    <a href="/@slug/gift-box" aria-current="@(Model.Active == "gift" ? "page" : null)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 12h18M12 8v13M12 8c-1.5-3-5-4-5-1.5S10 8 12 8zM12 8c1.5-3 5-4 5-1.5S14 8 12 8z"/></svg>선물함</a>
+    @if (teamOn)
+    {
+        <a href="/@slug/family-team" aria-current="@(Model.Active == "team" ? "page" : null)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M15.5 14.6c2.8-.3 5 1.4 6 4.4"/></svg>팀보기</a>
+    }
+    <a href="/@slug/roster" aria-current="@(Model.Active == "roster" ? "page" : null)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M3 19c.6-3 2.6-5 5-5s4.4 2 5 5M15 7h6M15 11h6M17 15h4"/></svg>참여자</a>
+</nav>
