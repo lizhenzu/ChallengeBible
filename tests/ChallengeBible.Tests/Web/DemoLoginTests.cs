@@ -36,6 +36,20 @@ public class DemoLoginTests : IClassFixture<WebApplicationFactory<Program>>
         return f.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
     }
 
+    [Fact]   // 로그인 화면의 촬영용 임시 버튼: 열려 있을 때만 보이고, 키는 설정에서 읽는다(코드에 없음)
+    public async Task 로그인_화면의_임시_버튼은_데모_로그인이_열려_있을_때만_보인다()
+    {
+        var open = await Client().GetStringAsync("/account/login");
+        Assert.Contains("데모 학생", open);
+        Assert.Contains("데모 관리자", open);
+        Assert.Contains("href=\"/demo/user?key=k-1234567890\"", open);
+        Assert.Contains("href=\"/demo/admin?key=k-1234567890\"", open);
+        foreach (var closed in new[] { Client(enabled: false), Client(expires: "2026-01-01T00:00:00+09:00"), Client(key: "") })
+            Assert.DoesNotContain("데모 학생", await closed.GetStringAsync("/account/login"));
+        // 특수문자 키는 주소에 안전하게 붙는다
+        Assert.Contains("href=\"/demo/user?key=a%40b%2Bc\"", await Client(key: "a@b+c").GetStringAsync("/account/login"));
+    }
+
     [Theory]
     [InlineData("admin")]
     [InlineData("user")]

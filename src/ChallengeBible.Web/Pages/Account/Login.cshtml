@@ -33,6 +33,17 @@
     </div>
     @* 2026-11-20 사용자: 플랫폼 관리자 로그인(비밀번호만, AdminLogin) 바로 가기 *@
     <a class="btn s login-admin" href="/account/admin-login">🔒 플랫폼 관리자 로그인</a>
+    @* 2026-11-28 사용자: 영상 촬영용 임시 데모 로그인 버튼 2개(ADR 0143) — 데모 로그인이 켜져 있고 기한 안일 때만 보인다. 끝나면 이 블록을 지운다 *@
+    @if (Model.DemoUserLink is { } demoUser && Model.DemoAdminLink is { } demoAdmin)
+    {
+        <div class="login-demo" style="margin-top:14px;display:grid;gap:8px">
+            <p class="sub" style="margin:0;text-align:center;font-size:13px">영상 촬영용 임시 · 누르면 데모 계정으로 바로 로그인돼요</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <a class="btn s" href="@demoUser" rel="nofollow">데모 학생</a>
+                <a class="btn s" href="@demoAdmin" rel="nofollow">데모 관리자</a>
+            </div>
+        </div>
+    }
     @* 2026-11-24 사용자: 부서 관리자 · 부서 대표 학생 로그인은 첫 화면 맨 아래에서 여기 [플랫폼 관리자 로그인] 아래로 옮김(R-364 · R-367) *@
     <partial name="_DeptLogins" />
 </div></main>

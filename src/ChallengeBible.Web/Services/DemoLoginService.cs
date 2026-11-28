@@ -28,6 +28,9 @@ public sealed class DemoLoginService(IConfiguration config, TimeProvider time, D
     /// <summary>켜져 있고, 키가 정해져 있고, 기한 안인가.</summary>
     public bool IsOpen => Enabled && !string.IsNullOrWhiteSpace(config["DemoLogin:Key"]) && ExpiresAt is { } at && time.GetUtcNow() < at;
 
+    /// <summary>로그인 화면의 촬영용 임시 버튼 주소(who = admin · user). 열려 있지 않으면 null. 키는 설정에서 읽어 주소에만 붙이고 코드 · Git 에는 두지 않는다.</summary>
+    public string? LinkFor(string who) => IsOpen ? $"/demo/{who}?key={Uri.EscapeDataString(config["DemoLogin:Key"]!)}" : null;
+
     /// <summary>키 비교(시간차 공격을 막는 고정 시간 비교).</summary>
     public bool KeyMatches(string? key)
     {

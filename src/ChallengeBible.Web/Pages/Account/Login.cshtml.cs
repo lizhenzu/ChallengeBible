@@ -5,13 +5,17 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace ChallengeBible.Web.Pages.Account;
 
-public class LoginModel(AccountService accounts) : PageModel, ITitled
+public class LoginModel(AccountService accounts, DemoLoginService demo) : PageModel, ITitled
 {
     public string Title => "로그인";
 
     [BindProperty] public string Email { get; set; } = "";
     [BindProperty] public string Password { get; set; } = "";
     [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
+
+    /// <summary>영상 촬영용 임시 버튼(ADR 0143): 데모 로그인이 켜져 있고 기한 안일 때만 주소가 있다.</summary>
+    public string? DemoUserLink => demo.LinkFor("user");
+    public string? DemoAdminLink => demo.LinkFor("admin");
 
     public string? Error { get; private set; }
     public string? ErrorField { get; private set; }
