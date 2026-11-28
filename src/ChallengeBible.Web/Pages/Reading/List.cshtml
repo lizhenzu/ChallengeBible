@@ -10,11 +10,12 @@
     var d = Model.Data;
     var inv = System.Globalization.CultureInfo.InvariantCulture;
     ViewData["PbClass"] = "rhtop";
+    ViewData["FontsLite"] = true;   // Noto Sans KR 400 / 500 / 700 만 불러온다(디자인 기준표)
     var ot = Model.T == "ot";
     var read = ot ? d.OtRead : d.NtRead;
     var total = ot ? ReadingSummary.OtTotal : ReadingSummary.NtTotal;
     var pct = ReadingSummary.Percent(read, total);
-    var ringColor = ot ? "#3E7385" : "#B5732F";
+    var ringToken = ot ? "--rh-ot" : "--rh-nt";
     var label = ot ? "구약" : "신약";
     var r = d.Resume;
     var books = d.Books.Where(x => ReadingPageBase.TestamentOf(x.BookId) == Model.T).ToList();
@@ -29,16 +30,10 @@
 @await Html.PartialAsync("_ReadingNav", new ReadingNav(Model, Model.T, ot ? "구약 읽기" : "신약 읽기"))
 <div class="b2main"><main class="rh rl" data-reading-list>
     <section class="rh-top">
-        <nav class="rh-tabs" aria-label="구약 · 신약">
-            <a href="@Model.ListUrl("ot")" aria-current="@(ot ? "true" : "false")">구약 39권</a>
-            <a href="@Model.ListUrl("nt")" aria-current="@(!ot ? "true" : "false")">신약 27권</a>
-        </nav>
+        @await Html.PartialAsync("_RhTabs", (ot, Model.ListUrl("ot"), Model.ListUrl("nt")))
 
         <div class="rh-card rl-sum">
-            <div class="rh-ringbox">
-                <svg width="88" height="88" viewBox="0 0 88 88" role="img" aria-label="@label @(pct.ToString("0.0", inv))퍼센트"><g transform="rotate(-90 44 44)" fill="none" stroke-width="9" stroke-linecap="round"><circle cx="44" cy="44" r="35" stroke="#E3E8DC"></circle>@if (read > 0) { <circle cx="44" cy="44" r="35" stroke="@ringColor" stroke-dasharray="@((219.9 * pct / 100).ToString("0.0", inv)) 219.9"></circle> }</g></svg>
-                <div class="rh-pct">@(pct.ToString("0.0", inv))%</div>
-            </div>
+            @await Html.PartialAsync("_RhRing", (label, ringToken, read, pct))
             <div>
                 <div class="rl-k">@label 전체</div>
                 <div class="rl-n"><span>@read</span><span>장 읽음</span></div>
@@ -51,7 +46,7 @@
             {
                 var b = books[i];
                 var open = Model.B == b.BookId;
-                <a id="b@(b.BookId)" class="@(open ? "sel" : "")" href="@(open ? Model.ListUrl(Model.T) : Model.ListUrl(Model.T, b.BookId, Model.MarkMode))" aria-expanded="@(open ? "true" : "false")" title="@b.Name @b.Read/@b.Total"><div class="n">@b.Name</div><div class="c">@b.Read/@b.Total</div></a>
+                <a id="b@(b.BookId)" class="@(open ? "sel" : b.Done ? "dn" : b.Read > 0 ? "ing" : "")" href="@(open ? Model.ListUrl(Model.T) : Model.ListUrl(Model.T, b.BookId, Model.MarkMode))" aria-expanded="@(open ? "true" : "false")" title="@b.Name @b.Read/@b.Total"><div class="n">@b.Name</div><div class="c">@b.Read/@b.Total@(b.Done ? " ✓" : "")</div></a>
                 if (i == panelAfter)
                 {
                     var sb = books[selIdx];
@@ -62,7 +57,7 @@
                     <div class="rl-panel" data-book="@sb.BookId">
                         <div class="rl-ph"><span class="rl-pn">@sb.Name</span><span data-panel-count>@done.Count / @(sb.Total)장 · @(bp)%</span></div>
                         <div class="rl-bar"><div data-panel-bar style="width:@(bp)%"></div></div>
-                        <a class="rl-go" href="@Model.ReadUrl(sb.BookId, go)">@(done.Count == 0 ? "읽기 시작" : "이어 읽기") @(go)@(sb.BookId == 19 ? "편" : "장") <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16M13 5l7 7-7 7"></path></svg></a>
+                        <a class="rl-go" href="@Model.ReadUrl(sb.BookId, go)">@(done.Count == 0 ? "읽기 시작" : "이어 읽기") @(go)@(sb.BookId == 19 ? "편" : "장") <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16M13 5l7 7-7 7"></path></svg></a>
                         <div class="rl-hint">@(Model.MarkMode ? "장을 누르면 다 읽음으로 표시하거나 취소해요. 종이 성경으로 읽었을 때 써요." : "다른 장을 읽으려면 숫자를 누르세요.")</div>
                         <div class="rl-chs">
                             @for (short c = 1; c <= sb.Total; c++)
@@ -78,8 +73,8 @@
                                 }
                             }
                         </div>
-                        <div class="rl-lg"><span><i style="background:#4B7A56"></i>읽음</span><span><i style="background:#F6D58E"></i>보던 곳</span><span><i style="background:#E4EADB"></i>아직</span></div>
-                        <a class="rl-mark" href="@Model.ListUrl(Model.T, sb.BookId, !Model.MarkMode)" aria-pressed="@(Model.MarkMode ? "true" : "false")"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A554C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>@(Model.MarkMode ? "표시 끝내기" : "이미 읽은 장 표시하기")</a>
+                        <div class="rh-lgn"><span><i class="on"></i>읽음</span><span><i class="cur"></i>보던 곳</span><span><i class="todo"></i>아직</span></div>
+                        <a class="rl-mark" href="@Model.ListUrl(Model.T, sb.BookId, !Model.MarkMode)" aria-pressed="@(Model.MarkMode ? "true" : "false")"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>@(Model.MarkMode ? "표시 끝내기" : "이미 읽은 장 표시하기")</a>
                     </div>
                 }
             }

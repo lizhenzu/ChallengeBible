@@ -1,0 +1,6 @@
+@model (bool Ot, string OtHref, string NtHref)
+@* 구약 39권 · 신약 27권 탭(2분할). 선택 칸 = 진한 초록 바탕 · 흰 글자. 메인 책별 진도 · 구약/신약 읽기가 같이 쓴다 *@
+<nav class="rh-tabs" aria-label="구약 · 신약">
+    <a href="@Model.OtHref" aria-current="@(Model.Ot ? "true" : "false")">구약 39권</a>
+    <a href="@Model.NtHref" aria-current="@(!Model.Ot ? "true" : "false")">신약 27권</a>
+</nav>
