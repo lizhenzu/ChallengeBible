@@ -566,6 +566,11 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("data-readcard", rd);
         Assert.Contains("class=\"sbar\"", rd);                      // 세부 화면 머리줄 · 말씀 미션 · 성경 읽기
         Assert.Contains("말씀 미션 · 성경 읽기", rd);
+        Assert.Contains("말씀 미션과 같은 기록이에요", rd);                // 하단 안내 B: 안내 박스 + 이동 목록 3줄
+        Assert.Contains("<span>말씀 미션으로 돌아가기</span>", rd);
+        Assert.Contains("<span>미션홈으로 가기</span>", rd);
+        Assert.Contains("<a href=\"/\"><span>홈으로 가기</span>", rd);
+        Assert.DoesNotContain("brd-foot", rd);
 
         // 「부모님께 읽어드렸어요」는 직접 눌러 +1점(읽음은 그대로)
         var parent = J(await Api(c, t, "/api/jamsil-kids/missions/word", new { date = "2027-01-05", items = new[] { "Word.Parent" } }));

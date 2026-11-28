@@ -17,3 +17,15 @@ body:has(.brd.rm) { background: #F3F8F7; }
 .brd.rm .vb.rd.on { background: #0D7A68; color: #fff; }
 .brd.rm .brd-ex { border-radius: 5px; background: #fff; border: 1.5px solid #CFE8E1; }
 .brd.rm .brd-pager a { min-height: 44px; display: inline-flex; align-items: center; }
+
+/* 하단 안내(2026-11-28 시안 B): 안내 박스 + 이동 목록 3줄. 높이는 최소값만 — 큰 글씨에서는 줄바꿈으로 늘어난다 */
+.brd.rm .rf { margin: 18px 0 8px; }
+.brd.rm .rf-box { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; background: #E3F3EE; border: 1px solid #CFE8E1; border-radius: 5px; }
+.brd.rm .rf-box svg { flex-shrink: 0; margin-top: 1px; }
+.brd.rm .rf-box b { display: block; font-size: 15px; font-weight: 900; color: #095C4E; overflow-wrap: anywhere; }
+.brd.rm .rf-box p { margin: 4px 0 0; font-size: 13px; line-height: 1.6; color: #3F665D; overflow-wrap: anywhere; }
+.brd.rm .rf-list { margin-top: 10px; background: #fff; border-radius: 5px; }
+.brd.rm .rf-list a { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 52px; padding: 8px 16px; font-size: 15px; font-weight: 700; color: #12302A; text-decoration: none; }
+.brd.rm .rf-list a + a { border-top: 1px solid #E3EAE8; }
+.brd.rm .rf-list a span { overflow-wrap: anywhere; }
+.brd.rm .rf-list i { font-style: normal; font-size: 20px; color: #0D7A68; flex-shrink: 0; }

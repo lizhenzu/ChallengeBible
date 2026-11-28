@@ -103,7 +103,18 @@
 
         @await Html.PartialAsync("_ReadCard", ((MissionPageBase)Model, Model.Card))
     }
-    
+    @* 하단 안내(2026-11-28 사용자 시안 「하단 안내 B」): 같은 기록이라는 안내 박스 + 이동 목록 3줄(터치 52px). 글자만 있던 작은 링크는 없앴다 *@
+    <section class="rf" aria-label="이동">
+        <div class="rf-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D7A68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg>
+            <div><b>@(Model.BackText)과 같은 기록이에요</b><p>여기서 읽음 표시를 해도, @(Model.BackText)에서 해도 함께 반영돼요.</p></div>
+        </div>
+        <nav class="rf-list" aria-label="이동">
+            <a href="@Model.Link(Model.BackPage)"><span>@(Model.BackText)으로 돌아가기</span><i aria-hidden="true">›</i></a>
+            <a href="@Model.Link("word-mission")"><span>미션홈으로 가기</span><i aria-hidden="true">›</i></a>
+            <a href="/"><span>홈으로 가기</span><i aria-hidden="true">›</i></a>
+        </nav>
+    </section>
 </main>
 </div>
 @Html.AntiForgeryToken()
