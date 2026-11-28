@@ -48,7 +48,7 @@ builder.Services.AddScoped<BibleSearchService>();
 builder.Services.AddScoped<ReadingBoardService>();
 builder.Services.AddScoped<BrandingService>();
 builder.Services.AddScoped<WorshipService>();   // 예배 안내(ADR 0116)
-builder.Services.AddScoped<WeeklyWordService>();   // 부서가 직접 입력하는 이번 주 말씀(ADR 0142)
+builder.Services.AddScoped<WeeklyWordService>();   // 부서가 직접 입력하는 이번 주 말씀(ADR 0143)
 builder.Services.AddScoped<IntroService>();   // 부서 소개 화면(ADR 0140)
 builder.Services.AddScoped<BulletinService>();   // 부서 주보(ADR 0117)
 builder.Services.AddScoped<AlbumService>();   // 부서 사진첩(ADR 0118)
@@ -113,6 +113,8 @@ builder.Services.AddRateLimiter(o =>
         ctx.Connection.RemoteIpAddress?.ToString() ?? "none",
         _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
 });
+builder.Services.AddScoped<DemoSeedService>();   // 영상 촬영용 데모 로그인(ADR 0143, 임시) — 설정 DemoLogin:Enabled
+builder.Services.AddScoped<DemoLoginService>();
 builder.Services.AddScoped<TestToolsService>();   // 임시 시험 도구(ADR 0095), 설정 TestTools:Enabled
 builder.Services.AddScoped<DeptAdminRuleService>();   // 부서 관리자 규칙(역할 · 업무 → 부서 관리자)
 // 해설 표(dbo.eBibleSummary)는 읽기만 한다(ADR 0056): 읽기 전용 계정(BibleNote)이 있으면 그것으로 접속한다.
@@ -171,8 +173,8 @@ builder.Services.AddRazorPages(o =>
     o.Conventions.AllowAnonymousToPage("/Bulletin/Index");   // 부서 주보 보기(ADR 0117): 누구나
     o.Conventions.AllowAnonymousToPage("/Welcome/Index");   // 부서 소개 화면(ADR 0140): 누구나 — 손님도 들어올 때 먼저 본다
     o.Conventions.AllowAnonymousToPage("/Welcome/Photo");
-    o.Conventions.AllowAnonymousToPage("/WeeklyWord/Index");   // 이번 주 말씀 보기(ADR 0142): 누구나
-    o.Conventions.AllowAnonymousToPage("/About/Index");   // 부서 소개 보기(ADR 0142): 누구나
+    o.Conventions.AllowAnonymousToPage("/WeeklyWord/Index");   // 이번 주 말씀 보기(ADR 0143): 누구나
+    o.Conventions.AllowAnonymousToPage("/About/Index");   // 부서 소개 보기(ADR 0143): 누구나
     o.Conventions.AllowAnonymousToPage("/Bulletin/File");
     o.Conventions.AllowAnonymousToPage("/Album/Index");   // 사진첩(ADR 0118): 앨범 공개 범위가 "누구나"면 손님도
     o.Conventions.AllowAnonymousToPage("/Album/View");
@@ -220,6 +222,7 @@ app.UseAuthorization();
 app.MapStaticAssets();
 app.MapRazorPages().WithStaticAssets();
 app.MapMissionApi();
+app.MapDemoLogin();   // 영상 촬영용 임시(ADR 0143)
 app.MapBibleApi();
 app.MapReadingApi();
 app.MapBrandingApi();
