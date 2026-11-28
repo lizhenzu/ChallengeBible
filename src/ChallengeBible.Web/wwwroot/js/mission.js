@@ -163,14 +163,12 @@
       if (ca && ca.getAttribute('aria-pressed') !== String(!!json.chapterDone)) {
         ca.setAttribute('aria-pressed', String(!!json.chapterDone));
         ca.classList.toggle('done', !!json.chapterDone);
-        ca.querySelector('.t').textContent = json.chapterDone ? '이 장 읽음 표시를 취소할까요?' : '이 장 읽음으로 표시';
-        ca.querySelector('.d')?.toggleAttribute('hidden', !!json.chapterDone);
-        const em = ca.querySelector('em');   // 통독 본문(새 시안)은 → 가 아이콘이라 켜기 전 모양을 기억해 둔다
-        if (em) {
-          if (json.chapterDone) { if (em.dataset.arrow === undefined) em.dataset.arrow = em.innerHTML; em.textContent = '✓'; }
-          else if (em.dataset.arrow !== undefined) em.innerHTML = em.dataset.arrow;
-          else em.textContent = '→';
-        }
+        // 문구는 버튼의 data-t-on/off · data-d-on/off 에서(없으면 예전 문구). 화살표 ↔ 체크 아이콘은 .done 클래스로 CSS 가 바꾼다
+        ca.querySelector('.t').textContent = json.chapterDone ? (ca.dataset.tOn ?? '이 장 읽음 표시를 취소할까요?') : (ca.dataset.tOff ?? '이 장 읽음으로 표시');
+        const dd = ca.querySelector('.d');
+        const dtxt = json.chapterDone ? ca.dataset.dOn : ca.dataset.dOff;
+        if (dd && dtxt !== undefined) dd.textContent = dtxt;
+        else dd?.toggleAttribute('hidden', !!json.chapterDone);
       }
       if (json.roundCompleted) say(`성경을 다 읽었어요! ${json.newRoundNo}회차를 시작해요`);
       else if (json.chapterDone) say(`${chapter}장을 다 읽었어요`);

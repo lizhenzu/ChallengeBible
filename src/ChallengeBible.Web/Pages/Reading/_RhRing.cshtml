@@ -1,0 +1,11 @@
+@model (string Name, string Token, int Read, double Pct)
+@* 통독 링(88px, 반지름 35 · 두께 9 · 둥근 끝 · 12시 시작). 진행값 = 둘레 219.9 × 진도율. 읽은 장이 0이면 진행 호를 그리지 않는다(둥근 끝점이 찍히지 않게).
+   Token = 색 토큰 이름(--rh-green · --rh-ot · --rh-nt). 메인 · 구약/신약 읽기가 같이 쓴다 *@
+@{
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var pct = Model.Pct.ToString("0.0", inv);
+}
+<div class="rh-ringbox">
+    <svg width="88" height="88" viewBox="0 0 88 88" role="img" aria-label="@Model.Name @(pct)퍼센트"><g transform="rotate(-90 44 44)" fill="none" stroke-width="9" stroke-linecap="round"><circle class="rh-trk" cx="44" cy="44" r="35"></circle>@if (Model.Read > 0) { <circle cx="44" cy="44" r="35" style="@("stroke:var(" + Model.Token + ")")" stroke-dasharray="@((219.9 * Model.Pct / 100).ToString("0.0", inv)) 219.9"></circle> }</g></svg>
+    <div class="rh-pct">@(pct)%</div>
+</div>

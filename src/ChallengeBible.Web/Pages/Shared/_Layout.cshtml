@@ -44,7 +44,15 @@
     <meta property="og:url" content="@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.PathBase}{Context.Request.Path}")" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800;900&family=Noto+Serif+KR:wght@500;700;900&display=swap">
+    @if (ViewData["FontsLite"] as bool? == true)
+    {
+        @* 통독 새 화면(메인 · 구약/신약 읽기 · 본문): Noto Sans KR 400 / 500 / 700 만 *@
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+    }
+    else
+    {
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800;900&family=Noto+Serif+KR:wght@500;700;900&display=swap">
+    }
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>

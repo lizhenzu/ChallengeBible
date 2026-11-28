@@ -206,7 +206,9 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("href=\"/jamsil-kids/reading\"", await c.GetStringAsync("/jamsil-kids"));
         var dash = await c.GetStringAsync("/jamsil-kids/reading");
         Assert.Contains("나의 성경 통독 · <a href=\"/jamsil-kids/reading/rounds\" title=\"회차 기록\">1회차", dash);   // 회차 기록으로 가는 길
-        Assert.Contains("읽기 시작", dash);                                             // 읽은 기록이 없으면 「이어 읽기」 대신 「읽기 시작」(확정 시안 2026-11-28)
+        Assert.Contains("읽기 시작", dash);
+        Assert.Contains("wght@400;500;700&display=swap", dash);                           // 디자인 기준표: Noto Sans KR 400 / 500 / 700 만
+        Assert.DoesNotContain("Noto+Serif+KR", dash);                                             // 읽은 기록이 없으면 「이어 읽기」 대신 「읽기 시작」(확정 시안 2026-11-28)
         Assert.Contains("<div class=\"rh-rt\">창세기 1장</div>", dash);                 // 이어 읽기 큰 칸
         Assert.Matches("aria-current=\"page\"><i class=\"tdr2-i\"[^>]*>(?:(?!</a>)[\\s\\S])*<span>대시보드</span></a>", dash);   // 왼쪽 목차
         var list = await c.GetStringAsync("/jamsil-kids/reading/list?t=ot&b=1");
@@ -259,7 +261,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Equal(HttpStatusCode.OK, (await Api(c, token, "/api/me/reading/chapters/1/24", null, HttpMethod.Put)).StatusCode);
         read = await c.GetStringAsync("/jamsil-kids/reading/read/1/24");
         Assert.Contains("aria-pressed=\"true\"", read);
-        Assert.Contains("이 장 읽음 표시를 취소할까요?", read);
+        Assert.Contains("class=\"rv-mega done\"", read);                            // 완료 상태(상태 모음 3): 「이 장을 다 읽었어요」
     }
 
     [Fact]
@@ -354,7 +356,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.False((await Send(HttpMethod.Put, "/api/me/reading/verses/1/24?from=1&to=8")).GetProperty("chapterDone").GetBoolean());
         Assert.True((await Send(HttpMethod.Put, "/api/me/reading/verses/1/24/9")).GetProperty("chapterDone").GetBoolean());
         Assert.Contains("1 / 1,189장", await c.GetStringAsync("/jamsil-kids/reading"));
-        Assert.Contains("이 장 읽음 표시를 취소할까요?", await c.GetStringAsync("/jamsil-kids/reading/read/1/24"));   // 다 읽은 장
+        Assert.Contains("이 장을 다 읽었어요", await c.GetStringAsync("/jamsil-kids/reading/read/1/24"));   // 다 읽은 장
         Assert.False((await Send(HttpMethod.Delete, "/api/me/reading/verses/1/24/9")).GetProperty("chapterDone").GetBoolean());
         Assert.Contains("0 / 1,189장", await c.GetStringAsync("/jamsil-kids/reading"));
         // 책 목록에서 바로 완료(R-151)

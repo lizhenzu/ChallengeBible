@@ -8,17 +8,17 @@
     var d = Model.Data;
     var inv = System.Globalization.CultureInfo.InvariantCulture;
     ViewData["PbClass"] = "rhtop";
+    ViewData["FontsLite"] = true;   // Noto Sans KR 400 / 500 / 700 만 불러온다(디자인 기준표)
     string F(double v, string f = "0.##") => v.ToString(f, inv);
     string Unit(byte book) => book == 19 ? "편" : "장";
     string DayWord(DateOnly day) => day == d.Today ? "오늘" : day == d.Today.AddDays(-1) ? "어제" : day.ToString("M'/'d");
 
-    // 링 3개: 둘레 219.9 × 진도율
-    const double Circ = 219.9;
+    // 링 3개(_RhRing): 색은 토큰 이름
     var rings = new[]
     {
-        (Name: "전체", Color: "#4B7A56", Read: d.ReadChapters, Total: ReadingSummary.Total),
-        (Name: "구약", Color: "#3E7385", Read: d.OtRead, Total: ReadingSummary.OtTotal),
-        (Name: "신약", Color: "#B5732F", Read: d.NtRead, Total: ReadingSummary.NtTotal),
+        (Name: "전체", Token: "--rh-green", Read: d.ReadChapters, Total: ReadingSummary.Total),
+        (Name: "구약", Token: "--rh-ot", Read: d.OtRead, Total: ReadingSummary.OtTotal),
+        (Name: "신약", Token: "--rh-nt", Read: d.NtRead, Total: ReadingSummary.NtTotal),
     };
 
     // 통독 히트맵: 10개 구간(장 수 비례) + 읽은 범위(1,189장 기준 %)
@@ -59,12 +59,8 @@
         <div class="rh-rings">
             @foreach (var g in rings)
             {
-                var p = ReadingSummary.Percent(g.Read, g.Total);
                 <div class="rh-ring">
-                    <div class="rh-ringbox">
-                        <svg width="88" height="88" viewBox="0 0 88 88" role="img" aria-label="@g.Name @(F(p, "0.0"))퍼센트"><g transform="rotate(-90 44 44)" fill="none" stroke-width="9" stroke-linecap="round"><circle cx="44" cy="44" r="35" stroke="#E3E8DC"></circle>@if (g.Read > 0) { <circle cx="44" cy="44" r="35" stroke="@g.Color" stroke-dasharray="@F(Circ * p / 100, "0.0") 219.9"></circle> }</g></svg>
-                        <div class="rh-pct">@(F(p, "0.0"))%</div>
-                    </div>
+                    @await Html.PartialAsync("_RhRing", (g.Name, g.Token, g.Read, ReadingSummary.Percent(g.Read, g.Total)))
                     <div class="rh-nm">@g.Name</div>
                     <div class="rh-ct">@g.Read.ToString("N0", inv) / @g.Total.ToString("N0", inv)장</div>
                 </div>
@@ -74,7 +70,7 @@
         <div class="rh-card rh-map">
             <div class="rh-mt">
                 <span class="rh-h2">통독 히트맵</span>
-                <span class="rh-lg"><span><i style="background:#4B7A56"></i>읽음</span><span><i style="background:#D9E2D2"></i>안 읽음</span></span>
+                <span class="rh-lg"><span><i class="on"></i>읽음</span><span><i class="off"></i>안 읽음</span></span>
             </div>
             <div class="rh-bar" role="img" aria-label="성경 전체 읽은 범위">
                 @{ var acc = 0; }
@@ -136,19 +132,16 @@
                 else { <span class="@dw @lv@(day == d.Today ? " t" : "")" title="@day.ToString("M'/'d") @(n)장">@day.Day</span> }
             }
         </div>
-        <div class="rh-lgd">적음<i style="background:#E4EADB"></i><i style="background:#C6D8BE"></i><i style="background:#8DB087"></i><i style="background:#4B7A56"></i>많음</div>
+        <div class="rh-lgd">적음<i class="a"></i><i class="b"></i><i class="c"></i><i class="d"></i>많음</div>
     </section>
 
     <section class="rh-bk" aria-label="책별 진도">
         <div class="rh-bt"><span class="rh-h2">책별 진도</span><a href="@Model.ListUrl(nt ? "nt" : "ot")">@(nt ? "신약" : "구약") 목록 →</a></div>
-        <nav class="rh-tabs" aria-label="구약 · 신약">
-            <a href="?Tab=ot" aria-current="@(!nt ? "true" : "false")">구약 39권</a>
-            <a href="?Tab=nt" aria-current="@(nt ? "true" : "false")">신약 27권</a>
-        </nav>
+        @await Html.PartialAsync("_RhTabs", (!nt, "?Tab=ot", "?Tab=nt"))
         <div class="rh-books">
             @foreach (var b in books)
             {
-                <a href="@Model.ListUrl(ReadingPageBase.TestamentOf(b.BookId), b.BookId)" title="@b.Name @b.Read/@b.Total"><div class="n">@b.Name</div><div class="c">@b.Read/@b.Total</div></a>
+                <a href="@Model.ListUrl(ReadingPageBase.TestamentOf(b.BookId), b.BookId)" class="@(b.Done ? "dn" : b.Read > 0 ? "ing" : "")" title="@b.Name @b.Read/@b.Total"><div class="n">@b.Name</div><div class="c">@b.Read/@b.Total@(b.Done ? " ✓" : "")</div></a>
             }
         </div>
     </section>
