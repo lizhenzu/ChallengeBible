@@ -201,7 +201,6 @@
       if (!all) return;
       const n = readBtns().filter(isOn).length, done = n === readBtns().length;
       cardMark(done);   // 큰 버튼: 읽음 표시 완료 ✓ + [읽음 표시 취소]
-      all.querySelector('[data-megac]').textContent = `이 페이지 읽은 절 ${n} / ${all.dataset.n}`;
     };
     // 「혼자 읽었어요」를 누르거나 취소하면 서버가 오늘 범위 전체의 읽음을 바꾼다 — 보이는 절 · 진도를 맞춘다
     window.cbReadHooks = {
@@ -253,7 +252,6 @@
     all?.addEventListener('click', async () => {
       if (all.disabled) return;
       const on = !all.classList.contains('done');
-      if (!on && !all.dataset.cancelNow) return;   // 완료된 큰 버튼은 [읽음 표시 취소]로만 되돌린다
       const r = { book: Number(book), startChapter: Number(all.dataset.sc), startVerse: Number(all.dataset.sv), endChapter: Number(all.dataset.ec), endVerse: Number(all.dataset.ev) };
       const viaMission = !reading && main.dataset.word === '1' && rcard?.querySelector('button.pick');   // 오늘 말씀으로 연 화면: 읽음 + 미션을 같이
       if (!on && viaMission && !(await guardCancel())) return;
@@ -343,17 +341,16 @@
     if (n) { n.textContent = complete ? '다 읽었어요!' : String(read); n.classList.toggle('small', complete); }
     if (of) of.textContent = complete ? '' : `/ ${total}절`;
   }
-  // 큰 버튼 · 취소 버튼의 모양(읽음 표시 완료 ✓ / 이 페이지 읽음으로 표시)
+  // 큰 버튼은 하나의 토글(2026-11-28): 켜짐 = 진한 민트 + 「✓ 표시됨」, 꺼짐 = 연한 민트 + 「→」. 안내 문구는 꺼진 상태에서만
   function cardMark(done) {
     const b = markBtn();
     if (!b) return;
     b.classList.toggle('done', done);
     b.setAttribute('aria-pressed', String(done));
-    const t = b.querySelector('[data-megat]'), em = b.querySelector('em');
-    if (t) t.textContent = done ? '읽음 표시 완료 ✓' : '이 페이지 읽음으로 표시';
-    if (em) em.textContent = done ? '✓' : '→';
-    const cx = rcard.querySelector('[data-rc-cancel]');
-    if (cx) cx.hidden = !done;
+    const em = b.querySelector('[data-rc-aux]');
+    if (em) em.textContent = done ? '✓ 표시됨' : '→';
+    const hint = rcard.querySelector('[data-rc-hint]');
+    if (hint) hint.hidden = done;
   }
   // 점수 · 도장 · 안내 · 2단계 표시를 지금 켜진 항목에 맞춘다
   function cardPicks() {
@@ -386,17 +383,16 @@
     if (!window.cbReadHooks) cardMark(meOn || all);
   }
   async function guardCancel() {
-    const me = meBtn();
-    if (me && me.getAttribute('aria-pressed') === 'true') return confirmUndo(me.querySelector('b')?.textContent.trim() ?? '혼자 읽었어요', me.dataset.pt);
-    return true;
+    const on = [...(rcard?.querySelectorAll('button.pick[aria-pressed="true"]') ?? [])];
+    if (on.length === 0) return true;
+    return confirmUndo('읽음 표시와 읽은 방법', on.reduce((a, x) => a + Number(x.dataset.pt || 0), 0));   // 두 버튼의 선택도 함께 꺼진다
   }
   // 읽음 표시 / 취소 → 서버(읽음 + 미션). 범위가 없으면 오늘 말씀 범위 전체
   async function missionRead(on, range) {
     const { ok, json } = await post('word/read', { date, on, ...(range ?? {}) });
     if (!ok || json.ok === false) { say(json.message ?? '잠시 뒤에 다시 해 주세요.'); return null; }
     cardRing(json.readTotal, json.readCount);
-    const me = meBtn();
-    if (me) setPick(me, (json.completedItems ?? []).includes('Word.Me'));
+    rcard?.querySelectorAll('button.pick').forEach((x) => setPick(x, (json.completedItems ?? []).includes(x.dataset.item)));
     const box = rcard?.querySelector('.picks');
     if (box) pickState(box); else cardPicks();
     return json;
@@ -405,18 +401,10 @@
     if (on && json.pointsEarned > 0) after(json, '혼자 읽었어요');
     else if (!on && json.message) say(json.message);
   }
-  document.querySelector('[data-rc-cancel]')?.addEventListener('click', () => {
-    const b = markBtn();
-    if (!b) return;
-    b.dataset.cancelNow = '1';
-    b.click();
-    delete b.dataset.cancelNow;
-  });
   // 말씀 미션 화면의 큰 버튼(오늘 말씀 범위 전체)
   const wordBtn = document.querySelector('[data-wordread]');
   wordBtn?.addEventListener('click', async () => {
     const on = !wordBtn.classList.contains('done');
-    if (!on && !wordBtn.dataset.cancelNow) return;
     if (!on && !(await guardCancel())) return;
     wordBtn.disabled = true;
     wordBtn.classList.add('wait');
@@ -425,8 +413,6 @@
     wordBtn.classList.remove('wait');
     if (!json) return;
     cardMark(json.readTotal > 0 && json.readCount >= json.readTotal);
-    const c = wordBtn.querySelector('[data-megac]');
-    if (c) c.textContent = `이 페이지 읽은 절 ${json.readCount} / ${json.readTotal}`;
     missionRead_done(on, json);
   });
 

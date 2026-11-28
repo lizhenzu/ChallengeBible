@@ -51,9 +51,10 @@ public static class MissionApi
             if (!res.Ok) return Results.Ok(new MissionResponse(false, 0, res.SeasonPoints, [], [], res.Message));
             var day = await s.GetDayAsync(pid, r.Date, h.RequestAborted);
             int? readTotal = null, readCount = null;
-            if (item == MissionItem.WordMe && day.Word is { } uw)
+            if (item is MissionItem.WordMe or MissionItem.WordParent && day.Word is { } uw)
             {
-                await marks.UnreadRangeAsync(uw.Ref, h.RequestAborted);   // 「혼자 읽었어요」를 취소하면 읽음 표시도 함께 되돌린다(2026-11-28)
+                if (!day.Done.Any(d => d.Mission() == Mission.Word))
+                    await marks.UnreadRangeAsync(uw.Ref, h.RequestAborted);   // 두 버튼이 모두 꺼지면 읽음 표시도 함께 되돌린다(2026-11-28)
                 var st = await rc.StateAsync(uw.Ref, h.RequestAborted);
                 readTotal = st.Total; readCount = st.Read;
             }
@@ -100,9 +101,9 @@ public static class MissionApi
         }
         var day = await s.GetDayAsync(pid, r.Date, h.RequestAborted);
         int? readTotal = null, readCount = null;
-        if (mission == Mission.Word && marks is not null && rc is not null && day.Word is { } w && items.Any(i => i == MissionItem.WordMe))
+        if (mission == Mission.Word && marks is not null && rc is not null && day.Word is { } w && items.Any(i => i is MissionItem.WordMe or MissionItem.WordParent))
         {
-            await marks.ReadRangeAsync(w.Ref, h.RequestAborted);   // 「혼자 읽었어요」를 누르면 오늘 범위 전체가 읽음 표시된다(2026-11-28)
+            await marks.ReadRangeAsync(w.Ref, h.RequestAborted);   // 「혼자」 · 「부모님께」 중 하나만 눌러도 오늘 범위 전체가 읽음 표시된다(2026-11-28)
             var st = await rc.StateAsync(w.Ref, h.RequestAborted);
             readTotal = st.Total; readCount = st.Read;
         }
@@ -113,7 +114,7 @@ public static class MissionApi
 
     /// <summary>
     /// 읽음 표시 카드의 큰 버튼(2026-11-28 사용자): 페이지 전체 절을 읽음 처리하고, 오늘 말씀 범위가 모두 읽음이 되면 「혼자 읽었어요」(+1점)가 자동으로 눌린다.
-    /// 취소하면 읽음이 풀리고 「혼자 읽었어요」도 함께 꺼진다(점수 -1, 「부모님께」는 그대로). 오늘 말씀이 아닌 날짜는 읽음만 바꾸고 점수는 건드리지 않는다.
+    /// 취소하면 읽음이 풀리고 「혼자」 · 「부모님께」 선택도 함께 꺼진다(점수도 함께 빠진다). 오늘 말씀이 아닌 날짜는 읽음만 바꾸고 점수는 건드리지 않는다.
     /// </summary>
     private static async Task<IResult> WordRead(WordReadRequest r, MissionService s, FamilyTeamService f, BibleMarkService marks, ReadCardService rc, HttpContext h)
     {
@@ -142,10 +143,12 @@ public static class MissionApi
         else
         {
             await marks.UnreadRangeAsync(range, ct);
-            if (day.Done.Contains(MissionItem.WordMe))
+            // 읽음 표시를 취소하면 아래 두 버튼(혼자 · 부모님께)의 선택도 함께 꺼진다(2026-11-28 사용자)
+            foreach (var item in new[] { MissionItem.WordMe, MissionItem.WordParent })
             {
-                var res = await s.UndoAsync(pid, MissionItem.WordMe, r.Date, ct);
-                if (res.Ok) { added = res.Added; message = res.Message; }
+                if (!day.Done.Contains(item)) continue;
+                var res = await s.UndoAsync(pid, item, r.Date, ct);
+                if (res.Ok) { added += res.Added; message = added < 0 ? $"취소했어요 · {added}점" : res.Message; }
                 else message = res.Message;
             }
         }

@@ -166,7 +166,7 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         var p2 = await c.GetStringAsync("/jamsil-kids/read?from=word&unit=3&p=2");
         Assert.Contains("KRV 1:24:4", p2);
         Assert.Contains("4–6절 / 9", p2);
-        Assert.Contains("이 페이지 읽은 절 0 / 3", p2);
+        Assert.Contains("data-n=\"3\"", p2);                              // 큰 버튼의 페이지 절 수(글자 줄은 시안에서 뺐다, 2026-11-28)
         Assert.DoesNotContain("통독률", p2);                                // D25: 통독률은 2차
     }
 
@@ -558,7 +558,8 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Contains("Word.Me", all.GetProperty("completedItems").EnumerateArray().Select(x => x.GetString()));
         var done = await c.GetStringAsync("/jamsil-kids/read?from=word");
         Assert.Contains("다 읽었어요!", done);
-        Assert.Contains("읽음 표시 완료", done);
+        Assert.Contains("✓ 표시됨", done);                              // 큰 버튼은 하나의 토글 — 켜지면 「✓ 표시됨」
+        Assert.DoesNotContain("읽음 표시 취소", done);
         Assert.Contains("미션홈에도 반영돼요", done);
         Assert.Contains("class=\"mh-stamp ok\"", await c.GetStringAsync("/jamsil-kids/word-mission"));   // 미션홈 카드의 「완료」 도장
         var rd = await c.GetStringAsync("/jamsil-kids/read?from=word");
@@ -571,7 +572,8 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         Assert.DoesNotContain("brd-k", rd);
         Assert.Contains("읽음 표시는 말씀 미션과 같은 기록이에요", rd);   // 하단 안내 A(2026-11-28): 안내 한 줄 + 버튼 3개 + 보조 문구
         Assert.Contains("class=\"rf-btns\"", rd);
-        Assert.Contains(">말씀 미션으로</a>", rd);
+        Assert.Contains(">말씀 미션</a>", rd);   // 「으로」 없이
+        Assert.DoesNotContain("말씀 미션으로", rd);
         Assert.Contains("어디서 눌러도 함께 반영돼요", rd);
         Assert.DoesNotContain("brd-foot", rd);
 
@@ -579,11 +581,16 @@ public partial class MissionFlowTests : IClassFixture<WebApplicationFactory<Prog
         var parent = J(await Api(c, t, "/api/jamsil-kids/missions/word", new { date = "2027-01-05", items = new[] { "Word.Parent" } }));
         Assert.Equal((1, 2), (parent.GetProperty("pointsEarned").GetInt32(), parent.GetProperty("seasonTotal").GetInt32()));
 
-        // 읽음 표시 취소 → 읽음 · 「혼자 읽었어요」(-1점)이 되돌아가고 「부모님께」는 그대로
+        // 읽음 표시 취소 → 읽음 · 「혼자」 · 「부모님께」 선택이 모두 꺼지고 점수도 함께 빠진다(2026-11-28)
         var undo = J(await Api(c, t, "/api/jamsil-kids/missions/word/read", new { date = "2027-01-05", on = false }));
-        Assert.Equal((-1, 0), (undo.GetProperty("pointsEarned").GetInt32(), undo.GetProperty("readCount").GetInt32()));
-        Assert.Equal("Word.Parent", Assert.Single(undo.GetProperty("completedItems").EnumerateArray()).GetString());
+        Assert.Equal((-2, 0), (undo.GetProperty("pointsEarned").GetInt32(), undo.GetProperty("readCount").GetInt32()));
+        Assert.Empty(undo.GetProperty("completedItems").EnumerateArray());
         Assert.Contains("data-readcount>0</span>절</b> 읽음", await c.GetStringAsync("/jamsil-kids/read?from=word"));
+
+        // 「부모님께」만 눌러도 오늘 범위 전체가 읽음 처리되고 미션이 완료된다. 취소하면 읽음도 풀린다
+        var pOnly = J(await Api(c, t, "/api/jamsil-kids/missions/word", new { date = "2027-01-05", items = new[] { "Word.Parent" } }));
+        Assert.Equal(9, pOnly.GetProperty("readCount").GetInt32());
+        Assert.Equal(0, J(await Api(c, t, "/api/jamsil-kids/missions/undo", new { date = "2027-01-05", item = "Word.Parent" })).GetProperty("readCount").GetInt32());
 
         // 「혼자 읽었어요」를 직접 누르면 오늘 범위 전체가 읽음, 취소하면 읽음도 풀린다
         var me = J(await Api(c, t, "/api/jamsil-kids/missions/word", new { date = "2027-01-05", items = new[] { "Word.Me" } }));

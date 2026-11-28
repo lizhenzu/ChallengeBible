@@ -38,14 +38,10 @@
     </div>
     @if (c.Total > 0)
     {
-        <button type="button" class="rc-mark@(pageAll ? " done" : "")" @mark data-sc="@c.Sc" data-sv="@c.Sv" data-ec="@c.Ec" data-ev="@c.Ev" data-n="@pt" data-book="@c.Book">
-            <span class="b">
-                <span class="t" data-megat>@(pageAll ? "읽음 표시 완료 ✓" : "이 페이지 읽음으로 표시")</span>
-                <span class="c num" data-megac>이 페이지 읽은 절 @pr / @pt</span>
-            </span>
-            <em aria-hidden="true">@(pageAll ? "✓" : "→")</em>
+        <button type="button" class="rc-mark@(pageAll ? " done" : "")" @mark data-sc="@c.Sc" data-sv="@c.Sv" data-ec="@c.Ec" data-ev="@c.Ev" data-n="@pt" data-book="@c.Book" aria-pressed="@(pageAll ? "true" : "false")">
+            <span data-megat>이 페이지 읽음으로 표시</span><em data-rc-aux aria-hidden="true">@(pageAll ? "✓ 표시됨" : "→")</em>
         </button>
-        <button type="button" class="rc-cancel" data-rc-cancel hidden="@(!pageAll)">읽음 표시 취소</button>
+        <p class="rc-hint" data-rc-hint hidden="@pageAll">넘기기만 해서는 읽음이 되지 않아요</p>
     }
     @if (showPicks)
     {
