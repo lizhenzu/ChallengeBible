@@ -66,7 +66,7 @@
 .tv-tabs { display: flex; margin-top: 14px; border-bottom: 1.5px solid #E3EAE8; }
 .tv-tabs button { flex: 1; min-height: 44px; border: 0; background: transparent; font-size: 14px; font-weight: 700; color: #5F6F6B; border-bottom: 3px solid transparent; margin-bottom: -1.5px; cursor: pointer; font-family: inherit; }
 .tv-tabs button[aria-selected="true"] { color: #0D7A68; font-weight: 900; border-bottom-color: #0D7A68; }
-.tv-g { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #EEF2F1; }
+.tv-g { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #CFE8E1; }   /* 목록형 행 구분선 */
 .tv-g .ic { width: 44px; height: 44px; border-radius: 5px; background: #E3F3EE; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 .tv-g > div { flex: 1; min-width: 0; }
 .tv-g b { display: block; font-size: 15px; font-weight: 700; }

@@ -6,7 +6,7 @@
     const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const n = (v) => Number(v).toLocaleString('ko-KR');
 
-    const mint = !!document.querySelector('.gk-pg.mint');   // 민트 시안(2026-11-27) 선물 화면의 창
+    const mint = !!document.querySelector('.gk-pg.mint, .mh');   // 민트 시안(2026-11-27) 선물 화면의 창
     const open = (cls, html, onOk) => {
         const bg = document.createElement('div');
         bg.className = 'gk-dim ' + cls + (mint ? ' mint' : '');

@@ -1,5 +1,5 @@
 /* 성경미션 홈(/{부서}/word-mission) — 2026-11-27 사용자 새 시안(민트)으로 교체. 모든 규칙을 .mh 아래로 가둔다(다른 화면과 서로 영향 없음).
-   색: 배경 #F3F8F7 · 포인트 #0D7A68 · 연민트 카드 #D6F0EA · 글자 #12302A · 보조 #3F665D · 가족 선물 주황 #C2570C / #FFF4E8. 모든 카드 모서리 5px. 스크롤바는 숨기되 스크롤은 유지. */
+   색: 배경 #F3F8F7 · 포인트 #0D7A68 · 연민트 카드 #D6F0EA · 글자 #12302A · 보조 #3F665D · 가족 선물 청록 #D9EEEF / #095C4E(2026-11-28). 모든 카드 모서리 5px. 스크롤바는 숨기되 스크롤은 유지. */
 body:has(.mh) { background: #F3F8F7; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; }
 body:has(.mh)::-webkit-scrollbar, html:has(.mh)::-webkit-scrollbar { display: none; width: 0; height: 0; }
 html:has(.mh) { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hidden; }
@@ -84,9 +84,9 @@ html:has(.mh) { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hid
 .mh-lg span { display: flex; align-items: center; gap: 4px; }
 .mh-lg i { width: 10px; height: 10px; border-radius: 3px; display: block; }
 
-/* 선물 카드(기존 부품 _GiftCard · _TeamGiftCard · _BirthdayGiftCard 를 민트로) — 가족 선물은 주황 */
+/* 선물 카드(기존 부품 _GiftCard · _TeamGiftCard · _BirthdayGiftCard 를 민트로) — 가족 선물은 민트 한 단계 진한 청록(2026-11-28: 주황 삭제) */
 .mh-gifts { margin: 0 16px; }
-.mh .mh-gifts .gk-card { margin: 0 0 12px; padding: 16px 18px; border: 0; border-radius: 5px; background: #D6F0EA; color: #12302A; gap: 12px; }
+.mh .mh-gifts .gk-card { margin: 0 0 12px; padding: 16px 18px; border: 0; border-radius: 5px; background: #E6F5F1; color: #12302A; gap: 12px; }
 .mh .mh-gifts .gk-card .gk-k { color: #3F665D; font-size: 12px; }
 .mh .mh-gifts .gk-card b { color: #0D7A68; font-size: 17px; font-weight: 900; }
 .mh .mh-gifts .gk-card small { color: #3F665D; font-size: 12px; }
@@ -97,10 +97,15 @@ html:has(.mh) { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hid
 .mh .mh-gifts .gk-card .gk-pb i { background: #0D7A68; }
 .mh .mh-gifts .gk-card.gk-got { background: #fff; }
 .mh .mh-gifts .gk-card.gk-got .gk-pic { border-radius: 5px; }
-.mh .mh-gifts .gk-card.gk-fam { background: #FFF4E8; }
-.mh .mh-gifts .gk-card.gk-fam b { color: #12302A; }
-.mh .mh-gifts .gk-card.gk-fam .gk-go { background: #C2570C; }
-.mh .mh-gifts .gk-card.gk-fam .gk-tag, .mh .mh-gifts .gk-card .gk-tag.gk-p { background: #fff; color: #C2570C; }
+/* 가족 선물 알림 카드 3형태(고르기 · 준비 중 · 기한 지남): 내 선물 카드(#E6F5F1)와 구분되는 청록 바탕 + 한 단계 진한 #095C4E */
+.mh .mh-gifts .gk-card.gk-tm { background: #D9EEEF; border: 1px solid #A9D3D6; }
+.mh .mh-gifts .gk-card.gk-tm .gk-tag, .mh .mh-gifts .gk-card.gk-tm .gk-tag.gk-p, .mh .mh-gifts .gk-card.gk-tm .gk-tag.gk-w { background: #fff; color: #095C4E; }
+.mh .mh-gifts .gk-card.gk-tm b { color: #095C4E; }
+.mh .mh-gifts .gk-card.gk-tm small, .mh .mh-gifts .gk-card.gk-tm .gk-k { color: #3F665D; }
+.mh .mh-gifts .gk-card.gk-tm .gk-go { background: #095C4E; color: #fff; }
+.mh .mh-gifts .gk-card.gk-tm .gk-ar { color: #095C4E; }
+.mh .mh-gifts .gk-card.gk-tm .gk-pic { background: #fff; border-radius: 5px; color: #095C4E; }
+.mh .mh-gifts .gk-card .gk-tag.gk-p { background: #fff; color: #0D7A68; }
 .mh .mh-gifts .gk-card.gk-bday, .mh .mh-gifts .gk-card.gk-nc, .mh .mh-gifts .gk-card.gk-rd { background: #D6F0EA; }
 .mh .mh-gifts .gk-card.gk-bday b, .mh .mh-gifts .gk-card.gk-nc b, .mh .mh-gifts .gk-card.gk-rd b { color: #0D7A68; }
 .mh .mh-gifts .gk-card.gk-bday .gk-go, .mh .mh-gifts .gk-card.gk-nc .gk-go, .mh .mh-gifts .gk-card.gk-rd .gk-go { background: #0D7A68; }

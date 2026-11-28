@@ -1,5 +1,5 @@
 /* 선물 고르기(/gifts · /gifts/team/{id}) 민트 시안 — 2026-11-27 사용자. .gk-pg.mint · .gk-dim.mint 안에서만 바뀐다(생일 선물 등 다른 화면은 그대로).
-   색: 배경 #F3F8F7 · 포인트 #0D7A68 · 연민트 #D6F0EA · 글자 #12302A / #3F665D · 가족 선물 주황 #C2570C / #FFF4E8. 모서리 5px. */
+   색: 배경 #F3F8F7 · 포인트 #0D7A68 · 연민트 #D6F0EA · 글자 #12302A / #3F665D · 선물 화면은 주황 없이 민트 한 계열(2026-11-28: 개인 · 가족은 문구와 카드 바탕으로만 구분). 모서리 5px. */
 body:has(.gk-pg.mint) { background: #F3F8F7; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; }
 body:has(.gk-pg.mint)::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .gk-pg.mint { font-family: 'Noto Sans KR', system-ui, sans-serif; color: #12302A; padding: 6px 16px 40px; line-height: normal; }
@@ -10,11 +10,11 @@ body:has(.gk-pg.mint)::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .gk-pg.mint .gk-sub { color: #3F665D; font-size: 13px; }
 .gk-pg.mint .gk-msg { border-radius: 5px; background: #D6F0EA; color: #0D7A68; }
 .gk-pg.mint .gk-note { border-radius: 5px; background: #fff; color: #3F665D; }
-.gk-pg.mint .gk-mine { border-bottom: 1px solid #E3EAE8; }
+.gk-pg.mint .gk-mine { border-bottom: 1px solid #CFE8E1; }
 .gk-pg.mint .gk-mine span { color: #3F665D; }
 .gk-pg.mint .gk-mine b { color: #0D7A68; font-weight: 900; font-size: 34px; }
 .gk-pg.mint .gk-mine b u { color: #3F665D; }
-.gk-pg.mint .gk-mine em { font-style: normal; font-size: 12px; font-weight: 700; color: #C2570C; }
+.gk-pg.mint .gk-mine em { font-style: normal; font-size: 12px; font-weight: 700; color: #0D7A68; }
 .gk-pg.mint .gk-sum3 { background: #D6F0EA; border-radius: 5px; padding: 14px 6px; margin: 6px 0 14px; }
 .gk-pg.mint .gk-sum3 span { color: #3F665D; }
 .gk-pg.mint .gk-sum3 b { color: #12302A; font-weight: 900; font-size: 17px; }
@@ -35,7 +35,7 @@ body:has(.gk-pg.mint)::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .gk-pg.mint .gk-steps li.gk-on i { background: #0D7A68; border-color: #0D7A68; }
 .gk-pg.mint .gk-btn, .gk-dim.mint .gk-btn { border-radius: 5px; }
 .gk-pg.mint .gk-btn.gk-pri, .gk-dim.mint .gk-btn.gk-pri { background: #0D7A68; }
-.gk-pg.mint .gk-btn.gk-pur, .gk-dim.mint .gk-btn.gk-pur { background: #C2570C; }
+.gk-pg.mint .gk-btn.gk-pur, .gk-dim.mint .gk-btn.gk-pur { background: #0D7A68; }   /* 가족 선물도 같은 민트(주황 삭제) */
 .gk-pg.mint .gk-btn.gk-plain { border-color: #D4E6E1; color: #3F665D; border-radius: 5px; }
 .gk-pg.mint .gk-btn.gk-ghost { color: #3F665D; }
 
@@ -43,7 +43,13 @@ body:has(.gk-pg.mint)::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .gk-dim.mint .gk-sheet, .gk-dim.mint .gk-pop { border-radius: 5px; font-family: 'Noto Sans KR', system-ui, sans-serif; color: #12302A; }
 .gk-dim.mint .gk-sheet .gk-pic { border-radius: 5px; background: #DDF2EC; }
 .gk-dim.mint .gk-need { color: #0D7A68; font-weight: 900; }
-.gk-dim.mint .gk-need[style] { color: #C2570C !important; }
+.gk-dim.mint .gk-need[style] { color: #0D7A68 !important; }   /* 종류 표시 색(보라 · 분홍 · 초록 · 주황)은 인라인 — 모두 민트로 */
+/* 선물 확인 창(2026-11-28 시안 「컴포넌트 · 선물 고르기」): 개인 · 가족 · 생일 · 완독 · 새친구 모두 같은 민트 */
+.gk-dim.mint .gk-sheet, .gk-dim.mint .gk-pop { background: #fff; border: 1.5px solid #9FD3C6; box-shadow: 0 8px 24px rgba(9, 92, 78, .25); }
+.gk-dim.mint .gk-btn.gk-pri, .gk-dim.mint .gk-btn.gk-pur, .gk-dim.mint .gk-btn.gk-orange, .gk-dim.mint .gk-btn.gk-pink, .gk-dim.mint .gk-btn.gk-green { background: #0D7A68; color: #fff; box-shadow: 2px 2px 3px rgba(13, 122, 104, .3); }
+.gk-dim.mint .gk-btn.gk-ghost, .gk-dim.mint .gk-sheet .gk-row2 .gk-btn.gk-ghost { background: #E3F3EE; border: 1.5px solid #9FD3C6; color: #095C4E; }
+.gk-dim.mint .gk-desc, .gk-dim.mint .gk-note, .gk-dim.mint .gk-sn { background: #E3F3EE; border-radius: 5px; }
+.gk-dim.mint hr, .gk-dim.mint .gk-sheet .gk-top, .gk-dim.mint .gk-sheet .gk-sum { border-color: #CFE8E1; }
 .gk-dim.mint .gk-kind { font-style: normal; font-size: 12px; font-weight: 700; color: #0D7A68; background: #DDF2EC; border-radius: 5px; padding: 2px 8px; margin-right: 4px; }
 .gk-dim.mint .gk-desc, .gk-dim.mint .gk-sn { color: #3F665D; }
 .gk-dim.mint .gk-sheet .gk-row2 .gk-btn.gk-ghost { background: #E3EFEC; color: #3F665D; }
@@ -51,11 +57,21 @@ body:has(.gk-pg.mint)::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
 /* 단계별 선물 목록 — 「골라 둔 가족 선물 n/N」 한 줄을 누르면 펼쳐진다(2026-11-27 사용자, 단계 칩 대신) */
 .gk-pg.mint .gk-stl { margin: 0 0 14px; background: #fff; border-radius: 5px; }
-.gk-pg.mint .gk-stl summary { display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 14px; font-size: 13px; font-weight: 700; color: #C2570C; cursor: pointer; list-style: none; }
+.gk-pg.mint .gk-stl summary { display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 14px; font-size: 13px; font-weight: 700; color: #0D7A68; cursor: pointer; list-style: none; }
 .gk-pg.mint .gk-stl summary::-webkit-details-marker { display: none; }
 .gk-pg.mint .gk-stl summary::after { content: '›'; font-size: 18px; color: #3F665D; transform: rotate(90deg); }
 .gk-pg.mint .gk-stl[open] summary::after { transform: rotate(-90deg); }
 .gk-pg.mint .gk-stl ul { list-style: none; margin: 0; padding: 0 14px 6px; }
-.gk-pg.mint .gk-stl li a { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 44px; border-top: 1px solid #EFECE4; font-size: 14px; color: #12302A; }
+.gk-pg.mint .gk-stl li a { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 44px; border-top: 1px solid #CFE8E1; font-size: 14px; color: #12302A; }
 .gk-pg.mint .gk-stl li a[aria-current] { color: #0D7A68; font-weight: 700; }
 .gk-pg.mint .gk-stl li i { font-style: normal; font-size: 12px; color: #3F665D; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 상품 사진 자리 배경: 민트 계열 6가지를 돌려 쓴다(기존 주황 · 분홍 · 보라 · 베이지 삭제) */
+.gk-pg.mint .gk-it:nth-child(6n+1) .gk-pic { background: #E3F3EE; }
+.gk-pg.mint .gk-it:nth-child(6n+2) .gk-pic { background: #EAF7F3; }
+.gk-pg.mint .gk-it:nth-child(6n+3) .gk-pic { background: #DDF2EC; }
+.gk-pg.mint .gk-it:nth-child(6n+4) .gk-pic { background: #EEF8F5; }
+.gk-pg.mint .gk-it:nth-child(6n+5) .gk-pic { background: #E0F1EC; }
+.gk-pg.mint .gk-it:nth-child(6n+6) .gk-pic { background: #E8F5F1; }
+/* 가족 선물 화면 강조색(점수 · 칩 · 버튼 테두리)도 #0D7A68 */
+.gk-pg.mint .gk-fam-v, .gk-pg.mint .gk-chip.on, .gk-pg.mint .gk-it.gk-lock { color: #0D7A68; }

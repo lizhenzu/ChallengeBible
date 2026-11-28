@@ -53,6 +53,7 @@
     var cellRows = Model.Cells().Chunk(7).Where(w => w.Any(x => x.Month == Model.FirstOfMonth.Month)).ToList();
 }
 <link rel="stylesheet" href="~/css/mission-home.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/gift-mint.css" asp-append-version="true" />   @* 선물 창(100점 단위 알림 등)도 같은 민트(2026-11-28) *@
 <div class="mh" data-slug="@slug">
 
 <header class="mh-bar">
